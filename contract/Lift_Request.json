@@ -1,0 +1,26 @@
+{
+ "lift": {
+   "version": 1,
+   "uuid":"UUID_of_this_lift"
+   "created": "2018-04-01_12:00:23.4567",
+   "expires": "2018-04-01_12:10:23.4567",
+   "status": "search",
+   "amount": 100,
+   "maker": "http://my_chip_server/",
+   "hints": [
+     "http://id1_along_the_way/",
+     "http://id2_along_the_way/",
+     "http://id3_along_the_way/"
+   ],
+   "contract": {
+     "author": "mychips.org",
+     "title": "LIFT Convenant",
+     "version": 1,
+     "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031ee"
+   },
+ },
+ "signed": {
+    "digest": "",
+    "signature":"Signature_of_digest",
+ }
+}

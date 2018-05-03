@@ -1,0 +1,45 @@
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#------------------------------------------
+tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this server.} [concat {
+    {user_ent		{Entity link}		{A link to the entities base table.}}
+    {user_cdi		{CHIPs ID}		{The user's CHIPs Domain Identifier, or CDI}}
+    {user_hid		{Covert ID}		{A substitute ID by which direct trading partners will refer to this user, when conversing with other peers.}}
+    {user_pub		{Public Key}		{The user's public key, known to other trading partners}}
+    {mobi_inet		{User Net Addr}		{The IP number where the users's mobile application connects}}
+    {mobi_port		{User Port}		{The port to which the user's mobile device will connect}}
+    {user_stat		{Trading Status}	{The current state of the user's account for trading of CHIPs} {
+        {act		{Active}		{Good to conduct trades}}
+        {lck		{Lockdown}		{Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.}}
+        {off		{Offline}		{Account completely off line.  No trades possible.}}
+    }}
+    {user_crt		{Certificate}		{A certificate used for connecting to the site on behalf of this user}}
+    {user_cmt		{User Comments}		{Administrative comments about this user}}
+} $glob::stampt] -messages {
+    {ABC {Test 1} {A test message 1}}
+    {BCD {Test 2} {A test message 2}}
+    {DEF {Test 3} {A test message 3}}
+}
+
+tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this server.} {
+    {mobi_sock		{User Socket}		{The IP Number, and port to which the user's mobile device will connect}}
+} -messages {
+    {ticket {User Ticket} {Generate a temporary, one-time pass to allow a user to establish a secure connection with the server}}
+}
+
+#Sample text in alternate language:
+tabtext mychips.users -lang fi	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
+    {user_ent		{Entiteettien linkki}	{Yhteys yhteisön peruspöytään}}
+    {user_stat		{Kaupan tila}		{CHIP-tilin kaupankäynnin tilille} {
+        {act		{Aktiivinen}		{Hyvä käydä kauppaa}}
+        {lck		{Lukittu}		{Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.}}
+        {off		{Irrotettu}		{Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.}}
+    }}
+} -messages {
+    {ABC {Koetus 1} {Ensimmäinen testiviesti}}
+    {BCD {Koetus 2} {Toinen testiviesti}}
+    {DEF {Koetus 3} {Kolmanen testiviesti}}
+}
+
+tabtext mychips.users_v -lang fi	{CHIP käytäjät näkymä}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
+    {mobi_socket	{Käyttäjä pistorasia}		{IP-numero ja portti, johon käyttäjän mobiililaite yhdistää}}
+}

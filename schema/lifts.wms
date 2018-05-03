@@ -1,0 +1,13 @@
+#Tables related to lifts and pathways through the network
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+
+module mychips
+
+return
+
+table mychips.paths {mychips} {
+    path_ent	int		references base.ent on update cascade on delete cascade
+  , partner	int		references base.ent on update cascade on delete cascade
+  , ent_type	char		not null check(ent_type in ('p','o'))
+  , ent_hid	varchar
+}

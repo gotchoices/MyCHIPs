@@ -1,0 +1,16 @@
+Trying Nativescript
+
+On linux:
+dnf install nodejs
+npm install -g nativescript
+
+Install android SDK at: https://developer.android.com/studio/install.html
+   - Download zip file
+   - cd /opt
+   - unzip ~/Downloads/android-studio...zip
+   - /opt/android-studio/bin/studio.sh
+
+- installer runs out of space on tmpdir
+  had to: mount -o remount,size=1000M /tmp
+
+dnf install zlib.i686 ncurses-libs.i686 bzip2-libs.i686

@@ -1,0 +1,13 @@
+Dependencies:
+
+Wyseman		With its dependencies
+  postgresql
+  ruby-pg
+  ruby-tcltklib
+
+Gems (if using ruby test/development code):
+  barby
+  rqrcode
+
+JavaScript Server:
+  Fedora Linux:	gcc-c++ postgresql-devel

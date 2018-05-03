@@ -1,0 +1,125 @@
+#!/usr/bin/env ruby
+# Listen for connections from a user's mobile device.
+# Hopefully the address and port are not publicly known.
+# This is used primarily in development and testing
+# -----------------------------------------------------------------------------
+#TODO:
+#- Reject connections from suspicious or non-standard IP numbers
+#- Implement debug/logging output
+#- Launch this service/thread automatically for all active users sharing a common port
+#- 
+#- 
+require 'socket'
+require 'openssl'
+require 'time'
+require 'mychips'
+require 'mychips/db.rb'
+
+module MyCHIPs
+
+# -----------------------------------------------------------------------------
+class UserServer
+  def initialize (opts = {port:12345})
+printf("UserServer init; port:%s\n", opts[:port])
+    @db = MyCHIPs::DB.new()
+    @sitecert = Certificate.new()
+#puts @sitecert
+    tcp_serv = TCPServer.new(@port=opts[:port])
+    context = @sitecert.context
+
+    @serverName = nil    
+    context.servername_cb = lambda do |parr|		#Call-back to receive user's CDI from client
+      sock, @serverName = parr				#socket, servername passed in as array
+printf "In CB cdi:%s\n", @serverName
+      return context
+    end
+
+    @server = OpenSSL::SSL::SSLServer.new(tcp_serv, context)
+#printf("@server:%s\n", @server)
+#@server = tcp_serv			#To disable SSL for testing
+  end
+  
+# -------------------------------------------------------------------
+  def start()				#Listen on the port forever
+    loop do				#Only accept a single connection at a time
+      begin
+printf("UserServer listening, server:%s\n", @server)
+        @conn = @server.accept		#When I get a connection
+        sock_domain, remote_port, remote_host, remote_ip = @conn.peeraddr
+printf("Connect:%s:%s:%s:%s:\n", sock_domain, remote_port, remote_host, remote_ip)
+      rescue Exception => e
+        printf("Error negotiating SSL connection\n  %s\n", e.message)
+        next
+      end
+
+#Fixme: Disconnect if this doesn't look like a valid IP for this client (may also want to lockdown)
+#      (@conn.close; next) if !validate_client_IP(remote_ip)
+
+      ok = true
+      if !@conn.peer_cert				#If the client is not offering a certificate
+printf "Checking for valid ticket/token: "
+        res = @db.doSelect('allows','mychips.tokens_v',"user_cdi='#{@serverName}' and valid and allows = 'user'")
+        (close; next) if res.ntuples < 1		#Abort if no valid ticket/token found
+      end
+printf("Client accepted\n")
+      
+      begin
+        break unless (data = @conn.gets)	#Get what the client has to say
+        reply = handle(data)			#Handle the remote response
+        @conn.puts JSON.generate(reply) if reply && reply != ''	#Send any reply
+#printf("Reply:%s:\n", reply)
+      end while reply			#Nil means end of conversation
+
+printf("Closing connection\n")
+    close				#close the connection
+    end					#loop
+  end
+
+# -------------------------------------------------------------------
+  def close()				#Kill the connection
+    @conn.close
+  end
+
+# -------------------------------------------------------------------
+  def handle(mesg)			#Handle incoming messages
+    begin				#Attempt to decode JSON
+      mh = JSON.load(mesg)
+    rescue
+printf("Can't read JSON in:%s\n", mesg)
+      return nil
+    end
+
+    if mh.key?('ticket')
+      mdat = mh['ticket']
+printf("ticket mdat:%s\n", mdat)
+      res = @db.doSelect('token_ent,allows,exp_date,user_cdi,mobi_port','mychips.tokens_v',"token='#{mdat['token']}' and not used")
+      return nil if res.ntuples <= 0
+      ddat = res[0]
+#printf("DB now:%s exp:%s\n  cdi:%s:%s:\n  port:%s:%s:\n", Time.now, Time.parse(ddat['exp_date']),mdat['cdi'],ddat['user_cdi'], ddat['mobi_port'], @port)
+      return nil if Time.now > Time.parse(ddat['exp_date']) || mdat['cdi'] != ddat['user_cdi'] || ddat['mobi_port'].to_i != @port
+      @db.doUpdate('mychips.users_v',Hash['user_pub',"#{mdat['public']}"], "id='#{ddat['token_ent']}'")
+      usercert = Certificate.new(ddat['token_ent'])
+      @db.doUpdate('mychips.users_v',Hash['user_crt',"#{usercert.to_pem}"], "id='#{ddat['token_ent']}'")
+      @db.doUpdate('mychips.tokens_v',Hash['used','true'],"token='#{mdat['token']}'")
+      return Hash['OK',Hash['sitecert',@sitecert.to_pem,'usercert',usercert.to_pem]]
+    end
+    
+#p 'PEER', @conn.peer_cert
+
+    if mh.key?('tally')
+      return Hash['OK', 'Tally stuff']
+
+    elsif mh.key?('status')
+      return Hash['OK', 'Status Info']
+    else
+printf("Unknown cmd:%s\n", mh)
+      return nil
+    end
+  end
+
+end	#class UserServer
+end	#module MyCHIPs
+
+trap 'INT' do exit! end
+serv = MyCHIPs::UserServer.new(user:1001,port:12345)
+serv.start				#Never returns

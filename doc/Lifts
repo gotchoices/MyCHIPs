@@ -1,0 +1,33 @@
+Lift Logic
+
+-------------------------------------------------------------------------------
+Lift Maker:
+
+Each server should, on a regular interrupt schedule, act on behalf of each of
+its users to do the following:
+
+- Query foils that are below target levels
+  - A negative number is credit that needs to be paid at least back to zero.
+  - Some foil tallies will have higher targets to accumulate a debit balance
+    so it can be spent later.
+- Identify the target foil to lift (we will call this vendor peer V)
+- Compare the amount desired to lift for the target foil to available 
+  accumulations on active stocks.
+- Pick a stock to target for the lift.
+- Query the upstream peer for that stock (customer peer C) to see if he knows 
+  how to reach V upstream somewhere.
+- If our query goes unanswered, or answered negatively, try to select another
+  eligible stock and repeat the query with that upstream peer.
+- If/when we get an affirmative answer back from an upstream peer, proceed 
+  to initiate a lift.
+
+- The original search query has a UUID that may have been cached upstream.
+- Promote the status to "request", insert the actual amount, and repeat the 
+  query.
+- This request should propagate all the way around the circle and come back to
+  us via peer V.
+
+xxxxxxx  
+
+-------------------------------------------------------------------------------
+Lift Peers:

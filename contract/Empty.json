@@ -1,0 +1,19 @@
+{ "digest": "",
+  "covenant": {
+  "title": "XYZ",
+  "author": "mychips.org",
+  "source": "http://mychips.org/covenants/Empty.json",
+  "version": 1,
+  "language": "en",
+  "released": "2017-03-01",
+  "content": [
+    {"p": [
+      "",
+      ""
+    ]}, 
+    {"p": [
+      "",
+      ""
+    ]}
+  ]
+}}

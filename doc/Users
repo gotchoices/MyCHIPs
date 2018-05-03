@@ -1,0 +1,18 @@
+In addition to the normal server accepting peer connections, there is also a
+private server for the sole purpose of communicating with the user.
+
+This server should be on a port known only to the user's app.  And it is even
+better if it is on an IP number different from the peer server.  For example
+another machine somewhere could maintain an SSL tunnel to the machine running
+the peer server.  That way, potentially hostile outside users might discover 
+the user port exists, but their chances of knowing it is a MyCHIPs server, or 
+what ID's it answers to are greatly reduced.
+
+The user server is responsible for bootstrapping a user.  When the user server 
+is launched, it should know what ID's it is authorized to answer for.  The 
+mobile app should connect on this port and send an initial command containing
+the following:
+
+- The user's MyCHIPs ID
+- ?
+- ?

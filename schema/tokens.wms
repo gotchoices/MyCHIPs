@@ -1,0 +1,74 @@
+#Tokens issued to allow other MyCHIPs users to access our site
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- What allow codes do we need besides stock?
+#-   Stock allows someone to connect and obtain a tally stock (i.e. lend, or get our coupons)
+#-   Is foil a needed allow code?
+#- 
+#- 
+require common.tcl glob.tcl ../trigview.tcl
+
+module mychips
+
+namespace eval tokens {
+    def tokens_pk	{token_ent token_seq}
+    def tokens_v_up	{allows token token_cmt used exp_date}
+    def tokens_v_in	[concat $tokens_pk $tokens_v_up]
+    def tokens_se	[concat $tokens_v_in $glob::stampfn]
+}
+
+# Data about tokens to facilitate their CHIP account
+#----------------------------------------------------------------
+table mychips.tokens {base.ent} {
+    token_ent	int		references base.ent on update cascade on delete cascade
+  , token_seq	int	      , primary key (token_ent, token_seq)
+  , token	varchar		not null unique
+  , allows	varchar		not null default 'stock' constraint "!mychips.tokens.ITA" check (allows in ('stock','foil','query','user'))
+  , token_cmt	varchar		
+  , used	boolean		not null default false
+  , exp_date	timestamp(0)	default current_timestamp + '45 minutes'
+    eval(s $glob::stamps)
+}
+
+# Generate unique sequence for new entry
+#----------------------------------------------------------------
+function mychips.token_tf_seq() {mychips.tokens} {
+  returns trigger security definer language plpgsql as $$
+    begin
+      if new.token_seq is null then
+        select into new.token_seq coalesce(max(token_seq),0)+1 from mychips.tokens where token_ent = new.token_ent;
+      end if;
+      if new.token is null then				-- If no token specified
+        loop
+          select into new.token md5(random()::varchar);	-- Make a random one
+          if not exists (select token from mychips.tokens where token = new.token) then
+            exit;					-- Make sure it is unique
+          end if;
+        end loop;
+      end if;
+      update mychips.tokens set used = 't' where token_ent = new.token_ent and token_seq != new.token_seq and not used;		-- Only allow one active token per user at a time
+      return new;
+    end;
+$$;}
+trigger mychips_token_tr_seq {} {
+    before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
+}
+
+#Basic view
+#----------------------------------------------------------------
+view mychips.tokens_v {mychips.tokens base.ent_v} {
+    select eval(fld_list $tokens::tokens_se t)
+      , u.user_cdi, u.mobi_inet, u.mobi_port
+      , oe.std_name
+      , t.exp_date <= current_timestamp as "expired"
+      , t.exp_date > current_timestamp and not used as "valid"
+
+    from	mychips.tokens	t
+    join	mychips.users	u	on u.user_ent = t.token_ent
+    join	base.ent_v	oe	on oe.id = t.token_ent;
+
+    eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk $glob::stampin);
+    eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);
+    eval(rule_delete mychips.tokens_v mychips.tokens $tokens::tokens_pk);
+}

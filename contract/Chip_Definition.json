@@ -1,0 +1,40 @@
+{ "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031ee",
+  "covenant": {
+  "title": "CHIP Definition",
+  "author": "mychips.org",
+  "source": "http://mychips.org/covenants/CHIP_Definition.json",
+  "version": 1,
+  "language": "en",
+  "released": "2017-02-28",
+  "content": [
+    {"p": [
+      "MyCHIPs is a standardized protocol for the exchange of credit between willing parties.",
+      "This credit is in the form of a Pledge, which is a promise made from one party to another, to deliver future value, according to terms and conditions mutually agreed upon by the parties.",
+      "The party pledging the future value is referred to as the Issuer.",
+      "The recipient of such a Pledge is referred to as the Holder."
+    ]},
+    {"p": [
+      "The amount of credit contained in a pledge is quantified in units of CHIPs.",
+      "Each CHIP has a value equal to:"
+    ]},
+    {"list": [
+      "The value produced by one continuously applied hour of adult human work;",
+      "in such circumstance where there is neither a shortage nor a glut of such willing labor available; and",
+      "where the job can be reasonably understood with only minimal training and orientation; and",
+      "without considering the added productivity due to the use of labor-saving capital equipment; and",
+      "where the person performing the work has a normal, or average, functioning mind and body; and",
+      "can communicate effectively as needed with others in his/her work; and",
+      "can read and write effectively as needed with others in his/her work; and",
+      "understands, and can effectively employ basic arithmetic and counting; and",
+      "otherwise, possesses no unusual strengths, weaknesses, developed skills, talents or abilities relevant to the work."
+    ]},
+    {"p": [
+      "A CHIP may be subdivided into fractional units as small as 1/1,000,000, or one microCHIP.",
+      "One thousand microCHIPs is equal to one milliCHIP.",
+      "One thousand CHIPs is equal to one kiloCHIP.",
+      "One thousand kiloCHIPs is equal to one megaCHIP.",
+      "One thousand megaCHIPs is equal to one gigaCHIP.",
+      "One thousand gigaCHIPs is equal to one teraCHIP."
+    ]}
+  ]
+}}

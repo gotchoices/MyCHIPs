@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+# Test SSL library
+# Open SSL server on the specified port, examine client's certificate
+# -----------------------------------------------------------------------------
+require 'socket'
+require 'openssl'
+
+trap 'INT' do exit! end
+servPort = 11111
+servPort = ARGV[0] if ARGV.length > 0
+
+tcp_serv = TCPServer.new(servPort)
+context = OpenSSL::SSL::SSLContext.new
+context.cert = OpenSSL::X509::Certificate.new(File.read('server_cert.pem'))
+context.key = OpenSSL::PKey::RSA.new(File.read('server_key.pem'))
+context.ssl_version = :TLSv1
+
+#context.ca_file = 'client_cert.pem'        #Reference file directly
+(context.cert_store = OpenSSL::X509::Store.new).add_cert OpenSSL::X509::Certificate.new(File.open('client_cert.pem'))	#Or store certs in memory
+
+context.verify_mode = OpenSSL::SSL::VERIFY_PEER		#Allows checking below, but still connects even if cert not validated
+#context.verify_mode = OpenSSL::SSL::VERIFY_PEER | OpenSSL::SSL::VERIFY_FAIL_IF_NO_PEER_CERT
+    
+server = OpenSSL::SSL::SSLServer.new(tcp_serv, context)
+loop do
+  printf "Waiting for connection from client... "
+  begin
+    s = server.accept
+    printf "Connected to #{s.peeraddr.last}\n"
+  rescue Exception => e
+    printf "Error negotiating SSL connection\n  %s\n", e.message
+    next
+  end
+
+  c = s.peer_cert
+#printf "Client Cert:%s\n", c
+  if !c
+    printf "No client certificate provided\n"
+  elsif c.verify(OpenSSL::PKey::RSA.new(File.read('client_pub.pem')))
+    printf "Signature verified!\n"
+  else
+    printf "Verify failed!\n"
+  end
+  if !c
+    nil
+  elsif c.not_after > Time.now
+    printf "Certificate still in force until: %s\n", c.not_after
+  else
+    printf "Certificate expired: %s (now:%s)\n", c.not_after, Time.now
+  end
+  
+  while(s) do
+    printf "\nWaiting for something from the client... "
+    ans = s.gets.chomp if s
+    printf "Got: %s\n", ans
+    
+    printf "Give me something to send to the client: "
+    ans = STDIN.gets.chomp
+    s.puts ans if s
+  end
+
+#  if s.peer_cert.verify(ca_cert.public_key)
+#    puts "Certificate verified"
+#  else
+#    puts "Certificate invalid"
+#  end
+end

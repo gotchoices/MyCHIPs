@@ -1,0 +1,8 @@
+{
+  "ticket": {
+    "url": "192.168.58.101:12345",
+    "token": "e52cd112b711cd67ae19ca28bc2487a9",
+    "public": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArbhdYiadgpwzHOKdT9KH\nZHcQ+Plc70A0z00B8lYnqJG5+oTQb9YuSe3bKKgQ7BI5HgVkj4KN5Lcb7lRP8ul5\nw2uUQ4qwfCiWBcrCNF9KDHUspkZGM4vdbmRl2ZDgw28T+WbO1S7HFDCi6sKGq47b\naXpOJPHf1Qa33Vvo/ItPjS5HWGg+yoi2UHgPn4hkxdQ+iOLzR/cwEElYI/4V63Qw\nhrFt5YooPik3MdIPCnfWnN0RTyDY9cZUYRgxhSSDyHgVZtYAKgV5y47TB0f/hvk2\ntzsbkfpsXAW8aMYn8ClN8mH4iPhSwhMciecthgwGgzrWAYGtPXfOg0n19tjTWPtR\n9QIDAQAB\n-----END PUBLIC KEY-----\n",
+    "expires": "2018-03-31 20:26:12"
+  }
+}

@@ -1,0 +1,51 @@
+#!/bin/sh
+#Build private/public key pair, and associated files
+#Ref: https://users.dcc.uchile.cl/~pcamacho/tutorial/crypto/openssl/openssl_intro.html
+length=2048				#RSA Key length
+
+if [ -z "$1" ]; then			#Input your mychip address for 1st parameter
+    echo "Please specify your MyCHIPs ID address as the first parameter"
+    echo "For example: bob_jones_45678.chip"
+    exit 1
+else
+    myid="$1"
+fi
+
+if [ ! -z "$2" ]; then			#If you want a different key length
+    length="$2"
+fi
+
+echo "Building an RSA private key:"
+openssl genrsa -out pri_key.pem $length
+
+echo "Now we will make a public key to go with it:"
+openssl rsa -in pri_key.pem -pubout -out pub_key.pem
+
+echo "Making standard MyCHIPs locator file:"
+echo $myid >mychips.mca
+cat pub_key.pem |grep -v -- '-----' >>mychips.mca
+
+echo "And converting to png and svg image files"
+./make_image mychips.mca
+
+echo "Now we encrypt the private key."
+echo "You will have to input a pass phrase to keep the private key from being compromised."
+openssl rsa -in pri_key.pem -des3 -out enc_key.pem
+
+echo "Next, you should take the private key off-line, such as to a printout, USB stick, etc."
+echo "Best to use multiple methods, and put them in a safe place such as a bank vault."
+echo "Something like: "
+echo "    lpr pri_key.pem"
+echo "    cp pri_key.pem /mnt/my_usb_drive"
+
+echo "Then delete your un-encrypted private key off your web-connected file system."
+echo "Something like: "
+echo "    rm pri_key.pem"
+
+
+###############################
+#Make a self-signed certificate
+openssl req -new -x509 -key pri_key.pem -out cacert.pem -config cacert.conf
+
+#Display contents of my cacert.pem:
+openssl x509 -in cacert.pem -text >cacert.txt

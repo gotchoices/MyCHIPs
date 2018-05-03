@@ -1,0 +1,87 @@
+A site is:
+ - A model and controller
+ - A collection of algorithms and settings
+ - A representation of the interests of an individual or corporation
+ - A server to process requests from other peer sites
+ - A client to make requests from other peer sites
+ - An interface to negotiate approvals with the owner user
+ - An interface to process actions initiated by the owner user
+ - A data repository
+ - A platform for trading credits
+
+-------------------------------------------------------------------------------
+A tally is:
+ - A document
+ - A contract between two parties
+ - A record of debits and credits mutually agreed upon by the parties
+
+It should include:
+ - An agreement date_time
+ - Digital ID of stock holder (normally creditor)
+ - Digital ID of foil holder (normally debtor)
+ - References to a number of standard, published contracts clauses
+ - Digital signature of stock holder
+ - Digital signature of foil holder
+ - A list of transactions
+
+Each transaction should include:
+ - A transaction date_time
+ - A transaction amount, in uCHIPs
+ - A transaction type:
+   - Unilateral gift
+   - Payment for product/services
+   - Credit lift
+ - A reference number or string:
+   - Comment
+   - Invoice number
+   - Lift UUID
+ - Digital signature of issuer/grantor
+ - Digital signature of recipient
+ 
+-------------------------------------------------------------------------------
+An invoice is:
+ - A request for payment from one party to another
+ - Between parties who may, or may not, share a tally
+  
+Maybe invoices should never be passed from site to site
+Maybe they should instead be transmitted independently, like through email
+A site should not have to answer a request from an unknown site
+Rather, a query should contain a secret token to indicate, it is invited
+
+-------------------------------------------------------------------------------
+Normal Consumer Transaction:
+
+ - The vendor displays a ticket, normally as a 2D bar graph, consisting of
+   - A token string:
+     - Is set in the vendor's server to expire after a finite time
+     - Is known in the vendor's server to allow certain kinds of access
+   - The vendor's MyCHIPs ID
+   - The vendor's MyCHIP certificate (ChipCert), containing
+     - Vendor's public key
+     - Vendor's uniquely identifying information
+       - Name
+       - Address
+       - Email
+       - Town
+       - Province
+       - Country
+       - Jurisdiction
+       - Tax ID (at creditor's option)
+
+ - The customer scans the ticket
+ - The customer's user agent contacts his server, via the secure back door,
+ - And connects to the vendor's server, using the token as authorization
+ - The vendor's information is registered in the customer's database
+
+ - The customer can request a tally:
+   - The tally would be a zero stock
+   - It would allow the customer to collect vendor CHIPs, if desired
+
+ - The customer can request pathway information, to evaluate a possible lift
+   - What common ID's to you know downstream pathways to?
+
+ - The customer can initiate lift inquiries
+   - Request <amount> CHIP lift to ID<z>, via ID<y>, ID<x>, ..., expiring in <t>
+   - Request committed pledge pathway
+
+-------------------------------------------------------------------------------

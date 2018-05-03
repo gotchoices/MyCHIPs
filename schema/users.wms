@@ -1,0 +1,81 @@
+#Database of MyCHIPs users represented by this server
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- How to have multiple mobi users for a corporate CDI
+#- How to have multiple credit partitions
+#- 
+require multiview.tcl base.tcl
+
+module mychips
+schema mychips {}
+
+namespace eval users {
+    def users_pk	{user_ent}
+    def users_v_up	{user_cdi user_hid user_pub mobi_inet mobi_port user_stat user_crt user_cmt}
+    def users_v_in	[concat $users_pk $users_v_up]
+    def users_se	[concat $users_v_in $glob::stampfn]
+    def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name]
+    def ent_v_in	$base::ent_v_in
+    def ent_v_up	[lremove $base::ent_v_up ent_type username]
+}
+
+# Data about users to facilitate their CHIP account
+#----------------------------------------------------------------
+table mychips.users {base.ent mychips} {
+    user_ent	int		primary key references base.ent on update cascade on delete cascade
+  , user_cdi	varchar		
+  , user_hid	varchar		
+  , user_pub	varchar		
+  , mobi_inet	inet
+  , mobi_port	int		
+  , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
+  , user_crt	varchar
+  , user_cmt	varchar
+    eval(s $glob::stamps)
+}
+
+# Base view of users, linked to entity table
+#----------------------------------------------------------------
+view mychips.users_v {mychips.users base.ent_v} {select 
+    eval(fld_list $users::ent_se	ee)
+  , eval(fld_list $users::users_se	ue)
+  , host(mobi_inet) || ':' || mobi_port	as mobi_sock
+
+    from	base.ent_v	ee
+    left join	mychips.users	ue on ue.user_ent = ee.id;
+
+    eval(multiview::insert mychips.users_v "
+        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
+        {mychips.users	{$users::users_v_in}	{$users::users_pk}}
+    ")
+    eval(multiview::update mychips.users_v "
+        {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
+        {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
+    ")
+    eval(multiview::delete mychips.users_v "
+        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
+    ")
+} -grant {
+    {userim	{} {s i u} {d}}
+} -primary id
+
+# View of users with primary address and contact points
+#----------------------------------------------------------------
+view mychips.users_v_flat {mychips.users_v base.addr_v_flat base.comm_v_flat} {select 
+    u.*
+  , a.bill_addr, a.bill_city, a.bill_state, a.bill_pcode, a.bill_country
+  , a.ship_addr, a.ship_city, a.ship_state, a.ship_pcode, a.ship_country
+  , c.phone_comm, c.cell_comm, c.email_comm, c.web_comm
+
+    from	mychips.users_v		u
+    left join	base.addr_v_flat	a on a.id = u.id
+    left join	base.comm_v_flat	c on c.id = u.id
+}
+
+table mychips.comm_test {base.comm mychips} {
+    test_ent		int
+  , test_seq		int
+  , test_dat		varchar
+  , foreign key (test_ent, test_seq) references base.comm on update cascade on delete cascade
+}

@@ -1,0 +1,82 @@
+{
+ "terms": {
+   "uuid":"UUID_of_this_tally"
+   "created": "2017-04-01_12:01:23.4567",
+   "version": 1,
+   "stock": {
+     "id":"http://my_chip_server/",
+     "cert":"Stock_holders_certificate",
+     "limit": 100
+   },
+   "foil": {
+     "id":"http://your_chip_server/",
+     "cert":"Foil_holders_certificate",
+     "limit": 1000
+   },
+   "include": [
+     {"author": "mychips.org",
+      "title": "CHIP Definition",
+      "version": 1,
+      "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031ee"
+     },
+     {"author": "mychips.org",
+      "title": "Tally Definition",
+      "version": 1,
+      "digest": "79fea5ef776c4b73fc622e9ee292850ee2f589bbbc8088ab135cb521f0b42306"
+     }
+   ]
+ },
+ "signed": {
+    "digest": "",
+    "stock":"Stock_holders_signature_of_digest",
+    "foil":"Foil_holders_signature_of_digest"
+ },
+ "chips": [
+   {"chit": {
+      "uuid":"UUID_of_this_transaction",
+      "type":"sale",
+      "date":"2017-04-02_12:30:25.1234",
+      "amount":1.234567,
+      "link":"Invoice_number_or_reference",
+      "comment":"Shining your shoes"
+    },
+    "signed","Foil_holders_signature_of_chit"
+   }, 
+   {"chit": {
+      "uuid":"UUID_of_this_transaction"
+      "type":"sale",
+      "date":"2017-04-03_12:30:25.1234",
+      "amount":2.345678,
+      "link":"Invoice_number_or_reference",
+      "comment":"Mowing your lawn"
+     },
+    "signed","Foil_holders_signature_of_chit"
+   }, 
+   {"chit": {
+      "uuid":"UUID_of_this_transaction"
+      "type":"gift",
+      "date":"2017-04-04_12:30:25.1234",
+      "amount":-0.987654,
+      "comment":"Courtesy discount"
+     },
+    "signed","Stock_holders_signature_of_chit"
+   }, 
+   {"chit": {
+      "uuid":"UUID_of_this_transaction"
+      "type":"lift",
+      "date":"2017-04-05_12:30:25.1234",
+      "amount":-2,
+      "link":"UUID_of_credit_lift_transaction"
+     },
+    "signed","Stock_holders_signature_of_chit"
+   }, 
+ ]
+ "confirms": [
+   {"sum": {
+    {"date":"2017-04-05_12:30:25.1234",
+     "amount":3.45,
+     },
+    "signed","Stock_or_foil_holders_signature_of_sum"
+   }, 
+ ]
+}

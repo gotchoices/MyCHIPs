@@ -1,0 +1,25 @@
+A CHIP is, at its heart, a credit agreement between two parties.  In other 
+words, it is a contract--payable by one party and receivable by the other.
+
+So the job of MyCHIPs is to organize and document these contracts.  And it
+will do so just you might imagine with any legally binding agreement.
+That way, if both parties share a legal jurisdiction, their agreements can
+be enforced by that jurisdiction, in addition to natural community
+penalties that would be incurred by defaulting on a contract.
+
+This directory contains a few boilerplate examples of contract fragments.
+Ideally, a contract would be comprised of multiple fragments.  The idea
+is, you can mix and match various clauses together to build up a complete
+contract agreement.  Ideally, there would be a relatively small universe
+of "standard" contracts people recognize and get comfortable with.
+
+Contract clauses will be incorporated into the parent contract by just
+referring to the clause key (title, author, version and hash.)  So the 
+clause itself doesn't get included into the parent contract--only the 
+reference does.
+
+Likewise, when incorporating a contract into a context such as a tally
+or a lift, it is only necessary to refer to the contract key.  The key
+would be incorporated into the string of data that gets signed, so that
+constitutes a digital signature indicating the consent and agreement of
+the parties.

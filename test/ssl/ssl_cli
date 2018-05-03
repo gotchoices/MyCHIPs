@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+# Test SSL library as client
+# -----------------------------------------------------------------------------
+require 'socket'
+require 'openssl'
+require 'time'
+
+servName = 'lux1'
+servName = ARGV[0] if ARGV.length > 0
+servPort = 11111
+servPort = ARGV[1] if ARGV.length > 1
+
+trap 'INT' do exit! end
+printf "Connecting to %s:%s\n", servName, servPort
+tcp_sock = TCPSocket.new(servName, servPort)
+
+context = OpenSSL::SSL::SSLContext.new
+context.cert = OpenSSL::X509::Certificate.new(File.read('client_cert.pem'))
+context.key = OpenSSL::PKey::RSA.new(File.read('client_key.pem'))
+context.ssl_version = :TLSv1
+
+context.verify_mode = OpenSSL::SSL::VERIFY_PEER | OpenSSL::SSL::VERIFY_FAIL_IF_NO_PEER_CERT
+#context.ca_file = 'server_cert.pem'		#Reference file directly
+(context.cert_store = OpenSSL::X509::Store.new).add_cert OpenSSL::X509::Certificate.new(File.open('server_cert.pem'))	#Or store certs in memory
+
+ssl_sock = OpenSSL::SSL::SSLSocket.new(tcp_sock, context)
+ssl_sock.connect
+
+c = ssl_sock.peer_cert
+#printf "Server Cert:%s\n", c
+if c.verify(OpenSSL::PKey::RSA.new(File.read('server_pub.pem')))
+  printf "Signature verified!\n"
+else
+  printf "Verify failed!\n"
+end
+if c.not_after > Time.now
+  printf "Certificate still in force until: %s\n", c.not_after
+else
+  printf "Certificate expired: %s (now:%s)\n", c.not_after, Time.now
+end
+
+while ssl_sock do
+  printf "Give me something to send to the server: "
+  ans = STDIN.gets.chomp
+  ssl_sock.puts ans if ssl_sock
+  
+  printf "Waiting for something from the server... "
+  ans = ssl_sock.gets.chomp if ssl_sock
+  printf "Got: %s\n\n", ans
+end

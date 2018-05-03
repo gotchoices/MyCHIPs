@@ -1,0 +1,29 @@
+#----------------------------------------------------------------
+#These fields were stripped out of the mychips.users table
+#They really belong in a separate billing module for sites that charge
+#their customers for mychips service.  Wyselib has the beginnings of a
+#customer module, and should eventually have invoicing/billing.  Its
+#probably best to develop something there that is broad enough to work
+#for mychips.
+#----------------------------------------------------------------
+#TODO:
+#- 
+
+  , pay_type	varchar		not null default 'oth' constraint "!mychips.users.UET" check (pay_type in ('mon','ann','com','trn','oth'))
+  , pay_rate	numeric(14,6)	not null default 0
+  , user_stat	varchar		not null default 'ok' constraint "!mychips.users.UST" check (user_stat in ('ok','hold','no'))
+
+
+    {pay_type		{Pay Type}		{How the user pays the site operator} {
+        {mon		{Monthly Flat}		{Fee is a flat amount per month}}
+        {ann		{Annual}		{Fee is a flat amount per year}}
+        {com		{Commission}		{Fee is a percentage of each transaction}}
+        {trn		{Transaction}		{Fee is a flat amount per transaction}}
+        {oth		{Other}			{Fee is computed some other way}}
+    }}
+    {user_stat		{Account Status}	{What is the condition of the user's account with the service provider} {
+        {good		{Good}			{Account paid up and in good standing}}
+        {hold		{Credit Hold}		{Account on temporary hold}}
+        {perm		{Credit Stop}		{Account on permanent hold}}
+    }}
+}

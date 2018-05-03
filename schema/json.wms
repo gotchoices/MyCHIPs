@@ -1,0 +1,71 @@
+#Database of MyCHIPs users represented by this server
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- Can I keep id and fk's out of these views and still insert data as needed?
+#- 
+
+module mychips
+schema json {}
+
+# View of users dedicated to JSON input/output
+#----------------------------------------------------------------
+view json.user {json mychips.users_v} {select
+    id		as "id"
+  , user_cdi	as "cdi"
+  , ent_name	as "name"
+  , ent_type	as "type"
+  , fir_name	as "first"
+  , mid_name	as "middle"
+  , pref_name	as "prefer"
+  , born_date	as "begin"
+  , country	as "juris"
+  , tax_id	as "taxid"
+    from mychips.users_v where not user_ent is null with cascaded check option;
+} -primary {id}
+
+# View of addresses dedicated to JSON input/output
+#----------------------------------------------------------------
+view json.address {json base.addr_v} {select
+    addr_ent	as "id"
+  , addr_seq	as "seq"
+  , addr_spec	as "spec"
+  , addr_type	as "type"
+  , addr_prim	as "main"
+  , city	as "locale"
+  , state	as "state"
+  , pcode	as "post"
+  , addr_cmt	as "comment"
+  , addr_inact	as "prior"
+    from base.addr_v where not addr_ent is null with cascaded check option;
+} -primary {id seq}
+
+# View of communication media dedicated to JSON input/output
+#----------------------------------------------------------------
+view json.connect {json base.comm_v} {select
+    comm_ent	as "id"
+  , comm_seq	as "seq"
+  , comm_spec	as "spec"
+  , comm_type	as "media"
+  , comm_cmt	as "comment"
+  , comm_inact	as "prior"
+    from base.comm_v where not comm_ent is null with cascaded check option;
+} -primary {id seq}
+
+# Standard view for tickets
+#----------------------------------------------------------------
+view json.ticket {json mychips.users_v mychips.tokens_v base.parm(varchar,varchar)} {select
+    u.id		as "id"
+  , t.token_seq		as "seq"
+  , case when t.allows = 'user' then u.mobi_sock
+    else u.user_cdi end	as "url"
+  , t.token		as "token"
+  , s.user_pub		as "public"
+  , t.exp_date		as "expires"
+
+    from	mychips.users_v	u
+    join	mychips.tokens	t on t.token_ent = u.id
+    left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
+    left join	mychips.users	s on s.user_ent = p.v_int
+    where	t.exp_date > current_timestamp
+} -primary {id seq}

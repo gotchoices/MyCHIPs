@@ -1,0 +1,18 @@
+#!/bin/env ruby
+#Convert a text MyCHIPs locator to png and svg barcode images
+require 'barby'
+require 'barby/barcode/qr_code'
+require 'barby/outputter/png_outputter'
+#require 'barby/outputter/svg_outputter'
+
+if ((infname = ARGV[0]) == nil)
+    puts "Please specify a file name"
+    exit 1
+end
+fbase=infname.split('.')[0]
+printf("fbase:%s\n", fbase)
+
+data = File.open(infname,'r').read
+barcode = Barby::QrCode.new(data)
+File.open(fbase + '.png','wb'){|f| f.write barcode.to_png}
+#File.open(fbase + '.svg','wb'){|f| f.write barcode.to_svg}

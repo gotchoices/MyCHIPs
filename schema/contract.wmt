@@ -1,0 +1,11 @@
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#------------------------------------------
+tabtext covenants	{Covenants}		{Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.} {
+    {author		{Author}		{The name of the author, organization, or publisher of the covenant (such as GPL, FSF, MyCHIPs.org, etc.)}}
+    {title		{Title}			{A short, descriptive title which will be shown as a section header when a contract is rendered.}}
+    {version		{Version}		{The version number, starting at 1, of this covenant.}}
+    {language		{Language}		{The standard ISO code for the language in which the covenant is expressed.}}
+    {released		{Released}		{The date this version of the covenant was first published.}}
+    {content		{Content}		{The actual contract text, describing what the parties are agreeing to.}}
+    {hash		{Hash}			{A standardized hash of the covenant text which can be referenced by other contracts to prove what has been included.}}
+}

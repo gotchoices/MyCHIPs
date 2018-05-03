@@ -1,0 +1,222 @@
+#!/usr/bin/env ruby
+# Command line program to communicate with a MyCHIPs server as a client would
+# This is used primarily in development and testing
+# State information is stored (insecurely) in a hidden folder under the user's home directory
+# -----------------------------------------------------------------------------
+#TODO:
+#- Open a connection to a server instance
+#- Implement commands to:
+#-  Set buy/sell values
+#-  Pay someone
+#-  Query outstanding approvals
+#-  Approve selected transactions
+#- 
+
+require 'fileutils'
+require 'optparse'
+require 'openssl'
+require 'socket'
+require 'abbrev'
+require 'json'
+
+Configdir=File.join(Dir.home,'.mychips')		#Store our state between invocations
+Certfile='/tmp/cacert.pem'
+
+module MyCHIPs
+
+# Manage connection to user port on MyCHIPs server
+# -----------------------------------------------------------------------------
+class UserClient
+
+  def initialize(cdi=nil, host=nil, port=nil)
+    FileUtils::mkdir_p Configdir
+    @lastcdi = File.join(Configdir,'lastcdi')
+    cdi = File.read(@lastcdi) if !cdi && File.exist?(@lastcdi)
+    raise 'Please specify a CDI on the command line (-c chips_domain_ID)' if !cdi
+    @statefile = File.join(Configdir, cdi + '.json')	#Store our state between invocations
+    if File.exist?(@statefile)
+      @state = JSON.load(File.read(@statefile))	#Read our stored state info
+    else
+      @state = Hash['timeout',3,'cdi',cdi]		#Create a state for first time run
+    end
+    @state['host'] = host if host
+    @state['port'] = port if port
+    connect						#Try connecting (will fail if this is a setup ticket)
+  end
+  
+# -------------------------------------------------------------------
+  def connect(validate = true)
+    return if !@state['host'] || !@state['port'] || !@state['cdi']
+    @sock.close if @sock			#Close connection if currently open
+    begin					#And then attempt to open connection
+printf "Attempting connection to: %s:%s\n", @state['host'], @state['port']
+      context = OpenSSL::SSL::SSLContext.new
+      context.ssl_version = :TLSv1
+
+      if validate && @state.key?('sitecert')	#Attempt to verify the site's certificate, if we have one
+        context.verify_mode = OpenSSL::SSL::VERIFY_PEER	 | OpenSSL::SSL::VERIFY_FAIL_IF_NO_PEER_CERT
+        (context.cert_store = OpenSSL::X509::Store.new).add_cert c=OpenSSL::X509::Certificate.new(@state['sitecert'])
+printf " Including site cert\n"
+      end
+      if validate && @state.key?('usercert')	#Provide our certificate info to the site server
+        context.cert = OpenSSL::X509::Certificate.new(@state['usercert'])
+        context.key = OpenSSL::PKey::RSA.new(@state['userkey'])
+printf " Including user cert: %s\n", context.cert
+      end
+#p context
+      tcp_sock = TCPSocket.new(@state['host'],@state['port'])
+      @sock = OpenSSL::SSL::SSLSocket.new(tcp_sock, context)
+      @sock.sync_close = true
+      @sock.hostname = @state['cdi']
+      @sock.connect
+    rescue Exception => e
+      printf "Error connecting to: %s:%s for %s\n  %s\n", @state['host'], @state['port'], @state['cdi'], e.message
+      @sock = nil
+    end
+    return @sock
+  end
+  
+# -------------------------------------------------------------------
+  def setup(ticket)			#Use a site-issued ticket to share my key with my new server site
+    raise "File does not contain valid ticket" if !ticket.key?('ticket')
+#printf "Ticket:%s\n", ticket
+    tdat = ticket['ticket']
+    raise "Can't find url in ticket" if !tdat.key?('url')
+    host,port = tdat['url'].split(':')
+    raise "Can't determine address,port in ticket" if !host || !port
+    @state['host'], @state['port'] = host, port
+
+    if @state['userkey']
+      userkey = OpenSSL::PKey::RSA.new(@state['userkey'])
+    else
+      @state['userkey'] = (userkey = OpenSSL::PKey::RSA.new(2048)).to_pem	#Make a private key if we don't have one already
+    end
+#    @state['sitepub'] = tdat['public']
+    t = Hash['ticket', Hash['cdi', @state['cdi'], 'token', tdat['token'], 'public', userkey.public_key.to_pem]]
+#p t
+    raise "Failure connecting to: #{host}:#{port}" if !connect(false)
+    
+#p @sock.peer_cert
+    raise "Can't verify server identity" if !@sock.peer_cert.verify(OpenSSL::PKey::RSA.new(tdat['public']))
+
+    @sock.puts JSON.generate(t)				#Send an initialization ticket
+    raise 'Failure initializing with server' if !(h = reap()).key?('OK')
+    @state['usercert'] = h['OK']['usercert']
+    @state['sitecert'] = h['OK']['sitecert']
+  end
+
+# -------------------------------------------------------------------
+  def status()
+# Connect securely with the server using established mobile key set
+# Query/display server status
+  end
+
+# -------------------------------------------------------------------
+  def panic()
+# Connect securely with the server using established mobile key set
+# Put the user's account into lockdown mode
+  end
+
+# -------------------------------------------------------------------
+  def ticket()
+# Connect securely with the server using established mobile key set
+# Request a ticket authorizing someone else to connect to the server
+# This is to establish a new tally, stock or foil
+  end
+
+# -------------------------------------------------------------------
+  def market()
+# Connect securely with the server using established mobile key set
+# Fetch/display trading ID's and settings (buy/sell data)
+  end
+
+# -------------------------------------------------------------------
+  def balance()
+# Connect securely with the server using established mobile key set
+# Fetch/display CHIP balances of all tallies
+  end
+
+# -------------------------------------------------------------------
+  def pay()
+# Connect securely with the server using established mobile key set
+# Authorize the server to initiate a pay request to the specified ID
+  end
+
+# -------------------------------------------------------------------
+  def handle(*args)				#Handle a single command from the command line
+    cmd = args[0] if !(cmd = %w{ticket status tally}.abbrev[args[0]])	#Unabbreviate command
+printf "Handle:%s\n", args
+    if cmd == 'ticket'
+      raise 'No ticket argument given' if !(fname = args[1])
+      if %w{stock foil}.include?(fname)		#Is this a ticket to request a stock or foil?
+        ticket(fname)
+      elsif File.exist?(fname)			#This is an account init ticket
+        setup(JSON.load(File.read(fname)))
+      else
+        raise "Can't find ticket: #{fname}" 
+      end
+    else
+      raise 'No connection with CHIPs server' if !@sock		#For all other commands besides ticket...
+    end
+      
+    if cmd == 'tally'
+puts "tally:"
+      @sock.puts JSON.generate(Hash['tally','1'])
+      puts reap()
+
+    elsif cmd == 'status'
+puts "status:"
+      @sock.puts JSON.generate(Hash['status','2'])
+      puts reap()
+
+    elsif %w{end exit quit}.include?(cmd)
+      return nil
+
+    elsif cmd != 'ticket'
+      puts '?'
+      return true
+    end
+    
+    return true
+  end
+
+# -------------------------------------------------------------------
+  def reap				#Get a JSON response from the server
+    res = select [@sock], nil, nil, @state['timeout']	#Wait for data to be readable
+    raise 'Socket connection timed out' if !res
+    ans = @sock.gets				#Fixme: will this hang if no new-line was sent?
+    raise 'No response from server' if !ans
+    return JSON.parse(ans.chomp)
+  end
+  
+# -------------------------------------------------------------------
+  def save			#Save state file
+    jdat = JSON.pretty_generate(@state)
+printf("Saving state in: %s\n",@statefile);
+    File.open(@statefile, 'w') { |file| file.write(jdat) }
+    File.open(@lastcdi, 'w') { |file| file.write(@state['cdi']) }
+  end
+  
+end	#class UserClient
+end	#module MyCHIPs
+
+# Main
+# -------------------------------------------------------------------
+opts = Hash[]
+OptionParser.new do |op|
+  op.on('-h', '--host=name', 'The host to connect to') {|v| opts['host'] = v}
+  op.on('-p', '--port=number', 'The port to connect to') {|v| opts['port'] = v}
+  op.on('-c', '--cdi=cdi_name', "The user's Chips Domain Identifier") {|v| opts['cdi'] = v}
+end.parse!(ARGV)
+uc = MyCHIPs::UserClient.new(opts['cdi'], opts['host'], opts['port'])
+
+if ARGV.length > 0		#If command line args given
+  uc.handle(*ARGV)		#Do a single command
+else
+  begin				#Or go into interactive mode
+    print("> ")
+    iline = gets.split
+  end while uc.handle(*iline)
+end
+
+uc.save				#Save state before exiting

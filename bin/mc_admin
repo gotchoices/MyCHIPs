@@ -1,0 +1,94 @@
+#!/usr/bin/env ruby
+# Command line program to perform certain administrative tasks on a MyCHIPs database
+# This is used primarily in development and testing
+# -----------------------------------------------------------------------------
+#TODO:
+#- 
+
+require 'abbrev'
+require 'webrick'
+require 'optparse'
+require 'webrick/https'
+require 'mychips'
+require 'openssl'
+require 'io/console'
+
+Server_port	= 8010
+LogFile		= '/var/tmp/MyCHIPs.log'	#Where to log messages
+$log		= nil				#Init variable
+LogLevel	= WEBrick::BasicLog::DEBUG
+cert_name	= [%w[CN localhost]]		#For SSL, later
+
+db = MyCHIPs::DB.new()
+
+cmd = ARGV[0] if !(cmd = %w{web load dump key}.abbrev[ARGV[0]])	#Unabbreviate command
+
+# -----------------------------------------------------------------------------
+if cmd == 'load'
+  isSite = false
+  OptionParser.new do |op|
+    op.on('-s', '--site', 'Mark this user as the site host') {isSite = true}
+  end.parse!
+
+  raise 'Please specify a json file to load' if !(fname = ARGV[1])
+  raise "Can't find file: #{fname}" if !fname || !File.exist?(fname)
+puts "Loading user from file: #{fname}"
+  user = MyCHIPs::User.new(fname)
+  id = user.store
+  if isSite
+    db.setParm('site_ent',id)		#Remember what entity is our site host
+    exit! if db.getParm('site_prv')	#Done if this entity already has a key established
+    cmd = 'key'				#Else execute a key command
+    ARGV[1] = nil
+  end
+end
+
+# -----------------------------------------------------------------------------
+if cmd == 'key'
+  if ARGV[1]
+    key = OpenSSL::PKey::RSA.new(File.read(ARGV[1]))
+  else
+    puts "Creating a site key"
+    key = OpenSSL::PKey::RSA.new(2048)
+  end
+
+#Fixme: store key encrypted, enter passphrase when server launches
+#  print "Input a secure pass phrase to encode your private site key: "
+#  db.setParm('site_prv',key.export(OpenSSL::Cipher.new('AES-128-CBC'), STDIN.noecho(&:gets).chomp))
+  db.setParm('site_prv',key.to_pem)		#Just storing unencrypted key, for now
+
+  id = db.getParm('site_ent')		#Remember what entity is our site host
+  db.doUpdate('mychips.users_v',Hash['user_pub',key.public_key.to_pem],"id = #{id}")
+
+# -----------------------------------------------------------------------------
+elsif cmd == 'web'
+    $log = WEBrick::Log.new(f = File.open(LogFile, 'a+'), LogLevel)
+    f.sync = true				#Non-buffered output
+    $log.debug("Starting MyCHIPs admin web server")
+    serv = WEBrick::HTTPServer.new(		#Http server
+        Port: Server_port	\
+      , Logger: $log	\
+      , SSLEnable: true	\
+      , SSLCertName: cert_name	\
+    )
+    trap 'INT' do serv.shutdown end
+    serv.start			#Will block forever
+
+# -----------------------------------------------------------------------------
+elsif cmd == 'dump'
+      puts("Dump file: ")
+
+# -----------------------------------------------------------------------------
+elsif cmd == 'ticket'
+    raise "Please specify a CHIPs ID Locator, or an entity ID" if !(uid = ARGV[1])
+    raise "Please specify a filename where to store the ticket" if !(fname = ARGV[2])
+puts("Generating ticket for: " + uid)
+    tick = MyCHIPs::Ticket.new(uid)
+    tick.save(fname)
+    tick.display if ARGV[3]
+  
+# -----------------------------------------------------------------------------
+else
+    puts "Unknown command:#{cmd}"
+  
+end	#Case

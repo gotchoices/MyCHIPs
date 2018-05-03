@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+# A rudimentary MyCHIPs server to receive requests from peer MyCHIPs servers.
+# This module is primarily for testing and development
+# The server listens on a published port.
+# It should only accept connections from peers who have a public key stored
+# in our database, or who present a ticket with a valid token.
+# -----------------------------------------------------------------------------
+# TODO:
+#- Launch a user server for each active, configured port in the database
+#- Launch an admin server?
+#- Launch a server to listen for database events
+#- 
+require 'webrick'
+require 'webrick/https'
+
+Server_port	= 7000
+LogFile		= '/tmp/MyCHIPs.log'		#Where to log messages
+$log		= nil				#Init variable
+LogLevel	= WEBrick::BasicLog::DEBUG
+
+# Answer questions about this server
+# -----------------------------------------------------------------------------
+class PeerQuery < WEBrick::HTTPServlet::AbstractServlet
+  def initialize (server)
+    $log.debug("In query init request: " + server.to_s)
+  end
+  
+  def do_GET(request, response)
+    $log.debug("In query GET request: " + request.to_s)
+    response.status = 200
+    response.body = "What do you want?"
+    response['Content-Type'] = 'text/html'
+  end
+end
+
+# Conduct a transaction with another server
+# -----------------------------------------------------------------------------
+class PeerAction < WEBrick::HTTPServlet::AbstractServlet
+  def initialize (server)
+    $log.debug("In action init request: " + server.to_s)
+  end
+  
+  def do_GET(request, response)
+    $log.debug("In action GET request: " + request.to_s)
+    response.status = 404
+    response.body = "No way!"
+    response['Content-Type'] = 'text/plain'
+  end
+end
+
+cert_name = [
+  %w[CN localhost],
+]
+
+$log = WEBrick::Log.new(f = File.open(LogFile, 'a+'), LogLevel)
+f.sync = true				#Non-buffered output
+serv = WEBrick::HTTPServer.new(		#Http server
+    Port: Server_port	\
+  , Logger: $log	\
+  , SSLEnable: true	\
+  , SSLCertName: cert_name	\
+)
+serv.mount("/query", PeerQuery)
+serv.mount("/action", PeerAction)
+trap 'INT' do serv.shutdown end
+serv.start			#Will block forever

@@ -1,0 +1,18 @@
+2017-May-01:
+	Moving implementation to node.js
+
+2017-Apr-01:
+	Mobile app and user server prototyped in Ruby.
+	mc_admin issues tickets.
+	mc_mobi connects to mc_user, validates with the ticket, exchanges keys.
+
+2017-Mar-01:
+	Initial framework prototyped in Ruby.
+	Includes peer server for communicating with other servers.
+	User server will answer requests from a user agent, such as a cell
+	phone application.  But for now, it is just a command line interface.
+
+2017-Jan-24:
+	Blank project.
+	The hope is to attract some other team members by posting theproject 
+	objectives.

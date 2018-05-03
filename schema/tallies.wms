@@ -1,0 +1,115 @@
+#Schema for storing MyCHIPs tallies
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+module mychips
+
+table mychips.tallies {mychips base.ent} {
+    tally_ent	int		references base.ent on update cascade on delete cascade
+  , tally_seq	int	      , primary key (tally_ent, tally_seq)
+  , tally_guid	uuid		not null
+  , tally_type	varchar		not null default 'stock' check(tally_type in ('stock','foil'))
+  , tally_date	timestamptz	not null default current_timestamp
+  , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
+  , partner	int		references base.ent on update cascade on delete restrict
+  , contract	varchar		references mychips.covenants on update cascade on delete restrict
+  , status	varchar		not null default 'draft' check(tally_type in ('draft','open','closed'))
+  , comment	varchar
+  , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
+  , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
+  , total_c	bigint		default 0 not null
+}
+
+table mychips.chits {mychips.tallies} {
+    chit_ent	int		primary key
+  , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
+  , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
+  , chit_guid	uuid		not null
+  , chit_type	varchar		not null default 'tran' check(ent_type in ('gift','lift','loan','tran'))
+  , chit_date	timestamptz	not null default current_timestamp
+  , amount	bigint		not null
+  , pro_quo	varchar
+  , memo	varchar
+}
+
+table mychips.confirms {mychips.tallies} {
+    conf_ent	int		primary key
+  , conf_seq	int	      , foreign key (conf_ent, conf_seq) references mychips.tallies on update cascade on delete cascade
+  , conf_idx	int	      , primary key (conf_ent, conf_seq, conf_idx)
+  , conf_id	uuid		primary key
+  , conf_date	timestamptz	not null default current_timestamp
+  , sum		bigint		not null
+  , signature	varchar
+}
+
+#Try 1:
+#table mychips.tallies {mychips base.ent} {
+#    tally_id	uuid		primary key
+#  , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
+#  , stock_ent	int		references base.ent on update cascade on delete restrict
+#  , foil_ent	int		references base.ent on update cascade on delete restrict
+#  , credit_lim	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (credit_lim > 0)
+#  , debit_lim	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (debit_lim >= 0)
+#  , contract	varchar		references mychips.covenants on update cascade on delete restrict
+#  , begins	timestamptz	not null default current_timestamp
+#}
+#table mychips.chits {mychips.tallies} {
+#    chit_id	uuid		primary key
+#  , chit_tally	uuid		references mychips.tallies on update cascade on delete cascade
+#  , chit_type	varchar		not null default 'tran' check(ent_type in ('gift','lift','loan','tran'))
+#  , date	timestamptz	not null default current_timestamp
+#  , amount	bigint		not null
+#  , pro_quo	varchar
+#  , comment	varchar
+#}
+#table mychips.confirms {mychips.tallies} {
+#    conf_id	uuid		primary key
+#  , chit_tally	uuid		references mychips.tallies on update cascade on delete cascade
+#  , date	timestamptz	not null default current_timestamp
+#  , total	bigint		not null
+#  , stock_sig	varchar
+#  , foil_sig	varchar
+#}
+
+# Generate unique sequence for new tallies
+#----------------------------------------------------------------
+function mychips.tallies_tf_seq() {mychips.tallies} {
+  returns trigger language plpgsql security definer as $$
+    begin
+        if new.tally_seq is null then
+            select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent;
+        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_tallies_tr_seq {} {
+    before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
+}
+
+# Generate unique sequence for new chit
+#----------------------------------------------------------------
+function mychips.chits_tf_seq() {mychips.chits} {
+  returns trigger language plpgsql security definer as $$
+    begin
+        if new.chit_idx is null then
+            select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq;
+        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_chits_tr_seq {} {
+    before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
+}
+
+# Generate unique sequence for new confirmation
+#----------------------------------------------------------------
+function mychips.confirms_tf_seq() {mychips.confirms} {
+  returns trigger language plpgsql security definer as $$
+    begin
+        if new.conf_idx is null then
+            select into new.conf_idx coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq;
+        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_conf_tr_seq {} {
+    before insert on mychips.conf for each row execute procedure mychips.conf_tf_seq();
+}

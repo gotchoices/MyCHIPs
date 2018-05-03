@@ -1,0 +1,176 @@
+TODO:
+Server:
+X- Server serves static web pages
+X- Admin page: Serves up admin SPA GUI
+X-   Generate user list from database
+X-   Design packet commands to/from backend (wyseman)
+X- Replace vue-router?
+X- Implement tab set for Home, Users, Documents, Settings
+X- Server listens for admin connections on secret port
+X- Server listens for user connections on configured port(s)
+- 
+- Augment Wyseman:
+X-  Can specify a set of actions
+X-  Can specify a set of reports
+X-  Can specify a set of subordinate views (example: phone, address)
+-  Menu selector for opening sub-views available in Dbe
+-  Menu selector for available reports in Dbe (also Dbp?)
+-  Menu selector for accessing available actions in Dbe
+-  Add information about foreign keys in wm.table_meta
+- 
+- Reports: (live, respond to DB notices)
+-  On a single record:
+-   Bar code for a ticket
+-   PDF view of a drawing/figure
+-  On a group of records:
+-   An order (header, items), or invoice
+-   A contract (comprising multiple, possibly nested clauses)
+-  Broad array of queries (with settable parameters)
+-   Balance sheet (date, periods, interval, etc.)
+-   Income statement (start, end, periods, interval)
+-   Dashboard
+-   Arbitrary JS code (may not even access DB)
+- 
+- Admin SPA:
+-X   Can add, update, delete users
+-   Can generate user ticket
+-   Server listens on ticket port for specified timeout period
+-   User can connect/initialize using ticket
+-   Can import user from JSON
+-   Can export user to JSON
+-   Admin can edit, create documents
+-   
+- User SPA:
+-   Can grab ticket
+-   Can generate, configure keys
+-   Save data in localStorage
+-   User can generate tickets for other peers
+-   Server listens for peer ticket connections
+-   Can register buy/sell parameters
+- 
+- Server:
+-   Server listens for authenticated peer connections
+-   Peers can connect and validate
+-   Server initiates trade requests
+- 
+- Simple lift protocol
+- Machine state kept in database
+- Flow chart kept in control logic (JS object)
+- 
+- Wylib login/validation for SPA client/server connections
+- 
+- Implement contract documents  
+- How to view/print a document?
+- 
+-   
+-   
+
+Old:
+X- Create entitiy for the site
+X- Point to the site entity ID in parms
+X- Generalize user table to include the site entity?
+X- Remove billing fields from user table (can use a separate billing module)
+- Make wyseman deployable as both ruby gem and npm module
+- Deploy mychips as npm module
+- Mychips NPM module includes multiple CLI commands
+- 
+
+Admin:
+X- Make dedicated JSON import/export views for user data
+X- Import user record from JSON
+X- Admin function to create ticket
+X- Ticket includes connection domain, port, token (auto-generate port, keys)
+X- Export the ticket to a JSON file
+X- Display the ticket as a barcode in a TK image window
+X- Insist on establishing site ID before anything else
+- Get wyseman admin to load a user.json file
+- Fully port mc_admin prototype to JS
+- Command line switch to run as daemon
+- Switch to monitor web admin port (80?)
+- Switch to monitor peer port
+- Switch to monitor user port
+- 
+
+User Server:
+X- Make ssl socket for user interface
+X- Class to generate certificates on-the-fly, or from the db
+X- Store certificates in database
+X- Can mobile connect to me using my cert?
+X- Add logging capability, with verbosity levels
+- Fully port mc_admin prototype to JS
+- Can mc_admin listen on multiple ports (i.e. a single server process in JS)?
+- 
+
+Mobile App:
+X- mc_user opens socket properly in SSL mode
+X- mc_mobi reads ticket file, connects to user server using SSL
+X- Use ticket to share user public key with site, initialize for future regular connections
+X- User command line agent stores its state in ~/.mychips folder, separate for each CDI
+X- Can launch interactive shell from mobi app, queries user server
+X- Client verifying server OK
+X- How does an SSL server verify the certificate of its client?
+X- Server verifying client certificate OK
+- Port prototype to JS
+- Multiple mobi users can connect to same port, if configured for it
+- Separate site certificate for every user connection, or single site cert?
+- 
+
+Peer Operations:
+- Make command handler for peer server
+- Make ssl socket server for peer interface
+- Handle user command to issue stock ticket
+- User agent reads stock ticket, connects to peer
+- Can user stock ticket to establish stock tally with issuing peer
+- Can connect to multiple ID's over same peer server port
+- Separate SSL certificate for each peer connection
+- User initiated commands:
+-   Initiate tally with (peer)
+-   Send money to (peer)
+-   Send invoice to (peer)
+-   Set sell target of (issue)
+-   Set buy target for (issue)
+-   Get balance summary (date)
+-   Get income/expense summary (start, end)
+- 
+
+Wyseman:
+X- Upgrade wyseman to use for SQL schema management
+X-  Get wyseman to properly parse wmt files
+X-  Get wyseman to store wmd info in the database
+X-  Adjust wyseman tcl library to access wmd data by loading it from the database--not a local library
+X-  Get wysegi working so we can examine the database
+- JS API works
+- JS API is npm package
+- Implement primary connect points for each connect type (as with addresses)
+- Generate build/upgrade SQL scripts to be called from app
+- Table to store alter commands
+- Ability to commit a release
+- Can then edit/revise new working version
+- 
+
+General:
+X- Are we using ssl certificates, or making our own?
+X- Are we using an http server/client, or finding an ssl-capable peer socket protocol
+- 
+- Request for a certificate be signed by others I trust?
+- Cert must link public key to a chip ID, and to a distinct person
+- 
+- How to trigger pro-active events?
+-   Configured in the database?
+- Launch processes to:
+-   Initiate lift queries
+-   Freshen our pathway cache
+- 
+- User asynchronous functions:
+-   Approve/reject invoice
+-   Approve/reject new tally
+-   Alarm, warning
+-   Alarm, lockdown
+- 
+- Peer commands:
+-   Request new tally with me
+-   Request link to parties that have your issue for sale
+-   Request link to parties that have your issue for sale
+-   Pass my request through to a referenced peer
+-   Request info about a pathway to (peer)
+-   

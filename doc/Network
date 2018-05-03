@@ -1,0 +1,102 @@
+This is a description of how a MyCHIPs network is structured
+
+Trading entity
+# -----------------------------------------------------------------------------
+An entity is a person or a company who establishes itself on the network for
+the purpose of trading credits with other entities.
+
+An entity can have any number of MyCHIPs ID's trading on the network.  But
+ideally, there would be only one such ID issuing its own credits on any
+given asset (such as future profits, productivity, or a specific collateral
+asset).  This is like having more than one credit card.  The creditors might
+want to know who is first in line to collect on your guaranty.
+
+Consumers who trade for the credits of others can rightly do so under any
+number of ID's at one time.  This is like having multiple debit cards.  As
+long as you collect value in each account before spending that value, no one
+gets hurt by you having more than one account.
+
+Database Instance
+# -----------------------------------------------------------------------------
+A backend database contains a data set for multiple different trading entities
+(users).
+
+That data set includes information about what credit connections each user
+has with others on the network.  It also includes what credits each user wants
+to obtain or trade away.
+
+The relationships linked to a single user represent a very limited view of the
+network.  But a database used by many different users may be able to identify
+chains of relationships, forming a linear string, or perhaps even a complete
+circuit.  This is useful in executing a credit lift, the ultimate goal of the
+network.
+
+So the more users you can accommodate in a single database instance, the more
+valuable you can be to your customers in facilitating efficient lifts.
+
+If/when a provider needs to scale beyond a single database instance, it
+certainly could operate a secondary database that just gathers and analyses
+relationship chains for the sole purpose of facilitating lifts.  But this is
+beyond the scope of the reference implementation.
+
+Peer Server Instance
+# -----------------------------------------------------------------------------
+Each database instance can interact with one or more peer server instances.  
+The peer server listens for connections from other peer servers.  It will also
+connect with other peers for the purpose of initiating transactions.
+
+The peer server transmits and listens on a public interface.  It processes
+requests, interprets state transitions, and then transmits changes of state
+back to the database instance, ideally over an internal, higher speed 
+interface.
+
+The first way for a provider to scale is to create multiple peer servers.
+
+Admin Server Instance
+# -----------------------------------------------------------------------------
+This server may, or may not be, part of the same process as the peer server.
+It serves up and communicates with an administrator SPA to control various
+settings and functions of the backend database.  Examples include setting up
+user accounts and issuing connection tickets for those users.
+
+User Server Instance
+# -----------------------------------------------------------------------------
+This server may, or may not be, part of the same process as the peer server.
+In the initial implementation, it serves up and communicates with a user SPA to 
+control various settings and functions of the user account.  Examples include 
+establishing trading preferences (what credits the user is collecting or 
+trading away), and inviting other users to share a trading connection (issuing
+peer tickets).
+
+Connections
+# -----------------------------------------------------------------------------
+Each user entity must have at least one up-stream and one down-stream trading
+connection in order to effectively trade on the network.  However, in some
+instances those two connections can possibly be with a single other trading 
+partner.
+
+An up-stream connection is with someone you usually provide goods or services
+to.  For example, your employer is an up-stream connection for you.  If you 
+are a business, your customers are up-stream of you.
+
+The "stream" analogy applies to the direction money would normally flow in
+common practice.  So if money flows from customers to their vendors, we
+envision that money as flowing "down hill."
+
+So your down-stream connections are the people and companies you buy goods
+and services from.
+
+So in a credit lift, we will reverse the flow of value so the money will
+appear to move back "up the hill" as you collect back credits from your 
+vendors and send it back to your customers.
+
+Circuits
+# -----------------------------------------------------------------------------
+The task of the network is to discover strings of connections that link
+together in a single direction (i.e. up stream), but find their way back to the
+original entity coming from the other direction (i.e. from down stream).
+
+This means a complete circle has been discovered where credits are naturally
+flowing in a loop.  Once this circle has been discovered, a server can attempt
+to initiate a credit lift around the circle, which will be a transaction
+involving all the entities in the loop.

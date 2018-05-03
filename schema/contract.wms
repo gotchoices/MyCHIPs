@@ -1,0 +1,13 @@
+#Schema for storing contract documents
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+module mychips
+
+table mychips.covenants {mychips} {
+    author	varchar
+  , title	varchar
+  , version	int
+  , language	varchar		, primary key(author, title, version, language)
+  , released	date
+  , content	varchar
+  , hash	varchar		, unique (hash)
+}

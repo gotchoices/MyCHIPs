@@ -1,0 +1,87 @@
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            be:4f:57:c3:d9:36:48:04
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=dns_address.chip/dnQualifier=smithco, GN=Fredrick/initials=Henderson III/name=Freddy/generationQualifier=1920-Jun-06/title=President/pseudonym=The Boss/emailAddress=myname@myemail.com/emailAddress=myname@gmail.com/serialNumber=1-888-724-9876/serialNumber=1-888-724-6789, SN=Smith, O=Smithco Groceries/description=Selling food because we care, OU=purchasing/street=1345 MyStreet Ste 1/street=PO Box 123, L=Mytown, ST=NY/postalCode=12345-6789, C=US
+        Validity
+            Not Before: Mar  2 05:11:10 2017 GMT
+            Not After : Apr  1 05:11:10 2017 GMT
+        Subject: CN=dns_address.chip/dnQualifier=smithco, GN=Fredrick/initials=Henderson III/name=Freddy/generationQualifier=1920-Jun-06/title=President/pseudonym=The Boss/emailAddress=myname@myemail.com/emailAddress=myname@gmail.com/serialNumber=1-888-724-9876/serialNumber=1-888-724-6789, SN=Smith, O=Smithco Groceries/description=Selling food because we care, OU=purchasing/street=1345 MyStreet Ste 1/street=PO Box 123, L=Mytown, ST=NY/postalCode=12345-6789, C=US
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c6:01:6d:4e:58:53:5d:f8:bc:57:03:c0:d9:1c:
+                    4a:e8:0a:de:a4:17:b1:01:db:58:33:ac:27:8e:b0:
+                    18:c1:a1:a7:99:2d:c7:af:e6:5e:66:7c:2a:43:62:
+                    c8:24:9c:ca:cc:d4:5a:9b:e9:20:3c:8e:91:01:c7:
+                    63:d3:4b:f4:9c:55:35:27:cf:84:59:f1:25:88:b3:
+                    2d:7d:15:b3:e0:e2:fb:7f:f5:6d:f0:77:73:d6:05:
+                    38:c6:c8:a4:09:36:d3:db:e9:7f:03:1e:24:7c:5c:
+                    67:80:64:e9:cd:5a:3f:6d:d6:f6:17:54:07:d9:1f:
+                    54:c0:20:5e:fd:40:e6:7f:63:f9:6c:9c:5b:fd:0c:
+                    82:07:aa:7d:49:ef:bd:13:b9:1e:2f:dc:93:09:4f:
+                    b3:d5:de:f6:4d:a0:2c:bf:b4:8c:e7:1a:f4:a3:67:
+                    c4:66:d2:53:72:3a:1d:07:db:63:46:7e:4d:4d:a5:
+                    29:70:4e:d3:07:23:37:e7:4d:21:5a:72:3a:01:c0:
+                    17:9c:19:a3:1a:6b:ea:3b:8a:a5:c2:e7:06:e1:5d:
+                    1f:37:52:be:57:a0:c7:76:27:75:5d:28:7c:0f:10:
+                    ca:72:aa:4d:15:33:97:5a:72:59:1f:ea:51:03:ad:
+                    91:15:52:82:b6:aa:f4:85:06:fd:16:06:fd:a6:d7:
+                    de:09
+                Exponent: 65537 (0x10001)
+    Signature Algorithm: sha256WithRSAEncryption
+         23:c4:c6:eb:f8:4e:38:a0:7e:04:7c:dc:5c:25:55:ad:7d:36:
+         0c:e0:c8:b8:6c:64:74:9a:ba:ff:3e:35:82:b3:18:b0:f4:f2:
+         f8:57:b1:ef:b6:8a:ac:b0:17:e4:c6:c5:bd:cb:9b:d0:28:43:
+         46:61:8a:e6:88:e1:8d:fc:b9:7d:61:81:26:36:bd:17:51:92:
+         87:da:c0:ba:67:44:17:9d:35:09:a6:7b:4e:ec:d7:48:df:7f:
+         c4:87:82:07:16:e3:c7:a9:b5:ef:a2:ad:3d:3d:88:3d:c4:b0:
+         2a:2b:c5:18:80:35:2c:c1:be:a3:b4:ad:93:6f:bc:14:5b:0a:
+         56:70:50:dc:53:1a:48:83:99:d4:7d:9a:59:75:c3:5d:6f:5c:
+         af:ba:9b:19:aa:07:cb:cb:bc:66:a7:89:45:87:44:53:ae:fd:
+         93:ea:4d:af:fd:24:ca:b7:57:4a:d8:d7:68:4d:08:84:d8:6a:
+         19:7a:e9:d5:44:bf:9a:49:a0:61:35:1f:9d:a2:f4:07:06:d0:
+         26:7a:f5:cd:19:a5:3e:1f:0f:c2:6c:5d:e8:5a:b4:a6:3b:5b:
+         c8:cd:cc:7d:66:d7:d6:b6:d3:74:23:17:bd:e1:b4:5b:cf:c1:
+         29:6f:01:e2:a2:c9:6a:f8:1f:43:9a:11:76:4a:d9:62:30:0e:
+         5e:d9:03:76
+-----BEGIN CERTIFICATE-----
+MIIGbjCCBVYCCQC+T1fD2TZIBDANBgkqhkiG9w0BAQsFADCCAfcxGTAXBgNVBAMM
+EGRuc19hZGRyZXNzLmNoaXAxEDAOBgNVBC4TB3NtaXRoY28xETAPBgNVBCoMCEZy
+ZWRyaWNrMRYwFAYDVQQrDA1IZW5kZXJzb24gSUlJMQ8wDQYDVQQpDAZGcmVkZHkx
+FDASBgNVBCwMCzE5MjAtSnVuLTA2MRIwEAYDVQQMDAlQcmVzaWRlbnQxETAPBgNV
+BEEMCFRoZSBCb3NzMSEwHwYJKoZIhvcNAQkBFhJteW5hbWVAbXllbWFpbC5jb20x
+HzAdBgkqhkiG9w0BCQEWEG15bmFtZUBnbWFpbC5jb20xFzAVBgNVBAUTDjEtODg4
+LTcyNC05ODc2MRcwFQYDVQQFEw4xLTg4OC03MjQtNjc4OTEOMAwGA1UEBAwFU21p
+dGgxGjAYBgNVBAoMEVNtaXRoY28gR3JvY2VyaWVzMSUwIwYDVQQNDBxTZWxsaW5n
+IGZvb2QgYmVjYXVzZSB3ZSBjYXJlMRMwEQYDVQQLDApwdXJjaGFzaW5nMRwwGgYD
+VQQJDBMxMzQ1IE15U3RyZWV0IFN0ZSAxMRMwEQYDVQQJDApQTyBCb3ggMTIzMQ8w
+DQYDVQQHDAZNeXRvd24xCzAJBgNVBAgMAk5ZMRMwEQYDVQQRDAoxMjM0NS02Nzg5
+MQswCQYDVQQGEwJVUzAeFw0xNzAzMDIwNTExMTBaFw0xNzA0MDEwNTExMTBaMIIB
+9zEZMBcGA1UEAwwQZG5zX2FkZHJlc3MuY2hpcDEQMA4GA1UELhMHc21pdGhjbzER
+MA8GA1UEKgwIRnJlZHJpY2sxFjAUBgNVBCsMDUhlbmRlcnNvbiBJSUkxDzANBgNV
+BCkMBkZyZWRkeTEUMBIGA1UELAwLMTkyMC1KdW4tMDYxEjAQBgNVBAwMCVByZXNp
+ZGVudDERMA8GA1UEQQwIVGhlIEJvc3MxITAfBgkqhkiG9w0BCQEWEm15bmFtZUBt
+eWVtYWlsLmNvbTEfMB0GCSqGSIb3DQEJARYQbXluYW1lQGdtYWlsLmNvbTEXMBUG
+A1UEBRMOMS04ODgtNzI0LTk4NzYxFzAVBgNVBAUTDjEtODg4LTcyNC02Nzg5MQ4w
+DAYDVQQEDAVTbWl0aDEaMBgGA1UECgwRU21pdGhjbyBHcm9jZXJpZXMxJTAjBgNV
+BA0MHFNlbGxpbmcgZm9vZCBiZWNhdXNlIHdlIGNhcmUxEzARBgNVBAsMCnB1cmNo
+YXNpbmcxHDAaBgNVBAkMEzEzNDUgTXlTdHJlZXQgU3RlIDExEzARBgNVBAkMClBP
+IEJveCAxMjMxDzANBgNVBAcMBk15dG93bjELMAkGA1UECAwCTlkxEzARBgNVBBEM
+CjEyMzQ1LTY3ODkxCzAJBgNVBAYTAlVTMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEAxgFtTlhTXfi8VwPA2RxK6ArepBexAdtYM6wnjrAYwaGnmS3Hr+Ze
+ZnwqQ2LIJJzKzNRam+kgPI6RAcdj00v0nFU1J8+EWfEliLMtfRWz4OL7f/Vt8Hdz
+1gU4xsikCTbT2+l/Ax4kfFxngGTpzVo/bdb2F1QH2R9UwCBe/UDmf2P5bJxb/QyC
+B6p9Se+9E7keL9yTCU+z1d72TaAsv7SM5xr0o2fEZtJTcjodB9tjRn5NTaUpcE7T
+ByM3500hWnI6AcAXnBmjGmvqO4qlwucG4V0fN1K+V6DHdid1XSh8DxDKcqpNFTOX
+WnJZH+pRA62RFVKCtqr0hQb9Fgb9ptfeCQIDAQABMA0GCSqGSIb3DQEBCwUAA4IB
+AQAjxMbr+E44oH4EfNxcJVWtfTYM4Mi4bGR0mrr/PjWCsxiw9PL4V7HvtoqssBfk
+xsW9y5vQKENGYYrmiOGN/Ll9YYEmNr0XUZKH2sC6Z0QXnTUJpntO7NdI33/Eh4IH
+FuPHqbXvoq09PYg9xLAqK8UYgDUswb6jtK2Tb7wUWwpWcFDcUxpIg5nUfZpZdcNd
+b1yvupsZqgfLy7xmp4lFh0RTrv2T6k2v/STKt1dK2NdoTQiE2GoZeunVRL+aSaBh
+NR+dovQHBtAmevXNGaU+Hw/CbF3oWrSmO1vIzcx9ZtfWttN0Ixe94bRbz8EpbwHi
+oslq+B9DmhF2StliMA5e2QN2
+-----END CERTIFICATE-----

@@ -1,0 +1,48 @@
+{"user": {
+  "cdi": "david_madison.chip",
+  "type": "p",
+  "name": "Madison",
+  "first": "David",
+  "middle": "James",
+  "prefer": "Dave",
+  "begin": "1970-Jan-31",
+  "juris": "US",
+  "taxid": "123-45-6789",
+  "address[]": [
+    {"address": {
+      "spec": "1234 My Street",
+      "main": "false",
+      "type": "ship",
+      "locale": "Mytown",
+      "state": "Mystate",
+      "post": "12345-6789",
+      "comment": "Birth place",
+      "prior": "false"
+    }},
+    {"address": {
+      "spec": "PO Box 3456",
+      "main": "true",
+      "type": "bill",
+      "locale": "Mytown",
+      "state": "Mystate",
+      "post": "12345-3456",
+      "comment": "Mailing address",
+      "prior": "false"
+    }}
+  ],
+  "connect[]": [
+    {"connect": {
+      "spec": "901-234-5678",
+      "media": "phone",
+      "comment": "Home"
+    }},
+    {"connect": {
+      "spec": "901-345-6789",
+      "media": "cell"
+    }},
+    {"connect": {
+      "spec": "davidmadison99@gmail.com",
+      "media": "email"
+    }}
+  ]
+}}

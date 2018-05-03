@@ -1,0 +1,5 @@
+ticket: {
+  cdi: "company_chip_address.chip",
+  token: "123456",
+  public: "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF..."
+},
