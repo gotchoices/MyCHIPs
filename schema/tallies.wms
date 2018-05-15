@@ -1,6 +1,23 @@
 #Schema for storing MyCHIPs tallies
 #Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#TODO:
+#- Insert dummy tally records
+#- Test tallies_v
+#- Create insert, update, delete triggers for view
+#- Implement triggers to generate notify events to peer server
+#- Implement triggers to generate notify events to user server
+#- 
 module mychips
+
+namespace eval tallies {
+    def tallies_pk	{tally_ent tally_seq}
+    def tallies_v_up	{request comment cr_limit dr_limit}
+    def tallies_v_in	[concat tally_ent $tallies_v_up partner contract]
+    def tallies_se	[concat $tallies_v_in $glob::stampfn]
+    def ent_se		{std_name frm_name}
+#    def ent_v_in	$base::ent_v_in
+#    def ent_v_up	[lremove $base::ent_v_up ent_type username]
+}
 
 table mychips.tallies {mychips base.ent} {
     tally_ent	int		references base.ent on update cascade on delete cascade
@@ -10,31 +27,35 @@ table mychips.tallies {mychips base.ent} {
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
   , partner	int		references base.ent on update cascade on delete restrict
-  , contract	varchar		references mychips.covenants on update cascade on delete restrict
-  , status	varchar		not null default 'draft' check(tally_type in ('draft','open','closed'))
+  , contract	varchar	--	references mychips.covenants on update cascade on delete restrict
+  , status	varchar		not null default 'void' check(status in ('void','draft','open','close'))
+  , request	varchar		check(request is null or request in ('void','draft','open','close'))
   , comment	varchar
   , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
   , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
   , total_c	bigint		default 0 not null
+    eval(s $glob::stamps)
 }
 
 table mychips.chits {mychips.tallies} {
-    chit_ent	int		primary key
+    chit_ent	int
   , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
   , chit_guid	uuid		not null
-  , chit_type	varchar		not null default 'tran' check(ent_type in ('gift','lift','loan','tran'))
+  , chit_type	varchar		not null default 'tran' check(chit_type in ('gift','lift','loan','tran'))
   , chit_date	timestamptz	not null default current_timestamp
+  , expires	timestamptz	not null default current_timestamp
+  , signature	varchar
   , amount	bigint		not null
   , pro_quo	varchar
   , memo	varchar
 }
 
 table mychips.confirms {mychips.tallies} {
-    conf_ent	int		primary key
+    conf_ent	int
   , conf_seq	int	      , foreign key (conf_ent, conf_seq) references mychips.tallies on update cascade on delete cascade
   , conf_idx	int	      , primary key (conf_ent, conf_seq, conf_idx)
-  , conf_id	uuid		primary key
+  , conf_id	uuid
   , conf_date	timestamptz	not null default current_timestamp
   , sum		bigint		not null
   , signature	varchar
@@ -54,7 +75,7 @@ table mychips.confirms {mychips.tallies} {
 #table mychips.chits {mychips.tallies} {
 #    chit_id	uuid		primary key
 #  , chit_tally	uuid		references mychips.tallies on update cascade on delete cascade
-#  , chit_type	varchar		not null default 'tran' check(ent_type in ('gift','lift','loan','tran'))
+#  , chit_type	varchar		not null default 'tran' check(chit_type in ('gift','lift','loan','tran'))
 #  , date	timestamptz	not null default current_timestamp
 #  , amount	bigint		not null
 #  , pro_quo	varchar
@@ -110,6 +131,32 @@ function mychips.confirms_tf_seq() {mychips.confirms} {
         return new;
     end;
 $$;}
-trigger mychips_conf_tr_seq {} {
-    before insert on mychips.conf for each row execute procedure mychips.conf_tf_seq();
+trigger mychips_confirms_tr_seq {} {
+    before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
 }
+
+# Base view of tallies
+#----------------------------------------------------------------
+view mychips.tallies_v {mychips.tallies base.ent_v} {select 
+    eval(fld_list $tallies::tallies_se	te)
+  , eval(fld_list $tallies::ent_se	ue)
+  , host(mobi_inet) || ':' || mobi_port	as mobi_sock
+
+    from	mychips.tallies	te
+    join	mychips.users	ue on ue.user_ent = te.tally_ent
+    join	mychips.users	pe on pe.user_ent = te.partner;
+
+--    eval(multiview::insert mychips.users_v "
+--        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
+--        {mychips.users	{$users::users_v_in}	{$users::users_pk}}
+--    ")
+--    eval(multiview::update mychips.users_v "
+--        {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
+--        {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
+--    ")
+--    eval(multiview::delete mychips.users_v "
+--        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
+--    ")
+} -grant {
+    {mychips	{} {s i u} {d}}
+} -primary id
