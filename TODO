@@ -1,4 +1,20 @@
 TODO:
+- General:
+- Implement tally logic in postgresql:
+-  Create view that displays states of tallies
+-  Triggers generate notifies with correct action names
+- Create basic user agent SPI
+- Create dummy user agent process that listens/approves all tallies
+- 
+- Can launch two servers automatically
+-  Both talk to same database
+-  Represent different users
+-  Can peer chat with each other
+- Revive ruby command line admin program
+- Implement ruby command line user program
+- 
+- 
+- 
 Server:
 X- Server serves static web pages
 X- Admin page: Serves up admin SPA GUI
@@ -9,7 +25,7 @@ X- Implement tab set for Home, Users, Documents, Settings
 X- Server listens for admin connections on secret port
 X- Server listens for user connections on configured port(s)
 - 
-- Augment Wyseman:
+- Augment Wylib/wyseman:
 X-  Can specify a set of actions
 X-  Can specify a set of reports
 X-  Can specify a set of subordinate views (example: phone, address)
