@@ -61,35 +61,6 @@ table mychips.confirms {mychips.tallies} {
   , signature	varchar
 }
 
-#Try 1:
-#table mychips.tallies {mychips base.ent} {
-#    tally_id	uuid		primary key
-#  , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
-#  , stock_ent	int		references base.ent on update cascade on delete restrict
-#  , foil_ent	int		references base.ent on update cascade on delete restrict
-#  , credit_lim	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (credit_lim > 0)
-#  , debit_lim	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (debit_lim >= 0)
-#  , contract	varchar		references mychips.covenants on update cascade on delete restrict
-#  , begins	timestamptz	not null default current_timestamp
-#}
-#table mychips.chits {mychips.tallies} {
-#    chit_id	uuid		primary key
-#  , chit_tally	uuid		references mychips.tallies on update cascade on delete cascade
-#  , chit_type	varchar		not null default 'tran' check(chit_type in ('gift','lift','loan','tran'))
-#  , date	timestamptz	not null default current_timestamp
-#  , amount	bigint		not null
-#  , pro_quo	varchar
-#  , comment	varchar
-#}
-#table mychips.confirms {mychips.tallies} {
-#    conf_id	uuid		primary key
-#  , chit_tally	uuid		references mychips.tallies on update cascade on delete cascade
-#  , date	timestamptz	not null default current_timestamp
-#  , total	bigint		not null
-#  , stock_sig	varchar
-#  , foil_sig	varchar
-#}
-
 # Generate unique sequence for new tallies
 #----------------------------------------------------------------
 function mychips.tallies_tf_seq() {mychips.tallies} {
@@ -135,28 +106,54 @@ trigger mychips_confirms_tr_seq {} {
     before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
 }
 
+# Generate unique sequence for new tallies
+#----------------------------------------------------------------
+function mychips.tallies_tf_notice() {mychips.tallies} {
+  returns trigger language plpgsql security definer as $$
+    declare
+        orec	record;
+    begin
+        if (new.request = old.request and new.status = old.status) then
+            return new;
+        end if;
+        if new.status = 'void' and new.request = 'draft' then
+          notify mychips_peer, '{"target": "tally", "action": "userDraft"}';
+        elsif  new.status = 'draft' and new.request = 'void' then
+          notify mychips_peer, '{"target": "tally", "action": "userVoid"}';
+        elsif  new.status = 'draft' and new.request = 'open' then
+          notify mychips_peer, '{"target": "tally", "action": "userAccept"}';
+        elsif  new.status = 'open' and new.request = 'close' then
+          notify mychips_peer, '{"target": "tally", "action": "userClose"}';
+        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_tallies_tr_notice {} {
+    after update on mychips.tallies for each row execute procedure mychips.tallies_tf_notice();
+}
+
 # Base view of tallies
 #----------------------------------------------------------------
-view mychips.tallies_v {mychips.tallies base.ent_v} {select 
-    eval(fld_list $tallies::tallies_se	te)
-  , eval(fld_list $tallies::ent_se	ue)
-  , host(mobi_inet) || ':' || mobi_port	as mobi_sock
-
-    from	mychips.tallies	te
-    join	mychips.users	ue on ue.user_ent = te.tally_ent
-    join	mychips.users	pe on pe.user_ent = te.partner;
-
---    eval(multiview::insert mychips.users_v "
---        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
---        {mychips.users	{$users::users_v_in}	{$users::users_pk}}
---    ")
---    eval(multiview::update mychips.users_v "
---        {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
---        {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
---    ")
---    eval(multiview::delete mychips.users_v "
---        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
---    ")
-} -grant {
-    {mychips	{} {s i u} {d}}
-} -primary id
+#view mychips.tallies_v {mychips.tallies base.ent_v} {select 
+#    eval(fld_list $tallies::tallies_se	te)
+#  , eval(fld_list $tallies::ent_se	ue)
+#  , host(mobi_inet) || ':' || mobi_port	as mobi_sock
+#
+#    from	mychips.tallies	te
+#    join	mychips.users	ue on ue.user_ent = te.tally_ent
+#    join	mychips.users	pe on pe.user_ent = te.partner;
+#
+#--    ev-al(multiview::insert mychips.users_v "
+#--        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
+#--        {mychips.users	{$users::users_v_in}	{$users::users_pk}}
+#--    ")
+#--    ev-al(multiview::update mychips.users_v "
+#--        {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
+#--        {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
+#--    ")
+#--    ev-al(multiview::delete mychips.users_v "
+#--        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
+#--    ")
+#} -grant {
+#    {mychips	{} {s i u} {d}}
+#} -primary id
