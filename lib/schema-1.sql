@@ -1,6 +1,5 @@
 --Schema Creation SQL:
-begin;
-create schema wm;
+create schema if not exists wm;
 create or replace function wm.create_group(grp varchar) returns boolean language plpgsql as $$
   begin
     if not exists (select rolname from pg_roles where rolname = grp) then
@@ -8,6 +7,9 @@ create or replace function wm.create_group(grp varchar) returns boolean language
     end if;
     return false;
   end;
+$$;
+create or replace function wm.release() returns int stable language plpgsql as $$
+  begin return 1; end;
 $$;
 create type audit_type as enum ('update','delete');
 create schema base;
@@ -1595,6 +1597,9 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','priv','en','Privileges','Privileges assigned to each system user'),
   ('base','priv_v','en','Privileges','Privileges assigned to each entity'),
   ('public','covenants','en','Covenants','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
+  ('mychips','tallies','en','Tallies','Contains an entry for each tally, which is a record of credit transactions between two trading partners.'),
+  ('mychips','chits','en','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
+  ('mychips','confirms','en','Confirmations','Contains records evidencing each time the parties confirmed the present balance of their tally.'),
   ('mychips','users','en','CHIP Users','Entities who have CHIP accounts on this server.'),
   ('mychips','users_v','en','CHIP Users','Entities who have CHIP accounts on this server.'),
   ('mychips','users','fi','CHIP käyttäjät','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
@@ -1868,6 +1873,27 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('public','covenants','released','en','Released','The date this version of the covenant was first published.'),
   ('public','covenants','content','en','Content','The actual contract text, describing what the parties are agreeing to.'),
   ('public','covenants','hash','en','Hash','A standardized hash of the covenant text which can be referenced by other contracts to prove what has been included.'),
+  ('mychips','tallies','tally_id','en','Tally ID','A globally unique identifier for this tally'),
+  ('mychips','tallies','version','en','Version','A number indicating the format standard this tally adheres to'),
+  ('mychips','tallies','stock_ent','en','Stock Entity','A link to the trading partner who, in the normal flow of value, is owed something.  Typically: employee, vendor, lender, etc.'),
+  ('mychips','tallies','foil_ent','en','Foil Entity','A link to the trading partner who, in the normal flow of value, owes the other party.  Typically: employer, customer, borrower, etc.'),
+  ('mychips','tallies','credit_lim','en','Credit Limit','The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time.'),
+  ('mychips','tallies','debit_lim','en','Debit Limit','The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow.'),
+  ('mychips','tallies','contract','en','Contract','The hash ID of the standard contract this tally is based upon.'),
+  ('mychips','tallies','begins','en','Begin Date','Date and time the tally is opened by the parties for trading.'),
+  ('mychips','chits','chit_id','en','Chit ID','A globally unique identifier for this transaction'),
+  ('mychips','chits','chit_tally','en','Talley','The ID of the tally this chit belongs to'),
+  ('mychips','chits','chit_type','en','Chit Type','The type of transaction represented by this flow of credit'),
+  ('mychips','chits','date','en','Date & Time','The date and time when this transaction is effective.'),
+  ('mychips','chits','amount','en','Amount','The amount of the transaction, as measured in micro-CHIPs (1/1,000,000)'),
+  ('mychips','chits','pro_quo','en','Quid Pro Quo','A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties.'),
+  ('mychips','chits','comment','en','Comment','Any other information helpful to evidence the validity of the transaction.'),
+  ('mychips','confirms','conf_id','en','Confirmation ID','A globally unique identifier for this confirmation'),
+  ('mychips','confirms','conf_tally','en','Talley','The ID of the tally this confirmation refers to'),
+  ('mychips','confirms','date','en','Date & Time','The date and time when this account total is computed'),
+  ('mychips','confirms','total','en','Total','The total of all transaction, or chits, on this tally as of the effective date, and as measured in micro-CHIPs (1/1,000,000)'),
+  ('mychips','confirms','stock_sig','en','Stock Signature','The digital signature of the stock entity, computed on a record containing the other (non-signature) fields in this table'),
+  ('mychips','confirms','foil_sig','en','Foil Signature','The digital signature of the foil entity, computed on a record containing the other (non-signature) fields in this table'),
   ('mychips','users','user_ent','en','Entity link','A link to the entities base table.'),
   ('mychips','users','user_cdi','en','CHIPs ID','The user''s CHIPs Domain Identifier, or CDI'),
   ('mychips','users','user_hid','en','Covert ID','A substitute ID by which direct trading partners will refer to this user, when conversing with other peers.'),
@@ -1924,6 +1950,10 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('base','priv','level','limit','en','View Only','Limited access - Can see data but not change it'),
   ('base','priv','level','user','en','Normal Use','Normal access for the user of this function or module - Includes normal changing of data'),
   ('base','priv','level','super','en','Supervisor','Supervisory privilege - Typically includes the ability to undo or override normal user functions.  Also includes granting of view, user privileges to others.'),
+  ('mychips','chits','chit_type','gift','en','Gift','The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.'),
+  ('mychips','chits','chit_type','lift','en','Credit Lift','The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity.'),
+  ('mychips','chits','chit_type','loan','en','Loan','The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.'),
+  ('mychips','chits','chit_type','tran','en','Transaction','The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.'),
   ('mychips','users','user_stat','act','en','Active','Good to conduct trades'),
   ('mychips','users','user_stat','lck','en','Lockdown','Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.'),
   ('mychips','users','user_stat','off','en','Offline','Account completely off line.  No trades possible.'),
@@ -3966,4 +3996,3 @@ insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','mobi_por
 insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','mobi_inet','text','192.168.58.102','Default IP where mobile application connects.');
 insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','cert_days','int','14','Default number of days for a certificate to be valid.');
 
-commit;

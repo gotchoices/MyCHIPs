@@ -2,8 +2,6 @@
 WYSELIB = ~/share/devel/wyselib/schema
 DBNAME = $(shell id -un)
 
-all: objects text defs init
-
 objects:
 	wyseman --dbname=${DBNAME} ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms
 
@@ -16,5 +14,7 @@ defs:
 init:
 	wyseman --dbname=${DBNAME} ${WYSELIB}/base/*.wmi *.wmi
 
-sql:
+sql:	objects text
 	wyseman -s --dbname=${DBNAME} ${WYSELIB}/base/*.wmi *.wmi >../lib/schema-1.sql
+
+all: objects text defs init

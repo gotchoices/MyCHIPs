@@ -1,10 +1,11 @@
 TODO:
 - General:
+X- Create basic user agent SPI
 - Implement tally logic in postgresql:
 -  Create view that displays states of tallies
 -  Triggers generate notifies with correct action names
-- Create basic user agent SPI
 - Create dummy user agent process that listens/approves all tallies
+- Create json views for tally import/export
 - 
 - Can launch two servers automatically
 -  Both talk to same database
