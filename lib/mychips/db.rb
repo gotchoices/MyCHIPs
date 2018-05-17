@@ -14,8 +14,9 @@ module MyCHIPs
 
 # -----------------------------------------------------------------------------
 class DB < Wyseman::DB
-  def initialize (*args)
-    super(*args)
+  def initialize (opts = {})
+    opts[:schema] ||= File.join(File.dirname(__FILE__), '..', 'schema.sql')
+    super(opts)
   end
 
   public
