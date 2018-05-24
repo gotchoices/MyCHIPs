@@ -45,7 +45,7 @@ $$;
 create function norm_date(date) returns text immutable language sql as $$
     select to_char($1,'YYYY-Mon-DD');
 $$;
-create function norm_date(timestamp) returns text immutable language sql as $$
+create function norm_date(timestamptz) returns text immutable language sql as $$
     select to_char($1,'YYYY-Mon-DD HH24:MI:SS');
 $$;
 create function wm.column_names(oid,int4[]) returns varchar[] as $$
@@ -334,8 +334,8 @@ id		int		check (id > 0) primary key
 
 
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
@@ -484,8 +484,8 @@ addr_ent	int		references base.ent on update cascade on delete cascade
   , dirty	boolean		not null default false
 
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
@@ -501,8 +501,8 @@ comm_ent	int		references base.ent on update cascade on delete cascade
   , dirty	boolean		not null default false
 
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
@@ -513,7 +513,7 @@ $$;
 create table base.ent_audit (
 id int
           , a_seq	int		check (a_seq >= 0)
-          , a_date	timestamp(0)	not null default current_timestamp
+          , a_date	timestamptz	not null default current_timestamp
           , a_by	name		not null default session_user references base.ent (username) on update cascade
           , a_action	audit_type	not null default 'update'
           , a_column	varchar		not null
@@ -530,8 +530,8 @@ org		int4		references base.ent on update cascade
   , role	varchar
   , supr_path	int[]		-- other modules (like empl) are responsible to maintain this cached field
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
@@ -631,8 +631,8 @@ module	varchar
   , v_float	float		check (type = 'float' and v_float is not null or type != 'float' and v_float is null)
   , v_boolean	boolean		check (type = 'boolean' and v_boolean is not null or type != 'boolean' and v_boolean is null)
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
@@ -651,6 +651,45 @@ $$;
 create function base.username(int) returns varchar language sql security definer stable as $$
     select username from base.ent where id = $1;
 $$;
+create table mychips.peers (
+peer_ent	int		primary key references base.ent on update cascade on delete cascade
+  , peer_cdi	varchar		
+  , peer_hid	varchar		
+  , peer_pub	varchar		
+  , peer_inet	inet
+  , peer_port	int
+  , peer_cmt	varchar
+    
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
+  , crt_by      name		not null default session_user references base.ent (username) on update cascade
+  , mod_by	name		not null default session_user references base.ent (username) on update cascade
+
+);
+create table mychips.tallies (
+tally_ent	int		references base.ent on update cascade on delete cascade
+  , tally_seq	int	      , primary key (tally_ent, tally_seq)
+  , tally_guid	uuid		not null
+  , tally_type	varchar		not null default 'stock' check(tally_type in ('stock','foil'))
+  , tally_date	timestamptz	not null default current_timestamp
+  , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
+  , partner	int		references base.ent on update cascade on delete restrict
+  , contract	varchar	--	references mychips.covenants on update cascade on delete restrict
+  , status	varchar		not null default 'void' check(status in ('void','draft','open','close'))
+  , request	varchar		check(request is null or request in ('void','draft','open','close'))
+  , comment	varchar
+  , user_sig	varchar
+  , peer_sig	varchar
+  , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
+  , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
+  , total_c	bigint		default 0 not null
+    
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
+  , crt_by      name		not null default session_user references base.ent (username) on update cascade
+  , mod_by	name		not null default session_user references base.ent (username) on update cascade
+
+);
 create table mychips.tokens (
 token_ent	int		references base.ent on update cascade on delete cascade
   , token_seq	int	      , primary key (token_ent, token_seq)
@@ -660,25 +699,22 @@ token_ent	int		references base.ent on update cascade on delete cascade
   , used	boolean		not null default false
   , exp_date	timestamp(0)	default current_timestamp + '45 minutes'
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
 );
 create table mychips.users (
 user_ent	int		primary key references base.ent on update cascade on delete cascade
-  , user_cdi	varchar		
-  , user_hid	varchar		
-  , user_pub	varchar		
-  , mobi_inet	inet
-  , mobi_port	int		
+  , user_inet	inet
+  , user_port	int		
   , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
-  , user_crt	varchar
   , user_cmt	varchar
+  , host_id	varchar
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
@@ -1008,7 +1044,7 @@ grant select on table base.ent_v_pub to public;
 create table base.parm_audit (
 module varchar,parm varchar
           , a_seq	int		check (a_seq >= 0)
-          , a_date	timestamp(0)	not null default current_timestamp
+          , a_date	timestamptz	not null default current_timestamp
           , a_by	name		not null default session_user references base.ent (username) on update cascade
           , a_action	audit_type	not null default 'update'
           , a_column	varchar		not null
@@ -1167,26 +1203,91 @@ $$;
 create function base.std_name(name) returns varchar language sql security definer stable as $$
     select std_name from base.ent_v where username = $1;
 $$;
+create table mychips.chits (
+chit_ent	int
+  , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
+  , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
+  , chit_guid	uuid		not null
+  , chit_type	varchar		not null default 'tran' check(chit_type in ('gift','lift','loan','tran'))
+  , chit_date	timestamptz	not null default current_timestamp
+  , expires	timestamptz	not null default current_timestamp
+  , signature	varchar
+  , amount	bigint		not null
+  , pro_quo	varchar
+  , memo	varchar
+);
 create table mychips.comm_test (
 test_ent		int
   , test_seq		int
   , test_dat		varchar
   , foreign key (test_ent, test_seq) references base.comm on update cascade on delete cascade
 );
-create view mychips.tokens_v as select t.token_ent, t.token_seq, t.allows, t.token, t.token_cmt, t.used, t.exp_date, t.crt_by, t.mod_by, t.crt_date, t.mod_date
-      , u.user_cdi, u.mobi_inet, u.mobi_port
-      , oe.std_name
-      , t.exp_date <= current_timestamp as "expired"
-      , t.exp_date > current_timestamp and not used as "valid"
+create table mychips.confirms (
+conf_ent	int
+  , conf_seq	int	      , foreign key (conf_ent, conf_seq) references mychips.tallies on update cascade on delete cascade
+  , conf_idx	int	      , primary key (conf_ent, conf_seq, conf_idx)
+  , conf_id	uuid
+  , conf_date	timestamptz	not null default current_timestamp
+  , sum		bigint		not null
+  , signature	varchar
+);
+create view mychips.peers_v as select 
+    ee.id, ee.ent_name, ee.ent_type, ee.ent_cmt, ee.fir_name, ee.mid_name, ee.pref_name, ee.title, ee.gender, ee.marital, ee.born_date, ee.username, ee.database, ee.ent_inact, ee.inside, ee.country, ee.tax_id, ee.bank, ee.proxy, ee.std_name, ee.frm_name, ee.giv_name, ee.cas_name
+  , pe.peer_ent, pe.peer_cdi, pe.peer_hid, pe.peer_pub, pe.peer_inet, pe.peer_port, pe.peer_cmt, pe.crt_by, pe.mod_by, pe.crt_date, pe.mod_date
 
-    from	mychips.tokens	t
-    join	mychips.users	u	on u.user_ent = t.token_ent
-    join	base.ent_v	oe	on oe.id = t.token_ent;
+    from	base.ent_v	ee
+    left join	mychips.peers	pe on pe.peer_ent = ee.id;
 
-    ;
-    ;
-    create rule mychips_tokens_v_delete as on delete to mychips.tokens_v
-        do instead delete from mychips.tokens where token_ent = old.token_ent and token_seq = old.token_seq;
+    
+    
+    create rule mychips_peers_v_delete_0 as on delete to mychips.peers_v do instead nothing;
+    create rule mychips_peers_v_delete_1 as on delete to mychips.peers_v where (old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3) do instead delete from mychips.peers where peer_ent = old.peer_ent;
+select wm.create_group('peerim_2');
+grant select on table mychips.peers_v to peerim_2;
+grant insert on table mychips.peers_v to peerim_2;
+grant update on table mychips.peers_v to peerim_2;
+select wm.create_group('peerim_3');
+grant delete on table mychips.peers_v to peerim_3;
+create function mychips.tallies_tf_notice() returns trigger language plpgsql security definer as $$
+    declare
+        orec	record;
+        urec	record;
+        jrec	jsonb = '{"target": "tally"}';
+        act	text;
+        channel	text = 'mychips_peer';
+    begin
+        if (new.request = old.request and new.status = old.status) then
+            NULL;
+        elsif new.status = 'void' and new.request = 'draft' then
+            act = 'userDraft';
+        elsif  new.status = 'draft' and new.request = 'void' then
+            act = 'userVoid';
+        elsif  new.status = 'draft' and new.request = 'open' then
+            act = 'userAccept';
+        elsif  new.status = 'open' and new.request = 'close' then
+            act = 'userClose';
+        end if;
+        if act is not null then
+            select into orec user_ent,host_id from mychips.users where user_ent = new.tally_ent;
+            if not orec.host_id is null then
+                channel = channel || '_' || orec.host_id;
+            end if;
+            jrec = jsonb_set(jrec, '{guid}', ('"' || new.tally_guid || '"')::jsonb);
+            jrec = jsonb_set(jrec, '{action}', ('"' || act || '"')::jsonb);
+            jrec = jsonb_set(jrec, '{user}', ('"' || new.tally_ent || '"')::jsonb);
+            perform pg_notify(channel, jrec::text);
+        end if;
+        return new;
+    end;
+$$;
+create function mychips.tallies_tf_seq() returns trigger language plpgsql security definer as $$
+    begin
+        if new.tally_seq is null then
+            select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent;
+        end if;
+        return new;
+    end;
+$$;
 create function mychips.token_tf_seq() returns trigger security definer language plpgsql as $$
     begin
       if new.token_seq is null then
@@ -1206,10 +1307,12 @@ create function mychips.token_tf_seq() returns trigger security definer language
 $$;
 create view mychips.users_v as select 
     ee.id, ee.ent_name, ee.ent_type, ee.ent_cmt, ee.fir_name, ee.mid_name, ee.pref_name, ee.title, ee.gender, ee.marital, ee.born_date, ee.username, ee.database, ee.ent_inact, ee.inside, ee.country, ee.tax_id, ee.bank, ee.proxy, ee.std_name, ee.frm_name, ee.giv_name, ee.cas_name
-  , ue.user_ent, ue.user_cdi, ue.user_hid, ue.user_pub, ue.mobi_inet, ue.mobi_port, ue.user_stat, ue.user_crt, ue.user_cmt, ue.crt_by, ue.mod_by, ue.crt_date, ue.mod_date
-  , host(mobi_inet) || ':' || mobi_port	as mobi_sock
+  , pe.peer_ent, pe.peer_cdi, pe.peer_hid, pe.peer_pub, pe.peer_inet, pe.peer_port, pe.peer_cmt
+  , ue.user_ent, ue.user_inet, ue.user_port, ue.user_stat, ue.user_cmt, ue.host_id, ue.crt_by, ue.mod_by, ue.crt_date, ue.mod_date
+  , host(user_inet) || ':' || user_port	as user_sock
 
     from	base.ent_v	ee
+    left join	mychips.peers	pe on pe.peer_ent = ee.id
     left join	mychips.users	ue on ue.user_ent = ee.id;
 
     
@@ -1229,8 +1332,8 @@ ruid	serial primary key
   , owner	int		not null default base.curr_eid() references base.ent on update cascade on delete cascade
   , data	jsonb
     
-  , crt_date    timestamp(0)	not null default current_timestamp
-  , mod_date    timestamp(0)	not null default current_timestamp
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
   , crt_by      name		not null default session_user references base.ent (username) on update cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
@@ -1408,7 +1511,7 @@ create view json.connect as select
     from base.comm_v where not comm_ent is null with cascaded check option;
 create view json.user as select
     id		as "id"
-  , user_cdi	as "cdi"
+  , peer_cdi	as "cdi"
   , ent_name	as "name"
   , ent_type	as "type"
   , fir_name	as "first"
@@ -1418,25 +1521,129 @@ create view json.user as select
   , country	as "juris"
   , tax_id	as "taxid"
     from mychips.users_v where not user_ent is null with cascaded check option;
-create function mychips.tokens_v_insfunc() returns trigger language plpgsql security definer as $$
+create function mychips.chits_tf_seq() returns trigger language plpgsql security definer as $$
+    begin
+        if new.chit_idx is null then
+            select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq;
+        end if;
+        return new;
+    end;
+$$;
+create function mychips.confirms_tf_seq() returns trigger language plpgsql security definer as $$
+    begin
+        if new.conf_idx is null then
+            select into new.conf_idx coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq;
+        end if;
+        return new;
+    end;
+$$;
+create view mychips.peers_v_flat as select 
+    p.*
+  , a.bill_addr, a.bill_city, a.bill_state, a.bill_pcode, a.bill_country
+  , a.ship_addr, a.ship_city, a.ship_state, a.ship_pcode, a.ship_country
+  , c.phone_comm, c.cell_comm, c.email_comm, c.web_comm
+
+    from	mychips.peers_v		p
+    left join	base.addr_v_flat	a on a.id = p.id
+    left join	base.comm_v_flat	c on c.id = p.id;
+create function mychips.peers_v_insfunc() returns trigger language plpgsql security definer as $$
   declare
     trec record;
     str  varchar;
   begin
-    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tokens_v';
+    if exists (select id from base.ent where id = new.id) then	-- if primary table record already exists
+        update base.ent set mod_by = session_user,mod_date = current_timestamp where id = new.id;
+    else
+        execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'base.ent';
+
+        execute 'select ' || str || ';' into trec using new;
+        insert into base.ent (ent_name,ent_type,ent_cmt,fir_name,mid_name,pref_name,title,gender,marital,born_date,username,database,ent_inact,inside,country,tax_id,bank,proxy,mod_by,mod_date) values (trec.ent_name,trec.ent_type,trec.ent_cmt,trec.fir_name,trec.mid_name,trec.pref_name,trec.title,trec.gender,trec.marital,trec.born_date,trec.username,trec.database,trec.ent_inact,trec.inside,trec.country,trec.tax_id,trec.bank,trec.proxy,session_user,current_timestamp) returning id into new.id;
+    end if;
+    
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.peers';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.tokens (token_ent,token_seq,allows,token,token_cmt,used,exp_date,crt_by,mod_by,crt_date,mod_date) values (new.token_ent,new.token_seq,trec.allows,trec.token,trec.token_cmt,trec.used,trec.exp_date,session_user,session_user,current_timestamp,current_timestamp) returning token_ent,token_seq into new.token_ent, new.token_seq;
-    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    insert into mychips.peers (peer_ent,peer_cdi,peer_hid,peer_pub,peer_inet,peer_port,peer_cmt) values (new.id,trec.peer_cdi,trec.peer_hid,trec.peer_pub,trec.peer_inet,trec.peer_port,trec.peer_cmt);
+    select into new * from mychips.peers_v where id = new.id;
     return new;
   end;
 $$;
-create function mychips.tokens_v_updfunc() returns trigger language plpgsql security definer as $$
+create function mychips.peers_v_updfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
   begin
-    update mychips.tokens set allows = new.allows,token = new.token,token_cmt = new.token_cmt,used = new.used,exp_date = new.exp_date,mod_by = session_user,mod_date = current_timestamp where token_ent = old.token_ent and token_seq = old.token_seq returning token_ent,token_seq into new.token_ent, new.token_seq;
-    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    update base.ent set ent_name = new.ent_name,ent_cmt = new.ent_cmt,fir_name = new.fir_name,mid_name = new.mid_name,pref_name = new.pref_name,title = new.title,gender = new.gender,marital = new.marital,born_date = new.born_date,database = new.database,ent_inact = new.ent_inact,inside = new.inside,country = new.country,tax_id = new.tax_id,bank = new.bank,proxy = new.proxy,mod_by = session_user,mod_date = current_timestamp where id = old.id returning id into new.id;
+    
+    
+    if exists (select peer_ent from mychips.peers where peer_ent = old.peer_ent) then				-- if primary table record already exists
+        update mychips.peers set peer_cdi = new.peer_cdi,peer_hid = new.peer_hid,peer_pub = new.peer_pub,peer_inet = new.peer_inet,peer_port = new.peer_port,peer_cmt = new.peer_cmt,mod_by = session_user,mod_date = current_timestamp where peer_ent = old.peer_ent;
+    else
+        execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.peers';
+
+        execute 'select ' || str || ';' into trec using new;
+        insert into mychips.peers (peer_cdi,peer_hid,peer_pub,peer_inet,peer_port,peer_cmt,mod_by,mod_date) values (trec.peer_cdi,trec.peer_hid,trec.peer_pub,trec.peer_inet,trec.peer_port,trec.peer_cmt,session_user,current_timestamp);
+    end if;
+
+    select into new * from mychips.peers_v where id = new.id;
     return new;
   end;
 $$;
+create trigger mychips_tallies_tr_notice after update on mychips.tallies for each row execute procedure mychips.tallies_tf_notice();
+create trigger mychips_tallies_tr_seq before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
+create view mychips.tallies_v as select 
+    te.tally_ent, te.request, te.comment, te.cr_limit, te.dr_limit, te.tally_guid, te.tally_type, te.version, te.partner, te.contract, te.crt_by, te.mod_by, te.crt_date, te.mod_date, te.tally_date
+  , ue.peer_cdi		as user_cdi
+  , ue.std_name		as user_name
+  , pe.peer_cdi		as peer_cdi
+  , pe.std_name		as peer_name
+  , case when status = 'void' and request is null		then 'void'
+         when status = 'void' and request = 'draft'		then 'userDraft'
+         when status = 'draft' and request is null then
+           case when user_sig is not null and peer_sig is null	then 'userProffer'
+                when peer_sig is not null and user_sig is null	then 'peerProffer'
+           else 'undefined' end
+         when status = 'draft' and request = 'void'		then 'userVoid'
+         when status = 'draft' and request = 'open'		then 'accepted'
+         when status = 'open' and request is null		then 'open'
+         when status = 'open' and request = 'close'		then 'userClose'
+         when status = 'close' and request is null then
+             case when total_c = 0 then 'closed' else'closing' end
+         else 'undefined'
+     end		as state
+
+    from	mychips.tallies	te
+    join	mychips.users_v	ue on ue.user_ent = te.tally_ent
+    join	mychips.users_v	pe on pe.user_ent = te.partner;
+
+
+
+
+
+
+
+
+
+
+
+;
+select wm.create_group('mychips_2');
+grant select on table mychips.tallies_v to mychips_2;
+grant insert on table mychips.tallies_v to mychips_2;
+grant update on table mychips.tallies_v to mychips_2;
+select wm.create_group('mychips_3');
+grant delete on table mychips.tallies_v to mychips_3;
+create view mychips.tokens_v as select t.token_ent, t.token_seq, t.allows, t.token, t.token_cmt, t.used, t.exp_date, t.crt_by, t.mod_by, t.crt_date, t.mod_date
+      , u.peer_cdi, u.user_inet, u.user_port, u.std_name
+      , t.exp_date <= current_timestamp as "expired"
+      , t.exp_date > current_timestamp and not used as "valid"
+
+    from	mychips.tokens	t
+    join	mychips.users_v	u	on u.user_ent = t.token_ent
+
+    ;
+    ;
+    create rule mychips_tokens_v_delete as on delete to mychips.tokens_v
+        do instead delete from mychips.tokens where token_ent = old.token_ent and token_seq = old.token_seq;
 create trigger mychips_token_tr_seq before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
 create view mychips.users_v_flat as select 
     u.*
@@ -1461,9 +1668,12 @@ create function mychips.users_v_insfunc() returns trigger language plpgsql secur
         insert into base.ent (ent_name,ent_type,ent_cmt,fir_name,mid_name,pref_name,title,gender,marital,born_date,username,database,ent_inact,inside,country,tax_id,bank,proxy,mod_by,mod_date) values (trec.ent_name,trec.ent_type,trec.ent_cmt,trec.fir_name,trec.mid_name,trec.pref_name,trec.title,trec.gender,trec.marital,trec.born_date,trec.username,trec.database,trec.ent_inact,trec.inside,trec.country,trec.tax_id,trec.bank,trec.proxy,session_user,current_timestamp) returning id into new.id;
     end if;
     
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.peers';
+    execute 'select ' || str || ';' into trec using new;
+    insert into mychips.peers (peer_ent,peer_cdi,peer_hid,peer_pub,peer_inet,peer_port,peer_cmt) values (new.id,trec.peer_cdi,trec.peer_hid,trec.peer_pub,trec.peer_inet,trec.peer_port,trec.peer_cmt);
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.users';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.users (user_ent,user_cdi,user_hid,user_pub,mobi_inet,mobi_port,user_stat,user_crt,user_cmt) values (new.id,trec.user_cdi,trec.user_hid,trec.user_pub,trec.mobi_inet,trec.mobi_port,trec.user_stat,trec.user_crt,trec.user_cmt);
+    insert into mychips.users (user_ent,user_inet,user_port,user_stat,user_cmt,host_id) values (new.id,trec.user_inet,trec.user_port,trec.user_stat,trec.user_cmt,trec.host_id);
     select into new * from mychips.users_v where id = new.id;
     return new;
   end;
@@ -1476,13 +1686,23 @@ create function mychips.users_v_updfunc() returns trigger language plpgsql secur
     update base.ent set ent_name = new.ent_name,ent_cmt = new.ent_cmt,fir_name = new.fir_name,mid_name = new.mid_name,pref_name = new.pref_name,title = new.title,gender = new.gender,marital = new.marital,born_date = new.born_date,database = new.database,ent_inact = new.ent_inact,inside = new.inside,country = new.country,tax_id = new.tax_id,bank = new.bank,proxy = new.proxy,mod_by = session_user,mod_date = current_timestamp where id = old.id returning id into new.id;
     
     
+    if exists (select peer_ent from mychips.peers where peer_ent = old.peer_ent) then				-- if primary table record already exists
+        update mychips.peers set peer_cdi = new.peer_cdi,peer_hid = new.peer_hid,peer_pub = new.peer_pub,peer_inet = new.peer_inet,peer_port = new.peer_port,peer_cmt = new.peer_cmt,mod_by = session_user,mod_date = current_timestamp where peer_ent = old.peer_ent;
+    else
+        execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.peers';
+
+        execute 'select ' || str || ';' into trec using new;
+        insert into mychips.peers (peer_cdi,peer_hid,peer_pub,peer_inet,peer_port,peer_cmt,mod_by,mod_date) values (trec.peer_cdi,trec.peer_hid,trec.peer_pub,trec.peer_inet,trec.peer_port,trec.peer_cmt,session_user,current_timestamp);
+    end if;
+
+    
     if exists (select user_ent from mychips.users where user_ent = old.user_ent) then				-- if primary table record already exists
-        update mychips.users set user_cdi = new.user_cdi,user_hid = new.user_hid,user_pub = new.user_pub,mobi_inet = new.mobi_inet,mobi_port = new.mobi_port,user_stat = new.user_stat,user_crt = new.user_crt,user_cmt = new.user_cmt,mod_by = session_user,mod_date = current_timestamp where user_ent = old.user_ent;
+        update mychips.users set user_inet = new.user_inet,user_port = new.user_port,user_stat = new.user_stat,user_cmt = new.user_cmt,host_id = new.host_id,mod_by = session_user,mod_date = current_timestamp where user_ent = old.user_ent;
     else
         execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.users';
 
         execute 'select ' || str || ';' into trec using new;
-        insert into mychips.users (user_cdi,user_hid,user_pub,mobi_inet,mobi_port,user_stat,user_crt,user_cmt,mod_by,mod_date) values (trec.user_cdi,trec.user_hid,trec.user_pub,trec.mobi_inet,trec.mobi_port,trec.user_stat,trec.user_crt,trec.user_cmt,session_user,current_timestamp);
+        insert into mychips.users (user_inet,user_port,user_stat,user_cmt,host_id,mod_by,mod_date) values (trec.user_inet,trec.user_port,trec.user_stat,trec.user_cmt,trec.host_id,session_user,current_timestamp);
     end if;
 
     select into new * from mychips.users_v where id = new.id;
@@ -1512,22 +1732,53 @@ create trigger base_parm_tr_audit_u after update on base.parm for each row execu
 create trigger base_parm_v_tr_del instead of delete on base.parm_v for each row execute procedure base.parm_v_tf_del();
 create trigger base_parm_v_tr_ins instead of insert on base.parm_v for each row execute procedure base.parm_v_tf_ins();
 create trigger base_parm_v_tr_upd instead of update on base.parm_v for each row execute procedure base.parm_v_tf_upd();
+create view json.tally as select
+    tally_ent		as "id"
+  , tally_guid		as "guid"
+  , version		as "version"
+  , case when tally_type = 'stock' then user_cdi else peer_cdi end as "stock"
+  , case when tally_type = 'stock' then peer_cdi else user_cdi end as "foil"
+  , tally_date		as "created"
+  , contract		as "contract"
+
+    from	mychips.tallies_v;
 create view json.ticket as select
     u.id		as "id"
   , t.token_seq		as "seq"
-  , case when t.allows = 'user' then u.mobi_sock
-    else u.user_cdi end	as "url"
+  , case when t.allows = 'user' then u.user_sock
+    else u.peer_cdi end	as "url"
   , t.token		as "token"
-  , s.user_pub		as "public"
+  , s.peer_pub		as "public"
   , t.exp_date		as "expires"
 
     from	mychips.users_v	u
     join	mychips.tokens	t on t.token_ent = u.id
     left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
-    left join	mychips.users	s on s.user_ent = p.v_int
+    left join	mychips.peers	s on s.peer_ent = p.v_int
     where	t.exp_date > current_timestamp;
-create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for each row execute procedure mychips.tokens_v_insfunc();
-create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
+create trigger mychips_chits_tr_seq before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
+create trigger mychips_confirms_tr_seq before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
+create trigger mychips_peers_v_tr_ins instead of insert on mychips.peers_v for each row execute procedure mychips.peers_v_insfunc();
+create trigger mychips_peers_v_tr_upd instead of update on mychips.peers_v for each row execute procedure mychips.peers_v_updfunc();
+create function mychips.tokens_v_insfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
+  begin
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tokens_v';
+    execute 'select ' || str || ';' into trec using new;
+    insert into mychips.tokens (token_ent,token_seq,allows,token,token_cmt,used,exp_date,crt_by,mod_by,crt_date,mod_date) values (new.token_ent,new.token_seq,trec.allows,trec.token,trec.token_cmt,trec.used,trec.exp_date,session_user,session_user,current_timestamp,current_timestamp) returning token_ent,token_seq into new.token_ent, new.token_seq;
+    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    return new;
+  end;
+$$;
+create function mychips.tokens_v_updfunc() returns trigger language plpgsql security definer as $$
+  begin
+    update mychips.tokens set allows = new.allows,token = new.token,token_cmt = new.token_cmt,used = new.used,exp_date = new.exp_date,mod_by = session_user,mod_date = current_timestamp where token_ent = old.token_ent and token_seq = old.token_seq returning token_ent,token_seq into new.token_ent, new.token_seq;
+    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    return new;
+  end;
+$$;
 create trigger mychips_users_v_tr_ins instead of insert on mychips.users_v for each row execute procedure mychips.users_v_insfunc();
 create trigger mychips_users_v_tr_upd instead of update on mychips.users_v for each row execute procedure mychips.users_v_updfunc();
 create function wylib.data_v_tf_del() returns trigger language plpgsql security definer as $$
@@ -1552,6 +1803,8 @@ create function wylib.data_v_tf_upd() returns trigger language plpgsql security 
             return new;
         end;
     $$;
+create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for each row execute procedure mychips.tokens_v_insfunc();
+create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
 create trigger wylib_data_v_tr_del instead of delete on wylib.data_v for each row execute procedure wylib.data_v_tf_del();
 create trigger wylib_data_v_tr_ins instead of insert on wylib.data_v for each row execute procedure wylib.data_v_tf_ins();
 create trigger wylib_data_v_tr_upd instead of update on wylib.data_v for each row execute procedure wylib.data_v_tf_upd();
@@ -1597,6 +1850,8 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','priv','en','Privileges','Privileges assigned to each system user'),
   ('base','priv_v','en','Privileges','Privileges assigned to each entity'),
   ('public','covenants','en','Covenants','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
+  ('mychips','peers','en','CHIP Peers','All entities who trade CHIPs using on this server.  Includes this server''s users and their peers.'),
+  ('mychips','peers_v','en','CHIP Peers','Entities who trade CHIPs on this server, and their peer entities.'),
   ('mychips','tallies','en','Tallies','Contains an entry for each tally, which is a record of credit transactions between two trading partners.'),
   ('mychips','chits','en','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
   ('mychips','confirms','en','Confirmations','Contains records evidencing each time the parties confirmed the present balance of their tally.'),
@@ -1765,6 +2020,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('wm','column_ambig','spec','en','Specified','True if the definitive native table has been specified explicitly in the schema definition files'),
   ('wm','column_ambig','count','en','Count','The number of possible native tables for this column'),
   ('wm','column_ambig','natives','en','Natives','A list of the possible native tables for this column'),
+  ('base','addr','addr_type','en','Type','The kind of address'),
   ('wylib','data','ruid','en','Record ID','A unique ID number generated for each data record'),
   ('wylib','data','component','en','GUI Component','The part of the graphical interface that accesses this data'),
   ('wylib','data','access','en','Access','Who is allowed to access this data, and how'),
@@ -1776,7 +2032,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','addr','addr_ent','en','Entity ID','The ID number of the entity this address applies to'),
   ('base','addr','addr_seq','en','Sequence','A unique number assigned to each new address for a given entity'),
   ('base','addr','addr_spec','en','Address','Street address or PO Box.  This can occupy multiple lines if necessary'),
-  ('base','addr','addr_type','en','Type','The kind of address'),
   ('base','addr','addr_prim','en','Primary','If checked this is the primary address for contacting this entity'),
   ('base','addr','addr_cmt','en','Comment','Any other notes about this address'),
   ('base','addr','city','en','City','The name of the city this address is in'),
@@ -1873,6 +2128,18 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('public','covenants','released','en','Released','The date this version of the covenant was first published.'),
   ('public','covenants','content','en','Content','The actual contract text, describing what the parties are agreeing to.'),
   ('public','covenants','hash','en','Hash','A standardized hash of the covenant text which can be referenced by other contracts to prove what has been included.'),
+  ('mychips','peers','peer_ent','en','Entity link','A link to the entities base table'),
+  ('mychips','peers','peer_cdi','en','CHIPs ID','The user''s CHIPs Domain Identifier, or CDI'),
+  ('mychips','peers','peer_hid','en','Covert ID','A substitute ID by which direct trading partners will refer to this user, when conversing with other peers'),
+  ('mychips','peers','peer_pub','en','Peer Public Key','The peer''s public key, known to other trading partners'),
+  ('mychips','peers','peer_inet','en','Peer Net Addr','The IP number where other CHIP servers can connect to do trades with this peer'),
+  ('mychips','peers','peer_port','en','Peer Port','The port where other servers will connect'),
+  ('mychips','peers','peer_cmt','en','Peer Comments','Administrative comments about this peer'),
+  ('mychips','peers','crt_date','en','Created','The date this record was created'),
+  ('mychips','peers','crt_by','en','Created By','The user who entered this record'),
+  ('mychips','peers','mod_date','en','Modified','The date this record was last modified'),
+  ('mychips','peers','mod_by','en','Modified By','The user who last modified this record'),
+  ('mychips','peers_v','peer_sock','en','Peer Socket','The IP Number, and port where other servers can connect to trade with this peer.'),
   ('mychips','tallies','tally_id','en','Tally ID','A globally unique identifier for this tally'),
   ('mychips','tallies','version','en','Version','A number indicating the format standard this tally adheres to'),
   ('mychips','tallies','stock_ent','en','Stock Entity','A link to the trading partner who, in the normal flow of value, is owed something.  Typically: employee, vendor, lender, etc.'),
@@ -1895,19 +2162,16 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','confirms','stock_sig','en','Stock Signature','The digital signature of the stock entity, computed on a record containing the other (non-signature) fields in this table'),
   ('mychips','confirms','foil_sig','en','Foil Signature','The digital signature of the foil entity, computed on a record containing the other (non-signature) fields in this table'),
   ('mychips','users','user_ent','en','Entity link','A link to the entities base table.'),
-  ('mychips','users','user_cdi','en','CHIPs ID','The user''s CHIPs Domain Identifier, or CDI'),
-  ('mychips','users','user_hid','en','Covert ID','A substitute ID by which direct trading partners will refer to this user, when conversing with other peers.'),
-  ('mychips','users','user_pub','en','Public Key','The user''s public key, known to other trading partners'),
-  ('mychips','users','mobi_inet','en','User Net Addr','The IP number where the users''s mobile application connects'),
-  ('mychips','users','mobi_port','en','User Port','The port to which the user''s mobile device will connect'),
+  ('mychips','users','user_inet','en','User Net Addr','The IP number where the users''s mobile application connects'),
+  ('mychips','users','user_port','en','User Port','The port to which the user''s mobile device will connect'),
   ('mychips','users','user_stat','en','Trading Status','The current state of the user''s account for trading of CHIPs'),
-  ('mychips','users','user_crt','en','Certificate','A certificate used for connecting to the site on behalf of this user'),
   ('mychips','users','user_cmt','en','User Comments','Administrative comments about this user'),
+  ('mychips','users','host_id','en','Host ID','A unique code identifying the controller server that processes peer traffic for this user'),
   ('mychips','users','crt_date','en','Created','The date this record was created'),
   ('mychips','users','crt_by','en','Created By','The user who entered this record'),
   ('mychips','users','mod_date','en','Modified','The date this record was last modified'),
   ('mychips','users','mod_by','en','Modified By','The user who last modified this record'),
-  ('mychips','users_v','mobi_sock','en','User Socket','The IP Number, and port to which the user''s mobile device will connect'),
+  ('mychips','users_v','user_sock','en','User Socket','The IP Number, and port to which the user''s mobile device will connect'),
   ('mychips','users','user_ent','fi','Entiteettien linkki','Yhteys yhteisön peruspöytään'),
   ('mychips','users','user_stat','fi','Kaupan tila','CHIP-tilin kaupankäynnin tilille'),
   ('mychips','users_v','mobi_socket','fi','Käyttäjä pistorasia','IP-numero ja portti, johon käyttäjän mobiililaite yhdistää');
@@ -2068,9 +2332,16 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value) values
   ('base','priv','focus','priv'),
   ('base','priv_v','focus','priv'),
   ('chip','docs','focus','author'),
+  ('mychips','peers','focus','ent_name'),
+  ('mychips','peers_v','display','
+  id std_name peer_cdi peer_sock ent_type born_date !fir_name !ent_name
+'),
+  ('mychips','peers_v','focus','ent_name'),
+  ('mychips','peers_v_flat','display','id peer_cdi std_name bill_addr bill_city bill_state'),
+  ('mychips','peers_v_flat','sort','std_name id'),
   ('mychips','users','focus','ent_name'),
   ('mychips','users_v','display','
-  id std_name user_cdi mobi_sock ent_type born_date !fir_name !ent_name
+  id std_name user_cdi user_sock ent_type born_date !fir_name !ent_name
 '),
   ('mychips','users_v','focus','ent_name'),
   ('mychips','users_v_flat','display','id user_cdi std_name bill_addr bill_city bill_state'),
@@ -2899,38 +3170,169 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('chip','docs','mod_date','write','0'),
   ('chip','docs','mod_date','state','readonly'),
   ('chip','docs','author','focus','true'),
+  ('mychips','peers','peer_ent','style','ent'),
+  ('mychips','peers','peer_ent','size','6'),
+  ('mychips','peers','peer_ent','subframe',''),
+  ('mychips','peers','peer_ent','sort','1'),
+  ('mychips','peers','peer_ent','write','0'),
+  ('mychips','peers','peer_cdi','style','ent'),
+  ('mychips','peers','peer_cdi','size','40'),
+  ('mychips','peers','peer_cdi','subframe',''),
+  ('mychips','peers','peer_cdi','template','^[\w\._:/]*$'),
+  ('mychips','peers','peer_hid','style','ent'),
+  ('mychips','peers','peer_hid','size','40'),
+  ('mychips','peers','peer_hid','subframe',''),
+  ('mychips','peers','peer_pub','style','ent'),
+  ('mychips','peers','peer_pub','size','40'),
+  ('mychips','peers','peer_pub','subframe',''),
+  ('mychips','peers','peer_inet','style','ent'),
+  ('mychips','peers','peer_inet','size','40'),
+  ('mychips','peers','peer_inet','subframe',''),
+  ('mychips','peers','peer_port','style','ent'),
+  ('mychips','peers','peer_port','size','8'),
+  ('mychips','peers','peer_port','subframe',''),
+  ('mychips','peers','peer_port','justify','r'),
+  ('mychips','peers','peer_cmt','style','mle'),
+  ('mychips','peers','peer_cmt','size','40 2'),
+  ('mychips','peers','peer_cmt','subframe',''),
+  ('mychips','peers','crt_by','style','ent'),
+  ('mychips','peers','crt_by','size','10'),
+  ('mychips','peers','crt_by','subframe','1 98'),
+  ('mychips','peers','crt_by','optional','1'),
+  ('mychips','peers','crt_by','write','0'),
+  ('mychips','peers','crt_by','state','readonly'),
+  ('mychips','peers','crt_date','style','inf'),
+  ('mychips','peers','crt_date','size','18'),
+  ('mychips','peers','crt_date','subframe','2 98'),
+  ('mychips','peers','crt_date','optional','1'),
+  ('mychips','peers','crt_date','write','0'),
+  ('mychips','peers','crt_date','state','readonly'),
+  ('mychips','peers','mod_by','style','ent'),
+  ('mychips','peers','mod_by','size','10'),
+  ('mychips','peers','mod_by','subframe','1 99'),
+  ('mychips','peers','mod_by','optional','1'),
+  ('mychips','peers','mod_by','write','0'),
+  ('mychips','peers','mod_by','state','readonly'),
+  ('mychips','peers','mod_date','style','inf'),
+  ('mychips','peers','mod_date','size','18'),
+  ('mychips','peers','mod_date','subframe','2 99'),
+  ('mychips','peers','mod_date','optional','1'),
+  ('mychips','peers','mod_date','write','0'),
+  ('mychips','peers','mod_date','state','readonly'),
+  ('mychips','peers','ent_name','focus','true'),
+  ('mychips','peers_v','std_name','style','ent'),
+  ('mychips','peers_v','std_name','size','14'),
+  ('mychips','peers_v','std_name','subframe','1 7'),
+  ('mychips','peers_v','std_name','state','readonly'),
+  ('mychips','peers_v','std_name','write','0'),
+  ('mychips','peers_v','frm_name','style','ent'),
+  ('mychips','peers_v','frm_name','size','18'),
+  ('mychips','peers_v','frm_name','subframe','2 7'),
+  ('mychips','peers_v','frm_name','optional','1'),
+  ('mychips','peers_v','frm_name','state','readonly'),
+  ('mychips','peers_v','frm_name','write','0'),
+  ('mychips','peers_v','cas_name','style','ent'),
+  ('mychips','peers_v','cas_name','size','14'),
+  ('mychips','peers_v','cas_name','subframe','3 7'),
+  ('mychips','peers_v','cas_name','optional','1'),
+  ('mychips','peers_v','cas_name','state','readonly'),
+  ('mychips','peers_v','cas_name','write','0'),
+  ('mychips','peers_v','mobi_sock','style','ent'),
+  ('mychips','peers_v','mobi_sock','size','14'),
+  ('mychips','peers_v','mobi_sock','subframe','4 7'),
+  ('mychips','peers_v','mobi_sock','optional','1'),
+  ('mychips','peers_v','mobi_sock','state','readonly'),
+  ('mychips','peers_v','mobi_sock','write','0'),
+  ('mychips','peers_v','crt_by','optional','1'),
+  ('mychips','peers_v','crt_by','size','10'),
+  ('mychips','peers_v','crt_by','state','readonly'),
+  ('mychips','peers_v','crt_by','style','ent'),
+  ('mychips','peers_v','crt_by','subframe','1 98'),
+  ('mychips','peers_v','crt_by','write','0'),
+  ('mychips','peers_v','crt_date','optional','1'),
+  ('mychips','peers_v','crt_date','size','18'),
+  ('mychips','peers_v','crt_date','state','readonly'),
+  ('mychips','peers_v','crt_date','style','inf'),
+  ('mychips','peers_v','crt_date','subframe','2 98'),
+  ('mychips','peers_v','crt_date','write','0'),
+  ('mychips','peers_v','ent_name','focus','true'),
+  ('mychips','peers_v','mod_by','optional','1'),
+  ('mychips','peers_v','mod_by','size','10'),
+  ('mychips','peers_v','mod_by','state','readonly'),
+  ('mychips','peers_v','mod_by','style','ent'),
+  ('mychips','peers_v','mod_by','subframe','1 99'),
+  ('mychips','peers_v','mod_by','write','0'),
+  ('mychips','peers_v','mod_date','optional','1'),
+  ('mychips','peers_v','mod_date','size','18'),
+  ('mychips','peers_v','mod_date','state','readonly'),
+  ('mychips','peers_v','mod_date','style','inf'),
+  ('mychips','peers_v','mod_date','subframe','2 99'),
+  ('mychips','peers_v','mod_date','write','0'),
+  ('mychips','peers_v','peer_cdi','size','40'),
+  ('mychips','peers_v','peer_cdi','style','ent'),
+  ('mychips','peers_v','peer_cdi','subframe',''),
+  ('mychips','peers_v','peer_cdi','template','^[\w\._:/]*$'),
+  ('mychips','peers_v','peer_cmt','size','40 2'),
+  ('mychips','peers_v','peer_cmt','style','mle'),
+  ('mychips','peers_v','peer_cmt','subframe',''),
+  ('mychips','peers_v','peer_ent','size','6'),
+  ('mychips','peers_v','peer_ent','sort','1'),
+  ('mychips','peers_v','peer_ent','style','ent'),
+  ('mychips','peers_v','peer_ent','subframe',''),
+  ('mychips','peers_v','peer_ent','write','0'),
+  ('mychips','peers_v','peer_hid','size','40'),
+  ('mychips','peers_v','peer_hid','style','ent'),
+  ('mychips','peers_v','peer_hid','subframe',''),
+  ('mychips','peers_v','peer_inet','size','40'),
+  ('mychips','peers_v','peer_inet','style','ent'),
+  ('mychips','peers_v','peer_inet','subframe',''),
+  ('mychips','peers_v','peer_port','justify','r'),
+  ('mychips','peers_v','peer_port','size','8'),
+  ('mychips','peers_v','peer_port','style','ent'),
+  ('mychips','peers_v','peer_port','subframe',''),
+  ('mychips','peers_v','peer_pub','size','40'),
+  ('mychips','peers_v','peer_pub','style','ent'),
+  ('mychips','peers_v','peer_pub','subframe',''),
+  ('mychips','peers_v','id','display','1'),
+  ('mychips','peers_v','ent_name','display','0'),
+  ('mychips','peers_v','ent_type','display','5'),
+  ('mychips','peers_v','fir_name','display','0'),
+  ('mychips','peers_v','born_date','display','6'),
+  ('mychips','peers_v','std_name','display','2'),
+  ('mychips','peers_v','peer_cdi','display','3'),
+  ('mychips','peers_v_flat','id','display','1'),
+  ('mychips','peers_v_flat','std_name','display','3'),
+  ('mychips','peers_v_flat','peer_cdi','display','2'),
+  ('mychips','peers_v_flat','bill_addr','display','4'),
+  ('mychips','peers_v_flat','bill_city','display','5'),
+  ('mychips','peers_v_flat','bill_state','display','6'),
+  ('mychips','peers_v_flat','id','sort','2'),
+  ('mychips','peers_v_flat','std_name','sort','1'),
   ('mychips','users','user_ent','style','ent'),
   ('mychips','users','user_ent','size','6'),
   ('mychips','users','user_ent','subframe',''),
   ('mychips','users','user_ent','sort','1'),
   ('mychips','users','user_ent','write','0'),
-  ('mychips','users','user_cdi','style','ent'),
-  ('mychips','users','user_cdi','size','40'),
-  ('mychips','users','user_cdi','subframe',''),
-  ('mychips','users','user_cdi','template','^[\w\._:/]*$'),
-  ('mychips','users','user_hid','style','ent'),
-  ('mychips','users','user_hid','size','40'),
-  ('mychips','users','user_hid','subframe',''),
   ('mychips','users','user_pub','style','ent'),
   ('mychips','users','user_pub','size','40'),
   ('mychips','users','user_pub','subframe',''),
-  ('mychips','users','mobi_inet','style','ent'),
-  ('mychips','users','mobi_inet','size','40'),
-  ('mychips','users','mobi_inet','subframe',''),
-  ('mychips','users','mobi_port','style','ent'),
-  ('mychips','users','mobi_port','size','8'),
-  ('mychips','users','mobi_port','subframe',''),
-  ('mychips','users','mobi_port','justify','r'),
+  ('mychips','users','user_inet','style','ent'),
+  ('mychips','users','user_inet','size','40'),
+  ('mychips','users','user_inet','subframe',''),
+  ('mychips','users','user_port','style','ent'),
+  ('mychips','users','user_port','size','8'),
+  ('mychips','users','user_port','subframe',''),
+  ('mychips','users','user_port','justify','r'),
   ('mychips','users','user_stat','style','pdm'),
   ('mychips','users','user_stat','size','10'),
   ('mychips','users','user_stat','subframe',''),
   ('mychips','users','user_stat','initial','act'),
-  ('mychips','users','user_crt','style','ent'),
-  ('mychips','users','user_crt','size','10'),
-  ('mychips','users','user_crt','subframe',''),
   ('mychips','users','user_cmt','style','mle'),
   ('mychips','users','user_cmt','size','40 2'),
   ('mychips','users','user_cmt','subframe',''),
+  ('mychips','users','host_id','style','ent'),
+  ('mychips','users','host_id','size','40'),
+  ('mychips','users','host_id','subframe',''),
   ('mychips','users','crt_by','style','ent'),
   ('mychips','users','crt_by','size','10'),
   ('mychips','users','crt_by','subframe','1 98'),
@@ -2973,12 +3375,12 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v','cas_name','optional','1'),
   ('mychips','users_v','cas_name','state','readonly'),
   ('mychips','users_v','cas_name','write','0'),
-  ('mychips','users_v','mobi_sock','style','ent'),
-  ('mychips','users_v','mobi_sock','size','14'),
-  ('mychips','users_v','mobi_sock','subframe','4 7'),
-  ('mychips','users_v','mobi_sock','optional','1'),
-  ('mychips','users_v','mobi_sock','state','readonly'),
-  ('mychips','users_v','mobi_sock','write','0'),
+  ('mychips','users_v','user_sock','style','ent'),
+  ('mychips','users_v','user_sock','size','14'),
+  ('mychips','users_v','user_sock','subframe','4 7'),
+  ('mychips','users_v','user_sock','optional','1'),
+  ('mychips','users_v','user_sock','state','readonly'),
+  ('mychips','users_v','user_sock','write','0'),
   ('mychips','users_v','crt_by','optional','1'),
   ('mychips','users_v','crt_by','size','10'),
   ('mychips','users_v','crt_by','state','readonly'),
@@ -2992,13 +3394,9 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v','crt_date','subframe','2 98'),
   ('mychips','users_v','crt_date','write','0'),
   ('mychips','users_v','ent_name','focus','true'),
-  ('mychips','users_v','mobi_inet','size','40'),
-  ('mychips','users_v','mobi_inet','style','ent'),
-  ('mychips','users_v','mobi_inet','subframe',''),
-  ('mychips','users_v','mobi_port','justify','r'),
-  ('mychips','users_v','mobi_port','size','8'),
-  ('mychips','users_v','mobi_port','style','ent'),
-  ('mychips','users_v','mobi_port','subframe',''),
+  ('mychips','users_v','host_id','size','40'),
+  ('mychips','users_v','host_id','style','ent'),
+  ('mychips','users_v','host_id','subframe',''),
   ('mychips','users_v','mod_by','optional','1'),
   ('mychips','users_v','mod_by','size','10'),
   ('mychips','users_v','mod_by','state','readonly'),
@@ -3011,24 +3409,21 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v','mod_date','style','inf'),
   ('mychips','users_v','mod_date','subframe','2 99'),
   ('mychips','users_v','mod_date','write','0'),
-  ('mychips','users_v','user_cdi','size','40'),
-  ('mychips','users_v','user_cdi','style','ent'),
-  ('mychips','users_v','user_cdi','subframe',''),
-  ('mychips','users_v','user_cdi','template','^[\w\._:/]*$'),
   ('mychips','users_v','user_cmt','size','40 2'),
   ('mychips','users_v','user_cmt','style','mle'),
   ('mychips','users_v','user_cmt','subframe',''),
-  ('mychips','users_v','user_crt','size','10'),
-  ('mychips','users_v','user_crt','style','ent'),
-  ('mychips','users_v','user_crt','subframe',''),
   ('mychips','users_v','user_ent','size','6'),
   ('mychips','users_v','user_ent','sort','1'),
   ('mychips','users_v','user_ent','style','ent'),
   ('mychips','users_v','user_ent','subframe',''),
   ('mychips','users_v','user_ent','write','0'),
-  ('mychips','users_v','user_hid','size','40'),
-  ('mychips','users_v','user_hid','style','ent'),
-  ('mychips','users_v','user_hid','subframe',''),
+  ('mychips','users_v','user_inet','size','40'),
+  ('mychips','users_v','user_inet','style','ent'),
+  ('mychips','users_v','user_inet','subframe',''),
+  ('mychips','users_v','user_port','justify','r'),
+  ('mychips','users_v','user_port','size','8'),
+  ('mychips','users_v','user_port','style','ent'),
+  ('mychips','users_v','user_port','subframe',''),
   ('mychips','users_v','user_pub','size','40'),
   ('mychips','users_v','user_pub','style','ent'),
   ('mychips','users_v','user_pub','subframe',''),
@@ -3042,11 +3437,9 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v','fir_name','display','0'),
   ('mychips','users_v','born_date','display','6'),
   ('mychips','users_v','std_name','display','2'),
-  ('mychips','users_v','user_cdi','display','3'),
-  ('mychips','users_v','mobi_sock','display','4'),
+  ('mychips','users_v','user_sock','display','4'),
   ('mychips','users_v_flat','id','display','1'),
   ('mychips','users_v_flat','std_name','display','3'),
-  ('mychips','users_v_flat','user_cdi','display','2'),
   ('mychips','users_v_flat','bill_addr','display','4'),
   ('mychips','users_v_flat','bill_city','display','5'),
   ('mychips','users_v_flat','bill_state','display','6'),
@@ -3061,11 +3454,13 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','priv_v','priv_level','base','priv','priv_level','f','f'),
   ('base','ent','mod_by','base','ent','mod_by','f','f'),
   ('base','ent_v','mod_by','base','ent','mod_by','f','f'),
+  ('base','addr','mod_by','base','addr','mod_by','f','f'),
   ('mychips','tokens','mod_by','mychips','tokens','mod_by','f','f'),
+  ('mychips','tallies','mod_by','mychips','tallies','mod_by','f','f'),
   ('base','parm','mod_by','base','parm','mod_by','f','f'),
   ('base','ent_link','mod_by','base','ent_link','mod_by','f','f'),
   ('base','comm','mod_by','base','comm','mod_by','f','f'),
-  ('base','addr','mod_by','base','addr','mod_by','f','f'),
+  ('mychips','peers','mod_by','mychips','peers','mod_by','f','f'),
   ('mychips','users','mod_by','mychips','users','mod_by','f','f'),
   ('wylib','data','mod_by','wylib','data','mod_by','f','f'),
   ('base','addr_v','mod_by','base','addr','mod_by','f','f'),
@@ -3073,9 +3468,10 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_link_v','mod_by','base','ent_link','mod_by','f','f'),
   ('base','ent_v_pub','mod_by','base','ent','mod_by','f','f'),
   ('base','parm_v','mod_by','base','parm','mod_by','f','f'),
+  ('mychips','peers_v_flat','mod_by','mychips','peers','mod_by','f','f'),
   ('mychips','tokens_v','mod_by','mychips','tokens','mod_by','f','f'),
-  ('mychips','users_v_flat','mod_by','mychips','users','mod_by','f','f'),
   ('wylib','data_v','mod_by','wylib','data','mod_by','f','f'),
+  ('mychips','users_v_flat','mod_by','mychips','users','mod_by','f','f'),
   ('base','addr','addr_inact','base','addr','addr_inact','f','f'),
   ('base','addr_v','addr_inact','base','addr','addr_inact','f','f'),
   ('wm','depends_v','depth','wm','depends_v','depth','f','f'),
@@ -3085,23 +3481,33 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','comm_v','std_name','base','ent_v','std_name','f','f'),
   ('base','ent_v_pub','std_name','base','ent_v','std_name','f','f'),
   ('base','priv_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','peers_v_flat','std_name','base','ent_v','std_name','f','f'),
   ('mychips','tokens_v','std_name','base','ent_v','std_name','f','f'),
-  ('mychips','users_v_flat','std_name','base','ent_v','std_name','f','f'),
   ('wylib','data_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','users_v_flat','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','tallies','partner','mychips','tallies','partner','f','f'),
   ('base','comm_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
+  ('mychips','peers_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
   ('mychips','users_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
   ('base','ent_audit','a_action','base','ent_audit','a_action','f','f'),
   ('base','parm_audit','a_action','base','parm_audit','a_action','f','f'),
+  ('mychips','chits','amount','mychips','chits','amount','f','f'),
   ('base','addr','addr_spec','base','addr','addr_spec','f','f'),
   ('base','addr_v','addr_spec','base','addr','addr_spec','f','f'),
   ('base','ent','gender','base','ent','gender','f','f'),
   ('base','ent_v','gender','base','ent','gender','f','f'),
+  ('mychips','peers_v_flat','gender','base','ent','gender','f','f'),
   ('mychips','users_v_flat','gender','base','ent','gender','f','f'),
+  ('mychips','confirms','conf_date','mychips','confirms','conf_date','f','f'),
   ('base','addr_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
+  ('mychips','peers_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
   ('mychips','users_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
   ('base','ent','tax_id','base','ent','tax_id','f','f'),
   ('base','ent_v','tax_id','base','ent','tax_id','f','f'),
+  ('mychips','peers_v_flat','tax_id','base','ent','tax_id','f','f'),
   ('mychips','users_v_flat','tax_id','base','ent','tax_id','f','f'),
+  ('mychips','users','host_id','mychips','users','host_id','f','f'),
+  ('mychips','users_v_flat','host_id','mychips','users','host_id','f','f'),
   ('wm','objects','min_rel','wm','objects','min_rel','f','f'),
   ('wm','objects_v','min_rel','wm','objects','min_rel','f','f'),
   ('wm','objects_v_depth','min_rel','wm','objects','min_rel','f','f'),
@@ -3110,6 +3516,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_flat','user_cmt','mychips','users','user_cmt','f','f'),
   ('base','ent','pref_name','base','ent','pref_name','f','f'),
   ('base','ent_v','pref_name','base','ent','pref_name','f','f'),
+  ('mychips','peers_v_flat','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v_flat','pref_name','base','ent','pref_name','f','f'),
   ('base','ent','mid_name','base','ent','mid_name','f','f'),
   ('base','ent','username','base','ent','username','f','f'),
@@ -3117,19 +3524,21 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_v','username','base','ent','username','f','f'),
   ('base','ent_v_pub','username','base','ent','username','f','f'),
   ('base','priv_v','username','base','ent','username','f','f'),
+  ('mychips','peers_v_flat','mid_name','base','ent','mid_name','f','f'),
+  ('mychips','peers_v_flat','username','base','ent','username','f','f'),
   ('mychips','users_v_flat','mid_name','base','ent','mid_name','f','f'),
   ('mychips','users_v_flat','username','base','ent','username','f','f'),
   ('wm','releases','sver_1','wm','releases','sver_1','f','f'),
+  ('mychips','chits','chit_date','mychips','chits','chit_date','f','f'),
   ('wm','objects','crt_sql','wm','objects','crt_sql','f','f'),
   ('wm','objects_v','crt_sql','wm','objects','crt_sql','f','f'),
   ('wm','objects_v_depth','crt_sql','wm','objects','crt_sql','f','f'),
   ('base','addr_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
+  ('mychips','peers_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
   ('mychips','users_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
-  ('mychips','users','mobi_port','mychips','users','mobi_port','f','f'),
-  ('mychips','tokens_v','mobi_port','mychips','users','mobi_port','f','f'),
-  ('mychips','users_v_flat','mobi_port','mychips','users','mobi_port','f','f'),
   ('base','ent','born_date','base','ent','born_date','f','f'),
   ('base','ent_v','born_date','base','ent','born_date','f','f'),
+  ('mychips','peers_v_flat','born_date','base','ent','born_date','f','f'),
   ('mychips','users_v_flat','born_date','base','ent','born_date','f','f'),
   ('base','country','dial_code','base','country','dial_code','f','f'),
   ('base','parm','type','base','parm','type','f','f'),
@@ -3139,19 +3548,24 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','objects_v','max_rel','wm','objects','max_rel','f','f'),
   ('wm','objects_v_depth','max_rel','wm','objects','max_rel','f','f'),
   ('base','addr_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
+  ('mychips','peers_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
   ('mychips','users_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
   ('wm','column_native','nat_col','wm','column_native','nat_col','f','f'),
+  ('mychips','users','user_port','mychips','users','user_port','f','f'),
+  ('mychips','tokens_v','user_port','mychips','users','user_port','f','f'),
+  ('mychips','users_v_flat','user_port','mychips','users','user_port','f','f'),
   ('wm','objects','col_data','wm','objects','col_data','f','f'),
   ('wm','objects_v','col_data','wm','objects','col_data','f','f'),
   ('wm','objects_v_depth','col_data','wm','objects','col_data','f','f'),
   ('base','ent_v','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','peers_v_flat','cas_name','base','ent_v','cas_name','f','f'),
   ('mychips','users_v_flat','cas_name','base','ent_v','cas_name','f','f'),
-  ('mychips','users','user_hid','mychips','users','user_hid','f','f'),
-  ('mychips','users_v_flat','user_hid','mychips','users','user_hid','f','f'),
   ('base','ent','inside','base','ent','inside','f','f'),
   ('base','ent_v','inside','base','ent','inside','f','f'),
   ('base','ent_v_pub','inside','base','ent','inside','f','f'),
+  ('mychips','peers_v_flat','inside','base','ent','inside','f','f'),
   ('mychips','users_v_flat','inside','base','ent','inside','f','f'),
+  ('mychips','chits','memo','mychips','chits','memo','f','f'),
   ('base','comm_v_flat','fax_comm','base','comm_v_flat','fax_comm','f','f'),
   ('base','comm','comm_cmt','base','comm','comm_cmt','f','f'),
   ('base','comm_v','comm_cmt','base','comm','comm_cmt','f','f'),
@@ -3160,11 +3574,13 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_link_v','role','base','ent_link','role','f','f'),
   ('base','ent','crt_by','base','ent','crt_by','f','f'),
   ('base','ent_v','crt_by','base','ent','crt_by','f','f'),
+  ('base','addr','crt_by','base','addr','crt_by','f','f'),
   ('mychips','tokens','crt_by','mychips','tokens','crt_by','f','f'),
+  ('mychips','tallies','crt_by','mychips','tallies','crt_by','f','f'),
   ('base','parm','crt_by','base','parm','crt_by','f','f'),
   ('base','ent_link','crt_by','base','ent_link','crt_by','f','f'),
   ('base','comm','crt_by','base','comm','crt_by','f','f'),
-  ('base','addr','crt_by','base','addr','crt_by','f','f'),
+  ('mychips','peers','crt_by','mychips','peers','crt_by','f','f'),
   ('mychips','users','crt_by','mychips','users','crt_by','f','f'),
   ('wylib','data','crt_by','wylib','data','crt_by','f','f'),
   ('base','addr_v','crt_by','base','addr','crt_by','f','f'),
@@ -3172,10 +3588,13 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_link_v','crt_by','base','ent_link','crt_by','f','f'),
   ('base','ent_v_pub','crt_by','base','ent','crt_by','f','f'),
   ('base','parm_v','crt_by','base','parm','crt_by','f','f'),
+  ('mychips','peers_v_flat','crt_by','mychips','peers','crt_by','f','f'),
   ('mychips','tokens_v','crt_by','mychips','tokens','crt_by','f','f'),
-  ('mychips','users_v_flat','crt_by','mychips','users','crt_by','f','f'),
   ('wylib','data_v','crt_by','wylib','data','crt_by','f','f'),
+  ('mychips','users_v_flat','crt_by','mychips','users','crt_by','f','f'),
+  ('mychips','tallies','tally_guid','mychips','tallies','tally_guid','f','f'),
   ('wm','column_native','pkey','wm','column_native','pkey','f','f'),
+  ('mychips','chits','pro_quo','mychips','chits','pro_quo','f','f'),
   ('base','parm','v_text','base','parm','v_text','f','f'),
   ('wm','objects','checked','wm','objects','checked','f','f'),
   ('wm','objects_v','checked','wm','objects','checked','f','f'),
@@ -3183,15 +3602,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wylib','data','access','wylib','data','access','f','f'),
   ('wylib','data_v','access','wylib','data','access','f','f'),
   ('base','country','iana','base','country','iana','f','f'),
+  ('mychips','tallies','comment','mychips','tallies','comment','f','f'),
+  ('mychips','tallies','peer_sig','mychips','tallies','peer_sig','f','f'),
   ('wm','objects','ndeps','wm','objects','ndeps','f','f'),
   ('wm','objects_v','ndeps','wm','objects','ndeps','f','f'),
   ('wm','objects_v_depth','ndeps','wm','objects','ndeps','f','f'),
+  ('mychips','tallies','total_c','mychips','tallies','total_c','f','f'),
   ('mychips','covenants','hash','mychips','covenants','hash','f','f'),
   ('wm','objects','clean','wm','objects','clean','f','f'),
   ('wm','objects_v','clean','wm','objects','clean','f','f'),
   ('wm','objects_v_depth','clean','wm','objects','clean','f','f'),
   ('mychips','comm_test','test_dat','mychips','comm_test','test_dat','f','f'),
   ('base','ent_v','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','peers_v_flat','frm_name','base','ent_v','frm_name','f','f'),
   ('mychips','users_v_flat','frm_name','base','ent_v','frm_name','f','f'),
   ('wm','depends_v','path','wm','depends_v','path','f','f'),
   ('wm','column_text','title','wm','column_text','title','f','f'),
@@ -3200,43 +3623,64 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','value_text','title','wm','value_text','title','f','f'),
   ('base','ent','title','base','ent','title','f','f'),
   ('base','ent_v','title','base','ent','title','f','f'),
+  ('mychips','peers_v_flat','title','base','ent','title','f','f'),
   ('mychips','users_v_flat','title','base','ent','title','f','f'),
+  ('mychips','peers','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','peers_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','users_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
   ('base','addr_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
+  ('mychips','peers_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
   ('mychips','users_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
   ('wm','depends_v','fpath','wm','depends_v','fpath','f','f'),
   ('base','addr_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
+  ('mychips','peers_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
   ('mychips','users_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
   ('base','ent','fir_name','base','ent','fir_name','f','f'),
   ('base','ent_v','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','peers_v_flat','fir_name','base','ent','fir_name','f','f'),
   ('mychips','users_v_flat','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','confirms','sum','mychips','confirms','sum','f','f'),
   ('base','ent_audit','a_value','base','ent_audit','a_value','f','f'),
   ('base','parm_audit','a_value','base','parm_audit','a_value','f','f'),
+  ('mychips','chits','signature','mychips','chits','signature','f','f'),
+  ('mychips','confirms','signature','mychips','confirms','signature','f','f'),
   ('mychips','comm_test','test_ent','mychips','comm_test','test_ent','f','f'),
   ('mychips','tokens','token','mychips','tokens','token','f','f'),
   ('base','ent_link_v','org_name','base','ent_link_v','org_name','f','f'),
   ('mychips','tokens_v','token','mychips','tokens','token','f','f'),
+  ('mychips','tallies','tally_type','mychips','tallies','tally_type','f','f'),
   ('base','ent','bank','base','ent','bank','f','f'),
   ('base','ent_v','bank','base','ent','bank','f','f'),
+  ('mychips','peers_v_flat','bank','base','ent','bank','f','f'),
   ('mychips','users_v_flat','bank','base','ent','bank','f','f'),
   ('base','ent_audit','a_column','base','ent_audit','a_column','f','f'),
   ('base','parm_audit','a_column','base','parm_audit','a_column','f','f'),
   ('wm','column_native','nat_exp','wm','column_native','nat_exp','f','f'),
+  ('mychips','tallies','request','mychips','tallies','request','f','f'),
+  ('mychips','confirms','conf_id','mychips','confirms','conf_id','f','f'),
   ('base','ent','ent_name','base','ent','ent_name','f','f'),
   ('base','ent_v','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','peers_v_flat','ent_name','base','ent','ent_name','f','f'),
   ('mychips','users_v_flat','ent_name','base','ent','ent_name','f','f'),
   ('base','addr','addr_prim','base','addr','addr_prim','f','f'),
   ('base','addr_v','addr_prim','base','addr','addr_prim','f','f'),
+  ('mychips','tallies','status','mychips','tallies','status','f','f'),
+  ('mychips','peers','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','peers_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','users_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
   ('wm','releases','crt_date','wm','releases','crt_date','f','f'),
   ('wm','objects','crt_date','wm','objects','crt_date','f','f'),
   ('wm','objects_v','crt_date','wm','objects','crt_date','f','f'),
   ('wm','objects_v_depth','crt_date','wm','objects','crt_date','f','f'),
   ('base','ent','crt_date','base','ent','crt_date','f','f'),
   ('base','ent_v','crt_date','base','ent','crt_date','f','f'),
+  ('base','addr','crt_date','base','addr','crt_date','f','f'),
   ('mychips','tokens','crt_date','mychips','tokens','crt_date','f','f'),
+  ('mychips','tallies','crt_date','mychips','tallies','crt_date','f','f'),
   ('base','parm','crt_date','base','parm','crt_date','f','f'),
   ('base','ent_link','crt_date','base','ent_link','crt_date','f','f'),
   ('base','comm','crt_date','base','comm','crt_date','f','f'),
-  ('base','addr','crt_date','base','addr','crt_date','f','f'),
+  ('mychips','peers','crt_date','mychips','peers','crt_date','f','f'),
   ('mychips','users','crt_date','mychips','users','crt_date','f','f'),
   ('wylib','data','crt_date','wylib','data','crt_date','f','f'),
   ('base','addr_v','crt_date','base','addr','crt_date','f','f'),
@@ -3244,39 +3688,48 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_link_v','crt_date','base','ent_link','crt_date','f','f'),
   ('base','ent_v_pub','crt_date','base','ent','crt_date','f','f'),
   ('base','parm_v','crt_date','base','parm','crt_date','f','f'),
+  ('mychips','peers_v_flat','crt_date','mychips','peers','crt_date','f','f'),
   ('mychips','tokens_v','crt_date','mychips','tokens','crt_date','f','f'),
-  ('mychips','users_v_flat','crt_date','mychips','users','crt_date','f','f'),
   ('wylib','data_v','crt_date','wylib','data','crt_date','f','f'),
-  ('mychips','users_v_flat','mobi_sock','mychips','users_v','mobi_sock','f','f'),
+  ('mychips','users_v_flat','crt_date','mychips','users','crt_date','f','f'),
+  ('mychips','tallies','tally_date','mychips','tallies','tally_date','f','f'),
   ('base','parm','v_float','base','parm','v_float','f','f'),
   ('base','ent_audit','a_date','base','ent_audit','a_date','f','f'),
   ('base','parm_audit','a_date','base','parm_audit','a_date','f','f'),
+  ('mychips','chits','chit_guid','mychips','chits','chit_guid','f','f'),
   ('base','ent','proxy','base','ent','proxy','f','f'),
   ('base','ent_v','proxy','base','ent','proxy','f','f'),
+  ('mychips','peers_v_flat','proxy','base','ent','proxy','f','f'),
   ('mychips','users_v_flat','proxy','base','ent','proxy','f','f'),
+  ('mychips','chits','expires','mychips','chits','expires','f','f'),
   ('base','comm_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
+  ('mychips','peers_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
   ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
-  ('mychips','users','mobi_inet','mychips','users','mobi_inet','f','f'),
-  ('mychips','tokens_v','mobi_inet','mychips','users','mobi_inet','f','f'),
-  ('mychips','users_v_flat','mobi_inet','mychips','users','mobi_inet','f','f'),
+  ('mychips','tallies','cr_limit','mychips','tallies','cr_limit','f','f'),
   ('base','addr_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
+  ('mychips','peers_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
   ('mychips','users_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
   ('wm','column_native','nat_sch','wm','column_native','nat_sch','f','f'),
   ('wm','column_native','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('base','parm','cmt','base','parm','cmt','f','f'),
   ('base','priv','cmt','base','priv','cmt','f','f'),
+  ('base','parm','cmt','base','parm','cmt','f','f'),
   ('base','parm_v','cmt','base','parm','cmt','f','f'),
   ('base','priv_v','cmt','base','priv','cmt','f','f'),
   ('base','comm','comm_prim','base','comm','comm_prim','f','f'),
   ('base','comm_v','comm_prim','base','comm','comm_prim','f','f'),
+  ('mychips','peers','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','peers_v_flat','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','users_v_flat','peer_port','mychips','peers','peer_port','f','f'),
   ('wm','objects','source','wm','objects','source','f','f'),
   ('wm','objects_v','source','wm','objects','source','f','f'),
   ('wm','objects_v_depth','source','wm','objects','source','f','f'),
-  ('mychips','users','user_crt','mychips','users','user_crt','f','f'),
-  ('mychips','users_v_flat','user_crt','mychips','users','user_crt','f','f'),
+  ('mychips','users','user_inet','mychips','users','user_inet','f','f'),
+  ('mychips','tokens_v','user_inet','mychips','users','user_inet','f','f'),
+  ('mychips','users_v_flat','user_inet','mychips','users','user_inet','f','f'),
   ('base','country','iso_3','base','country','iso_3','f','f'),
   ('wylib','data','data','wylib','data','data','f','f'),
   ('wylib','data_v','data','wylib','data','data','f','f'),
+  ('mychips','tallies','contract','mychips','tallies','contract','f','f'),
   ('base','country','capital','base','country','capital','f','f'),
   ('wm','objects','mod_ver','wm','objects','mod_ver','f','f'),
   ('wm','objects_v','mod_ver','wm','objects','mod_ver','f','f'),
@@ -3285,24 +3738,34 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','addr_v','pcode','base','addr','pcode','f','f'),
   ('base','ent','ent_cmt','base','ent','ent_cmt','f','f'),
   ('base','ent_v','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','peers_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
   ('mychips','users_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
   ('wm','objects','grants','wm','objects','grants','f','f'),
   ('wm','objects_v','grants','wm','objects','grants','f','f'),
   ('wm','objects_v_depth','grants','wm','objects','grants','f','f'),
+  ('mychips','tallies','user_sig','mychips','tallies','user_sig','f','f'),
   ('base','addr_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
+  ('mychips','peers_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
   ('mychips','users_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
   ('base','parm','v_boolean','base','parm','v_boolean','f','f'),
   ('mychips','covenants','content','mychips','covenants','content','f','f'),
+  ('mychips','users_v_flat','user_sock','mychips','users_v','user_sock','f','f'),
   ('base','comm_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('mychips','peers_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
   ('mychips','users_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('mychips','tallies','dr_limit','mychips','tallies','dr_limit','f','f'),
   ('base','comm_v_flat','pager_comm','base','comm_v_flat','pager_comm','f','f'),
+  ('mychips','peers','peer_inet','mychips','peers','peer_inet','f','f'),
+  ('mychips','peers_v_flat','peer_inet','mychips','peers','peer_inet','f','f'),
+  ('mychips','users_v_flat','peer_inet','mychips','peers','peer_inet','f','f'),
   ('mychips','tokens','exp_date','mychips','tokens','exp_date','f','f'),
   ('mychips','tokens_v','exp_date','mychips','tokens','exp_date','f','f'),
   ('base','ent','country','base','ent','country','f','f'),
   ('base','ent_v','country','base','ent','country','f','f'),
-  ('mychips','tokens','used','mychips','tokens','used','f','f'),
   ('base','addr','country','base','addr','country','f','f'),
+  ('mychips','tokens','used','mychips','tokens','used','f','f'),
   ('base','addr_v','country','base','addr','country','f','f'),
+  ('mychips','peers_v_flat','country','base','ent','country','f','f'),
   ('mychips','tokens_v','used','mychips','tokens','used','f','f'),
   ('mychips','users_v_flat','country','base','ent','country','f','f'),
   ('base','priv','level','base','priv','level','f','f'),
@@ -3314,15 +3777,15 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','addr_v','city','base','addr','city','f','f'),
   ('base','addr','state','base','addr','state','f','f'),
   ('base','addr_v','state','base','addr','state','f','f'),
-  ('mychips','users','user_pub','mychips','users','user_pub','f','f'),
-  ('mychips','users_v_flat','user_pub','mychips','users','user_pub','f','f'),
   ('base','parm_v','value','base','parm_v','value','f','f'),
   ('base','ent','ent_inact','base','ent','ent_inact','f','f'),
   ('base','ent_v','ent_inact','base','ent','ent_inact','f','f'),
   ('base','ent_v_pub','ent_inact','base','ent','ent_inact','f','f'),
+  ('mychips','peers_v_flat','ent_inact','base','ent','ent_inact','f','f'),
   ('mychips','users_v_flat','ent_inact','base','ent','ent_inact','f','f'),
   ('base','comm','comm_type','base','comm','comm_type','f','f'),
   ('base','comm_v','comm_type','base','comm','comm_type','f','f'),
+  ('mychips','tallies','version','mychips','tallies','version','f','f'),
   ('mychips','tokens_v','valid','mychips','tokens_v','valid','f','f'),
   ('mychips','tokens','token_cmt','mychips','tokens','token_cmt','f','f'),
   ('base','priv_v','priv_list','base','priv_v','priv_list','f','f'),
@@ -3340,13 +3803,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent','ent_type','base','ent','ent_type','f','f'),
   ('base','ent_v','ent_type','base','ent','ent_type','f','f'),
   ('base','ent_v_pub','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','peers_v_flat','ent_type','base','ent','ent_type','f','f'),
   ('mychips','users_v_flat','ent_type','base','ent','ent_type','f','f'),
   ('wm','depends_v','object','wm','depends_v','object','f','f'),
   ('wm','objects_v','object','wm','objects_v','object','f','f'),
   ('wm','objects_v_depth','object','wm','objects_v','object','f','f'),
   ('base','ent','marital','base','ent','marital','f','f'),
   ('base','ent_v','marital','base','ent','marital','f','f'),
+  ('mychips','peers_v_flat','marital','base','ent','marital','f','f'),
   ('mychips','users_v_flat','marital','base','ent','marital','f','f'),
+  ('mychips','peers','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','peers_v_flat','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','tokens_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','users_v_flat','peer_cdi','mychips','peers','peer_cdi','f','f'),
   ('base','addr','addr_type','base','addr','addr_type','f','f'),
   ('base','addr_v','addr_type','base','addr','addr_type','f','f'),
   ('wm','column_text','help','wm','column_text','help','f','f'),
@@ -3356,6 +3825,9 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','parm','v_date','base','parm','v_date','f','f'),
   ('base','ent_link','supr_path','base','ent_link','supr_path','f','f'),
   ('base','ent_link_v','supr_path','base','ent_link','supr_path','f','f'),
+  ('mychips','peers','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','peers_v_flat','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','users_v_flat','peer_hid','mychips','peers','peer_hid','f','f'),
   ('mychips','users','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v_flat','user_stat','mychips','users','user_stat','f','f'),
   ('wylib','data','component','wylib','data','component','f','f'),
@@ -3371,8 +3843,10 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','parm_audit','a_reason','base','parm_audit','a_reason','f','f'),
   ('base','parm','v_int','base','parm','v_int','f','f'),
   ('base','addr_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
+  ('mychips','peers_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('mychips','users_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('base','addr_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
+  ('mychips','peers_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('mychips','users_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('base','country','cur_code','base','country','cur_code','f','f'),
   ('wm','column_style','sw_value','wm','column_style','sw_value','f','f'),
@@ -3381,28 +3855,32 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent','database','base','ent','database','f','f'),
   ('base','ent_v','database','base','ent','database','f','f'),
   ('base','priv_v','database','base','ent','database','f','f'),
+  ('mychips','peers_v_flat','database','base','ent','database','f','f'),
   ('mychips','users_v_flat','database','base','ent','database','f','f'),
   ('base','ent_v','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','peers_v_flat','giv_name','base','ent_v','giv_name','f','f'),
   ('mychips','users_v_flat','giv_name','base','ent_v','giv_name','f','f'),
-  ('mychips','users','user_cdi','mychips','users','user_cdi','f','f'),
-  ('mychips','tokens_v','user_cdi','mychips','users','user_cdi','f','f'),
-  ('mychips','users_v_flat','user_cdi','mychips','users','user_cdi','f','f'),
+  ('mychips','chits','chit_type','mychips','chits','chit_type','f','f'),
   ('base','comm_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
+  ('mychips','peers_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
   ('mychips','users_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
-  ('base','comm','dirty','base','comm','dirty','f','f'),
   ('base','addr','dirty','base','addr','dirty','f','f'),
+  ('base','comm','dirty','base','comm','dirty','f','f'),
   ('base','addr_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
+  ('mychips','peers_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
   ('mychips','users_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
   ('wm','objects','mod_date','wm','objects','mod_date','f','f'),
   ('wm','objects_v','mod_date','wm','objects','mod_date','f','f'),
   ('wm','objects_v_depth','mod_date','wm','objects','mod_date','f','f'),
   ('base','ent','mod_date','base','ent','mod_date','f','f'),
   ('base','ent_v','mod_date','base','ent','mod_date','f','f'),
+  ('base','addr','mod_date','base','addr','mod_date','f','f'),
   ('mychips','tokens','mod_date','mychips','tokens','mod_date','f','f'),
+  ('mychips','tallies','mod_date','mychips','tallies','mod_date','f','f'),
   ('base','parm','mod_date','base','parm','mod_date','f','f'),
   ('base','ent_link','mod_date','base','ent_link','mod_date','f','f'),
   ('base','comm','mod_date','base','comm','mod_date','f','f'),
-  ('base','addr','mod_date','base','addr','mod_date','f','f'),
+  ('mychips','peers','mod_date','mychips','peers','mod_date','f','f'),
   ('mychips','users','mod_date','mychips','users','mod_date','f','f'),
   ('wylib','data','mod_date','wylib','data','mod_date','f','f'),
   ('base','addr_v','mod_date','base','addr','mod_date','f','f'),
@@ -3410,95 +3888,108 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_link_v','mod_date','base','ent_link','mod_date','f','f'),
   ('base','ent_v_pub','mod_date','base','ent','mod_date','f','f'),
   ('base','parm_v','mod_date','base','parm','mod_date','f','f'),
+  ('mychips','peers_v_flat','mod_date','mychips','peers','mod_date','f','f'),
   ('mychips','tokens_v','mod_date','mychips','tokens','mod_date','f','f'),
-  ('mychips','users_v_flat','mod_date','mychips','users','mod_date','f','f'),
   ('wylib','data_v','mod_date','wylib','data','mod_date','f','f'),
+  ('mychips','users_v_flat','mod_date','mychips','users','mod_date','f','f'),
   ('base','comm','comm_inact','base','comm','comm_inact','f','f'),
   ('base','comm_v','comm_inact','base','comm','comm_inact','f','f'),
   ('base','country','cur_name','base','country','cur_name','f','f'),
-  ('base','addr','addr_seq','base','addr','addr_seq','f','t'),
   ('base','addr','addr_ent','base','addr','addr_ent','f','t'),
-  ('base','addr_v','addr_seq','base','addr','addr_seq','f','t'),
+  ('base','addr','addr_seq','base','addr','addr_seq','f','t'),
   ('base','addr_v','addr_ent','base','addr','addr_ent','f','t'),
+  ('base','addr_v','addr_seq','base','addr','addr_seq','f','t'),
   ('base','addr_v_flat','id','base','ent','id','f','t'),
   ('base','comm','comm_ent','base','comm','comm_ent','f','t'),
   ('base','comm','comm_seq','base','comm','comm_seq','f','t'),
-  ('base','comm_v','comm_ent','base','comm','comm_ent','f','t'),
   ('base','comm_v','comm_seq','base','comm','comm_seq','f','t'),
+  ('base','comm_v','comm_ent','base','comm','comm_ent','f','t'),
   ('base','comm_v_flat','id','base','ent','id','f','t'),
   ('base','country','code','base','country','code','f','t'),
   ('base','ent','id','base','ent','id','f','t'),
   ('base','ent_audit','a_seq','base','ent_audit','a_seq','f','t'),
   ('base','ent_audit','id','base','ent_audit','id','f','t'),
-  ('base','ent_link','org','base','ent_link','org','f','t'),
   ('base','ent_link','mem','base','ent_link','mem','f','t'),
+  ('base','ent_link','org','base','ent_link','org','f','t'),
   ('base','ent_link_v','mem','base','ent_link','mem','f','t'),
   ('base','ent_link_v','org','base','ent_link','org','f','t'),
   ('base','ent_v','id','base','ent','id','f','t'),
   ('base','ent_v_pub','id','base','ent','id','f','t'),
   ('base','parm','parm','base','parm','parm','f','t'),
   ('base','parm','module','base','parm','module','f','t'),
-  ('base','parm_audit','a_seq','base','parm_audit','a_seq','f','t'),
   ('base','parm_audit','parm','base','parm_audit','parm','f','t'),
   ('base','parm_audit','module','base','parm_audit','module','f','t'),
-  ('base','parm_v','parm','base','parm','parm','f','t'),
+  ('base','parm_audit','a_seq','base','parm_audit','a_seq','f','t'),
   ('base','parm_v','module','base','parm','module','f','t'),
+  ('base','parm_v','parm','base','parm','parm','f','t'),
   ('base','priv','priv','base','priv','priv','f','t'),
   ('base','priv','grantee','base','priv','grantee','f','t'),
   ('base','priv_v','grantee','base','priv','grantee','f','t'),
   ('base','priv_v','priv','base','priv','priv','f','t'),
-  ('mychips','covenants','author','mychips','covenants','author','f','t'),
-  ('mychips','covenants','language','mychips','covenants','language','f','t'),
-  ('mychips','covenants','version','mychips','covenants','version','f','t'),
+  ('mychips','chits','chit_ent','mychips','chits','chit_ent','f','t'),
+  ('mychips','chits','chit_seq','mychips','chits','chit_seq','f','t'),
+  ('mychips','chits','chit_idx','mychips','chits','chit_idx','f','t'),
+  ('mychips','confirms','conf_ent','mychips','confirms','conf_ent','f','t'),
+  ('mychips','confirms','conf_seq','mychips','confirms','conf_seq','f','t'),
+  ('mychips','confirms','conf_idx','mychips','confirms','conf_idx','f','t'),
   ('mychips','covenants','title','mychips','covenants','title','f','t'),
-  ('mychips','tokens','token_seq','mychips','tokens','token_seq','f','t'),
+  ('mychips','covenants','language','mychips','covenants','language','f','t'),
+  ('mychips','covenants','author','mychips','covenants','author','f','t'),
+  ('mychips','covenants','version','mychips','covenants','version','f','t'),
+  ('mychips','peers','peer_ent','mychips','peers','peer_ent','f','t'),
+  ('mychips','peers_v_flat','id','base','ent','id','f','t'),
+  ('mychips','peers_v_flat','peer_ent','mychips','peers','peer_ent','f','t'),
+  ('mychips','tallies','tally_seq','mychips','tallies','tally_seq','f','t'),
+  ('mychips','tallies','tally_ent','mychips','tallies','tally_ent','f','t'),
   ('mychips','tokens','token_ent','mychips','tokens','token_ent','f','t'),
+  ('mychips','tokens','token_seq','mychips','tokens','token_seq','f','t'),
   ('mychips','tokens_v','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','tokens_v','token_seq','mychips','tokens','token_seq','f','t'),
   ('mychips','users','user_ent','mychips','users','user_ent','f','t'),
+  ('mychips','users_v_flat','peer_ent','mychips','peers','peer_ent','f','t'),
   ('mychips','users_v_flat','id','base','ent','id','f','t'),
   ('mychips','users_v_flat','user_ent','mychips','users','user_ent','f','t'),
-  ('wm','column_native','cnt_sch','wm','column_native','cnt_sch','f','t'),
-  ('wm','column_native','cnt_tab','wm','column_native','cnt_tab','f','t'),
   ('wm','column_native','cnt_col','wm','column_native','cnt_col','f','t'),
+  ('wm','column_native','cnt_tab','wm','column_native','cnt_tab','f','t'),
+  ('wm','column_native','cnt_sch','wm','column_native','cnt_sch','f','t'),
+  ('wm','column_style','cs_tab','wm','column_style','cs_tab','f','t'),
   ('wm','column_style','cs_sch','wm','column_style','cs_sch','f','t'),
   ('wm','column_style','sw_name','wm','column_style','sw_name','f','t'),
   ('wm','column_style','cs_col','wm','column_style','cs_col','f','t'),
-  ('wm','column_style','cs_tab','wm','column_style','cs_tab','f','t'),
-  ('wm','column_text','ct_sch','wm','column_text','ct_sch','f','t'),
-  ('wm','column_text','language','wm','column_text','language','f','t'),
   ('wm','column_text','ct_col','wm','column_text','ct_col','f','t'),
+  ('wm','column_text','language','wm','column_text','language','f','t'),
   ('wm','column_text','ct_tab','wm','column_text','ct_tab','f','t'),
-  ('wm','depends_v','obj_typ','wm','objects','obj_typ','f','t'),
+  ('wm','column_text','ct_sch','wm','column_text','ct_sch','f','t'),
   ('wm','depends_v','release','wm','releases','release','f','t'),
+  ('wm','depends_v','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','depends_v','obj_nam','wm','objects','obj_nam','f','t'),
+  ('wm','message_text','mt_tab','wm','message_text','mt_tab','f','t'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
   ('wm','message_text','mt_sch','wm','message_text','mt_sch','f','t'),
-  ('wm','message_text','mt_tab','wm','message_text','mt_tab','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
-  ('wm','objects','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','objects','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','objects','obj_ver','wm','objects','obj_ver','f','t'),
-  ('wm','objects_v','obj_typ','wm','objects','obj_typ','f','t'),
-  ('wm','objects_v','release','wm','releases','release','f','t'),
-  ('wm','objects_v','obj_nam','wm','objects','obj_nam','f','t'),
+  ('wm','objects','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','objects_v','obj_ver','wm','objects','obj_ver','f','t'),
-  ('wm','objects_v_depth','obj_ver','wm','objects','obj_ver','f','t'),
+  ('wm','objects_v','obj_nam','wm','objects','obj_nam','f','t'),
+  ('wm','objects_v','release','wm','releases','release','f','t'),
+  ('wm','objects_v','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','objects_v_depth','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','objects_v_depth','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','objects_v_depth','release','wm','releases','release','f','t'),
+  ('wm','objects_v_depth','obj_ver','wm','objects','obj_ver','f','t'),
   ('wm','releases','release','wm','releases','release','f','t'),
-  ('wm','table_style','ts_tab','wm','table_style','ts_tab','f','t'),
   ('wm','table_style','ts_sch','wm','table_style','ts_sch','f','t'),
+  ('wm','table_style','ts_tab','wm','table_style','ts_tab','f','t'),
   ('wm','table_style','sw_name','wm','table_style','sw_name','f','t'),
-  ('wm','table_text','tt_tab','wm','table_text','tt_tab','f','t'),
-  ('wm','table_text','language','wm','table_text','language','f','t'),
   ('wm','table_text','tt_sch','wm','table_text','tt_sch','f','t'),
-  ('wm','value_text','language','wm','value_text','language','f','t'),
-  ('wm','value_text','value','wm','value_text','value','f','t'),
-  ('wm','value_text','vt_col','wm','value_text','vt_col','f','t'),
-  ('wm','value_text','vt_tab','wm','value_text','vt_tab','f','t'),
+  ('wm','table_text','language','wm','table_text','language','f','t'),
+  ('wm','table_text','tt_tab','wm','table_text','tt_tab','f','t'),
   ('wm','value_text','vt_sch','wm','value_text','vt_sch','f','t'),
+  ('wm','value_text','vt_tab','wm','value_text','vt_tab','f','t'),
+  ('wm','value_text','value','wm','value_text','value','f','t'),
+  ('wm','value_text','language','wm','value_text','language','f','t'),
+  ('wm','value_text','vt_col','wm','value_text','vt_col','f','t'),
   ('wylib','data','ruid','wylib','data','ruid','f','t'),
   ('wm','role_members','member','wm','role_members','member','f','t'),
   ('wm','role_members','role','wm','role_members','role','f','t'),
@@ -3677,6 +4168,40 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','table_pub','tab','wm','table_pub','tab','f','t'),
   ('wm','table_pub','tab_kind','wm','table_data','tab_kind','f','f'),
   ('wm','table_pub','title','wm','table_text','title','f','f'),
+  ('mychips','peers_v','bank','base','ent','bank','f','f'),
+  ('mychips','peers_v','born_date','base','ent','born_date','f','f'),
+  ('mychips','peers_v','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','peers_v','country','base','ent','country','f','f'),
+  ('mychips','peers_v','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','peers_v','crt_date','mychips','peers','crt_date','f','f'),
+  ('mychips','peers_v','database','base','ent','database','f','f'),
+  ('mychips','peers_v','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','peers_v','ent_inact','base','ent','ent_inact','f','f'),
+  ('mychips','peers_v','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','peers_v','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','peers_v','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','peers_v','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','peers_v','gender','base','ent','gender','f','f'),
+  ('mychips','peers_v','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','peers_v','id','base','ent','id','f','t'),
+  ('mychips','peers_v','inside','base','ent','inside','f','f'),
+  ('mychips','peers_v','marital','base','ent','marital','f','f'),
+  ('mychips','peers_v','mid_name','base','ent','mid_name','f','f'),
+  ('mychips','peers_v','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','peers_v','mod_date','mychips','peers','mod_date','f','f'),
+  ('mychips','peers_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','peers_v','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','peers_v','peer_ent','mychips','peers','peer_ent','f','f'),
+  ('mychips','peers_v','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','peers_v','peer_inet','mychips','peers','peer_inet','f','f'),
+  ('mychips','peers_v','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','peers_v','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','peers_v','pref_name','base','ent','pref_name','f','f'),
+  ('mychips','peers_v','proxy','base','ent','proxy','f','f'),
+  ('mychips','peers_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','peers_v','tax_id','base','ent','tax_id','f','f'),
+  ('mychips','peers_v','title','base','ent','title','f','f'),
+  ('mychips','peers_v','username','base','ent','username','f','f'),
   ('mychips','users_v','bank','base','ent','bank','f','f'),
   ('mychips','users_v','born_date','base','ent','born_date','f','f'),
   ('mychips','users_v','cas_name','base','ent_v','cas_name','f','f'),
@@ -3692,28 +4217,52 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v','frm_name','base','ent_v','frm_name','f','f'),
   ('mychips','users_v','gender','base','ent','gender','f','f'),
   ('mychips','users_v','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','users_v','host_id','mychips','users','host_id','f','f'),
   ('mychips','users_v','id','base','ent','id','f','t'),
   ('mychips','users_v','inside','base','ent','inside','f','f'),
   ('mychips','users_v','marital','base','ent','marital','f','f'),
   ('mychips','users_v','mid_name','base','ent','mid_name','f','f'),
-  ('mychips','users_v','mobi_inet','mychips','users','mobi_inet','f','f'),
-  ('mychips','users_v','mobi_port','mychips','users','mobi_port','f','f'),
-  ('mychips','users_v','mobi_sock','mychips','users_v','mobi_sock','f','f'),
   ('mychips','users_v','mod_by','mychips','users','mod_by','f','f'),
   ('mychips','users_v','mod_date','mychips','users','mod_date','f','f'),
+  ('mychips','users_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','users_v','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','users_v','peer_ent','mychips','peers','peer_ent','f','f'),
+  ('mychips','users_v','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','users_v','peer_inet','mychips','peers','peer_inet','f','f'),
+  ('mychips','users_v','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','users_v','peer_pub','mychips','peers','peer_pub','f','f'),
   ('mychips','users_v','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v','proxy','base','ent','proxy','f','f'),
   ('mychips','users_v','std_name','base','ent_v','std_name','f','f'),
   ('mychips','users_v','tax_id','base','ent','tax_id','f','f'),
   ('mychips','users_v','title','base','ent','title','f','f'),
-  ('mychips','users_v','user_cdi','mychips','users','user_cdi','f','f'),
   ('mychips','users_v','user_cmt','mychips','users','user_cmt','f','f'),
-  ('mychips','users_v','user_crt','mychips','users','user_crt','f','f'),
   ('mychips','users_v','user_ent','mychips','users','user_ent','f','f'),
-  ('mychips','users_v','user_hid','mychips','users','user_hid','f','f'),
-  ('mychips','users_v','user_pub','mychips','users','user_pub','f','f'),
+  ('mychips','users_v','user_inet','mychips','users','user_inet','f','f'),
+  ('mychips','users_v','user_port','mychips','users','user_port','f','f'),
+  ('mychips','users_v','user_sock','mychips','users_v','user_sock','f','f'),
   ('mychips','users_v','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v','username','base','ent','username','f','f'),
+  ('mychips','tallies_v','comment','mychips','tallies','comment','f','f'),
+  ('mychips','tallies_v','contract','mychips','tallies','contract','f','f'),
+  ('mychips','tallies_v','cr_limit','mychips','tallies','cr_limit','f','f'),
+  ('mychips','tallies_v','crt_by','mychips','tallies','crt_by','f','f'),
+  ('mychips','tallies_v','crt_date','mychips','tallies','crt_date','f','f'),
+  ('mychips','tallies_v','dr_limit','mychips','tallies','dr_limit','f','f'),
+  ('mychips','tallies_v','mod_by','mychips','tallies','mod_by','f','f'),
+  ('mychips','tallies_v','mod_date','mychips','tallies','mod_date','f','f'),
+  ('mychips','tallies_v','partner','mychips','tallies','partner','f','f'),
+  ('mychips','tallies_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','tallies_v','peer_name','mychips','tallies_v','peer_name','f','f'),
+  ('mychips','tallies_v','request','mychips','tallies','request','f','f'),
+  ('mychips','tallies_v','state','mychips','tallies_v','state','f','f'),
+  ('mychips','tallies_v','tally_date','mychips','tallies','tally_date','f','f'),
+  ('mychips','tallies_v','tally_ent','mychips','tallies','tally_ent','f','f'),
+  ('mychips','tallies_v','tally_guid','mychips','tallies','tally_guid','f','f'),
+  ('mychips','tallies_v','tally_type','mychips','tallies','tally_type','f','f'),
+  ('mychips','tallies_v','user_cdi','mychips','tallies_v','user_cdi','f','f'),
+  ('mychips','tallies_v','user_name','mychips','tallies_v','user_name','f','f'),
+  ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
   ('json','address','comment','json','address','comment','f','f'),
   ('json','address','id','json','address','id','f','t'),
   ('json','address','locale','json','address','locale','f','f'),
@@ -3740,6 +4289,13 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('json','user','prefer','json','user','prefer','f','f'),
   ('json','user','taxid','json','user','taxid','f','f'),
   ('json','user','type','json','user','type','f','f'),
+  ('json','tally','contract','mychips','tallies','contract','f','f'),
+  ('json','tally','created','json','tally','created','f','f'),
+  ('json','tally','foil','json','tally','foil','f','f'),
+  ('json','tally','guid','json','tally','guid','f','f'),
+  ('json','tally','id','json','tally','id','f','t'),
+  ('json','tally','stock','json','tally','stock','f','f'),
+  ('json','tally','version','mychips','tallies','version','f','f'),
   ('json','ticket','expires','json','ticket','expires','f','f'),
   ('json','ticket','id','base','ent','id','f','t'),
   ('json','ticket','public','json','ticket','public','f','f'),

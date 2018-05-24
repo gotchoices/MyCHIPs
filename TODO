@@ -1,9 +1,28 @@
 TODO:
 - General:
 X- Create basic user agent SPI
+X- Peer server must know which users from the DB it serves (it must know its socket address)
+X- Notifications should be specific to which server they are notifying
+X- Payload should include: user_id, target_type (tally), target_id (guid), action
+X- Peer server should open (or re-open) a connection to a peer as needed
+X- Can launch 2 servers (on same db)
+X- How do we know the socket number for a given peer? (part of the CID?)
+X- State 1 sends tally to peer
+- Develop receiving end of peer -> state_handler
+- Can interpret tally state from fields provided (write to DB, then query?)
+- Finish implementing tally state diagram
+- Socket connections should time out and close after an idle period
+- 
+- Create state diagram for chits
+- Implement chit state map that runs under standard state interpretor
+- 
+-X Dummy sql to create initial draft tally
+- Dummy sql files to simulate other required user actions
+- Fill in coding for state actions in peer server
+- 
 - Implement tally logic in postgresql:
--  Create view that displays states of tallies
--  Triggers generate notifies with correct action names
+-X  Create view that displays states of tallies
+-X  Triggers generate notifies with correct action names
 - Create dummy user agent process that listens/approves all tallies
 - Create json views for tally import/export
 - 

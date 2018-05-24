@@ -58,7 +58,7 @@ if cmd == 'key'
   db.setParm('site_prv',key.to_pem)		#Just storing unencrypted key, for now
 
   id = db.getParm('site_ent')		#Remember what entity is our site host
-  db.doUpdate('mychips.users_v',Hash['user_pub',key.public_key.to_pem],"id = #{id}")
+  db.doUpdate('mychips.users_v',Hash['peer_pub',key.public_key.to_pem],"id = #{id}")
 
 # -----------------------------------------------------------------------------
 elsif cmd == 'web'

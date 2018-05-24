@@ -97,7 +97,7 @@ printf("ticket mdat:%s\n", mdat)
       ddat = res[0]
 #printf("DB now:%s exp:%s\n  cdi:%s:%s:\n  port:%s:%s:\n", Time.now, Time.parse(ddat['exp_date']),mdat['cdi'],ddat['user_cdi'], ddat['mobi_port'], @port)
       return nil if Time.now > Time.parse(ddat['exp_date']) || mdat['cdi'] != ddat['user_cdi'] || ddat['mobi_port'].to_i != @port
-      @db.doUpdate('mychips.users_v',Hash['user_pub',"#{mdat['public']}"], "id='#{ddat['token_ent']}'")
+      @db.doUpdate('mychips.users_v',Hash['peer_pub',"#{mdat['public']}"], "id='#{ddat['token_ent']}'")
       usercert = Certificate.new(ddat['token_ent'])
       @db.doUpdate('mychips.users_v',Hash['user_crt',"#{usercert.to_pem}"], "id='#{ddat['token_ent']}'")
       @db.doUpdate('mychips.tokens_v',Hash['used','true'],"token='#{mdat['token']}'")
