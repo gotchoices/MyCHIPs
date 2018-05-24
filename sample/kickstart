@@ -2,8 +2,14 @@
 #Initialize an empty database with some sample data
 MYPATH=$(dirname "$0")
 
-psql $USER -c "select base.parmset('mychips','mobi_inet','192.168.57.101'::inet)"
-psql $USER -c "update mychips.users set mobi_inet = '192.168.57.101' where not mobi_inet isnull;"
+machineIP="192.168.57.101"
+uport=43210
+pport=65432
+if [ ! -z "$1" ]; then
+    machineIP="$1"
+fi
+
+psql $USER -c "select base.parmset('mychips','mobi_inet','$machineIP'::inet)"
 
 echo "CWD:$(pwd) MYPATH:$MYPATH"
 mc_admin load -s $MYPATH/org.json
@@ -11,3 +17,10 @@ mc_admin load $MYPATH/user1.json
 mc_admin load $MYPATH/user2.json
 mc_admin load $MYPATH/user3.json
 mc_admin ticket 10000 $MYPATH/../tmp/ticket.json
+
+psql $USER -c "update mychips.users set user_inet = '$machineIP', user_port=$uport where user_inet isnull;"
+psql $USER -c "update mychips.peers set peer_inet = '$machineIP', peer_port=$pport where peer_inet isnull;"
+
+#For testing:
+psql $USER -c "update mychips.users_v set host_id='server2' where id >= 10000;"
+psql $USER -c "update mychips.users_v set host_id='server1', peer_port=65431 where id = 10001;"
