@@ -57,16 +57,14 @@ trigger mychips_token_tr_seq {} {
 
 #Basic view
 #----------------------------------------------------------------
-view mychips.tokens_v {mychips.tokens base.ent_v} {
+view mychips.tokens_v {mychips.tokens mychips.users_v base.ent_v} {
     select eval(fld_list $tokens::tokens_se t)
-      , u.user_cdi, u.mobi_inet, u.mobi_port
-      , oe.std_name
+      , u.peer_cdi, u.user_inet, u.user_port, u.std_name
       , t.exp_date <= current_timestamp as "expired"
       , t.exp_date > current_timestamp and not used as "valid"
 
     from	mychips.tokens	t
-    join	mychips.users	u	on u.user_ent = t.token_ent
-    join	base.ent_v	oe	on oe.id = t.token_ent;
+    join	mychips.users_v	u	on u.user_ent = t.token_ent
 
     eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk $glob::stampin);
     eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);

@@ -4,7 +4,6 @@
 #TODO:
 #- Can I keep id and fk's out of these views and still insert data as needed?
 #- 
-
 module mychips
 schema json {}
 
@@ -12,7 +11,7 @@ schema json {}
 #----------------------------------------------------------------
 view json.user {json mychips.users_v} {select
     id		as "id"
-  , user_cdi	as "cdi"
+  , peer_cdi	as "cdi"
   , ent_name	as "name"
   , ent_type	as "type"
   , fir_name	as "first"
@@ -57,15 +56,29 @@ view json.connect {json base.comm_v} {select
 view json.ticket {json mychips.users_v mychips.tokens_v base.parm(varchar,varchar)} {select
     u.id		as "id"
   , t.token_seq		as "seq"
-  , case when t.allows = 'user' then u.mobi_sock
-    else u.user_cdi end	as "url"
+  , case when t.allows = 'user' then u.user_sock
+    else u.peer_cdi end	as "url"
   , t.token		as "token"
-  , s.user_pub		as "public"
+  , s.peer_pub		as "public"
   , t.exp_date		as "expires"
 
     from	mychips.users_v	u
     join	mychips.tokens	t on t.token_ent = u.id
     left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
-    left join	mychips.users	s on s.user_ent = p.v_int
+    left join	mychips.peers	s on s.peer_ent = p.v_int
     where	t.exp_date > current_timestamp
+} -primary {id seq}
+
+# Standard view for tallies
+#----------------------------------------------------------------
+view json.tally {json mychips.tallies_v} {select
+    tally_ent		as "id"
+  , tally_guid		as "guid"
+  , version		as "version"
+  , case when tally_type = 'stock' then user_cdi else peer_cdi end as "stock"
+  , case when tally_type = 'stock' then peer_cdi else user_cdi end as "foil"
+  , tally_date		as "created"
+  , contract		as "contract"
+
+    from	mychips.tallies_v
 } -primary {id seq}

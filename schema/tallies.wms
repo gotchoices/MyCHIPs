@@ -6,15 +6,15 @@
 #- Create insert, update, delete triggers for view
 #- Implement triggers to generate notify events to peer server
 #- Implement triggers to generate notify events to user server
-#- 
+#- Instantiate 'state' as a cached field in tallies table, update in trigger?
 module mychips
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment cr_limit dr_limit}
-    def tallies_v_in	[concat tally_ent $tallies_v_up partner contract]
-    def tallies_se	[concat $tallies_v_in $glob::stampfn]
-    def ent_se		{std_name frm_name}
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract]
+    def tallies_se	[concat $tallies_v_in $glob::stampfn tally_date status]
+#    def users_se	{user_cdi std_name frm_name}
 #    def ent_v_in	$base::ent_v_in
 #    def ent_v_up	[lremove $base::ent_v_up ent_type username]
 }
@@ -31,6 +31,8 @@ table mychips.tallies {mychips base.ent} {
   , status	varchar		not null default 'void' check(status in ('void','draft','open','close'))
   , request	varchar		check(request is null or request in ('void','draft','open','close'))
   , comment	varchar
+  , user_sig	varchar
+  , peer_sig	varchar
   , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
   , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
   , total_c	bigint		default 0 not null
@@ -108,22 +110,35 @@ trigger mychips_confirms_tr_seq {} {
 
 # Generate unique sequence for new tallies
 #----------------------------------------------------------------
-function mychips.tallies_tf_notice() {mychips.tallies} {
+function mychips.tallies_tf_notice() {mychips.tallies mychips.users} {
   returns trigger language plpgsql security definer as $$
     declare
         orec	record;
+        urec	record;
+        jrec	jsonb = '{"target": "tally"}';
+        act	text;
+        channel	text = 'mychips_peer';
     begin
         if (new.request = old.request and new.status = old.status) then
-            return new;
-        end if;
-        if new.status = 'void' and new.request = 'draft' then
-          notify mychips_peer, '{"target": "tally", "action": "userDraft"}';
+            NULL;
+        elsif new.status = 'void' and new.request = 'draft' then
+            act = 'userDraft';
         elsif  new.status = 'draft' and new.request = 'void' then
-          notify mychips_peer, '{"target": "tally", "action": "userVoid"}';
+            act = 'userVoid';
         elsif  new.status = 'draft' and new.request = 'open' then
-          notify mychips_peer, '{"target": "tally", "action": "userAccept"}';
+            act = 'userAccept';
         elsif  new.status = 'open' and new.request = 'close' then
-          notify mychips_peer, '{"target": "tally", "action": "userClose"}';
+            act = 'userClose';
+        end if;
+        if act is not null then
+            select into orec user_ent,host_id from mychips.users where user_ent = new.tally_ent;
+            if not orec.host_id is null then
+                channel = channel || '_' || orec.host_id;
+            end if;
+            jrec = jsonb_set(jrec, '{guid}', ('"' || new.tally_guid || '"')::jsonb);
+            jrec = jsonb_set(jrec, '{action}', ('"' || act || '"')::jsonb);
+            jrec = jsonb_set(jrec, '{user}', ('"' || new.tally_ent || '"')::jsonb);
+            perform pg_notify(channel, jrec::text);
         end if;
         return new;
     end;
@@ -134,26 +149,82 @@ trigger mychips_tallies_tr_notice {} {
 
 # Base view of tallies
 #----------------------------------------------------------------
-#view mychips.tallies_v {mychips.tallies base.ent_v} {select 
-#    eval(fld_list $tallies::tallies_se	te)
-#  , eval(fld_list $tallies::ent_se	ue)
-#  , host(mobi_inet) || ':' || mobi_port	as mobi_sock
-#
-#    from	mychips.tallies	te
-#    join	mychips.users	ue on ue.user_ent = te.tally_ent
-#    join	mychips.users	pe on pe.user_ent = te.partner;
-#
-#--    ev-al(multiview::insert mychips.users_v "
-#--        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
-#--        {mychips.users	{$users::users_v_in}	{$users::users_pk}}
-#--    ")
-#--    ev-al(multiview::update mychips.users_v "
-#--        {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
-#--        {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
-#--    ")
-#--    ev-al(multiview::delete mychips.users_v "
-#--        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
-#--    ")
-#} -grant {
-#    {mychips	{} {s i u} {d}}
-#} -primary id
+view mychips.tallies_v {mychips.tallies mychips.users_v} {select 
+    eval(fld_list $tallies::tallies_se	te)
+  , ue.peer_cdi		as user_cdi
+  , ue.peer_sock	as user_sock
+  , ue.std_name		as user_name
+  , pe.peer_cdi		as peer_cdi
+  , pe.peer_sock	as peer_sock
+  , pe.std_name		as peer_name
+  , case when status = 'void' and request is null		then 'void'
+         when status = 'void' and request = 'draft'		then 'userDraft'
+         when status = 'draft' and request is null then
+           case when user_sig is not null and peer_sig is null	then 'userProffer'
+                when peer_sig is not null and user_sig is null	then 'peerProffer'
+           else 'undefined' end
+         when status = 'draft' and request = 'void'		then 'userVoid'
+         when status = 'draft' and request = 'open'		then 'accepted'
+         when status = 'open' and request is null		then 'open'
+         when status = 'open' and request = 'close'		then 'userClose'
+         when status = 'close' and request is null then
+             case when total_c = 0 then 'closed' else'closing' end
+         else 'undefined'
+     end		as state
+   , json_build_object(
+       'guid', te.tally_guid,
+       'version', te.version,
+       'stock', case when te.tally_type = 'stock' then ue.peer_cdi else pe.peer_cdi end,
+       'foil',  case when te.tally_type = 'stock' then pe.peer_cdi else ue.peer_cdi end,
+       'created', te.tally_date,
+       'contract', te.contract,
+       'signed', json_build_object(
+         'digest', '',
+         'stock', case when te.tally_type = 'stock' then te.user_sig else te.peer_sig end,
+         'foil',  case when te.tally_type = 'stock' then te.peer_sig else te.user_sig end
+       )
+   )								as json
+
+    from	mychips.tallies	te
+    join	mychips.users_v	ue on ue.user_ent = te.tally_ent
+    join	mychips.users_v	pe on pe.user_ent = te.partner;
+
+--    ev-al(multiview::insert mychips.users_v "
+--        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
+--        {mychips.users	{$users::users_v_in}	{$users::users_pk}}
+--    ")
+--    ev-al(multiview::update mychips.users_v "
+--        {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
+--        {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
+--    ")
+--    ev-al(multiview::delete mychips.users_v "
+--        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
+--    ")
+} -grant {
+    {mychips	{} {s i u} {d}}
+} -primary id
+
+# Process state transitions on tallies
+#----------------------------------------------------------------
+function {mychips.tally_state(userID int, guid uuid, recipe jsonb)} {mychips.tallies_v} {
+  returns text language plpgsql as $$
+    declare
+        curState	text;
+        lrec		record;
+    begin
+raise notice 'Tally state: % % %', userID, guid, recipe;
+        select into curState state from mychips.tallies_v where tally_ent = userID and tally_guid = guid;
+raise notice '  state: % context: %', curState, recipe->>'context';
+        if not found or curState != recipe->>'context' then
+            return curState;		-- no change to state
+        end if;
+
+raise notice '  update: %', recipe->'update';
+        for lrec in select * from jsonb_each_text(recipe->'update') loop	--Fixme: should we restrict which columns can be updated by this method?
+raise notice '  set % = %', lrec.key, lrec.value;
+            execute 'update mychips.tallies set request = null, ' || lrec.key || ' = $1 where tally_ent = $2 and tally_guid = $3' using lrec.value, userID, guid;
+        end loop;
+        select into curState state from mychips.tallies_v where tally_ent = userID and tally_guid = guid;
+        return curState;
+    end;
+$$;}

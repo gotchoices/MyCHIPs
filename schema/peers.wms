@@ -1,0 +1,80 @@
+#Data about mychips entities, kept whether or not they are represented by this server
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- Split out peer fields from users table
+#- Can I have a 3-way writable multiview?
+#- View should tell if there are active tallies with this peer or not
+#- 
+require multiview.tcl base.tcl
+
+module mychips
+schema mychips {}
+
+namespace eval peers {
+    def peers_pk	{peer_ent}
+    def peers_v_up	{peer_cdi peer_hid peer_pub peer_inet peer_port peer_cmt}
+    def peers_v_in	[concat $peers_pk $peers_v_up]
+    def peers_se	[concat $peers_v_in $glob::stampfn]
+    def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name]
+    def ent_v_in	$base::ent_v_in
+    def ent_v_up	[lremove $base::ent_v_up ent_type username]
+}
+
+# Data about peers to facilitate their CHIP account
+#----------------------------------------------------------------
+table mychips.peers {base.ent mychips} {
+    peer_ent	int		primary key references base.ent on update cascade on delete cascade
+  , peer_cdi	varchar		
+  , peer_hid	varchar		
+  , peer_pub	varchar		
+  , peer_inet	inet
+  , peer_port	int
+  , peer_cmt	varchar
+    eval(s $glob::stamps)
+}
+
+# Base view of peers, linked to entity table
+#----------------------------------------------------------------
+view mychips.peers_v {mychips.peers base.ent_v} {select 
+    eval(fld_list $peers::ent_se	ee)
+  , eval(fld_list $peers::peers_se	pe)
+  , host(peer_inet) || ':' || peer_port	as peer_sock
+
+    from	base.ent_v	ee
+    left join	mychips.peers	pe on pe.peer_ent = ee.id;
+
+    eval(multiview::insert mychips.peers_v "
+        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
+        {mychips.peers	{$peers::peers_v_in}	{$peers::peers_pk}}
+    ")
+    eval(multiview::update mychips.peers_v "
+        {base.ent	{$peers::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
+        {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
+    ")
+    eval(multiview::delete mychips.peers_v "
+        {mychips.peers	{$peers::peers_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
+    ")
+} -grant {
+    {peerim	{} {s i u} {d}}
+} -primary id
+
+# View of peers with primary address and contact points
+#----------------------------------------------------------------
+view mychips.peers_v_flat {mychips.peers_v base.addr_v_flat base.comm_v_flat} {select 
+    p.*
+  , a.bill_addr, a.bill_city, a.bill_state, a.bill_pcode, a.bill_country
+  , a.ship_addr, a.ship_city, a.ship_state, a.ship_pcode, a.ship_country
+  , c.phone_comm, c.cell_comm, c.email_comm, c.web_comm
+
+    from	mychips.peers_v		p
+    left join	base.addr_v_flat	a on a.id = p.id
+    left join	base.comm_v_flat	c on c.id = p.id
+}
+
+# Return the stocket address of a peer
+#----------------------------------------------------------------
+function mychips.peer_sock(int) {mychips.peers_v} {
+  returns text stable language sql as $$
+    select peer_sock from mychips.peers_v where id = $1;
+$$;}

@@ -2,19 +2,20 @@
 #Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- How to have multiple mobi users for a corporate CDI
-#- How to have multiple credit partitions
+#- What should users_v delete trigger to with peer table (nothing)?
+#- How to support multiple mobi users for a single corporate CDI
+#- How to support multiple credit partitions
 #- 
 require multiview.tcl base.tcl
 
 module mychips
-schema mychips {}
 
 namespace eval users {
     def users_pk	{user_ent}
-    def users_v_up	{user_cdi user_hid user_pub mobi_inet mobi_port user_stat user_crt user_cmt}
+    def users_v_up	{user_inet user_port user_stat user_cmt host_id}
     def users_v_in	[concat $users_pk $users_v_up]
     def users_se	[concat $users_v_in $glob::stampfn]
+    def peers_se	$peers::peers_v_in
     def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type username]
@@ -24,33 +25,35 @@ namespace eval users {
 #----------------------------------------------------------------
 table mychips.users {base.ent mychips} {
     user_ent	int		primary key references base.ent on update cascade on delete cascade
-  , user_cdi	varchar		
-  , user_hid	varchar		
-  , user_pub	varchar		
-  , mobi_inet	inet
-  , mobi_port	int		
+  , user_inet	inet
+  , user_port	int		
   , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
-  , user_crt	varchar
   , user_cmt	varchar
+  , host_id	varchar
     eval(s $glob::stamps)
 }
 
-# Base view of users, linked to entity table
+# Base view of users, linked to entity and peer tables
 #----------------------------------------------------------------
-view mychips.users_v {mychips.users base.ent_v} {select 
+view mychips.users_v {mychips.users mychips.peers base.ent_v} {select 
     eval(fld_list $users::ent_se	ee)
+  , eval(fld_list $users::peers_se	pe)
   , eval(fld_list $users::users_se	ue)
-  , host(mobi_inet) || ':' || mobi_port	as mobi_sock
+  , host(user_inet) || ':' || user_port	as user_sock
+  , host(peer_inet) || ':' || peer_port	as peer_sock
 
     from	base.ent_v	ee
+    left join	mychips.peers	pe on pe.peer_ent = ee.id
     left join	mychips.users	ue on ue.user_ent = ee.id;
 
     eval(multiview::insert mychips.users_v "
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
+        {mychips.peers	{$peers::peers_v_in}	{$peers::peers_pk}}
         {mychips.users	{$users::users_v_in}	{$users::users_pk}}
     ")
     eval(multiview::update mychips.users_v "
         {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
+        {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
         {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
     ")
     eval(multiview::delete mychips.users_v "
