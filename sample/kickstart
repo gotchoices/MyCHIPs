@@ -22,5 +22,6 @@ psql $USER -c "update mychips.users set user_inet = '$machineIP', user_port=$upo
 psql $USER -c "update mychips.peers set peer_inet = '$machineIP', peer_port=$pport where peer_inet isnull;"
 
 #For testing:
-psql $USER -c "update mychips.users_v set host_id='server2' where id >= 10000;"
+psql $USER -c "update mychips.users_v set host_id='server0', peer_port=65430 where id = 10000;"
 psql $USER -c "update mychips.users_v set host_id='server1', peer_port=65431 where id = 10001;"
+psql $USER -c "update mychips.users_v set host_id='server2', peer_port=65432 where id = 10002;"
