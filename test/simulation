@@ -1,0 +1,53 @@
+#!/bin/sh
+#Run multiple servers to simulate a network of CHIP servers
+size="80x64"						#X-window size
+gx=10; gy=320; offx=500; offy=0;			#Window geometry placement offsets
+path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..";	#echo "path:$path"
+basecmd="$path/bin/mychips.js --no-spaPort --no-adminPort --no-userPort"
+baseport=65430						#Port for first server
+nextServer=0						#Keep track of how many servers launched
+serversPIDs=()						#And remember their PIDs
+
+#Start up a server, in a window, at port=$1
+function launchServer {
+  idx=$nextServer
+  port=$(expr $baseport + $idx)
+  rcfname="mychips-$idx-$port.rc"
+#echo "idx:$idx port:$port rcfname:$rcfname"
+  cmd="$basecmd --peerPort=$port --hostID=server$idx"
+  echo $cmd >/tmp/$rcfname
+  geom="+$(expr $offx \* $idx + $gx)+$(expr $offy \* $idx + $gy)"
+  xterm -geometry $size$geom -e "bash --init-file /tmp/$rcfname" &
+  pid=$!
+echo "Launched server $idx at port:$port, $geom"
+  serverPIDs+=($pid)
+  nextServer=$(expr $nextServer + 1);		#echo "PIDs:${serverPIDs[@]}"
+}
+
+function cleanup {				#Do on exit
+  echo -n "Killing servers: "
+  port="$baseport"
+  for pid in ${serverPIDs[@]}; do
+    kill $pid;	    echo -n "$pid "		#Kill the xterm
+    read spid junk <<<"$(ps x |grep node.*$port |grep -v grep)"
+    kill $spid;    echo -n "$spid "		#Kill the server
+    port=$(expr $port + 1)
+  done
+  echo
+}
+trap cleanup EXIT
+
+if [ -z "$1" ]; then count=2; else count="$1"; fi	#Default: 2 servers, or specify more
+while [ $count -gt 0 ]; do
+  launchServer
+  count=$(expr $count - 1)
+done
+
+echo "Type 'x' to kill and exit"
+while true; do					#Menu for other functions?
+  echo -n "> "
+  read ans
+  if  [ "$ans" = "x" ]; then
+      exit
+  fi
+done
