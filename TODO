@@ -1,50 +1,51 @@
 TODO:
-- General:
-X- Create basic user agent SPI
-X- Peer server must know which users from the DB it serves (it must know its socket address)
-X- Notifications should be specific to which server they are notifying
-X- Payload should include: user_id, target_type (tally), target_id (guid), action
-X- Peer server should open (or re-open) a connection to a peer as needed
-X- Can launch 2 servers (on same db)
-X- How do we know the socket number for a given peer? (part of the CID?)
-X- State 1 sends tally to peer
-- Develop receiving end of peer -> state_handler
-- Can interpret tally state from fields provided (write to DB, then query?)
-- Finish implementing tally state diagram
-- Socket connections should time out and close after an idle period
+General roadmap:
+- Can create/exchange tallies, chits with a peer
+- Create ruby agent to model user, reads/writes/listens direct with DB
+- Can spawn N user agents against M server instances
+- Create graphical canvas view of all users balance sheets
+- Implement lift algorithm
+- Implement/publish basic contracts
+- Implement digital signatures for tallies, chits, contracts, lifts
+- Implement encrypted network communications, noise protocol
+- Make Admin SPA GUI useable
+- Make User SPA GUI useable
+- Optimize User SPA GUI for mobile
+- Rollout
+- Implement async email/text notifications
+- Implement native mobile user app
+- Implement tally confirmations
+- Implement standardized export/import of user accounts via Admin interface
+- Implement lock-down mode
+- Implement backup/restore among peers
 - 
+
+Peer-to-peer:
+- Socket connections should time out and close after an idle period
 - Create state diagram for chits
 - Implement chit state map that runs under standard state interpretor
+- Cache chit totals for each tally, on the fly
+- State diagram for lifts
+- Table for buy/sell preferences
 - 
--X Dummy sql to create initial draft tally
+
+Agent modeling:
+X- Dummy sql to create initial draft tally
 - Dummy sql files to simulate other required user actions
-- Fill in coding for state actions in peer server
+- User agent ruby process runs randomized strategy
+- Revive ruby command line admin program?
+- Implement ruby command line user program?
 - 
 - Implement tally logic in postgresql:
--X  Create view that displays states of tallies
--X  Triggers generate notifies with correct action names
-- Create dummy user agent process that listens/approves all tallies
-- Create json views for tally import/export
-- 
-- Can launch two servers automatically
--  Both talk to same database
--  Represent different users
--  Can peer chat with each other
-- Revive ruby command line admin program
-- Implement ruby command line user program
-- 
-- 
+X-  Create view that displays states of tallies
+X-  Triggers generate notifies with correct action names
+- Create json views for tally import/export?
 - 
 Server:
-X- Server serves static web pages
-X- Admin page: Serves up admin SPA GUI
-X-   Generate user list from database
-X-   Design packet commands to/from backend (wyseman)
-X- Replace vue-router?
-X- Implement tab set for Home, Users, Documents, Settings
-X- Server listens for admin connections on secret port
-X- Server listens for user connections on configured port(s)
+- Show graphical view of all users connected via a set of specified SQL servers
 - 
+- 
+
 - Augment Wylib/wyseman:
 X-  Can specify a set of actions
 X-  Can specify a set of reports
@@ -101,24 +102,15 @@ X-  Can specify a set of subordinate views (example: phone, address)
 -   
 -   
 
-Old:
-X- Create entitiy for the site
-X- Point to the site entity ID in parms
-X- Generalize user table to include the site entity?
-X- Remove billing fields from user table (can use a separate billing module)
+Old TODOs:
+
+General:
 - Make wyseman deployable as both ruby gem and npm module
 - Deploy mychips as npm module
 - Mychips NPM module includes multiple CLI commands
 - 
 
 Admin:
-X- Make dedicated JSON import/export views for user data
-X- Import user record from JSON
-X- Admin function to create ticket
-X- Ticket includes connection domain, port, token (auto-generate port, keys)
-X- Export the ticket to a JSON file
-X- Display the ticket as a barcode in a TK image window
-X- Insist on establishing site ID before anything else
 - Get wyseman admin to load a user.json file
 - Fully port mc_admin prototype to JS
 - Command line switch to run as daemon
@@ -128,24 +120,11 @@ X- Insist on establishing site ID before anything else
 - 
 
 User Server:
-X- Make ssl socket for user interface
-X- Class to generate certificates on-the-fly, or from the db
-X- Store certificates in database
-X- Can mobile connect to me using my cert?
-X- Add logging capability, with verbosity levels
 - Fully port mc_admin prototype to JS
 - Can mc_admin listen on multiple ports (i.e. a single server process in JS)?
 - 
 
 Mobile App:
-X- mc_user opens socket properly in SSL mode
-X- mc_mobi reads ticket file, connects to user server using SSL
-X- Use ticket to share user public key with site, initialize for future regular connections
-X- User command line agent stores its state in ~/.mychips folder, separate for each CDI
-X- Can launch interactive shell from mobi app, queries user server
-X- Client verifying server OK
-X- How does an SSL server verify the certificate of its client?
-X- Server verifying client certificate OK
 - Port prototype to JS
 - Multiple mobi users can connect to same port, if configured for it
 - Separate site certificate for every user connection, or single site cert?
@@ -170,11 +149,6 @@ Peer Operations:
 - 
 
 Wyseman:
-X- Upgrade wyseman to use for SQL schema management
-X-  Get wyseman to properly parse wmt files
-X-  Get wyseman to store wmd info in the database
-X-  Adjust wyseman tcl library to access wmd data by loading it from the database--not a local library
-X-  Get wysegi working so we can examine the database
 - JS API works
 - JS API is npm package
 - Implement primary connect points for each connect type (as with addresses)
@@ -204,9 +178,8 @@ X- Are we using an http server/client, or finding an ssl-capable peer socket pro
 -   Alarm, lockdown
 - 
 - Peer commands:
--   Request new tally with me
+X-   Request new tally with me
 -   Request link to parties that have your issue for sale
 -   Request link to parties that have your issue for sale
 -   Pass my request through to a referenced peer
 -   Request info about a pathway to (peer)
--   
