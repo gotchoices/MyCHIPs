@@ -2,38 +2,62 @@
 #------------------------------------------
 
 tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a record of credit transactions between two trading partners.} {
-    {tally_id		{Tally ID}		{A globally unique identifier for this tally}}
+    {tally_ent		{Tally Entity}		{The ID number of the entity or person this tally belongs to}}
+    {tally_seq		{Tally Sequence}	{A unique number among all tallies owned by this entity}}
+    {tally_guid		{Tally GUID}		{A globally unique identifier for this tally}}
+    {tally_type		{Tally Type}		{Determines if this entity is typically the creditor (stock) or the debtor (foil) for this tally} {
+        {stock		{Stock}			{The entity this tally belongs to is typically the creditor on transactions}}
+        {foil		{Foil}			{The entity this tally belongs to is typically the debtor on transactions}}
+    }}
+    {tally_date		{Tally Date}		{The date and time this tally was initiated between the parties}}
     {version		{Version}		{A number indicating the format standard this tally adheres to}}
-    {stock_ent		{Stock Entity}		{A link to the trading partner who, in the normal flow of value, is owed something.  Typically: employee, vendor, lender, etc.}}
-    {foil_ent		{Foil Entity}		{A link to the trading partner who, in the normal flow of value, owes the other party.  Typically: employer, customer, borrower, etc.}}
-    {credit_lim		{Credit Limit}		{The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time.}}
-    {debit_lim		{Debit Limit}		{The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow.}}
+    {partner		{Partner Entity}	{The entity id number of the other party to this tally}
     {contract		{Contract}		{The hash ID of the standard contract this tally is based upon.}}
-    {begins		{Begin Date}		{Date and time the tally is opened by the parties for trading.}}
+    {status		{Status}		{Current state of the tally} {
+        {void		{Void}			{The tally has been abandoned before being affirmed by both parties}}
+        {draft		{Draft}			{The tally have been suggested by one party but not yet accepted by the other party}}
+        {open		{Open}			{The tally is affirmed by both parties and can be used for trading chits}}
+        {close		{Close}			{No further trading can occur on this tally}}
+    }}
+    {request		{Request}		{Requested next state for the tally} {
+        {void		{Void}			{One party has requested to abandon the tally agreement}}
+        {draft		{Draft}			{One party is requesting ???}}
+        {open		{Open}			{One party is requesting to open a tally according to the specified terms}}
+        {close		{Close}			{One party is requesting to disable further trading on this tally}}
+    }}
+    {comment		{Comment}		{Any notes the user might want to enter regarding this tally}}
+    {user_sig		{User Signed}		{The digital signature of the entity this tally belongs to}}
+    {part_sig		{Partner Signed}	{The digital signature of the other party to this tally}}
+    {cr_lim		{Credit Limit}		{The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time}}
+    {dr_lim		{Debit Limit}		{The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow}}
+    {total_c		{Total}			{A cached total of all the chits on this tally, from the perspective of the tally's owner}}
 }
 
 tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} {
-    {chit_id		{Chit ID}		{A globally unique identifier for this transaction}}
-    {chit_tally		{Talley}		{The ID of the tally this chit belongs to}}
+    {chit_ent		{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
+    {chit_seq		{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
+    {chit_idx		{Chit Index}		{A unique identifier within the tally, identifying this chit}}
+    {chit_guid		{Chit GUID}		{A globally unique identifier for this transaction}}
     {chit_type		{Chit Type}		{The type of transaction represented by this flow of credit} {
         {gift		{Gift}			{The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.}}
-        {lift		{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity.}}
+        {lift		{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity}}
         {loan		{Loan}			{The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.}}
         {tran		{Transaction}		{The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.}}
     }}
-    {date		{Date & Time}		{The date and time when this transaction is effective.}}
+    {chit_date		{Date/Time}		{The date and time when this transaction is effective}}
     {amount		{Amount}		{The amount of the transaction, as measured in micro-CHIPs (1/1,000,000)}}
-    {pro_quo		{Quid Pro Quo}		{A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties.}}
-    {comment		{Comment}		{Any other information helpful to evidence the validity of the transaction.}}
+    {pro_quo		{Quid Pro Quo}		{A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties}}
+    {memo		{Memo}			{Any other description or explanation for the transaction}}
 }
 
 tabtext mychips.confirms {Confirmations}	{Contains records evidencing each time the parties confirmed the present balance of their tally.} {
-    {conf_id		{Confirmation ID}	{A globally unique identifier for this confirmation}}
-    {conf_tally		{Talley}		{The ID of the tally this confirmation refers to}}
-    {date		{Date & Time}		{The date and time when this account total is computed}}
-    {total		{Total}			{The total of all transaction, or chits, on this tally as of the effective date, and as measured in micro-CHIPs (1/1,000,000)}}
-    {stock_sig		{Stock Signature}	{The digital signature of the stock entity, computed on a record containing the other (non-signature) fields in this table}}
-    {foil_sig		{Foil Signature}	{The digital signature of the foil entity, computed on a record containing the other (non-signature) fields in this table}}
+    {conf_ent		{Confirm Entity}	{Entity ID of the owner of the tally this confirmation belongs to}}
+    {conf_seq		{Confirm Sequence}	{Sequence number of the owner of the tally this confirmation belongs to}}
+    {conf_idx		{Confirm Index}		{A unique identifier within the tally, identifying this confirmation}}
+    {conf_guid		{Confirmation GUID}	{A globally unique identifier for this confirmation}}
+    {conf_date		{Date & Time}		{The date and time when this account total is computed}}
+    {sum		{Sum}			{The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)}}
+    {signature		{Signature}		{The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table}}
 }
 
 #    {		{}		{}}
