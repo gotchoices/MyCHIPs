@@ -75,8 +75,8 @@ view json.tally {json mychips.tallies_v} {select
     tally_ent		as "id"
   , tally_guid		as "guid"
   , version		as "version"
-  , case when tally_type = 'stock' then user_cdi else peer_cdi end as "stock"
-  , case when tally_type = 'stock' then peer_cdi else user_cdi end as "foil"
+  , case when tally_type = 'stock' then user_cdi else part_cdi end as "stock"
+  , case when tally_type = 'stock' then part_cdi else user_cdi end as "foil"
   , tally_date		as "created"
   , contract		as "contract"
 
