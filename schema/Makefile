@@ -1,6 +1,8 @@
 #Process schema files
 WYSELIB = ~/share/devel/wyselib/schema
-DBNAME = $(shell id -un)
+ifeq ("$(DBNAME)","")
+  DBNAME = $(shell id -un)
+endif
 
 objects:
 	wyseman --dbname=${DBNAME} ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms

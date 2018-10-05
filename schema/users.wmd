@@ -15,7 +15,7 @@ tabdef mychips.users_v -fields {
     {cas_name		ent	14	{3 7}		-opt 1 -sta readonly -wr 0}
     {user_sock		ent	14	{4 7}		-opt 1 -sta readonly -wr 0}
 } -display {
-  id std_name user_cdi user_sock ent_type born_date !fir_name !ent_name
+  id std_name user_sock ent_type born_date !fir_name !ent_name
 } -inherits mychips.users
 
 tabdef mychips.users_v_flat -display {id user_cdi std_name bill_addr bill_city bill_state} -sort {std_name id}

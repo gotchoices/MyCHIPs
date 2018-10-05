@@ -19,7 +19,8 @@
     "mc_mobi": "mobi.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha test/auto",
+    "testc": "mocha test/auto --grep import/export",
     "dev-hot": "webpack-dev-server --mode development --hot",
     "dev-build": "webpack --mode development --watch --progress --hide-modules",
     "dev-server": "bin/mychips.js --spaServer=false",
@@ -63,6 +64,7 @@
     "file-loader": "^1.1.6",
     "less": "^3.0.1",
     "less-loader": "^4.1.0",
+    "mocha": "^5.2.0",
     "node-sass": "^4.8.1",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.20.3",
