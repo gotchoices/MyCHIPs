@@ -1,7 +1,17 @@
 TODO:
+Immediate:
+- Port wyselib base.comm changes to base.addr
+- Back to testing json import/export
+- Why does test hang?
+- Establish working setup state for tally testing using json imports
+- Write test program for establishing tallies
+- Write test program for exchanging/approving chits
+- Implement/test/finish chit state machine
+- 
+
 General roadmap:
 - Can create/exchange tallies, chits with a peer
-- Create ruby agent to model user, reads/writes/listens direct with DB
+- Create agent client module to model user, reads/writes/listens direct with DB (in ruby?)
 - Can spawn N user agents against M server instances
 - Create graphical canvas view of all users balance sheets
 - Implement lift algorithm
