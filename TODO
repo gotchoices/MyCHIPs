@@ -1,10 +1,11 @@
 TODO:
 Immediate:
-- Port wyselib base.comm changes to base.addr
-- Back to testing json import/export
-- Why does test hang?
-- Establish working setup state for tally testing using json imports
-- Write test program for establishing tallies
+X- Port wyselib base.comm changes to base.addr
+X- Back to testing json import/export
+X- Why does test hang?
+X- Establish working setup state for tally testing using json imports
+X- Can I get various modules logging to different files?
+- Write test program for establishing tallies (finish)
 - Write test program for exchanging/approving chits
 - Implement/test/finish chit state machine
 - 
