@@ -1,0 +1,45 @@
+#!/bin/sh
+#Open multiple windows to watch various log files
+size="80x60"						#X-window size
+gx=5; gy=140; offx=250; offy=100;			#Window geometry placement offsets
+nextWin=0						#Keep track of how many windows launched
+winPIDs=()						#And remember their PIDs
+path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "path:$path"
+logPath=/var/tmp/mychips
+
+if [ -z "$1" ]; then set peer-server0 peer-server1; fi	#Default arguments
+while [ ! -z "$1" ]; do					#For each command line argument
+    logfname="$logPath/$1"
+    if [ ! -f $logfname ]; then
+      touch $logfname
+    fi
+    cmd="$path/tailalogfile $logfname";		#echo "cmd:$cmd"
+    geom="+$(expr $offx \* $nextWin + $gx)+$(expr $offy \* $nextWin + $gy)"
+    rcfname="watch-log-$1.rc"
+    echo $cmd >/tmp/$rcfname
+    xterm -geometry $size$geom -e "bash --init-file /tmp/$rcfname" &
+    pid=$!
+echo "Launched window to watch $1:, $geom, PID: $pid"
+    winPIDs+=($pid);				#echo "PIDs:${winPIDs[@]}"
+    nextWin=$(expr $nextWin + 1);
+  shift
+done
+
+function cleanup {				#Do on exit
+  echo -n "Killing windows: "
+  for pid in ${winPIDs[@]}; do
+    kill $pid;	    echo -n "$pid "		#Kill the xterm
+  done
+  killall tailalogfile
+  echo
+}
+trap cleanup EXIT
+
+echo "Type 'x' to kill and exit"
+while true; do					#Menu for other functions?
+  echo -n "> "
+  read ans
+  if  [ "$ans" = "x" ]; then
+      exit
+  fi
+done

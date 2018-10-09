@@ -1,0 +1,26 @@
+#!/bin/sh
+#Show the contents of a specified logfile
+#Clear the screen and restart tail on receiving signal SIGHUP
+#Clear all logs with: killall -SIGHUP tailit
+
+if [ -z "$1" ]; then
+  exit 1
+else
+  logfile="$1"
+fi
+
+function clear {				#Clear the screen
+  true >/dev/null 2>/dev/null
+}
+trap clear SIGHUP
+
+while true; do
+  date >$logfile				#Clean log
+  /bin/tail -f $logfile &
+  pid=$!
+
+  read ans 2>/dev/null
+  kill $pid
+  wait $pid 2>/dev/null				#Suppress error message from child
+  reset
+done
