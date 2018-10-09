@@ -130,18 +130,21 @@ function {mychips.tally_notice(tally mychips.tallies)} {mychips.tallies mychips.
             act = 'userClose';
         end if;
         if act is null then return false; end if;
+--raise notice 'TN:% % %', act, tally.tally_ent, tally.partner;
 
         select into urec peer_cdi, host_id from mychips.users_v where user_ent = tally.tally_ent;
         select into prec peer_cdi, peer_sock from mychips.peers_v where peer_ent = tally.partner;
         if not urec.host_id is null then
             channel = channel || '_' || urec.host_id;
         end if;
+--raise notice 'Tn:% %', channel, urec.host_id;
         jrec = jsonb_set(jrec, '{peer}', to_jsonb(prec.peer_cdi));
         jrec = jsonb_set(jrec, '{user}', to_jsonb(urec.peer_cdi));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(tally.tally_ent));
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
         jrec = jsonb_set(jrec, '{at}', to_jsonb(prec.peer_sock));
         jrec = jsonb_set(jrec, '{object}', (select json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq));
+raise notice 'Tally notice:%', jrec::text;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -162,6 +165,27 @@ trigger mychips_tallies_tr_notice {} {
     after update on mychips.tallies for each row execute procedure mychips.tallies_tf_notice();
 }
 
+# Compute current state of this tally
+#----------------------------------------------------------------
+function {mychips.tally_state(status text, request text, user_sig text, part_sig text, total bigint)} {} {
+  returns text immutable language plpgsql as $$
+    begin
+      return case when status = 'void' and request is null	then 'void'
+         when status = 'void' and request = 'draft'		then 'userDraft'
+         when status = 'draft' and request is null then
+           case when user_sig is not null and part_sig is null	then 'userProffer'
+                when part_sig is not null and user_sig is null	then 'peerProffer'
+           else 'undefined' end
+         when status = 'draft' and request = 'void'		then 'userVoid'
+         when status = 'draft' and request = 'open'		then 'accepted'
+         when status = 'open' and request is null		then 'open'
+         when status = 'open' and request = 'close'		then 'userClose'
+         when status = 'close' and request is null then
+             case when total = 0 then 'closed' else 'closing' end
+         else 'undefined' end;
+    end;
+$$;}
+
 # Base view of tallies
 #----------------------------------------------------------------
 view mychips.tallies_v {mychips.tallies mychips.users_v} {select 
@@ -174,20 +198,8 @@ view mychips.tallies_v {mychips.tallies mychips.users_v} {select
   , pe.peer_sock	as part_sock
   , pe.std_name		as part_name
   , te.part_sig
-  , case when status = 'void' and request is null		then 'void'
-         when status = 'void' and request = 'draft'		then 'userDraft'
-         when status = 'draft' and request is null then
-           case when user_sig is not null and part_sig is null	then 'userProffer'
-                when part_sig is not null and user_sig is null	then 'peerProffer'
-           else 'undefined' end
-         when status = 'draft' and request = 'void'		then 'userVoid'
-         when status = 'draft' and request = 'open'		then 'accepted'
-         when status = 'open' and request is null		then 'open'
-         when status = 'open' and request = 'close'		then 'userClose'
-         when status = 'close' and request is null then
-             case when total_c = 0 then 'closed' else'closing' end
-         else 'undefined'
-     end		as state
+  , mychips.tally_state(status,request,user_sig,part_sig,total_c) as state
+  , mychips.tally_state(status,request,user_sig,part_sig,total_c) = any(array['peerProffer','closing']) as action
   , jsonb_build_object(
        'guid', te.tally_guid,
        'version', te.version,
@@ -223,7 +235,7 @@ view mychips.tallies_v {mychips.tallies mychips.users_v} {select
 
 # Process state transitions on tallies
 #----------------------------------------------------------------
-function {mychips.tally_state(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
+function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
   returns text language plpgsql as $$
     declare
         cdi		text = msg->>'user';
@@ -260,7 +272,7 @@ raise notice '  upsert obj:% curState:%', obj, curState;
             select into partner peer_ent from mychips.peers where peer_cdi = case when tallyType = 'stock' then obj->>'foil' else obj->>'stock' end;
             if not found then return null; end if;
             
-            execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12)'
+            execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
                 using entity, guid, tallyType, (obj->>'version')::int, partner, obj->>'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
             execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 where tally_ent = $9 and tally_seq = $10'
@@ -270,14 +282,20 @@ raise notice '  upsert obj:% curState:%', obj, curState;
 
         if recipe ? 'update' then
           for lrec in select * from jsonb_each_text(recipe->'update') loop	--Fixme: should probably restrict which columns can be updated by this method
-raise notice '  update set % = %', lrec.key, lrec.value;
+--raise notice '  update set % = %', lrec.key, lrec.value;
             execute 'update mychips.tallies set request = null, ' || lrec.key || ' = $1 where tally_ent = $2 and tally_seq = $3' using lrec.value, trec.tally_ent, trec.tally_seq;
           end loop;
           update mychips.tallies set request = null where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         end if;
 
-        select into curState state from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
-        return curState;
+--raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
+        select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
+        if trec.action then
+raise notice '  notify for user %', trec.tally_ent;
+            perform pg_notify('mychips_user', trec.json::text);
+            perform pg_notify('mychips_user_'||trec.tally_ent::text, trec.json::text);
+        end if;
+        return trec.state;
     end;
 $$;}
 
@@ -328,6 +346,33 @@ trigger mychips_chits_tr_notice {} {
     after update on mychips.chits for each row execute procedure mychips.chits_tf_notice();
 }
 
+# Compute current state of this chit
+#----------------------------------------------------------------
+function {mychips.chit_state(isdebit boolean, request text, signature text)} {} {
+  returns text immutable language plpgsql as $$
+    begin return
+      case when isdebit() then
+        case when signature = 'void'		then 'peerDecline'
+           when signature is not null		then 'peerValid'
+           when request = 'userRequest'		then 'userRequest'
+           when request is null			then 'userInvoice'
+           else					     'undefined'	end
+      else	--is a credit
+        case when signature = 'void' then
+        case when request = 'userDecline'	then 'userDecline'
+             when request is null		then 'userVoid'
+             else				     'undefined'    end
+           when signature is null then
+        case when request is null		then 'peerInvoice'
+             else				     'undefined'    end
+           when request = 'userAccept'		then 'userAgree'
+           when request = 'userDraft'		then 'userDraft'
+           when request is null			then 'userValid'
+      else     					     'undefined'	end
+      end;
+    end;
+$$;}
+
 # Base view of chits
 #----------------------------------------------------------------
 define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
@@ -340,25 +385,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v} {select
          
   , ch.units::float8 / unitMultiplier().00	as value
   , ch.units::float8 * case when te.tally_type = 'stock' then 1 else -1 end / unitMultiplier()	as amount
-  , case when isdebit() then
-      case when ch.signature = 'void'		then 'peerDecline'
-           when ch.signature is not null	then 'peerValid'
-           when ch.request = 'userRequest'	then 'userRequest'
-           when ch.request is null		then 'userInvoice'
-           else					     'undefined'	end
-    else	--is a credit
-      case when ch.signature = 'void' then
-        case when ch.request = 'userDecline'	then 'userDecline'
-             when ch.request is null		then 'userVoid'
-             else				     'undefined'    end
-           when ch.signature is null then
-        case when ch.request is null		then 'peerInvoice'
-             else				     'undefined'    end
-           when ch.request = 'userAccept'	then 'userAgree'
-           when ch.request = 'userDraft'	then 'userDraft'
-           when ch.request is null		then 'userValid'
-      else     					     'undefined'	end
-    end						as state
+  , mychips.chit_state(isdebit(), ch.request, ch.signature)	as state
   , jsonb_build_object(
        'guid',		ch.chit_guid,
        'type',		ch.chit_type,
@@ -374,7 +401,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v} {select
 
 # Process state transitions on chits
 #----------------------------------------------------------------
-function {mychips.chit_state(msg jsonb, recipe jsonb)} {mychips.chits_v} {
+function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.chits_v} {
   returns text language plpgsql as $$
     declare
         cdi		text	= msg->>'user';
