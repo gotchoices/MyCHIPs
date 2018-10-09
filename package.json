@@ -19,8 +19,10 @@
     "mc_mobi": "mobi.js"
   },
   "scripts": {
-    "test": "mocha test/auto",
-    "testc": "mocha test/auto --grep import/export",
+    "test": "mocha test/mocha/all.js",
+    "test-peercomm": "mocha test/mocha/peercomm.js",
+    "test-impexp": "mocha test/mocha/impexp.js",
+    "test-peer": "mocha test/mocha/peer.js",
     "dev-hot": "webpack-dev-server --mode development --hot",
     "dev-build": "webpack --mode development --watch --progress --hide-modules",
     "dev-server": "bin/mychips.js --spaServer=false",
@@ -52,6 +54,7 @@
     "pg": "^7.4.1",
     "pg-format": "^1.0.4",
     "vue": "^2.5.15",
+    "winston": "^3.1.0",
     "ws": "^5.0.0",
     "yargs": "^11.0.0"
   },
