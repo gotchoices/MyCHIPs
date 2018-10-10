@@ -1,0 +1,31 @@
+Objectives for user agent:
+
+Scripts:
+- External script can create N users
+- External script to launch user agent for each user in the database
+
+Agent module:
+- Can run in conjunction with standard prototype server as a class instance
+- Agent model receives notifications from database just as a client app would
+- Agent makes decisions on its own in a randomized fashion:
+
+- Agent decisions:
+  Tallies:
+  - Decide to open new stock relationships
+    This represents a job or income stream, so we should find at least one
+    We will query to find entities that don't have too many vendors and try with them
+  - Respond to new foil invitations (suppliers, employees)
+    Establish a random max limit for this (how big a consumer am I?)
+  - Request to close an occasional stock tally (quit job)
+  - Request to close an occasional foil tally (fire employee or supplier)
+  - Randomize cr_limit, dr_limit on tallies
+    
+  Chits:
+  - Randomize a fixed amount to request on each stock tally each cycle
+  - Enter requests for these payments
+  - Respond to pay requests, randomize answers, but usually yes
+  - Respect cr_limit, dr_limit
+
+  Lifts:
+  - List stock chits available to trade
+  - Request foil chits needed in trade
