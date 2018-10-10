@@ -254,17 +254,17 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
 
         select into trec tally_ent, tally_seq, state from mychips.tallies_v where tally_ent = entity and tally_guid = guid;
         curState = trec.state;
-raise notice 'Tally cdi:% entity:% state:% recipe:%', cdi, entity, curState, recipe;
+--raise notice 'Tally cdi:% entity:% state:% recipe:%', cdi, entity, curState, recipe;
         if not found then
             curState = 'null';			-- Special code for when the tally doesn't exist yet
         end if;
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state
-raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+--raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
             return curState;
         end if;
 
         if recipe ? 'upsert' then
-raise notice '  upsert obj:% curState:%', obj, curState;
+--raise notice '  upsert obj:% curState:%', obj, curState;
           tallyType = (case when obj->>'stock' = cdi then 'stock' else 'foil' end);
           notType = (case when obj->>'stock' = cdi then 'foil' else 'stock' end);
 --raise notice '  tallyType:% notType:%', tallyType, notType;
@@ -276,7 +276,7 @@ raise notice '  upsert obj:% curState:%', obj, curState;
                 using entity, guid, tallyType, (obj->>'version')::int, partner, obj->>'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
             execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 where tally_ent = $9 and tally_seq = $10'
-                using (obj->>'version')::int, obj->>'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint, trec.tally_ent, trec.tally_seq);
+                using (obj->>'version')::int, obj->>'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
           end if;
         end if;
 
@@ -290,7 +290,7 @@ raise notice '  upsert obj:% curState:%', obj, curState;
 
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
         select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
-        if trec.action then
+        if trec.action or (trec.state = 'open' and (curState is null or curState != 'open')) then	-- Also notify if changed to open status
 raise notice '  notify for user %', trec.tally_ent;
             perform pg_notify('mychips_user', trec.json::text);
             perform pg_notify('mychips_user_'||trec.tally_ent::text, trec.json::text);
