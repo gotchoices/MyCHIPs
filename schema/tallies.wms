@@ -167,7 +167,7 @@ trigger mychips_tallies_tr_notice {} {
 
 # Compute current state of this tally
 #----------------------------------------------------------------
-function {mychips.tally_state(status text, request text, user_sig text, part_sig text, total bigint)} {} {
+function {mychips.tally_state(status text, request text, user_sig text, part_sig text, total bigint)} {mychips} {
   returns text immutable language plpgsql as $$
     begin
       return case when status = 'void' and request is null	then 'void'
