@@ -1,61 +1,70 @@
-Instructions to demonstrate reference code so far. (Dec, 2017)
+Instructions to demonstrate reference code. (Oct, 2018)
 
-Notes:
-This should work, but really only tests original ruby test code.
-There is nothing in here yet to test the JS server.
+On a Fedora linux machine:
+- Install Postgres: 
+  dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl
 
-On a linux machine:
-- Have Postgres package installed
-- Checkout wyseman, wyselib, wylib from assembla
-- Adjust settings in mychips/setpath to reflect where things are installed
-  I put everything in its own directory under a main folder called "devel"
-  Source setpath in each shell you are using
+- For wyseman:	(see wyseman/INSTALL for more details)
+  dnf install rubygem-pg rubygem-tk gcc-c++	;As root
+  gem install json				;As you
+
+- Make a folder for out work:	mkdir devel; cd devel
+
+- checkout: wyseman, wyselib, wylib from github:
+  git clone https://github.com/gotchoices/wylib.git
+  git clone https://github.com/gotchoices/wyseman.git
+  git clone https://github.com/gotchoices/wyselib.git
   
-- Follow setup notes in wyseman/README.pg (new)
+- checkout mychips (currently on bitbucket):
+  git clone https://kylebateman@bitbucket.org/kylebateman/mychips.git
 
-- Build: database
+  In wyseman, wylib, mychips, run: npm install
+
+- Adjust settings in a file devel/setup to reflect out environment:
+
+Example setup file:
+---------------------------------------------------------------------  
+  export LESS=eFRX		#For 'git diff' to work with colors
+  export WYATTDB="$USER"	#Name of database you will be using
+  export TCLLIBPATH=". $HOME/share/devel /usr/lib"
+  export PATH="$PATH:$HOME/share/devel/wyseman/bin:$HOME/share/devel/mychips/bin"
+  export NODE_PATH="$HOME/share/devel:/usr/lib/node_modules:./node_modules"
+  export RUBYOPT="-I $HOME/share/devel/wyseman/lib -I $HOME/share/devel/mychips/lib"
+  export RUBYLIB="$HOME/share/devel/js/wyseman/lib"
+  
+  if [ ! -h mychips/node_modules/wylib ]; then		#Link to development version
+    ln -s ~/share/devel/wylib mychips/node_modules/wylib
+  fi
+---------------------------------------------------------------------  
+  You must source this file (source devel/setup) in any session you use.
+  
+- Follow database setup notes in wyseman/README.pg (new)
+
+- Testing:
+  Can set NODE_DEBUG=debug (or silly) and observe logs in /var/tmp/mychips
+  cd devel/mychips/test
+  Adjust settings in test/settings.js for your environment
+  npm run test-peercom
+  npm run test-impexp
+  npm run test-peer
+  dropdb mychipsTestDB			#when finished
+  
+- Build mychips database:
   cd mychips/schema
   make all
 
-- Sample config
-  Edit sample/kickstart:
-    mobi_inet is the address of the linux box (where the mobile app connects)
-  Edit mychips/sample/org.json
-  Edit mychips/sample/user.json
+- Sample configuration
+  cd test/sample
+  ./kickstart		#Generates a sample ticket in test/tmp/ticket.json
 
-- Run sample/kickstart
-  This will generate a ticket in mychips/tmp/ticket.json
+- Run development mode HTTP server to serve up the admin and client SPA's:
+  npm run dev-hot
 
-- Launch mc_user (server to talk to mobile app)
+  Try connecting a browser at port 3000 of that machine:
+  http://linux-box:3000/admin.html
 
-- Initialize mobile connection:
-  mc_mobi -c <users_cdi> ticket tmp/ticket.json
-
-- Now you can connect to mc_user server securely:
-  mc_mobi status		A dummy command, for now
+- Run a data server to service SPA requests: (as a separate instance)
+  npm run dev-server
   
-- You can create a ticket manually (instead of in sample/kickstart) with:
-  mc_admin ticket 10000 tmp/ticket.json true	(the "true" will display a QR code for the ticket)
-
-
--------------------------------------------------------------------------------
-Setup notes for my macbook development machine:
-
-- Install xquartz
-
-- Install virtual box
-- Create 64 bit linux VM
-- Follow system build notes for mac/macbook.vlin.f25
-
-- Follow setup notes in wyseman/README.pg (new)
-
-- May have to uncomment proxy info in ~/.subversion/servers
-
-Startup:
-- cd into mychips source root
-  . setpath
-  cd schema
-  make all
-  
-  mc_admin load doc/user.json
-  mc_admin ticket 1001 tmp/ticket.json
+  Try the connect button now in the admin SPA, connect to port 54320
+  You should see the user management GUI

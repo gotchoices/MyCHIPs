@@ -1,7 +1,9 @@
 #Process schema files
 WYSELIB = ~/share/devel/wyselib/schema
-ifeq ("$(DBNAME)","")
-  DBNAME = $(shell id -un)
+ifeq ("$(WYATTDB)","")
+  DBNAME=$(shell id -un)
+else
+  DBNAME="$(WYATTDB)"
 endif
 
 objects:

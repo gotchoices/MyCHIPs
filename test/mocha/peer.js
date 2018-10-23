@@ -15,9 +15,8 @@
 
 const assert = require("assert");
 const PeerCont = require("../../lib/peer")
-const DatabaseName = require('../database')
+const { DatabaseName, MachineIP } = require('../settings')
 const MessageBus = require('../bus')
-const MachineIP = "192.168.57.101"
 const Uport=43210
 const Pport0=65430
 const Pport1=65431
@@ -72,7 +71,7 @@ describe("Peer to peer tallies", function() {
   it("Check for correct number of test users", function(done) {
     db0.query(sqlUserInit, null, (err, res) => { if (err) done(err)
       var count = res[4].rows[0]['count']
-//console.log("Users:", count)
+      log.debug("Users:", count)
       assert.equal(count,2)
       done()
     })
@@ -81,7 +80,7 @@ describe("Peer to peer tallies", function() {
   it("User 10001 proposes a tally to user 10000", function(done) {
     db1.query(sqlTallyStart, null, (err, res) => { if (err) done(err)
       var stat = res[3].rows[0]['status']
-      log.debug("SQL Done:", stat)
+      log.debug("1001 proposal done status:", stat)
       assert.equal(stat, 'void')
     })
 

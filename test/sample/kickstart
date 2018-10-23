@@ -1,15 +1,16 @@
 #!/bin/bash
 #Initialize an empty database with some sample data
 MYPATH=$(dirname "$0")
+DBNAME=${WYATTDB}; if [ -z "$DBNAME" ]; then DBNAME="${USER}"; fi
 
-machineIP="192.168.57.101"
+machineIP=$(grep MachineIP ../settings.js |cut -d : -f 2 |tr -d '"' |tr -d ' ')
 uport=43210
 pport=65432
 if [ ! -z "$1" ]; then
     machineIP="$1"
 fi
 
-psql $USER -c "select base.parmset('mychips','mobi_inet','$machineIP'::inet)"
+psql $DBNAME -c "select base.parmset('mychips','mobi_inet','$machineIP'::inet)"
 
 echo "CWD:$(pwd) MYPATH:$MYPATH"
 mc_admin load -s $MYPATH/org.json
@@ -18,10 +19,10 @@ mc_admin load $MYPATH/user2.json
 mc_admin load $MYPATH/user3.json
 mc_admin ticket 10000 $MYPATH/../tmp/ticket.json
 
-psql $USER -c "update mychips.users set user_inet = '$machineIP', user_port=$uport where user_inet isnull;"
-psql $USER -c "update mychips.peers set peer_inet = '$machineIP', peer_port=$pport where peer_inet isnull;"
+psql $DBNAME -c "update mychips.users set user_inet = '$machineIP', user_port=$uport where user_inet isnull;"
+psql $DBNAME -c "update mychips.peers set peer_inet = '$machineIP', peer_port=$pport where peer_inet isnull;"
 
 #For testing:
-psql $USER -c "update mychips.users_v set host_id='server0', peer_port=65430 where id = 10000;"
-psql $USER -c "update mychips.users_v set host_id='server1', peer_port=65431 where id = 10001;"
-psql $USER -c "update mychips.users_v set host_id='server2', peer_port=65432 where id = 10002;"
+psql $DBNAME -c "update mychips.users_v set host_id='server0', peer_port=65430 where id = 10000;"
+psql $DBNAME -c "update mychips.users_v set host_id='server1', peer_port=65431 where id = 10001;"
+psql $DBNAME -c "update mychips.users_v set host_id='server2', peer_port=65432 where id = 10002;"

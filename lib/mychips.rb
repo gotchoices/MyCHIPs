@@ -25,7 +25,7 @@ printf("Init User from:%s (%s)\n", source, source.class)
       @data = JSON.load(File.read(source))
     else
       db = DB.new()
-      res = db.doSelect('*','mychips.users_v',Hash['user_cdi',source])	#Search by CHIPs ID
+      res = db.doSelect('*','mychips.users_v',Hash['peer_cdi',source])	#Search by CHIPs ID
       if res.ntuples <= 0 && /\A\d+\z/.match(source)
         res = db.doSelect('*','mychips.users_v',Hash['id',source])	#Search by entity ID
       end
@@ -64,8 +64,8 @@ puts 'user:' + user.to_s + ' id:' + id.to_s
     @ticket = @db.doInsert('mychips.tokens_v', Hash['token_ent'=>id, 'allows'=>'user'])
 
     upd = Hash[]
-    upd['mobi_port'] = @db.getParm('mobi_port') if !user['mobi_port']	#Use default values if this user doesn't have an address and port defined
-    upd['mobi_inet'] = @db.getParm('mobi_inet') if !user['mobi_inet']
+    upd['user_port'] = @db.getParm('user_port') if !user['user_port']	#Use default values if this user doesn't have an address and port defined
+    upd['user_inet'] = @db.getParm('user_inet') if !user['user_inet']
     @db.doUpdate('mychips.users_v', upd, Hash['id',id]) if upd.length > 0
 #printf("private:%s\n", key.to_pem)
 
@@ -130,7 +130,7 @@ class Certificate < OpenSSL::X509::Certificate
 # -------------------------------------------------------------------
   def userData(id)				#Get and parse info about user from database
 #printf "userData id:%s\n", id
-    res = @db.doSelect('user_cdi,user_pub,user_crt,ent_type,ent_name,giv_name,fir_name,pref_name,title,std_name,born_date,phone_comm,cell_comm,email_comm,web_comm,ship_addr,ship_city,ship_state,ship_pcode,ship_country','mychips.users_v_flat',"id=#{id} and not ent_inact")
+    res = @db.doSelect('peer_cdi,ent_type,ent_name,giv_name,fir_name,pref_name,title,std_name,born_date,phone_comm,cell_comm,email_comm,web_comm,ship_addr,ship_city,ship_state,ship_pcode,ship_country','mychips.users_v_flat',"id=#{id} and not ent_inact")
     raise "Can't find data for contact #{id}" if res.ntuples != 1
     @udat = res[0]				#Get results in a hash
 #p @udat

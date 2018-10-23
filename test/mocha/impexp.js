@@ -5,7 +5,7 @@
 const assert = require("assert");
 const DatabaseName = require('../database')
 var fs = require('fs')
-var log = require('../../lib/logger')('testImpex')
+var log = require('../../lib/logger')('testImpexp')
 var { dbClient } = require("wyseman")
 const dbConfig = {
   database: DatabaseName,
@@ -20,6 +20,7 @@ function dbAndCheck(sqlFile, db, done, check) {
     var jsonData = JSON.parse(fileData)
     db.query("select json.import($1::jsonb) as record;", [jsonData] ,(err, res) => {
       if (err) done(err)
+      log.debug("Result:", res.rows[0].record)
       check(res,res.rows[0].record.slice(1,-1).split(','))
     })
   })

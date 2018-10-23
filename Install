@@ -2,7 +2,7 @@ Dependencies:
 
 Wyseman		With its dependencies
   postgresql
-  ruby-pg
+  rubygem-pg
   ruby-tcltklib
 
 Gems (if using ruby test/development code):

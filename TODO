@@ -6,8 +6,13 @@ X- Why does test hang?
 X- Establish working setup state for tally testing using json imports
 X- Can I get various modules logging to different files?
 X- Write initial test program for establishing tallies
+- Create GUI for displaying relational diagram (wysegi erd)
+- Use GUI to display mychips users and tallies, with live updating
+- Display tally totals on GUI
 - Write test program for exchanging/approving chits
 - Implement/test/finish chit state machine
+- See user balances update on GUI as chits exchange
+- Create user agent process to act for each user
 - 
 
 General roadmap:
@@ -19,7 +24,7 @@ General roadmap:
 - Implement/publish basic contracts
 - Implement digital signatures for tallies, chits, contracts, lifts
 - Implement encrypted network communications, noise protocol
-- Make Admin SPA GUI useable
+- Make Admin SPA GUI useable, replace all functions of mc_admin
 - Make User SPA GUI useable
 - Optimize User SPA GUI for mobile
 - Rollout

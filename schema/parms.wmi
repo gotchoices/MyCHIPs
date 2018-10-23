@@ -2,8 +2,8 @@
 
 #Default parameters for connection port
 cat <<EOF
-insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','mobi_port','int','12345','Default port where mobile application connects.');
-insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','mobi_inet','text','192.168.58.102','Default IP where mobile application connects.');
+insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','user_port','int','12345','Default port where mobile user application connects.');
+insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','user_inet','text','192.168.56.101','Default IP where mobile application connects.');
 insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','cert_days','int','14','Default number of days for a certificate to be valid.');
 
 EOF
