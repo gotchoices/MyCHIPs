@@ -14,20 +14,22 @@
 import Wylib from 'wylib'
 import AppDocs from './admin/docs.vue'
 import AppUsers from './admin/users.vue'
+import AppURNet from './admin/urnet.vue'
 import AppConfig from './admin/config.vue'
 import ConnectMenu from './common/connect.vue'
 
 export default {
-  components: {'wylib-app': Wylib.Application, 'app-users': AppUsers, 'app-docs': AppDocs, 'app-config': AppConfig},
+  components: {'wylib-app': Wylib.Application, 'app-users': AppUsers, 'app-docs': AppDocs, 'app-urnet': AppURNet, 'app-config': AppConfig},
   data() { return {
     state:      {},
     tog:	true,
     tabs:	[
       {tag: 'users', title: 'Users'},
       {tag: 'docs',  title: 'Documents'},
+      {tag: 'urnet',  title: 'Network'},
       {tag: 'config', title: 'Settings'},
     ],
-    currentTab: 'users'
+    currentTab: 'urnet'
   }},
 //  methods: {
 //  },

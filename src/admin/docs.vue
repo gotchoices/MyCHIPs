@@ -5,7 +5,7 @@
 //- 
 
 <template>
-  <h2>Documents</h2>
+  <div class="header">Documents:</div>
 </template>
 
 <script>

@@ -6,7 +6,7 @@ X- Why does test hang?
 X- Establish working setup state for tally testing using json imports
 X- Can I get various modules logging to different files?
 X- Write initial test program for establishing tallies
-- Create GUI for displaying relational diagram (wysegi erd)
+X- Create GUI for displaying relational diagram (wysegi erd)
 - Use GUI to display mychips users and tallies, with live updating
 - Display tally totals on GUI
 - Write test program for exchanging/approving chits

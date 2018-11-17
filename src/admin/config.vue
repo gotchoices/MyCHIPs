@@ -6,7 +6,7 @@
 
 <template>
   <div>
-    <h2>Configuration</h2>
+    <div class="header">Configuration:</div>
     <button @click="initialize()">Initialize</button>
   </div>
 </template>
