@@ -1,5 +1,10 @@
 #!/bin/bash
 #Initialize an empty database with some sample data
+#TODO:
+#- Deprecate mc_admin
+#- Can call database directly with json import data?
+#- 
+
 MYPATH=$(dirname "$0")
 DBNAME=${WYATTDB}; if [ -z "$DBNAME" ]; then DBNAME="${USER}"; fi
 

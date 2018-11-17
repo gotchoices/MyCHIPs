@@ -1,13 +1,7 @@
 //Test tallys and chits between peers
 //TODO:
-//X- Separate test tag to create testing database with example data, users, etc.
-//X- Separate test tag to destroy testing database (will do manually for now)
-//X- Require database wyseman module, specifying the test database
-//- Script for loading the database with sample test data (as a single sql file)
-//- Identify two sample users
-//- Delete any tallies between these two users
-//- Create an initial tally invitation
-//- Check the state of the database
+//- Sometimes this test doesn't terminate.  Why?
+//- 
 //- Create test for each pathway of the flow chart
 //- Check the state of the database after each stage
 //- Create similar testing for chit flowchart
