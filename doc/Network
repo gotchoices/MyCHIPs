@@ -1,4 +1,4 @@
-This is a description of how a MyCHIPs network is structured
+A description of how a MyCHIPs network is structured:
 
 Trading entity
 # -----------------------------------------------------------------------------
@@ -8,22 +8,22 @@ the purpose of trading credits with other entities.
 An entity can have any number of MyCHIPs ID's trading on the network.  But
 ideally, there would be only one such ID issuing its own credits on any
 given asset (such as future profits, productivity, or a specific collateral
-asset).  This is like having more than one credit card.  The creditors might
-want to know who is first in line to collect on your guaranty.
+asset).  This is like having more than one credit card, or more critically,
+more than one mortgage.  One's creditors probably need to know who is first 
+in line to collect on your promises--especially if it involves collateral as
+security.
 
-Consumers who trade for the credits of others can rightly do so under any
-number of ID's at one time.  This is like having multiple debit cards.  As
+Consumers who trade solely for the credits of others can rightly do so under 
+any number of ID's at one time.  This is like having multiple debit cards.  As
 long as you collect value in each account before spending that value, no one
 gets hurt by you having more than one account.
 
 Database Instance
 # -----------------------------------------------------------------------------
 A backend database contains a data set for multiple different trading entities
-(users).
-
-That data set includes information about what credit connections each user
-has with others on the network.  It also includes what credits each user wants
-to obtain or trade away.
+(users).  This data set includes information about what credit connections each 
+user has with others on the network.  It also includes what credits each user 
+wants to obtain or trade away.
 
 The relationships linked to a single user represent a very limited view of the
 network.  But a database used by many different users may be able to identify
@@ -34,39 +34,62 @@ network.
 So the more users you can accommodate in a single database instance, the more
 valuable you can be to your customers in facilitating efficient lifts.
 
-If/when a provider needs to scale beyond a single database instance, it
-certainly could operate a secondary database that just gathers and analyses
-relationship chains for the sole purpose of facilitating lifts.  But this is
-beyond the scope of the reference implementation.
+A user's or peer's state is meant to be authoritatively kept in the database.
+This implies, the database must be ACID, and therefore Atomic.
+
+The database will also have to issue its own asynchronous notifications as 
+there is no guaranty what other server instances may or may not be running at
+any given time.  In other words, users and peers may be interacting with the
+database (and therefore the network state) through one of the processes 
+outlined below, or by some other way.
+
+The database must properly maintain state, respond to authorized state change 
+requests, execute orderly state changes, and notify any listeners of applicable
+state changes.
 
 Peer Server Instance
 # -----------------------------------------------------------------------------
 Each database instance can interact with one or more peer server instances.  
-The peer server listens for connections from other peer servers.  It will also
-connect with other peers for the purpose of initiating transactions.
+The peer server listens for connections from other peer servers (i.e. other
+instances of itself, or similarly functioning software).  It will also initiate
+connections with other peers for the purpose of executing transactions.
 
 The peer server transmits and listens on a public interface.  It processes
 requests, interprets state transitions, and then transmits changes of state
 back to the database instance, ideally over an internal, higher speed 
 interface.
 
-The first way for a provider to scale is to create multiple peer servers.
+When a peer server is launched, it must know what users it acts on behalf of.
+It therefore should register itself with the database instance so as to receive
+notifications, which might have been intiated elsewhere, but which are 
+applicable to the user(s) the peer server works on behalf of.
 
 Admin Server Instance
 # -----------------------------------------------------------------------------
 This server may, or may not be, part of the same process as the peer server.
+
 It serves up and communicates with an administrator SPA to control various
 settings and functions of the backend database.  Examples include setting up
 user accounts and issuing connection tickets for those users.
 
+The admin server also contains an interative flow chart to show the network
+nodes its database server knows about.  It is hoped this display will be 
+helpful in planning, designing, visualizing debugging the lift algorithm.
+
 User Server Instance
 # -----------------------------------------------------------------------------
 This server may, or may not be, part of the same process as the peer server.
+
 In the initial implementation, it serves up and communicates with a user SPA to 
 control various settings and functions of the user account.  Examples include 
 establishing trading preferences (what credits the user is collecting or 
 trading away), and inviting other users to share a trading connection (issuing
 peer tickets).
+
+Ideally, the user client will be implemented as a standalone phone app (rather
+than an SPA).  This should provide much better security for stored keys and 
+the like.  Hopefully, the client app and client SPA can utilize the same API
+for communicating with the user server.
 
 Connections
 # -----------------------------------------------------------------------------
@@ -100,3 +123,76 @@ This means a complete circle has been discovered where credits are naturally
 flowing in a loop.  Once this circle has been discovered, a server can attempt
 to initiate a credit lift around the circle, which will be a transaction
 involving all the entities in the loop.
+
+Scaling
+# -----------------------------------------------------------------------------
+The MyCHIPs server is designed to be able to run all server processes in a
+single process.  So on a small system, it should be pretty easy to get up and
+running.  Everything can run on a single system, including the database.
+
+When this gets to be too much for a single computer, it should be pretty easy
+to split the database off to a separate machine.  Now you have two kinds of
+thing to measure and scale: database processing and network traffic.
+
+When the network traffic becomes too much for a single process to handle, a
+next logical step would be to break off the admin and user server processes.
+Admin may not help much as it may not involve all that much traffic.  But
+user interactions should be a pretty good chunk of overall activity.
+
+Still, the automated traffic due to lifts and information requests is bound
+to be the lion's share of activity.  So it should be pretty easy to launch
+multiple server processes, on multiple machines, with each process handling
+as few as a single user's traffic.
+
+As far as the database instance goes, it will depend solely on the amount of
+traffic each user generates.  A single instance may be able to manage hundreds
+or even thousands of low traffic users.  A single, very big user may require a
+its own server.  Indeed, a single user may eventually overload a single 
+database instance.
+
+If/when a provider needs to scale into multiple database instances, it is
+conceivable to operate some kind of specialized pathway database that just 
+gathers and analyses relationship chains for the sole purpose of facilitating 
+lifts.  This reference implementation is not currently attempting anything of
+this scope.
+
+Events
+# -----------------------------------------------------------------------------
+All processes should be pretty much event driven.  Most state transitions
+should be initiated either directly or indirectly by the actions of a user.
+But there are probably some exceptions.
+
+User Initiated:
+  - Request a ticket be generated, inviting another user to start a tally
+  - Request payment from another user
+  - Send payment to another user
+  - Submit a change to the user's buy/sell list
+  - Set an operational parameter
+
+Peer Initiated:
+  - Send a tally request
+  - Send a payment request chit
+  - Send a payment offer chit
+  - Request data update to facilitate future lifts
+  - Send a lift request
+  - Query credit information
+
+Peer Server Initiated:
+  - Request state change, responsive to a packet coming from another peer
+
+Database Initiated:
+  - Notify that a timed request, such as a tally proposal, has expired
+  - Notify of state change a user server should react to
+    mychips_user<_EntityID>
+    
+  - Notify of state change a peer server should react to
+    mychips_peer<_HostID>
+
+  - Notify of state change a (user or admin) GUI should respond to:
+    - New user added				mychips_user
+    - Tally added, modified
+    - Chit added (disbursement, receipt, or lift)
+
+Admin Initiated:
+  - Add new user
+  - Issue ticket inviting a user to connect/validate keys

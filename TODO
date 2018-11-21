@@ -7,9 +7,13 @@ X- Establish working setup state for tally testing using json imports
 X- Can I get various modules logging to different files?
 X- Write initial test program for establishing tallies
 X- Create GUI for displaying relational diagram (wysegi erd)
-- Use GUI to display mychips users and tallies, with live updating
-- Display tally totals on GUI
-- Write test program for exchanging/approving chits
+X- Use GUI to display mychips users and tallies, with live updating
+X  - Adjust schema user, tallies, chits to notify: mychips_user and/or mychips_admin
+X  - Admin SPA listens for new users, updates flow chart
+X  - Admin SPA listens for new tallies, updates flow chart
+X  - Admin SPA listens for new chits, updates flow chart
+X  - Display tally totals on GUI
+- Write mocha program for exchanging/approving chits
 - Implement/test/finish chit state machine
 - See user balances update on GUI as chits exchange
 - Create user agent process to act for each user
@@ -19,11 +23,13 @@ General roadmap:
 - Can create/exchange tallies, chits with a peer
 - Create agent client module to model user, reads/writes/listens direct with DB (in ruby?)
 - Can spawn N user agents against M server instances
-- Create graphical canvas view of all users balance sheets
+X- Create graphical canvas view of all users balance sheets
 - Implement lift algorithm
 - Implement/publish basic contracts
+- Review copyright; Should we limit free to people who respect a base contract?
 - Implement digital signatures for tallies, chits, contracts, lifts
 - Implement encrypted network communications, noise protocol
+- Harden database schema
 - Make Admin SPA GUI useable, replace all functions of mc_admin
 - Make User SPA GUI useable
 - Optimize User SPA GUI for mobile
@@ -60,9 +66,8 @@ X-  Triggers generate notifies with correct action names
 Server:
 - Show graphical view of all users connected via a set of specified SQL servers
 - 
-- 
 
-- Augment Wylib/wyseman:
+Augment Wylib/wyseman:
 X-  Can specify a set of actions
 X-  Can specify a set of reports
 X-  Can specify a set of subordinate views (example: phone, address)
@@ -71,7 +76,9 @@ X-  Can specify a set of subordinate views (example: phone, address)
 -  Menu selector for accessing available actions in Dbe
 -  Add information about foreign keys in wm.table_meta
 - 
-- Reports: (live, respond to DB notices)
+- Wyseman: can apply incremental delta scripts to go from one release to another
+- 
+- Wylib Reports: (live, respond to DB notices)
 -  On a single record:
 -   Bar code for a ticket
 -   PDF view of a drawing/figure
@@ -106,6 +113,11 @@ X-  Can specify a set of subordinate views (example: phone, address)
 -   Peers can connect and validate
 -   Server initiates trade requests
 - 
+- Database:
+-   Only allow minimum, required access/permissions
+-   Is each server a single user, or do real user ID's flow all the way to the database connection?
+-   Can run from schema sources, or from compiled schema 
+- 
 - Simple lift protocol
 - Machine state kept in database
 - Flow chart kept in control logic (JS object)
@@ -114,8 +126,11 @@ X-  Can specify a set of subordinate views (example: phone, address)
 - 
 - Implement contract documents  
 - How to view/print a document?
-- 
 -   
+- Implement writing a check:
+-   User mobile clients can talk to each other in absense of internet or server connection
+-   They exchange a check
+-   The check is 'cashed' or recorded once the network comes back up
 -   
 
 Old TODOs:
