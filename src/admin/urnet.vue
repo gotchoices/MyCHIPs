@@ -2,20 +2,17 @@
 //Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
-//X- Find bounding box, including any hubs when resizing canvas
-//X- Randomize node placement
-//X- Add one more tally to someone
-//X- Add optional radius option to nodes, calculate repulsion from edge of radius
-//X- Multiple tally hubs stack correctly
 //X- Calculate arrows from hub center and end points if hub specified
 //X- Can update text in hubs asynchronously
-//- Make database generate notifications when users, totals, tallies changed
-//- Why don't arrow heads update on hot load?
-//- Respond to notifications from database
-//- Update nodes when node added
-//- Update nodes when removed, disabled
+//X- Make database generate notifications when users, totals, tallies changed
+//X- Respond to notifications from database
+//X- Update nodes when new active user node added
+//X- Why don't arrow heads update on hot load?
+//X- Update tally totals when chits added, removed
 //- Update tallies when added, removed
-//- Update tally totals when chits added, removed
+//- 
+//- Later:
+//- updateNodes() can't handle a deleted node, can only add them
 //- 
 
 <template>
@@ -33,11 +30,11 @@ console.log("wylib:", Wylib)
 export default {
   components: {'wylib-svgraph': Wylib.SvGraph},
   data() { return {
-    state:	{width: 1200, height: 800, nodes: {}},
+    state:	{width: 600, height: 600, nodes: {}},
     tabGap:	40,
     fontSize:	16,
-    debits:	9,
-    credits:	3,
+    hubWidth:	100,
+    hubHeight:	20,
   }},
   methods: {
     user(id, name, cdi) {		//Generate SVG code for a user node
@@ -54,61 +51,83 @@ export default {
 //console.log("Ends:", ends)
       return {code, ends, width, height}
     },
-    glumph() {		//For testing only
-      let st = this.state.nodes['james_madison.chip']
-console.log("ahoy:", st.labels)
-      this.$set(st.labels,1,'Howdy!')
-      this.$set(st.labels,2,'Ho')
-      this.$set(st.labels,3,'There!')
-    },
-  },
-  beforeMount: function() {
-    let specu = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi'], where: [['id', '>', '1']], order: 1}
-    Wylib.Wyseman.request('urnet.user.'+this._uid, 'select', specu, (data,err) => {
-      let x = 10, y = 10
-      if (data) data.forEach(dat => {
-//console.log("U Dat:", dat)
-        let { code, ends, width, height } = this.user(dat.id, dat.std_name, dat.peer_cdi)
-          , radius = height / 2
-        this.$set(this.state.nodes, dat.peer_cdi, {tag:dat.peer_cdi, x, y, width, height, radius, code, ends, links:[], labels:[]})	//So it will react to changes of state
-        x += (width + this.tabGap)
-        y += (Math.random() * 100 - 50)			//Arranges better by mixing y around a little
-        if (x > (this.state.width - width)) {x = 10; y += (height + this.tabGap)}
-      })
-//console.log("Height:", this.state.height, y + maxHeight)
-//      if (this.state.height < (y + maxHeight)) this.state.height = y + maxHeight
-    })
 
-    let specl = {view: 'mychips.tallies_v', fields: ['tally_ent', 'tally_seq', 'tally_guid', 'tally_type', 'user_cdi', 'part_cdi'], where: {state: 'open'}, order: [1,2]}
-    Wylib.Wyseman.request('urnet.tally.'+this._uid, 'select', specl, (data,err) => {
-      let haveHubs = {}						//Keep track of hub stacking
-      if (data) data.forEach(dat => {
+    updateNodes() {
+      let spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi'], where: [['id', '>', '1']], order: 1}
+      Wylib.Wyseman.request('urnet.user.'+this._uid, 'select', spec, (data,err) => {
+//        let x = 10, y = 10
+        for (const dat of data) {
+          if (!(dat.peer_cdi in this.state.nodes)) {
+            let { code, ends, width, height } = this.user(dat.id, dat.std_name, dat.peer_cdi)
+              , x = Math.random() * this.state.width/2, y = Math.random() * this.state.height/2
+              , nodeState = {tag:dat.peer_cdi, x, y, width, height, radius:height/2, code, ends, links:[]}
+            this.$set(this.state.nodes, dat.peer_cdi, nodeState)
+console.log("N Dat:", dat.peer_cdi, nodeState.x, nodeState.y, this.state.nodes[dat.peer_cdi].x)
+//            x = x + 120
+          }
+        }
+//console.log("Height:", this.state.height, y + maxHeight)
+//        if (this.state.height < (y + maxHeight)) this.state.height = y + maxHeight
+      })
+    },		//updateNodes
+
+    updateLinks() {
+      let spec = {view: 'mychips.tallies_v', fields: ['tally_ent', 'tally_seq', 'tally_guid', 'tally_type', 'user_cdi', 'part_cdi', 'total_c'], where: {state: 'open'}, order: [1,2]}
+      Wylib.Wyseman.request('urnet.tally.'+this._uid, 'select', spec, (data, err) => {
+        if (err || !data) return
+        let haveHubs = {}					//Keep track of hub stacking
+        for (const dat of data) {
 //console.log("L Dat:", dat)
-        if (dat.user_cdi in this.state.nodes) {			//If this node is drawn on the graph
+          if (!(dat.user_cdi in this.state.nodes)) continue	//No matching node found on the graph
+
           let node = this.state.nodes[dat.user_cdi]		//Get node's state
-            , hubHeight = 20, hubWidth = 100
-            , hubYRad = hubHeight/2, hubXRad = hubWidth/2
-            , idx = (tag => {
+            , nodeLink = node.links.find(link => {return link.guid == dat.tally_guid})	//Do we already have a definition for this link?
+            , idx = (tag => {					//Calculate an order for hub stacking
                 if (tag in haveHubs) {return (haveHubs[tag] += 1)} else {return (haveHubs[tag] = 0)}
               })(node.tag + dat.tally_type)
             , isFoil = (dat.tally_type == 'foil')
             , xOffset = node.width / 2
-            , yOffset = isFoil ? node.height + (hubHeight * (idx + 0.5)) : -hubHeight * (idx + 0.5)
-            , color = isFoil ? '#ff8888' : '#8888ff'
+            , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)
+            , color = dat.total_c == 0 ? '#f0f0f0' : (dat.total_c < 0 ? '#F0B0B0' : '#B0B0F0')
+            , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
+
             , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
             , center = {x:xOffset, y:yOffset}
-//console.log("  node:", node, idx, dat.user_cdi, dat.part_cdi)
-          this.$set(node.labels, dat.tally_seq, dat.tally_type)
-          node.links.push({guid:dat.tally_guid, link:dat.part_cdi, draw:isFoil, ends, center, hub: (lk)=>{
-//console.log('Draw hub', node.width, node.height, dat.tally_seq)
-            return `
-              <g transform="translate(${xOffset}, ${yOffset})">
-                <ellipse rx="${hubWidth/2}" ry="${hubHeight/2}" stroke="black" stroke-width="1" fill="${color}"/>
-                <text y="5" text-anchor="middle">${node.labels[dat.tally_seq]}</text>
+            , react = nodeLink ? nodeLink.react : {rx: hubXRad, ry: hubYRad, color, text:dat.total_c}
+
+//console.log("  node:", node, idx, dat.user_cdi, dat.part_cdi, nodeLink)
+          if (nodeLink) {					//Link already exists, just update values
+            react.rx = hubXRad; react.ry = hubYRad; react.color = color; react.text = dat.total_c
+            nodeLink.react = react, nodeLink.ends = ends, nodeLink.center = center
+          } else {						//Create new data structure for link, hubs
+            nodeLink = {guid:dat.tally_guid, link:dat.part_cdi, draw:isFoil, ends, center, react, hub: (lk) => {
+              return `<g transform="translate(${nodeLink.center.x}, ${nodeLink.center.y})">
+                <ellipse rx="${react.rx}" ry="${react.ry}" stroke="black" stroke-width="1" fill="${react.color}"/>
+                <text y="${react.ry/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${react.text}</text>
               </g>`
-          }})
-        }
-      })
+            }}
+            node.links.push(nodeLink)
+          }
+        }	//for-of
+      })	//request
+    },		//updateLinks
+
+    glumph() {		//For testing only
+      let st = this.state.nodes['james_madison.chip'].links
+console.log("st:", st[1].react)
+      st[1].react.text = 'Howdy'
+//      this.$set(st[1].react, 'text', 'Howdy')
+//      this.updateNodes()
+    },
+  },
+
+  beforeMount: function() {
+    this.updateNodes()
+    this.updateLinks()
+    Wylib.Wyseman.listen('urnet.async.'+this._uid, dat => {
+console.log("Async:", dat)
+//      if (dat.target == 'tallies') this.updateNodes()
+      if (dat.target == 'chits') this.updateLinks()
     })
   }
 }

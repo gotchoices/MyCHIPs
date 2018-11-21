@@ -11,7 +11,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment cr_limit dr_limit}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract]
-    def tallies_se	[concat tally_ent tally_seq $tallies_v_up tally_guid tally_type version partner contract $glob::stampfn tally_date status]
+    def tallies_se	[concat tally_ent tally_seq $tallies_v_up tally_guid tally_type version partner contract $glob::stampfn tally_date status units_c]
 
     def chits_pk	{chit_ent chit_seq chit_idx}
     def chits_v_up	{request signature units pro_quo memo}
@@ -35,9 +35,12 @@ table mychips.tallies {mychips base.ent} {
   , part_sig	varchar
   , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
   , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
-  , total_c	bigint		default 0 not null
+  , units_c	bigint		default 0 not null
     eval(s $glob::stamps)
 }
+index {} mychips.tallies tally_guid
+index {} mychips.tallies tally_type
+index {} mychips.tallies tally_date
 
 table mychips.chits {mychips.tallies} {
     chit_ent	int
@@ -53,6 +56,9 @@ table mychips.chits {mychips.tallies} {
   , memo	varchar
     eval(s $glob::stamps)
 }
+index {} mychips.chits chit_guid
+index {} mychips.chits chit_type
+index {} mychips.chits chit_date
 
 table mychips.confirms {mychips.tallies} {
     conf_ent	int
@@ -94,6 +100,22 @@ trigger mychips_chits_tr_seq {} {
     before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
 }
 
+# Cache the total of tallies when the chits change
+#----------------------------------------------------------------
+function mychips.chits_tf_cache() {mychips} {
+  returns trigger language plpgsql security definer as $$
+    declare
+      trec	record;
+    begin
+      if TG_OP = 'DELETE' then trec = old; else trec = new; end if;
+      update mychips.tallies set units_c = (select coalesce(sum(units),0) from mychips.chits where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
+      return null;
+    end;
+$$;}
+trigger mychips_chits_tr_cache {} {
+    after insert or update or delete on mychips.chits for each row execute procedure mychips.chits_tf_cache();
+}
+
 # Generate unique sequence for new confirmation
 #----------------------------------------------------------------
 function mychips.confirms_tf_seq() {mychips.confirms} {
@@ -109,9 +131,9 @@ trigger mychips_confirms_tr_seq {} {
     before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
 }
 
-# Generate notice for a specified tally record
+# Notify the peer server process of tally state changes, and next state request, that needs attention in the database
 #----------------------------------------------------------------
-function {mychips.tally_notice(tally mychips.tallies)} {mychips.tallies mychips.tallies_v mychips.users_v mychips.peers_v} {
+function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.tallies_v mychips.users_v mychips.peers_v} {
   returns boolean language plpgsql security definer as $$
     declare
         act	text;
@@ -145,27 +167,27 @@ function {mychips.tally_notice(tally mychips.tallies)} {mychips.tallies mychips.
         jrec = jsonb_set(jrec, '{at}', to_jsonb(prec.peer_sock));
         jrec = jsonb_set(jrec, '{object}', (select json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq));
 raise notice 'Tally notice:%', jrec::text;
-        perform pg_notify(channel, jrec::text);
+        perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
         return true;
     end;
 $$;}
 
-# Generate notices about tallies for front-end listeners
+# Generate notifications about updated tallies for listening peer servers
 #----------------------------------------------------------------
-function mychips.tallies_tf_notice() {mychips.tally_notice(mychips.tallies)} {
+function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies)} {
   returns trigger language plpgsql security definer as $$
     begin
         if (new.request is not null and new.request is distinct from old.request) then
-            perform mychips.tally_notice(new);
+            perform mychips.tally_notify(new);
         end if;
         return new;
     end;
 $$;}
 trigger mychips_tallies_tr_notice {} {
-    after update on mychips.tallies for each row execute procedure mychips.tallies_tf_notice();
+    after update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
 }
 
-# Compute current state of this tally
+# Compute current state of a tally, based on its various fields
 #----------------------------------------------------------------
 function {mychips.tally_state(status text, request text, user_sig text, part_sig text, total bigint)} {mychips} {
   returns text immutable language plpgsql as $$
@@ -188,7 +210,8 @@ $$;}
 
 # Base view of tallies
 #----------------------------------------------------------------
-view mychips.tallies_v {mychips.tallies mychips.users_v} {select 
+define multSign {case when te.tally_type = 'stock' then unitMultiplier().00 else -unitMultiplier().00 end}
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v} {select 
     eval(fld_list $tallies::tallies_se	te)
   , ue.peer_cdi		as user_cdi
   , ue.peer_sock	as user_sock
@@ -198,8 +221,8 @@ view mychips.tallies_v {mychips.tallies mychips.users_v} {select
   , pe.peer_sock	as part_sock
   , pe.std_name		as part_name
   , te.part_sig
-  , mychips.tally_state(status,request,user_sig,part_sig,total_c) as state
-  , mychips.tally_state(status,request,user_sig,part_sig,total_c) = any(array['peerProffer','closing']) as action
+  , mychips.tally_state(status,request,user_sig,part_sig,units_c) as state
+  , mychips.tally_state(status,request,user_sig,part_sig,units_c) = any(array['peerProffer','closing']) as action
   , jsonb_build_object(
        'guid', te.tally_guid,
        'version', te.version,
@@ -212,11 +235,17 @@ view mychips.tallies_v {mychips.tallies mychips.users_v} {select
          'stock', case when te.tally_type = 'stock' then te.user_sig else te.part_sig end,
          'foil',  case when te.tally_type = 'stock' then te.part_sig else te.user_sig end
        )
-    )								as json
+    )			as json
+  , coalesce(tc.units,0)				as units
+  , te.units_c::float8 / multSign()		as total_c
+  , coalesce(tc.units,0)::float8 / multSign()	as total
+  , coalesce(tc.chits,0)				as chits
 
     from	mychips.tallies	te
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
-    join	mychips.users_v	pe on pe.user_ent = te.partner;
+    join	mychips.users_v	pe on pe.user_ent = te.partner
+    left join	(select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits from mychips.chits group by 1,2) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
+    
 
 --    ev-al(multiview::insert mychips.users_v "
 --        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
@@ -233,22 +262,22 @@ view mychips.tallies_v {mychips.tallies mychips.users_v} {select
     {mychips	{} {s i u} {d}}
 } -primary id
 
-# Process state transitions on tallies
+# Process tally state transitions requested by the peer server process
 #----------------------------------------------------------------
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
   returns text language plpgsql as $$
     declare
         cdi		text = msg->>'user';
         obj		jsonb = msg->'object';
-        entity		int;		--	 = (msg->>'entity')::int;
+        entity		int;		--	 = (msg->>'entity')::int;	-- See security issue below
         guid		uuid = obj->>'guid';
         curState	text;
         lrec		record;
         trec		record;
         tallyType text; notType text; partner int;
     begin
---        if entity is null then		-- Security problem?
-            select into entity peer_ent from mychips.peers where peer_cdi = cdi;
+--        if entity is null then		-- Security problem to accept entity ID passed in?
+            select into entity peer_ent from mychips.peers where peer_cdi = cdi;	-- We will look it up on our own
             if not found then return null; end if;
 --        end if;
 
@@ -292,16 +321,16 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
         select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         if trec.action or (trec.state = 'open' and (curState is null or curState != 'open')) then	-- Also notify if changed to open status
 raise notice '  notify for user %', trec.tally_ent;
-            perform pg_notify('mychips_user', trec.json::text);
+            perform pg_notify('mychips_admin', trec.json::text);
             perform pg_notify('mychips_user_'||trec.tally_ent::text, trec.json::text);
         end if;
         return trec.state;
     end;
 $$;}
 
-# Generate notice for a specified chit record
+# Notify the peer server process of chit state changes that need attention in the database
 #----------------------------------------------------------------
-function {mychips.chit_notice(chit mychips.chits)} {mychips.users_v mychips.chits_v mychips.tallies_v} {
+function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chits_v mychips.tallies_v} {
   returns boolean language plpgsql security definer as $$
     declare
         act	text	= chit.request;
@@ -330,28 +359,28 @@ raise notice 'Chit notice:%', jrec::text;
     end;
 $$;}
 
-# Trigger to generate notices about chits as they are needed
+# Generate notifications about updated chits for listening peer servers
 #----------------------------------------------------------------
-function mychips.chits_tf_notice() {mychips.chits mychips.chits_v mychips.tallies_v} {
+function mychips.chits_tf_notify() {mychips.chits mychips.chits_v mychips.tallies_v} {
   returns trigger language plpgsql security definer as $$
     begin
 raise notice 'Chit update';
         if (new.request is not null and new.request is distinct from old.request) then
-            perform mychips.chit_notice(new);
+            perform mychips.chit_notify(new);
         end if;
         return new;
     end;
 $$;}
 trigger mychips_chits_tr_notice {} {
-    after update on mychips.chits for each row execute procedure mychips.chits_tf_notice();
+    after update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
 }
 
 # Compute current state of this chit
 #----------------------------------------------------------------
-function {mychips.chit_state(isdebit boolean, request text, signature text)} {} {
+function {mychips.chit_state(isdebit boolean, request text, signature text)} {mychips} {
   returns text immutable language plpgsql as $$
     begin return
-      case when isdebit() then
+      case when isdebit then
         case when signature = 'void'		then 'peerDecline'
            when signature is not null		then 'peerValid'
            when request = 'userRequest'		then 'userRequest'
@@ -399,7 +428,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v} {select
     {mychips	{} {s i u} {d}}
 } -primary id
 
-# Process state transitions on chits
+# Process chit state transitions requested by the peer server process
 #----------------------------------------------------------------
 function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.chits_v} {
   returns text language plpgsql as $$
@@ -465,10 +494,26 @@ function {mychips.tally_notices()} {mychips.tallies mychips.chits} {
         trec		record;
     begin
         for trec in select * from mychips.tallies where request is not null loop
-            perform mychips.tally_notice(trec);
+            perform mychips.tally_notify(trec);
         end loop;
         for trec in select * from mychips.chits where request is not null loop
-            perform mychips.chit_notice(trec);
+            perform mychips.chit_notify(trec);
         end loop;
     end;
 $$;}
+
+# Generate notifications about new or updated tallies for listening admin servers
+#----------------------------------------------------------------
+function mychips.change_tf_notify() {mychips} {
+  returns trigger language plpgsql security definer as $$
+    begin
+      perform pg_notify('mychips_admin', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
+      return null;
+    end;
+$$;}
+trigger mychips_tallies_tr_change {} {
+    after insert or update or delete on mychips.tallies for each statement execute procedure mychips.change_tf_notify('tallies');
+}
+trigger mychips_chits_tr_change {} {
+    after insert or update or delete on mychips.chits for each statement execute procedure mychips.change_tf_notify('chits');
+}
