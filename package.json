@@ -25,7 +25,7 @@
     "test-peer": "mocha test/mocha/peer.js",
     "dev-hot": "webpack-dev-server --mode development --hot",
     "dev-build": "webpack --mode development --watch --progress --hide-modules",
-    "dev-server": "bin/mychips.js --spaServer=false",
+    "dev-server": "bin/mychips.js --spaPort=0",
     "server": "bin/mychips.js",
     "dev": "npm-run-all --parallel dev-build dev-server",
     "build": "webpack --mode production",

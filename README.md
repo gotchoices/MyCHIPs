@@ -1,8 +1,8 @@
 # MyCHIPs
 A cellular network for implementing open source money based on private credit.
 
-This is _not_ a Bitcoin derivative, but addresses several problems inherent 
-with Bitcoin.
+This is _not_ a Bitcoin/blockchain derivative, but addresses several problems 
+inherent with those technologies.
 
 For a full description, please visit the website at: 
 	http://gotchoices.org/mychips/index.html
