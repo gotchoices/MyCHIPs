@@ -19,7 +19,7 @@
     ]},
     {"list": [
       "The value produced by one continuously applied hour of adult human work;",
-      "in such circumstance where there is neither a shortage nor a glut of such willing labor available; and",
+      "in such circumstance where there is neither a shortage nor a surplus of such willing labor available; and",
       "where the job can be reasonably understood with only minimal training and orientation; and",
       "without considering the added productivity due to the use of labor-saving capital equipment; and",
       "where the person performing the work has a normal, or average, functioning mind and body; and",
@@ -30,11 +30,11 @@
     ]},
     {"p": [
       "A CHIP may be subdivided into fractional units as small as 1/1,000,000, or one microCHIP.",
-      "One thousand microCHIPs is equal to one milliCHIP.",
-      "One thousand CHIPs is equal to one kiloCHIP.",
-      "One thousand kiloCHIPs is equal to one megaCHIP.",
-      "One thousand megaCHIPs is equal to one gigaCHIP.",
-      "One thousand gigaCHIPs is equal to one teraCHIP."
+      "One thousand microCHIPs are equal to one milliCHIP.",
+      "One thousand CHIPs are equal to one kiloCHIP.",
+      "One thousand kiloCHIPs are equal to one megaCHIP.",
+      "One thousand megaCHIPs areequal to one gigaCHIP.",
+      "One thousand gigaCHIPs are equal to one teraCHIP."
     ]}
   ]
 }}

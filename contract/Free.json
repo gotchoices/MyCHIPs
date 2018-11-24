@@ -1,0 +1,26 @@
+{ "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031ee",
+  "covenant": {
+  "title": "MyCHIPs Royalty Free License Contract Base",
+  "author": "mychips.org",
+  "source": "http://mychips.org/covenants/Free.json",
+  "version": 1,
+  "language": "en",
+  "released": "2018-11-23",
+  "content": [
+    {"p": [
+      "End users may use MyCHIPs royalty free, by including and abiding by this set of conditions.",
+    ]},
+   {"include": [
+     {"author": "mychips.org",
+      "title": "CHIP Definition",
+      "version": 1,
+      "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031ee"
+     },
+     {"author": "mychips.org",
+      "title": "Ethics",
+      "version": 1,
+      "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031xy"
+     }
+   ]}
+  ]
+}}

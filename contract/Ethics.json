@@ -1,0 +1,28 @@
+{ "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031xy",
+  "covenant": {
+  "title": "CHIP Ethics",
+  "author": "mychips.org",
+  "source": "http://mychips.org/covenants/Ethics.json",
+  "version": 1,
+  "language": "en",
+  "released": "2018-11-23",
+  "content": [
+    {"p": [
+      "The credits, or chits, under this agreement constitute a pledge of value, measured in CHIPs, from the debtor, or foil, to the creditor, or stock, which terms shall be satisfied according to the terms defined herein."
+      "In order for such a pledge to be a valid, and therefore enforceable, the following conditions must be met:"
+    ]},
+    {"list": [
+      "The debtor is of such age and mental capacity to understand the obligations he/she is entering into.",
+      "Both parties are accurately informed as to all material terms of the transaction.  This includes the nature and quality of what is being purchased, as well as the nature and quality of the credit being offered as payment.",
+      "Both parties have entered the agreement of their own free will."
+    ]},
+    {"p": [
+      "The debtor will make every effort to honor all duly pledged obligations.",
+      "The debtor agrees to not excuse himself/herself from honoring the agreement by reason of bankruptcy or similar recourse, even though the prevailing law may do so.",
+    ]},
+    {"p": [
+      "In case of a dispute between the parties resolved by legal remedy, the losing party shall be entitled to collect actual incurred damages, plus all collection costs, including attorneys fees.",
+      "If any portion of this agreement is deemed to be unenforceable by any means, the remaining portions shall remain in full effect.",
+    ]}
+  ]
+}}
