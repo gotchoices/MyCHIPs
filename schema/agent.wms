@@ -1,0 +1,21 @@
+#Schema for agent-base modeling of a MyCHIPs network
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#TODO:
+#- 
+#- 
+module mychips
+
+# Generate notifications about changes to the agent operating parameters
+#----------------------------------------------------------------
+function mychips.agent_tf_change() {mychips} {
+  returns trigger language plpgsql security definer as $$
+    begin
+      if (new.module = 'agent') then
+        perform pg_notify('mychips_agent', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
+      end if;
+      return null;
+    end;
+$$;}
+trigger mychips_agent_tr_change {} {
+    after insert or update on base.parm for each row execute procedure mychips.agent_tf_change();
+}
