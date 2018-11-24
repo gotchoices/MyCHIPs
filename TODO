@@ -1,32 +1,37 @@
 TODO:
 Immediate:
-X- Port wyselib base.comm changes to base.addr
-X- Back to testing json import/export
-X- Why does test hang?
-X- Establish working setup state for tally testing using json imports
-X- Can I get various modules logging to different files?
-X- Write initial test program for establishing tallies
-X- Create GUI for displaying relational diagram (wysegi erd)
-X- Use GUI to display mychips users and tallies, with live updating
-X  - Adjust schema user, tallies, chits to notify: mychips_user and/or mychips_admin
-X  - Admin SPA listens for new users, updates flow chart
-X  - Admin SPA listens for new tallies, updates flow chart
-X  - Admin SPA listens for new chits, updates flow chart
-X  - Display tally totals on GUI
-- Write mocha program for exchanging/approving chits
-- Implement/test/finish chit state machine
-- See user balances update on GUI as chits exchange
+X- Write mocha program for exchanging/approving chits
+X- Implement/test chit state machine
+X- See user balances update on GUI as chits exchange
 - Create user agent process to act for each user
+-   Script to create new users with random data
+-   Admin GUI automatically places up new users on network chart
+-   Agent model automatically picks up new users
+-   Agent model iterates through each user
+-   Agent establishes reasonable number of tallies with other users
+-   Fill in tally limits data for all users
+-   Each agent pays his downstreamers periodically
+-   Can see build-up of credits on chart
+- Wylib can save/restore state
+-   Can save layout of user network chart
+-   Can save column widths, other settings on dbp's
+- Fill in buy/sell orders data for all users (Can I derive this from existing tally limits)
+- Develop state machine for data queries
+-   Can you find a path to user X?
+-   Store data about known pathways
+- Develop state machine for lift execution
+-   Would you participate in a lift destined for user X, for Y CHIPs?
+- 
 - 
 
 General roadmap:
-- Can create/exchange tallies, chits with a peer
-- Create agent client module to model user, reads/writes/listens direct with DB (in ruby?)
+X- Can create/exchange tallies, chits with a peer
+- Create agent client module to model user, reads/writes/listens direct with DB
 - Can spawn N user agents against M server instances
 X- Create graphical canvas view of all users balance sheets
 - Implement lift algorithm
 - Implement/publish basic contracts
-- Review copyright; Should we limit free to people who respect a base contract?
+X- Review copyright; Should we limit free to people who respect a base contract?
 - Implement digital signatures for tallies, chits, contracts, lifts
 - Implement encrypted network communications, noise protocol
 - Harden database schema
@@ -54,9 +59,8 @@ Peer-to-peer:
 Agent modeling:
 X- Dummy sql to create initial draft tally
 - Dummy sql files to simulate other required user actions
-- User agent ruby process runs randomized strategy
-- Revive ruby command line admin program?
-- Implement ruby command line user program?
+- User agent process runs randomized strategy
+- Replace all legacy ruby command line admin programs
 - 
 - Implement tally logic in postgresql:
 X-  Create view that displays states of tallies
