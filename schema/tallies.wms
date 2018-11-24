@@ -236,10 +236,10 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v} {select
          'foil',  case when te.tally_type = 'stock' then te.part_sig else te.user_sig end
        )
     )			as json
-  , coalesce(tc.units,0)				as units
+  , coalesce(tc.units,0)			as units
   , te.units_c::float8 / multSign()		as total_c
   , coalesce(tc.units,0)::float8 / multSign()	as total
-  , coalesce(tc.chits,0)				as chits
+  , coalesce(tc.chits,0)			as chits
 
     from	mychips.tallies	te
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
@@ -319,8 +319,8 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
 
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
         select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
-        if trec.action or (trec.state = 'open' and (curState is null or curState != 'open')) then	-- Also notify if changed to open status
-raise notice '  notify for user %', trec.tally_ent;
+        if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
+raise notice '  tally notify for user %', trec.tally_ent;
             perform pg_notify('mychips_admin', trec.json::text);
             perform pg_notify('mychips_user_'||trec.tally_ent::text, trec.json::text);
         end if;
@@ -348,12 +348,12 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
         end if;
         jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cdi));
         jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cdi));
-        jrec = jsonb_set(jrec, '{entity}', to_jsonb(new.chit_ent));
+        jrec = jsonb_set(jrec, '{entity}', to_jsonb(chit.chit_ent));
         jrec = jsonb_set(jrec, '{tally}', to_jsonb(trec.tally_guid));
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
         jrec = jsonb_set(jrec, '{at}', to_jsonb(trec.part_sock));
-        jrec = jsonb_set(jrec, '{object}', (select json from mychips.chits_v where chit_ent = new.chit_ent and chit_seq = new.chit_seq and chit_idx = new.chit_idx));
-raise notice 'Chit notice:%', jrec::text;
+        jrec = jsonb_set(jrec, '{object}', (select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx));
+raise notice 'Chit notice:% %', channel, jrec::text;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -364,7 +364,7 @@ $$;}
 function mychips.chits_tf_notify() {mychips.chits mychips.chits_v mychips.tallies_v} {
   returns trigger language plpgsql security definer as $$
     begin
-raise notice 'Chit update';
+--raise notice 'Chit update';
         if (new.request is not null and new.request is distinct from old.request) then
             perform mychips.chit_notify(new);
         end if;
@@ -394,7 +394,7 @@ function {mychips.chit_state(isdebit boolean, request text, signature text)} {my
            when signature is null then
         case when request is null		then 'peerInvoice'
              else				     'undefined'    end
-           when request = 'userAccept'		then 'userAgree'
+           when request = 'userAgree'		then 'userAgree'
            when request = 'userDraft'		then 'userDraft'
            when request is null			then 'userValid'
       else     					     'undefined'	end
@@ -405,7 +405,7 @@ $$;}
 # Base view of chits
 #----------------------------------------------------------------
 define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
-view mychips.chits_v {mychips.chits mychips.tallies_v} {select 
+view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text)} {select 
     eval(fld_list $tallies::chits_se	ch)
   , te.user_cdi
   , te.part_cdi
@@ -415,6 +415,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v} {select
   , ch.units::float8 / unitMultiplier().00	as value
   , ch.units::float8 * case when te.tally_type = 'stock' then 1 else -1 end / unitMultiplier()	as amount
   , mychips.chit_state(isdebit(), ch.request, ch.signature)	as state
+  , mychips.chit_state(isdebit(), ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
   , jsonb_build_object(
        'guid',		ch.chit_guid,
        'type',		ch.chit_type,
@@ -430,7 +431,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v} {select
 
 # Process chit state transitions requested by the peer server process
 #----------------------------------------------------------------
-function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.chits_v} {
+function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.chits mychips.chits_v} {
   returns text language plpgsql as $$
     declare
         cdi		text	= msg->>'user';
@@ -449,7 +450,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.chits_v} {
 
         select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = entity and chit_guid = guid;
         curState = crec.state;
-raise notice 'Chit cdi:% entity:% state:% recipe:%', cdi, entity, curState, recipe;
+raise notice 'Chit cdi:% entity:% state:% recipe:%', cdi, crec.chit_ent, curState, recipe;
         if not found then
             curState = 'null';		-- Special code for when the specified chit doesn't exist yet
         end if;
@@ -465,7 +466,7 @@ raise notice '  upsert obj:% curState:%', obj, curState;
             select into trec * from mychips.tallies where tally_ent = entity and tally_guid = (msg->>'tally')::uuid;
             if not found then return null; end if;
             
-            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,signature,units,pro_quo,memo) values ($1,$2,$3,$4,current_timestamp,$5,$6,$7,$8)'
+            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,signature,units,pro_quo,memo) values ($1,$2,$3,$4,current_timestamp,$5,$6,$7,$8) returning chit_ent, chit_seq, chit_idx' into crec
                 using trec.tally_ent, trec.tally_seq, guid, obj->>'type', obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo';
           else						-- Chit already exists, do update
             execute 'update mychips.chits set signature = $1, units = $2, pro_quo = $3, memo = $4, request = null where chit_ent = $5 and chit_seq = $6 and chit_idx = $7'
@@ -481,8 +482,13 @@ raise notice '  update set % = %', lrec.key, lrec.value;
           update mychips.chits set request = null where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
         end if;
 
-        select into curState state from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
-        return curState;
+        select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+        if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid status
+raise notice '  chit notify for user %', crec.chit_ent;
+            perform pg_notify('mychips_admin', crec.json::text);
+            perform pg_notify('mychips_user_'||crec.chit_ent::text, crec.json::text);
+        end if;
+        return crec.state;
     end;
 $$;}
 
