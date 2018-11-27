@@ -41,6 +41,7 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v} {select
   , eval(fld_list $users::users_se	ue)
   , host(user_inet) || ':' || user_port	as user_sock
   , host(peer_inet) || ':' || peer_port	as peer_sock
+  , extract(year from age(ee.born_date))		as age
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id
