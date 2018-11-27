@@ -176,15 +176,20 @@ $$;}
 #----------------------------------------------------------------
 function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies)} {
   returns trigger language plpgsql security definer as $$
+    declare
+        dirty	boolean default false;
     begin
-        if (new.request is not null and new.request is distinct from old.request) then
-            perform mychips.tally_notify(new);
+        if TG_OP = 'INSERT' then
+            dirty = true;
+        elsif new.request is not null and new.request is distinct from old.request then
+            dirty = true;
         end if;
+        if dirty then perform mychips.tally_notify(new); end if;
         return new;
     end;
 $$;}
 trigger mychips_tallies_tr_notice {} {
-    after update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
+    after insert or update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
 }
 
 # Compute current state of a tally, based on its various fields
@@ -260,6 +265,22 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v} {select
 --    ")
 } -grant {
     {mychips	{} {s i u} {d}}
+} -primary id
+
+# Summarize data about tallies
+#----------------------------------------------------------------
+view mychips.tallies_v_sum {mychips.tallies_v} {select 
+    tally_ent
+  , count(tally_seq)	as tallies
+  , sum(total_c)	as total_c
+  , sum(total)		as total
+  , sum(case when tally_type = 'stock' then total_c else 0 end)	as stock_total_c
+  , sum(case when tally_type = 'stock' then total else 0 end)	as stock_total
+  , sum(case when tally_type = 'foil' then total_c else 0 end)	as foil_total_c
+  , sum(case when tally_type = 'foil' then total else 0 end)	as foil_total
+  , count(nullif(tally_type, 'foil'))	as stocks
+  , count(nullif(tally_type, 'stock'))	as foils
+  from mychips.tallies_v group by 1;
 } -primary id
 
 # Process tally state transitions requested by the peer server process
@@ -363,16 +384,21 @@ $$;}
 #----------------------------------------------------------------
 function mychips.chits_tf_notify() {mychips.chits mychips.chits_v mychips.tallies_v} {
   returns trigger language plpgsql security definer as $$
+    declare
+        dirty	boolean default false;
     begin
 --raise notice 'Chit update';
-        if (new.request is not null and new.request is distinct from old.request) then
-            perform mychips.chit_notify(new);
+        if TG_OP = 'INSERT' then
+            dirty = true;
+        elsif new.request is not null and new.request is distinct from old.request then
+            dirty = true;
         end if;
+        if dirty then perform mychips.chit_notify(new); end if;
         return new;
     end;
 $$;}
 trigger mychips_chits_tr_notice {} {
-    after update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
+    after insert or update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
 }
 
 # Compute current state of this chit
