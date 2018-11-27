@@ -16,7 +16,6 @@ import AppDocs from './admin/docs.vue'
 import AppUsers from './admin/users.vue'
 import AppURNet from './admin/urnet.vue'
 import AppConfig from './admin/config.vue'
-import ConnectMenu from './common/connect.vue'
 
 export default {
   components: {'wylib-app': Wylib.Application, 'app-users': AppUsers, 'app-docs': AppDocs, 'app-urnet': AppURNet, 'app-config': AppConfig},
