@@ -3,13 +3,15 @@ Immediate:
 X- Write mocha program for exchanging/approving chits
 X- Implement/test chit state machine
 X- See user balances update on GUI as chits exchange
-- First:
-- SVG draw all hubs when multiple tallies with same partner
-- Wylib: don't wipe screen on disconnect
-- Save state between iterations
-- Store state in DB?
+X- SVG draw all hubs when multiple tallies with same partner
+- 
+- Wylib:
+- Can save/restore state on any app, tab, top window
+- Svgraph saves state between iterations
+- Store prefs in DB?
 - 
 - User agent process
+-   Be more random on search for new client tally connection
 -   Find a foil tally and pay some credits on it
 -   Agent establishes reasonable number of tallies with other users
 -   If I already have a tally with you, don't do another one
