@@ -57,13 +57,15 @@ describe("Peer to peer tallies", function() {
     })
   })
 
+//    update mychips.tallies set request = 'draft' where tally_ent = 10001 and status = 'void' returning status;		-- Only update (not insert) triggers will generate requests
   it("User 10001 proposes a tally to user 10000", function(done) {
     const sql = `begin;
       delete from mychips.tallies;
-      insert into mychips.tallies (tally_ent, tally_guid, partner, user_sig, contract) values (10001, '18d44de5-837d-448f-8d96-9136372987cf',10000,'Adam signature', 'mychips-0.99');
-      update mychips.tallies set request = 'draft' where tally_ent = 10001 and status = 'void' returning status; commit;`		// Only update (not insert) triggers will generate requests
+      insert into mychips.tallies (tally_ent, tally_guid, partner, user_sig, contract, request) values (10001, '18d44de5-837d-448f-8d96-9136372987cf',10000,'Adam signature', 'mychips-0.99', 'draft') returning status;
+      commit;`
     db1.query(sql, null, (err, res) => { if (err) done(err)
-      var stat = res[3].rows[0]['status']
+console.log("RES:", res[2].rows)
+      var stat = res[2].rows[0]['status']
       log.info("1001 proposal done status:", stat)
       assert.equal(stat, 'void')
     })
@@ -79,7 +81,7 @@ describe("Peer to peer tallies", function() {
   })
 
   it("User 10000 verfies the tally", function(done) {
-    const sql = "select state from mychips.tallies_v where tally_ent = $1 and tally_seq = $2"	//Fetch tally state
+    const sql = "select state from mychips.tallies_v where tally_ent = $1 and tally_seq = $2;"	//Fetch tally state
     db0.query(sql, [10000,1], (err, res) => { if (err) done(err)
       var state = res.rows[0]['state']
       log.info("Tally State:", state)
@@ -125,12 +127,12 @@ describe("Peer to peer tallies", function() {
   })
 
   it("User 10001 requests payment from user 10000", function(done) {
-    const sql = "begin; \n\
-      delete from mychips.chits; \n\
-      insert into mychips.chits (chit_ent, chit_seq, chit_guid, chit_type, units, pro_quo) values (10001, 1, 'd0921c68-de42-4087-9af1-0664605d4136', 'tran', 12345600, 'Consulting'); \n\
-      update mychips.chits set request = 'userRequest' where chit_ent = 10001 and chit_seq = 1 returning units; commit;"
+    const sql = `begin;
+      delete from mychips.chits;
+      insert into mychips.chits (chit_ent, chit_seq, chit_guid, chit_type, units, pro_quo, request) values (10001, 1, 'd0921c68-de42-4087-9af1-0664605d4136', 'tran', 12345600, 'Consulting', 'userRequest') returning units;
+      commit;`
     db1.query(sql, null, (err, res) => { if (err) done(err)
-      var units = res[3].rows[0]['units']
+      var units = res[2].rows[0]['units']
       log.info("10001 invoice done units:", units)
       assert.equal(units, '12345600')
     })
@@ -176,20 +178,19 @@ describe("Peer to peer tallies", function() {
 
     bus0.register('c0', (data) => {var msg = JSON.parse(data)
       log.info("Check refund chit:", msg)
-//      assert.equal(msg.units, -2345600)
-//      log.info("Signature:", msg.signature)
-//      assert.equal(msg.signature, null)
-//      bus0.register('c0')
+      assert.equal(msg.units, -2345600)
+      bus0.register('c0')
       done()
     })
   })
 
-
   after('Disconnect from test database', function(done) {
-    db0.disconnect()
-    db1.disconnect()
-    server0.close()
-    server1.close()
+    setTimeout(()=>{		//Let everything flush out before closing
+      db0.disconnect()
+      db1.disconnect()
+      server0.close()
+      server1.close()
+      }, 500)
     done()
   })
 });
