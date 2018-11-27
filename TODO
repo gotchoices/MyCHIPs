@@ -3,12 +3,16 @@ Immediate:
 X- Write mocha program for exchanging/approving chits
 X- Implement/test chit state machine
 X- See user balances update on GUI as chits exchange
-- Create user agent process to act for each user
--   Script to create new users with random data
--   Admin GUI automatically places up new users on network chart
--   Agent model automatically picks up new users
--   Agent model iterates through each user
+- First:
+- SVG draw all hubs when multiple tallies with same partner
+- Wylib: don't wipe screen on disconnect
+- Save state between iterations
+- Store state in DB?
+- 
+- User agent process
+-   Find a foil tally and pay some credits on it
 -   Agent establishes reasonable number of tallies with other users
+-   If I already have a tally with you, don't do another one
 -   Fill in tally limits data for all users
 -   Each agent pays his downstreamers periodically
 -   Can see build-up of credits on chart
