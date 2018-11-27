@@ -78,3 +78,9 @@ function mychips.peer_sock(int) {mychips.peers_v} {
   returns text stable language sql as $$
     select peer_sock from mychips.peers_v where id = $1;
 $$;}
+
+# Generate notifications about new or updated peers for listening admin servers
+#----------------------------------------------------------------
+trigger mychips_peers_tr_change {} {
+    after insert or update or delete on mychips.peers for each statement execute procedure mychips.change_tf_notify('peers');
+}
