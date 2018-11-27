@@ -55,15 +55,13 @@ export default {
     updateNodes() {
       let spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi'], where: [['id', '>', '1']], order: 1}
       Wylib.Wyseman.request('urnet.user.'+this._uid, 'select', spec, (data,err) => {
-//        let x = 10, y = 10
         for (const dat of data) {
           if (!(dat.peer_cdi in this.state.nodes)) {
             let { code, ends, width, height } = this.user(dat.id, dat.std_name, dat.peer_cdi)
               , x = Math.random() * this.state.width/2, y = Math.random() * this.state.height/2
               , nodeState = {tag:dat.peer_cdi, x, y, width, height, radius:height/2, code, ends, links:[]}
             this.$set(this.state.nodes, dat.peer_cdi, nodeState)
-console.log("N Dat:", dat.peer_cdi, nodeState.x, nodeState.y, this.state.nodes[dat.peer_cdi].x)
-//            x = x + 120
+//console.log("N Dat:", dat.peer_cdi, nodeState.x, nodeState.y, this.state.nodes[dat.peer_cdi].x)
           }
         }
 //console.log("Height:", this.state.height, y + maxHeight)
@@ -76,31 +74,31 @@ console.log("N Dat:", dat.peer_cdi, nodeState.x, nodeState.y, this.state.nodes[d
       Wylib.Wyseman.request('urnet.tally.'+this._uid, 'select', spec, (data, err) => {
         if (err || !data) return
         let haveHubs = {}					//Keep track of hub stacking
-        for (const dat of data) {
+        for (const dat of data) {				//For each tally link
 //console.log("L Dat:", dat)
           if (!(dat.user_cdi in this.state.nodes)) continue	//No matching node found on the graph
 
           let node = this.state.nodes[dat.user_cdi]		//Get node's state
-            , nodeLink = node.links.find(link => {return link.guid == dat.tally_guid})	//Do we already have a definition for this link?
-            , idx = (tag => {					//Calculate an order for hub stacking
+            , nodeLink = node.links.find(link => {return link.index == dat.tally_guid})	//Do we already have a definition for this link?
+            , idx = (tag => {					//Calculate an order 0..n for hub stacking
                 if (tag in haveHubs) {return (haveHubs[tag] += 1)} else {return (haveHubs[tag] = 0)}
               })(node.tag + dat.tally_type)
             , isFoil = (dat.tally_type == 'foil')
             , xOffset = node.width / 2
-            , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)
+            , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
             , color = dat.total_c == 0 ? '#f0f0f0' : (dat.total_c < 0 ? '#F0B0B0' : '#B0B0F0')
             , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
 
             , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
             , center = {x:xOffset, y:yOffset}
-            , react = nodeLink ? nodeLink.react : {rx: hubXRad, ry: hubYRad, color, text:dat.total_c}
+            , react = nodeLink ? nodeLink.react : {rx: hubXRad, ry: hubYRad, color, text:dat.total_c}	//attributes which should respond to an asynchronous update
 
 //console.log("  node:", node, idx, dat.user_cdi, dat.part_cdi, nodeLink)
           if (nodeLink) {					//Link already exists, just update values
             react.rx = hubXRad; react.ry = hubYRad; react.color = color; react.text = dat.total_c
             nodeLink.react = react, nodeLink.ends = ends, nodeLink.center = center
           } else {						//Create new data structure for link, hubs
-            nodeLink = {guid:dat.tally_guid, link:dat.part_cdi, draw:isFoil, ends, center, react, hub: (lk) => {
+            nodeLink = {index:dat.tally_guid, link:dat.part_cdi, draw:isFoil, ends, center, react, hub: () => {
               return `<g transform="translate(${nodeLink.center.x}, ${nodeLink.center.y})">
                 <ellipse rx="${react.rx}" ry="${react.ry}" stroke="black" stroke-width="1" fill="${react.color}"/>
                 <text y="${react.ry/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${react.text}</text>
@@ -113,11 +111,8 @@ console.log("N Dat:", dat.peer_cdi, nodeState.x, nodeState.y, this.state.nodes[d
     },		//updateLinks
 
     glumph() {		//For testing only
-      let st = this.state.nodes['james_madison.chip'].links
-console.log("st:", st[1].react)
-      st[1].react.text = 'Howdy'
-//      this.$set(st[1].react, 'text', 'Howdy')
-//      this.updateNodes()
+      this.updateNodes()
+      this.updateLinks()
     },
   },
 
@@ -126,8 +121,8 @@ console.log("st:", st[1].react)
     this.updateLinks()
     Wylib.Wyseman.listen('urnet.async.'+this._uid, dat => {
 console.log("Async:", dat)
-//      if (dat.target == 'tallies') this.updateNodes()
-      if (dat.target == 'chits') this.updateLinks()
+      if (dat.target == 'peers') this.updateNodes()
+      if (dat.target == 'chits' || dat.target == 'tallies') this.updateLinks()
     })
   }
 }
