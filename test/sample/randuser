@@ -1,0 +1,43 @@
+#!/bin/bash
+#Make one or more random users for use in agent modeling
+#TODO:
+#- 
+
+MYPATH=$(dirname "$0")
+DBNAME=${WYATTDB}; if [ -z "$DBNAME" ]; then DBNAME="${USER}"; fi
+
+machineIP=$(grep MachineIP ../settings.js |cut -d : -f 2 |tr -d '"' |tr -d ' ')
+#uport=43210
+#pport=65432
+count=1
+hostID='null'
+minDate="Jan 01, 1940"
+maxDate="Dec 31, 2009"
+minSecs=$(date -d "$minDate" +%s)
+diffSecs=$(expr $(date -d "$maxDate" +%s) - $minSecs)
+while [ $# -gt 0 ]; do
+  if [ "x$1" = "x-n" ]; then		#-n <number> 	How many users to create
+    count=$2
+  elif [ "x$1" = "x-h" ]; then		#-h <hostID>	Specify the server for the user(s)
+    hostID=$2
+  fi
+  shift 2
+done
+#echo "count:$count hostID:$hostID diffSecs:$diffSecs"
+
+while [ $count -gt 0 ]; do
+  name="$(curl -s www.pseudorandom.name)"
+  read first last <<< "$name"
+  cdi="$(echo ${first}_${last}.chip |tr '[:upper:]' '[:lower:]')"
+  secs=$(expr ${RANDOM}${RANDOM} % $diffSecs + $minSecs)
+  date=$(date -d "@$secs" +%Y-%b-%d)
+  
+  echo "first:$first last:$last cdi:$cdi date:$date"
+
+#continue
+  psql $DBNAME >/dev/null <<EOF
+    insert into mychips.users_v (ent_name, fir_name, peer_cdi, ent_type, born_date, host_id)
+    values('$last', '$first', '${cdi}', 'p', '${date}', $([ "$hostID" == 'null' ] && echo "null" || echo "'${hostID}'"))
+EOF
+  count=$(expr $count - 1)
+done
