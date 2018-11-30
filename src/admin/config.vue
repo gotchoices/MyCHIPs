@@ -21,10 +21,12 @@ import Wylib from 'wylib'
 
 export default {
   components: {'wylib-win': Wylib.Window, 'wylib-dbp': Wylib.DataView},
-
+  props: {
+    state:	{type: Object, default: ()=>({})},
+  },
   data() { return {
-    winRec:	{posted: true, x: 40, y: 70, client: {dbView: 'base.parm_v'}},
-    state:	{windows: [{posted: true, y: 220, client: {dbView: 'base.parm_v', loaded: true}}]},
+    winRec:	{posted: true, x: 40, y: 220, client: {dbView: 'base.parm_v'}},
+//    state:	{windows: [{posted: true, y: 220, client: {dbView: 'base.parm_v', loaded: true}}]},
   }},
 
   methods: {
@@ -35,7 +37,10 @@ export default {
     addWin() {
 //console.log("Add Window")
       let wins = this.state.windows
-      for(var i = 0; wins[i]; i++); wins.splice(i,1,Wylib.Common.clone(this.winRec))
+        , newState = Wylib.Common.clone(this.winRec)
+      newState.x += (Math.random() - 0.5) * 100
+      newState.y += (Math.random() - 0.5) * 100
+      for(var i = 0; wins[i]; i++); wins.splice(i, 1, newState)
     },
     closeWin(idx) {
 console.log("Close Window", idx)
@@ -45,6 +50,10 @@ console.log("Close Window", idx)
     initialize() {
       console.log("Initializing...")
     }
-  }
+  },
+
+  beforeMount: function() {
+    Wylib.Common.react(this, {windows: [this.winRec]})
+  },
 }
 </script>
