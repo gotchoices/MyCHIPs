@@ -25,12 +25,14 @@
 
 <script>
 import Wylib from 'wylib'
-console.log("wylib:", Wylib)
 
 export default {
   components: {'wylib-svgraph': Wylib.SvGraph},
+  props: {
+    state:	{type: Object, default: ()=>({})},
+  },
   data() { return {
-    state:	{width: 600, height: 600, nodes: {}},
+//    state:	{width: 600, height: 600, nodes: {}},
     tabGap:	40,
     fontSize:	16,
     hubWidth:	100,
@@ -88,24 +90,20 @@ export default {
             , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
             , color = dat.total_c == 0 ? '#f0f0f0' : (dat.total_c < 0 ? '#F0B0B0' : '#B0B0F0')
             , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
-
             , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
             , center = {x:xOffset, y:yOffset}
-            , react = nodeLink ? nodeLink.react : {rx: hubXRad, ry: hubYRad, color, text:dat.total_c}	//attributes which should respond to an asynchronous update
 
-//console.log("  node:", node, idx, dat.user_cdi, dat.part_cdi, nodeLink)
-          if (nodeLink) {					//Link already exists, just update values
-            react.rx = hubXRad; react.ry = hubYRad; react.color = color; react.text = dat.total_c
-            nodeLink.react = react, nodeLink.ends = ends, nodeLink.center = center
-          } else {						//Create new data structure for link, hubs
-            nodeLink = {index:dat.tally_guid, link:dat.part_cdi, draw:isFoil, ends, center, react, hub: () => {
-              return `<g transform="translate(${nodeLink.center.x}, ${nodeLink.center.y})">
-                <ellipse rx="${react.rx}" ry="${react.ry}" stroke="black" stroke-width="1" fill="${react.color}"/>
-                <text y="${react.ry/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${react.text}</text>
-              </g>`
-            }}
+          if (!nodeLink) {				//Create new data structure for link, hubs
+            nodeLink = {index:dat.tally_guid, link:dat.part_cdi, draw:isFoil, ends, center, hub:null}
             node.links.push(nodeLink)
           }
+//console.log("  node:", node, idx, dat.user_cdi, dat.part_cdi, nodeLink)
+          Object.assign(nodeLink, {ends, center, hub: ()=>{
+            return `<g transform="translate(${center.x}, ${center.y})">
+              <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${color}"/>
+              <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${dat.total_c}</text>
+            </g>`
+          }})
         }	//for-of
       })	//request
     },		//updateLinks
@@ -116,10 +114,16 @@ export default {
     },
   },
 
+//  created: function() {
+//    this.updateNodes()
+//    this.updateLinks()
+//  },
   beforeMount: function() {
+    Wylib.Common.react(this, {width: 600, height: 600, nodes:{}})
+    
     this.updateNodes()
     this.updateLinks()
-    Wylib.Wyseman.listen('urnet.async.'+this._uid, dat => {
+    Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
 console.log("Async:", dat)
       if (dat.target == 'peers') this.updateNodes()
       if (dat.target == 'chits' || dat.target == 'tallies') this.updateLinks()
