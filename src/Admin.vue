@@ -5,8 +5,8 @@
 //- Pull application text from database
 //- 
 <template>
-  <wylib-app title="MyCHIPs Administration" :tabs="tabs" :current="currentTab" @tab="(t)=>{currentTab = t}">
-    <keep-alive><component :is="'app-' + currentTab"/></keep-alive>
+  <wylib-app tag="mychips_admin" title="MyCHIPs Administration" :state="state" :tabs="tabs" :current="state.curTab" @tab="(t)=>{state.curTab = t}">
+    <keep-alive><component :is="'app-' + state.curTab" :state="state.tabs[state.curTab]"/></keep-alive>
   </wylib-app>
 </template>
 
@@ -20,7 +20,7 @@ import AppConfig from './admin/config.vue'
 export default {
   components: {'wylib-app': Wylib.Application, 'app-users': AppUsers, 'app-docs': AppDocs, 'app-urnet': AppURNet, 'app-config': AppConfig},
   data() { return {
-    state:      {},
+    state:      {curTab: 'users', tabs: {users:{}, docs:{}, urnet:{}, config:{}}},
     tog:	true,
     tabs:	[
       {tag: 'users', title: 'Users'},
@@ -28,12 +28,11 @@ export default {
       {tag: 'urnet',  title: 'Network'},
       {tag: 'config', title: 'Settings'},
     ],
-    currentTab: 'urnet'
   }},
-//  methods: {
-//  },
-//  mounted: function () {
-//  },
+  methods: {
+  },
+  mounted: function () {
+  },
 }
 </script>
 
