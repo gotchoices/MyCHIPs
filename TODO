@@ -6,11 +6,28 @@ X- See user balances update on GUI as chits exchange
 X- SVG draw all hubs when multiple tallies with same partner
 - 
 - Wylib:
-- Can save/restore state on any app, tab, top window
-- Svgraph saves state between iterations
-- Store prefs in DB?
+X-   Can control where menu's appear in relation to button
+X-   Can save named state
+X-   Can recall named state
+X-   Save state on exit?
+X-   Recall last state on reload
+X-   State save/restore uses database
+X-   Implement save/restore on app
+X-   Svgraph saves state between iterations
+X-   All admin tabs save/restore state
+-   Svgnode adapts to deleted nodes
+-   Svgnode adapts to deleted tallies
+-   Make Svgraph menu appear like a regular menu when not accessed
+-   Implement save/restore on each tab
+-   Implement save/restore on each win
+-   Implement window layering (move to top, bottom)
 - 
-- User agent process
+- Admin interface replaces legacy ruby app:
+-   Implement user import direct to database
+-   Implement user export
+-   Implement user ticket generation
+- 
+- User agent process:
 -   Be more random on search for new client tally connection
 -   Find a foil tally and pay some credits on it
 -   Agent establishes reasonable number of tallies with other users
