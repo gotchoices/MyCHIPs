@@ -36,12 +36,12 @@ import Wylib from 'wylib'
 
 export default {
   components: {'wylib-win': Wylib.Window, 'wylib-dbp': Wylib.DataView},
-
+  props: {
+    state:	{type: Object, default: ()=>({})},
+  },
   data() { return {
     dbView:	'mychips.users_v',
-    winRec:	{posted: true, x: 40, y: 70, client: {dbView: 'mychips.users_v'}},
-//    state:	{windows: []},
-    state:	{windows: [{posted: true, y: 220, client: {dbView: 'mychips.users_v', loaded: true}}]},
+    winRec:	{posted: true, x: 50, y: 220, client: {dbView: 'mychips.users_v'}},
   }},
 
   methods: {
@@ -55,7 +55,10 @@ console.log("Preview Ticket")
     addWin() {
 //console.log("Add Window")
       let wins = this.state.windows
-      for(var i = 0; wins[i]; i++); wins.splice(i,1,Wylib.Common.clone(this.winRec))
+        , newState = Wylib.Common.clone(this.winRec)
+      newState.x += (Math.random() - 0.5) * 100
+      newState.y += (Math.random() - 0.5) * 100
+      for(var i = 0; wins[i]; i++); wins.splice(i, 1, newState)
     },
     closeWin(idx) {
 console.log("Close Window", idx)
@@ -73,6 +76,10 @@ console.log("Close Window", idx)
         reader.readAsText(f)
       }
     },
+  },
+  
+  beforeMount: function() {
+    Wylib.Common.react(this, {windows: [this.winRec]})
   },
 }
 </script>
