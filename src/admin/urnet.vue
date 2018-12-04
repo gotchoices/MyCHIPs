@@ -18,8 +18,7 @@
 <template>
   <div>
     <div class="header">User Relation Network Graph:</div>
-    <button @click="glumph">Update</button>
-    <wylib-svgraph :state="state" ref="svg"/>
+    <wylib-svgraph :state="state" ref="svg" @refresh="refresh" @reset="reset"/>
   </div>
 </template>
 
@@ -32,7 +31,6 @@ export default {
     state:	{type: Object, default: ()=>({})},
   },
   data() { return {
-//    state:	{width: 600, height: 600, nodes: {}},
     tabGap:	40,
     fontSize:	16,
     hubWidth:	100,
@@ -57,6 +55,7 @@ export default {
     updateNodes() {
       let spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi'], where: [['id', '>', '1']], order: 1}
       Wylib.Wyseman.request('urnet.user.'+this._uid, 'select', spec, (data,err) => {
+        let notFound = Object.assign({}, this.state.nodes)
         for (const dat of data) {
           if (!(dat.peer_cdi in this.state.nodes)) {
             let { code, ends, width, height } = this.user(dat.id, dat.std_name, dat.peer_cdi)
@@ -65,9 +64,12 @@ export default {
             this.$set(this.state.nodes, dat.peer_cdi, nodeState)
 //console.log("N Dat:", dat.peer_cdi, nodeState.x, nodeState.y, this.state.nodes[dat.peer_cdi].x)
           }
+          delete notFound[dat.peer_cdi]
         }
-//console.log("Height:", this.state.height, y + maxHeight)
-//        if (this.state.height < (y + maxHeight)) this.state.height = y + maxHeight
+//console.log("Not found:", notFound, this.state.nodes)
+        Object.keys(notFound).forEach(key=>{			//Delete anything on the SVG, not now in nodes
+          this.$delete(this.state.nodes, key)
+        })
       })
     },		//updateNodes
 
@@ -78,7 +80,7 @@ export default {
         let haveHubs = {}					//Keep track of hub stacking
         for (const dat of data) {				//For each tally link
 //console.log("L Dat:", dat)
-          if (!(dat.user_cdi in this.state.nodes)) continue	//No matching node found on the graph
+//          if (!(dat.user_cdi in this.state.nodes)) continue	//No matching node found on the graph
 
           let node = this.state.nodes[dat.user_cdi]		//Get node's state
             , nodeLink = node.links.find(link => {return link.index == dat.tally_guid})	//Do we already have a definition for this link?
@@ -98,19 +100,30 @@ export default {
             node.links.push(nodeLink)
           }
 //console.log("  node:", node, idx, dat.user_cdi, dat.part_cdi, nodeLink)
-          Object.assign(nodeLink, {ends, center, hub: ()=>{
+          Object.assign(nodeLink, {ends, center, found:true, hub: ()=>{
             return `<g transform="translate(${center.x}, ${center.y})">
               <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${color}"/>
               <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${dat.total_c}</text>
             </g>`
           }})
-        }	//for-of
+        }	//for-i
+        Object.values(this.state.nodes).forEach(node=>{		//Locate any tallies on the SVG, no longer in the DB
+          if (node.links) node.links.forEach((link,idx)=>{
+            if (!link.found) {node.links.splice(idx,1)}		//If not marked in previous iteration
+            link.found = false
+          })
+        })
       })	//request
     },		//updateLinks
 
-    glumph() {		//For testing only
+    refresh() {
       this.updateNodes()
       this.updateLinks()
+    },
+    reset() {
+      this.state.nodes = {}
+//      Object.keys(this.state.nodes).forEach(key=>{delete this.state.nodes[key]})
+      this.refresh();
     },
   },
 

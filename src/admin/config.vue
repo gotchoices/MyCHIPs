@@ -9,7 +9,7 @@
     <div class="header">Configuration:</div>
     <button @click="initialize()">Initialize</button>
     <div class="subwindows">
-      <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" :lang="lang(win,idx)" @close="closeWin(idx)">
+      <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" :tag="'dbp:'+win.client.dbView" :lang="lang(win,idx)" @close="closeWin(idx)">
         <wylib-dbp slot-scope="ws" :top="ws.top" :state="win.client"/>
       </wylib-win>
     </div>
