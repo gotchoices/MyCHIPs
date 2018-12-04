@@ -15,12 +15,14 @@ X-   State save/restore uses database
 X-   Implement save/restore on app
 X-   Svgraph saves state between iterations
 X-   All admin tabs save/restore state
--   Svgnode adapts to deleted nodes
--   Svgnode adapts to deleted tallies
--   Make Svgraph menu appear like a regular menu when not accessed
--   Implement save/restore on each tab
--   Implement save/restore on each win
+X-   Svgnode adapts to deleted nodes
+X-   Svgnode adapts to deleted tallies
+X-   Make Svgraph menu appear like a regular menu when not accessed
+X-   Implement save/restore on each win
 -   Implement window layering (move to top, bottom)
+-   Wylib can build distribution, uglified images
+-   Wylib and friends posted to npmjs
+-   Wylib provides easly access to a wysegi SPA to be integrated into the production server
 - 
 - Admin interface replaces legacy ruby app:
 -   Implement user import direct to database
@@ -32,12 +34,9 @@ X-   All admin tabs save/restore state
 -   Find a foil tally and pay some credits on it
 -   Agent establishes reasonable number of tallies with other users
 -   If I already have a tally with you, don't do another one
+- Try installing/running with SL and NA
 -   Fill in tally limits data for all users
 -   Each agent pays his downstreamers periodically
--   Can see build-up of credits on chart
-- Wylib can save/restore state
--   Can save layout of user network chart
--   Can save column widths, other settings on dbp's
 - Fill in buy/sell orders data for all users (Can I derive this from existing tally limits)
 - Develop state machine for data queries
 -   Can you find a path to user X?
@@ -98,10 +97,12 @@ Augment Wylib/wyseman:
 X-  Can specify a set of actions
 X-  Can specify a set of reports
 X-  Can specify a set of subordinate views (example: phone, address)
+-  Don't instantiate dbe, dbs until we post them the first time (faster launch)
 -  Menu selector for opening sub-views available in Dbe
 -  Menu selector for available reports in Dbe (also Dbp?)
 -  Menu selector for accessing available actions in Dbe
 -  Add information about foreign keys in wm.table_meta
+-  Implement save/restore on each tab (later?)
 - 
 - Wyseman: can apply incremental delta scripts to go from one release to another
 - 
