@@ -19,10 +19,10 @@ X-   Svgnode adapts to deleted nodes
 X-   Svgnode adapts to deleted tallies
 X-   Make Svgraph menu appear like a regular menu when not accessed
 X-   Implement save/restore on each win
--   Implement window layering (move to top, bottom)
+X-   Implement window layering (move to top, bottom)
 -   Wylib can build distribution, uglified images
 -   Wylib and friends posted to npmjs
--   Wylib provides easly access to a wysegi SPA to be integrated into the production server
+-   Wylib provides easy access to a wysegi SPA to be integrated into the production server
 - 
 - Admin interface replaces legacy ruby app:
 -   Implement user import direct to database

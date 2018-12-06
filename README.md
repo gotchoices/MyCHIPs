@@ -1,26 +1,36 @@
 # MyCHIPs
 A cellular network for implementing open source money based on private credit.
 
-This is _not_ a Bitcoin/blockchain derivative, but addresses several problems 
-inherent with those technologies.
+This is _not_ a Bitcoin/blockchain derivative, but rather addresses several 
+problems inherent with those technologies.
 
-For a full description, please visit the website at: 
+Briefly, if block-chain based coins can be thought of as a crypto-stock, 
+MyCHIPs can be characterized as a crypto-bond.
+
+For a more in-depth description, please visit:
+
 	http://gotchoices.org/mychips/index.html
-Or see one of the specific links below.
 
-2017-01-24:
-This project is posted on github even though there is no source code yet.
-This is in the hopes of finding other developers to help out on the project.
-Please check it out and see if you would like being a part of it.
+Or see one of the specific links below.
 
 TODO:
 X- Background: http://gotchoices.org/mychips/beginner.html
 X- Functional description: http://gotchoices.org/mychips/replace.html
 X- Basic architecture: http://gotchoices.org/mychips/software.html
-- RFC written (too impatient): http://gotchoices.org/mychips/rfc.html
 - Reference server implementation (in progress)
+X-   Database schema management tool
+X-   Database GUI access tool
+X-   Tally/Chit exchange protocol
+X-   Basic user/peer/tally schema
+-   Develop agent-based modeling tool
+-   Develop lift algorithm
+-   Develop functional contracts
+-   Develop user SPA
+-   Harden Database
+-   Harden network communication
 - Early adopter testing
 - Rollout!
+- Develop dedicated mobile app
 
 Project needs:
 - Background: SSL/TLS, private/public key encryption

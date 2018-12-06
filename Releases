@@ -1,0 +1,34 @@
+Change Log:
+
+0.1.0	2018-Dec
+	- Can negotiate/establish tallies with other users
+	- Can exchange chits on tallies
+	- Basic admin GUI working, add/remove users
+	- Can adjust parameter settings
+	- Viewer module for visualizing user network
+	- Basic user agent model
+
+Pre	2018-Jun
+	- Basic user schema
+	- Develop front-end view tools in Wylib
+	- Develop logic for negotiating tallies, chits
+
+Pre	2017-May
+	- Moving implementation to node.js
+	- Develop basic contract structure
+
+Pre	2017-Apr
+	- Mobile app and user server prototyped in Ruby.
+	- mc_admin issues tickets.
+	- mc_mobi connects to mc_user, validates the ticket, exchanges keys.
+
+Pre	2017-Mar
+	- Initial framework prototyped in Ruby.
+	- Includes peer server for communicating with other servers.
+	- User server will answer requests from a user agent, such as a cell
+	  phone application.  But for now, it is just a command line interface.
+
+Pre	2017-Jan
+	- Blank project.
+	- The hope is to attract some other team members by posting the project 
+	  objectives.

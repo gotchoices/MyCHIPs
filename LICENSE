@@ -1,27 +1,30 @@
 [MyCHIPs License Agreement
 Version 1, Nov 23, 2018
 
-The Author of the MyCHIPs software (The Software) grants a license to use
-The Software according to the following two options:
+(For a common language interpretation, please see the file: FREE-USE)
+
+The Author of the MyCHIPs software (The Software) grants a dual license such
+that The Software may be used according to one of the following two options:
 
 Free Option:
 You may use this software according to the GNU General Public License Version 
 3, a copy of which is included in this distribution, subject to the following 
-two conditions, which constitute binding amendments to the license:
+two conditions, which constitute binding amendments to the License:
 
   Condition 1: End users of The Software (i.e. individuals and companies
     who engage the trading or exchange of credits) incorporate the terms 
     and conditions specified in contracts/Free.json in their full force and 
-    effect, in any chits, tallies or trades they engage in.  This obligation
+    effect, in any chits, tallies and trades they engage in.  This obligation
     is limited to use of the version of Free.json which accompanies the
-    version of the software being used by the end user in question.
+    version of the software being used at such time as the tallies in
+    question are agreed to.
     
   Condition 2: Service providers who host services (i.e hosts and operators of 
     computers running The Software) on behalf of themselves or other end users,
     A) reasonably cooperate to inform all end users of their obligations under 
        this license, most notably Condition 1 above; and
-    B) reasonably cooperate with the Author to collect any royalties due from 
-       end users who choose not to abide by Condition 1.
+    B) reasonably cooperate with the Author to collect and pay monthly, any 
+       royalties due from end users who choose not to abide by Condition 1.
 
 Paid Option:
 Service providers and end users who do not abide by the Conditions above may
@@ -31,5 +34,9 @@ use this software by instead paying a royalty consisting of:
      invoice or demand by, the Author.
   B) An additional 9% of all such revenues, plus associated collection costs,
      including attorneys fees, in such case that the 1% royalty payments noted
-     above  are not made timely or otherwise require collection efforts by 
+     above are not made timely or otherwise require collection efforts by 
      Author or its agents.
+
+For purposes of this License, the term "revenue" shall mean any receipt of
+value, whether in CHIPs or some other measure, which is obtained as a gift or
+in exchange for goods, services or other consideration.

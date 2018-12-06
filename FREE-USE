@@ -1,0 +1,29 @@
+This file explains, in a non-binding way, how end users can use the MyCHIPs 
+software contained in this repository for free.  For the legally binding 
+version, please see the file: LICENSE.
+
+It is pretty simple:  Always incorporate the contract clauses included in:
+
+  ./contract/Free.json
+
+into your trades.  And then don't add anything else to your contracts that 
+would water down these terms or invalidate them.
+
+At its essence, this means two things:
+
+1. Use the standard CHIP definition:
+   - You will only use MyCHIPs software to exchange CHIPs, as defined in the
+     software distribution.  
+   - For example, you won't come up with your own tally 
+     contracts to trade Dollars or Euros.  
+   - And you won't try to redefine what a CHIP is in your tallies.
+
+2. You will behave yourself honestly in your trades
+   - For example, don't try to steal value or fool people into giving it to 
+     you on terms they would not otherwise agree to.  
+   - Take reasonable care that your trading partners are competent and are 
+     dealing with you of their own free will and choice.
+   - When you make a pledge, do everything in your power to honor it.
+
+If you don't want to abide by these terms, you can still use the software.  You
+just are not entitled to do so for free.
