@@ -2019,10 +2019,11 @@ create function wylib.data_v_tf_upd() returns trigger language plpgsql security 
 create function wylib.get_data(comp text, nam text, own int) returns jsonb language sql stable as $$
       select data from wylib.data_v where owner = coalesce(own,base.curr_eid()) and component = comp and name = nam;
 $$;
-create function wylib.set_data(comp text, nam text, des text, own int, dat jsonb) returns boolean language plpgsql as $$
+create function wylib.set_data(comp text, nam text, des text, own int, dat jsonb) returns int language plpgsql as $$
     declare
       userid	int = coalesce(own, base.curr_eid());
       id	int;
+      trec	record;
     begin
       select ruid into id from wylib.data_v where owner = userid and component = comp and name = nam;
 
@@ -2031,11 +2032,11 @@ create function wylib.set_data(comp text, nam text, des text, own int, dat jsonb
           delete from wylib.data_v where ruid = id;
         end if;
       elsif not found then
-        insert into wylib.data_v (component, name, descr, owner, access, data) values (comp, nam, des, userid, 'read', dat);
+        insert into wylib.data_v (component, name, descr, owner, access, data) values (comp, nam, des, userid, 'read', dat) returning ruid into id;
       else
         update wylib.data_v set descr = des, data = dat where ruid = id;
       end if;
-      return true;
+      return id;
     end;
 $$;
 create trigger base_addr_v_tr_ins instead of insert on base.addr_v for each row execute procedure base.addr_v_insfunc();
@@ -2671,9 +2672,10 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
 
 insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','IAT','en','Invalid Access Type','Access type must be: priv, read, or write'),
-  ('wylib','data','appSave','en','Save State','Save the layout and operating state of the whole application, and all its subordinate windows'),
+  ('wylib','data','appSave','en','Save State','Re-save the layout and operating state of the application to the current named configuration, if there is one'),
+  ('wylib','data','appSaveAs','en','Save State As','Save the layout and operating state of the application, and all its subordinate windows, using a named configuration'),
   ('wylib','data','appRestore','en','Load State','Restore the application layout and operating state from a previously saved state'),
-  ('wylib','data','appDefault','en','Default State','Reload the application to its default state (you can lose any unsaved configuration state)'),
+  ('wylib','data','appDefault','en','Default State','Reload the application to its default state (you will lose any unsaved configuration state)'),
   ('wylib','data','appStatePrompt','en','Input Tag','Input a tag to identify this saved state'),
   ('wylib','data','appStateTag','en','State Tag','The tag is a brief name you will refer to later when loading the saved state'),
   ('wylib','data','appStateDescr','en','State Description','A full description of the saved state and what you use it for'),
@@ -2688,15 +2690,18 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','dbeLoadRec','en','Load Record','Load a specific record from the database by its primary key'),
   ('wylib','data','dbePrimary','en','Primary Key','The value that uniquely identifies the current record among all the rows in the database table'),
   ('wylib','data','dbeActions','en','Actions','Perform various commands pertaining to this particular view and record'),
+  ('wylib','data','dbePreview','en','Preview Document','Preview this record as a document'),
   ('wylib','data','dbeSubords','en','Preview','Toggle the viewing of views and records which relate to the currently loaded record'),
   ('wylib','data','dbeLoadPrompt','en','Primary Key','Input the primary key values'),
   ('wylib','data','dbeRecordID','en','Record ID','Load a record by specifying its primary key values directly'),
   ('wylib','data','winMenu','en','Window Functions','A menu of functions for the display and operation of this window'),
+  ('wylib','data','winSave','en','Save State','Re-save the layout and operating state of this window to the current named configuration, if there is one'),
+  ('wylib','data','winSaveAs','en','Save State As','Save the layout and operating state of this window, and all its subordinate windows, to a named configuration'),
+  ('wylib','data','winRestore','en','Load State','Restore the the window''s layout and operating state from a previously saved state'),
+  ('wylib','data','winDefault','en','Default State','Reload the window to its default state (you will lose any unsaved configuration state)'),
   ('wylib','data','winPinned','en','Window Pinned','Keep this window open until it is explicitly closed'),
   ('wylib','data','winClose','en','Close Window','Close this window'),
-  ('wylib','data','winSave','en','Save State','Save the layout and operating state of this window, and all its subordinate windows'),
-  ('wylib','data','winRestore','en','Restore State','Restore a previously saved state'),
-  ('wylib','data','winToTop','en','Move To Top','Make this window show above others of its peers'),
+  ('wylib','data','winToTop','en','Move To Top','Make this window show above others of its peers (can also double click on a window header)'),
   ('wylib','data','winToBottom','en','Move To Bottom','Place this window behind others of its peers'),
   ('wylib','data','winMinimize','en','Minimize','Shrink window down to an icon by which it can be re-opened'),
   ('wylib','data','dbpMenu','en','Preview','A menu of functions for operating on the preview list below'),

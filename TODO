@@ -4,6 +4,8 @@ X- Write mocha program for exchanging/approving chits
 X- Implement/test chit state machine
 X- See user balances update on GUI as chits exchange
 X- SVG draw all hubs when multiple tallies with same partner
+- Test: can install from 4 packages on fresh machine
+- 
 - 
 - Wylib:
 X-   Can control where menu's appear in relation to button
@@ -20,8 +22,8 @@ X-   Svgnode adapts to deleted tallies
 X-   Make Svgraph menu appear like a regular menu when not accessed
 X-   Implement save/restore on each win
 X-   Implement window layering (move to top, bottom)
--   Wylib can build distribution, uglified images
--   Wylib and friends posted to npmjs
+X-   Wylib can build distribution, uglified images
+X-   Wylib and friends posted to npmjs
 -   Wylib provides easy access to a wysegi SPA to be integrated into the production server
 - 
 - Admin interface replaces legacy ruby app:

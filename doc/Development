@@ -1,8 +1,30 @@
-Instructions to demonstrate reference code. (Oct, 2018)
-
+Instructions to demonstrate reference code. (Dec, 2018)
 On a Fedora linux machine:
-- Install Postgres: 
+
+As Root:
+- Install Postgres, as root:
   dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl
+  su -l postgres -c initdb
+  systemctl enable postgresql
+  systemctl start postgresql
+  su -l postgres -c 'createuser -d -s -r <dba_username>'
+
+As the dba user (can just be your username for testing):
+- Create a work area:
+  mkdir devel; cd devel
+
+- checkout mychips (currently on bitbucket):
+  git clone https://kylebateman@bitbucket.org/kylebateman/mychips.git
+  npm install
+
+- run mychips server
+  npm run first-run			#Should initialize database
+  
+  npm run server			#silent mode
+  NODE_DEBUG=debug npm run server	#Will log to /var/tmp/mychips
+---------------------------------------------------------------------  
+
+
 
 - For wyseman:	(see wyseman/INSTALL for more details)
   dnf install rubygem-pg rubygem-tk gcc-c++	;As root

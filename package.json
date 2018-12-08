@@ -27,9 +27,12 @@
     "dev-build": "webpack --mode development --watch --progress --hide-modules",
     "dev-server": "bin/mychips.js --spaPort=0",
     "server": "bin/mychips.js",
+    "first-run": "bin/mychips.js -peerPort=0",
     "dev": "npm-run-all --parallel dev-build dev-server",
     "build": "webpack --mode production",
-    "start": "bin/mychips.js"
+    "start": "bin/mychips.js",
+    "build-sql":"cd schema; make sql"
+    "preversion": "npm-run-all --parallel build-sql build",
   },
   "babel": {
     "presets": [

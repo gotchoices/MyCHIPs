@@ -17,6 +17,7 @@ const OS = require('os')
 var argv = require('yargs')
   .alias('h','hostID')    .default('hostID',    null)		//If peer servers run on multiple hosts, this identifies our host
   .alias('s','spaPort')	  .default('spaPort',   8000)		//Serve client SPA's at this port
+  .alias('w','wgiPort')	  .default('wgiPort',   8001)		//Serve wysegi SPA at this port
   .alias('u','userPort')  .default('userPort',  43210)		//User client at this port
   .alias('a','adminPort') .default('adminPort', 54320)		//Admin client at this port
   .alias('p','peerPort')  .default('peerPort',  65430)		//Peer-to-peer connections at this port
@@ -25,16 +26,24 @@ var argv = require('yargs')
 
 log.trace("Host ID:    ", argv.hostID)
 log.trace("SPA Port:   ", argv.spaPort)
+log.trace("Wysegi Port:", argv.wgiPort)
 log.trace("Admin Port: ", argv.adminPort)
 log.trace("User Port:  ", argv.userPort)
 log.trace("Peer Port:  ", argv.peerPort)
 log.trace("Agent Model:", argv.model)
 
 if (Boolean(argv.spaPort)) {				//Create http server for client SPAs
-    var express = require('express'), app = express();
+    let express = require('express'), app = express();
     app.use(express.static('pub'))
     app.listen(argv.spaPort)
     log.debug("Serving client SPA's at port: ", argv.spaPort)
+}
+
+if (Boolean(argv.wgiPort)) {				//Create http server for wysegi SPA
+    let express = require('express'), app = express();
+    app.use(express.static('node_modules/wylib/wysegi'))
+    app.listen(argv.wgiPort)
+    log.debug("Serving wysegi SPA at port: ", argv.wgiPort)
 }
 
 if (Boolean(argv.adminPort)) {				//Create socket server for admin data
