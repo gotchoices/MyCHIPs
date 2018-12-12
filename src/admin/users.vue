@@ -40,7 +40,7 @@ export default {
     state:	{type: Object, default: ()=>({})},
   },
   data() { return {
-    dbView:	'mychips.users_v',
+//    dbView:	'mychips.users_v',
     winRec:	{posted: true, x: 50, y: 220, client: {dbView: 'mychips.users_v'}},
   }},
 

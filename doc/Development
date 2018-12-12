@@ -3,7 +3,7 @@ On a Fedora linux machine:
 
 As Root:
 - Install Postgres, as root:
-  dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl
+  dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl ruby
   su -l postgres -c initdb
   systemctl enable postgresql
   systemctl start postgresql
@@ -19,74 +19,128 @@ As the dba user (can just be your username for testing):
 
 - run mychips server
   npm run first-run			#Should initialize database
+  If you have trouble, set NODE_DEBUG=debug environment variable
+  and watch logs in /var/tmp/mychips
+
+- Try connecting to the SPA:
+  Direct your browser to:	http://localhost:8000/admin.html
   
-  npm run server			#silent mode
-  NODE_DEBUG=debug npm run server	#Will log to /var/tmp/mychips
+  Use the connect menu (upper right) to connect to your server at port 54320
+  You should see a single user (Admin) in the users table (Users Tab)
+
+- Quit the "first-run" and launch the regular mode server:
+  npm run server			#silent mode, or
+  NODE_DEBUG=debug npm run server	#will log to /var/tmp/mychips
+
+- Add some sample test data:
+  cd test
+  edit settings file to set IP number of the test machine you are on
+  cd sample
+  ./kickstart
+  Reload the user preview in the admin GUI, should see 5 users
+
+- View the live network graph
+  See your 5 users on the graph
+  Use the graph menu (Upper Right) to Reset if necessary
+
+- Add sample tallies/chits (while watching the live Network display)
+  psql <Database_Name> -f tallies.sql
+  psql <Database_Name> -f chits.sql
+
+- Add more random users (while still watching)
+  ./randuser					# or:
+  ./randuser -n Number_of_Users_to_Add
+  
+  Press Arrange button (many times) in graph menu to arrange nodes better
+
+- Quit mychips server (Ctrl-C) and restart with agent model:
+  npm run server -- -m
+  
+  Doesn't do much right now, except find one other node to connect to
+
 ---------------------------------------------------------------------  
+If you will be working on wyseman:
 
+- Remove mychips/node_modules/wyseman
+  git clone https://github.com/gotchoices/wyseman.git
+  ln -s wyseman mychips/node_modules
 
-
-- For wyseman:	(see wyseman/INSTALL for more details)
+- See wyseman/INSTALL for more installation details
   dnf install rubygem-pg rubygem-tk gcc-c++	;As root
   gem install json				;As you
 
-- Make a folder for out work:	mkdir devel; cd devel
+---------------------------------------------------------------------  
+If you will be working on the PostgreSQL schema:
 
-- checkout: wyseman, wyselib, wylib from github:
-  git clone https://github.com/gotchoices/wylib.git
-  git clone https://github.com/gotchoices/wyseman.git
+- Remove mychips/node_modules/wyselib
   git clone https://github.com/gotchoices/wyselib.git
-  
-- checkout mychips (currently on bitbucket):
-  git clone https://kylebateman@bitbucket.org/kylebateman/mychips.git
+  ln -s wyselib mychips/node_modules
 
-  In wyseman, wylib, mychips, run: npm install
+- You may have to drop your database, if it was created automatically
 
-- Adjust settings in a file devel/setup to reflect out environment:
-
-Example setup file:
----------------------------------------------------------------------  
-  export LESS=eFRX		#For 'git diff' to work with colors
-  export WYATTDB="$USER"	#Name of database you will be using
-  export TCLLIBPATH=". $HOME/share/devel /usr/lib"
-  export PATH="$PATH:$HOME/share/devel/wyseman/bin:$HOME/share/devel/mychips/bin"
-  export NODE_PATH="$HOME/share/devel:/usr/lib/node_modules:./node_modules"
-  export RUBYOPT="-I $HOME/share/devel/wyseman/lib -I $HOME/share/devel/mychips/lib"
-  export RUBYLIB="$HOME/share/devel/js/wyseman/lib"
-  
-  if [ ! -h mychips/node_modules/wylib ]; then		#Link to development version
-    ln -s ~/share/devel/wylib mychips/node_modules/wylib
-  fi
----------------------------------------------------------------------  
-  You must source this file (source devel/setup) in any session you use.
-  
-- Follow database setup notes in wyseman/README.pg (new)
-
-- Testing:
-  Can set NODE_DEBUG=debug (or silly) and observe logs in /var/tmp/mychips
-  cd devel/mychips/test
-  Adjust settings in test/settings.js for your environment
-  npm run test-peercom
-  npm run test-impexp
-  npm run test-peer
-  dropdb mychipsTestDB			#when finished
-  
-- Build mychips database:
+- Build schema in your database from sources:
+  Set WYATTDB if you use a DB name different from your username
   cd mychips/schema
   make all
 
-- Sample configuration
-  cd test/sample
-  ./kickstart		#Generates a sample ticket in test/tmp/ticket.json
+---------------------------------------------------------------------  
+If you will be working on Wylib:
 
-- Run development mode HTTP server to serve up the admin and client SPA's:
+- Remove mychips/node_modules/wylib
+  git clone https://github.com/gotchoices/wylib.git
+  ln -s wylib mychips/node_modules
+
+- Run 'watched' build in wylib:
+  cd wylib
+  npm run dev-build
+
+- Run hot build in mychips:
+  cd mychips
   npm run dev-hot
 
-  Try connecting a browser at port 3000 of that machine:
-  http://linux-box:3000/admin.html
+- Direct browser to port 3000 to get hot-loaded SPA
+  Now changes in wylib or mychips SPA code should auto rebuild/reload
 
-- Run a data server to service SPA requests: (as a separate instance)
-  npm run dev-server
+---------------------------------------------------------------------  
+Example development environment settings:
+
+  export LESS=eFRX		#For 'git diff' to work with colors
+  export WYATTDB="$USER"	#Name of database you will be using
+  export PATH="$PATH:$HOME/devel/wyseman/bin:$HOME/devel/mychips/bin"
+  export NODE_PATH="$HOME/devel:/usr/lib/node_modules:./node_modules"
+  export RUBYOPT="-I $HOME/devel/wyseman/lib -I $HOME/devel/mychips/lib"
+  export RUBYLIB="$HOME/devel/js/wyseman/lib"
   
-  Try the connect button now in the admin SPA, connect to port 54320
-  You should see the user management GUI
+---------------------------------------------------------------------  
+Testing:
+
+- Run Mocha tests 		(This is done in a separate database)
+  Can set NODE_DEBUG=debug (or trace) and observe logs in /var/tmp/mychips
+  cd devel/mychips/test
+  Adjust settings in test/settings.js for your environment
+
+  npm test				#Or, separately:
+  
+  npm run test-peercom
+  npm run test-impexp
+  npm run test-peer
+
+  dropdb mychipsTestDB			#When finished with tests
+  
+---------------------------------------------------------------------  
+Other Notes:
+
+- The MyCHIPs process contains multiple possible servers:
+  User and admin SPA's served at http://localhost:8000
+  Wysegi SPA served at http://localhost:8001
+  User controller server at ws://localhost:43210
+  Admin controller server at ws://localhost:54320
+  Peer communications at localhost:65430
+
+---------------------------------------------------------------------  
+Legacy Ruby admin app:
+
+- Create a user ticket
+  mychips/bin/mc_admin ticket 10000 /tmp/ticket.json
+
+---------------------------------------------------------------------  

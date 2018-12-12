@@ -1,33 +1,56 @@
-#!/bin/bash
-#Initialize an empty database with some sample data
-#TODO:
-#- Deprecate mc_admin
-#- Can call database directly with json import data?
-#- 
+#!/bin/env node
+//Initialize an empty database with sample testing data
+//TODO:
+//X- Deprecate mc_admin
+//X- Can call database directly with json import data?
+//- Build site key (old mc_admin function)?
+//- 
 
-MYPATH=$(dirname "$0")
-DBNAME=${WYATTDB}; if [ -z "$DBNAME" ]; then DBNAME="${USER}"; fi
+const Settings = require('../settings')
+const DbName = process.env.WYATTDB || process.env.USER || Settings.DatabaseName
+const { MachineIP, UserPort, PeerPort } = Settings
+console.log("DbName:", DbName, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
 
-machineIP=$(grep MachineIP ../settings.js |cut -d : -f 2 |tr -d '"' |tr -d ' ')
-uport=43210
-pport=65432
-if [ ! -z "$1" ]; then
-    machineIP="$1"
-fi
+var fs = require('fs')
+var log = require('../../lib/logger')('Kickstart')
+var { dbClient } = require("wyseman")
+const dbConfig = {
+  database: DbName,
+  listen: "DummyChannel",		//Cause immediate connection to DB, rather than deferred
+  logger: log,
+  schema: __dirname + "/../../lib/schema.sql"
+}
 
-psql $DBNAME -c "select base.parmset('mychips','mobi_inet','$machineIP'::inet)"
+var pending = 0
+var db = new dbClient(dbConfig)
 
-echo "CWD:$(pwd) MYPATH:$MYPATH"
-mc_admin load -s $MYPATH/org.json
-mc_admin load $MYPATH/user1.json
-mc_admin load $MYPATH/user2.json
-mc_admin load $MYPATH/user3.json
-mc_admin ticket 10000 $MYPATH/../tmp/ticket.json
+var queryList = []
+queryList.push({q:"select base.parmset('mychips','mobi_inet',$1::inet)", a:[Settings.MachineIP]})
 
-psql $DBNAME -c "update mychips.users set user_inet = '$machineIP', user_port=$uport where user_inet isnull;"
-psql $DBNAME -c "update mychips.peers set peer_inet = '$machineIP', peer_port=$pport where peer_inet isnull;"
+const fileList = ["org.json", "user1.json", "user2.json", "user3.json"].forEach(file=>{
+  let fileData = fs.readFileSync(__dirname + '/' + file)
+    , jsonData = JSON.parse(fileData)
+  queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
+})
 
-#For testing:
-psql $DBNAME -c "update mychips.users_v set host_id='server0', peer_port=65430 where id = 10000;"
-psql $DBNAME -c "update mychips.users_v set host_id='server1', peer_port=65431 where id = 10001;"
-psql $DBNAME -c "update mychips.users_v set host_id='server2', peer_port=65432 where id = 10002;"
+//Set org.json entity as the site admin
+queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})
+
+queryList.push({q:"update mychips.users set user_inet = $1, user_port=$2 where user_inet is null", a:[Settings.MachineIP, Settings.UserPort]})
+queryList.push({q:"update mychips.peers set peer_inet = $1, peer_port=$2 where peer_inet is null", a:[Settings.MachineIP, Settings.PeerPort]})
+
+//For testing tallies:
+let q1 = "update mychips.users_v set host_id=$1, peer_port=$2 where id = $3;"
+queryList.push({q:q1, a:['server0', 65430, 10000]})
+queryList.push({q:q1, a:['server1', 65431, 10001]})
+queryList.push({q:q1, a:['server2', 65432, 10002]})
+
+queryList.forEach(elem=>{
+  pending++
+  let { q, a } = elem
+  db.query(q, a, (err, res) => {
+    if (err) console.log("Error:", err.message, "\n  query:", q)
+//console.log("res:", res)
+    if (!(--pending)) db.disconnect()
+  })
+})

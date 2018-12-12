@@ -10,6 +10,7 @@
 //-   User 2-way socket commands at host:port
 //-   Peer 2-way socket commands at host:port
 //-   Public document http server
+//- Can't start on fresh database with peerPort enabled (2 simultaneous attempts to create database)
 //- 
 var log = require('../lib/logger')('mychips')
 const OS = require('os')
@@ -36,14 +37,14 @@ if (Boolean(argv.spaPort)) {				//Create http server for client SPAs
     let express = require('express'), app = express();
     app.use(express.static('pub'))
     app.listen(argv.spaPort)
-    log.debug("Serving client SPA's at port: ", argv.spaPort)
+    log.debug("Serving client SPA's at port:", argv.spaPort)
 }
 
 if (Boolean(argv.wgiPort)) {				//Create http server for wysegi SPA
     let express = require('express'), app = express();
-    app.use(express.static('node_modules/wylib/wysegi'))
+    app.use(express.static('node_modules/wylib/dist'))
     app.listen(argv.wgiPort)
-    log.debug("Serving wysegi SPA at port: ", argv.wgiPort)
+    log.debug("Serving wysegi SPA at port:", argv.wgiPort)
 }
 
 if (Boolean(argv.adminPort)) {				//Create socket server for admin data

@@ -1,5 +1,7 @@
 #Process schema files
-WYSELIB = ~/share/devel/wyselib/schema
+ifeq ("$(WYSELIB)","")
+  WYSELIB = ../node_modules/wyselib/schema
+endif
 ifeq ("$(WYATTDB)","")
   DBNAME=$(shell id -un)
 else
