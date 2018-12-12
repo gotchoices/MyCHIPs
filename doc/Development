@@ -41,29 +41,37 @@ As the dba user (can just be your username for testing):
   ./kickstart
   Reload the user preview in the admin GUI, should see 5 users
 
-- View the live network graph
+- View the live network graph (Network tab)
   See your 5 users on the graph
-  Use the graph menu (Upper Right) to Reset if necessary
+  Use the graph menu (Upper Right) to Reset or Arrange if necessary
 
 - Add sample tallies/chits (while watching the live Network display)
+  Still in test/sample
+  Specify database name only if not the same as your username (default)
   psql <Database_Name> -f tallies.sql
   psql <Database_Name> -f chits.sql
 
-- Add more random users (while still watching)
+- Add more random users (while still watching the graph)
   ./randuser					# or:
   ./randuser -n Number_of_Users_to_Add
   
-  Press Arrange button (many times) in graph menu to arrange nodes better
+  Press Arrange button (or hold it) in graph menu to arrange nodes better
 
-- Quit mychips server (Ctrl-C) and restart with agent model:
+- Quit mychips server (Ctrl-C) and restart with agent model running:
   npm run server -- -m
   
-  Doesn't do much right now, except find one other node to connect to
+  It doesn't do much right now, except find one other node to connect to.
+
+---------------------------------------------------------------------  
+Want to browse the database schema:
+
+- Direct browser to:		http://localhost:8001/wysegi.html
 
 ---------------------------------------------------------------------  
 If you will be working on wyseman:
 
 - Remove mychips/node_modules/wyseman
+  cd mychips/..
   git clone https://github.com/gotchoices/wyseman.git
   ln -s wyseman mychips/node_modules
 
@@ -75,6 +83,7 @@ If you will be working on wyseman:
 If you will be working on the PostgreSQL schema:
 
 - Remove mychips/node_modules/wyselib
+  cd mychips/..
   git clone https://github.com/gotchoices/wyselib.git
   ln -s wyselib mychips/node_modules
 
@@ -89,6 +98,7 @@ If you will be working on the PostgreSQL schema:
 If you will be working on Wylib:
 
 - Remove mychips/node_modules/wylib
+  cd mychips/..
   git clone https://github.com/gotchoices/wylib.git
   ln -s wylib mychips/node_modules
 
