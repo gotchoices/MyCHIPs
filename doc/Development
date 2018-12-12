@@ -10,14 +10,15 @@ As Root:
   su -l postgres -c 'createuser -d -s -r <dba_username>'
 
 As the dba user (can just be your username for testing):
-- Create a work area:
-  mkdir devel; cd devel
+- Create a folder to work:
+  mkdir devel; cd devel			#For example
 
 - checkout mychips (currently on bitbucket):
-  git clone https://kylebateman@bitbucket.org/kylebateman/mychips.git
+  git clone https://your-username@bitbucket.org/kylebateman/mychips.git
+  cd mychips
   npm install
 
-- run mychips server
+- Run mychips with SPA server but no peer server (first time):
   npm run first-run			#Should initialize database
   If you have trouble, set NODE_DEBUG=debug environment variable
   and watch logs in /var/tmp/mychips
@@ -31,6 +32,7 @@ As the dba user (can just be your username for testing):
 - Quit the "first-run" and launch the regular mode server:
   npm run server			#silent mode, or
   NODE_DEBUG=debug npm run server	#will log to /var/tmp/mychips
+  The SPA should reconnect to the server on its own
 
 - Add some sample test data:
   cd test
