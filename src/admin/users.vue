@@ -2,7 +2,7 @@
 //Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
-//- Get rid of reference to siteSocket
+//- Report errors on file import
 //- 
 
 <template>
@@ -10,7 +10,7 @@
     <div class="header">User Accounts:</div>
     <div class="subwindows">
       <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" :tag="'dbp:'+win.client.dbView" :lang="lang(win,idx)" @close="closeWin(idx)">
-        <wylib-dbp slot-scope="ws" :top="ws.top" :state="win.client"/>
+        <wylib-dbp :state="win.client"/>
       </wylib-win>
     </div>
     <div class="instructions">
@@ -35,10 +35,12 @@
 import Wylib from 'wylib'
 
 export default {
+  name: 'app-users',
   components: {'wylib-win': Wylib.Window, 'wylib-dbp': Wylib.DataView},
   props: {
     state:	{type: Object, default: ()=>({})},
   },
+  inject: ['top'],			//Where to send modal messages
   data() { return {
 //    dbView:	'mychips.users_v',
     winRec:	{posted: true, x: 50, y: 220, client: {dbView: 'mychips.users_v'}},
@@ -61,25 +63,31 @@ console.log("Preview Ticket")
       for(var i = 0; wins[i]; i++); wins.splice(i, 1, newState)
     },
     closeWin(idx) {
-console.log("Close Window", idx)
+//console.log("Close Window", idx)
       this.state.windows[idx] = null
       this.$forceUpdate()
     },
+
     importFile(ev) {
       let i, f; for (let i = 0, f; f = ev.target.files[i]; i++) {
         let reader = new FileReader();
-        reader.addEventListener('load', function() {
-          let jdat = JSON.stringify(reader.result)
-          console.log("Result:" + jdat)
-          siteSocket.send('import', jdat)
-        })
+        reader.onload = ()=>{
+          let jdat = reader.result	//JSON.stringify(reader.result)
+//console.log("Jdat:" + jdat)
+          let spec = {view: 'json.import(jsonb)', params: [jdat]}
+          Wylib.Wyseman.request('users.import.'+this._uid, 'tuple', spec, (res, err) => {
+            if (err) this.top.error(err)
+//console.log("Import res:", res)
+          })
+        }
         reader.readAsText(f)
       }
     },
   },
   
   beforeMount: function() {
-    Wylib.Common.react(this, {windows: [this.winRec]})
+    Wylib.Common.react(this, {windows: []})
+    this.addWin()
   },
 }
 </script>

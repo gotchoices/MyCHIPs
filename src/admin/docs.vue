@@ -10,5 +10,7 @@
 
 <script>
 export default {
+  name: 'app-docs',
+  inject: ['top'],			//Where to send modal messages
 }
 </script>

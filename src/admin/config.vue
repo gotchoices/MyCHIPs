@@ -10,7 +10,7 @@
     <button @click="initialize()">Initialize</button>
     <div class="subwindows">
       <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" :tag="'dbp:'+win.client.dbView" :lang="lang(win,idx)" @close="closeWin(idx)">
-        <wylib-dbp slot-scope="ws" :top="ws.top" :state="win.client"/>
+        <wylib-dbp :state="win.client"/>
       </wylib-win>
     </div>
   </div>
@@ -20,10 +20,12 @@
 import Wylib from 'wylib'
 
 export default {
+  name: 'app-config',
   components: {'wylib-win': Wylib.Window, 'wylib-dbp': Wylib.DataView},
   props: {
     state:	{type: Object, default: ()=>({})},
   },
+  inject: ['top'],			//Where to send modal messages
   data() { return {
     winRec:	{posted: true, x: 40, y: 220, client: {dbView: 'base.parm_v'}},
 //    state:	{windows: [{posted: true, y: 220, client: {dbView: 'base.parm_v', loaded: true}}]},

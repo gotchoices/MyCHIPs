@@ -26,10 +26,12 @@
 import Wylib from 'wylib'
 
 export default {
+  name: 'app-urnet',
   components: {'wylib-svgraph': Wylib.SvGraph},
   props: {
     state:	{type: Object, default: ()=>({})},
   },
+  inject: ['top'],			//Where to send modal messages
   data() { return {
     tabGap:	40,
     fontSize:	16,
