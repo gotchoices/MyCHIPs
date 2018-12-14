@@ -1,6 +1,6 @@
 {
   "name": "mychips",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reference MyCHIPs server",
   "main": "lib/mychips.js",
   "preferGlobal": "true",
@@ -32,7 +32,7 @@
     "build": "webpack --mode production",
     "start": "bin/mychips.js",
     "build-sql": "cd schema; make sql",
-    "preversion": "npm-run-all --parallel build-sql build"
+    "preversion": "npm-run-all --parallel build-sql build && git add -A"
   },
   "babel": {
     "presets": [
