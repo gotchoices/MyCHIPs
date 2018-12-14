@@ -1,35 +1,13 @@
 TODO:
 Immediate:
-X- Write mocha program for exchanging/approving chits
-X- Implement/test chit state machine
-X- See user balances update on GUI as chits exchange
-X- SVG draw all hubs when multiple tallies with same partner
-- Test: can install from 4 packages on fresh machine
-- 
-- 
-- Wylib:
-X-   Can control where menu's appear in relation to button
-X-   Can save named state
-X-   Can recall named state
-X-   Save state on exit?
-X-   Recall last state on reload
-X-   State save/restore uses database
-X-   Implement save/restore on app
-X-   Svgraph saves state between iterations
-X-   All admin tabs save/restore state
-X-   Svgnode adapts to deleted nodes
-X-   Svgnode adapts to deleted tallies
-X-   Make Svgraph menu appear like a regular menu when not accessed
-X-   Implement save/restore on each win
-X-   Implement window layering (move to top, bottom)
-X-   Wylib can build distribution, uglified images
-X-   Wylib and friends posted to npmjs
--   Wylib provides easy access to a wysegi SPA to be integrated into the production server
+X- Test: can install from 4 packages on fresh machine
+- Control which columns visible in dbp
+- How to module control, report functions work?
 - 
 - Admin interface replaces legacy ruby app:
--   Implement user import direct to database
--   Implement user export
--   Implement user ticket generation
+X-   Implement user import direct to database
+-   Implement user export, as a module control action
+-   Implement user ticket generation, as combination of action and report
 - 
 - User agent process:
 -   Be more random on search for new client tally connection

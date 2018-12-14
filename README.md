@@ -10,9 +10,10 @@ be used as a currency, or medium of exchange.  However, a credit-based
 solution will be much more resilient to such forces as speculation,
 volatility, inflation, and deflation.  So it would be much better solution
 when considering the three primary purposes of money:
-* a medium of exchange,
-* a store of value, and 
-* a measure of value.
+
+    - a medium of exchange,
+    - a store of value, and 
+    - a measure of value.
 
 For more in-depth information, please visit [this site.](http://gotchoices.org/mychips/index.html)
 
@@ -38,6 +39,7 @@ in [this article](http://gotchoices.org/mychips/acdc.html).  Unfortunately, that
 not done yet.
 
 However, I _have_ completed a functional framework which includes the following:
+
 - Backend PostgreSQL database
   - Database authoring/modification tool
   - Data dictionary, including multi-language support
@@ -62,9 +64,9 @@ in the [Developer Instructions](doc/Development).  You should be able to get a
 simple demo network running and visualize it in the administrator console.
 
 ### Project Roadmap:
-- ***Done:** Background: http://gotchoices.org/mychips/beginner.html **(Done)**
-- ***Done:** Functional description: http://gotchoices.org/mychips/replace.html **(Done)**
-- ***Done:** Basic architecture: http://gotchoices.org/mychips/software.html **(Done)**
+- Background: http://gotchoices.org/mychips/beginner.html **(Done)**
+- Functional description: http://gotchoices.org/mychips/replace.html **(Done)**
+- Basic architecture: http://gotchoices.org/mychips/software.html **(Done)**
 - Reference server implementation **(In progress)**
   - Database schema management tool **(Done)**
   - Database GUI access tool **(Done)**
@@ -72,6 +74,7 @@ simple demo network running and visualize it in the administrator console.
   - Basic user/peer/tally schema **(Done)**
   - Develop agent-based modeling tool **(In process)**
   - Develop lift algorithm
+  - Implement test network across multiple databases
   - Develop contract editing, publishing, rendering, validation
   - Develop simple Wylib-based user SPA
   - Harden Database (implement users, groups, permissions, logins)
