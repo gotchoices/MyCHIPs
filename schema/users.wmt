@@ -19,8 +19,15 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
 
 tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this server.} {
     {user_sock		{User Socket}		{The IP Number, and port to which the user's mobile device will connect}}
+    {peer_sock		{Peer Socket}		{The IP Number, and port where other servers can connect to trade with this peer.}}
 } -messages {
-    {ticket {User Ticket} {Generate a temporary, one-time pass to allow a user to establish a secure connection with the server}}
+    {ticket 	{User Ticket}		{Generate a temporary, one-time pass to allow a user to establish a secure connection with the server}}
+    {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
+    {unlock	{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
+    {summary	{Summary Report}	{Report about the current status of the selected user}}
+    {trade	{Trading Report}	{Report showing trades in a given date range}}
+      {trade.start	{Start Date}	{Include trades on and after this date}}
+      {trade.end	{End Date}	{Include trades on and before this date}}
 }
 
 #Sample text in alternate language:

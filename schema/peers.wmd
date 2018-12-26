@@ -1,22 +1,19 @@
 
 tabdef mychips.peers -focus ent_name -fields [concat {
-    {peer_ent		ent	6	{}		-sort 1 -write 0}
-    {peer_cdi		ent	40	{}		-tem {^[\w\._:/]*$}}
-    {peer_hid		ent	40	{}		}
-    {peer_pub		ent	40	{}		}
-    {peer_inet		ent	40	{}		}
-    {peer_port		ent	8	{}		-just r}
-    {peer_cmt		mle	{40 2}	{}		}
+    {peer_ent		ent	6	{0 20}		-hide 1 -sort 1 -write 0}
+    {peer_cdi		ent	40	{1 20 2}	-tem {^[\w\._:/]*$}}
+    {peer_hid		ent	40	{3 20 w}	}
+    {peer_inet		ent	20	{1 21}		}
+    {peer_port		ent	8	{2 21}		-just r}
+    {peer_pub		ent	20	{1 22 2}	-spf edw -write 0}
+    {peer_cmt		mle	{80 2}	{1 22 4}	}
 } $glob::stampd]
 
 # A view with some additional pseudo fields
 tabdef mychips.peers_v -fields {
-    {std_name		ent	14	{1 7}		-sta readonly -wr 0}
-    {frm_name		ent	18	{2 7}		-opt 1 -sta readonly -wr 0}
-    {cas_name		ent	14	{3 7}		-opt 1 -sta readonly -wr 0}
-    {mobi_sock		ent	14	{4 7}		-opt 1 -sta readonly -wr 0}
+    {peer_sock		ent	28	{3 21}		-opt 1 -sta readonly -wr 0}
 } -display {
   id std_name peer_cdi peer_sock ent_type born_date !fir_name !ent_name
-} -inherits mychips.peers
+}
 
 tabdef mychips.peers_v_flat -display {id peer_cdi std_name bill_addr bill_city bill_state} -sort {std_name id}

@@ -16,7 +16,7 @@ namespace eval users {
     def users_v_in	[concat $users_pk $users_v_up]
     def users_se	[concat $users_v_in $glob::stampfn]
     def peers_se	$peers::peers_v_in
-    def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name]
+    def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name age]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type username]
 }
@@ -41,7 +41,6 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v} {select
   , eval(fld_list $users::users_se	ue)
   , host(user_inet) || ':' || user_port	as user_sock
   , host(peer_inet) || ':' || peer_port	as peer_sock
-  , extract(year from age(ee.born_date))		as age
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id
