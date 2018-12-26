@@ -37,6 +37,7 @@ export default {
     fontSize:	16,
     hubWidth:	100,
     hubHeight:	20,
+    stateTpt:	{width: 600, height: 600, nodes:{}},
   }},
   methods: {
     user(id, name, cdi) {		//Generate SVG code for a user node
@@ -134,7 +135,7 @@ export default {
 //    this.updateLinks()
 //  },
   beforeMount: function() {
-    Wylib.Common.react(this, {width: 600, height: 600, nodes:{}})
+    Wylib.Common.stateCheck(this)
     
     this.updateNodes()
     this.updateLinks()

@@ -9,7 +9,7 @@
   <div>
     <div class="header">User Accounts:</div>
     <div class="subwindows">
-      <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" :tag="'dbp:'+win.client.dbView" :lang="lang(win,idx)" @close="closeWin(idx)">
+      <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" @close="r=>{closeWin(idx,r)}">
         <wylib-dbp :state="win.client"/>
       </wylib-win>
     </div>
@@ -42,8 +42,8 @@ export default {
   },
   inject: ['top'],			//Where to send modal messages
   data() { return {
-//    dbView:	'mychips.users_v',
     winRec:	{posted: true, x: 50, y: 220, client: {dbView: 'mychips.users_v'}},
+    stateTpt:	{windows: []},
   }},
 
   methods: {
@@ -55,17 +55,10 @@ export default {
 console.log("Preview Ticket")
     },
     addWin() {
-//console.log("Add Window")
-      let wins = this.state.windows
-        , newState = Wylib.Common.clone(this.winRec)
-      newState.x += (Math.random() - 0.5) * 100
-      newState.y += (Math.random() - 0.5) * 100
-      for(var i = 0; wins[i]; i++); wins.splice(i, 1, newState)
+      Wylib.Common.addWindow(this.state.windows, this.winRec, true)
     },
-    closeWin(idx) {
-//console.log("Close Window", idx)
-      this.state.windows[idx] = null
-      this.$forceUpdate()
+    closeWin(idx, reopen) {
+      wylib.Common.closeWindow(this.state.windows, idx, reopen)
     },
 
     importFile(ev) {
@@ -86,8 +79,8 @@ console.log("Preview Ticket")
   },
   
   beforeMount: function() {
-    Wylib.Common.react(this, {windows: []})
-    this.addWin()
+    Wylib.Common.stateCheck(this)
+    if (this.state.windows.length <= 0) this.addWin()
   },
 }
 </script>

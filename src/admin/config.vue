@@ -9,7 +9,7 @@
     <div class="header">Configuration:</div>
     <button @click="initialize()">Initialize</button>
     <div class="subwindows">
-      <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" :tag="'dbp:'+win.client.dbView" :lang="lang(win,idx)" @close="closeWin(idx)">
+      <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" @close="r=>{closeWin(idx,r)}">
         <wylib-dbp :state="win.client"/>
       </wylib-win>
     </div>
@@ -28,7 +28,7 @@ export default {
   inject: ['top'],			//Where to send modal messages
   data() { return {
     winRec:	{posted: true, x: 40, y: 220, client: {dbView: 'base.parm_v'}},
-//    state:	{windows: [{posted: true, y: 220, client: {dbView: 'base.parm_v', loaded: true}}]},
+    stateTpt:	{windows: []},
   }},
 
   methods: {
@@ -37,17 +37,10 @@ export default {
       help:	'Preview listing of view: ' + win.client.dbView
     }},
     addWin() {
-//console.log("Add Window")
-      let wins = this.state.windows
-        , newState = Wylib.Common.clone(this.winRec)
-      newState.x += (Math.random() - 0.5) * 100
-      newState.y += (Math.random() - 0.5) * 100
-      for(var i = 0; wins[i]; i++); wins.splice(i, 1, newState)
+      Wylib.Common.addWindow(this.state.windows, this.winRec, true)
     },
-    closeWin(idx) {
-console.log("Close Window", idx)
-      this.state.windows[idx] = null
-      this.$forceUpdate()
+    closeWin(idx, reopen) {
+      wylib.Common.closeWindow(this.state.windows, idx, reopen)
     },
     initialize() {
       console.log("Initializing...")
@@ -55,7 +48,8 @@ console.log("Close Window", idx)
   },
 
   beforeMount: function() {
-    Wylib.Common.react(this, {windows: [this.winRec]})
+    Wylib.Common.stateCheck(this)
+    if (this.state.windows.length <= 0) this.addWin()
   },
 }
 </script>
