@@ -1,6 +1,6 @@
 {
   "name": "mychips",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Reference MyCHIPs server",
   "main": "lib/mychips.js",
   "preferGlobal": "true",
@@ -56,6 +56,8 @@
     "log4js": "^3.0.6",
     "pg": "^7.7.1",
     "pg-format": "^1.0.4",
+    "qr-image": "^3.2.0",
+    "string-hash": "^1.1.3",
     "vue": "^2.5.21",
     "winston": "^3.1.0",
     "ws": "^5.2.2",

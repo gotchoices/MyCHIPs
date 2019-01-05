@@ -40,7 +40,7 @@ export default {
       Wylib.Common.addWindow(this.state.windows, this.winRec, true)
     },
     closeWin(idx, reopen) {
-      wylib.Common.closeWindow(this.state.windows, idx, reopen)
+      Wylib.Common.closeWindow(this.state.windows, idx, reopen)
     },
     initialize() {
       console.log("Initializing...")

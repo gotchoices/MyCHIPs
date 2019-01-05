@@ -1,15 +1,37 @@
 TODO:
+
 Immediate:
-X- Test: can install from 4 packages on fresh machine
-- Control which columns visible in dbp
-- How to module control, report functions work?
+- Make agent model work well enough to generate data to analyze lift model
+- Create peer query protocol to populate possible lift pathways
+- Query to discover possible lift pathways
+- Protocol, state machine, to execute lifts
 - 
-- Admin interface replaces legacy ruby app:
-X-   Implement user import direct to database
--   Implement user export, as a module control action
--   Implement user ticket generation, as combination of action and report
+
+General roadmap:
+X- Can create/exchange tallies, chits with a peer
+- Create agent client module to model user, reads/writes/listens direct with DB
+- Can spawn N user agents against M server instances
+X- Create graphical canvas view of all users balance sheets
+- Implement lift algorithm
+- Implement basic contracts (author, display, publish)
+X- Review copyright; Should we limit free to people who respect a base contract?
+- Harden SPA connections, implement user ID's, schema permissions
+- Implement digital signatures for tallies, chits, contracts, lifts
+- Implement encrypted network communications, noise protocol
+- Harden database schema
+X- Make Admin SPA GUI useable, replace all functions of mc_admin
+- Make User SPA GUI useable
+- Optimize User SPA GUI for mobile
+- Rollout
+- Implement async email/text notifications
+- Implement native mobile user app
+- Implement tally confirmations
+- Implement standardized export/import of user accounts via Admin interface
+- Implement lock-down mode
+- Implement backup/restore among peers
 - 
-- User agent process:
+
+User agent process:
 -   Be more random on search for new client tally connection
 -   Find a foil tally and pay some credits on it
 -   Agent establishes reasonable number of tallies with other users
@@ -23,153 +45,28 @@ X-   Implement user import direct to database
 -   Store data about known pathways
 - Develop state machine for lift execution
 -   Would you participate in a lift destined for user X, for Y CHIPs?
-- 
+X- Dummy sql to create initial draft tally
+- Dummy sql files to simulate other required user actions
+- User agent process runs randomized strategy
 - 
 
-General roadmap:
-X- Can create/exchange tallies, chits with a peer
-- Create agent client module to model user, reads/writes/listens direct with DB
-- Can spawn N user agents against M server instances
-X- Create graphical canvas view of all users balance sheets
-- Implement lift algorithm
-- Implement/publish basic contracts
-X- Review copyright; Should we limit free to people who respect a base contract?
-- Implement digital signatures for tallies, chits, contracts, lifts
-- Implement encrypted network communications, noise protocol
-- Harden database schema
-- Make Admin SPA GUI useable, replace all functions of mc_admin
-- Make User SPA GUI useable
-- Optimize User SPA GUI for mobile
-- Rollout
-- Implement async email/text notifications
-- Implement native mobile user app
-- Implement tally confirmations
-- Implement standardized export/import of user accounts via Admin interface
-- Implement lock-down mode
-- Implement backup/restore among peers
+DB/schema:
+- Change base.ent to make id, unique to ent_type
+- Make consolidated key target field: P100, A100, G100
+- Adjust all subordinate tables to point to the target field
+- Create json views for tally import/export?
+- Only allow minimum, required access/permissions
+- Is each server a single user, or do real user ID's flow all the way to the database connection?
+- Can run from schema sources, or from compiled schema 
 - 
 
 Peer-to-peer:
 - Socket connections should time out and close after an idle period
-- Create state diagram for chits
-- Implement chit state map that runs under standard state interpretor
+X- Create state diagram for chits
+X- Implement chit state map that runs under standard state interpretor
 - Cache chit totals for each tally, on the fly
 - State diagram for lifts
 - Table for buy/sell preferences
-- 
-
-Agent modeling:
-X- Dummy sql to create initial draft tally
-- Dummy sql files to simulate other required user actions
-- User agent process runs randomized strategy
-- Replace all legacy ruby command line admin programs
-- 
-- Implement tally logic in postgresql:
-X-  Create view that displays states of tallies
-X-  Triggers generate notifies with correct action names
-- Create json views for tally import/export?
-- 
-Server:
-- Show graphical view of all users connected via a set of specified SQL servers
-- 
-
-Augment Wylib/wyseman:
-X-  Can specify a set of actions
-X-  Can specify a set of reports
-X-  Can specify a set of subordinate views (example: phone, address)
--  Don't instantiate dbe, dbs until we post them the first time (faster launch)
--  Menu selector for opening sub-views available in Dbe
--  Menu selector for available reports in Dbe (also Dbp?)
--  Menu selector for accessing available actions in Dbe
--  Add information about foreign keys in wm.table_meta
--  Implement save/restore on each tab (later?)
-- 
-- Wyseman: can apply incremental delta scripts to go from one release to another
-- 
-- Wylib Reports: (live, respond to DB notices)
--  On a single record:
--   Bar code for a ticket
--   PDF view of a drawing/figure
--  On a group of records:
--   An order (header, items), or invoice
--   A contract (comprising multiple, possibly nested clauses)
--  Broad array of queries (with settable parameters)
--   Balance sheet (date, periods, interval, etc.)
--   Income statement (start, end, periods, interval)
--   Dashboard
--   Arbitrary JS code (may not even access DB)
-- 
-- Admin SPA:
--X   Can add, update, delete users
--   Can generate user ticket
--   Server listens on ticket port for specified timeout period
--   User can connect/initialize using ticket
--   Can import user from JSON
--   Can export user to JSON
--   Admin can edit, create documents
--   
-- User SPA:
--   Can grab ticket
--   Can generate, configure keys
--   Save data in localStorage
--   User can generate tickets for other peers
--   Server listens for peer ticket connections
--   Can register buy/sell parameters
-- 
-- Server:
--   Server listens for authenticated peer connections
--   Peers can connect and validate
--   Server initiates trade requests
-- 
-- Database:
--   Only allow minimum, required access/permissions
--   Is each server a single user, or do real user ID's flow all the way to the database connection?
--   Can run from schema sources, or from compiled schema 
-- 
-- Simple lift protocol
-- Machine state kept in database
-- Flow chart kept in control logic (JS object)
-- 
-- Wylib login/validation for SPA client/server connections
-- 
-- Implement contract documents  
-- How to view/print a document?
--   
-- Implement writing a check:
--   User mobile clients can talk to each other in absense of internet or server connection
--   They exchange a check
--   The check is 'cashed' or recorded once the network comes back up
--   
-
-Old TODOs:
-
-General:
-- Make wyseman deployable as both ruby gem and npm module
-- Deploy mychips as npm module
-- Mychips NPM module includes multiple CLI commands
-- 
-
-Admin:
-- Get wyseman admin to load a user.json file
-- Fully port mc_admin prototype to JS
-- Command line switch to run as daemon
-- Switch to monitor web admin port (80?)
-- Switch to monitor peer port
-- Switch to monitor user port
-- 
-
-User Server:
-- Fully port mc_admin prototype to JS
-- Can mc_admin listen on multiple ports (i.e. a single server process in JS)?
-- 
-
-Mobile App:
-- Port prototype to JS
-- Multiple mobi users can connect to same port, if configured for it
-- Separate site certificate for every user connection, or single site cert?
-- 
-
-Peer Operations:
 - Make command handler for peer server
 - Make ssl socket server for peer interface
 - Handle user command to issue stock ticket
@@ -187,25 +84,65 @@ Peer Operations:
 -   Get income/expense summary (start, end)
 - 
 
-Wyseman:
-- JS API works
-- JS API is npm package
-- Implement primary connect points for each connect type (as with addresses)
-- Generate build/upgrade SQL scripts to be called from app
-- Table to store alter commands
-- Ability to commit a release
-- Can then edit/revise new working version
+Server:
+- Show graphical view of all users connected via a set of specified SQL servers
+- Server listens for authenticated peer connections
+- Peers can connect and validate
+- Server initiates trade requests
+- 
+- Admin SPA:
+-   Server listens on ticket port for specified timeout period
+-   User can connect/initialize using ticket
+-   Can export user to JSON
+-   Can export user to paper, w/ QR code
+-   Admin can edit, create documents
+-   
+
+Wylib:
+- Wylib login/validation for SPA client/server connections
+- Make reports run more sensibly whether they have options or not
+- Implement wylib report format
+-   Control function returns a JSON control object
+-   Nested structure of Vue components interpret the object
+-   Can produce mychips contracts using this report format
+-   Can produce tally contract (with QR code paper backup)?
+-   Can export graphics
+- Can export dbp view to a spreadsheet
+- Report graphics (i.e. ticket) can export to graphic, attach to email, etc.
+- How/when to self-heal components if state has extra, or not enough attributes
+- Support for spreadsheet reports?
+- Should we use a spreadsheet widget with file export?
+- See TODO's/Fixme's in dbp and dbe
+- wmd defaults for wyselib parameters
+- wmd defaults for other wyselib/base files?
+- Menu selector for accessing available actions in Dbp
+- Implement save/restore on each tab (later?)
 - 
 
-General:
-X- Are we using ssl certificates, or making our own?
-X- Are we using an http server/client, or finding an ssl-capable peer socket protocol
+- Wyseman:
+- Can apply incremental delta scripts to go from one release to another
 - 
+
+- User SPA:
+-   Can grab ticket
+-   Can generate, configure keys
+-   Save data in localStorage
+-   User can generate tickets for other peers
+-   Server listens for peer ticket connections
+-   Can register buy/sell parameters
+- 
+
+Advanced Features:
+- Implement writing a check:
+-   User mobile clients can talk to each other in absense of internet or server connection
+-   They exchange a check
+-   The check is 'cashed' or recorded once the network comes back up
+-   
+
+Old TODOs:
 - Request for a certificate be signed by others I trust?
 - Cert must link public key to a chip ID, and to a distinct person
 - 
-- How to trigger pro-active events?
--   Configured in the database?
 - Launch processes to:
 -   Initiate lift queries
 -   Freshen our pathway cache
@@ -217,7 +154,6 @@ X- Are we using an http server/client, or finding an ssl-capable peer socket pro
 -   Alarm, lockdown
 - 
 - Peer commands:
-X-   Request new tally with me
 -   Request link to parties that have your issue for sale
 -   Request link to parties that have your issue for sale
 -   Pass my request through to a referenced peer

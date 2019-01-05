@@ -1,5 +1,9 @@
 Change Log:
 
+0.1.3	2019-Jan
+	- Implemented user tickets using wylib reports
+	- Admin module now replaces old ruby functionality
+
 0.1.0	2018-Dec
 	- Can negotiate/establish tallies with other users
 	- Can exchange chits on tallies
