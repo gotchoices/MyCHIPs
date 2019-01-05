@@ -14,6 +14,8 @@
 //- 
 var log = require('../lib/logger')('mychips')
 const OS = require('os')
+const Express = require('express')
+var expSPApp
 
 var argv = require('yargs')
   .alias('h','hostID')    .default('hostID',    null)		//If peer servers run on multiple hosts, this identifies our host
@@ -34,22 +36,22 @@ log.trace("Peer Port:  ", argv.peerPort)
 log.trace("Agent Model:", argv.model)
 
 if (Boolean(argv.spaPort)) {				//Create http server for client SPAs
-    let express = require('express'), app = express();
-    app.use(express.static('pub'))
-    app.listen(argv.spaPort)
+    expSPApp = Express()
+    expSPApp.use(Express.static('pub'))
+    expSPApp.listen(argv.spaPort)
     log.debug("Serving client SPA's at port:", argv.spaPort)
 }
 
 if (Boolean(argv.wgiPort)) {				//Create http server for wysegi SPA
-    let express = require('express'), app = express();
-    app.use(express.static('node_modules/wylib/dist'))
+    app = Express();
+    app.use(Express.static('node_modules/wylib/dist'))
     app.listen(argv.wgiPort)
     log.debug("Serving wysegi SPA at port:", argv.wgiPort)
 }
 
 if (Boolean(argv.adminPort)) {				//Create socket server for admin data
   const AdminCont = require('../lib/admin.js')		//Admin client connection controller
-  var admin = new AdminCont(argv.adminPort)
+  var admin = new AdminCont(argv.adminPort, expSPApp)
 }
 
 //if (Boolean(argv.userPort)) {				//Create socket server for user data
