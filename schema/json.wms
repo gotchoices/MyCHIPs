@@ -76,20 +76,14 @@ view json.tally {json mychips.tallies_v} {select
 
 # Standard view for tickets
 #----------------------------------------------------------------
-view json.ticket {json mychips.users_v mychips.tokens_v base.parm(varchar,varchar)} {select
-    u.id		as "id"
-  , t.token_seq		as "seq"
-  , case when t.allows = 'user' then u.user_sock
-    else u.peer_cdi end	as "url"
-  , t.token		as "token"
-  , s.peer_pub		as "public"
-  , t.exp_date		as "expires"
-
-    from	mychips.users_v	u
-    join	mychips.tokens	t on t.token_ent = u.id
-    left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
-    left join	mychips.peers	s on s.peer_ent = p.v_int
-    where	t.exp_date > current_timestamp
+view json.ticket {json mychips.tickets_v} {select
+    id			as "id"
+  , token_seq		as "seq"
+  , url			as "url"
+  , token		as "token"
+  , peer_pub		as "public"
+  , exp_date		as "expires"
+    from	mychips.tickets_v
 } -primary {id seq}
 
 # Import possibly nested JSON data structures
