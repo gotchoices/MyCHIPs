@@ -280,6 +280,9 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , sum(case when tally_type = 'foil' then total else 0 end)	as foil_total
   , count(nullif(tally_type, 'foil'))	as stocks
   , count(nullif(tally_type, 'stock'))	as foils
+  , array_agg(partner)	as partners
+  , array_agg(partner) filter (where tally_type = 'stock')	as clients
+  , array_agg(partner) filter (where tally_type = 'foil')	as vendors
   from mychips.tallies_v group by 1;
 } -primary id
 
@@ -549,3 +552,15 @@ trigger mychips_tallies_tr_change {} {
 trigger mychips_chits_tr_change {} {
     after insert or update or delete on mychips.chits for each statement execute procedure mychips.change_tf_notify('chits');
 }
+
+# Find an open tally meeting certain criteria, returning the sequence number
+#----------------------------------------------------------------
+function {mychips.tally_find(ent int, part int, typ text)} {mychips.tallies} {
+  returns int immutable language plpgsql as $$
+    declare
+      trec record;
+    begin
+      select into trec * from mychips.tallies where tally_ent = ent and status = 'open' and tally_type = typ and partner = part order by crt_date desc limit 1;
+      return trec.tally_seq;
+    end;
+$$;}
