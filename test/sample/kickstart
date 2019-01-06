@@ -33,6 +33,11 @@ const fileList = ["org.json", "user1.json", "user2.json", "user3.json"].forEach(
   queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
 })
 
+//For user agent model testing:
+queryList.push({q:"select base.parmset('agent','interval',$1::int)", a:[1000]})
+queryList.push({q:"select base.parmset('agent','addclient',$1::int)", a:[0.10]})
+queryList.push({q:"select base.parmset('agent','addvendor',$1::int)", a:[0.20]})
+
 //Set org.json entity as the site admin
 queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})
 
