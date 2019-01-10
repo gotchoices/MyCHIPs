@@ -2,17 +2,12 @@
 //Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
-//X- Calculate arrows from hub center and end points if hub specified
-//X- Can update text in hubs asynchronously
-//X- Make database generate notifications when users, totals, tallies changed
-//X- Respond to notifications from database
-//X- Update nodes when new active user node added
-//X- Why don't arrow heads update on hot load?
 //X- Update tally totals when chits added, removed
-//- Update tallies when added, removed
-//- 
-//- Later:
-//- updateNodes() can't handle a deleted node, can only add them
+//X- Update tallies when added, removed
+//X- updateNodes() can't handle a deleted node, can only add them
+//- Make more reactive, less query driven
+//- When we get a notice from the database, only load those nodes, tallies that have changed
+//- Only repaint the nodes that have changed.  Are we rendering the whole page each time?
 //- 
 
 <template>
@@ -37,34 +32,65 @@ export default {
     fontSize:	16,
     hubWidth:	100,
     hubHeight:	20,
+    tallies:	{},
     stateTpt:	{width: 600, height: 600, nodes:{}},
   }},
+  computed: {
+    totals: function() {
+//console.log("Totals:", Object.keys(this.tallies).length)
+      let tots = {}
+      Object.keys(this.tallies).forEach(key=>{
+        let debits = 0, credits = 0
+        this.tallies[key].stock.forEach(st=>{debits += st})
+        this.tallies[key].foil.forEach(fo=>{credits += fo})
+        tots[key] = {debits, credits}
+      })
+      return tots
+    },
+  },
   methods: {
     user(id, name, cdi) {		//Generate SVG code for a user node
-      let text = `<text x="4" y="${this.fontSize}" style="font:normal ${this.fontSize}px sans-serif;">${id}:${name}<tspan x="4" y="${this.fontSize * 2 + 4}">${cdi}</tspan></text>`
-      let max = Math.max(cdi.length, name.length + 6)
-      let width = max * this.fontSize * 0.55
-        , height = this.fontSize * 3.5
-        , code = `
+//console.log("User", id, cdi, this.totals[cdi])
+      let tots = cdi in this.totals ? this.totals[cdi] : {}
+        , debits = Math.round(tots.debits || 0)
+        , credits = Math.round(-tots.credits || 0)
+        , total =  Math.round(debits - credits)
+        , sumLine = debits + '-' + credits + '=' + total
+        , yOff = this.fontSize + 3
+        , text = `
+        <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
+          ${id}:${name}
+          <tspan x="4" y="${yOff * 2}">${cdi}</tspan>
+          <tspan x="4" y="${yOff * 3}">${sumLine}</tspan>
+        </text>`
+        , max = Math.max(cdi.length, name.length + 6, sumLine.length)
+        , width = max * this.fontSize * 0.55
+        , height = this.fontSize * 3.8
+        , body = `
         <g stroke="black" stroke-width="1">
           <rect rx="4" ry="4" width="${width}" height="${height}" fill="#e0e0e0"/>
           ${text}
         </g>`
         , ends = [{x:width/2, y:0}, {x:width, y:height*0.5}, {x:width/2, y:height}, {x:0, y:height*0.5}]
-//console.log("Ends:", ends)
-      return {code, ends, width, height}
+//console.log("User body:", width, height)
+      return {body, ends, width, height}
     },
 
     updateNodes() {
       let spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi'], where: [['id', '>', '1']], order: 1}
       Wylib.Wyseman.request('urnet.user.'+this._uid, 'select', spec, (data,err) => {
         let notFound = Object.assign({}, this.state.nodes)
+//console.log("Update nodes")
         for (const dat of data) {
-          if (!(dat.peer_cdi in this.state.nodes)) {
-            let { code, ends, width, height } = this.user(dat.id, dat.std_name, dat.peer_cdi)
-              , x = Math.random() * this.state.width/2, y = Math.random() * this.state.height/2
-              , nodeState = {tag:dat.peer_cdi, x, y, width, height, radius:height/2, code, ends, links:[]}
-            this.$set(this.state.nodes, dat.peer_cdi, nodeState)
+          let bodyObj = this.user(dat.id, dat.std_name, dat.peer_cdi)
+            , radius = bodyObj.height / 2
+          if (dat.peer_cdi in this.state.nodes) {
+            Object.assign(this.state.nodes[dat.peer_cdi], bodyObj, {radius})
+//console.log("n Dat:", dat.peer_cdi, this.state.nodes[dat.peer_cdi].body)
+          } else {
+            let x = Math.random() * this.state.width/2
+              , y = Math.random() * this.state.height/2
+            this.$set(this.state.nodes, dat.peer_cdi, Object.assign(bodyObj, {tag:dat.peer_cdi, x, y, radius, links:[]}))
 //console.log("N Dat:", dat.peer_cdi, nodeState.x, nodeState.y, this.state.nodes[dat.peer_cdi].x)
           }
           delete notFound[dat.peer_cdi]
@@ -83,7 +109,6 @@ export default {
         let haveHubs = {}					//Keep track of hub stacking
         for (const dat of data) {				//For each tally link
 //console.log("L Dat:", dat)
-//          if (!(dat.user_cdi in this.state.nodes)) continue	//No matching node found on the graph
 
           let node = this.state.nodes[dat.user_cdi]		//Get node's state
             , nodeLink = node.links.find(link => {return link.index == dat.tally_guid})	//Do we already have a definition for this link?
@@ -98,6 +123,9 @@ export default {
             , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
             , center = {x:xOffset, y:yOffset}
 
+          if (!(dat.user_cdi in this.tallies)) this.$set(this.tallies,dat.user_cdi,{stock:[], foil:[]})
+          this.tallies[dat.user_cdi][dat.tally_type].splice(idx,1,dat.total_c)
+//console.log('Add to tallies')
           if (!nodeLink) {				//Create new data structure for link, hubs
             nodeLink = {index:dat.tally_guid, link:dat.part_cdi, draw:isFoil, ends, center, hub:null}
             node.links.push(nodeLink)
@@ -120,12 +148,11 @@ export default {
     },		//updateLinks
 
     refresh() {
-      this.updateNodes()
       this.updateLinks()
+      this.updateNodes()
     },
     reset() {
       this.state.nodes = {}
-//      Object.keys(this.state.nodes).forEach(key=>{delete this.state.nodes[key]})
       this.refresh();
     },
   },
@@ -140,9 +167,9 @@ export default {
     this.updateNodes()
     this.updateLinks()
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
-console.log("Async:", dat)
+//console.log("Async:", dat)
       if (dat.target == 'peers') this.updateNodes()
-      if (dat.target == 'chits' || dat.target == 'tallies') this.updateLinks()
+      if (dat.target == 'chits' || dat.target == 'tallies') this.refresh()
     })
   }
 }
