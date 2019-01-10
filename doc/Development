@@ -3,7 +3,8 @@ On a Fedora linux machine:
 
 As Root:
 - Install Postgres, as root:
-  dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl ruby
+  dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib
+  dnf install ruby			#If you will be working on schema
   su -l postgres -c initdb
   systemctl enable postgresql
   systemctl start postgresql
