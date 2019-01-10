@@ -24,6 +24,7 @@ var argv = require('yargs')
   .alias('u','userPort')  .default('userPort',  43210)		//User client at this port
   .alias('a','adminPort') .default('adminPort', 54320)		//Admin client at this port
   .alias('p','peerPort')  .default('peerPort',  65430)		//Peer-to-peer connections at this port
+  .alias('l','lifts')     .default('lifts', false)		//Run lift scheduler
   .alias('m','model')     .default('model', false)		//Run agent-based model
   .argv;
 
@@ -33,7 +34,7 @@ log.trace("Wysegi Port:", argv.wgiPort)
 log.trace("Admin Port: ", argv.adminPort)
 log.trace("User Port:  ", argv.userPort)
 log.trace("Peer Port:  ", argv.peerPort)
-log.trace("Agent Model:", argv.model)
+log.trace("Agent:", argv.model, "Lifts:", argv.lifts)
 
 if (Boolean(argv.spaPort)) {				//Create http server for client SPAs
     expSPApp = Express()
@@ -62,6 +63,11 @@ if (Boolean(argv.adminPort)) {				//Create socket server for admin data
 if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communications
   const PeerCont = require('../lib/peer.js')		//Peer communications controller
   var peer = new PeerCont(argv.peerPort, argv.hostID)
+}
+
+if (Boolean(argv.lifts)) {				//Run lift scheduler
+  const LiftCont = require('../lib/lifts.js')		//Lift controller
+  var lifts = new LiftCont()
 }
 
 if (Boolean(argv.model)) {				//Run agent-based simulation model

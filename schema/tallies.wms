@@ -5,7 +5,7 @@
 #- Include host_id in tally_v to reduce queries in notice triggers?
 #- 
 module mychips
-define unitMultiplier 1000000
+define unitMultiplier 1000
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
@@ -27,14 +27,19 @@ table mychips.tallies {mychips base.ent} {
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
   , partner	int		references base.ent on update cascade on delete restrict
-  , contract	varchar	     -- references mychips.covenants on update cascade on delete restrict
   , status	varchar		not null default 'void' check(status in ('void','draft','open','close'))
   , request	varchar		check(request is null or request in ('void','draft','open','close'))
   , comment	varchar
   , user_sig	varchar
   , part_sig	varchar
-  , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
+  , contract	jsonb
+  , stock_terms	jsonb
+  , foil_terms	jsonb
+  , bal_target	bigint		not null default 0
+  , lift_marg	float		not null default 0
+  , drop_marg	float		not null default 1
   , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
+  , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
   , units_c	bigint		default 0 not null
     eval(s $glob::stamps)
 }
