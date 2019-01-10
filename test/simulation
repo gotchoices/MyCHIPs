@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #Run multiple servers to simulate a network of CHIP servers
 size="80x64"						#X-window size
 gx=10; gy=320; offx=500; offy=0;			#Window geometry placement offsets

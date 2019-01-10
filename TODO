@@ -1,10 +1,37 @@
 TODO:
 
 Immediate:
-- Make agent model work well enough to generate data to analyze lift model
-- Create peer query protocol to populate possible lift pathways
-- Query to discover possible lift pathways
-- Protocol, state machine, to execute lifts
+X- Make agent model work well enough to generate data to analyze lift model
+X- DB table to model, discover circuits
+X- Discover circuits within same DB
+X- Make svg graph more reactive--nodes too
+X- Can show updating totals on the notes
+X- Make server scheduler to execute local lifts as a transaction (on server authority?)
+X- How to prioritize lifts?
+- 
+- System for instantiating multiple databases, multiple servers
+- Central repository where agent users can choose from peers, not in their own DB
+- DB support for peers, which are not local users
+- Make paths_v properly detect paths to/from peers not on the same DB
+- 
+- Create remote query protocol
+- Query adjoining DB's for pathway information
+- Populate local DB with stubs for remote peers
+- 
+- Create remote lift protocol
+- Design state machine to execute lifts
+- 
+- Build better agent model:
+- Communicates with server through user port?
+- Learns about other peers through central repository
+- Some users are in same DB, others in a different one
+- Work harder if my accrued receivables get low  
+- Raise vendor accumulation limits if my receivables get high
+- Create lift incentives if I get stale imbalances
+- Extend credit to peers based only on their credit-worthiness
+- 
+- Use wylib report widget to implement contract editor/viewer
+- How are standard contracts published?
 - 
 
 General roadmap:
@@ -91,11 +118,12 @@ Server:
 - Server initiates trade requests
 - 
 - Admin SPA:
--   Server listens on ticket port for specified timeout period
--   User can connect/initialize using ticket
--   Can export user to JSON
--   Can export user to paper, w/ QR code
--   Admin can edit, create documents
+- Optimize SVG user graph reactivity.  Only update what has changed.
+- Server listens on ticket port for specified timeout period
+- User can connect/initialize using ticket
+- Can export user to JSON
+- Can export user to paper, w/ QR code
+-  Admin can edit, create documents
 -   
 
 Wylib:
