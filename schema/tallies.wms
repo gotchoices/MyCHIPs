@@ -36,10 +36,10 @@ table mychips.tallies {mychips base.ent} {
   , stock_terms	jsonb
   , foil_terms	jsonb
   , bal_target	bigint		not null default 0
-  , lift_marg	float		not null default 0
-  , drop_marg	float		not null default 1
-  , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
-  , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
+  , lift_marg	float		not null default 0 constraint "!mychips.tallies.LMG" check (lift_marg > -1 and lift_marg < 1)
+  , drop_marg	float		not null default 1 constraint "!mychips.tallies.DMG" check (drop_marg >= 0 and drop_marg <= 1)
+  , dr_limit	bigint		not null default 0
+  , cr_limit	bigint		not null default 0
   , units_c	bigint		default 0 not null
     eval(s $glob::stamps)
 }
