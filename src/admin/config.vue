@@ -6,13 +6,13 @@
 
 <template>
   <div>
-    <div class="header">Configuration:</div>
-    <button @click="initialize()">Initialize</button>
+    <div class="header">Configuration Settings:</div>
     <div class="subwindows">
-      <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" @close="r=>{closeWin(idx,r)}">
+      <wylib-win v-for="win,key in state.windows" topLevel=true :key="key" :state="win" @close="r=>{closeWin(key,r)}">
         <wylib-dbp :state="win.client"/>
       </wylib-win>
     </div>
+    <button @click="addWin()">New Configuration Preview</button>
   </div>
 </template>
 
@@ -32,24 +32,13 @@ export default {
   }},
 
   methods: {
-    lang: function(win,idx) { return {
-      title:	win.client.dbView + ':' + idx, 
-      help:	'Preview listing of view: ' + win.client.dbView
-    }},
-    addWin() {
-      Wylib.Common.addWindow(this.state.windows, this.winRec, true)
-    },
-    closeWin(idx, reopen) {
-      Wylib.Common.closeWindow(this.state.windows, idx, reopen)
-    },
-    initialize() {
-      console.log("Initializing...")
-    }
+    addWin() {Wylib.Common.addWindow(this.state.windows, this.winRec, this, true)},
+    closeWin(idx, reopen) {Wylib.Common.closeWindow(this.state.windows, idx, this, reopen)},
   },
 
   beforeMount: function() {
     Wylib.Common.stateCheck(this)
-    if (this.state.windows.length <= 0) this.addWin()
+    if (Object.keys(this.state.windows).length <= 0) this.addWin()
   },
 }
 </script>

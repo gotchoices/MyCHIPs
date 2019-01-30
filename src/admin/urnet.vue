@@ -55,7 +55,8 @@ export default {
         , debits = Math.round(tots.debits || 0)
         , credits = Math.round(-tots.credits || 0)
         , total =  Math.round(debits - credits)
-        , sumLine = debits + '-' + credits + '=' + total
+        , fColor = (total < 0 ? '#ff0000' : '#0000ff')
+        , sumLine = `${debits} - ${credits} = <tspan stroke="${fColor}" fill="${fColor}">${total}</tspan>`
         , yOff = this.fontSize + 3
         , text = `
         <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
@@ -63,7 +64,7 @@ export default {
           <tspan x="4" y="${yOff * 2}">${cdi}</tspan>
           <tspan x="4" y="${yOff * 3}">${sumLine}</tspan>
         </text>`
-        , max = Math.max(cdi.length, name.length + 6, sumLine.length)
+        , max = Math.max(cdi.length, name.length + 6, sumLine.length-44)	//take tspan into account
         , width = max * this.fontSize * 0.55
         , height = this.fontSize * 3.8
         , body = `

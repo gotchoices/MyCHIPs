@@ -12,19 +12,19 @@
 
 <script>
 import Wylib from 'wylib'
-import AppDocs from './admin/docs.vue'
+import AppConts from './admin/conts.vue'
 import AppUsers from './admin/users.vue'
 import AppURNet from './admin/urnet.vue'
 import AppConfig from './admin/config.vue'
 
 export default {
-  components: {'wylib-app': Wylib.Application, 'app-users': AppUsers, 'app-docs': AppDocs, 'app-urnet': AppURNet, 'app-config': AppConfig},
+  components: {'wylib-app': Wylib.Application, 'app-users': AppUsers, 'app-conts': AppConts, 'app-urnet': AppURNet, 'app-config': AppConfig},
   data() { return {
-    state:      {curTab: 'users', tabs: {users:{}, docs:{}, urnet:{}, config:{}}},
+    state:      {curTab: 'users', tabs: {users:{}, conts:{}, urnet:{}, config:{}}},
     tog:	true,
     tabs:	[
       {tag: 'users', title: 'Users'},
-      {tag: 'docs',  title: 'Documents'},
+      {tag: 'conts',  title: 'Contracts'},
       {tag: 'urnet',  title: 'Network'},
       {tag: 'config', title: 'Settings'},
     ],
