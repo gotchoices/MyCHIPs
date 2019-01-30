@@ -86,6 +86,20 @@ view json.ticket {json mychips.tickets_v} {select
     from	mychips.tickets_v
 } -primary {id seq}
 
+# Standard view for contracts
+#----------------------------------------------------------------
+view json.contract {json mychips.contracts_v} {select
+    author
+  , title
+  , version
+  , language
+  , publish
+  , source
+  , digest
+  , sections
+    from	mychips.contracts_v
+} -primary {author title version language}
+
 # Import possibly nested JSON data structures
 #----------------------------------------------------------------
 function {json.import(data jsonb, keys jsonb default null)} {json.user json.address json.connect json.ticket json.tally} {
@@ -112,15 +126,18 @@ function {json.import(data jsonb, keys jsonb default null)} {json.user json.addr
 
       for tableName in select jsonb_object_keys(data) loop		-- For each record in toplevel object (normally just one)
         tmpObject = data->tableName;					-- Value of user, address, contact, etc
---raise notice '  process key:% :%', tableName, data->tableName;
+--raise notice '  process:% data:%', tableName, data->tableName;
 
         for tmpKey in select jsonb_object_keys(keys) loop		-- For any primary key values passed in from above
           tmpObject = jsonb_set(tmpObject, array[tmpkey], keys->tmpkey);	-- Assign them into our record
 --raise notice '  setting key:%=% obj:%', tmpkey, keys->tmpkey, tmpObject;
         end loop;
 
-        select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray,fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = tableName;
         select array_to_string(pkey,',') into primKeyList from wm.table_data where td_sch = 'json' and td_tab = tableName;
+        if not found then
+          continue;							-- Skip any keys we don't know how to import
+        end if;
+        select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray, fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = tableName;
 --raise notice '  fieldArray:% fieldList:%', fieldArray, fieldList;
         cmd = 'insert into json.' || quote_ident(tableName) || ' (' || fieldList || ') select ' || fieldList || ' from jsonb_populate_record(NULL::json.' || quote_ident(tableName) || ', $1) returning ' || primKeyList;
 --raise notice '  cmd :%', cmd;

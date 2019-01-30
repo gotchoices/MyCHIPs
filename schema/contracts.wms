@@ -1,13 +1,44 @@
 #Schema for storing contract documents
 #Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#TODO:
+#- Don't allow disorderly update of release date
+#- Don't allow disorderly update of version
+#- Use stored procedure/action to generate checksum, post release date
+#- Can only update records that have no release date
+#- Work on it freely until published, then it becomes locked
+#- Stored procedure to fetch a contract; wget it from url if we don't already have it
+#- 
+require multiview.tcl base.tcl
 module mychips
 
-table mychips.covenants {mychips} {
-    author	varchar
-  , title	varchar
-  , version	int
-  , language	varchar		, primary key(author, title, version, language)
-  , released	date
-  , content	varchar
-  , hash	varchar		, unique (hash)
+namespace eval contracts {
+    def contracts_pk	{author title version language}
+    def contracts_up	{sections source digest}
+    def contracts_in	[concat $contracts_pk $contracts_up publish]
+    def contracts_se	[concat $contracts_in $glob::stampfn]
+}
+
+table mychips.contracts {mychips base.language} {
+    author	varchar		not null
+  , title	varchar		not null
+  , version	int		not null default 1 constraint "!mychips.contracts.BVN" check (version >= 1)
+  , language	varchar		references base.language on update cascade on delete restrict
+  , publish	date	      , constraint "!mychips.contracts.PBC" check (publish is null or (sections is not null and source is not null and digest is not null))
+  , source	varchar		
+  , digest	varchar	      , unique (digest)
+  , sections	jsonb
+  , primary key(author, title, version, language)
+  
+    eval(s $glob::stamps)
+}
+
+#Basic view
+#----------------------------------------------------------------
+view mychips.contracts_v {mychips.contracts} {
+    select eval(fld_list $contracts::contracts_se c)
+    from	mychips.contracts c;
+
+    eval(trigview::insert mychips.contracts_v mychips.contracts $contracts::contracts_in $contracts::contracts_pk $glob::stampin);
+    eval(trigview::update mychips.contracts_v mychips.contracts $contracts::contracts_up $contracts::contracts_pk $glob::stampup);
+    eval(rule_delete mychips.contracts_v mychips.contracts $contracts::contracts_pk);
 }

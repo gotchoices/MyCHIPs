@@ -1,9 +1,19 @@
 #Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
 
-tabdef chip.docs -fo author -f [concat {
-    {author		ent	30	{1 1}		}
-    {contract		ent	20	{1 2}		-spf zip}
-    {version		ent	2	{2 2}		-spf clc}
-    {content		ent	30	{1 2 2}		-spf edw}
-    {hash		ent	16	{3 1}		}
-} $glob::stampd]
+tabdef mychips.contracts -focus author -f [concat {
+    {author		ent	20	{1 1}		}
+    {publish		ent	14	{2 1}		-state readonly -wr 0}
+    {version		ent	3	{3 1}		-just r}
+    {title		ent	30	{1 2 2}		}
+    {language		ent	4	{3 2}		}
+    {source		ent	20	{1 3 2}		}
+    {digest		ent	20	{3 3}		-state readonly -wr 0}
+    {sections		mle	80	{1 4 4}		-spf edw -state readonly}
+} $glob::stampd] -display {
+    author title version language released
+}
+
+tabdef mychips.contracts_v -actions {
+    {edit		strdoc}
+    {publish		-ask 1}
+}

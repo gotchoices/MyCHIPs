@@ -1,25 +1,93 @@
 A CHIP is, at its heart, a credit agreement between two parties.  In other 
-words, it is a contract--payable by one party and receivable by the other.
+words, it is a contract--payable from one party and receivable to the other.
 
-So the job of MyCHIPs is to organize and document these contracts.  And it
-will do so just you might imagine with any legally binding agreement.
+So one job of MyCHIPs is to organize and document these contracts.  And it
+will do so just as you might imagine with any legally binding agreement.
 That way, if both parties share a legal jurisdiction, their agreements can
-be enforced by that jurisdiction, in addition to natural community
+be enforced by that jurisdiction, in addition to the natural trading community
 penalties that would be incurred by defaulting on a contract.
 
 This directory contains a few boilerplate examples of contract fragments.
-Ideally, a contract would be comprised of multiple fragments.  The idea
-is, you can mix and match various clauses together to build up a complete
-contract agreement.  Ideally, there would be a relatively small universe
-of "standard" contracts people recognize and get comfortable with.
+Ideally, a contract would be comprised of multiple fragments.  The idea is, you 
+can mix and match various clauses together to build up a complete contract 
+agreement that is acceptable to both parties.  Ideally, there would be a 
+relatively small universe of "standard" contracts people recognize and get 
+comfortable with.
 
-Contract clauses will be incorporated into the parent contract by just
-referring to the clause key (title, author, version and hash.)  So the 
-clause itself doesn't get included into the parent contract--only the 
-reference does.
+Contracts can be incorporated into other contracts by referring to the contract 
+key (author, title, version and language) and a hash digest of the contract
+contents.  This way the contract itself doesn't actually have to get included 
+inline.  But the terms, or effect of the contract, still get included as you 
+invoke them by reference.
 
-Likewise, when incorporating a contract into a context such as a tally
-or a lift, it is only necessary to refer to the contract key.  The key
-would be incorporated into the string of data that gets signed, so that
-constitutes a digital signature indicating the consent and agreement of
-the parties.
+Contract Format:
+-------------------------------------------------------------------------------
+A contract is a JSON object with the following properties:
+
+The contract object contains the following attributes:
+
+  - digest
+    The digest contains a hash of the rest of the object so it is a little
+    different than all the other properties.  When computing the hash, the
+    digest property is removed, the object is serialized by a deterministic
+    version of JSON.stringify, and then given to the SHA256 hash routine.  Once 
+    the hash is complete, the digest property is added back into the object for
+    storage and/or transmission of the contract.
+
+  - author
+    The name of the person or organization who created and/or published the 
+    contract document.  If you expect people to agree to tallies that 
+    incorporate a particular contract, they will probably feel more comfortable
+    with language from a source they trust.  If you are asked to agree to a
+    contract from an author you don't know, you should read it very carefully
+    and/or get competent legal advice first.
+
+  - title
+    A concise title which will describe what the contract is about.  If the 
+    covenant is included in a larger reference, this will serve as the section 
+    title.  At a minimum, this title should be unique to the author.
+
+  - version
+    An integer indicating the revision of the contract.  The number 1 indicates
+    this is the first publicly released version.
+
+  - language
+    Use the standard, 3-letter abbreviation for the language the contract is
+    rendered in.  It is very possible to have the same contract and version
+    available in multiple languages.  In fact, some parties may wish to include
+    the same contract in two different languages as part of a single tally.
+  
+  - source
+    A URL where an authoritative copy of the JSON object can be found.  Client
+    software should be able (and is responsible) to load the file from this URL 
+    and compare the hash signature to verify its authenticity.  The URL must be
+    unique to the author, title, version, and language.  By convention, the
+    document key can also be derived from the url.  For example:
+    
+      http://chipserve.org/mychips/Redemption_Terms-3-eng.json
+
+  - released
+    A date indicating when this contract was first published by the author.
+
+  - text
+    An optional pragraph of text consisting of one or more sentences, separated
+    terminated by a regular punctuation mark, and being separated by a single
+    space.  There should be no line feeds or other superfluous characters in
+    the paragraph.  The text may include html formatting tags which are limited
+    to <b>bold,</b> <i>italicized,</i> <u>underlined,</u> and cross-references.
+
+  - subs
+    This is an array of JSON objects which can be one of the following types:
+    - reference
+    - section
+    
+    A document reference contains a subset of the proprties above as follows:
+    - source		A URL, or the document key, separated by dashes
+    - digest		Hash of the document
+    - tag		A code used for the target of cross references
+    
+    A section contains the following properties:
+    - title
+    - tag
+    - text
+    - subs

@@ -1,11 +1,11 @@
 { "digest": "de765e79e0e9776e5417b04c1fb40f01daedaf6932e8c747f6c5d4a527f031xy",
-  "covenant": {
-  "title": "CHIP Ethics",
+  "contract": {
   "author": "mychips.org",
-  "source": "http://mychips.org/covenants/Ethics.json",
+  "title": "CHIP Ethics",
   "version": 1,
   "language": "en",
-  "released": "2018-11-23",
+  "publish": "2018-11-23",
+  "source": "http://mychips.org/contracts/Ethics.json",
   "content": [
     {"p": [
       "The credits, or chits, under this agreement constitute a pledge of value, measured in CHIPs, from the debtor, or foil, to the creditor, or stock, which terms shall be satisfied according to the terms defined herein."
