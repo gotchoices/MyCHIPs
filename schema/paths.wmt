@@ -1,0 +1,14 @@
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#------------------------------------------
+tabtext mychips.paths_v	{Tally Pathways}	{A view showing network pathways between entities, based on the tallies they have in place} {
+    {id			{Peer ID}		{Entity ID of the peer this pathway starts with}}
+    {length		{Node Length}		{The number of unique peer nodes in this pathway}}
+    {path		{Peer ID List}		{An array of the entity IDs in this pathway}}
+    {uuids		{Tally ID List}		{An array of the tally IDs in this pathway}}
+    {cycle		{Cycled}		{A flag indicating that the pathway contains a loop}}
+    {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
+    {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a lift is not possible.}}
+    {min		{Minimum}		{The smallest number of units desired to be lifted along the pathway}}
+    {max		{Maximum}		{The largest number of units desired to be lifted along the pathway}}
+    {bang		{Lift Benefit}		{The product of the pathway length, and the minimum liftable units.  This gives an idea of the relative benefit of conducting a lift along this pathway.}}
+}

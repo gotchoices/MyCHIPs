@@ -1,0 +1,4 @@
+#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#------------------------------------------
+
+tabdef mychips.paths_v -display {id length cost min circuit path circuit}
