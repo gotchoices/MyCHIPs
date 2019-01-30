@@ -31,7 +31,7 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
 }
 
 #Sample text in alternate language:
-tabtext mychips.users -lang fi	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
+tabtext mychips.users -lang fin	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
     {user_ent		{Entiteettien linkki}	{Yhteys yhteisön peruspöytään}}
     {user_stat		{Kaupan tila}		{CHIP-tilin kaupankäynnin tilille} {
         {act		{Aktiivinen}		{Hyvä käydä kauppaa}}
@@ -44,6 +44,6 @@ tabtext mychips.users -lang fi	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-til
     {DEF {Koetus 3} {Kolmanen testiviesti}}
 }
 
-tabtext mychips.users_v -lang fi	{CHIP käytäjät näkymä}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
+tabtext mychips.users_v -lang fin	{CHIP käytäjät näkymä}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
     {mobi_socket	{Käyttäjä pistorasia}		{IP-numero ja portti, johon käyttäjän mobiililaite yhdistää}}
 }
