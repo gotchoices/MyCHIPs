@@ -17,11 +17,11 @@ tabdef mychips.users_v -fields {
 } -subviews {
   base.addr_v base.comm_v
 } -actions {
-    {ticket		-multi 0}
-    {lock		}
-    {unlock		}
-    {summary		-multi 0}
-    {trade		-options {
+    {ticket		html -sing 1}
+    {lock		-ask 1}
+    {unlock		-ask 1}
+    {summary		}
+    {trade		html -options {
       {start		date	ent	11	{1 1}		-spf cal -hint date -tem date}
       {end		date	ent	11	{1 2}		-spf cal -hint date -tem date}
     }}
