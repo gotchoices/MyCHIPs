@@ -45,11 +45,13 @@ console.log("Got submit from content:", ...args)
 
     window.addEventListener('message', (ev) => {	//Answer replies from the parent window
 //console.log("Popup got message:", ev.source, ev.data)
-      let { request, format, content } = ev.data
+      let { request, format, content, config } = ev.data
+        , { action } = config || {}
       if (request != 'populate' || !format) return
-//console.log("Popup got request:", request, format, content)
+//console.log("Popup got request:", request, format, content, config)
       this.state.format = format
       this.state.content = content
+      if (window.opener && action) window.document.title = action.lang.title
     })
   },
 })
