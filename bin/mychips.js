@@ -15,7 +15,7 @@
 var log = require('../lib/logger')('mychips')
 const OS = require('os')
 const Express = require('express')
-var expSPApp
+var expSPApp = Express()
 
 var argv = require('yargs')
   .alias('h','hostID')    .default('hostID',    null)		//If peer servers run on multiple hosts, this identifies our host
@@ -37,7 +37,6 @@ log.trace("Peer Port:  ", argv.peerPort)
 log.trace("Agent:", argv.model, "Lifts:", argv.lifts)
 
 if (Boolean(argv.spaPort)) {				//Create http server for client SPAs
-    expSPApp = Express()
     expSPApp.use(Express.static('pub'))
     expSPApp.listen(argv.spaPort)
     log.debug("Serving client SPA's at port:", argv.spaPort)

@@ -1,5 +1,11 @@
 Change Log:
 
+0.1.4	2019-Jan
+	- Basic lift algorithm working in single database
+	- Support wylib report improvements
+	- Implement contract editor report
+	- Simple agent modeling
+
 0.1.3	2019-Jan
 	- Implemented user tickets using wylib reports
 	- Admin module now replaces old ruby functionality

@@ -8,7 +8,38 @@ X- Make svg graph more reactive--nodes too
 X- Can show updating totals on the notes
 X- Make server scheduler to execute local lifts as a transaction (on server authority?)
 X- How to prioritize lifts?
+X- Make separate report module that populates popup or report specific to report type
 - 
+X- Try launching contract editor from dbe
+X- Put a strdoc inside dialog app div
+X- Reports communicate back using same submit mechanism as dialog buttons
+X- Can I put every report inside an iframe?
+X- Window slot client reports whether it is printable (i.e. has an iframe)
+X- Can I put a vue element inside an iframe?
+- 
+X- Get rid of big fat frame in iframe inside report
+X- Open report windows re-populate on reload
+- 
+- Fix strdoc to include sub-documents
+- Submit in strdoc bubbles up through to main program
+- Can save content properly
+- In update routine, peel out title, text, (tag = source?)
+- Reload dbe after strdoc update?
+- Get report dialog to swallow strdoc menu (and/or make it sticky)?
+- Report popup has stringy or auto-hide menu
+- Implement dirty flag in strdoc
+- Get rid of valid flag in strdoc?
+- 
+- Implement a few basic contracts using strdoc widget
+- Harden contract views so you can only update working contracts
+- Implement publish procedure in backend
+- Connect publish to an action menu
+- How do actions work which have no preview window?
+- 
+- Use json-stable-stringify or fast-json-stable-stringify to generate hash
+- 
+- 
+- Lift modeling:
 - System for instantiating multiple databases, multiple servers
 - Central repository where agent users can choose from peers, not in their own DB
 - DB support for peers, which are not local users
@@ -29,9 +60,6 @@ X- How to prioritize lifts?
 - Raise vendor accumulation limits if my receivables get high
 - Create lift incentives if I get stale imbalances
 - Extend credit to peers based only on their credit-worthiness
-- 
-- Use wylib report widget to implement contract editor/viewer
-- How are standard contracts published?
 - 
 
 General roadmap:
@@ -129,12 +157,11 @@ Server:
 Wylib:
 - Wylib login/validation for SPA client/server connections
 - Make reports run more sensibly whether they have options or not
-- Implement wylib report format
--   Control function returns a JSON control object
--   Nested structure of Vue components interpret the object
--   Can produce mychips contracts using this report format
--   Can produce tally contract (with QR code paper backup)?
--   Can export graphics
+- Wylib report
+-   Reports survive reloads
+-   Auto size iframe to container window size
+-   Can print from strdoc component
+-   Can print out tally contract (with QR code paper backup)?
 - Can export dbp view to a spreadsheet
 - Report graphics (i.e. ticket) can export to graphic, attach to email, etc.
 - How/when to self-heal components if state has extra, or not enough attributes

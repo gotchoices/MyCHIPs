@@ -47,6 +47,7 @@ $$;
 create function norm_date(timestamptz) returns text immutable language sql as $$
     select to_char($1,'YYYY-Mon-DD HH24:MI:SS');
 $$;
+create extension "uuid-ossp";
 create function wm.column_names(oid,int4[]) returns varchar[] as $$
     declare
         val	varchar[];
@@ -162,6 +163,13 @@ code	varchar(2)	primary key
   , iso_3	varchar(4)	not null unique
   , iana	varchar(6)
 );
+create table base.language (
+code	varchar(3)	primary key
+  , iso_3b	varchar		unique
+  , eng_name	varchar		not null
+  , fra_name	varchar		not null
+  , iso_2	varchar(2)	unique
+);
 create function base.priv_role(name,varchar,int) returns boolean security definer language plpgsql stable as $$
     declare
       trec	record;
@@ -231,14 +239,23 @@ create function mychips.chits_tf_cache() returns trigger language plpgsql securi
     end;
 $$;
 create table mychips.covenants (
-author	varchar
-  , title	varchar
-  , version	int
-  , language	varchar		, primary key(author, title, version, language)
+author	varchar		not null
+  , title	varchar		not null
+  , version	int		not null default 1 constraint "!mychips.contract.BVN" check (version >= 1)
+  , language	varchar		references base.language on update cascade on delete restrict
   , released	date
   , content	varchar
   , hash	varchar		, unique (hash)
+  , primary key(author, title, version, language)
 );
+create function mychips.lifts_tf_change() returns trigger language plpgsql security definer as $$
+    begin
+      if (new.module = 'lifts') then
+        perform pg_notify('mychips_lifts', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
+      end if;
+      return null;
+    end;
+$$;
 create function mychips.tally_state(status text, request text, user_sig text, part_sig text, total bigint) returns text immutable language plpgsql as $$
     begin
       return case when status = 'void' and request is null	then 'void'
@@ -401,6 +418,24 @@ id		int		check (id > 0) primary key
 create function base.priv_has(varchar,int) returns boolean language sql stable as $$
       select base.priv_role(session_user,$1,$2);
 $$;
+create table mychips.contracts (
+author	varchar		not null
+  , title	varchar		not null
+  , version	int		not null default 1 constraint "!mychips.contracts.BVN" check (version >= 1)
+  , language	varchar		references base.language on update cascade on delete restrict
+  , publish	date	      , constraint "!mychips.contracts.PBC" check (publish is null or (sections is not null and source is not null and digest is not null))
+  , source	varchar		
+  , digest	varchar	      , unique (digest)
+  , sections	jsonb
+  , primary key(author, title, version, language)
+  
+    
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
+  , crt_by      name		not null default session_user references base.ent (username) on update cascade
+  , mod_by	name		not null default session_user references base.ent (username) on update cascade
+
+);
 create view wm.column_lang as select
     cd.cdt_sch					as sch
   , cd.cdt_tab					as tab
@@ -699,6 +734,13 @@ $$;
 create function base.username(int) returns varchar language sql security definer stable as $$
     select username from base.ent where id = $1;
 $$;
+create view mychips.contracts_v as select c.author, c.title, c.version, c.language, c.sections, c.source, c.digest, c.publish, c.crt_by, c.mod_by, c.crt_date, c.mod_date
+    from	mychips.contracts c;
+
+    ;
+    ;
+    create rule mychips_contracts_v_delete as on delete to mychips.contracts_v
+        do instead delete from mychips.contracts where author = old.author and title = old.title and version = old.version and language = old.language;
 create table mychips.peers (
 peer_ent	int		primary key references base.ent on update cascade on delete cascade
   , peer_cdi	varchar		
@@ -722,14 +764,19 @@ tally_ent	int		references base.ent on update cascade on delete cascade
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
   , partner	int		references base.ent on update cascade on delete restrict
-  , contract	varchar	     -- references mychips.covenants on update cascade on delete restrict
   , status	varchar		not null default 'void' check(status in ('void','draft','open','close'))
   , request	varchar		check(request is null or request in ('void','draft','open','close'))
   , comment	varchar
   , user_sig	varchar
   , part_sig	varchar
-  , cr_limit	bigint		not null default 0 constraint "!mychips.tallies.FLM" check (cr_limit >= 0)
-  , dr_limit	bigint		not null default 0 constraint "!mychips.tallies.RLM" check (dr_limit >= 0)
+  , contract	jsonb
+  , stock_terms	jsonb
+  , foil_terms	jsonb
+  , bal_target	bigint		not null default 0
+  , lift_marg	float		not null default 0 constraint "!mychips.tallies.LMG" check (lift_marg > -1 and lift_marg < 1)
+  , drop_marg	float		not null default 1 constraint "!mychips.tallies.DMG" check (drop_marg >= 0 and drop_marg <= 1)
+  , dr_limit	bigint		not null default 0
+  , cr_limit	bigint		not null default 0
   , units_c	bigint		default 0 not null
     
   , crt_date    timestamptz	not null default current_timestamp
@@ -1215,6 +1262,16 @@ $$;
 create function base.std_name(name) returns varchar language sql security definer stable as $$
     select std_name from base.ent_v where username = $1;
 $$;
+create view json.contract as select
+    author
+  , title
+  , version
+  , language
+  , publish
+  , source
+  , digest
+  , sections
+    from	mychips.contracts_v;
 create trigger mychips_agent_tr_change after insert or update on base.parm for each row execute procedure mychips.agent_tf_change();
 create table mychips.chits (
 chit_ent	int
@@ -1250,6 +1307,54 @@ conf_ent	int
   , sum		bigint		not null
   , signature	varchar
 );
+create function mychips.contracts_v_insfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
+  begin
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.contracts_v';
+    execute 'select ' || str || ';' into trec using new;
+    insert into mychips.contracts (author,title,version,language,sections,source,digest,publish,crt_by,mod_by,crt_date,mod_date) values (new.author,new.title,new.version,new.language,trec.sections,trec.source,trec.digest,trec.publish,session_user,session_user,current_timestamp,current_timestamp) returning author,title,version,language into new.author, new.title, new.version, new.language;
+    select into new * from mychips.contracts_v where author = new.author and title = new.title and version = new.version and language = new.language;
+    return new;
+  end;
+$$;
+create function mychips.contracts_v_updfunc() returns trigger language plpgsql security definer as $$
+  begin
+    update mychips.contracts set sections = new.sections,source = new.source,digest = new.digest,mod_by = session_user,mod_date = current_timestamp where author = old.author and title = old.title and version = old.version and language = old.language returning author,title,version,language into new.author, new.title, new.version, new.language;
+    select into new * from mychips.contracts_v where author = new.author and title = new.title and version = new.version and language = new.language;
+    return new;
+  end;
+$$;
+create trigger mychips_lifts_tr_change after insert or update on base.parm for each row execute procedure mychips.lifts_tf_change();
+create view mychips.paths_v as with recursive tally_path(id, length, pids, uuids, cycle, circuit, cost, min, max) as (
+    select	p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 1.00::float, null::bigint, null::bigint
+    from	mychips.peers p 
+    where not p.peer_ent isnull
+  union all
+    select t.tally_ent					as id
+      , tp.length + 1					as length
+      , tp.pids || t.tally_ent				as pids
+      , tp.uuids || t.tally_guid			as uuids
+      , t.tally_ent = any(tp.pids)			as cycle
+      , tp.pids[1] = t.tally_ent			as circuit
+      , tp.cost * (1 + t.lift_marg)			as cost
+      , coalesce(least(t.units_c,tp.min), t.units_c)	as min
+      , coalesce(greatest(t.units_c,tp.max), t.units_c)	as max
+    from	mychips.tallies t
+    join	tally_path	tp on tp.id = t.partner and not tp.cycle
+    where	t.tally_type = 'stock'
+  ) select tpr.id
+    , tpr.length
+    , tpr.pids[2:array_upper(tpr.pids,1)] as path
+    , tpr.uuids
+    , tpr.cycle
+    , tpr.circuit
+    , tpr.cost
+    , tpr.min
+    , tpr.max
+    , tpr.length * tpr.min as bang
+  from tally_path tpr;
 create trigger mychips_peers_tr_change after insert or update or delete on mychips.peers for each statement execute procedure mychips.change_tf_notify('peers');
 create view mychips.peers_v as select 
     ee.id, ee.ent_name, ee.ent_type, ee.ent_cmt, ee.fir_name, ee.mid_name, ee.pref_name, ee.title, ee.gender, ee.marital, ee.born_date, ee.username, ee.database, ee.ent_inact, ee.inside, ee.country, ee.tax_id, ee.bank, ee.proxy, ee.std_name, ee.frm_name, ee.giv_name, ee.cas_name
@@ -1492,12 +1597,12 @@ create function base.parm_v_tf_ins() returns trigger language plpgsql as $$
             insert into base.parm (module, parm, type, cmt, crt_by, mod_by, crt_date, mod_date,v_int) values (new.module, new.parm, new.type, new.cmt, session_user, session_user, current_timestamp, current_timestamp, new.value::int);
         when new.type = 'date' then
             insert into base.parm (module, parm, type, cmt, crt_by, mod_by, crt_date, mod_date,v_date) values (new.module, new.parm, new.type, new.cmt, session_user, session_user, current_timestamp, current_timestamp, new.value::date);
-        when new.type = 'text' then
-            insert into base.parm (module, parm, type, cmt, crt_by, mod_by, crt_date, mod_date,v_text) values (new.module, new.parm, new.type, new.cmt, session_user, session_user, current_timestamp, current_timestamp, new.value);
         when new.type = 'float' then
             insert into base.parm (module, parm, type, cmt, crt_by, mod_by, crt_date, mod_date,v_float) values (new.module, new.parm, new.type, new.cmt, session_user, session_user, current_timestamp, current_timestamp, new.value::float);
         when new.type = 'boolean' then
             insert into base.parm (module, parm, type, cmt, crt_by, mod_by, crt_date, mod_date,v_boolean) values (new.module, new.parm, new.type, new.cmt, session_user, session_user, current_timestamp, current_timestamp, new.value::boolean);
+        else		-- when new.type = 'text' then
+            insert into base.parm (module, parm, type, cmt, crt_by, mod_by, crt_date, mod_date,v_text) values (new.module, new.parm, new.type, new.cmt, session_user, session_user, current_timestamp, current_timestamp, new.value);
         end case;
         return new;
     end;
@@ -1560,6 +1665,68 @@ create function mychips.confirms_tf_seq() returns trigger language plpgsql secur
             select into new.conf_idx coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq;
         end if;
         return new;
+    end;
+$$;
+create trigger mychips_contracts_v_tr_ins instead of insert on mychips.contracts_v for each row execute procedure mychips.contracts_v_insfunc();
+create trigger mychips_contracts_v_tr_upd instead of update on mychips.contracts_v for each row execute procedure mychips.contracts_v_updfunc();
+create function mychips.internal_lift(units bigint, uupath uuid[]) returns boolean language plpgsql security definer as $$
+    declare
+      tally_id	uuid;
+      lift_id	uuid;
+      trec	record;
+      tcount	int;
+    begin
+      lift_id = uuid_generate_v1();
+
+      foreach tally_id in array uupath loop
+        tcount = 0;
+        for trec in select * from mychips.tallies where tally_guid = tally_id order by tally_type loop
+          insert into mychips.chits (chit_ent, chit_seq, chit_guid, chit_type, signature, units) values (trec.tally_ent, trec.tally_seq, lift_id, 'lift', 'Valid', -units);
+          tcount = tcount + 1;
+        end loop;
+        if tcount != 2 then
+          raise exception 'Could not find exactly two tallies for UUID:%', tally_id;
+          return false;
+        end if;
+      end loop;
+    return true;
+    end;
+$$;
+create function mychips.lift_cycle(maxNum int default 1) returns jsonb language plpgsql security definer as $$
+    declare
+      status	jsonb = '{"done": 0}';
+      prec	record;
+      orders	text default 'bang desc';
+      tstr	text;
+      tarr	text[];
+      oarr	text[];
+      lift_id	uuid;
+      min_units	int default base.parm('lifts','minimum');
+      count	int default 0;
+      rows	int;
+    begin
+      select into prec * from base.parm_v where module = 'lifts' and parm = 'order';
+      if found then				-- Build a custom order-by clause
+        foreach tstr in array regexp_split_to_array(prec.value, ',') loop
+          oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
+
+          tarr = array_append(tarr, quote_ident(oarr[1]) || case when oarr[2] = 'desc' then ' desc' else '' end);
+        end loop;
+        orders = array_to_string(tarr, ', ');
+      end if;
+
+
+      while count < maxNum loop
+        tstr = 'select id, length, min, max, cost, path, uuids from mychips.paths_v where circuit and min >= $1 order by ' || orders || ' limit 1';
+
+        execute tstr into prec using min_units;
+        get diagnostics rows = ROW_COUNT;
+
+        if rows < 1 then exit; end if;
+        if not mychips.internal_lift(prec.min, prec.uuids) then exit; end if;
+        count = count + 1;
+      end loop;
+    return jsonb_set(status, '{done}', count::text::jsonb);
     end;
 $$;
 create function mychips.peer_sock(int) returns text stable language sql as $$
@@ -1643,8 +1810,8 @@ create view mychips.tallies_v as select
        )
     )			as json
   , coalesce(tc.units,0)			as units
-  , te.units_c::float8 / case when te.tally_type = 'stock' then 1000000.00 else -1000000.00 end		as total_c
-  , coalesce(tc.units,0)::float8 / case when te.tally_type = 'stock' then 1000000.00 else -1000000.00 end	as total
+  , te.units_c::float8 / case when te.tally_type = 'stock' then 1000.00 else -1000.00 end		as total_c
+  , coalesce(tc.units,0)::float8 / case when te.tally_type = 'stock' then 1000.00 else -1000.00 end	as total
   , coalesce(tc.chits,0)			as chits
 
     from	mychips.tallies	te
@@ -1842,8 +2009,8 @@ create view mychips.chits_v as select
   , te.tally_type
   , case when te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0 then 'debit' else 'credit' end		as effect
          
-  , ch.units::float8 / 1000000.00	as value
-  , ch.units::float8 * case when te.tally_type = 'stock' then 1 else -1 end / 1000000	as amount
+  , ch.units::float8 / 1000.00	as value
+  , ch.units::float8 * case when te.tally_type = 'stock' then 1 else -1 end / 1000	as amount
   , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.request, ch.signature)	as state
   , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
   , jsonb_build_object(
@@ -2226,8 +2393,11 @@ create function json.import(data jsonb, keys jsonb default null) returns record 
 
         end loop;
 
-        select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray,fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = tableName;
         select array_to_string(pkey,',') into primKeyList from wm.table_data where td_sch = 'json' and td_tab = tableName;
+        if not found then
+          continue;
+        end if;
+        select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray, fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = tableName;
 
         cmd = 'insert into json.' || quote_ident(tableName) || ' (' || fieldList || ') select ' || fieldList || ' from jsonb_populate_record(NULL::json.' || quote_ident(tableName) || ', $1) returning ' || primKeyList;
 
@@ -2252,560 +2422,743 @@ create trigger mychips_tallies_tr_notice after insert or update on mychips.talli
 
 --Data Dictionary:
 insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
-  ('wm','releases','en','Releases','Tracks the version number of each public release of the database design'),
-  ('wm','objects','en','Objects','Keeps data on database tables, views, functions, etc. telling how to build or drop each object and how it relates to other objects in the database.'),
-  ('wm','objects_v','en','Rel Objects','An enhanced view of the object table, expanded by showing the full object specifier, and each separate release this version of the object belongs to'),
-  ('wm','objects_v_depth','en','Dep Objects','An enhanced view of the object table, expanded by showing the full object specifier, each separate release this version of the object belongs to, and the maximum depth it is along any path in the dependency tree.'),
-  ('wm','depends_v','en','Dependencies','A recursive view showing which database objects depend on (must be created after) other database objects.'),
-  ('wm','table_style','en','Table Styles','Contains style flags to tell the GUI how to render each table or view'),
-  ('wm','column_style','en','Column Styles','Contains style flags to tell the GUI how to render the columns of a table or view'),
-  ('wm','table_text','en','Table Text','Contains a description of each table in the system'),
-  ('wm','column_text','en','Column Text','Contains a description for each column of each table in the system'),
-  ('wm','value_text','en','Value Text','Contains a description for the values which certain columns may be set to.  Used only for columns that can be set to one of a finite set of values (like an enumerated type).'),
-  ('wm','message_text','en','Message Text','Contains messages in a particular language to describe an error, or a widget feature or button'),
-  ('wm','column_native','en','Native Columns','Contains cached information about the tables and their columns which various higher level view columns derive from.  To query this directly from the information schema is somewhat slow, so wyseman caches it here when building the schema for faster access.'),
-  ('wm','table_data','en','Table Data','Contains information from the system catalogs about views and tables in the system'),
-  ('wm','table_pub','en','Tables','Joins information about tables from the system catalogs with the text descriptions defined in wyseman'),
-  ('wm','view_column_usage','en','View Column Usage','A version of a similar view in the information schema but faster.  For each view, tells what underlying table and column the view column uses.'),
-  ('wm','column_data','en','Column Data','Contains information from the system catalogs about columns of tables in the system'),
-  ('wm','column_def','en','Column Default','A view used internally for initializing columns to their default value'),
-  ('wm','column_istyle','en','Column Styles','A view of the default display styles for table and view columns'),
-  ('wm','column_lang','en','Column language','A view of descriptive language data as it applies to the columns of tables and views'),
-  ('wm','column_meta','en','Column Metadata','A view of data about the use and display of the columns of tables and views'),
-  ('wm','table_lang','en','Table Language','A view of titles and descriptions of database tables/views'),
-  ('wm','table_meta','en','Table Metadata','A view of data about the use and display of tables and views'),
-  ('wm','column_pub','en','Columns','Joins information about table columns from the system catalogs with the text descriptions defined in wyseman'),
-  ('wm','fkeys_data','en','Keys Data','Includes data from the system catalogs about how key fields in a table point to key fields in a foreign table.  Each key group is described on a separate row.'),
-  ('wm','fkeys_pub','en','Keys','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key group.'),
-  ('wm','fkey_data','en','Key Data','Includes data from the system catalogs about how key fields in a table point to key fields in a foreign table.  Each separate key field is listed as a separate row.'),
-  ('wm','fkey_pub','en','Key Info','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key column.'),
-  ('wm','role_members','en','Role Members','Summarizes information from the system catalogs about members of various defined roles'),
-  ('wm','column_ambig','en','Ambiguous Columns','A view showing view and their columns for which no definitive native table and column can be found automatically'),
-  ('wylib','data','en','GUI Data','Configuration and preferences data accessed by Wylib view widgets'),
-  ('wylib','data_v','en','GUI Data','A view of configuration and preferences data accessed by Wylib view widgets'),
+  ('wylib','data','eng','GUI Data','Configuration and preferences data accessed by Wylib view widgets'),
+  ('wylib','data_v','eng','GUI Data','A view of configuration and preferences data accessed by Wylib view widgets'),
   ('wylib','data','fi','GUI Data','Wylib-näkymäkomponenttien käyttämät konfigurointi- ja asetustiedot'),
-  ('base','addr','en','Addresses','Addresses (home, mailing, etc.) pertaining to entities'),
-  ('base','addr_v','en','Addresses','A view of addresses (home, mailing, etc.) pertaining to entities, with additional derived fields'),
-  ('base','addr_prim','en','Primary Address','Internal table to track which address is the main one for each given type'),
-  ('base','addr_v_flat','en','Entities Flat','A flattened view of entities showing their primary standard addresses'),
-  ('base','comm','en','Communication','Communication points (phone, email, fax, etc.) for entities'),
-  ('base','comm_v','en','Communication','View of users'' communication points (phone, email, fax, etc.) with additional helpful fields'),
-  ('base','comm_prim','en','Primary Communication','Internal table to track which communication point is the main one for each given type'),
-  ('base','comm_v_flat','en','Entities Flat','A flattened view of entities showing their primary standard contact points'),
-  ('base','country','en','Countries','Contains standard ISO data about international countries'),
-  ('base','ent','en','Entities','Entities, which can be a person, a company or a group'),
-  ('base','ent_v','en','Entities','A view of Entities, which can be a person, a company or a group, plus additional derived fields'),
-  ('base','ent_link','en','Entity Links','Links to show how one entity (like an employee) is linked to another (like his company)'),
-  ('base','ent_link_v','en','Entity Links','A view showing links to show how one entity (like an employee) is linked to another (like his company), plus the derived names of the entities'),
-  ('base','ent_audit','en','Entities Auditing','Table tracking changes to the entities table'),
-  ('base','parm','en','System Parameters','Contains parameter settings of several types for configuring and controlling various modules across the database'),
-  ('base','parm_v','en','Parameters','System parameters are stored in different tables depending on their data type (date, integer, etc.).  This view is a union of all the different type tables so all parameters can be viewed and updated in one place.  The value specified will have to be entered in a way that is compatible with the specified type so it can be stored natively in its correct data type.'),
-  ('base','parm_audit','en','Parameters Auditing','Table tracking changes to the parameters table'),
-  ('base','priv','en','Privileges','Privileges assigned to each system user'),
-  ('base','priv_v','en','Privileges','Privileges assigned to each entity'),
-  ('public','covenants','en','Covenants','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
-  ('mychips','peers','en','CHIP Peers','All entities who trade CHIPs using on this server.  Includes this server''s users and their peers.'),
-  ('mychips','peers_v','en','CHIP Peers','Entities who trade CHIPs on this server, and their peer entities.'),
-  ('mychips','tallies','en','Tallies','Contains an entry for each tally, which is a record of credit transactions between two trading partners.'),
-  ('mychips','tallies_v','en','Tallies','Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.'),
-  ('mychips','chits','en','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
-  ('mychips','confirms','en','Confirmations','Contains records evidencing each time the parties confirmed the present balance of their tally.'),
-  ('mychips','users','en','CHIP Users','Entities who have CHIP accounts on this server.'),
-  ('mychips','users_v','en','CHIP Users','Entities who have CHIP accounts on this server.'),
+  ('base','addr','eng','Addresses','Addresses (home, mailing, etc.) pertaining to entities'),
+  ('base','addr_v','eng','Addresses','A view of addresses (home, mailing, etc.) pertaining to entities, with additional derived fields'),
+  ('base','addr_prim','eng','Primary Address','Internal table to track which address is the main one for each given type'),
+  ('base','addr_v_flat','eng','Entities Flat','A flattened view of entities showing their primary standard addresses'),
+  ('base','comm','eng','Communication','Communication points (phone, email, fax, etc.) for entities'),
+  ('base','comm_v','eng','Communication','View of users'' communication points (phone, email, fax, etc.) with additional helpful fields'),
+  ('base','comm_prim','eng','Primary Communication','Internal table to track which communication point is the main one for each given type'),
+  ('base','comm_v_flat','eng','Entities Flat','A flattened view of entities showing their primary standard contact points'),
+  ('base','country','eng','Countries','Contains standard ISO data about international countries'),
+  ('base','ent','eng','Entities','Entities, which can be a person, a company or a group'),
+  ('base','ent_v','eng','Entities','A view of Entities, which can be a person, a company or a group, plus additional derived fields'),
+  ('base','ent_link','eng','Entity Links','Links to show how one entity (like an employee) is linked to another (like his company)'),
+  ('base','ent_link_v','eng','Entity Links','A view showing links to show how one entity (like an employee) is linked to another (like his company), plus the derived names of the entities'),
+  ('base','ent_audit','eng','Entities Auditing','Table tracking changes to the entities table'),
+  ('base','language','eng','Languages','Contains standard ISO data about international language codes'),
+  ('base','parm','eng','System Parameters','Contains parameter settings of several types for configuring and controlling various modules across the database'),
+  ('base','parm_v','eng','Parameters','System parameters are stored in different tables depending on their data type (date, integer, etc.).  This view is a union of all the different type tables so all parameters can be viewed and updated in one place.  The value specified will have to be entered in a way that is compatible with the specified type so it can be stored natively in its correct data type.'),
+  ('base','parm_audit','eng','Parameters Auditing','Table tracking changes to the parameters table'),
+  ('base','priv','eng','Privileges','Privileges assigned to each system user'),
+  ('base','priv_v','eng','Privileges','Privileges assigned to each entity'),
+  ('mychips','contracts','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement'),
+  ('mychips','contracts_v','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
+  ('mychips','paths_v','eng','Tally Pathways','A view showing network pathways between entities, based on the tallies they have in place'),
+  ('mychips','peers','eng','CHIP Peers','All entities who trade CHIPs using on this server.  Includes this server''s users and their peers.'),
+  ('mychips','peers_v','eng','CHIP Peers','Entities who trade CHIPs on this server, and their peer entities.'),
+  ('mychips','tallies','eng','Tallies','Contains an entry for each tally, which is a record of credit transactions between two trading partners.'),
+  ('mychips','tallies_v','eng','Tallies','Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.'),
+  ('mychips','chits','eng','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
+  ('wm','releases','eng','Releases','Tracks the version number of each public release of the database design'),
+  ('wm','objects','eng','Objects','Keeps data on database tables, views, functions, etc. telling how to build or drop each object and how it relates to other objects in the database.'),
+  ('wm','objects_v','eng','Rel Objects','An enhanced view of the object table, expanded by showing the full object specifier, and each separate release this version of the object belongs to'),
+  ('wm','objects_v_depth','eng','Dep Objects','An enhanced view of the object table, expanded by showing the full object specifier, each separate release this version of the object belongs to, and the maximum depth it is along any path in the dependency tree.'),
+  ('wm','depends_v','eng','Dependencies','A recursive view showing which database objects depend on (must be created after) other database objects.'),
+  ('wm','table_style','eng','Table Styles','Contains style flags to tell the GUI how to render each table or view'),
+  ('wm','column_style','eng','Column Styles','Contains style flags to tell the GUI how to render the columns of a table or view'),
+  ('wm','table_text','eng','Table Text','Contains a description of each table in the system'),
+  ('wm','column_text','eng','Column Text','Contains a description for each column of each table in the system'),
+  ('wm','value_text','eng','Value Text','Contains a description for the values which certain columns may be set to.  Used only for columns that can be set to one of a finite set of values (like an enumerated type).'),
+  ('wm','message_text','eng','Message Text','Contains messages in a particular language to describe an error, or a widget feature or button'),
+  ('wm','column_native','eng','Native Columns','Contains cached information about the tables and their columns which various higher level view columns derive from.  To query this directly from the information schema is somewhat slow, so wyseman caches it here when building the schema for faster access.'),
+  ('wm','table_data','eng','Table Data','Contains information from the system catalogs about views and tables in the system'),
+  ('wm','table_pub','eng','Tables','Joins information about tables from the system catalogs with the text descriptions defined in wyseman'),
+  ('wm','view_column_usage','eng','View Column Usage','A version of a similar view in the information schema but faster.  For each view, tells what underlying table and column the view column uses.'),
+  ('wm','column_data','eng','Column Data','Contains information from the system catalogs about columns of tables in the system'),
+  ('wm','column_def','eng','Column Default','A view used internally for initializing columns to their default value'),
+  ('wm','column_istyle','eng','Column Styles','A view of the default display styles for table and view columns'),
+  ('wm','column_lang','eng','Column language','A view of descriptive language data as it applies to the columns of tables and views'),
+  ('wm','column_meta','eng','Column Metadata','A view of data about the use and display of the columns of tables and views'),
+  ('wm','table_lang','eng','Table Language','A view of titles and descriptions of database tables/views'),
+  ('wm','table_meta','eng','Table Metadata','A view of data about the use and display of tables and views'),
+  ('wm','column_pub','eng','Columns','Joins information about table columns from the system catalogs with the text descriptions defined in wyseman'),
+  ('wm','fkeys_data','eng','Keys Data','Includes data from the system catalogs about how key fields in a table point to key fields in a foreign table.  Each key group is described on a separate row.'),
+  ('wm','fkeys_pub','eng','Keys','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key group.'),
+  ('wm','fkey_data','eng','Key Data','Includes data from the system catalogs about how key fields in a table point to key fields in a foreign table.  Each separate key field is listed as a separate row.'),
+  ('wm','fkey_pub','eng','Key Info','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key column.'),
+  ('wm','role_members','eng','Role Members','Summarizes information from the system catalogs about members of various defined roles'),
+  ('wm','column_ambig','eng','Ambiguous Columns','A view showing view and their columns for which no definitive native table and column can be found automatically'),
+  ('mychips','confirms','eng','Confirmations','Contains records evidencing each time the parties confirmed the present balance of their tally.'),
+  ('mychips','users','eng','CHIP Users','Entities who have CHIP accounts on this server.'),
+  ('mychips','users_v','eng','CHIP Users','Entities who have CHIP accounts on this server.'),
+  ('mychips','users','fin','CHIP käyttäjät','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
+  ('mychips','users_v','fin','CHIP käytäjät näkymä','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
+  ('public','contracts','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
   ('mychips','users','fi','CHIP käyttäjät','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
-  ('mychips','users_v','fi','CHIP käytäjät näkymä','Yksiköt, joilla on CHIP-tilejä tällä palvelimella');
+  ('mychips','users_v','fi','CHIP käytäjät näkymä','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
+  ('public','covenants','eng','Covenants','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.');
 
 insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
-  ('wm','releases','release','en','Release','The integer number of the release, starting with 1.  The current number in this field always designates a work-in-progress.  The number prior indicates the last public release.'),
-  ('wm','releases','crt_date','en','Created','When this record was created.  Indicates when development started on this release (And the prior release was frozen).'),
-  ('wm','releases','sver_1','en','BS Version','Dummy column with a name indicating the version of these bootstrap tables (which can''t be managed by wyseman themselves).'),
-  ('wm','objects','obj_typ','en','Type','The object type, for example: table, function, trigger, etc.'),
-  ('wm','objects','obj_nam','en','Name','The schema and name of object as known within that schema'),
-  ('wm','objects','obj_ver','en','Version','A sequential integer showing how many times this object has been modified, as a part of an official release.  Changes to the current (working) release do not increment this number.'),
-  ('wm','objects','checked','en','Checked','This record has had its dependencies and consistency checked'),
-  ('wm','objects','clean','en','Clean','The object represented by this record is built and current according to this create script'),
-  ('wm','objects','module','en','Module','The name of a code module (package) this object belongs to'),
-  ('wm','objects','mod_ver','en','Mod Vers','The version of the code module, or package this object belongs to'),
-  ('wm','objects','source','en','Source','The basename of the external source code file this object was parsed from'),
-  ('wm','objects','deps','en','Depends','A list of un-expanded dependencies for this object, exactly as expressed in the source file'),
-  ('wm','objects','ndeps','en','Normal Deps','An expanded and normalized array of dependencies, guaranteed to exist in another record of the table'),
-  ('wm','objects','grants','en','Grants','The permission grants found, applicable to this object'),
-  ('wm','objects','col_data','en','Display','Switches found, expressing preferred display characteristics for columns, assuming this is a view or table object'),
-  ('wm','objects','crt_sql','en','Create','The SQL code to build this object'),
-  ('wm','objects','drp_sql','en','Drop','The SQL code to drop this object'),
-  ('wm','objects','min_rel','en','Minimum','The oldest release this version of this object belongs to'),
-  ('wm','objects','max_rel','en','Maximum','The latest release this version of this object belongs to'),
-  ('wm','objects','crt_date','en','Created','When this object record was first created'),
-  ('wm','objects','mod_date','en','Modified','When this object record was last modified'),
-  ('wm','objects_v','object','en','Object','Full type and name of this object'),
-  ('wm','objects_v','release','en','Release','A release this version of the object belongs to'),
-  ('wm','objects_v_depth','depth','en','Max Depth','The maximum depth of this object along any path in the dependency tree'),
-  ('wm','depends_v','object','en','Object','Full object type and name (type:name)'),
-  ('wm','depends_v','od_typ','en','Type','Function, view, table, etc'),
-  ('wm','depends_v','od_nam','en','Name','Schema and name of object as known within that schema'),
-  ('wm','depends_v','od_release','en','Release','The release this object belongs to'),
-  ('wm','depends_v','cycle','en','Cycle','Prevents the recursive view gets into an infinite loop'),
-  ('wm','depends_v','depend','en','Depends On','Another object that must be created before this object'),
-  ('wm','depends_v','depth','en','Depth','The depth of the dependency tree, when following this particular dependency back to the root.'),
-  ('wm','depends_v','path','en','Path','The path of the dependency tree above this object'),
-  ('wm','depends_v','fpath','en','Full Path','The full path of the dependency tree above this object (including this object).'),
-  ('wm','table_style','ts_sch','en','Schema Name','The schema for the table this style pertains to'),
-  ('wm','table_style','ts_tab','en','Table Name','The name of the table this style pertains to'),
-  ('wm','table_style','sw_name','en','Name','The name of the style being described'),
-  ('wm','table_style','sw_value','en','Value','The value for this particular style'),
-  ('wm','table_style','inherit','en','Inherit','The value for this style can propagate to derivative views'),
-  ('wm','column_style','cs_sch','en','Schema Name','The schema for the table this style pertains to'),
-  ('wm','column_style','cs_tab','en','Table Name','The name of the table containing the column this style pertains to'),
-  ('wm','column_style','cs_col','en','Column Name','The name of the column this style pertains to'),
-  ('wm','column_style','sw_name','en','Name','The name of the style being described'),
-  ('wm','column_style','sw_value','en','Value','The value for this particular style'),
-  ('wm','table_text','tt_sch','en','Schema Name','The schema this table belongs to'),
-  ('wm','table_text','tt_tab','en','Table Name','The name of the table being described'),
-  ('wm','table_text','language','en','Language','The language this description is in'),
-  ('wm','table_text','title','en','Title','A short title for the table'),
-  ('wm','table_text','help','en','Description','A longer description of what the table is used for'),
-  ('wm','column_text','ct_sch','en','Schema Name','The schema this column''s table belongs to'),
-  ('wm','column_text','ct_tab','en','Table Name','The name of the table this column is in'),
-  ('wm','column_text','ct_col','en','Column Name','The name of the column being described'),
-  ('wm','column_text','language','en','Language','The language this description is in'),
-  ('wm','column_text','title','en','Title','A short title for the column'),
-  ('wm','column_text','help','en','Description','A longer description of what the column is used for'),
-  ('wm','value_text','vt_sch','en','Schema Name','The schema of the table the column belongs to'),
-  ('wm','value_text','vt_tab','en','Table Name','The name of the table this column is in'),
-  ('wm','value_text','vt_col','en','Column Name','The name of the column whose values are being described'),
-  ('wm','value_text','value','en','Value','The name of the value being described'),
-  ('wm','value_text','language','en','Language','The language this description is in'),
-  ('wm','value_text','title','en','Title','A short title for the value'),
-  ('wm','value_text','help','en','Description','A longer description of what it means when the column is set to this value'),
-  ('wm','message_text','mt_sch','en','Schema Name','The schema of the table this message belongs to'),
-  ('wm','message_text','mt_tab','en','Table Name','The name of the table this message belongs to is in'),
-  ('wm','message_text','code','en','Code','A unique code referenced in the source code to evoke this message in the language of choice'),
-  ('wm','message_text','language','en','Language','The language this message is in'),
-  ('wm','message_text','title','en','Title','A short version for the message, or its alert'),
-  ('wm','message_text','help','en','Description','A longer, more descriptive version of the message'),
-  ('wm','column_native','cnt_sch','en','Schema Name','The schema of the table this column belongs to'),
-  ('wm','column_native','cnt_tab','en','Table Name','The name of the table this column is in'),
-  ('wm','column_native','cnt_col','en','Column Name','The name of the column whose native source is being described'),
-  ('wm','column_native','nat_sch','en','Schema Name','The schema of the native table the column derives from'),
-  ('wm','column_native','nat_tab','en','Table Name','The name of the table the column natively derives from'),
-  ('wm','column_native','nat_col','en','Column Name','The name of the column in the native table from which the higher level column derives'),
-  ('wm','column_native','nat_exp','en','Explic Native','The information about the native table in this record has been defined explicitly in the schema description (not derived from the database system catalogs)'),
-  ('wm','column_native','pkey','en','Primary Key','Wyseman can often determine the "primary key" for views on its own from the database.  When it can''t, you have to define it explicitly in the schema.  This indicates that thiscolumn should be regarded as a primary key field when querying the view.'),
-  ('wm','table_data','td_sch','en','Schema Name','The schema the table is in'),
-  ('wm','table_data','td_tab','en','Table Name','The name of the table being described'),
-  ('wm','table_data','tab_kind','en','Kind','Tells whether the relation is a table or a view'),
-  ('wm','table_data','has_pkey','en','Has Pkey','Indicates whether the table has a primary key defined in the database'),
-  ('wm','table_data','obj','en','Object Name','The table name, prefixed by the schema (namespace) name'),
-  ('wm','table_data','cols','en','Columns','Indicates how many columns are in the table'),
-  ('wm','table_data','system','en','System','True if the table/view is built in to PostgreSQL'),
-  ('wm','table_pub','sch','en','Schema Name','The schema the table belongs to'),
-  ('wm','table_pub','tab','en','Table Name','The name of the table being described'),
-  ('wm','table_pub','obj','en','Object Name','The table name, prefixed by the schema (namespace) name'),
-  ('wm','view_column_usage','view_catalog','en','View Database','The database the view belongs to'),
-  ('wm','view_column_usage','view_schema','en','View Schema','The schema the view belongs to'),
-  ('wm','view_column_usage','view_name','en','View Name','The name of the view being described'),
-  ('wm','view_column_usage','table_catalog','en','Table Database','The database the underlying table belongs to'),
-  ('wm','view_column_usage','table_schema','en','Table Schema','The schema the underlying table belongs to'),
-  ('wm','view_column_usage','table_name','en','Table Name','The name of the underlying table'),
-  ('wm','view_column_usage','column_name','en','Column Name','The name of the column in the view'),
-  ('wm','column_data','cdt_sch','en','Schema Name','The schema of the table this column belongs to'),
-  ('wm','column_data','cdt_tab','en','Table Name','The name of the table this column is in'),
-  ('wm','column_data','cdt_col','en','Column Name','The name of the column whose data is being described'),
-  ('wm','column_data','field','en','Field','The number of the column as it appears in the table'),
-  ('wm','column_data','nonull','en','Not Null','Indicates that the column is not allowed to contain a null value'),
-  ('wm','column_data','length','en','Length','The normal number of characters this item would occupy'),
-  ('wm','column_data','type','en','Data Type','The kind of data this column holds, such as integer, string, date, etc.'),
-  ('wm','column_data','def','en','Default','Default value for this column if none is explicitly assigned'),
-  ('wm','column_data','tab_kind','en','Table/View','The kind of database relation this column is in (r=table, v=view)'),
-  ('wm','column_data','is_pkey','en','Def Prim Key','Indicates that this column is defined as a primary key in the database (can be overridden by a wyseman setting)'),
-  ('wm','column_def','val','en','Init Value','An expression used for default initialization'),
-  ('wm','column_istyle','nat_value','en','Native Style','The inherited style as specified by an ancestor object'),
-  ('wm','column_istyle','cs_value','en','Given Style','The style, specified explicitly for this object'),
-  ('wm','column_istyle','cs_obj','en','Object Name','The schema and table name this style applies to'),
-  ('wm','column_lang','sch','en','Schema','The schema that holds the table or view this language data applies to'),
-  ('wm','column_lang','tab','en','Table','The table or view this language data applies to'),
-  ('wm','column_lang','obj','en','Object','The schema name and the table/view name'),
-  ('wm','column_lang','col','en','Column','The name of the column the metadata applies to'),
-  ('wm','column_lang','values','en','Values','A JSON description of the allowable values for this column'),
-  ('wm','column_lang','system','en','System','Indicates if this table/view is built in to PostgreSQL'),
-  ('wm','column_lang','nat','en','Native','The (possibly ancestor) schema and table/view this language information descends from'),
-  ('wm','column_meta','sch','en','Schema','The schema that holds the table or view this metadata applies to'),
-  ('wm','column_meta','tab','en','Table','The table or view this metadata applies to'),
-  ('wm','column_meta','obj','en','Object','The schema name and the table/view name'),
-  ('wm','column_meta','col','en','Column','The name of the column the metadata applies to'),
-  ('wm','column_meta','values','en','Values','An array of allowable values for this column'),
-  ('wm','column_meta','styles','en','Styles','An array of default display styles for this column'),
-  ('wm','column_meta','nat','en','Native','The (possibly ancestor) schema and table/view this metadata descends from'),
-  ('wm','table_lang','messages','en','Messages','Human readable messages the computer may generate in connection with this table/view'),
-  ('wm','table_lang','columns','en','Columns','A JSON structure describing language information relevant to the columns in this table/view'),
-  ('wm','table_lang','obj','en','Object','The schema and table/view'),
-  ('wm','table_meta','fkeys','en','Foreign Keys','A JSON structure containing information about the foreign keys pointed to by this table'),
-  ('wm','table_meta','obj','en','Object','The schema and table/view'),
-  ('wm','table_meta','pkey','en','Primary Key','A JSON array describing the primary key fields for this table/view'),
-  ('wm','table_meta','columns','en','Columns','A JSON structure describing metadata information relevant to the columns in this table/view'),
-  ('wm','column_pub','sch','en','Schema Name','The schema of the table the column belongs to'),
-  ('wm','column_pub','tab','en','Table Name','The name of the table that holds the column being described'),
-  ('wm','column_pub','col','en','Column Name','The name of the column being described'),
-  ('wm','column_pub','obj','en','Object Name','The table name, prefixed by the schema (namespace) name'),
-  ('wm','column_pub','nat','en','Native Object','The name of the native table, prefixed by the native schema'),
-  ('wm','column_pub','language','en','Language','The language of the included textual descriptions'),
-  ('wm','column_pub','title','en','Title','A short title for the table'),
-  ('wm','column_pub','help','en','Description','A longer description of what the table is used for'),
-  ('wm','fkeys_data','kst_sch','en','Base Schema','The schema of the table that has the referencing key fields'),
-  ('wm','fkeys_data','kst_tab','en','Base Table','The name of the table that has the referencing key fields'),
-  ('wm','fkeys_data','kst_cols','en','Base Columns','The name of the columns in the referencing table''s key'),
-  ('wm','fkeys_data','ksf_sch','en','Foreign Schema','The schema of the table that is referenced by the key fields'),
-  ('wm','fkeys_data','ksf_tab','en','Foreign Table','The name of the table that is referenced by the key fields'),
-  ('wm','fkeys_data','ksf_cols','en','Foreign Columns','The name of the columns in the referenced table''s key'),
-  ('wm','fkeys_data','conname','en','Constraint','The name of the the foreign key constraint in the database'),
-  ('wm','fkeys_pub','tt_sch','en','Schema','The schema of the table that has the referencing key fields'),
-  ('wm','fkeys_pub','tt_tab','en','Table','The name of the table that has the referencing key fields'),
-  ('wm','fkeys_pub','tt_cols','en','Columns','The name of the columns in the referencing table''s key'),
-  ('wm','fkeys_pub','tt_obj','en','Object','Concatenated schema.table that has the referencing key fields'),
-  ('wm','fkeys_pub','tn_sch','en','Nat Schema','The schema of the native table that has the referencing key fields'),
-  ('wm','fkeys_pub','tn_tab','en','Nat Table','The name of the native table that has the referencing key fields'),
-  ('wm','fkeys_pub','tn_cols','en','Nat Columns','The name of the columns in the native referencing table''s key'),
-  ('wm','fkeys_pub','tn_obj','en','Nat Object','Concatenated schema.table for the native table that has the referencing key fields'),
-  ('wm','fkeys_pub','ft_sch','en','For Schema','The schema of the table that is referenced by the key fields'),
-  ('wm','fkeys_pub','ft_tab','en','For Table','The name of the table that is referenced by the key fields'),
-  ('wm','fkeys_pub','ft_cols','en','For Columns','The name of the columns referenced by the key'),
-  ('wm','fkeys_pub','ft_obj','en','For Object','Concatenated schema.table for the table that is referenced by the key fields'),
-  ('wm','fkeys_pub','fn_sch','en','For Nat Schema','The schema of the native table that is referenced by the key fields'),
-  ('wm','fkeys_pub','fn_tab','en','For Nat Table','The name of the native table that is referenced by the key fields'),
-  ('wm','fkeys_pub','fn_cols','en','For Nat Columns','The name of the columns in the native referenced by the key'),
-  ('wm','fkeys_pub','fn_obj','en','For Nat Object','Concatenated schema.table for the native table that is referenced by the key fields'),
-  ('wm','fkey_data','kyt_sch','en','Base Schema','The schema of the table that has the referencing key fields'),
-  ('wm','fkey_data','kyt_tab','en','Base Table','The name of the table that has the referencing key fields'),
-  ('wm','fkey_data','kyt_col','en','Base Columns','The name of the column in the referencing table''s key'),
-  ('wm','fkey_data','kyt_field','en','Base Field','The number of the column in the referencing table''s key'),
-  ('wm','fkey_data','kyf_sch','en','Foreign Schema','The schema of the table that is referenced by the key fields'),
-  ('wm','fkey_data','kyf_tab','en','Foreign Table','The name of the table that is referenced by the key fields'),
-  ('wm','fkey_data','kyf_col','en','Foreign Columns','The name of the columns in the referenced table''s key'),
-  ('wm','fkey_data','kyf_field','en','Foreign Field','The number of the column in the referenced table''s key'),
-  ('wm','fkey_data','key','en','Key','The number of which field of a compound key this record describes'),
-  ('wm','fkey_data','keys','en','Keys','The total number of columns used for this foreign key'),
-  ('wm','fkey_data','conname','en','Constraint','The name of the the foreign key constraint in the database'),
-  ('wm','fkey_pub','tt_sch','en','Schema','The schema of the table that has the referencing key fields'),
-  ('wm','fkey_pub','tt_tab','en','Table','The name of the table that has the referencing key fields'),
-  ('wm','fkey_pub','tt_col','en','Column','The name of the column in the referencing table''s key component'),
-  ('wm','fkey_pub','tt_obj','en','Object','Concatenated schema.table that has the referencing key fields'),
-  ('wm','fkey_pub','tn_sch','en','Nat Schema','The schema of the native table that has the referencing key fields'),
-  ('wm','fkey_pub','tn_tab','en','Nat Table','The name of the native table that has the referencing key fields'),
-  ('wm','fkey_pub','tn_col','en','Nat Column','The name of the column in the native referencing table''s key component'),
-  ('wm','fkey_pub','tn_obj','en','Nat Object','Concatenated schema.table for the native table that has the referencing key fields'),
-  ('wm','fkey_pub','ft_sch','en','For Schema','The schema of the table that is referenced by the key fields'),
-  ('wm','fkey_pub','ft_tab','en','For Table','The name of the table that is referenced by the key fields'),
-  ('wm','fkey_pub','ft_col','en','For Column','The name of the column referenced by the key component'),
-  ('wm','fkey_pub','ft_obj','en','For Object','Concatenated schema.table for the table that is referenced by the key fields'),
-  ('wm','fkey_pub','fn_sch','en','For Nat Schema','The schema of the native table that is referenced by the key fields'),
-  ('wm','fkey_pub','fn_tab','en','For Nat Table','The name of the native table that is referenced by the key fields'),
-  ('wm','fkey_pub','fn_col','en','For Nat Column','The name of the column in the native referenced by the key component'),
-  ('wm','fkey_pub','fn_obj','en','For Nat Object','Concatenated schema.table for the native table that is referenced by the key fields'),
-  ('wm','fkey_pub','unikey','en','Unikey','Used to differentiate between multiple fkeys pointing to the same destination, and multi-field fkeys pointing to multi-field destinations'),
-  ('wm','role_members','role','en','Role','The name of a role'),
-  ('wm','role_members','member','en','Member','The username of a member of the named role'),
-  ('wm','column_ambig','sch','en','Schema','The name of the schema this view is in'),
-  ('wm','column_ambig','tab','en','Table','The name of the view'),
-  ('wm','column_ambig','col','en','Column','The name of the column within the view'),
-  ('wm','column_ambig','spec','en','Specified','True if the definitive native table has been specified explicitly in the schema definition files'),
-  ('wm','column_ambig','count','en','Count','The number of possible native tables for this column'),
-  ('wm','column_ambig','natives','en','Natives','A list of the possible native tables for this column'),
-  ('base','addr_v_flat','bill_state','en','Bill State','Billing address state'),
-  ('wylib','data','ruid','en','Record ID','A unique ID number generated for each data record'),
-  ('wylib','data','component','en','Component','The part of the graphical, or other user interface that uses this data'),
-  ('wylib','data','name','en','Name','A name explaining the version or configuration this data represents (i.e. Default, Searching, Alphabetical, Urgent, Active, etc.)'),
-  ('wylib','data','descr','en','Description','A full description of what this configuration is for'),
-  ('wylib','data','access','en','Access','Who is allowed to access this data, and how'),
-  ('wylib','data','owner','en','Owner','The user entity who created and has full permission to the data in this record'),
-  ('wylib','data','data','en','JSON Data','A record in JSON (JavaScript Object Notation) in a format known and controlled by the view or other accessing module'),
-  ('wylib','data','crt_date','en','Created','The date this record was created'),
-  ('wylib','data','crt_by','en','Created By','The user who entered this record'),
-  ('wylib','data','mod_date','en','Modified','The date this record was last modified'),
-  ('wylib','data','mod_by','en','Modified By','The user who last modified this record'),
-  ('wylib','data_v','own_name','en','Owner Name','The name of the person who saved this configuration data'),
+  ('wylib','data','ruid','eng','Record ID','A unique ID number generated for each data record'),
+  ('wylib','data','component','eng','Component','The part of the graphical, or other user interface that uses this data'),
+  ('wylib','data','name','eng','Name','A name explaining the version or configuration this data represents (i.e. Default, Searching, Alphabetical, Urgent, Active, etc.)'),
+  ('wylib','data','descr','eng','Description','A full description of what this configuration is for'),
+  ('wylib','data','access','eng','Access','Who is allowed to access this data, and how'),
+  ('wylib','data','owner','eng','Owner','The user entity who created and has full permission to the data in this record'),
+  ('wylib','data','data','eng','JSON Data','A record in JSON (JavaScript Object Notation) in a format known and controlled by the view or other accessing module'),
+  ('wylib','data','crt_date','eng','Created','The date this record was created'),
+  ('wylib','data','crt_by','eng','Created By','The user who entered this record'),
+  ('wylib','data','mod_date','eng','Modified','The date this record was last modified'),
+  ('wylib','data','mod_by','eng','Modified By','The user who last modified this record'),
+  ('wylib','data_v','own_name','eng','Owner Name','The name of the person who saved this configuration data'),
   ('wylib','data','ruid','fi','Tunnistaa','Kullekin datatietueelle tuotettu yksilöllinen ID-numero'),
   ('wylib','data','component','fi','Komponentti','GUI:n osa joka käyttää tämä data'),
   ('wylib','data','access','fi','Pääsy','Kuka saa käyttää näitä tietoja ja miten'),
-  ('base','addr','addr_ent','en','Entity ID','The ID number of the entity this address applies to'),
-  ('base','addr','addr_seq','en','Sequence','A unique number assigned to each new address for a given entity'),
-  ('base','addr','addr_spec','en','Address','Street address or PO Box.  This can occupy multiple lines if necessary'),
-  ('base','addr','addr_type','en','Type','The kind of address'),
-  ('base','addr','addr_prim','en','Primary','If checked this is the primary address for contacting this entity'),
-  ('base','addr','addr_cmt','en','Comment','Any other notes about this address'),
-  ('base','addr','city','en','City','The name of the city this address is in'),
-  ('base','addr','state','en','State','The name of the state or province this address is in'),
-  ('base','addr','pcode','en','Zip/Postal','Zip or other mailing code applicable to this address.'),
-  ('base','addr','country','en','Country','The name of the country this address is in.  Use standard international country code abbreviations.'),
-  ('base','addr','addr_inact','en','Inactive','If checked this address is no longer a valid address'),
-  ('base','addr','dirty','en','Dirty','A flag used in the database backend to track whether the primary address needs to be recalculated'),
-  ('base','addr','crt_date','en','Created','The date this record was created'),
-  ('base','addr','crt_by','en','Created By','The user who entered this record'),
-  ('base','addr','mod_date','en','Modified','The date this record was last modified'),
-  ('base','addr','mod_by','en','Modified By','The user who last modified this record'),
-  ('base','addr_v','std_name','en','Entity Name','The name of the entity this address pertains to'),
-  ('base','addr_v','addr_prim','en','Primary','If true this is the primary address for contacting this entity'),
-  ('base','addr_prim','prim_ent','en','Entity','The entity ID number of the main address'),
-  ('base','addr_prim','prim_seq','en','Sequence','The sequence number of the main address'),
-  ('base','addr_prim','prim_type','en','type','The address type this record applies to'),
-  ('base','addr_v_flat','bill_addr','en','Bill Address','First line of the billing address'),
-  ('base','addr_v_flat','bill_city','en','Bill City','Billing address city'),
-  ('base','addr_v_flat','bill_country','en','Bill Country','Billing address country'),
-  ('base','addr_v_flat','bill_pcode','en','Bill Postal','Billing address postal code'),
-  ('base','addr_v_flat','ship_addr','en','Ship Address','First line of the shipping address'),
-  ('base','addr_v_flat','ship_city','en','Ship City','Shipping address city'),
-  ('base','addr_v_flat','ship_state','en','Ship State','Shipping address state'),
-  ('base','addr_v_flat','ship_country','en','Ship Country','Shipping address country'),
-  ('base','addr_v_flat','ship_pcode','en','Ship Postal','Shipping address postal code'),
-  ('base','addr_v_flat','phys_addr','en','Physical Address','First line of the physical address'),
-  ('base','addr_v_flat','phys_city','en','Physical City','Physical address city'),
-  ('base','addr_v_flat','phys_state','en','Physical State','Physical address state'),
-  ('base','addr_v_flat','phys_country','en','Physical Country','Physical address country'),
-  ('base','addr_v_flat','phys_pcode','en','Physical Postal','Physical address postal code'),
-  ('base','addr_v_flat','mail_addr','en','Mailing Address','First line of the mailing address'),
-  ('base','addr_v_flat','mail_city','en','Mailing City','Mailing address city'),
-  ('base','addr_v_flat','mail_state','en','Mailing State','Mailing address state'),
-  ('base','addr_v_flat','mail_country','en','Mailing Country','Mailing address country'),
-  ('base','addr_v_flat','mail_pcode','en','Mailing Postal','ailing address postal code'),
-  ('base','comm','comm_ent','en','Entity','The ID number of the entity this communication point belongs to'),
-  ('base','comm','comm_seq','en','Sequence','A unique number assigned to each new address for a given entity'),
-  ('base','comm','comm_spec','en','Num/Addr','The number or address to use when communication via this method and communication point'),
-  ('base','comm','comm_type','en','Medium','The method of communication'),
-  ('base','comm','comm_prim','en','Primary','If checked this is the primary method of this type for contacting this entity'),
-  ('base','comm','comm_cmt','en','Comment','Any other notes about this communication point'),
-  ('base','comm','comm_inact','en','Inactive','This box is checked to indicate that this record is no longer current'),
-  ('base','comm','crt_date','en','Created','The date this record was created'),
-  ('base','comm','crt_by','en','Created By','The user who entered this record'),
-  ('base','comm','mod_date','en','Modified','The date this record was last modified'),
-  ('base','comm','mod_by','en','Modified By','The user who last modified this record'),
-  ('base','comm_v','std_name','en','Entity Name','The name of the entity this communication point pertains to'),
-  ('base','comm_v','comm_prim','en','Primary','If true this is the primary method of this type for contacting this entity'),
-  ('base','comm_prim','prim_ent','en','Entity','The entity ID number of the main communication point'),
-  ('base','comm_prim','prim_seq','en','Sequence','The sequence number of the main communication point'),
-  ('base','comm_prim','prim_spec','en','Medium','The communication type this record applies to'),
-  ('base','comm_prim','prim_type','en','type','The communication type this record applies to'),
-  ('base','comm_v_flat','web_comm','en','Web Address','The contact''s web page'),
-  ('base','comm_v_flat','cell_comm','en','Cellular','The contact''s cellular phone number'),
-  ('base','comm_v_flat','other_comm','en','Other','Some other communication point for the contact'),
-  ('base','comm_v_flat','pager_comm','en','Pager','The contact''s pager number'),
-  ('base','comm_v_flat','fax_comm','en','Fax','The contact''s FAX number'),
-  ('base','comm_v_flat','email_comm','en','Email','The contact''s email address'),
-  ('base','comm_v_flat','text_comm','en','Text Message','An email address that will send text to the contact''s phone'),
-  ('base','comm_v_flat','phone_comm','en','Phone','The contact''s telephone number'),
-  ('base','country','code','en','Country Code','The ISO 2-letter country code.  This is the offical value to use when entering countries in wylib applications.'),
-  ('base','country','com_name','en','Country','The common name of the country in English'),
-  ('base','country','capital','en','Capital','The name of the capital city'),
-  ('base','country','cur_code','en','Currency','The standard code for the currency of this country'),
-  ('base','country','cur_name','en','Curr Name','The common name in English of the currency of this country'),
-  ('base','country','dial_code','en','Dial Code','The numeric code to dial when calling this country on the phone'),
-  ('base','country','iso_3','en','Code 3','The ISO 3-letter code for this country (not the wylib standard)'),
-  ('base','country','iana','en','Root Domain','The standard extension for WWW domain names for this country'),
-  ('base','ent','id','en','Entity ID','A unique number assigned to each entity'),
-  ('base','ent','ent_type','en','Entity Type','The kind of entity this record represents'),
-  ('base','ent','ent_cmt','en','Ent Comment','Any other notes relating to this entity'),
-  ('base','ent','ent_name','en','Entity Name','Company name, personal surname, or group name'),
-  ('base','ent','fir_name','en','First Name','First given (Robert, Susan, William etc.) for person entities only'),
-  ('base','ent','mid_name','en','Middle Names','One or more middle given or maiden names, for person entities only'),
-  ('base','ent','pref_name','en','Preferred','Preferred first name (Bob, Sue, Bill etc.) for person entities only'),
-  ('base','ent','title','en','Title','A title that prefixes the name (Mr., Chief, Dr. etc.)'),
-  ('base','ent','born_date','en','Born Date','Birth date for person entities or optionally, an incorporation date for entities'),
-  ('base','ent','gender','en','Gender','Whether the person is male (m) or female (f)'),
-  ('base','ent','marital','en','Marital Status','Whether the person is married (m) or single (s)'),
-  ('base','ent','username','en','Username','The login name for this person, if a user on this system'),
-  ('base','ent','database','en','Data Access','A flag indicating that this entity has access to the ERP database'),
-  ('base','ent','ent_inact','en','Inactive','A flag indicating that this entity is no longer current, in business, or alive'),
-  ('base','ent','inside','en','Inside','A flag indicating that this person is somehow associated with this site (user, member, employee, etc.).  Inside people will be given an ID number in a lower range than outside people and companies.'),
-  ('base','ent','country','en','Country','The country of primary citizenship (for people) or legal organization (companies)'),
-  ('base','ent','tax_id','en','TID/SSN','The number by which the country recognizes this person or company for taxation purposes'),
-  ('base','ent','bank','en','Bank Routing','Bank routing information: bank_number<:.;,>account_number'),
-  ('base','ent','proxy','en','Proxy','ID of another person authorized to act on behalf of this employee where necessary in certain administrative functions of the ERP (like budgetary approvals)'),
-  ('base','ent','crt_date','en','Created','The date this record was created'),
-  ('base','ent','crt_by','en','Created By','The user who entered this record'),
-  ('base','ent','mod_date','en','Modified','The date this record was last modified'),
-  ('base','ent','mod_by','en','Modified By','The user who last modified this record'),
-  ('base','ent_v','std_name','en','Name','The standard format for the entity''s name or, for a person, a standard format: Last, Preferred'),
-  ('base','ent_v','frm_name','en','Formal Name','A person''s full name in a formal format: Last, Title First Middle'),
-  ('base','ent_v','cas_name','en','Casual Name','A person''s full name in a casual format: First Last'),
-  ('base','ent_v','giv_name','en','Given Name','A person''s First given name'),
-  ('base','ent_v','age','en','Age','Age, in years, of the entity'),
-  ('base','ent_link','org','en','Organization ID','The ID of the organization entity that the member entity belongs to'),
-  ('base','ent_link','mem','en','Member ID','The ID of the entity that is a member of the organization'),
-  ('base','ent_link','role','en','Member Role','The function or job description of the member within the organization'),
-  ('base','ent_link','supr_path','en','Super Chain','An ordered list of superiors from the top down for this member in this organization'),
-  ('base','ent_link','crt_date','en','Created','The date this record was created'),
-  ('base','ent_link','crt_by','en','Created By','The user who entered this record'),
-  ('base','ent_link','mod_date','en','Modified','The date this record was last modified'),
-  ('base','ent_link','mod_by','en','Modified By','The user who last modified this record'),
-  ('base','ent_link_v','org_name','en','Org Name','The name of the organization or group entity the member belongs to'),
-  ('base','ent_link_v','mem_name','en','Member Name','The name of the person who belongs to the organization'),
-  ('base','ent_link_v','role','en','Role','The job description or duty of the member with respect to the organization he belongs to'),
-  ('base','ent_audit','id','en','Entity ID','The ID of the entity that was changed'),
-  ('base','ent_audit','a_seq','en','Sequence','A sequential number unique to each alteration'),
-  ('base','ent_audit','a_date','en','Date/Time','Date and time of the change'),
-  ('base','ent_audit','a_by','en','Altered By','The username of the user who made the change'),
-  ('base','ent_audit','a_action','en','Action','The operation that produced the change (update, delete)'),
-  ('base','ent_audit','a_column','en','Column','The name of the column that was changed'),
-  ('base','ent_audit','a_value','en','Value','The old value of the column before the change'),
-  ('base','ent_audit','a_reason','en','Reason','The reason for the change'),
-  ('base','parm','module','en','Module','The system or module within the ERP this setting is applicable to'),
-  ('base','parm','parm','en','Name','The name of the parameter setting'),
-  ('base','parm','cmt','en','Comment','Notes you may want to add about why the setting is set to a particular value'),
-  ('base','parm','type','en','Data Type','Indicates the native data type of this paramter (and hence the particular underlying table it will be stored in.)'),
-  ('base','parm','v_int','en','Integer Value','The parameter value in the case when the type is an integer'),
-  ('base','parm','v_date','en','Date Value','The parameter value in the case when the type is a date'),
-  ('base','parm','v_text','en','Text Value','The parameter value in the case when the type is a character string'),
-  ('base','parm','v_float','en','Float Value','The parameter value in the case when the type is a real number'),
-  ('base','parm','v_boolean','en','Boolean Value','The parameter value in the case when the type is a boolean (true/false) value'),
-  ('base','parm','crt_date','en','Created','The date this record was created'),
-  ('base','parm','crt_by','en','Created By','The user who entered this record'),
-  ('base','parm','mod_date','en','Modified','The date this record was last modified'),
-  ('base','parm','mod_by','en','Modified By','The user who last modified this record'),
-  ('base','parm_v','value','en','Value','The value for the parameter setting, expressed as a string'),
-  ('base','parm_audit','module','en','Module','The module name for the parameter that was changed'),
-  ('base','parm_audit','parm','en','Parameter','The parameter name that was changed'),
-  ('base','parm_audit','a_seq','en','Sequence','A sequential number unique to each alteration'),
-  ('base','parm_audit','a_date','en','Date/Time','Date and time of the change'),
-  ('base','parm_audit','a_by','en','Altered By','The username of the user who made the change'),
-  ('base','parm_audit','a_action','en','Action','The operation that produced the change (update, delete)'),
-  ('base','parm_audit','a_column','en','Column','The name of the column that was changed'),
-  ('base','parm_audit','a_value','en','Value','The old value of the column before the change'),
-  ('base','parm_audit','a_reason','en','Reason','The reason for the change'),
-  ('base','priv','grantee','en','Grantee','The user receiving the privilege'),
-  ('base','priv','priv','en','Privilege','The name of the privilege being granted'),
-  ('base','priv','level','en','Access','What level of access within this privilege (view,use,manage)'),
-  ('base','priv','priv_level','en','Priv Level','Shows the name the privilege level will refer to in the database.  This is formed by joining the privilege name and the level with an underscore.'),
-  ('base','priv','cmt','en','Comment','Comments about this privilege allocation to this user'),
-  ('base','priv_v','std_name','en','Entity Name','The name of the entity being granted the privilege'),
-  ('base','priv_v','priv_list','en','Priv List','In the case where the privilege refers to a group role, this shows which underlying privileges belong to that role.'),
-  ('base','priv_v','username','en','Username','The username within the database for this entity'),
-  ('public','covenants','author','en','Author','The name of the author, organization, or publisher of the covenant (such as GPL, FSF, MyCHIPs.org, etc.)'),
-  ('public','covenants','title','en','Title','A short, descriptive title which will be shown as a section header when a contract is rendered.'),
-  ('public','covenants','version','en','Version','The version number, starting at 1, of this covenant.'),
-  ('public','covenants','language','en','Language','The standard ISO code for the language in which the covenant is expressed.'),
-  ('public','covenants','released','en','Released','The date this version of the covenant was first published.'),
-  ('public','covenants','content','en','Content','The actual contract text, describing what the parties are agreeing to.'),
-  ('public','covenants','hash','en','Hash','A standardized hash of the covenant text which can be referenced by other contracts to prove what has been included.'),
-  ('mychips','peers','peer_ent','en','Entity link','A link to the entities base table'),
-  ('mychips','peers','peer_cdi','en','CHIPs ID','The user''s CHIPs Domain Identifier, or CDI'),
-  ('mychips','peers','peer_hid','en','Covert ID','A substitute ID by which direct trading partners will refer to this user, when conversing with other peers'),
-  ('mychips','peers','peer_pub','en','Peer Public Key','The peer''s public key, known to other trading partners'),
-  ('mychips','peers','peer_inet','en','Peer Net Addr','The IP number where other CHIP servers can connect to do trades with this peer'),
-  ('mychips','peers','peer_port','en','Peer Port','The port where other servers will connect'),
-  ('mychips','peers','peer_cmt','en','Peer Comments','Administrative comments about this peer'),
-  ('mychips','peers','crt_date','en','Created','The date this record was created'),
-  ('mychips','peers','crt_by','en','Created By','The user who entered this record'),
-  ('mychips','peers','mod_date','en','Modified','The date this record was last modified'),
-  ('mychips','peers','mod_by','en','Modified By','The user who last modified this record'),
-  ('mychips','peers_v','peer_sock','en','Peer Socket','The IP Number, and port where other servers can connect to trade with this peer.'),
-  ('mychips','tallies','tally_ent','en','Tally Entity','The ID number of the entity or person this tally belongs to'),
-  ('mychips','tallies','tally_seq','en','Tally Sequence','A unique number among all tallies owned by this entity'),
-  ('mychips','tallies','tally_guid','en','Tally GUID','A globally unique identifier for this tally'),
-  ('mychips','tallies','tally_type','en','Tally Type','Determines if this entity is typically the creditor (stock) or the debtor (foil) for this tally'),
-  ('mychips','tallies','tally_date','en','Tally Date','The date and time this tally was initiated between the parties'),
-  ('mychips','tallies','version','en','Version','A number indicating the format standard this tally adheres to'),
-  ('mychips','tallies','partner','en','Partner Entity','The entity id number of the other party to this tally'),
-  ('mychips','tallies','contract','en','Contract','The hash ID of the standard contract this tally is based upon.'),
-  ('mychips','tallies','status','en','Status','Current state of the tally'),
-  ('mychips','tallies','request','en','Request','Requested next state for the tally'),
-  ('mychips','tallies','comment','en','Comment','Any notes the user might want to enter regarding this tally'),
-  ('mychips','tallies','user_sig','en','User Signed','The digital signature of the entity this tally belongs to'),
-  ('mychips','tallies','part_sig','en','Partner Signed','The digital signature of the other party to this tally'),
-  ('mychips','tallies','cr_lim','en','Credit Limit','The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time'),
-  ('mychips','tallies','dr_lim','en','Debit Limit','The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow'),
-  ('mychips','tallies','total_c','en','Total','A cached total of all the chits on this tally, from the perspective of the tally''s owner'),
-  ('mychips','tallies_v','state','en','State','A computed value indicating the state of progress as the tally goes through its lifecycle'),
-  ('mychips','tallies_v','action','en','Action','Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.'),
-  ('mychips','chits','chit_ent','en','Tally Entity','Entity ID of the owner of the tally this chit belongs to'),
-  ('mychips','chits','chit_seq','en','Tally Sequence','Sequence number of the owner of the tally this chit belongs to'),
-  ('mychips','chits','chit_idx','en','Chit Index','A unique identifier within the tally, identifying this chit'),
-  ('mychips','chits','chit_guid','en','Chit GUID','A globally unique identifier for this transaction'),
-  ('mychips','chits','chit_type','en','Chit Type','The type of transaction represented by this flow of credit'),
-  ('mychips','chits','chit_date','en','Date/Time','The date and time when this transaction is effective'),
-  ('mychips','chits','amount','en','Amount','The amount of the transaction, as measured in micro-CHIPs (1/1,000,000)'),
-  ('mychips','chits','pro_quo','en','Quid Pro Quo','A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties'),
-  ('mychips','chits','memo','en','Memo','Any other description or explanation for the transaction'),
-  ('mychips','confirms','conf_ent','en','Confirm Entity','Entity ID of the owner of the tally this confirmation belongs to'),
-  ('mychips','confirms','conf_seq','en','Confirm Sequence','Sequence number of the owner of the tally this confirmation belongs to'),
-  ('mychips','confirms','conf_idx','en','Confirm Index','A unique identifier within the tally, identifying this confirmation'),
-  ('mychips','confirms','conf_guid','en','Confirmation GUID','A globally unique identifier for this confirmation'),
-  ('mychips','confirms','conf_date','en','Date & Time','The date and time when this account total is computed'),
-  ('mychips','confirms','sum','en','Sum','The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)'),
-  ('mychips','confirms','signature','en','Signature','The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table'),
-  ('mychips','users','user_ent','en','Entity link','A link to the entities base table.'),
-  ('mychips','users','user_inet','en','User Net Addr','The IP number where the users''s mobile application connects'),
-  ('mychips','users','user_port','en','User Port','The port to which the user''s mobile device will connect'),
-  ('mychips','users','user_stat','en','Trading Status','The current state of the user''s account for trading of CHIPs'),
-  ('mychips','users','user_cmt','en','User Comments','Administrative comments about this user'),
-  ('mychips','users','host_id','en','Host ID','A unique code identifying the controller server that processes peer traffic for this user'),
-  ('mychips','users','crt_date','en','Created','The date this record was created'),
-  ('mychips','users','crt_by','en','Created By','The user who entered this record'),
-  ('mychips','users','mod_date','en','Modified','The date this record was last modified'),
-  ('mychips','users','mod_by','en','Modified By','The user who last modified this record'),
-  ('mychips','users_v','user_sock','en','User Socket','The IP Number, and port to which the user''s mobile device will connect'),
-  ('mychips','users_v','peer_sock','en','Peer Socket','The IP Number, and port where other servers can connect to trade with this peer.'),
+  ('base','addr','addr_ent','eng','Entity ID','The ID number of the entity this address applies to'),
+  ('base','addr','addr_seq','eng','Sequence','A unique number assigned to each new address for a given entity'),
+  ('base','addr','addr_spec','eng','Address','Street address or PO Box.  This can occupy multiple lines if necessary'),
+  ('base','addr','addr_type','eng','Type','The kind of address'),
+  ('base','addr','addr_prim','eng','Primary','If checked this is the primary address for contacting this entity'),
+  ('base','addr','addr_cmt','eng','Comment','Any other notes about this address'),
+  ('base','addr','city','eng','City','The name of the city this address is in'),
+  ('base','addr','state','eng','State','The name of the state or province this address is in'),
+  ('base','addr','pcode','eng','Zip/Postal','Zip or other mailing code applicable to this address.'),
+  ('base','addr','country','eng','Country','The name of the country this address is in.  Use standard international country code abbreviations.'),
+  ('base','addr','addr_inact','eng','Inactive','If checked this address is no longer a valid address'),
+  ('base','addr','dirty','eng','Dirty','A flag used in the database backend to track whether the primary address needs to be recalculated'),
+  ('base','addr','crt_date','eng','Created','The date this record was created'),
+  ('base','addr','crt_by','eng','Created By','The user who entered this record'),
+  ('base','addr','mod_date','eng','Modified','The date this record was last modified'),
+  ('base','addr','mod_by','eng','Modified By','The user who last modified this record'),
+  ('base','addr_v','std_name','eng','Entity Name','The name of the entity this address pertains to'),
+  ('base','addr_v','addr_prim','eng','Primary','If true this is the primary address for contacting this entity'),
+  ('base','addr_prim','prim_ent','eng','Entity','The entity ID number of the main address'),
+  ('base','addr_prim','prim_seq','eng','Sequence','The sequence number of the main address'),
+  ('base','addr_prim','prim_type','eng','type','The address type this record applies to'),
+  ('base','addr_v_flat','bill_addr','eng','Bill Address','First line of the billing address'),
+  ('base','addr_v_flat','bill_city','eng','Bill City','Billing address city'),
+  ('base','addr_v_flat','bill_state','eng','Bill State','Billing address state'),
+  ('base','addr_v_flat','bill_country','eng','Bill Country','Billing address country'),
+  ('base','addr_v_flat','bill_pcode','eng','Bill Postal','Billing address postal code'),
+  ('base','addr_v_flat','ship_addr','eng','Ship Address','First line of the shipping address'),
+  ('base','addr_v_flat','ship_city','eng','Ship City','Shipping address city'),
+  ('base','addr_v_flat','ship_state','eng','Ship State','Shipping address state'),
+  ('base','addr_v_flat','ship_country','eng','Ship Country','Shipping address country'),
+  ('base','addr_v_flat','ship_pcode','eng','Ship Postal','Shipping address postal code'),
+  ('base','addr_v_flat','phys_addr','eng','Physical Address','First line of the physical address'),
+  ('base','addr_v_flat','phys_city','eng','Physical City','Physical address city'),
+  ('base','addr_v_flat','phys_state','eng','Physical State','Physical address state'),
+  ('base','addr_v_flat','phys_country','eng','Physical Country','Physical address country'),
+  ('base','addr_v_flat','phys_pcode','eng','Physical Postal','Physical address postal code'),
+  ('base','addr_v_flat','mail_addr','eng','Mailing Address','First line of the mailing address'),
+  ('base','addr_v_flat','mail_city','eng','Mailing City','Mailing address city'),
+  ('base','addr_v_flat','mail_state','eng','Mailing State','Mailing address state'),
+  ('base','addr_v_flat','mail_country','eng','Mailing Country','Mailing address country'),
+  ('base','addr_v_flat','mail_pcode','eng','Mailing Postal','ailing address postal code'),
+  ('base','comm','comm_ent','eng','Entity','The ID number of the entity this communication point belongs to'),
+  ('base','comm','comm_seq','eng','Sequence','A unique number assigned to each new address for a given entity'),
+  ('base','comm','comm_spec','eng','Num/Addr','The number or address to use when communication via this method and communication point'),
+  ('base','comm','comm_type','eng','Medium','The method of communication'),
+  ('base','comm','comm_prim','eng','Primary','If checked this is the primary method of this type for contacting this entity'),
+  ('base','comm','comm_cmt','eng','Comment','Any other notes about this communication point'),
+  ('base','comm','comm_inact','eng','Inactive','This box is checked to indicate that this record is no longer current'),
+  ('base','comm','crt_date','eng','Created','The date this record was created'),
+  ('base','comm','crt_by','eng','Created By','The user who entered this record'),
+  ('base','comm','mod_date','eng','Modified','The date this record was last modified'),
+  ('base','comm','mod_by','eng','Modified By','The user who last modified this record'),
+  ('base','comm_v','std_name','eng','Entity Name','The name of the entity this communication point pertains to'),
+  ('base','comm_v','comm_prim','eng','Primary','If true this is the primary method of this type for contacting this entity'),
+  ('base','comm_prim','prim_ent','eng','Entity','The entity ID number of the main communication point'),
+  ('base','comm_prim','prim_seq','eng','Sequence','The sequence number of the main communication point'),
+  ('base','comm_prim','prim_spec','eng','Medium','The communication type this record applies to'),
+  ('base','comm_prim','prim_type','eng','type','The communication type this record applies to'),
+  ('base','comm_v_flat','web_comm','eng','Web Address','The contact''s web page'),
+  ('base','comm_v_flat','cell_comm','eng','Cellular','The contact''s cellular phone number'),
+  ('base','comm_v_flat','other_comm','eng','Other','Some other communication point for the contact'),
+  ('base','comm_v_flat','pager_comm','eng','Pager','The contact''s pager number'),
+  ('base','comm_v_flat','fax_comm','eng','Fax','The contact''s FAX number'),
+  ('base','comm_v_flat','email_comm','eng','Email','The contact''s email address'),
+  ('base','comm_v_flat','text_comm','eng','Text Message','An email address that will send text to the contact''s phone'),
+  ('base','comm_v_flat','phone_comm','eng','Phone','The contact''s telephone number'),
+  ('base','country','code','eng','Country Code','The ISO 2-letter country code.  This is the offical value to use when entering countries in wylib applications.'),
+  ('base','country','com_name','eng','Country','The common name of the country in English'),
+  ('base','country','capital','eng','Capital','The name of the capital city'),
+  ('base','country','cur_code','eng','Currency','The standard code for the currency of this country'),
+  ('base','country','cur_name','eng','Curr Name','The common name in English of the currency of this country'),
+  ('base','country','dial_code','eng','Dial Code','The numeric code to dial when calling this country on the phone'),
+  ('base','country','iso_3','eng','Code 3','The ISO 3-letter code for this country (not the wylib standard)'),
+  ('base','country','iana','eng','Root Domain','The standard extension for WWW domain names for this country'),
+  ('base','ent','id','eng','Entity ID','A unique number assigned to each entity'),
+  ('base','ent','ent_type','eng','Entity Type','The kind of entity this record represents'),
+  ('base','ent','ent_cmt','eng','Ent Comment','Any other notes relating to this entity'),
+  ('base','ent','ent_name','eng','Entity Name','Company name, personal surname, or group name'),
+  ('base','ent','fir_name','eng','First Name','First given (Robert, Susan, William etc.) for person entities only'),
+  ('base','ent','mid_name','eng','Middle Names','One or more middle given or maiden names, for person entities only'),
+  ('base','ent','pref_name','eng','Preferred','Preferred first name (Bob, Sue, Bill etc.) for person entities only'),
+  ('base','ent','title','eng','Title','A title that prefixes the name (Mr., Chief, Dr. etc.)'),
+  ('base','ent','born_date','eng','Born Date','Birth date for person entities or optionally, an incorporation date for entities'),
+  ('base','ent','gender','eng','Gender','Whether the person is male (m) or female (f)'),
+  ('base','ent','marital','eng','Marital Status','Whether the person is married (m) or single (s)'),
+  ('base','ent','username','eng','Username','The login name for this person, if a user on this system'),
+  ('base','ent','database','eng','Data Access','A flag indicating that this entity has access to the ERP database'),
+  ('base','ent','ent_inact','eng','Inactive','A flag indicating that this entity is no longer current, in business, or alive'),
+  ('base','ent','inside','eng','Inside','A flag indicating that this person is somehow associated with this site (user, member, employee, etc.).  Inside people will be given an ID number in a lower range than outside people and companies.'),
+  ('base','ent','country','eng','Country','The country of primary citizenship (for people) or legal organization (companies)'),
+  ('base','ent','tax_id','eng','TID/SSN','The number by which the country recognizes this person or company for taxation purposes'),
+  ('base','ent','bank','eng','Bank Routing','Bank routing information: bank_number<:.;,>account_number'),
+  ('base','ent','proxy','eng','Proxy','ID of another person authorized to act on behalf of this employee where necessary in certain administrative functions of the ERP (like budgetary approvals)'),
+  ('base','ent','crt_date','eng','Created','The date this record was created'),
+  ('base','ent','crt_by','eng','Created By','The user who entered this record'),
+  ('base','ent','mod_date','eng','Modified','The date this record was last modified'),
+  ('base','ent','mod_by','eng','Modified By','The user who last modified this record'),
+  ('base','ent_v','std_name','eng','Name','The standard format for the entity''s name or, for a person, a standard format: Last, Preferred'),
+  ('base','ent_v','frm_name','eng','Formal Name','A person''s full name in a formal format: Last, Title First Middle'),
+  ('base','ent_v','cas_name','eng','Casual Name','A person''s full name in a casual format: First Last'),
+  ('base','ent_v','giv_name','eng','Given Name','A person''s First given name'),
+  ('base','ent_v','age','eng','Age','Age, in years, of the entity'),
+  ('base','ent_link','org','eng','Organization ID','The ID of the organization entity that the member entity belongs to'),
+  ('base','ent_link','mem','eng','Member ID','The ID of the entity that is a member of the organization'),
+  ('base','ent_link','role','eng','Member Role','The function or job description of the member within the organization'),
+  ('base','ent_link','supr_path','eng','Super Chain','An ordered list of superiors from the top down for this member in this organization'),
+  ('base','ent_link','crt_date','eng','Created','The date this record was created'),
+  ('base','ent_link','crt_by','eng','Created By','The user who entered this record'),
+  ('base','ent_link','mod_date','eng','Modified','The date this record was last modified'),
+  ('base','ent_link','mod_by','eng','Modified By','The user who last modified this record'),
+  ('base','ent_link_v','org_name','eng','Org Name','The name of the organization or group entity the member belongs to'),
+  ('base','ent_link_v','mem_name','eng','Member Name','The name of the person who belongs to the organization'),
+  ('base','ent_link_v','role','eng','Role','The job description or duty of the member with respect to the organization he belongs to'),
+  ('base','ent_audit','id','eng','Entity ID','The ID of the entity that was changed'),
+  ('base','ent_audit','a_seq','eng','Sequence','A sequential number unique to each alteration'),
+  ('base','ent_audit','a_date','eng','Date/Time','Date and time of the change'),
+  ('base','ent_audit','a_by','eng','Altered By','The username of the user who made the change'),
+  ('base','ent_audit','a_action','eng','Action','The operation that produced the change (update, delete)'),
+  ('base','ent_audit','a_column','eng','Column','The name of the column that was changed'),
+  ('base','ent_audit','a_value','eng','Value','The old value of the column before the change'),
+  ('base','ent_audit','a_reason','eng','Reason','The reason for the change'),
+  ('base','language','code','eng','Language Code','The ISO 3-letter language code.  Where a native T-code exists, it is the one used here.'),
+  ('base','language','iso_3b','eng','Biblio Code','The ISO bibliographic 3-letter code for this language'),
+  ('base','language','iso_2','eng','Code 2','The ISO 2-letter code for this language, if it exists'),
+  ('base','language','eng_name','eng','Name in English','The common name of the language English'),
+  ('base','language','fra_name','eng','Name in French','The common name of the language in French'),
+  ('base','parm','module','eng','Module','The system or module within the ERP this setting is applicable to'),
+  ('base','parm','parm','eng','Name','The name of the parameter setting'),
+  ('base','parm','cmt','eng','Comment','Notes you may want to add about why the setting is set to a particular value'),
+  ('base','parm','type','eng','Data Type','Indicates the native data type of this paramter (and hence the particular underlying table it will be stored in.)'),
+  ('base','parm','v_int','eng','Integer Value','The parameter value in the case when the type is an integer'),
+  ('base','parm','v_date','eng','Date Value','The parameter value in the case when the type is a date'),
+  ('base','parm','v_text','eng','Text Value','The parameter value in the case when the type is a character string'),
+  ('base','parm','v_float','eng','Float Value','The parameter value in the case when the type is a real number'),
+  ('base','parm','v_boolean','eng','Boolean Value','The parameter value in the case when the type is a boolean (true/false) value'),
+  ('base','parm','crt_date','eng','Created','The date this record was created'),
+  ('base','parm','crt_by','eng','Created By','The user who entered this record'),
+  ('base','parm','mod_date','eng','Modified','The date this record was last modified'),
+  ('base','parm','mod_by','eng','Modified By','The user who last modified this record'),
+  ('base','parm_v','value','eng','Value','The value for the parameter setting, expressed as a string'),
+  ('base','parm_audit','module','eng','Module','The module name for the parameter that was changed'),
+  ('base','parm_audit','parm','eng','Parameter','The parameter name that was changed'),
+  ('base','parm_audit','a_seq','eng','Sequence','A sequential number unique to each alteration'),
+  ('base','parm_audit','a_date','eng','Date/Time','Date and time of the change'),
+  ('base','parm_audit','a_by','eng','Altered By','The username of the user who made the change'),
+  ('base','parm_audit','a_action','eng','Action','The operation that produced the change (update, delete)'),
+  ('base','parm_audit','a_column','eng','Column','The name of the column that was changed'),
+  ('base','parm_audit','a_value','eng','Value','The old value of the column before the change'),
+  ('base','parm_audit','a_reason','eng','Reason','The reason for the change'),
+  ('base','priv','grantee','eng','Grantee','The user receiving the privilege'),
+  ('base','priv','priv','eng','Privilege','The name of the privilege being granted'),
+  ('base','priv','level','eng','Access','What level of access within this privilege (view,use,manage)'),
+  ('base','priv','priv_level','eng','Priv Level','Shows the name the privilege level will refer to in the database.  This is formed by joining the privilege name and the level with an underscore.'),
+  ('base','priv','cmt','eng','Comment','Comments about this privilege allocation to this user'),
+  ('base','priv_v','std_name','eng','Entity Name','The name of the entity being granted the privilege'),
+  ('base','priv_v','priv_list','eng','Priv List','In the case where the privilege refers to a group role, this shows which underlying privileges belong to that role.'),
+  ('base','priv_v','username','eng','Username','The username within the database for this entity'),
+  ('public','contracts','author','eng','Author','The name of the author, organization, or publisher of the covenant (such as GPL, FSF, MyCHIPs.org, etc.)'),
+  ('public','contracts','title','eng','Title','A short, descriptive title which will be shown as a section header when a contract is rendered.'),
+  ('public','contracts','version','eng','Version','The version number, starting at 1, of this covenant.'),
+  ('public','contracts','language','eng','Language','The standard ISO code for the language in which the covenant is expressed.'),
+  ('public','contracts','released','eng','Released','The date this version of the covenant was first published.'),
+  ('public','contracts','content','eng','Content','The actual contract text, describing what the parties are agreeing to.'),
+  ('public','contracts','hash','eng','Hash','A standardized hash of the covenant text which can be referenced by other contracts to prove what has been included.'),
+  ('mychips','contracts','author','eng','Author','The name of the author, organization, or publisher of the contract document (such as GPL, FSF, MyCHIPs.org, etc.)'),
+  ('mychips','contracts','title','eng','Title','A short, descriptive title which will be shown as a section header when a contract is rendered'),
+  ('mychips','contracts','version','eng','Version','The version number, starting at 1, of this document'),
+  ('mychips','contracts','language','eng','Language','The standard ISO code for the language in which the covenant is expressed'),
+  ('mychips','contracts','publish','eng','Published','The date this version of the covenant was first published'),
+  ('mychips','contracts','sections','eng','Content','The actual sections of contract text, describing what the parties are agreeing to'),
+  ('mychips','contracts','digest','eng','Hash','A standardized hash signature of the document text which can be referenced by others to prove the accuracy of the contract'),
+  ('mychips','contracts','source','eng','Source URL','The official web address where the author of this document maintains its public access'),
+  ('mychips','contracts','crt_date','eng','Created','The date this record was created'),
+  ('mychips','contracts','crt_by','eng','Created By','The user who entered this record'),
+  ('mychips','contracts','mod_date','eng','Modified','The date this record was last modified'),
+  ('mychips','contracts','mod_by','eng','Modified By','The user who last modified this record'),
+  ('mychips','paths_v','id','eng','Peer ID','Entity ID of the peer this pathway starts with'),
+  ('mychips','paths_v','length','eng','Node Length','The number of unique peer nodes in this pathway'),
+  ('mychips','paths_v','path','eng','Peer ID List','An array of the entity IDs in this pathway'),
+  ('mychips','paths_v','uuids','eng','Tally ID List','An array of the tally IDs in this pathway'),
+  ('mychips','paths_v','cycle','eng','Cycled','A flag indicating that the pathway contains a loop'),
+  ('wm','releases','release','eng','Release','The integer number of the release, starting with 1.  The current number in this field always designates a work-in-progress.  The number prior indicates the last public release.'),
+  ('wm','releases','crt_date','eng','Created','When this record was created.  Indicates when development started on this release (And the prior release was frozen).'),
+  ('wm','releases','sver_1','eng','BS Version','Dummy column with a name indicating the version of these bootstrap tables (which can''t be managed by wyseman themselves).'),
+  ('wm','objects','obj_typ','eng','Type','The object type, for example: table, function, trigger, etc.'),
+  ('wm','objects','obj_nam','eng','Name','The schema and name of object as known within that schema'),
+  ('wm','objects','obj_ver','eng','Version','A sequential integer showing how many times this object has been modified, as a part of an official release.  Changes to the current (working) release do not increment this number.'),
+  ('wm','objects','checked','eng','Checked','This record has had its dependencies and consistency checked'),
+  ('wm','objects','clean','eng','Clean','The object represented by this record is built and current according to this create script'),
+  ('wm','objects','module','eng','Module','The name of a code module (package) this object belongs to'),
+  ('wm','objects','mod_ver','eng','Mod Vers','The version of the code module, or package this object belongs to'),
+  ('wm','objects','source','eng','Source','The basename of the external source code file this object was parsed from'),
+  ('wm','objects','deps','eng','Depends','A list of un-expanded dependencies for this object, exactly as expressed in the source file'),
+  ('wm','objects','ndeps','eng','Normal Deps','An expanded and normalized array of dependencies, guaranteed to exist in another record of the table'),
+  ('wm','objects','grants','eng','Grants','The permission grants found, applicable to this object'),
+  ('wm','objects','col_data','eng','Display','Switches found, expressing preferred display characteristics for columns, assuming this is a view or table object'),
+  ('wm','objects','crt_sql','eng','Create','The SQL code to build this object'),
+  ('wm','objects','drp_sql','eng','Drop','The SQL code to drop this object'),
+  ('wm','objects','min_rel','eng','Minimum','The oldest release this version of this object belongs to'),
+  ('wm','objects','max_rel','eng','Maximum','The latest release this version of this object belongs to'),
+  ('wm','objects','crt_date','eng','Created','When this object record was first created'),
+  ('wm','objects','mod_date','eng','Modified','When this object record was last modified'),
+  ('wm','objects_v','object','eng','Object','Full type and name of this object'),
+  ('wm','objects_v','release','eng','Release','A release this version of the object belongs to'),
+  ('wm','objects_v_depth','depth','eng','Max Depth','The maximum depth of this object along any path in the dependency tree'),
+  ('wm','depends_v','object','eng','Object','Full object type and name (type:name)'),
+  ('wm','depends_v','od_typ','eng','Type','Function, view, table, etc'),
+  ('wm','depends_v','od_nam','eng','Name','Schema and name of object as known within that schema'),
+  ('wm','depends_v','od_release','eng','Release','The release this object belongs to'),
+  ('wm','depends_v','cycle','eng','Cycle','Prevents the recursive view gets into an infinite loop'),
+  ('wm','depends_v','depend','eng','Depends On','Another object that must be created before this object'),
+  ('wm','depends_v','depth','eng','Depth','The depth of the dependency tree, when following this particular dependency back to the root.'),
+  ('wm','depends_v','path','eng','Path','The path of the dependency tree above this object'),
+  ('wm','depends_v','fpath','eng','Full Path','The full path of the dependency tree above this object (including this object).'),
+  ('wm','table_style','ts_sch','eng','Schema Name','The schema for the table this style pertains to'),
+  ('wm','table_style','ts_tab','eng','Table Name','The name of the table this style pertains to'),
+  ('wm','table_style','sw_name','eng','Name','The name of the style being described'),
+  ('wm','table_style','sw_value','eng','Value','The value for this particular style'),
+  ('wm','table_style','inherit','eng','Inherit','The value for this style can propagate to derivative views'),
+  ('wm','column_style','cs_sch','eng','Schema Name','The schema for the table this style pertains to'),
+  ('wm','column_style','cs_tab','eng','Table Name','The name of the table containing the column this style pertains to'),
+  ('wm','column_style','cs_col','eng','Column Name','The name of the column this style pertains to'),
+  ('wm','column_style','sw_name','eng','Name','The name of the style being described'),
+  ('wm','column_style','sw_value','eng','Value','The value for this particular style'),
+  ('wm','table_text','tt_sch','eng','Schema Name','The schema this table belongs to'),
+  ('wm','table_text','tt_tab','eng','Table Name','The name of the table being described'),
+  ('wm','table_text','language','eng','Language','The language this description is in'),
+  ('wm','table_text','title','eng','Title','A short title for the table'),
+  ('wm','table_text','help','eng','Description','A longer description of what the table is used for'),
+  ('wm','column_text','ct_sch','eng','Schema Name','The schema this column''s table belongs to'),
+  ('wm','column_text','ct_tab','eng','Table Name','The name of the table this column is in'),
+  ('wm','column_text','ct_col','eng','Column Name','The name of the column being described'),
+  ('wm','column_text','language','eng','Language','The language this description is in'),
+  ('wm','column_text','title','eng','Title','A short title for the column'),
+  ('wm','column_text','help','eng','Description','A longer description of what the column is used for'),
+  ('wm','value_text','vt_sch','eng','Schema Name','The schema of the table the column belongs to'),
+  ('wm','value_text','vt_tab','eng','Table Name','The name of the table this column is in'),
+  ('wm','value_text','vt_col','eng','Column Name','The name of the column whose values are being described'),
+  ('wm','value_text','value','eng','Value','The name of the value being described'),
+  ('wm','value_text','language','eng','Language','The language this description is in'),
+  ('wm','value_text','title','eng','Title','A short title for the value'),
+  ('wm','value_text','help','eng','Description','A longer description of what it means when the column is set to this value'),
+  ('wm','message_text','mt_sch','eng','Schema Name','The schema of the table this message belongs to'),
+  ('wm','message_text','mt_tab','eng','Table Name','The name of the table this message belongs to is in'),
+  ('wm','message_text','code','eng','Code','A unique code referenced in the source code to evoke this message in the language of choice'),
+  ('wm','message_text','language','eng','Language','The language this message is in'),
+  ('wm','message_text','title','eng','Title','A short version for the message, or its alert'),
+  ('wm','message_text','help','eng','Description','A longer, more descriptive version of the message'),
+  ('wm','column_native','cnt_sch','eng','Schema Name','The schema of the table this column belongs to'),
+  ('wm','column_native','cnt_tab','eng','Table Name','The name of the table this column is in'),
+  ('wm','column_native','cnt_col','eng','Column Name','The name of the column whose native source is being described'),
+  ('wm','column_native','nat_sch','eng','Schema Name','The schema of the native table the column derives from'),
+  ('wm','column_native','nat_tab','eng','Table Name','The name of the table the column natively derives from'),
+  ('wm','column_native','nat_col','eng','Column Name','The name of the column in the native table from which the higher level column derives'),
+  ('wm','column_native','nat_exp','eng','Explic Native','The information about the native table in this record has been defined explicitly in the schema description (not derived from the database system catalogs)'),
+  ('wm','column_native','pkey','eng','Primary Key','Wyseman can often determine the "primary key" for views on its own from the database.  When it can''t, you have to define it explicitly in the schema.  This indicates that thiscolumn should be regarded as a primary key field when querying the view.'),
+  ('wm','table_data','td_sch','eng','Schema Name','The schema the table is in'),
+  ('wm','table_data','td_tab','eng','Table Name','The name of the table being described'),
+  ('wm','table_data','tab_kind','eng','Kind','Tells whether the relation is a table or a view'),
+  ('wm','table_data','has_pkey','eng','Has Pkey','Indicates whether the table has a primary key defined in the database'),
+  ('wm','table_data','obj','eng','Object Name','The table name, prefixed by the schema (namespace) name'),
+  ('wm','table_data','cols','eng','Columns','Indicates how many columns are in the table'),
+  ('wm','table_data','system','eng','System','True if the table/view is built in to PostgreSQL'),
+  ('wm','table_pub','sch','eng','Schema Name','The schema the table belongs to'),
+  ('wm','table_pub','tab','eng','Table Name','The name of the table being described'),
+  ('wm','table_pub','obj','eng','Object Name','The table name, prefixed by the schema (namespace) name'),
+  ('wm','view_column_usage','view_catalog','eng','View Database','The database the view belongs to'),
+  ('wm','view_column_usage','view_schema','eng','View Schema','The schema the view belongs to'),
+  ('wm','view_column_usage','view_name','eng','View Name','The name of the view being described'),
+  ('wm','view_column_usage','table_catalog','eng','Table Database','The database the underlying table belongs to'),
+  ('wm','view_column_usage','table_schema','eng','Table Schema','The schema the underlying table belongs to'),
+  ('wm','view_column_usage','table_name','eng','Table Name','The name of the underlying table'),
+  ('wm','view_column_usage','column_name','eng','Column Name','The name of the column in the view'),
+  ('wm','column_data','cdt_sch','eng','Schema Name','The schema of the table this column belongs to'),
+  ('wm','column_data','cdt_tab','eng','Table Name','The name of the table this column is in'),
+  ('wm','column_data','cdt_col','eng','Column Name','The name of the column whose data is being described'),
+  ('wm','column_data','field','eng','Field','The number of the column as it appears in the table'),
+  ('wm','column_data','nonull','eng','Not Null','Indicates that the column is not allowed to contain a null value'),
+  ('wm','column_data','length','eng','Length','The normal number of characters this item would occupy'),
+  ('wm','column_data','type','eng','Data Type','The kind of data this column holds, such as integer, string, date, etc.'),
+  ('wm','column_data','def','eng','Default','Default value for this column if none is explicitly assigned'),
+  ('wm','column_data','tab_kind','eng','Table/View','The kind of database relation this column is in (r=table, v=view)'),
+  ('wm','column_data','is_pkey','eng','Def Prim Key','Indicates that this column is defined as a primary key in the database (can be overridden by a wyseman setting)'),
+  ('wm','column_def','val','eng','Init Value','An expression used for default initialization'),
+  ('wm','column_istyle','nat_value','eng','Native Style','The inherited style as specified by an ancestor object'),
+  ('mychips','paths_v','circuit','eng','Circuit','A flag indicating that the pathway forms a loop from end to end'),
+  ('wm','column_istyle','cs_value','eng','Given Style','The style, specified explicitly for this object'),
+  ('wm','column_istyle','cs_obj','eng','Object Name','The schema and table name this style applies to'),
+  ('wm','column_lang','sch','eng','Schema','The schema that holds the table or view this language data applies to'),
+  ('wm','column_lang','tab','eng','Table','The table or view this language data applies to'),
+  ('wm','column_lang','obj','eng','Object','The schema name and the table/view name'),
+  ('wm','column_lang','col','eng','Column','The name of the column the metadata applies to'),
+  ('wm','column_lang','values','eng','Values','A JSON description of the allowable values for this column'),
+  ('wm','column_lang','system','eng','System','Indicates if this table/view is built in to PostgreSQL'),
+  ('wm','column_lang','nat','eng','Native','The (possibly ancestor) schema and table/view this language information descends from'),
+  ('wm','column_meta','sch','eng','Schema','The schema that holds the table or view this metadata applies to'),
+  ('wm','column_meta','tab','eng','Table','The table or view this metadata applies to'),
+  ('wm','column_meta','obj','eng','Object','The schema name and the table/view name'),
+  ('wm','column_meta','col','eng','Column','The name of the column the metadata applies to'),
+  ('wm','column_meta','values','eng','Values','An array of allowable values for this column'),
+  ('wm','column_meta','styles','eng','Styles','An array of default display styles for this column'),
+  ('wm','column_meta','nat','eng','Native','The (possibly ancestor) schema and table/view this metadata descends from'),
+  ('wm','table_lang','messages','eng','Messages','Human readable messages the computer may generate in connection with this table/view'),
+  ('wm','table_lang','columns','eng','Columns','A JSON structure describing language information relevant to the columns in this table/view'),
+  ('wm','table_lang','obj','eng','Object','The schema and table/view'),
+  ('wm','table_meta','fkeys','eng','Foreign Keys','A JSON structure containing information about the foreign keys pointed to by this table'),
+  ('wm','table_meta','obj','eng','Object','The schema and table/view'),
+  ('wm','table_meta','pkey','eng','Primary Key','A JSON array describing the primary key fields for this table/view'),
+  ('wm','table_meta','columns','eng','Columns','A JSON structure describing metadata information relevant to the columns in this table/view'),
+  ('wm','column_pub','sch','eng','Schema Name','The schema of the table the column belongs to'),
+  ('wm','column_pub','tab','eng','Table Name','The name of the table that holds the column being described'),
+  ('wm','column_pub','col','eng','Column Name','The name of the column being described'),
+  ('wm','column_pub','obj','eng','Object Name','The table name, prefixed by the schema (namespace) name'),
+  ('wm','column_pub','nat','eng','Native Object','The name of the native table, prefixed by the native schema'),
+  ('wm','column_pub','language','eng','Language','The language of the included textual descriptions'),
+  ('wm','column_pub','title','eng','Title','A short title for the table'),
+  ('wm','column_pub','help','eng','Description','A longer description of what the table is used for'),
+  ('wm','fkeys_data','kst_sch','eng','Base Schema','The schema of the table that has the referencing key fields'),
+  ('wm','fkeys_data','kst_tab','eng','Base Table','The name of the table that has the referencing key fields'),
+  ('wm','fkeys_data','kst_cols','eng','Base Columns','The name of the columns in the referencing table''s key'),
+  ('wm','fkeys_data','ksf_sch','eng','Foreign Schema','The schema of the table that is referenced by the key fields'),
+  ('wm','fkeys_data','ksf_tab','eng','Foreign Table','The name of the table that is referenced by the key fields'),
+  ('wm','fkeys_data','ksf_cols','eng','Foreign Columns','The name of the columns in the referenced table''s key'),
+  ('wm','fkeys_data','conname','eng','Constraint','The name of the the foreign key constraint in the database'),
+  ('wm','fkeys_pub','tt_sch','eng','Schema','The schema of the table that has the referencing key fields'),
+  ('wm','fkeys_pub','tt_tab','eng','Table','The name of the table that has the referencing key fields'),
+  ('wm','fkeys_pub','tt_cols','eng','Columns','The name of the columns in the referencing table''s key'),
+  ('wm','fkeys_pub','tt_obj','eng','Object','Concatenated schema.table that has the referencing key fields'),
+  ('wm','fkeys_pub','tn_sch','eng','Nat Schema','The schema of the native table that has the referencing key fields'),
+  ('wm','fkeys_pub','tn_tab','eng','Nat Table','The name of the native table that has the referencing key fields'),
+  ('wm','fkeys_pub','tn_cols','eng','Nat Columns','The name of the columns in the native referencing table''s key'),
+  ('wm','fkeys_pub','tn_obj','eng','Nat Object','Concatenated schema.table for the native table that has the referencing key fields'),
+  ('wm','fkeys_pub','ft_sch','eng','For Schema','The schema of the table that is referenced by the key fields'),
+  ('wm','fkeys_pub','ft_tab','eng','For Table','The name of the table that is referenced by the key fields'),
+  ('wm','fkeys_pub','ft_cols','eng','For Columns','The name of the columns referenced by the key'),
+  ('wm','fkeys_pub','ft_obj','eng','For Object','Concatenated schema.table for the table that is referenced by the key fields'),
+  ('wm','fkeys_pub','fn_sch','eng','For Nat Schema','The schema of the native table that is referenced by the key fields'),
+  ('wm','fkeys_pub','fn_tab','eng','For Nat Table','The name of the native table that is referenced by the key fields'),
+  ('wm','fkeys_pub','fn_cols','eng','For Nat Columns','The name of the columns in the native referenced by the key'),
+  ('wm','fkeys_pub','fn_obj','eng','For Nat Object','Concatenated schema.table for the native table that is referenced by the key fields'),
+  ('wm','fkey_data','kyt_sch','eng','Base Schema','The schema of the table that has the referencing key fields'),
+  ('wm','fkey_data','kyt_tab','eng','Base Table','The name of the table that has the referencing key fields'),
+  ('wm','fkey_data','kyt_col','eng','Base Columns','The name of the column in the referencing table''s key'),
+  ('wm','fkey_data','kyt_field','eng','Base Field','The number of the column in the referencing table''s key'),
+  ('wm','fkey_data','kyf_sch','eng','Foreign Schema','The schema of the table that is referenced by the key fields'),
+  ('wm','fkey_data','kyf_tab','eng','Foreign Table','The name of the table that is referenced by the key fields'),
+  ('wm','fkey_data','kyf_col','eng','Foreign Columns','The name of the columns in the referenced table''s key'),
+  ('wm','fkey_data','kyf_field','eng','Foreign Field','The number of the column in the referenced table''s key'),
+  ('wm','fkey_data','key','eng','Key','The number of which field of a compound key this record describes'),
+  ('wm','fkey_data','keys','eng','Keys','The total number of columns used for this foreign key'),
+  ('wm','fkey_data','conname','eng','Constraint','The name of the the foreign key constraint in the database'),
+  ('wm','fkey_pub','tt_sch','eng','Schema','The schema of the table that has the referencing key fields'),
+  ('wm','fkey_pub','tt_tab','eng','Table','The name of the table that has the referencing key fields'),
+  ('wm','fkey_pub','tt_col','eng','Column','The name of the column in the referencing table''s key component'),
+  ('wm','fkey_pub','tt_obj','eng','Object','Concatenated schema.table that has the referencing key fields'),
+  ('wm','fkey_pub','tn_sch','eng','Nat Schema','The schema of the native table that has the referencing key fields'),
+  ('wm','fkey_pub','tn_tab','eng','Nat Table','The name of the native table that has the referencing key fields'),
+  ('wm','fkey_pub','tn_col','eng','Nat Column','The name of the column in the native referencing table''s key component'),
+  ('wm','fkey_pub','tn_obj','eng','Nat Object','Concatenated schema.table for the native table that has the referencing key fields'),
+  ('wm','fkey_pub','ft_sch','eng','For Schema','The schema of the table that is referenced by the key fields'),
+  ('wm','fkey_pub','ft_tab','eng','For Table','The name of the table that is referenced by the key fields'),
+  ('wm','fkey_pub','ft_col','eng','For Column','The name of the column referenced by the key component'),
+  ('wm','fkey_pub','ft_obj','eng','For Object','Concatenated schema.table for the table that is referenced by the key fields'),
+  ('wm','fkey_pub','fn_sch','eng','For Nat Schema','The schema of the native table that is referenced by the key fields'),
+  ('wm','fkey_pub','fn_tab','eng','For Nat Table','The name of the native table that is referenced by the key fields'),
+  ('wm','fkey_pub','fn_col','eng','For Nat Column','The name of the column in the native referenced by the key component'),
+  ('wm','fkey_pub','fn_obj','eng','For Nat Object','Concatenated schema.table for the native table that is referenced by the key fields'),
+  ('wm','fkey_pub','unikey','eng','Unikey','Used to differentiate between multiple fkeys pointing to the same destination, and multi-field fkeys pointing to multi-field destinations'),
+  ('wm','role_members','role','eng','Role','The name of a role'),
+  ('wm','role_members','member','eng','Member','The username of a member of the named role'),
+  ('wm','column_ambig','sch','eng','Schema','The name of the schema this view is in'),
+  ('wm','column_ambig','tab','eng','Table','The name of the view'),
+  ('wm','column_ambig','col','eng','Column','The name of the column within the view'),
+  ('wm','column_ambig','spec','eng','Specified','True if the definitive native table has been specified explicitly in the schema definition files'),
+  ('wm','column_ambig','count','eng','Count','The number of possible native tables for this column'),
+  ('wm','column_ambig','natives','eng','Natives','A list of the possible native tables for this column'),
+  ('mychips','paths_v','cost','eng','Cost Ratio','The cost to conduct a lift through this pathway.  A number greater than 1 indicates a lift is not possible.'),
+  ('mychips','paths_v','min','eng','Minimum','The smallest number of units desired to be lifted along the pathway'),
+  ('mychips','paths_v','max','eng','Maximum','The largest number of units desired to be lifted along the pathway'),
+  ('mychips','paths_v','bang','eng','Lift Benefit','The product of the pathway length, and the minimum liftable units.  This gives an idea of the relative benefit of conducting a lift along this pathway.'),
+  ('mychips','peers','peer_ent','eng','Entity link','A link to the entities base table'),
+  ('mychips','peers','peer_cdi','eng','CHIPs ID','The user''s CHIPs Domain Identifier, or CDI'),
+  ('mychips','peers','peer_hid','eng','Covert ID','A substitute ID by which direct trading partners will refer to this user, when conversing with other peers'),
+  ('mychips','peers','peer_pub','eng','Peer Public Key','The peer''s public key, known to other trading partners'),
+  ('mychips','peers','peer_inet','eng','Peer Net Addr','The IP number where other CHIP servers can connect to do trades with this peer'),
+  ('mychips','peers','peer_port','eng','Peer Port','The port where other servers will connect'),
+  ('mychips','peers','peer_cmt','eng','Peer Comments','Administrative comments about this peer'),
+  ('mychips','peers','crt_date','eng','Created','The date this record was created'),
+  ('mychips','peers','crt_by','eng','Created By','The user who entered this record'),
+  ('mychips','peers','mod_date','eng','Modified','The date this record was last modified'),
+  ('mychips','peers','mod_by','eng','Modified By','The user who last modified this record'),
+  ('mychips','peers_v','peer_sock','eng','Peer Socket','The IP Number, and port where other servers can connect to trade with this peer.'),
+  ('mychips','tallies','tally_ent','eng','Tally Entity','The ID number of the entity or person this tally belongs to'),
+  ('mychips','tallies','tally_seq','eng','Tally Sequence','A unique number among all tallies owned by this entity'),
+  ('mychips','tallies','tally_guid','eng','Tally GUID','A globally unique identifier for this tally'),
+  ('mychips','tallies','tally_type','eng','Tally Type','Determines if this entity is typically the creditor (stock) or the debtor (foil) for this tally'),
+  ('mychips','tallies','tally_date','eng','Tally Date','The date and time this tally was initiated between the parties'),
+  ('mychips','tallies','version','eng','Version','A number indicating the format standard this tally adheres to'),
+  ('mychips','tallies','partner','eng','Partner Entity','The entity id number of the other party to this tally'),
+  ('mychips','tallies','status','eng','Status','Current state of the tally'),
+  ('mychips','tallies','request','eng','Request','Requested next state for the tally'),
+  ('mychips','tallies','comment','eng','Comment','Any notes the user might want to enter regarding this tally'),
+  ('mychips','tallies','user_sig','eng','User Signed','The digital signature of the entity this tally belongs to'),
+  ('mychips','tallies','part_sig','eng','Partner Signed','The digital signature of the other party to this tally'),
+  ('mychips','tallies','contract','eng','Contract','The hash ID of the standard contract this tally is based upon.'),
+  ('mychips','tallies','stock_terms','eng','Stockee Terms','The credit terms by which the holder of the tally stock is governed'),
+  ('mychips','tallies','foil_terms','eng','Foilee Terms','The credit terms by which the holder of the tally foil is governed'),
+  ('mychips','tallies','bal_target','eng','Target Balance','The ideal total of units the lift administrator should attempt to accumulate when conducting lifts'),
+  ('mychips','tallies','lift_marg','eng','Lift Margin','A cost associated with a lift through this tally.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 4% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts done.'),
+  ('mychips','tallies','drop_marg','eng','Drop Margin','A cost associated with a reverse lift (or drop) through this tally.  Zero means no cost.  A value of 1 (the default) will effectively prevent reverse lifts.'),
+  ('mychips','tallies','cr_lim','eng','Credit Limit','The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time'),
+  ('mychips','tallies','dr_lim','eng','Debit Limit','The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow'),
+  ('mychips','tallies','units_c','eng','Cached Units','A cached copy of the total of all the chits on this tally, from the perspective of the tally''s owner'),
+  ('mychips','tallies_v','state','eng','State','A computed value indicating the state of progress as the tally goes through its lifecycle'),
+  ('mychips','tallies_v','action','eng','Action','Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.'),
+  ('mychips','chits','chit_ent','eng','Tally Entity','Entity ID of the owner of the tally this chit belongs to'),
+  ('mychips','chits','chit_seq','eng','Tally Sequence','Sequence number of the owner of the tally this chit belongs to'),
+  ('mychips','chits','chit_idx','eng','Chit Index','A unique identifier within the tally, identifying this chit'),
+  ('mychips','chits','chit_guid','eng','Chit GUID','A globally unique identifier for this transaction'),
+  ('mychips','chits','chit_type','eng','Chit Type','The type of transaction represented by this flow of credit'),
+  ('mychips','chits','chit_date','eng','Date/Time','The date and time when this transaction is effective'),
+  ('mychips','chits','amount','eng','Amount','The amount of the transaction, as measured in micro-CHIPs (1/1,000,000)'),
+  ('mychips','chits','pro_quo','eng','Quid Pro Quo','A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties'),
+  ('mychips','chits','memo','eng','Memo','Any other description or explanation for the transaction'),
+  ('mychips','confirms','conf_ent','eng','Confirm Entity','Entity ID of the owner of the tally this confirmation belongs to'),
+  ('mychips','confirms','conf_seq','eng','Confirm Sequence','Sequence number of the owner of the tally this confirmation belongs to'),
+  ('mychips','confirms','conf_idx','eng','Confirm Index','A unique identifier within the tally, identifying this confirmation'),
+  ('mychips','confirms','conf_guid','eng','Confirmation GUID','A globally unique identifier for this confirmation'),
+  ('mychips','confirms','conf_date','eng','Date & Time','The date and time when this account total is computed'),
+  ('mychips','confirms','sum','eng','Sum','The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)'),
+  ('mychips','confirms','signature','eng','Signature','The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table'),
+  ('mychips','users','user_ent','eng','Entity link','A link to the entities base table.'),
+  ('mychips','users','user_inet','eng','User Net Addr','The IP number where the users''s mobile application connects'),
+  ('mychips','users','user_port','eng','User Port','The port to which the user''s mobile device will connect'),
+  ('mychips','users','user_stat','eng','Trading Status','The current state of the user''s account for trading of CHIPs'),
+  ('mychips','users','user_cmt','eng','User Comments','Administrative comments about this user'),
+  ('mychips','users','host_id','eng','Host ID','A unique code identifying the controller server that processes peer traffic for this user'),
+  ('mychips','users','crt_date','eng','Created','The date this record was created'),
+  ('mychips','users','crt_by','eng','Created By','The user who entered this record'),
+  ('mychips','users','mod_date','eng','Modified','The date this record was last modified'),
+  ('mychips','users','mod_by','eng','Modified By','The user who last modified this record'),
+  ('mychips','users_v','user_sock','eng','User Socket','The IP Number, and port to which the user''s mobile device will connect'),
+  ('mychips','users_v','peer_sock','eng','Peer Socket','The IP Number, and port where other servers can connect to trade with this peer.'),
+  ('mychips','users','user_ent','fin','Entiteettien linkki','Yhteys yhteisön peruspöytään'),
+  ('mychips','users','user_stat','fin','Kaupan tila','CHIP-tilin kaupankäynnin tilille'),
+  ('mychips','users_v','mobi_socket','fin','Käyttäjä pistorasia','IP-numero ja portti, johon käyttäjän mobiililaite yhdistää'),
   ('mychips','users','user_ent','fi','Entiteettien linkki','Yhteys yhteisön peruspöytään'),
   ('mychips','users','user_stat','fi','Kaupan tila','CHIP-tilin kaupankäynnin tilille'),
-  ('mychips','users_v','mobi_socket','fi','Käyttäjä pistorasia','IP-numero ja portti, johon käyttäjän mobiililaite yhdistää');
+  ('mychips','users_v','mobi_socket','fi','Käyttäjä pistorasia','IP-numero ja portti, johon käyttäjän mobiililaite yhdistää'),
+  ('public','covenants','author','eng','Author','The name of the author, organization, or publisher of the covenant (such as GPL, FSF, MyCHIPs.org, etc.)'),
+  ('public','covenants','title','eng','Title','A short, descriptive title which will be shown as a section header when a contract is rendered.'),
+  ('public','covenants','version','eng','Version','The version number, starting at 1, of this covenant.'),
+  ('public','covenants','language','eng','Language','The standard ISO code for the language in which the covenant is expressed.'),
+  ('public','covenants','released','eng','Released','The date this version of the covenant was first published.'),
+  ('public','covenants','content','eng','Content','The actual contract text, describing what the parties are agreeing to.'),
+  ('public','covenants','hash','eng','Hash','A standardized hash of the covenant text which can be referenced by other contracts to prove what has been included.');
 
 insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) values
-  ('wylib','data','access','priv','en','Private','Only the owner of this data can read, write or delete it'),
-  ('wylib','data','access','read','en','Public Read','The owner can read and write, all others can read, or see it'),
-  ('wylib','data','access','write','en','Public Write','Anyone can read, write, or delete this data'),
+  ('wylib','data','access','priv','eng','Private','Only the owner of this data can read, write or delete it'),
+  ('wylib','data','access','read','eng','Public Read','The owner can read and write, all others can read, or see it'),
+  ('wylib','data','access','write','eng','Public Write','Anyone can read, write, or delete this data'),
   ('wylib','data','access','priv','fi','Yksityinen','Vain näiden tietojen omistaja voi lukea, kirjoittaa tai poistaa sen'),
   ('wylib','data','access','read','fi','Julkinen Lukea','Omistaja voi lukea ja kirjoittaa, kaikki muut voivat lukea tai nähdä sen'),
   ('wylib','data','access','write','fi','Julkinen Kirjoittaa','Jokainen voi lukea, kirjoittaa tai poistaa näitä tietoja'),
-  ('base','addr','addr_type','phys','en','Physical','Where the entity has people living or working'),
-  ('base','addr','addr_type','mail','en','Mailing','Where mail and correspondence is received'),
-  ('base','addr','addr_type','ship','en','Shipping','Where materials are picked up or delivered'),
-  ('base','addr','addr_type','bill','en','Billing','Where invoices and other accounting information are sent'),
-  ('base','comm','comm_type','phone','en','Phone','A way to contact the entity via telephone'),
-  ('base','comm','comm_type','email','en','Email','A way to contact the entity via email'),
-  ('base','comm','comm_type','cell','en','Cell','A way to contact the entity via cellular telephone'),
-  ('base','comm','comm_type','fax','en','FAX','A way to contact the entity via faxsimile'),
-  ('base','comm','comm_type','text','en','Text Message','A way to contact the entity via email to text messaging'),
-  ('base','comm','comm_type','web','en','Web Address','A World Wide Web address URL for this entity'),
-  ('base','comm','comm_type','pager','en','Pager','A way to contact the entity via a mobile pager'),
-  ('base','comm','comm_type','other','en','Other','Some other contact method for the entity'),
-  ('base','ent','ent_type','p','en','Person','The entity is an individual'),
-  ('base','ent','ent_type','o','en','Organization','The entity is an organization (such as a company or partnership) which may employ or include members of individual people or other organizations'),
-  ('base','ent','ent_type','g','en','Group','The entity is a group of people, companies, and/or other groups'),
-  ('base','ent','ent_type','r','en','Role','The entity is a role or position that may not correspond to a particular person or company'),
-  ('base','ent','gender','','en','N/A','Gender is not applicable (such as for organizations or groups)'),
-  ('base','ent','gender','m','en','Male','The person is male'),
-  ('base','ent','gender','f','en','Female','The person is female'),
-  ('base','ent','marital','','en','N/A','Marital status is not applicable (such as for organizations or groups)'),
-  ('base','ent','marital','m','en','Married','The person is in a current marriage'),
-  ('base','ent','marital','s','en','Single','The person has never married or is divorced or is the survivor of a deceased spouse'),
-  ('base','parm','type','int','en','Integer','The parameter can contain only values of integer type (... -2, -1, 0, 1, 2 ...'),
-  ('base','parm','type','date','en','Date','The parameter can contain only date values'),
-  ('base','parm','type','text','en','Text','The parameter can contain any text value'),
-  ('base','parm','type','float','en','Float','The parameter can contain only values of floating point type (integer portion, decimal, fractional portion)'),
-  ('base','parm','type','boolean','en','Boolean','The parameter can contain only the values of true or false'),
-  ('base','priv','level','role','en','Group Role','The privilege is really a group name which contains other privileges and levels'),
-  ('base','priv','level','limit','en','View Only','Limited access - Can see data but not change it'),
-  ('base','priv','level','user','en','Normal Use','Normal access for the user of this function or module - Includes normal changing of data'),
-  ('base','priv','level','super','en','Supervisor','Supervisory privilege - Typically includes the ability to undo or override normal user functions.  Also includes granting of view, user privileges to others.'),
-  ('mychips','tallies','tally_type','stock','en','Stock','The entity this tally belongs to is typically the creditor on transactions'),
-  ('mychips','tallies','tally_type','foil','en','Foil','The entity this tally belongs to is typically the debtor on transactions'),
-  ('mychips','tallies','status','void','en','Void','The tally has been abandoned before being affirmed by both parties'),
-  ('mychips','tallies','status','draft','en','Draft','The tally have been suggested by one party but not yet accepted by the other party'),
-  ('mychips','tallies','status','open','en','Open','The tally is affirmed by both parties and can be used for trading chits'),
-  ('mychips','tallies','status','close','en','Close','No further trading can occur on this tally'),
-  ('mychips','tallies','request','void','en','Void','One party has requested to abandon the tally agreement'),
-  ('mychips','tallies','request','draft','en','Draft','One party is requesting ???'),
-  ('mychips','tallies','request','open','en','Open','One party is requesting to open a tally according to the specified terms'),
-  ('mychips','tallies','request','close','en','Close','One party is requesting to disable further trading on this tally'),
-  ('mychips','chits','chit_type','gift','en','Gift','The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.'),
-  ('mychips','chits','chit_type','lift','en','Credit Lift','The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity'),
-  ('mychips','chits','chit_type','loan','en','Loan','The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.'),
-  ('mychips','chits','chit_type','tran','en','Transaction','The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.'),
-  ('mychips','users','user_stat','act','en','Active','Good to conduct trades'),
-  ('mychips','users','user_stat','lck','en','Lockdown','Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.'),
-  ('mychips','users','user_stat','off','en','Offline','Account completely off line.  No trades possible.'),
+  ('base','addr','addr_type','phys','eng','Physical','Where the entity has people living or working'),
+  ('base','addr','addr_type','mail','eng','Mailing','Where mail and correspondence is received'),
+  ('base','addr','addr_type','ship','eng','Shipping','Where materials are picked up or delivered'),
+  ('base','addr','addr_type','bill','eng','Billing','Where invoices and other accounting information are sent'),
+  ('base','comm','comm_type','phone','eng','Phone','A way to contact the entity via telephone'),
+  ('base','comm','comm_type','email','eng','Email','A way to contact the entity via email'),
+  ('base','comm','comm_type','cell','eng','Cell','A way to contact the entity via cellular telephone'),
+  ('base','comm','comm_type','fax','eng','FAX','A way to contact the entity via faxsimile'),
+  ('base','comm','comm_type','text','eng','Text Message','A way to contact the entity via email to text messaging'),
+  ('base','comm','comm_type','web','eng','Web Address','A World Wide Web address URL for this entity'),
+  ('base','comm','comm_type','pager','eng','Pager','A way to contact the entity via a mobile pager'),
+  ('base','comm','comm_type','other','eng','Other','Some other contact method for the entity'),
+  ('base','ent','ent_type','p','eng','Person','The entity is an individual'),
+  ('base','ent','ent_type','o','eng','Organization','The entity is an organization (such as a company or partnership) which may employ or include members of individual people or other organizations'),
+  ('base','ent','ent_type','g','eng','Group','The entity is a group of people, companies, and/or other groups'),
+  ('base','ent','ent_type','r','eng','Role','The entity is a role or position that may not correspond to a particular person or company'),
+  ('base','ent','gender','','eng','N/A','Gender is not applicable (such as for organizations or groups)'),
+  ('base','ent','gender','m','eng','Male','The person is male'),
+  ('base','ent','gender','f','eng','Female','The person is female'),
+  ('base','ent','marital','','eng','N/A','Marital status is not applicable (such as for organizations or groups)'),
+  ('base','ent','marital','m','eng','Married','The person is in a current marriage'),
+  ('base','ent','marital','s','eng','Single','The person has never married or is divorced or is the survivor of a deceased spouse'),
+  ('base','parm','type','int','eng','Integer','The parameter can contain only values of integer type (... -2, -1, 0, 1, 2 ...'),
+  ('base','parm','type','date','eng','Date','The parameter can contain only date values'),
+  ('base','parm','type','text','eng','Text','The parameter can contain any text value'),
+  ('base','parm','type','float','eng','Float','The parameter can contain only values of floating point type (integer portion, decimal, fractional portion)'),
+  ('base','parm','type','boolean','eng','Boolean','The parameter can contain only the values of true or false'),
+  ('base','priv','level','role','eng','Group Role','The privilege is really a group name which contains other privileges and levels'),
+  ('base','priv','level','limit','eng','View Only','Limited access - Can see data but not change it'),
+  ('base','priv','level','user','eng','Normal Use','Normal access for the user of this function or module - Includes normal changing of data'),
+  ('base','priv','level','super','eng','Supervisor','Supervisory privilege - Typically includes the ability to undo or override normal user functions.  Also includes granting of view, user privileges to others.'),
+  ('mychips','tallies','tally_type','stock','eng','Stock','The entity this tally belongs to is typically the creditor on transactions'),
+  ('mychips','tallies','tally_type','foil','eng','Foil','The entity this tally belongs to is typically the debtor on transactions'),
+  ('mychips','tallies','status','void','eng','Void','The tally has been abandoned before being affirmed by both parties'),
+  ('mychips','tallies','status','draft','eng','Draft','The tally have been suggested by one party but not yet accepted by the other party'),
+  ('mychips','tallies','status','open','eng','Open','The tally is affirmed by both parties and can be used for trading chits'),
+  ('mychips','tallies','status','close','eng','Close','No further trading can occur on this tally'),
+  ('mychips','tallies','request','void','eng','Void','One party has requested to abandon the tally agreement'),
+  ('mychips','tallies','request','draft','eng','Draft','One party is requesting ???'),
+  ('mychips','tallies','request','open','eng','Open','One party is requesting to open a tally according to the specified terms'),
+  ('mychips','tallies','request','close','eng','Close','One party is requesting to disable further trading on this tally'),
+  ('mychips','chits','chit_type','gift','eng','Gift','The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.'),
+  ('mychips','chits','chit_type','lift','eng','Credit Lift','The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity'),
+  ('mychips','chits','chit_type','loan','eng','Loan','The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.'),
+  ('mychips','chits','chit_type','tran','eng','Transaction','The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.'),
+  ('mychips','users','user_stat','act','eng','Active','Good to conduct trades'),
+  ('mychips','users','user_stat','lck','eng','Lockdown','Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.'),
+  ('mychips','users','user_stat','off','eng','Offline','Account completely off line.  No trades possible.'),
+  ('mychips','users','user_stat','act','fin','Aktiivinen','Hyvä käydä kauppaa'),
+  ('mychips','users','user_stat','lck','fin','Lukittu','Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.'),
+  ('mychips','users','user_stat','off','fin','Irrotettu','Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.'),
   ('mychips','users','user_stat','act','fi','Aktiivinen','Hyvä käydä kauppaa'),
   ('mychips','users','user_stat','lck','fi','Lukittu','Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.'),
   ('mychips','users','user_stat','off','fi','Irrotettu','Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.');
 
 insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
+  ('wylib','data','IAT','eng','Invalid Access Type','Access type must be: priv, read, or write'),
+  ('wylib','data','appSave','eng','Save State','Re-save the layout and operating state of the application to the current named configuration, if there is one'),
+  ('wylib','data','appSaveAs','eng','Save State As','Save the layout and operating state of the application, and all its subordinate windows, using a named configuration'),
+  ('wylib','data','appRestore','eng','Load State','Restore the application layout and operating state from a previously saved state'),
+  ('wylib','data','appDefault','eng','Default State','Reload the application to its default state (you will lose any unsaved configuration state)'),
+  ('wylib','data','appStatePrompt','eng','Input Tag','Input a tag to identify this saved state'),
+  ('wylib','data','appStateTag','eng','State Tag','The tag is a brief name you will refer to later when loading the saved state'),
+  ('wylib','data','appStateDescr','eng','State Description','A full description of the saved state and what you use it for'),
+  ('wylib','data','appEditState','eng','Edit States','Preview a list of saved states for this application'),
+  ('wylib','data','dbe','eng','Edit','Insert, change and delete records from the database view'),
+  ('wylib','data','dbeColMenu','eng','Column','Operations you can perform on this column of the preview'),
+  ('wylib','data','dbeMenu','eng','Editing','A menu of functions for editing a database record'),
+  ('wylib','data','dbeInsert','eng','Add New','Insert a new record into the database table'),
+  ('wylib','data','dbeUpdate','eng','Update','Modify changed fields in the existing database record'),
+  ('wylib','data','dbeDelete','eng','Delete','Delete this database record (can not be un-done)'),
+  ('wylib','data','dbeClear','eng','Clear','Empty the editing fields, discontinue editing any database record that may have been loaded'),
+  ('wylib','data','dbeLoadRec','eng','Load Record','Load a specific record from the database by its primary key'),
+  ('wylib','data','dbePrimary','eng','Primary Key','The value that uniquely identifies the current record among all the rows in the database table'),
+  ('wylib','data','dbeActions','eng','Actions','Perform various commands pertaining to this particular view and record'),
+  ('wylib','data','dbePreview','eng','Preview Document','Preview this record as a document'),
+  ('wylib','data','dbeSubords','eng','Preview','Toggle the viewing of views and records which relate to the currently loaded record'),
+  ('wylib','data','dbeLoadPrompt','eng','Primary Key','Input the primary key values'),
+  ('wylib','data','dbeRecordID','eng','Record ID','Load a record by specifying its primary key values directly'),
+  ('wylib','data','dbePopupErr','eng','Popup Error','Error trying to open a child window.  Is the browser blocking popup windows?'),
+  ('wylib','data','winMenu','eng','Window Functions','A menu of functions for the display and operation of this window'),
+  ('wylib','data','winSave','eng','Save State','Re-save the layout and operating state of this window to the current named configuration, if there is one'),
+  ('wylib','data','winSaveAs','eng','Save State As','Save the layout and operating state of this window, and all its subordinate windows, to a named configuration'),
+  ('wylib','data','winRestore','eng','Load State','Restore the the window''s layout and operating state from a previously saved state'),
+  ('wylib','data','winDefault','eng','Default State','Erase locally stored configuration data for this window'),
+  ('wylib','data','winPinned','eng','Window Pinned','Keep this window open until it is explicitly closed'),
+  ('wylib','data','winClose','eng','Close Window','Close this window'),
+  ('wylib','data','winToTop','eng','Move To Top','Make this window show above others of its peers (can also double click on a window header)'),
+  ('wylib','data','winToBottom','eng','Move To Bottom','Place this window behind others of its peers'),
+  ('wylib','data','winMinimize','eng','Minimize','Shrink window down to an icon by which it can be re-opened'),
+  ('wylib','data','winPopUp','eng','Printable Popup','Make a copy, if possible, of this window in a separate popup window so it can be printed, separate from the rest of the page'),
+  ('wylib','data','winPrint','eng','Print Document','Find the nearest independent document (iframe) within this component, and print it'),
+  ('wylib','data','dbp','eng','Preview','A window for showing the records of a database table in a grid like a spreadsheet'),
+  ('wylib','data','dbpMenu','eng','Preview Menu','A menu of functions for operating on the preview list below'),
+  ('wylib','data','dbpReload','eng','Reload','Reload the records specified in the previous load'),
+  ('wylib','data','dbpLoad','eng','Load Default','Load the records shown in this view, by default'),
+  ('wylib','data','dbpLoadAll','eng','Load All','Load all records from this table'),
+  ('wylib','data','dbpDefault','eng','Default Columns','Set all column display and order to the database default'),
+  ('wylib','data','dbpFilter','eng','Filter','Load records according to filter criteria'),
+  ('wylib','data','dbpAutoLoad','eng','Auto Execute','Automatically execute the top row any time the preview is reloaded'),
+  ('wylib','data','dbpColumn','eng','Column Menu','Menu of commands to control this column display'),
+  ('wylib','data','dbpVisible','eng','Visible','Specify which columns are visible in the preview'),
+  ('wylib','data','dbpVisCheck','eng','Visible','Check the box to make this column visible'),
+  ('wylib','data','dbpColAuto','eng','Auto Size','Adjust the width of this column to be optimal for its contents'),
+  ('wylib','data','dbpColHide','eng','Hide Column','Remove this column from the display'),
+  ('wylib','data','dbpNext','eng','Next Record','Move the selection down one line and execute (normally edit) that new line'),
+  ('wylib','data','dbpPrev','eng','Prior Record','Move the selection up one line and execute (normally edit) that new line'),
+  ('wylib','data','X.dbpColSel','eng','Visible Columns','Show or hide individual columns'),
+  ('wylib','data','X.dbpFooter','eng','Footer','Check the box to turn on column summaries, at the bottom'),
+  ('wylib','data','dbs','eng','Filter Search','Load records according to filter criteria'),
+  ('wylib','data','dbsSearch','eng','Query Search','Run the configured selection query, returning matching records'),
+  ('wylib','data','dbsSave','eng','Save Query','Save the current query for future use'),
+  ('wylib','data','dbsRecall','eng','Recall Query','Recall a named query which has been previously saved'),
+  ('wylib','data','dbsEqual','eng','=','The left and right side of the comparison are equal'),
+  ('wylib','data','dbsLess','eng','<','The left value is less than the value on the right'),
+  ('wylib','data','dbsLessEq','eng','<=','The left value is less than or equal to the value on the right'),
+  ('wylib','data','dbsMore','eng','>','The left value is greater than the value on the right'),
+  ('wylib','data','dbsMoreEq','eng','>=','The left value is greater than or equal to the value on the right'),
+  ('wylib','data','dbsRexExp','eng','~','The left value matches a regular expression given on the value on the right'),
+  ('wylib','data','dbsDiff','eng','Diff','The left side is different from the right, in a comparison where two nulls (unassigned values) can be thought of as being the same'),
+  ('wylib','data','dbsIn','eng','In','The left value exists in a comma separated list you specify, or an array in another database field'),
+  ('wylib','data','dbsNull','eng','Null','The value on the left is a null, or not assigned'),
+  ('wylib','data','dbsTrue','eng','True','The left value is a boolean with a true value'),
+  ('wylib','data','dbsNop','eng','<Nop>','This operation causes the whole comparison clause to be ignored'),
+  ('wylib','data','diaDialog','eng','Dialog','Query user for specified input values or parameters'),
+  ('wylib','data','diaReport','eng','Report','Report window'),
+  ('wylib','data','diaOK','eng','OK','Acknowledge you have seen the posted message'),
+  ('wylib','data','diaYes','eng','OK','Proceed with the proposed operation and close the dialog'),
+  ('wylib','data','diaCancel','eng','Cancel','Abandon the operation associated with the dialog'),
+  ('wylib','data','diaApply','eng','Perform','Perform the action associated with this dialog, but do not close it'),
+  ('wylib','data','diaError','eng','Error','Something went wrong'),
+  ('wylib','data','diaNotice','eng','Notice','The message is a warning or advice for the user'),
+  ('wylib','data','diaConfirm','eng','Confirm','The user is asked to confirm before proceeding, or cancel to abandon the operation'),
+  ('wylib','data','diaQuery','eng','Query','The user is asked for certain input data, and a confirmation before proceeding'),
+  ('wylib','data','mdewMore','eng','More Fields','Click to see more data fields pertaining to this record'),
+  ('wylib','data','23505','eng','Key Violation','An operation would have resulted in multiple records having duplicated data, which is required to be unique'),
+  ('wylib','data','subWindow','eng','Subordinate View','Open a preview of records in another table that relate to the currently loaded record from this view'),
+  ('wylib','data','litToSub','eng','To Subgroup','Move this item to a deeper sub-group'),
+  ('wylib','data','litLeft','eng','Left Side','Specify a field from the database to compare'),
+  ('wylib','data','litRight','eng','Right Side','Specify a field from the database, or manual entry to compare'),
+  ('wylib','data','litManual','eng','Manual Entry','Enter a value manually to the right'),
+  ('wylib','data','litRightVal','eng','Right Value','Specify an explicit right-hand value for the comparision'),
+  ('wylib','data','litRemove','eng','Remove Item','Remove this item from the comparison list'),
+  ('wylib','data','litNot','eng','Not','If asserted, the sense of the comparison will be negated, or made opposite'),
+  ('wylib','data','litCompare','eng','Comparison','Specify an operator for the comparison'),
+  ('wylib','data','lstAndOr','eng','And/Or','Specify whether all conditions must be true (and), or just one or more (or)'),
+  ('wylib','data','lstAddCond','eng','Add Condition','Add another condition for comparison'),
+  ('wylib','data','lstRemove','eng','Remove Grouping','Remove this group of conditions'),
+  ('wylib','data','sdc','eng','Structured Document','An editor for documents structured in an outline format'),
+  ('wylib','data','sdcMenu','eng','Document Menu','A menu of functions for working with structured documents'),
+  ('wylib','data','sdcUpdate','eng','Update','Save changes to this document back to the database'),
+  ('wylib','data','sdcUndo','eng','Undo','Reverse the effect of a paragraph deletion or move'),
+  ('wylib','data','sdcClear','eng','Clear','Delete the contents of the document on the screen.  Does not affect the database.'),
+  ('wylib','data','sdcClearAsk','eng','Clear WorkSpace','Are you sure you want to clear the document data?'),
+  ('wylib','data','sdcImport','eng','File Import','Load the workspace from an externally saved file'),
+  ('wylib','data','sdcImportAsk','eng','Import File','Select a file to Import, or drag it onto the import button'),
+  ('wylib','data','sdcExport','eng','File Export','Save the workspace to an external file'),
+  ('wylib','data','sdcExportAsk','eng','Export File','Input a filename to use when exporting'),
+  ('wylib','data','sdcExportFmt','eng','Human Readable','Export the file with indentation to make it more easily readable by people'),
+  ('wylib','data','sdcSpell','eng','Spell Checking','Enable/disable spell checking in on the screen'),
+  ('wylib','data','sdcBold','eng','Bold','Mark the highlighted text as bold'),
+  ('wylib','data','sdcItalic','eng','Italic','Mark the highlighted text as italic'),
+  ('wylib','data','sdcUnder','eng','Underline','Underline highlighted text'),
+  ('wylib','data','sdcCross','eng','Cross Reference','Wrap the highlighted text with a cross reference.  The text should be a tag name for another section.  That section number will be substituted for the tag name.'),
+  ('wylib','data','sdcTitle','eng','Title','An optional title for this section or paragraph'),
+  ('wylib','data','sdcSection','eng','Section','Click to edit text.  Double click at edge for direct editing mode.  Drag at edge to move.'),
+  ('wylib','data','sdcTag','eng','Tag','An identifying word that can be used to cross-reference to this section or paragraph'),
+  ('wylib','data','sdcText','eng','Paragraph Text','Insert/Edit the raw paragraph text directly here, including entering limited HTML tags, if desired'),
+  ('wylib','data','sdcEdit','eng','Direct Editing','This section or paragraph is in direct editing mode.  Double click on the background to return to preview mode.'),
+  ('wylib','data','sdcAdd','eng','Add Subsection','Create a new paragraph or section nested below this one'),
+  ('wylib','data','sdcDelete','eng','Delete Section','Delete this paragraph or section of the document'),
+  ('wylib','data','sdcEditAll','eng','Edit All','Put all paragraphs or sections into direct editing mode.  This can be done one at a time by double clicking on the paragraph.'),
+  ('wylib','data','sdcPrevAll','eng','Preview All','Take all paragraphs or sections out of direct editing mode, and into preview mode'),
+  ('wylib','data','X','eng',null,null),
+  ('wylib','data','IAT','fi','Virheellinen käyttötyyppi','Käytön tyypin on oltava: priv, lukea tai kirjoittaa'),
+  ('wylib','data','dbpMenu','fi','Esikatselu','Toimintojen valikko, joka toimii alla olevassa esikatselussa'),
+  ('wylib','data','dbpReload','fi','Ladata','Päivitä edellisessä kuormassa määritetyt tietueet'),
+  ('wylib','data','dbpLoad','fi','Ladata Oletus','Aseta tässä näkymässä näkyvät kirjaukset oletuksena'),
+  ('wylib','data','dbpLoadAll','fi','Loadata Kaikki','Lataa kaikki taulukon tiedot'),
+  ('wylib','data','dbpFilter','fi','Suodattaa','Lataa tietueet suodatuskriteerien mukaisesti'),
+  ('wylib','data','dbpVisible','fi','Näkyvyys','Sarakkeiden valikko, josta voit päättää, mitkä näkyvät esikatselussa'),
+  ('wylib','data','dbpVisCheck','fi','Ilmoita näkyvyydestä','Kirjoita tämä ruutu näkyviin, jotta tämä sarake voidaan näyttää'),
+  ('wylib','data','dbpFooter','fi','Yhteenveto','Ota ruutuun käyttöön sarakeyhteenveto'),
+  ('wylib','data','dbeActions','fi','Tehköjä','Tehdä muutamia asioita tämän mukaisesti'),
+  ('base','addr','CCO','eng','Country','The country must always be specified (and in standard form)'),
+  ('base','addr','CPA','eng','Primary','There must be at least one address checked as primary'),
+  ('base','comm','CPC','eng','Primary','There must be at least one communication point of each type checked as primary'),
   ('wylib','data','IAT','en','Invalid Access Type','Access type must be: priv, read, or write'),
   ('wylib','data','appSave','en','Save State','Re-save the layout and operating state of the application to the current named configuration, if there is one'),
   ('wylib','data','appSaveAs','en','Save State As','Save the layout and operating state of the application, and all its subordinate windows, using a named configuration'),
@@ -2896,16 +3249,16 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','lstAddCond','en','Add Condition','Add another condition for comparison'),
   ('wylib','data','lstRemove','en','Remove Grouping','Remove this group of conditions'),
   ('wylib','data','X','en',null,null),
-  ('wylib','data','IAT','fi','Virheellinen käyttötyyppi','Käytön tyypin on oltava: priv, lukea tai kirjoittaa'),
-  ('wylib','data','dbpMenu','fi','Esikatselu','Toimintojen valikko, joka toimii alla olevassa esikatselussa'),
-  ('wylib','data','dbpReload','fi','Ladata','Päivitä edellisessä kuormassa määritetyt tietueet'),
-  ('wylib','data','dbpLoad','fi','Ladata Oletus','Aseta tässä näkymässä näkyvät kirjaukset oletuksena'),
-  ('wylib','data','dbpLoadAll','fi','Loadata Kaikki','Lataa kaikki taulukon tiedot'),
-  ('wylib','data','dbpFilter','fi','Suodattaa','Lataa tietueet suodatuskriteerien mukaisesti'),
-  ('wylib','data','dbpVisible','fi','Näkyvyys','Sarakkeiden valikko, josta voit päättää, mitkä näkyvät esikatselussa'),
-  ('wylib','data','dbpVisCheck','fi','Ilmoita näkyvyydestä','Kirjoita tämä ruutu näkyviin, jotta tämä sarake voidaan näyttää'),
-  ('wylib','data','dbpFooter','fi','Yhteenveto','Ota ruutuun käyttöön sarakeyhteenveto'),
-  ('wylib','data','dbeActions','fi','Tehköjä','Tehdä muutamia asioita tämän mukaisesti'),
+  ('base','ent','CFN','eng','First Name','A first name is required for personal entities'),
+  ('base','ent','CMN','eng','Middle Name','A middle name is prohibited for non-personal entities'),
+  ('base','ent','CPN','eng','Pref Name','A preferred name is prohibited for non-personal entities'),
+  ('base','ent','CTI','eng','Title','A preferred title is prohibited for non-personal entities'),
+  ('base','ent','CGN','eng','Gender','Gender must not be specified for non-personal entities'),
+  ('base','ent','CMS','eng','Marital','Marital status must not be specified for non-personal entities'),
+  ('base','ent','CBD','eng','Born Date','A born date is required for inside people'),
+  ('base','ent','CPA','eng','Prime Addr','A primary address must be active'),
+  ('base','ent_v','directory','eng','Directory','Report showing basic contact data for the selected entities'),
+  ('base','ent_link','NBP','eng','Illegal Entity Org','A personal entity can not be an organization (and have member entities)'),
   ('base','addr','CCO','en','Country','The country must always be specified (and in standard form)'),
   ('base','addr','CPA','en','Primary','There must be at least one address checked as primary'),
   ('base','comm','CPC','en','Primary','There must be at least one communication point of each type checked as primary'),
@@ -2936,9 +3289,36 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','users_v','trade','en','Trading Report','Report showing trades in a given date range'),
   ('mychips','users_v','trade.start','en','Start Date','Include trades on and after this date'),
   ('mychips','users_v','trade.end','en','End Date','Include trades on and before this date'),
+  ('base','ent_link','PBC','eng','Illegal Entity Member','Only personal entities can belong to company entities'),
+  ('base','priv','NUN','eng','No username found','The specified user has no username--This probably means he has not been added as a database user'),
+  ('base','priv','UAE','eng','User already exists','The specified username was found to already exist as a user in the database'),
+  ('base','priv','ENF','eng','Employee not found','While adding a user, the specified ID was not found to belong to anyone in the empl database table'),
   ('mychips','users','ABC','fi','Koetus 1','Ensimmäinen testiviesti'),
   ('mychips','users','BCD','fi','Koetus 2','Toinen testiviesti'),
-  ('mychips','users','DEF','fi','Koetus 3','Kolmanen testiviesti');
+  ('mychips','users','DEF','fi','Koetus 3','Kolmanen testiviesti'),
+  ('base','priv','UAD','eng','User doesn''t exist','While dropping a user, the specified username was not found to exist in the database'),
+  ('base','priv','UNF','eng','Username not found','While dropping a user, the specified username was not found to exist in the empl database'),
+  ('base','priv_v','adduser','eng','Add as User','Create a user account for the selected entity'),
+  ('mychips','contracts','BVN','eng','Bad Version Number','Version number for contracts should start with 1 and move progressively larger'),
+  ('mychips','contracts','PBC','eng','Publish Constraints','When publishing a document, one must specify the digest hash, the source location, and the content sections'),
+  ('mychips','contracts','UNC','eng','Unknown Command','The contract editor report received an unrecognized action command'),
+  ('mychips','contracts_v','edit','eng','Edit Sections','Open a separate editor for properly editing the contract sections'),
+  ('mychips','contracts_v','publish','eng','Publish','Commit this version, write the publication date, and disable further modifications'),
+  ('mychips','tallies','LMG','eng','Invalid Lift Margin','The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.'),
+  ('mychips','tallies','DMG','eng','Invalid Drop Margin','The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.'),
+  ('mychips','users','ABC','eng','Test 1','A test message 1'),
+  ('mychips','users','BCD','eng','Test 2','A test message 2'),
+  ('mychips','users','DEF','eng','Test 3','A test message 3'),
+  ('mychips','users_v','ticket','eng','User Ticket','Generate a temporary, one-time pass to allow a user to establish a secure connection with the server'),
+  ('mychips','users_v','lock','eng','Lock Account','Put the specified account(s) into lockdown mode, so no further trading can occur'),
+  ('mychips','users_v','unlock','eng','Unlock Account','Put the specified account(s) into functional mode, so normal trading can occur'),
+  ('mychips','users_v','summary','eng','Summary Report','Report about the current status of the selected user'),
+  ('mychips','users_v','trade','eng','Trading Report','Report showing trades in a given date range'),
+  ('mychips','users_v','trade.start','eng','Start Date','Include trades on and after this date'),
+  ('mychips','users_v','trade.end','eng','End Date','Include trades on and before this date'),
+  ('mychips','users','ABC','fin','Koetus 1','Ensimmäinen testiviesti'),
+  ('mychips','users','BCD','fin','Koetus 2','Toinen testiviesti'),
+  ('mychips','users','DEF','fin','Koetus 3','Kolmanen testiviesti');
 
 insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('wm','table_text','focus','"code"','t'),
@@ -2947,25 +3327,32 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('wm','message_text','focus','"code"','t'),
   ('wm','column_pub','focus','"code"','t'),
   ('wm','objects','focus','"obj_nam"','t'),
+  ('chip','docs','focus','"author"','t'),
   ('base','addr','focus','"addr_spec"','t'),
   ('base','addr_v','display','["addr_type","addr_spec","state","city","pcode","country","addr_cmt","addr_seq"]','t'),
   ('base','comm','focus','"comm_spec"','t'),
   ('base','comm_v','display','["comm_type","comm_spec","comm_cmt","comm_seq"]','t'),
   ('base','ent','display','["id","ent_type","ent_name","fir_name","born_date"]','t'),
+  ('wylib','data','display','["ruid","component","name","descr","owner","access"]','t'),
+  ('wylib','data_v','display','["ruid","component","name","descr","own_name","access"]','t'),
   ('base','ent','focus','"ent_name"','t'),
   ('base','ent_v','actions','[{"name":"directory"}]','f'),
   ('base','ent_v','subviews','["base.addr_v","base.comm_v","base.priv_v"]','t'),
   ('base','ent_v_pub','focus','"ent_name"','t'),
   ('base','ent_link','focus','"org_id"','t'),
+  ('base','parm_v','display','["module","parm","type","value","cmt"]','t'),
   ('base','parm_v','focus','"module"','t'),
   ('base','priv','focus','"priv"','t'),
   ('base','priv_v','actions','[{"name":"adduser"}]','f'),
-  ('chip','docs','focus','"author"','t'),
+  ('mychips','contracts','display','["author","title","version","language","released"]','t'),
+  ('mychips','contracts','focus','"author"','t'),
+  ('mychips','contracts_v','actions','[{"name":"edit","format":"strdoc"},{"name":"publish","ask":"1"}]','f'),
+  ('mychips','paths_v','display','["id","length","cost","min","circuit","path","circuit"]','t'),
   ('mychips','peers','focus','"ent_name"','t'),
   ('mychips','peers_v','display','["id","std_name","peer_cdi","peer_sock","ent_type","born_date","!fir_name","!ent_name"]','t'),
   ('mychips','peers_v_flat','display','["id","peer_cdi","std_name","bill_addr","bill_city","bill_state"]','t'),
   ('mychips','users','focus','"ent_name"','t'),
-  ('mychips','users_v','actions','[{"name":"ticket","multiple":"0"},{"name":"lock"},{"name":"unlock"},{"name":"summary","multiple":"0"},{"name":"trade","options":[{"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},{"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}]}]','f'),
+  ('mychips','users_v','actions','[{"name":"ticket","format":"html","single":"1"},{"name":"lock","ask":"1"},{"name":"unlock","ask":"1"},{"name":"summary"},{"name":"trade","options":[{"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},{"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}],"format":"html"}]','f'),
   ('mychips','users_v','display','["id","std_name","ent_type","user_stat","user_sock","born_date","!fir_name","!ent_name"]','t'),
   ('mychips','users_v','subviews','["base.addr_v","base.comm_v"]','t'),
   ('mychips','users_v_flat','display','["id","user_cdi","std_name","bill_addr","bill_city","bill_state"]','t');
@@ -3015,18 +3402,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('wm','objects','min_rel','size','4'),
   ('wm','objects','max_rel','size','4'),
   ('wm','objects','obj_nam','focus','true'),
-  ('base','addr','addr_seq','style','ent'),
-  ('base','addr','addr_seq','size','4'),
-  ('base','addr','addr_seq','subframe','10 1'),
-  ('base','addr','addr_seq','state','readonly'),
-  ('base','addr','addr_seq','justify','r'),
-  ('base','addr','addr_seq','hide','1'),
-  ('base','addr','addr_seq','write','0'),
-  ('base','addr','pcode','style','ent'),
-  ('base','addr','pcode','size','10'),
-  ('base','addr','pcode','subframe','1 1'),
-  ('base','addr','pcode','special','zip'),
-  ('base','addr','city','style','ent'),
   ('base','addr','city','size','24'),
   ('base','addr','city','subframe','2 1'),
   ('base','addr','state','style','ent'),
@@ -3058,6 +3433,100 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','addr','addr_cmt','style','ent'),
   ('base','addr','addr_cmt','size','50'),
   ('base','addr','addr_cmt','subframe','1 5 4'),
+  ('wylib','data','ruid','style','ent'),
+  ('wylib','data','ruid','size','4'),
+  ('wylib','data','ruid','subframe','1 1'),
+  ('wylib','data','component','style','ent'),
+  ('wylib','data','component','size','12'),
+  ('wylib','data','component','subframe','2 1'),
+  ('wylib','data','name','style','ent'),
+  ('wylib','data','name','size','16'),
+  ('wylib','data','name','subframe','3 1'),
+  ('wylib','data','descr','style','ent'),
+  ('wylib','data','descr','size','40'),
+  ('wylib','data','descr','subframe','4 1 3'),
+  ('wylib','data','owner','style','ent'),
+  ('wylib','data','owner','size','4'),
+  ('wylib','data','owner','subframe','1 3'),
+  ('wylib','data','access','style','ent'),
+  ('wylib','data','access','size','8'),
+  ('wylib','data','access','subframe','2 3'),
+  ('wylib','data','data','style','mle'),
+  ('wylib','data','data','size','80'),
+  ('wylib','data','data','subframe','1 4 3'),
+  ('wylib','data','data','state','disabled'),
+  ('wylib','data','ruid','display','1'),
+  ('wylib','data','component','display','2'),
+  ('wylib','data','name','display','3'),
+  ('wylib','data','descr','display','4'),
+  ('wylib','data','access','display','6'),
+  ('wylib','data','owner','display','5'),
+  ('wylib','data_v','own_name','style','ent'),
+  ('wylib','data_v','own_name','size','14'),
+  ('wylib','data_v','own_name','subframe','3 3'),
+  ('wylib','data_v','ruid','display','1'),
+  ('wylib','data_v','component','display','2'),
+  ('wylib','data_v','name','display','3'),
+  ('wylib','data_v','descr','display','4'),
+  ('wylib','data_v','access','display','6'),
+  ('wylib','data_v','own_name','display','5'),
+  ('base','comm','comm_type','size','5'),
+  ('base','comm','mod_by','write','0'),
+  ('chip','docs','author','style','ent'),
+  ('chip','docs','author','size','30'),
+  ('chip','docs','author','subframe','1 1'),
+  ('chip','docs','contract','style','ent'),
+  ('chip','docs','contract','size','20'),
+  ('chip','docs','contract','subframe','1 2'),
+  ('chip','docs','contract','special','zip'),
+  ('chip','docs','version','style','ent'),
+  ('chip','docs','version','size','2'),
+  ('chip','docs','version','subframe','2 2'),
+  ('chip','docs','version','special','clc'),
+  ('chip','docs','content','style','ent'),
+  ('chip','docs','content','size','30'),
+  ('chip','docs','content','subframe','1 2 2'),
+  ('chip','docs','content','special','edw'),
+  ('chip','docs','hash','style','ent'),
+  ('chip','docs','hash','size','16'),
+  ('chip','docs','hash','subframe','3 1'),
+  ('chip','docs','crt_by','style','ent'),
+  ('chip','docs','crt_by','size','10'),
+  ('chip','docs','crt_by','subframe','1 98'),
+  ('chip','docs','crt_by','optional','1'),
+  ('chip','docs','crt_by','write','0'),
+  ('chip','docs','crt_by','state','readonly'),
+  ('chip','docs','crt_date','style','inf'),
+  ('chip','docs','crt_date','size','18'),
+  ('chip','docs','crt_date','subframe','2 98'),
+  ('chip','docs','crt_date','optional','1'),
+  ('chip','docs','crt_date','write','0'),
+  ('chip','docs','crt_date','state','readonly'),
+  ('chip','docs','mod_by','style','ent'),
+  ('chip','docs','mod_by','size','10'),
+  ('chip','docs','mod_by','subframe','1 99'),
+  ('chip','docs','mod_by','optional','1'),
+  ('chip','docs','mod_by','write','0'),
+  ('chip','docs','mod_by','state','readonly'),
+  ('chip','docs','mod_date','style','inf'),
+  ('chip','docs','mod_date','size','18'),
+  ('chip','docs','mod_date','subframe','2 99'),
+  ('chip','docs','mod_date','optional','1'),
+  ('chip','docs','mod_date','write','0'),
+  ('chip','docs','mod_date','state','readonly'),
+  ('chip','docs','author','focus','true'),
+  ('base','addr','addr_seq','style','ent'),
+  ('base','addr','addr_seq','size','4'),
+  ('base','addr','addr_seq','subframe','10 1'),
+  ('base','addr','addr_seq','state','readonly'),
+  ('base','addr','addr_seq','justify','r'),
+  ('base','addr','addr_seq','hide','1'),
+  ('base','addr','addr_seq','write','0'),
+  ('base','addr','pcode','style','ent'),
+  ('base','addr','pcode','size','10'),
+  ('base','addr','pcode','subframe','1 1'),
+  ('base','addr','pcode','special','zip'),
+  ('base','addr','city','style','ent'),
   ('base','addr','addr_cmt','special','edw'),
   ('base','addr','addr_ent','style','ent'),
   ('base','addr','addr_ent','size','5'),
@@ -3127,7 +3596,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm','comm_spec','size','28'),
   ('base','comm','comm_spec','subframe','1 1 3'),
   ('base','comm','comm_type','style','pdm'),
-  ('base','comm','comm_type','size','5'),
   ('base','comm','comm_type','subframe','1 2'),
   ('base','comm','comm_type','initial','phone'),
   ('base','comm','comm_inact','style','chk'),
@@ -3162,7 +3630,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm','mod_by','size','10'),
   ('base','comm','mod_by','subframe','1 99'),
   ('base','comm','mod_by','optional','1'),
-  ('base','comm','mod_by','write','0'),
   ('base','comm','mod_by','state','readonly'),
   ('base','comm','mod_date','style','inf'),
   ('base','comm','mod_date','size','18'),
@@ -3184,10 +3651,10 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm_v','comm_prim','initial','false'),
   ('base','comm_v','comm_prim','onvalue','t'),
   ('base','comm_v','comm_prim','offvalue','f'),
-  ('base','comm_v','comm_cmt','display','3'),
   ('base','comm_v','comm_seq','display','4'),
-  ('base','comm_v','comm_spec','display','2'),
   ('base','comm_v','comm_type','display','1'),
+  ('base','comm_v','comm_spec','display','2'),
+  ('base','comm_v','comm_cmt','display','3'),
   ('base','comm_v','comm_seq','sort','2'),
   ('base','comm_v','comm_type','sort','1'),
   ('base','ent','id','style','ent'),
@@ -3367,6 +3834,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','ent_v_pub','activ','offvalue','f'),
   ('base','ent_v_pub','crt_date','style','ent'),
   ('base','ent_v_pub','crt_date','size','20'),
+  ('mychips','contracts','publish','size','14'),
   ('base','ent_v_pub','crt_date','subframe','1 6'),
   ('base','ent_v_pub','crt_date','optional','1'),
   ('base','ent_v_pub','crt_date','state','readonly'),
@@ -3450,7 +3918,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','parm_v','mod_by','style','ent'),
   ('base','parm_v','mod_by','size','10'),
   ('base','parm_v','mod_by','subframe','1 99'),
-  ('mychips','peers','mod_date','write','0'),
   ('base','parm_v','mod_by','optional','1'),
   ('base','parm_v','mod_by','write','0'),
   ('base','parm_v','mod_by','state','readonly'),
@@ -3461,6 +3928,11 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','parm_v','mod_date','write','0'),
   ('base','parm_v','mod_date','state','readonly'),
   ('base','parm_v','module','focus','true'),
+  ('base','parm_v','module','display','1'),
+  ('base','parm_v','parm','display','2'),
+  ('base','parm_v','type','display','3'),
+  ('base','parm_v','cmt','display','5'),
+  ('base','parm_v','value','display','4'),
   ('base','priv','grantee','style','ent'),
   ('base','priv','grantee','size','12'),
   ('base','priv','grantee','subframe','0 0'),
@@ -3495,49 +3967,72 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','priv_v','priv_list','optional','1'),
   ('base','priv_v','priv_list','state','disabled'),
   ('base','priv_v','priv_list','write','0'),
-  ('chip','docs','author','style','ent'),
-  ('chip','docs','author','size','30'),
-  ('chip','docs','author','subframe','1 1'),
-  ('chip','docs','contract','style','ent'),
-  ('chip','docs','contract','size','20'),
-  ('chip','docs','contract','subframe','1 2'),
-  ('chip','docs','contract','special','zip'),
-  ('chip','docs','version','style','ent'),
-  ('chip','docs','version','size','2'),
-  ('chip','docs','version','subframe','2 2'),
-  ('chip','docs','version','special','clc'),
-  ('chip','docs','content','style','ent'),
-  ('chip','docs','content','size','30'),
-  ('chip','docs','content','subframe','1 2 2'),
-  ('chip','docs','content','special','edw'),
-  ('chip','docs','hash','style','ent'),
-  ('chip','docs','hash','size','16'),
-  ('chip','docs','hash','subframe','3 1'),
-  ('chip','docs','crt_by','style','ent'),
-  ('chip','docs','crt_by','size','10'),
-  ('chip','docs','crt_by','subframe','1 98'),
-  ('chip','docs','crt_by','optional','1'),
-  ('chip','docs','crt_by','write','0'),
-  ('chip','docs','crt_by','state','readonly'),
-  ('chip','docs','crt_date','style','inf'),
-  ('chip','docs','crt_date','size','18'),
-  ('chip','docs','crt_date','subframe','2 98'),
-  ('chip','docs','crt_date','optional','1'),
-  ('chip','docs','crt_date','write','0'),
-  ('chip','docs','crt_date','state','readonly'),
-  ('chip','docs','mod_by','style','ent'),
-  ('chip','docs','mod_by','size','10'),
-  ('chip','docs','mod_by','subframe','1 99'),
-  ('chip','docs','mod_by','optional','1'),
-  ('chip','docs','mod_by','write','0'),
-  ('chip','docs','mod_by','state','readonly'),
-  ('chip','docs','mod_date','style','inf'),
-  ('chip','docs','mod_date','size','18'),
-  ('chip','docs','mod_date','subframe','2 99'),
-  ('chip','docs','mod_date','optional','1'),
-  ('chip','docs','mod_date','write','0'),
-  ('chip','docs','mod_date','state','readonly'),
-  ('chip','docs','author','focus','true'),
+  ('mychips','contracts','author','style','ent'),
+  ('mychips','contracts','author','size','20'),
+  ('mychips','contracts','author','subframe','1 1'),
+  ('mychips','contracts','publish','style','ent'),
+  ('mychips','contracts','publish','subframe','2 1'),
+  ('mychips','contracts','publish','state','readonly'),
+  ('mychips','contracts','publish','write','0'),
+  ('mychips','contracts','version','style','ent'),
+  ('mychips','contracts','version','size','3'),
+  ('mychips','contracts','version','subframe','3 1'),
+  ('mychips','contracts','version','justify','r'),
+  ('mychips','contracts','title','style','ent'),
+  ('mychips','contracts','title','size','30'),
+  ('mychips','contracts','title','subframe','1 2 2'),
+  ('mychips','contracts','language','style','ent'),
+  ('mychips','contracts','language','size','4'),
+  ('mychips','contracts','language','subframe','3 2'),
+  ('mychips','contracts','source','style','ent'),
+  ('mychips','contracts','source','size','20'),
+  ('mychips','contracts','source','subframe','1 3 2'),
+  ('mychips','contracts','digest','style','ent'),
+  ('mychips','contracts','digest','size','20'),
+  ('mychips','contracts','digest','subframe','3 3'),
+  ('mychips','contracts','digest','state','readonly'),
+  ('mychips','contracts','digest','write','0'),
+  ('mychips','contracts','sections','style','mle'),
+  ('mychips','contracts','sections','size','80'),
+  ('mychips','contracts','sections','subframe','1 4 4'),
+  ('mychips','contracts','sections','special','edw'),
+  ('mychips','contracts','sections','state','readonly'),
+  ('mychips','contracts','crt_by','style','ent'),
+  ('mychips','contracts','crt_by','size','10'),
+  ('mychips','contracts','crt_by','subframe','1 98'),
+  ('mychips','contracts','crt_by','optional','1'),
+  ('mychips','contracts','crt_by','write','0'),
+  ('mychips','contracts','crt_by','state','readonly'),
+  ('mychips','contracts','crt_date','style','inf'),
+  ('mychips','contracts','crt_date','size','18'),
+  ('mychips','peers','peer_cdi','size','40'),
+  ('mychips','contracts','crt_date','subframe','2 98'),
+  ('mychips','contracts','crt_date','optional','1'),
+  ('mychips','contracts','crt_date','write','0'),
+  ('mychips','contracts','crt_date','state','readonly'),
+  ('mychips','contracts','mod_by','style','ent'),
+  ('mychips','contracts','mod_by','size','10'),
+  ('mychips','contracts','mod_by','subframe','1 99'),
+  ('mychips','contracts','mod_by','optional','1'),
+  ('mychips','contracts','mod_by','write','0'),
+  ('mychips','contracts','mod_by','state','readonly'),
+  ('mychips','contracts','mod_date','style','inf'),
+  ('mychips','contracts','mod_date','size','18'),
+  ('mychips','contracts','mod_date','subframe','2 99'),
+  ('mychips','contracts','mod_date','optional','1'),
+  ('mychips','contracts','mod_date','write','0'),
+  ('mychips','contracts','mod_date','state','readonly'),
+  ('mychips','contracts','author','focus','true'),
+  ('mychips','contracts','author','display','1'),
+  ('mychips','contracts','title','display','2'),
+  ('mychips','contracts','version','display','3'),
+  ('mychips','contracts','language','display','4'),
+  ('mychips','paths_v','id','display','1'),
+  ('mychips','paths_v','length','display','2'),
+  ('mychips','paths_v','path','display','6'),
+  ('mychips','paths_v','circuit','display','5'),
+  ('mychips','paths_v','cost','display','3'),
+  ('mychips','paths_v','min','display','4'),
   ('mychips','peers','peer_ent','style','ent'),
   ('mychips','peers','peer_ent','size','6'),
   ('mychips','peers','peer_ent','subframe','0 20'),
@@ -3545,7 +4040,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','peers','peer_ent','sort','1'),
   ('mychips','peers','peer_ent','write','0'),
   ('mychips','peers','peer_cdi','style','ent'),
-  ('mychips','peers','peer_cdi','size','40'),
   ('mychips','peers','peer_cdi','subframe','1 20 2'),
   ('mychips','peers','peer_cdi','template','^[\w\._:/]*$'),
   ('mychips','peers','peer_hid','style','ent'),
@@ -3588,6 +4082,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','peers','mod_date','size','18'),
   ('mychips','peers','mod_date','subframe','2 99'),
   ('mychips','peers','mod_date','optional','1'),
+  ('mychips','peers','mod_date','write','0'),
   ('mychips','peers','mod_date','state','readonly'),
   ('mychips','peers','ent_name','focus','true'),
   ('mychips','peers_v','peer_sock','style','ent'),
@@ -3690,532 +4185,566 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
 
 insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,nat_exp,pkey) values
   ('mychips','tallies','units_c','mychips','tallies','units_c','f','f'),
-  ('wylib','data','owner','wylib','data','owner','f','f'),
+  ('mychips','peers_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','users_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','peers','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','peers_v_flat','crt_date','mychips','peers','crt_date','f','f'),
+  ('mychips','users_v_flat','crt_date','mychips','users','crt_date','f','f'),
+  ('base','comm','crt_date','base','comm','crt_date','f','f'),
+  ('wylib','data_v','crt_date','wylib','data','crt_date','f','f'),
+  ('mychips','tokens','crt_date','mychips','tokens','crt_date','f','f'),
+  ('wm','objects_v_depth','crt_date','wm','objects','crt_date','f','f'),
+  ('mychips','contracts','crt_date','mychips','contracts','crt_date','f','f'),
+  ('mychips','tallies','crt_date','mychips','tallies','crt_date','f','f'),
+  ('wm','objects','crt_date','wm','objects','crt_date','f','f'),
+  ('base','ent','crt_date','base','ent','crt_date','f','f'),
+  ('mychips','users','crt_date','mychips','users','crt_date','f','f'),
+  ('wm','releases','crt_date','wm','releases','crt_date','f','f'),
+  ('wylib','data','crt_date','wylib','data','crt_date','f','f'),
+  ('mychips','peers','crt_date','mychips','peers','crt_date','f','f'),
+  ('base','ent_link','crt_date','base','ent_link','crt_date','f','f'),
+  ('base','ent_link_v','crt_date','base','ent_link','crt_date','f','f'),
+  ('base','parm','crt_date','base','parm','crt_date','f','f'),
+  ('mychips','chits','crt_date','mychips','chits','crt_date','f','f'),
+  ('base','ent_v_pub','crt_date','base','ent','crt_date','f','f'),
+  ('base','comm_v','crt_date','base','comm','crt_date','f','f'),
+  ('base','parm_v','crt_date','base','parm','crt_date','f','f'),
+  ('base','ent_v','crt_date','base','ent','crt_date','f','f'),
+  ('mychips','tokens_v','crt_date','mychips','tokens','crt_date','f','f'),
+  ('base','addr_v','crt_date','base','addr','crt_date','f','f'),
+  ('base','addr','crt_date','base','addr','crt_date','f','f'),
+  ('wm','objects_v','crt_date','wm','objects','crt_date','f','f'),
+  ('mychips','contracts_v','crt_date','mychips','contracts','crt_date','f','f'),
   ('wylib','data_v','owner','wylib','data','owner','f','f'),
-  ('base','priv','priv_level','base','priv','priv_level','f','f'),
-  ('base','addr','addr_cmt','base','addr','addr_cmt','f','f'),
+  ('wylib','data','owner','wylib','data','owner','f','f'),
+  ('mychips','tallies','tally_date','mychips','tallies','tally_date','f','f'),
   ('base','priv_v','priv_level','base','priv','priv_level','f','f'),
+  ('base','priv','priv_level','base','priv','priv_level','f','f'),
   ('base','addr_v','addr_cmt','base','addr','addr_cmt','f','f'),
-  ('base','ent','mod_by','base','ent','mod_by','f','f'),
-  ('mychips','peers','mod_by','mychips','peers','mod_by','f','f'),
+  ('base','addr','addr_cmt','base','addr','addr_cmt','f','f'),
+  ('base','parm','v_float','base','parm','v_float','f','f'),
+  ('mychips','peers_v_flat','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','users_v_flat','mod_by','mychips','users','mod_by','f','f'),
+  ('mychips','tokens','mod_by','mychips','tokens','mod_by','f','f'),
   ('base','comm','mod_by','base','comm','mod_by','f','f'),
+  ('wylib','data_v','mod_by','wylib','data','mod_by','f','f'),
+  ('mychips','tallies','mod_by','mychips','tallies','mod_by','f','f'),
+  ('mychips','contracts','mod_by','mychips','contracts','mod_by','f','f'),
+  ('base','ent','mod_by','base','ent','mod_by','f','f'),
+  ('mychips','users','mod_by','mychips','users','mod_by','f','f'),
+  ('wylib','data','mod_by','wylib','data','mod_by','f','f'),
+  ('base','ent_link','mod_by','base','ent_link','mod_by','f','f'),
+  ('mychips','peers','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','chits','mod_by','mychips','chits','mod_by','f','f'),
+  ('base','ent_link_v','mod_by','base','ent_link','mod_by','f','f'),
+  ('base','parm','mod_by','base','parm','mod_by','f','f'),
+  ('base','ent_v_pub','mod_by','base','ent','mod_by','f','f'),
+  ('base','comm_v','mod_by','base','comm','mod_by','f','f'),
+  ('base','parm_v','mod_by','base','parm','mod_by','f','f'),
   ('base','ent_v','mod_by','base','ent','mod_by','f','f'),
   ('base','addr','mod_by','base','addr','mod_by','f','f'),
-  ('mychips','users','mod_by','mychips','users','mod_by','f','f'),
-  ('base','parm','mod_by','base','parm','mod_by','f','f'),
-  ('base','ent_link','mod_by','base','ent_link','mod_by','f','f'),
-  ('mychips','tokens','mod_by','mychips','tokens','mod_by','f','f'),
-  ('mychips','tallies','mod_by','mychips','tallies','mod_by','f','f'),
-  ('mychips','chits','mod_by','mychips','chits','mod_by','f','f'),
-  ('wylib','data','mod_by','wylib','data','mod_by','f','f'),
-  ('base','ent_link_v','mod_by','base','ent_link','mod_by','f','f'),
-  ('base','ent_v_pub','mod_by','base','ent','mod_by','f','f'),
-  ('base','parm_v','mod_by','base','parm','mod_by','f','f'),
   ('mychips','tokens_v','mod_by','mychips','tokens','mod_by','f','f'),
-  ('wylib','data_v','mod_by','wylib','data','mod_by','f','f'),
-  ('base','comm_v','mod_by','base','comm','mod_by','f','f'),
-  ('mychips','users_v_flat','mod_by','mychips','users','mod_by','f','f'),
   ('base','addr_v','mod_by','base','addr','mod_by','f','f'),
-  ('mychips','peers_v_flat','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','contracts_v','mod_by','mychips','contracts','mod_by','f','f'),
   ('base','addr','addr_inact','base','addr','addr_inact','f','f'),
   ('base','addr_v','addr_inact','base','addr','addr_inact','f','f'),
-  ('wm','depends_v','depth','wm','depends_v','depth','f','f'),
   ('wm','objects_v_depth','depth','wm','depends_v','depth','f','f'),
-  ('base','ent_v','std_name','base','ent_v','std_name','f','f'),
-  ('base','ent_v_pub','std_name','base','ent_v','std_name','f','f'),
-  ('base','priv_v','std_name','base','ent_v','std_name','f','f'),
-  ('mychips','tokens_v','std_name','base','ent_v','std_name','f','f'),
-  ('base','comm_v','std_name','base','ent_v','std_name','f','f'),
+  ('wm','depends_v','depth','wm','depends_v','depth','f','f'),
+  ('base','parm_audit','a_date','base','parm_audit','a_date','f','f'),
+  ('base','ent_audit','a_date','base','ent_audit','a_date','f','f'),
   ('mychips','users_v_flat','std_name','base','ent_v','std_name','f','f'),
-  ('base','addr_v','std_name','base','ent_v','std_name','f','f'),
   ('mychips','peers_v_flat','std_name','base','ent_v','std_name','f','f'),
+  ('base','priv_v','std_name','base','ent_v','std_name','f','f'),
+  ('base','comm_v','std_name','base','ent_v','std_name','f','f'),
+  ('base','ent_v_pub','std_name','base','ent_v','std_name','f','f'),
+  ('base','ent_v','std_name','base','ent_v','std_name','f','f'),
+  ('base','addr_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','tokens_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','chits','chit_guid','mychips','chits','chit_guid','f','f'),
+  ('base','addr_v_flat','mail_country','base','addr_v_flat','mail_country','f','f'),
   ('mychips','tallies','partner','mychips','tallies','partner','f','f'),
   ('base','addr_v_flat','phys_country','base','addr_v_flat','phys_country','f','f'),
-  ('base','comm_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
-  ('mychips','users_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
   ('mychips','peers_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
-  ('base','ent_audit','a_action','base','ent_audit','a_action','f','f'),
+  ('mychips','users_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
+  ('base','comm_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
+  ('base','language','iso_3b','base','language','iso_3b','f','f'),
   ('base','parm_audit','a_action','base','parm_audit','a_action','f','f'),
+  ('base','ent_audit','a_action','base','ent_audit','a_action','f','f'),
   ('base','addr','addr_spec','base','addr','addr_spec','f','f'),
   ('base','addr_v','addr_spec','base','addr','addr_spec','f','f'),
-  ('base','ent','gender','base','ent','gender','f','f'),
-  ('base','ent_v','gender','base','ent','gender','f','f'),
+  ('mychips','peers_v_flat','proxy','base','ent','proxy','f','f'),
+  ('mychips','users_v_flat','proxy','base','ent','proxy','f','f'),
+  ('base','ent','proxy','base','ent','proxy','f','f'),
+  ('base','ent_v','proxy','base','ent','proxy','f','f'),
   ('mychips','users_v_flat','gender','base','ent','gender','f','f'),
   ('mychips','peers_v_flat','gender','base','ent','gender','f','f'),
+  ('base','ent','gender','base','ent','gender','f','f'),
+  ('base','ent_v','gender','base','ent','gender','f','f'),
   ('mychips','confirms','conf_date','mychips','confirms','conf_date','f','f'),
-  ('base','addr_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
   ('mychips','users_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
   ('mychips','peers_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
+  ('base','addr_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
+  ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
+  ('mychips','peers_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
+  ('base','addr_v_flat','mail_state','base','addr_v_flat','mail_state','f','f'),
+  ('base','comm_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
+  ('mychips','tallies','cr_limit','mychips','tallies','cr_limit','f','f'),
   ('base','ent','tax_id','base','ent','tax_id','f','f'),
-  ('base','ent_v','tax_id','base','ent','tax_id','f','f'),
   ('mychips','users_v_flat','tax_id','base','ent','tax_id','f','f'),
   ('mychips','peers_v_flat','tax_id','base','ent','tax_id','f','f'),
-  ('mychips','users','host_id','mychips','users','host_id','f','f'),
+  ('base','ent_v','tax_id','base','ent','tax_id','f','f'),
   ('mychips','users_v_flat','host_id','mychips','users','host_id','f','f'),
+  ('mychips','users','host_id','mychips','users','host_id','f','f'),
+  ('mychips','users_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
+  ('mychips','peers_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
+  ('base','addr_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
+  ('wm','column_native','nat_sch','wm','column_native','nat_sch','f','f'),
   ('wm','objects','min_rel','wm','objects','min_rel','f','f'),
-  ('wm','objects_v','min_rel','wm','objects','min_rel','f','f'),
   ('wm','objects_v_depth','min_rel','wm','objects','min_rel','f','f'),
+  ('wm','objects_v','min_rel','wm','objects','min_rel','f','f'),
+  ('mychips','tallies','drop_marg','mychips','tallies','drop_marg','f','f'),
+  ('wylib','data_v','own_name','wylib','data_v','own_name','f','f'),
+  ('wm','column_native','nat_tab','wm','column_native','nat_tab','f','f'),
   ('base','comm_v_flat','text_comm','base','comm_v_flat','text_comm','f','f'),
-  ('mychips','users','user_cmt','mychips','users','user_cmt','f','f'),
   ('mychips','users_v_flat','user_cmt','mychips','users','user_cmt','f','f'),
+  ('mychips','users','user_cmt','mychips','users','user_cmt','f','f'),
   ('base','ent','pref_name','base','ent','pref_name','f','f'),
-  ('base','ent_v','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v_flat','pref_name','base','ent','pref_name','f','f'),
   ('mychips','peers_v_flat','pref_name','base','ent','pref_name','f','f'),
-  ('base','ent','mid_name','base','ent','mid_name','f','f'),
+  ('base','priv_v','cmt','base','priv','cmt','f','f'),
+  ('base','priv','cmt','base','priv','cmt','f','f'),
+  ('base','parm_v','cmt','base','parm','cmt','f','f'),
+  ('base','parm','cmt','base','parm','cmt','f','f'),
+  ('base','ent_v','pref_name','base','ent','pref_name','f','f'),
   ('base','ent','username','base','ent','username','f','f'),
-  ('base','ent_v','mid_name','base','ent','mid_name','f','f'),
-  ('base','ent_v','username','base','ent','username','f','f'),
-  ('base','ent_v_pub','username','base','ent','username','f','f'),
-  ('base','priv_v','username','base','ent','username','f','f'),
-  ('mychips','users_v_flat','mid_name','base','ent','mid_name','f','f'),
+  ('base','ent','mid_name','base','ent','mid_name','f','f'),
   ('mychips','users_v_flat','username','base','ent','username','f','f'),
-  ('mychips','peers_v_flat','mid_name','base','ent','mid_name','f','f'),
+  ('mychips','users_v_flat','mid_name','base','ent','mid_name','f','f'),
   ('mychips','peers_v_flat','username','base','ent','username','f','f'),
+  ('mychips','peers_v_flat','mid_name','base','ent','mid_name','f','f'),
+  ('base','priv_v','username','base','ent','username','f','f'),
+  ('base','ent_v_pub','username','base','ent','username','f','f'),
+  ('base','ent_v','username','base','ent','username','f','f'),
+  ('base','ent_v','mid_name','base','ent','mid_name','f','f'),
   ('wm','releases','sver_1','wm','releases','sver_1','f','f'),
+  ('mychips','contracts','digest','mychips','contracts','digest','f','f'),
+  ('base','comm','comm_prim','base','comm','comm_prim','f','f'),
+  ('base','comm_v','comm_prim','base','comm_v','comm_prim','f','f'),
+  ('mychips','contracts_v','digest','mychips','contracts','digest','f','f'),
   ('mychips','chits','chit_date','mychips','chits','chit_date','f','f'),
+  ('mychips','users_v_flat','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','peers_v_flat','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','peers','peer_port','mychips','peers','peer_port','f','f'),
+  ('wm','objects','source','wm','objects','source','f','f'),
+  ('mychips','contracts','source','mychips','contracts','source','f','f'),
+  ('wm','objects_v_depth','source','wm','objects','source','f','f'),
+  ('mychips','contracts_v','source','mychips','contracts','source','f','f'),
+  ('wm','objects_v','source','wm','objects','source','f','f'),
   ('wm','objects','crt_sql','wm','objects','crt_sql','f','f'),
-  ('wm','objects_v','crt_sql','wm','objects','crt_sql','f','f'),
   ('wm','objects_v_depth','crt_sql','wm','objects','crt_sql','f','f'),
-  ('base','addr_v_flat','mail_city','base','addr_v_flat','mail_city','f','f'),
-  ('base','addr_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
-  ('mychips','users_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
+  ('wm','objects_v','crt_sql','wm','objects','crt_sql','f','f'),
+  ('mychips','users_v_flat','user_inet','mychips','users','user_inet','f','f'),
+  ('mychips','users','user_inet','mychips','users','user_inet','f','f'),
+  ('mychips','tokens_v','user_inet','mychips','users','user_inet','f','f'),
+  ('mychips','contracts','sections','mychips','contracts','sections','f','f'),
+  ('base','country','iso_3','base','country','iso_3','f','f'),
+  ('mychips','contracts_v','sections','mychips','contracts','sections','f','f'),
+  ('wylib','data','data','wylib','data','data','f','f'),
+  ('wylib','data_v','data','wylib','data','data','f','f'),
   ('mychips','peers_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
-  ('base','ent','born_date','base','ent','born_date','f','f'),
-  ('base','ent_v','born_date','base','ent','born_date','f','f'),
+  ('mychips','users_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
+  ('base','addr_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
+  ('base','addr_v_flat','mail_city','base','addr_v_flat','mail_city','f','f'),
+  ('mychips','tallies','foil_terms','mychips','tallies','foil_terms','f','f'),
+  ('mychips','tallies','contract','mychips','tallies','contract','f','f'),
+  ('base','country','capital','base','country','capital','f','f'),
+  ('wm','objects_v_depth','mod_ver','wm','objects','mod_ver','f','f'),
+  ('wm','objects','mod_ver','wm','objects','mod_ver','f','f'),
+  ('base','addr_v','pcode','base','addr','pcode','f','f'),
+  ('wm','objects_v','mod_ver','wm','objects','mod_ver','f','f'),
+  ('base','addr','pcode','base','addr','pcode','f','f'),
+  ('mychips','users_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','peers_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('base','ent','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('base','ent_v','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('wm','objects_v_depth','grants','wm','objects','grants','f','f'),
+  ('wm','objects','grants','wm','objects','grants','f','f'),
+  ('wm','objects_v','grants','wm','objects','grants','f','f'),
+  ('mychips','tallies','user_sig','mychips','tallies','user_sig','f','f'),
+  ('mychips','peers_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
+  ('mychips','users_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
+  ('base','addr_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
+  ('base','parm','v_boolean','base','parm','v_boolean','f','f'),
   ('mychips','users_v_flat','born_date','base','ent','born_date','f','f'),
   ('mychips','peers_v_flat','born_date','base','ent','born_date','f','f'),
+  ('base','ent','born_date','base','ent','born_date','f','f'),
+  ('base','ent_v','born_date','base','ent','born_date','f','f'),
   ('base','country','dial_code','base','country','dial_code','f','f'),
   ('base','parm','type','base','parm','type','f','f'),
   ('base','parm_v','type','base','parm','type','f','f'),
-  ('mychips','covenants','released','mychips','covenants','released','f','f'),
-  ('wm','objects','max_rel','wm','objects','max_rel','f','f'),
-  ('wm','objects_v','max_rel','wm','objects','max_rel','f','f'),
-  ('wm','objects_v_depth','max_rel','wm','objects','max_rel','f','f'),
-  ('base','addr_v_flat','mail_pcode','base','addr_v_flat','mail_pcode','f','f'),
-  ('wm','table_style','inherit','wm','table_style','inherit','f','f'),
-  ('base','addr_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
-  ('mychips','users_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
-  ('mychips','peers_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
-  ('wm','column_native','nat_col','wm','column_native','nat_col','f','f'),
-  ('mychips','users','user_port','mychips','users','user_port','f','f'),
-  ('mychips','tokens_v','user_port','mychips','users','user_port','f','f'),
-  ('mychips','users_v_flat','user_port','mychips','users','user_port','f','f'),
-  ('wm','objects','col_data','wm','objects','col_data','f','f'),
-  ('wm','objects_v','col_data','wm','objects','col_data','f','f'),
-  ('wm','objects_v_depth','col_data','wm','objects','col_data','f','f'),
-  ('base','ent_v','cas_name','base','ent_v','cas_name','f','f'),
-  ('mychips','users_v_flat','cas_name','base','ent_v','cas_name','f','f'),
-  ('mychips','peers_v_flat','cas_name','base','ent_v','cas_name','f','f'),
-  ('base','ent','inside','base','ent','inside','f','f'),
-  ('base','ent_v','inside','base','ent','inside','f','f'),
-  ('base','ent_v_pub','inside','base','ent','inside','f','f'),
-  ('mychips','users_v_flat','inside','base','ent','inside','f','f'),
-  ('mychips','peers_v_flat','inside','base','ent','inside','f','f'),
-  ('mychips','chits','memo','mychips','chits','memo','f','f'),
-  ('wylib','data','name','wylib','data','name','f','f'),
-  ('wylib','data_v','name','wylib','data','name','f','f'),
-  ('base','comm_v_flat','fax_comm','base','comm_v_flat','fax_comm','f','f'),
-  ('base','comm','comm_cmt','base','comm','comm_cmt','f','f'),
-  ('base','comm_v','comm_cmt','base','comm','comm_cmt','f','f'),
-  ('mychips','tokens_v','expired','mychips','tokens_v','expired','f','f'),
-  ('base','ent_link','role','base','ent_link','role','f','f'),
-  ('base','ent_link_v','role','base','ent_link','role','f','f'),
-  ('base','ent','crt_by','base','ent','crt_by','f','f'),
-  ('mychips','peers','crt_by','mychips','peers','crt_by','f','f'),
-  ('base','comm','crt_by','base','comm','crt_by','f','f'),
-  ('base','ent_v','crt_by','base','ent','crt_by','f','f'),
-  ('base','addr','crt_by','base','addr','crt_by','f','f'),
-  ('mychips','users','crt_by','mychips','users','crt_by','f','f'),
-  ('base','parm','crt_by','base','parm','crt_by','f','f'),
-  ('base','ent_link','crt_by','base','ent_link','crt_by','f','f'),
-  ('mychips','tokens','crt_by','mychips','tokens','crt_by','f','f'),
-  ('mychips','tallies','crt_by','mychips','tallies','crt_by','f','f'),
-  ('mychips','chits','crt_by','mychips','chits','crt_by','f','f'),
-  ('wylib','data','crt_by','wylib','data','crt_by','f','f'),
-  ('base','ent_link_v','crt_by','base','ent_link','crt_by','f','f'),
-  ('base','ent_v_pub','crt_by','base','ent','crt_by','f','f'),
-  ('base','parm_v','crt_by','base','parm','crt_by','f','f'),
-  ('mychips','tokens_v','crt_by','mychips','tokens','crt_by','f','f'),
-  ('wylib','data_v','crt_by','wylib','data','crt_by','f','f'),
-  ('base','comm_v','crt_by','base','comm','crt_by','f','f'),
-  ('mychips','users_v_flat','crt_by','mychips','users','crt_by','f','f'),
-  ('base','addr_v','crt_by','base','addr','crt_by','f','f'),
-  ('mychips','peers_v_flat','crt_by','mychips','peers','crt_by','f','f'),
-  ('mychips','tallies','tally_guid','mychips','tallies','tally_guid','f','f'),
-  ('wm','column_native','pkey','wm','column_native','pkey','f','f'),
-  ('mychips','chits','pro_quo','mychips','chits','pro_quo','f','f'),
-  ('base','parm','v_text','base','parm','v_text','f','f'),
-  ('wm','objects','checked','wm','objects','checked','f','f'),
-  ('wm','objects_v','checked','wm','objects','checked','f','f'),
-  ('wm','objects_v_depth','checked','wm','objects','checked','f','f'),
-  ('wylib','data','access','wylib','data','access','f','f'),
-  ('wylib','data_v','access','wylib','data','access','f','f'),
-  ('base','country','iana','base','country','iana','f','f'),
-  ('mychips','tallies','comment','mychips','tallies','comment','f','f'),
-  ('wm','objects','ndeps','wm','objects','ndeps','f','f'),
-  ('wm','objects_v','ndeps','wm','objects','ndeps','f','f'),
-  ('wm','objects_v_depth','ndeps','wm','objects','ndeps','f','f'),
-  ('mychips','covenants','hash','mychips','covenants','hash','f','f'),
-  ('wm','objects','clean','wm','objects','clean','f','f'),
-  ('wm','objects_v','clean','wm','objects','clean','f','f'),
-  ('wm','objects_v_depth','clean','wm','objects','clean','f','f'),
-  ('mychips','comm_test','test_dat','mychips','comm_test','test_dat','f','f'),
-  ('base','ent_v','frm_name','base','ent_v','frm_name','f','f'),
-  ('mychips','users_v_flat','frm_name','base','ent_v','frm_name','f','f'),
-  ('mychips','peers_v_flat','frm_name','base','ent_v','frm_name','f','f'),
-  ('wm','depends_v','path','wm','depends_v','path','f','f'),
-  ('wm','column_text','title','wm','column_text','title','f','f'),
-  ('wm','message_text','title','wm','message_text','title','f','f'),
-  ('wm','table_text','title','wm','table_text','title','f','f'),
-  ('wm','value_text','title','wm','value_text','title','f','f'),
-  ('base','ent','title','base','ent','title','f','f'),
-  ('base','ent_v','title','base','ent','title','f','f'),
-  ('mychips','users_v_flat','title','base','ent','title','f','f'),
-  ('mychips','peers_v_flat','title','base','ent','title','f','f'),
-  ('wylib','data','descr','wylib','data','descr','f','f'),
-  ('wylib','data_v','descr','wylib','data','descr','f','f'),
-  ('mychips','peers','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('mychips','users_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('mychips','peers_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('base','addr_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
-  ('mychips','users_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
-  ('mychips','peers_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
-  ('wm','depends_v','fpath','wm','depends_v','fpath','f','f'),
-  ('base','addr_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
-  ('mychips','users_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
-  ('mychips','peers_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
-  ('base','ent','fir_name','base','ent','fir_name','f','f'),
-  ('base','ent_v','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','users_v_flat','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','peers_v_flat','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','confirms','sum','mychips','confirms','sum','f','f'),
-  ('base','ent_audit','a_value','base','ent_audit','a_value','f','f'),
-  ('base','parm_audit','a_value','base','parm_audit','a_value','f','f'),
-  ('mychips','chits','signature','mychips','chits','signature','f','f'),
-  ('mychips','confirms','signature','mychips','confirms','signature','f','f'),
-  ('mychips','comm_test','test_ent','mychips','comm_test','test_ent','f','f'),
-  ('mychips','tokens','token','mychips','tokens','token','f','f'),
-  ('base','ent_link_v','org_name','base','ent_link_v','org_name','f','f'),
-  ('mychips','tokens_v','token','mychips','tokens','token','f','f'),
-  ('mychips','tallies','tally_type','mychips','tallies','tally_type','f','f'),
-  ('base','ent','bank','base','ent','bank','f','f'),
-  ('base','ent_v','bank','base','ent','bank','f','f'),
-  ('mychips','users_v_flat','bank','base','ent','bank','f','f'),
-  ('mychips','peers_v_flat','bank','base','ent','bank','f','f'),
-  ('base','ent_audit','a_column','base','ent_audit','a_column','f','f'),
-  ('base','parm_audit','a_column','base','parm_audit','a_column','f','f'),
-  ('base','addr_v_flat','mail_addr','base','addr_v_flat','mail_addr','f','f'),
-  ('wm','column_native','nat_exp','wm','column_native','nat_exp','f','f'),
-  ('mychips','tallies','request','mychips','tallies','request','f','f'),
-  ('mychips','chits','request','mychips','chits','request','f','f'),
-  ('mychips','confirms','conf_id','mychips','confirms','conf_id','f','f'),
-  ('base','ent','ent_name','base','ent','ent_name','f','f'),
-  ('base','ent_v','ent_name','base','ent','ent_name','f','f'),
-  ('mychips','users_v_flat','ent_name','base','ent','ent_name','f','f'),
-  ('mychips','peers_v_flat','ent_name','base','ent','ent_name','f','f'),
-  ('base','addr','addr_prim','base','addr','addr_prim','f','f'),
-  ('base','addr_v','addr_prim','base','addr_v','addr_prim','f','f'),
-  ('mychips','tallies','status','mychips','tallies','status','f','f'),
-  ('mychips','peers','peer_cmt','mychips','peers','peer_cmt','f','f'),
-  ('mychips','users_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
-  ('mychips','peers_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
-  ('wm','releases','crt_date','wm','releases','crt_date','f','f'),
-  ('wm','objects','crt_date','wm','objects','crt_date','f','f'),
-  ('wm','objects_v','crt_date','wm','objects','crt_date','f','f'),
-  ('wm','objects_v_depth','crt_date','wm','objects','crt_date','f','f'),
-  ('base','ent','crt_date','base','ent','crt_date','f','f'),
-  ('mychips','peers','crt_date','mychips','peers','crt_date','f','f'),
-  ('base','comm','crt_date','base','comm','crt_date','f','f'),
-  ('base','ent_v','crt_date','base','ent','crt_date','f','f'),
-  ('base','addr','crt_date','base','addr','crt_date','f','f'),
-  ('mychips','users','crt_date','mychips','users','crt_date','f','f'),
-  ('base','parm','crt_date','base','parm','crt_date','f','f'),
-  ('base','ent_link','crt_date','base','ent_link','crt_date','f','f'),
-  ('mychips','tokens','crt_date','mychips','tokens','crt_date','f','f'),
-  ('mychips','tallies','crt_date','mychips','tallies','crt_date','f','f'),
-  ('mychips','chits','crt_date','mychips','chits','crt_date','f','f'),
-  ('wylib','data','crt_date','wylib','data','crt_date','f','f'),
-  ('base','ent_link_v','crt_date','base','ent_link','crt_date','f','f'),
-  ('base','ent_v_pub','crt_date','base','ent','crt_date','f','f'),
-  ('base','parm_v','crt_date','base','parm','crt_date','f','f'),
-  ('mychips','tokens_v','crt_date','mychips','tokens','crt_date','f','f'),
-  ('wylib','data_v','crt_date','wylib','data','crt_date','f','f'),
-  ('base','comm_v','crt_date','base','comm','crt_date','f','f'),
-  ('mychips','users_v_flat','crt_date','mychips','users','crt_date','f','f'),
-  ('base','addr_v','crt_date','base','addr','crt_date','f','f'),
-  ('mychips','peers_v_flat','crt_date','mychips','peers','crt_date','f','f'),
-  ('mychips','tallies','tally_date','mychips','tallies','tally_date','f','f'),
-  ('base','parm','v_float','base','parm','v_float','f','f'),
-  ('base','ent_audit','a_date','base','ent_audit','a_date','f','f'),
-  ('base','parm_audit','a_date','base','parm_audit','a_date','f','f'),
-  ('mychips','chits','chit_guid','mychips','chits','chit_guid','f','f'),
-  ('base','addr_v_flat','mail_country','base','addr_v_flat','mail_country','f','f'),
-  ('base','ent','proxy','base','ent','proxy','f','f'),
-  ('base','ent_v','proxy','base','ent','proxy','f','f'),
-  ('mychips','users_v_flat','proxy','base','ent','proxy','f','f'),
-  ('mychips','peers_v_flat','proxy','base','ent','proxy','f','f'),
-  ('base','addr_v_flat','mail_state','base','addr_v_flat','mail_state','f','f'),
-  ('base','comm_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
-  ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
-  ('mychips','peers_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
-  ('mychips','tallies','cr_limit','mychips','tallies','cr_limit','f','f'),
-  ('base','addr_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
-  ('mychips','users_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
-  ('mychips','peers_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
-  ('wm','column_native','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('wylib','data_v','own_name','wylib','data_v','own_name','f','f'),
-  ('wm','column_native','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('base','priv','cmt','base','priv','cmt','f','f'),
-  ('base','parm','cmt','base','parm','cmt','f','f'),
-  ('base','parm_v','cmt','base','parm','cmt','f','f'),
-  ('base','priv_v','cmt','base','priv','cmt','f','f'),
-  ('base','comm','comm_prim','base','comm','comm_prim','f','f'),
-  ('base','comm_v','comm_prim','base','comm_v','comm_prim','f','f'),
-  ('mychips','peers','peer_port','mychips','peers','peer_port','f','f'),
-  ('mychips','users_v_flat','peer_port','mychips','peers','peer_port','f','f'),
-  ('mychips','peers_v_flat','peer_port','mychips','peers','peer_port','f','f'),
-  ('wm','objects','source','wm','objects','source','f','f'),
-  ('wm','objects_v','source','wm','objects','source','f','f'),
-  ('wm','objects_v_depth','source','wm','objects','source','f','f'),
-  ('mychips','users','user_inet','mychips','users','user_inet','f','f'),
-  ('mychips','tokens_v','user_inet','mychips','users','user_inet','f','f'),
-  ('mychips','users_v_flat','user_inet','mychips','users','user_inet','f','f'),
-  ('base','country','iso_3','base','country','iso_3','f','f'),
-  ('wylib','data','data','wylib','data','data','f','f'),
-  ('wylib','data_v','data','wylib','data','data','f','f'),
-  ('mychips','tallies','contract','mychips','tallies','contract','f','f'),
-  ('base','country','capital','base','country','capital','f','f'),
-  ('wm','objects','mod_ver','wm','objects','mod_ver','f','f'),
-  ('wm','objects_v','mod_ver','wm','objects','mod_ver','f','f'),
-  ('wm','objects_v_depth','mod_ver','wm','objects','mod_ver','f','f'),
-  ('base','addr','pcode','base','addr','pcode','f','f'),
-  ('base','addr_v','pcode','base','addr','pcode','f','f'),
-  ('base','ent','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('base','ent_v','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('mychips','users_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('mychips','peers_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('wm','objects','grants','wm','objects','grants','f','f'),
-  ('wm','objects_v','grants','wm','objects','grants','f','f'),
-  ('wm','objects_v_depth','grants','wm','objects','grants','f','f'),
-  ('mychips','tallies','user_sig','mychips','tallies','user_sig','f','f'),
-  ('base','addr_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
-  ('mychips','users_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
-  ('mychips','peers_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
-  ('base','parm','v_boolean','base','parm','v_boolean','f','f'),
   ('mychips','tallies','part_sig','mychips','tallies','part_sig','f','f'),
+  ('mychips','covenants','released','mychips','covenants','released','f','f'),
   ('mychips','covenants','content','mychips','covenants','content','f','f'),
   ('mychips','users_v_flat','user_sock','mychips','users_v','user_sock','f','f'),
-  ('base','comm_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
-  ('mychips','users_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('wm','objects_v_depth','max_rel','wm','objects','max_rel','f','f'),
+  ('wm','objects','max_rel','wm','objects','max_rel','f','f'),
+  ('wm','objects_v','max_rel','wm','objects','max_rel','f','f'),
+  ('base','addr_v_flat','mail_pcode','base','addr_v_flat','mail_pcode','f','f'),
+  ('wm','table_style','inherit','wm','table_style','inherit','f','f'),
   ('mychips','peers_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('mychips','peers_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
+  ('mychips','users_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('mychips','users_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
+  ('base','addr_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
+  ('base','comm_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('wm','column_native','nat_col','wm','column_native','nat_col','f','f'),
+  ('mychips','users','user_port','mychips','users','user_port','f','f'),
+  ('mychips','users_v_flat','user_port','mychips','users','user_port','f','f'),
+  ('mychips','tokens_v','user_port','mychips','users','user_port','f','f'),
   ('mychips','tallies','dr_limit','mychips','tallies','dr_limit','f','f'),
+  ('wm','objects_v_depth','col_data','wm','objects','col_data','f','f'),
+  ('wm','objects','col_data','wm','objects','col_data','f','f'),
+  ('wm','objects_v','col_data','wm','objects','col_data','f','f'),
   ('base','comm_v_flat','pager_comm','base','comm_v_flat','pager_comm','f','f'),
-  ('mychips','peers','peer_inet','mychips','peers','peer_inet','f','f'),
   ('mychips','users_v_flat','peer_inet','mychips','peers','peer_inet','f','f'),
   ('mychips','peers_v_flat','peer_inet','mychips','peers','peer_inet','f','f'),
+  ('mychips','peers','peer_inet','mychips','peers','peer_inet','f','f'),
   ('mychips','tokens','exp_date','mychips','tokens','exp_date','f','f'),
   ('mychips','tokens_v','exp_date','mychips','tokens','exp_date','f','f'),
   ('base','ent','country','base','ent','country','f','f'),
-  ('base','ent_v','country','base','ent','country','f','f'),
-  ('base','addr','country','base','addr','country','f','f'),
-  ('mychips','tokens','used','mychips','tokens','used','f','f'),
-  ('mychips','tokens_v','used','mychips','tokens','used','f','f'),
-  ('mychips','users_v_flat','country','base','ent','country','f','f'),
-  ('base','addr_v','country','base','addr','country','f','f'),
   ('mychips','peers_v_flat','country','base','ent','country','f','f'),
-  ('base','priv','level','base','priv','level','f','f'),
+  ('mychips','users_v_flat','country','base','ent','country','f','f'),
+  ('mychips','tokens','used','mychips','tokens','used','f','f'),
+  ('base','addr','country','base','addr','country','f','f'),
+  ('mychips','tokens_v','used','mychips','tokens','used','f','f'),
+  ('base','addr_v','country','base','addr','country','f','f'),
+  ('base','ent_v','country','base','ent','country','f','f'),
+  ('mychips','peers_v_flat','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','users_v_flat','cas_name','base','ent_v','cas_name','f','f'),
+  ('base','ent_v','cas_name','base','ent_v','cas_name','f','f'),
   ('base','priv_v','level','base','priv','level','f','f'),
+  ('base','priv','level','base','priv','level','f','f'),
   ('wm','objects','drp_sql','wm','objects','drp_sql','f','f'),
-  ('wm','objects_v','drp_sql','wm','objects','drp_sql','f','f'),
   ('wm','objects_v_depth','drp_sql','wm','objects','drp_sql','f','f'),
-  ('base','addr','city','base','addr','city','f','f'),
+  ('wm','objects_v','drp_sql','wm','objects','drp_sql','f','f'),
+  ('base','ent','inside','base','ent','inside','f','f'),
+  ('mychips','users_v_flat','inside','base','ent','inside','f','f'),
+  ('mychips','peers_v_flat','inside','base','ent','inside','f','f'),
+  ('base','ent_v','inside','base','ent','inside','f','f'),
+  ('base','ent_v_pub','inside','base','ent','inside','f','f'),
   ('base','addr_v','city','base','addr','city','f','f'),
-  ('base','addr','state','base','addr','state','f','f'),
+  ('base','addr','city','base','addr','city','f','f'),
+  ('mychips','chits','memo','mychips','chits','memo','f','f'),
   ('base','addr_v','state','base','addr','state','f','f'),
+  ('base','addr','state','base','addr','state','f','f'),
+  ('wylib','data','name','wylib','data','name','f','f'),
+  ('wylib','data_v','name','wylib','data','name','f','f'),
   ('mychips','chits','units','mychips','chits','units','f','f'),
+  ('base','comm_v_flat','fax_comm','base','comm_v_flat','fax_comm','f','f'),
+  ('base','language','iso_2','base','language','iso_2','f','f'),
   ('base','parm_v','value','base','parm_v','value','f','f'),
+  ('base','language','fra_name','base','language','fra_name','f','f'),
   ('base','ent','ent_inact','base','ent','ent_inact','f','f'),
-  ('base','ent_v','ent_inact','base','ent','ent_inact','f','f'),
-  ('base','ent_v_pub','ent_inact','base','ent','ent_inact','f','f'),
   ('mychips','users_v_flat','ent_inact','base','ent','ent_inact','f','f'),
   ('mychips','peers_v_flat','ent_inact','base','ent','ent_inact','f','f'),
+  ('base','ent_v','ent_inact','base','ent','ent_inact','f','f'),
+  ('base','ent_v_pub','ent_inact','base','ent','ent_inact','f','f'),
+  ('base','comm','comm_cmt','base','comm','comm_cmt','f','f'),
+  ('base','comm_v','comm_cmt','base','comm','comm_cmt','f','f'),
   ('base','comm','comm_type','base','comm','comm_type','f','f'),
   ('base','comm_v','comm_type','base','comm','comm_type','f','f'),
   ('mychips','tallies','version','mychips','tallies','version','f','f'),
   ('base','ent_v','age','base','ent_v','age','f','f'),
+  ('mychips','tokens_v','expired','mychips','tokens_v','expired','f','f'),
   ('mychips','users_v_flat','age','base','ent_v','age','f','f'),
+  ('base','ent_link','role','base','ent_link','role','f','f'),
+  ('base','ent_link_v','role','base','ent_link','role','f','f'),
   ('mychips','tokens_v','valid','mychips','tokens_v','valid','f','f'),
+  ('mychips','tokens_v','token_cmt','mychips','tokens','token_cmt','f','f'),
   ('mychips','tokens','token_cmt','mychips','tokens','token_cmt','f','f'),
   ('base','priv_v','priv_list','base','priv_v','priv_list','f','f'),
-  ('mychips','tokens_v','token_cmt','mychips','tokens','token_cmt','f','f'),
-  ('base','comm','comm_spec','base','comm','comm_spec','f','f'),
+  ('base','ent_link','crt_by','base','ent_link','crt_by','f','f'),
+  ('mychips','peers','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','chits','crt_by','mychips','chits','crt_by','f','f'),
+  ('base','ent_link_v','crt_by','base','ent_link','crt_by','f','f'),
+  ('base','parm','crt_by','base','parm','crt_by','f','f'),
+  ('base','ent_v_pub','crt_by','base','ent','crt_by','f','f'),
+  ('base','comm_v','crt_by','base','comm','crt_by','f','f'),
+  ('base','parm_v','crt_by','base','parm','crt_by','f','f'),
+  ('base','ent_v','crt_by','base','ent','crt_by','f','f'),
+  ('base','addr','crt_by','base','addr','crt_by','f','f'),
+  ('mychips','tokens_v','crt_by','mychips','tokens','crt_by','f','f'),
+  ('base','addr_v','crt_by','base','addr','crt_by','f','f'),
+  ('mychips','contracts_v','crt_by','mychips','contracts','crt_by','f','f'),
+  ('mychips','peers_v_flat','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','users_v_flat','crt_by','mychips','users','crt_by','f','f'),
+  ('mychips','tokens','crt_by','mychips','tokens','crt_by','f','f'),
+  ('base','comm','crt_by','base','comm','crt_by','f','f'),
+  ('wylib','data_v','crt_by','wylib','data','crt_by','f','f'),
+  ('mychips','tallies','crt_by','mychips','tallies','crt_by','f','f'),
+  ('mychips','contracts','crt_by','mychips','contracts','crt_by','f','f'),
+  ('base','ent','crt_by','base','ent','crt_by','f','f'),
+  ('mychips','users','crt_by','mychips','users','crt_by','f','f'),
+  ('wylib','data','crt_by','wylib','data','crt_by','f','f'),
   ('base','comm_v','comm_spec','base','comm','comm_spec','f','f'),
+  ('base','comm','comm_spec','base','comm','comm_spec','f','f'),
+  ('mychips','tallies','tally_guid','mychips','tallies','tally_guid','f','f'),
   ('mychips','comm_test','test_seq','mychips','comm_test','test_seq','f','f'),
+  ('wm','column_native','pkey','wm','column_native','pkey','f','f'),
   ('base','ent_audit','a_by','base','ent_audit','a_by','f','f'),
   ('base','parm_audit','a_by','base','parm_audit','a_by','f','f'),
   ('base','comm_v_flat','other_comm','base','comm_v_flat','other_comm','f','f'),
   ('base','addr_v_flat','phys_addr','base','addr_v_flat','phys_addr','f','f'),
   ('base','ent_link_v','mem_name','base','ent_link_v','mem_name','f','f'),
-  ('wm','objects','deps','wm','objects','deps','f','f'),
   ('wm','objects_v','deps','wm','objects','deps','f','f'),
   ('wm','objects_v_depth','deps','wm','objects','deps','f','f'),
-  ('base','ent','ent_type','base','ent','ent_type','f','f'),
-  ('base','ent_v','ent_type','base','ent','ent_type','f','f'),
+  ('wm','objects','deps','wm','objects','deps','f','f'),
+  ('mychips','chits','pro_quo','mychips','chits','pro_quo','f','f'),
+  ('base','parm','v_text','base','parm','v_text','f','f'),
+  ('wm','objects_v','checked','wm','objects','checked','f','f'),
+  ('wm','objects','checked','wm','objects','checked','f','f'),
+  ('wm','objects_v_depth','checked','wm','objects','checked','f','f'),
   ('base','ent_v_pub','ent_type','base','ent','ent_type','f','f'),
-  ('mychips','users_v_flat','ent_type','base','ent','ent_type','f','f'),
+  ('base','ent_v','ent_type','base','ent','ent_type','f','f'),
   ('mychips','peers_v_flat','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','users_v_flat','ent_type','base','ent','ent_type','f','f'),
+  ('base','ent','ent_type','base','ent','ent_type','f','f'),
   ('mychips','users_v_flat','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','peers_v_flat','peer_sock','mychips','peers_v','peer_sock','f','f'),
-  ('wm','depends_v','object','wm','depends_v','object','f','f'),
+  ('wylib','data_v','access','wylib','data','access','f','f'),
+  ('wylib','data','access','wylib','data','access','f','f'),
   ('wm','objects_v','object','wm','objects_v','object','f','f'),
+  ('wm','depends_v','object','wm','depends_v','object','f','f'),
   ('wm','objects_v_depth','object','wm','objects_v','object','f','f'),
-  ('base','ent','marital','base','ent','marital','f','f'),
   ('base','ent_v','marital','base','ent','marital','f','f'),
-  ('mychips','users_v_flat','marital','base','ent','marital','f','f'),
+  ('mychips','tallies','stock_terms','mychips','tallies','stock_terms','f','f'),
+  ('base','ent','marital','base','ent','marital','f','f'),
   ('mychips','peers_v_flat','marital','base','ent','marital','f','f'),
+  ('mychips','users_v_flat','marital','base','ent','marital','f','f'),
   ('mychips','peers','peer_cdi','mychips','peers','peer_cdi','f','f'),
   ('mychips','tokens_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
   ('mychips','users_v_flat','peer_cdi','mychips','peers','peer_cdi','f','f'),
   ('mychips','peers_v_flat','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','contracts_v','publish','mychips','contracts','publish','f','f'),
+  ('mychips','contracts','publish','mychips','contracts','publish','f','f'),
   ('base','addr','addr_type','base','addr','addr_type','f','f'),
   ('base','addr_v','addr_type','base','addr','addr_type','f','f'),
-  ('wm','column_text','help','wm','column_text','help','f','f'),
-  ('wm','message_text','help','wm','message_text','help','f','f'),
-  ('wm','table_text','help','wm','table_text','help','f','f'),
+  ('base','country','iana','base','country','iana','f','f'),
   ('wm','value_text','help','wm','value_text','help','f','f'),
+  ('wm','column_text','help','wm','column_text','help','f','f'),
+  ('wm','table_text','help','wm','table_text','help','f','f'),
+  ('wm','message_text','help','wm','message_text','help','f','f'),
+  ('mychips','tallies','comment','mychips','tallies','comment','f','f'),
   ('base','parm','v_date','base','parm','v_date','f','f'),
   ('wm','depends_v','od_nam','wm','depends_v','od_nam','f','f'),
   ('base','ent_link','supr_path','base','ent_link','supr_path','f','f'),
   ('base','ent_link_v','supr_path','base','ent_link','supr_path','f','f'),
+  ('wm','objects_v','ndeps','wm','objects','ndeps','f','f'),
+  ('wm','objects','ndeps','wm','objects','ndeps','f','f'),
+  ('wm','objects_v_depth','ndeps','wm','objects','ndeps','f','f'),
   ('mychips','peers','peer_hid','mychips','peers','peer_hid','f','f'),
   ('mychips','users_v_flat','peer_hid','mychips','peers','peer_hid','f','f'),
   ('mychips','peers_v_flat','peer_hid','mychips','peers','peer_hid','f','f'),
-  ('mychips','users','user_stat','mychips','users','user_stat','f','f'),
+  ('mychips','covenants','hash','mychips','covenants','hash','f','f'),
+  ('wm','objects_v','clean','wm','objects','clean','f','f'),
+  ('wm','objects','clean','wm','objects','clean','f','f'),
+  ('wm','objects_v_depth','clean','wm','objects','clean','f','f'),
+  ('mychips','comm_test','test_dat','mychips','comm_test','test_dat','f','f'),
   ('mychips','users_v_flat','user_stat','mychips','users','user_stat','f','f'),
-  ('wylib','data','component','wylib','data','component','f','f'),
+  ('mychips','users','user_stat','mychips','users','user_stat','f','f'),
+  ('base','ent_v','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','peers_v_flat','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','users_v_flat','frm_name','base','ent_v','frm_name','f','f'),
+  ('wm','depends_v','path','wm','depends_v','path','f','f'),
   ('wylib','data_v','component','wylib','data','component','f','f'),
-  ('mychips','tokens','allows','mychips','tokens','allows','f','f'),
+  ('wylib','data','component','wylib','data','component','f','f'),
   ('mychips','tokens_v','allows','mychips','tokens','allows','f','f'),
-  ('wm','objects','module','wm','objects','module','f','f'),
+  ('mychips','tokens','allows','mychips','tokens','allows','f','f'),
+  ('mychips','tallies','bal_target','mychips','tallies','bal_target','f','f'),
+  ('wm','value_text','title','wm','value_text','title','f','f'),
+  ('wm','column_text','title','wm','column_text','title','f','f'),
+  ('base','ent_v','title','base','ent','title','f','f'),
+  ('wm','table_text','title','wm','table_text','title','f','f'),
+  ('base','ent','title','base','ent','title','f','f'),
+  ('mychips','peers_v_flat','title','base','ent','title','f','f'),
+  ('mychips','users_v_flat','title','base','ent','title','f','f'),
+  ('wm','message_text','title','wm','message_text','title','f','f'),
   ('wm','objects_v','module','wm','objects','module','f','f'),
+  ('wm','objects','module','wm','objects','module','f','f'),
   ('wm','objects_v_depth','module','wm','objects','module','f','f'),
+  ('wylib','data_v','descr','wylib','data','descr','f','f'),
+  ('wylib','data','descr','wylib','data','descr','f','f'),
+  ('mychips','peers','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','peers_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','users_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
   ('wm','depends_v','cycle','wm','depends_v','cycle','f','f'),
+  ('base','addr_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
+  ('mychips','users_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
+  ('mychips','peers_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
+  ('mychips','tallies','lift_marg','mychips','tallies','lift_marg','f','f'),
   ('wm','depends_v','depend','wm','depends_v','depend','f','f'),
   ('base','ent_audit','a_reason','base','ent_audit','a_reason','f','f'),
   ('base','parm_audit','a_reason','base','parm_audit','a_reason','f','f'),
+  ('wm','depends_v','fpath','wm','depends_v','fpath','f','f'),
   ('base','parm','v_int','base','parm','v_int','f','f'),
+  ('base','addr_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
+  ('mychips','peers_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
+  ('mychips','users_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
+  ('base','ent_v','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','peers_v_flat','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','users_v_flat','fir_name','base','ent','fir_name','f','f'),
+  ('base','ent','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','confirms','sum','mychips','confirms','sum','f','f'),
   ('base','addr_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('mychips','users_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('mychips','peers_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('base','addr_v_flat','phys_pcode','base','addr_v_flat','phys_pcode','f','f'),
+  ('base','ent_audit','a_value','base','ent_audit','a_value','f','f'),
+  ('base','parm_audit','a_value','base','parm_audit','a_value','f','f'),
+  ('mychips','confirms','signature','mychips','confirms','signature','f','f'),
+  ('mychips','chits','signature','mychips','chits','signature','f','f'),
   ('base','addr_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('mychips','users_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('mychips','peers_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('base','country','cur_code','base','country','cur_code','f','f'),
+  ('mychips','comm_test','test_ent','mychips','comm_test','test_ent','f','f'),
+  ('mychips','tokens_v','token','mychips','tokens','token','f','f'),
+  ('base','ent_link_v','org_name','base','ent_link_v','org_name','f','f'),
+  ('mychips','tokens','token','mychips','tokens','token','f','f'),
   ('wm','column_style','sw_value','wm','column_style','sw_value','f','f'),
   ('wm','table_style','sw_value','wm','table_style','sw_value','f','f'),
   ('base','country','com_name','base','country','com_name','f','f'),
-  ('base','ent','database','base','ent','database','f','f'),
   ('base','ent_v','database','base','ent','database','f','f'),
   ('base','priv_v','database','base','ent','database','f','f'),
   ('mychips','users_v_flat','database','base','ent','database','f','f'),
   ('mychips','peers_v_flat','database','base','ent','database','f','f'),
+  ('base','ent','database','base','ent','database','f','f'),
   ('wm','depends_v','od_typ','wm','depends_v','od_typ','f','f'),
+  ('mychips','tallies','tally_type','mychips','tallies','tally_type','f','f'),
   ('base','ent_v','giv_name','base','ent_v','giv_name','f','f'),
   ('mychips','users_v_flat','giv_name','base','ent_v','giv_name','f','f'),
   ('mychips','peers_v_flat','giv_name','base','ent_v','giv_name','f','f'),
   ('base','addr_v_flat','phys_state','base','addr_v_flat','phys_state','f','f'),
+  ('base','ent_v','bank','base','ent','bank','f','f'),
+  ('base','ent','bank','base','ent','bank','f','f'),
+  ('mychips','users_v_flat','bank','base','ent','bank','f','f'),
+  ('mychips','peers_v_flat','bank','base','ent','bank','f','f'),
+  ('base','ent_audit','a_column','base','ent_audit','a_column','f','f'),
+  ('base','parm_audit','a_column','base','parm_audit','a_column','f','f'),
+  ('base','addr_v_flat','mail_addr','base','addr_v_flat','mail_addr','f','f'),
   ('wm','depends_v','od_release','wm','depends_v','od_release','f','f'),
+  ('wm','column_native','nat_exp','wm','column_native','nat_exp','f','f'),
+  ('mychips','chits','request','mychips','chits','request','f','f'),
+  ('mychips','tallies','request','mychips','tallies','request','f','f'),
   ('base','addr_v_flat','phys_city','base','addr_v_flat','phys_city','f','f'),
   ('mychips','chits','chit_type','mychips','chits','chit_type','f','f'),
   ('base','comm_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
   ('mychips','users_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
   ('mychips','peers_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
+  ('mychips','confirms','conf_id','mychips','confirms','conf_id','f','f'),
+  ('base','ent_v','ent_name','base','ent','ent_name','f','f'),
+  ('base','ent','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','peers_v_flat','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','users_v_flat','ent_name','base','ent','ent_name','f','f'),
+  ('base','addr','addr_prim','base','addr','addr_prim','f','f'),
+  ('base','addr_v','addr_prim','base','addr_v','addr_prim','f','f'),
   ('base','addr_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
-  ('mychips','users_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
   ('mychips','peers_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
-  ('wm','objects','mod_date','wm','objects','mod_date','f','f'),
-  ('wm','objects_v','mod_date','wm','objects','mod_date','f','f'),
-  ('wm','objects_v_depth','mod_date','wm','objects','mod_date','f','f'),
-  ('base','ent','mod_date','base','ent','mod_date','f','f'),
-  ('mychips','peers','mod_date','mychips','peers','mod_date','f','f'),
-  ('base','comm','mod_date','base','comm','mod_date','f','f'),
-  ('base','ent_v','mod_date','base','ent','mod_date','f','f'),
+  ('mychips','users_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
+  ('mychips','contracts_v','mod_date','mychips','contracts','mod_date','f','f'),
   ('base','addr','mod_date','base','addr','mod_date','f','f'),
-  ('mychips','users','mod_date','mychips','users','mod_date','f','f'),
+  ('wm','objects_v','mod_date','wm','objects','mod_date','f','f'),
+  ('mychips','tokens_v','mod_date','mychips','tokens','mod_date','f','f'),
+  ('base','addr_v','mod_date','base','addr','mod_date','f','f'),
+  ('base','ent_v','mod_date','base','ent','mod_date','f','f'),
+  ('base','parm_v','mod_date','base','parm','mod_date','f','f'),
+  ('base','ent_v_pub','mod_date','base','ent','mod_date','f','f'),
+  ('base','comm_v','mod_date','base','comm','mod_date','f','f'),
+  ('mychips','chits','mod_date','mychips','chits','mod_date','f','f'),
+  ('base','ent_link_v','mod_date','base','ent_link','mod_date','f','f'),
   ('base','parm','mod_date','base','parm','mod_date','f','f'),
   ('base','ent_link','mod_date','base','ent_link','mod_date','f','f'),
-  ('mychips','tokens','mod_date','mychips','tokens','mod_date','f','f'),
-  ('mychips','tallies','mod_date','mychips','tallies','mod_date','f','f'),
-  ('mychips','chits','mod_date','mychips','chits','mod_date','f','f'),
+  ('mychips','peers','mod_date','mychips','peers','mod_date','f','f'),
   ('wylib','data','mod_date','wylib','data','mod_date','f','f'),
-  ('base','ent_link_v','mod_date','base','ent_link','mod_date','f','f'),
-  ('base','ent_v_pub','mod_date','base','ent','mod_date','f','f'),
-  ('base','parm_v','mod_date','base','parm','mod_date','f','f'),
-  ('mychips','tokens_v','mod_date','mychips','tokens','mod_date','f','f'),
+  ('mychips','users','mod_date','mychips','users','mod_date','f','f'),
+  ('base','ent','mod_date','base','ent','mod_date','f','f'),
+  ('mychips','tallies','mod_date','mychips','tallies','mod_date','f','f'),
+  ('wm','objects','mod_date','wm','objects','mod_date','f','f'),
+  ('wm','objects_v_depth','mod_date','wm','objects','mod_date','f','f'),
+  ('mychips','contracts','mod_date','mychips','contracts','mod_date','f','f'),
+  ('mychips','tokens','mod_date','mychips','tokens','mod_date','f','f'),
+  ('base','comm','mod_date','base','comm','mod_date','f','f'),
   ('wylib','data_v','mod_date','wylib','data','mod_date','f','f'),
-  ('base','comm_v','mod_date','base','comm','mod_date','f','f'),
-  ('mychips','users_v_flat','mod_date','mychips','users','mod_date','f','f'),
-  ('base','addr_v','mod_date','base','addr','mod_date','f','f'),
   ('mychips','peers_v_flat','mod_date','mychips','peers','mod_date','f','f'),
-  ('base','comm','comm_inact','base','comm','comm_inact','f','f'),
+  ('mychips','users_v_flat','mod_date','mychips','users','mod_date','f','f'),
   ('base','comm_v','comm_inact','base','comm','comm_inact','f','f'),
+  ('base','comm','comm_inact','base','comm','comm_inact','f','f'),
+  ('mychips','tallies','status','mychips','tallies','status','f','f'),
+  ('base','language','eng_name','base','language','eng_name','f','f'),
   ('base','country','cur_name','base','country','cur_name','f','f'),
   ('base','addr','addr_ent','base','addr','addr_ent','f','t'),
   ('base','addr','addr_seq','base','addr','addr_seq','f','t'),
-  ('base','addr_prim','prim_seq','base','addr_prim','prim_seq','f','t'),
   ('base','addr_prim','prim_ent','base','addr_prim','prim_ent','f','t'),
   ('base','addr_prim','prim_type','base','addr_prim','prim_type','f','t'),
-  ('base','addr_v','addr_seq','base','addr','addr_seq','f','t'),
+  ('base','addr_prim','prim_seq','base','addr_prim','prim_seq','f','t'),
   ('base','addr_v','addr_ent','base','addr','addr_ent','f','t'),
+  ('base','addr_v','addr_seq','base','addr','addr_seq','f','t'),
   ('base','addr_v_flat','id','base','ent','id','f','t'),
   ('base','comm','comm_seq','base','comm','comm_seq','f','t'),
   ('base','comm','comm_ent','base','comm','comm_ent','f','t'),
-  ('base','comm_prim','prim_ent','base','comm_prim','prim_ent','f','t'),
   ('base','comm_prim','prim_seq','base','comm_prim','prim_seq','f','t'),
   ('base','comm_prim','prim_type','base','comm_prim','prim_type','f','t'),
+  ('base','comm_prim','prim_ent','base','comm_prim','prim_ent','f','t'),
   ('base','comm_v','comm_seq','base','comm','comm_seq','f','t'),
   ('base','comm_v','comm_ent','base','comm','comm_ent','f','t'),
   ('base','comm_v_flat','id','base','ent','id','f','t'),
   ('base','country','code','base','country','code','f','t'),
   ('base','ent','id','base','ent','id','f','t'),
-  ('base','ent_audit','id','base','ent_audit','id','f','t'),
   ('base','ent_audit','a_seq','base','ent_audit','a_seq','f','t'),
+  ('base','ent_audit','id','base','ent_audit','id','f','t'),
   ('base','ent_link','mem','base','ent_link','mem','f','t'),
   ('base','ent_link','org','base','ent_link','org','f','t'),
-  ('base','ent_link_v','org','base','ent_link','org','f','t'),
   ('base','ent_link_v','mem','base','ent_link','mem','f','t'),
+  ('base','ent_link_v','org','base','ent_link','org','f','t'),
   ('base','ent_v','id','base','ent','id','f','t'),
   ('base','ent_v_pub','id','base','ent','id','f','t'),
+  ('base','language','code','base','language','code','f','t'),
   ('base','parm','module','base','parm','module','f','t'),
   ('base','parm','parm','base','parm','parm','f','t'),
-  ('base','parm_audit','a_seq','base','parm_audit','a_seq','f','t'),
   ('base','parm_audit','parm','base','parm_audit','parm','f','t'),
+  ('base','parm_audit','a_seq','base','parm_audit','a_seq','f','t'),
   ('base','parm_audit','module','base','parm_audit','module','f','t'),
-  ('base','parm_v','module','base','parm','module','f','t'),
   ('base','parm_v','parm','base','parm','parm','f','t'),
-  ('base','priv','grantee','base','priv','grantee','f','t'),
+  ('base','parm_v','module','base','parm','module','f','t'),
   ('base','priv','priv','base','priv','priv','f','t'),
+  ('base','priv','grantee','base','priv','grantee','f','t'),
   ('base','priv_v','priv','base','priv','priv','f','t'),
   ('base','priv_v','grantee','base','priv','grantee','f','t'),
-  ('mychips','chits','chit_seq','mychips','chits','chit_seq','f','t'),
   ('mychips','chits','chit_ent','mychips','chits','chit_ent','f','t'),
   ('mychips','chits','chit_idx','mychips','chits','chit_idx','f','t'),
-  ('mychips','confirms','conf_idx','mychips','confirms','conf_idx','f','t'),
+  ('mychips','chits','chit_seq','mychips','chits','chit_seq','f','t'),
   ('mychips','confirms','conf_ent','mychips','confirms','conf_ent','f','t'),
   ('mychips','confirms','conf_seq','mychips','confirms','conf_seq','f','t'),
-  ('mychips','covenants','version','mychips','covenants','version','f','t'),
-  ('mychips','covenants','language','mychips','covenants','language','f','t'),
+  ('mychips','confirms','conf_idx','mychips','confirms','conf_idx','f','t'),
+  ('mychips','contracts','version','mychips','contracts','version','f','t'),
+  ('mychips','contracts','title','mychips','contracts','title','f','t'),
+  ('mychips','contracts','language','mychips','contracts','language','f','t'),
+  ('mychips','contracts','author','mychips','contracts','author','f','t'),
+  ('mychips','contracts_v','title','mychips','contracts','title','f','t'),
+  ('mychips','contracts_v','version','mychips','contracts','version','f','t'),
+  ('mychips','contracts_v','language','mychips','contracts','language','f','t'),
+  ('mychips','contracts_v','author','mychips','contracts','author','f','t'),
   ('mychips','covenants','author','mychips','covenants','author','f','t'),
   ('mychips','covenants','title','mychips','covenants','title','f','t'),
+  ('mychips','covenants','language','mychips','covenants','language','f','t'),
+  ('mychips','covenants','version','mychips','covenants','version','f','t'),
   ('mychips','peers','peer_ent','mychips','peers','peer_ent','f','t'),
-  ('mychips','peers_v_flat','id','base','ent','id','f','t'),
   ('mychips','peers_v_flat','peer_ent','mychips','peers','peer_ent','f','t'),
+  ('mychips','peers_v_flat','id','base','ent','id','f','t'),
   ('mychips','tallies','tally_ent','mychips','tallies','tally_ent','f','t'),
   ('mychips','tallies','tally_seq','mychips','tallies','tally_seq','f','t'),
-  ('mychips','tokens','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','tokens','token_seq','mychips','tokens','token_seq','f','t'),
+  ('mychips','tokens','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','tokens_v','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','tokens_v','token_seq','mychips','tokens','token_seq','f','t'),
   ('mychips','users','user_ent','mychips','users','user_ent','f','t'),
@@ -4225,430 +4754,448 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','column_native','cnt_col','wm','column_native','cnt_col','f','t'),
   ('wm','column_native','cnt_sch','wm','column_native','cnt_sch','f','t'),
   ('wm','column_native','cnt_tab','wm','column_native','cnt_tab','f','t'),
-  ('wm','column_style','cs_sch','wm','column_style','cs_sch','f','t'),
-  ('wm','column_style','sw_name','wm','column_style','sw_name','f','t'),
-  ('wm','column_style','cs_tab','wm','column_style','cs_tab','f','t'),
   ('wm','column_style','cs_col','wm','column_style','cs_col','f','t'),
+  ('wm','column_style','cs_sch','wm','column_style','cs_sch','f','t'),
+  ('wm','column_style','cs_tab','wm','column_style','cs_tab','f','t'),
+  ('wm','column_style','sw_name','wm','column_style','sw_name','f','t'),
   ('wm','column_text','ct_tab','wm','column_text','ct_tab','f','t'),
-  ('wm','column_text','ct_col','wm','column_text','ct_col','f','t'),
   ('wm','column_text','ct_sch','wm','column_text','ct_sch','f','t'),
+  ('wm','column_text','ct_col','wm','column_text','ct_col','f','t'),
   ('wm','column_text','language','wm','column_text','language','f','t'),
+  ('wm','message_text','mt_sch','wm','message_text','mt_sch','f','t'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','mt_tab','wm','message_text','mt_tab','f','t'),
-  ('wm','message_text','mt_sch','wm','message_text','mt_sch','f','t'),
   ('wm','objects','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','objects','obj_ver','wm','objects','obj_ver','f','t'),
   ('wm','objects','obj_typ','wm','objects','obj_typ','f','t'),
-  ('wm','objects_v','obj_ver','wm','objects','obj_ver','f','t'),
   ('wm','objects_v','release','wm','releases','release','f','t'),
-  ('wm','objects_v','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','objects_v','obj_typ','wm','objects','obj_typ','f','t'),
-  ('wm','objects_v_depth','obj_typ','wm','objects','obj_typ','f','t'),
+  ('wm','objects_v','obj_ver','wm','objects','obj_ver','f','t'),
+  ('wm','objects_v','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','objects_v_depth','obj_ver','wm','objects','obj_ver','f','t'),
   ('wm','objects_v_depth','release','wm','releases','release','f','t'),
+  ('wm','objects_v_depth','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','objects_v_depth','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','releases','release','wm','releases','release','f','t'),
-  ('wm','table_style','ts_tab','wm','table_style','ts_tab','f','t'),
   ('wm','table_style','sw_name','wm','table_style','sw_name','f','t'),
+  ('wm','table_style','ts_tab','wm','table_style','ts_tab','f','t'),
   ('wm','table_style','ts_sch','wm','table_style','ts_sch','f','t'),
-  ('wm','table_text','tt_sch','wm','table_text','tt_sch','f','t'),
   ('wm','table_text','tt_tab','wm','table_text','tt_tab','f','t'),
   ('wm','table_text','language','wm','table_text','language','f','t'),
-  ('wm','value_text','value','wm','value_text','value','f','t'),
+  ('wm','table_text','tt_sch','wm','table_text','tt_sch','f','t'),
   ('wm','value_text','language','wm','value_text','language','f','t'),
-  ('wm','value_text','vt_col','wm','value_text','vt_col','f','t'),
   ('wm','value_text','vt_sch','wm','value_text','vt_sch','f','t'),
   ('wm','value_text','vt_tab','wm','value_text','vt_tab','f','t'),
+  ('wm','value_text','vt_col','wm','value_text','vt_col','f','t'),
+  ('wm','value_text','value','wm','value_text','value','f','t'),
   ('wylib','data','ruid','wylib','data','ruid','f','t'),
   ('wylib','data_v','ruid','wylib','data','ruid','f','t'),
+  ('wm','column_meta','sch','wm','column_meta','sch','f','t'),
+  ('wm','column_meta','is_pkey','wm','column_data','is_pkey','f','f'),
   ('wm','column_meta','col','wm','column_meta','col','f','t'),
   ('wm','column_meta','def','wm','column_data','def','f','f'),
-  ('wm','column_meta','field','wm','column_data','field','f','f'),
-  ('wm','column_meta','is_pkey','wm','column_data','is_pkey','f','f'),
-  ('wm','column_meta','length','wm','column_data','length','f','f'),
-  ('wm','column_meta','nat','wm','column_meta','nat','f','f'),
-  ('wm','column_meta','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_meta','obj','wm','column_meta','obj','f','f'),
   ('wm','column_meta','nat_sch','wm','column_native','nat_sch','f','f'),
   ('wm','column_meta','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_meta','nonull','wm','column_data','nonull','f','f'),
-  ('wm','column_meta','obj','wm','column_meta','obj','f','f'),
-  ('wm','column_meta','pkey','wm','column_native','pkey','f','f'),
-  ('wm','column_meta','sch','wm','column_meta','sch','f','t'),
-  ('wm','column_meta','styles','wm','column_meta','styles','f','f'),
-  ('wm','column_meta','tab','wm','column_meta','tab','f','t'),
   ('wm','column_meta','type','wm','column_data','type','f','f'),
+  ('wm','column_meta','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_meta','length','wm','column_data','length','f','f'),
+  ('wm','column_meta','field','wm','column_data','field','f','f'),
+  ('wm','column_meta','pkey','wm','column_native','pkey','f','f'),
+  ('wm','column_meta','nat','wm','column_meta','nat','f','f'),
+  ('wm','column_meta','tab','wm','column_meta','tab','f','t'),
+  ('wm','column_meta','nonull','wm','column_data','nonull','f','f'),
   ('wm','column_meta','values','wm','column_meta','values','f','f'),
+  ('wm','column_meta','styles','wm','column_meta','styles','f','f'),
+  ('wm','column_lang','system','wm','column_lang','system','f','f'),
+  ('wm','column_lang','sch','wm','column_lang','sch','f','t'),
   ('wm','column_lang','col','wm','column_lang','col','f','t'),
-  ('wm','column_lang','help','wm','column_text','help','t','f'),
-  ('wm','column_lang','language','wm','column_text','language','t','f'),
-  ('wm','column_lang','nat','wm','column_lang','nat','f','f'),
-  ('wm','column_lang','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_lang','obj','wm','column_lang','obj','f','f'),
   ('wm','column_lang','nat_sch','wm','column_native','nat_sch','f','f'),
   ('wm','column_lang','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_lang','obj','wm','column_lang','obj','f','f'),
-  ('wm','column_lang','sch','wm','column_lang','sch','f','t'),
-  ('wm','column_lang','system','wm','column_lang','system','f','f'),
+  ('wm','column_lang','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_lang','nat','wm','column_lang','nat','f','f'),
   ('wm','column_lang','tab','wm','column_lang','tab','f','t'),
-  ('wm','column_lang','title','wm','column_text','title','t','f'),
   ('wm','column_lang','values','wm','column_lang','values','f','f'),
-  ('wm','table_meta','cols','wm','table_data','cols','f','f'),
-  ('wm','table_meta','columns','wm','table_meta','columns','f','f'),
-  ('wm','table_meta','fkeys','wm','table_meta','fkeys','f','f'),
-  ('wm','table_meta','has_pkey','wm','table_data','has_pkey','f','f'),
-  ('wm','table_meta','obj','wm','table_meta','obj','f','f'),
-  ('wm','table_meta','pkey','wm','table_data','pkey','t','f'),
-  ('wm','table_meta','sch','wm','column_meta','sch','f','t'),
-  ('wm','table_meta','styles','wm','column_meta','styles','f','f'),
+  ('wm','column_lang','title','wm','column_text','title','t','f'),
+  ('wm','column_lang','help','wm','column_text','help','t','f'),
+  ('wm','column_lang','language','wm','column_text','language','t','f'),
   ('wm','table_meta','system','wm','table_data','system','f','f'),
-  ('wm','table_meta','tab','wm','column_meta','tab','f','t'),
+  ('wm','table_meta','sch','wm','column_meta','sch','f','t'),
+  ('wm','table_meta','obj','wm','table_meta','obj','f','f'),
+  ('wm','table_meta','fkeys','wm','table_meta','fkeys','f','f'),
   ('wm','table_meta','tab_kind','wm','table_data','tab_kind','f','f'),
+  ('wm','table_meta','columns','wm','table_meta','columns','f','f'),
+  ('wm','table_meta','cols','wm','table_data','cols','f','f'),
+  ('wm','table_meta','tab','wm','column_meta','tab','f','t'),
+  ('wm','table_meta','has_pkey','wm','table_data','has_pkey','f','f'),
+  ('wm','table_meta','styles','wm','column_meta','styles','f','f'),
+  ('wm','table_meta','pkey','wm','table_data','pkey','t','f'),
+  ('wm','fkey_data','kyt_col','wm','fkey_data','kyt_col','f','f'),
+  ('wm','fkey_data','kyf_tab','wm','fkey_data','kyf_tab','f','f'),
+  ('wm','fkey_data','kyt_field','wm','fkey_data','kyt_field','f','f'),
+  ('wm','fkey_data','kyf_col','wm','fkey_data','kyf_col','f','f'),
+  ('wm','fkey_data','kyt_tab','wm','fkey_data','kyt_tab','f','f'),
+  ('wm','fkey_data','kyf_sch','wm','fkey_data','kyf_sch','f','f'),
   ('wm','fkey_data','conname','wm','fkey_data','conname','f','t'),
   ('wm','fkey_data','key','wm','fkey_data','key','f','f'),
-  ('wm','fkey_data','keys','wm','fkey_data','keys','f','f'),
-  ('wm','fkey_data','kyf_col','wm','fkey_data','kyf_col','f','f'),
   ('wm','fkey_data','kyf_field','wm','fkey_data','kyf_field','f','f'),
-  ('wm','fkey_data','kyf_sch','wm','fkey_data','kyf_sch','f','f'),
-  ('wm','fkey_data','kyf_tab','wm','fkey_data','kyf_tab','f','f'),
-  ('wm','fkey_data','kyt_col','wm','fkey_data','kyt_col','f','f'),
-  ('wm','fkey_data','kyt_field','wm','fkey_data','kyt_field','f','f'),
   ('wm','fkey_data','kyt_sch','wm','fkey_data','kyt_sch','f','f'),
-  ('wm','fkey_data','kyt_tab','wm','fkey_data','kyt_tab','f','f'),
+  ('wm','fkey_data','keys','wm','fkey_data','keys','f','f'),
   ('wm','role_members','member','wm','role_members','member','f','t'),
   ('wm','role_members','role','wm','role_members','role','f','t'),
-  ('wm','view_column_usage','column_name','information_schema','view_column_usage','column_name','f','f'),
-  ('wm','view_column_usage','table_catalog','information_schema','view_column_usage','table_catalog','f','f'),
   ('wm','view_column_usage','table_name','information_schema','view_column_usage','table_name','f','f'),
-  ('wm','view_column_usage','table_schema','information_schema','view_column_usage','table_schema','f','f'),
   ('wm','view_column_usage','view_catalog','information_schema','view_column_usage','view_catalog','f','f'),
   ('wm','view_column_usage','view_name','information_schema','view_column_usage','view_name','f','t'),
+  ('wm','view_column_usage','column_name','information_schema','view_column_usage','column_name','f','f'),
+  ('wm','view_column_usage','table_catalog','information_schema','view_column_usage','table_catalog','f','f'),
   ('wm','view_column_usage','view_schema','information_schema','view_column_usage','view_schema','f','t'),
-  ('wm','fkeys_data','conname','wm','fkeys_data','conname','f','t'),
-  ('wm','fkeys_data','ksf_cols','wm','fkeys_data','ksf_cols','f','f'),
+  ('wm','view_column_usage','table_schema','information_schema','view_column_usage','table_schema','f','f'),
   ('wm','fkeys_data','ksf_sch','wm','fkeys_data','ksf_sch','f','f'),
   ('wm','fkeys_data','ksf_tab','wm','fkeys_data','ksf_tab','f','f'),
-  ('wm','fkeys_data','kst_cols','wm','fkeys_data','kst_cols','f','f'),
   ('wm','fkeys_data','kst_sch','wm','fkeys_data','kst_sch','f','f'),
+  ('wm','fkeys_data','kst_cols','wm','fkeys_data','kst_cols','f','f'),
+  ('wm','fkeys_data','conname','wm','fkeys_data','conname','f','t'),
   ('wm','fkeys_data','kst_tab','wm','fkeys_data','kst_tab','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','fkeys_data','ksf_cols','wm','fkeys_data','ksf_cols','f','f'),
   ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
   ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
-  ('mychips','peers_v','bank','base','ent','bank','f','f'),
-  ('mychips','peers_v','born_date','base','ent','born_date','f','f'),
-  ('mychips','peers_v','cas_name','base','ent_v','cas_name','f','f'),
-  ('mychips','peers_v','country','base','ent','country','f','f'),
-  ('mychips','peers_v','crt_by','mychips','peers','crt_by','f','f'),
-  ('mychips','peers_v','crt_date','mychips','peers','crt_date','f','f'),
-  ('mychips','peers_v','database','base','ent','database','f','f'),
-  ('mychips','peers_v','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('mychips','peers_v','ent_inact','base','ent','ent_inact','f','f'),
-  ('mychips','peers_v','ent_name','base','ent','ent_name','f','f'),
-  ('mychips','peers_v','ent_type','base','ent','ent_type','f','f'),
-  ('mychips','peers_v','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','peers_v','frm_name','base','ent_v','frm_name','f','f'),
-  ('mychips','peers_v','gender','base','ent','gender','f','f'),
-  ('mychips','peers_v','giv_name','base','ent_v','giv_name','f','f'),
-  ('mychips','peers_v','id','base','ent','id','f','t'),
-  ('mychips','peers_v','inside','base','ent','inside','f','f'),
-  ('mychips','peers_v','marital','base','ent','marital','f','f'),
-  ('mychips','peers_v','mid_name','base','ent','mid_name','f','f'),
-  ('mychips','peers_v','mod_by','mychips','peers','mod_by','f','f'),
-  ('mychips','peers_v','mod_date','mychips','peers','mod_date','f','f'),
-  ('mychips','peers_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
   ('mychips','peers_v','peer_cmt','mychips','peers','peer_cmt','f','f'),
-  ('mychips','peers_v','peer_ent','mychips','peers','peer_ent','f','f'),
-  ('mychips','peers_v','peer_hid','mychips','peers','peer_hid','f','f'),
-  ('mychips','peers_v','peer_inet','mychips','peers','peer_inet','f','f'),
-  ('mychips','peers_v','peer_port','mychips','peers','peer_port','f','f'),
-  ('mychips','peers_v','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('mychips','peers_v','peer_sock','mychips','peers_v','peer_sock','f','f'),
-  ('mychips','peers_v','pref_name','base','ent','pref_name','f','f'),
-  ('mychips','peers_v','proxy','base','ent','proxy','f','f'),
+  ('mychips','peers_v','crt_date','mychips','peers','crt_date','f','f'),
+  ('mychips','peers_v','mod_by','mychips','peers','mod_by','f','f'),
   ('mychips','peers_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','peers_v','proxy','base','ent','proxy','f','f'),
+  ('mychips','peers_v','gender','base','ent','gender','f','f'),
   ('mychips','peers_v','tax_id','base','ent','tax_id','f','f'),
-  ('mychips','peers_v','title','base','ent','title','f','f'),
+  ('mychips','peers_v','pref_name','base','ent','pref_name','f','f'),
   ('mychips','peers_v','username','base','ent','username','f','f'),
-  ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
-  ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
+  ('mychips','peers_v','mid_name','base','ent','mid_name','f','f'),
+  ('mychips','peers_v','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','peers_v','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','peers_v','born_date','base','ent','born_date','f','f'),
+  ('mychips','peers_v','peer_inet','mychips','peers','peer_inet','f','f'),
+  ('mychips','peers_v','country','base','ent','country','f','f'),
+  ('mychips','peers_v','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','peers_v','inside','base','ent','inside','f','f'),
+  ('mychips','peers_v','ent_inact','base','ent','ent_inact','f','f'),
+  ('mychips','peers_v','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','peers_v','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','peers_v','peer_sock','mychips','peers_v','peer_sock','f','f'),
+  ('mychips','peers_v','marital','base','ent','marital','f','f'),
+  ('mychips','peers_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','peers_v','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','peers_v','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','peers_v','title','base','ent','title','f','f'),
+  ('mychips','peers_v','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','peers_v','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','peers_v','database','base','ent','database','f','f'),
+  ('mychips','peers_v','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','peers_v','bank','base','ent','bank','f','f'),
+  ('mychips','peers_v','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','peers_v','mod_date','mychips','peers','mod_date','f','f'),
+  ('mychips','peers_v','peer_ent','mychips','peers','peer_ent','f','f'),
+  ('mychips','peers_v','id','base','ent','id','f','t'),
+  ('wm','column_data','is_pkey','wm','column_data','is_pkey','f','f'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
   ('wm','column_data','def','wm','column_data','def','f','f'),
-  ('wm','column_data','field','wm','column_data','field','f','f'),
-  ('wm','column_data','is_pkey','wm','column_data','is_pkey','f','f'),
-  ('wm','column_data','length','wm','column_data','length','f','f'),
-  ('wm','column_data','nat_col','wm','column_native','nat_col','f','f'),
   ('wm','column_data','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('wm','column_data','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_data','nonull','wm','column_data','nonull','f','f'),
-  ('wm','column_data','pkey','wm','column_native','pkey','f','f'),
   ('wm','column_data','tab_kind','wm','column_data','tab_kind','f','f'),
+  ('wm','column_data','nat_tab','wm','column_native','nat_tab','f','f'),
   ('wm','column_data','type','wm','column_data','type','f','f'),
-  ('wm','column_istyle','cs_col','wm','column_style','cs_col','f','t'),
-  ('wm','column_istyle','cs_obj','wm','column_istyle','cs_obj','f','f'),
-  ('wm','column_istyle','cs_sch','wm','column_style','cs_sch','f','t'),
-  ('wm','column_istyle','cs_tab','wm','column_style','cs_tab','f','t'),
-  ('wm','column_istyle','cs_value','wm','column_istyle','cs_value','f','f'),
-  ('wm','column_istyle','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_data','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
+  ('wm','column_data','length','wm','column_data','length','f','f'),
+  ('wm','column_data','field','wm','column_data','field','f','f'),
+  ('wm','column_data','pkey','wm','column_native','pkey','f','f'),
+  ('wm','column_data','nonull','wm','column_data','nonull','f','f'),
+  ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_istyle','nat_sch','wm','column_native','nat_sch','f','f'),
   ('wm','column_istyle','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_istyle','nat_value','wm','column_istyle','nat_value','f','f'),
-  ('wm','column_istyle','sw_name','wm','column_style','sw_name','f','t'),
+  ('wm','column_istyle','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_istyle','cs_obj','wm','column_istyle','cs_obj','f','f'),
+  ('wm','column_istyle','cs_value','wm','column_istyle','cs_value','f','f'),
   ('wm','column_istyle','sw_value','wm','column_style','sw_value','f','f'),
-  ('wm','fkey_pub','conname','wm','fkey_data','conname','f','t'),
-  ('wm','fkey_pub','fn_col','wm','fkey_pub','fn_col','f','f'),
-  ('wm','fkey_pub','fn_obj','wm','fkey_pub','fn_obj','f','f'),
-  ('wm','fkey_pub','fn_sch','wm','fkey_pub','fn_sch','f','f'),
-  ('wm','fkey_pub','fn_tab','wm','fkey_pub','fn_tab','f','f'),
-  ('wm','fkey_pub','ft_col','wm','fkey_pub','ft_col','f','f'),
-  ('wm','fkey_pub','ft_obj','wm','fkey_pub','ft_obj','f','f'),
-  ('wm','fkey_pub','ft_sch','wm','fkey_pub','ft_sch','f','f'),
-  ('wm','fkey_pub','ft_tab','wm','fkey_pub','ft_tab','f','f'),
-  ('wm','fkey_pub','key','wm','fkey_data','key','f','f'),
-  ('wm','fkey_pub','keys','wm','fkey_data','keys','f','f'),
-  ('wm','fkey_pub','tn_col','wm','fkey_pub','tn_col','f','f'),
-  ('wm','fkey_pub','tn_obj','wm','fkey_pub','tn_obj','f','f'),
-  ('wm','fkey_pub','tn_sch','wm','fkey_pub','tn_sch','f','f'),
-  ('wm','fkey_pub','tn_tab','wm','fkey_pub','tn_tab','f','f'),
+  ('wm','column_istyle','nat_value','wm','column_istyle','nat_value','f','f'),
+  ('wm','column_istyle','cs_col','wm','column_style','cs_col','f','t'),
+  ('wm','column_istyle','sw_name','wm','column_style','sw_name','f','t'),
+  ('wm','column_istyle','cs_tab','wm','column_style','cs_tab','f','t'),
+  ('wm','column_istyle','cs_sch','wm','column_style','cs_sch','f','t'),
   ('wm','fkey_pub','tt_col','wm','fkey_pub','tt_col','f','f'),
   ('wm','fkey_pub','tt_obj','wm','fkey_pub','tt_obj','f','f'),
-  ('wm','fkey_pub','tt_sch','wm','fkey_pub','tt_sch','f','f'),
-  ('wm','fkey_pub','tt_tab','wm','fkey_pub','tt_tab','f','f'),
   ('wm','fkey_pub','unikey','wm','fkey_pub','unikey','f','f'),
+  ('wm','fkey_pub','ft_sch','wm','fkey_pub','ft_sch','f','f'),
+  ('wm','fkey_pub','tt_tab','wm','fkey_pub','tt_tab','f','f'),
+  ('wm','fkey_pub','tn_sch','wm','fkey_pub','tn_sch','f','f'),
+  ('wm','fkey_pub','fn_obj','wm','fkey_pub','fn_obj','f','f'),
+  ('wm','fkey_pub','fn_col','wm','fkey_pub','fn_col','f','f'),
+  ('wm','fkey_pub','tt_sch','wm','fkey_pub','tt_sch','f','f'),
+  ('wm','fkey_pub','ft_tab','wm','fkey_pub','ft_tab','f','f'),
+  ('wm','fkey_pub','conname','wm','fkey_data','conname','f','t'),
+  ('wm','fkey_pub','tn_col','wm','fkey_pub','tn_col','f','f'),
+  ('wm','fkey_pub','fn_sch','wm','fkey_pub','fn_sch','f','f'),
+  ('wm','fkey_pub','key','wm','fkey_data','key','f','f'),
+  ('wm','fkey_pub','ft_obj','wm','fkey_pub','ft_obj','f','f'),
+  ('wm','fkey_pub','fn_tab','wm','fkey_pub','fn_tab','f','f'),
+  ('wm','fkey_pub','ft_col','wm','fkey_pub','ft_col','f','f'),
+  ('wm','fkey_pub','tn_obj','wm','fkey_pub','tn_obj','f','f'),
+  ('wm','fkey_pub','keys','wm','fkey_data','keys','f','f'),
+  ('wm','fkey_pub','tn_tab','wm','fkey_pub','tn_tab','f','f'),
+  ('wm','column_pub','sch','wm','column_pub','sch','f','t'),
+  ('wm','column_pub','is_pkey','wm','column_data','is_pkey','f','f'),
   ('wm','column_pub','col','wm','column_pub','col','f','t'),
   ('wm','column_pub','def','wm','column_data','def','f','f'),
-  ('wm','column_pub','field','wm','column_data','field','f','f'),
-  ('wm','column_pub','help','wm','column_text','help','f','f'),
-  ('wm','column_pub','is_pkey','wm','column_data','is_pkey','f','f'),
-  ('wm','column_pub','language','wm','column_text','language','f','f'),
-  ('wm','column_pub','length','wm','column_data','length','f','f'),
-  ('wm','column_pub','nat','wm','column_pub','nat','f','f'),
-  ('wm','column_pub','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_pub','obj','wm','column_pub','obj','f','f'),
   ('wm','column_pub','nat_sch','wm','column_native','nat_sch','f','f'),
   ('wm','column_pub','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_pub','nonull','wm','column_data','nonull','f','f'),
-  ('wm','column_pub','obj','wm','column_pub','obj','f','f'),
-  ('wm','column_pub','pkey','wm','column_native','pkey','f','f'),
-  ('wm','column_pub','sch','wm','column_pub','sch','f','t'),
-  ('wm','column_pub','tab','wm','column_pub','tab','f','t'),
-  ('wm','column_pub','title','wm','column_text','title','f','f'),
   ('wm','column_pub','type','wm','column_data','type','f','f'),
-  ('wm','fkeys_pub','conname','wm','fkeys_data','conname','f','t'),
-  ('wm','fkeys_pub','fn_obj','wm','fkeys_pub','fn_obj','f','f'),
-  ('wm','fkeys_pub','fn_sch','wm','fkeys_pub','fn_sch','f','f'),
-  ('wm','fkeys_pub','fn_tab','wm','fkeys_pub','fn_tab','f','f'),
-  ('wm','fkeys_pub','ft_cols','wm','fkeys_pub','ft_cols','f','f'),
-  ('wm','fkeys_pub','ft_obj','wm','fkeys_pub','ft_obj','f','f'),
-  ('wm','fkeys_pub','ft_sch','wm','fkeys_pub','ft_sch','f','f'),
-  ('wm','fkeys_pub','ft_tab','wm','fkeys_pub','ft_tab','f','f'),
-  ('wm','fkeys_pub','tn_obj','wm','fkeys_pub','tn_obj','f','f'),
-  ('wm','fkeys_pub','tn_sch','wm','fkeys_pub','tn_sch','f','f'),
-  ('wm','fkeys_pub','tn_tab','wm','fkeys_pub','tn_tab','f','f'),
-  ('wm','fkeys_pub','tt_cols','wm','fkeys_pub','tt_cols','f','f'),
+  ('wm','column_pub','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_pub','length','wm','column_data','length','f','f'),
+  ('wm','column_pub','field','wm','column_data','field','f','f'),
+  ('wm','column_pub','pkey','wm','column_native','pkey','f','f'),
+  ('wm','column_pub','nat','wm','column_pub','nat','f','f'),
+  ('wm','column_pub','help','wm','column_text','help','f','f'),
+  ('wm','column_pub','tab','wm','column_pub','tab','f','t'),
+  ('wm','column_pub','nonull','wm','column_data','nonull','f','f'),
+  ('wm','column_pub','title','wm','column_text','title','f','f'),
+  ('wm','column_pub','language','wm','column_text','language','f','f'),
   ('wm','fkeys_pub','tt_obj','wm','fkeys_pub','tt_obj','f','f'),
-  ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
+  ('wm','fkeys_pub','ft_sch','wm','fkeys_pub','ft_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
-  ('wm','table_data','cols','wm','table_data','cols','f','f'),
-  ('wm','table_data','has_pkey','wm','table_data','has_pkey','f','f'),
-  ('wm','table_data','obj','wm','table_data','obj','f','f'),
-  ('wm','table_data','pkey','wm','column_native','pkey','f','f'),
+  ('wm','fkeys_pub','tn_sch','wm','fkeys_pub','tn_sch','f','f'),
+  ('wm','fkeys_pub','ft_cols','wm','fkeys_pub','ft_cols','f','f'),
+  ('wm','fkeys_pub','fn_obj','wm','fkeys_pub','fn_obj','f','f'),
+  ('wm','fkeys_pub','tt_cols','wm','fkeys_pub','tt_cols','f','f'),
+  ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
+  ('wm','fkeys_pub','ft_tab','wm','fkeys_pub','ft_tab','f','f'),
+  ('wm','fkeys_pub','conname','wm','fkeys_data','conname','f','t'),
+  ('wm','fkeys_pub','fn_sch','wm','fkeys_pub','fn_sch','f','f'),
+  ('wm','fkeys_pub','ft_obj','wm','fkeys_pub','ft_obj','f','f'),
+  ('wm','fkeys_pub','fn_tab','wm','fkeys_pub','fn_tab','f','f'),
+  ('wm','fkeys_pub','tn_obj','wm','fkeys_pub','tn_obj','f','f'),
+  ('wm','fkeys_pub','tn_tab','wm','fkeys_pub','tn_tab','f','f'),
   ('wm','table_data','system','wm','table_data','system','f','f'),
+  ('wm','table_data','obj','wm','table_data','obj','f','f'),
   ('wm','table_data','tab_kind','wm','table_data','tab_kind','f','f'),
-  ('wm','table_data','td_sch','wm','table_data','td_sch','f','t'),
+  ('wm','table_data','cols','wm','table_data','cols','f','f'),
+  ('wm','table_data','pkey','wm','column_native','pkey','f','f'),
   ('wm','table_data','td_tab','wm','table_data','td_tab','f','t'),
+  ('wm','table_data','has_pkey','wm','table_data','has_pkey','f','f'),
+  ('wm','table_data','td_sch','wm','table_data','td_sch','f','t'),
+  ('wm','table_lang','sch','wm','column_lang','sch','f','t'),
+  ('wm','table_lang','obj','wm','table_lang','obj','f','f'),
   ('wm','table_lang','columns','wm','table_lang','columns','f','f'),
+  ('wm','table_lang','tab','wm','column_lang','tab','f','t'),
+  ('wm','table_lang','messages','wm','table_lang','messages','f','f'),
+  ('wm','table_lang','title','wm','table_text','title','t','f'),
   ('wm','table_lang','help','wm','table_text','help','t','f'),
   ('wm','table_lang','language','wm','table_text','language','t','t'),
-  ('wm','table_lang','messages','wm','table_lang','messages','f','f'),
-  ('wm','table_lang','obj','wm','table_lang','obj','f','f'),
-  ('wm','table_lang','sch','wm','column_lang','sch','f','t'),
-  ('wm','table_lang','tab','wm','column_lang','tab','f','t'),
-  ('wm','table_lang','title','wm','table_text','title','t','f'),
   ('wm','column_def','col','wm','column_pub','col','f','t'),
   ('wm','column_def','obj','wm','column_pub','obj','f','f'),
   ('wm','column_def','val','wm','column_def','val','f','f'),
-  ('wm','table_pub','cols','wm','table_data','cols','f','f'),
-  ('wm','table_pub','has_pkey','wm','table_data','has_pkey','f','f'),
-  ('wm','table_pub','help','wm','table_text','help','f','f'),
-  ('wm','table_pub','language','wm','table_text','language','f','t'),
-  ('wm','table_pub','obj','wm','table_pub','obj','f','f'),
-  ('wm','table_pub','pkey','wm','column_native','pkey','f','f'),
-  ('wm','table_pub','sch','wm','table_pub','sch','f','t'),
   ('wm','table_pub','system','wm','table_data','system','f','f'),
-  ('wm','table_pub','tab','wm','table_pub','tab','f','t'),
+  ('wm','table_pub','sch','wm','table_pub','sch','f','t'),
+  ('wm','table_pub','obj','wm','table_pub','obj','f','f'),
   ('wm','table_pub','tab_kind','wm','table_data','tab_kind','f','f'),
+  ('wm','table_pub','cols','wm','table_data','cols','f','f'),
+  ('wm','table_pub','pkey','wm','column_native','pkey','f','f'),
+  ('wm','table_pub','help','wm','table_text','help','f','f'),
+  ('wm','table_pub','tab','wm','table_pub','tab','f','t'),
   ('wm','table_pub','title','wm','table_text','title','f','f'),
-  ('mychips','users_v','age','base','ent_v','age','f','f'),
-  ('mychips','users_v','bank','base','ent','bank','f','f'),
-  ('mychips','users_v','born_date','base','ent','born_date','f','f'),
-  ('mychips','users_v','cas_name','base','ent_v','cas_name','f','f'),
-  ('mychips','users_v','country','base','ent','country','f','f'),
-  ('mychips','users_v','crt_by','mychips','users','crt_by','f','f'),
-  ('mychips','users_v','crt_date','mychips','users','crt_date','f','f'),
-  ('mychips','users_v','database','base','ent','database','f','f'),
-  ('mychips','users_v','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('mychips','users_v','ent_inact','base','ent','ent_inact','f','f'),
-  ('mychips','users_v','ent_name','base','ent','ent_name','f','f'),
-  ('mychips','users_v','ent_type','base','ent','ent_type','f','f'),
-  ('mychips','users_v','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','users_v','frm_name','base','ent_v','frm_name','f','f'),
-  ('mychips','users_v','gender','base','ent','gender','f','f'),
-  ('mychips','users_v','giv_name','base','ent_v','giv_name','f','f'),
-  ('mychips','users_v','host_id','mychips','users','host_id','f','f'),
-  ('mychips','users_v','id','base','ent','id','f','t'),
-  ('mychips','users_v','inside','base','ent','inside','f','f'),
-  ('mychips','users_v','marital','base','ent','marital','f','f'),
-  ('mychips','users_v','mid_name','base','ent','mid_name','f','f'),
-  ('mychips','users_v','mod_by','mychips','users','mod_by','f','f'),
-  ('mychips','users_v','mod_date','mychips','users','mod_date','f','f'),
-  ('mychips','users_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('wm','table_pub','has_pkey','wm','table_data','has_pkey','f','f'),
+  ('wm','table_pub','language','wm','table_text','language','f','t'),
   ('mychips','users_v','peer_cmt','mychips','peers','peer_cmt','f','f'),
-  ('mychips','users_v','peer_ent','mychips','peers','peer_ent','f','f'),
-  ('mychips','users_v','peer_hid','mychips','peers','peer_hid','f','f'),
-  ('mychips','users_v','peer_inet','mychips','peers','peer_inet','f','f'),
-  ('mychips','users_v','peer_port','mychips','peers','peer_port','f','f'),
-  ('mychips','users_v','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('mychips','users_v','peer_sock','mychips','users_v','peer_sock','f','f'),
-  ('mychips','users_v','pref_name','base','ent','pref_name','f','f'),
-  ('mychips','users_v','proxy','base','ent','proxy','f','f'),
+  ('mychips','users_v','crt_date','mychips','users','crt_date','f','f'),
+  ('mychips','users_v','mod_by','mychips','users','mod_by','f','f'),
   ('mychips','users_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','users_v','proxy','base','ent','proxy','f','f'),
+  ('mychips','users_v','gender','base','ent','gender','f','f'),
   ('mychips','users_v','tax_id','base','ent','tax_id','f','f'),
-  ('mychips','users_v','title','base','ent','title','f','f'),
+  ('mychips','users_v','host_id','mychips','users','host_id','f','f'),
   ('mychips','users_v','user_cmt','mychips','users','user_cmt','f','f'),
-  ('mychips','users_v','user_ent','mychips','users','user_ent','f','f'),
-  ('mychips','users_v','user_inet','mychips','users','user_inet','f','f'),
-  ('mychips','users_v','user_port','mychips','users','user_port','f','f'),
-  ('mychips','users_v','user_sock','mychips','users_v','user_sock','f','f'),
-  ('mychips','users_v','user_stat','mychips','users','user_stat','f','f'),
+  ('mychips','users_v','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v','username','base','ent','username','f','f'),
-  ('mychips','tallies_v','action','mychips','tallies_v','action','f','f'),
-  ('mychips','tallies_v','chits','mychips','tallies_v','chits','f','f'),
-  ('mychips','tallies_v','comment','mychips','tallies','comment','f','f'),
-  ('mychips','tallies_v','contract','mychips','tallies','contract','f','f'),
-  ('mychips','tallies_v','cr_limit','mychips','tallies','cr_limit','f','f'),
-  ('mychips','tallies_v','crt_by','mychips','tallies','crt_by','f','f'),
-  ('mychips','tallies_v','crt_date','mychips','tallies','crt_date','f','f'),
-  ('mychips','tallies_v','dr_limit','mychips','tallies','dr_limit','f','f'),
-  ('mychips','tallies_v','json','mychips','tallies_v','json','f','f'),
-  ('mychips','tallies_v','mod_by','mychips','tallies','mod_by','f','f'),
-  ('mychips','tallies_v','mod_date','mychips','tallies','mod_date','f','f'),
-  ('mychips','tallies_v','part_cdi','mychips','tallies_v','part_cdi','f','f'),
-  ('mychips','tallies_v','part_name','mychips','tallies_v','part_name','f','f'),
-  ('mychips','tallies_v','part_sig','mychips','tallies','part_sig','f','f'),
-  ('mychips','tallies_v','part_sock','mychips','tallies_v','part_sock','f','f'),
-  ('mychips','tallies_v','partner','mychips','tallies','partner','f','f'),
-  ('mychips','tallies_v','request','mychips','tallies','request','f','f'),
-  ('mychips','tallies_v','state','mychips','tallies_v','state','f','f'),
-  ('mychips','tallies_v','status','mychips','tallies','status','f','f'),
-  ('mychips','tallies_v','tally_date','mychips','tallies','tally_date','f','f'),
-  ('mychips','tallies_v','tally_ent','mychips','tallies','tally_ent','f','f'),
-  ('mychips','tallies_v','tally_guid','mychips','tallies','tally_guid','f','f'),
-  ('mychips','tallies_v','tally_seq','mychips','tallies','tally_seq','f','f'),
-  ('mychips','tallies_v','tally_type','mychips','tallies','tally_type','f','f'),
-  ('mychips','tallies_v','total','mychips','tallies_v','total','f','f'),
-  ('mychips','tallies_v','total_c','mychips','tallies_v','total_c','f','f'),
-  ('mychips','tallies_v','units','mychips','chits','units','f','f'),
-  ('mychips','tallies_v','units_c','mychips','tallies','units_c','f','f'),
-  ('mychips','tallies_v','user_cdi','mychips','tallies_v','user_cdi','f','f'),
-  ('mychips','tallies_v','user_name','mychips','tallies_v','user_name','f','f'),
-  ('mychips','tallies_v','user_sig','mychips','tallies','user_sig','f','f'),
-  ('mychips','tallies_v','user_sock','mychips','tallies_v','user_sock','f','f'),
-  ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
-  ('json','user','begin','json','user','begin','f','f'),
+  ('mychips','users_v','mid_name','base','ent','mid_name','f','f'),
+  ('mychips','users_v','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','users_v','user_inet','mychips','users','user_inet','f','f'),
+  ('mychips','users_v','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','users_v','born_date','base','ent','born_date','f','f'),
+  ('mychips','users_v','user_sock','mychips','users_v','user_sock','f','f'),
+  ('mychips','users_v','user_port','mychips','users','user_port','f','f'),
+  ('mychips','users_v','peer_inet','mychips','peers','peer_inet','f','f'),
+  ('mychips','users_v','country','base','ent','country','f','f'),
+  ('mychips','users_v','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','users_v','inside','base','ent','inside','f','f'),
+  ('mychips','users_v','ent_inact','base','ent','ent_inact','f','f'),
+  ('mychips','users_v','age','base','ent_v','age','f','f'),
+  ('mychips','users_v','crt_by','mychips','users','crt_by','f','f'),
+  ('mychips','users_v','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','users_v','peer_sock','mychips','users_v','peer_sock','f','f'),
+  ('mychips','users_v','marital','base','ent','marital','f','f'),
+  ('mychips','users_v','peer_cdi','mychips','peers','peer_cdi','f','f'),
+  ('mychips','users_v','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','users_v','user_stat','mychips','users','user_stat','f','f'),
+  ('mychips','users_v','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','users_v','title','base','ent','title','f','f'),
+  ('mychips','users_v','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','users_v','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','users_v','database','base','ent','database','f','f'),
+  ('mychips','users_v','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','users_v','bank','base','ent','bank','f','f'),
+  ('mychips','users_v','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','users_v','mod_date','mychips','users','mod_date','f','f'),
+  ('mychips','users_v','peer_ent','mychips','peers','peer_ent','f','f'),
+  ('mychips','users_v','id','base','ent','id','f','t'),
+  ('mychips','users_v','user_ent','mychips','users','user_ent','f','f'),
   ('json','user','cdi','json','user','cdi','f','f'),
-  ('json','user','first','json','user','first','f','f'),
-  ('json','user','id','base','ent','id','f','t'),
-  ('json','user','juris','json','user','juris','f','f'),
-  ('json','user','middle','json','user','middle','f','f'),
-  ('json','user','name','json','user','name','f','f'),
+  ('json','user','begin','json','user','begin','f','f'),
   ('json','user','prefer','json','user','prefer','f','f'),
-  ('json','user','taxid','json','user','taxid','f','f'),
   ('json','user','type','json','user','type','f','f'),
-  ('json','address','comment','json','address','comment','f','f'),
-  ('json','address','id','json','address','id','f','t'),
-  ('json','address','locale','json','address','locale','f','f'),
-  ('json','address','main','json','address','main','f','f'),
-  ('json','address','post','json','address','post','f','f'),
-  ('json','address','prior','json','address','prior','f','f'),
-  ('json','address','seq','json','address','seq','f','t'),
-  ('json','address','spec','json','address','spec','f','f'),
-  ('json','address','state','base','addr','state','f','f'),
-  ('json','address','type','json','address','type','f','f'),
-  ('json','connect','comment','json','connect','comment','f','f'),
-  ('json','connect','id','json','connect','id','f','t'),
-  ('json','connect','media','json','connect','media','f','f'),
-  ('json','connect','prior','json','connect','prior','f','f'),
-  ('json','connect','seq','json','connect','seq','f','t'),
-  ('json','connect','spec','json','connect','spec','f','f'),
-  ('json','tally','contract','mychips','tallies','contract','f','f'),
-  ('json','tally','created','json','tally','created','f','f'),
-  ('json','tally','foil','json','tally','foil','f','f'),
-  ('json','tally','guid','json','tally','guid','f','f'),
-  ('json','tally','id','json','tally','id','f','t'),
-  ('json','tally','stock','json','tally','stock','f','f'),
-  ('json','tally','version','mychips','tallies','version','f','f'),
-  ('mychips','tallies_v_sum','clients','mychips','tallies_v_sum','clients','f','f'),
-  ('mychips','tallies_v_sum','foil_total','mychips','tallies_v_sum','foil_total','f','f'),
-  ('mychips','tallies_v_sum','foil_total_c','mychips','tallies_v_sum','foil_total_c','f','f'),
-  ('mychips','tallies_v_sum','foils','mychips','tallies_v_sum','foils','f','f'),
-  ('mychips','tallies_v_sum','partners','mychips','tallies_v_sum','partners','f','f'),
-  ('mychips','tallies_v_sum','stock_total','mychips','tallies_v_sum','stock_total','f','f'),
-  ('mychips','tallies_v_sum','stock_total_c','mychips','tallies_v_sum','stock_total_c','f','f'),
-  ('mychips','tallies_v_sum','stocks','mychips','tallies_v_sum','stocks','f','f'),
-  ('mychips','tallies_v_sum','tallies','mychips','tallies_v_sum','tallies','f','f'),
-  ('mychips','tallies_v_sum','tally_ent','mychips','tallies','tally_ent','f','f'),
-  ('mychips','tallies_v_sum','total','mychips','tallies_v','total','f','f'),
-  ('mychips','tallies_v_sum','total_c','mychips','tallies_v','total_c','f','f'),
-  ('mychips','tallies_v_sum','vendors','mychips','tallies_v_sum','vendors','f','f'),
-  ('mychips','chits_v','action','mychips','chits_v','action','f','f'),
-  ('mychips','chits_v','amount','mychips','chits_v','amount','f','f'),
-  ('mychips','chits_v','chit_date','mychips','chits','chit_date','f','f'),
-  ('mychips','chits_v','chit_ent','mychips','chits','chit_ent','f','f'),
-  ('mychips','chits_v','chit_guid','mychips','chits','chit_guid','f','f'),
-  ('mychips','chits_v','chit_idx','mychips','chits','chit_idx','f','f'),
-  ('mychips','chits_v','chit_seq','mychips','chits','chit_seq','f','f'),
-  ('mychips','chits_v','chit_type','mychips','chits','chit_type','f','f'),
-  ('mychips','chits_v','crt_by','mychips','chits','crt_by','f','f'),
-  ('mychips','chits_v','crt_date','mychips','chits','crt_date','f','f'),
-  ('mychips','chits_v','effect','mychips','chits_v','effect','f','f'),
-  ('mychips','chits_v','json','mychips','chits_v','json','f','f'),
-  ('mychips','chits_v','memo','mychips','chits','memo','f','f'),
-  ('mychips','chits_v','mod_by','mychips','chits','mod_by','f','f'),
-  ('mychips','chits_v','mod_date','mychips','chits','mod_date','f','f'),
-  ('mychips','chits_v','part_cdi','mychips','tallies_v','part_cdi','f','f'),
-  ('mychips','chits_v','pro_quo','mychips','chits','pro_quo','f','f'),
-  ('mychips','chits_v','request','mychips','chits','request','f','f'),
-  ('mychips','chits_v','signature','mychips','chits','signature','f','f'),
-  ('mychips','chits_v','state','mychips','chits_v','state','f','f'),
-  ('mychips','chits_v','tally_type','mychips','tallies','tally_type','f','f'),
-  ('mychips','chits_v','units','mychips','chits','units','f','f'),
-  ('mychips','chits_v','user_cdi','mychips','tallies_v','user_cdi','f','f'),
-  ('mychips','chits_v','value','mychips','chits_v','value','f','f'),
-  ('mychips','tickets_v','exp_date','mychips','tokens','exp_date','f','f'),
-  ('mychips','tickets_v','id','base','ent','id','f','t'),
+  ('json','user','first','json','user','first','f','f'),
+  ('json','user','name','json','user','name','f','f'),
+  ('json','user','middle','json','user','middle','f','f'),
+  ('json','user','taxid','json','user','taxid','f','f'),
+  ('json','user','juris','json','user','juris','f','f'),
+  ('json','user','id','base','ent','id','f','t'),
+  ('mychips','tickets_v','url','mychips','tickets_v','url','f','f'),
   ('mychips','tickets_v','json','mychips','tickets_v','json','f','f'),
+  ('mychips','tickets_v','exp_date','mychips','tokens','exp_date','f','f'),
   ('mychips','tickets_v','peer_pub','mychips','peers','peer_pub','f','f'),
   ('mychips','tickets_v','token','mychips','tokens','token','f','f'),
+  ('mychips','tickets_v','id','base','ent','id','f','t'),
   ('mychips','tickets_v','token_seq','mychips','tokens','token_seq','f','t'),
-  ('mychips','tickets_v','url','mychips','tickets_v','url','f','f'),
-  ('json','users','addresses','json','users','addresses','f','f'),
-  ('json','users','begin','json','user','begin','f','f'),
+  ('json','address','post','json','address','post','f','f'),
+  ('json','address','type','json','address','type','f','f'),
+  ('json','address','locale','json','address','locale','f','f'),
+  ('json','address','state','base','addr','state','f','f'),
+  ('json','address','main','json','address','main','f','f'),
+  ('json','address','id','json','address','id','f','t'),
+  ('json','address','seq','json','address','seq','f','t'),
+  ('json','address','comment','json','address','comment','f','f'),
+  ('json','address','prior','json','address','prior','f','f'),
+  ('json','address','spec','json','address','spec','f','f'),
+  ('json','connect','id','json','connect','id','f','t'),
+  ('json','connect','seq','json','connect','seq','f','t'),
+  ('json','connect','comment','json','connect','comment','f','f'),
+  ('json','connect','prior','json','connect','prior','f','f'),
+  ('json','connect','media','json','connect','media','f','f'),
+  ('json','connect','spec','json','connect','spec','f','f'),
   ('json','users','cdi','json','user','cdi','f','f'),
+  ('json','users','begin','json','user','begin','f','f'),
+  ('json','users','prefer','json','user','prefer','f','f'),
+  ('json','users','type','json','user','type','f','f'),
   ('json','users','connects','json','users','connects','f','f'),
   ('json','users','first','json','user','first','f','f'),
-  ('json','users','juris','json','user','juris','f','f'),
-  ('json','users','middle','json','user','middle','f','f'),
   ('json','users','name','json','user','name','f','f'),
-  ('json','users','prefer','json','user','prefer','f','f'),
+  ('json','users','middle','json','user','middle','f','f'),
   ('json','users','taxid','json','user','taxid','f','f'),
-  ('json','users','type','json','user','type','f','f'),
+  ('json','users','addresses','json','users','addresses','f','f'),
+  ('json','users','juris','json','user','juris','f','f'),
+  ('json','ticket','url','mychips','tickets_v','url','f','f'),
   ('json','ticket','expires','json','ticket','expires','f','f'),
-  ('json','ticket','id','base','ent','id','f','t'),
   ('json','ticket','public','json','ticket','public','f','f'),
   ('json','ticket','seq','json','ticket','seq','f','t'),
   ('json','ticket','token','mychips','tokens','token','f','f'),
-  ('json','ticket','url','mychips','tickets_v','url','f','f');
+  ('json','ticket','id','base','ent','id','f','t'),
+  ('json','contract','digest','mychips','contracts','digest','f','f'),
+  ('json','contract','source','mychips','contracts','source','f','f'),
+  ('json','contract','sections','mychips','contracts','sections','f','f'),
+  ('json','contract','publish','mychips','contracts','publish','f','f'),
+  ('json','contract','title','mychips','contracts','title','f','t'),
+  ('json','contract','author','mychips','contracts','author','f','t'),
+  ('json','contract','language','mychips','contracts','language','f','t'),
+  ('json','contract','version','mychips','contracts','version','f','t'),
+  ('mychips','tallies_v','units_c','mychips','tallies','units_c','f','f'),
+  ('mychips','tallies_v','crt_date','mychips','tallies','crt_date','f','f'),
+  ('mychips','tallies_v','tally_date','mychips','tallies','tally_date','f','f'),
+  ('mychips','tallies_v','mod_by','mychips','tallies','mod_by','f','f'),
+  ('mychips','tallies_v','json','mychips','tallies_v','json','f','f'),
+  ('mychips','tallies_v','partner','mychips','tallies','partner','f','f'),
+  ('mychips','tallies_v','cr_limit','mychips','tallies','cr_limit','f','f'),
+  ('mychips','tallies_v','contract','mychips','tallies','contract','f','f'),
+  ('mychips','tallies_v','user_sig','mychips','tallies','user_sig','f','f'),
+  ('mychips','tallies_v','part_sig','mychips','tallies','part_sig','f','f'),
+  ('mychips','tallies_v','user_sock','mychips','tallies_v','user_sock','f','f'),
+  ('mychips','tallies_v','dr_limit','mychips','tallies','dr_limit','f','f'),
+  ('mychips','tallies_v','state','mychips','tallies_v','state','f','f'),
+  ('mychips','tallies_v','units','mychips','chits','units','f','f'),
+  ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
+  ('mychips','tallies_v','part_cdi','mychips','tallies_v','part_cdi','f','f'),
+  ('mychips','tallies_v','crt_by','mychips','tallies','crt_by','f','f'),
+  ('mychips','tallies_v','tally_guid','mychips','tallies','tally_guid','f','f'),
+  ('mychips','tallies_v','part_sock','mychips','tallies_v','part_sock','f','f'),
+  ('mychips','tallies_v','total','mychips','tallies_v','total','f','f'),
+  ('mychips','tallies_v','action','mychips','tallies_v','action','f','f'),
+  ('mychips','tallies_v','comment','mychips','tallies','comment','f','f'),
+  ('mychips','tallies_v','total_c','mychips','tallies_v','total_c','f','f'),
+  ('mychips','tallies_v','chits','mychips','tallies_v','chits','f','f'),
+  ('mychips','tallies_v','part_name','mychips','tallies_v','part_name','f','f'),
+  ('mychips','tallies_v','tally_type','mychips','tallies','tally_type','f','f'),
+  ('mychips','tallies_v','user_cdi','mychips','tallies_v','user_cdi','f','f'),
+  ('mychips','tallies_v','user_name','mychips','tallies_v','user_name','f','f'),
+  ('mychips','tallies_v','request','mychips','tallies','request','f','f'),
+  ('mychips','tallies_v','mod_date','mychips','tallies','mod_date','f','f'),
+  ('mychips','tallies_v','status','mychips','tallies','status','f','f'),
+  ('mychips','tallies_v','tally_ent','mychips','tallies','tally_ent','f','f'),
+  ('mychips','tallies_v','tally_seq','mychips','tallies','tally_seq','f','f'),
+  ('mychips','tallies_v_sum','foils','mychips','tallies_v_sum','foils','f','f'),
+  ('mychips','tallies_v_sum','stock_total_c','mychips','tallies_v_sum','stock_total_c','f','f'),
+  ('mychips','tallies_v_sum','stock_total','mychips','tallies_v_sum','stock_total','f','f'),
+  ('mychips','tallies_v_sum','stocks','mychips','tallies_v_sum','stocks','f','f'),
+  ('mychips','tallies_v_sum','clients','mychips','tallies_v_sum','clients','f','f'),
+  ('mychips','tallies_v_sum','tallies','mychips','tallies_v_sum','tallies','f','f'),
+  ('mychips','tallies_v_sum','foil_total','mychips','tallies_v_sum','foil_total','f','f'),
+  ('mychips','tallies_v_sum','total','mychips','tallies_v','total','f','f'),
+  ('mychips','tallies_v_sum','vendors','mychips','tallies_v_sum','vendors','f','f'),
+  ('mychips','tallies_v_sum','total_c','mychips','tallies_v','total_c','f','f'),
+  ('mychips','tallies_v_sum','foil_total_c','mychips','tallies_v_sum','foil_total_c','f','f'),
+  ('mychips','tallies_v_sum','partners','mychips','tallies_v_sum','partners','f','f'),
+  ('mychips','tallies_v_sum','tally_ent','mychips','tallies','tally_ent','f','f'),
+  ('json','tally','foil','json','tally','foil','f','f'),
+  ('json','tally','contract','mychips','tallies','contract','f','f'),
+  ('json','tally','stock','json','tally','stock','f','f'),
+  ('json','tally','created','json','tally','created','f','f'),
+  ('json','tally','version','mychips','tallies','version','f','f'),
+  ('json','tally','id','json','tally','id','f','t'),
+  ('json','tally','guid','json','tally','guid','f','f'),
+  ('mychips','chits_v','crt_date','mychips','chits','crt_date','f','f'),
+  ('mychips','chits_v','mod_by','mychips','chits','mod_by','f','f'),
+  ('mychips','chits_v','chit_guid','mychips','chits','chit_guid','f','f'),
+  ('mychips','chits_v','json','mychips','chits_v','json','f','f'),
+  ('mychips','chits_v','amount','mychips','chits_v','amount','f','f'),
+  ('mychips','chits_v','chit_date','mychips','chits','chit_date','f','f'),
+  ('mychips','chits_v','memo','mychips','chits','memo','f','f'),
+  ('mychips','chits_v','state','mychips','chits_v','state','f','f'),
+  ('mychips','chits_v','units','mychips','chits','units','f','f'),
+  ('mychips','chits_v','value','mychips','chits_v','value','f','f'),
+  ('mychips','chits_v','part_cdi','mychips','tallies_v','part_cdi','f','f'),
+  ('mychips','chits_v','crt_by','mychips','chits','crt_by','f','f'),
+  ('mychips','chits_v','pro_quo','mychips','chits','pro_quo','f','f'),
+  ('mychips','chits_v','action','mychips','chits_v','action','f','f'),
+  ('mychips','chits_v','signature','mychips','chits','signature','f','f'),
+  ('mychips','chits_v','tally_type','mychips','tallies','tally_type','f','f'),
+  ('mychips','chits_v','user_cdi','mychips','tallies_v','user_cdi','f','f'),
+  ('mychips','chits_v','request','mychips','chits','request','f','f'),
+  ('mychips','chits_v','effect','mychips','chits_v','effect','f','f'),
+  ('mychips','chits_v','chit_type','mychips','chits','chit_type','f','f'),
+  ('mychips','chits_v','mod_date','mychips','chits','mod_date','f','f'),
+  ('mychips','chits_v','chit_idx','mychips','chits','chit_idx','f','f'),
+  ('mychips','chits_v','chit_ent','mychips','chits','chit_ent','f','f'),
+  ('mychips','chits_v','chit_seq','mychips','chits','chit_seq','f','f'),
+  ('mychips','paths_v','bang','mychips','paths_v','bang','f','f'),
+  ('mychips','paths_v','max','mychips','paths_v','max','f','f'),
+  ('mychips','paths_v','circuit','mychips','paths_v','circuit','f','f'),
+  ('mychips','paths_v','length','mychips','paths_v','length','f','f'),
+  ('mychips','paths_v','uuids','mychips','paths_v','uuids','f','f'),
+  ('mychips','paths_v','id','mychips','paths_v','id','f','t'),
+  ('mychips','paths_v','path','mychips','paths_v','path','f','f'),
+  ('mychips','paths_v','cycle','mychips','paths_v','cycle','f','f'),
+  ('mychips','paths_v','min','mychips','paths_v','min','f','f'),
+  ('mychips','paths_v','cost','mychips','paths_v','cost','f','f');
 
 --Initialization SQL:
 insert into base.country (code,com_name,capital,cur_code,cur_name,dial_code,iso_3,iana) values ('AF','Afghanistan','Kabul','AFN','Afghani','+93','AFG','.af');
@@ -4894,8 +5441,3418 @@ insert into base.country (code,com_name,capital,cur_code,cur_name,dial_code,iso_
 insert into base.country (code,com_name,capital,cur_code,cur_name,dial_code,iso_3,iana) values ('PS','Palestinian Territories (Gaza Strip and West Bank)','Gaza City (Gaza Strip) and Ramallah (West Bank)','ILS','Shekel','+970','PSE','.ps');
 insert into base.country (code,com_name,capital,cur_code,cur_name,dial_code,iso_3,iana) values ('EH','Western Sahara','El-Aaiun','MAD','Dirham','+212','ESH','.eh');
 insert into base.ent (ent_name,ent_type,username,database,country) values ('Admin','r',session_user,true,'US');
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'aar'
+    , 'aar'
+    , 'aa'
+    , 'Afar'
+    , 'afar'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'abk'
+    , 'abk'
+    , 'ab'
+    , 'Abkhazian'
+    , 'abkhaze'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ace'
+    , 'ace'
+    , null
+    , 'Achinese'
+    , 'aceh'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ach'
+    , 'ach'
+    , null
+    , 'Acoli'
+    , 'acoli'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ada'
+    , 'ada'
+    , null
+    , 'Adangme'
+    , 'adangme'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ady'
+    , 'ady'
+    , null
+    , 'Adyghe; Adygei'
+    , 'adyghé'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'afa'
+    , 'afa'
+    , null
+    , 'Afro-Asiatic languages'
+    , 'afro-asiatiques, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'afh'
+    , 'afh'
+    , null
+    , 'Afrihili'
+    , 'afrihili'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'afr'
+    , 'afr'
+    , 'af'
+    , 'Afrikaans'
+    , 'afrikaans'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ain'
+    , 'ain'
+    , null
+    , 'Ainu'
+    , 'aïnou'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'aka'
+    , 'aka'
+    , 'ak'
+    , 'Akan'
+    , 'akan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'akk'
+    , 'akk'
+    , null
+    , 'Akkadian'
+    , 'akkadien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sqi'
+    , 'alb'
+    , 'sq'
+    , 'Albanian'
+    , 'albanais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ale'
+    , 'ale'
+    , null
+    , 'Aleut'
+    , 'aléoute'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'alg'
+    , 'alg'
+    , null
+    , 'Algonquian languages'
+    , 'algonquines, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'alt'
+    , 'alt'
+    , null
+    , 'Southern Altai'
+    , 'altai du Sud'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'amh'
+    , 'amh'
+    , 'am'
+    , 'Amharic'
+    , 'amharique'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ang'
+    , 'ang'
+    , null
+    , 'English, Old (ca.450-1100)'
+    , 'anglo-saxon (ca.450-1100)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'anp'
+    , 'anp'
+    , null
+    , 'Angika'
+    , 'angika'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'apa'
+    , 'apa'
+    , null
+    , 'Apache languages'
+    , 'apaches, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ara'
+    , 'ara'
+    , 'ar'
+    , 'Arabic'
+    , 'arabe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'arc'
+    , 'arc'
+    , null
+    , 'Official Aramaic (700-300 BCE); Imperial Aramaic (700-300 BCE)'
+    , 'araméen d''empire (700-300 BCE)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'arg'
+    , 'arg'
+    , 'an'
+    , 'Aragonese'
+    , 'aragonais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hye'
+    , 'arm'
+    , 'hy'
+    , 'Armenian'
+    , 'arménien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'arn'
+    , 'arn'
+    , null
+    , 'Mapudungun; Mapuche'
+    , 'mapudungun; mapuche; mapuce'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'arp'
+    , 'arp'
+    , null
+    , 'Arapaho'
+    , 'arapaho'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'art'
+    , 'art'
+    , null
+    , 'Artificial languages'
+    , 'artificielles, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'arw'
+    , 'arw'
+    , null
+    , 'Arawak'
+    , 'arawak'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'asm'
+    , 'asm'
+    , 'as'
+    , 'Assamese'
+    , 'assamais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ast'
+    , 'ast'
+    , null
+    , 'Asturian; Bable; Leonese; Asturleonese'
+    , 'asturien; bable; léonais; asturoléonais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ath'
+    , 'ath'
+    , null
+    , 'Athapascan languages'
+    , 'athapascanes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'aus'
+    , 'aus'
+    , null
+    , 'Australian languages'
+    , 'australiennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ava'
+    , 'ava'
+    , 'av'
+    , 'Avaric'
+    , 'avar'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ave'
+    , 'ave'
+    , 'ae'
+    , 'Avestan'
+    , 'avestique'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'awa'
+    , 'awa'
+    , null
+    , 'Awadhi'
+    , 'awadhi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'aym'
+    , 'aym'
+    , 'ay'
+    , 'Aymara'
+    , 'aymara'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'aze'
+    , 'aze'
+    , 'az'
+    , 'Azerbaijani'
+    , 'azéri'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bad'
+    , 'bad'
+    , null
+    , 'Banda languages'
+    , 'banda, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bai'
+    , 'bai'
+    , null
+    , 'Bamileke languages'
+    , 'bamiléké, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bak'
+    , 'bak'
+    , 'ba'
+    , 'Bashkir'
+    , 'bachkir'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bal'
+    , 'bal'
+    , null
+    , 'Baluchi'
+    , 'baloutchi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bam'
+    , 'bam'
+    , 'bm'
+    , 'Bambara'
+    , 'bambara'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ban'
+    , 'ban'
+    , null
+    , 'Balinese'
+    , 'balinais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'eus'
+    , 'baq'
+    , 'eu'
+    , 'Basque'
+    , 'basque'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bas'
+    , 'bas'
+    , null
+    , 'Basa'
+    , 'basa'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bat'
+    , 'bat'
+    , null
+    , 'Baltic languages'
+    , 'baltes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bej'
+    , 'bej'
+    , null
+    , 'Beja; Bedawiyet'
+    , 'bedja'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bel'
+    , 'bel'
+    , 'be'
+    , 'Belarusian'
+    , 'biélorusse'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bem'
+    , 'bem'
+    , null
+    , 'Bemba'
+    , 'bemba'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ben'
+    , 'ben'
+    , 'bn'
+    , 'Bengali'
+    , 'bengali'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ber'
+    , 'ber'
+    , null
+    , 'Berber languages'
+    , 'berbères, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bho'
+    , 'bho'
+    , null
+    , 'Bhojpuri'
+    , 'bhojpuri'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bih'
+    , 'bih'
+    , 'bh'
+    , 'Bihari languages'
+    , 'langues biharis'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bik'
+    , 'bik'
+    , null
+    , 'Bikol'
+    , 'bikol'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bin'
+    , 'bin'
+    , null
+    , 'Bini; Edo'
+    , 'bini; edo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bis'
+    , 'bis'
+    , 'bi'
+    , 'Bislama'
+    , 'bichlamar'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bla'
+    , 'bla'
+    , null
+    , 'Siksika'
+    , 'blackfoot'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bnt'
+    , 'bnt'
+    , null
+    , 'Bantu (Other)'
+    , 'bantoues, autres langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bos'
+    , 'bos'
+    , 'bs'
+    , 'Bosnian'
+    , 'bosniaque'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bra'
+    , 'bra'
+    , null
+    , 'Braj'
+    , 'braj'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bre'
+    , 'bre'
+    , 'br'
+    , 'Breton'
+    , 'breton'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'btk'
+    , 'btk'
+    , null
+    , 'Batak languages'
+    , 'batak, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bua'
+    , 'bua'
+    , null
+    , 'Buriat'
+    , 'bouriate'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bug'
+    , 'bug'
+    , null
+    , 'Buginese'
+    , 'bugi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bul'
+    , 'bul'
+    , 'bg'
+    , 'Bulgarian'
+    , 'bulgare'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mya'
+    , 'bur'
+    , 'my'
+    , 'Burmese'
+    , 'birman'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'byn'
+    , 'byn'
+    , null
+    , 'Blin; Bilin'
+    , 'blin; bilen'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cad'
+    , 'cad'
+    , null
+    , 'Caddo'
+    , 'caddo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cai'
+    , 'cai'
+    , null
+    , 'Central American Indian languages'
+    , 'amérindiennes de L''Amérique centrale, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'car'
+    , 'car'
+    , null
+    , 'Galibi Carib'
+    , 'karib; galibi; carib'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cat'
+    , 'cat'
+    , 'ca'
+    , 'Catalan; Valencian'
+    , 'catalan; valencien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cau'
+    , 'cau'
+    , null
+    , 'Caucasian languages'
+    , 'caucasiennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ceb'
+    , 'ceb'
+    , null
+    , 'Cebuano'
+    , 'cebuano'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cel'
+    , 'cel'
+    , null
+    , 'Celtic languages'
+    , 'celtiques, langues; celtes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cha'
+    , 'cha'
+    , 'ch'
+    , 'Chamorro'
+    , 'chamorro'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chb'
+    , 'chb'
+    , null
+    , 'Chibcha'
+    , 'chibcha'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'che'
+    , 'che'
+    , 'ce'
+    , 'Chechen'
+    , 'tchétchène'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chg'
+    , 'chg'
+    , null
+    , 'Chagatai'
+    , 'djaghataï'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zho'
+    , 'chi'
+    , 'zh'
+    , 'Chinese'
+    , 'chinois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chk'
+    , 'chk'
+    , null
+    , 'Chuukese'
+    , 'chuuk'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chm'
+    , 'chm'
+    , null
+    , 'Mari'
+    , 'mari'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chn'
+    , 'chn'
+    , null
+    , 'Chinook jargon'
+    , 'chinook, jargon'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cho'
+    , 'cho'
+    , null
+    , 'Choctaw'
+    , 'choctaw'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chp'
+    , 'chp'
+    , null
+    , 'Chipewyan; Dene Suline'
+    , 'chipewyan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chr'
+    , 'chr'
+    , null
+    , 'Cherokee'
+    , 'cherokee'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chu'
+    , 'chu'
+    , 'cu'
+    , 'Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church Slavonic'
+    , 'slavon d''église; vieux slave; slavon liturgique; vieux bulgare'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chv'
+    , 'chv'
+    , 'cv'
+    , 'Chuvash'
+    , 'tchouvache'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'chy'
+    , 'chy'
+    , null
+    , 'Cheyenne'
+    , 'cheyenne'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cmc'
+    , 'cmc'
+    , null
+    , 'Chamic languages'
+    , 'chames, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cnr'
+    , 'cnr'
+    , null
+    , 'Montenegrin'
+    , 'monténégrin'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cop'
+    , 'cop'
+    , null
+    , 'Coptic'
+    , 'copte'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cor'
+    , 'cor'
+    , 'kw'
+    , 'Cornish'
+    , 'cornique'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cos'
+    , 'cos'
+    , 'co'
+    , 'Corsican'
+    , 'corse'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cpe'
+    , 'cpe'
+    , null
+    , 'Creoles and pidgins, English based'
+    , 'créoles et pidgins basés sur l''anglais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cpf'
+    , 'cpf'
+    , null
+    , 'Creoles and pidgins, French-based'
+    , 'créoles et pidgins basés sur le français'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cpp'
+    , 'cpp'
+    , null
+    , 'Creoles and pidgins, Portuguese-based'
+    , 'créoles et pidgins basés sur le portugais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cre'
+    , 'cre'
+    , 'cr'
+    , 'Cree'
+    , 'cree'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'crh'
+    , 'crh'
+    , null
+    , 'Crimean Tatar; Crimean Turkish'
+    , 'tatar de Crimé'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'crp'
+    , 'crp'
+    , null
+    , 'Creoles and pidgins'
+    , 'créoles et pidgins'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'csb'
+    , 'csb'
+    , null
+    , 'Kashubian'
+    , 'kachoube'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cus'
+    , 'cus'
+    , null
+    , 'Cushitic languages'
+    , 'couchitiques, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ces'
+    , 'cze'
+    , 'cs'
+    , 'Czech'
+    , 'tchèque'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dak'
+    , 'dak'
+    , null
+    , 'Dakota'
+    , 'dakota'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dan'
+    , 'dan'
+    , 'da'
+    , 'Danish'
+    , 'danois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dar'
+    , 'dar'
+    , null
+    , 'Dargwa'
+    , 'dargwa'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'day'
+    , 'day'
+    , null
+    , 'Land Dayak languages'
+    , 'dayak, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'del'
+    , 'del'
+    , null
+    , 'Delaware'
+    , 'delaware'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'den'
+    , 'den'
+    , null
+    , 'Slave (Athapascan)'
+    , 'esclave (athapascan)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dgr'
+    , 'dgr'
+    , null
+    , 'Dogrib'
+    , 'dogrib'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'din'
+    , 'din'
+    , null
+    , 'Dinka'
+    , 'dinka'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'div'
+    , 'div'
+    , 'dv'
+    , 'Divehi; Dhivehi; Maldivian'
+    , 'maldivien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'doi'
+    , 'doi'
+    , null
+    , 'Dogri'
+    , 'dogri'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dra'
+    , 'dra'
+    , null
+    , 'Dravidian languages'
+    , 'dravidiennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dsb'
+    , 'dsb'
+    , null
+    , 'Lower Sorbian'
+    , 'bas-sorabe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dua'
+    , 'dua'
+    , null
+    , 'Duala'
+    , 'douala'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dum'
+    , 'dum'
+    , null
+    , 'Dutch, Middle (ca.1050-1350)'
+    , 'néerlandais moyen (ca. 1050-1350)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nld'
+    , 'dut'
+    , 'nl'
+    , 'Dutch; Flemish'
+    , 'néerlandais; flamand'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dyu'
+    , 'dyu'
+    , null
+    , 'Dyula'
+    , 'dioula'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'dzo'
+    , 'dzo'
+    , 'dz'
+    , 'Dzongkha'
+    , 'dzongkha'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'efi'
+    , 'efi'
+    , null
+    , 'Efik'
+    , 'efik'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'egy'
+    , 'egy'
+    , null
+    , 'Egyptian (Ancient)'
+    , 'égyptien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'eka'
+    , 'eka'
+    , null
+    , 'Ekajuk'
+    , 'ekajuk'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'elx'
+    , 'elx'
+    , null
+    , 'Elamite'
+    , 'élamite'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'eng'
+    , 'eng'
+    , 'en'
+    , 'English'
+    , 'anglais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'enm'
+    , 'enm'
+    , null
+    , 'English, Middle (1100-1500)'
+    , 'anglais moyen (1100-1500)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'epo'
+    , 'epo'
+    , 'eo'
+    , 'Esperanto'
+    , 'espéranto'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'est'
+    , 'est'
+    , 'et'
+    , 'Estonian'
+    , 'estonien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ewe'
+    , 'ewe'
+    , 'ee'
+    , 'Ewe'
+    , 'éwé'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ewo'
+    , 'ewo'
+    , null
+    , 'Ewondo'
+    , 'éwondo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fan'
+    , 'fan'
+    , null
+    , 'Fang'
+    , 'fang'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fao'
+    , 'fao'
+    , 'fo'
+    , 'Faroese'
+    , 'féroïen'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fat'
+    , 'fat'
+    , null
+    , 'Fanti'
+    , 'fanti'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fij'
+    , 'fij'
+    , 'fj'
+    , 'Fijian'
+    , 'fidjien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fil'
+    , 'fil'
+    , null
+    , 'Filipino; Pilipino'
+    , 'filipino; pilipino'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fin'
+    , 'fin'
+    , 'fi'
+    , 'Finnish'
+    , 'finnois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fiu'
+    , 'fiu'
+    , null
+    , 'Finno-Ugrian languages'
+    , 'finno-ougriennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fon'
+    , 'fon'
+    , null
+    , 'Fon'
+    , 'fon'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fra'
+    , 'fre'
+    , 'fr'
+    , 'French'
+    , 'français'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'frm'
+    , 'frm'
+    , null
+    , 'French, Middle (ca.1400-1600)'
+    , 'français moyen (1400-1600)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fro'
+    , 'fro'
+    , null
+    , 'French, Old (842-ca.1400)'
+    , 'français ancien (842-ca.1400)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'frr'
+    , 'frr'
+    , null
+    , 'Northern Frisian'
+    , 'frison septentrional'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'frs'
+    , 'frs'
+    , null
+    , 'Eastern Frisian'
+    , 'frison oriental'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fry'
+    , 'fry'
+    , 'fy'
+    , 'Western Frisian'
+    , 'frison occidental'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ful'
+    , 'ful'
+    , 'ff'
+    , 'Fulah'
+    , 'peul'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fur'
+    , 'fur'
+    , null
+    , 'Friulian'
+    , 'frioulan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gaa'
+    , 'gaa'
+    , null
+    , 'Ga'
+    , 'ga'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gay'
+    , 'gay'
+    , null
+    , 'Gayo'
+    , 'gayo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gba'
+    , 'gba'
+    , null
+    , 'Gbaya'
+    , 'gbaya'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gem'
+    , 'gem'
+    , null
+    , 'Germanic languages'
+    , 'germaniques, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kat'
+    , 'geo'
+    , 'ka'
+    , 'Georgian'
+    , 'géorgien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'deu'
+    , 'ger'
+    , 'de'
+    , 'German'
+    , 'allemand'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gez'
+    , 'gez'
+    , null
+    , 'Geez'
+    , 'guèze'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gil'
+    , 'gil'
+    , null
+    , 'Gilbertese'
+    , 'kiribati'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gla'
+    , 'gla'
+    , 'gd'
+    , 'Gaelic; Scottish Gaelic'
+    , 'gaélique; gaélique écossais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gle'
+    , 'gle'
+    , 'ga'
+    , 'Irish'
+    , 'irlandais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'glg'
+    , 'glg'
+    , 'gl'
+    , 'Galician'
+    , 'galicien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'glv'
+    , 'glv'
+    , 'gv'
+    , 'Manx'
+    , 'manx; mannois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gmh'
+    , 'gmh'
+    , null
+    , 'German, Middle High (ca.1050-1500)'
+    , 'allemand, moyen haut (ca. 1050-1500)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'goh'
+    , 'goh'
+    , null
+    , 'German, Old High (ca.750-1050)'
+    , 'allemand, vieux haut (ca. 750-1050)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gon'
+    , 'gon'
+    , null
+    , 'Gondi'
+    , 'gond'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gor'
+    , 'gor'
+    , null
+    , 'Gorontalo'
+    , 'gorontalo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'got'
+    , 'got'
+    , null
+    , 'Gothic'
+    , 'gothique'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'grb'
+    , 'grb'
+    , null
+    , 'Grebo'
+    , 'grebo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'grc'
+    , 'grc'
+    , null
+    , 'Greek, Ancient (to 1453)'
+    , 'grec ancien (jusqu''à 1453)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ell'
+    , 'gre'
+    , 'el'
+    , 'Greek, Modern (1453-)'
+    , 'grec moderne (après 1453)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'grn'
+    , 'grn'
+    , 'gn'
+    , 'Guarani'
+    , 'guarani'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gsw'
+    , 'gsw'
+    , null
+    , 'Swiss German; Alemannic; Alsatian'
+    , 'suisse alémanique; alémanique; alsacien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'guj'
+    , 'guj'
+    , 'gu'
+    , 'Gujarati'
+    , 'goudjrati'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'gwi'
+    , 'gwi'
+    , null
+    , 'Gwich''in'
+    , 'gwich''in'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hai'
+    , 'hai'
+    , null
+    , 'Haida'
+    , 'haida'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hat'
+    , 'hat'
+    , 'ht'
+    , 'Haitian; Haitian Creole'
+    , 'haïtien; créole haïtien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hau'
+    , 'hau'
+    , 'ha'
+    , 'Hausa'
+    , 'haoussa'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'haw'
+    , 'haw'
+    , null
+    , 'Hawaiian'
+    , 'hawaïen'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'heb'
+    , 'heb'
+    , 'he'
+    , 'Hebrew'
+    , 'hébreu'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'her'
+    , 'her'
+    , 'hz'
+    , 'Herero'
+    , 'herero'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hil'
+    , 'hil'
+    , null
+    , 'Hiligaynon'
+    , 'hiligaynon'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'him'
+    , 'him'
+    , null
+    , 'Himachali languages; Western Pahari languages'
+    , 'langues himachalis; langues paharis occidentales'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hin'
+    , 'hin'
+    , 'hi'
+    , 'Hindi'
+    , 'hindi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hit'
+    , 'hit'
+    , null
+    , 'Hittite'
+    , 'hittite'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hmn'
+    , 'hmn'
+    , null
+    , 'Hmong; Mong'
+    , 'hmong'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hmo'
+    , 'hmo'
+    , 'ho'
+    , 'Hiri Motu'
+    , 'hiri motu'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hrv'
+    , 'hrv'
+    , 'hr'
+    , 'Croatian'
+    , 'croate'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hsb'
+    , 'hsb'
+    , null
+    , 'Upper Sorbian'
+    , 'haut-sorabe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hun'
+    , 'hun'
+    , 'hu'
+    , 'Hungarian'
+    , 'hongrois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'hup'
+    , 'hup'
+    , null
+    , 'Hupa'
+    , 'hupa'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'iba'
+    , 'iba'
+    , null
+    , 'Iban'
+    , 'iban'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ibo'
+    , 'ibo'
+    , 'ig'
+    , 'Igbo'
+    , 'igbo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'isl'
+    , 'ice'
+    , 'is'
+    , 'Icelandic'
+    , 'islandais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ido'
+    , 'ido'
+    , 'io'
+    , 'Ido'
+    , 'ido'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'iii'
+    , 'iii'
+    , 'ii'
+    , 'Sichuan Yi; Nuosu'
+    , 'yi de Sichuan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ijo'
+    , 'ijo'
+    , null
+    , 'Ijo languages'
+    , 'ijo, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'iku'
+    , 'iku'
+    , 'iu'
+    , 'Inuktitut'
+    , 'inuktitut'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ile'
+    , 'ile'
+    , 'ie'
+    , 'Interlingue; Occidental'
+    , 'interlingue'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ilo'
+    , 'ilo'
+    , null
+    , 'Iloko'
+    , 'ilocano'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ina'
+    , 'ina'
+    , 'ia'
+    , 'Interlingua (International Auxiliary Language Association)'
+    , 'interlingua (langue auxiliaire internationale)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'inc'
+    , 'inc'
+    , null
+    , 'Indic languages'
+    , 'indo-aryennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ind'
+    , 'ind'
+    , 'id'
+    , 'Indonesian'
+    , 'indonésien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ine'
+    , 'ine'
+    , null
+    , 'Indo-European languages'
+    , 'indo-européennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'inh'
+    , 'inh'
+    , null
+    , 'Ingush'
+    , 'ingouche'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ipk'
+    , 'ipk'
+    , 'ik'
+    , 'Inupiaq'
+    , 'inupiaq'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ira'
+    , 'ira'
+    , null
+    , 'Iranian languages'
+    , 'iraniennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'iro'
+    , 'iro'
+    , null
+    , 'Iroquoian languages'
+    , 'iroquoises, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ita'
+    , 'ita'
+    , 'it'
+    , 'Italian'
+    , 'italien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'jav'
+    , 'jav'
+    , 'jv'
+    , 'Javanese'
+    , 'javanais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'jbo'
+    , 'jbo'
+    , null
+    , 'Lojban'
+    , 'lojban'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'jpn'
+    , 'jpn'
+    , 'ja'
+    , 'Japanese'
+    , 'japonais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'jpr'
+    , 'jpr'
+    , null
+    , 'Judeo-Persian'
+    , 'judéo-persan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'jrb'
+    , 'jrb'
+    , null
+    , 'Judeo-Arabic'
+    , 'judéo-arabe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kaa'
+    , 'kaa'
+    , null
+    , 'Kara-Kalpak'
+    , 'karakalpak'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kab'
+    , 'kab'
+    , null
+    , 'Kabyle'
+    , 'kabyle'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kac'
+    , 'kac'
+    , null
+    , 'Kachin; Jingpho'
+    , 'kachin; jingpho'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kal'
+    , 'kal'
+    , 'kl'
+    , 'Kalaallisut; Greenlandic'
+    , 'groenlandais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kam'
+    , 'kam'
+    , null
+    , 'Kamba'
+    , 'kamba'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kan'
+    , 'kan'
+    , 'kn'
+    , 'Kannada'
+    , 'kannada'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kar'
+    , 'kar'
+    , null
+    , 'Karen languages'
+    , 'karen, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kas'
+    , 'kas'
+    , 'ks'
+    , 'Kashmiri'
+    , 'kashmiri'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kau'
+    , 'kau'
+    , 'kr'
+    , 'Kanuri'
+    , 'kanouri'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kaw'
+    , 'kaw'
+    , null
+    , 'Kawi'
+    , 'kawi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kaz'
+    , 'kaz'
+    , 'kk'
+    , 'Kazakh'
+    , 'kazakh'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kbd'
+    , 'kbd'
+    , null
+    , 'Kabardian'
+    , 'kabardien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kha'
+    , 'kha'
+    , null
+    , 'Khasi'
+    , 'khasi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'khi'
+    , 'khi'
+    , null
+    , 'Khoisan languages'
+    , 'khoïsan, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'khm'
+    , 'khm'
+    , 'km'
+    , 'Central Khmer'
+    , 'khmer central'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kho'
+    , 'kho'
+    , null
+    , 'Khotanese; Sakan'
+    , 'khotanais; sakan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kik'
+    , 'kik'
+    , 'ki'
+    , 'Kikuyu; Gikuyu'
+    , 'kikuyu'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kin'
+    , 'kin'
+    , 'rw'
+    , 'Kinyarwanda'
+    , 'rwanda'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kir'
+    , 'kir'
+    , 'ky'
+    , 'Kirghiz; Kyrgyz'
+    , 'kirghiz'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kmb'
+    , 'kmb'
+    , null
+    , 'Kimbundu'
+    , 'kimbundu'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kok'
+    , 'kok'
+    , null
+    , 'Konkani'
+    , 'konkani'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kom'
+    , 'kom'
+    , 'kv'
+    , 'Komi'
+    , 'kom'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kon'
+    , 'kon'
+    , 'kg'
+    , 'Kongo'
+    , 'kongo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kor'
+    , 'kor'
+    , 'ko'
+    , 'Korean'
+    , 'coréen'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kos'
+    , 'kos'
+    , null
+    , 'Kosraean'
+    , 'kosrae'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kpe'
+    , 'kpe'
+    , null
+    , 'Kpelle'
+    , 'kpellé'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'krc'
+    , 'krc'
+    , null
+    , 'Karachay-Balkar'
+    , 'karatchai balkar'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'krl'
+    , 'krl'
+    , null
+    , 'Karelian'
+    , 'carélien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kro'
+    , 'kro'
+    , null
+    , 'Kru languages'
+    , 'krou, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kru'
+    , 'kru'
+    , null
+    , 'Kurukh'
+    , 'kurukh'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kua'
+    , 'kua'
+    , 'kj'
+    , 'Kuanyama; Kwanyama'
+    , 'kuanyama; kwanyama'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kum'
+    , 'kum'
+    , null
+    , 'Kumyk'
+    , 'koumyk'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kur'
+    , 'kur'
+    , 'ku'
+    , 'Kurdish'
+    , 'kurde'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'kut'
+    , 'kut'
+    , null
+    , 'Kutenai'
+    , 'kutenai'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lad'
+    , 'lad'
+    , null
+    , 'Ladino'
+    , 'judéo-espagnol'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lah'
+    , 'lah'
+    , null
+    , 'Lahnda'
+    , 'lahnda'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lam'
+    , 'lam'
+    , null
+    , 'Lamba'
+    , 'lamba'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lao'
+    , 'lao'
+    , 'lo'
+    , 'Lao'
+    , 'lao'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lat'
+    , 'lat'
+    , 'la'
+    , 'Latin'
+    , 'latin'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lav'
+    , 'lav'
+    , 'lv'
+    , 'Latvian'
+    , 'letton'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lez'
+    , 'lez'
+    , null
+    , 'Lezghian'
+    , 'lezghien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lim'
+    , 'lim'
+    , 'li'
+    , 'Limburgan; Limburger; Limburgish'
+    , 'limbourgeois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lin'
+    , 'lin'
+    , 'ln'
+    , 'Lingala'
+    , 'lingala'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lit'
+    , 'lit'
+    , 'lt'
+    , 'Lithuanian'
+    , 'lituanien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lol'
+    , 'lol'
+    , null
+    , 'Mongo'
+    , 'mongo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'loz'
+    , 'loz'
+    , null
+    , 'Lozi'
+    , 'lozi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ltz'
+    , 'ltz'
+    , 'lb'
+    , 'Luxembourgish; Letzeburgesch'
+    , 'luxembourgeois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lua'
+    , 'lua'
+    , null
+    , 'Luba-Lulua'
+    , 'luba-lulua'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lub'
+    , 'lub'
+    , 'lu'
+    , 'Luba-Katanga'
+    , 'luba-katanga'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lug'
+    , 'lug'
+    , 'lg'
+    , 'Ganda'
+    , 'ganda'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lui'
+    , 'lui'
+    , null
+    , 'Luiseno'
+    , 'luiseno'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lun'
+    , 'lun'
+    , null
+    , 'Lunda'
+    , 'lunda'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'luo'
+    , 'luo'
+    , null
+    , 'Luo (Kenya and Tanzania)'
+    , 'luo (Kenya et Tanzanie)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'lus'
+    , 'lus'
+    , null
+    , 'Lushai'
+    , 'lushai'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mkd'
+    , 'mac'
+    , 'mk'
+    , 'Macedonian'
+    , 'macédonien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mad'
+    , 'mad'
+    , null
+    , 'Madurese'
+    , 'madourais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mag'
+    , 'mag'
+    , null
+    , 'Magahi'
+    , 'magahi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mah'
+    , 'mah'
+    , 'mh'
+    , 'Marshallese'
+    , 'marshall'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mai'
+    , 'mai'
+    , null
+    , 'Maithili'
+    , 'maithili'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mak'
+    , 'mak'
+    , null
+    , 'Makasar'
+    , 'makassar'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mal'
+    , 'mal'
+    , 'ml'
+    , 'Malayalam'
+    , 'malayalam'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'man'
+    , 'man'
+    , null
+    , 'Mandingo'
+    , 'mandingue'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mri'
+    , 'mao'
+    , 'mi'
+    , 'Maori'
+    , 'maori'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'map'
+    , 'map'
+    , null
+    , 'Austronesian languages'
+    , 'austronésiennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mar'
+    , 'mar'
+    , 'mr'
+    , 'Marathi'
+    , 'marathe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mas'
+    , 'mas'
+    , null
+    , 'Masai'
+    , 'massaï'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'msa'
+    , 'may'
+    , 'ms'
+    , 'Malay'
+    , 'malais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mdf'
+    , 'mdf'
+    , null
+    , 'Moksha'
+    , 'moksa'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mdr'
+    , 'mdr'
+    , null
+    , 'Mandar'
+    , 'mandar'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'men'
+    , 'men'
+    , null
+    , 'Mende'
+    , 'mendé'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mga'
+    , 'mga'
+    , null
+    , 'Irish, Middle (900-1200)'
+    , 'irlandais moyen (900-1200)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mic'
+    , 'mic'
+    , null
+    , 'Mi''kmaq; Micmac'
+    , 'mi''kmaq; micmac'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'min'
+    , 'min'
+    , null
+    , 'Minangkabau'
+    , 'minangkabau'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mis'
+    , 'mis'
+    , null
+    , 'Uncoded languages'
+    , 'langues non codées'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mkh'
+    , 'mkh'
+    , null
+    , 'Mon-Khmer languages'
+    , 'môn-khmer, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mlg'
+    , 'mlg'
+    , 'mg'
+    , 'Malagasy'
+    , 'malgache'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mlt'
+    , 'mlt'
+    , 'mt'
+    , 'Maltese'
+    , 'maltais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mnc'
+    , 'mnc'
+    , null
+    , 'Manchu'
+    , 'mandchou'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mni'
+    , 'mni'
+    , null
+    , 'Manipuri'
+    , 'manipuri'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mno'
+    , 'mno'
+    , null
+    , 'Manobo languages'
+    , 'manobo, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'moh'
+    , 'moh'
+    , null
+    , 'Mohawk'
+    , 'mohawk'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mon'
+    , 'mon'
+    , 'mn'
+    , 'Mongolian'
+    , 'mongol'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mos'
+    , 'mos'
+    , null
+    , 'Mossi'
+    , 'moré'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mul'
+    , 'mul'
+    , null
+    , 'Multiple languages'
+    , 'multilingue'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mun'
+    , 'mun'
+    , null
+    , 'Munda languages'
+    , 'mounda, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mus'
+    , 'mus'
+    , null
+    , 'Creek'
+    , 'muskogee'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mwl'
+    , 'mwl'
+    , null
+    , 'Mirandese'
+    , 'mirandais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'mwr'
+    , 'mwr'
+    , null
+    , 'Marwari'
+    , 'marvari'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'myn'
+    , 'myn'
+    , null
+    , 'Mayan languages'
+    , 'maya, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'myv'
+    , 'myv'
+    , null
+    , 'Erzya'
+    , 'erza'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nah'
+    , 'nah'
+    , null
+    , 'Nahuatl languages'
+    , 'nahuatl, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nai'
+    , 'nai'
+    , null
+    , 'North American Indian languages'
+    , 'nord-amérindiennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nap'
+    , 'nap'
+    , null
+    , 'Neapolitan'
+    , 'napolitain'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nau'
+    , 'nau'
+    , 'na'
+    , 'Nauru'
+    , 'nauruan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nav'
+    , 'nav'
+    , 'nv'
+    , 'Navajo; Navaho'
+    , 'navaho'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nbl'
+    , 'nbl'
+    , 'nr'
+    , 'Ndebele, South; South Ndebele'
+    , 'ndébélé du Sud'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nde'
+    , 'nde'
+    , 'nd'
+    , 'Ndebele, North; North Ndebele'
+    , 'ndébélé du Nord'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ndo'
+    , 'ndo'
+    , 'ng'
+    , 'Ndonga'
+    , 'ndonga'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nds'
+    , 'nds'
+    , null
+    , 'Low German; Low Saxon; German, Low; Saxon, Low'
+    , 'bas allemand; bas saxon; allemand, bas; saxon, bas'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nep'
+    , 'nep'
+    , 'ne'
+    , 'Nepali'
+    , 'népalais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'new'
+    , 'new'
+    , null
+    , 'Nepal Bhasa; Newari'
+    , 'nepal bhasa; newari'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nia'
+    , 'nia'
+    , null
+    , 'Nias'
+    , 'nias'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nic'
+    , 'nic'
+    , null
+    , 'Niger-Kordofanian languages'
+    , 'nigéro-kordofaniennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'niu'
+    , 'niu'
+    , null
+    , 'Niuean'
+    , 'niué'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nno'
+    , 'nno'
+    , 'nn'
+    , 'Norwegian Nynorsk; Nynorsk, Norwegian'
+    , 'norvégien nynorsk; nynorsk, norvégien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nob'
+    , 'nob'
+    , 'nb'
+    , 'Bokmål, Norwegian; Norwegian Bokmål'
+    , 'norvégien bokmål'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nog'
+    , 'nog'
+    , null
+    , 'Nogai'
+    , 'nogaï; nogay'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'non'
+    , 'non'
+    , null
+    , 'Norse, Old'
+    , 'norrois, vieux'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nor'
+    , 'nor'
+    , 'no'
+    , 'Norwegian'
+    , 'norvégien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nqo'
+    , 'nqo'
+    , null
+    , 'N''Ko'
+    , 'n''ko'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nso'
+    , 'nso'
+    , null
+    , 'Pedi; Sepedi; Northern Sotho'
+    , 'pedi; sepedi; sotho du Nord'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nub'
+    , 'nub'
+    , null
+    , 'Nubian languages'
+    , 'nubiennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nwc'
+    , 'nwc'
+    , null
+    , 'Classical Newari; Old Newari; Classical Nepal Bhasa'
+    , 'newari classique'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nya'
+    , 'nya'
+    , 'ny'
+    , 'Chichewa; Chewa; Nyanja'
+    , 'chichewa; chewa; nyanja'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nym'
+    , 'nym'
+    , null
+    , 'Nyamwezi'
+    , 'nyamwezi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nyn'
+    , 'nyn'
+    , null
+    , 'Nyankole'
+    , 'nyankolé'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nyo'
+    , 'nyo'
+    , null
+    , 'Nyoro'
+    , 'nyoro'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'nzi'
+    , 'nzi'
+    , null
+    , 'Nzima'
+    , 'nzema'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'oci'
+    , 'oci'
+    , 'oc'
+    , 'Occitan (post 1500); Provençal'
+    , 'occitan (après 1500); provençal'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'oji'
+    , 'oji'
+    , 'oj'
+    , 'Ojibwa'
+    , 'ojibwa'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ori'
+    , 'ori'
+    , 'or'
+    , 'Oriya'
+    , 'oriya'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'orm'
+    , 'orm'
+    , 'om'
+    , 'Oromo'
+    , 'galla'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'osa'
+    , 'osa'
+    , null
+    , 'Osage'
+    , 'osage'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'oss'
+    , 'oss'
+    , 'os'
+    , 'Ossetian; Ossetic'
+    , 'ossète'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ota'
+    , 'ota'
+    , null
+    , 'Turkish, Ottoman (1500-1928)'
+    , 'turc ottoman (1500-1928)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'oto'
+    , 'oto'
+    , null
+    , 'Otomian languages'
+    , 'otomi, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'paa'
+    , 'paa'
+    , null
+    , 'Papuan languages'
+    , 'papoues, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pag'
+    , 'pag'
+    , null
+    , 'Pangasinan'
+    , 'pangasinan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pal'
+    , 'pal'
+    , null
+    , 'Pahlavi'
+    , 'pahlavi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pam'
+    , 'pam'
+    , null
+    , 'Pampanga; Kapampangan'
+    , 'pampangan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pan'
+    , 'pan'
+    , 'pa'
+    , 'Panjabi; Punjabi'
+    , 'pendjabi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pap'
+    , 'pap'
+    , null
+    , 'Papiamento'
+    , 'papiamento'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pau'
+    , 'pau'
+    , null
+    , 'Palauan'
+    , 'palau'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'peo'
+    , 'peo'
+    , null
+    , 'Persian, Old (ca.600-400 B.C.)'
+    , 'perse, vieux (ca. 600-400 av. J.-C.)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'fas'
+    , 'per'
+    , 'fa'
+    , 'Persian'
+    , 'persan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'phi'
+    , 'phi'
+    , null
+    , 'Philippine languages'
+    , 'philippines, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'phn'
+    , 'phn'
+    , null
+    , 'Phoenician'
+    , 'phénicien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pli'
+    , 'pli'
+    , 'pi'
+    , 'Pali'
+    , 'pali'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pol'
+    , 'pol'
+    , 'pl'
+    , 'Polish'
+    , 'polonais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pon'
+    , 'pon'
+    , null
+    , 'Pohnpeian'
+    , 'pohnpei'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'por'
+    , 'por'
+    , 'pt'
+    , 'Portuguese'
+    , 'portugais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pra'
+    , 'pra'
+    , null
+    , 'Prakrit languages'
+    , 'prâkrit, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pro'
+    , 'pro'
+    , null
+    , 'Provençal, Old (to 1500)'
+    , 'provençal ancien (jusqu''à 1500)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'pus'
+    , 'pus'
+    , 'ps'
+    , 'Pushto; Pashto'
+    , 'pachto'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'que'
+    , 'que'
+    , 'qu'
+    , 'Quechua'
+    , 'quechua'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'raj'
+    , 'raj'
+    , null
+    , 'Rajasthani'
+    , 'rajasthani'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'rap'
+    , 'rap'
+    , null
+    , 'Rapanui'
+    , 'rapanui'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'rar'
+    , 'rar'
+    , null
+    , 'Rarotongan; Cook Islands Maori'
+    , 'rarotonga; maori des îles Cook'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'roa'
+    , 'roa'
+    , null
+    , 'Romance languages'
+    , 'romanes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'roh'
+    , 'roh'
+    , 'rm'
+    , 'Romansh'
+    , 'romanche'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'rom'
+    , 'rom'
+    , null
+    , 'Romany'
+    , 'tsigane'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ron'
+    , 'rum'
+    , 'ro'
+    , 'Romanian; Moldavian; Moldovan'
+    , 'roumain; moldave'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'run'
+    , 'run'
+    , 'rn'
+    , 'Rundi'
+    , 'rundi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'rup'
+    , 'rup'
+    , null
+    , 'Aromanian; Arumanian; Macedo-Romanian'
+    , 'aroumain; macédo-roumain'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'rus'
+    , 'rus'
+    , 'ru'
+    , 'Russian'
+    , 'russe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sad'
+    , 'sad'
+    , null
+    , 'Sandawe'
+    , 'sandawe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sag'
+    , 'sag'
+    , 'sg'
+    , 'Sango'
+    , 'sango'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sah'
+    , 'sah'
+    , null
+    , 'Yakut'
+    , 'iakoute'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sai'
+    , 'sai'
+    , null
+    , 'South American Indian (Other)'
+    , 'indiennes d''Amérique du Sud, autres langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sal'
+    , 'sal'
+    , null
+    , 'Salishan languages'
+    , 'salishennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sam'
+    , 'sam'
+    , null
+    , 'Samaritan Aramaic'
+    , 'samaritain'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'san'
+    , 'san'
+    , 'sa'
+    , 'Sanskrit'
+    , 'sanskrit'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sas'
+    , 'sas'
+    , null
+    , 'Sasak'
+    , 'sasak'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sat'
+    , 'sat'
+    , null
+    , 'Santali'
+    , 'santal'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'scn'
+    , 'scn'
+    , null
+    , 'Sicilian'
+    , 'sicilien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sco'
+    , 'sco'
+    , null
+    , 'Scots'
+    , 'écossais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sel'
+    , 'sel'
+    , null
+    , 'Selkup'
+    , 'selkoupe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sem'
+    , 'sem'
+    , null
+    , 'Semitic languages'
+    , 'sémitiques, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sga'
+    , 'sga'
+    , null
+    , 'Irish, Old (to 900)'
+    , 'irlandais ancien (jusqu''à 900)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sgn'
+    , 'sgn'
+    , null
+    , 'Sign Languages'
+    , 'langues des signes'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'shn'
+    , 'shn'
+    , null
+    , 'Shan'
+    , 'chan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sid'
+    , 'sid'
+    , null
+    , 'Sidamo'
+    , 'sidamo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sin'
+    , 'sin'
+    , 'si'
+    , 'Sinhala; Sinhalese'
+    , 'singhalais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sio'
+    , 'sio'
+    , null
+    , 'Siouan languages'
+    , 'sioux, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sit'
+    , 'sit'
+    , null
+    , 'Sino-Tibetan languages'
+    , 'sino-tibétaines, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sla'
+    , 'sla'
+    , null
+    , 'Slavic languages'
+    , 'slaves, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'slk'
+    , 'slo'
+    , 'sk'
+    , 'Slovak'
+    , 'slovaque'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'slv'
+    , 'slv'
+    , 'sl'
+    , 'Slovenian'
+    , 'slovène'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sma'
+    , 'sma'
+    , null
+    , 'Southern Sami'
+    , 'sami du Sud'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sme'
+    , 'sme'
+    , 'se'
+    , 'Northern Sami'
+    , 'sami du Nord'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'smi'
+    , 'smi'
+    , null
+    , 'Sami languages'
+    , 'sames, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'smj'
+    , 'smj'
+    , null
+    , 'Lule Sami'
+    , 'sami de Lule'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'smn'
+    , 'smn'
+    , null
+    , 'Inari Sami'
+    , 'sami d''Inari'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'smo'
+    , 'smo'
+    , 'sm'
+    , 'Samoan'
+    , 'samoan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sms'
+    , 'sms'
+    , null
+    , 'Skolt Sami'
+    , 'sami skolt'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sna'
+    , 'sna'
+    , 'sn'
+    , 'Shona'
+    , 'shona'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'snd'
+    , 'snd'
+    , 'sd'
+    , 'Sindhi'
+    , 'sindhi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'snk'
+    , 'snk'
+    , null
+    , 'Soninke'
+    , 'soninké'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sog'
+    , 'sog'
+    , null
+    , 'Sogdian'
+    , 'sogdien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'som'
+    , 'som'
+    , 'so'
+    , 'Somali'
+    , 'somali'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'son'
+    , 'son'
+    , null
+    , 'Songhai languages'
+    , 'songhai, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sot'
+    , 'sot'
+    , 'st'
+    , 'Sotho, Southern'
+    , 'sotho du Sud'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'spa'
+    , 'spa'
+    , 'es'
+    , 'Spanish; Castilian'
+    , 'espagnol; castillan'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'srd'
+    , 'srd'
+    , 'sc'
+    , 'Sardinian'
+    , 'sarde'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'srn'
+    , 'srn'
+    , null
+    , 'Sranan Tongo'
+    , 'sranan tongo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'srp'
+    , 'srp'
+    , 'sr'
+    , 'Serbian'
+    , 'serbe'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'srr'
+    , 'srr'
+    , null
+    , 'Serer'
+    , 'sérère'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ssa'
+    , 'ssa'
+    , null
+    , 'Nilo-Saharan languages'
+    , 'nilo-sahariennes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ssw'
+    , 'ssw'
+    , 'ss'
+    , 'Swati'
+    , 'swati'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'suk'
+    , 'suk'
+    , null
+    , 'Sukuma'
+    , 'sukuma'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sun'
+    , 'sun'
+    , 'su'
+    , 'Sundanese'
+    , 'soundanais'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sus'
+    , 'sus'
+    , null
+    , 'Susu'
+    , 'soussou'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'sux'
+    , 'sux'
+    , null
+    , 'Sumerian'
+    , 'sumérien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'swa'
+    , 'swa'
+    , 'sw'
+    , 'Swahili'
+    , 'swahili'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'swe'
+    , 'swe'
+    , 'sv'
+    , 'Swedish'
+    , 'suédois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'syc'
+    , 'syc'
+    , null
+    , 'Classical Syriac'
+    , 'syriaque classique'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'syr'
+    , 'syr'
+    , null
+    , 'Syriac'
+    , 'syriaque'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tah'
+    , 'tah'
+    , 'ty'
+    , 'Tahitian'
+    , 'tahitien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tai'
+    , 'tai'
+    , null
+    , 'Tai languages'
+    , 'tai, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tam'
+    , 'tam'
+    , 'ta'
+    , 'Tamil'
+    , 'tamoul'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tat'
+    , 'tat'
+    , 'tt'
+    , 'Tatar'
+    , 'tatar'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tel'
+    , 'tel'
+    , 'te'
+    , 'Telugu'
+    , 'télougou'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tem'
+    , 'tem'
+    , null
+    , 'Timne'
+    , 'temne'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ter'
+    , 'ter'
+    , null
+    , 'Tereno'
+    , 'tereno'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tet'
+    , 'tet'
+    , null
+    , 'Tetum'
+    , 'tetum'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tgk'
+    , 'tgk'
+    , 'tg'
+    , 'Tajik'
+    , 'tadjik'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tgl'
+    , 'tgl'
+    , 'tl'
+    , 'Tagalog'
+    , 'tagalog'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tha'
+    , 'tha'
+    , 'th'
+    , 'Thai'
+    , 'thaï'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'bod'
+    , 'tib'
+    , 'bo'
+    , 'Tibetan'
+    , 'tibétain'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tig'
+    , 'tig'
+    , null
+    , 'Tigre'
+    , 'tigré'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tir'
+    , 'tir'
+    , 'ti'
+    , 'Tigrinya'
+    , 'tigrigna'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tiv'
+    , 'tiv'
+    , null
+    , 'Tiv'
+    , 'tiv'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tkl'
+    , 'tkl'
+    , null
+    , 'Tokelau'
+    , 'tokelau'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tlh'
+    , 'tlh'
+    , null
+    , 'Klingon; tlhIngan-Hol'
+    , 'klingon'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tli'
+    , 'tli'
+    , null
+    , 'Tlingit'
+    , 'tlingit'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tmh'
+    , 'tmh'
+    , null
+    , 'Tamashek'
+    , 'tamacheq'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tog'
+    , 'tog'
+    , null
+    , 'Tonga (Nyasa)'
+    , 'tonga (Nyasa)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ton'
+    , 'ton'
+    , 'to'
+    , 'Tonga (Tonga Islands)'
+    , 'tongan (Îles Tonga)'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tpi'
+    , 'tpi'
+    , null
+    , 'Tok Pisin'
+    , 'tok pisin'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tsi'
+    , 'tsi'
+    , null
+    , 'Tsimshian'
+    , 'tsimshian'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tsn'
+    , 'tsn'
+    , 'tn'
+    , 'Tswana'
+    , 'tswana'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tso'
+    , 'tso'
+    , 'ts'
+    , 'Tsonga'
+    , 'tsonga'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tuk'
+    , 'tuk'
+    , 'tk'
+    , 'Turkmen'
+    , 'turkmène'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tum'
+    , 'tum'
+    , null
+    , 'Tumbuka'
+    , 'tumbuka'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tup'
+    , 'tup'
+    , null
+    , 'Tupi languages'
+    , 'tupi, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tur'
+    , 'tur'
+    , 'tr'
+    , 'Turkish'
+    , 'turc'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tut'
+    , 'tut'
+    , null
+    , 'Altaic languages'
+    , 'altaïques, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tvl'
+    , 'tvl'
+    , null
+    , 'Tuvalu'
+    , 'tuvalu'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'twi'
+    , 'twi'
+    , 'tw'
+    , 'Twi'
+    , 'twi'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'tyv'
+    , 'tyv'
+    , null
+    , 'Tuvinian'
+    , 'touva'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'udm'
+    , 'udm'
+    , null
+    , 'Udmurt'
+    , 'oudmourte'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'uga'
+    , 'uga'
+    , null
+    , 'Ugaritic'
+    , 'ougaritique'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'uig'
+    , 'uig'
+    , 'ug'
+    , 'Uighur; Uyghur'
+    , 'ouïgour'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ukr'
+    , 'ukr'
+    , 'uk'
+    , 'Ukrainian'
+    , 'ukrainien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'umb'
+    , 'umb'
+    , null
+    , 'Umbundu'
+    , 'umbundu'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'und'
+    , 'und'
+    , null
+    , 'Undetermined'
+    , 'indéterminée'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'urd'
+    , 'urd'
+    , 'ur'
+    , 'Urdu'
+    , 'ourdou'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'uzb'
+    , 'uzb'
+    , 'uz'
+    , 'Uzbek'
+    , 'ouszbek'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'vai'
+    , 'vai'
+    , null
+    , 'Vai'
+    , 'vaï'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ven'
+    , 'ven'
+    , 've'
+    , 'Venda'
+    , 'venda'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'vie'
+    , 'vie'
+    , 'vi'
+    , 'Vietnamese'
+    , 'vietnamien'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'vol'
+    , 'vol'
+    , 'vo'
+    , 'Volapük'
+    , 'volapük'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'vot'
+    , 'vot'
+    , null
+    , 'Votic'
+    , 'vote'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'wak'
+    , 'wak'
+    , null
+    , 'Wakashan languages'
+    , 'wakashanes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'wal'
+    , 'wal'
+    , null
+    , 'Walamo'
+    , 'walamo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'war'
+    , 'war'
+    , null
+    , 'Waray'
+    , 'waray'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'was'
+    , 'was'
+    , null
+    , 'Washo'
+    , 'washo'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'cym'
+    , 'wel'
+    , 'cy'
+    , 'Welsh'
+    , 'gallois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'wen'
+    , 'wen'
+    , null
+    , 'Sorbian languages'
+    , 'sorabes, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'wln'
+    , 'wln'
+    , 'wa'
+    , 'Walloon'
+    , 'wallon'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'wol'
+    , 'wol'
+    , 'wo'
+    , 'Wolof'
+    , 'wolof'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'xal'
+    , 'xal'
+    , null
+    , 'Kalmyk; Oirat'
+    , 'kalmouk; oïrat'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'xho'
+    , 'xho'
+    , 'xh'
+    , 'Xhosa'
+    , 'xhosa'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'yao'
+    , 'yao'
+    , null
+    , 'Yao'
+    , 'yao'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'yap'
+    , 'yap'
+    , null
+    , 'Yapese'
+    , 'yapois'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'yid'
+    , 'yid'
+    , 'yi'
+    , 'Yiddish'
+    , 'yiddish'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'yor'
+    , 'yor'
+    , 'yo'
+    , 'Yoruba'
+    , 'yoruba'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'ypk'
+    , 'ypk'
+    , null
+    , 'Yupik languages'
+    , 'yupik, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zap'
+    , 'zap'
+    , null
+    , 'Zapotec'
+    , 'zapotèque'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zbl'
+    , 'zbl'
+    , null
+    , 'Blissymbols; Blissymbolics; Bliss'
+    , 'symboles Bliss; Bliss'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zen'
+    , 'zen'
+    , null
+    , 'Zenaga'
+    , 'zenaga'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zgh'
+    , 'zgh'
+    , null
+    , 'Standard Moroccan Tamazight'
+    , 'amazighe standard marocain'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zha'
+    , 'zha'
+    , 'za'
+    , 'Zhuang; Chuang'
+    , 'zhuang; chuang'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'znd'
+    , 'znd'
+    , null
+    , 'Zande languages'
+    , 'zandé, langues'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zul'
+    , 'zul'
+    , 'zu'
+    , 'Zulu'
+    , 'zoulou'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zun'
+    , 'zun'
+    , null
+    , 'Zuni'
+    , 'zuni'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zxx'
+    , 'zxx'
+    , null
+    , 'No linguistic content; Not applicable'
+    , 'pas de contenu linguistique; non applicable'
+  );
+insert into base.language (code,iso_3b,iso_2,eng_name,fra_name) values (
+      'zza'
+    , 'zza'
+    , null
+    , 'Zaza; Dimili; Dimli; Kirdki; Kirmanjki; Zazaki'
+    , 'zaza; dimili; dimli; kirdki; kirmanjki; zazaki'
+  );
 select base.priv_grants();
-insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','user_port','int','12345','Default port where mobile user application connects.');
-insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','user_inet','text','192.168.56.101','Default IP where mobile application connects.');
-insert into base.parm_v (module,parm,type,value,cmt) values ('mychips','cert_days','int','14','Default number of days for a certificate to be valid.');
+insert into base.parm_v (module,parm,type,value,cmt) values 
+  ('mychips','user_port','int','12345','Default port where mobile user application connects.')
+ ,('mychips','user_inet','text','192.168.56.101','Default IP where mobile application connects.')
+ ,('mychips','cert_days','int','14','Default number of days for a certificate to be valid.')
 
+ ,('mychips','site_ent','int', null,'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
+
+ ,('lifts','order','text', 'bang desc', 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
+ ,('lifts','interval','int', 10000,'The number of milliseconds between sending requests to the database to choose and conduct a lift')
+ ,('lifts','limit','int', 1,'The maximum number of lifts the database may perform per request cycle')
+ ,('lifts','minimum','int', 10000,'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
+;
