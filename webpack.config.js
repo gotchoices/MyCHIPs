@@ -5,6 +5,7 @@ module.exports = {
   entry: {
     admin:'./src/admin.js',
     user: './src/user.js',
+    report: './src/report.js',
   },
   output: {
     path: path.join(__dirname, 'pub'),
