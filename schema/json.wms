@@ -89,12 +89,14 @@ view json.ticket {json mychips.tickets_v} {select
 # Standard view for contracts
 #----------------------------------------------------------------
 view json.contract {json mychips.contracts_v} {select
-    author
-  , title
+    domain
+  , name
   , version
   , language
-  , publish
-  , source
+  , published
+  , title
+  , text
+  , tag
   , digest
   , sections
     from	mychips.contracts_v
