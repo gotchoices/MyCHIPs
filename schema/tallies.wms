@@ -3,6 +3,7 @@
 #TODO:
 #- Split up tally notice trigger as done for chit trigger
 #- Include host_id in tally_v to reduce queries in notice triggers?
+#- Add constraints to assure things like contract and signatures in valid tally?
 #- 
 module mychips
 define unitMultiplier 1000
@@ -32,7 +33,7 @@ table mychips.tallies {mychips base.ent} {
   , comment	text
   , user_sig	text
   , part_sig	text
-  , contract	jsonb
+  , contract	jsonb		-- not null
   , stock_terms	jsonb
   , foil_terms	jsonb
   , bal_target	bigint		not null default 0
@@ -298,12 +299,12 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
     declare
         cdi		text = msg->>'user';
         obj		jsonb = msg->'object';
-        entity		int;		--	 = (msg->>'entity')::int;	-- See security issue below
+        entity		text;		--	 = (msg->>'entity');	-- See security issue below
         guid		uuid = obj->>'guid';
         curState	text;
         lrec		record;
         trec		record;
-        tallyType text; notType text; partner int;
+        tallyType text; notType text; partner text;
     begin
 --        if entity is null then		-- Security problem to accept entity ID passed in?
             select into entity peer_ent from mychips.peers where peer_cdi = cdi;	-- We will look it up on our own
@@ -331,10 +332,10 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v} {
             if not found then return null; end if;
             
             execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
-                using entity, guid, tallyType, (obj->>'version')::int, partner, obj->>'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
+                using entity, guid, tallyType, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
             execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 where tally_ent = $9 and tally_seq = $10'
-                using (obj->>'version')::int, obj->>'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
+                using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
           end if;
         end if;
 
@@ -470,7 +471,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.chits mychips.
     declare
         cdi		text	= msg->>'user';
         obj		jsonb	= msg->'object';
-        entity		int;	--	= (msg->>'entity')::int;
+        entity		text;	--	= (msg->>'entity');
         guid		uuid	= obj->>'guid';
         curState	text;
         crec		record;

@@ -36,23 +36,23 @@ describe("JSON import/export", function() {
   })
 
   before('Delete all test users if there are any', function(done) {
-    db.query("delete from base.ent where id >= $1;", [100] ,(err, res) => {done()})
+    db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
   })
 
   it("Import Chips test organization", function(done) {
     dbAndCheck(__dirname + "/../sample/org.json", db, done, function(res, row) {
-      assert.equal(row[0],100); done()
+      assert.equal(row[0],'o500'); done()
     })
   })
 
   it("Import user 1", function(done) {
     dbAndCheck(__dirname + "/../sample/user1.json", db, done, function(res, row) {
-      assert.equal(row[0],10000); done()
+      assert.equal(row[0],'p1000'); done()
     })
   })
   it("Import user 2", function(done) {
     dbAndCheck(__dirname + "/../sample/user2.json", db, done, function(res, row) {
-      assert.equal(row[0],10001); done()
+      assert.equal(row[0],'p1001'); done()
     })
   })
 
