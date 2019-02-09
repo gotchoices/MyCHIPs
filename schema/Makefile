@@ -1,26 +1,27 @@
 #Process schema files
 ifeq ("$(WYSELIB)","")
   WYSELIB = ../node_modules/wyselib/schema
+  DBUSER = 'admin'
 endif
-ifeq ("$(WYATTDB)","")
-  DBNAME=$(shell id -un)
+ifeq ("$(MYCHIPSDB)","")
+  DBNAME="mychips"
 else
-  DBNAME="$(WYATTDB)"
+  DBNAME="$(MYCHIPSDBDB)"
 endif
 
 objects:
-	wyseman --dbname=${DBNAME} ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms
+	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms
 
 text:
-	wyseman --dbname=${DBNAME} ${WYSELIB}/wylib.wmt ${WYSELIB}/base/*.wmt *.wmt
+	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/wylib.wmt ${WYSELIB}/base/*.wmt *.wmt
 
 defs:
-	wyseman --dbname=${DBNAME} ${WYSELIB}/base/*.wmd *.wmd
+	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/base/*.wmd *.wmd
 
 init:
-	wyseman --dbname=${DBNAME} ${WYSELIB}/base/*.wmi *.wmi
+	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/base/*.wmi *.wmi
 
 sql:	objects text
-	wyseman -s --dbname=${DBNAME} ${WYSELIB}/base/*.wmi *.wmi >../lib/schema-1.sql
+	wyseman -s --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/base/*.wmi *.wmi >../lib/schema-1.sql
 
 all: objects text defs init
