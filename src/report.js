@@ -33,15 +33,15 @@ new Vue({
     kahuna: function() {
       return window.opener || window.parent
     },
-    submit: function(...args) {
-console.log("Got submit from content:", ...args)
-      this.kahuna().postMessage({request:'submit'}, '*')
+    submit: function(request, data) {
+//console.log("Got submit from content:", request, data)
+      this.kahuna().postMessage({request, data}, location.origin)
     },
   },
 
   mounted: function() {
 //console.log("Popup mounted:", this.kahuna())
-    this.kahuna().postMessage({request:'ready'}, location.origin)	//Let parent window know we are ready to load content
+    this.kahuna().postMessage({request:'control'}, location.origin)	//Let parent window know we are ready to load content
 
     window.addEventListener('message', (ev) => {	//Answer replies from the parent window
 //console.log("Popup got message:", ev.source, ev.data)

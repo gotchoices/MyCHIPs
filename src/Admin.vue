@@ -29,10 +29,10 @@ export default {
       {tag: 'config', title: 'Settings'},
     ],
   }},
-  methods: {
-  },
-  mounted: function () {
-  },
+//  methods: {
+//  },
+//  mounted: function () {
+//  },
 }
 </script>
 

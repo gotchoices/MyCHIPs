@@ -40,12 +40,14 @@ export default {
   },
   inject: ['top'],			//Where to send modal messages
   data() { return {
-    winRec:	{posted: true, x: 50, y: 220, client: {dbView: 'mychips.users_v'}},
     stateTpt:	{windows: {}},
   }},
 
   methods: {
-    addWin() {Wylib.Common.addWindow(this.state.windows, this.winRec, this, true)},
+    addWin() {
+      let newState = {posted: true, client: {dbView: 'mychips.users_v'}}
+      Wylib.Common.addWindow(this.state.windows, newState, this, true)
+    },
     closeWin(idx, reopen) {Wylib.Common.closeWindow(this.state.windows, idx, this, reopen)},
     importFile: Import,
   },

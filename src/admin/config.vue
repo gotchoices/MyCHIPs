@@ -27,12 +27,14 @@ export default {
   },
   inject: ['top'],			//Where to send modal messages
   data() { return {
-    winRec:	{posted: true, x: 40, y: 220, client: {dbView: 'base.parm_v'}},
     stateTpt:	{windows: []},
   }},
 
   methods: {
-    addWin() {Wylib.Common.addWindow(this.state.windows, this.winRec, this, true)},
+    addWin() {
+      let newState = {posted: true, client: {dbView: 'base.parm_v'}}
+      Wylib.Common.addWindow(this.state.windows, newState, this, true)
+    },
     closeWin(idx, reopen) {Wylib.Common.closeWindow(this.state.windows, idx, this, reopen)},
   },
 

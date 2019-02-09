@@ -14,10 +14,11 @@ module.exports = function(ev) {
 //console.log("Jdat:" + jdat)
       let spec = {view: 'json.import(jsonb)', params: [jdat]}
       Wylib.Wyseman.request('users.import.'+this._uid, 'tuple', spec, (res, err) => {
-        if (err) this.top.error(err)
+        if (err) this.top().error(err)
 //console.log("Import res:", res)
       })
     }
     reader.readAsText(f)
   }
+  setTimeout(()=>{ev.target.value = null}, 1500)
 }

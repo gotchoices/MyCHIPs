@@ -28,12 +28,6 @@
       <wylib-win v-for="win,key in state.windows" topLevel=true :key="key" :state="win" @close="r=>{closeWin(key,r)}">
         <wylib-dbp :state="win.client"/>
       </wylib-win>
-
-<!-- For testing:
-      <wylib-win topLevel=true :state="state.doc">
-        <wylib-strdoc :state="state.doc.client"/>
-      </wylib-win>
- -->
     </div>
     <button @click="addWin()">New Contract Preview</button>
     <div class="importer">
@@ -56,7 +50,6 @@ export default {
   },
   inject: ['top'],			//Where to send modal messages
   data() { return {
-    winRec:	{posted: true, x: 40, y: 220, client: {dbView: 'mychips.contracts_v'}},
 
 //    stateTpt:	{windows: {}},
 //For testing:
@@ -68,7 +61,10 @@ stateTpt:	{windows: {}, doc: {posted:true, x:10, y:20, client: {
   }},
 
   methods: {
-    addWin() {Wylib.Common.addWindow(this.state.windows, this.winRec, this, true)},
+    addWin() {
+      let newState = {posted: true, client: {dbView: 'mychips.contracts_v'}}
+      Wylib.Common.addWindow(this.state.windows, newState, this, true)
+    },
     closeWin(idx, reopen) {Wylib.Common.closeWindow(this.state.windows, idx, this, reopen)},
     importFile: Import,
   },

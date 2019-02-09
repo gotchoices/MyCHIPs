@@ -4,7 +4,7 @@
 // TODO:
 //- 
 <template>
-  <wylib-app title="MyCHIPs User Access" :tabs="tabs" :current="currentTab" @tab="(t)=>{currentTab = t}">
+  <wylib-app tag="mychips_user" title="MyCHIPs User Access" :tabs="tabs" :current="currentTab" @tab="(t)=>{currentTab = t}">
     <keep-alive><component :is="'app-' + currentTab"/></keep-alive>
   </wylib-app>
 </template>
