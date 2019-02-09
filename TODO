@@ -1,42 +1,79 @@
 TODO:
 
 Immediate:
-X- Make agent model work well enough to generate data to analyze lift model
-X- DB table to model, discover circuits
-X- Discover circuits within same DB
-X- Make svg graph more reactive--nodes too
-X- Can show updating totals on the notes
-X- Make server scheduler to execute local lifts as a transaction (on server authority?)
-X- How to prioritize lifts?
-X- Make separate report module that populates popup or report specific to report type
 - 
-X- Try launching contract editor from dbe
-X- Put a strdoc inside dialog app div
-X- Reports communicate back using same submit mechanism as dialog buttons
-X- Can I put every report inside an iframe?
-X- Window slot client reports whether it is printable (i.e. has an iframe)
-X- Can I put a vue element inside an iframe?
+X- Change user primary key to p1000
+X- Command line way to generate initial admin ticket, to file
+X- Server fetches user key from db, authorizes websocket connection
+X- If a token, validate based on its validity
+X- Can connect to web socket via ticket from SPA
+X- Connection uses username supplied by client to go with ticket
+X- Show connection username in key list
+X- Default database name to mychips, can be set different from server command line
+X- Persistent key generated in browser, based on ticket info
+X- Can export one or more keys
+X- Connection public key shared with backend, stored in database with user
+X- All connections to wyseman now have a database username associated with them
+X- Can I still connect unsecurely for debugging?
+X- User can connect from that browser without further authorization
+X- Add the time into the signed message
 - 
-X- Get rid of big fat frame in iframe inside report
-X- Open report windows re-populate on reload
+- Reasonable storage of state still works
+- Can store my keys in the browser
+- Can store my last connection in the browser
+- Will try to connect automatically to the last site on reload
 - 
-- Fix strdoc to include sub-documents
-- Submit in strdoc bubbles up through to main program
-- Can save content properly
-- In update routine, peel out title, text, (tag = source?)
-- Reload dbe after strdoc update?
-- Get report dialog to swallow strdoc menu (and/or make it sticky)?
-- Report popup has stringy or auto-hide menu
-- Implement dirty flag in strdoc
-- Get rid of valid flag in strdoc?
+- Make server process in wyselib that can stand alone without mychips
+- Can/should mychips use wyselib server code as its core?
 - 
+- Move report launching structure into wyseman
+- Move SPA clientip into wyseman/wyselib (clientinfo)
+- 
+- Connection/disconnection retrying working right
+- Can begin to implement user permission structure
+- Enable user permission editor in wysegi, and admin app user tab
+- 
+- Implement default load column in views, wylib uses it if present
+- Implement default order column in views, wylib uses it if present
+- Update audit tables to store changes as JSON
+- 
+- 
+- Strdoc:
+X- Submit in strdoc bubbles up through to main program
+X- Can save content properly
+X- In update routine, peel out title, text, (tag = source?)
+X- Reload dbe after strdoc update?
+X- Get report dialog to swallow strdoc menu (and/or make it sticky)?
+X- Report popup has stringy or auto-hide menu
+X- Implement dirty flag in strdoc
+X- Get rid of valid flag in strdoc?
+X- Connect publish to an action menu
+X- How do actions work which have no preview window?
+X- Use json-stable-stringify or fast-json-stable-stringify to generate hash
+- What if I import a document into strdoc and then try to update?  (Do an insert?)
+- Make source field I can enable with a button; Turns off other fields
+- Preview mode includes language to refer to the included document (in current language?)
 - Implement a few basic contracts using strdoc widget
-- Harden contract views so you can only update working contracts
-- Implement publish procedure in backend
-- Connect publish to an action menu
-- How do actions work which have no preview window?
+- Harden contract views so you can only update working contracts (test)
+- Implement publish procedure in backend (share code between reports)
+- Begin wyseman library of server-side query builder functions (that reports can use)
 - 
-- Use json-stable-stringify or fast-json-stable-stringify to generate hash
+- How to serve my documents in HTML-viewable form if .html suffix given to web server
+- Coded errors in wyseman.js get translated "badTuples" "badUpdate" etc
+- 
+- Wyselib:
+- Move to concatenated primary key for entity P100, A100, C100
+- Can still sort in numerical order
+- Script to convert gnucash file to database format
+- Concatenated key for project type, number
+- Try porting my books into database format
+- Can test project, account structures
+- Scripts to auto-port all gnucash files into database
+- 
+- Implement password access over websocket to wyseman connection
+- Do key exchange and store on server
+- Insecure computer mode wipes localStorage
+- 
 - 
 - 
 - Lift modeling:

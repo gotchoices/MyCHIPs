@@ -3047,11 +3047,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','users_v','mobi_socket','fin','Käyttäjä pistorasia','IP-numero ja portti, johon käyttäjän mobiililaite yhdistää');
 
 insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) values
-  ('mychips','users','user_stat','lck','eng','Lockdown','Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.'),
-  ('mychips','users','user_stat','off','eng','Offline','Account completely off line.  No trades possible.'),
-  ('mychips','users','user_stat','act','fin','Aktiivinen','Hyvä käydä kauppaa'),
-  ('mychips','users','user_stat','lck','fin','Lukittu','Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.'),
-  ('mychips','users','user_stat','off','fin','Irrotettu','Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.'),
   ('wylib','data','access','priv','eng','Private','Only the owner of this data can read, write or delete it'),
   ('wylib','data','access','read','eng','Public Read','The owner can read and write, all others can read, or see it'),
   ('wylib','data','access','write','eng','Public Write','Anyone can read, write, or delete this data'),
@@ -3103,7 +3098,12 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','chits','chit_type','lift','eng','Credit Lift','The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity'),
   ('mychips','chits','chit_type','loan','eng','Loan','The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.'),
   ('mychips','chits','chit_type','tran','eng','Transaction','The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.'),
-  ('mychips','users','user_stat','act','eng','Active','Good to conduct trades');
+  ('mychips','users','user_stat','act','eng','Active','Good to conduct trades'),
+  ('mychips','users','user_stat','lck','eng','Lockdown','Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.'),
+  ('mychips','users','user_stat','off','eng','Offline','Account completely off line.  No trades possible.'),
+  ('mychips','users','user_stat','act','fin','Aktiivinen','Hyvä käydä kauppaa'),
+  ('mychips','users','user_stat','lck','fin','Lukittu','Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.'),
+  ('mychips','users','user_stat','off','fin','Irrotettu','Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.');
 
 insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','IAT','eng','Invalid Access Type','Access type must be: priv, read, or write'),

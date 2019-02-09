@@ -1,5 +1,9 @@
 Change Log:
 
+0.1.5	2019-Feb
+	- Support for Wylib authenticated login
+	- Can edit contract documents in Wylib structured document report
+
 0.1.4	2019-Jan
 	- Basic lift algorithm working in single database
 	- Support wylib report improvements
