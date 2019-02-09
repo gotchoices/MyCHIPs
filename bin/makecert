@@ -1,0 +1,34 @@
+#!/bin/sh
+#Build a private/public key pair and self-signed certificate for this server
+length=2048				#RSA Key length
+
+basedir=$(pwd)				#Assume to be root of mychips package
+
+if [ ! -z "$2" ]; then			#If you want a different key length
+    length="$2"
+fi
+
+if ! cd pki; then
+  echo "Can't find pki directory; Aborting"
+  exit 1
+fi
+
+if [ ! -f self_cert.conf ]; then
+  echo "Can't find ssl configuration file; Aborting"
+  exit 1
+fi
+
+#Build RSA private key for this server
+openssl genrsa -out server_private_key.pem $length
+
+#Build public key from private key
+openssl rsa -in server_private_key.pem -pubout -out server_public_key.pem
+
+#Encrypt the private key
+#openssl rsa -in server_private_key.pem -des3 -out server_encrypted_key.pem
+
+#Make a self-signed certificate
+openssl req -new -x509 -key server_private_key.pem -out server_certificate.pem -config self_cert.conf
+
+#Display contents of my cacert.pem:
+#openssl x509 -in cacert.pem -text >cacert.txt

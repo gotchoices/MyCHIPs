@@ -8,9 +8,8 @@ As Root:
   su -l postgres -c initdb
   systemctl enable postgresql
   systemctl start postgresql
-  su -l postgres -c 'createuser -d -s -r <dba_username>'
+  su -l postgres -c 'createuser -d -s -r admin'
 
-As the dba user (can just be your username for testing):
 - Create a folder to work:
   mkdir devel; cd devel			#For example
 

@@ -7,17 +7,18 @@
 //- 
 
 const Settings = require('../settings')
-const DbName = process.env.WYATTDB || process.env.USER || Settings.DatabaseName
-const { MachineIP, UserPort, PeerPort } = Settings
-console.log("DbName:", DbName, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
+const { MachineIP, UserPort, PeerPort, DatabaseName, DBAdmin} = Settings
+
+var database = process.env.MYCHIPSDB || 'mychips'
+var user = DBAdmin || process.env.MYCHIPSDBA || process.env.USER
+console.log("database:", database, "user:", user, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
 
 var fs = require('fs')
 var log = require('../../lib/logger')('Kickstart')
 var { dbClient } = require("wyseman")
 const dbConfig = {
-  database: DbName,
+  database, user, log,
   listen: "DummyChannel",		//Cause immediate connection to DB, rather than deferred
-  logger: log,
   schema: __dirname + "/../../lib/schema.sql"
 }
 
@@ -34,9 +35,9 @@ const fileList = ["org.json", "user1.json", "user2.json", "user3.json"].forEach(
 })
 
 //For user agent model testing:
-queryList.push({q:"select base.parmset('agent','interval',$1::int)", a:[1000]})
-queryList.push({q:"select base.parmset('agent','addclient',$1::float)", a:[0.10]})
-queryList.push({q:"select base.parmset('agent','addvendor',$1::float)", a:[0.20]})
+//queryList.push({q:"select base.parmset('agent','interval',$1::int)", a:[1000]})
+//queryList.push({q:"select base.parmset('agent','addclient',$1::float)", a:[0.10]})
+//queryList.push({q:"select base.parmset('agent','addvendor',$1::float)", a:[0.20]})
 
 //Set org.json entity as the site admin
 queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})
@@ -46,9 +47,9 @@ queryList.push({q:"update mychips.peers set peer_inet = $1, peer_port=$2 where p
 
 //For testing tallies:
 let q1 = "update mychips.users_v set host_id=$1, peer_port=$2 where id = $3;"
-queryList.push({q:q1, a:['server0', 65430, 10000]})
-queryList.push({q:q1, a:['server1', 65431, 10001]})
-queryList.push({q:q1, a:['server2', 65432, 10002]})
+queryList.push({q:q1, a:['server0', 65430, 'p1000']})
+queryList.push({q:q1, a:['server1', 65431, 'p1001']})
+queryList.push({q:q1, a:['server2', 65432, 'p1002']})
 
 queryList.forEach(elem=>{
   pending++
