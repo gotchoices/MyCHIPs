@@ -4,18 +4,19 @@ words, it is a contract--payable from one party and receivable to the other.
 So one job of MyCHIPs is to organize and document these contracts.  And it
 will do so just as you might imagine with any legally binding agreement.
 That way, if both parties share a legal jurisdiction, their agreements can
-be enforced by that jurisdiction, in addition to the natural trading community
-penalties that would be incurred by defaulting on a contract.
+be enforced by that jurisdiction, in addition to the negative consequences
+that would result in the trading community as a result of defaulting on a 
+contract.
 
 This directory contains a few boilerplate examples of contract fragments.
-Ideally, a contract would be comprised of multiple fragments.  The idea is, you 
-can mix and match various clauses together to build up a complete contract 
+Normally, a contract would be comprised of multiple fragments.  The idea is, 
+you mix and match various clauses together to build up a complete contract 
 agreement that is acceptable to both parties.  Ideally, there would be a 
 relatively small universe of "standard" contracts people recognize and get 
 comfortable with.
 
 Contracts can be incorporated into other contracts by referring to the contract 
-key (author, title, version and language) and a hash digest of the contract
+key (domain, file, version and language) and a hash digest of the contract
 contents.  This way the contract itself doesn't actually have to get included 
 inline.  But the terms, or effect of the contract, still get included as you 
 invoke them by reference.
@@ -24,9 +25,31 @@ Contract Format:
 -------------------------------------------------------------------------------
 A contract is a JSON object with the following properties:
 
-The contract object contains the following attributes:
+  - domain:	mychips.org
+    The domain name of the person or organization who created and/or published 
+    the contract document.  If you expect people to agree to tallies that 
+    incorporate a particular contract, they will probably feel more comfortable
+    with language from a source they trust.  If you are asked to agree to a
+    contract from an author you don't know, you should read it very carefully
+    and/or get competent legal advice first.
 
-  - digest
+  - name:	mychips/Chip_Definition
+    A symbolic name for the contract.  This is independent of the language used
+    in the contract.  Think of it more as a file name.  In fact, it consists of
+    an optional path prefix, and a partial file name, which will be used to
+    refer to the contract by URL.
+
+  - version	1
+    An integer indicating the revision of the contract.  The number 1 indicates
+    this is the first publicly released version.
+
+  - language	eng
+    Use the standard, 3-letter abbreviation for the language the contract is
+    rendered in.  It is very possible to have the same contract and version
+    available in multiple languages.  In fact, some parties may wish to include
+    the same contract in two different languages as part of a single tally.
+
+  - digest		(SHA-256 hash)
     The digest contains a hash of the rest of the object so it is a little
     different than all the other properties.  When computing the hash, the
     digest property is removed, the object is serialized by a deterministic
@@ -34,60 +57,54 @@ The contract object contains the following attributes:
     the hash is complete, the digest property is added back into the object for
     storage and/or transmission of the contract.
 
-  - author
-    The name of the person or organization who created and/or published the 
-    contract document.  If you expect people to agree to tallies that 
-    incorporate a particular contract, they will probably feel more comfortable
-    with language from a source they trust.  If you are asked to agree to a
-    contract from an author you don't know, you should read it very carefully
-    and/or get competent legal advice first.
+  - source
+    This is really a pseudo-property.  It might not be stored as part of the 
+    contract object but rather represents a URL where an authoritative copy of 
+    the contract object can be found.  It is automatically generated from the
+    contract key fields above.  The contract publisher should operate a web 
+    server which answers to the resulting end-point and serves the document to 
+    any process that requests it.
+    
+    A contract can rightly be referred to by its JSON object property key 
+    (domain, name, version, language) or by the URL form, which contains the
+    very same data.  When a reference is for binding purposes, the digest 
+    should also be included as indication that the contracting parties both had 
+    knowledge and access to the same document version at the time their deal 
+    was struck.  And example of the URL form is:
+    
+    	https://mychips.org/mychips/chip_definition-1-eng?digest=A1..F9
+  
+  - published
+    A date indicating when this contract version was published by the author.
 
   - title
-    A concise title which will describe what the contract is about.  If the 
-    covenant is included in a larger reference, this will serve as the section 
-    title.  At a minimum, this title should be unique to the author.
-
-  - version
-    An integer indicating the revision of the contract.  The number 1 indicates
-    this is the first publicly released version.
-
-  - language
-    Use the standard, 3-letter abbreviation for the language the contract is
-    rendered in.  It is very possible to have the same contract and version
-    available in multiple languages.  In fact, some parties may wish to include
-    the same contract in two different languages as part of a single tally.
-  
-  - source
-    A URL where an authoritative copy of the JSON object can be found.  Client
-    software should be able (and is responsible) to load the file from this URL 
-    and compare the hash signature to verify its authenticity.  The URL must be
-    unique to the author, title, version, and language.  By convention, the
-    document key can also be derived from the url.  For example:
-    
-      http://chipserve.org/mychips/Redemption_Terms-3-eng.json
-
-  - released
-    A date indicating when this contract was first published by the author.
+    A concise title, in the target language, for the contract.  This will be
+    used as a header for the contract or section when the document is rendered.
 
   - text
-    An optional pragraph of text consisting of one or more sentences, separated
-    terminated by a regular punctuation mark, and being separated by a single
-    space.  There should be no line feeds or other superfluous characters in
-    the paragraph.  The text may include html formatting tags which are limited
-    to <b>bold,</b> <i>italicized,</i> <u>underlined,</u> and cross-references.
+    An optional pragraph of text which will form a recital paragraph for the
+    contract or section.  This consists of one or more sentences, terminated by 
+    a regular punctuation mark, and being separated by a single space.  There 
+    should be no line feeds or other superfluous characters in the paragraph.
+    It will be parsed as HTML, so extra white space would be ignored anyway.
+    The text may include a few HTML formatting tags which are limited to 
+    <b>bold,</b> <i>italicized,</i> <u>underlined,</u> and a custom tag <x-r>
+    used to create cross-references.
+  
+  - tag
+    An optional character string that can be used to target cross references
+    from other sections, to this one.
 
-  - subs
-    This is an array of JSON objects which can be one of the following types:
-    - reference
-    - section
-    
-    A document reference contains a subset of the proprties above as follows:
-    - source		A URL, or the document key, separated by dashes
-    - digest		Hash of the document
-    - tag		A code used for the target of cross references
-    
-    A section contains the following properties:
+  - sections
+    This is an array of JSON objects constitute the sub-sections of this
+    document or section.  Each object contains a subset of the properties 
+    described here as follows:
+
     - title
     - tag
     - text
-    - subs
+    - sections
+    - source
+      If a source URL is specified in a subsection, it means that the specified
+      contract is included by reference at this point in the containing
+      document.  The digest is mandatory in this case.

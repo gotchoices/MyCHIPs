@@ -1,12 +1,11 @@
-{
- "contract": {
-  "author": "mychips.org",
-  "title": "ABC Contract",
-  "source": "http://mychips.org/contracts/Empty.json",
+{"contract": {
+  "domain": "mychips.org",
+  "name": "contracts/empty",
   "version": 1,
   "language": "eng",
-  "publish": null,
+  "title": "ABC Contract",
+  "text": "This is a sample contract.",
+  "published": null,
   "digest": null,
   "sections": []
- }
-}
+}}
