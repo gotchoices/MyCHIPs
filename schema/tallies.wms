@@ -20,18 +20,18 @@ namespace eval tallies {
 }
 
 table mychips.tallies {mychips base.ent} {
-    tally_ent	int		references base.ent on update cascade on delete cascade
+    tally_ent	text		references base.ent on update cascade on delete cascade
   , tally_seq	int	      , primary key (tally_ent, tally_seq)
   , tally_guid	uuid		not null
-  , tally_type	varchar		not null default 'stock' check(tally_type in ('stock','foil'))
+  , tally_type	text		not null default 'stock' check(tally_type in ('stock','foil'))
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
-  , partner	int		references base.ent on update cascade on delete restrict
-  , status	varchar		not null default 'void' check(status in ('void','draft','open','close'))
-  , request	varchar		check(request is null or request in ('void','draft','open','close'))
-  , comment	varchar
-  , user_sig	varchar
-  , part_sig	varchar
+  , partner	text		references base.ent on update cascade on delete restrict
+  , status	text		not null default 'void' check(status in ('void','draft','open','close'))
+  , request	text		check(request is null or request in ('void','draft','open','close'))
+  , comment	text
+  , user_sig	text
+  , part_sig	text
   , contract	jsonb
   , stock_terms	jsonb
   , foil_terms	jsonb
@@ -48,17 +48,17 @@ index {} mychips.tallies tally_type
 index {} mychips.tallies tally_date
 
 table mychips.chits {mychips.tallies} {
-    chit_ent	int
+    chit_ent	text
   , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
   , chit_guid	uuid		not null
-  , chit_type	varchar		not null default 'tran' check(chit_type in ('gift','lift','loan','tran'))
+  , chit_type	text		not null default 'tran' check(chit_type in ('gift','lift','loan','tran'))
   , chit_date	timestamptz	not null default current_timestamp
-  , request	varchar		check(request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
-  , signature	varchar
+  , request	text		check(request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
+  , signature	text
   , units	bigint		not null
-  , pro_quo	varchar
-  , memo	varchar
+  , pro_quo	text
+  , memo	text
     eval(s $glob::stamps)
 }
 index {} mychips.chits chit_guid
@@ -66,13 +66,13 @@ index {} mychips.chits chit_type
 index {} mychips.chits chit_date
 
 table mychips.confirms {mychips.tallies} {
-    conf_ent	int
+    conf_ent	text
   , conf_seq	int	      , foreign key (conf_ent, conf_seq) references mychips.tallies on update cascade on delete cascade
   , conf_idx	int	      , primary key (conf_ent, conf_seq, conf_idx)
   , conf_id	uuid
   , conf_date	timestamptz	not null default current_timestamp
   , sum		bigint		not null
-  , signature	varchar
+  , signature	text
 }
 
 # Generate unique sequence for new tallies

@@ -7,7 +7,7 @@ insert into base.parm_v (module,parm,type,value,cmt) values
  ,('mychips','user_inet','text','192.168.56.101','Default IP where mobile application connects.')
  ,('mychips','cert_days','int','14','Default number of days for a certificate to be valid.')
 
- ,('mychips','site_ent','int', null,'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
+ ,('mychips','site_ent','int', 0,'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
 
  ,('lifts','order','text', 'bang desc', 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
  ,('lifts','interval','int', 10000,'The number of milliseconds between sending requests to the database to choose and conduct a lift')

@@ -8,7 +8,7 @@ module mychips
 # Base view of tickets
 #----------------------------------------------------------------
 define buildUrl {case when t.allows = 'user' then u.user_sock else u.peer_cdi end}
-view mychips.tickets_v {mychips.users_v mychips.tokens_v base.parm(varchar,varchar)} {select
+view mychips.tickets_v {mychips.users_v mychips.tokens_v base.parm(text,text)} {select
     u.id		as "id"
   , t.token_seq
   , buildUrl()		as "url"
@@ -20,7 +20,7 @@ view mychips.tickets_v {mychips.users_v mychips.tokens_v base.parm(varchar,varch
     from	mychips.users_v	u
     join	mychips.tokens	t on t.token_ent = u.id
     left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
-    left join	mychips.peers	s on s.peer_ent = p.v_int
+    left join	mychips.peers	s on s.peer_ent = p.v_text
     where	t.exp_date > current_timestamp and not t.used
 } -grant {
     {mychips	{} {s}}
@@ -28,7 +28,7 @@ view mychips.tickets_v {mychips.users_v mychips.tokens_v base.parm(varchar,varch
 
 # Create a new ticket for the specified user
 #----------------------------------------------------------------
-function {mychips.ticket_user(uid int)} {mychips.tokens mychips.tickets_v} {
+function {mychips.ticket_user(uid text)} {mychips.tokens mychips.tickets_v} {
   returns jsonb language plpgsql as $$
     declare
       retval	jsonb;

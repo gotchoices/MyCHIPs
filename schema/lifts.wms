@@ -6,8 +6,8 @@ module mychips
 return
 
 table mychips.paths {mychips} {
-    path_ent	int		references base.ent on update cascade on delete cascade
-  , partner	int		references base.ent on update cascade on delete cascade
+    path_ent	text		references base.ent on update cascade on delete cascade
+  , partner	text		references base.ent on update cascade on delete cascade
   , ent_type	char		not null check(ent_type in ('p','o'))
-  , ent_hid	varchar
+  , ent_hid	text
 }

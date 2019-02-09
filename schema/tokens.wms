@@ -21,11 +21,11 @@ namespace eval tokens {
 # Data about tokens to facilitate their CHIP account
 #----------------------------------------------------------------
 table mychips.tokens {base.ent} {
-    token_ent	int		references base.ent on update cascade on delete cascade
+    token_ent	text		references base.ent on update cascade on delete cascade
   , token_seq	int	      , primary key (token_ent, token_seq)
-  , token	varchar		not null unique
-  , allows	varchar		not null default 'stock' constraint "!mychips.tokens.ITA" check (allows in ('stock','foil','query','user'))
-  , token_cmt	varchar		
+  , token	text		not null unique
+  , allows	text		not null default 'stock' constraint "!mychips.tokens.ITA" check (allows in ('stock','foil','query','user'))
+  , token_cmt	text		
   , used	boolean		not null default false
   , exp_date	timestamp(0)	default current_timestamp + '45 minutes'
     eval(s $glob::stamps)
@@ -41,7 +41,7 @@ function mychips.token_tf_seq() {mychips.tokens} {
       end if;
       if new.token is null then				-- If no token specified
         loop
-          select into new.token md5(random()::varchar);	-- Make a random one
+          select into new.token md5(random()::text);	-- Make a random one
           if not exists (select token from mychips.tokens where token = new.token) then
             exit;					-- Make sure it is unique
           end if;

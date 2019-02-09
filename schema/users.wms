@@ -16,7 +16,7 @@ namespace eval users {
     def users_v_in	[concat $users_pk $users_v_up]
     def users_se	[concat $users_v_in $glob::stampfn]
     def peers_se	$peers::peers_v_in
-    def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name age]
+    def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type username]
 }
@@ -24,7 +24,7 @@ namespace eval users {
 # Data about users to facilitate their CHIP account
 #----------------------------------------------------------------
 table mychips.users {base.ent mychips} {
-    user_ent	int		primary key references base.ent on update cascade on delete cascade
+    user_ent	text		primary key references base.ent on update cascade on delete cascade
   , user_inet	inet
   , user_port	int		
   , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
@@ -76,9 +76,10 @@ view mychips.users_v_flat {mychips.users_v base.addr_v_flat base.comm_v_flat} {s
     left join	base.comm_v_flat	c on c.id = u.id
 }
 
-table mychips.comm_test {base.comm mychips} {
-    test_ent		int
-  , test_seq		int
-  , test_dat		varchar
-  , foreign key (test_ent, test_seq) references base.comm on update cascade on delete cascade
-}
+# What was this for?
+#table mychips.comm_test {base.comm mychips} {
+#    test_ent		text
+#  , test_seq		int
+#  , test_dat		varchar
+#  , foreign key (test_ent, test_seq) references base.comm on update cascade on delete cascade
+#}

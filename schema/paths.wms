@@ -22,8 +22,8 @@
 #- 
 module mychips
 
-other uuid {} {create extension "uuid-ossp"} {drop extension "uuid-ossp"}
-#other pgcrypto {} {create extension "pgcrypto"} {drop extension "pgcrypto"}
+other uuid {} {create extension "uuid-ossp"} {drop extension if exists "uuid-ossp"}
+#other pgcrypto {} {create extension "pgcrypto"} {drop extension if exists "pgcrypto"}
 
 # Recursive view of tallies to show pathways
 #----------------------------------------------------------------
@@ -78,7 +78,7 @@ trigger mychips_lifts_tr_change {} {
 
 # Generate a set of chits for a lift involving the specified tallies, all our own users
 #----------------------------------------------------------------
-function {mychips.internal_lift(units bigint, uupath uuid[])} {mychips.tallies mychips.chits} {
+function {mychips.internal_lift(units bigint, uupath uuid[])} {mychips.tallies mychips.chits uuid} {
   returns boolean language plpgsql security definer as $$
     declare
       tally_id	uuid;
