@@ -1,0 +1,59 @@
+This folder contains a sample self-signed site certificate.
+
+You can build your own site certificate by:
+
+- Editing the information in self_cert.conf to fit your site; and then
+- running: npm run certificate
+
+This will build the files in this folder:
+  server_certificate.pem
+  server_private_key.pem
+  server_public_key.pem
+
+Your MyCHIPs server will now attempt to access these key files by default 
+unless you deploy it with the -n switch.
+
+Here are two very bad ideas not to do:
+
+  1. Use the sample certificates, without building them specially for your
+     own site.
+  2. Running your server in production with the -n switch.
+
+The -n switch runs your server without any kind of authentication at all.
+So anyone can connect to your server, logged in as any user, and make any
+kind of changes at all.  Only use this switch for testing/development
+purposes.
+
+Note, if you use the self-signed certificate method, there is no way for your
+users to know that they are connected to the correct site unless you give them
+a copy of your certificate via an outside channel (like email it or hand it to
+them in person).  Then, they will have to install the certificate in their OS
+keychain or browser, as the case may be.  Otherwise, their browser will 
+complain that they are connecting to an "unsafe" site.
+
+If you are running a server for yourself, your family or friends, a self
+signed certificate will work just fine.  People just need to make sure they got
+a true copy of your certificate and installed it.
+
+But if you are running a business and expect all kinds of people to connect to
+your server, you will of course, want to pay for a real certificate signed
+through a chain of authority your customers' browsers will trust.
+
+Keep in mind, this certificate is used solely to establish a trusted connection
+for the Wylib Administrative and User GUI interfaces to MyCHIPs.  This is the
+idea:
+
+Your user connects to a website where the SPA (Single Page Application) is
+served up to their browser.  That SPA is going to do some sensitive things like
+storing their private connection keys.  More importantly, t will also be 
+storing their MyCHIPs trading key.  So if they get connected to a rogue site
+who gives them an app that looks just like what they are used to, but has been
+tampered with, there will be real problems.
+
+So it is critical that you run your SPA server in https (sometimes called SSL
+or TLS) mode.  In other words, don't use the -n switch!  Then, if you use a
+self signed certificate, make sure you get a copy by save channel and install
+it for your browser.  Don't get in the habit (or teach your users to) of just
+bypassing the browser warning that you are connected to an insecure site.  If
+they just install whatever certificate comes over the wire, they may be
+permanently installing the certificate for the bad guy!
