@@ -1,44 +1,100 @@
 #Schema for storing contract documents
 #Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
 #TODO:
-#- Don't allow disorderly update of release date
-#- Don't allow disorderly update of version
-#- Use stored procedure/action to generate checksum, post release date
-#- Can only update records that have no release date
-#- Work on it freely until published, then it becomes locked
+#X- Don't allow disorderly update of release date
+#X- Don't allow disorderly update of version
+#X- Can only update records that have no release date
+#X- Work on it freely until published, then it becomes locked
+#- Use stored procedure/action to store digest, post release date?
 #- Stored procedure to fetch a contract; wget it from url if we don't already have it
 #- 
 require multiview.tcl base.tcl
 module mychips
 
 namespace eval contracts {
-    def contracts_pk	{author title version language}
-    def contracts_up	{sections source digest}
-    def contracts_in	[concat $contracts_pk $contracts_up publish]
+    def contracts_pk	{domain name version language}
+    def contracts_in	[concat $contracts_pk title text tag digest sections published]
+    def contracts_up	$contracts_in
     def contracts_se	[concat $contracts_in $glob::stampfn]
 }
 
-table mychips.contracts {mychips base.language} {
-    author	varchar		not null
-  , title	varchar		not null
+table mychips.contracts {mychips base.language base.ent} {
+    domain	varchar		not null
+  , name	varchar		not null
   , version	int		not null default 1 constraint "!mychips.contracts.BVN" check (version >= 1)
-  , language	varchar		references base.language on update cascade on delete restrict
-  , publish	date	      , constraint "!mychips.contracts.PBC" check (publish is null or (sections is not null and source is not null and digest is not null))
-  , source	varchar		
+  , language	varchar		not null references base.language on update cascade on delete restrict
+  , published	date	      , constraint "!mychips.contracts.PBC" check (published is null or (sections is not null and digest is not null))
+  , title	varchar		not null
+  , tag		varchar
+  , text	varchar
   , digest	varchar	      , unique (digest)
   , sections	jsonb
-  , primary key(author, title, version, language)
-  
+  , primary key(domain, name, version, language)
     eval(s $glob::stamps)
 }
+
+# Make a contract url from a contract key
+#----------------------------------------------------------------
+function {mychips.contract_url(dom text, nam text, ver int, lan text, dig text)} {mychips} {
+  returns text immutable language sql as $$
+    select dom || '/' || nam || '-' || ver::text || '-' || lan || case when dig is null then '' else '?' || dig end;
+$$;}
 
 #Basic view
 #----------------------------------------------------------------
 view mychips.contracts_v {mychips.contracts} {
     select eval(fld_list $contracts::contracts_se c)
+  , mychips.contract_url(c.domain, c.name, c.version, c.language, c.digest) as source
+  , jsonb_build_object(
+      'domain',		c.domain
+    , 'name',		c.name
+    , 'version',	c.version
+    , 'language',	c.language
+    , 'published',	c.published
+    , 'title',		c.title
+    , 'tag',		c.tag
+    , 'text',		c.text
+    , 'digest',		c.digest
+    , 'sections',	c.sections
+    ) as json
+
     from	mychips.contracts c;
 
     eval(trigview::insert mychips.contracts_v mychips.contracts $contracts::contracts_in $contracts::contracts_pk $glob::stampin);
     eval(trigview::update mychips.contracts_v mychips.contracts $contracts::contracts_up $contracts::contracts_pk $glob::stampup);
     eval(rule_delete mychips.contracts_v mychips.contracts $contracts::contracts_pk);
 }
+
+# Before inserting a new contract
+#----------------------------------------------------------------
+function mychips.contracts_tf_bi() {mychips.contracts} {
+  returns trigger language plpgsql security definer as $$
+    begin
+      if new.version is null then
+        select into new.version coalesce(version,0)+1 from mychips.contracts where domain = new.domain and name = new.name and version = new.version and language = new.language;
+      end if;
+      return new;
+    end;
+$$;}
+trigger mychips_contracts_tr_bi {} {
+    before insert on mychips.contracts for each row execute procedure mychips.contracts_tf_bi();
+}
+
+# Update contracts in an orderly way
+#----------------------------------------------------------------
+function mychips.contracts_tf_bu() {mychips.contracts} {
+  returns trigger language plpgsql security definer as $$
+    begin
+      if old.published is not null then		-- Can't edit published contracts
+        return null;
+      end if;
+      if new.version < new.version then		-- Can't go back on versions
+        new.version = old.version;		
+      end if;
+      return new;
+    end;
+$$;}
+trigger mychips_contracts_tr_bu {} {
+    before update on mychips.contracts for each row execute procedure mychips.contracts_tf_bu();
+}
+

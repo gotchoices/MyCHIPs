@@ -1,14 +1,15 @@
 #Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
 #------------------------------------------
 tabtext mychips.contracts	{Contracts}	{Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement} [concat {
-    {author		{Author}		{The name of the author, organization, or publisher of the contract document (such as GPL, FSF, MyCHIPs.org, etc.)}}
-    {title		{Title}			{A short, descriptive title which will be shown as a section header when a contract is rendered}}
-    {version		{Version}		{The version number, starting at 1, of this document}}
-    {language		{Language}		{The standard ISO code for the language in which the covenant is expressed}}
-    {publish		{Published}		{The date this version of the covenant was first published}}
-    {sections		{Content}		{The actual sections of contract text, describing what the parties are agreeing to}}
-    {digest		{Hash}			{A standardized hash signature of the document text which can be referenced by others to prove the accuracy of the contract}}
-    {source		{Source URL}		{The official web address where the author of this document maintains its public access}}
+    {domain		{Author Domain}		{The web domain of the contract's author (such as gnu.org, fsf.org, mychips.org, etc.)}}
+    {name		{Path Name}		{A unique name for the contract, which also serves as a URL path, and partial filename such as: mychips/terms/mediation}}
+    {version		{Version}		{The version number, starting at 1, of this contract document}}
+    {language		{Language}		{The standard 3-letter ISO code for the language in which the covenant is expressed}}
+    {title		{Title}			{A brief, descriptive title which will be shown as a document or section header when a contract is rendered}}
+    {tag		{Section Tag}		{A short alphanumeric string which can be used as a target for cross references inside the document}}
+    {published		{Published}		{The date this version of the covenant was first made available to the public}}
+    {sections		{Sections}		{Further sub-sections of contract text, describing the terms and conditions of the contract}}
+    {digest		{Hash}			{A SHA-256 hash signature of the document (exclusive of this field) which can be referenced by others to prove the accuracy of the contract}}
 } $glob::stampt] -messages {
     {BVN		{Bad Version Number}	{Version number for contracts should start with 1 and move progressively larger}}
     {PBC		{Publish Constraints}	{When publishing a document, one must specify the digest hash, the source location, and the content sections}}
@@ -16,7 +17,10 @@ tabtext mychips.contracts	{Contracts}	{Each record contains contract language to
 }
 
 tabtext mychips.contracts_v	{Contracts}	{Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.} {
+    {source		{Source URL}		{The official web address where the author of this document maintains its public access}}
 } -messages {
-    {edit 		{Edit Sections}		{Open a separate editor for properly editing the contract sections}}
+    {edit 		{Edit Sections}		{Dedicated window for properly editing the contract sections}}
     {publish		{Publish}		{Commit this version, write the publication date, and disable further modifications}}
+    {IDK		{Invalid Key}		{The key values specified for the contract document are not valid}}
+    {TMK		{Wrong Keys}		{The report is designed to handle exactly one record key}}
 }
