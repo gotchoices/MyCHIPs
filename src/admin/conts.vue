@@ -1,5 +1,5 @@
 //Admin interface; Contract Documents
-//Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+//Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
 //- Allow to easily load document preview/editor from dbe action

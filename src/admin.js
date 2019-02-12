@@ -1,5 +1,5 @@
 //Administrator Application main
-//Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+//Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
 //- Change connect code to use wylib
@@ -7,7 +7,7 @@
 import Vue from 'vue'
 Vue.config.productionTip = false
 
-import Admin from './Admin.vue'
+import Admin from './admin.vue'
 
 new Vue({
   el: '#app',

@@ -1,5 +1,6 @@
 #Schema for storing MyCHIPs tallies
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 #TODO:
 #- Split up tally notice trigger as done for chit trigger
 #- Include host_id in tally_v to reduce queries in notice triggers?

@@ -1,12 +1,12 @@
 //User Application main
-//Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+//Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
 //- 
 import Vue from 'vue'
 Vue.config.productionTip = false
 
-import User from './User.vue'
+import User from './user.vue'
 
 new Vue({
   el: '#app',

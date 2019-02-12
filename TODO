@@ -1,33 +1,30 @@
 TODO:
 
 Immediate:
+X- Move report launching structure into wyseman
+X- Move SPA clientip into wyseman/wyselib (clientinfo)
+- Correct licence references in top of each source file in the tree
+- Any regression tests for new wyclif?
+- Take wss:/ back out of connection status message
 - 
-X- Change user primary key to p1000
-X- Command line way to generate initial admin ticket, to file
-X- Server fetches user key from db, authorizes websocket connection
-X- If a token, validate based on its validity
-X- Can connect to web socket via ticket from SPA
-X- Connection uses username supplied by client to go with ticket
-X- Show connection username in key list
-X- Default database name to mychips, can be set different from server command line
-X- Persistent key generated in browser, based on ticket info
-X- Can export one or more keys
-X- Connection public key shared with backend, stored in database with user
-X- All connections to wyseman now have a database username associated with them
-X- Can I still connect unsecurely for debugging?
-X- User can connect from that browser without further authorization
-X- Add the time into the signed message
-- 
-- Reasonable storage of state still works
+- Reasonable storage of state works again
 - Can store my keys in the browser
 - Can store my last connection in the browser
 - Will try to connect automatically to the last site on reload
 - 
-- Make server process in wyselib that can stand alone without mychips
-- Can/should mychips use wyselib server code as its core?
+- Make server process in wyclif that can stand alone without mychips
+X- Can/should mychips use wyselib server code as its core?
+- Generic wylib tab manager component launches from a specified preview table
+-   Configurable background content
+-   Optional import?
+- Where to best put:
+-   Wysegi
+-   WyattERP Admin	(includes wysegi?)
+-   WyattERP User
+-   report app
+-   clientinfo ajax
+X- MyCHIPs contains only its own dedicated code
 - 
-- Move report launching structure into wyseman
-- Move SPA clientip into wyseman/wyselib (clientinfo)
 - 
 - Connection/disconnection retrying working right
 - Can begin to implement user permission structure

@@ -1,5 +1,5 @@
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
-#------------------------------------------
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 tabtext mychips.contracts	{Contracts}	{Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement} [concat {
     {domain		{Author Domain}		{The web domain of the contract's author (such as gnu.org, fsf.org, mychips.org, etc.)}}
     {name		{Path Name}		{A unique name for the contract, which also serves as a URL path, and partial filename such as: mychips/terms/mediation}}

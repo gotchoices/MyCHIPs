@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+#Copyright MyCHIPs.org; See license in root of this package
 # Command line program to perform certain administrative tasks on a MyCHIPs database
 # This is used primarily in development and testing
 # -----------------------------------------------------------------------------

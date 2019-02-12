@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+#Copyright MyCHIPs.org; See license in root of this package
 # Command line program to communicate with a MyCHIPs server as a client would
 # This is used primarily in development and testing
 # State information is stored (insecurely) in a hidden folder under the user's home directory

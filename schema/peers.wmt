@@ -1,5 +1,5 @@
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
-#------------------------------------------
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 tabtext mychips.peers	{CHIP Peers}		{All entities who trade CHIPs using on this server.  Includes this server's users and their peers.} [concat {
     {peer_ent		{Entity link}		{A link to the entities base table}}
     {peer_cdi		{CHIPs ID}		{The user's CHIPs Domain Identifier, or CDI}}

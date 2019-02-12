@@ -1,5 +1,5 @@
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
-#------------------------------------------
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this server.} [concat {
     {user_ent		{Entity link}		{A link to the entities base table.}}
     {user_inet		{User Net Addr}		{The IP number where the users's mobile application connects}}

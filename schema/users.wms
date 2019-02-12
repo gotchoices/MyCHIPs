@@ -1,5 +1,5 @@
 #Database of MyCHIPs users represented by this server
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
 #- What should users_v delete trigger to with peer table (nothing)?

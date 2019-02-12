@@ -1,5 +1,5 @@
 //Admin interface; Home, connection screen
-//Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+//Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
 //- Has to be independent of database, wylib

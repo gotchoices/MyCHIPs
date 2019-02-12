@@ -1,4 +1,6 @@
 #These are just example place-holders to demonstrate role permissions
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 #- TODO:
 #- How do we define roles under wyselib?
 #- Make this work, or define these in wysegi somewhere

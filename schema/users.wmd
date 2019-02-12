@@ -1,3 +1,5 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 
 tabdef mychips.users -focus ent_name -fields [concat {
     {user_ent		ent	6	{0 10}		-sort 1 -write 0 -hide 1}

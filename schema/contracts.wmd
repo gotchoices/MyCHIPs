@@ -1,4 +1,5 @@
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 
 tabdef mychips.contracts -focus domain -f [concat {
     {domain		ent	20	{1 1}		}

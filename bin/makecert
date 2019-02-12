@@ -1,5 +1,7 @@
 #!/bin/sh
 #Build a private/public key pair and self-signed certificate for this server
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 length=2048				#RSA Key length
 
 basedir=$(pwd)				#Assume to be root of mychips package

@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+#Copyright MyCHIPs.org; See license in root of this package
 # Listen for connections from a user's mobile device.
 # Hopefully the address and port are not publicly known.
 # This is used primarily in development and testing

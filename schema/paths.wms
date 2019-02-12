@@ -1,5 +1,5 @@
 #Analyze pathways through the network of tallies
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
 #- Pull minimum lift size from system parameters

@@ -1,5 +1,5 @@
 #Data about mychips entities, kept whether or not they are represented by this server
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+#Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
 #- Split out peer fields from users table

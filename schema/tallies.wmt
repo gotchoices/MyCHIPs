@@ -1,5 +1,5 @@
-#Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
-#------------------------------------------
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 
 tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a record of credit transactions between two trading partners.} {
     {tally_ent		{Tally Entity}		{The ID number of the entity or person this tally belongs to}}

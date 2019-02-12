@@ -1,11 +1,11 @@
 //Administrator client, main component
-//Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+//Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
 //- Pull application text from database
 //- 
 <template>
-  <wylib-app tag="mychips_admin" title="MyCHIPs Administration" :state="state" :tabs="tabs" :current="state.curTab" @tab="(t)=>{state.curTab = t}">
+  <wylib-app tag="mychips_admin" title="MyCHIPs Administration" :db="dbConf" :state="state" :tabs="tabs" :current="state.curTab" @tab="(t)=>{state.curTab = t}">
     <keep-alive><component :is="'app-' + state.curTab" :state="state.tabs[state.curTab]"/></keep-alive>
   </wylib-app>
 </template>
@@ -28,6 +28,7 @@ export default {
       {tag: 'urnet',  title: 'Network'},
       {tag: 'config', title: 'Settings'},
     ],
+    dbConf: "['mychips_admin','wylib']"
   }},
 //  methods: {
 //  },

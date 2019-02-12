@@ -1,5 +1,5 @@
 //Admin interface; User Relationship Network Graph
-//Copyright MyCHIPs.org: GNU GPL Ver 3; see: License in root of this package
+//Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
 //X- Update tally totals when chits added, removed

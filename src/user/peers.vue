@@ -1,3 +1,5 @@
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 <template>
  <div>
   <wylib-win v-for="win,idx in state.windows" v-if="win" topLevel=true :key="idx" :state="win" :lang="lang(win,idx)" @close="closeWin(idx)">

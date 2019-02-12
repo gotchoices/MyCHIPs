@@ -1,3 +1,5 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
 
 tabdef mychips.peers -focus ent_name -fields [concat {
     {peer_ent		ent	6	{0 20}		-hide 1 -sort 1 -write 0}

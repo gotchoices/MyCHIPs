@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+#Copyright MyCHIPs.org; See license in root of this package
 # A rudimentary MyCHIPs server to receive requests from peer MyCHIPs servers.
 # This module is primarily for testing and development
 # The server listens on a published port.
