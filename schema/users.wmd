@@ -16,17 +16,22 @@ tabdef mychips.users_v -fields {
     {peer_sock		ent	28	{3 21}		-opt 1 -sta readonly -wr 0}
 } -display {
   id std_name ent_type user_stat user_sock born_date !fir_name !ent_name
-} -subviews {
-  base.addr_v base.comm_v
-} -actions {
-    {ticket		html -sing 1}
-    {lock		-ask 1}
-    {unlock		-ask 1}
-    {summary		}
-    {trade		html -options {
-      {start		date	ent	11	{1 1}		-spf cal -hint date -tem date}
-      {end		date	ent	11	{1 2}		-spf cal -hint date -tem date}
-    }}
+} -json {
+  actions {[
+    {"name":"ticket","format":"html","single":"1"},
+    {"name":"lock","ask":"1"},
+    {"name":"unlock","ask":"1"},
+    {"name":"summary"},
+    {"name":"trade","format":"html","options":[
+      {"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
+      {"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
+    ]}
+  ]}
+  subviews {["base.addr_v", "base.comm_v"]}
+  launch {{
+    "initial": 1,
+    "import": "json.import"
+  }}
 }
 
 tabdef mychips.users_v_flat -display {id user_cdi std_name bill_addr bill_city bill_state} -sort {std_name id}

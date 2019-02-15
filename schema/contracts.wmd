@@ -18,4 +18,8 @@ tabdef mychips.contracts_v -f {
 } -actions {
     {edit		strdoc}
     {publish		-ask 1}
+} -json {
+  launch {{
+    "import": "json.import"
+  }}
 }

@@ -1,7 +1,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this server.} [concat {
-    {user_ent		{Entity link}		{A link to the entities base table.}}
+tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this server} [concat {
+    {user_ent		{Entity link}		{A link to the entities base table}}
     {user_inet		{User Net Addr}		{The IP number where the users's mobile application connects}}
     {user_port		{User Port}		{The port to which the user's mobile device will connect}}
     {user_stat		{Trading Status}	{The current state of the user's account for trading of CHIPs} {
@@ -12,9 +12,7 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
     {user_cmt		{User Comments}		{Administrative comments about this user}}
     {host_id		{Host ID}		{A unique code identifying the controller server that processes peer traffic for this user}}
 } $glob::stampt] -messages {
-    {ABC {Test 1} {A test message 1}}
-    {BCD {Test 2} {A test message 2}}
-    {DEF {Test 3} {A test message 3}}
+    {X {Y} {Z}}
 }
 
 tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this server.} {
@@ -28,6 +26,14 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
     {trade	{Trading Report}	{Report showing trades in a given date range}}
       {trade.start	{Start Date}	{Include trades on and after this date}}
       {trade.end	{End Date}	{Include trades on and before this date}}
+    {launch.title	{Users}			{User Account Management}}
+    {launch.instruct	{Basic Instructions}	{
+      <p>Users are people or companies who are hosted by this system.
+      <p>A user account record may be created from scratch, or appended to an existing entity 
+         record (and/or peer record).
+         So if you are adding a new user, search first to see if they are already an existing peer
+         or other entity, and then furnish the additional information to fill out the user fields.
+    }}
 }
 
 #Sample text in alternate language:

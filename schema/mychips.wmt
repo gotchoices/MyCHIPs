@@ -1,0 +1,7 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+#We piggy-back on the wylib data view in order to facilitate a 
+
+tabtext wylib.data -append 1 -messages {
+  {app.mychips_admin	{MyCHIPs Administration}	{Manage administrative tasks for a MyCHIPs one or more servers}}
+}
