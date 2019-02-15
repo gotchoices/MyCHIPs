@@ -78,7 +78,7 @@ export default {
     },
 
     updateNodes() {
-      let spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi'], where: [['id', '>', '1']], order: 1}
+      let spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi'], where: [['peer_cdi', 'notnull']], order: 1}
       Wylib.Wyseman.request('urnet.user.'+this._uid, 'select', spec, (data,err) => {
         let notFound = Object.assign({}, this.state.nodes)
 //console.log("Update nodes")
