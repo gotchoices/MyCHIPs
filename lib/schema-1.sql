@@ -2283,9 +2283,9 @@ create function wylib.data_v_tf_upd() returns trigger language plpgsql security 
 create function wylib.get_data(comp text, nam text, own text) returns jsonb language sql stable as $$
       select data from wylib.data_v where owner = coalesce(own,base.curr_eid()) and component = comp and name = nam;
 $$;
-create function wylib.set_data(comp text, nam text, des text, own int, dat jsonb) returns int language plpgsql as $$
+create function wylib.set_data(comp text, nam text, des text, own text, dat jsonb) returns int language plpgsql as $$
     declare
-      userid	int = coalesce(own, base.curr_eid());
+      userid	text = coalesce(own, base.curr_eid());
       id	int;
       trec	record;
     begin
@@ -2569,7 +2569,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('mychips','tallies_v','eng','Tallies','Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.'),
   ('mychips','chits','eng','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
   ('mychips','confirms','eng','Confirmations','Contains records evidencing each time the parties confirmed the present balance of their tally.'),
-  ('mychips','users','eng','CHIP Users','Entities who have CHIP accounts on this server.'),
+  ('mychips','users','eng','CHIP Users','Entities who have CHIP accounts on this server'),
   ('mychips','users_v','eng','CHIP Users','Entities who have CHIP accounts on this server.'),
   ('mychips','users','fin','CHIP käyttäjät','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
   ('mychips','users_v','fin','CHIP käytäjät näkymä','Yksiköt, joilla on CHIP-tilejä tällä palvelimella');
@@ -2770,6 +2770,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('wm','column_ambig','count','eng','Count','The number of possible native tables for this column'),
   ('wm','column_ambig','natives','eng','Natives','A list of the possible native tables for this column'),
   ('wylib','data','ruid','eng','Record ID','A unique ID number generated for each data record'),
+  ('base','addr','addr_type','eng','Type','The kind of address'),
   ('wylib','data','component','eng','Component','The part of the graphical, or other user interface that uses this data'),
   ('wylib','data','name','eng','Name','A name explaining the version or configuration this data represents (i.e. Default, Searching, Alphabetical, Urgent, Active, etc.)'),
   ('wylib','data','descr','eng','Description','A full description of what this configuration is for'),
@@ -2787,7 +2788,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','addr','addr_ent','eng','Entity ID','The ID number of the entity this address applies to'),
   ('base','addr','addr_seq','eng','Sequence','A unique number assigned to each new address for a given entity'),
   ('base','addr','addr_spec','eng','Address','Street address or PO Box.  This can occupy multiple lines if necessary'),
-  ('base','addr','addr_type','eng','Type','The kind of address'),
   ('base','addr','addr_prim','eng','Primary','If checked this is the primary address for contacting this entity'),
   ('base','addr','addr_cmt','eng','Comment','Any other notes about this address'),
   ('base','addr','city','eng','City','The name of the city this address is in'),
@@ -3030,7 +3030,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','confirms','conf_date','eng','Date & Time','The date and time when this account total is computed'),
   ('mychips','confirms','sum','eng','Sum','The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)'),
   ('mychips','confirms','signature','eng','Signature','The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table'),
-  ('mychips','users','user_ent','eng','Entity link','A link to the entities base table.'),
+  ('mychips','users','user_ent','eng','Entity link','A link to the entities base table'),
   ('mychips','users','user_inet','eng','User Net Addr','The IP number where the users''s mobile application connects'),
   ('mychips','users','user_port','eng','User Port','The port to which the user''s mobile device will connect'),
   ('mychips','users','user_stat','eng','Trading Status','The current state of the user''s account for trading of CHIPs'),
@@ -3047,6 +3047,22 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','users_v','mobi_socket','fin','Käyttäjä pistorasia','IP-numero ja portti, johon käyttäjän mobiililaite yhdistää');
 
 insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) values
+  ('base','ent','marital','s','eng','Single','The person has never married or is divorced or is the survivor of a deceased spouse'),
+  ('base','parm','type','int','eng','Integer','The parameter can contain only values of integer type (... -2, -1, 0, 1, 2 ...'),
+  ('base','parm','type','date','eng','Date','The parameter can contain only date values'),
+  ('base','parm','type','text','eng','Text','The parameter can contain any text value'),
+  ('base','parm','type','float','eng','Float','The parameter can contain only values of floating point type (integer portion, decimal, fractional portion)'),
+  ('base','parm','type','boolean','eng','Boolean','The parameter can contain only the values of true or false'),
+  ('base','priv','level','role','eng','Group Role','The privilege is really a group name which contains other privileges and levels'),
+  ('base','priv','level','limit','eng','View Only','Limited access - Can see data but not change it'),
+  ('base','priv','level','user','eng','Normal Use','Normal access for the user of this function or module - Includes normal changing of data'),
+  ('base','priv','level','super','eng','Supervisor','Supervisory privilege - Typically includes the ability to undo or override normal user functions.  Also includes granting of view, user privileges to others.'),
+  ('mychips','tallies','tally_type','stock','eng','Stock','The entity this tally belongs to is typically the creditor on transactions'),
+  ('mychips','tallies','tally_type','foil','eng','Foil','The entity this tally belongs to is typically the debtor on transactions'),
+  ('mychips','tallies','status','void','eng','Void','The tally has been abandoned before being affirmed by both parties'),
+  ('mychips','tallies','status','draft','eng','Draft','The tally have been suggested by one party but not yet accepted by the other party'),
+  ('mychips','tallies','status','open','eng','Open','The tally is affirmed by both parties and can be used for trading chits'),
+  ('mychips','tallies','status','close','eng','Close','No further trading can occur on this tally'),
   ('wylib','data','access','priv','eng','Private','Only the owner of this data can read, write or delete it'),
   ('wylib','data','access','read','eng','Public Read','The owner can read and write, all others can read, or see it'),
   ('wylib','data','access','write','eng','Public Write','Anyone can read, write, or delete this data'),
@@ -3074,22 +3090,6 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('base','ent','gender','f','eng','Female','The person is female'),
   ('base','ent','marital','','eng','N/A','Marital status is not applicable (such as for organizations or groups)'),
   ('base','ent','marital','m','eng','Married','The person is in a current marriage'),
-  ('base','ent','marital','s','eng','Single','The person has never married or is divorced or is the survivor of a deceased spouse'),
-  ('base','parm','type','int','eng','Integer','The parameter can contain only values of integer type (... -2, -1, 0, 1, 2 ...'),
-  ('base','parm','type','date','eng','Date','The parameter can contain only date values'),
-  ('base','parm','type','text','eng','Text','The parameter can contain any text value'),
-  ('base','parm','type','float','eng','Float','The parameter can contain only values of floating point type (integer portion, decimal, fractional portion)'),
-  ('base','parm','type','boolean','eng','Boolean','The parameter can contain only the values of true or false'),
-  ('base','priv','level','role','eng','Group Role','The privilege is really a group name which contains other privileges and levels'),
-  ('base','priv','level','limit','eng','View Only','Limited access - Can see data but not change it'),
-  ('base','priv','level','user','eng','Normal Use','Normal access for the user of this function or module - Includes normal changing of data'),
-  ('base','priv','level','super','eng','Supervisor','Supervisory privilege - Typically includes the ability to undo or override normal user functions.  Also includes granting of view, user privileges to others.'),
-  ('mychips','tallies','tally_type','stock','eng','Stock','The entity this tally belongs to is typically the creditor on transactions'),
-  ('mychips','tallies','tally_type','foil','eng','Foil','The entity this tally belongs to is typically the debtor on transactions'),
-  ('mychips','tallies','status','void','eng','Void','The tally has been abandoned before being affirmed by both parties'),
-  ('mychips','tallies','status','draft','eng','Draft','The tally have been suggested by one party but not yet accepted by the other party'),
-  ('mychips','tallies','status','open','eng','Open','The tally is affirmed by both parties and can be used for trading chits'),
-  ('mychips','tallies','status','close','eng','Close','No further trading can occur on this tally'),
   ('mychips','tallies','request','void','eng','Void','One party has requested to abandon the tally agreement'),
   ('mychips','tallies','request','draft','eng','Draft','One party is requesting ???'),
   ('mychips','tallies','request','open','eng','Open','One party is requesting to open a tally according to the specified terms'),
@@ -3111,21 +3111,21 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','appSaveAs','eng','Save State As','Save the layout and operating state of the application, and all its subordinate windows, using a named configuration'),
   ('wylib','data','appRestore','eng','Load State','Restore the application layout and operating state from a previously saved state'),
   ('wylib','data','appDefault','eng','Default State','Reload the application to its default state (you will lose any unsaved configuration state)'),
-  ('wylib','data','appStatePrompt','eng','Input Tag','A tag to identify this saved state'),
+  ('wylib','data','appStatePrompt','eng','State ID Tag','The name or words you will use to identify this saved state when considering it for later recall'),
   ('wylib','data','appStateTag','eng','State Tag','The tag is a brief name you will refer to later when loading the saved state'),
   ('wylib','data','appStateDescr','eng','State Description','A full description of the saved state and what you use it for'),
   ('wylib','data','appEditState','eng','Edit States','Preview a list of saved states for this application'),
   ('wylib','data','appServer','eng','Server','Toggle menu for connecting to various servers'),
   ('wylib','data','appServerURL','eng','Server URL','The domain and port of the server you are currently connected to'),
   ('wylib','data','appNoConnect','eng','Not Connected','The application is not connected to a backend server'),
+  ('wylib','data','appLocalAsk','eng','Store Data in Browser','OK means the app can store sensitive information in your browser, including your private connection key.  This could be snooped by others who may have access to this computer!  If they get your key, they can connect to your data, logged in as you!  Cancel to not store application data in the browser.'),
+  ('wylib','data','appLocalPrompt','eng','Login Prompt','The app will show you this prompt each time you load the application in order to ask for your pass phrase'),
+  ('wylib','data','appLocalP1','eng','Your Pass Phrase','Enter a pass phrase which will be used to unlock your local storage, including connection keys.  If you leave this blank and press OK, your data will be stored unencrypted!'),
+  ('wylib','data','appLocalP2','eng','Pass Phrase Check','Enter the pass phrase a second time'),
   ('wylib','data','conmenu','eng','Connection Menu','Various helper functions to control how you connect to server sites, and manage your connection keys'),
   ('wylib','data','conTitle','eng','Connection Keys','A list of credentials, servers and ports where you normally connect'),
   ('wylib','data','conConnect','eng','Connect','Attempt to connect to the server at this address and port (or Shift-click to disconnect)'),
   ('wylib','data','conDelete','eng','Delete','Remove the selected server connections from the list'),
-  ('wylib','data','conLoad','eng','Load Sites','Get site connection key information previously stored in this browser''s local storage'),
-  ('wylib','data','conZap','eng','Forget Sites','Remove site connection key information so it is no longer stored in this browser'),
-  ('wylib','data','conLock','eng','Lock Sites','Encrypt this site information in the browser using a code and password so others can not use it'),
-  ('wylib','data','conKey','eng','Connect Key','A key that will grant you access to this site.  Do not share this key or store it on a public device or others will be able to access your login.'),
   ('wylib','data','conImport','eng','Import Keys','Drag/drop key files here, or click to import a connection key, or one-time connection ticket'),
   ('wylib','data','conExport','eng','Export Keys','Save the selected private connection keys out to a file.  Delete these files immediately after moving them to a private backup device.  Never leave them in the download area or on a live file system!'),
   ('wylib','data','conRetry','eng','Retrying','Attempting to automatically reconnect to the server'),
@@ -3133,7 +3133,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','conUsername','eng','Username','Input the name you will use to connect to the backend database.  If you don''t know.  Ask the person who issued your connection ticket.'),
   ('wylib','data','conNoCrypto','eng','No Crypto Library','Cryptographic functions not found in browser API.  Make sure you are connected by https, or use a more modern browser.'),
   ('wylib','data','conCryptErr','eng','Generating Key','There was an error in the browser attempting to generate a connection key'),
-  ('wylib','data','dbe','eng','Edit','Insert, change and delete records from the database view'),
+  ('wylib','data','dbe','eng','Edit Records','Insert, change and delete records from the database view'),
   ('wylib','data','dbeColMenu','eng','Column','Operations you can perform on this column of the preview'),
   ('wylib','data','dbeMenu','eng','Editing','A menu of functions for editing a database record'),
   ('wylib','data','dbeInsert','eng','Add New','Insert a new record into the database table'),
@@ -3145,7 +3145,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','dbeActions','eng','Actions','Perform various commands pertaining to this particular view and record'),
   ('wylib','data','dbePreview','eng','Preview Document','Preview this record as a document'),
   ('wylib','data','dbeSubords','eng','Preview','Toggle the viewing of views and records which relate to the currently loaded record'),
-  ('wylib','data','dbeLoadPrompt','eng','Primary Key','Input the primary key values'),
+  ('wylib','data','dbeLoadPrompt','eng','Primary Key Value(s)','Input the primary key field values for the record you want to load'),
   ('wylib','data','dbeRecordID','eng','Record ID','Load a record by specifying its primary key values directly'),
   ('wylib','data','dbePopupErr','eng','Popup Error','Error trying to open a child window.  Is the browser blocking popup windows?'),
   ('wylib','data','winMenu','eng','Window Functions','A menu of functions for the display and operation of this window'),
@@ -3153,7 +3153,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','winSaveAs','eng','Save State As','Save the layout and operating state of this window, and all its subordinate windows, to a named configuration'),
   ('wylib','data','winRestore','eng','Load State','Restore the the window''s layout and operating state from a previously saved state'),
   ('wylib','data','winDefault','eng','Default State','Erase locally stored configuration data for this window'),
-  ('wylib','data','winModified','eng','Modified Content','Changes may be lost if you close the window'),
+  ('wylib','data','winModified','eng','Close Modified Pane','Changes may be lost if you close the window'),
   ('wylib','data','winPinned','eng','Window Pinned','Keep this window open until it is explicitly closed'),
   ('wylib','data','winClose','eng','Close Window','Close this window'),
   ('wylib','data','winToTop','eng','Move To Top','Make this window show above others of its peers (can also double click on a window header)'),
@@ -3219,6 +3219,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','lstAndOr','eng','And/Or','Specify whether all conditions must be true (and), or just one or more (or)'),
   ('wylib','data','lstAddCond','eng','Add Condition','Add another condition for comparison'),
   ('wylib','data','lstRemove','eng','Remove Grouping','Remove this group of conditions'),
+  ('wylib','data','lchAdd','eng','Launch Preview','Use this button to open as many new database previews as you like'),
+  ('wylib','data','lchImport','eng','Importer','Drag/drop files here, or click and browse, to import data from a JSON formatted file'),
   ('wylib','data','sdc','eng','Structured Document','An editor for documents structured in an outline format'),
   ('wylib','data','sdcMenu','eng','Document Menu','A menu of functions for working with structured documents'),
   ('wylib','data','sdcUpdate','eng','Update','Save changes to this document back to the database'),
@@ -3226,8 +3228,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','sdcClear','eng','Clear','Delete the contents of the document on the screen.  Does not affect the database.'),
   ('wylib','data','sdcClearAsk','eng','Clear WorkSpace','Are you sure you want to clear the document data?'),
   ('wylib','data','sdcImport','eng','File Import','Load the workspace from an externally saved file'),
-  ('wylib','data','sdcImportAsk','eng','Import File','Select a file to Import, or drag it onto the import button'),
-  ('wylib','data','sdcExport','eng','File Export','Save the workspace to an external file'),
+  ('wylib','data','sdcImportAsk','eng','Import From File','Select a file to Import, or drag it onto the import button'),
+  ('wylib','data','sdcExport','eng','Export To File','Save the document to an external file'),
   ('wylib','data','sdcExportAsk','eng','Export File','Input a filename to use when exporting'),
   ('wylib','data','sdcExportFmt','eng','Human Readable','Export the file with indentation to make it more easily readable by people'),
   ('wylib','data','sdcSpell','eng','Spell Checking','Enable/disable spell checking in on the screen'),
@@ -3269,6 +3271,14 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('base','ent_v','directory','eng','Directory','Report showing basic contact data for the selected entities'),
   ('base','ent_link','NBP','eng','Illegal Entity Org','A personal entity can not be an organization (and have member entities)'),
   ('base','ent_link','PBC','eng','Illegal Entity Member','Only personal entities can belong to company entities'),
+  ('base','parm_v','launch.title','eng','Settings','Site Operating Parameters'),
+  ('base','parm_v','launch.instruct','eng','Basic Instructions','
+      <p>These settings control all kinds of different options on your system.
+      <p>Each setting is interpreted within the context of the module it is intended for.
+         System settings have descriptions initialized in the table.  Although you may be
+         able to change these, you probably shouldn''t as they are installed there by the
+         schema author to help you understand what the setting controls.
+    '),
   ('base','priv','NUN','eng','No username found','The specified user has no username--This probably means he has not been added as a database user'),
   ('base','priv','UAE','eng','User already exists','The specified username was found to already exist as a user in the database'),
   ('base','priv','ENF','eng','Employee not found','While adding a user, the specified ID was not found to belong to anyone in the empl database table'),
@@ -3282,11 +3292,17 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','contracts_v','publish','eng','Publish','Commit this version, write the publication date, and disable further modifications'),
   ('mychips','contracts_v','IDK','eng','Invalid Key','The key values specified for the contract document are not valid'),
   ('mychips','contracts_v','TMK','eng','Wrong Keys','The report is designed to handle exactly one record key'),
+  ('mychips','contracts_v','launch.title','eng','Contracts','Manage Trading Agreements'),
+  ('mychips','contracts_v','launch.instruct','eng','Basic Instructions','
+      <p>If your users user only contracts created and maintained by other parties, you 
+         don''t need to create any new data here.
+      <p>You can create your own contracts and/or modify existing ones by opening an editing
+         window and selecting Edit Sections from the Actions menu.
+    '),
+  ('wylib','data','app.mychips_admin','eng','MyCHIPs Administration','Manage administrative tasks for a MyCHIPs one or more servers'),
   ('mychips','tallies','LMG','eng','Invalid Lift Margin','The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.'),
   ('mychips','tallies','DMG','eng','Invalid Drop Margin','The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.'),
-  ('mychips','users','ABC','eng','Test 1','A test message 1'),
-  ('mychips','users','BCD','eng','Test 2','A test message 2'),
-  ('mychips','users','DEF','eng','Test 3','A test message 3'),
+  ('mychips','users','X','eng','Y','Z'),
   ('mychips','users_v','ticket','eng','User Ticket','Generate a temporary, one-time pass to allow a user to establish a secure connection with the server'),
   ('mychips','users_v','lock','eng','Lock Account','Put the specified account(s) into lockdown mode, so no further trading can occur'),
   ('mychips','users_v','unlock','eng','Unlock Account','Put the specified account(s) into functional mode, so normal trading can occur'),
@@ -3294,6 +3310,14 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','users_v','trade','eng','Trading Report','Report showing trades in a given date range'),
   ('mychips','users_v','trade.start','eng','Start Date','Include trades on and after this date'),
   ('mychips','users_v','trade.end','eng','End Date','Include trades on and before this date'),
+  ('mychips','users_v','launch.title','eng','Users','User Account Management'),
+  ('mychips','users_v','launch.instruct','eng','Basic Instructions','
+      <p>Users are people or companies who are hosted by this system.
+      <p>A user account record may be created from scratch, or appended to an existing entity 
+         record (and/or peer record).
+         So if you are adding a new user, search first to see if they are already an existing peer
+         or other entity, and then furnish the additional information to fill out the user fields.
+    '),
   ('mychips','users','ABC','fin','Koetus 1','Ensimmäinen testiviesti'),
   ('mychips','users','BCD','fin','Koetus 2','Toinen testiviesti'),
   ('mychips','users','DEF','fin','Koetus 3','Kolmanen testiviesti');
@@ -3322,14 +3346,30 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','contracts','display','["domain","name","version","language","released","source","title"]','t'),
   ('mychips','contracts','focus','"domain"','t'),
   ('mychips','contracts_v','actions','[{"name":"edit","format":"strdoc"},{"name":"publish","ask":"1"}]','f'),
+  ('mychips','contracts_v','launch','{
+    "import": "json.import(jsonb)"
+  }','t'),
   ('mychips','paths_v','display','["id","length","cost","min","circuit","path","circuit"]','t'),
   ('mychips','peers','focus','"ent_name"','t'),
   ('mychips','peers_v','display','["id","std_name","peer_cdi","peer_sock","ent_type","born_date","!fir_name","!ent_name"]','t'),
   ('mychips','peers_v_flat','display','["id","peer_cdi","std_name","bill_addr","bill_city","bill_state"]','t'),
   ('mychips','users','focus','"ent_name"','t'),
-  ('mychips','users_v','actions','[{"name":"ticket","format":"html","single":"1"},{"name":"lock","ask":"1"},{"name":"unlock","ask":"1"},{"name":"summary"},{"name":"trade","options":[{"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},{"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}],"format":"html"}]','f'),
+  ('mychips','users_v','actions','[
+    {"name":"ticket","format":"html","single":"1"},
+    {"name":"lock","ask":"1"},
+    {"name":"unlock","ask":"1"},
+    {"name":"summary"},
+    {"name":"trade","format":"html","options":[
+      {"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
+      {"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
+    ]}
+  ]','f'),
+  ('mychips','users_v','subviews','["base.addr_v", "base.comm_v"]','t'),
+  ('mychips','users_v','launch','{
+    "initial": 1,
+    "import": "json.import(jsonb)"
+  }','t'),
   ('mychips','users_v','display','["id","std_name","ent_type","user_stat","user_sock","born_date","!fir_name","!ent_name"]','t'),
-  ('mychips','users_v','subviews','["base.addr_v","base.comm_v"]','t'),
   ('mychips','users_v_flat','display','["id","user_cdi","std_name","bill_addr","bill_city","bill_state"]','t');
 
 insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
@@ -3377,6 +3417,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('wm','objects','min_rel','size','4'),
   ('wm','objects','max_rel','size','4'),
   ('wm','objects','obj_nam','focus','true'),
+  ('base','addr','state','size','4'),
   ('base','addr','addr_seq','style','ent'),
   ('base','addr','addr_seq','size','4'),
   ('base','addr','addr_seq','subframe','10 1'),
@@ -3392,7 +3433,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','addr','city','size','24'),
   ('base','addr','city','subframe','2 1'),
   ('base','addr','state','style','ent'),
-  ('base','addr','state','size','4'),
   ('base','addr','state','subframe','3 1'),
   ('base','addr','state','special','scm'),
   ('base','addr','state','data','state'),
@@ -3546,10 +3586,10 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm_v','comm_prim','initial','false'),
   ('base','comm_v','comm_prim','onvalue','t'),
   ('base','comm_v','comm_prim','offvalue','f'),
-  ('base','comm_v','comm_seq','display','4'),
-  ('base','comm_v','comm_type','display','1'),
-  ('base','comm_v','comm_spec','display','2'),
   ('base','comm_v','comm_cmt','display','3'),
+  ('base','comm_v','comm_seq','display','4'),
+  ('base','comm_v','comm_spec','display','2'),
+  ('base','comm_v','comm_type','display','1'),
   ('base','comm_v','comm_seq','sort','2'),
   ('base','comm_v','comm_type','sort','1'),
   ('base','ent','id','style','ent'),
@@ -3564,6 +3604,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','ent','ent_type','initial','p'),
   ('base','ent','title','style','ent'),
   ('base','ent','title','size','8'),
+  ('base','ent','ent_cmt','size','80'),
   ('base','ent','title','subframe','1 2'),
   ('base','ent','title','special','exs'),
   ('base','ent','title','template','^[a-zA-Z\.]*$'),
@@ -3632,7 +3673,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','ent','proxy','special','scm'),
   ('base','ent','proxy','data','ent'),
   ('base','ent','ent_cmt','style','mle'),
-  ('base','ent','ent_cmt','size','80'),
   ('base','ent','ent_cmt','subframe','1 7 3'),
   ('base','ent','ent_cmt','special','edw'),
   ('base','ent','crt_by','style','ent'),

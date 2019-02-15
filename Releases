@@ -1,6 +1,7 @@
 Change Log:
 
-0.1.5	2019-Feb
+0.1.6	2019-Feb
+	- Migrate duplicated code into new wylib launcher
 	- Support for Wylib authenticated login
 	- Can edit contract documents in Wylib structured document report
 

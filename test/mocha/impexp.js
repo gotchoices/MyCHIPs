@@ -3,9 +3,9 @@
 //- 
 
 const assert = require("assert");
-const { DatabaseName } = require('../settings')
+const { DatabaseName, Log } = require('../settings')
 var fs = require('fs')
-var log = require('../../lib/logger')('testImpexp')
+var log = Log('testImpexp')
 var { dbClient } = require("wyseman")
 const dbConfig = {
   database: DatabaseName,

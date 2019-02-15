@@ -3,20 +3,33 @@ TODO:
 Immediate:
 X- Move report launching structure into wyseman
 X- Move SPA clientip into wyseman/wyselib (clientinfo)
-- Correct licence references in top of each source file in the tree
-- Any regression tests for new wyclif?
-- Take wss:/ back out of connection status message
-- 
-- Reasonable storage of state works again
-- Can store my keys in the browser
-- Can store my last connection in the browser
-- Will try to connect automatically to the last site on reload
-- 
-- Make server process in wyclif that can stand alone without mychips
+X- Correct licence references in top of each source file in the tree
+X- Any regression tests for new wyclif?
 X- Can/should mychips use wyselib server code as its core?
-- Generic wylib tab manager component launches from a specified preview table
--   Configurable background content
--   Optional import?
+X- Generic wylib tab manager component launches from a specified preview table
+X-   Configurable background content
+X- Input instruction text for all tabs
+X- Make import optional
+X- Display tab title on one side with slightly increased size
+X- Display optional import on the other
+X- Remove all hard-coded language from app (make custom app view?)
+- 
+- State storage
+X-   After connection made, check local storage to see how things should be stored
+X-     Not at all (except to note this fact)
+-     Store unencrypted
+-     Store encrypted
+X-   If the user chooses encrypted, go back and encrypt everything in there now
+X-   Store note about how to treat this browser in the future
+X-   Reset everything erases this knowledge too, and the user has to start over
+X-   Connect module stores/retrieves my keys in local storage
+X- Reasonable storage of state works again
+X- Can store my keys in the browser
+X- Can store my last connection in the browser
+X- Will try to connect automatically to the last site on reload
+
+- Make server process in wyclif that can stand alone without mychips
+- 
 - Where to best put:
 -   Wysegi
 -   WyattERP Admin	(includes wysegi?)
@@ -25,6 +38,7 @@ X- Can/should mychips use wyselib server code as its core?
 -   clientinfo ajax
 X- MyCHIPs contains only its own dedicated code
 - 
+- Re-enable wysegi serving (where does wysegi live now?)
 - 
 - Connection/disconnection retrying working right
 - Can begin to implement user permission structure

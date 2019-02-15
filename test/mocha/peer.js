@@ -9,14 +9,14 @@
 
 const assert = require("assert");
 const PeerCont = require("../../lib/peer")
-const { DatabaseName, MachineIP } = require('../settings')
+const { DatabaseName, MachineIP, Log } = require('../settings')
 const MessageBus = require('../bus')
 const Uport=43210
 const Pport0=65430
 const Pport1=65431
 const Host0 = "server0"
 const Host1 = "server1"
-var log = require('../../lib/logger')('testpeer')
+var log = Log('testpeer')
 var { dbClient } = require("wyseman")
 
 describe("Peer to peer tallies", function() {
