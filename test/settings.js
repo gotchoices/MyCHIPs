@@ -6,4 +6,5 @@ module.exports={
   UserPort: 43210,
   AdminPort: 54320,
   PeerPort: 65432,
+  Log: require(require.resolve('wyclif/lib/log.js')),
 }

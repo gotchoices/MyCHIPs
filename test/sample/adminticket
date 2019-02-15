@@ -5,7 +5,7 @@
 //- 
 
 const Settings = require('../settings')
-const { DBAdmin, MachineIP, AdminPort, AdminID } = Settings
+const { DBAdmin, MachineIP, AdminPort, AdminID, Log } = Settings
 
 var database = process.env.MYCHIPSDB || 'mychips'
 var user = DBAdmin || process.env.MYCHIPSDBA || process.env.USER
@@ -13,7 +13,7 @@ var host = process.argv[2] || MachineIP
 var port = process.argv[3] || AdminPort
 //console.log("database:", database, "user:", user, "id:", AdminID)
 
-var log = require('../../lib/logger')('AdminTicket')
+var log = Log('AdminTicket')
 var { dbClient } = require("wyseman")
 
 var db = new dbClient({
