@@ -3,7 +3,6 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
-//- GUI should register the listen events it wants--not this module
 //- 
 
 const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's clock
@@ -16,6 +15,7 @@ Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))
 
 var argv = Args({
   dbName: process.env.MYCHIPS_DBNAME || 'mychips',
+  clifPort: process.env.MYCHIPS_WSPORT || '54320',
   serverKey: process.env.MYCHIPS_SERVER_KEY || __dirname + '/../pki/server_private_key.pem',
   serverCert: process.env.MYCHIPS_SERVER_CERT || __dirname + '/../pki/server_certificate.pem'
 })
@@ -25,12 +25,14 @@ var argv = Args({
   .alias('m','model')      .default('model',      false)	//Run agent-based model
   .argv
 
+log.debug("argv:", argv)
 var credentials = argv.noSSL ? null : Credentials(argv.serverKey, argv.serverCert, log)
 
-log.trace("Host ID:    ", argv.hostID)
-log.trace("SPA Port:   ", argv.spaPort, argv.wysegi, argv.serverKey, argv.serverCert)
-log.trace("CLIF Port: ", argv.clifPort)
-log.trace("Peer Port:  ", argv.peerPort)
+log.debug("Host ID:    ", argv.hostID)
+log.debug("SPA Port:   ", argv.spaPort, argv.wysegi, argv.serverKey, argv.serverCert)
+log.debug("CLIF Port: ", argv.clifPort)
+log.debug("Peer Port:  ", argv.peerPort)
+log.debug("Database:", argv.dbHost, argv.dbName, argv.dbAdmin)
 log.trace("Agent:", argv.model, "Lifts:", argv.lifts)
 log.trace("Actions:", actions)
 
@@ -53,7 +55,11 @@ var wyseman = new Wyseman({
 
 if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communications
   const PeerCont = require('../lib/peer.js')		//Peer communications controller
-  var peer = new PeerCont(argv.peerPort, argv.hostID)
+  var peer = new PeerCont(argv.peerPort, argv.hostID, {
+    host: argv.dbHost,
+    database:argv.dbName,
+    user: argv.dbAdmin, 
+  })
 }
 
 if (Boolean(argv.lifts)) {				//Run lift scheduler

@@ -1,33 +1,8 @@
 TODO:
 
 Immediate:
-X- Move report launching structure into wyseman
-X- Move SPA clientip into wyseman/wyselib (clientinfo)
-X- Correct licence references in top of each source file in the tree
-X- Any regression tests for new wyclif?
-X- Can/should mychips use wyselib server code as its core?
-X- Generic wylib tab manager component launches from a specified preview table
-X-   Configurable background content
-X- Input instruction text for all tabs
-X- Make import optional
-X- Display tab title on one side with slightly increased size
-X- Display optional import on the other
-X- Remove all hard-coded language from app (make custom app view?)
-- 
-- State storage
-X-   After connection made, check local storage to see how things should be stored
-X-     Not at all (except to note this fact)
--     Store unencrypted
--     Store encrypted
-X-   If the user chooses encrypted, go back and encrypt everything in there now
-X-   Store note about how to treat this browser in the future
-X-   Reset everything erases this knowledge too, and the user has to start over
-X-   Connect module stores/retrieves my keys in local storage
-X- Reasonable storage of state works again
-X- Can store my keys in the browser
-X- Can store my last connection in the browser
-X- Will try to connect automatically to the last site on reload
 
+X- Can build wyselib schema stand-alone
 - Make server process in wyclif that can stand alone without mychips
 - 
 - Where to best put:
@@ -36,31 +11,15 @@ X- Will try to connect automatically to the last site on reload
 -   WyattERP User
 -   report app
 -   clientinfo ajax
-X- MyCHIPs contains only its own dedicated code
 - 
 - Re-enable wysegi serving (where does wysegi live now?)
-- 
-- Connection/disconnection retrying working right
-- Can begin to implement user permission structure
 - Enable user permission editor in wysegi, and admin app user tab
 - 
-- Implement default load column in views, wylib uses it if present
-- Implement default order column in views, wylib uses it if present
-- Update audit tables to store changes as JSON
-- 
+- Store/recall from localStorage encrypted
+- Easy to wipe localStorage? (Does default state do this?)
 - 
 - Strdoc:
-X- Submit in strdoc bubbles up through to main program
-X- Can save content properly
-X- In update routine, peel out title, text, (tag = source?)
-X- Reload dbe after strdoc update?
-X- Get report dialog to swallow strdoc menu (and/or make it sticky)?
-X- Report popup has stringy or auto-hide menu
-X- Implement dirty flag in strdoc
-X- Get rid of valid flag in strdoc?
-X- Connect publish to an action menu
-X- How do actions work which have no preview window?
-X- Use json-stable-stringify or fast-json-stable-stringify to generate hash
+- Can I edit/author documents now?
 - What if I import a document into strdoc and then try to update?  (Do an insert?)
 - Make source field I can enable with a button; Turns off other fields
 - Preview mode includes language to refer to the included document (in current language?)
@@ -73,17 +32,14 @@ X- Use json-stable-stringify or fast-json-stable-stringify to generate hash
 - Coded errors in wyseman.js get translated "badTuples" "badUpdate" etc
 - 
 - Wyselib:
-- Move to concatenated primary key for entity P100, A100, C100
-- Can still sort in numerical order
+X- Move to concatenated primary key for entity P100, A100, C100
+X- Can still sort in numerical order
 - Script to convert gnucash file to database format
 - Concatenated key for project type, number
 - Try porting my books into database format
 - Can test project, account structures
 - Scripts to auto-port all gnucash files into database
 - 
-- Implement password access over websocket to wyseman connection
-- Do key exchange and store on server
-- Insecure computer mode wipes localStorage
 - 
 - 
 - 
@@ -100,25 +56,18 @@ X- Use json-stable-stringify or fast-json-stable-stringify to generate hash
 - Create remote lift protocol
 - Design state machine to execute lifts
 - 
-- Build better agent model:
-- Communicates with server through user port?
-- Learns about other peers through central repository
-- Some users are in same DB, others in a different one
-- Work harder if my accrued receivables get low  
-- Raise vendor accumulation limits if my receivables get high
-- Create lift incentives if I get stale imbalances
-- Extend credit to peers based only on their credit-worthiness
-- 
 
 General roadmap:
 X- Can create/exchange tallies, chits with a peer
-- Create agent client module to model user, reads/writes/listens direct with DB
+X- Create agent client module to model user, reads/writes/listens direct with DB
+- Improve agent model (see below)
 - Can spawn N user agents against M server instances
 X- Create graphical canvas view of all users balance sheets
-- Implement lift algorithm
+X- Implement single-db lift algorithm
+- Implement multi-db lift algorithm
 - Implement basic contracts (author, display, publish)
 X- Review copyright; Should we limit free to people who respect a base contract?
-- Harden SPA connections, implement user ID's, schema permissions
+X- Harden SPA connections, implement user ID's, schema permissions
 - Implement digital signatures for tallies, chits, contracts, lifts
 - Implement encrypted network communications, noise protocol
 - Harden database schema
@@ -135,6 +84,13 @@ X- Make Admin SPA GUI useable, replace all functions of mc_admin
 - 
 
 User agent process:
+- Communicates with server through user port?
+- Learns about other peers through central repository
+- Some users are in same DB, others in a different one
+- Work harder if my accrued receivables get low  
+- Raise vendor accumulation limits if my receivables get high
+- Create lift incentives if I get stale imbalances
+- Extend credit to peers based only on their credit-worthiness
 -   Be more random on search for new client tally connection
 -   Find a foil tally and pay some credits on it
 -   Agent establishes reasonable number of tallies with other users
@@ -154,13 +110,12 @@ X- Dummy sql to create initial draft tally
 - 
 
 DB/schema:
-- Change base.ent to make id, unique to ent_type
-- Make consolidated key target field: P100, A100, G100
-- Adjust all subordinate tables to point to the target field
-- Create json views for tally import/export?
+X- Change base.ent to make id, unique to ent_type
+X- Make consolidated key target field: P100, A100, G100
+X- Adjust all subordinate tables to point to the target field
+- Test json tally import/export
 - Only allow minimum, required access/permissions
-- Is each server a single user, or do real user ID's flow all the way to the database connection?
-- Can run from schema sources, or from compiled schema 
+- Can run equally well from schema source build, or from compiled schema build
 - 
 
 Peer-to-peer:
@@ -203,23 +158,23 @@ Server:
 -   
 
 Wylib:
-- Wylib login/validation for SPA client/server connections
-- Make reports run more sensibly whether they have options or not
+- Implement default load column in views, wylib uses it if present
+- Implement default order column in views, wylib uses it if present
+- Update audit tables to store changes as JSON
+- Automatic reconnect retry working right
+- Handle state changes correct when connecting to new/different backend
+X- Wylib login/validation for SPA client/server connections
 - Wylib report
--   Reports survive reloads
--   Auto size iframe to container window size
 -   Can print from strdoc component
 -   Can print out tally contract (with QR code paper backup)?
 - Can export dbp view to a spreadsheet
 - Report graphics (i.e. ticket) can export to graphic, attach to email, etc.
-- How/when to self-heal components if state has extra, or not enough attributes
 - Support for spreadsheet reports?
 - Should we use a spreadsheet widget with file export?
-- See TODO's/Fixme's in dbp and dbe
-- wmd defaults for wyselib parameters
-- wmd defaults for other wyselib/base files?
-- Menu selector for accessing available actions in Dbp
-- Implement save/restore on each tab (later?)
+X- Write wmd files for wyselib parameters
+- Write wmd defaults for other wyselib/base files?
+- Can launch actions from a dbp with multiple keys
+- Should each tab have a menu that launches new previews, and can save/restore state?
 - 
 
 - Wyseman:
