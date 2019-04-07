@@ -4,6 +4,14 @@ Immediate:
 
 X- Can build wyselib schema stand-alone
 - Make server process in wyclif that can stand alone without mychips
+- Can install/update stock packages on sun, and connect with browser
+- Wylib creates link to TCL lib on install
+- Each package with binaries installs appropriate links to /usr*/bin
+- Can develop/compile packages using "npm link" rather than current symlink method
+- 
+- Wyselib includes accounting module
+- Try porting gnucash books into DB
+- 
 - 
 - Where to best put:
 -   Wysegi

@@ -3,7 +3,7 @@ This folder contains a sample self-signed site certificate.
 You can build your own site certificate by:
 
 - Editing the information in self_cert.conf to fit your site; and then
-- running: npm run certificate
+- running: npm run makecert
 
 This will build the files in this folder:
   server_certificate.pem

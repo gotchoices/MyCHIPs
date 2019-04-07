@@ -16,6 +16,7 @@ Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))
 var argv = Args({
   dbName: process.env.MYCHIPS_DBNAME || 'mychips',
   clifPort: process.env.MYCHIPS_WSPORT || '54320',
+  spaPort: process.env.MYCHIPS_SPAPORT || '8000',
   serverKey: process.env.MYCHIPS_SERVER_KEY || __dirname + '/../pki/server_private_key.pem',
   serverCert: process.env.MYCHIPS_SERVER_CERT || __dirname + '/../pki/server_certificate.pem'
 })
@@ -50,7 +51,7 @@ var wyseman = new Wyseman({
   host: argv.dbHost,
   database:argv.dbName,
   user: argv.dbAdmin, 
-  schema: __dirname + "/schema.sql"
+  schema: __dirname + "../lib/schema.sql"
 })
 
 if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communications

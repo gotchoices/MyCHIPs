@@ -1,2 +1,4 @@
 node_modules/
 schema/old
+.sync.ffs_db
+.DS_Store

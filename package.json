@@ -28,19 +28,12 @@
     "dev-server": "bin/mychips.js --spaPort=0",
     "server": "bin/mychips.js",
     "makecert": "bin/makecert",
-    "first-run": "bin/mychips.js --peerPort=0",
     "dev": "npm-run-all --parallel dev-build dev-server",
     "build": "webpack --mode production",
     "profile": "webpack --profile --json >/tmp/webpack-stats.json",
     "start": "bin/mychips.js",
     "build-sql": "cd schema; make sql",
-    "preversion": "npm-run-all --parallel build-sql build && git add -A",
-    "certificate": "bin/makecert"
-  },
-  "babel": {
-    "presets": [
-      "env"
-    ]
+    "preversion": "npm-run-all --parallel build-sql build && git add -A"
   },
   "repository": {
     "type": "git",
@@ -53,19 +46,16 @@
     "bitcoin"
   ],
   "dependencies": {
-    "ajv": "^6.6.1",
     "interactjs": "^1.3.4",
     "jquery": "^3.2.1",
     "json-stable-stringify": "^1.0.1",
-    "pg": "^7.7.1",
+    "pg": "^7.8.1",
     "pg-format": "^1.0.4",
     "qr-image": "^3.2.0",
     "string-hash": "^1.1.3",
-    "vue": "^2.5.21",
-    "winston": "^3.1.0",
-    "ws": "^5.2.2",
-    "wylib": "^1.0.3",
-    "wyseman": "^1.0.2"
+    "vue": "^2.6.8",
+    "winston": "^3.2.1",
+    "ws": "^6.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -81,12 +71,11 @@
     "npm-run-all": "^4.1.5",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.20.3",
-    "vue-loader": "^14.2.3",
+    "vue-loader": "^14.2.4",
     "vue-router": "^3.0.2",
-    "vue-template-compiler": "^2.5.21",
-    "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.10",
-    "wyselib": "^1.0.1"
+    "vue-template-compiler": "^2.6.8",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.2.1"
   }
 }
