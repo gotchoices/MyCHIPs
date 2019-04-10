@@ -50,8 +50,9 @@ var wyseman = new Wyseman({
 }, {
   host: argv.dbHost,
   database:argv.dbName,
-  user: argv.dbAdmin, 
-  schema: __dirname + "../lib/schema.sql"
+  user: argv.dbAdmin,
+  connect: true,
+  log, schema: __dirname + "/../lib/schema.sql"
 })
 
 if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communications
