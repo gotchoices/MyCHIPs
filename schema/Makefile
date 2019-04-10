@@ -1,7 +1,10 @@
 #Process schema files
-ifeq ("$(WYSELIB)","")
-  WYSELIB = ../node_modules/wyselib/schema
-  DBUSER = 'admin'
+DBUSER = 'admin'
+WSL = $(shell wyselib-info |cut -f 1-2 -d ' ' |tr ' ' '/')
+ifneq ("$(WSL)","")
+  WYSELIB = $(WSL)/schema
+else ifeq ("$(WYSELIB)","")
+  WYSELIB = ../../wyselib/schema
 endif
 ifeq ("$(MYCHIPSDB)","")
   DBNAME="mychips"
