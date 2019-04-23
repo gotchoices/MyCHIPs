@@ -4,7 +4,7 @@ On a Fedora linux machine:
 As Root:
 - Install Postgres, as root:
   dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib
-  dnf install ruby			#If you will be working on schema
+  dnf install ruby			#If you plan to be modifying the schema
   su -l postgres -c initdb
   systemctl enable postgresql
   systemctl start postgresql
@@ -26,7 +26,7 @@ As Root:
 - Try connecting to the SPA:
   Direct your browser to:	https://localhost:8000/admin.html
   
-  Your browser will warn you of an insecure site.  For testing, you can just
+  Your browser should warn you of an insecure site.  For testing, you can just
   proceed anyway.  Later you will want to create a real site certificate.
   
   You should find an open connection dialog in the upper right corner.
