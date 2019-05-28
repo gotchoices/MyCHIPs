@@ -1,10 +1,9 @@
 Instructions to demonstrate reference code. (Dec, 2018)
-On a Fedora linux machine:
+Currently tested on a Fedora 29 linux machine:
 
-As Root:
 - Install Postgres, as root:
   dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib
-  dnf install ruby			#If you plan to be modifying the schema
+  dnf install ruby rubygem-pg rubygem-tk	#If you plan to modify the schema
   su -l postgres -c initdb
   systemctl enable postgresql
   systemctl start postgresql
@@ -16,34 +15,44 @@ As Root:
 - checkout mychips (currently on bitbucket):
   git clone https://your-username@bitbucket.org/kylebateman/mychips.git
   cd mychips
-  npm install
+  npm install				#Install all dependencies
 
 - Run mychips server:
   npm run server			#Should also initialize database
   If you have trouble, set NODE_DEBUG=debug environment variable
   and watch logs in /var/tmp/mychips
+  You may also test running insecurely: npm run server -- -n
 
-- Try connecting to the SPA:
-  Direct your browser to:	https://localhost:8000/admin.html
+- Try connecting to the SPA (possibly from another machine):
+  Direct your browser to:	https://<hostname>:8000/admin.html
+                      or:	http://<hostname>:8000/admin.html
   
-  Your browser should warn you of an insecure site.  For testing, you can just
-  proceed anyway.  Later you will want to create a real site certificate.
+  If connecting over https, your browser should warn you of an insecure site.  
+  For testing, you can just proceed anyway.  Later you will want to create a 
+  real site certificate for the server.
   
-  You should find an open connection dialog in the upper right corner.
+  If the connection is working, you should see an open connection dialog in the 
+  upper right corner of the app.
 
-- You will next need a ticket to connect:
+- You will need a ticket to authorize the connection:
   cd test/sample
-  ./adminticket <host> <port> ><ticket_file>	#Can write the file somewhere else
+  ./adminticket <hostname> <port> ><ticket_file>	#Save the ticket to a file
   
   For example:
   ./adminticket 192.168.56.101 54320 >../tmp/admin.json
   
-- Use the "Import Key:" option in the connection dialog to open the ticket file.
-  Double click on the ticket to initiate your connection.
-  You will be prompted for your username (admin).
-  The GUI should connect to the backend, and turn your ticket into a key.
+- Use the "Import Keys:" option in the connection dialog to open the ticket file.
+  You may also drag/drop your ticket file onto the Import button.
   
-  See instructions in the wylib package for more info on saving connection keys.
+  Double click on the imported ticket to initiate your connection.
+  You should now be prompted for your username (admin).
+  The GUI should connect to the backend, and turn your ticket into a key.
+
+  The system should next prompt you for a pass phrase.  This phrase will be used
+  when storing your connection key in the browser local storage so others with
+  access to your computer can't steal your key.
+  
+  See instructions in the wylib package for more information on connection keys.
   
 - Now add some sample test data to the database:
   cd test
@@ -59,8 +68,8 @@ As Root:
 - Add sample tallies/chits (while watching the live Network display)
   Still in test/sample
   Specify database name only if not the same as your username (default)
-  psql <Database_Name> -f tallies.sql
-  psql <Database_Name> -f chits.sql
+  psql <Database_Name> admin -f tallies.sql
+  psql <Database_Name> admin -f chits.sql
 
 - Add more random users (while still watching the graph)
   ./randuser					# or:
