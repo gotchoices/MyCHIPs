@@ -7,14 +7,14 @@
 //- 
 
 const Settings = require('../settings')
-const { MachineIP, UserPort, PeerPort, DatabaseName, DBAdmin} = Settings
+const { MachineIP, UserPort, PeerPort, DatabaseName, DBAdmin, Log } = Settings
 
 var database = process.env.MYCHIPSDB || 'mychips'
 var user = DBAdmin || process.env.MYCHIPSDBA || process.env.USER
 console.log("database:", database, "user:", user, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
 
 var fs = require('fs')
-var log = require('../../lib/logger')('Kickstart')
+var log = Log('Kickstart')
 var { dbClient } = require("wyseman")
 const dbConfig = {
   database, user, log,
