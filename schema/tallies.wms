@@ -397,12 +397,12 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chits_v mychips.tallie
     declare
         dirty	boolean default false;
     begin
---raise notice 'Chit update';
         if TG_OP = 'INSERT' then
             dirty = true;
         elsif new.request is not null and new.request is distinct from old.request then
             dirty = true;
         end if;
+--raise notice 'Chit update: %', dirty;
         if dirty then perform mychips.chit_notify(new); end if;
         return new;
     end;
@@ -549,6 +549,7 @@ $$;}
 function mychips.change_tf_notify() {mychips} {
   returns trigger language plpgsql security definer as $$
     begin
+--raise notice 'Change notify: mychips_admin';
       perform pg_notify('mychips_admin', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
       return null;
     end;
@@ -562,7 +563,7 @@ trigger mychips_chits_tr_change {} {
 
 # Find an open tally meeting certain criteria, returning the sequence number
 #----------------------------------------------------------------
-function {mychips.tally_find(ent int, part int, typ text)} {mychips.tallies} {
+function {mychips.tally_find(ent text, part text, typ text)} {mychips.tallies} {
   returns int immutable language plpgsql as $$
     declare
       trec record;
