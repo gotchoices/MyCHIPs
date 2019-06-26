@@ -41,7 +41,7 @@ var expApp = SpaServer({spaPort: argv.spaPort, credentials, log})
 var wyseman = new Wyseman({
   host: argv.dbHost,
   database:argv.dbName,
-  user: null,
+  user: null, log
 }, {
   port: argv.clifPort, 
   dispatch: Dispatch,
@@ -71,5 +71,9 @@ if (Boolean(argv.lifts)) {				//Run lift scheduler
 
 if (Boolean(argv.model)) {				//Run agent-based simulation model
   const AgentCont = require('../lib/agent.js')		//Model controller
-  var agent = new AgentCont()
+  var agent = new AgentCont({
+    host: argv.dbHost,
+    database:argv.dbName,
+    user: argv.dbAdmin, 
+  })
 }
