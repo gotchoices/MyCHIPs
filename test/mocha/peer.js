@@ -9,7 +9,7 @@
 
 const assert = require("assert");
 const PeerCont = require("../../lib/peer")
-const { DatabaseName, MachineIP, Log } = require('../settings')
+const { DatabaseName, DBAdmin, MachineIP, Log } = require('../settings')
 const MessageBus = require('../bus')
 const Uport=43210
 const Pport0=65430
@@ -25,22 +25,22 @@ describe("Peer to peer tallies", function() {
   var db0, db1
 
   before('Connection 0 to test database', function(done) {
-    db0 = new dbClient({database: DatabaseName, listen: 'mychips_user_p1000', logger:log}, (chan, data) => {
+    db0 = new dbClient({database: DatabaseName, user: DBAdmin, listen: 'mychips_user_p1000', logger:log}, (chan, data) => {
       log.info("Notify from channel:", chan, "data:", data)
       bus0.notify(data)
     }, ()=>{log.info("Main test DB connection 0 established"); done()})
   })
 
   before('Connection 1 to test database', function(done) {
-    db1 = new dbClient({database: DatabaseName, listen: 'mychips_user_p1001', logger:log}, (chan, data) => {
+    db1 = new dbClient({database: DatabaseName, user: DBAdmin, listen: 'mychips_user_p1001', logger:log}, (chan, data) => {
       log.info("Notify from channel:", chan, "data:", data)
       bus1.notify(data)
     }, ()=>{log.info("Main test DB connection 1 established"); done()})
   })
 
   before('Launch two peer servers', function() {
-    server0 = new PeerCont(Pport0, Host0, {database: DatabaseName})
-    server1 = new PeerCont(Pport1, Host1, {database: DatabaseName})
+    server0 = new PeerCont(Pport0, Host0, {database: DatabaseName, user: DBAdmin})
+    server1 = new PeerCont(Pport1, Host1, {database: DatabaseName, user: DBAdmin})
   })
 
   it("Check for correct number of test users", function(done) {

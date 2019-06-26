@@ -3,12 +3,13 @@
 //- 
 
 const assert = require("assert");
-const { DatabaseName, Log } = require('../settings')
+const { DatabaseName, DBAdmin, Log } = require('../settings')
 var fs = require('fs')
 var log = Log('testImpexp')
 var { dbClient } = require("wyseman")
 const dbConfig = {
   database: DatabaseName,
+  user: DBAdmin,
   listen: "DummyChannel",		//Cause immediate connection to DB, rather than deferred
   logger: log,
   schema: __dirname + "/../../lib/schema.sql"
