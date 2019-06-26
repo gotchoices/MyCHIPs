@@ -22,7 +22,7 @@ new Vue({
     state:      {curTab: 'users', tabs: {users:{}, conts:{}, urnet:{}, config:{}}},
     tag:	'mychips_admin',
     title:	'MyCHIPs Admin',
-    dbConf:	"['mychips_admin','wylib']",
+    dbConf:	['mychips_admin','wylib'],
     hasRun:	{},
     tabs:	[
       {tag: 'users',  view: 'mychips.users_v', title: 'Users'},
