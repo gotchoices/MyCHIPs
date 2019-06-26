@@ -168,7 +168,7 @@ export default {
     this.updateNodes()
     this.updateLinks()
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
-//console.log("Async:", dat)
+console.log("URnet async:", dat)
       if (dat.target == 'peers') this.updateNodes()
       if (dat.target == 'chits' || dat.target == 'tallies') this.refresh()
     })

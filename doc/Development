@@ -1,4 +1,4 @@
-Instructions to demonstrate reference code. (Dec, 2018)
+Instructions to demonstrate reference code. (Jun 2019)
 Currently tested on a Fedora 29 linux machine:
 
 - Install Postgres, as root:
@@ -93,7 +93,7 @@ If you will be working on wyseman:
 - Remove mychips/node_modules/wyseman
   cd mychips/..
   git clone https://github.com/gotchoices/wyseman.git
-  ln -s wyseman mychips/node_modules
+  npm install wyseman
 
 - See wyseman/INSTALL for more installation details
   dnf install rubygem-pg rubygem-tk gcc-c++	;As root
@@ -105,7 +105,7 @@ If you will be working on the PostgreSQL schema:
 - Remove mychips/node_modules/wyselib
   cd mychips/..
   git clone https://github.com/gotchoices/wyselib.git
-  ln -s wyselib mychips/node_modules
+  npm install wyselib
 
 - You may have to drop your database, if it was created automatically
 
@@ -120,8 +120,8 @@ If you will be working on Wylib:
 - Remove mychips/node_modules/wylib
   cd mychips/..
   git clone https://github.com/gotchoices/wylib.git
-  ln -s wylib mychips/node_modules
-
+  npm install wylib
+  
 - Run 'watched' build in wylib:
   cd wylib
   npm run dev-build
@@ -132,17 +132,8 @@ If you will be working on Wylib:
 
 - Direct browser to port 3000 to get hot-loaded SPA
   Now changes in wylib or mychips SPA code should auto rebuild/reload
+  This does not work well when testing/using wylib reports
 
----------------------------------------------------------------------  
-Example development environment settings:
-
-  export LESS=eFRX		#For 'git diff' to work with colors
-  export WYATTDB="$USER"	#Name of database you will be using
-  export PATH="$PATH:$HOME/devel/wyseman/bin:$HOME/devel/mychips/bin"
-  export NODE_PATH="$HOME/devel:/usr/lib/node_modules:./node_modules"
-  export RUBYOPT="-I $HOME/devel/wyseman/lib -I $HOME/devel/mychips/lib"
-  export RUBYLIB="$HOME/devel/js/wyseman/lib"
-  
 ---------------------------------------------------------------------  
 Testing:
 
@@ -170,7 +161,7 @@ Other Notes:
   Peer communications at localhost:65430
 
 ---------------------------------------------------------------------  
-Legacy Ruby admin app:
+Legacy Ruby admin app:	(depricated)
 
 - Create a user ticket
   mychips/bin/mc_admin ticket 10000 /tmp/ticket.json

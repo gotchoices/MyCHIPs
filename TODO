@@ -1,17 +1,7 @@
 TODO:
 
 Immediate:
-
-X- Can build wyselib schema stand-alone
-- Make server process in wyclif that can stand alone without mychips
-- Can install/update stock packages on sun, and connect with browser
-- Wylib creates link to TCL lib on install
-- Each package with binaries installs appropriate links to /usr*/bin
-- Can develop/compile packages using "npm link" rather than current symlink method
-- 
-- Wyselib includes accounting module
-- Try porting gnucash books into DB
-- 
+- Re-enable auto-reconnect?
 - 
 - Where to best put:
 -   Wysegi
@@ -22,9 +12,6 @@ X- Can build wyselib schema stand-alone
 - 
 - Re-enable wysegi serving (where does wysegi live now?)
 - Enable user permission editor in wysegi, and admin app user tab
-- 
-- Store/recall from localStorage encrypted
-- Easy to wipe localStorage? (Does default state do this?)
 - 
 - Strdoc:
 - Can I edit/author documents now?
@@ -38,18 +25,6 @@ X- Can build wyselib schema stand-alone
 - 
 - How to serve my documents in HTML-viewable form if .html suffix given to web server
 - Coded errors in wyseman.js get translated "badTuples" "badUpdate" etc
-- 
-- Wyselib:
-X- Move to concatenated primary key for entity P100, A100, C100
-X- Can still sort in numerical order
-- Script to convert gnucash file to database format
-- Concatenated key for project type, number
-- Try porting my books into database format
-- Can test project, account structures
-- Scripts to auto-port all gnucash files into database
-- 
-- 
-- 
 - 
 - Lift modeling:
 - System for instantiating multiple databases, multiple servers
@@ -77,12 +52,13 @@ X- Implement single-db lift algorithm
 X- Review copyright; Should we limit free to people who respect a base contract?
 X- Harden SPA connections, implement user ID's, schema permissions
 - Implement digital signatures for tallies, chits, contracts, lifts
-- Implement encrypted network communications, noise protocol
-- Harden database schema
+- Implement encrypted network communications using noise protocol
+- Harden database schema, implementing full permission structure
+- Implement schema version control in wyseman
 X- Make Admin SPA GUI useable, replace all functions of mc_admin
-- Make User SPA GUI useable
-- Optimize User SPA GUI for mobile
+- Make Wylib User SPA GUI useable
 - Rollout
+- Create more optimal User SPA GUI for mobile
 - Implement async email/text notifications
 - Implement native mobile user app
 - Implement tally confirmations
