@@ -2,6 +2,7 @@ TODO:
 
 Immediate:
 - Re-enable auto-reconnect?
+- Column sort in dbp throws error.  Why?
 - 
 - Where to best put:
 -   Wysegi
@@ -91,6 +92,12 @@ User agent process:
 X- Dummy sql to create initial draft tally
 - Dummy sql files to simulate other required user actions
 - User agent process runs randomized strategy
+- 
+
+Compatibility:
+- Firefox issues:
+- Firefox: Can't connect to wss:/ if certificate is insecure, even if exception granted by user
+- Firefox: Drag/drop preview window highlights all text in the dragged window
 - 
 
 DB/schema:

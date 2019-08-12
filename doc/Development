@@ -1,5 +1,5 @@
 Instructions to demonstrate reference code. (Jun 2019)
-Currently tested on a Fedora 29 linux machine:
+Currently tested on a Fedora 29 linux machine using chrome as the browser:
 
 - Install Postgres, as root:
   dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib
@@ -28,8 +28,9 @@ Currently tested on a Fedora 29 linux machine:
                       or:	http://<hostname>:8000/admin.html
   
   If connecting over https, your browser should warn you of an insecure site.  
-  For testing, you can just proceed anyway.  Later you will want to create a 
-  real site certificate for the server.
+  For testing, you can just proceed anyway (at least in chrome).  Later you will 
+  want to create a real site certificate for the server and install a CA in your
+  browser if the certificate is not commercially recognized.
   
   If the connection is working, you should see an open connection dialog in the 
   upper right corner of the app.
@@ -40,6 +41,9 @@ Currently tested on a Fedora 29 linux machine:
   
   For example:
   ./adminticket 192.168.56.101 54320 >../tmp/admin.json
+  
+  Make sure the host address matches what is on your certificate when using TLS
+  otherwise you may not be able to connect.
   
 - Use the "Import Keys:" option in the connection dialog to open the ticket file.
   You may also drag/drop your ticket file onto the Import button.
@@ -81,6 +85,18 @@ Currently tested on a Fedora 29 linux machine:
   npm run server -- -m
   
   It doesn't do much right now, except find one other node to connect to.
+
+- Lifts
+  When the graph accumulates some debits and credits, you can try executing
+  some credit lifts.
+  
+  To examine the lift path table, execute this SQL:
+  
+  select bang,length,min,max,path from mychips.paths_v where circuit order by 1 desc
+  
+  To run a single credit lift, execute this SQL:
+  
+  select mychips.lift_cycle(1)		-- Argument = max number of lifts
 
 ---------------------------------------------------------------------  
 Want to browse the database schema:
@@ -133,6 +149,10 @@ If you will be working on Wylib:
 - Direct browser to port 3000 to get hot-loaded SPA
   Now changes in wylib or mychips SPA code should auto rebuild/reload
   This does not work well when testing/using wylib reports
+  
+  If you are testing reports, hot loading may not work so instead:
+  - Use in mychips: npm run dev-build
+  - And browse to port 8000
 
 ---------------------------------------------------------------------  
 Testing:

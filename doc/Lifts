@@ -1,19 +1,213 @@
 Lift Logic
+-------------------------------------------------------------------------------
+General Theory:
+
+For a general understanding of the lift algorithm, consider the figure on page
+2 of the accompanying Lifts.odg document (open in Libreoffice) entitled "Simple
+Lift Example."
+
+You will also benefit from reviewing the article at:
+  http://gotchoices.org/mychips/acdc.html
+
+This example considers 4 trading entities.  In this example, there are 2 people
+and 2 companies.  The arrows indicate the normal flow of credit (think of 
+payments).  So presumably, products and services are flowing in the opposite
+direction.
+
+For example, person B works for company A and shops at company C.  Person D
+works for company C and shops at copmany A.
+
+Entities do not always have to alternate between companies and people in this 
+way.  But generally, you are selling something (product, services, or labor) to 
+the entities upstream from you and you are buying something (product, services
+or labor) from the entites downstream.  This can really include any combination
+of people and companies.
+
+As products and services are rendered, payment is exchanged in the form of
+private credit, or an IOU.  As this is an accounting function, it has a dual
+entry nature (debit and credit).  A credit (negative, liability) is entered for 
+the entity making payment.  And a debit (positive, asset) is entered for the
+entity receiving payment.
+
+If you just got lost, please review:
+  http://gotchoices.org/book/account.html
+
+Keep in mind, these debits and credits do not actually flow around the circle.  
+For example, if A gives an IOU to B, that IOU will never flow along to C.  
+Since this is a private credit model, it means just that.  Your credit is 
+private.  It is just between you and the entity you do business with 
+directly--not some other entity you don't know or trust.
+
+However, the goal is to make these credits fungible, or in our case, 
+"effectively fungible."  That means we can't literally exchange one entity's 
+credits for another, but through the lift algorithm, we will accomplish 
+something roughly equivalent.
+
+After a sufficient volume of trading, each entity will have accumulated a 
+certain amount of asset value in IOU's from the entity upstream from him.  As
+you can imagine, this can only go on so long.  For example, if B gets too many
+IOU's from A, eventually he won't want any more.  He has reached is "trust
+level"
+
+What B really needs is IOUs from C where B buys his stuff.  The lift function 
+will allow B to give up some of his A credits in exchange for some C credits, 
+just as he desires.
+
+But in order to do so, we are going to have to find a complete circuit.  This
+is where entity D comes in so handy.  If we can, all at once, send a fixed 
+number of credits around the circuit in the upstream direction (against the 
+direction of the arrows), everyone's excessive buildup of IOU's can be 
+relieved a little bit.
+
+Everyone around the circuit will benefit from this transaction because they
+will be giving up credits they don't need in exchange for credits they do need.
+However, we will need to do this in a way that no one gets hurt--particularly
+if someone in the circle decides they want to try to cheat.
+
+One way to accomplish this is to use a transactional database model.  The idea
+is to que up all four of our credit exchanges belonging to a single lift and
+make them part of a database transaction.  This means the database will attempt
+all 4 transfers, but if any one of them fails, the other 3 will roll back too.
+So the lift will either work in its entirety, or it will not work at all.  The
+main goal is to make sure we don't perform part of the lift, but leave someone
+out so they end up giving credits away, but not getting the ones they are
+expecting in return.
+
+Now the bad news.  In order to do this, we have to have all our entities in a
+single database.  That means our system is centralized and unscalable.
+Centralization is prone to manipulation and corruption.  Scalability is the
+critical feature we need to surpass what alternative systems like blockchain
+have been unable to achieve.
+
+It would be nice to have an algorithm that will achieve a transactional result
+even when all 4 of our users have their data in different databases on 
+different computers distributed around the Internet.  
+
+And now, the bad news:
+
+That may be impossible.  See:
+  https://en.wikipedia.org/wiki/Two_Generals%27_Problem
+
+It turns out this is a pretty old problem.  It is hard enough to get a group
+of updates to operate as a single transaction inside a single database.  But
+when you are trying to do this over unreliable links, or with other peers you
+may not know or be able to fully trust, this just may be unachievable.
+
+So to get over this otherwise insurmountable hurdle, we are going to make a
+simple compromise:  Instead of making sure no one gets hurt during a lift, we
+will instead, be satisfied if we can make sure the honest people don't get 
+hurt.
+
+To do so, we will set up our transaction in several basic phases:
+
+In the first phase, we will discover circuits in the network which might be 
+capable of supporting a lift.
+
+In the next phase, we will initiate a proposed lift around that circuit.  Each
+peer who is willing to participate on the suggested terms will give a 
+conditional commitment.  This commitment is structured as a digital contract
+which, when properly signed, becomes a binding CHIP credit.
+
+In the final phase, we want to lock down each conditional credit and make it
+real, official and binding.  This is where the 2 generals dilemma would bite us
+if we were insisting on a fully transactional commit.  It is possible for
+someone to conditionally commit in the prior phase, but then fail to cooperate
+in the final commitment phase.
+
+However, because everyone already posesses conditional credits, lacking only
+the proper digital signature, all we really need is a way to get that signature
+out to everyone and they will have their money.  Any deadbeat who drops off the
+network in between these two phases will simply miss out.  He has already given
+his conditional approval in the previous phase, so his immediate peer can prove
+he is part of the lift and owes the value.  It is only the deadbeat himself who
+is lacking the final credits he needs to be made whole.
+
+This is not to say, everyone is happy about the deadbeat.  His upstream partner
+may have a potential collection problem (at least if his balance runs into 
+negative numbers).  But that is a risk he signed up for when initiating a tally
+with the deadbeat.  Hopefully he has collateral or some other way to collect if
+credit has been extended in the first place.
+
+The deadbeat's partner on the downstream side has the opposite effect.  He got
+the credits he wanted in the lift, but doesn't have to give anything up until
+the deadbeat gets back online and completes the transaction.
+
+The deadbeat has the further problem that he has burned his bridges to the
+network of trust.  The two entities who know and trust him, now know he is up
+to no good.  No further traffic can be performed by this entity--at least
+through the peers he has just dealt with wrongly.
+
+So the challenge in implementing the distributed lift function is this:  During
+the conditional commit phase, the peers need to negotiate a chain of signatures
+around the circuit which the lift originator can fully validate, proving that
+each pair of peers along the route has agreed to the transaction, pending the
+signature of the initiator himself.  Then, the initiator can form this final
+signature and send it back around the loop.  If he sends it in both directions
+(up and down stream), everyone involved in the process, except a single 
+deadbeat can get the final signature they need.  
+
+If there are two deadbeats in a single lift, it is possible for them to
+deprive everyone in between them of the final signing key.  This could
+conceivably be orchestrated between two corrupt nodes on the network, working
+together and using a modified version of the server.
+
+However, they can only do damage if the lift will run them into credit 
+territory (i.e. a negative balance) with the party they are attemping
+to burn.  That credit relationship won't last for long, and is a risk the
+issuer of credit knowingly signed up for.
 
 -------------------------------------------------------------------------------
-Lift Maker:
+Linear Lifts:
+
+The lift algorithm described above is performed in a complete circle.  It's
+function is to relieve credit surpluses and deficits around a complete circuit
+of trading entities.
+
+So the assumption is, a bunch of people have already been trading using
+existing private credit relationships, and they want to participate in a lift
+to relieve built up credits so they can keep going.
+
+But there is another kind of lift possible that travels only in a straight
+line.  See the figure on page 3 of the accompanying Lifts.odg document
+entitled "Linear Lift Example."
+
+In this example, entity D meets entity A through some trading opportunity (like
+an online auction site, for example).  Due to the reputation of the site, D
+trusts A enough to believe he will actually ship the product or services so now
+D wants to pay A.
+
+However, they don't know each other well enough to establish a trading tally
+between them.  They just want to get this one transaction done, and that will
+be the end of it.
+
+In this case, we don't need a complete circuit of credits.  We just need
+"nearly a circuit" or a circuit, with the exclusion of a direct credit link 
+between A and D.
+
+In this case, no credit transaction will flow between A and D.  We have the
+product or services to account for this.  We will just need to negotiate one
+or more lifts which add up exactly to the value meant to be transmitted from
+D to A.  If we can find enough cooperating parties willing to do so in a path
+that starts with D and ends with A, we can complete the transaction.
+
+In nearly every other way, this is identical to a circular lift.  But the
+special case does need to be accommodated.  In fact, it could potentially
+become the more prevalent form in certain types of trading.
+
+-------------------------------------------------------------------------------
+Lift Maker: (needs refinement)
 
 Each server should, on a regular interrupt schedule, act on behalf of each of
 its users to do the following:
 
-- Query foils that are below target levels
+- Query foils (downstream tallies) that are below target levels
   - A negative number is credit that needs to be paid at least back to zero.
-  - Some foil tallies will have higher targets to accumulate a debit balance
-    so it can be spent later.
+  - Some foil tallies will have higher (positive) targets to accumulate a debit 
+    balance so it can be spent later.
 - Identify the target foil to lift (we will call this vendor peer V)
 - Compare the amount desired to lift for the target foil to available 
   accumulations on active stocks.
-- Pick a stock to target for the lift.
+- Pick a stock (upstream tally) to target for the lift.
 - Query the upstream peer for that stock (customer peer C) to see if he knows 
   how to reach V upstream somewhere.
 - If our query goes unanswered, or answered negatively, try to select another
@@ -26,8 +220,6 @@ its users to do the following:
   query.
 - This request should propagate all the way around the circle and come back to
   us via peer V.
-
-xxxxxxx  
 
 -------------------------------------------------------------------------------
 Lift Peers:
