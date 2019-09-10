@@ -1,0 +1,36 @@
+Presentation Outline
+-------------------------------------------------------------------------------
+
+Review Lift function in ACDC article
+
+Show admin app, user screen
+
+Show network map
+  - Delete all chits
+  - Delete all tallies
+
+Launch user agent, watch it populate
+
+Query mychips.paths_v table
+  - Run lifts manually, watch it update screen
+
+Next Steps:
+  - Network test environment: launch multiple instances
+  - More advanced user agent model; Communicate through real sockets
+  - Admin app:
+    - Contract authoring, editing, publishing
+  - Develop peer-to-peer protocol, state processor
+    - Pathway discovery protocol
+    - Lift query/execution protocol
+  - Basic user app:
+    - Enter/update trading parameters
+    - Key generation, storing
+    - View CHIP assets, liabilities, totals
+    - View statistics
+  - Backend:
+    - Lift initiation agent
+  - Build basic contract set
+
+Review JSON structures:
+  - Contracts
+  - Tallies
