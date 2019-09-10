@@ -1,20 +1,30 @@
 #!/bin/bash
-#Run multiple servers to simulate a network of CHIP servers
+#Run multiple servers on a single machine to simulate a small MyCHIPs network
 size="80x64"						#X-window size
-gx=10; gy=320; offx=500; offy=0;			#Window geometry placement offsets
-path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..";	#echo "path:$path"
-basecmd="$path/bin/mychips.js --no-spaPort --no-adminPort --no-userPort"
-baseport=65430						#Port for first server
+gx=20; gy=320; offx=500; offy=0;			#Window geometry placement offsets
+
+#path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..";	#echo "path:$path"
+path=$(pwd)
+while [[ $path != / ]]; do				#Find first bin dir above me
+  if find "$path" -maxdepth 1 -mindepth 1 -type d -name bin | grep -q .; then
+    break
+  fi
+  path="$(readlink -f "$path"/..)"
+done
+
+basecmd="NODE_DEBUG=debug $path/bin/mychips.js --no-spaPort --no-adminPort --no-userPort --no-clifPort"
+baseport=65430						#Peer port for first server
 nextServer=0						#Keep track of how many servers launched
 serversPIDs=()						#And remember their PIDs
+#echo "path:$path basecmd:$basecmd baseport:$baseport"; exit 0;
 
 #Start up a server, in a window, at port=$1
 function launchServer {
   idx=$nextServer
   port=$(expr $baseport + $idx)
   rcfname="mychips-$idx-$port.rc"
-#echo "idx:$idx port:$port rcfname:$rcfname"
   cmd="$basecmd --peerPort=$port --hostID=server$idx"
+echo "idx:$idx port:$port rcfname:$rcfname cmd:$cmd"
   echo $cmd >/tmp/$rcfname
   geom="+$(expr $offx \* $idx + $gx)+$(expr $offy \* $idx + $gy)"
   xterm -geometry $size$geom -e "bash --init-file /tmp/$rcfname" &

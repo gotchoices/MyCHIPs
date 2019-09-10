@@ -13,7 +13,7 @@ while [ ! -z "$1" ]; do					#For each command line argument
     if [ ! -f $logfname ]; then
       touch $logfname
     fi
-    cmd="$path/tailalogfile $logfname";		#echo "cmd:$cmd"
+    cmd="$path/watchalog $logfname"		#;echo "cmd:$cmd"
     geom="+$(expr $offx \* $nextWin + $gx)+$(expr $offy \* $nextWin + $gy)"
     rcfname="watch-log-$1.rc"
     echo $cmd >/tmp/$rcfname
@@ -30,7 +30,7 @@ function cleanup {				#Do on exit
   for pid in ${winPIDs[@]}; do
     kill $pid;	    echo -n "$pid "		#Kill the xterm
   done
-  killall tailalogfile
+  killall watchalog
   echo
 }
 trap cleanup EXIT
