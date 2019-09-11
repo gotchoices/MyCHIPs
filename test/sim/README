@@ -1,5 +1,7 @@
 Scripts for establishing a simulated MyCHIPs network
 
+Local Simulation:
+-------------------------------------------------------------------------------
 simulation:
   Runs a specified number of instances of the server on the local machine.  This
   is good for simple simulations like testing the state transitions for peer
@@ -8,3 +10,45 @@ simulation:
 watchlogs:
   Launches a terminal window to monitor each of the servers created from the 
   simulation command.
+
+Network Simulation:
+-------------------------------------------------------------------------------
+The network simulation is implemented by the simnet script to launch various 
+services on a number of different machines.
+
+Each machine can run:
+  - A single postgreSQL instance
+  - A single SPA/clif server
+  - Any number of peer servers, each with its own ID, unique to the machine
+
+When the simnet script is run, it will access each configured machine via
+ssh and perform the following actions:
+
+  - Grab any changes to the source code so it has the very latest.  This will
+    be done via rsync.  We won't use git as there is no guaranty in a testing 
+    environment that git will have the latest thing we are working on.
+  - Kill any currently running MyCHIPs processes
+  - Verify that the machine is properly configured (postgres, node, etc).
+    Install/configure any necessary software.
+  - Apply any changes to the database schema
+  - Relaunch the SPA/clif service
+  - Query the database for any configured hostID's and launch one peer
+    server for each unique ID (including null?)
+
+Since everything is done over ssh, it will be immensely helpful to eliminate
+the need to enter a password each time you connect.  You can do this with:
+
+  ssh-keygen -t rsa -b 2048
+  ssh-copy-id <username>@<servername>
+
+This must be done manually.  It is not done as part of any automated scripting.
+You must generate the key one time, and then copy it to each of the machines
+you want to access for the simulation.
+
+Most likely you will be connecting to the machines as the root user.  This
+measure gives your local machine total control over each of the simulation
+machines.  This can create a very big security hole.  So only use machines for
+simulation that are not important for other functions.  For example, you can
+create a bunch of virtual machines in the cloud that don't really do much
+except to run your simulations.
+

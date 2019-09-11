@@ -1,0 +1,6 @@
+#Configuration parameters for network simulation
+
+user=root
+srcdir=/usr/local/devel
+machines=( 192.168.5.11 192.168.5.15 192.168.5.16 192.168.5.18 )
+#machines=( 192.168.5.2 )
