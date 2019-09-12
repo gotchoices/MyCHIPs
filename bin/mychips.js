@@ -11,7 +11,7 @@ const { Wyseman } = require('wyseman')
 
 var log = Log('mychips')
 var { actions, Parser } = require('wyselib')
-Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))
+Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
 
 var argv = Args({
   dbName: process.env.MYCHIPS_DBNAME || 'mychips',

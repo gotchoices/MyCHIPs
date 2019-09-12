@@ -1,8 +1,17 @@
 TODO:
 
 Immediate:
-- Re-enable auto-reconnect?
-- Column sort in dbp throws error.  Why?
+- 
+- Lift modeling:
+X- System for instantiating multiple databases, multiple servers
+- Central repository where agent users can choose from peers, not in their own DB
+- DB support for peers, which are not local users
+- Make paths_v properly detect paths to/from peers not on the same DB
+- Create remote query protocol
+- Query adjoining DB's for pathway information
+- Populate local DB with stubs for remote peers
+- Create remote lift protocol
+- Design state machine to execute lifts
 - 
 - Where to best put:
 -   Wysegi
@@ -13,6 +22,7 @@ Immediate:
 - 
 - Re-enable wysegi serving (where does wysegi live now?)
 - Enable user permission editor in wysegi, and admin app user tab
+- Column sort in dbp throws error.  Why? (Can't re-create this, for now)
 - 
 - Strdoc:
 - Can I edit/author documents now?
@@ -27,18 +37,11 @@ Immediate:
 - How to serve my documents in HTML-viewable form if .html suffix given to web server
 - Coded errors in wyseman.js get translated "badTuples" "badUpdate" etc
 - 
-- Lift modeling:
-- System for instantiating multiple databases, multiple servers
-- Central repository where agent users can choose from peers, not in their own DB
-- DB support for peers, which are not local users
-- Make paths_v properly detect paths to/from peers not on the same DB
-- 
-- Create remote query protocol
-- Query adjoining DB's for pathway information
-- Populate local DB with stubs for remote peers
-- 
-- Create remote lift protocol
-- Design state machine to execute lifts
+- Network simulator
+X-   Install default postgres configuration (limit access to local processes)
+X-   Launch spa/clif server
+-   Apply schema changes to the database
+-   Launch any necessary peer servers (can this happen automatically?)
 - 
 
 General roadmap:
