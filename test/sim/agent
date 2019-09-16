@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+//Standalone agent-based simulation model
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
+
+var argv = require('yargs')
+  .alias('H','dbHost')     .default('dbHost',     process.env.MYCHIPS_DBHOST)	//SQL Database
+  .alias('D','dbName')     .default('dbName',     process.env.MYCHIPS_DBNAME || 'mychips')
+  .alias('A','dbAdmin')    .default('dbAdmin',    process.env.MYCHIPS_DBADMIN || 'admin')
+  .alias('P','dbPort')     .default('dbPort',     process.env.MYCHIPS_DBADMIN)
+  .alias('h','ddHost')     .default('ddHost',     process.env.MYCHIPS_DDHOST || 'localhost')	//Document Database
+  .alias('d','ddName')     .default('ddName',     process.env.MYCHIPS_DDNAME || 'mychips')
+  .alias('a','ddAdmin')    .default('ddAdmin',    process.env.MYCHIPS_DDADMIN || 'admin')
+  .alias('p','ddPort')     .default('ddPort',     process.env.MYCHIPS_DDPORT || '27017')
+  .alias('m','model')      .default('model',    1)
+  .argv
+
+const moduleFile = '../../lib/agent' + argv.model + '.js'
+const AgentCont = require(moduleFile)		//Model controller
+var agent = new AgentCont({
+  host: argv.dbHost,
+  database:argv.dbName,
+  user: argv.dbAdmin, 
+  port: argv.dbPort, 
+}, {
+  host: argv.ddHost,
+  database:argv.ddName,
+  user: argv.ddAdmin, 
+  port: argv.ddPort, 
+})
