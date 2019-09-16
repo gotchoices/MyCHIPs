@@ -1,0 +1,3 @@
+#!/bin/bash
+
+psql mychips admin -c "select mychips.lift_cycle(100);"
