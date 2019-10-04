@@ -5,7 +5,7 @@ tabtext mychips.peers	{CHIP Peers}		{All entities who trade CHIPs using on this 
     {peer_cdi		{CHIPs ID}		{The user's CHIPs Domain Identifier, or CDI}}
     {peer_hid		{Covert ID}		{A substitute ID by which direct trading partners will refer to this user, when conversing with other peers}}
     {peer_pub		{Peer Public Key}	{The peer's public key, known to other trading partners}}
-    {peer_inet		{Peer Net Addr}		{The IP number where other CHIP servers can connect to do trades with this peer}}
+    {peer_host		{Peer Host Address}	{The hostname or IP number where other CHIP servers can connect to do trades with this peer}}
     {peer_port		{Peer Port}		{The port where other servers will connect}}
     {peer_cmt		{Peer Comments}		{Administrative comments about this peer}}
 } $glob::stampt] -messages {

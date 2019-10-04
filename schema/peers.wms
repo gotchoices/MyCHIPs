@@ -13,7 +13,7 @@ schema mychips {}
 
 namespace eval peers {
     def peers_pk	{peer_ent}
-    def peers_v_up	{peer_cdi peer_hid peer_pub peer_inet peer_port peer_cmt}
+    def peers_v_up	{peer_cdi peer_hid peer_pub peer_host peer_port peer_cmt}
     def peers_v_in	[concat $peers_pk $peers_v_up]
     def peers_se	[concat $peers_v_in $glob::stampfn]
     def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name]
@@ -28,7 +28,7 @@ table mychips.peers {base.ent mychips} {
   , peer_cdi	text		
   , peer_hid	text		
   , peer_pub	text		
-  , peer_inet	inet
+  , peer_host	text
   , peer_port	int
   , peer_cmt	text
     eval(s $glob::stamps)
@@ -39,7 +39,7 @@ table mychips.peers {base.ent mychips} {
 view mychips.peers_v {mychips.peers base.ent_v} {select 
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
-  , host(peer_inet) || ':' || peer_port	as peer_sock
+  , peer_host || ':' || peer_port	as peer_sock
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id;

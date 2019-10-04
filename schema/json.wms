@@ -76,15 +76,15 @@ view json.tally {json mychips.tallies_v} {select
 
 # Standard view for tickets
 #----------------------------------------------------------------
-view json.ticket {json mychips.tickets_v} {select
-    id			as "id"
-  , token_seq		as "seq"
-  , url			as "url"
-  , token		as "token"
-  , peer_pub		as "public"
-  , exp_date		as "expires"
-    from	mychips.tickets_v
-} -primary {id seq}
+#view json.ticket {json mychips.tickets_v} {select
+#    id			as "id"
+#  , token_seq		as "seq"
+#  , url			as "url"
+#  , token		as "token"
+#  , peer_pub		as "public"
+#  , exp_date		as "expires"
+#    from	mychips.tickets_v
+#} -primary {id seq}
 
 # Standard view for contracts
 #----------------------------------------------------------------

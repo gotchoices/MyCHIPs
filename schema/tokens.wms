@@ -2,13 +2,14 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
+#- Is this module obsolete now? (in favor of base.login?)
 #- What allow codes do we need besides stock?
 #-   Stock allows someone to connect and obtain a tally stock (i.e. lend, or get our coupons)
 #-   Is foil a needed allow code?
 #- 
-#- 
-require common.tcl glob.tcl ../trigview.tcl
 
+require common.tcl glob.tcl ../trigview.tcl
+return		;#Obsolete
 module mychips
 
 namespace eval tokens {
@@ -33,40 +34,40 @@ table mychips.tokens {base.ent} {
 
 # Generate unique sequence for new entry
 #----------------------------------------------------------------
-function mychips.token_tf_seq() {mychips.tokens} {
-  returns trigger security definer language plpgsql as $$
-    begin
-      if new.token_seq is null then
-        select into new.token_seq coalesce(max(token_seq),0)+1 from mychips.tokens where token_ent = new.token_ent;
-      end if;
-      if new.token is null then				-- If no token specified
-        loop
-          select into new.token md5(random()::text);	-- Make a random one
-          if not exists (select token from mychips.tokens where token = new.token) then
-            exit;					-- Make sure it is unique
-          end if;
-        end loop;
-      end if;
-      update mychips.tokens set used = 't' where token_ent = new.token_ent and token_seq != new.token_seq and not used;		-- Only allow one active token per user at a time
-      return new;
-    end;
-$$;}
-trigger mychips_token_tr_seq {} {
-    before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
-}
+#function mychips.token_tf_seq() {mychips.tokens} {
+#  returns trigger security definer language plpgsql as $$
+#    begin
+#      if new.token_seq is null then
+#        select into new.token_seq coalesce(max(token_seq),0)+1 from mychips.tokens where token_ent = new.token_ent;
+#      end if;
+#      if new.token is null then				-- If no token specified
+#        loop
+#          select into new.token md5(random()::text);	-- Make a random one
+#          if not exists (select token from mychips.tokens where token = new.token) then
+#            exit;					-- Make sure it is unique
+#          end if;
+#        end loop;
+#      end if;
+#      update mychips.tokens set used = 't' where token_ent = new.token_ent and token_seq != new.token_seq and not used;		-- Only allow one active token per user at a time
+#      return new;
+#    end;
+#$$;}
+#trigger mychips_token_tr_seq {} {
+#    before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
+#}
 
 #Basic view
 #----------------------------------------------------------------
-view mychips.tokens_v {mychips.tokens mychips.users_v base.ent_v} {
-    select eval(fld_list $tokens::tokens_se t)
-      , u.peer_cdi, u.user_inet, u.user_port, u.std_name
-      , t.exp_date <= current_timestamp as "expired"
-      , t.exp_date > current_timestamp and not used as "valid"
-
-    from	mychips.tokens	t
-    join	mychips.users_v	u	on u.user_ent = t.token_ent
-
-    eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk $glob::stampin);
-    eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);
-    eval(rule_delete mychips.tokens_v mychips.tokens $tokens::tokens_pk);
-}
+#view mychips.tokens_v {mychips.tokens mychips.users_v base.ent_v} {
+#    select eval(fld_list $tokens::tokens_se t)
+#      , u.peer_cdi, u.user_inet, u.user_port, u.std_name
+#      , t.exp_date <= current_timestamp as "expired"
+#      , t.exp_date > current_timestamp and not used as "valid"
+#
+#    from	mychips.tokens	t
+#    join	mychips.users_v	u	on u.user_ent = t.token_ent
+#
+#    eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk $glob::stampin);
+#    eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);
+#    eval(rule_delete mychips.tokens_v mychips.tokens $tokens::tokens_pk);
+#}

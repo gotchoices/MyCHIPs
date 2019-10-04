@@ -2,39 +2,59 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
+#- Is notion of "user token" now obsolete due to base.token_login()?
+#- Do I only need peer connection tokens now?
+#- Can this sit atop base.token system in wyselib?
 #- 
 module mychips
 
 # Base view of tickets
 #----------------------------------------------------------------
-define buildUrl {case when t.allows = 'user' then u.user_sock else u.peer_cdi end}
-view mychips.tickets_v {mychips.users_v mychips.tokens_v base.parm(text,text)} {select
-    u.id		as "id"
-  , t.token_seq
-  , buildUrl()		as "url"
-  , t.token
-  , s.peer_pub
-  , t.exp_date
-  , json_build_object('url', buildUrl(), 'token', t.token, 'expires', t.exp_date) as "json"
-
-    from	mychips.users_v	u
-    join	mychips.tokens	t on t.token_ent = u.id
-    left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
-    left join	mychips.peers	s on s.peer_ent = p.v_text
-    where	t.exp_date > current_timestamp and not t.used
-} -grant {
-    {mychips	{} {s}}
-} -primary {id token_seq}
+#define buildUrl {case when t.allows = 'user' then u.user_sock else u.peer_cdi end}
+#view mychips.tickets_v {mychips.users_v mychips.tokens_v base.parm(text,text)} {select
+#    u.id		as "id"
+#  , t.token_seq
+#  , buildUrl()		as "url"
+#  , t.token
+#  , s.peer_pub
+#  , t.exp_date
+#  , json_build_object('url', buildUrl(), 'token', t.token, 'expires', t.exp_date) as "json"
+#
+#    from	mychips.users_v	u
+#    join	mychips.tokens	t on t.token_ent = u.id
+#    left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
+#    left join	mychips.peers	s on s.peer_ent = p.v_text
+#    where	t.exp_date > current_timestamp and not t.used
+#} -grant {
+#    {mychips	{} {s}}
+#} -primary {id token_seq}
 
 # Create a new ticket for the specified user
 #----------------------------------------------------------------
-function {mychips.ticket_user(uid text)} {mychips.tokens mychips.tickets_v} {
-  returns jsonb language plpgsql as $$
+#function {mychips.ticket_user(uid text)} {mychips.tokens mychips.tickets_v} {
+#  returns jsonb language plpgsql as $$
+#    declare
+#      retval	jsonb;
+#    begin
+#      insert into mychips.tokens (token_ent, allows) values (uid, 'user');
+#      select into retval json from mychips.tickets_v where id = uid;
+#      return retval;
+#    end;
+#$$;}
+
+# Create a new login ticket for the specified user
+#----------------------------------------------------------------
+function {mychips.ticket_login(uid text)} {base.token_v_ticket mychips.users base.parm_int(text,text) base.parm_text(text,text)} {
+  returns base.token_v_ticket language plpgsql as $$
     declare
+      trec	record;
+      urec	record;
       retval	jsonb;
     begin
-      insert into mychips.tokens (token_ent, allows) values (uid, 'user');
-      select into retval json from mychips.tickets_v where id = uid;
-      return retval;
+      insert into base.token_v_ticket (token_ent, allows) values (uid, 'login') returning * into trec;
+      select into urec * from mychips.users where user_ent = uid;
+      trec.host = coalesce(urec.user_host, base.parm_text('mychips','user_host'), trec.host);
+      trec.port = coalesce(urec.user_port, base.parm_int('mychips','user_port'), trec.port);
+      return trec;
     end;
 $$;}
