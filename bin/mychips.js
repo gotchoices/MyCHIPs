@@ -14,7 +14,9 @@ var { actions, Parser } = require('wyselib')
 Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
 
 var argv = Args({
+  dbHost: process.env.MYCHIPS_DBNAME,
   dbName: process.env.MYCHIPS_DBNAME || 'mychips',
+  dbAdmin: process.env.MYCHIPS_DBADMIN || 'admin',
   clifPort: process.env.MYCHIPS_WSPORT || '54320',
   spaPort: process.env.MYCHIPS_SPAPORT || '8000',
   serverKey: process.env.MYCHIPS_SERVER_KEY || __dirname + '/../pki/server_private_key.pem',
