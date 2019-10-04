@@ -26,7 +26,7 @@ var pending = 0
 var db = new dbClient(dbConfig)
 
 var queryList = []
-queryList.push({q:"select base.parmset('mychips','mobi_inet',$1::inet)", a:[Settings.MachineIP]})
+//queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[Settings.MachineIP]})
 
 const fileList = ["org.json", "user1.json", "user2.json", "user3.json"].forEach(file=>{
   let fileData = fs.readFileSync(__dirname + '/' + file)
@@ -42,8 +42,8 @@ const fileList = ["org.json", "user1.json", "user2.json", "user3.json"].forEach(
 //Set org.json entity as the site admin
 queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})
 
-queryList.push({q:"update mychips.users set user_inet = $1, user_port=$2 where user_inet is null", a:[Settings.MachineIP, Settings.UserPort]})
-queryList.push({q:"update mychips.peers set peer_inet = $1, peer_port=$2 where peer_inet is null", a:[Settings.MachineIP, Settings.PeerPort]})
+queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where user_host is null", a:[Settings.MachineIP, Settings.UserPort]})
+queryList.push({q:"update mychips.peers set peer_host = $1, peer_port=$2 where peer_host is null", a:[Settings.MachineIP, Settings.PeerPort]})
 
 //For testing tallies:
 let q1 = "update mychips.users_v set host_id=$1, peer_port=$2 where id = $3;"
