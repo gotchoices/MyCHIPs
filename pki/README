@@ -22,6 +22,8 @@ Here are two very bad ideas NOT to do:
 The -n switch runs your server without any kind of authentication at all. So 
 anyone can connect to your server, logged in as any user, and make ANY kind of 
 changes to the data.  Only use this switch for testing/development purposes.
+Also in http mode, your browser won't have access to the crypto.subtle module
+so you won't be able to store connection keys persistently in localstorage.
 
 Note, if you use the self-signed certificate method, there is no way for your
 users to know that they are connected to the correct site unless you give them
