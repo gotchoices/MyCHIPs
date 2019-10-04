@@ -1,6 +1,12 @@
 #Configuration parameters for network simulation
+#Modify as needed for local configuration
 
-user=root
-srcdir=/usr/local/devel
-machines=( 192.168.5.11 192.168.5.15 192.168.5.16 192.168.5.18 )
-#machines=( 192.168.5.2 )
+user=root			#Will connect to remote machines with this ID
+remsrc="/usr/local/devel"	#Where to replicate source directory on remote machines
+vmsrc="~/share/devel"		#Where to find source directory on local vms
+public=nb0			#Where our public document database will be running
+locals=(lux0 lux1)		#Any machines that already have an up-to-date source mirror (via nfs or the like)
+#remotes=( 192.168.5.11 192.168.5.15 192.168.5.16 192.168.5.18 )
+#remotes=( 192.168.5.16 )
+remotes=( )
+machines=( "${locals[@]}" "${remotes[@]}" )

@@ -10,6 +10,7 @@
 #-------------------------------------------------------------------------------
 tmpdir="/var/tmp/mychips"
 
+thisscript="${BASH_SOURCE}"
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
 source $mypath/config
@@ -20,7 +21,7 @@ while [[ $path != / ]]; do				#Find first bin dir above me
   if find "$mychips" -maxdepth 1 -mindepth 1 -type d -name bin | grep -q .; then
     break
   fi
-  mysim="$(basename $mychips)/${mysim}"
+  mysim="$(basename $mychips)/${mysim}"			#Find simulation directory
   mychips="$(cd $mychips/.. && pwd)"
 done
 
@@ -29,69 +30,85 @@ if [ "$(basename "$mychips")" != "mychips" ]; then
   exit 1
 fi
 
-#This part gets run on the local machine only
+#Check configuration (running on a slave machine)
 #-------------------------------------------------------------------------------
-if [ "$1" != "remote" ]; then
-  if [ "$(basename "$srcdir")" != "devel" ]; then
-    echo "Can't find mychips remote development directory path"
-    exit 1
+if [ "$1" == "config" ]; then
+#  echo Configuring; exit 0
+  shift							#Discard "remote" argument
+
+  rpms=""							#Install any rpms we may need
+  for pkg in postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib ruby rubygem-pg rubygem-tk; do
+    if ! rpm -qi $pkg >/dev/null; then
+      rpms="${rpms} $pkg"
+    fi
+  done
+  #echo "rpms:$rpms"
+  if [ ! -z "$rpms" ]; then
+    dnf install -y $rpms
   fi
   
-# echo "mychips:$mychips mysim:$mysim base:$(basename $mychips) source:$this"
-  for mach in "${machines[@]}"; do			#Update each machine with mirror of latest source code
-    echo "Machine:$mach"
-    if [ "$1" != "stop" ]; then
-      rsync -ar --delete "$mychips" "$mychips"/../node_modules "$mychips"/../wylib "$mychips"/../wyselib "$mychips"/../wyseman "$mychips"/../wyclif "${user}@${mach}:${srcdir}"
-    fi
-    ssh -f ${user}@${mach} "${srcdir}/mychips/${mysim}${this} remote $@"	#And then execute this script remotely
-  done
+  if [ ! -d /var/lib/pgsql/data/base ]; then		#Initialize PostgreSQL
+    su -l postgres -c "initdb --locale=C"			#Might also use: eng_US.UTF-8
+    systemctl enable postgresql
+    systemctl start postgresql
+  fi
   
-  sleep 1						#Give time for remote comments to post before returning to prompt
+  if [ "$(psql -A -t template1 postgres -c "select * from pg_roles where rolname = 'admin'" |wc -l)" -lt 1 ]; then
+    su -l postgres -c 'createuser -d -s -r admin'		#Create our administrative user
+  fi
   exit 0
 fi
 
-#This part gets run over ssh on each remote machine
+#Relaunch any services (running on a remote or local vm)
 #-------------------------------------------------------------------------------
-shift							#Discard "remote" argument
-rpms=""							#Install any rpms we may need
-for pkg in postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib ruby rubygem-pg rubygem-tk; do
-  if ! rpm -qi $pkg >/dev/null; then
-    rpms="${rpms} $pkg"
+if [ "$1" == "refresh" ]; then
+#  echo "Refreshing; path: ${mypath}"; exit 0
+  shift							#Discard "remote" argument
+
+  if ! cd "$mypath"/../.. || [ "$(basename "$(pwd)")" != 'mychips' ]; then
+    echo "Can't find MyCHIPs source directory"
+    exit 1
   fi
-done
-#echo "rpms:$rpms"
-if [ ! -z "$rpms" ]; then
-  dnf install -y $rpms
+  
+  mkdir -p $tmpdir
+  if [ -f $tmpdir/pids ]; then				#Kill any running servers
+    for p in $(cat $tmpdir/pids); do
+      echo "  Killing old server pid: $p"
+      kill $p 2>/dev/null
+    done
+    rm $tmpdir/pids; touch $tmpdir/pids
+  fi
+  
+echo "args:$@ pwd:$(pwd)"
+  if [ "$1" != "stop" ]; then
+    NODE_DEBUG=debug bin/mychips.js &			#And launch a fresh one
+    pid=$!
+    echo "  SPA Server PID: $pid"
+    echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
+  fi
+  exit 0
 fi
 
-if [ ! -d /var/lib/pgsql/data/base ]; then		#Initialize PostgreSQL
-  su -l postgres -c "initdb --locale=C"			#Might also use: eng_US.UTF-8
-  systemctl enable postgresql
-  systemctl start postgresql
-fi
-
-if [ "$(psql -A -t template1 postgres -c "select * from pg_roles where rolname = 'admin'" |wc -l)" -lt 1 ]; then
-  su -l postgres -c 'createuser -d -s -r admin'		#Create our administrative user
-fi
-
-if ! cd "$srcdir"/mychips; then
-  echo "Can't find MyCHIPs source directory"
+#This part gets run on the local machine only
+#-------------------------------------------------------------------------------
+if [ "$(basename "$remsrc")" != "devel" ]; then
+  echo "Can't find mychips remote development directory path"
   exit 1
 fi
+  
+# echo "mychips:$mychips mysim:$mysim base:$(basename $mychips) source:$this"
+for mach in "${remotes[@]}"; do			#Update each machine with mirror of latest source code
+  echo "Machine:$mach"
+  if [ "$1" != "stop" ]; then
+    rsync -ar --delete "$mychips" "$mychips"/../node_modules "$mychips"/../wylib "$mychips"/../wyselib "$mychips"/../wyseman "$mychips"/../wyclif "${user}@${mach}:${remsrc}"
+  fi
+  ssh -f ${user}@${mach} "${remsrc}/mychips/${mysim}${this} config $@"	#And then execute this script remotely in configuration mode
+  ssh -f ${user}@${mach} "${remsrc}/mychips/${mysim}${this} refresh $@"
+done
 
-mkdir -p $tmpdir
-if [ -f $tmpdir/pids ]; then				#Kill any running servers
-  for p in $(cat $tmpdir/pids); do
-    echo "  Killing old server pid: $p"
-    kill $p 2>/dev/null
-  done
-  rm $tmpdir/pids; touch $tmpdir/pids
-fi
+for mach in "${locals[@]}"; do			#Re-launch server on local VMs
+  ssh -f ${USER}@${mach} "${vmsrc}/mychips/${mysim}${this} refresh $@"
+done
 
-#echo "args:$@"
-if [ "$1" != "stop" ]; then
-  bin/mychips.js &					#And launch a fresh one
-  pid=$!
-  echo "  SPA Server PID: $pid"
-  echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
-fi
+sleep 1						#Give time for remote comments to post before returning to prompt
+exit 0

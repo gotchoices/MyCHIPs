@@ -1,0 +1,20 @@
+#!/bin/sh
+#SSH tunnel, helpful if one or more of your test machines are running as a VM
+#under a host OS and so are not directly reachable from the outside.
+#Modify as needed for your own setup.
+
+vm=lux0
+if [ ! -z "$1" ]; then
+  vm="$1"
+fi
+
+port=65430
+if [ ! -z "$2" ]; then
+  port="$2"
+fi
+
+ssh $USER@${vm} \
+    -o TCPKeepAlive=yes -o ServerAliveInterval=30    \
+    -L ${port}:localhost:65430
+
+#    -R 65430:localhost:65430		#Requires "GatewayPorts yes" on remote end
