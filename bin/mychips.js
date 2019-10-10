@@ -15,6 +15,7 @@ Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Req
 
 var argv = Args({
   dbHost: process.env.MYCHIPS_DBHOST,
+  dbPassword: process.env.MYCHIPS_DBPASSWORD,
   dbName: process.env.MYCHIPS_DBNAME || 'mychips',
   dbAdmin: process.env.MYCHIPS_DBADMIN || 'admin',
   clifPort: process.env.MYCHIPS_WSPORT || '54320',
@@ -42,6 +43,7 @@ log.trace("Actions:", actions)
 var expApp = SpaServer({spaPort: argv.spaPort, credentials, log})
 var wyseman = new Wyseman({
   host: argv.dbHost,
+  password: argv.dbPassword,
   database:argv.dbName,
   user: null, log
 }, {
@@ -51,6 +53,7 @@ var wyseman = new Wyseman({
   log, credentials, expApp, actions,
 }, {
   host: argv.dbHost,
+  password: argv.dbPassword,
   database:argv.dbName,
   user: argv.dbAdmin,
   connect: true,
