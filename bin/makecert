@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 length=2048				#RSA Key length
 type=spa				#Build application server keys by default
-node=serv0				#Common name for the certificate we are building
+node="mychips.%"			#Machine name for the certificate we will build (%=domain)
 basedir=$(pwd)				#Assume to be root of mychips package
 HASH="sha256"
 
@@ -44,12 +44,20 @@ conf="../local.conf"
 if [ ! -f $conf ]; then
   conf="../example.conf"
 fi
+. $conf			#Read local config as bash variables
 
-catype="${type}-ca"
-caconf="${catype}-conf"			#Build a certificate authority configuration for this type
-if fresher $conf $caconf; then
+nod=$(echo "$node" |sed -e 's/\..*$//')	#strip-down node, with no domain attached
+catype="${type}-ca"			#Filename base for Certificate Authority files
+caconf="${catype}-conf"			#and its configuration file
+nodetype="${type}-$nod"			#Filename base for node certificate
+nodeconf="${nodetype}-conf"		#and its configuration file
+commonName="$(echo "$node" | sed -e "s/%/${domain}/")"		#and its certificate common name
+#echo "catype:$datype caconf:$caconf nodetype:$nodetype nodeconf:$nodeconf commonName:$commonName"; exit 0
+
+if fresher $conf $caconf; then		#Build a certificate authority configuration for this type
   cat ../ca1.conf >$caconf
   cat $conf |sed -e "s/%\.//" >>$caconf
+  echo "commonName = \"$domain\"" >>$caconf
   cat ../ca2.conf >>$caconf
   
   if fresher $caconf ${catype}.key; then			#Build private key for CA
@@ -67,11 +75,10 @@ if fresher $conf $caconf; then
 #  fi
 fi
 
-nodetype="${type}-${node}"
-nodeconf="${nodetype}-conf"				#Build configuration for this node
-if fresher $conf $nodeconf; then
+if fresher $conf $nodeconf; then	#Build configuration for this node
   cat ../node1.conf >$nodeconf
   cat $conf |sed -e "s/%\./${node}\./" >>$nodeconf
+  echo "commonName = \"$commonName\"" >>$nodeconf
   cat ../node2.conf >>$nodeconf
 fi
 

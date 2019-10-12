@@ -27,6 +27,7 @@
     "dev-build": "webpack --mode development --watch --progress --hide-modules",
     "dev-server": "bin/mychips.js --spaPort=0",
     "server": "bin/mychips.js",
+    "makecert": "bin/makecert",
     "spacert": "bin/makecert spa",
     "datacert": "bin/makecert data",
     "dev": "npm-run-all --parallel dev-build dev-server",
