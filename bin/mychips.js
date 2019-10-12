@@ -8,6 +8,7 @@
 const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's clock
 const { Args, Dispatch, Log, Credentials, SpaServer} = require('wyclif')
 const { Wyseman } = require('wyseman')
+const Path = require('path')
 
 var log = Log('mychips')
 var { actions, Parser } = require('wyselib')
@@ -17,11 +18,12 @@ var argv = Args({
   dbHost: process.env.MYCHIPS_DBHOST,
   dbPassword: process.env.MYCHIPS_DBPASSWORD,
   dbName: process.env.MYCHIPS_DBNAME || 'mychips',
+  dbPort: process.env.MYCHIPS_DBPORT || '5432',
   dbAdmin: process.env.MYCHIPS_DBADMIN || 'admin',
   clifPort: process.env.MYCHIPS_WSPORT || '54320',
   spaPort: process.env.MYCHIPS_SPAPORT || '8000',
-  serverKey: process.env.MYCHIPS_SERVER_KEY || __dirname + '/../pki/server_private_key.pem',
-  serverCert: process.env.MYCHIPS_SERVER_CERT || __dirname + '/../pki/server_certificate.pem'
+  serverKey: process.env.MYCHIPS_SERVER_KEY || Path.join(__dirname,'../pki/local/spa-serv0.key'),
+  serverCert: process.env.MYCHIPS_SERVER_CERT || Path.join(__dirname,'../pki/local/spa-serv0.crt')
 })
   .alias('h','hostID')     .default('hostID',     null)		//If peer servers run on multiple hosts, this identifies our host
   .alias('p','peerPort')   .default('peerPort',   65430)	//Peer-to-peer connections at this port

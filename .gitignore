@@ -1,4 +1,6 @@
 node_modules/
 schema/old
+pki/local.conf
+pki/local
 .sync.ffs_db
 .DS_Store
