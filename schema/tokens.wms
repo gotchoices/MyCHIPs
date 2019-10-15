@@ -9,7 +9,7 @@
 #- 
 
 require common.tcl glob.tcl ../trigview.tcl
-return		;#Obsolete
+#return		;#Obsolete
 module mychips
 
 namespace eval tokens {
@@ -21,7 +21,7 @@ namespace eval tokens {
 
 # Data about tokens to facilitate their CHIP account
 #----------------------------------------------------------------
-table mychips.tokens {base.ent} {
+table mychips.tokens {mychips base.ent} {
     token_ent	text		references base.ent on update cascade on delete cascade
   , token_seq	int	      , primary key (token_ent, token_seq)
   , token	text		not null unique
