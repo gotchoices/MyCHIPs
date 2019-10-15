@@ -9,7 +9,7 @@
 require multiview.tcl base.tcl
 
 module mychips
-schema mychips {}
+schema mychips {} -grant public
 
 namespace eval peers {
     def peers_pk	{peer_ent}
@@ -70,6 +70,19 @@ view mychips.peers_v_flat {mychips.peers_v base.addr_v_flat base.comm_v_flat} {s
     from	mychips.peers_v		p
     left join	base.addr_v_flat	a on a.id = p.id
     left join	base.comm_v_flat	c on c.id = p.id
+}
+
+# View of my peers
+#----------------------------------------------------------------
+view mychips.peers_v_me {mychips.peers_v mychips.tallies base.user_id(text)} {select 
+    p.*
+  , t.count		as countt
+
+    from	mychips.peers_v		p
+    join	(select tally_ent, tally_seq, partner, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.partner = p.peer_ent
+} -grant {
+    public
+    {mychips	s}
 }
 
 # Return the stocket address of a peer
