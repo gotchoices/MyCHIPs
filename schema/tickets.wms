@@ -44,7 +44,7 @@ module mychips
 
 # Create a new login ticket for the specified user
 #----------------------------------------------------------------
-function {mychips.ticket_login(uid text)} {base.token_v_ticket mychips.users base.parm_int(text,text) base.parm_text(text,text)} {
+function {mychips.ticket_login(uid text)} {mychips base.token_v_ticket mychips.users base.parm_int(text,text) base.parm_text(text,text)} {
   returns base.token_v_ticket language plpgsql as $$
     declare
       trec	record;
