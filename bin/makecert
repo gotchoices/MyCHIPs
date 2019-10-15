@@ -80,6 +80,11 @@ if fresher $conf $nodeconf; then	#Build configuration for this node
   cat $conf |sed -e "s/%\./${node}\./" >>$nodeconf
   echo "commonName = \"$commonName\"" >>$nodeconf
   cat ../node2.conf >>$nodeconf
+  if [ "$nod" != "$node" ]; then
+    cat ../node3.conf >>$nodeconf
+    echo "DNS.1 = \"$commonName\"" >>$nodeconf
+    echo "DNS.2 = \"$nod\"" >>$nodeconf
+  fi
 fi
 
 if fresher $nodeconf ${nodetype}.key; then			#Private key for node
