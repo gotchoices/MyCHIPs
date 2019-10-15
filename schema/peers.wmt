@@ -1,7 +1,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 tabtext mychips.peers	{CHIP Peers}		{All entities who trade CHIPs using on this server.  Includes this server's users and their peers.} [concat {
-    {peer_ent		{Entity link}		{A link to the entities base table}}
+    {peer_ent		{Peer Entity}		{A link to the entities base table}}
     {peer_cdi		{CHIPs ID}		{The user's CHIPs Domain Identifier, or CDI}}
     {peer_hid		{Covert ID}		{A substitute ID by which direct trading partners will refer to this user, when conversing with other peers}}
     {peer_pub		{Peer Public Key}	{The peer's public key, known to other trading partners}}

@@ -1,7 +1,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this server} [concat {
-    {user_ent		{Entity link}		{A link to the entities base table}}
+    {user_ent		{User Entity}		{A link to the entities base table}}
     {user_host		{User Host Address}	{The hostname or IP number where the users's mobile application connects}}
     {user_port		{User Port}		{The port to which the user's mobile device will connect}}
     {user_stat		{Trading Status}	{The current state of the user's account for trading of CHIPs} {
