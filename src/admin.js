@@ -13,7 +13,6 @@ const Template = `
     <component v-for="t in tabs" :key="t.tag" v-show="curTab==t.tag" v-if="hasRun[t.tag]" :is="components[t.tag]" :tag="t.tag" :view="views[t.tag]" :state="state.tabs[t.tag]"/>
   </wylib-app>
 `
-
 new Vue({
   el: '#app',
   template: Template,

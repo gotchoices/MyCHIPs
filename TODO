@@ -2,6 +2,12 @@ TODO:
 
 Immediate:
 - 
+- Make agent2 model work in basic way
+- Each sql server writes its own users to the document database
+- Agent queries doc db to find peers
+- Track users/peers correctly/separately
+- Populate database with tallies/chits with outside peers
+- 
 - Lift modeling:
 X- System for instantiating multiple databases, multiple servers
 - Central repository where agent users can choose from peers, not in their own DB
@@ -13,16 +19,19 @@ X- System for instantiating multiple databases, multiple servers
 - Create remote lift protocol
 - Design state machine to execute lifts
 - 
+- WyattERP:
+- Get wysegi working (where does it go)?
+- Test SSL connection to postgres
 - Where to best put:
 -   Wysegi
 -   WyattERP Admin	(includes wysegi?)
 -   WyattERP User
 -   report app
--   clientinfo ajax
+X-   clientinfo ajax (wyclif)
 - 
 - Re-enable wysegi serving (where does wysegi live now?)
 - Enable user permission editor in wysegi, and admin app user tab
-- Column sort in dbp throws error.  Why? (Can't re-create this, for now)
+X- Column sort in dbp throws error.  Why? (Only on first connect.  Bug seems to go away on reload.)
 - 
 - Strdoc:
 - Can I edit/author documents now?
@@ -152,6 +161,7 @@ Server:
 -   
 
 Wylib:
+- I get errors on reload when dbe and dbs both open on a dbp
 - Implement default load column in views, wylib uses it if present
 - Implement default order column in views, wylib uses it if present
 - Update audit tables to store changes as JSON

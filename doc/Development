@@ -74,6 +74,9 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   Specify database name only if not the same as your username (default)
   psql <Database_Name> admin -f tallies.sql
   psql <Database_Name> admin -f chits.sql
+  
+  Remove them again with
+  psql <Database_Name> admin -c "delete from mychips.tallies"
 
 - Add more random users (while still watching the graph)
   ./randuser					# or:
@@ -81,18 +84,20 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   
   Press Arrange button (or hold it) in graph menu to arrange nodes better
 
-- Quit mychips server (Ctrl-C) and restart with agent model running:
-  npm run server -- -m
+- Launch the agent simulation model:
+  cd test/sim
+  ./agent
   
-  It doesn't do much right now, except find one other node to connect to.
-
+  You can watch as the user nodes will begin to form tallies with each other 
+  and begin to trade chits over the tallies.
+  
 - Lifts
   When the graph accumulates some debits and credits, you can try executing
   some credit lifts.
   
   To examine the lift path table, execute this SQL:
-  
-  select bang,length,min,max,path from mychips.paths_v where circuit order by 1 desc
+
+  select * from mychips.paths_v_lifts  
   
   To run a single credit lift, execute this SQL:
   
@@ -101,13 +106,16 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
 ---------------------------------------------------------------------  
 Want to browse the database schema:
 
-- Direct browser to:		http://localhost:8001/wysegi.html
+- Launch the server with the -w switch:
+  npm run server -- -w
+  
+- Direct your browser to:	https://<hostname>:8000/wysegi.html
 
 ---------------------------------------------------------------------  
-If you will be working on wyseman:
+If you will be working on wyseman source code:
 
 - Remove mychips/node_modules/wyseman
-  cd mychips/..
+  cd mychips/..				#Directory above mychips
   git clone https://github.com/gotchoices/wyseman.git
   npm install wyseman
 
@@ -170,20 +178,4 @@ Testing:
 
   dropdb mychipsTestDB			#When finished with tests
   
----------------------------------------------------------------------  
-Other Notes:
-
-- The MyCHIPs process contains multiple possible servers:
-  User and admin SPA's served at http://localhost:8000
-  Wysegi SPA served at http://localhost:8001
-  User controller server at ws://localhost:43210
-  Admin controller server at ws://localhost:54320
-  Peer communications at localhost:65430
-
----------------------------------------------------------------------  
-Legacy Ruby admin app:	(depricated)
-
-- Create a user ticket
-  mychips/bin/mc_admin ticket 10000 /tmp/ticket.json
-
 ---------------------------------------------------------------------  

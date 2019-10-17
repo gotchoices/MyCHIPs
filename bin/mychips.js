@@ -22,13 +22,13 @@ var argv = Args({
   dbAdmin: process.env.MYCHIPS_DBADMIN || 'admin',
   clifPort: process.env.MYCHIPS_WSPORT || '54320',
   spaPort: process.env.MYCHIPS_SPAPORT || '8000',
-  spaKey:      process.env.MYCHIPS_SPAKEY      || Path.join(__dirname,'../pki/local/spa-mychips.key'),
-  spaCert:     process.env.MYCHIPS_SPACERT     || Path.join(__dirname,'../pki/local/spa-mychips.crt'),
-  dbUserKey:   process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname,'../pki/local/data-user.key'),
-  dbUserCert:  process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname,'../pki/local/data-user.crt'),
-  dbAdminKey:  process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname,'../pki/local/data-admin.key'),
-  dbAdminCert: process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname,'../pki/local/data-admin.crt'),
-  dbCA:        process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname,'../pki/local/data-ca.crt')
+  spaKey:      process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-mychips.key'),
+  spaCert:     process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-mychips.crt'),
+  dbUserKey:   process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname, '../pki/local/data-user.key'),
+  dbUserCert:  process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
+  dbAdminKey:  process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname, '../pki/local/data-admin.key'),
+  dbAdminCert: process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
+  dbCA:        process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-ca.crt')
 })
   .alias('h','hostID')     .default('hostID',     null)		//If peer servers run on multiple hosts, this identifies our host
   .alias('p','peerPort')   .default('peerPort',   65430)	//Peer-to-peer connections at this port
@@ -40,17 +40,18 @@ var argv = Args({
 var credentials = argv.noHTTP ? null : Credentials(argv.spaKey, argv.spaCert, null, log)
 var sslAdmin = Credentials(argv.dbAdminKey, argv.dbAdminCert, argv.dbCA)
 var sslUser = Credentials(argv.dbUserKey, argv.dbUserCert, argv.dbCA)
+const pubDir = Path.join(__dirname, "..", "pub")
 
 log.debug("Host ID:    ", argv.hostID)
-log.debug("SPA Port:   ", argv.spaPort, argv.wysegi, argv.spaKey, argv.spaCert)
-log.debug("CLIF Port: ", argv.clifPort)
+log.debug("SPA Port:   ", argv.spaPort, argv.wyclif, argv.spaKey, argv.spaCert)
+log.debug("CLIF Port:  ", argv.clifPort)
 log.debug("Peer Port:  ", argv.peerPort)
 log.debug("Database:", argv.dbHost, argv.dbName, argv.dbAdmin)
 log.trace("Database SSL:", sslAdmin, sslUser)
 log.trace("Agent:", argv.model, "Lifts:", argv.lifts)
 log.trace("Actions:", actions)
 
-var expApp = SpaServer({spaPort: argv.spaPort, credentials, log})
+var expApp = SpaServer({spaPort: argv.spaPort, wyclif: !!argv.wyclif, pubDir, credentials}, log)
 var wyseman = new Wyseman({
   host: argv.dbHost,
   password: argv.dbPassword,
