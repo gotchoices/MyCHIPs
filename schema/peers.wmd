@@ -18,4 +18,10 @@ tabdef mychips.peers_v -fields {
   id std_name peer_cdi peer_sock ent_type born_date !fir_name !ent_name
 }
 
+# A view showing only peers connected to the current user
+tabdef mychips.peers_v_me -fields {
+} -display {
+  id std_name peer_cdi peer_sock ent_type
+}
+
 tabdef mychips.peers_v_flat -display {id peer_cdi std_name bill_addr bill_city bill_state} -sort {std_name id}

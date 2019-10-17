@@ -258,22 +258,17 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v} {select
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
     join	mychips.users_v	pe on pe.user_ent = te.partner
     left join	(select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits from mychips.chits group by 1,2) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
-    
+}
 
---    ev-al(multiview::insert mychips.users_v "
---        {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
---        {mychips.users	{$users::users_v_in}	{$users::users_pk}}
---    ")
---    ev-al(multiview::update mychips.users_v "
---        {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
---        {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
---    ")
---    ev-al(multiview::delete mychips.users_v "
---        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
---    ")
+# User view of tallies
+#----------------------------------------------------------------
+view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select 
+    t.*
+    from	mychips.tallies_v t
+    where	t.tally_ent = base.user_id(session_user)
 } -grant {
-    {tally	{s} {i u} {d}}
-} -primary id
+    {tally	{s} {s i u} {d}}
+}
 
 # Summarize data about tallies
 #----------------------------------------------------------------
@@ -292,7 +287,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(partner) filter (where tally_type = 'stock')	as clients
   , array_agg(partner) filter (where tally_type = 'foil')	as vendors
   from mychips.tallies_v group by 1;
-} -primary id
+}
 
 # Process tally state transitions requested by the peer server process
 #----------------------------------------------------------------
@@ -464,7 +459,17 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq
 } -grant {
     {tally	{s} {i u} {d}}
-} -primary id
+}
+
+# User view of chits
+#----------------------------------------------------------------
+view mychips.chits_v_me {mychips.chits_v mychips.tallies_v_me} {select 
+    c.*
+    from	mychips.chits_v c
+    join	mychips.tallies_v_me t on c.chit_ent = t.tally_ent and c.chit_seq = t.tally_seq
+} -grant {
+    {chit	{s} {s i u} {d}}
+}
 
 # Process chit state transitions requested by the peer server process
 #----------------------------------------------------------------

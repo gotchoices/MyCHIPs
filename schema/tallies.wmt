@@ -1,7 +1,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 
-tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a record of credit transactions between two trading partners.} {
+tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a record of credit transactions between two trading partners.} [concat {
     {tally_ent		{Tally Entity}		{The ID number of the entity or person this tally belongs to}}
     {tally_seq		{Tally Sequence}	{A unique number among all tallies owned by this entity}}
     {tally_guid		{Tally GUID}		{A globally unique identifier for this tally}}
@@ -33,10 +33,10 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {bal_target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts}}
     {lift_marg		{Lift Margin}		{A cost associated with a lift through this tally.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 4% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts done.}}
     {drop_marg		{Drop Margin}		{A cost associated with a reverse lift (or drop) through this tally.  Zero means no cost.  A value of 1 (the default) will effectively prevent reverse lifts.}}
-    {cr_lim		{Credit Limit}		{The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time}}
-    {dr_lim		{Debit Limit}		{The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow}}
+    {cr_limit		{Credit Limit}		{The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time}}
+    {dr_limit		{Debit Limit}		{The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow}}
     {units_c		{Cached Units}		{A cached copy of the total of all the chits on this tally, from the perspective of the tally's owner}}
-} -messages {
+} $glob::stampt] -messages {
     {LMG		{Invalid Lift Margin}	{The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.}}
     {DMG		{Invalid Drop Margin}	{The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.}}
 }
@@ -46,7 +46,18 @@ tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each
     {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
 }
 
-tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} {
+tabtext mychips.tallies_v_me {My Tallies}	{View containing all the tallies owned by the current user.} {
+} -messages {
+    {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
+    {unlock	{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
+    {launch.title	{Users}			{User Account Management}}
+    {launch.instruct	{Basic Instructions}	{
+      <p>Tallies are used to document and track trading agreements between partners.
+      <p>You can request a new tally from the action menu in the Peer tab.
+    }}
+}
+
+tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} [concat {
     {chit_ent		{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
     {chit_seq		{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
     {chit_idx		{Chit Index}		{A unique identifier within the tally, identifying this chit}}
@@ -58,10 +69,24 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
         {tran		{Transaction}		{The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.}}
     }}
     {chit_date		{Date/Time}		{The date and time when this transaction is effective}}
-    {amount		{Amount}		{The amount of the transaction, as measured in micro-CHIPs (1/1,000,000)}}
+    {units		{Units}			{The amount of the transaction, as measured in milli-CHIPs (1/1,000)}}
+    {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
     {pro_quo		{Quid Pro Quo}		{A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties}}
     {memo		{Memo}			{Any other description or explanation for the transaction}}
+} $glob::stampt] -messages {
+    {X {Y} {Z}}
 }
+
+tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
+    {effect		{Effect}		{Indicates whether this would debit (increase) or credit (decrease) the tally total}}
+    {value		{CHIP Value}		{The value of the transfer in CHIPs}}
+    {amount		{Amount}		{A signed amount (positive or negative) indicating the effect of the transfer on the tally}}
+    {state		{State}			{The state is used to track a transaction in process}}
+    {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
+    {json		{JSON}			{A JSON representation of the chit transaction}}
+}
+
+tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user}
 
 tabtext mychips.confirms {Confirmations}	{Contains records evidencing each time the parties confirmed the present balance of their tally.} {
     {conf_ent		{Confirm Entity}	{Entity ID of the owner of the tally this confirmation belongs to}}
@@ -72,5 +97,3 @@ tabtext mychips.confirms {Confirmations}	{Contains records evidencing each time 
     {sum		{Sum}			{The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)}}
     {signature		{Signature}		{The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table}}
 }
-
-#    {		{}		{}}

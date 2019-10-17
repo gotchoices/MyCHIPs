@@ -1,0 +1,62 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabdef mychips.tallies -fields [concat {
+    {tally_ent		ent	6	{0 10}		-sort 1 -write 0 -hide 1}
+    {tally_seq		ent	4	{1 10}		-hide 1}
+    {tally_type		ent	6	{0 1}		}
+    {version		ent	40	{1 1}		}
+    {tally_guid		ent	40	{2 1}		}
+    {tally_date		ent	20	{2 10}		}
+    {partner		ent	40	{2 10}		}
+    {status		ent	40	{2 10}		}
+    {request		ent	40	{1 11}		}
+    {comment		ent	40	{2 11}		}
+    {user_sig		ent	20	{1 12 4}	}
+    {part_sig		ent	20	{1 12 4}	}
+    {contract		ent	20	{1 12 4}	}
+    {stock_terms	mle	{80 2}	{1 12 4}	}
+    {foil_terms		mle	{80 2}	{1 12 4}	}
+    {bal_target		ent	12	{1 12 4}	}
+    {lift_marg		ent	8	{1 12 4}	}
+    {drop_marg		ent	8	{1 12 4}	}
+    {dr_limit		ent	12	{1 12 4}	}
+    {cr_limit		ent	12	{1 12 4}	}
+    {units		ent	16	{1 12 4}	}
+} $glob::stampd]
+
+# A view with some additional pseudo fields
+tabdef mychips.tallies_v -fields {
+    {user_cdi		ent	28	{3 11}		-opt 1 -sta readonly -wr 0}
+    {user_sock		ent	28	{3 11}		-opt 1 -sta readonly -wr 0}
+    {user_name		ent	28	{3 11}		-opt 1 -sta readonly -wr 0}
+    {part_cdi		ent	28	{3 21}		-opt 1 -sta readonly -wr 0}
+    {part_sock		ent	28	{3 21}		-opt 1 -sta readonly -wr 0}
+    {part_name		ent	28	{3 21}		-opt 1 -sta readonly -wr 0}
+} -display {
+  tally_ent tally_seq tally_type partner part_name dr_limit cr_limit contract
+}
+
+# User view
+tabdef mychips.tallies_v_me -display {
+  tally_ent tally_seq tally_type partner part_name dr_limit cr_limit contract
+} -json {
+  actions {[
+    {"name":"close","ask":"1"},
+    {"name":"lock","ask":"1"},
+    {"name":"unlock","ask":"1"},
+    {"name":"summary"},
+    {"name":"trade","format":"html","options":[
+      {"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
+      {"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
+    ]}
+  ]}
+  where {{"and":true,"items":[{"left":"status","oper":"=","entry":"open"}]}}
+  subviews {["mychips.chits_v_me"]}
+  launch {{
+    "initial": 1,
+    "import": "json.import"
+  }}
+}
+
+tabdef mychips.users_v_flat -display {id user_cdi std_name bill_addr bill_city bill_state} -sort {std_name id}
