@@ -27,7 +27,7 @@ new Vue({
       {tag: 'dash', component: 'app-visbs', title: 'Dashboard'},
       {tag: 'peers', view: 'mychips.peers_v_me', title: 'Peers'},
       {tag: 'tallies', view: 'mychips.tallies_v_me', title: 'Tallies'},
-      {tag: 'config', view: 'base.parm_v', title: 'Settings'},
+//      {tag: 'config', view: 'base.parm_v', title: 'Settings'},
     ],
     currentTab: 'dash'
   }},

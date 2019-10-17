@@ -17,20 +17,23 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   cd mychips
   npm install				#Install all dependencies
 
-- Run mychips server:
-  npm run server			#Should also initialize database
+- Run mychips server:			#Run without peer socket on first launch
+  npm run server -- -p 0		#to make sure database schema gets built
+
+  npm run server			#Can run this way subsequently
+
   If you have trouble, set NODE_DEBUG=debug environment variable
   and watch logs in /var/tmp/mychips
-  You may also test running insecurely: npm run server -- -n
+  You can do limited testing running insecurely: npm run server -- -n
 
 - Try connecting to the SPA (possibly from another machine):
   Direct your browser to:	https://<hostname>:8000/admin.html
                       or:	http://<hostname>:8000/admin.html
   
   If connecting over https, your browser should warn you of an insecure site.  
-  For testing, you can just proceed anyway (at least in chrome).  Later you will 
-  want to create a real site certificate for the server and install a CA in your
-  browser if the certificate is not commercially recognized.
+  For testing, you can just proceed anyway (at least in chrome).  
+  See the file ./pki/README for more details about securing your site with an
+  SSL certificate (whether you use a commercial certificate or make your own).
   
   If the connection is working, you should see an open connection dialog in the 
   upper right corner of the app.
@@ -40,7 +43,8 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   ./adminticket <hostname> <port> ><ticket_file>	#Save the ticket to a file
   
   For example:
-  ./adminticket 192.168.56.101 54320 >../tmp/admin.json
+  ./adminticket 192.168.56.101 54320 >../tmp/admin.json		#or
+  ./adminticket mychips.mydomain.com >../tmp/admin.json
   
   Make sure the host address matches what is on your certificate when using TLS
   otherwise you may not be able to connect.
@@ -54,9 +58,11 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
 
   The system should next prompt you for a pass phrase.  This phrase will be used
   when storing your connection key in the browser local storage so others with
-  access to your computer can't steal your key.
-  
-  See instructions in the wylib package for more information on connection keys.
+  access to your computer can't steal your key.  Leave it blank if you don't want
+  to encrypt your key (bad idea in production environment).
+
+  You should probably also export your key and save it in a safe place.  See the
+  documentation in the wylib package for more information on connection keys.
   
 - Now add some sample test data to the database:
   cd test
