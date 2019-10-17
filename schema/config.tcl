@@ -9,7 +9,7 @@ namespace eval mychips {
 #Structure gets parsed in wyselib to create permissioning role groups
 namespace eval base {
   set priv_roles {
-    mychips	{peer_2 contract_1 tally_2 mychips_1}
+    mychips	{peer_2 contract_1 tally_2 chit_2 mychips_1}
   }
 }
 
