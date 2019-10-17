@@ -6,7 +6,7 @@
 #- How to support multiple mobi users for a single corporate CDI
 #- How to support multiple credit partitions
 #- 
-require multiview.tcl base.tcl
+require multiview.tcl base.tcl config.tcl
 
 module mychips
 
@@ -50,18 +50,39 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v} {select
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_in}	{$peers::peers_pk}}
         {mychips.users	{$users::users_v_in}	{$users::users_pk}}
-    ")
+    " mychips.users_v_check)
     eval(multiview::update mychips.users_v "
         {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
         {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
-    ")
+    " mychips.users_v_check)
     eval(multiview::delete mychips.users_v "
         {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
     ")
 } -grant {
-    {userim	{} {s i u} {d}}
+    {user	{s} {i u} {d}}
 } -primary id
+
+# Quality check for new user records
+#----------------------------------------------------------------
+function {mychips.users_v_check(new mychips.users_v, old mychips.users_v, tgop text)} {mychips.users_v} {
+  returns mychips.users_v language plpgsql security definer as $$
+    begin
+-- raise notice 'Users check: % % %', tgop, new.id, new.username;
+      if (tgop = 'INSERT' and new.username is null) then
+        new.username = new.id;
+        update base.ent set username = new.id where id = new.id;
+      end if;
+-- Taken care of automatically:
+--      if (tgop = 'UPDATE' and old.username is not null and new.username is null) then
+--        delete from base.priv where grantee = old.username and priv = 'subst($mychips::usergroup)';
+--      end if;
+      if new.username is not null and not exists (select * from base.priv where grantee = new.username and priv = 'subst($mychips::usergroup)') then
+        insert into base.priv (grantee, priv) values (new.username, 'subst($mychips::usergroup)');
+      end if;
+      return new;
+    end;
+$$;}
 
 # View of users with primary address and contact points
 #----------------------------------------------------------------

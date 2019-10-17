@@ -13,7 +13,7 @@ else
 endif
 
 objects:
-	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms
+	wyseman --dbname=${DBNAME} --user=${DBUSER} config.tcl ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms
 
 text:
 	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/wylib.wmt ${WYSELIB}/base/*.wmt *.wmt

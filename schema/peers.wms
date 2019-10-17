@@ -6,10 +6,16 @@
 #- Can I have a 3-way writable multiview?
 #- View should tell if there are active tallies with this peer or not
 #- 
-require multiview.tcl base.tcl
+require multiview.tcl base.tcl config.tcl
 
 module mychips
-schema mychips {} -grant public
+schema mychips {} -grant mychips
+other lockdown {mychips} {
+  revoke all on schema public from public;
+  grant all on schema public to subst($mychips::adminuser);
+} {
+  grant create, usage on schema public to public;
+}
 
 namespace eval peers {
     def peers_pk	{peer_ent}
@@ -55,8 +61,6 @@ view mychips.peers_v {mychips.peers base.ent_v} {select
     eval(multiview::delete mychips.peers_v "
         {mychips.peers	{$peers::peers_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
     ")
-} -grant {
-    {peerim	{} {s i u} {d}}
 } -primary id
 
 # View of peers with primary address and contact points
@@ -81,8 +85,7 @@ view mychips.peers_v_me {mychips.peers_v mychips.tallies base.user_id(text)} {se
     from	mychips.peers_v		p
     join	(select tally_ent, tally_seq, partner, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.partner = p.peer_ent
 } -grant {
-    public
-    {mychips	s}
+    {peer	{s} {s i u} {d}}
 }
 
 # Return the stocket address of a peer

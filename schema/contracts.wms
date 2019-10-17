@@ -64,6 +64,8 @@ view mychips.contracts_v {mychips.contracts} {
     eval(trigview::insert mychips.contracts_v mychips.contracts $contracts::contracts_in $contracts::contracts_pk $glob::stampin);
     eval(trigview::update mychips.contracts_v mychips.contracts $contracts::contracts_up $contracts::contracts_pk $glob::stampup);
     eval(rule_delete mychips.contracts_v mychips.contracts $contracts::contracts_pk);
+} -grant {
+    {contract	{s} {s i u} {d}}
 }
 
 # Before inserting a new contract

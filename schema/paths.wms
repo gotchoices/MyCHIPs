@@ -56,10 +56,13 @@ view mychips.paths_v {mychips.peers mychips.tallies} {
     , tpr.max
     , tpr.length * tpr.min as bang
   from tally_path tpr 
-  
-} -grant {
-    {mychips	{} {s}}
 } -primary {id token_seq}
+
+# Simpler version of view for discovering lifts
+#----------------------------------------------------------------
+view mychips.paths_v_lifts {mychips.paths_v} {
+  select bang,length,min,max,path from mychips.paths_v where circuit order by 1 desc
+}
 
 # Generate notifications about changes to the lift operating parameters
 #----------------------------------------------------------------

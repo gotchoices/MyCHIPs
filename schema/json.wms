@@ -104,7 +104,7 @@ view json.contract {json mychips.contracts_v} {select
 
 # Import possibly nested JSON data structures
 #----------------------------------------------------------------
-function {json.import(data jsonb, keys jsonb default null)} {json.user json.address json.connect json.ticket json.tally} {
+function {json.import(data jsonb, keys jsonb default null)} {json.user json.address json.connect json.tally} {
   returns record language plpgsql as $$
     declare
       tmpObject		jsonb;

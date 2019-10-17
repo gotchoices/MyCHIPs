@@ -25,8 +25,6 @@ module mychips
 #    left join	base.parm	p on p.module = 'mychips' and p.parm = 'site_ent'
 #    left join	mychips.peers	s on s.peer_ent = p.v_text
 #    where	t.exp_date > current_timestamp and not t.used
-#} -grant {
-#    {mychips	{} {s}}
 #} -primary {id token_seq}
 
 # Create a new ticket for the specified user

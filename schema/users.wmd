@@ -27,7 +27,7 @@ tabdef mychips.users_v -fields {
       {"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
     ]}
   ]}
-  where {{"and":true,"items":[{"left":"user_ent","not":true,"oper":"isnull"}, {"left":"ent_inact","not":true,"oper":"true"}]}}
+  where {{"and":true,"items":[{"left":"user_ent","not":true,"oper":"isnull"}, {"left":"ent_inact","not":true,"oper":"true"}, {"left":"ent_type","oper":"=","entry":"p"}]}}
   subviews {["base.addr_v", "base.comm_v"]}
   launch {{
     "initial": 1,

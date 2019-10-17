@@ -5,6 +5,7 @@
 #- Split up tally notice trigger as done for chit trigger
 #- Include host_id in tally_v to reduce queries in notice triggers?
 #- Add constraints to assure things like contract and signatures in valid tally?
+#- Harden: make limited views specifically for mychips users (revoke current grants)
 #- 
 module mychips
 define unitMultiplier 1000
@@ -271,7 +272,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v} {select
 --        {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
 --    ")
 } -grant {
-    {mychips	{} {s i u} {d}}
+    {tally	{s} {i u} {d}}
 } -primary id
 
 # Summarize data about tallies
@@ -462,7 +463,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
     from	mychips.chits		ch
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq
 } -grant {
-    {mychips	{} {s i u} {d}}
+    {tally	{s} {i u} {d}}
 } -primary id
 
 # Process chit state transitions requested by the peer server process
