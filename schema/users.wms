@@ -35,16 +35,18 @@ table mychips.users {base.ent mychips} {
 
 # Base view of users, linked to entity and peer tables
 #----------------------------------------------------------------
-view mychips.users_v {mychips.users mychips.peers base.ent_v} {select 
+view mychips.users_v {mychips.users mychips.peers base.ent_v base.parm_text(text,text) base.parm_int(text,text)} {select 
     eval(fld_list $users::ent_se	ee)
   , eval(fld_list $users::peers_se	pe)
   , eval(fld_list $users::users_se	ue)
-  , ue.user_host || ':' || ue.user_port	as user_sock
-  , pe.peer_host || ':' || pe.peer_port	as peer_sock
+  , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
+  , coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_sock
+  , pe.peer_cdi || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_addr
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id
-    left join	mychips.users	ue on ue.user_ent = ee.id;
+    left join	mychips.users	ue on ue.user_ent = ee.id
+    left join	(select base.parm_text('mychips', 'user_host') uhost, base.parm_int('mychips', 'user_port') uport, base.parm_text('mychips', 'peer_host') phost, base.parm_int('mychips', 'peer_port') pport) as pp on true;
 
     eval(multiview::insert mychips.users_v "
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
