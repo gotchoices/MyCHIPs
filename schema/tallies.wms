@@ -458,7 +458,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
     from	mychips.chits		ch
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq
 } -grant {
-    {tally	{s} {i u} {d}}
+    {chit	{s} {i u} {d}}
 }
 
 # User view of chits
