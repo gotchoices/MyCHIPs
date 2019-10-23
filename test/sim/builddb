@@ -1,0 +1,43 @@
+#!/bin/bash
+#Conditionally rebuild the database schema if any files look fresher than
+#the last time this script was run.
+#Usage:	./builddb
+
+#Common code
+#-------------------------------------------------------------------------------
+thisscript="${BASH_SOURCE}"
+this="$(basename ${BASH_SOURCE})"
+mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
+source $mypath/config
+lastfile=${tmpdir}/last_schema_build
+
+if ! cd "${mypath}/../.." || [ "$(basename "$(pwd)")" != 'mychips' ]; then
+  echo "Can't find MyCHIPs source directory"
+  exit 1
+fi
+
+if ! cd schema; then
+  echo "Can't find schema directory"
+  exit 1
+fi
+
+dobuild=false
+if [ ! -f $lastfile ]; then
+  dobuild=true
+else
+  news=$(find . -newer $lastfile |wc -l)
+  if [ $news -gt 0 ]; then
+    dobuild=true
+  fi
+fi
+
+#echo "dobuild:$dobuild"
+if $dobuild; then
+  make objects
+  date >$lastfile
+fi
+
+#No user yet: let's build everything
+if [ "$(psql -A -t mychips admin -c "select * from mychips.users_v where id = 'r1'" |wc -l)" -lt 1 ]; then
+  make text defs init
+fi

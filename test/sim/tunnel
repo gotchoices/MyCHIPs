@@ -1,7 +1,10 @@
 #!/bin/sh
 #SSH tunnel, helpful if one or more of your test machines are running as a VM
 #under a host OS and so are not directly reachable from the outside.
+#Execute this from the host, to the VM to open a socket
 #Modify as needed for your own setup.
+#Usage: tunnel <myvmname> 27017		#Forward traffic to mongodb
+#	tunnel <myvmname> 65430		#Forward traffic to mychips peer service
 
 vm=lux0
 if [ ! -z "$1" ]; then
@@ -13,8 +16,8 @@ if [ ! -z "$2" ]; then
   port="$2"
 fi
 
-ssh $USER@${vm} \
+ssh -Y $USER@${vm} \
     -o TCPKeepAlive=yes -o ServerAliveInterval=30    \
-    -L ${port}:localhost:65430
-
+    -L ${port}:localhost:${port}
+#
 #    -R 65430:localhost:65430		#Requires "GatewayPorts yes" on remote end

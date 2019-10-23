@@ -1,5 +1,7 @@
 #!/bin/bash
 #Run multiple servers on multiple machines to simulate a larger MyCHIPs network
+#Usage:	./simnet
+#	./simnet stop
 #TODO:
 #- How to get progress updates to print in order, after correct Machine address?
 #- Update database schema if/where appropriate
@@ -8,8 +10,6 @@
 
 #Common code
 #-------------------------------------------------------------------------------
-tmpdir="/var/tmp/mychips"
-
 thisscript="${BASH_SOURCE}"
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
@@ -36,7 +36,7 @@ if [ "$1" == "config" ]; then
 #  echo Configuring; exit 0
   shift							#Discard "remote" argument
 
-  rpms=""							#Install any rpms we may need
+  rpms=""						#Install any rpms we may need
   for pkg in postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib ruby rubygem-pg rubygem-tk; do
     if ! rpm -qi $pkg >/dev/null; then
       rpms="${rpms} $pkg"
@@ -48,13 +48,13 @@ if [ "$1" == "config" ]; then
   fi
   
   if [ ! -d /var/lib/pgsql/data/base ]; then		#Initialize PostgreSQL
-    su -l postgres -c "initdb --locale=C"			#Might also use: eng_US.UTF-8
+    su -l postgres -c "initdb --locale=C"		#Might also use: eng_US.UTF-8
     systemctl enable postgresql
     systemctl start postgresql
   fi
   
   if [ "$(psql -A -t template1 postgres -c "select * from pg_roles where rolname = 'admin'" |wc -l)" -lt 1 ]; then
-    su -l postgres -c 'createuser -d -s -r admin'		#Create our administrative user
+    su -l postgres -c 'createuser -d -s -r admin'	#Create our administrative user
   fi
   exit 0
 fi
@@ -69,6 +69,8 @@ if [ "$1" == "refresh" ]; then
     echo "Can't find MyCHIPs source directory"
     exit 1
   fi
+  export PATH=$PATH:$(pwd)/../node_modules/.bin		#;echo "PATH:$PATH"
+  test/sim/builddb					#Update any database changes
   
   mkdir -p $tmpdir
   if [ -f $tmpdir/pids ]; then				#Kill any running servers
@@ -79,11 +81,21 @@ if [ "$1" == "refresh" ]; then
     rm $tmpdir/pids; touch $tmpdir/pids
   fi
   
-echo "args:$@ pwd:$(pwd)"
+echo "args:$@ pwd:$(pwd) ddhost:$public"
   if [ "$1" != "stop" ]; then
-    NODE_DEBUG=debug bin/mychips.js &			#And launch a fresh one
+    NODE_DEBUG=debug bin/mychips.js -s 0 -i 0 &		#And launch a fresh one, peer port only
     pid=$!
     echo "  SPA Server PID: $pid"
+    echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
+    
+    if [ "$(psql -A -t mychips admin -c "select * from mychips.users_v where ent_num > 1" |wc -l)" -lt 1 ]; then
+      test/sample/randuser -n 6
+      make text defs init
+    fi
+
+    NODE_DEBUG=debug MYCHIPS_DDHOST="$public" test/sim/agent -m 2 &		#Launch agent model simulation
+    pid=$!
+    echo "  Agent Model PID: $pid"
     echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
   fi
   exit 0

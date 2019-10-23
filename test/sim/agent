@@ -17,6 +17,7 @@ var argv = require('yargs')
 
 const moduleFile = '../../lib/agent' + argv.model + '.js'
 const AgentCont = require(moduleFile)		//Model controller
+
 var agent = new AgentCont({
   host: argv.dbHost,
   database:argv.dbName,
@@ -27,4 +28,4 @@ var agent = new AgentCont({
   database:argv.ddName,
   user: argv.ddAdmin, 
   port: argv.ddPort, 
-})
+}, argv)

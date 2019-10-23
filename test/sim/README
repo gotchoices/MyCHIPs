@@ -18,8 +18,9 @@ services on a number of different machines.
 
 Each machine can run:
   - A single postgreSQL instance
-  - A single SPA/clif server
+  - A single SPA/clif server (currently disabled)
   - Any number of peer servers, each with its own ID, unique to the machine
+    (currently only one)
 
 When the simnet script is run, it will access each configured machine via
 ssh and perform the following actions:
@@ -30,10 +31,11 @@ ssh and perform the following actions:
   - Kill any currently running MyCHIPs processes
   - Verify that the machine is properly configured (postgres, node, etc).
     Install/configure any necessary software.
+  - Make sure the database schema has been initialized
   - Apply any changes to the database schema
-  - Relaunch the SPA/clif service
+  - Relaunch the SPA/clif service (currently disabled)
   - Query the database for any configured hostID's and launch one peer
-    server for each unique ID (including null?)
+    server for each unique ID (launches only one, at the moment)
 
 Since everything is done over ssh, it will be immensely helpful to eliminate
 the need to enter a password each time you connect.  You can do this with:
@@ -51,4 +53,3 @@ machines.  This can create a very big security hole.  So only use machines for
 simulation that are not important for other functions.  For example, you can
 create a bunch of virtual machines in the cloud that don't really do much
 except to run your simulations.
-
