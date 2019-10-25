@@ -9,6 +9,7 @@ tabtext mychips.peers	{CHIP Peers}		{CHIP trading entities who are known to this
     {peer_port		{Peer Port}		{The port where other servers will connect}}
     {peer_cmt		{Peer Comments}		{Administrative comments about this peer}}
 } $glob::stampt] -messages {
+    {NAD		{No Peer Socket}	{You must specify both the peer host and port}}
 }
 
 tabtext mychips.peers_v	{CHIP Peers}		{A view of CHIP trading entities who are known to this server, with additional computed fields} {
