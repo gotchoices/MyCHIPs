@@ -66,18 +66,18 @@ view mychips.paths_v_lifts {mychips.paths_v} {
 
 # Generate notifications about changes to the lift operating parameters
 #----------------------------------------------------------------
-function mychips.lifts_tf_change() {mychips} {
-  returns trigger language plpgsql security definer as $$
-    begin
-      if (new.module = 'lifts') then
-        perform pg_notify('mychips_lifts', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
-      end if;
-      return null;
-    end;
-$$;}
-trigger mychips_lifts_tr_change {} {
-    after insert or update on base.parm for each row execute procedure mychips.lifts_tf_change();
-}
+#function mychips.lifts_tf_change() {mychips} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#      if (new.module = 'lifts') then
+#        perform pg_notify('mychips_lifts', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
+#      end if;
+#      return null;
+#    end;
+#$$;}
+#trigger mychips_lifts_tr_change {} {
+#    after insert or update on base.parm for each row execute procedure mychips.lifts_tf_change();
+#}
 
 # Generate a set of chits for a lift involving the specified tallies, all our own users
 #----------------------------------------------------------------
