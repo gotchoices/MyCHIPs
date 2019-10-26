@@ -21,7 +21,7 @@ namespace eval peers {
     def peers_pk	{peer_ent}
     def peers_v_up	{peer_cdi peer_hid peer_pub peer_host peer_port peer_cmt}
     def peers_v_in	[concat $peers_pk $peers_v_up]
-    def peers_se	[concat $peers_v_in $glob::stampfn]
+    def peers_se	[concat $peers_v_in crt_by crt_date mod_by]
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name conn_pub]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type username]
@@ -47,6 +47,7 @@ view mychips.peers_v {mychips.peers base.ent_v} {select
   , eval(fld_list $peers::peers_se	pe)
   , coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_sock
   , pe.peer_cdi || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_addr
+  , greatest(ee.mod_date, pe.mod_date) as mod_date
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id
