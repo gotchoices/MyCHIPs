@@ -6,8 +6,12 @@ remsrc="/usr/local/devel"	#Where to replicate source directory on remote machine
 vmsrc="~/share/devel"		#Where to find source directory on local vms
 tmpdir="/var/tmp/mychips"
 public=nb0			#Where our public document database will be running
-locals=(lux0)		#Any machines that already have an up-to-date source mirror (via nfs or the like)
+
+locals=(lux0 lux1)		#Any machines that already have an up-to-date source mirror (via nfs or the like)
+#locals=()
+
 #remotes=( 192.168.5.11 192.168.5.15 192.168.5.16 192.168.5.18 )
-remotes=( 192.168.5.15 192.168.5.16 )
-#remotes=( )
+#remotes=( 192.168.5.15 192.168.5.16 )
+remotes=( )
+
 machines=( "${locals[@]}" "${remotes[@]}" )

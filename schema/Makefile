@@ -11,20 +11,24 @@ ifeq ("$(MYCHIPSDB)","")
 else
   DBNAME="$(MYCHIPSDBDB)"
 endif
+OPT = -n ${DBNAME} -u ${DBUSER}
 
 objects:
-	wyseman --dbname=${DBNAME} --user=${DBUSER} config.tcl ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms
+	wyseman ${OPT} config.tcl ${WYSELIB}/*.wms ${WYSELIB}/base/*.wms *.wms
 
 text:
-	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/wylib.wmt ${WYSELIB}/base/*.wmt *.wmt
+	wyseman ${OPT} ${WYSELIB}/wylib.wmt ${WYSELIB}/base/*.wmt *.wmt
 
 defs:
-	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/base/*.wmd *.wmd
+	wyseman ${OPT} ${WYSELIB}/base/*.wmd *.wmd
 
 init:
-	wyseman --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/base/*.wmi *.wmi
+	wyseman ${OPT} ${WYSELIB}/base/*.wmi *.wmi
+
+parm:
+	wyseman ${OPT} *.wmi
 
 sql:	objects text
-	wyseman -s --dbname=${DBNAME} --user=${DBUSER} ${WYSELIB}/base/*.wmi *.wmi >../lib/schema-1.sql
+	wyseman ${OPT} ${WYSELIB}/base/*.wmi *.wmi >../lib/schema-1.sql
 
 all: objects text defs init

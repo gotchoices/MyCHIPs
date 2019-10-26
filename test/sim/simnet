@@ -3,6 +3,10 @@
 #Usage:	./simnet
 #	./simnet stop
 #TODO:
+#- Allow full command line switches:
+#-  Whether to launch agent or just server
+#-  Allow to append args to agent and server
+#- Launch a tail -f xterm on each server?
 #- How to get progress updates to print in order, after correct Machine address?
 #- Update database schema if/where appropriate
 #- How to launch separate servers for different hostID's?
@@ -83,9 +87,10 @@ if [ "$1" == "refresh" ]; then
   
 echo "args:$@ pwd:$(pwd) ddhost:$public"
   if [ "$1" != "stop" ]; then
+    shift
     NODE_DEBUG=debug bin/mychips.js -s 0 -i 0 &		#And launch a fresh one, peer port only
     pid=$!
-    echo "  SPA Server PID: $pid"
+    echo "  MyCHIPs Server PID: $pid"
     echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
     
     if [ "$(psql -A -t mychips admin -c "select * from mychips.users_v where ent_num > 1" |wc -l)" -lt 1 ]; then
@@ -93,7 +98,7 @@ echo "args:$@ pwd:$(pwd) ddhost:$public"
       make text defs init
     fi
 
-    NODE_DEBUG=debug MYCHIPS_DDHOST="$public" test/sim/agent -m 2 &		#Launch agent model simulation
+    NODE_DEBUG=debug MYCHIPS_DDHOST="$public" test/sim/agent -m 2 "$@" &	#Launch agent model simulation
     pid=$!
     echo "  Agent Model PID: $pid"
     echo $pid >>$tmpdir/pids				#Remember its Process ID for next time

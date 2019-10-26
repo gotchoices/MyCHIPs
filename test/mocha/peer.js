@@ -79,7 +79,7 @@ describe("Peer to peer tallies", function() {
     })
   })
 
-  it("User p1000 verfies the tally", function(done) {
+  it("User p1000 verifies the tally", function(done) {
     const sql = "select state from mychips.tallies_v where tally_ent = $1 and tally_seq = $2;"	//Fetch tally state
     db0.query(sql, ['p1000',1], (err, res) => { if (err) done(err)
       var state = res.rows[0]['state']

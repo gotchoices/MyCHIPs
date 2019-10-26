@@ -1,0 +1,26 @@
+#!/bin/bash
+#Run a command on all the machines part of our simulation
+#Usage:	./netcmd uptime
+#
+#TODO:
+#- Not yet working.  Loses quotes around SQL query when $@ passed to ssh
+#- 
+
+#-------------------------------------------------------------------------------
+this="$(basename ${BASH_SOURCE})"
+mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
+source $mypath/config
+
+#for mach in "${locals[@]}"; do
+#  echo -- "----->" $mach $*
+#  ssh -f ${USER}@${mach} $*
+#done
+
+#for mach in "${remotes[@]}"; do
+#  echo -- "----->" $mach "$@"
+#  ssh -f ${user}@${mach} "$@"
+#done
+
+for i in "$@"; do
+  echo "$i"
+done

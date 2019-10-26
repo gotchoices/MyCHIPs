@@ -1,5 +1,5 @@
 #!/bin/bash
-#Conditionally rebuild the database schema if any files look fresher than
+#Conditionally rebuild/update the database schema if any files look fresher than
 #the last time this script was run.
 #Usage:	./builddb
 
@@ -33,7 +33,7 @@ fi
 
 #echo "dobuild:$dobuild"
 if $dobuild; then
-  make objects
+  make objects parm
   date >$lastfile
 fi
 

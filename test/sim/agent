@@ -13,6 +13,7 @@ var argv = require('yargs')
   .alias('a','ddAdmin')    .default('ddAdmin',    process.env.MYCHIPS_DDADMIN || 'admin')
   .alias('p','ddPort')     .default('ddPort',     process.env.MYCHIPS_DDPORT || '27017')
   .alias('m','model')      .default('model',    1)
+  .alias('i','interval')   .default('interval', 1000)
   .argv
 
 const moduleFile = '../../lib/agent' + argv.model + '.js'

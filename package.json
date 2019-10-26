@@ -30,6 +30,8 @@
     "makecert": "bin/makecert",
     "spacert": "bin/makecert spa",
     "datacert": "bin/makecert data",
+    "agent": "test/sim/agent -m 2",
+    "builddb": "cd schema; make objects",
     "dev": "npm-run-all --parallel dev-build dev-server",
     "build": "webpack --mode production",
     "profile": "webpack --profile --json >/tmp/webpack-stats.json",

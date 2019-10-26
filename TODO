@@ -1,29 +1,40 @@
 TODO:
 
 Immediate:
-- Make agent2 model work in basic way
-- Each sql server writes its own users to the document database
-- Agent queries doc db to find peers
-- Track users/peers correctly/separately
+X- Each sql server writes its own users to the document database
+X- Agent queries doc db to find peers
+X- Track users/peers correctly/separately
+X- Can negotiate new tallies with outside peers
+X- Improve randomization of choice of trading partner
+X- Peer server queries periodically for lost/dropped transactions
+X- All tally state transitions use callbacks
+X- Fix/test state transition recipe code in tally.wms
+- Agent1 still works?
+- User relation graph updates asynchronously (only query modified nodes)
+- Change to aborted state after max number of retries/time (peer.js)
+- Agent2 adds chits to existing tallies
+- Agent spends CHIPs with more sensitivity to current net worth
+- Can negotiate new chits with outside peers
+- Use only local vms for simnet (lux1, lux2, lux3) so * can take my data with me
 - Populate database with tallies/chits with outside peers
-- 
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
 - 
+- 
 Lift modeling:
 X- System for instantiating multiple databases, multiple servers
-- Central repository where agent users can choose from peers, not in their own DB
-- DB support for peers, which are not local users
+X- Central repository where agent users can choose from peers, not in their own DB
+X- DB support for peers, which are not local users
 - Make paths_v properly detect paths to/from peers not on the same DB
-- Create remote query protocol
+- Create remote query protocol to get foreign pathway stub data (how to model)
 - Query adjoining DB's for pathway information
 - Populate local DB with stubs for remote peers
 - Create remote lift protocol
-- Design state machine to execute lifts
+- Design state machine to execute distributed lifts
 - 
 WyattERP:
 - Move makecert to wyclif package (still works in mychips?)
-- Column sort numbers are not showing on preview
+X- Column sort numbers are not showing on preview
 - Wyseman won't open dbe for chit view (no wmd?)
 X- Get wysegi working (where does it go)?
 - Test SSL connection to postgres
