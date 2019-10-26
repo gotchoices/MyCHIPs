@@ -57,6 +57,13 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing all the tallies owned
     }}
 }
 
+tabtext mychips.tally_tries {Tally Retries}	{Table contains information about retries with peers to establish tallies} {
+    {ttry_ent		{Tally Entity}		{The entity that owns the tally}}
+    {ttry_seq		{Tally Sequence}	{The unique sequence number of the tally}}
+    {tries		{Retries}		{How many times the peer server has attempted to act on the state request for this tally}}
+    {last		{Last Tried}		{When the last attempt was made to process state changes on this tally}}
+}
+
 tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} [concat {
     {chit_ent		{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
     {chit_seq		{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}

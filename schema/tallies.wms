@@ -2,10 +2,11 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- Split up tally notice trigger as done for chit trigger
+#X- Split up tally notice trigger as done for chit trigger
+#X- Harden: make limited views specifically for mychips users
+#X- Restrict update columns, consolidate to single update
 #- Include host_id in tally_v to reduce queries in notice triggers?
 #- Add constraints to assure things like contract and signatures in valid tally?
-#- Harden: make limited views specifically for mychips users (revoke current grants)
 #- 
 module mychips
 require trigview.tcl
@@ -79,6 +80,21 @@ table mychips.confirms {mychips.tallies} {
   , signature	text
 }
 
+table mychips.tally_tries {mychips.tallies} {
+    ttry_ent	text	      , primary key (ttry_ent, ttry_seq)
+  , ttry_seq	int	      , foreign key (ttry_ent, ttry_seq) references mychips.tallies on update cascade on delete cascade
+  , tries	int		not null default 1
+  , last	timestamptz	not null default current_timestamp
+}
+
+table mychips.chit_tries {mychips.chits} {
+    ctry_ent	text	      , primary key (ctry_ent, ctry_seq, ctry_idx)
+  , ctry_seq	int
+  , ctry_idx	int	      , foreign key (ctry_ent, ctry_seq, ctry_idx) references mychips.chits on update cascade on delete cascade
+  , tries	int		not null default 1
+  , last	timestamptz	not null default current_timestamp
+}
+
 # Generate unique sequence for new tallies
 #----------------------------------------------------------------
 function mychips.tallies_tf_seq() {mychips.tallies} {
@@ -142,7 +158,7 @@ trigger mychips_confirms_tr_seq {} {
 
 # Notify the peer server process of tally state changes, and next state request, that needs attention in the database
 #----------------------------------------------------------------
-function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.tallies_v mychips.users_v mychips.peers_v} {
+function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
   returns boolean language plpgsql security definer as $$
     declare
         act	text;
@@ -150,6 +166,7 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.
         urec	record;			-- User
         prec	record;			-- Peer
         trec	record;			-- Tally
+        rrec	record;			-- Retries
         channel	text = 'mychips_peer';
     begin
         if tally.status = 'void'  and tally.request = 'draft' then	-- Determine next action
@@ -169,15 +186,22 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.
         if not urec.host_id is null then
             channel = channel || '_' || urec.host_id;
         end if;
+
+        insert into mychips.tally_tries (ttry_ent, ttry_seq) values (tally.tally_ent, tally.tally_seq)
+          on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
+            returning * into rrec;
 --raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cdi, urec.peer_cdi, prec.peer_sock;
         jrec = jsonb_set(jrec, '{peer}', to_jsonb(prec.peer_cdi));
         jrec = jsonb_set(jrec, '{user}', to_jsonb(urec.peer_cdi));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(tally.tally_ent));
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
+        jrec = jsonb_set(jrec, '{try}', to_jsonb(rrec.tries));
+        jrec = jsonb_set(jrec, '{last}', to_jsonb(rrec.last));
         jrec = jsonb_set(jrec, '{at}', coalesce(to_jsonb(prec.peer_sock),'null'::jsonb));
         jrec = jsonb_set(jrec, '{object}', trec.json);
 -- raise notice 'Tally notice:%', jrec::text;
         perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
+        
         return true;
     end;
 $$;}
@@ -226,7 +250,7 @@ $$;}
 # Base view of tallies
 #----------------------------------------------------------------
 define multSign {case when te.tally_type = 'stock' then unitMultiplier().00 else -unitMultiplier().00 end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v} {select 
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v} {select 
     eval(fld_list $tallies::tallies_se	te)
   , ue.peer_cdi		as user_cdi
   , ue.peer_sock	as user_sock
@@ -298,6 +322,21 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   from mychips.tallies_v group by 1;
 }
 
+# View showing a single entry for each credit relationship (for network graph)
+#----------------------------------------------------------------
+view mychips.tallies_v_graph {mychips.tallies_v} {select 
+    tally_guid as guid    
+  , case when tally_type = 'stock' then tally_ent else partner end as stock_ent
+  , case when tally_type = 'stock' then partner else tally_ent end as foil_ent
+  , case when tally_type = 'stock' then user_cdi else part_cdi end as stock_cdi
+  , case when tally_type = 'stock' then part_cdi else user_cdi end as foil_cdi
+  , case when tally_type = 'stock' then total_c else -total_c end as total
+  , state
+  , max(mod_date) as mod_date
+  
+  from mychips.tallies_v group by 1,2,3,4,5,6,7;
+}
+
 # Process tally state transitions requested by the peer server process
 #----------------------------------------------------------------
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
@@ -307,6 +346,8 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         obj		jsonb = msg->'object';
         guid		uuid = obj->>'guid';
         curState	text;
+        qflds		text[];		-- Temporary array
+        qstrg		text;		-- Temporary string
         erec		record;		-- Tally entity, we will ignore the one in msg
         lrec		record;		-- Looping variable
         trec		record;		-- Holds tally record(s)
@@ -319,7 +360,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 
         select into trec tally_ent, tally_seq, state from mychips.tallies_v where tally_ent = erec.id and tally_guid = guid;
         curState = trec.state;
-raise notice 'Tally cdi:% entity:% state:% recipe:%', cdi, erec.id, curState, recipe;
+--raise notice 'Tally cdi:% entity:% state:% recipe:%', cdi, erec.id, curState, recipe;
         if not found then
             curState = 'null';			-- Special code for when the tally doesn't exist yet
         end if;
@@ -340,19 +381,24 @@ raise notice 'Tally cdi:% entity:% state:% recipe:%', cdi, erec.id, curState, re
             execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
                 using erec.id, guid, tallyType, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
-            execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 where tally_ent = $9 and tally_seq = $10'
+            execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 request = null where tally_ent = $9 and tally_seq = $10'
                 using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
+            delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
           end if;
         end if;
 
---Fixme: Restrict which columns can be updated
---	 also, build an update string to execute so we only do a single update
         if recipe ? 'update' then		-- There's an update key in the recipe
+          qflds = '{}';
           for lrec in select * from jsonb_each_text(recipe->'update') loop
 --raise notice '  update set % = %', lrec.key, lrec.value;
-            execute 'update mychips.tallies set request = null, ' || lrec.key || ' = $1 where tally_ent = $2 and tally_seq = $3' using lrec.value, trec.tally_ent, trec.tally_seq;
+            if lrec.key = any('{status, part_sig}') then		-- enumerate writable fields
+              qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
+            end if;
           end loop;
-          update mychips.tallies set request = null where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
+          qstrg = 'update mychips.tallies set request = null, ' || array_to_string(qflds,', ') || ' where tally_ent = $2 and tally_seq = $3';
+--raise notice 'SQL:%', qstrg;
+          execute qstrg using lrec.value, trec.tally_ent, trec.tally_seq;
+          delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
         end if;
 
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
@@ -373,7 +419,7 @@ $$;}
 
 # Notify the peer server process of chit state changes that need attention in the database
 #----------------------------------------------------------------
-function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chits_v mychips.tallies_v} {
+function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chits_v mychips.tallies_v mychips.chit_tries} {
   returns boolean language plpgsql security definer as $$
     declare
         act	text	= chit.request;
@@ -381,6 +427,7 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
         channel	text	= 'mychips_peer';
         trec	record;			-- Talley
         urec	record;			-- User
+        rrec	record;			-- Retries
     begin
         if act is null then return false; end if;
         
@@ -389,11 +436,17 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
         if not urec.host_id is null then
             channel = channel || '_' || urec.host_id;
         end if;
+        insert into mychips.chit_tries (ctry_ent, ctry_seq, ctry_idx) values (chit.chit_ent, chit.chit_seq, chit.chit_idx)
+          on conflict (ctry_ent,ctry_seq,ctry_idx) do update set tries = mychips.chit_tries.tries + 1, last = current_timestamp
+            returning * into rrec;
+        
         jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cdi));
         jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cdi));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(chit.chit_ent));
         jrec = jsonb_set(jrec, '{tally}', to_jsonb(trec.tally_guid));
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
+        jrec = jsonb_set(jrec, '{try}', to_jsonb(rrec.tries));
+        jrec = jsonb_set(jrec, '{last}', to_jsonb(rrec.last));
         jrec = jsonb_set(jrec, '{at}', to_jsonb(trec.part_sock));
         jrec = jsonb_set(jrec, '{object}', (select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx));
 raise notice 'Chit notice:% %', channel, jrec::text;
@@ -528,6 +581,7 @@ raise notice '  upsert obj:% curState:%', obj, curState;
           else						-- Chit already exists, do update
             execute 'update mychips.chits set signature = $1, units = $2, pro_quo = $3, memo = $4, request = null where chit_ent = $5 and chit_seq = $6 and chit_idx = $7'
                 using obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo', crec.chit_ent, crec.chit_seq, crec.chit_idx;
+            delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
           end if;
         end if;
 
@@ -537,6 +591,7 @@ raise notice '  update set % = %', lrec.key, lrec.value;
             execute 'update mychips.chits set ' || lrec.key || ' = $1 where chit_ent = $2 and chit_seq = $3 and chit_idx = $4' using lrec.value, crec.chit_ent, crec.chit_seq, crec.chit_idx;
           end loop;
           update mychips.chits set request = null where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+          delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
         end if;
 
         select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
@@ -555,17 +610,29 @@ $$;}
 # Check for any lingering, unprocessed notices
 # A peer server should call this on launch to become aware of any activity it has missed
 #----------------------------------------------------------------
-function {mychips.tally_notices()} {mychips.tallies mychips.chits} {
-  returns void language plpgsql as $$
+function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.chits base.parm_int(text,text)} {
+  returns int language plpgsql as $$
     declare
-        trec		record;
+        trec		mychips.tallies;
+        crec		mychips.chits;
+        didem		int = 0;
+        min_min		int = coalesce(base.parm_int('peers','min_time'), 60);
+        min_time	interval = (min_min::text || ' minutes')::interval;
     begin
-        for trec in select * from mychips.tallies where request is not null loop
+        for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
+          join mychips.tally_tries tr on tr.ttry_ent = ta.tally_ent and tr.ttry_seq = ta.tally_seq
+          where ta.request is not null and (current_timestamp - tr.last) >= min_time loop
             perform mychips.tally_notify(trec);
+            didem = didem + 1;
         end loop;
-        for trec in select * from mychips.chits where request is not null loop
-            perform mychips.chit_notify(trec);
+
+        for crec in select * from mychips.chits ch
+          join mychips.chit_tries ct on ct.ctry_ent = ch.chit_ent and ct.ctry_seq = ch.chit_seq and ct.ctry_idx = ch.chit_idx
+          where ch.request is not null and (current_timestamp - ct.last) >= min_time loop
+            perform mychips.chit_notify(crec);
+            didem = didem + 1;
         end loop;
+        return didem;
     end;
 $$;}
 
