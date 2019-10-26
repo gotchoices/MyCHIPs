@@ -75,7 +75,10 @@ var wyseman = new Wyseman({
 
 if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communications
   const PeerCont = require('../lib/peer.js')		//Peer communications controller
-  var peer = new PeerCont(argv.peerPort, argv.hostID, {
+  var peer = new PeerCont({
+    port: argv.peerPort, 
+    hostID: argv.hostID
+  }, {
     host: argv.dbHost,
     database:argv.dbName,
     user: argv.dbAdmin, 
