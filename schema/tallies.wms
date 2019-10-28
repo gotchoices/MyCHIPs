@@ -2,26 +2,19 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#X- Split up tally notice trigger as done for chit trigger
-#X- Harden: make limited views specifically for mychips users
-#X- Restrict update columns, consolidate to single update
 #- Include host_id in tally_v to reduce queries in notice triggers?
-#- Add constraints to assure things like contract and signatures in valid tally?
+#- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
+#- Add constraints to assure things like contract and signatures are valid?
+#- Make request tags mirror states better (more like in chits.wms)
 #- 
 module mychips
-require trigview.tcl
-define unitMultiplier 1000
+require config.tcl trigview.tcl
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment cr_limit dr_limit}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
     def tallies_se	[concat tally_ent tally_seq $tallies_v_up tally_guid tally_type version partner contract $glob::stampfn tally_date status units_c]
-
-    def chits_pk	{chit_ent chit_seq chit_idx}
-    def chits_v_up	{request signature units pro_quo memo}
-    def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_guid chit_type]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_guid chit_type $glob::stampfn chit_date]
 }
 
 table mychips.tallies {mychips mychips.users} {
@@ -52,24 +45,6 @@ index {} mychips.tallies tally_guid
 index {} mychips.tallies tally_type
 index {} mychips.tallies tally_date
 
-table mychips.chits {mychips.tallies} {
-    chit_ent	text
-  , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
-  , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
-  , chit_guid	uuid		not null
-  , chit_type	text		not null default 'tran' check(chit_type in ('gift','lift','loan','tran'))
-  , chit_date	timestamptz	not null default current_timestamp
-  , request	text		check(request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
-  , signature	text
-  , units	bigint		not null
-  , pro_quo	text
-  , memo	text
-    eval(s $glob::stamps)
-}
-index {} mychips.chits chit_guid
-index {} mychips.chits chit_type
-index {} mychips.chits chit_date
-
 table mychips.confirms {mychips.tallies} {
     conf_ent	text
   , conf_seq	int	      , foreign key (conf_ent, conf_seq) references mychips.tallies on update cascade on delete cascade
@@ -87,14 +62,6 @@ table mychips.tally_tries {mychips.tallies} {
   , last	timestamptz	not null default current_timestamp
 }
 
-table mychips.chit_tries {mychips.chits} {
-    ctry_ent	text	      , primary key (ctry_ent, ctry_seq, ctry_idx)
-  , ctry_seq	int
-  , ctry_idx	int	      , foreign key (ctry_ent, ctry_seq, ctry_idx) references mychips.chits on update cascade on delete cascade
-  , tries	int		not null default 1
-  , last	timestamptz	not null default current_timestamp
-}
-
 # Generate unique sequence for new tallies
 #----------------------------------------------------------------
 function mychips.tallies_tf_seq() {mychips.tallies} {
@@ -108,37 +75,6 @@ function mychips.tallies_tf_seq() {mychips.tallies} {
 $$;}
 trigger mychips_tallies_tr_seq {} {
     before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
-}
-
-# Generate unique sequence for new chit
-#----------------------------------------------------------------
-function mychips.chits_tf_seq() {mychips.chits} {
-  returns trigger language plpgsql security definer as $$
-    begin
-        if new.chit_idx is null then
-            select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq;
-        end if;
-        return new;
-    end;
-$$;}
-trigger mychips_chits_tr_seq {} {
-    before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
-}
-
-# Cache the total of tallies when the chits change
-#----------------------------------------------------------------
-function mychips.chits_tf_cache() {mychips} {
-  returns trigger language plpgsql security definer as $$
-    declare
-      trec	record;
-    begin
-      if TG_OP = 'DELETE' then trec = old; else trec = new; end if;
-      update mychips.tallies set units_c = (select coalesce(sum(units),0) from mychips.chits where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
-      return null;
-    end;
-$$;}
-trigger mychips_chits_tr_cache {} {
-    after insert or update or delete on mychips.chits for each row execute procedure mychips.chits_tf_cache();
 }
 
 # Generate unique sequence for new confirmation
@@ -303,7 +239,7 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
 # Summarize data about tallies
 #----------------------------------------------------------------
 view mychips.tallies_v_sum {mychips.tallies_v} {select 
-    tally_ent
+    tally_ent, user_cdi
   , count(tally_seq)	as tallies
   , sum(total_c)	as total_c
   , sum(total)		as total
@@ -313,14 +249,18 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , sum(case when tally_type = 'foil' then total else 0 end)	as foil_total
   , count(nullif(tally_type, 'foil'))::int4	as stocks
   , count(nullif(tally_type, 'stock'))::int4	as foils
-  , array_agg(partner)	as partners
-  , array_agg(partner) filter (where tally_type = 'stock')	as clients
-  , array_agg(partner) filter (where tally_type = 'foil')	as vendors
-  , array_agg(part_cdi)	as partner_cdis
-  , array_agg(part_cdi) filter (where tally_type = 'stock')	as client_cdis
-  , array_agg(part_cdi) filter (where tally_type = 'foil')	as vendor_cdis
+  , coalesce(array_agg(partner),'{}')	as partners
+  , coalesce(array_agg(partner) filter (where tally_type = 'stock'),'{}')	as clients
+  , coalesce(array_agg(partner) filter (where tally_type = 'foil'),'{}')	as vendors
+  , coalesce(array_agg(part_cdi),'{}')	as partner_cdis
+  , coalesce(array_agg(part_cdi) filter (where tally_type = 'stock'),'{}')	as client_cdis
+  , coalesce(array_agg(part_cdi) filter (where tally_type = 'foil'),'{}')	as vendor_cdis
+  , coalesce(array_agg(tally_seq) filter (where tally_type = 'stock'),'{}')	as stock_seqs
+  , coalesce(array_agg(tally_seq) filter (where tally_type = 'foil'),'{}')	as foil_seqs
+  , coalesce(array_agg(total) filter (where tally_type = 'stock'),'{}')		as stock_tots
+  , coalesce(array_agg(total) filter (where tally_type = 'foil'),'{}')		as foil_tots
   , max(latest)							as latest
-  from mychips.tallies_v group by 1;
+  from mychips.tallies_v group by 1, 2;
 }
 
 # View showing a single entry for each credit relationship (for network graph)
@@ -415,196 +355,6 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 --            perform pg_notify('mychips_admin', trec.json::text);	Do we need this?
         end if;
         return trec.state;
-    end;
-$$;}
-
-# Notify the peer server process of chit state changes that need attention in the database
-#----------------------------------------------------------------
-function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chits_v mychips.tallies_v mychips.chit_tries} {
-  returns boolean language plpgsql security definer as $$
-    declare
-        act	text	= chit.request;
-        jrec	jsonb	= '{"target": "chit"}';
-        channel	text	= 'mychips_peer';
-        trec	record;			-- Talley
-        urec	record;			-- User
-        rrec	record;			-- Retries
-    begin
-        if act is null then return false; end if;
-        
-        select into trec * from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
-        select into urec host_id from mychips.users_v where user_ent = chit.chit_ent;
-        if not urec.host_id is null then
-            channel = channel || '_' || urec.host_id;
-        end if;
-        insert into mychips.chit_tries (ctry_ent, ctry_seq, ctry_idx) values (chit.chit_ent, chit.chit_seq, chit.chit_idx)
-          on conflict (ctry_ent,ctry_seq,ctry_idx) do update set tries = mychips.chit_tries.tries + 1, last = current_timestamp
-            returning * into rrec;
-        
-        jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cdi));
-        jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cdi));
-        jrec = jsonb_set(jrec, '{entity}', to_jsonb(chit.chit_ent));
-        jrec = jsonb_set(jrec, '{tally}', to_jsonb(trec.tally_guid));
-        jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
-        jrec = jsonb_set(jrec, '{try}', to_jsonb(rrec.tries));
-        jrec = jsonb_set(jrec, '{last}', to_jsonb(rrec.last));
-        jrec = jsonb_set(jrec, '{at}', to_jsonb(trec.part_sock));
-        jrec = jsonb_set(jrec, '{object}', (select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx));
-raise notice 'Chit notice:% %', channel, jrec::text;
-        perform pg_notify(channel, jrec::text);
-        return true;
-    end;
-$$;}
-
-# Generate notifications about updated chits for listening peer servers
-#----------------------------------------------------------------
-function mychips.chits_tf_notify() {mychips.chits mychips.chits_v mychips.tallies_v} {
-  returns trigger language plpgsql security definer as $$
-    declare
-        dirty	boolean default false;
-    begin
-        if TG_OP = 'INSERT' then
-            dirty = true;
-        elsif new.request is not null and new.request is distinct from old.request then
-            dirty = true;
-        end if;
---raise notice 'Chit update: %', dirty;
-        if dirty then perform mychips.chit_notify(new); end if;
-        return new;
-    end;
-$$;}
-trigger mychips_chits_tr_notice {} {
-    after insert or update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
-}
-
-# Compute current state of this chit
-#----------------------------------------------------------------
-function {mychips.chit_state(isdebit boolean, request text, signature text)} {mychips} {
-  returns text immutable language plpgsql as $$
-    begin return
-      case when isdebit then
-        case when signature = 'void'		then 'peerDecline'
-           when signature is not null		then 'peerValid'
-           when request = 'userRequest'		then 'userRequest'
-           when request is null			then 'userInvoice'
-           else					     'undefined'	end
-      else	--is a credit
-        case when signature = 'void' then
-        case when request = 'userDecline'	then 'userDecline'
-             when request is null		then 'userVoid'
-             else				     'undefined'    end
-           when signature is null then
-        case when request is null		then 'peerInvoice'
-             else				     'undefined'    end
-           when request = 'userAgree'		then 'userAgree'
-           when request = 'userDraft'		then 'userDraft'
-           when request is null			then 'userValid'
-      else     					     'undefined'	end
-      end;
-    end;
-$$;}
-
-# Base view of chits
-#----------------------------------------------------------------
-define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
-view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text)} {select 
-    eval(fld_list $tallies::chits_se	ch)
-  , te.user_cdi
-  , te.part_cdi
-  , te.tally_type
-  , case when isdebit() then 'debit' else 'credit' end		as effect
-         
-  , ch.units::float8 / unitMultiplier().00	as value
-  , ch.units::float8 * case when te.tally_type = 'stock' then 1 else -1 end / unitMultiplier()	as amount
-  , mychips.chit_state(isdebit(), ch.request, ch.signature)	as state
-  , mychips.chit_state(isdebit(), ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
-  , jsonb_build_object(
-       'guid',		ch.chit_guid,
-       'type',		ch.chit_type,
-       'date',		ch.chit_date,
-       'units',		ch.units,
-       'signed',	ch.signature
-  )						as json
-    from	mychips.chits		ch
-    join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq
-} -grant {
-    {chit	{s} {i u} {d}}
-}
-
-# User view of chits
-#----------------------------------------------------------------
-view mychips.chits_v_me {mychips.chits_v mychips.tallies_v_me} {select 
-    c.*
-    from	mychips.chits_v c
-    join	mychips.tallies_v_me t on c.chit_ent = t.tally_ent and c.chit_seq = t.tally_seq
-} -grant {
-    {chit	{s} {s i u} {d}}
-}
-
-# Process chit state transitions requested by the peer server process
-#----------------------------------------------------------------
-function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychips.chits_v} {
-  returns text language plpgsql as $$
-    declare
-        cdi		text	= msg->>'user';
-        obj		jsonb	= msg->'object';
-        guid		uuid	= obj->>'guid';
-        curState	text;
-        crec		record;
-        trec		record;
-        lrec		record;
-        erec		record;
-        channel	text = 'mychips_user';
-    begin
-        select into erec id, host_id from mychips.users_v where peer_cdi = cdi;
-        if not found then return null; end if;
-
-        select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = erec.id and chit_guid = guid;
-        curState = crec.state;
-raise notice 'Chit cdi:% entity:% state:% recipe:%', cdi, crec.chit_ent, curState, recipe;
-        if not found then
-            curState = 'null';		-- Special code for when the specified chit doesn't exist yet
-        end if;
-
-        if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state
-raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
-            return curState;
-        end if;
-
-        if recipe ? 'upsert' then
-raise notice '  upsert obj:% curState:%', obj, curState;
-          if curState = 'null' then			-- Need to do insert
-            select into trec * from mychips.tallies where tally_ent = erec.id and tally_guid = (msg->>'tally')::uuid;
-            if not found then return null; end if;
-            
-            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,signature,units,pro_quo,memo) values ($1,$2,$3,$4,current_timestamp,$5,$6,$7,$8) returning chit_ent, chit_seq, chit_idx' into crec
-                using trec.tally_ent, trec.tally_seq, guid, obj->>'type', obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo';
-          else						-- Chit already exists, do update
-            execute 'update mychips.chits set signature = $1, units = $2, pro_quo = $3, memo = $4, request = null where chit_ent = $5 and chit_seq = $6 and chit_idx = $7'
-                using obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo', crec.chit_ent, crec.chit_seq, crec.chit_idx;
-            delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
-          end if;
-        end if;
-
-        if recipe ? 'update' then
-          for lrec in select * from jsonb_each_text(recipe->'update') loop	--Fixme: should probably restrict which columns can be updated by this method
-raise notice '  update set % = %', lrec.key, lrec.value;
-            execute 'update mychips.chits set ' || lrec.key || ' = $1 where chit_ent = $2 and chit_seq = $3 and chit_idx = $4' using lrec.value, crec.chit_ent, crec.chit_seq, crec.chit_idx;
-          end loop;
-          update mychips.chits set request = null where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
-          delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
-        end if;
-
-        select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
-        if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid status
-            if not erec.host_id is null then
-              channel = channel || '_' || erec.host_id;
-            end if;
-raise notice '  chit notify for user channel: %', channel;
-            perform pg_notify(channel, trec.json::text);
---            perform pg_notify('mychips_admin', crec.json::text);	Do we need this?
-        end if;
-        return crec.state;
     end;
 $$;}
 
