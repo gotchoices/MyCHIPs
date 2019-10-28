@@ -49,25 +49,28 @@ export default {
     },
   },
   methods: {
-    peer(id, name, cdi, isUser) {	//Generate SVG code for a user/peer node
-//console.log("User", id, cdi, this.totals[cdi])
-      let tots = cdi in this.totals ? this.totals[cdi] : {}
+    peer(dat) {				//Generate SVG code for a user/peer node
+//console.log("User", dat.id, dat.peer_cdi, this.totals[dat.peer_cdi])
+      let { id, std_name, peer_cdi, peer_sock, user_ent } = dat
+        , tots = peer_cdi in this.totals ? this.totals[peer_cdi] : {}
         , debits = Math.round(tots.debits || 0)
         , credits = Math.round(-tots.credits || 0)
         , total =  Math.round(debits - credits)
         , fColor = (total < 0 ? '#ff0000' : '#0000ff')
         , sumLine = `${debits} - ${credits} = <tspan stroke="${fColor}" fill="${fColor}">${total}</tspan>`
         , yOff = this.fontSize + 3
+        , host = peer_sock.split('.')[0]
+        , cdiLine = `${peer_cdi}@${host}`
         , text = `
         <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
-          ${id}:${name}
-          <tspan x="4" y="${yOff * 2}">${cdi}</tspan>
+          ${id}:${std_name}
+          <tspan x="4" y="${yOff * 2}">${cdiLine}</tspan>
           <tspan x="4" y="${yOff * 3}">${sumLine}</tspan>
         </text>`
-        , max = Math.max(cdi.length, name.length + 6, sumLine.length-44)	//take tspan into account
+        , max = Math.max(cdiLine.length, std_name.length + 6, sumLine.length-44)	//take tspan into account
         , width = max * this.fontSize * 0.55
         , height = this.fontSize * 3.8
-        , bColor = isUser ? "#d0d0e4" : "#d0e4d0"
+        , bColor = user_ent ? "#d0d0e4" : "#d0e4d0"
         , body = `
         <g stroke="black" stroke-width="1">
           <rect rx="4" ry="4" width="${width}" height="${height}" fill="${bColor}"/>
@@ -80,13 +83,13 @@ export default {
 
     updateNodes(dTime) {
       let where = [['peer_cdi', 'notnull']]
-        , spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi', 'user_ent'], where, order: 1}
+        , spec = {view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_cdi', 'peer_sock', 'user_ent'], where, order: 1}
       if (dTime) where.push(['mod_date', '>=', dTime])
       Wylib.Wyseman.request('urnet.peer.'+this._uid, 'select', spec, (data,err) => {
         let notFound = Object.assign({}, this.state.nodes)
 //console.log("Update nodes:", data.length, data)
         for (let dat of data) {
-          let bodyObj = this.peer(dat.id, dat.std_name, dat.peer_cdi, dat.user_ent)
+          let bodyObj = this.peer(dat)
             , radius = bodyObj.height / 2
           if (dat.peer_cdi in this.state.nodes) {
             Object.assign(this.state.nodes[dat.peer_cdi], bodyObj, {radius})
@@ -108,44 +111,49 @@ export default {
 
     updateLinks(dTime) {
       let spec = {view: 'mychips.tallies_v_graph', fields: ['guid', 'stock_cdi', 'foil_cdi', 'total'], where: [['state', '=', 'open']], order: [1,2]}
-        , haveHubs = {}						//Keep track of hub stacking
         , procNode = (guid, cdi, part_cdi, total, type) => {
-          let node = this.state.nodes[cdi]			//Get node's state object
-            , nodeLink = node.links.find(link => {return link.index == guid})	//Do we already have a definition for this link?
-            , idx = (tag => {					//Calculate an order 0..n for hub stacking
-                if (tag in haveHubs) {return (haveHubs[tag] += 1)} else {return (haveHubs[tag] = 0)}
-              })(node.tag + type)
-            , isFoil = type == "foil" ? true : false
-            , xOffset = node.width / 2
-            , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
-            , color = total == 0 ? '#f0f0f0' : (total < 0 ? '#F0B0B0' : '#B0B0F0')
-            , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
-            , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
-            , center = {x:xOffset, y:yOffset}
+            if (!this.state.nodes[cdi]) this.updateNodes()
+            let node = this.state.nodes[cdi]			//Get node's state object
+              , nodeLink = node.links.find(link => {return link.index == guid})	//Do we already have a definition for this link?
+              , idx = (tag => {					//Calculate an order 0..n for hub stacking
+                  if (!node.hubIdx) node.hubIdx = {}
+                  if (!node.hubIdx[type]) node.hubIdx[type] = []
+                  let idx = node.hubIdx[type].findIndex(el=>(el == tag))
+                  if (idx < 0) node.hubIdx[type].push(tag)
+                  return idx > 0 ? idx : 0
+                })(guid)
+              , isFoil = type == "foil" ? true : false
+              , xOffset = node.width / 2
+              , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
+              , color = total == 0 ? '#f0f0f0' : (total < 0 ? '#F0B0B0' : '#B0B0F0')
+              , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
+              , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
+              , center = {x:xOffset, y:yOffset}
 
-          if (!(cdi in this.tallies)) this.$set(this.tallies, cdi, {stock:[], foil:[]})
-          this.tallies[cdi][type].splice(idx, 1, total)
-console.log('Add to tallies:')
-          if (!nodeLink) {				//Create new data structure for link, hubs
-            nodeLink = {index:guid, link:part_cdi, draw:isFoil, ends, center, hub:null}
-            node.links.push(nodeLink)
-          }
-console.log("  node:", node, idx, cdi, part_cdi, nodeLink)
-          Object.assign(nodeLink, {ends, center, found:!dTime, hub: ()=>{
-            return `<g transform="translate(${center.x}, ${center.y})">
-              <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${color}"/>
-              <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${total}</text>
-            </g>`
-          }})
-      }		//procNode
+            if (!(cdi in this.tallies)) this.$set(this.tallies, cdi, {stock:[], foil:[]})
+            this.tallies[cdi][type].splice(idx, 1, total)
+//console.log('Add to tallies:')
+            if (!nodeLink) {				//Create new data structure for link, hubs
+              nodeLink = {index:guid, link:part_cdi, draw:isFoil, ends, center, hub:null}
+              node.links.push(nodeLink)
+            }
+//console.log("  node:", node, idx, cdi, part_cdi, nodeLink)
+            Object.assign(nodeLink, {ends, center, found:!dTime, hub: ()=>{
+              return `<g transform="translate(${center.x}, ${center.y})">
+                <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${color}"/>
+                <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${total}</text>
+              </g>`
+            }})
+          }		//procNode
 
-      if (dTime) spec.where.push(['mod_date', '>=', dTime])
+//console.log("updateLinks:", dTime)
+      if (dTime) spec.where.push(['latest', '>=', dTime])
       Wylib.Wyseman.request('urnet.tally.'+this._uid, 'select', spec, (data, e) => {
         if (e) {console.log("Error in query:", e.message); return}
         for (const dat of data) {				//For each tally link
 //console.log("L Dat:", dat)
           procNode(dat.guid, dat.stock_cdi, dat.foil_cdi, dat.total, 'stock')
-          procNode(dat.guid, dat.foil_cdi, dat.stock_cdi, dat.total, 'foil')
+          procNode(dat.guid, dat.foil_cdi, dat.stock_cdi, -dat.total, 'foil')
         }
 
         if (!dTime) Object.values(this.state.nodes).forEach(node=>{	//Locate any tallies on the SVG, no longer in the DB
@@ -173,10 +181,11 @@ console.log("  node:", node, idx, cdi, part_cdi, nodeLink)
     this.updateNodes()
     this.updateLinks()
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
-console.log("URnet async:", dat)
+//console.log("URnet async:", dat)
       if (dat.target == 'peers') this.updateNodes(dat.time)
-      if (dat.target == 'chits' || dat.target == 'tallies') this.updateLinks(dat.time)
-//        this.refresh(dat.time)
+      if (dat.target == 'tallies') this.updateLinks(dat.time)
+      if (dat.target == 'chits' && dat.oper == 'DELETE')	//Reload everything
+      	this.refresh()
     })
   }
 }

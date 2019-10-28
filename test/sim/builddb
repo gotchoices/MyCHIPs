@@ -2,6 +2,7 @@
 #Conditionally rebuild/update the database schema if any files look fresher than
 #the last time this script was run.
 #Usage:	./builddb
+newusers=5
 
 #Common code
 #-------------------------------------------------------------------------------
@@ -32,12 +33,19 @@ else
 fi
 
 #echo "dobuild:$dobuild"
+
+#No DB yet: let's build everything
+if [ "$(psql -A -t template1 admin -c "select * from pg_database where datname = 'mychips'" |wc -l)" -lt 1 ]; then
+  make objects text defs init
+  dobuild=false
+  date >$lastfile
+fi
+
 if $dobuild; then
   make objects parm
   date >$lastfile
 fi
 
-#No user yet: let's build everything
-if [ "$(psql -A -t mychips admin -c "select * from mychips.users_v where id = 'r1'" |wc -l)" -lt 1 ]; then
-  make text defs init
+if [ "$(psql -A -t mychips admin -c "select * from mychips.users_v where ent_num > 1" |wc -l)" -lt $newusers ]; then
+  ../test/sample/randuser -n $newusers
 fi

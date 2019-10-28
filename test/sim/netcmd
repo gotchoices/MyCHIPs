@@ -3,24 +3,33 @@
 #Usage:	./netcmd uptime
 #
 #TODO:
-#- Not yet working.  Loses quotes around SQL query when $@ passed to ssh
 #- 
 
 #-------------------------------------------------------------------------------
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
 source $mypath/config
+hostlist=''
 
-#for mach in "${locals[@]}"; do
-#  echo -- "----->" $mach $*
-#  ssh -f ${USER}@${mach} $*
-#done
-
-#for mach in "${remotes[@]}"; do
-#  echo -- "----->" $mach "$@"
-#  ssh -f ${user}@${mach} "$@"
-#done
-
-for i in "$@"; do
-  echo "$i"
+for mach in "${locals[@]}"; do
+  echo -- "----->" $mach $*
+  if [ -z "$hostlist" ]; then
+    hostlist="$mach"
+  else
+    hostlist="${hostlist},$mach"
+  fi
 done
+
+for mach in "${remotes[@]}"; do
+  echo -- "----->" $mach $*
+  if [ -z "$hostlist" ]; then
+    hostlist="$mach"
+  else
+    hostlist="${hostlist},$mach"
+  fi
+done
+
+#for i in "$@"; do
+#  echo "$i"
+#done
+pdsh -w $hostlist -R ssh "$@"

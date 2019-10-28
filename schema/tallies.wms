@@ -279,11 +279,12 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , te.units_c::float8 / multSign()		as total_c
   , coalesce(tc.units,0)::float8 / multSign()	as total
   , coalesce(tc.chits,0)			as chits
+  , coalesce(tc.latest,te.mod_date)		as latest
 
     from	mychips.tallies	te
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
     join	mychips.peers_v	pe on pe.peer_ent = te.partner
-    left join	(select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits from mychips.chits group by 1,2) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
+    left join	(select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits group by 1,2) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
@@ -318,7 +319,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(part_cdi)	as partner_cdis
   , array_agg(part_cdi) filter (where tally_type = 'stock')	as client_cdis
   , array_agg(part_cdi) filter (where tally_type = 'foil')	as vendor_cdis
-  , max(mod_date)						as mod_date
+  , max(latest)							as latest
   from mychips.tallies_v group by 1;
 }
 
@@ -332,7 +333,7 @@ view mychips.tallies_v_graph {mychips.tallies_v} {select
   , case when tally_type = 'stock' then part_cdi else user_cdi end as foil_cdi
   , case when tally_type = 'stock' then total_c else -total_c end as total
   , state
-  , max(mod_date) as mod_date
+  , max(latest) as latest
   
   from mychips.tallies_v group by 1,2,3,4,5,6,7;
 }
@@ -405,7 +406,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
             if not erec.host_id is null then channel = channel || '_' || erec.host_id; end if;
-raise notice '  tally notify for user channel: % %', channel, trec.json;
+--raise notice '  tally notify for user channel: % %', channel, trec.json;
             jrec = jsonb_set(jrec, '{entity}', to_jsonb(trec.tally_ent));
             jrec = jsonb_set(jrec, '{sequence}', to_jsonb(trec.tally_seq));
             jrec = jsonb_set(jrec, '{state}', to_jsonb(trec.state));

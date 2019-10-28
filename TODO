@@ -9,13 +9,13 @@ X- Improve randomization of choice of trading partner
 X- Peer server queries periodically for lost/dropped transactions
 X- All tally state transitions use callbacks
 X- Fix/test state transition recipe code in tally.wms
-- Agent1 still works?
-- User relation graph updates asynchronously (only query modified nodes)
-- Change to aborted state after max number of retries/time (peer.js)
+X- Agent1 still works?
+X- User relation graph updates asynchronously (only query modified nodes)
+X- Use only local vms for simnet (lux1, lux2, lux3) so * can take my data with me
+- Debug: "Failure in tally"
 - Agent2 adds chits to existing tallies
 - Agent spends CHIPs with more sensitivity to current net worth
-- Can negotiate new chits with outside peers
-- Use only local vms for simnet (lux1, lux2, lux3) so * can take my data with me
+- Change to aborted state after max number of retries/time (peer.js)
 - Populate database with tallies/chits with outside peers
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
@@ -26,9 +26,11 @@ X- System for instantiating multiple databases, multiple servers
 X- Central repository where agent users can choose from peers, not in their own DB
 X- DB support for peers, which are not local users
 - Make paths_v properly detect paths to/from peers not on the same DB
+- Make table to model outside paths
 - Create remote query protocol to get foreign pathway stub data (how to model)
 - Query adjoining DB's for pathway information
-- Populate local DB with stubs for remote peers
+- Populate local DB with stubs/paths for remote peers
+- Can join inside paths with outside paths
 - Create remote lift protocol
 - Design state machine to execute distributed lifts
 - 

@@ -42,7 +42,7 @@ table mychips.peers {base.ent mychips} {
 
 # Base view of peers, linked to entity table
 #----------------------------------------------------------------
-view mychips.peers_v {mychips.peers base.ent_v} {select 
+view mychips.peers_v {mychips.peers base.ent_v base.parm_text(text,text)} {select 
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
   , coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_sock
