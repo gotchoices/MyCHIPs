@@ -6,6 +6,7 @@
 #- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
 #- Add constraints to assure things like contract and signatures are valid?
 #- Make request tags mirror states better (more like in chits.wms)
+#- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman (see Fixme)
 #- 
 module mychips
 require config.tcl trigview.tcl
@@ -220,6 +221,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
     from	mychips.tallies	te
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
     join	mychips.peers_v	pe on pe.peer_ent = te.partner
+--Fixme: include only open chits
     left join	(select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits group by 1,2) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
@@ -356,14 +358,14 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         end if;
 
         if recipe ? 'update' then		-- There's an update key in the recipe
-          qflds = '{}';
+          qflds = '{"request = null"}';
           for lrec in select * from jsonb_each_text(recipe->'update') loop
 --raise notice '  update set % = %', lrec.key, lrec.value;
             if lrec.key = any('{status, part_sig}') then		-- enumerate writable fields
               qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
             end if;
           end loop;
-          qstrg = 'update mychips.tallies set request = null, ' || array_to_string(qflds,', ') || ' where tally_ent = $2 and tally_seq = $3';
+          qstrg = 'update mychips.tallies set ' || array_to_string(qflds,', ') || ' where tally_ent = $2 and tally_seq = $3';
 --raise notice 'SQL:%', qstrg;
           execute qstrg using lrec.value, trec.tally_ent, trec.tally_seq;
           delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;

@@ -3,6 +3,7 @@
 #----------------------------------------------------------------
 #TODO:
 #- Add constraints to assure things like signatures are valid ?
+#- Field 'open' merely tells that a signature is present--not valid
 #- 
 module mychips
 require config.tcl trigview.tcl
@@ -57,13 +58,16 @@ trigger mychips_chits_tr_seq {} {
 
 # Cache the total of tallies when the chits change
 #----------------------------------------------------------------
-function mychips.chits_tf_cache() {mychips} {
+function mychips.chits_tf_cache() {mychips mychips.chits_v} {
   returns trigger language plpgsql security definer as $$
     declare
       trec	record;
     begin
       if TG_OP = 'DELETE' then trec = old; else trec = new; end if;
-      update mychips.tallies set units_c = (select coalesce(sum(units),0) from mychips.chits where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
+
+      update mychips.tallies set units_c = 
+        (select coalesce(sum(units),0) from mychips.chits_v where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq and open)
+          where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
       return null;
     end;
 $$;}
@@ -170,6 +174,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
   , ch.units::float8 / unitMultiplier().00	as value
   , ch.units::float8 * case when te.tally_type = 'stock' then 1 else -1 end / unitMultiplier()	as amount
   , mychips.chit_state(isdebit(), ch.request, ch.signature)	as state
+  , ch.request is null and not ch.signature isnull and ch.signature != 'void'	as open
   , mychips.chit_state(isdebit(), ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
   , jsonb_build_object(
        'guid',		ch.chit_guid,
@@ -245,22 +250,22 @@ raise notice '  upsert obj:% curState:%', obj, curState;
         end if;
 
         if recipe ? 'update' then
-          qflds = '{}';
-          for lrec in select * from jsonb_each_text(recipe->'update') loop	--Fixme: should probably restrict which columns can be updated by this method
+          qflds = '{"request = null"}';
+          for lrec in select * from jsonb_each_text(recipe->'update') loop
 raise notice '  update set % = %', lrec.key, lrec.value;
-            if lrec.key = any('{status, signature}') then		-- enumerate writable fields
+            if lrec.key = any('{signature}') then		-- enumerate writable fields
               qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
             end if;
 --            execute 'update mychips.chits set ' || lrec.key || ' = $1 where chit_ent = $2 and chit_seq = $3 and chit_idx = $4' using lrec.value, crec.chit_ent, crec.chit_seq, crec.chit_idx;
           end loop;
-          qstrg = 'update mychips.chits set request = null, ' || array_to_string(qflds,', ') || ' where chit_ent = $2 and chit_seq = $3 and chit_idx = $4';
+          qstrg = 'update mychips.chits set ' || array_to_string(qflds,', ') || ' where chit_ent = $2 and chit_seq = $3 and chit_idx = $4';
 raise notice 'SQL:%', qstrg;
           execute qstrg using lrec.value, crec.chit_ent, crec.chit_seq, crec.chit_idx;
           delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
         end if;
 
         select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
-        if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid status
+        if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
             if not erec.host_id is null then channel = channel || '_' || erec.host_id; end if;
 raise notice '  chit notify for user channel: %', channel;
             perform pg_notify(channel, crec.json::text);
