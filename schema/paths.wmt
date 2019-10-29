@@ -1,6 +1,6 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-tabtext mychips.paths_v	{Tally Pathways}	{A view showing network pathways between entities, based on the tallies they have in place} {
+tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathways between entities, based on the tallies they have in place} {
     {id			{Peer ID}		{Entity ID of the peer this pathway starts with}}
     {length		{Node Length}		{The number of unique peer nodes in this pathway}}
     {path		{Peer ID List}		{An array of the entity IDs in this pathway}}

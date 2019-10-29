@@ -2,10 +2,11 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- Pull minimum lift size from system parameters
+#X- Track if path consists of only inside, user members
+#X- Properly handle peers that are not our users (we only have a stock or foil type tally)
+#X- Pull minimum lift size from system parameters
 #- Only process lifts that have a cost factor 1 or better
 #- Allow reverse lifts by examining foil tallies with reverse margins enabled
-#- Properly handle peers that are not our users (we only have a stock or foil type tally)
 #- Also honor minimum lift sizes from user settings, or the tallies themselves
 #- Raise up any negative costs in the lift to achieve a 1 factor
 #- Honor all tally lift variables properly
@@ -25,29 +26,46 @@ module mychips
 other uuid {} {create extension "uuid-ossp"} {drop extension if exists "uuid-ossp"}
 #other pgcrypto {} {create extension "pgcrypto"} {drop extension if exists "pgcrypto"}
 
-# Recursive view of tallies to show pathways
+table mychips.paths {mychips mychips.peers} {
+    stock_ent	text		references mychips.peers on update cascade on delete cascade
+  , foil_ent	text		references mychips.peers on update cascade on delete cascade
+  , used	int		not null default 0
+  , find_date	timestamptz	not null default current_timestamp
+  , used_date	timestamptz	not null default current_timestamp
+  , primary key (stock_ent, foil_ent)
+}
+#index {} mychips.paths used_date
+
+# Recursive view of tallies to show pathways native to our system
 #----------------------------------------------------------------
-view mychips.paths_v {mychips.peers mychips.tallies} {
-  with recursive tally_path(id, length, pids, uuids, cycle, circuit, cost, min, max) as (
-    select	p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 1.00::float, null::bigint, null::bigint
-    from	mychips.peers p 
-    where not p.peer_ent isnull
+view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift_max(bigint,bigint,bigint,bigint)} {
+  with recursive tally_path(first, last, length, pids, uuids, cycle, circuit, cost, min, max, inside, firstin, lastin) as (
+    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 1.00::float, null::bigint, null::bigint, not p.user_ent isnull, not p.user_ent isnull, not p.user_ent isnull
+    from	mychips.users_v p
+    where	not p.peer_ent isnull
   union all
-    select t.tally_ent					as id
+    select tp.first					as first
+      , t.stock_ent					as last
       , tp.length + 1					as length
-      , tp.pids || t.tally_ent				as pids
-      , tp.uuids || t.tally_guid			as uuids
-      , t.tally_ent = any(tp.pids)			as cycle
-      , tp.pids[1] = t.tally_ent			as circuit
-      , tp.cost * (1 + t.lift_marg)			as cost
-      , coalesce(least(t.units_c,tp.min), t.units_c)	as min
-      , coalesce(greatest(t.units_c,tp.max), t.units_c)	as max
-    from	mychips.tallies t
-    join	tally_path	tp on tp.id = t.partner and not tp.cycle
-    where	t.tally_type = 'stock'
-  ) select tpr.id
+      , tp.pids || t.stock_ent				as pids
+      , tp.uuids || t.guid				as uuids
+      , t.stock_ent = any(tp.pids)			as cycle
+      , tp.pids[1] = t.stock_ent			as circuit
+      , tp.cost * (1 + t.margin)			as cost
+      , least(tp.min, mychips.lift_max(
+          t.units, t.target, t.cr_max, t.dr_max
+        ))						as min
+--      , coalesce(least(t.units,tp.min), t.units)	as min
+      , coalesce(greatest(t.units,tp.max), t.units)	as max
+      , tp.inside and not t.stock_user isnull		as inside
+      , not t.stock_user isnull				as firstin
+      , tp.inside					as lastin
+    from	mychips.tallies_v_net t
+    join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
+  ) select tpr.first
+    , tpr.last
     , tpr.length
-    , tpr.pids[2:array_upper(tpr.pids,1)] as path
+    , tpr.pids as path
     , tpr.uuids
     , tpr.cycle
     , tpr.circuit
@@ -55,29 +73,28 @@ view mychips.paths_v {mychips.peers mychips.tallies} {
     , tpr.min
     , tpr.max
     , tpr.length * tpr.min as bang
+    , tpr.inside
+    , tpr.firstin
+    , tpr.lastin
   from tally_path tpr 
-} -primary {id token_seq}
+} -primary {last first length}
 
-# Simpler version of view for discovering lifts
+# Simplified view for discovering lifts
 #----------------------------------------------------------------
-view mychips.paths_v_lifts {mychips.paths_v} {
-  select bang,length,min,max,path from mychips.paths_v where circuit order by 1 desc
+view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
+  select bang,length,min,max,path from mychips.tallies_v_paths where circuit order by 1 desc
 }
 
-# Generate notifications about changes to the lift operating parameters
+# Generate a maximum lift amount for a given tally set
 #----------------------------------------------------------------
-#function mychips.lifts_tf_change() {mychips} {
-#  returns trigger language plpgsql security definer as $$
-#    begin
-#      if (new.module = 'lifts') then
-#        perform pg_notify('mychips_lifts', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
-#      end if;
-#      return null;
-#    end;
-#$$;}
-#trigger mychips_lifts_tr_change {} {
-#    after insert or update on base.parm for each row execute procedure mychips.lifts_tf_change();
-#}
+function {mychips.lift_max(units bigint, target bigint, crmax bigint, drmax bigint)} {mychips} {
+  returns bigint language plpgsql immutable as $$
+    declare
+--Fixme: honor credit/debit limits here    
+    begin
+      return greatest(units, units-target);
+    end;
+$$;}
 
 # Generate a set of chits for a lift involving the specified tallies, all our own users
 #----------------------------------------------------------------
@@ -102,13 +119,13 @@ function {mychips.internal_lift(units bigint, uupath uuid[])} {mychips.tallies m
           return false;
         end if;
       end loop;
-    return true;
+      return true;
     end;
 $$;}
 
 # Query the database for possible lifts, initiating one or more if needed
 #----------------------------------------------------------------
-function {mychips.lift_cycle(maxNum int default 1)} {mychips.paths_v base.parm_v} {
+function {mychips.lift_cycle(maxNum int default 1)} {mychips.tallies_v_paths base.parm_v} {
   returns jsonb language plpgsql security definer as $$
     declare
       status	jsonb = '{"done": 0}';
@@ -134,7 +151,7 @@ function {mychips.lift_cycle(maxNum int default 1)} {mychips.paths_v base.parm_v
 
 -- These are all internal lifts for now (circuit)      
       while count < maxNum loop
-        tstr = 'select id, length, min, max, cost, path, uuids from mychips.paths_v where circuit and min >= $1 order by ' || orders || ' limit 1';
+        tstr = 'select length, min, max, cost, path, uuids from mychips.tallies_v_paths where circuit and min >= $1 order by ' || orders || ' limit 1';
 --raise notice 'LC2 min:% max:% ord:% sql:%', min_units, maxNum, orders, tstr;
         execute tstr into prec using min_units;			-- Look for the highest priority lift to execute
         get diagnostics rows = ROW_COUNT;

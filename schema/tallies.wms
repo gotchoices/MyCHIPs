@@ -17,14 +17,14 @@ namespace eval tallies {
     def tallies_se	[concat tally_ent tally_seq $tallies_v_up tally_guid tally_type version partner contract $glob::stampfn tally_date status units_c]
 }
 
-table mychips.tallies {mychips mychips.users} {
+table mychips.tallies {mychips mychips.users mychips.peers} {
     tally_ent	text		references mychips.users on update cascade on delete cascade
   , tally_seq	int	      , primary key (tally_ent, tally_seq)
   , tally_guid	uuid		not null
   , tally_type	text		not null default 'stock' check(tally_type in ('stock','foil'))
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
-  , partner	text		references base.ent on update cascade on delete restrict
+  , partner	text		references mychips.peers on update cascade on delete restrict
   , status	text		not null default 'void' check(status in ('void','draft','open','close'))
   , request	text		check(request is null or request in ('void','draft','open','close'))
   , comment	text
@@ -264,6 +264,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 }
 
 # View showing a single entry for each credit relationship (for network graph)
+# Could this be obsoleted in favor of tallies_v_net below?
 #----------------------------------------------------------------
 view mychips.tallies_v_graph {mychips.tallies_v} {select 
     tally_guid as guid    
@@ -276,6 +277,32 @@ view mychips.tallies_v_graph {mychips.tallies_v} {select
   , max(latest) as latest
   
   from mychips.tallies_v group by 1,2,3,4,5,6,7;
+}
+
+# View showing a single entry for each credit relationship (for lift algorithm)
+#----------------------------------------------------------------
+view mychips.tallies_v_net {mychips.tallies} {select 
+    coalesce(ts.tally_guid,tf.tally_guid)	as guid
+  , ts.tally_guid				as stock_guid
+  , tf.tally_guid				as foil_guid
+  , coalesce(ts.tally_ent,tf.partner)		as stock_ent
+  , coalesce(tf.tally_ent,ts.partner)		as foil_ent
+  , ts.tally_ent				as stock_user
+  , tf.tally_ent				as foil_user
+  , ts.cr_limit					as stock_crl
+  , ts.dr_limit					as stock_drl
+  , ts.bal_target				as stock_tgt
+  , tf.cr_limit					as foil_crl
+  , tf.dr_limit					as foil_drl
+  , tf.bal_target				as foil_tgt
+  , greatest(ts.cr_limit, tf.cr_limit)		as cr_max
+  , greatest(ts.dr_limit, tf.dr_limit)		as dr_max
+  , least(ts.bal_target, tf.bal_target)		as target
+  , coalesce(ts.units_c, tf.units_c)		as units
+  , greatest(ts.lift_marg, tf.lift_marg)	as margin
+  
+  from			(select * from mychips.tallies where tally_type = 'stock') ts
+  full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_guid = ts.tally_guid
 }
 
 # Process tally state transitions requested by the peer server process

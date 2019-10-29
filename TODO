@@ -12,11 +12,12 @@ X- Fix/test state transition recipe code in tally.wms
 X- Agent1 still works?
 X- User relation graph updates asynchronously (only query modified nodes)
 X- Use only local vms for simnet (lux1, lux2, lux3) so * can take my data with me
-- Debug: "Failure in tally"
-- Agent2 adds chits to existing tallies
+X- Debug: "Failure in tally"
+X- Agent2 adds chits to existing tallies
+X- Populate database with tallies/chits with outside peers
+- Some chits are not getting through state transitions to open
 - Agent spends CHIPs with more sensitivity to current net worth
 - Change to aborted state after max number of retries/time (peer.js)
-- Populate database with tallies/chits with outside peers
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
 - 
@@ -25,7 +26,7 @@ Lift modeling:
 X- System for instantiating multiple databases, multiple servers
 X- Central repository where agent users can choose from peers, not in their own DB
 X- DB support for peers, which are not local users
-- Make paths_v properly detect paths to/from peers not on the same DB
+X- Make paths_v properly detect paths to/from peers not on the same DB
 - Make table to model outside paths
 - Create remote query protocol to get foreign pathway stub data (how to model)
 - Query adjoining DB's for pathway information

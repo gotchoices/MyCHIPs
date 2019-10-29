@@ -33,8 +33,8 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {bal_target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts}}
     {lift_marg		{Lift Margin}		{A cost associated with a lift through this tally.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 4% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts done.}}
     {drop_marg		{Drop Margin}		{A cost associated with a reverse lift (or drop) through this tally.  Zero means no cost.  A value of 1 (the default) will effectively prevent reverse lifts.}}
-    {cr_limit		{Credit Limit}		{The maximum amount the stock entity will allow the foil entity to accumulate in credit at one time}}
-    {dr_limit		{Debit Limit}		{The maximum balance the foil entity will allow the stock to accumulate in the opposite direction of normal credit flow}}
+    {cr_limit		{Credit Limit}		{The maximum amount the foil holder can owe to the stock holder.  On the Stock's tally, this is contractual.  On the Foil's tally, it is a preference setting.}}
+    {dr_limit		{Debit Limit}		{The maximum amount the stock holder can owe to the foil holder.  On the Foil's tally, this is contractual.  On the Stock's tally, it is a preference setting.}}
     {units_c		{Cached Units}		{A cached copy of the total of all the chits on this tally, from the perspective of the tally's owner}}
 } $glob::stampt] -messages {
     {LMG		{Invalid Lift Margin}	{The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.}}
