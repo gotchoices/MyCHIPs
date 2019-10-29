@@ -26,12 +26,14 @@ module mychips
 other uuid {} {create extension "uuid-ossp"} {drop extension if exists "uuid-ossp"}
 #other pgcrypto {} {create extension "pgcrypto"} {drop extension if exists "pgcrypto"}
 
+# Stores info about pathways discovered from foreign servers
+#----------------------------------------------------------------
 table mychips.paths {mychips mychips.peers} {
     stock_ent	text		references mychips.peers on update cascade on delete cascade
   , foil_ent	text		references mychips.peers on update cascade on delete cascade
   , used	int		not null default 0
-  , find_date	timestamptz	not null default current_timestamp
   , used_date	timestamptz	not null default current_timestamp
+  , find_date	timestamptz	not null default current_timestamp
   , primary key (stock_ent, foil_ent)
 }
 #index {} mychips.paths used_date

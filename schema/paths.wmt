@@ -1,14 +1,26 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+tabtext mychips.paths	{Foreign Pathways}	{Information being collected from foreign servers about pathways outside our own database} {
+    {stock_ent		{Stock Entity}		{The local ID of the foreign entity who holds a stock associated with one of our users (who holds the foil)}}
+    {foil_ent		{Foil Entity}		{The local ID of the foreign entity who holds a foil associated with one of our users (who holds the stock)}}
+    {used		{Use Count}		{A counter that is incremented each time this path is used in a lift}}
+    {used_date		{Last Used}		{The date/time this path was last used in a lift}}
+    {find_date		{Date Found}		{The date/time this path was first collected from a foreign server}}
+}
+
 tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathways between entities, based on the tallies they have in place} {
-    {id			{Peer ID}		{Entity ID of the peer this pathway starts with}}
+    {first		{Path Start}		{Entity ID of the peer this pathway starts with}}
+    {last		{Path End}		{Entity ID of the peer this pathway ends with}}
     {length		{Node Length}		{The number of unique peer nodes in this pathway}}
     {path		{Peer ID List}		{An array of the entity IDs in this pathway}}
-    {uuids		{Tally ID List}		{An array of the tally IDs in this pathway}}
-    {cycle		{Cycled}		{A flag indicating that the pathway contains a loop}}
+    {uuids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
+    {cycle		{Cycled}		{A flag used internally indicating that the pathway has encountered a loop}}
     {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
-    {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a lift is not possible.}}
-    {min		{Minimum}		{The smallest number of units desired to be lifted along the pathway}}
-    {max		{Maximum}		{The largest number of units desired to be lifted along the pathway}}
+    {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a cost to the lift.  A number less than 1 indicates a discount.}}
+    {min		{Minimum}		{The smallest number of units desired to be lifted by any entity found along the pathway}}
+    {max		{Maximum}		{The largest number of units desired to be lifted by any entity found along the pathway}}
     {bang		{Lift Benefit}		{The product of the pathway length, and the minimum liftable units.  This gives an idea of the relative benefit of conducting a lift along this pathway.}}
+    {inside		{Inside Lift}		{All entities in the lift path are users on the local system}}
+    {firstin		{First Inside}		{The first node in the path is a user on the local system}}
+    {lastin		{Last Inside}		{The last node in the path is a user on the local system}}
 }
