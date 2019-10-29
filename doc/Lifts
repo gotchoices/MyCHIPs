@@ -10,9 +10,9 @@ You will also benefit from reviewing the article at:
   http://gotchoices.org/mychips/acdc.html
 
 This example considers 4 trading entities.  In this example, there are 2 people
-and 2 companies.  The arrows indicate the normal flow of credit (think of 
-payments).  So presumably, products and services are flowing in the opposite
-direction.
+and 2 companies.  The arrows indicate the normal flow of credits, or credit
+promises (think of payments).  So presumably, products and services are flowing 
+in the opposite direction.
 
 For example, person B works for company A and shops at company C.  Person D
 works for company C and shops at copmany A.
@@ -23,65 +23,66 @@ the entities upstream from you and you are buying something (product, services
 or labor) from the entites downstream.  This can really include any combination
 of people and companies.
 
-As products and services are rendered, payment is exchanged in the form of
+As products and services are delivered, payment is exchanged in the form of
 private credit, or an IOU.  As this is an accounting function, it has a dual
 entry nature (debit and credit).  A credit (negative, liability) is entered for 
 the entity making payment.  And a debit (positive, asset) is entered for the
 entity receiving payment.
 
-If you just got lost, please review:
+If the signs of the transaction didn't seem to make sense, please visit:
   http://gotchoices.org/book/account.html
 
-Keep in mind, these debits and credits do not actually flow around the circle.  
-For example, if A gives an IOU to B, that IOU will never flow along to C.  
-Since this is a private credit model, it means just that.  Your credit is 
-private.  It is just between you and the entity you do business with 
-directly--not some other entity you don't know or trust.
+Keep in mind, these debits and credits themselves do not actually flow 
+all the way around the circle.  For example, if A gives an IOU to B, that 
+particular IOU will never flow along to C.  Since this is a private credit 
+model, it means just that.  Your credit is private.  It is just between you 
+and the entity you do business with directly--not some other entity you don't 
+know or trust.
 
 However, the goal is to make these credits fungible, or in our case, 
-"effectively fungible."  That means we can't literally exchange one entity's 
+"effectively fungible."  That means we can't literally substitute one entity's 
 credits for another, but through the lift algorithm, we will accomplish 
 something roughly equivalent.
 
 After a sufficient volume of trading, each entity will have accumulated a 
 certain amount of asset value in IOU's from the entity upstream from him.  As
 you can imagine, this can only go on so long.  For example, if B gets too many
-IOU's from A, eventually he won't want any more.  He has reached is "trust
-level"
+IOU's from A, eventually he won't want any more.  He has reached his 
+maximum "trust level."
 
-What B really needs is IOUs from C where B buys his stuff.  The lift function 
-will allow B to give up some of his A credits in exchange for some C credits, 
-just as he desires.
+What B really needs is some IOUs from C where B buys his stuff.  The lift 
+function will allow B to give up some of his A credits in exchange for some C 
+credits, just as he needs to complete his purchases.
 
-But in order to do so, we are going to have to find a complete circuit.  This
+But in order to accomplish this, we need to find a complete circuit.  This
 is where entity D comes in so handy.  If we can, all at once, send a fixed 
 number of credits around the circuit in the upstream direction (against the 
 direction of the arrows), everyone's excessive buildup of IOU's can be 
-relieved a little bit.
+relieved a little bit without costing anyone anything.
 
 Everyone around the circuit will benefit from this transaction because they
-will be giving up credits they don't need in exchange for credits they do need.
+will all give up credits they don't need in exchange for credits they do need.
 However, we will need to do this in a way that no one gets hurt--particularly
-if someone in the circle decides they want to try to cheat.
+if someone in the circle tries to cheat.
 
 One way to accomplish this is to use a transactional database model.  The idea
 is to que up all four of our credit exchanges belonging to a single lift and
-make them part of a database transaction.  This means the database will attempt
-all 4 transfers, but if any one of them fails, the other 3 will roll back too.
-So the lift will either work in its entirety, or it will not work at all.  The
-main goal is to make sure we don't perform part of the lift, but leave someone
-out so they end up giving credits away, but not getting the ones they are
-expecting in return.
+make them part of an atomic database transaction.  This means the database will 
+attempt all 4 transfers, but if any one of them fails, the other 3 will roll 
+back too. So the lift will either work in its entirety, or it will not work at 
+all.  The main goal is to make sure we don't perform only part of the lift, 
+leaving someone out so they end up giving credits away, but not getting the 
+ones they expect in return.
 
-Now the bad news.  In order to do this, we have to have all our entities in a
-single database.  That means our system is centralized and unscalable.
-Centralization is prone to manipulation and corruption.  Scalability is the
-critical feature we need to surpass what alternative systems like blockchain
-have been unable to achieve.
+Now the bad news.  In order to do this, we would have to have all our entities 
+in a single database.  That means our system would be too centralized and 
+unscalable.  Centralization is prone to manipulation and corruption.  
+Scalability is the critical feature we need to surpass what alternative systems 
+like blockchain have been unable to achieve.
 
-It would be nice to have an algorithm that will achieve a transactional result
-even when all 4 of our users have their data in different databases on 
-different computers distributed around the Internet.  
+It would be nice to have an algorithm that will achieve an atomic result even 
+when all 4 of our users have their data in different databases on different 
+computers distributed around the Internet.  
 
 And now, the bad news:
 
@@ -91,12 +92,11 @@ That may be impossible.  See:
 It turns out this is a pretty old problem.  It is hard enough to get a group
 of updates to operate as a single transaction inside a single database.  But
 when you are trying to do this over unreliable links, or with other peers you
-may not know or be able to fully trust, this just may be unachievable.
+may not know or be able to fully trust, this just may not be achievable.
 
 So to get over this otherwise insurmountable hurdle, we are going to make a
 simple compromise:  Instead of making sure no one gets hurt during a lift, we
-will instead, be satisfied if we can make sure the honest people don't get 
-hurt.
+will instead, be satisfied if we can make sure no honest people get hurt.
 
 To do so, we will set up our transaction in several basic phases:
 
@@ -106,7 +106,9 @@ capable of supporting a lift.
 In the next phase, we will initiate a proposed lift around that circuit.  Each
 peer who is willing to participate on the suggested terms will give a 
 conditional commitment.  This commitment is structured as a digital contract
-which, when properly signed, becomes a binding CHIP credit.
+which, when properly signed, becomes a binding CHIP credit.  In other words,
+it is money to the recipient and debt to the issuer.  It just needs a final
+signature.
 
 In the final phase, we want to lock down each conditional credit and make it
 real, official and binding.  This is where the 2 generals dilemma would bite us
@@ -135,7 +137,7 @@ the deadbeat gets back online and completes the transaction.
 The deadbeat has the further problem that he has burned his bridges to the
 network of trust.  The two entities who know and trust him, now know he is up
 to no good.  No further traffic can be performed by this entity--at least
-through the peers he has just dealt with wrongly.
+through the peers he has just disappointed.
 
 So the challenge in implementing the distributed lift function is this:  During
 the conditional commit phase, the peers need to negotiate a chain of signatures
@@ -191,14 +193,14 @@ D to A.  If we can find enough cooperating parties willing to do so in a path
 that starts with D and ends with A, we can complete the transaction.
 
 In nearly every other way, this is identical to a circular lift.  But the
-special case does need to be accommodated.  In fact, it could potentially
-become the more prevalent form in certain types of trading.
+special case does need to be accommodated.  In fact, it may likely become the
+more prevalent form of lift.
 
 -------------------------------------------------------------------------------
-Lift Maker: (needs refinement)
+Lift Algorithm:
 
-Each server should, on a regular interrupt schedule, act on behalf of each of
-its users to do the following:
+If lifts were to be discovered and executed in real time, the process would be
+something like the following:
 
 - Query foils (downstream tallies) that are below target levels
   - A negative number is credit that needs to be paid at least back to zero.
@@ -222,4 +224,54 @@ its users to do the following:
   us via peer V.
 
 -------------------------------------------------------------------------------
-Lift Peers:
+Lift Calculation:
+
+In reality, it wouldn't be very efficient to recalculate every lift pathway
+from scratch.  Rather we should populate a database with information about our
+own local users and the foreign users they share tallies with that will help 
+us figure out pathways in advance that are likely to succeed.  Successful 
+pathways can be used over and over again.
+
+Our local database already contains information about how our local users are
+related to each other.  If they share a tally, we know that.  And we know who
+holds the stock and who holds the foil.
+
+In addition, we have a table of foreign peers.  Although we don't host these
+users, we still know about them and know how they are related to the tallies
+in our system.
+
+What we would like to collect is data about how these foreign users might be
+linked to each other in the outside world.  But those details may be private 
+and not something others want to share with the world.  So what we can settle
+for is just the knowledge that a pathway exists, even if we don't know all the
+parties along that pathway.
+
+For example, see the figure on page 4 entitled "Distributed Lift Example."  We
+certainly know about our own users A, and B.  We also know some things about
+users C and D.  But we don't really know who C and D are connected to in the
+outside world, or if there is a lift pathway from D to C.
+
+If C and D are both hosted by another single database, it would be pretty easy
+to just ask: "Hey, are C and D connected?  And is a lift possible going 
+through D and eventually getting to C?"  That database could answer the
+question just as easily as we can for our own interconnected users.  And it
+would not really have to give us much information, other than to say that a
+lift along that path is possible.
+
+But what if they are not on the same server?  That is where it gets more
+complicated.  Essentially, D's host database would have to note that C is not
+its customer, but that it would be useful to be able to find an upstream
+connection to C, wherever in the world it might be hosted.  And so it could
+pass the query on to those foreign hosts it knows about who are upstream from
+D.
+
+If one of those hosts C, it can answer and D's host can then relay the
+information back to A's host.  If not, they can pass the inquiry along for as
+long as it takes until either there are no more upstream pathways to query
+or C's host is eventually discovered.
+
+In practice we hope to deliver some hints as well that will make this process
+more efficient so hosts don't have to continue querying off in useless 
+directions.
+
+-------------------------------------------------------------------------------
