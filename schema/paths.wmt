@@ -1,8 +1,8 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 tabtext mychips.paths	{Foreign Pathways}	{Information being collected from foreign servers about pathways outside our own database} {
-    {stock_ent		{Stock Entity}		{The local ID of the foreign entity who holds a stock associated with one of our users (who holds the foil)}}
-    {foil_ent		{Foil Entity}		{The local ID of the foreign entity who holds a foil associated with one of our users (who holds the stock)}}
+    {stock_ent		{Stock Entity}		{The local ID of a foreign entity who holds a stock at the head of a pathway that leads to another foreign entity in our database who holds the ending foil}}
+    {foil_ent		{Foil Entity}		{The local ID of a foreign entity who holds a foil at the tail of a pathway that leads from another foreign entity in our database who holds the starting stock}}
     {used		{Use Count}		{A counter that is incremented each time this path is used in a lift}}
     {used_date		{Last Used}		{The date/time this path was last used in a lift}}
     {find_date		{Date Found}		{The date/time this path was first collected from a foreign server}}
@@ -14,7 +14,6 @@ tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathway
     {length		{Node Length}		{The number of unique peer nodes in this pathway}}
     {path		{Peer ID List}		{An array of the entity IDs in this pathway}}
     {uuids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
-    {cycle		{Cycled}		{A flag used internally indicating that the pathway has encountered a loop}}
     {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
     {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a cost to the lift.  A number less than 1 indicates a discount.}}
     {min		{Minimum}		{The smallest number of units desired to be lifted by any entity found along the pathway}}

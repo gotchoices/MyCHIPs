@@ -41,18 +41,18 @@ table mychips.paths {mychips mychips.peers} {
 # Recursive view of tallies to show pathways native to our system
 #----------------------------------------------------------------
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift_max(bigint,bigint,bigint,bigint)} {
-  with recursive tally_path(first, last, length, pids, uuids, cycle, circuit, cost, min, max, inside, firstin, lastin) as (
-    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 1.00::float, null::bigint, null::bigint, not p.user_ent isnull, not p.user_ent isnull, not p.user_ent isnull
+  with recursive tally_path(first, last, length, path, uuids, cycle, circuit, cost, min, max, inside, fora, forz) as (
+    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 1.00::float, null::bigint, null::bigint, not p.user_ent isnull, p.user_ent isnull, p.user_ent isnull
     from	mychips.users_v p
     where	not p.peer_ent isnull
   union all
     select tp.first					as first
       , t.stock_ent					as last
       , tp.length + 1					as length
-      , tp.pids || t.stock_ent				as pids
+      , tp.path || t.stock_ent				as path
       , tp.uuids || t.guid				as uuids
-      , t.stock_ent = any(tp.pids)			as cycle
-      , tp.pids[1] = t.stock_ent			as circuit
+      , t.stock_ent = any(tp.path)			as cycle
+      , tp.path[1] = t.stock_ent			as circuit
       , tp.cost * (1 + t.margin)			as cost
       , least(tp.min, mychips.lift_max(
           t.units, t.target, t.cr_max, t.dr_max
@@ -60,24 +60,15 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift
 --      , coalesce(least(t.units,tp.min), t.units)	as min
       , coalesce(greatest(t.units,tp.max), t.units)	as max
       , tp.inside and not t.stock_user isnull		as inside
-      , not t.stock_user isnull				as firstin
-      , tp.inside					as lastin
+      , t.stock_user isnull				as fora
+      , not tp.inside					as forz
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
-  ) select tpr.first
-    , tpr.last
-    , tpr.length
-    , tpr.pids as path
-    , tpr.uuids
-    , tpr.cycle
-    , tpr.circuit
-    , tpr.cost
-    , tpr.min
-    , tpr.max
+  ) select tpr.first, tpr.last
+    , tpr.length, tpr.path, tpr.uuids
+    , tpr.circuit, tpr.cost, tpr.min, tpr.max
     , tpr.length * tpr.min as bang
-    , tpr.inside
-    , tpr.firstin
-    , tpr.lastin
+    , tpr.inside , tpr.fora , tpr.forz
   from tally_path tpr 
 } -primary {last first length}
 
