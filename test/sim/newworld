@@ -1,0 +1,8 @@
+#!/bin/bash
+#Delete everything in the mongo db that models the outside world
+
+this="$(basename ${BASH_SOURCE})"
+mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
+source $mypath/config
+
+ssh $public "mongo --eval 'db.getCollection(\"agents\").deleteMany({random: {\$gt: 0}})' $dbname"
