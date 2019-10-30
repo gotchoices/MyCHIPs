@@ -5,9 +5,10 @@
 //X- Update tally totals when chits added, removed
 //X- Update tallies when added, removed
 //X- updateNodes() can't handle a deleted node, can only add them
-//- Make more reactive, less query driven
-//- When we get a notice from the database, only load those nodes, tallies that have changed
-//- Only repaint the nodes that have changed.  Are we rendering the whole page each time?
+//X- When we get a notice from the database, only load those nodes, tallies that have changed
+//- Make totals reactive, auto update when sums come in
+//- Tallies disappear if I delete them
+//- Hubs collapse down if I remove a tally under the stack
 //- 
 
 <template>
@@ -37,7 +38,7 @@ export default {
   }},
   computed: {
     totals: function() {
-//console.log("Totals:", Object.keys(this.tallies).length)
+console.log("Totals:", Object.keys(this.tallies).length)
       let tots = {}
       Object.keys(this.tallies).forEach(key=>{
         let debits = 0, credits = 0
@@ -97,13 +98,13 @@ export default {
           } else {
             let x = Math.random() * this.state.width/2
               , y = Math.random() * this.state.height/2
-            this.$set(this.state.nodes, dat.peer_cdi, Object.assign(bodyObj, {tag:dat.peer_cdi, x, y, radius, links:[]}))
+            this.$set(this.state.nodes, dat.peer_cdi, Object.assign(bodyObj, {tag:dat.peer_cdi, x, y, radius, links:[], hubIdx: {stock: [], foil: []}}))
 //console.log("N Dat:", dat.peer_cdi, x, y, this.state.nodes[dat.peer_cdi].x)
           }
           delete notFound[dat.peer_cdi]
         }
 //console.log("Not found:", notFound, this.state.nodes)
-        Object.keys(notFound).forEach(key=>{			//Delete anything on the SVG, not now in nodes
+        if (!dTime) Object.keys(notFound).forEach(key=>{	//Delete anything on the SVG, not now in nodes
           this.$delete(this.state.nodes, key)
         })
       })
@@ -116,8 +117,6 @@ export default {
             let node = this.state.nodes[cdi]			//Get node's state object
               , nodeLink = node.links.find(link => {return link.index == guid})	//Do we already have a definition for this link?
               , idx = (tag => {					//Calculate an order 0..n for hub stacking
-                  if (!node.hubIdx) node.hubIdx = {}
-                  if (!node.hubIdx[type]) node.hubIdx[type] = []
                   let idx = node.hubIdx[type].findIndex(el=>(el == tag))
                   if (idx < 0) node.hubIdx[type].push(tag)
                   return idx > 0 ? idx : 0
@@ -132,9 +131,9 @@ export default {
 
             if (!(cdi in this.tallies)) this.$set(this.tallies, cdi, {stock:[], foil:[]})
             this.tallies[cdi][type].splice(idx, 1, total)
-//console.log('Add to tallies:')
+console.log('Add to tallies:', idx, total)
             if (!nodeLink) {				//Create new data structure for link, hubs
-              nodeLink = {index:guid, link:part_cdi, draw:isFoil, ends, center, hub:null}
+              nodeLink = {index:guid, link:part_cdi, draw:isFoil, ends, center, found:null, hub:null}
               node.links.push(nodeLink)
             }
 //console.log("  node:", node, idx, cdi, part_cdi, nodeLink)
@@ -146,12 +145,12 @@ export default {
             }})
           }		//procNode
 
-//console.log("updateLinks:", dTime)
+console.log("updateLinks:", dTime)
       if (dTime) spec.where.push(['latest', '>=', dTime])
       Wylib.Wyseman.request('urnet.tally.'+this._uid, 'select', spec, (data, e) => {
         if (e) {console.log("Error in query:", e.message); return}
         for (const dat of data) {				//For each tally link
-//console.log("L Dat:", dat)
+console.log("L Dat:", dat)
           procNode(dat.guid, dat.stock_cdi, dat.foil_cdi, dat.total, 'stock')
           procNode(dat.guid, dat.foil_cdi, dat.stock_cdi, -dat.total, 'foil')
         }
@@ -166,8 +165,8 @@ export default {
     },		//updateLinks
 
     refresh(dTime) {
-      this.updateLinks(dTime)
       this.updateNodes(dTime)
+      this.updateLinks(dTime)
     },
     reset() {
       this.state.nodes = {}
@@ -178,15 +177,18 @@ export default {
   beforeMount: function() {
     Wylib.Common.stateCheck(this)
     
-    this.updateNodes()
-    this.updateLinks()
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
-//console.log("URnet async:", dat)
+console.log("URnet async:", dat)
       if (dat.target == 'peers') this.updateNodes(dat.time)
       if (dat.target == 'tallies') this.updateLinks(dat.time)
       if (dat.target == 'chits' && dat.oper == 'DELETE')	//Reload everything
       	this.refresh()
     })
+  },
+
+  mounted: function() {
+    this.updateNodes()
+    this.updateLinks()
   }
 }
 </script>
