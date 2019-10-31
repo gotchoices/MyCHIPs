@@ -2,5 +2,6 @@ node_modules/
 schema/old
 pki/local.conf
 pki/local
+test/tmp
 .sync.ffs_db
 .DS_Store
