@@ -3,12 +3,14 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
+//- Only load credentials for services we are actually launching
 //- 
 
 const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's clock
 const { Args, Dispatch, Log, Credentials, SpaServer} = require('wyclif')
 const { Wyseman } = require('wyseman')
 const Path = require('path')
+const Os = require('os')
 
 var log = Log('mychips')
 var { actions, Parser } = require('wyselib')
@@ -22,8 +24,8 @@ var argv = Args({
   dbAdmin: process.env.MYCHIPS_DBADMIN || 'admin',
   clifPort: process.env.MYCHIPS_WSPORT || '54320',
   spaPort: process.env.MYCHIPS_SPAPORT || '8000',
-  spaKey:      process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-mychips.key'),
-  spaCert:     process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-mychips.crt'),
+  spaKey:      process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-%.key'),
+  spaCert:     process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-%.crt'),
   dbUserKey:   process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname, '../pki/local/data-user.key'),
   dbUserCert:  process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
   dbAdminKey:  process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname, '../pki/local/data-admin.key'),
@@ -38,7 +40,7 @@ var argv = Args({
 
 //log.trace("argv:", argv)
 var credentials = argv.noHTTP ? null : Credentials(argv.spaKey, argv.spaCert, null, log)
-var sslAdmin = Credentials(argv.dbAdminKey, argv.dbAdminCert, argv.dbCA)
+var sslAdmin = Credentials(argv.dbAdminKey, argv.dbAdminCert, argv.dbCA)	//Ignore errors
 var sslUser = Credentials(argv.dbUserKey, argv.dbUserCert, argv.dbCA)
 const pubDir = Path.join(__dirname, "..", "pub")
 
