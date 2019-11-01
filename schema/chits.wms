@@ -3,7 +3,7 @@
 #----------------------------------------------------------------
 #TODO:
 #- Add constraints to assure things like signatures are valid ?
-#- Field 'open' merely tells that a signature is present--not valid
+#- Field 'open' merely tells that a signature is present--not necessarily valid
 #- 
 module mychips
 require config.tcl trigview.tcl
@@ -58,16 +58,19 @@ trigger mychips_chits_tr_seq {} {
 
 # Cache the total of tallies when the chits change
 #----------------------------------------------------------------
-function mychips.chits_tf_cache() {mychips mychips.chits_v} {
+function mychips.chits_tf_cache() {mychips mychips.chits} {
   returns trigger language plpgsql security definer as $$
     declare
       trec	record;
     begin
       if TG_OP = 'DELETE' then trec = old; else trec = new; end if;
 
-      update mychips.tallies set units_c = 
-        (select coalesce(sum(units),0) from mychips.chits_v where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq and open)
-          where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
+      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user,
+      units_c = (
+          select coalesce(sum(units),0) from mychips.chits
+          where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq
+            and not signature is null and signature != 'void'	-- Keep in sync with definition of 'open'!
+      ) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
       return null;
     end;
 $$;}
@@ -187,7 +190,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq;
 
     eval(trigview::insert mychips.chits_v mychips.chits $chits::chits_v_in $chits::chits_pk [concat $glob::stampin {request 'userDraft'}]);
---ev#al(trigview::update mychips.chits_v mychips.chits $chits::chits_v_up $chits::chits_pk $glob::stampup);
+    eval(trigview::update mychips.chits_v mychips.chits $chits::chits_v_up $chits::chits_pk $glob::stampup);
 } -grant {
     {chit	{s} {i u} {d}}
 }
@@ -243,14 +246,14 @@ raise notice '  upsert obj:% curState:%', obj, curState;
             execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,signature,units,pro_quo,memo) values ($1,$2,$3,$4,current_timestamp,$5,$6,$7,$8) returning chit_ent, chit_seq, chit_idx' into crec
                 using trec.tally_ent, trec.tally_seq, guid, obj->>'type', obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo';
           else						-- Chit already exists, do update
-            execute 'update mychips.chits set signature = $1, units = $2, pro_quo = $3, memo = $4, request = null where chit_ent = $5 and chit_seq = $6 and chit_idx = $7'
+            execute 'update mychips.chits set signature = $1, units = $2, pro_quo = $3, memo = $4, request = null, mod_date = current_timestamp, mod_by = session_user where chit_ent = $5 and chit_seq = $6 and chit_idx = $7'
                 using obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo', crec.chit_ent, crec.chit_seq, crec.chit_idx;
             delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
           end if;
         end if;
 
         if recipe ? 'update' then
-          qflds = '{"request = null"}';
+          qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
           for lrec in select * from jsonb_each_text(recipe->'update') loop
 raise notice '  update set % = %', lrec.key, lrec.value;
             if lrec.key = any('{signature}') then		-- enumerate writable fields

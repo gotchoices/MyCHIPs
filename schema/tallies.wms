@@ -2,11 +2,11 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
+#X- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman (see Fixme)
 #- Include host_id in tally_v to reduce queries in notice triggers?
 #- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
 #- Add constraints to assure things like contract and signatures are valid?
 #- Make request tags mirror states better (more like in chits.wms)
-#- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman (see Fixme)
 #- 
 module mychips
 require config.tcl trigview.tcl
@@ -197,7 +197,8 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , pe.peer_sock	as part_sock
   , pe.std_name		as part_name
   , te.part_sig
-  , mychips.tally_state(status,request,user_sig,part_sig,units_c) as state
+  , not pe.user_ent is null						as inside
+  , mychips.tally_state(status,request,user_sig,part_sig,units_c)	as state
   , mychips.tally_state(status,request,user_sig,part_sig,units_c) = any(array['peerProffer','closing']) as action
   , jsonb_build_object(
        'guid', te.tally_guid,
@@ -216,13 +217,16 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , te.units_c::float8 / multSign()		as total_c
   , coalesce(tc.units,0)::float8 / multSign()	as total
   , coalesce(tc.chits,0)			as chits
-  , coalesce(tc.latest,te.mod_date)		as latest
+  , greatest(coalesce(tc.latest, te.mod_date), te.mod_date)	as latest
 
     from	mychips.tallies	te
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
-    join	mychips.peers_v	pe on pe.peer_ent = te.partner
---Fixme: include only open chits
-    left join	(select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits group by 1,2) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
+    join	mychips.users_v	pe on pe.peer_ent = te.partner
+    left join	(
+      select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits
+      where not signature isnull and signature != 'void'		-- Must keep this definition in sync with 'open' in chit_v definition
+      group by 1,2
+    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
@@ -238,35 +242,8 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
     {tally	{s} {s i u} {d}}
 }
 
-# Summarize data about tallies
-#----------------------------------------------------------------
-view mychips.tallies_v_sum {mychips.tallies_v} {select 
-    tally_ent, user_cdi
-  , count(tally_seq)	as tallies
-  , sum(total_c)	as total_c
-  , sum(total)		as total
-  , sum(case when tally_type = 'stock' then total_c else 0 end)	as stock_total_c
-  , sum(case when tally_type = 'stock' then total else 0 end)	as stock_total
-  , sum(case when tally_type = 'foil' then total_c else 0 end)	as foil_total_c
-  , sum(case when tally_type = 'foil' then total else 0 end)	as foil_total
-  , count(nullif(tally_type, 'foil'))::int4	as stocks
-  , count(nullif(tally_type, 'stock'))::int4	as foils
-  , coalesce(array_agg(partner),'{}')	as partners
-  , coalesce(array_agg(partner) filter (where tally_type = 'stock'),'{}')	as clients
-  , coalesce(array_agg(partner) filter (where tally_type = 'foil'),'{}')	as vendors
-  , coalesce(array_agg(part_cdi),'{}')	as partner_cdis
-  , coalesce(array_agg(part_cdi) filter (where tally_type = 'stock'),'{}')	as client_cdis
-  , coalesce(array_agg(part_cdi) filter (where tally_type = 'foil'),'{}')	as vendor_cdis
-  , coalesce(array_agg(tally_seq) filter (where tally_type = 'stock'),'{}')	as stock_seqs
-  , coalesce(array_agg(tally_seq) filter (where tally_type = 'foil'),'{}')	as foil_seqs
-  , coalesce(array_agg(total) filter (where tally_type = 'stock'),'{}')		as stock_tots
-  , coalesce(array_agg(total) filter (where tally_type = 'foil'),'{}')		as foil_tots
-  , max(latest)							as latest
-  from mychips.tallies_v group by 1, 2;
-}
-
-# View showing a single entry for each credit relationship (for network graph)
-# Could this be obsoleted in favor of tallies_v_net below?
+# View showing a single entry for each credit relationship (for network graph, obsolete?)
+# Could this be obsoleted in favor of tallies_v_net or users_v_tallies below?
 #----------------------------------------------------------------
 view mychips.tallies_v_graph {mychips.tallies_v} {select 
     tally_guid as guid    
@@ -281,7 +258,84 @@ view mychips.tallies_v_graph {mychips.tallies_v} {select
   from mychips.tallies_v group by 1,2,3,4,5,6,7;
 }
 
-# View showing a single entry for each credit relationship (for lift algorithm)
+# Summarize data about open tallies
+#----------------------------------------------------------------
+view mychips.tallies_v_sum {mychips.tallies_v} {select 
+    tally_ent
+  , count(tally_seq)						as tallies
+  , sum(total)							as total
+  , sum(units)							as units
+  , array_agg(partner)						as partners
+  , array_agg(part_cdi)						as part_cdis
+  , array_agg(tally_guid)					as guids
+  , array_agg(tally_seq)					as seqs
+  , array_agg(tally_type)					as types
+  , array_agg(total)						as totals
+  , array_agg(units)						as unitss
+  , array_agg(inside)						as insides
+
+  , sum(total) filter (where tally_type = 'stock')		as stock_tot
+  , sum(total) filter (where tally_type = 'foil')		as foil_tot
+  , sum(units) filter (where tally_type = 'stock')		as stock_uni
+  , sum(units) filter (where tally_type = 'foil')		as foil_uni
+
+  , count(nullif(tally_type, 'foil'))::int4			as stocks
+  , count(nullif(tally_type, 'stock'))::int4			as foils
+  , array_agg(partner) filter (where tally_type = 'stock')	as clients
+  , array_agg(partner) filter (where tally_type = 'foil')	as vendors
+  , array_agg(part_cdi) filter (where tally_type = 'stock')	as client_cdis
+  , array_agg(part_cdi) filter (where tally_type = 'foil')	as vendor_cdis
+  , array_agg(tally_guid) filter (where tally_type = 'stock')	as stock_guids
+  , array_agg(tally_guid) filter (where tally_type = 'foil')	as foil_guids
+  , array_agg(tally_seq) filter (where tally_type = 'stock')	as stock_seqs
+  , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
+  , array_agg(total) filter (where tally_type = 'stock')	as stock_tots
+  , array_agg(total) filter (where tally_type = 'foil')		as foil_tots
+  , array_agg(units) filter (where tally_type = 'stock')	as stock_unis
+  , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
+
+  , max(latest)							as latest
+  from (select * from mychips.tallies_v where state = 'open' order by tally_ent,tally_seq) t
+  group by 1;
+}
+
+# List of users with summarized data about their tallies
+#----------------------------------------------------------------
+view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
+    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cdi, u.peer_sock, u.ent_name, u.fir_name, u.ent_type
+  , coalesce(s.tallies, 0)			as tallies
+  , coalesce(s.total, 0.0)			as total
+  , coalesce(s.units, 0)			as units
+  , coalesce(s.stocks, 0)			as stocks
+  , coalesce(s.foils, 0)			as foils
+  , coalesce(s.stock_tot, 0.0)			as stock_tot
+  , coalesce(s.foil_tot, 0.0)			as foil_tot
+  , coalesce(s.partners, '{}'::text[])		as partners
+  , coalesce(s.clients, '{}'::text[])		as clients
+  , coalesce(s.vendors, '{}'::text[])		as vendors
+  
+  , coalesce(s.part_cdis, '{}'::text[])		as part_cdis
+  , coalesce(s.guids, '{}'::uuid[])		as guids
+  , coalesce(s.seqs, '{}'::int[])		as seqs
+  , coalesce(s.types, '{}'::text[])		as types
+  , coalesce(s.totals, '{}'::float8[])		as totals
+  , coalesce(s.unitss, '{}'::bigint[])		as unitss
+  , coalesce(s.insides, '{}'::boolean[])	as insides
+  
+  , coalesce(s.client_cdis, '{}'::text[])	as client_cdis
+  , coalesce(s.vendor_cdis, '{}'::text[])	as vendor_cdis
+  , coalesce(s.stock_guids, '{}'::uuid[])	as stock_guids
+  , coalesce(s.foil_guids, '{}'::uuid[])	as foil_guids
+  , coalesce(s.stock_seqs, '{}'::int[])		as stock_seqs
+  , coalesce(s.foil_seqs, '{}'::int[])		as foil_seqs
+  , coalesce(s.stock_tots, '{}'::float8[])	as stock_tots
+  , coalesce(s.foil_tots, '{}'::float8[])	as foil_tots
+  , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
+    from	mychips.users_v u
+    left join	mychips.tallies_v_sum s on s.tally_ent = u.peer_ent;
+}
+
+# View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------
 view mychips.tallies_v_net {mychips.tallies} {select 
     coalesce(ts.tally_guid,tf.tally_guid)	as guid
@@ -351,14 +405,14 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
             execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
                 using erec.id, guid, tallyType, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
-            execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 request = null where tally_ent = $9 and tally_seq = $10'
+            execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 request = null, mod_date = current_timestamp, mod_by = session_user  where tally_ent = $9 and tally_seq = $10'
                 using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
             delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
           end if;
         end if;
 
         if recipe ? 'update' then		-- There's an update key in the recipe
-          qflds = '{"request = null"}';
+          qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
           for lrec in select * from jsonb_each_text(recipe->'update') loop
 --raise notice '  update set % = %', lrec.key, lrec.value;
             if lrec.key = any('{status, part_sig}') then		-- enumerate writable fields
