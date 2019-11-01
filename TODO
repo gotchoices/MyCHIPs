@@ -15,8 +15,16 @@ X- Use only local vms for simnet (lux1, lux2, lux3) so * can take my data with m
 X- Debug: "Failure in tally"
 X- Agent2 adds chits to existing tallies
 X- Populate database with tallies/chits with outside peers
+X- Can add tallies and graph updates
+X- Can delete tallies and graph updates
+X- Can add/delete chits and graph updates
+X- Get ERD to work again in wysegi
+X- Make simnet allow command line switches
+X- Make simnet launch debugging windows
+- Some tallies are not getting through state transitions to open
 - Some chits are not getting through state transitions to open
-- Agent spends CHIPs with more sensitivity to current net worth
+- Can I mark a chit as refused, other than the signature?
+- Agent2 spends CHIPs with more sensitivity to current net worth
 - Change to aborted state after max number of retries/time (peer.js)
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
@@ -30,6 +38,7 @@ X- Make paths_v properly detect paths to/from peers not on the same DB
 - Make table to model outside paths
 - Create remote query protocol to get foreign pathway stub data (how to model)
 - Query adjoining DB's for pathway information
+- Create state machine for tracking queries' status
 - Populate local DB with stubs/paths for remote peers
 - Can join inside paths with outside paths
 - Create remote lift protocol
