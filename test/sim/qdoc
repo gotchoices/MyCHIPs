@@ -1,0 +1,17 @@
+#!/bin/bash
+#Query the mongo database, agents collection
+
+this="$(basename ${BASH_SOURCE})"
+mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
+source $mypath/config
+
+query="find()"
+if [[ ! -z $1 ]]; then
+  query="$1"
+fi
+
+if [[ $query == "clear" ]]; then
+  query='deleteMany({random: {$gt: 0}})'
+fi
+
+ssh $public "mongo --eval 'db.getCollection(\"agents\").${query}' $dbname"

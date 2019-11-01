@@ -6,20 +6,52 @@
 #- Allow full command line switches:
 #-  Whether to launch agent or just server
 #-  Allow to append args to agent and server
+#- Specify an individual machine to talk to in lieu of all
+#- Control starting/stopping of services individually
+#- Can execute arbitrary commands on remote computers
 #- Launch a tail -f xterm on each server?
 #- How to get progress updates to print in order, after correct Machine address?
 #- Update database schema if/where appropriate
-#- How to launch separate servers for different hostID's?
+#- How to launch multiple separate servers for each necessary hostID?
 #- 
+
+#Examples:
+#simnet start				#start defaults: peer server, agent model
+#simlet stop
+#simnet start peer
+#simnet stop agent
+#simnet start peer,'agent --runs=5'
+#simnet q "delete from mychips.tallies"
+#simnet db				#Freshen db build
+#simnet init				#Clear worlddb, erase tallies, create agents
+#simnet config				#Configure remote machines
 
 #Common code
 #-------------------------------------------------------------------------------
-thisscript="${BASH_SOURCE}"
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
 source $mypath/config
 
-mychips="$mypath"
+pargs=()						#Positional arguments
+while [[ $# -gt 0 ]]; do				#Grab command line arguments
+  case $1 in
+    -l|--locals) locals=($2); shift;;
+    -r|--remotes) remotes=($2); shift;;
+    --) shift; pargs+=("$@"); shift $#;;
+    *) pargs+=("$1");;
+  esac
+  shift
+done
+
+cargs=()						#Encrypt positional arguments to go over ssh
+for p in "${pargs[@]}"; do
+#echo "arg:$p"
+   cargs+=("$(echo "$p" | base64)")
+done
+
+#set -- "${pargs[@]}"					#Restore positional arguments (not needed for now)
+
+mychips="$mypath"					#Get our bearings in the filesystem
 mysim=""
 while [[ $path != / ]]; do				#Find first bin dir above me
   if find "$mychips" -maxdepth 1 -mindepth 1 -type d -name bin | grep -q .; then
@@ -34,98 +66,21 @@ if [ "$(basename "$mychips")" != "mychips" ]; then
   exit 1
 fi
 
-#Check configuration (running on a slave machine)
+#echo "mychips:$mychips mysim:$mysim locals:$locals cargs:${cargs[*]}"; #exit 0
+
+#Main
 #-------------------------------------------------------------------------------
-if [ "$1" == "config" ]; then
-#  echo Configuring; exit 0
-  shift							#Discard "remote" argument
-
-  rpms=""						#Install any rpms we may need
-  for pkg in postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib ruby rubygem-pg rubygem-tk; do
-    if ! rpm -qi $pkg >/dev/null; then
-      rpms="${rpms} $pkg"
-    fi
-  done
-  #echo "rpms:$rpms"
-  if [ ! -z "$rpms" ]; then
-    dnf install -y $rpms
-  fi
-  
-  if [ ! -d /var/lib/pgsql/data/base ]; then		#Initialize PostgreSQL
-    su -l postgres -c "initdb --locale=C"		#Might also use: eng_US.UTF-8
-    systemctl enable postgresql
-    systemctl start postgresql
-  fi
-  
-  if [ "$(psql -A -t template1 postgres -c "select * from pg_roles where rolname = 'admin'" |wc -l)" -lt 1 ]; then
-    su -l postgres -c 'createuser -d -s -r admin'	#Create our administrative user
-  fi
-  exit 0
-fi
-
-#Relaunch any services (running on a remote or local vm)
-#-------------------------------------------------------------------------------
-if [ "$1" == "refresh" ]; then
-#  echo "Refreshing; path: ${mypath}"; exit 0
-  shift							#Discard "remote" argument
-
-  if ! cd "$mypath"/../.. || [ "$(basename "$(pwd)")" != 'mychips' ]; then
-    echo "Can't find MyCHIPs source directory"
-    exit 1
-  fi
-  export PATH=$PATH:$(pwd)/../node_modules/.bin		#;echo "PATH:$PATH"
-  test/sim/builddb					#Update any database changes
-  
-  mkdir -p $tmpdir
-  if [ -f $tmpdir/pids ]; then				#Kill any running servers
-    for p in $(cat $tmpdir/pids); do
-      echo "  Killing old server pid: $p"
-      kill $p 2>/dev/null
-    done
-    rm $tmpdir/pids; touch $tmpdir/pids
-  fi
-  
-echo "args:$@ pwd:$(pwd) ddhost:$public"
-  if [ "$1" != "stop" ]; then
-    shift
-    NODE_DEBUG=debug bin/mychips.js -s 0 -i 0 &		#And launch a fresh one, peer port only
-    pid=$!
-    echo "  MyCHIPs Server PID: $pid"
-    echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
-    
-    if [ "$(psql -A -t mychips admin -c "select * from mychips.users_v where ent_num > 1" |wc -l)" -lt 1 ]; then
-      test/sample/randuser -n 6
-      make text defs init
-    fi
-
-    NODE_DEBUG=debug MYCHIPS_DDHOST="$public" test/sim/agent -m 2 "$@" &	#Launch agent model simulation
-    pid=$!
-    echo "  Agent Model PID: $pid"
-    echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
-  fi
-  exit 0
-fi
-
-#This part gets run on the local machine only
-#-------------------------------------------------------------------------------
-if [ "$(basename "$remsrc")" != "devel" ]; then
-  echo "Can't find mychips remote development directory path"
-  exit 1
-fi
-  
-# echo "mychips:$mychips mysim:$mysim base:$(basename $mychips) source:$this"
 for mach in "${remotes[@]}"; do			#Update each machine with mirror of latest source code
   echo "Machine:$mach"
   if [ "$1" != "stop" ]; then
     rsync -ar --delete "$mychips" "$mychips"/../node_modules "$mychips"/../wylib "$mychips"/../wyselib "$mychips"/../wyseman "$mychips"/../wyclif "${user}@${mach}:${remsrc}"
   fi
-  ssh -f ${user}@${mach} "${remsrc}/mychips/${mysim}${this} config $@"	#And then execute this script remotely in configuration mode
-  ssh -f ${user}@${mach} "${remsrc}/mychips/${mysim}${this} refresh $@"
+  ssh -f -X ${user}@${mach} "${remsrc}/mychips/${mysim}sim.x ${cargs[@]}"
 done
 
-for mach in "${locals[@]}"; do			#Re-launch server on local VMs
-  ssh -f ${USER}@${mach} "${vmsrc}/mychips/${mysim}${this} refresh $@"
+for mach in "${locals[@]}"; do			#Call remote script on local VMs
+  ssh -f -X ${USER}@${mach} "${vmsrc}/mychips/${mysim}sim.x ${cargs[@]}"
 done
 
 sleep 1						#Give time for remote comments to post before returning to prompt
-exit 0
+#echo Done
