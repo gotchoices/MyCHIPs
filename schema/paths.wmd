@@ -1,4 +1,4 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 
-tabdef mychips.tallies_v_paths -display {id length cost min circuit path circuit}
+tabdef mychips.tallies_v_paths -display {bang length min max path}
