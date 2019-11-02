@@ -51,7 +51,7 @@ export default {
   },
   methods: {
     peer(dat) {				//Generate SVG code for a user/peer node
-console.log("User", dat.id, dat.peer_cdi, this.totals[dat.peer_cdi])
+//console.log("User", dat.id, dat.peer_cdi, this.totals[dat.peer_cdi])
       let { id, std_name, peer_cdi, peer_sock, user_ent } = dat
         , fColor = (dat.total < 0 ? '#ff0000' : '#0000ff')
         , sumLine = user_ent ? `${dat.stock_tot} - ${-dat.foil_tot} = <tspan stroke="${fColor}" fill="${fColor}">${dat.total}</tspan>` : ''
@@ -90,19 +90,20 @@ console.log("User", dat.id, dat.peer_cdi, this.totals[dat.peer_cdi])
         , nodeLink = node.links.find(lk => (lk.index == guid))	//Do we already have a definition for this link?
         , xOffset = node.width / 2
         , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
-        , color = amount == 0 ? '#f0f0f0' : (amount < 0 ? '#F0B0B0' : '#B0B0F0')
+        , hubColor = amount == 0 ? '#f0f0f0' : (amount < 0 ? '#F0B0B0' : '#B0B0F0')
+        , color = dat.states[i] == 'open' ? 'blue' : 'orange'
         , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
         , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
         , center = {x:xOffset, y:yOffset}
 
       if (!nodeLink) {				//Create new data structure for link, hubs
-        nodeLink = {index:guid, link, ends, center, noDraw:null, reverse:null, found:true, hub:null}
+        nodeLink = {index:guid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null}
         node.links.push(nodeLink)
       }
-console.log("  link:", link, node, idx, cdi, amount, yOffset, nodeLink)
-      Object.assign(nodeLink, {ends, center, link, noDraw, reverse, found:true, hub: ()=>{
+//console.log("  link:", link, node, idx, cdi, amount, yOffset, nodeLink)
+      Object.assign(nodeLink, {ends, center, color, link, noDraw, reverse, found:true, hub: ()=>{
         return `<g transform="translate(${center.x}, ${center.y})">
-          <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${color}"/>
+          <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${hubColor}"/>
           <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${amount}</text>
         </g>`
       }})
@@ -110,7 +111,7 @@ console.log("  link:", link, node, idx, cdi, amount, yOffset, nodeLink)
 
     updateNodes(dTime) {
       let where = [['peer_ent', 'notnull']]
-        , fields = ['id', 'std_name', 'peer_cdi', 'peer_sock', 'user_ent', 'total', 'stock_tot', 'foil_tot', 'tallies', 'types', 'totals', 'guids', 'part_cdis', 'insides']
+        , fields = ['id', 'std_name', 'peer_cdi', 'peer_sock', 'user_ent', 'total', 'stock_tot', 'foil_tot', 'tallies', 'types', 'totals', 'states', 'guids', 'part_cdis', 'insides']
         , spec = {view: 'mychips.users_v_tallysum', fields, where, order: 1}
       if (dTime) where.push(['latest', '>=', dTime])
 
@@ -166,14 +167,12 @@ console.log("  link:", link, node, idx, cdi, amount, yOffset, nodeLink)
     Wylib.Common.stateCheck(this)
     
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
-console.log("URnet async:", dat)
+//console.log("URnet async:", dat)
 
       if (dat.target == 'peers')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
       if (dat.target == 'tallies')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
-//      if (dat.target == 'chits' && dat.oper == 'DELETE')	//Reload everything
-//      	this.refresh()
     })
   },
 
