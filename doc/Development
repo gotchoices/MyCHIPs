@@ -16,6 +16,8 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   git clone https://your-username@bitbucket.org/kylebateman/mychips.git
   cd mychips
   npm install				#Install all dependencies
+  
+  npm init				#Initialize local certificates
 
 - Run mychips server:			#Run without peer socket on first launch
   npm run server -- -p 0		#to make sure database schema gets built

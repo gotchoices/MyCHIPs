@@ -15,8 +15,7 @@
     "static": "static"
   },
   "bin": {
-    "mc_admin": "admin.js",
-    "mc_mobi": "mobi.js"
+    "mychips": "mychips.js"
   },
   "scripts": {
     "test": "mocha test/mocha/all.js",
@@ -27,9 +26,8 @@
     "dev-build": "webpack --mode development --watch --progress --hide-modules",
     "dev-server": "bin/mychips.js --spaPort=0",
     "server": "bin/mychips.js",
-    "makecert": "bin/makecert",
-    "spacert": "bin/makecert spa",
-    "datacert": "bin/makecert data",
+    "cert": "wyclif-cert",
+    "init": "bin/localcerts",
     "agent": "test/sim/agent -m 2",
     "builddb": "cd schema; make objects",
     "dev": "npm-run-all --parallel dev-build dev-server",

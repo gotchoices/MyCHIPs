@@ -1,190 +1,57 @@
 This folder contains recipes for creating self-signed certificates.  We will
-use these certificates for two distinct purposes:
+use these certificates for three distinct purposes:
 
   - To validate the connection between the MyCHIPs server and a client Single 
     Page Application (SPA) such as the admin console, user console, or a user 
     mobile app.
   - To validate the connection between the MyCHIPs server and the PostgreSQL
     server.
+  - To validate the connection between peer MyCHIPs servers.
 
-The certificates created here may be sufficient for certain production use with 
-the MyCHIPs server.  However, enterprise deployments may want to user their own
-certificate generation systems, including reliance on commercially recognized 
-Certificate Authorities.
+For a detailed version of these instructions, generic to WyattERP, see:
+ 
+  node_modules/wyclif/pki/README
 
-Local Configuration
+and where generic naming is applicable, assume 'mychips' instead of 'wyclif' or
+'wyatt.'
+
 --------------------------------------------------------------------------------
-There is a sample file in this folder called example.conf.  Start by copying it
-to a file called local.conf:
+To make SPA certificates:			#Quick start
 
-  cp example.conf local.conf
+  cd mychips/pki
+  cp example.conf local.conf			#Create your own local config
+  $EDITOR local.conf				#Modify it for your own site
 
-Then use your editor of choice to fill in the data applicable to your site.
-This file will be parsed by bash so don't interject spaces around the '=' signs.
+  npm run cert -- -t spa <servername.%>
 
-If you don't do this step, all your certificates will be created using the
-sample data in example.conf!
+Where "servername" is the name of the computer your server is running on.
 
-SPA Certificates
+There is a file called spa-ca.crt which you will have to install in your
+browser and/or OS to tell it our certificates can be trusted.
+  
 --------------------------------------------------------------------------------
-While it is possible to launch the SPA server with SSL disabled (-n switch), 
-this is a very bad idea for everything except basic testing.
+To Make Database Certificates			#Quick start
 
-Instead, we will get our certificates built so your users can be sure they are
-really interacting with your server and not some man-in-the-middle attack 
-spoofing your users!  Just run:
+This may not be necessary in all configurations.  Where needed, you will also
+need to configure your postgreSQL server. 
 
-  npm run makecert spa <servername.%>
+See wyclif/pki/README for details on this.
 
-where "servername" (which defaults to mychips.%) is the name of the computer 
-your mychips server is running on. The ".%" is used to signal the scripts to 
-substitute your domain name at the end so you get a fully qualified domain 
-name as the "commonName" on your certificate.  This should be the same hostame 
-your users will put into their browser URL bar to connect to the SPA.
+For an SSL-secured connection, we will create keys as follows:
 
-The makecert command will build a self-signed certificate authority (CA)
-certificate called "spa-ca.crt" along with its super-secret private key file
-"spa-ca.key."  You will be handing out the certificate to your users, but you
-must keep the key file private or your system will be compromized!
+  npm run cert -- -t data <servername.%>
+  npm run cert -- -t data admin
+  npm run cert -- -t data users
 
-All files created by the makecert script will be placed in a "local" folder 
-under the pki directory.
-
-Also created are a key and certificate file for your MyCHIPs server.  If you
-happened to name your server "mychips," the certificate file will be called
-spa-mychips.crt and will be found automatically when you launch the MyCHIPs 
-server process.  If you called it something different, you will have to tell
-the server (via command line switches or environment variables) where to find 
-the correct certificates.
-
-For example, if your server is called "chip7," you might do something like:
-
-  export MYCHIPS_SERVER_KEY=/opt/mychips/pki/local/spa-chip7.key
-  export MYCHIPS_SERVER_CERT=/opt/mychips/pki/local/spa-chip7.crt
-  npm run server
-
-or
-  npm run server \
-  	--serverKey=/opt/mychips/pki/local/spa-chip7.key
-  	--serverCert=/opt/mychips/pki/local/spa-chip7.crt
-
-Again, you must keep any ".key" file completely private (never group or world 
-accessible) or your system will be compromized!
-
-In production environments, many will choose to store only encrypted versions 
-of their key files online and will have to supply the pass phrase each time the 
-server is launched.  That is beyond the scope of this tutorial.
-
-Now, in order to connect to the SPA server, your users will need to install
-your CA certificate in their OS or browser.  This is the file called:
-
-  spa-ca.crt
-
-On MAC and Windows, they should be able to double click on the file to install
-the certificate.  They will then have to instruct the system that it should 
-trust any certificates signed by this authority.  If you want your users to
-be able to avoid this step, you will have to use a certificate signed by a
-commercial certificate authority.
-
-Note: Firefox may require you to set the value security.enterprise_roots.enabled
-to true (in about:config) in order to read certificate information from the OS.
-
-Keep in mind, if you are making your certificate available to users on your
-web site, that site better be secured by a commercial certificate.  Otherwise
-someone can just spoof your site, and give all your users a phoney CA that
-assures them they are connected to your MyCHIPs server, when they really
-aren't!
-
-One other thing to note:  This SPA certificate is used only to assure your
-users they are getting a correct, authorized copy of the application.  Once
-the app begins to run, they will still have to have proper credentials for
-connecting to the database.  These connection tokens are created in the
-admin SPA and can be provided to users on a one-on-one basis.
-
-Database Certificates
 --------------------------------------------------------------------------------
-The other thing we use certificates for is to secure the connection between the
-MyCHIPs server and the PostgreSQL process.  This configuration is a little
-tricky because our MyCHIPs server needs to connect on behalf of a variety of
-different users.
+To Make Peer Certificates
 
-If both processes (MyCHIPs and PostgreSQL) are running on the same server, and 
-that server is properly secured, you may be able to get by without an SSL 
-connection between them.
+  npm run cert -- -t peer <servername.%>
 
-In your PostgreSQL configuration you could put something like this in the 
-pg_hba.conf file:
+Peer certificates are not a part of standard Wyclif/WyattERP but are an
+extension specifically for MyCHIPs.  The server will automatically find the
+certificate built by this method if you named it the same as your server name.
 
-local		mychips	+users				trust
-
-Then you might need another line like this:
-
-local		all	admin				peer
-
-So you can connect as the administrator for working on the database.  You
-would need to log into the host machine as the user "admin" in order to do
-this.
-
-For an SSL-secured connection, we will need to create keys as follows:
-
-  npm run makecert data <servername.%>
-  npm run makecert data admin
-  npm run makecert data users
-
-This will produce a separate Certificate Authority solely for our database
-connection.  
-
-This is important to note if you are cooking up your own keys:
-
-DO NOT use a regular commercial or system-wide key set to secure this 
-connection.  The problem is, we are using the "trust" method of authentication
-in order to allow MyCHIPs to connect on behalf of multiple users.  So so any 
-process possessing ANY certificate signed by the specified CA authority
-will be able to connect to the database AS ANY USER!
-
-For this reason, we have a separate CA just for the database connection.  And
-we will only create two client keys: one to connect as regular users, and
-another to connect as regular MyCHIPs users.
-
-Add the following lines to your pg_hba.conf file:
-
-hostssl		all	admin		all		cert
-hostssl		all	+users		samehost	trust
-
-Then you will need to configure PostgreSQL to use the supplied certificates.
-For example, if PostgreSQL is running on a machine called "mychips," you should
-have created a certificate called "data-mychips.crt".  Copy this certificate and
-its associated key into the PostgreSQL configuration data directory.  Also copy
-the CA certificate as follows:
-
-  cd /var/lib/pgsql/data		#Or wherever PostgreSQL is installed
-  cp ~/mychips/pki/local/data-mychips.crt .
-  cp ~/mychips/pki/local/data-mychips.key .
-  cp ~/mychips/pki/local/data-ca.crt .
-
-Then modify postgresql.conf as follows:
-
-  ssl = on
-  ssl_cert_file = 'data-mychips.crt'
-  ssl_key_file = 'data-mychips.key'
-  ssl_ca_file = 'data-ca.crt'
-
-Then restart the database:
-
-  systemctl restart postgresql
-
-If you used these standard names, and the certificates exist in pki/local, the 
-the MyCHIPs server should be able to find them and use them when connecting to
-the database.  If you used a different configuration, you may have to specify
-certificate names/locations using environment variables or command line 
-switches (see bin/mychips.js for specifics).
-
-BTW, if your PostgreSQL is running on a different machine, you will probably
-have to set this in postgresql.conf too:
-
-  listen_addresses = '*'		#Or enter a specific interface
-
-And (this is unrelated to SSL connections but) Wylib operates best with this 
-setting as well:
-
-  datestyle = 'iso'
+If not, you may have to supply a command line switch or environment variable in
+order for the server to find it correctly.  See bin/mychips.js for switches and
+variable names.

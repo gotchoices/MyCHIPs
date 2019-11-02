@@ -31,7 +31,7 @@ X- Make paths_v properly detect paths to/from peers not on the same DB
 - Design state machine to execute distributed lifts
 - 
 WyattERP:
-- Move makecert to wyclif package (still works in mychips?)
+X- Move makecert to wyclif package (still works in mychips?)
 X- Column sort numbers are not showing on preview
 - Wyseman won't open dbe for chit view (no wmd?)
 X- Get wysegi working (where does it go)?

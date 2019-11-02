@@ -1,0 +1,54 @@
+#!/bin/sh
+#Step through creation of local certificates typically needed in pki/local
+#Copyright WyattERPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+
+if [ ! -d pki ]; then
+  echo "Can't find pki directory"; exit 1
+fi
+if ! cd pki; then
+  echo "Can't access pki directory"; exit 1
+fi
+
+if [ ! -f example.conf ]; then
+  echo "Can't find example configuration"; exit 1
+fi
+if [ -z "$EDITOR" ]; then
+  echo "Can't find a standard editor"; exit 1
+fi
+host=$(hostname -s)
+if [ -z "$host" ]; then
+  echo "Can't determine host name"; exit 1
+fi
+#echo "pwd:$(pwd) editor:$EDITOR"; exit 0
+
+if [ ! -f local.conf ]; then
+  cp example.conf local.conf
+else
+  echo "It appears your certificates are already built or partially configured."
+  echo "You can either continue and any old certificates will be overwritten"
+  echo "or Ctrl-C now to abort."
+  echo -n "Enter to continue (and overwrite certs): "; read ans
+fi
+
+echo "You will now enter the file:"
+echo -e "   $(pwd)/local.conf using your editor: ${EDITOR}\n"
+echo "Please change/review the settings to reflect your local site."
+echo -n "Enter to continue: "; read ans
+${EDITOR} local.conf
+
+npm run cert -t spa "${host}.%"
+
+npm run cert -t data "${host}.%"
+npm run cert -t data admin
+npm run cert -t data users
+
+npm run cert -t peer "${host}.%"
+
+ls -l local
+
+cat <<EOF
+Above are the certificates created.  Make sure the pki/local folder is not 
+publicly readable.  For many configurations you will need to do more or 
+different certificates.  See pki/README for more details.
+EOF
