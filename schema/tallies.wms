@@ -270,6 +270,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(tally_guid)					as guids
   , array_agg(tally_seq)					as seqs
   , array_agg(tally_type)					as types
+  , array_agg(state)						as states
   , array_agg(total)						as totals
   , array_agg(units)						as unitss
   , array_agg(inside)						as insides
@@ -295,7 +296,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
 
   , max(latest)							as latest
-  from (select * from mychips.tallies_v where state = 'open' order by tally_ent,tally_seq) t
+  from (select * from mychips.tallies_v order by tally_ent,tally_seq) t
   group by 1;
 }
 
@@ -318,6 +319,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.guids, '{}'::uuid[])		as guids
   , coalesce(s.seqs, '{}'::int[])		as seqs
   , coalesce(s.types, '{}'::text[])		as types
+  , coalesce(s.states, '{}'::text[])		as states
   , coalesce(s.totals, '{}'::float8[])		as totals
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
   , coalesce(s.insides, '{}'::boolean[])	as insides
