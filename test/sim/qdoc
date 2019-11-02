@@ -11,7 +11,7 @@ if [[ ! -z $1 ]]; then
 fi
 
 if [[ $query == "clear" ]]; then
-  query='deleteMany({random: {$gt: 0}})'
+  query='deleteMany({}); db.getCollection("actions").deleteMany({})'
 fi
 
 ssh $public "mongo --eval 'db.getCollection(\"agents\").${query}' $dbname"

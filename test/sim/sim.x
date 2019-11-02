@@ -7,6 +7,7 @@
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
 source $mypath/config
+index="${SIMNET_INDEX}"
 
 mychips="$mypath"
 mysim=""
@@ -86,17 +87,18 @@ function stop {
 #Relaunch mychips server
 #-------------------------------------------------------------------------------
 function mychips {
-echo "peers args:$*"
-  NODE_DEBUG=debug bin/mychips.js "$@"  &		#And launch a fresh one, peer port only
+#echo "peers DEBUG:$NODE_DEBUG args:$*"
+  bin/mychips.js "$@" 2>$tmpdir/mychips.err &
   pid=$!
   echo "  MyCHIPs Server PID: $pid"
-  echo $pid >>$tmpdir/pids				#Remember its Process ID for next time
+  echo $pid >>$tmpdir/pids		#Remember its Process ID for next time
 }
     
 #Agent simulation
 #-------------------------------------------------------------------------------
 function agents {
-  NODE_DEBUG=debug MYCHIPS_DDHOST="$public" test/sim/agent -m 2 "$@" &	#Launch agent model simulation
+echo "agent args: $@"
+  MYCHIPS_DDHOST="$public" test/sim/agent -m 2 "$@" 2>$tmpdir/agent2.err &
   pid=$!
   echo "  Agent Model PID: $pid"
   echo $pid >>$tmpdir/pids
@@ -105,13 +107,13 @@ function agents {
 #Log windows
 #-------------------------------------------------------------------------------
 function logs {
-  file=combined.log
-  if [[ ! -z $1 ]]; then
-    file="$1"
-    shift
-  fi
+  file=combined.log;	if [[ ! -z $1 ]]; then file="$1"; fi
+  base=0;		if [[ ! -z $2 ]]; then base="$2"; fi
+  xoff=30; yoff=30
   
-  xterm -e /bin/bash -l -c "tail -f $tmpdir/$file" -T "$(hostname): $file" &
+  geom="+$(expr $base + \( $index \* $xoff \))+$(expr $index \* $yoff)"
+#echo "xterm index: $index geom:$geom"
+  xterm -T "$(hostname): $file" -geometry "$geom" -e /bin/bash -l -c "tail -n 0 -f $tmpdir/$file" &
   pid=$!
   echo "  Terminal PID: $pid"
   echo $pid >>$tmpdir/pids
@@ -121,7 +123,9 @@ function logs {
 #-------------------------------------------------------------------------------
 function start {
   stop
-  builddb						#Update any database changes
+  logs agent2 0
+  logs peer 600
+  builddb
   mychips -s 0 -i 0
   agents "$@"
 }
@@ -130,7 +134,7 @@ function start {
 #-------------------------------------------------------------------------------
 #if [[ $command == builddb ]]; then
 function builddb {
-  echo "Build: $(pwd)"
+#  echo "Build: $(pwd)"
   if ! cd schema; then
     echo "Can't find db schema directory"
     exit 1
@@ -145,10 +149,11 @@ function builddb {
       dobuild=true
     fi
   fi
-echo "dobuild:$dobuild"
+#echo "dobuild:$dobuild"
 
 #No DB yet: let's build everything
-  if [ "$(psql -A -t template1 $admin -c "select * from pg_database where datname = '${dbname}'" |wc -l)" -lt 1 ]; then
+  if [[ $(psql -A -t template1 $admin -c "select * from pg_database where datname = '$dbname'" |wc -l) -lt 1 ]]; then
+    echo "Doing full build:"
     make objects text defs init
     dobuild=false
     date >$lastfile
@@ -159,8 +164,10 @@ echo "dobuild:$dobuild"
     date >$lastfile
   fi
 
-  if [ "$(psql -A -t $dbname $admin -c "select * from mychips.users_v where ent_num > 1" |wc -l)" -lt $newusers ]; then
-    ../test/sample/randuser -n $newusers
+  cd $mychips
+  users="$(psql -A -t $dbname $admin -c "select * from mychips.users_v where ent_num > 1" |wc -l)"
+  if [[ $users -lt $newusers ]]; then
+    test/sample/randuser -n $(expr $newusers - $users)
   fi
 }
 

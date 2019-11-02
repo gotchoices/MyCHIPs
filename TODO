@@ -1,26 +1,12 @@
 TODO:
 
 Immediate:
-X- Each sql server writes its own users to the document database
-X- Agent queries doc db to find peers
-X- Track users/peers correctly/separately
-X- Can negotiate new tallies with outside peers
-X- Improve randomization of choice of trading partner
-X- Peer server queries periodically for lost/dropped transactions
-X- All tally state transitions use callbacks
-X- Fix/test state transition recipe code in tally.wms
-X- Agent1 still works?
-X- User relation graph updates asynchronously (only query modified nodes)
-X- Use only local vms for simnet (lux1, lux2, lux3) so * can take my data with me
-X- Debug: "Failure in tally"
-X- Agent2 adds chits to existing tallies
-X- Populate database with tallies/chits with outside peers
-X- Can add tallies and graph updates
-X- Can delete tallies and graph updates
-X- Can add/delete chits and graph updates
-X- Get ERD to work again in wysegi
 X- Make simnet allow command line switches
 X- Make simnet launch debugging windows
+- Change glocal cdi concept to chip address which resembles email/domain
+-  kylebateman@mychips.com, mychips.com/kylebateman
+- Implement tokens for users/peer connections
+- Update agent2 to publish/access connection tokens in public DB
 - Some tallies are not getting through state transitions to open
 - Some chits are not getting through state transitions to open
 - Can I mark a chit as refused, other than the signature?
@@ -94,9 +80,9 @@ X- Implement single-db lift algorithm
 X- Review copyright; Should we limit free to people who respect a base contract?
 X- Harden SPA connections, implement user ID's, schema permissions
 - Implement digital signatures for tallies, chits, contracts, lifts
-- Implement encrypted network communications using noise protocol
+- Implement encrypted peer communications using noise protocol
 - Harden database schema, implementing full permission structure
-- Implement schema version control in wyseman
+- Implement schema version control strategy in wyseman
 X- Make Admin SPA GUI useable, replace all functions of mc_admin
 - Make Wylib User SPA GUI useable
 - Rollout
@@ -110,9 +96,8 @@ X- Make Admin SPA GUI useable, replace all functions of mc_admin
 - 
 
 User agent process:
-- Communicates with server through user port?
-- Learns about other peers through central repository
-- Some users are in same DB, others in a different one
+X- Learns about other peers through central repository
+X- Some users are in same DB, others in a different one
 - Work harder if my accrued receivables get low  
 - Raise vendor accumulation limits if my receivables get high
 - Create lift incentives if I get stale imbalances

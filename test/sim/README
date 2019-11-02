@@ -19,8 +19,8 @@ services on a number of different machines.
 Each machine can run:
   - A single postgreSQL instance
   - A single SPA/clif server (currently disabled)
-  - Any number of peer servers, each with its own ID, unique to the machine
-    (currently only one)
+  - Any number of peer servers, each with its own ID, unique to the users
+    it services (currently only one implemented)
 
 When the simnet script is run, it will access each configured machine via
 ssh and perform the following actions:
@@ -53,3 +53,24 @@ machines.  This can create a very big security hole.  So only use machines for
 simulation that are not important for other functions.  For example, you can
 create a bunch of virtual machines in the cloud that don't really do much
 except to run your simulations.
+
+Mongo Database:
+The simulation uses a separate database to model the "real world" where users
+meet independent of the MyCHIPs network protocol.  For example, in the real
+world, two users would meet and exchange information via their devices to
+facilitate the creation of a tally between them.  In the agent model
+simulation, each agent is connected to a single mongo database where agents
+are registered and actions are requested of other agents running on other
+machines.
+
+So you need to have mongod running somewhere.  Also, it needs to be configured
+as a replica set master.  In mongod.conf, do:
+
+:replication
+  replSetName: rs0
+
+or on the command line, include -replSet rs0.
+
+When first connecting to the database, you must issue the command:
+
+  rs.initiate()

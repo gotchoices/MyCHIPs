@@ -70,16 +70,19 @@ fi
 
 #Main
 #-------------------------------------------------------------------------------
+machidx=0
 for mach in "${remotes[@]}"; do			#Update each machine with mirror of latest source code
   echo "Machine:$mach"
   if [ "$1" != "stop" ]; then
     rsync -ar --delete "$mychips" "$mychips"/../node_modules "$mychips"/../wylib "$mychips"/../wyselib "$mychips"/../wyseman "$mychips"/../wyclif "${user}@${mach}:${remsrc}"
   fi
-  ssh -f -X ${user}@${mach} "${remsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+  ssh -f -Y ${user}@${mach} "NODE_DEBUG=$NODE_DEBUG SIMNET_INDEX="$machidx" ${remsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+  machidx=$(expr $machidx + 1)
 done
 
 for mach in "${locals[@]}"; do			#Call remote script on local VMs
-  ssh -f -X ${USER}@${mach} "${vmsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+  ssh -f -Y ${USER}@${mach} "NODE_DEBUG=$NODE_DEBUG SIMNET_INDEX="$machidx" ${vmsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+  machidx=$(expr $machidx + 1)
 done
 
 sleep 1						#Give time for remote comments to post before returning to prompt
