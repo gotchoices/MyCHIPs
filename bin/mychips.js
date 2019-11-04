@@ -26,6 +26,8 @@ var argv = Args({
   spaPort: process.env.MYCHIPS_SPAPORT || '8000',
   spaKey:      process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-%.key'),
   spaCert:     process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-%.crt'),
+  peerKey:     process.env.MYCHIPS_PEERKEY     || Path.join(__dirname, '../pki/local/peer-%.key'),
+  peerCert:    process.env.MYCHIPS_PEERCERT    || Path.join(__dirname, '../pki/local/peer-%.crt'),
   dbUserKey:   process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname, '../pki/local/data-user.key'),
   dbUserCert:  process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
   dbAdminKey:  process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname, '../pki/local/data-admin.key'),
@@ -80,6 +82,7 @@ if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communi
   var peer = new PeerCont({
     port: argv.peerPort, 
     hostID: argv.hostID
+//Fixme: add in peer credentials here
   }, {
     host: argv.dbHost,
     database:argv.dbName,

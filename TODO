@@ -3,18 +3,16 @@ TODO:
 Immediate:
 X- Make simnet allow command line switches
 X- Make simnet launch debugging windows
-- Change glocal cdi concept to chip address which resembles email/domain
--  kylebateman@mychips.com, mychips.com/kylebateman
-- Implement tokens for users/peer connections
-- Update agent2 to publish/access connection tokens in public DB
-- Some tallies are not getting through state transitions to open
-- Some chits are not getting through state transitions to open
+- Agent2:
+X-   Wait/stall when entering username on remote host
+-   Make module to communicate with foreign servers
+-   Insert my user before tally (using module)
+-   Spend CHIPs with more sensitivity to current net worth
+-   Seek/establish vendors, in addition to clients
 - Can I mark a chit as refused, other than the signature?
-- Agent2 spends CHIPs with more sensitivity to current net worth
 - Change to aborted state after max number of retries/time (peer.js)
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
-- 
 - 
 Lift modeling:
 X- System for instantiating multiple databases, multiple servers
@@ -46,6 +44,12 @@ X-   clientinfo ajax (wyclif)
 MyCHIPs General:
 X- Re-enable wysegi serving (where does wysegi live now?)
 X- Column sort in dbp throws error.  Why? (Only on first connect.  Bug seems to go away on reload.)
+- 
+- Change global cdi concept to chip address resembling email: fred@mychips.com
+-  and alternate url form: chip://fred@mychips.com:65430/?arg1=value...
+- Implement tokens for users/peer connections
+- Update agent2 to publish/access connection tokens in public DB
+- 
 - Enable user permission editor in admin app user tab
 - 
 - Strdoc:
