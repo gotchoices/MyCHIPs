@@ -5,8 +5,9 @@
 
 MYPATH=$(dirname "$0")
 DBNAME=${WYATTDB}; if [ -z "$DBNAME" ]; then DBNAME="mychips"; fi
+mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
 
-machineIP=$(grep MachineIP ../settings.js |cut -d : -f 2 |tr -d '"' |tr -d ' ')
+machineIP=$(grep MachineIP ${mypath}/../settings.js |cut -d : -f 2 |tr -d '"' |tr -d ' ')
 #uport=43210
 #pport=65432
 count=1
@@ -23,7 +24,7 @@ while [ $# -gt 0 ]; do
   fi
   shift 2
 done
-echo "DBNAME:$DBNAME count:$count hostID:$hostID diffSecs:$diffSecs"
+#echo "DBNAME:$DBNAME count:$count hostID:$hostID diffSecs:$diffSecs"
 
 while [ $count -gt 0 ]; do
   name="$(curl -s www.pseudorandom.name)"
