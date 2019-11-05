@@ -1,7 +1,7 @@
 head: {
   date: "2017-01-01_11:55:13",
-  foil: "robert_jones_7756.chip",
-  stock: "walmart.com</stock"
+  foil: "robert_jones@mychips.com",
+  stock: "chips@walmart.com"
 },
 money: {
   crebit: {

@@ -60,7 +60,7 @@ table mychips.tokens {mychips base.ent} {
 #----------------------------------------------------------------
 #view mychips.tokens_v {mychips.tokens mychips.users_v base.ent_v} {
 #    select eval(fld_list $tokens::tokens_se t)
-#      , u.peer_cdi, u.user_inet, u.user_port, u.std_name
+#      , u.peer_cid, u.user_inet, u.user_port, u.std_name
 #      , t.exp_date <= current_timestamp as "expired"
 #      , t.exp_date > current_timestamp and not used as "valid"
 #

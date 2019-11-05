@@ -51,20 +51,20 @@ export default {
   },
   methods: {
     peer(dat) {				//Generate SVG code for a user/peer node
-//console.log("User", dat.id, dat.peer_cdi, this.totals[dat.peer_cdi])
-      let { id, std_name, peer_cdi, peer_sock, user_ent } = dat
+//console.log("User", dat.id, dat.peer_cid, this.totals[dat.peer_cid])
+      let { id, std_name, peer_cid, peer_sock, user_ent } = dat
         , fColor = (dat.total < 0 ? '#ff0000' : '#0000ff')
         , sumLine = user_ent ? `${dat.stock_tot} - ${-dat.foil_tot} = <tspan stroke="${fColor}" fill="${fColor}">${dat.total}</tspan>` : ''
         , yOff = this.fontSize + 3
         , host = peer_sock.split('.')[0]
-        , cdiLine = `${peer_cdi}@${host}`
+        , cidLine = `${peer_cid}@${host}`
         , text = `
         <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
           ${id}:${std_name}
-          <tspan x="4" y="${yOff * 2}">${cdiLine}</tspan>
+          <tspan x="4" y="${yOff * 2}">${cidLine}</tspan>
           <tspan x="4" y="${yOff * 3}">${sumLine}</tspan>
         </text>`
-        , max = Math.max(cdiLine.length + 2, std_name.length + 6, sumLine.length-48)	//take tspan into account
+        , max = Math.max(cidLine.length + 2, std_name.length + 6, sumLine.length-48)	//take tspan into account
         , width = max * this.fontSize * 0.55
         , height = this.fontSize * 3.8
         , bColor = user_ent ? "#d0d0e4" : "#d0e4d0"
@@ -78,12 +78,12 @@ export default {
       return {body, ends, width, height}
     },
 
-    updateLink(i, idx, cdi, dat) {
-      let node = this.state.nodes[cdi]					//Get node's state object
+    updateLink(i, idx, cid, dat) {
+      let node = this.state.nodes[cid]					//Get node's state object
         , guid = dat.guids[i]
         , isFoil = (dat.types[i] == 'foil')
         , amount = dat.totals[i]
-        , link = dat.part_cdis[i]
+        , link = dat.part_cids[i]
         , inside = dat.insides[i]
         , noDraw = (isFoil && inside)
         , reverse = (isFoil && !inside)
@@ -100,7 +100,7 @@ export default {
         nodeLink = {index:guid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null}
         node.links.push(nodeLink)
       }
-//console.log("  link:", link, node, idx, cdi, amount, yOffset, nodeLink)
+//console.log("  link:", link, node, idx, cid, amount, yOffset, nodeLink)
       Object.assign(nodeLink, {ends, center, color, link, noDraw, reverse, found:true, hub: ()=>{
         return `<g transform="translate(${center.x}, ${center.y})">
           <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${hubColor}"/>
@@ -111,7 +111,7 @@ export default {
 
     updateNodes(dTime) {
       let where = [['peer_ent', 'notnull']]
-        , fields = ['id', 'std_name', 'peer_cdi', 'peer_sock', 'user_ent', 'total', 'stock_tot', 'foil_tot', 'tallies', 'types', 'totals', 'states', 'guids', 'part_cdis', 'insides']
+        , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'total', 'stock_tot', 'foil_tot', 'tallies', 'types', 'totals', 'states', 'guids', 'part_cids', 'insides']
         , spec = {view: 'mychips.users_v_tallysum', fields, where, order: 1}
       if (dTime) where.push(['latest', '>=', dTime])
 
@@ -121,23 +121,23 @@ export default {
         for (let d of data) {
           let bodyObj = this.peer(d)
             , radius = bodyObj.height / 2
-            , cdi = d.peer_cdi
-          if (cdi in this.state.nodes) {
-            Object.assign(this.state.nodes[cdi], bodyObj, {radius})
-//console.log("n Dat:", cdi, this.state.nodes[cdi].body)
+            , cid = d.peer_cid
+          if (cid in this.state.nodes) {
+            Object.assign(this.state.nodes[cid], bodyObj, {radius})
+//console.log("n Dat:", cid, this.state.nodes[cid].body)
           } else {
             let x = Math.random() * this.state.width/2
               , y = Math.random() * this.state.height/2
-            this.$set(this.state.nodes, cdi, Object.assign(bodyObj, {tag:cdi, x, y, radius, links:[]}))
-//console.log("N Dat:", cdi, x, y)
+            this.$set(this.state.nodes, cid, Object.assign(bodyObj, {tag:cid, x, y, radius, links:[]}))
+//console.log("N Dat:", cid, x, y)
           }
 //console.log("Dat:", d)
           let stocks = 0, foils = 0
           for (let i = 0; i < d.tallies; i++) {
             let idx = (d.types[i] == 'stock') ? stocks++ : foils++
-            this.updateLink(i, idx, cdi, d)
+            this.updateLink(i, idx, cid, d)
           }
-          let node = this.state.nodes[cdi]
+          let node = this.state.nodes[cid]
           for (let i = node.links.length - 1; i >= 0; i--) {
             let link = node.links[i]
 //console.log("  checking:", i, link, link.found)
@@ -145,7 +145,7 @@ export default {
             link.found = false
           }
           
-          delete notFound[cdi]					//Note we processed this node
+          delete notFound[cid]					//Note we processed this node
         }
 //console.log("Not found:", notFound, this.state.nodes)
         if (!dTime) Object.keys(notFound).forEach(key=>{	//Delete anything on the SVG, not now in nodes

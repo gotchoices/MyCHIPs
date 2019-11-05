@@ -35,4 +35,4 @@ tabdef mychips.users_v -fields {
   }}
 }
 
-tabdef mychips.users_v_flat -display {id user_cdi std_name bill_addr bill_city bill_state} -sort {std_name id}
+tabdef mychips.users_v_flat -display {id user_cid std_name bill_addr bill_city bill_state} -sort {std_name id}

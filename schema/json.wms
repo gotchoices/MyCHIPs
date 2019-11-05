@@ -11,7 +11,7 @@ schema json {}
 #----------------------------------------------------------------
 view json.user {json mychips.users_v} {select
     id		as "id"
-  , peer_cdi	as "cdi"
+  , peer_cid	as "cid"
   , ent_name	as "name"
   , ent_type	as "type"
   , fir_name	as "first"
@@ -54,7 +54,7 @@ view json.connect {json base.comm_v} {select
 # Nested view of users dedicated to JSON export
 #----------------------------------------------------------------
 view json.users {json.user json.address json.connect} {select
-  cdi, name, type, first, middle, prefer, begin, juris, taxid
+  cid, name, type, first, middle, prefer, begin, juris, taxid
   , (select array_agg(to_jsonb(d)) from (select spec,type,main,locale,state,post,comment,prior from json.address a where a.id = id order by seq) d) as addresses
   , (select array_agg(to_jsonb(d)) from (select spec,media,comment,prior from json.connect c where c.id = id order by seq) d) as connects
     from json.user;
@@ -66,8 +66,8 @@ view json.tally {json mychips.tallies_v} {select
     tally_ent		as "id"
   , tally_guid		as "guid"
   , version		as "version"
-  , case when tally_type = 'stock' then user_cdi else part_cdi end as "stock"
-  , case when tally_type = 'stock' then part_cdi else user_cdi end as "foil"
+  , case when tally_type = 'stock' then user_addr else part_addr end as "stock"
+  , case when tally_type = 'stock' then part_addr else user_addr end as "foil"
   , tally_date		as "created"
   , contract		as "contract"
 

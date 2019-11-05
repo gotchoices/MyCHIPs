@@ -27,10 +27,10 @@ tabdef mychips.tallies -fields [concat {
 
 # A view with some additional pseudo fields
 tabdef mychips.tallies_v -fields {
-    {user_cdi		ent	28	{3 14}		-opt 1 -sta readonly -wr 0}
+    {user_cid		ent	28	{3 14}		-opt 1 -sta readonly -wr 0}
     {user_sock		ent	28	{3 14}		-opt 1 -sta readonly -wr 0}
     {user_name		ent	28	{3 14}		-opt 1 -sta readonly -wr 0}
-    {part_cdi		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
+    {part_cid		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
     {part_sock		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
     {part_name		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
 } -display {
@@ -59,4 +59,4 @@ tabdef mychips.tallies_v_me -display {
   }}
 }
 
-tabdef mychips.users_v_flat -display {id user_cdi std_name bill_addr bill_city bill_state} -sort {std_name id}
+tabdef mychips.users_v_flat -display {id user_cid std_name bill_addr bill_city bill_state} -sort {std_name id}

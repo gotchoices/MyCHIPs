@@ -10,7 +10,7 @@ module mychips
 
 # Base view of tickets
 #----------------------------------------------------------------
-#define buildUrl {case when t.allows = 'user' then u.user_sock else u.peer_cdi end}
+#define buildUrl {case when t.allows = 'user' then u.user_sock else u.peer_cid end}
 #view mychips.tickets_v {mychips.users_v mychips.tokens_v base.parm(text,text)} {select
 #    u.id		as "id"
 #  , t.token_seq

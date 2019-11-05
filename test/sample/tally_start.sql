@@ -11,4 +11,4 @@ values
 -- Only update triggers look for requests
 update mychips.tallies set request = 'draft' where tally_ent = 10001 and status = 'void';
 
-select user_cdi, part_cdi, tally_type, state from mychips.tallies_v;
+select user_cid, part_cid, tally_type, state from mychips.tallies_v;

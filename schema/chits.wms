@@ -101,8 +101,8 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
           on conflict (ctry_ent,ctry_seq,ctry_idx) do update set tries = mychips.chit_tries.tries + 1, last = current_timestamp
             returning * into rrec;
         
-        jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cdi));
-        jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cdi));
+        jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cid));
+        jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cid));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(chit.chit_ent));
         jrec = jsonb_set(jrec, '{tally}', to_jsonb(trec.tally_guid));
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
@@ -169,8 +169,8 @@ $$;}
 define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
 view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text)} {select 
     eval(fld_list $chits::chits_se	ch)
-  , te.user_cdi
-  , te.part_cdi
+  , te.user_cid
+  , te.part_cid
   , te.tally_type
   , case when isdebit() then 'debit' else 'credit' end		as effect
          
@@ -210,7 +210,7 @@ view mychips.chits_v_me {mychips.chits_v mychips.tallies_v_me} {select
 function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychips.chits_v} {
   returns text language plpgsql as $$
     declare
-        cdi		text	= msg->>'user';
+        cid		text	= msg->>'user';
         obj		jsonb	= msg->'object';
         guid		uuid	= obj->>'guid';
         curState	text;
@@ -222,12 +222,12 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
         erec		record;		-- Tally entity, we will ignore the one in msg
         channel	text = 'mychips_user';
     begin
-        select into erec id, host_id from mychips.users_v where peer_cdi = cdi;
+        select into erec id, host_id from mychips.users_v where peer_cid = cid;
         if not found then return null; end if;
 
         select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = erec.id and chit_guid = guid;
         curState = crec.state;
-raise notice 'Chit cdi:% entity:% state:% recipe:%', cdi, crec.chit_ent, curState, recipe;
+raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.chit_ent, curState, recipe;
         if not found then
             curState = 'null';		-- Special code for when the specified chit doesn't exist yet
         end if;

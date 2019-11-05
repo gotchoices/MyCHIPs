@@ -118,8 +118,8 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.
 --raise notice 'TN:% % %', act, tally.tally_ent, tally.partner;
         if act is null then return false; end if;
         select into trec status,request,state,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
-        select into urec peer_cdi, host_id from mychips.users_v where user_ent = tally.tally_ent;
-        select into prec peer_cdi, peer_sock from mychips.peers_v where peer_ent = tally.partner;
+        select into urec peer_cid, host_id from mychips.users_v where user_ent = tally.tally_ent;
+        select into prec peer_cid, peer_sock from mychips.peers_v where peer_ent = tally.partner;
         if not urec.host_id is null then
             channel = channel || '_' || urec.host_id;
         end if;
@@ -127,9 +127,9 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.
         insert into mychips.tally_tries (ttry_ent, ttry_seq) values (tally.tally_ent, tally.tally_seq)
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
---raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cdi, urec.peer_cdi, prec.peer_sock;
-        jrec = jsonb_set(jrec, '{peer}', to_jsonb(prec.peer_cdi));
-        jrec = jsonb_set(jrec, '{user}', to_jsonb(urec.peer_cdi));
+--raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
+        jrec = jsonb_set(jrec, '{peer}', to_jsonb(prec.peer_cid));
+        jrec = jsonb_set(jrec, '{user}', to_jsonb(urec.peer_cid));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(tally.tally_ent));
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
         jrec = jsonb_set(jrec, '{try}', to_jsonb(rrec.tries));
@@ -189,11 +189,13 @@ $$;}
 define multSign {case when te.tally_type = 'stock' then unitMultiplier().00 else -unitMultiplier().00 end}
 view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v} {select 
     eval(fld_list $tallies::tallies_se	te)
-  , ue.peer_cdi		as user_cdi
+  , ue.peer_cid		as user_cid
+  , ue.peer_addr	as user_addr
   , ue.peer_sock	as user_sock
   , ue.std_name		as user_name
   , te.user_sig
-  , pe.peer_cdi		as part_cdi
+  , pe.peer_cid		as part_cid
+  , pe.peer_addr	as part_addr
   , pe.peer_sock	as part_sock
   , pe.std_name		as part_name
   , te.part_sig
@@ -203,8 +205,8 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , jsonb_build_object(
        'guid', te.tally_guid,
        'version', te.version,
-       'stock', case when te.tally_type = 'stock' then ue.peer_cdi else pe.peer_cdi end,
-       'foil',  case when te.tally_type = 'stock' then pe.peer_cdi else ue.peer_cdi end,
+       'stock', case when te.tally_type = 'stock' then ue.peer_cid else pe.peer_cid end,
+       'foil',  case when te.tally_type = 'stock' then pe.peer_cid else ue.peer_cid end,
        'created', te.tally_date,
        'contract', te.contract,
        'signed', json_build_object(
@@ -249,8 +251,8 @@ view mychips.tallies_v_graph {mychips.tallies_v} {select
     tally_guid as guid    
   , case when tally_type = 'stock' then tally_ent else partner end as stock_ent
   , case when tally_type = 'stock' then partner else tally_ent end as foil_ent
-  , case when tally_type = 'stock' then user_cdi else part_cdi end as stock_cdi
-  , case when tally_type = 'stock' then part_cdi else user_cdi end as foil_cdi
+  , case when tally_type = 'stock' then user_cid else part_cid end as stock_cid
+  , case when tally_type = 'stock' then part_cid else user_cid end as foil_cid
   , case when tally_type = 'stock' then total_c else -total_c end as total
   , state
   , max(latest) as latest
@@ -266,7 +268,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , sum(total)							as total
   , sum(units)							as units
   , array_agg(partner)						as partners
-  , array_agg(part_cdi)						as part_cdis
+  , array_agg(part_cid)						as part_cids
   , array_agg(tally_guid)					as guids
   , array_agg(tally_seq)					as seqs
   , array_agg(tally_type)					as types
@@ -284,8 +286,8 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , count(nullif(tally_type, 'stock'))::int4			as foils
   , array_agg(partner) filter (where tally_type = 'stock')	as clients
   , array_agg(partner) filter (where tally_type = 'foil')	as vendors
-  , array_agg(part_cdi) filter (where tally_type = 'stock')	as client_cdis
-  , array_agg(part_cdi) filter (where tally_type = 'foil')	as vendor_cdis
+  , array_agg(part_cid) filter (where tally_type = 'stock')	as client_cids
+  , array_agg(part_cid) filter (where tally_type = 'foil')	as vendor_cids
   , array_agg(tally_guid) filter (where tally_type = 'stock')	as stock_guids
   , array_agg(tally_guid) filter (where tally_type = 'foil')	as foil_guids
   , array_agg(tally_seq) filter (where tally_type = 'stock')	as stock_seqs
@@ -303,7 +305,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 # List of users with summarized data about their tallies
 #----------------------------------------------------------------
 view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
-    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cdi, u.peer_sock, u.ent_name, u.fir_name, u.ent_type
+    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_sock, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
   , coalesce(s.total, 0.0)			as total
   , coalesce(s.units, 0)			as units
@@ -315,7 +317,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.clients, '{}'::text[])		as clients
   , coalesce(s.vendors, '{}'::text[])		as vendors
   
-  , coalesce(s.part_cdis, '{}'::text[])		as part_cdis
+  , coalesce(s.part_cids, '{}'::text[])		as part_cids
   , coalesce(s.guids, '{}'::uuid[])		as guids
   , coalesce(s.seqs, '{}'::int[])		as seqs
   , coalesce(s.types, '{}'::text[])		as types
@@ -324,8 +326,8 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
   , coalesce(s.insides, '{}'::boolean[])	as insides
   
-  , coalesce(s.client_cdis, '{}'::text[])	as client_cdis
-  , coalesce(s.vendor_cdis, '{}'::text[])	as vendor_cdis
+  , coalesce(s.client_cids, '{}'::text[])	as client_cids
+  , coalesce(s.vendor_cids, '{}'::text[])	as vendor_cids
   , coalesce(s.stock_guids, '{}'::uuid[])	as stock_guids
   , coalesce(s.foil_guids, '{}'::uuid[])	as foil_guids
   , coalesce(s.stock_seqs, '{}'::int[])		as stock_seqs
@@ -368,7 +370,7 @@ view mychips.tallies_v_net {mychips.tallies} {select
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
   returns text language plpgsql as $$
     declare
-        cdi		text = msg->>'user';
+        cid		text = msg->>'user';
         obj		jsonb = msg->'object';
         guid		uuid = obj->>'guid';
         curState	text;
@@ -381,12 +383,12 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         channel	text = 'mychips_user';
         tallyType text; notType text; partner text;
     begin
-        select into erec id,host_id from mychips.users_v where peer_cdi = cdi;	-- Look up the entity on our own
+        select into erec id,host_id from mychips.users_v where peer_cid = cid;	-- Look up the entity on our own
         if not found then return null; end if;
 
         select into trec tally_ent, tally_seq, state from mychips.tallies_v where tally_ent = erec.id and tally_guid = guid;
         curState = trec.state;
---raise notice 'Tally cdi:% entity:% state:% recipe:%', cdi, erec.id, curState, recipe;
+--raise notice 'Tally cid:% entity:% state:% recipe:%', cid, erec.id, curState, recipe;
         if not found then
             curState = 'null';			-- Special code for when the tally doesn't exist yet
         end if;
@@ -397,11 +399,11 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 
         if recipe ? 'upsert' then		-- If there an upsert key in the recipe object?
 --raise notice '  upsert obj:% curState:%', obj, curState;
-          tallyType = (case when obj->>'stock' = cdi then 'stock' else 'foil' end);
-          notType = (case when obj->>'stock' = cdi then 'foil' else 'stock' end);
+          tallyType = (case when obj->>'stock' = cid then 'stock' else 'foil' end);
+          notType = (case when obj->>'stock' = cid then 'foil' else 'stock' end);
 --raise notice '  tallyType:% notType:%', tallyType, notType;
           if curState = 'null' then			-- Need to do insert
-            select into partner peer_ent from mychips.peers where peer_cdi = case when tallyType = 'stock' then obj->>'foil' else obj->>'stock' end;
+            select into partner peer_ent from mychips.peers where peer_cid = case when tallyType = 'stock' then obj->>'foil' else obj->>'stock' end;
             if not found then return null; end if;
             
             execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec

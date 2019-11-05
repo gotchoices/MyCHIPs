@@ -28,16 +28,16 @@ echo "DBNAME:$DBNAME count:$count hostID:$hostID diffSecs:$diffSecs"
 while [ $count -gt 0 ]; do
   name="$(curl -s www.pseudorandom.name)"
   read first last <<< "$name"
-  cdi="$(echo ${first}_${last}.chip |tr '[:upper:]' '[:lower:]')"
+  cid="$(echo ${first}_${last} |tr '[:upper:]' '[:lower:]')"
   secs=$(expr ${RANDOM}${RANDOM} % $diffSecs + $minSecs)
   date=$(date -d "@$secs" +%Y-%b-%d)
   
-  echo "first:$first last:$last cdi:$cdi date:$date"
+  echo "first:$first last:$last cid:$cid date:$date"
 
 #continue
   psql $DBNAME admin >/dev/null <<EOF
-    insert into mychips.users_v (ent_name, fir_name, peer_cdi, ent_type, born_date, host_id)
-    values('$last', '$first', '${cdi}', 'p', '${date}', $([ "$hostID" == 'null' ] && echo "null" || echo "'${hostID}'"))
+    insert into mychips.users_v (ent_name, fir_name, peer_cid, ent_type, born_date, host_id)
+    values('$last', '$first', '${cid}', 'p', '${date}', $([ "$hostID" == 'null' ] && echo "null" || echo "'${hostID}'"))
 EOF
   count=$(expr $count - 1)
 done
