@@ -28,7 +28,7 @@ init:
 parm:
 	wyseman ${OPT} *.wmi
 
-sql:	objects text
+sql:	objects text defs
 	wyseman ${OPT} -s ${WYSELIB}/base/*.wmi *.wmi >../lib/schema-1.sql
 
 all: objects text defs init

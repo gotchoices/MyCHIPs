@@ -45,7 +45,7 @@ MyCHIPs General:
 X- Re-enable wysegi serving (where does wysegi live now?)
 X- Column sort in dbp throws error.  Why? (Only on first connect.  Bug seems to go away on reload.)
 - 
-- Change global cdi concept to chip address resembling email: fred@mychips.com
+X- Change global cdi concept to chip address resembling email: fred@mychips.com
 -  and alternate url form: chip://fred@mychips.com:65430/?arg1=value...
 - Implement tokens for users/peer connections
 - Update agent2 to publish/access connection tokens in public DB
