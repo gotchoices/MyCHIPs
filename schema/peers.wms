@@ -31,10 +31,10 @@ namespace eval peers {
 #----------------------------------------------------------------
 table mychips.peers {base.ent mychips} {
     peer_ent	text		primary key references base.ent on update cascade on delete cascade
-  , peer_cid	text		not null unique
+  , peer_cid	text		not null
   , peer_hid	text		
   , peer_pub	text		
-  , peer_host	text		-- not null (handled in view trigger)
+  , peer_host	text	      , unique (peer_cid, peer_host)
   , peer_port	int		-- not null
   , peer_cmt	text
     eval(s $glob::stamps)
