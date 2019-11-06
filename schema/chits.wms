@@ -43,11 +43,17 @@ table mychips.chit_tries {mychips.chits} {
 
 # Generate unique sequence for new chit
 #----------------------------------------------------------------
-function mychips.chits_tf_seq() {mychips.chits} {
+function mychips.chits_tf_seq() {mychips.tallies} {
   returns trigger language plpgsql security definer as $$
     begin
         if new.chit_idx is null then
-            select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq;
+          update mychips.tallies set _last_chit = greatest(
+              coalesce(_last_chit,0) + 1,
+              (select coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq)
+            ) where tally_ent = new.chit_ent and tally_seq = new.chit_seq
+              returning _last_chit into new.chit_idx;
+          if not found then new.chit_idx = 1; end if;
+-- select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq; -- Not safe for concurrent sessions
         end if;
         return new;
     end;
@@ -58,7 +64,7 @@ trigger mychips_chits_tr_seq {} {
 
 # Cache the total of tallies when the chits change
 #----------------------------------------------------------------
-function mychips.chits_tf_cache() {mychips mychips.chits} {
+function mychips.chits_tf_cache() {mychips mychips.chits mychips.chit_open(text,text)} {
   returns trigger language plpgsql security definer as $$
     declare
       trec	record;
@@ -68,8 +74,7 @@ function mychips.chits_tf_cache() {mychips mychips.chits} {
       update mychips.tallies set mod_date = current_timestamp, mod_by = session_user,
       units_c = (
           select coalesce(sum(units),0) from mychips.chits
-          where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq
-            and not signature is null and signature != 'void'	-- Keep in sync with definition of 'open'!
+          where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq and mychips.chit_open(request,signature)
       ) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
       return null;
     end;
@@ -164,10 +169,17 @@ function {mychips.chit_state(isdebit boolean, request text, signature text)} {my
     end;
 $$;}
 
+# Indicates if the chit is finalized
+#----------------------------------------------------------------
+function {mychips.chit_open(request text, signature text)} {mychips.chits} {
+  returns boolean immutable language sql as $$
+      select request is null and not signature is null and signature != 'void'
+$$;}
+
 # Base view of chits
 #----------------------------------------------------------------
 define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
-view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text)} {select 
+view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text) mychips.chit_open(text,text)} {select 
     eval(fld_list $chits::chits_se	ch)
   , te.user_cid
   , te.part_cid
@@ -177,7 +189,8 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
   , ch.units::float8 / unitMultiplier().00	as value
   , ch.units::float8 * case when te.tally_type = 'stock' then 1 else -1 end / unitMultiplier()	as amount
   , mychips.chit_state(isdebit(), ch.request, ch.signature)	as state
-  , ch.request is null and not ch.signature isnull and ch.signature != 'void'	as open
+  , mychips.chit_open(ch.request, ch.signature)			as open
+--  , ch.request is null and not ch.signature isnull and ch.signature != 'void'	as open
   , mychips.chit_state(isdebit(), ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
   , jsonb_build_object(
        'guid',		ch.chit_guid,
@@ -269,8 +282,8 @@ raise notice 'SQL:%', qstrg;
 
         select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
         if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
-            if not erec.host_id is null then channel = channel || '_' || erec.host_id; end if;
-raise notice '  chit notify for user channel: %', channel;
+            channel = channel || '_' || crec.chit_ent;
+--raise notice '  chit notify for user channel: %', channel;
             perform pg_notify(channel, crec.json::text);
 --            perform pg_notify('mychips_admin', crec.json::text);	Do we need this?
         end if;

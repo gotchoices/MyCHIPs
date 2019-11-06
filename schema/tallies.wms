@@ -25,7 +25,7 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , tally_type	text		not null default 'stock' check(tally_type in ('stock','foil'))
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
-  , partner	text		references mychips.peers on update cascade on delete restrict
+  , partner	text		not null references mychips.peers on update cascade on delete restrict
   , status	text		not null default 'void' check(status in ('void','draft','open','close'))
   , request	text		check(request is null or request in ('void','draft','open','close'))
   , comment	text
@@ -40,6 +40,8 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , dr_limit	bigint		not null default 0
   , cr_limit	bigint		not null default 0
   , units_c	bigint		default 0 not null
+  , _last_chit	int		not null
+  , _last_conf	int		not null
     eval(s $glob::stamps)
 }
 index {} mychips.tallies tally_guid
@@ -63,14 +65,22 @@ table mychips.tally_tries {mychips.tallies} {
   , last	timestamptz	not null default current_timestamp
 }
 
-# Generate unique sequence for new tallies
+# Generate unique sequence number for new tallies
 #----------------------------------------------------------------
-function mychips.tallies_tf_seq() {mychips.tallies} {
+function mychips.tallies_tf_seq() {mychips.users} {
   returns trigger language plpgsql security definer as $$
     begin
         if new.tally_seq is null then
-            select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent;
+          update mychips.users set _last_tally = greatest(
+              coalesce(_last_tally, 0) + 1,
+              (select coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent)
+            ) where user_ent = new.tally_ent
+              returning _last_tally into new.tally_seq;
+          if not found then new.tally_seq = 1; end if;
+-- select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent; -- Not safe for concurrent sessions
         end if;
+        if new._last_chit is null then new._last_chit = 0; end if;	-- Use this, not default in table to avoid multiview trying to write this field
+        if new._last_conf is null then new._last_conf = 0; end if;
         return new;
     end;
 $$;}
@@ -84,7 +94,13 @@ function mychips.confirms_tf_seq() {mychips.confirms} {
   returns trigger language plpgsql security definer as $$
     begin
         if new.conf_idx is null then
-            select into new.conf_idx coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq;
+          update mychips.tallies set _last_conf = greatest(
+              coalesce(_last_conf,0) + 1,
+              (select coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq)
+            ) where tally_ent = new.conf_ent and tally_seq = new.conf_seq
+              returning _last_conf into new.conf_idx;
+          if not found then new.conf_idx = 1; end if;
+-- select into new.conf_idx coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq; -- Not safe for concurrent sessions
         end if;
         return new;
     end;
@@ -127,7 +143,7 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.
         insert into mychips.tally_tries (ttry_ent, ttry_seq) values (tally.tally_ent, tally.tally_seq)
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
---raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
+raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
         jrec = jsonb_set(jrec, '{peer}', to_jsonb(prec.peer_cid));
         jrec = jsonb_set(jrec, '{user}', to_jsonb(urec.peer_cid));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(tally.tally_ent));
@@ -187,7 +203,7 @@ $$;}
 # Base view of tallies
 #----------------------------------------------------------------
 define multSign {case when te.tally_type = 'stock' then unitMultiplier().00 else -unitMultiplier().00 end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v} {select 
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.chit_open(text,text)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , ue.peer_cid		as user_cid
   , ue.peer_addr	as user_addr
@@ -225,8 +241,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
     join	mychips.users_v	pe on pe.peer_ent = te.partner
     left join	(
-      select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits
-      where not signature isnull and signature != 'void'		-- Must keep this definition in sync with 'open' in chit_v definition
+      select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where mychips.chit_open(request, signature)
       group by 1,2
     ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
 
@@ -409,7 +424,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
             execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
                 using erec.id, guid, tallyType, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
-            execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8 request = null, mod_date = current_timestamp, mod_by = session_user  where tally_ent = $9 and tally_seq = $10'
+            execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8, request = null, mod_date = current_timestamp, mod_by = session_user  where tally_ent = $9 and tally_seq = $10'
                 using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
             delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
           end if;
@@ -432,8 +447,8 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
         select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
-            if not erec.host_id is null then channel = channel || '_' || erec.host_id; end if;
---raise notice '  tally notify for user channel: % %', channel, trec.json;
+            channel = channel || '_' || trec.tally_ent;
+raise notice '  tally notify for user channel: % %', channel, trec.json;
             jrec = jsonb_set(jrec, '{entity}', to_jsonb(trec.tally_ent));
             jrec = jsonb_set(jrec, '{sequence}', to_jsonb(trec.tally_seq));
             jrec = jsonb_set(jrec, '{state}', to_jsonb(trec.state));
