@@ -81,7 +81,8 @@ if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communi
   const PeerCont = require('../lib/peer.js')		//Peer communications controller
   var peer = new PeerCont({
     port: argv.peerPort, 
-    hostID: argv.hostID
+    hostID: argv.hostID,
+    poll: true
 //Fixme: add in peer credentials here
   }, {
     host: argv.dbHost,
