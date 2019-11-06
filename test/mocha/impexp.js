@@ -11,7 +11,7 @@ const dbConfig = {
   database: DatabaseName,
   user: DBAdmin,
   listen: "DummyChannel",		//Cause immediate connection to DB, rather than deferred
-  logger: log,
+  log,
   schema: __dirname + "/../../lib/schema.sql"
 }
 
