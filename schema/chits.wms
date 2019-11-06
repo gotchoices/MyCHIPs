@@ -233,25 +233,24 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
         trec		record;		-- Holds associated tally
         lrec		record;		-- Looping variable
         erec		record;		-- Tally entity, we will ignore the one in msg
-        channel	text = 'mychips_user';
     begin
         select into erec id, host_id from mychips.users_v where peer_cid = cid;
         if not found then return null; end if;
 
         select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = erec.id and chit_guid = guid;
         curState = crec.state;
-raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.chit_ent, curState, recipe;
+--raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.chit_ent, curState, recipe;
         if not found then
             curState = 'null';		-- Special code for when the specified chit doesn't exist yet
         end if;
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+--raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
             return curState;
         end if;
 
         if recipe ? 'upsert' then
-raise notice '  upsert obj:% curState:%', obj, curState;
+--raise notice '  upsert obj:% curState:%', obj, curState;
           if curState = 'null' then			-- Need to do insert
             select into trec * from mychips.tallies where tally_ent = erec.id and tally_guid = (msg->>'tally')::uuid;
             if not found then return null; end if;
@@ -268,24 +267,23 @@ raise notice '  upsert obj:% curState:%', obj, curState;
         if recipe ? 'update' then
           qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
           for lrec in select * from jsonb_each_text(recipe->'update') loop
-raise notice '  update set % = %', lrec.key, lrec.value;
+--raise notice '  update set % = %', lrec.key, lrec.value;
             if lrec.key = any('{signature}') then		-- enumerate writable fields
               qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
             end if;
 --            execute 'update mychips.chits set ' || lrec.key || ' = $1 where chit_ent = $2 and chit_seq = $3 and chit_idx = $4' using lrec.value, crec.chit_ent, crec.chit_seq, crec.chit_idx;
           end loop;
           qstrg = 'update mychips.chits set ' || array_to_string(qflds,', ') || ' where chit_ent = $2 and chit_seq = $3 and chit_idx = $4';
-raise notice 'SQL:%', qstrg;
+--raise notice 'SQL:%', qstrg;
           execute qstrg using lrec.value, crec.chit_ent, crec.chit_seq, crec.chit_idx;
           delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
         end if;
 
         select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
         if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
-            channel = channel || '_' || crec.chit_ent;
---raise notice '  chit notify for user channel: %', channel;
-            perform pg_notify(channel, crec.json::text);
---            perform pg_notify('mychips_admin', crec.json::text);	Do we need this?
+--raise notice '  chit notify for user channel: mychips_user_%', crec.chit_ent;
+            perform pg_notify('mychips_user_' || crec.chit_ent, crec.json::text);
+            perform pg_notify('mychips_user', crec.json::text);		-- Simulations use this
         end if;
         return crec.state;
     end;

@@ -395,7 +395,6 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         lrec		record;		-- Looping variable
         trec		record;		-- Holds tally record(s)
         jrec		jsonb = '{"target": "tally"}';
-        channel	text = 'mychips_user';
         tallyType text; notType text; partner text;
     begin
         select into erec id,host_id from mychips.users_v where peer_cid = cid;	-- Look up the entity on our own
@@ -447,14 +446,13 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
         select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
-            channel = channel || '_' || trec.tally_ent;
-raise notice '  tally notify for user channel: % %', channel, trec.json;
+raise notice '  tally notify for user channel mychips_user_% %', trec.tally_ent, trec.json;
             jrec = jsonb_set(jrec, '{entity}', to_jsonb(trec.tally_ent));
             jrec = jsonb_set(jrec, '{sequence}', to_jsonb(trec.tally_seq));
             jrec = jsonb_set(jrec, '{state}', to_jsonb(trec.state));
             jrec = jsonb_set(jrec, '{object}', trec.json);
-            perform pg_notify(channel, jrec::text);
---            perform pg_notify('mychips_admin', trec.json::text);	Do we need this?
+            perform pg_notify('mychips_user_' || trec.tally_ent, jrec::text);
+            perform pg_notify('mychips_user', jrec::text);		-- Simulations use this
         end if;
         return trec.state;
     end;

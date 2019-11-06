@@ -5,8 +5,9 @@ X- Make simnet allow command line switches
 X- Make simnet launch debugging windows
 - Agent2:
 X-   Wait/stall when entering username on remote host
--   Make module to communicate with foreign servers
--   Insert my user before tally (using module)
+X-   Make module to communicate with foreign servers
+X-   Insert my user before tally (using module)
+-   Some chits are not getting beyond draft mode.  Why?
 -   Spend CHIPs with more sensitivity to current net worth
 -   Seek/establish vendors, in addition to clients
 - Can I mark a chit as refused, other than the signature?
