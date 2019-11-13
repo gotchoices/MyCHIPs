@@ -8,9 +8,10 @@ X-   Wait/stall when entering username on remote host
 X-   Make module to communicate with foreign servers
 X-   Insert my user before tally (using module)
 -   Some chits are not getting beyond draft mode.  Why?
--   Spend CHIPs with more sensitivity to current net worth
+-   Spend CHIPs with more sensitivity to current net worth (other factors)
 -   Seek/establish vendors, in addition to clients
-- Can I mark a chit as refused, other than the signature?
+-   Honor max clients, max vendors parameters from DB
+- Can I mark a chit as refused, some way other than text in the signature?
 - Change to aborted state after max number of retries/time (peer.js)
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
@@ -20,12 +21,16 @@ X- System for instantiating multiple databases, multiple servers
 X- Central repository where agent users can choose from peers, not in their own DB
 X- DB support for peers, which are not local users
 X- Make paths_v properly detect paths to/from peers not on the same DB
-- Make table to model outside paths
-- Create remote query protocol to get foreign pathway stub data (how to model)
-- Query adjoining DB's for pathway information
-- Create state machine for tracking queries' status
-- Populate local DB with stubs/paths for remote peers
-- Can join inside paths with outside paths
+X- Make state transition graph for pathway discovery
+X- Make table to model outside paths
+X- Review state logic for paths
+X- Route state graph designed
+- Create route state transition map object properties
+- Route state queries initiated as part of tally dialog
+- Route state queries can be initiated explicitly (by user?)
+- Querying adjoining DB's for pathway information
+- Join inside paths with outside paths, detect useable circuits
+- 
 - Create remote lift protocol
 - Design state machine to execute distributed lifts
 - 
