@@ -12,15 +12,15 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {tally_date		{Tally Date}		{The date and time this tally was initiated between the parties}}
     {version		{Version}		{A number indicating the format standard this tally adheres to}}
     {partner		{Partner Entity}	{The entity id number of the other party to this tally}}
-    {status		{Status}		{Current state of the tally} {
+    {status		{Status}		{Current status of the tally record} {
         {void		{Void}			{The tally has been abandoned before being affirmed by both parties}}
         {draft		{Draft}			{The tally have bee suggested by one party but not yet accepted by the other party}}
         {open		{Open}			{The tally is affirmed by both parties and can be used for trading chits}}
         {close		{Close}			{No further trading can occur on this tally}}
     }}
-    {request		{Request}		{Requested next state for the tally} {
+    {request		{Request}		{Requested next status for the tally} {
         {void		{Void}			{One party has requested to negotiation before the tally has been opened}}
-        {draft		{Draft}			{One party is suggesteing terms for a tally}}
+        {draft		{Draft}			{One party is suggesting terms for a tally}}
         {open		{Open}			{One party is requesting to open the tally according to the specified terms}}
         {close		{Close}			{One party is requesting to discontinue further trading on this tally}}
     }}

@@ -3,6 +3,7 @@
 #----------------------------------------------------------------
 #TODO:
 #X- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman (see Fixme)
+#- See Fixme's below
 #- Include host_id in tally_v to reduce queries in notice triggers?
 #- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
 #- Add constraints to assure things like contract and signatures are valid?
@@ -111,7 +112,7 @@ trigger mychips_confirms_tr_seq {} {
 
 # Notify the peer server process of tally state changes, and next state request, that needs attention in the database
 #----------------------------------------------------------------
-function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
+function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
   returns boolean language plpgsql security definer as $$
     declare
         act	text;
@@ -131,9 +132,11 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies mychips.
         elsif tally.status = 'open'  and tally.request = 'close' then
             act = 'userClose';
         end if;
+--Fixme: Should we clear request if in indeterminate state not matchine any of the above?
 --raise notice 'TN:% % %', act, tally.tally_ent, tally.partner;
         if act is null then return false; end if;
         select into trec status,request,state,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
+--Fixme: Is this info from users_v,peers_v now also found in tallies_v queried above?
         select into urec peer_cid, host_id from mychips.users_v where user_ent = tally.tally_ent;
         select into prec peer_cid, peer_sock from mychips.peers_v where peer_ent = tally.partner;
         if not urec.host_id is null then
@@ -203,7 +206,7 @@ $$;}
 # Base view of tallies
 #----------------------------------------------------------------
 define multSign {case when te.tally_type = 'stock' then unitMultiplier().00 else -unitMultiplier().00 end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.chit_open(text,text)} {select 
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.chit_open(text,text) mychips.tally_state(text,text,text,text,bigint)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , ue.peer_cid		as user_cid
   , ue.peer_addr	as user_addr
@@ -380,6 +383,29 @@ view mychips.tallies_v_net {mychips.tallies} {select
   full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_guid = ts.tally_guid
 }
 
+# General routine to build update query string
+#----------------------------------------------------------------
+function {mychips.state_updater(recipe jsonb, tab text, fields text[])} {} {
+  returns text immutable language plpgsql as $$
+    declare
+      qflds		text[];		-- Temporary array
+      lrec	record;		-- Looping variable
+    begin
+      if recipe ? 'update' then			-- There's an update key in the recipe
+        qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
+        for lrec in select * from jsonb_each_text(recipe->'update') loop
+--raise notice '  update set % = %', lrec.key, lrec.value;
+          if lrec.key = any(fields) then		-- only include allowable fields
+            qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
+          end if;
+        end loop;
+        return 'update ' || tab || ' set ' || array_to_string(qflds,', ') || ' where ';
+--raise notice 'SQL:%', qstrg;
+      end if;
+      return null;
+    end;
+$$;}
+
 # Process tally state transitions requested by the peer server process
 #----------------------------------------------------------------
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
@@ -425,10 +451,18 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
           else						-- Tally already exists, do update
             execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8, request = null, mod_date = current_timestamp, mod_by = session_user  where tally_ent = $9 and tally_seq = $10'
                 using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
+
+--Fixme: only have one of these deletes (at the bottom after 'updater'); in chits.wms too
             delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
           end if;
         end if;
 
+--Fixme: replace code here with state_updater(recipe,...):
+--      if not (qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}')) is null then
+--        qstrg = 'update mychips.tallies set ' || array_to_string(qflds,', ') || ' where tally_ent = $2 and tally_seq = $3';
+--        execute qstrg || ' where tally_ent = $2 and tally_seq = $3' using lrec.value, trec.tally_ent, trec.tally_seq;
+--        delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
+--      end if;
         if recipe ? 'update' then		-- There's an update key in the recipe
           qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
           for lrec in select * from jsonb_each_text(recipe->'update') loop
