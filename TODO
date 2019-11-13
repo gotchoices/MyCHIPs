@@ -1,8 +1,23 @@
 TODO:
 
 Immediate:
-X- Make simnet allow command line switches
-X- Make simnet launch debugging windows
+Lift modeling:
+X- System for instantiating multiple databases, multiple servers
+X- Central repository where agent users can choose from peers, not in their own DB
+X- DB support for peers, which are not local users
+X- Make paths_v properly detect paths to/from peers not on the same DB
+X- Make state transition graph for pathway discovery
+X- Make table to model outside paths
+X- Review state logic for paths
+X- Route state graph designed
+- Build SQL for route state transition handler
+- Create route state transition map object properties
+- Route state queries initiated as part of tally dialog
+- Route state queries can be initiated explicitly (by user?)
+- Querying adjoining DB's for pathway information
+- Join inside paths with outside paths, detect useable circuits
+- Change host_id to server_tag and have better description
+- 
 - Agent2:
 X-   Wait/stall when entering username on remote host
 X-   Make module to communicate with foreign servers
@@ -15,21 +30,6 @@ X-   Insert my user before tally (using module)
 - Change to aborted state after max number of retries/time (peer.js)
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
-- 
-Lift modeling:
-X- System for instantiating multiple databases, multiple servers
-X- Central repository where agent users can choose from peers, not in their own DB
-X- DB support for peers, which are not local users
-X- Make paths_v properly detect paths to/from peers not on the same DB
-X- Make state transition graph for pathway discovery
-X- Make table to model outside paths
-X- Review state logic for paths
-X- Route state graph designed
-- Create route state transition map object properties
-- Route state queries initiated as part of tally dialog
-- Route state queries can be initiated explicitly (by user?)
-- Querying adjoining DB's for pathway information
-- Join inside paths with outside paths, detect useable circuits
 - 
 - Create remote lift protocol
 - Design state machine to execute distributed lifts
