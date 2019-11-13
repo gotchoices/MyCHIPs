@@ -46,7 +46,7 @@ view mychips.peers_v {mychips.peers base.ent_v base.parm_text(text,text)} {selec
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
   , coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_sock
-  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_addr
+  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost)			as peer_addr
   , greatest(ee.mod_date, pe.mod_date) as mod_date
 
     from	base.ent_v	ee

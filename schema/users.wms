@@ -47,7 +47,6 @@ trigger mychips_users_tr_bi {} {
     before insert on mychips.users for each row execute procedure mychips.users_tf_bi();
 }
 
-puts "Huh:$base::ent_v_in"
 # Base view of users, linked to entity and peer tables
 #----------------------------------------------------------------
 view mychips.users_v {mychips.users mychips.peers base.ent_v base.parm_text(text,text) base.parm_int(text,text)} {select 
