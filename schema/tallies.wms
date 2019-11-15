@@ -41,8 +41,8 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , dr_limit	bigint		not null default 0
   , cr_limit	bigint		not null default 0
   , units_c	bigint		default 0 not null
-  , _last_chit	int		not null
-  , _last_conf	int		not null
+  , _last_chit	int		not null default 0
+  , _last_conf	int		not null default 0
     eval(s $glob::stamps)
 }
 index {} mychips.tallies tally_guid
@@ -80,8 +80,8 @@ function mychips.tallies_tf_seq() {mychips.users} {
           if not found then new.tally_seq = 1; end if;
 -- select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent; -- Not safe for concurrent sessions
         end if;
-        if new._last_chit is null then new._last_chit = 0; end if;	-- Use this, not default in table to avoid multiview trying to write this field
-        if new._last_conf is null then new._last_conf = 0; end if;
+--        if new._last_chit is null then new._last_chit = 0; end if;	-- Use this, not default in table to avoid multiview trying to write this field
+--        if new._last_conf is null then new._last_conf = 0; end if;
         return new;
     end;
 $$;}
@@ -146,7 +146,7 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychip
         insert into mychips.tally_tries (ttry_ent, ttry_seq) values (tally.tally_ent, tally.tally_seq)
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
-raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
+--raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
         jrec = jsonb_set(jrec, '{peer}', to_jsonb(prec.peer_cid));
         jrec = jsonb_set(jrec, '{user}', to_jsonb(urec.peer_cid));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(tally.tally_ent));
@@ -164,18 +164,23 @@ $$;}
 
 # Generate notifications about updated tallies for listening peer servers
 #----------------------------------------------------------------
-function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies)} {
+function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies) mychips.route_check(mychips.tallies)} {
   returns trigger language plpgsql security definer as $$
     declare
-        dirty	boolean default false;
+      notify	boolean default false;
     begin
-        if TG_OP = 'INSERT' then
-            dirty = true;
-        elsif new.request is not null and new.request is distinct from old.request then
-            dirty = true;
+      if TG_OP = 'INSERT' then
+        notify = true;
+      else			-- This is an update
+        if new.request is not null and new.request is distinct from old.request then
+          notify = true;
         end if;
-        if dirty then perform mychips.tally_notify(new); end if;
-        return new;
+        if new.request is null and new.status = 'open' and old.status != 'open' then
+          perform mychips.route_check(new);		-- New tally, let's query for route info
+        end if;
+      end if;
+      if notify then perform mychips.tally_notify(new); end if;
+      return new;
     end;
 $$;}
 trigger mychips_tallies_tr_notice {} {
@@ -388,19 +393,18 @@ view mychips.tallies_v_net {mychips.tallies} {select
 function {mychips.state_updater(recipe jsonb, tab text, fields text[])} {} {
   returns text immutable language plpgsql as $$
     declare
-      qflds		text[];		-- Temporary array
+      qflds	text[];		-- Temporary array
       lrec	record;		-- Looping variable
     begin
       if recipe ? 'update' then			-- There's an update key in the recipe
         qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
         for lrec in select * from jsonb_each_text(recipe->'update') loop
 --raise notice '  update set % = %', lrec.key, lrec.value;
-          if lrec.key = any(fields) then		-- only include allowable fields
+          if lrec.key = any(fields) then		-- update only allowable fields
             qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
           end if;
         end loop;
         return 'update ' || tab || ' set ' || array_to_string(qflds,', ') || ' where ';
---raise notice 'SQL:%', qstrg;
       end if;
       return null;
     end;
@@ -415,10 +419,8 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         obj		jsonb = msg->'object';
         guid		uuid = obj->>'guid';
         curState	text;
-        qflds		text[];		-- Temporary array
         qstrg		text;		-- Temporary string
         erec		record;		-- Tally entity, we will ignore the one in msg
-        lrec		record;		-- Looping variable
         trec		record;		-- Holds tally record(s)
         jrec		jsonb = '{"target": "tally"}';
         tallyType text; notType text; partner text;
@@ -452,35 +454,22 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
             execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8, request = null, mod_date = current_timestamp, mod_by = session_user  where tally_ent = $9 and tally_seq = $10'
                 using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
 
---Fixme: only have one of these deletes (at the bottom after 'updater'); in chits.wms too
+--Fixme: should we delete tries only once (below) regardless of whether upsert or update?
             delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
           end if;
         end if;
 
---Fixme: replace code here with state_updater(recipe,...):
---      if not (qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}')) is null then
---        qstrg = 'update mychips.tallies set ' || array_to_string(qflds,', ') || ' where tally_ent = $2 and tally_seq = $3';
---        execute qstrg || ' where tally_ent = $2 and tally_seq = $3' using lrec.value, trec.tally_ent, trec.tally_seq;
---        delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
---      end if;
-        if recipe ? 'update' then		-- There's an update key in the recipe
-          qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
-          for lrec in select * from jsonb_each_text(recipe->'update') loop
---raise notice '  update set % = %', lrec.key, lrec.value;
-            if lrec.key = any('{status, part_sig}') then		-- enumerate writable fields
-              qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
-            end if;
-          end loop;
-          qstrg = 'update mychips.tallies set ' || array_to_string(qflds,', ') || ' where tally_ent = $2 and tally_seq = $3';
+        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}');	-- Check for update recipe
 --raise notice 'SQL:%', qstrg;
-          execute qstrg using lrec.value, trec.tally_ent, trec.tally_seq;
+        if qstrg is not null then
+          execute qstrg || ' tally_ent = $1 and tally_seq = $2' using trec.tally_ent, trec.tally_seq;
           delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
         end if;
 
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
         select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
-raise notice '  tally notify for user channel mychips_user_% %', trec.tally_ent, trec.json;
+--raise notice '  tally notify for user channel mychips_user_% %', trec.tally_ent, trec.json;
             jrec = jsonb_set(jrec, '{entity}', to_jsonb(trec.tally_ent));
             jrec = jsonb_set(jrec, '{sequence}', to_jsonb(trec.tally_seq));
             jrec = jsonb_set(jrec, '{state}', to_jsonb(trec.state));
