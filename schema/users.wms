@@ -30,22 +30,22 @@ table mychips.users {base.ent mychips} {
   , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
   , user_cmt	varchar
   , host_id	varchar
-  , _last_tally	int		not null
+  , _last_tally	int		not null default 0
     eval(s $glob::stamps)
 }
 
 # Quality check for new user records
 #----------------------------------------------------------------
-function mychips.users_tf_bi() {mychips.users} {
-  returns trigger language plpgsql security definer as $$
-    begin
-        if new._last_tally is null then new._last_tally = 0; end if;	-- Use this, not default in table to avoid multiview trying to write this field
-        return new;
-    end;
-$$;}
-trigger mychips_users_tr_bi {} {
-    before insert on mychips.users for each row execute procedure mychips.users_tf_bi();
-}
+#function mychips.users_tf_bi() {mychips.users} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#--        if new._last_tally is null then new._last_tally = 0; end if;	-- Use this, not default in table to avoid multiview trying to write this field
+#        return new;
+#    end;
+#$$;}
+#trigger mychips_users_tr_bi {} {
+#    before insert on mychips.users for each row execute procedure mychips.users_tf_bi();
+#}
 
 # Base view of users, linked to entity and peer tables
 #----------------------------------------------------------------
