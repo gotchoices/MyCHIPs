@@ -20,6 +20,7 @@
 
 <script>
 import Wylib from 'wylib'
+const Bias = 10				//Amount to nudge nodes based on which end of the tally they are on
 
 export default {
   name: 'app-urnet',
@@ -54,7 +55,7 @@ export default {
 //console.log("User", dat.id, dat.peer_cid, this.totals[dat.peer_cid])
       let { id, std_name, peer_cid, peer_sock, user_ent } = dat
         , fColor = (dat.total < 0 ? '#ff0000' : '#0000ff')
-        , sumLine = user_ent ? `${dat.stock_tot} - ${-dat.foil_tot} = <tspan stroke="${fColor}" fill="${fColor}">${dat.total}</tspan>` : ''
+        , sumLine = user_ent ? `${dat.stock_tot.toFixed(3)} - ${-dat.foil_tot.toFixed(3)} = <tspan stroke="${fColor}" fill="${fColor}">${dat.total.toFixed(3)}</tspan>` : ''
         , yOff = this.fontSize + 3
         , host = peer_sock.split('.')[0]
         , cidLine = `${peer_cid}@${host}`
@@ -97,11 +98,14 @@ export default {
         , center = {x:xOffset, y:yOffset}
 
       if (!nodeLink) {				//Create new data structure for link, hubs
-        nodeLink = {index:guid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null}
+        nodeLink = {index:guid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null, bias:null}
         node.links.push(nodeLink)
       }
 //console.log("  link:", link, node, idx, cid, amount, yOffset, nodeLink)
-      Object.assign(nodeLink, {ends, center, color, link, noDraw, reverse, found:true, hub: ()=>{
+      Object.assign(nodeLink, {ends, center, color, link, noDraw, reverse, found:true, bias: ()=>{
+//console.log("User bias:", cid, isFoil, isFoil?-Bias:Bias)
+        return {x:0, y: isFoil ? -Bias : Bias}
+      }, hub: ()=>{
         return `<g transform="translate(${center.x}, ${center.y})">
           <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${hubColor}"/>
           <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${amount}</text>
@@ -117,14 +121,15 @@ export default {
 
       Wylib.Wyseman.request('urnet.peer.'+this._uid, 'select', spec, (data,err) => {
         let notFound = Object.assign({}, this.state.nodes)
+          , needLinks = {}
 //console.log("Update nodes:", dTime, this.state.nodes, data.length, data)
         for (let d of data) {
           let bodyObj = this.peer(d)
-            , radius = bodyObj.height / 2
+            , radius = bodyObj.width / 2
             , cid = d.peer_cid
           if (cid in this.state.nodes) {
             Object.assign(this.state.nodes[cid], bodyObj, {radius})
-//console.log("n Dat:", cid, this.state.nodes[cid].body)
+//console.log("n Dat:", cid, this.state.nodes[cid])
           } else {
             let x = Math.random() * this.state.width/2
               , y = Math.random() * this.state.height/2
@@ -136,20 +141,34 @@ export default {
           for (let i = 0; i < d.tallies; i++) {
             let idx = (d.types[i] == 'stock') ? stocks++ : foils++
             this.updateLink(i, idx, cid, d)
+            if (!d.insides[i]) {			//Foreign peers don't have tallies, we need to link them in
+              let pcid = d.part_cids[i]
+                , pnode = this.state.nodes[pcid]
+//console.log("Need to link:", cid, "to:", pcid, pnode)
+              if (!(pcid in needLinks)) needLinks[pcid] = []
+              needLinks[pcid].push({link: cid, noDraw: true, bias: ()=>{
+//console.log("Foreign bias:", pcid, d.types[i], d.types[i]=='stock'?-Bias:Bias)
+                return {x:0, y:d.types[i] == 'stock' ? -Bias : Bias}
+              }})
+            }
           }
           let node = this.state.nodes[cid]
           for (let i = node.links.length - 1; i >= 0; i--) {
             let link = node.links[i]
 //console.log("  checking:", i, link, link.found)
-            if (!dTime && !link.found) node.links.splice(i,1)		//Delete if not found this iteration
+            if (!dTime && !link.found) node.links.splice(i,1)	//Delete if not found this iteration
             link.found = false
           }
-          
           delete notFound[cid]					//Note we processed this node
         }
 //console.log("Not found:", notFound, this.state.nodes)
         if (!dTime) Object.keys(notFound).forEach(key=>{	//Delete anything on the SVG, not now in nodes
           this.$delete(this.state.nodes, key)
+        })
+//console.log("Need Links:", needLinks)
+        Object.keys(needLinks).forEach(key=>{
+          let node = this.state.nodes[key]
+          if (node) node.links = needLinks[key]
         })
       })
     },		//updateNodes
@@ -160,6 +179,10 @@ export default {
     reset() {
       this.state.nodes = {}
       this.updateNodes()
+      this.updateNodes()
+//      this.$nextTick(()=>{
+//        this.$refs['svg'].$emit('bump')
+//      })
     },
   },
 
