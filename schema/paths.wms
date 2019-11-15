@@ -78,8 +78,8 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift
 --      , coalesce(least(t.units,tp.min), t.units)	as min
       , coalesce(greatest(t.units,tp.max), t.units)	as max
       , tp.inside and not t.stock_user isnull		as inside
-      , t.stock_user isnull				as fora
-      , not tp.inside					as forz
+      , tp.fora						as fora
+      , t.stock_user is null				as forz
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
   ) select tpr.first, tpr.last
@@ -272,11 +272,11 @@ function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.
 --Fixme: better way to build json record?
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
         jrec = jsonb_set(jrec, '{route}', to_jsonb(trec.route_ent));
---        jrec = jsonb_set(jrec, '{dest}', to_jsonb(urec.peer_cid));
+        jrec = jsonb_set(jrec, '{dest}', to_jsonb(trec.dest_chid));
 --        jrec = jsonb_set(jrec, '{entity}', to_jsonb(route.tally_ent));
         jrec = jsonb_set(jrec, '{try}', to_jsonb(rrec.tries));
         jrec = jsonb_set(jrec, '{last}', to_jsonb(rrec.last));
---        jrec = jsonb_set(jrec, '{at}', coalesce(to_jsonb(prec.peer_sock),'null'::jsonb));
+--        jrec = jsonb_set(jrec, '{at}', coalesce(to_jsonb(trec.dest_sock),'null'::jsonb));
         jrec = jsonb_set(jrec, '{object}', trec.json);
 raise notice 'Route notice:%', jrec::text;
         perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
@@ -370,5 +370,15 @@ raise notice '  route notify for user channel mychips_user_% %', trec.tally_ent,
             perform pg_notify('mychips_user', jrec::text);		-- Simulations use this
         end if;
         return trec.state;
+    end;
+$$;}
+
+# Check for routes associated with a given tally
+#----------------------------------------------------------------
+function {mychips.route_check(tally mychips.tallies)} {mychips.tallies mychips.routes} {
+  returns void language plpgsql as $$
+    declare
+    begin
+raise notice 'Route Check: % % %', tally.tally_ent, tally.tally_seq, tally.tally_type;
     end;
 $$;}
