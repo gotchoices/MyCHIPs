@@ -2,7 +2,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#X- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman (see Fixme)
+#X- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman
 #- See Fixme's below
 #- Include host_id in tally_v to reduce queries in notice triggers?
 #- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
@@ -117,8 +117,6 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychip
     declare
         act	text;
         jrec	jsonb = '{"target": "tally"}';
-        urec	record;			-- User
-        prec	record;			-- Peer
         trec	record;			-- Tally
         rrec	record;			-- Retries
         channel	text = 'mychips_peer';
@@ -132,28 +130,27 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychip
         elsif tally.status = 'open'  and tally.request = 'close' then
             act = 'userClose';
         end if;
---Fixme: Should we clear request if in indeterminate state not matchine any of the above?
 --raise notice 'TN:% % %', act, tally.tally_ent, tally.partner;
-        if act is null then return false; end if;
-        select into trec status,request,state,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
---Fixme: Is this info from users_v,peers_v now also found in tallies_v queried above?
-        select into urec peer_cid, host_id from mychips.users_v where user_ent = tally.tally_ent;
-        select into prec peer_cid, peer_sock from mychips.peers_v where peer_ent = tally.partner;
-        if not urec.host_id is null then
-            channel = channel || '_' || urec.host_id;
+        if act is null then			-- Indeterminate state, clear request
+            update mychips.tallies set request = null where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
+            return false;
+        end if;
+        select into trec user_cid,user_serv,part_cid,part_sock,status,request,state,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
+        if not trec.user_serv is null then
+            channel = channel || '_' || trec.user_serv;
         end if;
 
         insert into mychips.tally_tries (ttry_ent, ttry_seq) values (tally.tally_ent, tally.tally_seq)
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
---raise notice 'Tn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
-        jrec = jsonb_set(jrec, '{peer}', to_jsonb(prec.peer_cid));
-        jrec = jsonb_set(jrec, '{user}', to_jsonb(urec.peer_cid));
+--raise notice 'Tn c:% h:% p:% u:% s:%', channel, grec.user_serv, trec.part_cid, trec.user_cid, trec.part_sock;
+        jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cid));
+        jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cid));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(tally.tally_ent));
         jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
         jrec = jsonb_set(jrec, '{try}', to_jsonb(rrec.tries));
         jrec = jsonb_set(jrec, '{last}', to_jsonb(rrec.last));
-        jrec = jsonb_set(jrec, '{at}', coalesce(to_jsonb(prec.peer_sock),'null'::jsonb));
+        jrec = jsonb_set(jrec, '{at}', coalesce(to_jsonb(trec.part_sock),'null'::jsonb));
         jrec = jsonb_set(jrec, '{object}', trec.json);
 -- raise notice 'Tally notice:%', jrec::text;
         perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
@@ -217,6 +214,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , ue.peer_addr	as user_addr
   , ue.peer_sock	as user_sock
   , ue.std_name		as user_name
+  , ue.host_id		as user_serv
   , te.user_sig
   , pe.peer_cid		as part_cid
   , pe.peer_addr	as part_addr
