@@ -123,11 +123,11 @@ function logs {
 #-------------------------------------------------------------------------------
 function start {
   stop
-  logs agent2 0
+  if [[ $1 != 'noagent' ]]; then logs agent2 0; fi
   logs peer 600
   builddb
   mychips -s 0 -i 0
-  agents "$@"
+  if [[ $1 != 'noagent' ]]; then agents "$@"; fi
 }
 
 #Reconstruct the database if necessary
