@@ -23,7 +23,7 @@ function launchServer {
   idx=$nextServer
   port=$(expr $baseport + $idx)
   rcfname="mychips-$idx-$port.rc"
-  cmd="$basecmd --peerPort=$port --hostID=server$idx"
+  cmd="$basecmd --peerPort=$port --servID=server$idx"
 echo "idx:$idx port:$port rcfname:$rcfname cmd:$cmd"
   echo $cmd >/tmp/$rcfname
   geom="+$(expr $offx \* $idx + $gx)+$(expr $offy \* $idx + $gy)"

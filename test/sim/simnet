@@ -12,7 +12,7 @@
 #- Launch a tail -f xterm on each server?
 #- How to get progress updates to print in order, after correct Machine address?
 #- Update database schema if/where appropriate
-#- How to launch multiple separate servers for each necessary hostID?
+#- How to launch multiple separate servers for each necessary servID?
 #- 
 
 #Examples:

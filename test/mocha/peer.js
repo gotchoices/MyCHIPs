@@ -40,15 +40,15 @@ describe("Peer to peer tallies", function() {
   })
 
   before('Launch two peer servers', function() {
-    server0 = new PeerCont({port:Pport0, hostID:Host0}, {database: DatabaseName, user: DBAdmin, log})
-    server1 = new PeerCont({port:Pport1, hostID:Host1}, {database: DatabaseName, user: DBAdmin, log})
+    server0 = new PeerCont({port:Pport0, servID:Host0}, {database: DatabaseName, user: DBAdmin, log})
+    server1 = new PeerCont({port:Pport1, servID:Host1}, {database: DatabaseName, user: DBAdmin, log})
   })
 
   it("Check for correct number of test users", function(done) {
     const sql = `begin; \
       update mychips.users set user_host = '${MachineIP}', user_port=${Uport} where user_host isnull; \
-      update mychips.users_v set peer_host = '${MachineIP}', peer_port=${Pport0}, host_id='${Host0}' where peer_ent = 'p1000'; \
-      update mychips.users_v set peer_host = '${MachineIP}', peer_port=${Pport1}, host_id='${Host1}' where peer_ent = 'p1001'; \
+      update mychips.users_v set peer_host = '${MachineIP}', peer_port=${Pport0}, serv_id='${Host0}' where peer_ent = 'p1000'; \
+      update mychips.users_v set peer_host = '${MachineIP}', peer_port=${Pport1}, serv_id='${Host1}' where peer_ent = 'p1001'; \
       select count(*) as count from mychips.users_v where ent_num >= 1000; commit;`
     db0.query(sql, null, (err, res) => { if (err) done(err)
       let count = res[4].rows[0]['count']

@@ -10,7 +10,7 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
         {off		{Offline}		{Account completely off line.  No trades possible.}}
     }}
     {user_cmt		{User Comments}		{Administrative comments about this user}}
-    {host_id		{Host ID}		{A unique code identifying the traffic server that processes peer traffic for this user}}
+    {serv_id		{Host ID}		{A unique code identifying the traffic server that processes peer traffic for this user}}
 } $glob::stampt] -messages {
     {X {Y} {Z}}
 }

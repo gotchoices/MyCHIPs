@@ -46,7 +46,7 @@ queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where u
 queryList.push({q:"update mychips.peers set peer_host = $1, peer_port=$2 where peer_host is null", a:[Settings.MachineIP, Settings.PeerPort]})
 
 //For testing tallies:
-let q1 = "update mychips.users_v set host_id=$1, peer_port=$2 where id = $3;"
+let q1 = "update mychips.users_v set serv_id=$1, peer_port=$2 where id = $3;"
 queryList.push({q:q1, a:['server0', 65430, 'p1000']})
 queryList.push({q:q1, a:['server1', 65431, 'p1001']})
 queryList.push({q:q1, a:['server2', 65432, 'p1002']})

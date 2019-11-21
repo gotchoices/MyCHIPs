@@ -34,7 +34,7 @@ ssh and perform the following actions:
   - Make sure the database schema has been initialized
   - Apply any changes to the database schema
   - Relaunch the SPA/clif service (currently disabled)
-  - Query the database for any configured hostID's and launch one peer
+  - Query the database for any configured servID's and launch one peer
     server for each unique ID (launches only one, at the moment)
 
 Since everything is done over ssh, it will be immensely helpful to eliminate

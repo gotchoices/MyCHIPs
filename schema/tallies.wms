@@ -3,9 +3,9 @@
 #----------------------------------------------------------------
 #TODO:
 #X- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman
+#X- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
 #- See Fixme's below
-#- Include host_id in tally_v to reduce queries in notice triggers?
-#- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
+#- Include serv_id in tally_v to reduce queries in notice triggers?
 #- Add constraints to assure things like contract and signatures are valid?
 #- Make request tags mirror states better (more like in chits.wms)
 #- 
@@ -215,7 +215,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , ue.peer_addr	as user_addr
   , ue.peer_sock	as user_sock
   , ue.std_name		as user_name
-  , ue.host_id		as user_serv
+  , ue.serv_id		as user_serv
   , te.user_sig
   , pe.peer_cid		as part_cid
   , pe.peer_addr	as part_addr
@@ -423,7 +423,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         acted		boolean = false;
         tallyType text; notType text; partner text;
     begin
-        select into erec id,host_id from mychips.users_v where peer_cid = cid;	-- Look up the entity on our own
+        select into erec id,serv_id from mychips.users_v where peer_cid = cid;	-- Look up the entity on our own
         if not found then return null; end if;
 
         select into trec tally_ent, tally_seq, state from mychips.tallies_v where tally_ent = erec.id and tally_guid = guid;

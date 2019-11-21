@@ -282,7 +282,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , te.peer_addr	as topu_addr
   , te.peer_sock	as topu_sock
   , te.peer_endp	as topu_endp
-  , te.host_id		as topu_serv
+  , te.serv_id		as topu_serv
   , te.std_name		as topu_name
 
   , be.peer_cid		as botu_cid
@@ -290,7 +290,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , be.peer_sock	as botu_sock
   , be.peer_endp	as botu_endp
   , be.std_name		as botu_name
-  , be.host_id		as botu_serv
+  , be.serv_id		as botu_serv
 
   , qe.peer_cid		as requ_cid
   , qe.peer_addr	as requ_addr
@@ -364,7 +364,7 @@ function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.
         insert into mychips.route_tries (rtry_ent, rtry_chid, rtry_host) values (route.route_ent, route.dest_chid, route.dest_host)
           on conflict (rtry_ent,rtry_chid,rtry_host) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
             returning * into rrec;
---raise notice 'Rn c:% h:% p:% u:% s:%', channel, urec.host_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
+--raise notice 'Rn c:% h:% p:% u:% s:%', channel, urec.serv_id, prec.peer_cid, urec.peer_cid, prec.peer_sock;
 
         jrec = jsonb_build_object('target', 'route'
           , 'action'	, act
@@ -420,7 +420,7 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
         fwdcnt		int default 0;	-- Count how many queries forwarded
     begin
 --raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', recipe, obj;
-        select into from_r id, host_id, peer_cid from mychips.users_v where peer_cid = obj->>'from' and peer_chost = obj->>'fat';	-- Look up the base entity
+        select into from_r id, serv_id, peer_cid from mychips.users_v where peer_cid = obj->>'from' and peer_chost = obj->>'fat';	-- Look up the base entity
         if not found then return null; end if;
 
 --raise notice ' by: % % %', obj->>'by', obj->>'bat', obj->>'port';

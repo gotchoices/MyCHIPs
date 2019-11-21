@@ -98,9 +98,9 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
         if act is null then return false; end if;
         
         select into trec * from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
-        select into urec host_id from mychips.users_v where user_ent = chit.chit_ent;
-        if not urec.host_id is null then
-            channel = channel || '_' || urec.host_id;
+        select into urec serv_id from mychips.users_v where user_ent = chit.chit_ent;
+        if not urec.serv_id is null then
+            channel = channel || '_' || urec.serv_id;
         end if;
         insert into mychips.chit_tries (ctry_ent, ctry_seq, ctry_idx) values (chit.chit_ent, chit.chit_seq, chit.chit_idx)
           on conflict (ctry_ent,ctry_seq,ctry_idx) do update set tries = mychips.chit_tries.tries + 1, last = current_timestamp
@@ -236,7 +236,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
 --        lrec		record;		-- Looping variable
         erec		record;		-- Tally entity, we will ignore the one in msg
     begin
-        select into erec id, host_id from mychips.users_v where peer_cid = cid;
+        select into erec id, serv_id from mychips.users_v where peer_cid = cid;
         if not found then return null; end if;
 
         select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = erec.id and chit_guid = guid;

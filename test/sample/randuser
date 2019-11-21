@@ -11,7 +11,7 @@ machineIP=$(grep MachineIP ${mypath}/../settings.js |cut -d : -f 2 |tr -d '"' |t
 #uport=43210
 #pport=65432
 count=1
-hostID='null'
+servID='null'
 minDate="Jan 01, 1940"
 maxDate="Dec 31, 2009"
 minSecs=$(date -d "$minDate" +%s)
@@ -19,12 +19,12 @@ diffSecs=$(expr $(date -d "$maxDate" +%s) - $minSecs)
 while [ $# -gt 0 ]; do
   if [ "x$1" = "x-n" ]; then		#-n <number> 	How many users to create
     count=$2
-  elif [ "x$1" = "x-h" ]; then		#-h <hostID>	Specify the server for the user(s)
-    hostID=$2
+  elif [ "x$1" = "x-h" ]; then		#-h <servID>	Specify the server for the user(s)
+    servID=$2
   fi
   shift 2
 done
-#echo "DBNAME:$DBNAME count:$count hostID:$hostID diffSecs:$diffSecs"
+#echo "DBNAME:$DBNAME count:$count servID:$servID diffSecs:$diffSecs"
 
 while [ $count -gt 0 ]; do
   name="$(curl -s www.pseudorandom.name)"
@@ -37,8 +37,8 @@ while [ $count -gt 0 ]; do
 
 #continue
   psql $DBNAME admin >/dev/null <<EOF
-    insert into mychips.users_v (ent_name, fir_name, peer_cid, ent_type, born_date, host_id)
-    values('$last', '$first', '${cid}', 'p', '${date}', $([ "$hostID" == 'null' ] && echo "null" || echo "'${hostID}'"))
+    insert into mychips.users_v (ent_name, fir_name, peer_cid, ent_type, born_date, serv_id)
+    values('$last', '$first', '${cid}', 'p', '${date}', $([ "$servID" == 'null' ] && echo "null" || echo "'${servID}'"))
 EOF
   count=$(expr $count - 1)
 done

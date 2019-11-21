@@ -12,7 +12,7 @@ module mychips
 
 namespace eval users {
     def users_pk	{user_ent}
-    def users_v_up	{user_host user_port user_stat user_cmt host_id}
+    def users_v_up	{user_host user_port user_stat user_cmt serv_id}
     def users_v_in	[concat $users_pk $users_v_up]
     def users_se	[concat $users_v_in crt_by crt_date mod_by]
     def peers_se	$peers::peers_v_in
@@ -29,7 +29,7 @@ table mychips.users {base.ent mychips} {
   , user_port	int		
   , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
   , user_cmt	varchar
-  , host_id	varchar
+  , serv_id	varchar
   , _last_tally	int		not null default 0
     eval(s $glob::stamps)
 }

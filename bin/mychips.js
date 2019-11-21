@@ -34,7 +34,7 @@ var argv = Args({
   dbAdminCert: process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
   dbCA:        process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-ca.crt')
 })
-  .alias('h','hostID')     .default('hostID',     null)		//If peer servers run on multiple hosts, this identifies our host
+  .alias('h','servID')     .default('servID',     null)		//If peer servers run on multiple hosts, this identifies our host
   .alias('p','peerPort')   .default('peerPort',   65430)	//Peer-to-peer connections at this port
   .alias('l','lifts')      .default('lifts',      false)	//Run lift scheduler
   .alias('m','model')      .default('model',      false)	//Run agent-based model
@@ -47,7 +47,7 @@ var sslUser = Credentials(argv.dbUserKey, argv.dbUserCert, argv.dbCA)
 const pubDir = Path.join(__dirname, "..", "pub")
 
 log.info("SPA Port:   ", argv.spaPort, argv.wyclif, argv.spaKey, argv.spaCert)
-log.debug("Host ID:    ", argv.hostID)
+log.debug("Server ID:  ", argv.servID)
 log.debug("CLIF Port:  ", argv.clifPort)
 log.debug("Peer Port:  ", argv.peerPort)
 log.debug("Database:", argv.dbHost, argv.dbName, argv.dbAdmin)
@@ -81,7 +81,7 @@ if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communi
   const PeerCont = require('../lib/peer.js')		//Peer communications controller
   var peer = new PeerCont({
     port: argv.peerPort, 
-    hostID: argv.hostID,
+    servID: argv.servID,
     poll: true
 //Fixme: add in peer credentials here
   }, {
