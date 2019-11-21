@@ -10,29 +10,41 @@ X- Make state transition graph for pathway discovery
 X- Make table to model outside paths
 X- Review state logic for paths
 X- Route state graph designed
-- Build SQL for route state transition handler
-- Create route state transition map object properties
-- Route state queries initiated as part of tally dialog
+X- Analyze possible routes to query each time a tally is added
+X- Piggy-back route query on tally confirmation, or begin new route query if needed (no)
+X- Build SQL for route state transition handler
+X- Create route state transition map object properties
+X- Ask peer for all possible combinations of his foil to other possible stocks
+X- Route state queries initiated as part of tally dialog
+X- Querying adjoining DB's for pathway information
+X- Join inside paths with outside paths, detect useable circuits
 - Route state queries can be initiated explicitly (by user?)
-- Querying adjoining DB's for pathway information
-- Join inside paths with outside paths, detect useable circuits
 - Change host_id to server_tag and have better description
 - 
 - Agent2:
 X-   Wait/stall when entering username on remote host
 X-   Make module to communicate with foreign servers
 X-   Insert my user before tally (using module)
+-   Some tallies being established to same user
+-   Some tallies being established twice with same peer
+-   Don't try to add same peer again to mychips.peers if we connect to him twice (add on conflict clause ?)
 -   Some chits are not getting beyond draft mode.  Why?
 -   Spend CHIPs with more sensitivity to current net worth (other factors)
 -   Seek/establish vendors, in addition to clients
 -   Honor max clients, max vendors parameters from DB
+- 
+- Distributed lifts
+- Create remote lift protocol
+-   Phase 1: route/size/cost confirmation
+-   Phase 2: locking, conditional acceptance
+-   Phase 3: signing
+- Design state machine to execute distributed lifts
+- 
+- Other:
 - Can I mark a chit as refused, some way other than text in the signature?
 - Change to aborted state after max number of retries/time (peer.js)
 - Text descriptions for tallies/chits
 - Style definitions for tallies/chits
-- 
-- Create remote lift protocol
-- Design state machine to execute distributed lifts
 - 
 WyattERP:
 X- Move makecert to wyclif package (still works in mychips?)
@@ -82,7 +94,7 @@ General roadmap:
 X- Can create/exchange tallies, chits with a peer
 X- Create agent client module to model user, reads/writes/listens direct with DB
 - Improve agent model (see below)
-- Can spawn N user agents against M server instances
+X- Can spawn N user agents against M server instances
 X- Create graphical canvas view of all users balance sheets
 X- Implement single-db lift algorithm
 - Implement multi-db lift algorithm
@@ -176,7 +188,7 @@ Server:
 - Server initiates trade requests
 - 
 - Admin SPA:
-- Optimize SVG user graph reactivity.  Only update what has changed.
+X- Optimize SVG user graph reactivity.  Only update what has changed.
 - Server listens on ticket port for specified timeout period
 - User can connect/initialize using ticket
 - Can export user to JSON
