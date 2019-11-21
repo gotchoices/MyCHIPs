@@ -144,6 +144,7 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychip
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
 --raise notice 'Tn c:% h:% p:% u:% s:%', channel, grec.user_serv, trec.part_cid, trec.user_cid, trec.part_sock;
+--Fixme: get rid of what is redundant with {object} or otherwise not needed
         jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cid));
         jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cid));
         jrec = jsonb_set(jrec, '{entity}', to_jsonb(tally.tally_ent));
@@ -388,23 +389,21 @@ view mychips.tallies_v_net {mychips.tallies} {select
 
 # General routine to build update query string
 #----------------------------------------------------------------
-function {mychips.state_updater(recipe jsonb, tab text, fields text[])} {} {
+function {mychips.state_updater(recipe jsonb, tab text, fields text[], qflds text[] default null)} {} {
   returns text immutable language plpgsql as $$
     declare
-      qflds	text[];		-- Temporary array
       lrec	record;		-- Looping variable
     begin
-      if recipe ? 'update' then			-- There's an update key in the recipe
+      if qflds is null then
         qflds = '{"request = null", "mod_date = current_timestamp", "mod_by = session_user"}';
-        for lrec in select * from jsonb_each_text(recipe->'update') loop
---raise notice '  update set % = %', lrec.key, lrec.value;
-          if lrec.key = any(fields) then		-- update only allowable fields
-            qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
-          end if;
-        end loop;
-        return 'update ' || tab || ' set ' || array_to_string(qflds,', ') || ' where ';
       end if;
-      return null;
+      for lrec in select * from jsonb_each_text(recipe->'update') loop
+-- raise notice '  update set % = %', lrec.key, lrec.value;
+        if lrec.key = any(fields) then		-- update only allowable fields
+          qflds = qflds || (quote_ident(lrec.key) || ' = ' || quote_nullable(lrec.value));
+        end if;
+      end loop;
+      return 'update ' || tab || ' set ' || array_to_string(qflds,', ') || ' where ';
     end;
 $$;}
 
@@ -417,10 +416,11 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         obj		jsonb = msg->'object';
         guid		uuid = obj->>'guid';
         curState	text;
-        qstrg		text;		-- Temporary string
-        erec		record;		-- Tally entity, we will ignore the one in msg
-        trec		record;		-- Holds tally record(s)
+        qstrg		text;			-- Temporary string
+        erec		record;			-- Tally entity, we will ignore the one in msg
+        trec		record;			-- Holds tally record(s)
         jrec		jsonb = '{"target": "tally"}';
+        acted		boolean = false;
         tallyType text; notType text; partner text;
     begin
         select into erec id,host_id from mychips.users_v where peer_cid = cid;	-- Look up the entity on our own
@@ -445,23 +445,28 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
           if curState = 'null' then			-- Need to do insert
             select into partner peer_ent from mychips.peers where peer_cid = case when tallyType = 'stock' then obj->>'foil' else obj->>'stock' end;
             if not found then return null; end if;
-            
+
             execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
                 using erec.id, guid, tallyType, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
+--Fixme: we are currently ignoring the recipe update fields and only updating from the object fields!
             execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8, request = null, mod_date = current_timestamp, mod_by = session_user  where tally_ent = $9 and tally_seq = $10'
                 using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
-
---Fixme: should we delete tries only once (below) regardless of whether upsert or update?
-            delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
           end if;
+          acted = true;
         end if;
 
-        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}');	-- Check for update recipe
+        if recipe ? 'update' then			-- There's an update key in the recipe
+          qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}');
 --raise notice 'SQL:%', qstrg;
-        if qstrg is not null then
           execute qstrg || ' tally_ent = $1 and tally_seq = $2' using trec.tally_ent, trec.tally_seq;
+          acted = true;
+        end if;
+
+        if acted then
           delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
+        else
+          return null;		-- Don't proceed if we didn't do anything
         end if;
 
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;

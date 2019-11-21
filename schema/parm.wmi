@@ -16,6 +16,9 @@ insert into base.parm (module, parm, type, v_int, v_text, cmt) values
 
  ,('mychips', 'site_ent', 'text', null, 'r1', 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
 
+ ,('routes', 'life', 'text', null, '60 min', 'A valid SQL interval describing how long a route should last before being considered stale')
+ ,('routes', 'tries', 'int', 4, null, 'The number of times to retry discovering a pathway before giving up')
+ 
  ,('lifts', 'order', 'text', null, 'bang desc', 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
  ,('lifts', 'interval', 'int', 10000, null,'The number of milliseconds between sending requests to the database to choose and conduct a lift')
  ,('lifts', 'limit', 'int', 1, null, 'The maximum number of lifts the database may perform per request cycle')

@@ -227,7 +227,7 @@ something like the following:
 Lift Calculation:
 
 In reality, it wouldn't be very efficient to recalculate every lift pathway
-from scratch.  Rather we should populate a database with information about our
+from scratch.  Rather, we should populate a database with information about our
 own local users and the foreign users they share tallies with that will help 
 us figure out pathways in advance that are likely to succeed.  Successful 
 pathways can be used over and over again.
@@ -236,9 +236,9 @@ Our local database already contains information about how our local users are
 related to each other.  If they share a tally, we know that.  And we know who
 holds the stock and who holds the foil.
 
-In addition, we have a table of foreign peers.  Although we don't host these
-users, we still know about them and know how they are related to the tallies
-in our system.
+In addition, we have data about certain foreign peers.  Although we don't host 
+these users, we still know about them because they share tallies with users in
+our system.
 
 What we would like to collect is data about how these foreign users might be
 linked to each other in the outside world.  But those details may be private 
@@ -273,5 +273,108 @@ or C's host is eventually discovered.
 In practice we hope to deliver some hints as well that will make this process
 more efficient so hosts don't have to continue querying off in useless 
 directions.
+
+-------------------------------------------------------------------------------
+Routes
+
+The route table is used for this purpose.  It is designed to model two 
+different cases:
+
+Native:
+A native route represents a hypothetical link we would like to discover which
+exists outside our own data set which completes a partial circuit we already 
+know about.
+
+As an example, see Peers D and C in the figure.  We would like to find an
+external upstream pathway which leads from D to C.  Since we have peer records
+for both peers, we can represent them by their local ID's in our system.  But
+in order to discover if the proposed pathway is possible, we will have to start
+by querying the system that hosts D.  That leads us to the next case:
+
+Relay:
+On D's system, D is certainly well known as a user there.  A is also known, but
+as a foreign peer--not a local user.  But C may not be known at all.  So when
+we ask D's system to help us find the route, it will need a way to store the
+route information even though it has no local record for C.  In this case, it
+will just store the CHIP address and not a local relational link.
+
+Two further complications:  A relay record is just a query from a downstream
+system.  We really don't need to know about this path for the purpose of
+initiating our own lifts.  Rather, we hope to get lifts coming from downstream
+through this channel.  Since we don't know where C is ourselves, the only way
+we can hope to find out is by sending more relay requests to our own upstream
+peers.  If/when an answer does come back, we will need to remember enough
+information about our downstream requester so we can tell him properly whether
+the route has succeeded or failed.
+
+So our complete lift information system consists of two basic data sets:
+
+The view tallies_v_paths: which links all our known tallies together in a
+queriable chain of internal pathways; and the table/view routes/routes_v which 
+contains both native and relay routes.
+
+Note the "sense of flow" in tallies_v_paths is downstream.  That is, the path
+array begins with upstream peers and proceeds downstream.
+
+By convention, the route table has more of an upstream feel to its flow.  That
+is, it begins with a foreign peer known to our system, and reaches upward to 
+find another external peer we are searching for.
+
+Model Requirements:
+Native:
+  Route Entity: The local ID of a foreign peer (D) who holds a foil tally with 
+  	one of our users (A).
+  Destination Entity: The local ID of a foreign peer (C) who holds a stock 
+  	tally with one of our users (B) and can be found at the end of a chain 
+  	which starts with the Route Entity (D).
+  Route Key: Some identifier that uniquely identifies this route record which
+  	we will pass to our upstream peer.  If the route is found to be good,
+  	we expect this key to be returned to us so we know which record to 
+  	mark as good.  This might just consist of the Route and Destination
+  	CHIP addresses.  It should not consist of our internal ID's for those
+  	peers as that might compromise otherwise private information.
+
+Relay:
+  Route Entity: The local ID of a foreign peer on our system who holds a foil
+  	tally with one of our users.  This is not the same as the Route Entity
+  	from the downstream system that asked us to relay this route request.
+  	Rather this is a peer at the top of a known chain in our system.
+  Destination Peer: This could potentially include a local ID if we happen
+  	to know about this peer.  More likely, it is someone we don't have
+  	direct knowledge about, so we will have to store it as a CHIP address
+  	only.  This is the same peer as the Destination Entity represented in
+  	the original native route request that came from somewhere downstream.
+  Route Key: Similar to above, but unique to this record on this system.
+  Return Socket: A connection point (host and port) where we will connect to 
+  	return status updates about this route request.
+  Return Key: The Record Key data originally sent from the downstream 
+  	requesting system.  We will return this data when reporting on status
+  	updates about this route.
+-------------------------------------------------------------------------------
+Test Case: (see figures on page 5)
+
+Native:			(On david_meese's system: lux1)
+  Route Entity:		p1004: kathleen_ramsey@lux0		route_ent
+  Destination Entity:	p1003: lakisha_villiard@lux2	dest_ent,dest_chid/host
+  Route Key:		kathleen_ramsey@lux0 (+lakisha)		(inherent)
+  Return Gateway:	p1001: david_meese@lux1			topu_ent
+  Return Key:		p1001: david_meese@lux1			botu_ent
+  Return Socket:	p1001: david_meese@lux1	(inside=native)	requ_ent
+
+Relay 1:		(On kathleen_ramsey's system: lux0)
+  Route Entity:		p1004: tricia_mayo@lux3			route_ent
+  Destination Peer:	       lakisha_villiard@lux2		dest_chid/host
+  Route Key:		tricia_mayo@lux3 (+lakisha)		(inherent)
+  Return Gateway:	p1002: gena_avila@lux0			topu_ent
+  Return Key:		p1000: kathleen_ramsey@lux0 (+lakisha)	botu_ent
+  Return Socket:	p1005: david_meese@lux1:65430		requ_ent
+
+Relay 2:		(On tricia_mayo's system: lux3)
+  Route Entity:		p1003: stacey_welch@lux2		route_ent
+  Destination Peer:	       lakisha_villiard@lux2		dest_chid/host
+  Route Key:		stacey_welch@lux2 (+lakisha)
+  Return Gateway:	p1000: tricia_mayo@lux3			topu_ent
+  Return Key:		p1000: tricia_mayo@lux3 (+lakisha)	botu_ent
+  Return Socket:	p1005: gena_avila@lux0:65430		requ_ent
 
 -------------------------------------------------------------------------------

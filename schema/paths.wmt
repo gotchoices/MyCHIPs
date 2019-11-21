@@ -2,14 +2,21 @@
 #----------------------------------------------------------------
 tabtext mychips.routes	{Foreign Routes}	{Information collected from foreign servers about foreign peers that can be reached by way of one of our known foreign peers} {
     {route_ent		{Route Entity}		{The local ID of a foreign entity whose host system knows of a pathway that leads to another foreign peer, known or unknown to our system}}
-    {dest_chid		{Peer CHIP ID}		{A regular destination CHIP address or an obscured ID unique to the unknown foreign peer, recognized by the peer's host system}
-    {dest_ent		{Peer Entity}		{The local ID (if we have such) of a foreign entity this pathway leads to}}
-    {dest_host		{Peer Host}		{The hostname or IP address of the system that hosts this peer's account (in the case we do not have a record for the foreign peer)}
-    {requ_ent		{Request Entity		{The ID of the entity in our system through which this request was made.  This could be a user ID or a peer ID.}}
-    {status		{Status} 		{}}
+    {dest_chid		{Peer CHIP ID}		{A regular destination CHIP address or an obscured ID unique to the unknown foreign peer and recognized by the peer's host system}
+    {dest_host		{Peer Host}		{The hostname or IP address of the system that hosts this peer's account, in the case there is no local record for the foreign peer}
+    {dest_ent		{Peer Entity}		{The local ID, if one exists, of the foreign entity this pathway leads to}}
+    {topu_ent		{Top User}		{The local ID of the user on our system who shares a tally with the foreign peer who is the begginning of this route}}
+    {botu_ent		{Bottom user}		{The local ID of the user on our system who was requested from downstream as the beginning of the route}}
+    {requ_ent		{Requester}		{The local ID of the foreign entity through whom the request originated, and whose connection socket we will use to return query answers}}
+    {status		{Status} 		{Indicates whether this route is useable or if not, what progress is being made to discover such a route} {
+        {draft		{Draft}			{The route has been hypothesized but no current requests have yet been made}}
+        {pend		{Pending}		{A request has been made upstream to discover this route}}
+        {good		{Good}			{The upstream peer server has answered that this route is possible}}
+        {none		{None}			{The upstream peer server has answered that this route is not possible}}
+    }}
     {lift_count		{Use Count}		{A counter that is incremented each time this path is used in a lift}}
     {lift_date		{Last Used}		{The date/time this path was last used in a lift}}
-    {good_date		{Date Found}		{The date/time this path was first verified or renewed with a foreign server}}
+    {good_date		{Date Found}		{The date/time this path was last marked as good by an upstream foreign server}}
 }
 
 tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathways between entities, based on the tallies they have in place} {
@@ -17,13 +24,14 @@ tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathway
     {last		{Path End}		{Entity ID of the peer this pathway ends with}}
     {length		{Node Length}		{The number of unique peer nodes in this pathway}}
     {path		{Peer ID List}		{An array of the entity IDs in this pathway}}
-    {uuids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
+    {guids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
     {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
     {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a cost to the lift.  A number less than 1 indicates a discount.}}
     {min		{Minimum}		{The smallest number of units desired to be lifted by any entity found along the pathway}}
     {max		{Maximum}		{The largest number of units desired to be lifted by any entity found along the pathway}}
     {bang		{Lift Benefit}		{The product of the pathway length, and the minimum liftable units.  This gives an idea of the relative benefit of conducting a lift along this pathway.}}
     {inside		{Inside Lift}		{All entities in the lift path are users on the local system}}
-    {firstin		{First Inside}		{The first node in the path is a user on the local system}}
-    {lastin		{Last Inside}		{The last node in the path is a user on the local system}}
+    {fora		{First Foreign}		{The first node in the path is a user on the local system}}
+    {forz		{Last Foreign}		{The last node in the path is a user on the local system}}
+    {corein		{Core Inside}		{All nodes, not considering the first and last, are local users on the system}}
 }

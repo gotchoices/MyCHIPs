@@ -42,11 +42,14 @@ table mychips.peers {base.ent mychips} {
 
 # Base view of peers, linked to entity table
 #----------------------------------------------------------------
-view mychips.peers_v {mychips.peers base.ent_v base.parm_text(text,text)} {select 
+view mychips.peers_v {mychips.peers base.ent_v base.parm_int(text,text) base.parm_text(text,text)} {select 
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
+  , coalesce(pe.peer_host, pp.phost)			as peer_chost
+  , coalesce(pe.peer_port, pp.pport)			as peer_cport
   , coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_sock
   , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost)			as peer_addr
+  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_endp
   , greatest(ee.mod_date, pe.mod_date) as mod_date
 
     from	base.ent_v	ee

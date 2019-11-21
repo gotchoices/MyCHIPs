@@ -54,8 +54,11 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v base.parm_text(text
   , eval(fld_list $users::peers_se	pe)
   , eval(fld_list $users::users_se	ue)
   , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
+  , coalesce(pe.peer_host, pp.phost)						as peer_chost
+  , coalesce(pe.peer_port, pp.pport)						as peer_cport
   , coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_sock
-  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_addr
+  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost)			as peer_addr
+  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_endp
   , greatest(ee.mod_date, pe.mod_date, ue.mod_date) as mod_date
 
     from	base.ent_v	ee
