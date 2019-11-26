@@ -4,8 +4,8 @@
 tabdef mychips.users -focus ent_name -fields [concat {
     {user_ent		ent	6	{0 10}		-sort 1 -write 0 -hide 1}
     {user_stat		pdm	10	{1 10}		-ini act}
-    {serv_id		ent	40	{2 10}		}
-    {user_host		ent	40	{1 11}		}
+    {serv_id		ent	20	{2 10}		}
+    {user_host		ent	20	{1 11}		}
     {user_port		ent	8	{2 11}		-just r}
     {user_cmt		mle	{80 2}	{1 12 4}	}
 } $glob::stampd]
@@ -21,10 +21,10 @@ tabdef mychips.users_v -fields {
     {"name":"ticket","format":"html","single":"1"},
     {"name":"lock","ask":"1"},
     {"name":"unlock","ask":"1"},
-    {"name":"summary"},
+    {"name":"summary","format":"html"},
     {"name":"trade","format":"html","options":[
-      {"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
-      {"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
+      {"tag":"start","type":"date","input":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
+      {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
     ]}
   ]}
   where {{"and":true,"items":[{"left":"user_ent","not":true,"oper":"isnull"}, {"left":"ent_inact","not":true,"oper":"true"}, {"left":"ent_type","oper":"=","entry":"p"}]}}

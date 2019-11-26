@@ -40,9 +40,18 @@ table mychips.peers {base.ent mychips} {
     eval(s $glob::stamps)
 }
 
+# Special user-readable view to read certain user site defaults
+#----------------------------------------------------------------
+view mychips.parm_v_user {base.parm} {select
+    (select v_text from base.parm where module = 'mychips' and parm = 'user_host') as uhost
+  , (select v_int  from base.parm where module = 'mychips' and parm = 'user_port') as uport
+  , (select v_text from base.parm where module = 'mychips' and parm = 'peer_host') as phost
+  , (select v_int  from base.parm where module = 'mychips' and parm = 'peer_port') as pport
+}
+
 # Base view of peers, linked to entity table
 #----------------------------------------------------------------
-view mychips.peers_v {mychips.peers base.ent_v base.parm_int(text,text) base.parm_text(text,text)} {select 
+view mychips.peers_v {mychips.peers base.ent_v} {select 
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
   , coalesce(pe.peer_host, pp.phost)			as peer_chost
@@ -54,7 +63,7 @@ view mychips.peers_v {mychips.peers base.ent_v base.parm_int(text,text) base.par
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id
-    left join	(select base.parm_text('mychips', 'user_host') uhost, base.parm_int('mychips', 'user_port') uport, base.parm_text('mychips', 'peer_host') phost, base.parm_int('mychips', 'peer_port') pport) as pp on true;
+    join	mychips.parm_v_user pp on true;
 
     eval(multiview::insert mychips.peers_v "
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
