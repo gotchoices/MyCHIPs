@@ -1,4 +1,4 @@
-//User interface; Main dashboard
+//Graphical view of a user's net worth in CHIPs
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:

@@ -18,7 +18,7 @@ new Vue({
   template: Template,
   components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-visbs': AppVBS},
   data() { return {
-    state:      {curTab: 'users', tabs: {users:{}, conts:{}, urnet:{}, config:{}}},
+    state:      {curTab: 'dash', tabs: {dash:{}, peers:{}, tallies:{}}},
     tag:	'mychips_user',
     title:	'MyCHIPs User Portal',
     dbConf:	['mychips_user','wylib'],

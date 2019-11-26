@@ -22,7 +22,7 @@ new Vue({
   template: Template,
   components: { 'wylib-pop': Wylib.Popup, 'wylib-dialog': Wylib.Dialog, 'wylib-strdoc': Wylib.StructDoc},
   computed: {
-    compName: function() {
+    compName: function() {		//What standard component will we use
       if (!this.state.format || this.state.format == 'html') return null
       if (this.state.format.includes('-')) return this.state.format
       return 'wylib-' + this.state.format
@@ -30,17 +30,17 @@ new Vue({
   },
 
   methods: {
-    kahuna: function() {
+    kahuna: function() {			//A link to our master window
       return window.opener || window.parent
     },
-    submit: function(request, data) {
+    submit: function(request, data) {		//If the widget we contain emits 'submit'
 //console.log("Got submit from content:", request, data)
       this.kahuna().postMessage({request, data}, location.origin)
     },
   },
 
   mounted: function() {
-//console.log("Popup mounted:", this.kahuna())
+//console.log("Popup mounted:", this.kahuna(), this.state)
     this.kahuna().postMessage({request:'control'}, location.origin)	//Let parent window know we are ready to load content
 
     window.addEventListener('message', (ev) => {	//Answer replies from the parent window

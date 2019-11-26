@@ -1,6 +1,11 @@
 TODO:
 
 Immediate:
+- Modify wyseman/lib/wyseman.js to also listen on regular unix socket for admin connections
+- Regular socket connection relies solely on an auth key (key file, not keys stored in DB user tables)
+- Use SNI extension for client to provide db config payload
+- 
+
 Lift modeling:
 X- System for instantiating multiple databases, multiple servers
 X- Central repository where agent users can choose from peers, not in their own DB
@@ -18,15 +23,21 @@ X- Ask peer for all possible combinations of his foil to other possible stocks
 X- Route state queries initiated as part of tally dialog
 X- Querying adjoining DB's for pathway information
 X- Join inside paths with outside paths, detect useable circuits
+X- Change host_id to server_tag and have better description
+- Wylib improvements below
+- Expand chit state diagram to include distributed lifts
+- Implement distributed lifts in chit state machine (no separate lift handler?)
 - Route state queries can be initiated explicitly (by user?)
-- Change host_id to server_tag and have better description
+- Make database owned by mychips, give admin read/write/delete but not create/drop
 - 
 - Agent2:
 X-   Wait/stall when entering username on remote host
 X-   Make module to communicate with foreign servers
 X-   Insert my user before tally (using module)
--   Some tallies being established to same user
+X-   Some tallies being established to same user
 -   Some tallies being established twice with same peer
+-   Some tallies don't complete
+-   What happens if a state transition fails due to contention?  Does it retry for success?
 -   Don't try to add same peer again to mychips.peers if we connect to him twice (add on conflict clause ?)
 -   Some chits are not getting beyond draft mode.  Why?
 -   Spend CHIPs with more sensitivity to current net worth (other factors)
@@ -49,8 +60,31 @@ X-   Insert my user before tally (using module)
 WyattERP:
 X- Move makecert to wyclif package (still works in mychips?)
 X- Column sort numbers are not showing on preview
-- Wyseman won't open dbe for chit view (no wmd?)
+X- Implement preferences screen
+X- Allow separate prefs to be set from different modules
+X- Can change preferences reactively
+- Toplevel widget responsible for saving/restoring preferences settings
+- Local modules can supply their own prefs defaults until better DB metadata arrives
+- Language object passed down as prop?
+- Report windows fetch language object/fields if/when needed (make strdoc work)
+- Report windows implement optional control/parameter menu
+- Strdoc and/or others put their menu next to the main control menu
+- Reports have optional slave setting where they respond to key changes
+- Auto update can be switched off in the report menu
+- Reports have optional update setting where they can push data back to dbe and update database
+- Strdoc now working good enough to build/edit MyCHIPs documents
+- Implement document publish
+- Published documents no longer writable
+- Can reference documents within documents
+- Do/can they print/render in-line or only separately?
+- Can I query/fetch any document from any SPA (or peer?) server?
+- Can I easily load them into my own database to keep a local mirror copy?
+- I should have a copy of any contract referenced in any of my tallies (FK reference?)?
+- Make tallies actually reference contracts existing in the DB
+- 
+- 
 X- Get wysegi working (where does it go)?
+- Wyseman won't open dbe for chit view (no wmd?)
 - Test SSL connection to postgres
 - Where to best put:
 X-   Wysegi
