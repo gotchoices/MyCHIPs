@@ -20,7 +20,7 @@ text:
 	wyseman ${OPT} ${WYSELIB}/wylib.wmt ${WYSELIB}/base/*.wmt *.wmt
 
 defs:
-	wyseman ${OPT} ${WYSELIB}/base/*.wmd *.wmd
+	wyseman ${OPT} ${WYSELIB}/base/*.wmd ${WYSELIB}/*.wmd *.wmd
 
 init:
 	wyseman ${OPT} ${WYSELIB}/base/*.wmi *.wmi
