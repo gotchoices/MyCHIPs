@@ -39,7 +39,7 @@ tabdef mychips.tallies_v -fields {
 
 # User view
 tabdef mychips.tallies_v_me -display {
-  tally_ent tally_seq tally_type partner part_name dr_limit cr_limit contract
+  tally_ent tally_seq tally_type partner part_name dr_limit cr_limit total
 } -json {
   actions {[
     {"name":"close","ask":"1"},
@@ -47,8 +47,8 @@ tabdef mychips.tallies_v_me -display {
     {"name":"unlock","ask":"1"},
     {"name":"summary"},
     {"name":"trade","format":"html","options":[
-      {"tag":"start","type":"date","style":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
-      {"tag":"end","type":"date","style":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
+      {"tag":"start","type":"date","input":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
+      {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
     ]}
   ]}
   where {{"and":true,"items":[{"left":"status","oper":"=","entry":"open"}]}}

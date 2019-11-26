@@ -50,7 +50,7 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing all the tallies owned
 } -messages {
     {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
     {unlock	{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
-    {launch.title	{Users}			{User Account Management}}
+    {launch.title	{Tallies}		{Peer Trading Relationship Management}}
     {launch.instruct	{Basic Instructions}	{
       <p>Tallies are used to document and track trading agreements between partners.
       <p>You can request a new tally from the action menu in the Peer tab.

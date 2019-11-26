@@ -27,6 +27,7 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
   , partner	text		not null references mychips.peers on update cascade on delete restrict
+  				check (partner != tally_ent)
   , status	text		not null default 'void' check(status in ('void','draft','open','close'))
   , request	text		check(request is null or request in ('void','draft','open','close'))
   , comment	text
@@ -446,7 +447,8 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
             select into partner peer_ent from mychips.peers where peer_cid = case when tallyType = 'stock' then obj->>'foil' else obj->>'stock' end;
             if not found then return null; end if;
 
-            execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
+            execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) 
+              values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
                 using erec.id, guid, tallyType, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
 --Fixme: we are currently ignoring the recipe update fields and only updating from the object fields!
