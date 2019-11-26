@@ -1,0 +1,19 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabdef mychips.chits -fields {
+    {chit_ent	-size	6}
+    {chit_seq	-size	4}
+    {chit_idx	-size	4}
+    {units	-size	10}
+}
+
+tabdef mychips.chits_v -fields {
+} -display {
+  chit_ent chit_seq chit_idx chit_type units value
+}
+
+# User view
+tabdef mychips.chits_v_me -display {
+  chit_ent chit_seq chit_idx chit_type units value
+}
