@@ -15,6 +15,7 @@
 #X- Track if path consists of only inside, user members
 #X- Properly handle peers that are not our users (we only have a stock or foil type tally)
 #X- Pull minimum lift size from system parameters
+#- Add validity check for routes.status
 #- Test/debug route query retries
 #- 
 #- Only process lifts that have a cost factor 1 or better
@@ -62,7 +63,7 @@ table mychips.routes {mychips.peers} {
   , good_date	timestamptz	not null default current_timestamp
   , primary key(route_ent, dest_chid, dest_host)
 }
-#index {} mychips.paths used_date
+#index {} mychips.routes used_date
 
 table mychips.route_tries {mychips.routes} {
     rtry_ent	text	      , primary key (rtry_ent, rtry_chid, rtry_host)
@@ -439,10 +440,10 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
           for qrec in select first,last,path from mychips.tallies_v_paths where last = from_r.id and fora loop	-- Find all upstream paths we might query further
           
 -- What to do if we already have a conflicting route in the table:
-raise notice 'Further first:% last:% path:% to:% top:% bot:% req:%', qrec.first, qrec.last, qrec.path, obj->>'to', qrec.path[2], from_r.id, requ_r.id;
+--raise notice 'Further first:% last:% path:% to:% top:% bot:% req:%', qrec.first, qrec.last, qrec.path, obj->>'to', qrec.path[2], from_r.id, requ_r.id;
             select into trec route_ent,dest_chid,topu_ent,botu_ent,requ_ent,native from mychips.routes_v where route_ent = qrec.first and dest_chid = coalesce(dest_r.peer_cid,obj->>'to') and dest_host = coalesce(dest_r.peer_chost,obj->>'tat');
             if found then
-raise notice 'Conflict from:% to:% top:% bot:% req:%', trec.route_ent, trec.dest_chid, trec.topu_ent, trec.botu_ent, trec.requ_ent;
+--raise notice 'Conflict from:% to:% top:% bot:% req:%', trec.route_ent, trec.dest_chid, trec.topu_ent, trec.botu_ent, trec.requ_ent;
               if trec.native then return 'fail'; end if;	-- We found a short-circuit loop that does not resolve to the desired destination: fail
             end if;
 
@@ -494,7 +495,7 @@ $$;}
 function {mychips.route_retry(new mychips.routes)} {mychips.routes} {
   returns boolean language plpgsql as $$
     begin
-raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
+--raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
 --Fixme: How/when do we decide to mark an old record to retry?
     return false;
     end;
