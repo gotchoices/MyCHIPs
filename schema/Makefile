@@ -1,5 +1,5 @@
 #Process schema files
-DBUSER = 'admin'
+DBUSER = 'admin'		#Has permissions to create/destroy DB objects
 WSL = $(shell wyselib-info |cut -f 1-2 -d ' ' |tr ' ' '/')
 ifneq ("$(WSL)","")
   WYSELIB = $(WSL)/schema

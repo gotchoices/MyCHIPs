@@ -8,7 +8,7 @@ module mychips
 
 # Generate notifications about changes to any operating parameters
 #----------------------------------------------------------------
-function mychips.parm_tf_change() {mychips} {
+function mychips.parm_tf_change() {mychips base.parm_v} {
   returns trigger language plpgsql security definer as $$
     declare
       channel	text = 'parm_' || new.module;

@@ -51,7 +51,7 @@ view mychips.parm_v_user {base.parm} {select
 
 # Base view of peers, linked to entity table
 #----------------------------------------------------------------
-view mychips.peers_v {mychips.peers base.ent_v} {select 
+view mychips.peers_v {mychips.peers base.ent_v mychips.parm_v_user} {select 
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
   , coalesce(pe.peer_host, pp.phost)			as peer_chost

@@ -49,7 +49,7 @@ table mychips.users {base.ent mychips} {
 
 # Base view of users, linked to entity and peer tables
 #----------------------------------------------------------------
-view mychips.users_v {mychips.users mychips.peers base.ent_v} {select 
+view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user} {select 
     eval(fld_list $users::ent_se	ee)
   , eval(fld_list $users::peers_se	pe)
   , eval(fld_list $users::users_se	ue)

@@ -390,7 +390,7 @@ view mychips.tallies_v_net {mychips.tallies} {select
 
 # General routine to build update query string
 #----------------------------------------------------------------
-function {mychips.state_updater(recipe jsonb, tab text, fields text[], qflds text[] default null)} {} {
+function {mychips.state_updater(recipe jsonb, tab text, fields text[], qflds text[] default null)} {mychips} {
   returns text immutable language plpgsql as $$
     declare
       lrec	record;		-- Looping variable
