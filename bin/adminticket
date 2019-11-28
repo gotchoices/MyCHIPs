@@ -1,18 +1,20 @@
 #!/bin/node
 //Create a connection ticket for the admin account
-//Usage ./adminticket <spaHost> <spaPort>
+//Usage ./adminticket -H spaHost -P spaPort -u username -o outfile -d database -h databaseHost -p databasePort
 //TODO:
 //- 
 
-//const Settings = require('../settings')
-//const { DBAdmin, MachineIP, AdminPort, AdminID, Log, DatabaseHost, DatabasePort } = Settings
+const Fs = require('fs')
+var argv = require('yargs').argv
+//console.log("argv:", argv)
 
-var spaHost = process.argv[2] || 'localhost'
-var spaPort = process.argv[3] || 54320
-var dbHost = process.argv[4] || process.env.MYCHIPS_DBHOST || 'localhost'
-var database = process.argv[5] || process.env.MYCHIPS_DBNAME || 'mychips'
-var dbPort = process.env.MYCHIPS_DBPORT || 5432
-var user = process.env.MYCHIPS_DBADMIN || 'admin'
+var spaHost	= argv.H || 'localhost'
+var spaPort	= argv.P || 54320
+var dbHost	= argv.h || process.env.MYCHIPS_DBHOST || 'localhost'
+var database	= argv.d || process.env.MYCHIPS_DBNAME || 'mychips'
+var dbPort	= argv.p || process.env.MYCHIPS_DBPORT || 5432
+var user	= argv.u || process.env.MYCHIPS_DBADMIN || 'admin'
+var outFile	= argv.o ? (Array.isArray(argv.o) ? argv.o.pop() : argv.o) : null
 
 const { Log } = require("wyclif")
 const { dbClient } = require("wyseman")
@@ -33,7 +35,11 @@ db.query(q, [user], (err, res) => {
       let ticket = res.rows[0]
       if (spaHost) ticket.host = spaHost
       if (spaPort) ticket.port = spaPort
-      console.log(JSON.stringify({ticket}))
+      let tickText = JSON.stringify({ticket})
+      if (outFile)
+        Fs.writeFileSync(outFile, tickText)
+      else
+        console.log(tickText)
     }
     db.disconnect()
 })

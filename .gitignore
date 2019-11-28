@@ -3,6 +3,6 @@ schema/old
 pki/local.conf
 pki/local
 doc/.~lock*
-test/tmp
+test/local/*.json
 .sync.ffs_db
 .DS_Store

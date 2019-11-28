@@ -28,7 +28,7 @@
     "server": "bin/mychips.js",
     "cert": "wyclif-cert",
     "init": "bin/localcerts",
-    "adminticket": "bin/adminticket",
+    "adminticket": "bin/adminticket -o test/local/admin.json",
     "agent": "test/sim/agent -m 2",
     "builddb": "cd schema; make objects",
     "dev": "npm-run-all --parallel dev-build dev-server",

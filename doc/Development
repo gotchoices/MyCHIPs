@@ -20,10 +20,10 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   cd mychips
   npm install				#Install all dependencies
   
-  npm run init				#Initialize local certificates
+  npm init				#Initialize local certificates
 
-- Create admin login ticket		#This will also build the db schema
-  npm run adminticket >/tmp/ticket.json	#We will need this file later
+- Create an admin login ticket		#This will also build the db schema
+  npm run adminticket
 
 - Run mychips server:
   npm run server
@@ -44,15 +44,17 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   If the connection is working, you should see an open connection dialog in the 
   upper right corner of the app.
 
-- You will need a ticket to authorize the connection.  If it hasn't expired yet
-  you can use the one you saved above (ticket.json).  If you need to run it
-  again, do that now:
+- You will need a ticket to initialize the connection.  In the step above, a
+  ticket was created in (by default): test/local/admin.json.
+  If it hasn't expired yet, you can use it now.
   
-  npm run adminticket -- <hostname> <port> > <ticket_file>.json
+  Otherwise, you need to generate a new one so do that now:
   
-  For example:
-  npm run adminticket -- 192.168.56.101 54320 > test/tmp/ticket.json	#or
-  npm run adminticket -- mychips.mydomain.com > test/tmp/ticket.json
+  npm run adminticket -- -H hostname -P port -o ticket_file.json
+  
+  For example, something like:
+  npm run adminticket -- -H 192.168.56.101 -o test/local/ticket.json	#or
+  bin/adminticket mychips.mydomain.com -o test/tmp/ticket.json
   
   Make sure the host address matches what is on the spa certificate you built
   using the "npm run init" or "npm run cert" commands.  (See pki/README for
