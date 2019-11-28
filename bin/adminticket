@@ -1,0 +1,39 @@
+#!/bin/node
+//Create a connection ticket for the admin account
+//Usage ./adminticket <spaHost> <spaPort>
+//TODO:
+//- 
+
+//const Settings = require('../settings')
+//const { DBAdmin, MachineIP, AdminPort, AdminID, Log, DatabaseHost, DatabasePort } = Settings
+
+var spaHost = process.argv[2] || 'localhost'
+var spaPort = process.argv[3] || 54320
+var dbHost = process.argv[4] || process.env.MYCHIPS_DBHOST || 'localhost'
+var database = process.argv[5] || process.env.MYCHIPS_DBNAME || 'mychips'
+var dbPort = process.env.MYCHIPS_DBPORT || 5432
+var user = process.env.MYCHIPS_DBADMIN || 'admin'
+
+const { Log } = require("wyclif")
+const { dbClient } = require("wyseman")
+var log = Log('adminticket')
+//console.log("database:", database, "user:", user)
+
+var db = new dbClient({
+  database, user, log, host:dbHost, port:dbPort,
+  listen: "DummyChannel",
+  schema: __dirname + "/../../lib/schema.sql"		//Build DB if it doesn't exist
+})
+
+let q = "select token, expires, host, port from base.ticket_login(base.user_id($1))"
+db.query(q, [user], (err, res) => {
+    if (err) console.log("Error:", err.message, "\n  query:", q)
+//console.log("res:", res)
+    if (res && res.rows && res.rows.length >= 1) {
+      let ticket = res.rows[0]
+      if (spaHost) ticket.host = spaHost
+      if (spaPort) ticket.port = spaPort
+      console.log(JSON.stringify({ticket}))
+    }
+    db.disconnect()
+})
