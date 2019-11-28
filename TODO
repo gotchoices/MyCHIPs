@@ -4,6 +4,8 @@ Immediate:
 - Modify wyseman/lib/wyseman.js to also listen on regular unix socket for admin connections
 - Regular socket connection relies solely on an auth key (key file, not keys stored in DB user tables)
 - Use SNI extension for client to provide db config payload
+- Wylib improvements below (enough to get strdoc working)
+- Make database owned by mychips, give admin read/write/delete but not create/drop
 - 
 
 Lift modeling:
@@ -24,12 +26,10 @@ X- Route state queries initiated as part of tally dialog
 X- Querying adjoining DB's for pathway information
 X- Join inside paths with outside paths, detect useable circuits
 X- Change host_id to server_tag and have better description
-- Wylib improvements below
 - Expand chit state diagram to include distributed lifts
 - Implement distributed lifts in chit state machine (no separate lift handler?)
-- Route state queries can be initiated explicitly (by user?)
-- Make database owned by mychips, give admin read/write/delete but not create/drop
-- 
+- Route state queries (find peer X) can be initiated explicitly (on user request)
+
 - Agent2:
 X-   Wait/stall when entering username on remote host
 X-   Make module to communicate with foreign servers
@@ -63,11 +63,19 @@ X- Column sort numbers are not showing on preview
 X- Implement preferences screen
 X- Allow separate prefs to be set from different modules
 X- Can change preferences reactively
-- Toplevel widget responsible for saving/restoring preferences settings
-- Local modules can supply their own prefs defaults until better DB metadata arrives
-- Language object passed down as prop?
-- Report windows fetch language object/fields if/when needed (make strdoc work)
-- Report windows implement optional control/parameter menu
+- Preferences:
+-   App widget responsible for saving/restoring preference settings
+-   Other modules can supply their own prefs defaults until better DB metadata arrives
+-   Request wm Language object from app instead of direct from wyseman?
+-   Request pr object from app instead of from prefs?
+-   Make pdm option for fetching options from database via query (idx,title,help)
+-   Make standard shortcut for language (there will be others too)
+-   Can now select languages from prefs menu and app updates reactively
+- Make standard shortcut for exists, given DB table, column
+- 
+- Reports/strdoc:
+- Report windows fetch wm object/fields if/when needed from main (make strdoc work)
+- Report windows implement optional control/parameter menu at top
 - Strdoc and/or others put their menu next to the main control menu
 - Reports have optional slave setting where they respond to key changes
 - Auto update can be switched off in the report menu
@@ -82,7 +90,8 @@ X- Can change preferences reactively
 - I should have a copy of any contract referenced in any of my tallies (FK reference?)?
 - Make tallies actually reference contracts existing in the DB
 - 
-- 
+- Wyseman DB connection with no schema info should wait/retry for DB to exist rather than failing
+-   Can then get rid of "npm firstrun" in package.json and doc/Development
 X- Get wysegi working (where does it go)?
 - Wyseman won't open dbe for chit view (no wmd?)
 - Test SSL connection to postgres

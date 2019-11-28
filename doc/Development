@@ -9,6 +9,9 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   systemctl start postgresql
   su -l postgres -c 'createuser -d -s -r admin'
 
+- Other known dependencies that may not be installed on your system by default:
+  bash, openssl, others?
+
 - Create a folder to work in:
   mkdir devel; cd devel			#For example
 
@@ -17,12 +20,13 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   cd mychips
   npm install				#Install all dependencies
   
-  npm init				#Initialize local certificates
+  npm run init				#Initialize local certificates
 
-- Run mychips server:			#Run without peer socket on first launch
-  npm run server -- -p 0		#to make sure database schema gets built
+- Create admin login ticket		#This will also build the db schema
+  npm run adminticket >/tmp/ticket.json	#We will need this file later
 
-  npm run server			#Can run this way subsequently
+- Run mychips server:
+  npm run server
 
   If you have trouble, set NODE_DEBUG=debug environment variable
   and watch logs in /var/tmp/mychips
@@ -40,38 +44,57 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   If the connection is working, you should see an open connection dialog in the 
   upper right corner of the app.
 
-- You will need a ticket to authorize the connection:
-  cd test/sample
-  ./adminticket <hostname> <port> ><ticket_file>	#Save the ticket to a file
+- You will need a ticket to authorize the connection.  If it hasn't expired yet
+  you can use the one you saved above (ticket.json).  If you need to run it
+  again, do that now:
+  
+  npm run adminticket -- <hostname> <port> > <ticket_file>.json
   
   For example:
-  ./adminticket 192.168.56.101 54320 >../tmp/admin.json		#or
-  ./adminticket mychips.mydomain.com >../tmp/admin.json
+  npm run adminticket -- 192.168.56.101 54320 > test/tmp/ticket.json	#or
+  npm run adminticket -- mychips.mydomain.com > test/tmp/ticket.json
   
-  Make sure the host address matches what is on your certificate when using TLS
-  otherwise you may not be able to connect.
+  Make sure the host address matches what is on the spa certificate you built
+  using the "npm run init" or "npm run cert" commands.  (See pki/README for
+  more detailed info on this.)
   
 - Use the "Import Keys:" option in the connection dialog to open the ticket file.
   You may also drag/drop your ticket file onto the Import button.
   
   Double click on the imported ticket to initiate your connection.
-  You should now be prompted for your username (admin).
-  The GUI should connect to the backend, and turn your ticket into a key.
+  You should now be prompted for your username (admin).  The username is purposely
+  not included in the ticket file as a security measure.  The user has to know
+  what user the ticket is intended for.
+  
+  If the ticket is recognized, the GUI should connect to the backend, and promote
+  the ticket to a connection key.  Note, the token can only be used once and it
+  expires fairly quickly.  If you fail to connect, you may have to issue a new
+  ticket (which will automatically invalidate the previous one).
 
   The system should next prompt you for a pass phrase.  This phrase will be used
   when storing your connection key in the browser local storage so others with
   access to your computer can't steal your key.  Leave it blank if you don't want
-  to encrypt your key (bad idea in production environment).
+  to encrypt your key (bad idea in a production environment).
 
-  You should probably also export your key and save it in a safe place.  See the
-  documentation in the wylib package for more information on connection keys.
+  You should then also export your key and save it in a safe place.  You can
+  use this same key in other browsers or to restore your connection if you lose
+  or clear your local storage.  If you lose the admin key, you will have to 
+  reissue a connection token using the procedure above.  The admin user can issue
+  connection tokens for other users using the admin GUI.
+  
+  See the documentation in the wylib package for more detailed information on 
+  connection keys.
   
 - Now add some sample test data to the database:
-  cd test
-  edit settings file to set IP number of the test machine you are on
-  cd sample
-  ./kickstart
-  Reload the user preview in the admin GUI, should see 5 users
+
+    cd test
+    
+  Edit settings file to set IP number of the test machine you are on
+  
+    cd sample
+    ./kickstart
+
+  Reload the user preview in the admin GUI, should see 5 users.
 
 - View the live network graph (Network tab)
   See your 5 users on the graph
