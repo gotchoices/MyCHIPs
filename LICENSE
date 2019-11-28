@@ -1,29 +1,31 @@
 [MyCHIPs License Agreement
-Version 1, Nov 23, 2018
+Version 2, Nov 28, 2019
 
 (For a common language interpretation, please see the file: FREE-USE)
 
-The Author of the MyCHIPs package contained herein grants a dual license to the
-programs, code, files, algorithms, documentation and other files in this 
-package, hereinafter "The Software," such that The Software may be used 
-according to one of the following two options:
+The Author of the MyCHIPs package contained herein offers a dual license to 
+the programs, code, files, algorithms, API's, documentation and other content 
+in this package, hereinafter "The Software," such that The Software may be 
+used according to one of the following two options:
 
 Free Option:
-You may use The Software according to the GNU General Public License Version 
-3, a copy of which is included in this distribution, subject to the following 
-two conditions, which constitute binding amendments to the License:
+You may use The Software according to the GNU Affero General Public License 
+Version 3, a copy of which is included in this distribution (AGPL-3.0), subject 
+to the following two conditions, which constitute binding amendments to the 
+License:
 
-  Condition 1: End users of The Software (i.e. individuals and companies
-    who engage trading or exchanges) incorporate the terms and conditions 
-    specified in contracts/Free.json in their full force and effect, in any 
-    chits, tallies and trades they engage in.  This obligation pertains to the
-    version of Free.json published with the version of the software being used 
-    at such time as the tallies in question are agreed to.
+  Condition 1: End users (individuals and companies) of The Software 
+    incorporate the terms and conditions specified in contracts/Free.json, in 
+    their full force and effect, in contracts (chits, tallies, lifts, payments,
+    trades, etc.) they may engage in.  This obligation pertains to the version 
+    of Free.json published with the version of the software being used to host 
+    the user's account at such time as the contracts in question are agreed to
+    by that user.
     
   Condition 2: Service providers who host services (i.e hosts and operators of 
     computers running The Software) on behalf of themselves or other end users,
-    A) take prudent measures to inform the end users of their obligations under 
-       this license, most notably Condition 1 above; and
+    A) take prudent and effective measures to inform the end users of their 
+       obligations under this license, most notably Condition 1 above; and
     B) proactively collect, and pay monthly to the Author, any royalties due, 
        as explained below, from those who do not abide by Condition 1.
 
