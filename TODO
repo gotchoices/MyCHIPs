@@ -1,12 +1,91 @@
 TODO:
 
 Immediate:
+X- pop.vue asks app.vue for prefs, wm data
+X- app.vue resends pref/wm any time it is updated
+X- strdoc has pref/wm data available in its context
+X- Use subs or sections for nested document sections?
+X- Can update a document from report window
+X- Change actionLaunch editCB to a bi-directional messageBus
+X- Can send messages to a report window
+X- Report (strdoc) optionaly clears, loads when dbe changes data
+X- Large document makes window and parents blurry (only in Chrome)
+- Input my basic documents
+- Better spacing after section number
+- How do I include/reference other documents?
+- Make basic tally contract
+- Generate a digest on publish
+- Lock the document on publish
+- When/how do people verify the hash
+- Implement express server for all contracts in the database
+- 
+- 
+- 
 - Modify wyseman/lib/wyseman.js to also listen on regular unix socket for admin connections
 - Regular socket connection relies solely on an auth key (key file, not keys stored in DB user tables)
 - Use SNI extension for client to provide db config payload
+- Is there any use case for a user connecting via regular socket? (native app?)
+-   If so, socket connection needs to use connection tokens/keys just like websocket
+- 
 - Wylib improvements below (enough to get strdoc working)
 - Make database owned by mychips, give admin read/write/delete but not create/drop
 - 
+
+General roadmap:
+X- Can create/exchange tallies, chits with a peer
+X- Create agent client module to model user, reads/writes/listens direct with DB
+- Improve agent model (see below)
+X- Can spawn N user agents against M server instances
+X- Create graphical canvas view of all users balance sheets
+X- Implement single-db lift algorithm
+- Implement multi-db lift algorithm
+- Implement basic contracts (author, display, publish)
+X- Review copyright; Should we limit free to people who respect a base contract?
+X- Harden SPA connections, implement user ID's, schema permissions
+- Implement digital signatures for tallies, chits, contracts, lifts
+- Implement encrypted peer communications using noise protocol
+- Harden database schema, implementing full permission structure
+- Implement schema version control strategy in wyseman
+X- Make Admin SPA GUI useable, replace all functions of mc_admin
+- Make Wylib User SPA GUI useable
+- Rollout
+- Create more optimal User SPA GUI for mobile
+- Implement async email/text notifications
+- Implement native mobile user app
+- Implement tally confirmations
+- Implement standardized export/import of user accounts via Admin interface
+- Implement lock-down mode
+- Implement backup/restore among peers
+- 
+
+General tasks by level of expertise required (redundant)
+- Low Level: (code validation)
+-   Write unit tests, which become part of the integrated test suite. 
+-     Test existing state transition graphs for all conceivable combinations of state.
+-     Attempt to request multiple, conflicting state transitions at once.
+-     Proper retry/recovery of records that get stranded in a transitional state
+- Medium Level: (network simulation)
+-   Implement peer communication channel based on "noise protocol" to replace current lib/peercomm.js module
+-   Write a more advanced agent model that reasonably simulates the choices an actual human would make when interacting with the system.
+-   Examples include:  (where each character is randomly determined for individual agents)
+-     Spending consumption costs at a regular rate
+-     Luxury spending when more money is available
+-     Being more or less of a saver
+-     Accumulating varying amounts of foil-debit balances (savings bonds)
+-     Getting a job when you are out of money
+-     Finding other income sources
+-     Acquiring capital assets (with and without associated debt)
+-     Spending money with non-connected nodes (i.e. requesting linear lifts/drops)
+-     Developing a reasonable number of downstream tally relationships (i.e. vendors)
+-     Starting a credit certification aggregator (savings and loan)
+-     Starting a vendor aggregator (credit card company)
+- High Level: (architecture/design)
+-   Does the existing tally state transition chart accurately represent all necessary cases?
+-   Does the existing chit state transition chart accurately represent all necessary cases?
+-   Augment the chit state transition chart to model distributed lifts
+-   Augment the chit state machine to implement distributed lifts
+-   Add key signing/validation regimen to tally process
+-   Add key signing/validation regimen to chit/lift process
 
 Lift modeling:
 X- System for instantiating multiple databases, multiple servers
@@ -29,27 +108,27 @@ X- Change host_id to server_tag and have better description
 - Expand chit state diagram to include distributed lifts
 - Implement distributed lifts in chit state machine (no separate lift handler?)
 - Route state queries (find peer X) can be initiated explicitly (on user request)
-
-- Agent2:
-X-   Wait/stall when entering username on remote host
-X-   Make module to communicate with foreign servers
-X-   Insert my user before tally (using module)
-X-   Some tallies being established to same user
--   Some tallies being established twice with same peer
--   Some tallies don't complete
--   What happens if a state transition fails due to contention?  Does it retry for success?
--   Don't try to add same peer again to mychips.peers if we connect to him twice (add on conflict clause ?)
--   Some chits are not getting beyond draft mode.  Why?
--   Spend CHIPs with more sensitivity to current net worth (other factors)
--   Seek/establish vendors, in addition to clients
--   Honor max clients, max vendors parameters from DB
-- 
 - Distributed lifts
 - Create remote lift protocol
 -   Phase 1: route/size/cost confirmation
 -   Phase 2: locking, conditional acceptance
 -   Phase 3: signing
 - Design state machine to execute distributed lifts
+- 
+
+- Agent2:
+X-   Wait/stall when entering username on remote host
+X-   Make module to communicate with foreign servers
+X-   Insert my user before tally (using module)
+X-   Some tallies being established to same user
+-   BUG: Some tallies being established twice with same peer
+-   BUG: Some tallies don't complete
+-   What happens if a state transition fails due to contention?  Does it retry for success?
+-   Don't try to add same peer again to mychips.peers if we connect to him twice (add on conflict clause ?)
+-   Some chits are not getting beyond draft mode.  Why?
+-   Spend CHIPs with more sensitivity to current net worth (other factors)
+-   Seek/establish vendors, in addition to clients
+-   Honor max clients, max vendors parameters from DB
 - 
 - Other:
 - Can I mark a chit as refused, some way other than text in the signature?
@@ -112,6 +191,7 @@ X- Change global cdi concept to chip address resembling email: fred@mychips.com
 - Update agent2 to publish/access connection tokens in public DB
 - 
 - Enable user permission editor in admin app user tab
+- Test: can the middleware servers recover if the database goes down and back up?
 - 
 - Strdoc:
 - Can I edit/author documents now?
@@ -131,33 +211,6 @@ X-   Install default postgres configuration (limit access to local processes)
 X-   Launch spa/clif server
 -   Apply schema changes to the database (wyseman versioning?)
 -   Launch any necessary peer servers (can this happen automatically?)
-- 
-
-General roadmap:
-X- Can create/exchange tallies, chits with a peer
-X- Create agent client module to model user, reads/writes/listens direct with DB
-- Improve agent model (see below)
-X- Can spawn N user agents against M server instances
-X- Create graphical canvas view of all users balance sheets
-X- Implement single-db lift algorithm
-- Implement multi-db lift algorithm
-- Implement basic contracts (author, display, publish)
-X- Review copyright; Should we limit free to people who respect a base contract?
-X- Harden SPA connections, implement user ID's, schema permissions
-- Implement digital signatures for tallies, chits, contracts, lifts
-- Implement encrypted peer communications using noise protocol
-- Harden database schema, implementing full permission structure
-- Implement schema version control strategy in wyseman
-X- Make Admin SPA GUI useable, replace all functions of mc_admin
-- Make Wylib User SPA GUI useable
-- Rollout
-- Create more optimal User SPA GUI for mobile
-- Implement async email/text notifications
-- Implement native mobile user app
-- Implement tally confirmations
-- Implement standardized export/import of user accounts via Admin interface
-- Implement lock-down mode
-- Implement backup/restore among peers
 - 
 
 User agent process:
