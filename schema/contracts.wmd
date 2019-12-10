@@ -10,20 +10,22 @@ tabdef mychips.contracts -focus domain -f [concat {
     {digest		ent	20	{3 4}		-state readonly -wr 0}
     {title		ent	40	{1 3 2}		-spf edw}
     {tag		ent	10	{3 3}		}
-    {text		mle	80	{1 5 4}		-spf edw -state readonly}
+    {text		mle	80	{1 5 4}		-spf edw}
+    {sections		ent	80	{}		-hide 1 -state readonly}
 } $glob::stampd] -display {
     domain name version language released source title 
 }
 
 tabdef mychips.contracts_v -f {
-    {source		ent	20	{1 4 2}		}
-    {sections		mle	80	{1 7 4}		-opt 1 -spf edw -state readonly}
-    {json		mle	80	{1 8 4}		-opt 1 -spf edw -state readonly}
-} -actions {
-    {edit		strdoc}
-    {publish		-ask 1}
+    {source		ent	20	{1 4 2}		-state readonly}
+    {json		mle	{80 6}	{1 8 4}		-opt 1 -spf edw -state readonly}
 } -json {
+  actions {[
+    {"name":"edit","format":"strdoc","slave":true},
+    {"name":"publish","ask":true}
+  ]}
   launch {{
+    "initial": 1,
     "import": "json.import"
   }}
 }

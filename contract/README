@@ -23,15 +23,15 @@ invoke them by reference.
 
 Contract Format:
 -------------------------------------------------------------------------------
-A contract is a JSON object with the following properties:
+A contract is represented as a JSON object with the following properties:
 
   - domain:	mychips.org
     The domain name of the person or organization who created and/or published 
     the contract document.  If you expect people to agree to tallies that 
     incorporate a particular contract, they will probably feel more comfortable
-    with language from a source they trust.  If you are asked to agree to a
-    contract from an author you don't know, you should read it very carefully
-    and/or get competent legal advice first.
+    with language from a source they trust.  For example, if you are asked to 
+    agree to a contract from a source you don't recognize, you would want to 
+    read it very carefully and/or get competent legal advice first.
 
   - name:	mychips/Chip_Definition
     A symbolic name for the contract.  This is independent of the language used
@@ -50,24 +50,24 @@ A contract is a JSON object with the following properties:
     the same contract in two different languages as part of a single tally.
 
   - digest		(SHA-256 hash)
-    The digest contains a hash of the rest of the object so it is a little
-    different than all the other properties.  When computing the hash, the
-    digest property is removed, the object is serialized by a deterministic
-    version of JSON.stringify, and then given to the SHA256 hash routine.  Once 
-    the hash is complete, the digest property is added back into the object for
-    storage and/or transmission of the contract.
+    This contains a hash of the rest of the object so it is a little different 
+    than all the other properties.  When computing the hash, the digest 
+    property is removed, the object is serialized by a deterministic version of 
+    JSON.stringify, and then given to the SHA256 hash routine.  Once the hash is 
+    complete, the digest property is added back into the object for storage 
+    and/or transmission.
 
   - source
     This is really a pseudo-property.  It might not be stored as part of the 
     contract object but rather represents a URL where an authoritative copy of 
     the contract object can be found.  It is automatically generated from the
-    contract key fields above.  The contract publisher should operate a web 
-    server which answers to the resulting end-point and serves the document to 
-    any process that requests it.
+    contract key fields above.  The contract publisher, and other users of the
+    contract, should operate a web server which answers to the resulting 
+    end-point and serves the document to any process that requests it.
     
     A contract can rightly be referred to by its JSON object property key 
     (domain, name, version, language) or by the URL form, which contains the
-    very same data.  When a reference is for binding purposes, the digest 
+    very same data.  When a reference is made for binding purposes, the digest 
     should also be included as indication that the contracting parties both had 
     knowledge and access to the same document version at the time their deal 
     was struck.  And example of the URL form is:
@@ -96,9 +96,9 @@ A contract is a JSON object with the following properties:
     from other sections, to this one.
 
   - sections
-    This is an array of JSON objects constitute the sub-sections of this
-    document or section.  Each object contains a subset of the properties 
-    described here as follows:
+    An array of JSON objects which constitute the sub-sections of this document 
+    or section.  Each object contains a subset of the properties described here 
+    as follows:
 
     - title
     - tag

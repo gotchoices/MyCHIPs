@@ -4,6 +4,7 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- Only load credentials for services we are actually launching
+//- Should serve documents via https to prevent spoofing a document and digest
 //- 
 
 const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's clock
@@ -17,25 +18,26 @@ var { actions, Parser } = require('wyselib')
 Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
 
 var argv = Args({
-  dbHost: process.env.MYCHIPS_DBHOST,
-  dbPassword: process.env.MYCHIPS_DBPASSWORD,
-  dbName: process.env.MYCHIPS_DBNAME || 'mychips',
-  dbPort: process.env.MYCHIPS_DBPORT || '5432',
-  dbAdmin: process.env.MYCHIPS_DBADMIN || 'admin',
-  clifPort: process.env.MYCHIPS_WSPORT || '54320',
-  spaPort: process.env.MYCHIPS_SPAPORT || '8000',
-  spaKey:      process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-%.key'),
-  spaCert:     process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-%.crt'),
-  peerKey:     process.env.MYCHIPS_PEERKEY     || Path.join(__dirname, '../pki/local/peer-%.key'),
-  peerCert:    process.env.MYCHIPS_PEERCERT    || Path.join(__dirname, '../pki/local/peer-%.crt'),
-  dbUserKey:   process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname, '../pki/local/data-user.key'),
-  dbUserCert:  process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
-  dbAdminKey:  process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname, '../pki/local/data-admin.key'),
-  dbAdminCert: process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
-  dbCA:        process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-ca.crt')
+  dbHost:	process.env.MYCHIPS_DBHOST,
+  dbPassword:	process.env.MYCHIPS_DBPASSWORD,
+  dbName:	process.env.MYCHIPS_DBNAME	|| 'mychips',
+  dbPort:	process.env.MYCHIPS_DBPORT	|| 5432,
+  dbAdmin:	process.env.MYCHIPS_DBADMIN	|| 'admin',
+  clifPort:	process.env.MYCHIPS_WSPORT	|| 54320,
+  spaPort:	process.env.MYCHIPS_SPAPORT	|| 8000,
+  spaKey:	process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-%.key'),
+  spaCert:	process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-%.crt'),
+  peerKey:	process.env.MYCHIPS_PEERKEY     || Path.join(__dirname, '../pki/local/peer-%.key'),
+  peerCert:	process.env.MYCHIPS_PEERCERT    || Path.join(__dirname, '../pki/local/peer-%.crt'),
+  dbUserKey:	process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname, '../pki/local/data-user.key'),
+  dbUserCert:	process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
+  dbAdminKey:	process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname, '../pki/local/data-admin.key'),
+  dbAdminCert:	process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
+  dbCA:		process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-ca.crt')
 })
   .alias('h','servID')     .default('servID',     null)		//If peer servers run on multiple hosts, this identifies our host
   .alias('p','peerPort')   .default('peerPort',   65430)	//Peer-to-peer connections at this port
+  .alias('d','docPort')    .default('docPort',    8001)		//HTML document server
   .alias('l','lifts')      .default('lifts',      false)	//Run lift scheduler
   .alias('m','model')      .default('model',      false)	//Run agent-based model
   .argv
@@ -50,13 +52,14 @@ log.info("SPA Port:   ", argv.spaPort, argv.wyclif, argv.spaKey, argv.spaCert)
 log.debug("Server ID:  ", argv.servID)
 log.debug("CLIF Port:  ", argv.clifPort)
 log.debug("Peer Port:  ", argv.peerPort)
+log.debug("Doc Port:   ", argv.docPort)
 log.debug("Database:", argv.dbHost, argv.dbName, argv.dbAdmin)
 log.trace("Database SSL:", sslAdmin, sslUser)
 log.trace("Agent:", argv.model, "Lifts:", argv.lifts)
 log.trace("Actions:", actions)
 
 var expApp = SpaServer({spaPort: argv.spaPort, wyclif: !!argv.wyclif, pubDir, credentials}, log)
-var wyseman = new Wyseman({
+var wyseman = new Wyseman({				//Launch SPA server and associated web socket
   host: argv.dbHost,
   password: argv.dbPassword,
   database:argv.dbName,
@@ -66,7 +69,8 @@ var wyseman = new Wyseman({
   port: argv.clifPort, 
   dispatch: Dispatch,
   delta: MaxTimeDelta,
-  log, credentials, expApp, actions,
+  log, credentials, actions, 
+  expApp
 }, {
   host: argv.dbHost,
   password: argv.dbPassword,
@@ -84,6 +88,18 @@ if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communi
     servID: argv.servID,
     poll: true
 //Fixme: add in peer credentials here
+  }, {
+    host: argv.dbHost,
+    database:argv.dbName,
+    user: argv.dbAdmin, 
+  })
+}
+
+if (Boolean(argv.docPort)) {				//Create web server for contract documents
+  const DocServ = require('../lib/doc.js')
+  var docs = new DocServ({
+    docPort: argv.docPort,
+    pubDir
   }, {
     host: argv.dbHost,
     database:argv.dbName,

@@ -14,6 +14,7 @@ module mychips
 
 namespace eval contracts {
     def contracts_pk	{domain name version language}
+
     def contracts_in	[concat $contracts_pk title text tag digest sections published]
     def contracts_up	$contracts_in
     def contracts_se	[concat $contracts_in $glob::stampfn]

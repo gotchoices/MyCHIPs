@@ -1,4 +1,5 @@
 // webpack.config.js
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const path = require('path');
                 
 module.exports = {
@@ -6,6 +7,7 @@ module.exports = {
     admin:'./src/admin.js',
     user: './src/user.js',
     report: './src/report.js',
+    contract: './src/contract.js',
   },
   output: {
     path: path.join(__dirname, 'pub'),
@@ -16,6 +18,9 @@ module.exports = {
       vue: 'vue/dist/vue.js'
     }
   },
+  plugins: [
+    new VueLoaderPlugin()
+  ],
   performance: {
     maxAssetSize: 2000000,
     maxEntrypointSize: 1000000

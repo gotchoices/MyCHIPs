@@ -6,6 +6,7 @@ tabtext mychips.contracts	{Contracts}	{Each record contains contract language to
     {version		{Version}		{The version number, starting at 1, of this contract document}}
     {language		{Language}		{The standard 3-letter ISO code for the language in which the covenant is expressed}}
     {title		{Title}			{A brief, descriptive title which will be shown as a document or section header when a contract is rendered}}
+    {text		{Text}			{An introductory paragraph of text at the top level of the document}}
     {tag		{Section Tag}		{A short alphanumeric string which can be used as a target for cross references inside the document}}
     {published		{Published}		{The date this version of the covenant was first made available to the public}}
     {sections		{Sections}		{Further sub-sections of contract text, describing the terms and conditions of the contract}}
@@ -14,10 +15,12 @@ tabtext mychips.contracts	{Contracts}	{Each record contains contract language to
     {BVN		{Bad Version Number}	{Version number for contracts should start with 1 and move progressively larger}}
     {PBC		{Publish Constraints}	{When publishing a document, one must specify the digest hash, the source location, and the content sections}}
     {UNC		{Unknown Command}	{The contract editor report received an unrecognized action command}}
+    {ILR		{Illegal Rows}		{A query expecting a single record returned zero or multiple rows}}
 }
 
 tabtext mychips.contracts_v	{Contracts}	{Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.} {
     {source		{Source URL}		{The official web address where the author of this document maintains its public access}}
+    {json		{JSON}			{The contract represented in JavaScript Object Notation}}
 } -messages {
     {edit 		{Edit Sections}		{Dedicated window for properly editing the contract sections}}
     {publish		{Publish}		{Commit this version, write the publication date, and disable further modifications}}
@@ -25,8 +28,8 @@ tabtext mychips.contracts_v	{Contracts}	{Each record contains contract language 
     {TMK		{Bad Key Number}	{The report is designed to work with one and only one record}}
     {launch.title	{Contracts}		{Manage Trading Agreements}}
     {launch.instruct	{Basic Instructions}	{
-      <p>If your users user only contracts created and maintained by other parties, you 
-         don't need to create any new data here.
+      <p>If your users use only contracts created and maintained by other parties, you 
+         may not need to create any new data here.
       <p>You can create your own contracts and/or modify existing ones by opening an editing
          window and selecting Edit Sections from the Actions menu.
     }}
