@@ -84,8 +84,8 @@ export default {
         , guid = dat.guids[i]
         , isFoil = (dat.types[i] == 'foil')
         , amount = dat.totals[i]
-        , link = dat.part_cids[i]
-        , inside = dat.insides[i]
+        , link = dat.part_cids[i]		//Which other node this link is pointing to
+        , inside = dat.insides[i]		//Native or foreign user
         , noDraw = (isFoil && inside)
         , reverse = (isFoil && !inside)
         , nodeLink = node.links.find(lk => (lk.index == guid))	//Do we already have a definition for this link?
@@ -101,7 +101,7 @@ export default {
         nodeLink = {index:guid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null, bias:null}
         node.links.push(nodeLink)
       }
-//console.log("  link:", link, node, idx, cid, amount, yOffset, nodeLink)
+//console.log("  link:", link, node, 'idx:', idx, cid, amount, yOffset, nodeLink)
       Object.assign(nodeLink, {ends, center, color, link, noDraw, reverse, found:true, bias: ()=>{
 //console.log("User bias:", cid, isFoil, isFoil?-Bias:Bias)
         return {x:0, y: isFoil ? -Bias : Bias}
@@ -120,17 +120,17 @@ export default {
       if (dTime) where.push(['latest', '>=', dTime])
 
       Wylib.Wyseman.request('urnet.peer.'+this._uid, 'select', spec, (data,err) => {
-        let notFound = Object.assign({}, this.state.nodes)
+        let notFound = Object.assign({}, this.state.nodes)	//Track any nodes on our graph but no longer returned in the query
           , needLinks = {}
 //console.log("Update nodes:", dTime, this.state.nodes, data.length, data)
-        for (let d of data) {
-          let bodyObj = this.peer(d)
-            , radius = bodyObj.width / 2
+        for (let d of data) {					//For each node
+          let bodyObj = this.peer(d)				//Build its SVG shape
+            , radius = bodyObj.width / 2			//Radius for use in repel forces
             , cid = d.peer_cid
-          if (cid in this.state.nodes) {
-            Object.assign(this.state.nodes[cid], bodyObj, {radius})
+          if (cid in this.state.nodes) {			//If we already have this node on the graph
+            Object.assign(this.state.nodes[cid], bodyObj, {radius})	//Repaint the body
 //console.log("n Dat:", cid, this.state.nodes[cid])
-          } else {
+          } else {						//Else put it somewhere random on the graph
             let x = Math.random() * this.state.width/2
               , y = Math.random() * this.state.height/2
             this.$set(this.state.nodes, cid, Object.assign(bodyObj, {tag:cid, x, y, radius, links:[]}))
@@ -138,7 +138,7 @@ export default {
           }
 //console.log("Dat:", d)
           let stocks = 0, foils = 0
-          for (let i = 0; i < d.tallies; i++) {
+          for (let i = 0; i < d.tallies; i++) {			//Now go through this node's tallies
             let idx = (d.types[i] == 'stock') ? stocks++ : foils++
             this.updateLink(i, idx, cid, d)
             if (!d.insides[i]) {			//Foreign peers don't have tallies, we need to link them in
@@ -173,15 +173,15 @@ export default {
       })
     },		//updateNodes
 
-    refresh() {
+    refresh() {			//Readjust to any new nodes
       this.updateNodes()
     },
-    reset() {
+    reset() {			//Start over with random placement
       this.state.nodes = {}
       this.updateNodes()
       this.updateNodes()
 //      this.$nextTick(()=>{
-//        this.$refs['svg'].$emit('bump')
+//        this.$refs.svg.$emit('bump')
 //      })
     },
   },
