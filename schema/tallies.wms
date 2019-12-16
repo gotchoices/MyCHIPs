@@ -28,6 +28,7 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
   , partner	text		not null references mychips.peers on update cascade on delete restrict
   				check (partner != tally_ent)
+  			      , unique(tally_ent, partner, tally_type, tally_guid)
   , status	text		not null default 'void' check(status in ('void','draft','open','close'))
   , request	text		check(request is null or request in ('void','draft','open','close'))
   , comment	text
