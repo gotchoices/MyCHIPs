@@ -1,16 +1,16 @@
 Tallies
 
 -------------------------------------------------------------------------------
-A tally is, at its essence, just a contract between two parties.  By the tally, 
-they agree to "keep track" of a net amount owing between them, on mutually
+A tally is, at its essence, a contract between two parties.  By the tally, they 
+agree to "keep track" of a net amount owing between them, on mutually 
 acceptable terms.
 
 The tally is modeled after the "split tally," an instrument used historically
 to keep track of private credit arrangements.  Like a split tally, a digital
 tally has two parts, a stock and a foil.  The stock is held by the party who
-is (normally) owed value.  We will call him the Stockee.  The foil is held by 
-the Foilee, the person who will be expected to deliver that value at some point 
-in the future.
+is (normally) owed value.  We will call him the Vendor.  The foil is held by 
+the Client, or the person who will be expected to deliver that value (i.e. pay)
+at some point in the future.
 
 Perhaps the biggest functional difference with a MyCHIPs tally is, unlike its
 wooden predecessor, it can easily be amended by adding new credits and debits.
@@ -19,26 +19,35 @@ another.
 
 As a consequence, it is also possible for the stock to accrue a credit 
 (negative) balance and the foil to accrue a debit (positive) balance.  This 
-makes the terms stock and foil potentially a bit ambiguous.  However, we will
-still use them as they will still support other importat concepts of the model.
+makes the terms stock (Vendor) and foil (Client) potentially less significant 
+in terms of who is the creditor (or Recipient) and who is the debtor (or 
+Issuer).  However, we still use them because it turns out to be important to 
+keep track of which direction credit "normally" flows so we know which 
+direction to focus on for credit lifts.
+
+If two parties truly have a completely bilateral trading arrangement, it
+should be fine to open two tallies (with opposite stocks and foils) between 
+them.  The system should be able to perform lifts to keep the two tallies in
+equilibrium.
 
 A tally includes the following information:
-  - Tally format version
-  - Digital ID unique to the tally
+  - Tally format version (1)
+  - Digital ID unique to the tally (guid)
   - Date and time of the original agreement
-  - Stockee CHIP ID
-  - Stockee Certificate (signed personal contact information)
-  - Stockee Credit Terms; debt stockee->Foilee (normally 0)
-  - Foilee CHIP ID
-  - Foilee Certificate (signed personal contact information)
-  - Foilee Credit Terms; debt Foilee->Stockee (N=credit card, 0=debit card)
+  - Vendor CHIP address
+  - Vendor Certificate (signed personal contact information)
+  - Vendor Credit Terms; debt Vendor->Client (normally 0)
+  - Client CHIP address
+  - Client Certificate (signed personal contact information)
+  - Client Credit Terms; debt Client->Vendor (N=credit card, 0=debit card)
   - Reference to one or more standard, published contracts clauses, which
     become the operable and binding terms of the indebtedness.
-  - Digital signature of stock holder, indicating binding acceptance
-  - Digital signature of foil holder, indicating binding acceptance
+  - Digital signature of Vendor, indicating binding acceptance
+  - Digital signature of Client, indicating binding acceptance
   - A list of transactions, which total to the net indebtedness
+  - A list of unilateral settings to various lift parameters
 
-Each atomic transaction is referred to as a "chit" and will include:
+Each atomic transaction is referred to as a "chit" and includes:
   - Transaction date and time
   - Transaction amount, in mCHIPs (1/1000th part of a CHIP)
   - A transaction type:
@@ -50,22 +59,33 @@ Each atomic transaction is referred to as a "chit" and will include:
     - Lift UUID
   - Additional comments
   - Digital signature of issuer/grantor, making the money binding
-  - Digital signature of recipient, acknowledging receipt
+  - Digital signature of recipient, acknowledging receipt (needed?)
+
+Each setting includes:
+  - Parameters of the tally to be updated/modified
+  - Signature date
+  - Signature of the modifying party
+
+Tallies and chits are shared between Stock and Foil.  Settings reside only with
+one side and are controlled by the owner of that half of the tally.  They tell
+the site administrator how to execute lifts on behalf of the owner.
 
 Operating Parameters:
 -------------------------------------------------------------------------------
-MyCHIPs credits are, by contract, not transferrable.  This means, if someone 
-owes you value, you don't automatically have the right to assign that asset to 
-a third party.  This is potentially a pretty serious limitation on something we 
-are trying to use as money.
+MyCHIPs credits are, by design, not transferrable.  This means, if someone owes 
+you value, you don't have the right to reassign that asset to a third party.  
+This limitation is intended to avoid the need for trust among unrelated 
+parties, and to make CHIPs less prone to theft or loss.
 
-So in order to make value transmittable, we need the credit lift alorithm (see 
-gotchoices.org/mychips).  In order to facilitate lifts, each user must maintain 
-a set of trading parameters which will define how his lifts will take place.
+But it seems like a pretty serious limitation--especially on something we are 
+trying to use as money.  So in order to make value transmittable (effectively
+fungible), we need the credit lift alorithm (see gotchoices.org/mychips).  To 
+facilitate lifts, each user must maintain a set of parameters that define how 
+lifts will take place.
 
-Some of these parameters are derived by the terms of the tallies themselves.
-In some other cases, users may have to manually set preferences to define how
-they want their trades to be conducted.
+Some default lift behavior can be determined by the contractual terms of the
+tally.  For more sophisticated control, users may have to manually set certain
+preferences themselves.
 
 Credit Terms:
 This portion of the tally is actually comprised of a series of variables, some 
@@ -79,8 +99,8 @@ examples of credit relationship:
   Peer Accounts:
   This might represent two companies or two individuals who regularly do
   business with each other.  There is probably a direction in which money 
-  normally flows from client to vendor.  But there may also be occasions when 
-  the normally-client party does services for the normally-vendor party.
+  normally flows from Client to Vendor.  But there may also be occasions when 
+  the normally-Client party does services for the normally-Vendor party.
   
   In such an arrangement either party should be able to choose how much he, as
   a creditor, is willing to lend to the other.  But any resulting indebtedness 
@@ -92,245 +112,316 @@ examples of credit relationship:
   is more likely in concentrating too much of that total value in any single 
   debtor--particularly one who may not be capable of redeeming it all.
   
-  Merchants:
+  Merchants (corporate Vendors):
   Clients of merchants may wish to accumulate value by collecting the credits 
   of the merchants where they like to shop.  This is one way of storing value,
-  or in common parlance, saving money.  But it can also be viewed as a loan 
-  from the client to the merchant, which can be redeemed upon demand any time 
-  the client wants to buy something.
+  or in common terms, saving money.  But it can also be viewed as a loan from 
+  the Client to the merchant, which can be redeemed upon demand any time the 
+  Client wants to buy something.
   
-  The merchant's main concern is to not accumulate too much debt, in total.  He
-  should not care about how many credits any one client may choose to buy.  He
-  just needs to not exceed the amount of debt he can reasonably redeem through
-  product sales, or other exchanges.
+  One concern for the merchant is to not accumulate too much debt, in total.  
+  He should not care so much about how many credits any one Client may choose 
+  to buy.  But he should not exceed the amount of debt he can reasonably redeem 
+  through product sales, or other exchanges.
   
   Secured Loans:
-  Consumers and businesses alike can benefit from maintaining one or more
-  collateralized loans.  You start by purchasing an asset over time from a
-  seller who would like to earn interest income by financing the purchase.  As 
-  you have excess credits available from your income sources, you lift those 
-  credits to the party financing the debt.  As you pay down the debt, your 
-  equity in the asset increases.  Ideally, you could also advance money back 
-  out of the loan if you need more money for some other purchase.  In this way, 
-  the asset can form a store of value--perhaps more reliable than just holding 
-  the credits of your favorite vendors.
+  Consumers (Clients) and businesses (Vendors) alike can benefit from 
+  maintaining one or more collateralized loans.  You start by purchasing an 
+  asset over time from a seller who would like to earn income by financing the 
+  purchase.  As you have excess credits available from your income sources, you 
+  lift those credits to the party financing the debt.  As you pay down the debt, 
+  your equity in the asset increases.  Ideally, you could also advance value 
+  back out of the loan if you need more money for some other purchase.  In this 
+  way, the asset can form a store of value--perhaps more reliable than just 
+  holding the credits of your favorite vendors (who might go out of business).
 
   Money Markets:
-  Since money normally flows in a single, predictable direction, there is a
+  Since money normally flows in a single, expected direction, there is a
   natural demand for credit lifts to temporarily move that flow backward,
-  resetting the potential for more purchasing power.  But lift pathways may not
-  always be a win-win.  Some parties may lack sufficiently strong or numerous
-  pathways to complete all the lifts they need.  In this case, they may need to
-  provide further incentive to trading partners to complete their lifts.
+  resetting the potential for more purchasing power.  But such "win-win" lift 
+  pathways may not always be available.  Some parties may lack sufficiently 
+  strong or numerous pathways to complete all the lifts they need.  In this 
+  case, they may need to provide further incentive to trading partners to 
+  complete their lifts.
   
-  So in addition to quantifying the trades we want to do, we also need to be
-  able to quantify trades we are willing to do, for a price.  For example, we
+  So in addition to quantifying the trades we "want" to do, we also need to be
+  able to quantify trades we are "willing" to do, for a price.  For example, we
   might be willing to exceed normal risk limits for sufficiently high rewards.
-  We might even be willing to conduct extra traffic in the normal 'down-hill' 
+  We might even be willing to conduct extra traffic in the normal 'downhill'
   direction if we can make a little profit doing so, and we think we can later
   lift ourselves back out of the resulting transaction, using our own set of 
   trading relationships.
   
 Understanding these examples, we will now explain the fixed credit terms.  By
-"fixed, we mean those terms both creditor and debtor can depend on.  This is
-accomplished by incorporating them into the tally and digitally signing the
-tally to make it a binding contract.
+"fixed," we mean those terms both creditor and debtor can contractually depend 
+on.  This is accomplished by incorporating them into the tally and digitally 
+signing the tally to make it a binding contract.
 
-Also remember, the "Foilee Credit Terms" are those conditions Stockee offers to 
-Foilee.  In other words, the terms of Foilee's credit, or the terms by which
-Foilee may incur debt to Stockee.
+Also remember, for our terminology, the "Client Credit Terms" are those 
+conditions Vendor offers to Client.  In other words, the terms of Client's 
+credit, or the terms by which Client may incur debt payable to Vendor.
 
 Credit Terms Tally Variables:
   - Maximum Balance:
-    This indicates the most the debtor can count on borrowing by transactions 
-    he initiates, or his agent server may initiate in the course of lifts.
-    It may be expressed as a single number, or as an expression, which is a
-    function of time.  Expressions may be used to amortize a loan, or to
-    cause principal to be paid down over time.
+    This indicates the most the debtor can count on borrowing against products
+    or services he obtains from the creditor.  It may be expressed as a single 
+    number, or as an expression, which is a function of time.  Expressions may 
+    be used to amortize a loan, or to cause principal to be paid down over 
+    time.
     
   - Maximum Paydown:
-    This represents the maximum amount the debtor can pay down principle in
+    This represents the maximum amount the debtor can pay down principal in
     advance of otherwise prevailing requirements, and have his interest 
     calculations reduced accordingly.  This can be used to create a minimum 
     interest return for a lender, while still allowing the borrower to store 
     value in the loan balance.
 
-  - Interest Interval:
-    The amount of time that passes before interest is calculated and applied
-    to a balance.  This may also define when payments are due.  For example, if
-    the application of interest raises a balance above the Maximum Balance, 
-    some kind of lifting will have to occur to correct this.  This value may be
-    specified as a number, of days, weeks, months, or years.
+  - Compound Interval:
+    The amount of time that passes before interest (or dividend, if you prefer) 
+    is calculated and applied to a balance.  This may also define when payments 
+    are due.  For example, if the application of such a charge raises a balance 
+    above the Maximum Balance, some kind of lifting will have to occur to 
+    correct this.  This value may be specified as a number, of days, weeks, 
+    months, or years.
 
   - Grace Period:
-    New amounts of indebtedness will not accrue interest until this amount of
-    time has passed.
+    New amounts of indebtedness will not accrue interest/dividend charges until 
+    this amount of time has passed.
 
-  - Interest Rate:
+  - Rate:
     An annualized rate expressed as a positive floating point number.  For 
     example, 0.05 means 5% per annum.  This number will be scaled to match the 
-    Interest Interval in order to compute the interest to be applied during 
-    that an interval.
+    Compound Interval in order to compute the interest/dividend charges to be 
+    applied during that an interval.
 
   - Call Notice:
-    The amount of notice required to be given by Stockee to Foilee in
-    order to call all principal and accrued interest due and payable (i.e. to
-    cancel further credit authorization).  If not present, the debtor has no
-    obligation to reduce principle any faster than is indicated by the 
-    Minimum Payment.  The Call Notice is triggered by affixing a signed Call
-    to the tally.  The debt must be extinguished within the specified number of
-    days after the date of the Call.  For a fully amortizing debt, a creditor 
-    would register an immediate call, with the number of notice days set to the 
-    term of the amortization.
+    The amount of notice required to be given by Vendor to Client in order to 
+    call all principal and accrued charges due and payable (i.e. to cancel 
+    further credit authorization).  If not present, the debtor has no 
+    obligation to reduce principal any faster than is indicated by the Minimum 
+    Payment.  The Call Notice is triggered by affixing a signed Call to the 
+    tally.  The debt must be extinguished within the specified number of days 
+    after the date of the Call.  For a fully amortizing debt, a creditor would 
+    register an immediate call, with the number of notice days set to the term 
+    of the amortization.
 
   - Minimum Payment:
     An amount, or a formula for the smallest amount that may be paid at each
-    Interest Interval.
+    Compound Interval.
 
 Credit Terms Examples:
   Casual Peer to Peer, no interest, cancelation with notice:
     - Maximum Balance: 100
     - Call Notice: 30
 
-  Customer to merchant (coupons):
+  Customer (Client) to merchant (Vendor) (coupons):
     - Maximum Balance: 0
 
-  Merchant to customer, debit account:
+  Merchant (Vendor) to customer (Client), debit account:
     - Maximum Balance: 0
 
   Credit card requiring full payment every month:
     - Maximum Balance: 200
     - Minimum Payment: Bal
     - Grace Period: 1 month
-    - Interest Interval: 1 month
-    - Interest Rate: 0.10
+    - Compound Interval: 1 month
+    - Rate: 0.10
 
   Credit card requiring full payment over 4 months:
     - Maximum Balance: 300
     - Grace Period: 30
     - Minimum Payment: Min(10, Bal / 4)
     - Payment Interval: 30
-    - Interest Rate: 0.10
+    - Rate: 0.10
 
   20 year fully amortizing laon with fixed payment, limited early payoff:
     - Maximum Balance: Amort(10000, 240)
     - Minimum Payment: Int
     - Maximum Paydown: 1000
     - Payment Interval: month
-    - Interest Rate: 0.06
+    - Rate: 0.06
     - Call Notice: 20 year (register call upon closing)
 
   Business line, pay weekly interest, can be called with 60 day notice:
     - Maximum Balance: 10000
-    - Interest Interval: week
-    - Interest Rate: 0.08
+    - Compound Interval: week
+    - Rate: 0.08
     - Call Notice: 60
 
   90 Day personal loan, fixed term, balloon payoff
-    - Interest Rate: 0.12
+    - Rate: 0.12
     - Call Notice: 90 day (register upon closing)
 
-Trading Variables:
-In addition to the parameters agreed to by both parties in the tally, there are
-variables that can be changed at the pleasure of either party at any time.
+The credit terms explained above do not typically place hard limitations on the
+transactions users may manually initiate.  For example, a credit limit, does
+not prevent one peer from unilaterally sending value (chits) to the other
+party, even if that would push a total past a credit limit.
 
-Stockee's Trading Varibles:
-  - Balance Target (Foilee->Stockee):
-    Amount of Foilee's credits Stockee wishes to accumulate.  A positive amount 
-    may mean delaying, or avoiding credit lifts since this is in the normal 
-    direction of capital flow.  This can exceed the Foilee's credit limit in
-    the tally, but the Foilee is not obligated to further transactions that
-    might incur this degree of debt.  A positive amount here constitutes value
-    savings by the Stockee in the currency of the Foilee--something he must 
-    accept in payment.
+For example, even though I might only trust you with credit for $100, that 
+wouldn't prevent you from writing a check to me for $1000.  And I might well
+accept that extra large check.  I may just decline to give you product or
+services in exchange for it--at least until I had funged it into a form of
+value I was more comfortable with.
+
+
+Trading Variables:
+Lifts are largely executed autonomously, or without direct user interaction.  
+So the system needs a strict set of rules to know how the user wants this done.
+
+In the absense of any more specific direction, the system could simply
+examine any credit imbalances and lift them back to zero.  While this would
+technically work, it doesn't give the user much flexibility in how and where he 
+may choose to accumulate value (i.e. save money).
+
+So in addition to the contract parameters signed by both parties in the tally, 
+there are parameters that can be set or changed at the pleasure of either party 
+at any time.  These are also digitally signed, but only by the one party.
+
+Vendor's (Stock) Trading Varibles:
+
   - Lift Margin:
-    This number specifies the Stockee's willingness to conduct lifts along this
-    segment of the network.  The number 0 is neutral.  A positive number
-    indicates a cost, or disinsentive to trade.  For example, 0.02 would 
-    indicate a willingness to give only 98 units of value up this segment in 
-    exchange for a full 100 units coming up on some other channel whose margin 
-    is set at 0.  A margin of -0.02 specifies a 2% incentive to lift through 
-    the segment as 102 units would be given up in exchange for only 100 units 
-    coming up from a neutrally priced segment.
-  - Drop Margin:
-    This indicates a willingness to conduct lifts in the opposite direction of
-    normal.  A number of 1 or greater will effectively block any such traffic.
-    But a positive number such as 0.10 will allow such a lift, but at a cost
-    of 10% of the transaction.
-  - Debit Limit:
-    This can override settings in the tally to allow higher indebtedness of
-    Foilee to Stockee (normally as a part of a reverse lift).
-  - Credit Limit:
-    This can override settings in the tally to allow higher indebtedness of
-    Stockee to Foilee, normally as a part of a lift.
+    This number specifies the Vendor's willingness to conduct lifts through 
+    this Stock.  The number 0 is neutral, meaning zero cost.  A positive number
+    indicates a cost, or disinsentive to trade and is illegal in this context.
+    Rather, the throttle control of lifts is primarily in the hands of the 
+    Foil.  However, the Stock can offer an incentive to trade by entering a 
+    negative number.  A margin of -0.02 creates a 2% bonus incentive to lift 
+    through the Stock as 102 units would be given up in exchange for only 100 
+    units coming up from a linked Foil.
     
-Foilee's Trading Varibles:
-  - Balance Target (Stockee->Foilee):
-    Amount of Stockee's credits Foilee wishes to accumulate.  A positive amount
-    of accumulation is normally accomplished through credit lifts, as this is
-    in the opposite direction of normal credit flow.  This can exceed the 
-    Stockee's credit limit in the tally, but the Stockee is under no obligation
-    to incur this degree of debt.  A positive amount here constitutes value
-    savings by the Foilee in the currency of the Stockee--something he must 
-    accept in payment.
-  - Lift Margin:
-    This similarly indicates Foilee's willingness to conducts lifts along the
-    segment.  A positive percentage indicates a cost to lift through the
-    segment and a negative percentage indicates an incentive, or reward.
   - Drop Margin:
-    Works the same as Stockee's drop margin.
+    This indicates a willingness to conduct drops, or lifts in the opposite 
+    direction of normal (downhill) through this Stock.  All drops are free 
+    until the target balance (default 0) is reached.  Any amounts beyond that 
+    are subject to a cost at the specified rate.
+
+  - Balance Target (Client -> Vendor):
+    The amount of Client's credits Vendor wishes to accumulate or maintain.
+    This is like collecting your payroll checks without cashing them for a 
+    while.  Any requested drops are free until this threshhold is met.  After
+    that any costs (or incentives) specified in the drop margin aply.  If not
+    specified, this defaults to zero.
+
+  - Debit Limit: Not Applicable for Vendor/Stock
+  
+  - Credit Limit: (Client's credit with Vendor)
+    This can override the cr_limit setting in the tally, for the purpose of
+    lifts, to allow higher indebtedness of Client to Vendor as a result of 
+    result of a drop.  This is like allowing your Boss to give you additional 
+    IOU's as opposed to paying you right away for your work.  No drops will be 
+    allowed in excess of this amount.  It defaults to the cr_limit specified in 
+    the tally.
+
+Client's Trading Varibles:
+
+  - Lift Margin:
+    This indicates Client's willingness to conducts lifts through this Foil.
+    All lifts are free up to a balance of zero (or a higher specified target
+    setting).  Amounts beyond that target are subject to a cost at the
+    specified rate.
+
+  - Drop Margin:
+    This specifies the Client's willingness to conduct drops through this Foil.
+    A positive number, or disinsentive to trade is illegal in this context.
+    Rather, throttle control of drops is primarily in the hands of the Stock.
+    However, the Foil can offer an incentive to trade by entering a negative
+    number here.
+
+  - Balance Target (Vendor -> Client):
+    The amount of Vendor's credits Client wishes to accumulate.  A positive 
+    amount of accumulation is normally accomplished through credit lifts, as 
+    this is in the opposite direction of normal credit flow.  This can exceed
+    (override) the Vendor's credit limit in the tally, for the purpose of 
+    lifts.  A positive amount here constitutes value savings by the Client in 
+    the currency of the Vendor--something he must accept in payment.
+
   - Debit Limit:
-    This can override settings in the tally to allow higher indebtedness of
-    Stockee to Foilee, normally as a part of a lift.
-  - Credit Limit:
-    This can override settings in the tally to allow higher indebtedness of
-    Foilee to Stockee (normally as a part of a reverse lift).
+    This can override the dr_limit setting in the tally to allow higher 
+    indebtedness of Vendor to Client, normally as a part of a lift.  No lifts
+    should be performed in excess of this amount.
+
+  - Credit Limit: Not Applicable for Client/Foil
 
 Invoicing:
 -------------------------------------------------------------------------------
-An invoice is:
- - A request for payment from one party to another
- - Between parties who may, or may not, share a tally
-  
-Maybe invoices should never be passed from site to site
-Maybe they should instead be transmitted independently, like through email
-A site should not have to answer a request from an unknown site
-Rather, a query should contain a secret token to indicate, it is invited
+An invoice is a request for payment from one party to another.  When the 
+parties share a tally, the invoice takes the form of a draft chit applied to 
+the tally.  The parties can negotiate over it until it is agreeable.  Once
+signed by the remitter, it becomes a binding part of the tally.
 
-Normal Consumer Transaction:
+If an invoice is to be sent to a party who does not share a direct tally, it
+should be sent independently, off the CHIP network (such as via mail, email,
+QR code, etc.).  Payment for this will be accomplished via a linear lift.  So
+the invoice should include:
+
+  - The name of the system that hosts the recipient's CHIP account
+  - Connection socket for the recipient's host system
+  - An ID (possibly hashed) of the user who will be receiving payment
+  - A list of routing hints (downstream host systems who may be well known)
+  - The amount due
+  - A reference field (order or merchandise number, for example)
+
+The payor system will attempt to generate a route to the recipient.  If
+successful, a linear lift can be initiated to complete the payment.
+
+Normal Consumer Transaction: (payment without a tally)
 -------------------------------------------------------------------------------
- - The vendor displays a ticket, normally as a 2D bar graph, consisting of
-   - A token string:
-     - Is set in the vendor's server to expire after a finite time
-     - Is known in the vendor's server to allow certain kinds of access
-   - The vendor's MyCHIPs ID
-   - The vendor's MyCHIP certificate (ChipCert), containing
-     - Vendor's public key
-     - Vendor's uniquely identifying information
-       - Name
-       - Address
-       - Email
-       - Town
-       - Province
-       - Country
-       - Jurisdiction
-       - Tax ID (at creditor's option)
+- The vendor displays a generic invoice QR code as described above
+  - This can be custom generated for the transaction; or
+  - It can be generic (a printed decal with no amount or reference field)
+- The customer scans the invoice into his MyCHIPs app.
+- In the case of a custom generated invoice, the app will automatically
+  determine a route to the payee if possible.  If multiple routes are 
+  discovered, the user will confirm the one he wants.
+- If the invoice is generic, the app may prompt for a reference number (if
+  the invoice was configured for such).  In the case of retail, for example,
+  the merchant would supply a short sequence of digits verbally to be entered.
+  This will allow the merchant to trace this payment to the specific register,
+  transaction, etc.  The transaction then proceeds.
+- The app initiates a linear lift to the recipient's system.  When the user
+  signs the transaction, the lift is completed.
+  
+Consumer Account Setup: (establishing a private tally)
+-------------------------------------------------------------------------------
+- The Vendor displays a ticket QR code, consisting of
+  - The name of the system that hosts the recipient's CHIP account
+  - Connection socket for the recipient's host system
+  - A connection authorization token:
+    - May be configured to expire after a one-time use
+    - May be configured for multiple use by multiple parties (printed decal)
+  - The Vendor's host's public key
+  - The vendor's MyCHIP ID
+  - The vendor's MyCHIP certificate (ChipCert), containing
+    - Vendor's public key
+    - Vendor's uniquely identifying information
+      - Name
+      - Address
+      - Email
+      - Town
+      - Province
+      - Country
+      - Jurisdiction
+      - Tax ID (at creditor's option)
 
- - The customer scans the ticket
- - The customer's user agent contacts his server, via the secure back door,
- - And connects to the vendor's server, using the token as authorization
- - The vendor's information is registered in the customer's database
+- The customer scans the ticket using his app
+- The customer's host contacts the Vendor's host system at the specified port
+  and presents the connection token.  The system must prove itself via the
+  system's public key supplied in the ticket.
+- The two systems exchange/update account information for the two users
+- Depending on how the token was configured, the Vendor's system may proceed
+  automatically to offer a tally on its preferred terms.
+- The user will be given the opportunity to accept/modify/reject the tally.
+- Some human user (or authorized bot) on the Vendor's end will also have to
+  sign the tally with a private key that matches the public key in the
+  certificate that is part of the ticket.
 
- - The customer can request a tally:
-   - The tally would be a zero stock
-   - It would allow the customer to collect vendor CHIPs, if desired
+Once the tally is established, the customer can set parameters on the tally to
+collect Vendor credits, if so desired.  Once collected, those credits can be
+spent.
 
- - The customer can request pathway information, to evaluate a possible lift
-   - What common ID's to you know downstream pathways to?
-
- - The customer can initiate lift inquiries
-   - Request <amount> CHIP lift to ID<z>, via ID<y>, ID<x>, ..., expiring in <t>
-   - Request committed pledge pathway
+If credit has been extended to the customer as part of the tally, the customer
+can begin to buy things using the tally as payment, within the specified credit
+terms.
 
 Site Definition:
 -------------------------------------------------------------------------------
@@ -339,8 +430,10 @@ A site is:
  - A collection of algorithms and settings
  - A representation of the interests of an individual or corporation
  - A server to process requests from other peer sites
- - A client to make requests from other peer sites
+ - A Client to make requests from other peer sites
  - An interface to negotiate approvals with the owner user
  - An interface to process actions initiated by the owner user
  - A data repository
  - A platform for trading credits
+
+-------------------------------------------------------------------------------

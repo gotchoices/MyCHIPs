@@ -2,14 +2,16 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 # Routes indicate a possible lift pathway which exists outside our known set of
-# tallies.  We will always obtain route data by querying adjacent peer servers.
-# There are two kinds of route records:
+# tallies.  We obtain route data by querying adjacent peer servers.
+# There are three basic kinds of route records:
 # Native: This links two foreign peers, both known to our data set and also
-#   linked by an internal pathway found in tallies_v_paths.  This implies, it
-#   would complete a partial circuit we already know about.
+#   linked by an internal pathway found in tallies_v_paths.  This implies it
+#   completes a partial circuit (segment) we already know about.
 # Relay: This is not for our own benefit but rather a result of a downstream
 #   peer having asked us about it.  The route leads from one known foreign peer
 #   to an unknown peer, hopefully to be found somewhere upstream.
+# Linear: Links a local user to an unknown upstream peer
+# 
 # 
 #TODO:
 #X- Track if path consists of only inside, user members
@@ -17,6 +19,7 @@
 #X- Pull minimum lift size from system parameters
 #- Add validity check for routes.status
 #- Test/debug route query retries
+#- Handle special case where head and tail of segment are the same foreign peer (automatically good)
 #- 
 #- Only process lifts that have a cost factor 1 or better
 #- Allow reverse lifts by examining foil tallies with reverse margins enabled
@@ -45,7 +48,6 @@ namespace eval paths {
 module mychips
 
 other uuid {} {create extension "uuid-ossp"} {drop extension if exists "uuid-ossp"}
-#other pgcrypto {} {create extension "pgcrypto"} {drop extension if exists "pgcrypto"}
 
 # Stores info about external pathways discovered from foreign servers
 #----------------------------------------------------------------
@@ -76,8 +78,8 @@ table mychips.route_tries {mychips.routes} {
 # Recursive view of tallies to show pathways native to our system
 #----------------------------------------------------------------
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift_max(bigint,bigint,bigint,bigint)} {
-  with recursive tally_path(first, last, length, path, guids, cycle, circuit, cost, min, max, inside, corein, fora, forz) as (
-    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 1.00::float, null::bigint, null::bigint, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull
+  with recursive tally_path(first, last, length, path, guids, cycle, circuit, margin, min, max, inside, corein, fora, forz) as (
+    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 0::float, null::bigint, null::bigint, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull
     from	mychips.users_v p
     where	not p.peer_ent isnull
   union all
@@ -88,7 +90,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift
       , tp.guids || t.guid				as guids
       , t.stock_ent = any(tp.path)			as cycle
       , tp.path[1] = t.stock_ent			as circuit
-      , tp.cost * (1 + t.margin)			as cost
+      , tp.margin + t.lift_marg * (1 - tp.margin)	as margin
       , least(tp.min, mychips.lift_max(
           t.units, t.target, t.cr_max, t.dr_max
         ))						as min
@@ -104,7 +106,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
   ) select tpr.first, tpr.last
     , tpr.length, tpr.path, tpr.guids
-    , tpr.circuit, tpr.cost, tpr.min, tpr.max
+    , tpr.circuit, tpr.margin, tpr.min, tpr.max
     , tpr.length * tpr.min as bang
     , tpr.inside, tpr.corein, tpr.fora, tpr.forz
   from tally_path tpr where tpr.length > 1
@@ -298,6 +300,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , qe.peer_sock	as requ_sock
   , qe.peer_endp	as requ_endp
   , qe.std_name		as requ_name
+  , not qe.user_ent isnull	as requ_user
 
   , not qe.user_ent isnull			as native
   , ro.dest_chid || '@' || ro.dest_host		as dest_chad
@@ -305,8 +308,8 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , rt.tries		as tries
   , rt.last		as last
   , mychips.route_state(status
-    , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()
-    , coalesce(rt.tries,0) >= base.parm('routes','tries',4)
+    , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()	-- Expired
+    , coalesce(rt.tries,0) >= base.parm('routes','tries',4)				-- Max tries
   )			as state
   , jsonb_build_object(				-- Packet we will transmit upstream
        'from'	,	re.peer_cid
@@ -331,7 +334,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
     join	mychips.peers_v	re on re.peer_ent = ro.route_ent	-- start of route
     join	mychips.users_v	te on te.peer_ent = ro.topu_ent		-- top local user in chain
     join	mychips.users_v	be on be.peer_ent = ro.botu_ent		-- bottom local user in chain
-    join	mychips.users_v	qe on qe.peer_ent = ro.requ_ent		-- downstream foreign peer
+    join	mychips.users_v	qe on qe.peer_ent = ro.requ_ent		-- requesting user or downstream foreign peer
     left join	mychips.users_v	de on de.peer_ent = ro.dest_ent		-- destination
     left join	mychips.route_tries rt on rt.rtry_ent = ro.route_ent and rt.rtry_chid = ro.dest_chid and rtry_host = ro.dest_host
 }
@@ -384,7 +387,7 @@ function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.
     end;
 $$;}
 
-# Generate notifications about updated tallies for listening peer servers
+# Generate notifications about updated routes for listening peer servers
 #----------------------------------------------------------------
 function mychips.routes_tf_notify() {mychips.route_notify(mychips.routes)} {
   returns trigger language plpgsql security definer as $$
@@ -479,9 +482,11 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
         end if;
 
         if not route_r.route_ent isnull and recipe ? 'update' then
-          qstrg = mychips.state_updater(recipe, 'mychips.routes', '{status}', '{}');
+          qstrg = mychips.state_updater(recipe, 'mychips.routes', '{status}', '{"good_date = current_timestamp"}');
           execute qstrg || ' route_ent = $1 and dest_chid = $2 and dest_host = $3' using route_r.route_ent, route_r.dest_chid, route_r.dest_host;
-          delete from mychips.route_tries where rtry_ent = route_r.route_ent and rtry_chid = route_r.dest_chid and rtry_host = route_r.dest_host;
+          if recipe->'update'->>'status' in ('good','none') then		-- Resolution found, delete retry counter
+            delete from mychips.route_tries where rtry_ent = route_r.route_ent and rtry_chid = route_r.dest_chid and rtry_host = route_r.dest_host;
+          end if;
         end if;
 
       select into route_r route_ent,state from mychips.routes_v where route_ent = route_r.route_ent and dest_chid = route_r.dest_chid and dest_host = route_r.dest_host;

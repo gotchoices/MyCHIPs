@@ -10,14 +10,52 @@ X- Change actionLaunch editCB to a bi-directional messageBus
 X- Can send messages to a report window
 X- Report (strdoc) optionaly clears, loads when dbe changes data
 X- Large document makes window and parents blurry (only in Chrome)
-- Input my basic documents
-- Better spacing after section number
-- How do I include/reference other documents?
-- Make basic tally contract
+X- Input some basic documents
+X- Better spacing after section number
+X- How do I include/reference other documents (and show hyperlinks)?
+X- Make basic tally contract
+- 
+- Solve hacked admin dilemma
+- Retool tallies.wms so tally_sets is an archive table only (real fields cached in tally)
+- Signed tally (JSON) is a subset of full tally fields
+- 
+- Tallies/paths:
+- Which parameters are signed in the tally, which can be changed later?
+- Need tally_mod table?
+- How do we go from JSON sequential tally ledger to SQL, and back?
+- Consider all tally parameters when computing min/max on segment
+- Generate min/max/cost in mychips.routes
+- Compute min/max/cost in mychips.routes_v_lifts
+- Allow user to generate path request to unknown user
+- Can differentiate between user-generated path requests and auto-generated
+- Stored procedure to check for needed retries (routes, tallies, chits)
+- When to call these checkup functions?
+- 
+- Lifts:
+- Phase 1 working: discover min/max/cost for competing pathways
+- Phase 1 works for circular lifts
+- Phase 1 works for linear lifts
+- 
+- Phase 2:
+- Expand chit state diagram to handle phases 2 and 3
+- Commit conditional chits on segment, and propagate request
+- Implement new state transitions
+- 
+- Phase 3:
+- Propage signatures back through lift chain
+- Each segment does its own atomic commit
+- 
+- 
+- Structured Documents:
+- Build parameterized, local hyperlink from formal URL
+- Export defaults to reasonable filename
+- Contract json import works properly
+- Files in contract folder are Real strdoc json format
+- Bulk export action from dbp?
 - Generate a digest on publish
 - Lock the document on publish
-- When/how do people verify the hash
-- Implement express server for all contracts in the database
+- When/how do people verify the hash?
+- Integrate document server with SPA server? (or have separate static folder)
 - 
 - 
 - 

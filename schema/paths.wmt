@@ -7,7 +7,7 @@ tabtext mychips.routes	{Foreign Routes}	{Information collected from foreign serv
     {dest_ent		{Destination Entity}	{The local ID, if one exists, of the foreign entity this pathway leads to}}
     {topu_ent		{Top User}		{The local ID of the user on our system who shares a tally with the foreign peer who is the begginning of this route}}
     {botu_ent		{Bottom user}		{The local ID of the user on our system who was requested from downstream as the beginning of the route}}
-    {requ_ent		{Requester}		{The local ID of the foreign entity through whom the request originated, and whose connection socket we will use to return query answers}}
+    {requ_ent		{Requester}		{The local ID of the entity through whom the request originated, and whose connection socket we will use to return query answers if a downstream response is required}}
     {status		{Status} 		{Indicates whether this route is useable or if not, what progress is being made to discover such a route} {
         {draft		{Draft}			{The route has been hypothesized but no current requests have yet been made}}
         {pend		{Pending}		{A request has been made upstream to discover this route}}

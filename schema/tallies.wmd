@@ -23,7 +23,9 @@ tabdef mychips.tallies -fields [concat {
     {dr_limit		ent	12	{0 10}		}
     {cr_limit		ent	12	{1 10}		}
     {units		ent	16	{2 10}		}
-} $glob::stampd]
+} $glob::stampd] -display {
+  tally_ent tally_seq tally_type status partner tally_date tally_guid dr_limit cr_limit lift_marg bal_target
+}
 
 # A view with some additional pseudo fields
 tabdef mychips.tallies_v -fields {
@@ -34,7 +36,7 @@ tabdef mychips.tallies_v -fields {
     {part_sock		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
     {part_name		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
 } -display {
-  tally_ent tally_seq tally_type partner part_name dr_limit cr_limit contract
+  tally_ent tally_seq tally_type status partner part_name lift_marg dr_limit cr_limit bal_target
 }
 
 # User view

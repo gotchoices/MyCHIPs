@@ -8,15 +8,16 @@
 #- Include serv_id in tally_v to reduce queries in notice triggers?
 #- Add constraints to assure things like contract and signatures are valid?
 #- Make request tags mirror states better (more like in chits.wms)
+#- Harden views; Can only update unsigned, working tally
 #- 
 module mychips
 require config.tcl trigview.tcl
 
 namespace eval tallies {
-    def tallies_pk	{tally_ent tally_seq}
-    def tallies_v_up	{request comment cr_limit dr_limit}
-    def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
-    def tallies_se	[concat tally_ent tally_seq $tallies_v_up tally_guid tally_type version partner contract $glob::stampfn tally_date status units_c]
+#    def tallies_pk	{tally_ent tally_seq}
+#    def tallies_v_up	{request comment}
+#    def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target lift_marg drop_marg lift_max drop_max status units_c cr_limit dr_limit $glob::stampfn]
 }
 
 table mychips.tallies {mychips mychips.users mychips.peers} {
@@ -32,24 +33,41 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , status	text		not null default 'void' check(status in ('void','draft','open','close'))
   , request	text		check(request is null or request in ('void','draft','open','close'))
   , comment	text
-  , user_sig	text
+  , user_sig	text		
   , part_sig	text
-  , contract	jsonb		-- not null
-  , stock_terms	jsonb
-  , foil_terms	jsonb
-  , bal_target	bigint		not null default 0
-  , lift_marg	float		not null default 0 constraint "!mychips.tallies.LMG" check (lift_marg > -1 and lift_marg < 1)
-  , drop_marg	float		not null default 1 constraint "!mychips.tallies.DMG" check (drop_marg >= 0 and drop_marg <= 1)
-  , dr_limit	bigint		not null default 0
-  , cr_limit	bigint		not null default 0
+  , contract	jsonb		-- not null Fixme:add back in later?
+
+  , stock_terms	jsonb					-- Terms client grants to vendor (stock)
+  , dr_limit	bigint		not null default 0	-- A stock term
+
+  , foil_terms	jsonb					-- Terms vendor grants to client (foil)
+  , cr_limit	bigint		not null default 0	-- A foil term
+
+  , target	bigint		not null default 0	-- Lift settings
+  , lift_marg	float		not null default 0 constraint "!mychips.tallies.LMG" check (lift_marg >= -1 and lift_marg <= 1)
+  , drop_marg	float		not null default 1 constraint "!mychips.tallies.DMG" check (drop_marg >=  0 and drop_marg <= 1)
+  , lift_max	bigint		not null default 0
+  , drop_max	bigint		not null default 0
+
   , units_c	bigint		default 0 not null
   , _last_chit	int		not null default 0
   , _last_conf	int		not null default 0
+  , _last_tset	int		not null default 0
     eval(s $glob::stamps)
 }
 index {} mychips.tallies tally_guid
 index {} mychips.tallies tally_type
 index {} mychips.tallies tally_date
+
+table mychips.tally_sets {mychips.tallies} {
+    tset_ent	text
+  , tset_seq	int	      , foreign key (tset_ent, tset_seq) references mychips.tallies on update cascade on delete cascade
+  , tset_idx	int	      , primary key (tset_ent, tset_seq, tset_idx)
+  , tset_date	timestamptz	not null default current_timestamp
+  , settings	jsonb		not null
+  , signature	text		not null
+}
+index {} mychips.tally_sets tset_date
 
 table mychips.confirms {mychips.tallies} {
     conf_ent	text
@@ -82,13 +100,31 @@ function mychips.tallies_tf_seq() {mychips.users} {
           if not found then new.tally_seq = 1; end if;
 -- select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent; -- Not safe for concurrent sessions
         end if;
---        if new._last_chit is null then new._last_chit = 0; end if;	-- Use this, not default in table to avoid multiview trying to write this field
---        if new._last_conf is null then new._last_conf = 0; end if;
         return new;
     end;
 $$;}
 trigger mychips_tallies_tr_seq {} {
     before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
+}
+
+# Generate unique sequence for new tally setting
+#----------------------------------------------------------------
+function mychips.tally_sets_tf_seq() {mychips.tally_sets} {
+  returns trigger language plpgsql security definer as $$
+    begin
+        if new.tset_idx is null then
+          update mychips.tallies set _last_tset = greatest(
+              coalesce(_last_tset,0) + 1,
+              (select coalesce(max(tset_idx),0)+1 from mychips.tally_sets where tset_ent = new.tset_ent and tset_seq = new.tset_seq)
+            ) where tally_ent = new.tset_ent and tally_seq = new.tset_seq
+              returning _last_tset into new.tset_idx;
+          if not found then new.tset_idx = 1; end if;
+        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_sets_tr_seq {} {
+    before insert on mychips.tally_sets for each row execute procedure mychips.tally_sets_tf_seq();
 }
 
 # Generate unique sequence for new confirmation
@@ -103,7 +139,6 @@ function mychips.confirms_tf_seq() {mychips.confirms} {
             ) where tally_ent = new.conf_ent and tally_seq = new.conf_seq
               returning _last_conf into new.conf_idx;
           if not found then new.conf_idx = 1; end if;
--- select into new.conf_idx coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq; -- Not safe for concurrent sessions
         end if;
         return new;
     end;
@@ -111,6 +146,32 @@ $$;}
 trigger mychips_confirms_tr_seq {} {
     before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
 }
+
+# Assert new trading parameters for a specified tally
+#----------------------------------------------------------------
+function {mychips.tally_set(ent text, seq int, sets jsonb)} {mychips.tally_sets} {
+  returns timestamptz language plpgsql security definer as $$
+    declare
+      lrec	record;		-- Looping variable
+      qflds	text[];
+      qstrg	text;
+    begin
+      for lrec in select * from jsonb_each_text(sets) loop
+        if lrec.key = any('{target,lift_marg,drop_marg,lift_max,drop_max}') then
+          qflds = qflds || (quote_ident(lrec.key) || ' = ' || lrec.value::text);
+        end if;
+raise notice 'Tally set % = %', lrec.key, lrec.value;
+      end loop;
+--raise notice '  qflds: %', array_to_string(qflds,', ');
+      qstrg = 'update mychips.tallies set ' || array_to_string(qflds, ', ') || ' where tally_ent = $1 and tally_seq = $2';
+raise notice '  qstrg: %', qstrg;
+      execute qstrg using ent, seq;
+
+--Fixme: how/where to get real signature?
+      insert into mychips.tally_sets (tset_ent,tset_seq,settings,signature) values (ent, seq, sets, 'Sig');
+      return current_timestamp;
+    end;
+$$;}
 
 # Notify the peer server process of tally state changes, and next state request, that needs attention in the database
 #----------------------------------------------------------------
@@ -224,6 +285,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , pe.peer_sock	as part_sock
   , pe.std_name		as part_name
   , te.part_sig
+  
   , not pe.user_ent is null						as inside
   , mychips.tally_state(status,request,user_sig,part_sig,units_c)	as state
   , mychips.tally_state(status,request,user_sig,part_sig,units_c) = any(array['peerProffer','closing']) as action
@@ -252,10 +314,12 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
     left join	(
       select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where mychips.chit_open(request, signature)
       group by 1,2
-    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
+    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
+    ;
 
-    eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
-    eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
+--Probably don't want/need these:
+--    ev#al(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
+--    ev#al(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
 }
 
 # User view of tallies
@@ -373,17 +437,21 @@ view mychips.tallies_v_net {mychips.tallies} {select
   , coalesce(tf.tally_ent,ts.partner)		as foil_ent
   , ts.tally_ent				as stock_user
   , tf.tally_ent				as foil_user
-  , ts.cr_limit					as stock_crl
   , ts.dr_limit					as stock_drl
-  , ts.bal_target				as stock_tgt
-  , tf.cr_limit					as foil_crl
+  , ts.cr_limit					as stock_crl
+--  , ts.bal_target				as stock_tgt
   , tf.dr_limit					as foil_drl
-  , tf.bal_target				as foil_tgt
-  , greatest(ts.cr_limit, tf.cr_limit)		as cr_max
+  , tf.cr_limit					as foil_crl
+--  , tf.bal_target				as foil_tgt
   , greatest(ts.dr_limit, tf.dr_limit)		as dr_max
-  , least(ts.bal_target, tf.bal_target)		as target
+  , greatest(ts.cr_limit, tf.cr_limit)		as cr_max
+--  , coalesce(ts.lift_marg,0) + coalesce(tf.lift_marg,0)		as lift_marg
+, 1 as lift_marg
+--  , coalesce(ts.drop_marg,0) + coalesce(tf.drop_marg,0)		as drop_marg
+, 1 as drop_marg
+--  , least(ts.bal_target, tf.bal_target)		as target
+, 0 as target
   , coalesce(ts.units_c, tf.units_c)		as units
-  , greatest(ts.lift_marg, tf.lift_marg)	as margin
   
   from			(select * from mychips.tallies where tally_type = 'stock') ts
   full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_guid = ts.tally_guid

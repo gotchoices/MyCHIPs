@@ -111,8 +111,8 @@ it is money to the recipient and debt to the issuer.  It just needs a final
 signature.
 
 In the final phase, we want to lock down each conditional credit and make it
-real, official and binding.  This is where the 2 generals dilemma would bite us
-if we were insisting on a fully transactional commit.  It is possible for
+real, official and binding.  This is where the 2 generals dilemma would hurt us
+if we were dependent on a fully transactional commit.  It would be possible for
 someone to conditionally commit in the prior phase, but then fail to cooperate
 in the final commitment phase.
 
@@ -134,10 +134,10 @@ The deadbeat's partner on the downstream side has the opposite effect.  He got
 the credits he wanted in the lift, but doesn't have to give anything up until
 the deadbeat gets back online and completes the transaction.
 
-The deadbeat has the further problem that he has burned his bridges to the
-network of trust.  The two entities who know and trust him, now know he is up
-to no good.  No further traffic can be performed by this entity--at least
-through the peers he has just disappointed.
+The deadbeat has the further problem that he has burned his bridges to the 
+network of trust.  The two entities who know and trust him, now know he is either
+up to no good or at least, unreliable.  No further traffic can be performed by 
+this entity--at least through the peers he has just disappointed.
 
 So the challenge in implementing the distributed lift function is this:  During
 the conditional commit phase, the peers need to negotiate a chain of signatures
@@ -154,9 +154,17 @@ conceivably be orchestrated between two corrupt nodes on the network, working
 together and using a modified version of the server.
 
 However, they can only do damage if the lift will run them into credit 
-territory (i.e. a negative balance) with the party they are attemping
-to burn.  That credit relationship won't last for long, and is a risk the
-issuer of credit knowingly signed up for.
+territory (i.e. a negative balance) with the party they are attemping to harm.  
+That credit relationship won't last for long, and is a risk the issuer of 
+credit knowingly signed up for.
+
+One alternate strategy to combat the "two-deadbeat" dilemma is: Publish, as
+part of the earlier phase, an endpoint controlled by the initiator of the lift.
+This is the same party who will be issuing the final ratifying signature for
+the lift.  If parties don't receive the final signature through the linear
+pathway of the lift, the transaction would time out.  Then, the stranted 
+parties could reach out directly to the lift initiator to obtain the final
+authorizing signature.
 
 -------------------------------------------------------------------------------
 Linear Lifts:
@@ -169,9 +177,9 @@ So the assumption is, a bunch of people have already been trading using
 existing private credit relationships, and they want to participate in a lift
 to relieve built up credits so they can keep going.
 
-But there is another kind of lift possible that travels only in a straight
-line.  See the figure on page 3 of the accompanying Lifts.odg document
-entitled "Linear Lift Example."
+But there is another kind of lift possible and it travels in a straight line.  
+See the figure on page 3 of the accompanying Lifts.odg document entitled 
+"Linear Lift Example."
 
 In this example, entity D meets entity A through some trading opportunity (like
 an online auction site, for example).  Due to the reputation of the site, D
@@ -179,15 +187,15 @@ trusts A enough to believe he will actually ship the product or services so now
 D wants to pay A.
 
 However, they don't know each other well enough to establish a trading tally
-between them.  They just want to get this one transaction done, and that will
-be the end of it.
+directly between them.  They just want to get this one transaction done, and 
+that will likely be the end of it.
 
 In this case, we don't need a complete circuit of credits.  We just need
 "nearly a circuit" or a circuit, with the exclusion of a direct credit link 
 between A and D.
 
 In this case, no credit transaction will flow between A and D.  We have the
-product or services to account for this.  We will just need to negotiate one
+product or services to account for that.  We will just need to negotiate one
 or more lifts which add up exactly to the value meant to be transmitted from
 D to A.  If we can find enough cooperating parties willing to do so in a path
 that starts with D and ends with A, we can complete the transaction.
@@ -214,8 +222,8 @@ something like the following:
   how to reach V upstream somewhere.
 - If our query goes unanswered, or answered negatively, try to select another
   eligible stock and repeat the query with that upstream peer.
-- If/when we get an affirmative answer back from an upstream peer, proceed 
-  to initiate a lift.
+- If/when we get an affirmative answer back (via V) from an upstream peer, 
+  proceed to initiate a lift.
 
 - The original search query has a UUID that may have been cached upstream.
 - Promote the status to "request", insert the actual amount, and repeat the 
@@ -351,7 +359,7 @@ Relay:
   	requesting system.  We will return this data when reporting on status
   	updates about this route.
 -------------------------------------------------------------------------------
-Test Case: (see figures on page 5)
+Test Case: (see figures on page 4)
 
 Native:			(On david_meese's system: lux1)
   Route Entity:		p1004: kathleen_ramsey@lux0		route_ent
@@ -376,5 +384,228 @@ Relay 2:		(On tricia_mayo's system: lux3)
   Return Gateway:	p1000: tricia_mayo@lux3			topu_ent
   Return Key:		p1000: tricia_mayo@lux3 (+lakisha)	botu_ent
   Return Socket:	p1005: gena_avila@lux0:65430		requ_ent
+
+-------------------------------------------------------------------------------
+Lift Costing:
+
+Refer to the Costing spreadsheet.  This shows how costs are propagated through
+a segment.  At each node, the cost may be 0, a positive percentage, or a
+negative percentage.  A negative cost implies the node will be paying to
+participate in the lift.  A positive cost implies the node will be charging
+others to use its channel for the lift.
+
+At each node, the total accumulated cost is the current nodes percentage,
+applied to the remaining basis resulting from application of the cost of all
+prior nodes:
+
+  NewRate = PriorRate + MyRate * (1 - PriorRate)
+
+-------------------------------------------------------------------------------
+Lift State Analysis:
+
+In order to understand how to maintain state for lifts, let's first consider 
+some possible scenarios.  A lift can be initiated in several different ways:
+
+  Local Circular: Our local database automatically detects a segment which is 
+    in need of a lift and so initiates a process to discover an external 
+    pathway that can satisfy the lift requirements (relieve built-up 
+    credits).
+
+  Local Linear: One of our local users initiates a transmission of value to 
+    a peer he is not directly connected to.  This would indicate a need to pay
+    someone right now, in real time.
+
+  Remote Relay: We receive a lift request from downstream, bound for a peer we 
+    do not host or otherwise have a direct connection to.  Hopefully we are
+    able to relay the request and then participate in the lift when it finds a
+    completed pathway.
+
+  Remote Linear: We receive a request from downstream for a linear lift.  This
+    will come in from a foreign peer at the base of a segment which connects to
+    the intended recipient, a user we host.
+
+  Remote Circular: We receive a request from downstream for a circular lift.
+    This will come in from a foreign peer at the base of a secment which ends 
+    in the foreign user specified as the intended end of the circuit.
+
+These cases really stem from two basic conditions:
+
+  Local: Either a user is initiating a linear lift (a payment), or our system
+    has detected the need to lift a particular segment.
+    
+  Remote: Some system downstream of us has originated its own local action 
+    which has bubbled upstream to arrive at our system.  Either we host the
+    intended endpoint of the lift or we will have to pass it on.
+
+More on the 5 specific modes, starting with simpler cases first:
+
+  Remote Circular: This is always a circuit lift.  We can determine our
+    system to be the last node in the chain because the destination user is a
+    foreign peer who is directly connected to one of our hosted users.  We 
+    need to relay the message to the next node--the one that hosts the 
+    destination peer, and who originated the lift.  This will complete the 
+    circuit.  Then we wait for the final validating signature.  If it doesn't 
+    come in time, we must seek it out.
+  
+  Remote Relay: This is pretty similar to Remote Circuit.  Main difference
+    is, we don't know (or care) if the lift is linear or circular.  We just
+    pick an optimal path (if we have one), record a series of conditional 
+    chits along the segment, and then pass the lift onto the next node.  Like 
+    above, we wait for the validation and/or seek it if necessary.
+
+  Remote Linear: Also very similar to Remote Circular in that we have direct
+    knowledge of the destination peer (whom we host).  However, there is no
+    "next node" to propagate the message to.  We are the end of the line.  We
+    will have to make contact with the originator of the lift at the socket
+    address provided in the lift.  This is a system we may not necessarily 
+    know or  trust.  However, if we receive a valid signature matching what
+    has been agreed to by our own downstream peer, we can accept the 
+    validating signature and then propagate it back downstream.
+    
+  Local Linear: The process should begin by the user searching for a
+    connection to a specified peer.  If that peer happens to exist in a local
+    segment, upstream of the user, a local lift can be consummated without
+    any outside involvement.  But more commonly, the peer will not be found in
+    this way, so the request will promote to an upstream pathway query.  State
+    can be kept in the paths table with status updates being pushed to the user 
+    as they come in.  Eventually, the user should have one or more possible
+    paths for the lift, sorted with the most cost-effective option at the top.
+    The user can then issue a command to commence payment (a set of conditional
+    chits) along a selected pathway.
+
+  Local Circular: This is similar to Local Linear except the computer is
+    initiating the process.  Any time a new chit is recorded, we should run a
+    quick query to see if it has resulted in any imbalances.  This is defined
+    as an actual tally balance which is out of range of the settings for the
+    desired balance.  If this is found, we should check the status of our
+    possible upstream pathways.  If they need to be refreshed, we do that now.
+    If/when the pathways are freshened with hypothetical value limits, we pick
+    the most cost effective pathway and initiate a lift request.
+
+The main complications arise for the Local cases.  If we are a remote node, we
+are mostly reactive to the process, indicating our desire and ability to
+participate in a particular lift.  When we are handling a local case, we have
+a job to do: either make a linear payment, or relieve a credit imbalance.  If
+our first attempt does not succeed, we will need a way to back out and try a
+different option, if one can be found.
+
+Under user control (Local Linear) this should not be too difficult.  Either the
+user's payment succeeded or it didn't.  If it didn't, he may have other
+(possibly more expensive) options to choose from.
+
+Under autonomous control (Local Circular) the system will need some kind of
+state to keep track of what has been attempted already so it can make 
+reasonable retries and know when to give up.  Perhaps this state can be kept
+in the tally itself?
+
+Questions:
+- Do I need a "lifts" table to hold status about lifts initiated locally?
+- Can I handle all Remote cases without making an entry to the lifts table?
+
+-------------------------------------------------------------------------------
+Lift States:
+
+It was originally assumed that the lift would be implemented in its own state 
+machine, much like the tally, chit, and path states shown in the accompanying 
+States.odg file.  However, a lift is really just a set of chits, linked 
+together with a single uuid.  So it is hoped most of this can be handled as an
+extension of the chit state diagram.
+
+The original chit state diagram considered only chits between parties who share 
+a tally directly.  Local circular lifts were implemented in a stored procedure.
+It was a little more complicated than a single transaction because it entails 
+multiple sets of chits, committed to a circular chain of tallies, both stock 
+and foil.
+
+In a distributed lift, each system will identify one or more local users
+arrayed in a linear chain with one foreign peer at each end of the chain.  For
+example, see the "Route Test Case" figure referenced previously.  Gena Avila
+and Kathleen Ramsey are the two local users.  Tricia Mayo and Stacey Welch are
+the foreign peers at the two ends of a segment which could possibly be found to 
+be part of a larger, external circuit.
+
+When a single database commits its portion of a lift (whether conditional or
+final), it should commit at once all tallies along the segment.  In this 
+example, there is a stock from Tricia to Gena, a stock and foil between Gena 
+and Kathleen.  And a single foil from Kathleen to Stacey.  That is 4 tallies 
+in total (on our system) which will receive a lift chit, marked with the UUID 
+unique to the particular lift, and eventually signed by the lift initiator.
+
+We mentioned earlier the 3-phases for the lift:
+
+Phase 1: Seek/verify a circuit or path for the lift and its amount
+Phase 2: Send a conditional lift around the circuit, upstream
+Phase 3: Issue validation signature downstream through the circuit
+
+xxxxxxxxxxxxx WIP xxxxxxxxxxxxx
+
+Phase 1 should really be represented in the paths table because, up to this
+point, we may be considering multiple pathways for the lift.  Still, we would
+like to know we are in phase 1 somehow.  Maybe a
+
+If there is no
+
+
+The original, payment-based states are as follows:
+  null:		No chit yet created
+  userRequest:	A payment request has been created by one user, but not yet 
+   		communicated to the other user.
+  userInvoice:	The payment request has now been transmitted to the other
+		user.
+  peerValid:	The other user has agreed to, and signed the payment to our
+		local user.
+  peerDecline:	The other user has refused to pay the request.
+  userDraft:	Another user has offered our user a payment but we haven't
+		told our guy about it yet.
+  userValid:	We have now notified our guy of the receipt of payment.
+  peerInvoice:	A remote user has asked our user to make a payment and we
+		have notified our user.
+  userAgree:	Our user has agreed and signed, but we haven't yet
+		transmitted confirmation to the recipient.
+  userValid:	We have now transmitted the signed payment to the other guy.
+  userDecline:	Our user has declined to make the payment but we haven't yet
+		notified the peer that requested the payment.
+  userVoid:	We have notified the peer our guy will not be paying.
+
+For the case of lift chits, we will implement the following states.  All 
+tallies in our system along the lift segment will contain a chit which is in
+the indicated state.  We can query only foils with foreign peers in order to
+produce a single instance of the lift in process.
+
+  liftInvoice:	Our local user has created a local 
+  liftDraft:	A lift has been sought which we received via a known, foreign
+		peer who holds a stock tally with one of our local users (a
+		downstream, foreign peer).  We have discovered the intended 
+		recipient of the lift to be one of our local users, who did 
+		not initiate the lift (but may have requested it off-network).  
+		Therefore this is a linear lift with our guy at the end of the 
+		transaction.
+  
+  liftInit:	We have marked out a lift segment we would like to propose to
+		the outside network.
+  liftSeek:	We have sent a seek request for our own possible lift along the
+		marked segment.  The lift has a UUID and a range of amounts we
+		will find acceptable.
+  
+  liftQuery:	A lift has been sought which we received via a downstream
+		foreign peer.  We have discovered one or more pathways which 
+		terminate with a single known, foreign peer who holds a foil 
+		tally with one of our local users (an upstream, foreign peer.)
+  liftRelay:	We have forwarded our willingness and terms for a sought lift
+		which was previoiusly in the liftQuery state.
+
+  liftSet:	We have now upgraded our own prospective lift to a proposal 
+		with a specific amount, and a token which can be used to 
+		validate a final commit signature.
+  liftPropose:	Our prospective lift has now been communicated upstream.
+
+  liftProffer:	We have received an upgrade from downstream to a previous lift
+		query that has not yet expired.  We accept the specific terms
+		and choose to participate.  All we need now is a signature to
+		make this binding money.
+  liftPending:	We have sent the specific lift along upstream.  We expect to
+		receive a final signature next to make this final.
+
+xxxxxxxxx
 
 -------------------------------------------------------------------------------

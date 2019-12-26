@@ -30,11 +30,13 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {contract		{Contract}		{The hash ID of the standard contract this tally is based upon.}}
     {stock_terms	{Stockee Terms}		{The credit terms by which the holder of the tally stock is governed}}
     {foil_terms		{Foilee Terms}		{The credit terms by which the holder of the tally foil is governed}}
-    {bal_target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts}}
-    {lift_marg		{Lift Margin}		{A cost associated with a lift through this tally.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 4% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts done.}}
-    {drop_marg		{Drop Margin}		{A cost associated with a reverse lift (or drop) through this tally.  Zero means no cost.  A value of 1 (the default) will effectively prevent reverse lifts.}}
-    {cr_limit		{Credit Limit}		{The maximum amount the foil holder can owe to the stock holder.  On the Stock's tally, this is contractual.  On the Foil's tally, it is a preference setting.}}
-    {dr_limit		{Debit Limit}		{The maximum amount the stock holder can owe to the foil holder.  On the Foil's tally, this is contractual.  On the Stock's tally, it is a preference setting.}}
+    {dr_limit		{Debit Limit}		{The maximum amount the Vendor (Stock) is granted to borrow from the Client (Foil) in exchange for goods and services}}
+    {cr_limit		{Credit Limit}		{The maximum amount the Client (Foil) is granted to borrow from the Vendor (Stock) in exchange for goods and services}}
+    {target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value are subject to margin costs.}}
+    {lift_marg		{Lift Margin}		{A cost associated with a lift through this tally, in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts done.}}
+    {drop_marg		{Drop Margin}		{A cost associated with a reverse lift (or drop) through this tally, in excess of the target value.  Zero means no cost.  A value of 1 (the default) will effectively prevent further drops.}}
+    {lift_max		{Lift Limit}		{The maximum amount of debt, stock to foil, that can be accrued through lifts}}
+    {drop_max		{Drop Limit}		{The maximum amount of debt, foil to stock, that can be accrued through drops}}
     {units_c		{Cached Units}		{A cached copy of the total of all the chits on this tally, from the perspective of the tally's owner}}
 } $glob::stampt] -messages {
     {LMG		{Invalid Lift Margin}	{The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.}}
@@ -44,6 +46,17 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
 tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.} {
     {state		{State}			{A computed value indicating the state of progress as the tally goes through its lifecycle}}
     {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
+    {user_name		{User Name}		{The name of this tally's owner}}
+    {part_name		{Partner Name}		{The name of the tally partner}}
+    {user_addr		{User Address}		{The CHIP address of the owner of the tally}}
+    {part_addr		{Partner Address}	{The CHIP address of the tally partner}}
+    {inside		{Inside}		{The partner entity is also hosted by the same system as the tally owner}}
+    {total_c		{Cached Total}		{The chit total cached (as opposed to recomputed) in the tally}}
+    {total		{Total}			{The total value of all chits on the tally}}
+    {chits		{Chits}			{The total number of chit transactions recorded on the tally}}
+    {latest		{Last Chit}		{The date of the latest chit on the tally}}
+    {json		{JSON}			{The standard interchange format of the data for this tally}}
+    {user_serv		{User Server}		{The server ID, if any, for the owner of this tally}}
 }
 
 tabtext mychips.tallies_v_me {My Tallies}	{View containing all the tallies owned by the current user.} {
@@ -55,6 +68,14 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing all the tallies owned
       <p>Tallies are used to document and track trading agreements between partners.
       <p>You can request a new tally from the action menu in the Peer tab.
     }}
+}
+
+tabtext mychips.tally_sets {Tally Settings}	{An archive of past trading settings applied by the tally owner} {
+    {tset_ent		{Setting Entity}	{The entity who owns the tally these settings apply to}}
+    {tset_seq		{Setting Sequence}	{Indicates which tally these settings apply to}}
+    {tset_idx		{Setting Index}		{A unique index number for each new group of settings}}
+    {settings		{Settings}		{A JSON expression of the trading parameters that have been asserted by the tally owner}}
+    {tset_date		{Set Timestamp}		{The date/time when the settings were checked into the database}}
 }
 
 tabtext mychips.tally_tries {Tally Retries}	{Table contains information about retries with peers to establish tallies} {
@@ -82,25 +103,4 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
     {memo		{Memo}			{Any other description or explanation for the transaction}}
 } $glob::stampt] -messages {
     {X {Y} {Z}}
-}
-
-tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
-    {effect		{Effect}		{Indicates whether this would debit (increase) or credit (decrease) the tally total}}
-    {value		{CHIP Value}		{The value of the transfer in CHIPs}}
-    {amount		{Amount}		{A signed amount (positive or negative) indicating the effect of the transfer on the tally}}
-    {state		{State}			{The state is used to track a transaction in process}}
-    {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
-    {json		{JSON}			{A JSON representation of the chit transaction}}
-}
-
-tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user}
-
-tabtext mychips.confirms {Confirmations}	{Contains records evidencing each time the parties confirmed the present balance of their tally.} {
-    {conf_ent		{Confirm Entity}	{Entity ID of the owner of the tally this confirmation belongs to}}
-    {conf_seq		{Confirm Sequence}	{Sequence number of the owner of the tally this confirmation belongs to}}
-    {conf_idx		{Confirm Index}		{A unique identifier within the tally, identifying this confirmation}}
-    {conf_guid		{Confirmation GUID}	{A globally unique identifier for this confirmation}}
-    {conf_date		{Date & Time}		{The date and time when this account total is computed}}
-    {sum		{Sum}			{The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)}}
-    {signature		{Signature}		{The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table}}
 }
