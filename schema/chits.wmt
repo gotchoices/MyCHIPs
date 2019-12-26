@@ -1,0 +1,43 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} [concat {
+    {chit_ent		{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
+    {chit_seq		{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
+    {chit_idx		{Chit Index}		{A unique identifier within the tally, identifying this chit}}
+    {chit_guid		{Chit GUID}		{A globally unique identifier for this transaction}}
+    {chit_type		{Chit Type}		{The type of transaction represented by this flow of credit} {
+        {gift		{Gift}			{The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.}}
+        {lift		{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity}}
+        {loan		{Loan}			{The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.}}
+        {tran		{Transaction}		{The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.}}
+    }}
+    {chit_date		{Date/Time}		{The date and time when this transaction is effective}}
+    {units		{Units}			{The amount of the transaction, as measured in milli-CHIPs (1/1,000)}}
+    {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
+    {pro_quo		{Quid Pro Quo}		{A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties}}
+    {memo		{Memo}			{Any other description or explanation for the transaction}}
+} $glob::stampt] -messages {
+    {X {Y} {Z}}
+}
+
+tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
+    {effect		{Effect}		{Indicates whether this would debit (increase) or credit (decrease) the tally total}}
+    {value		{CHIP Value}		{The value of the transfer in CHIPs}}
+    {amount		{Amount}		{A signed amount (positive or negative) indicating the effect of the transfer on the tally}}
+    {state		{State}			{The state is used to track a transaction in process}}
+    {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
+    {json		{JSON}			{A JSON representation of the chit transaction}}
+}
+
+tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user}
+
+tabtext mychips.confirms {Confirmations}	{Contains records evidencing each time the parties confirmed the present balance of their tally.} {
+    {conf_ent		{Confirm Entity}	{Entity ID of the owner of the tally this confirmation belongs to}}
+    {conf_seq		{Confirm Sequence}	{Sequence number of the owner of the tally this confirmation belongs to}}
+    {conf_idx		{Confirm Index}		{A unique identifier within the tally, identifying this confirmation}}
+    {conf_guid		{Confirmation GUID}	{A globally unique identifier for this confirmation}}
+    {conf_date		{Date & Time}		{The date and time when this account total is computed}}
+    {sum		{Sum}			{The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)}}
+    {signature		{Signature}		{The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table}}
+}
