@@ -181,7 +181,8 @@ function init {
   echo "Agents:$newusers"
   maxuser="$(expr $newusers - 1 + 1000)"
   psql $dbname $admin -c 'delete from mychips.tallies'
-  psql $dbname $admin -c "delete from base.ent where ent_num > $maxuser"
+  psql $dbname $admin -c "delete from base.ent where ent_num > 1000 and not exists (select * from mychips.users where user_ent = id)"	#Delete any foreign peers
+  psql $dbname $admin -c "delete from base.ent where ent_num > $maxuser"	#Trim to max number of agents
 }
 
 #Query the SQL database
