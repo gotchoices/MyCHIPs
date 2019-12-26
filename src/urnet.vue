@@ -35,7 +35,7 @@ export default {
     hubWidth:	100,
     hubHeight:	20,
     tallies:	{},
-    stateTpt:	{width: 600, height: 600, nodes:{}},
+    stateTpt:	{nodes:{}},
   }},
   computed: {
     totals: function() {
@@ -131,8 +131,8 @@ export default {
             Object.assign(this.state.nodes[cid], bodyObj, {radius})	//Repaint the body
 //console.log("n Dat:", cid, this.state.nodes[cid])
           } else {						//Else put it somewhere random on the graph
-            let x = Math.random() * this.state.width/2
-              , y = Math.random() * this.state.height/2
+            let x = Math.random() * this.state.maxX * 0.9
+              , y = Math.random() * this.state.maxY * 0.9
             this.$set(this.state.nodes, cid, Object.assign(bodyObj, {tag:cid, x, y, radius, links:[]}))
 //console.log("N Dat:", cid, x, y)
           }
