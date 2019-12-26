@@ -1,0 +1,34 @@
+#Test key validation, digests, etc.
+#Requires plpythonu extension, and python rsa module: "pip install rsa"
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+module mychips
+
+#other pgcrypto {} {create extension "pgcrypto"} {drop extension if exists "pgcrypto"}
+other plpy {} {create extension "plpythonu"} {drop extension if exists "plpythonu"}
+
+# Test validation usign python
+#----------------------------------------------------------------
+function {mychips.validate(dat text, sig text, pub text)} {plpy} {
+  returns boolean language plpythonu immutable as $$
+#    plpy.notice('Validate:', dat, sig, pub)
+    import rsa
+
+    pubkey = rsa.PublicKey.load_pkcs1_openssl_pem(pub)
+    signature = bytearray.fromhex(sig)
+    verified = rsa.verify(dat, signature, pubkey)
+
+    return verified
+$$;}
+
+#Can't find good v8 support for Fedora
+#other plv8 {} {create extension "plv8"} {drop extension if exists "plv8"}
+
+# Test
+#----------------------------------------------------------------
+#function {mychips.validate_v8(dat text, sig text, pub text)} {plv8} {
+#  returns boolean language plv8 immutable as $$
+#    plv8.elog(NOTICE, 'Validate v8:', dat, sig, pub)
+#    return true
+#$$;}
