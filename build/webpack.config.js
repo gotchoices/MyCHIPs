@@ -10,7 +10,7 @@ module.exports = {
     contract: './src/contract.js',
   },
   output: {
-    path: path.join(__dirname, 'pub'),
+    path: path.join(__dirname, '..', 'pub'),
     filename: '[name]-bundle.js'
   },
   resolve: {

@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #Step through creation of local certificates typically needed in pki/local
-#Copyright WyattERPs.org; See license in root of this package
+#Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
 
 if [ ! -d pki ]; then

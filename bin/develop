@@ -1,0 +1,35 @@
+#!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+#Configure mychips to draw WyattERP modules from source code located in a peer 
+#directory rather than the local node_modules directory.  We expect to find the 
+#modules: wylib, wyseman, wyclif, wyselib in the same directory as the mychips 
+#module.  A node_modules directory will be created above mychips with reference
+#to the WyattERP source modules.  You may also benefit from including the .bin
+#folder there in your path so you can run wyseman (and others) from the shell.
+#In this example, $HOME/devel contains mychips and the WyattERP modules:
+#
+#    export PATH="$PATH:$HOME/devel/node_modules/.bin"
+
+mydir="$(dirname $0)"		#Where this script is
+appdir="$(realpath -s "$mydir/..")"
+devdir="$(realpath -s "$appdir/..")"
+#echo "appdir:$appdir devdir:$devdir"
+
+for m in wylib wyseman wyclif wyselib; do
+  if [ ! -d $devdir/$m ]; then
+    echo "Warning: can't find source code for module: $m"
+    continue
+  fi
+  
+  if [ -d $appdir/node_modules/$m ]; then
+    echo "Removing local node_modules/$m"
+    rm -r $appdir/node_modules/$m
+  fi
+  
+  if [ ! -d $devdir/node_modules/$m ]; then
+    echo "Will access $m from source: $devdir/$m"
+    ( cd $devdir && npm install $m )
+  fi
+  
+done
