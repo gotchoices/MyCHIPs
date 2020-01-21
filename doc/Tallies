@@ -8,27 +8,28 @@ acceptable terms.
 The tally is modeled after the "split tally," an instrument used historically
 to keep track of private credit arrangements.  Like a split tally, a digital
 tally has two parts, a stock and a foil.  The stock is held by the party who
-is (normally) owed value.  We will call him the Vendor.  The foil is held by 
-the Client, or the person who will be expected to deliver that value (i.e. pay)
-at some point in the future.
+normally provides a product or service and so is normally owed value for the
+transaction.  We will call this the Vendor.  The foil is held by the Client, 
+or the entity who will be expected to deliver that value (i.e. pay) at some 
+point in the future.
 
 Perhaps the biggest functional difference with a MyCHIPs tally is, unlike its
-wooden predecessor, it can easily be amended by adding new credits and debits.
+wooden predecessor, it can easily be amended by adding new credits or debits.
 It is a living ledger, keeping constant track of what is owed by one party to
 another.
 
-As a consequence, it is also possible for the stock to accrue a credit 
-(negative) balance and the foil to accrue a debit (positive) balance.  This 
-makes the terms stock (Vendor) and foil (Client) potentially less significant 
-in terms of who is the creditor (or Recipient) and who is the debtor (or 
-Issuer).  However, we still use them because it turns out to be important to 
-keep track of which direction credit "normally" flows so we know which 
-direction to focus on for credit lifts.
+As a consequence, it is possible for the stock to accrue a credit (negative) 
+balance and the foil to accrue a debit (positive) balance.  This makes the 
+terms stock (Vendor) and foil (Client) potentially less significant in terms 
+of who becomes the creditor (Recipient) and who is the debtor (Issuer).  
+However, we still use the terms Stock and Foil because it is helpful to 
+differentiate the two ends of the credit relationship when computing lifts
+and drops.
 
-If two parties truly have a completely bilateral trading arrangement, it
-should be fine to open two tallies (with opposite stocks and foils) between 
-them.  The system should be able to perform lifts to keep the two tallies in
-equilibrium.
+If two parties truly have a completely bilateral trading arrangement, they
+may just assign Stock and Foil at random.  Or they may choose to establish
+two tallies (with opposite stocks and foils) between them.  The system should 
+be able to perform lifts to keep the two tallies in equilibrium.
 
 A tally includes the following information:
   - Tally format version (1)
@@ -42,12 +43,14 @@ A tally includes the following information:
   - Client Credit Terms; debt Client->Vendor (N=credit card, 0=debit card)
   - Reference to one or more standard, published contracts clauses, which
     become the operable and binding terms of the indebtedness.
+  - Public key of the agent system who will execute lifts for Vendor
+  - Public key of the agent system who will execute lifts for Client
   - Digital signature of Vendor, indicating binding acceptance
   - Digital signature of Client, indicating binding acceptance
   - A list of transactions, which total to the net indebtedness
   - A list of unilateral settings to various lift parameters
 
-Each atomic transaction is referred to as a "chit" and includes:
+Each atomic change to the amount owing is referred to as a "chit" and includes:
   - Transaction date and time
   - Transaction amount, in mCHIPs (1/1000th part of a CHIP)
   - A transaction type:
@@ -66,28 +69,12 @@ Each setting includes:
   - Signature date
   - Signature of the modifying party
 
-Tallies and chits are shared between Stock and Foil.  Settings reside only with
-one side and are controlled by the owner of that half of the tally.  They tell
-the site administrator how to execute lifts on behalf of the owner.
-
-Operating Parameters:
--------------------------------------------------------------------------------
-MyCHIPs credits are, by design, not transferrable.  This means, if someone owes 
-you value, you don't have the right to reassign that asset to a third party.  
-This limitation is intended to avoid the need for trust among unrelated 
-parties, and to make CHIPs less prone to theft or loss.
-
-But it seems like a pretty serious limitation--especially on something we are 
-trying to use as money.  So in order to make value transmittable (effectively
-fungible), we need the credit lift alorithm (see gotchoices.org/mychips).  To 
-facilitate lifts, each user must maintain a set of parameters that define how 
-lifts will take place.
-
-Some default lift behavior can be determined by the contractual terms of the
-tally.  For more sophisticated control, users may have to manually set certain
-preferences themselves.
+Tally data and chits are shared between Stock and Foil.  However, the ettings 
+reside only with one side and are controlled by the owner of that half of the 
+tally.  They tell the site agent how to execute lifts on behalf of the owner.
 
 Credit Terms:
+-------------------------------------------------------------------------------
 This portion of the tally is actually comprised of a series of variables, some 
 of which are optional.  The purpose is to have enough variables that virtually 
 any common type of credit arrangement can be reasonably represented by a proper 
@@ -263,85 +250,91 @@ accept that extra large check.  I may just decline to give you product or
 services in exchange for it--at least until I had funged it into a form of
 value I was more comfortable with.
 
-
 Trading Variables:
-Lifts are largely executed autonomously, or without direct user interaction.  
-So the system needs a strict set of rules to know how the user wants this done.
+-------------------------------------------------------------------------------
+MyCHIPs credits are, by design, not transferrable.  This means, if someone owes 
+you value, you don't have the right to reassign that asset to a third party.  
+This limitation is imposed to avoid the need for trust among unrelated parties
+and it also makes CHIPs less exposed to theft or loss.
 
+But it seems like a pretty serious limitation--especially on something we are 
+trying to use as money.  So in order to make value transmittable (effectively
+fungible), we need the credit lift alorithm (see gotchoices.org/mychips).  To 
+facilitate lifts, each tally half (stock or foil) maintains a set of 
+parameters that define how lifts will take place.
+
+Lifts are largely executed autonomously (without direct user interaction).  So
+the system needs a strict set of rules to know how the user wants this done.
 In the absense of any more specific direction, the system could simply
 examine any credit imbalances and lift them back to zero.  While this would
 technically work, it doesn't give the user much flexibility in how and where he 
-may choose to accumulate value (i.e. save money).
+may choose to accumulate value (i.e. save money).  So for better control, users 
+can manually set certain preferences themselves.  The instruction for changing
+these settings is digitally signed by the user, authorizing the system agent
+to act in accordance with the settings.
 
-So in addition to the contract parameters signed by both parties in the tally, 
-there are parameters that can be set or changed at the pleasure of either party 
-at any time.  These are also digitally signed, but only by the one party.
+Client's Trading Varibles:	See Lifts.odg, page 5
 
-Vendor's (Stock) Trading Varibles:
-
-  - Lift Margin:
-    This number specifies the Vendor's willingness to conduct lifts through 
-    this Stock.  The number 0 is neutral, meaning zero cost.  A positive number
-    indicates a cost, or disinsentive to trade and is illegal in this context.
-    Rather, the throttle control of lifts is primarily in the hands of the 
-    Foil.  However, the Stock can offer an incentive to trade by entering a 
-    negative number.  A margin of -0.02 creates a 2% bonus incentive to lift 
-    through the Stock as 102 units would be given up in exchange for only 100 
-    units coming up from a linked Foil.
-    
-  - Drop Margin:
-    This indicates a willingness to conduct drops, or lifts in the opposite 
-    direction of normal (downhill) through this Stock.  All drops are free 
-    until the target balance (default 0) is reached.  Any amounts beyond that 
-    are subject to a cost at the specified rate.
-
-  - Balance Target (Client -> Vendor):
-    The amount of Client's credits Vendor wishes to accumulate or maintain.
-    This is like collecting your payroll checks without cashing them for a 
-    while.  Any requested drops are free until this threshhold is met.  After
-    that any costs (or incentives) specified in the drop margin aply.  If not
-    specified, this defaults to zero.
-
-  - Debit Limit: Not Applicable for Vendor/Stock
-  
-  - Credit Limit: (Client's credit with Vendor)
-    This can override the cr_limit setting in the tally, for the purpose of
-    lifts, to allow higher indebtedness of Client to Vendor as a result of 
-    result of a drop.  This is like allowing your Boss to give you additional 
-    IOU's as opposed to paying you right away for your work.  No drops will be 
-    allowed in excess of this amount.  It defaults to the cr_limit specified in 
-    the tally.
-
-Client's Trading Varibles:
-
-  - Lift Margin:
-    This indicates Client's willingness to conducts lifts through this Foil.
-    All lifts are free up to a balance of zero (or a higher specified target
-    setting).  Amounts beyond that target are subject to a cost at the
-    specified rate.
-
-  - Drop Margin:
-    This specifies the Client's willingness to conduct drops through this Foil.
-    A positive number, or disinsentive to trade is illegal in this context.
-    Rather, throttle control of drops is primarily in the hands of the Stock.
-    However, the Foil can offer an incentive to trade by entering a negative
-    number here.
-
-  - Balance Target (Vendor -> Client):
-    The amount of Vendor's credits Client wishes to accumulate.  A positive 
-    amount of accumulation is normally accomplished through credit lifts, as 
+  - Lift Target (Vendor -> Client):	Default: 0
+    The ideal amount of Vendor's credits Client wishes to accumulate.  A 
+    negative tally balance is normally accomplished through credit lifts, as 
     this is in the opposite direction of normal credit flow.  This can exceed
-    (override) the Vendor's credit limit in the tally, for the purpose of 
-    lifts.  A positive amount here constitutes value savings by the Client in 
-    the currency of the Vendor--something he must accept in payment.
+    (override) the Vendor's normal credit limit (dr_limit) agreed to 
+    bilaterally in the tally, for the purpose of lifts.  A positive amount 
+    here constitutes value savings by the Client in the currency of the 
+    Vendor--something he must accept in payment or as part of a future drop.
 
-  - Debit Limit:
-    This can override the dr_limit setting in the tally to allow higher 
-    indebtedness of Vendor to Client, normally as a part of a lift.  No lifts
-    should be performed in excess of this amount.
+  - Lift Limit:				Default: Debit Limit (dr_limit)
+    This can exceed the dr_limit setting in the tally to allow higher 
+    indebtedness of Vendor to Client, occuring as the result of a lift.  No 
+    lifts should be performed which would result in a balance more negative
+    than this amount.
 
-  - Credit Limit: Not Applicable for Client/Foil
+  - Lift Margin:			Default: 0
+    This indicates Client's willingness to conducts lifts through this Foil.
 
+    The number 0 is neutral, meaning zero cost.  A positive number
+    indicates a cost, or disinsentive to trade.  For example +0.02 means
+    the Client would pass along only 98 chips for every 100 lifted up through 
+    this Foil.  But -0.02 means the Client would pass 102 chips along for
+    every 100 received.
+    
+    All lifts must be allowed at par (0) or better (negative) until the stock 
+    balance is reduced to the Lift Target (default 0).  If a lift beyond that 
+    point is requested, it may be subject to a cost (positive margin).
+
+  - Drop Margin:
+    Specifies the Client's willingness to conduct drops through this Foil.
+    If the user wants to retain the chips in the foil, he can enter a
+    positive number (1 disables drops altogether).  If he wants to get rid of
+    the chips, he could consider entering a negative margin.
+    
+Vendor's (Stock) Trading Varibles:	See Lifts.odg, page 5
+
+  - Drop Target (Client -> Vendor):	Default: 0
+    The ideal amount of Client's credits Vendor wishes to accumulate or 
+    maintain.  This is like collecting your payroll checks without cashing them 
+    for a while.
+
+  - Drop Limit:				Default: Credit Limit (cr_limit)
+    This can exceed the cr_limit setting in the tally to allow higher 
+    indebtedness of Client to Vendor, occuring as a result of a drop. No drops 
+    should be allowed resulting in a tally balance more positive of this 
+    amount.
+
+  - Drop Margin:			Default: 0
+    This indicates a willingness to conduct drops, or lifts in the opposite 
+    direction of normal (downhill) through this Stock.  All drops must be
+    allowed at par or better until the Drop Target (default 0) is reached.
+    Drops requested beyond that point are subject to a cost at the specified 
+    margin.
+
+  - Lift Margin:
+    Specifies the Vendor's willingness to conduct lifts through this Stock.
+    If the user wants to retain the chips in the stock, he can enter a
+    positive number (1 disables lifts altogether).  If he wants to get rid of
+    the chips, he could consider entering a negative margin.
+  
 Invoicing:
 -------------------------------------------------------------------------------
 An invoice is a request for payment from one party to another.  When the 

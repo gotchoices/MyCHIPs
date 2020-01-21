@@ -14,8 +14,10 @@ X- Input some basic documents
 X- Better spacing after section number
 X- How do I include/reference other documents (and show hyperlinks)?
 X- Make basic tally contract
+X- Address hacked admin dilemma (enough for now)
 - 
-- Solve hacked admin dilemma
+- Make simulation environment run on container-based servers
+- 
 - Retool tallies.wms so tally_sets is an archive table only (real fields cached in tally)
 - Signed tally (JSON) is a subset of full tally fields
 - 
