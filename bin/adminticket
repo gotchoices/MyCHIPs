@@ -15,6 +15,7 @@ var database	= argv.d || process.env.MYCHIPS_DBNAME || 'mychips'
 var dbPort	= argv.p || process.env.MYCHIPS_DBPORT || 5432
 var user	= argv.u || process.env.MYCHIPS_DBADMIN || 'admin'
 var outFile	= argv.o ? (Array.isArray(argv.o) ? argv.o.pop() : argv.o) : null
+var urlQuery	= argv.q
 
 const { Log } = require("wyclif")
 const { dbClient } = require("wyseman")
@@ -32,10 +33,16 @@ db.query(q, [user], (err, res) => {
     if (err) console.log("Error:", err.message, "\n  query:", q)
 //console.log("res:", res)
     if (res && res.rows && res.rows.length >= 1) {
-      let ticket = res.rows[0]
+      let tickText, ticket = res.rows[0]
       if (spaHost) ticket.host = spaHost
       if (spaPort) ticket.port = spaPort
-      let tickText = JSON.stringify({ticket})
+      
+      if (urlQuery) {
+        tickText = `?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${user}`
+      } else {
+        tickText = JSON.stringify({ticket})
+      }
+
       if (outFile)
         Fs.writeFileSync(outFile, tickText)
       else
