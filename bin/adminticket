@@ -1,21 +1,22 @@
-#!/bin/node
+#!/usr/bin/env node
 //Create a connection ticket for the admin account
 //Usage ./adminticket -H spaHost -P spaPort -u username -o outfile -d database -h databaseHost -p databasePort
 //TODO:
 //- 
 
 const Fs = require('fs')
+const Os = require('os')
 var argv = require('yargs').argv
 //console.log("argv:", argv)
 
-var spaHost	= argv.H || 'localhost'
-var spaPort	= argv.P || 54320
+var spaHost	= argv.H || Os.hostname() || 'localhost'
+var spaWSPort	= argv.P || 54320
+var spaPort	= argv.S || 8000
 var dbHost	= argv.h || process.env.MYCHIPS_DBHOST || 'localhost'
 var database	= argv.d || process.env.MYCHIPS_DBNAME || 'mychips'
 var dbPort	= argv.p || process.env.MYCHIPS_DBPORT || 5432
 var user	= argv.u || process.env.MYCHIPS_DBADMIN || 'admin'
 var outFile	= argv.o ? (Array.isArray(argv.o) ? argv.o.pop() : argv.o) : null
-var urlQuery	= argv.q
 
 const { Log } = require("wyclif")
 const { dbClient } = require("wyseman")
@@ -35,10 +36,12 @@ db.query(q, [user], (err, res) => {
     if (res && res.rows && res.rows.length >= 1) {
       let tickText, ticket = res.rows[0]
       if (spaHost) ticket.host = spaHost
-      if (spaPort) ticket.port = spaPort
+      if (spaWSPort) ticket.port = spaWSPort
       
-      if (urlQuery) {
+      if (argv.q) {
         tickText = `?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${user}`
+      } else if (argv.Q) {
+        tickText = `https://${ticket.host}:${spaPort}/admin.html?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${user}`
       } else {
         tickText = JSON.stringify({ticket})
       }
