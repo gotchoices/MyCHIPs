@@ -10,11 +10,12 @@
 #In this example, $HOME/devel contains mychips and the WyattERP modules:
 #
 #    export PATH="$PATH:$HOME/devel/node_modules/.bin"
+#
 
-mydir="$(dirname $0)"		#Where this script is
-appdir="$(realpath -s "$mydir/..")"
-devdir="$(realpath -s "$appdir/..")"
-#echo "appdir:$appdir devdir:$devdir"
+mydir="$(dirname $BASH_SOURCE)"		#Where this script is
+appdir="$(realpath "$mydir/..")"
+devdir="$(realpath "$appdir/..")"
+#echo "mydir:$mydir appdir:$appdir devdir:$devdir"; #exit 0
 
 for m in wylib wyseman wyclif wyselib; do
   if [ ! -d $devdir/$m ]; then
@@ -33,3 +34,10 @@ for m in wylib wyseman wyclif wyselib; do
   fi
   
 done
+
+#If this file is sourced (not run in a subshell), this script will set PATH:
+nodebin="$devdir/node_modules/.bin"
+IFS=: read -r -a patha <<< "$PATH"
+if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
+  export PATH="${PATH}:$nodebin"
+fi
