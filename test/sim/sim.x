@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
-source $mypath/config
+source $mypath/config.net
 index="${SIMNET_INDEX}"
 
 mychips="$mypath"
@@ -18,6 +18,16 @@ while [[ $path != / ]]; do				#Find first bin dir above me
   mysim="$(basename $mychips)/${mysim}"			#Find simulation directory
   mychips="$(cd $mychips/.. && pwd)"
 done
+
+tmpdir="$mypath/${TMPDIR}"
+#echo "tmpdir:$tmpdir"; exit 0
+if [ ! -d $tmpdir ]; then
+  mkdir -p $tmpdir
+fi
+
+export MYCHIPS_LOGPATH=$tmpdir/log			#MyCHIPs server logging
+export WYATT_LOGPATH=$tmpdir/log			#Agent logging
+#echo "TMPDIR:$TMPDIR mysim:$mysim tmpdir:$tmpdir"
 
 if [ "$(basename "$mychips")" != "mychips" ]; then
   echo "Can't determine mychips main directory"
@@ -32,25 +42,25 @@ export PATH=$PATH:"${mychips}/../node_modules/.bin"		#;echo "PATH:$PATH"
 
 #echo "sim.x Args:$@"; exit
 pargs=()
-while [[ $# -gt 0 ]]; do
+while [[ $# -gt 0 ]]; do				#Decrypt command line arguments
 #  echo "arg:$1:"
   pargs+=("$(echo $1 | base64 --decode)")
   shift
 done
 
 set -- "${pargs[@]}"					#Restore positional arguments ($1..)
-#for i in "$@"; do echo "sim.x arg:$i"; done;		exit 0
+#for i in "$@"; do echo "$(hostname) arg:$i"; done;	exit 0
 
 command="$1"
 shift
 echo -e "\n---->Host:$(hostname); $command"
 
-#Check configuration (running on a slave machine)
+#Check configuration (only works on remote machines--not locals or dockapps)
 #-------------------------------------------------------------------------------
 function config {
 #  echo Configuring; exit 0
   rpms=""						#Install any rpms we may need
-  for pkg in postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib ruby rubygem-pg rubygem-tk; do
+  for pkg in postgresql-server postgresql-devel postgresql-pltcl postgresql-python postgresql-contrib ruby rubygem-pg rubygem-tk; do
     if ! rpm -qi $pkg >/dev/null; then
       rpms="${rpms} $pkg"
     fi
@@ -71,37 +81,71 @@ function config {
   fi
 }
 
+#Initialize for a simulation run
+#-------------------------------------------------------------------------------
+function init {
+  if [[ $1 == '-a' ]]; then
+    newusers="$2"
+    shift 2
+  fi
+  echo "Agents:$newusers"
+  maxuser="$(expr $newusers - 1 + 1000)"
+  psql $dbname $admin -c 'delete from mychips.tallies'
+  psql $dbname $admin -c "delete from base.ent where ent_num > 1000 and not exists (select * from mychips.users where user_ent = id)"	#Delete any foreign peers
+  psql $dbname $admin -c "delete from base.ent where ent_num > $maxuser"	#Trim to max number of agents
+}
+
 #Kill any running services
 #-------------------------------------------------------------------------------
 function stop {
+  pidfile=${1:-procs}.pid
+#echo "pidfile:$pidfile"
   mkdir -p $tmpdir
-  if [ -f $tmpdir/pids ]; then				#Kill any running servers
-    for p in $(cat $tmpdir/pids); do
+  if [ -f $tmpdir/$pidfile ]; then			#Kill any running servers
+    for p in $(cat $tmpdir/$pidfile); do
       echo "  Killing old server pid: $p"
       kill $p 2>/dev/null
     done
-    rm $tmpdir/pids; touch $tmpdir/pids
+    rm $tmpdir/$pidfile; touch $tmpdir/$pidfile
   fi
 }
   
-#Relaunch mychips server
+#Produce an admin connection ticket URL
 #-------------------------------------------------------------------------------
-function mychips {
-#echo "peers DEBUG:$NODE_DEBUG args:$*"
-  bin/mychips.js "$@" 2>$tmpdir/mychips.err &
+function ticket {
+#echo "ticket DEBUG:$NODE_DEBUG args:$*"
+  bin/adminticket -H $(hostname) -Q | tee $tmpdir/ticket.url
+}
+    
+#Relaunch mychips spa server
+#-------------------------------------------------------------------------------
+function spa {
+#echo "spa DEBUG:$NODE_DEBUG args:$*"
+  stop spa
+  bin/mychips.js -p 0 "$@" 2>$tmpdir/spa.err &
   pid=$!
-  echo "  MyCHIPs Server PID: $pid"
-  echo $pid >>$tmpdir/pids		#Remember its Process ID for next time
+  echo "  MyCHIPs SPA Server PID: $pid"
+  echo $pid >>$tmpdir/spa.pid		#Remember its Process ID for next time
+}
+    
+#Relaunch mychips peer server
+#-------------------------------------------------------------------------------
+function peer {
+#echo "peer DEBUG:$NODE_DEBUG args:$*"
+  bin/mychips.js -s 0 -i 0 -d 0 "$@" 2>$tmpdir/peer.err &
+  pid=$!
+  echo "  MyCHIPs Peer Server PID: $pid"
+  echo $pid >>$tmpdir/procs.pid		#Remember its Process ID for next time
 }
     
 #Agent simulation
 #-------------------------------------------------------------------------------
 function agents {
 echo "agent args: $@"
-  MYCHIPS_DDHOST="$public" test/sim/agent -m 2 "$@" 2>$tmpdir/agent2.err &
+  MYCHIPS_DDHOST="$dochost" test/sim/agent -m 2 "$@" 2>$tmpdir/agent2.err &
   pid=$!
   echo "  Agent Model PID: $pid"
-  echo $pid >>$tmpdir/pids
+  echo $pid >>$tmpdir/procs.pid
 }
 
 #Log windows
@@ -112,28 +156,16 @@ function logs {
   xoff=30; yoff=30
   
   geom="+$(expr $base + \( $index \* $xoff \))+$(expr $index \* $yoff)"
-#echo "xterm index: $index geom:$geom"
-  xterm -T "$(hostname): $file" -geometry "$geom" -e /bin/bash -l -c "tail -n 0 -f $tmpdir/$file" &
+echo "xterm index: $index geom:$geom file:$tmpdir/log/$file"
+  xterm -T "$(hostname): $file" -geometry "$geom" -e /bin/bash -l -c "tail -n 0 -f $tmpdir/log/$file" &
   pid=$!
   echo "  Terminal PID: $pid"
-  echo $pid >>$tmpdir/pids
-}
-
-#Relaunch any services (running on a remote or local vm)
-#-------------------------------------------------------------------------------
-function start {
-  stop
-  if [[ $1 != 'noagent' ]]; then logs agent2 0; fi
-  logs peer 600
-  builddb
-  mychips -s 0 -i 0
-  if [[ $1 != 'noagent' ]]; then agents "$@"; fi
+  echo $pid >>$tmpdir/procs.pid
 }
 
 #Reconstruct the database if necessary
 #-------------------------------------------------------------------------------
-#if [[ $command == builddb ]]; then
-function builddb {
+function dbcheck {
 #  echo "Build: $(pwd)"
   if ! cd schema; then
     echo "Can't find db schema directory"
@@ -171,18 +203,15 @@ function builddb {
   fi
 }
 
-#Initialize for a simulation run
+#Relaunch any services (running on a remote or local vm)
 #-------------------------------------------------------------------------------
-function init {
-  if [[ $1 == '-a' ]]; then
-    newusers="$2"
-    shift 2
-  fi
-  echo "Agents:$newusers"
-  maxuser="$(expr $newusers - 1 + 1000)"
-  psql $dbname $admin -c 'delete from mychips.tallies'
-  psql $dbname $admin -c "delete from base.ent where ent_num > 1000 and not exists (select * from mychips.users where user_ent = id)"	#Delete any foreign peers
-  psql $dbname $admin -c "delete from base.ent where ent_num > $maxuser"	#Trim to max number of agents
+function start {
+  stop
+  if [[ $1 != 'noagent' ]]; then logs agent2 0; fi
+  logs peer 600
+  dbcheck
+  peer
+  if [[ $1 != 'noagent' ]]; then agents "$@"; fi
 }
 
 #Query the SQL database
@@ -193,7 +222,9 @@ function q {
   psql $dbname $admin -c "$query" "$@"
 }
 
-if [[ -z $command ]]; then
+#Main
+#-------------------------------------------------------------------------------
+if [[ -z $command ]]; then		#Default command
   command="start"
 fi
 

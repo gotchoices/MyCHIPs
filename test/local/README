@@ -1,2 +1,3 @@
 The adminticket script will deposit the new admin login token here by default.
-You can store other keys and tokens here for development purposes.
+You can store other keys and tokens here for development purposes as this 
+folder is ignored by git.

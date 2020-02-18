@@ -1,26 +1,19 @@
 TODO:
 
 Immediate:
-X- pop.vue asks app.vue for prefs, wm data
-X- app.vue resends pref/wm any time it is updated
-X- strdoc has pref/wm data available in its context
-X- Use subs or sections for nested document sections?
-X- Can update a document from report window
-X- Change actionLaunch editCB to a bi-directional messageBus
-X- Can send messages to a report window
-X- Report (strdoc) optionaly clears, loads when dbe changes data
-X- Large document makes window and parents blurry (only in Chrome)
-X- Input some basic documents
-X- Better spacing after section number
-X- How do I include/reference other documents (and show hyperlinks)?
-X- Make basic tally contract
-X- Address hacked admin dilemma (enough for now)
+X- Make simulation environment run on container-based servers
+X- Make docker config files specific to simulation environment
+X- Can create config.local for simulations
+X- Can launch N instances of SPA server
+X- Can launch N instances of peer server
+X- Can launch N instances of agent process
+X- Can launch admin browsers on each instance automatically
+X- test/local folder contains data folders for simulation server logs
+X- test/local folder contains data folders for postgres instances
+X- Can launch terminal windows to watch logs automatically
 - 
-- Make simulation environment run on container-based servers
-- Docker config files in build/
-- test/local folder contains data folders for postgres instances
-- 
-- Move webpack.config into build/
+- Make standard docker scripts in build/ that make production server images? (later)
+- Make server launch with fewer default behaviors?
 - 
 - Retool tallies.wms so tally_sets is an archive table only (real fields cached in tally)
 - Signed tally (JSON) is a subset of full tally fields
@@ -186,6 +179,8 @@ X- Column sort numbers are not showing on preview
 X- Implement preferences screen
 X- Allow separate prefs to be set from different modules
 X- Can change preferences reactively
+X- Pull-down selectors in DBE render badly in Firefox
+- 
 - Preferences:
 -   App widget responsible for saving/restoring preference settings
 -   Other modules can supply their own prefs defaults until better DB metadata arrives

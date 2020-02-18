@@ -1,0 +1,11 @@
+# Build docker mongo image optimized for MyCHIPs
+#Useage: docker image build --build-arg version=4.2.3 ...
+#Useage: docker image build --build-arg ...
+
+ARG version
+
+FROM mongo:${version}
+
+RUN apt-get update; \
+	apt-get install -y less iputils-ping; \
+	apt-get install -y busybox; busybox --install -s

@@ -14,4 +14,4 @@ if [[ $query == "clear" ]]; then
   query='deleteMany({}); db.getCollection("actions").deleteMany({})'
 fi
 
-ssh $public "mongo --eval 'db.getCollection(\"agents\").${query}' $dbname"
+ssh $dochost "mongo --eval 'db.getCollection(\"agents\").${query}' $dbname"

@@ -8,12 +8,12 @@
 //- 
 
 const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's clock
-const { Args, Dispatch, Log, Credentials, SpaServer} = require('wyclif')
-const { Wyseman } = require('wyseman')
-const Path = require('path')
 const Os = require('os')
-
+const Path = require('path')
+const { Args, Dispatch, Log, Credentials, SpaServer} = require('wyclif')
+Log.setPath(process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))	//Default directory for all logging
 var log = Log('mychips')
+const { Wyseman } = require('wyseman')
 var { actions, Parser } = require('wyselib')
 Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
 
@@ -35,15 +35,15 @@ var argv = Args({
   dbAdminCert:	process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
   dbCA:		process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-ca.crt')
 })
-  .alias('h','servID')     .default('servID',     null)		//If peer servers run on multiple hosts, this identifies our host
-  .alias('p','peerPort')   .default('peerPort',   65430)	//Peer-to-peer connections at this port
-  .alias('d','docPort')    .default('docPort',    8001)		//HTML document server
-  .alias('l','lifts')      .default('lifts',      false)	//Run lift scheduler
-  .alias('m','model')      .default('model',      false)	//Run agent-based model
+  .alias('h','servID')   .default('servID',	null)	//If peer servers run on multiple hosts, this identifies our host
+  .alias('p','peerPort') .default('peerPort',	65430)	//Peer-to-peer connections at this port
+  .alias('d','docPort')  .default('docPort',	8001)	//HTML document server
+  .alias('l','lifts')    .default('lifts',	false)	//Run lift scheduler
+  .alias('m','model')    .default('model',	false)	//Run agent-based model
   .argv
 
 //log.trace("argv:", argv)
-var credentials = argv.noHTTP ? null : Credentials(argv.spaKey, argv.spaCert, null, log)
+var credentials = (!argv.noHTTPS && argv.spaPort) ? Credentials(argv.spaKey, argv.spaCert, null, log) : null
 var sslAdmin = Credentials(argv.dbAdminKey, argv.dbAdminCert, argv.dbCA)	//Ignore errors
 var sslUser = Credentials(argv.dbUserKey, argv.dbUserCert, argv.dbCA)
 const pubDir = Path.join(__dirname, "..", "pub")

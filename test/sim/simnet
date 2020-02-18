@@ -3,12 +3,12 @@
 #Usage:	./simnet
 #	./simnet stop
 #TODO:
-#- Allow full command line switches:
-#-  Whether to launch agent or just server
-#-  Allow to append args to agent and server
-#- Specify an individual machine to talk to in lieu of all
-#- Control starting/stopping of services individually
-#- Can execute arbitrary commands on remote computers
+#X- Allow full command line switches:
+#X-  Whether to launch agent or just server
+#X-  Allow to append args to agent and server
+#X- Specify an individual machine to talk to in lieu of all
+#X- Control starting/stopping of services individually
+#X- Can execute arbitrary commands on remote computers
 #- Launch a tail -f xterm on each server?
 #- How to get progress updates to print in order, after correct Machine address?
 #- Update database schema if/where appropriate
@@ -16,28 +16,36 @@
 #- 
 
 #Examples:
-#simnet start				#start defaults: peer server, agent model
-#simlet stop
-#simnet start peer
-#simnet stop agent
-#simnet start peer,'agent --runs=5'
-#simnet q "delete from mychips.tallies"
-#simnet db				#Freshen db build
-#simnet init				#Clear worlddb, erase tallies, create agents
-#simnet config				#Configure remote machines
+#simnet ticket				#Create connection tickets for all machines
+#simnet spa				#Launch SPA servers on all nodes
+#simnet -a				#Launch admin console for all machines
+#simnet start				#Start default processes: peer server, agent model
+#simnet stop				#Stop all peer, agent, log processes
+#simnet stop spa			#Stop all spa servers
+#simnet q "delete from mychips.tallies"	#run sql query on node
+#simnet peer				#Start peer servers only
+#simnet builddb				#Freshen db build
+#simnet init				#Reset number of agents on each node
+#simnet config				#Configure remote machines (postgres, python, etc.)
+#simlet -l dx0 ls			#Run any other shell command
 
 #Common code
 #-------------------------------------------------------------------------------
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
-source $mypath/config
+source $mypath/config.net
+#echo "remotes:${remotes[@]} locals:${locals[@]} dockapps:${dockapps[@]}"	;exit 0
 
-pargs=()						#Positional arguments
+adminUI=false
+pargs=()						#Will hold positional arguments
 while [[ $# -gt 0 ]]; do				#Grab command line arguments
   case $1 in
-    -l|--locals) locals=($2); shift;;
-    -r|--remotes) remotes=($2); shift;;
-    --) shift; pargs+=("$@"); shift $#;;
+    -l|--locals) locals=($2); shift;;			#Specify locals
+#    -d|--dockapps) dockapps=($2); shift;;		#Specify docker apps
+    -r|--remotes) remotes=($2); shift;;			#Specify remotes
+    -a|--admin) adminUI=true;;				#Launch admin UI's
+    -c|--config) source $2; shift;;			#Load additional configuration
+    --) shift; pargs+=("$@"); shift $#;;		#Done with switches
     *) pargs+=("$1");;
   esac
   shift
@@ -48,8 +56,11 @@ for p in "${pargs[@]}"; do
 #echo "arg:$p"
    cargs+=("$(echo "$p" | base64)")
 done
+set -- "${pargs[@]}"					#Restore positional arguments
 
-#set -- "${pargs[@]}"					#Restore positional arguments (not needed for now)
+#if  [ ${#dockapps[@]} -gt 0 ]; then			#If some nodes are containers
+#  source $mypath/sim.c
+#fi
 
 mychips="$mypath"					#Get our bearings in the filesystem
 mysim=""
@@ -68,6 +79,16 @@ fi
 
 #echo "mychips:$mychips mysim:$mysim locals:$locals cargs:${cargs[*]}"; #exit 0
 
+if $adminUI; then				#Open browser admin UI for each node
+  for mach in "${locals[@]}"; do
+    urlfile="$mypath/local/$mach/ticket.url"
+    if [ -f $urlfile ]; then
+      browserTab "$(cat $urlfile)"
+    fi
+  done
+  exit 0
+fi
+
 #Main
 #-------------------------------------------------------------------------------
 machidx=0
@@ -76,14 +97,11 @@ for mach in "${remotes[@]}"; do			#Update each machine with mirror of latest sou
   if [ "$1" != "stop" ]; then
     rsync -ar --delete "$mychips" "$mychips"/../node_modules "$mychips"/../wylib "$mychips"/../wyselib "$mychips"/../wyseman "$mychips"/../wyclif "${user}@${mach}:${remsrc}"
   fi
-  ssh -f -Y ${user}@${mach} "NODE_DEBUG=$NODE_DEBUG SIMNET_INDEX="$machidx" ${remsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+  ssh -f -Y ${user}@${mach} "NODE_DEBUG=$NODE_DEBUG TMPDIR=local SIMNET_INDEX="$machidx" ${remsrc}/mychips/${mysim}sim.x ${cargs[@]}"
   machidx=$(expr $machidx + 1)
 done
 
-for mach in "${locals[@]}"; do			#Call remote script on local VMs
-  ssh -f -Y ${USER}@${mach} "NODE_DEBUG=$NODE_DEBUG SIMNET_INDEX="$machidx" ${vmsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+for mach in "${locals[@]}"; do			#Call sim.x script on each local VM
+  ssh -f -Y ${USER}@${mach} "NODE_DEBUG=$NODE_DEBUG TMPDIR=local/$mach SIMNET_INDEX="$machidx" ${vmsrc}/mychips/${mysim}sim.x ${cargs[@]}"
   machidx=$(expr $machidx + 1)
 done
-
-sleep 1						#Give time for remote comments to post before returning to prompt
-#echo Done

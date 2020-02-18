@@ -1,0 +1,15 @@
+
+browserTab() {			#Open a specified page in the user's favorite browser
+  if [ -z "$browser" ]; then browser=firefox; fi
+  if [ "$(uname)" = "Darwin" ]; then
+    capName="$(tr '[:lower:]' '[:upper:]' <<< ${browser:0:1})${browser:1}"
+    case "$browser" in
+      firefox) open -n -a /Applications/Firefox.app --args -new-tab $1;;
+      chrome)  open -n -a '/Applications/Google Chrome.app' --args -new-tab $1;;
+      safari)  open $1;;
+    esac
+
+  elif which $browser; then			#Linux: should work for firefox/chrome
+    $browser -new-tab $1
+  fi
+}

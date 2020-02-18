@@ -1,0 +1,14 @@
+# Build standard production mychips image
+
+FROM node:lts-alpine
+RUN apk update && apk upgrade && apk add bash bash-completion postgresql-client openssl
+
+WORKDIR /app
+COPY package*.json ./
+COPY . .
+RUN rm -rf node_modules; \
+	npm install && npm update && npm audit fix
+
+#EXPOSE 8000
+
+CMD ["npm", "start"]

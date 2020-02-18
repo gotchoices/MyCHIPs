@@ -3,13 +3,9 @@
 #TODO:
 #- 
 
-MYPATH=$(dirname "$0")
-DBNAME=${WYATTDB}; if [ -z "$DBNAME" ]; then DBNAME="mychips"; fi
-mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
+DBHOST=${MYCHIPS_DBHOST}; if [ -z "$DBHOST" ]; then DBNAME="localhost"; fi
+DBNAME=${MYCHIPS_DBNAME}; if [ -z "$DBNAME" ]; then DBNAME="mychips"; fi
 
-machineIP=$(grep MachineIP ${mypath}/../settings.js |cut -d : -f 2 |tr -d '"' |tr -d ' ')
-#uport=43210
-#pport=65432
 count=1
 servID='null'
 minDate="Jan 01, 1940"
@@ -36,7 +32,7 @@ while [ $count -gt 0 ]; do
   echo "first:$first last:$last cid:$cid date:$date"
 
 #continue
-  psql $DBNAME admin >/dev/null <<EOF
+  psql $DBNAME admin -h $DBHOST >/dev/null <<EOF
     insert into mychips.users_v (ent_name, fir_name, peer_cid, ent_type, born_date, serv_id)
     values('$last', '$first', '${cid}', 'p', '${date}', $([ "$servID" == 'null' ] && echo "null" || echo "'${servID}'"))
 EOF

@@ -2,6 +2,9 @@
 //Standalone agent-based simulation model
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
+const Path = require('path')
+const { Log } = require('wyclif')
+Log.setPath(process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))
 
 var argv = require('yargs')
   .alias('H','dbHost')     .default('dbHost',     process.env.MYCHIPS_DBHOST)	//SQL Database
@@ -14,6 +17,7 @@ var argv = require('yargs')
   .alias('p','ddPort')     .default('ddPort',     process.env.MYCHIPS_DDPORT || '27017')
   .alias('m','model')      .default('model',    1)
   .alias('i','interval')   .default('interval', 1000)
+  .alias('s','peerServer')
   .argv
 
 const moduleFile = '../../lib/agent' + argv.model + '.js'

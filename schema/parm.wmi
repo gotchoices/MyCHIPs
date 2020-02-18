@@ -2,6 +2,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 host=$(hostname)
+if [[ ! -z "$MYCHIPS_DEFAULT_HOST" ]]; then host="$MYCHIPS_DEFAULT_HOST"; fi
 
 #Default parameters for connection port
 cat <<EOF

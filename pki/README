@@ -1,14 +1,14 @@
 This folder contains recipes for creating self-signed certificates.  We will
-use these certificates for three distinct purposes:
+use such certificates in three separate instances:
 
   - To validate the connection between the MyCHIPs server and a client Single 
     Page Application (SPA) such as the admin console, user console, or a user 
     mobile app.
   - To validate the connection between the MyCHIPs server and the PostgreSQL
     server.
-  - To validate the connection between peer MyCHIPs servers.
+  - To validate the connection between peer MyCHIPs servers (not implemented).
 
-For a detailed version of these instructions, generic to WyattERP, see:
+For a more detailed version of these instructions, generic to WyattERP, see:
  
   node_modules/wyclif/pki/README
 

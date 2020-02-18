@@ -1,0 +1,30 @@
+#Default configuration parameters for network simulations
+#Create a file local/config and include assignments to override defaults
+
+user=root			#Will connect to remote machines with this ID
+browser="firefox"		#User's preferred browser
+remsrc="/usr/local/devel"	#Where to replicate source directory on remote machines
+vmsrc="~/devel"			#Where to find source directory on local VMs
+tmpdir="$simdir/local"		#Where status and timestamp files go on VMs
+dochost="mongohost"		#Host of public database (blank to create one in docker)
+admin="admin"			#Username to connect to postgres
+dbname="mychips"		#Postgres database name
+newusers=4			#How many local users to put on each machine
+
+#remotes=( 192.168.1.15 192.168.1.16 )
+remotes=( )
+
+#locals=(vm0 vm1 vm2)		#Any machines that already have an up-to-date source mirror (via nfs or the like)
+locals=( )		
+
+dockapps=(da0 da1 da2)
+
+confile="${MYCHIPS_SIM:-$mypath/local/config.net}"
+#echo "Pwd:$(pwd) my:$mypath confile:$confile" >&2
+if [ -f $confile ]; then		#Read local settings
+  source $confile
+fi
+
+machines=( "${locals[@]}" "${remotes[@]}" )
+
+source $mypath/functions

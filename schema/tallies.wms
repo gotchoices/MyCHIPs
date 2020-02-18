@@ -14,9 +14,9 @@ module mychips
 require config.tcl trigview.tcl
 
 namespace eval tallies {
-#    def tallies_pk	{tally_ent tally_seq}
-#    def tallies_v_up	{request comment}
-#    def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
+    def tallies_pk	{tally_ent tally_seq}
+    def tallies_v_up	{request comment}
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
     def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target lift_marg drop_marg lift_max drop_max status units_c cr_limit dr_limit $glob::stampfn]
 }
 
@@ -317,9 +317,9 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
     ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
     ;
 
---Probably don't want/need these:
---    ev#al(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
---    ev#al(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
+-- Simulations use these.  Are they used in production?
+    eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
+    eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
 }
 
 # User view of tallies

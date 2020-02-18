@@ -2,53 +2,78 @@
 #Step through creation of local certificates typically needed in pki/local
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
+# Usage: localcerts spa data peer
+batch=false
+pkidir="pki"
+host="$(hostname -s)"
+pargs=()						#Positional arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -p|--pki) pkidir=($2); shift;;			#Where to build configuration
+    -h|--host) host=($2); shift;;
+    -b|--batch) batch=true;;
+    --) shift; pargs+=("$@"); shift $#;;		#Done with switches
+    *) pargs+=("$1");;
+  esac
+  shift
+done
+#echo "pwd:$(pwd) host:$host pkidir:$pkidir editor:$EDITOR"; exit 0
 
-if [ ! -d pki ]; then
-  echo "Can't find pki directory"; exit 1
-fi
-if ! cd pki; then
-  echo "Can't access pki directory"; exit 1
-fi
-
-if [ ! -f example.conf ]; then
-  echo "Can't find example configuration"; exit 1
-fi
-if [ -z "$EDITOR" ]; then
-  echo "Can't find a standard editor"; exit 1
-fi
-host=$(hostname -s)
 if [ -z "$host" ]; then
-  echo "Can't determine host name"; exit 1
+  echo "Error: Can't determine host name" >&2; exit 1
 fi
-#echo "pwd:$(pwd) editor:$EDITOR"; exit 0
-
-if [ ! -f local.conf ]; then
-  cp example.conf local.conf
-else
-  echo "It appears your certificates are already built or partially configured."
-  echo "You can either continue and any old certificates will be overwritten"
-  echo "or Ctrl-C now to abort."
-  echo -n "Enter to continue (and overwrite certs): "; read ans
+if [ ! -d $pkidir ] || ! cd $pkidir; then
+  echo "Error: Can't access pki directory: $pkidir" >&2; exit 1
+fi
+if [ ! -f example.conf ]; then
+  echo "Error: Can't find PKI example configuration" >&2; exit 1
 fi
 
-echo "You will now enter the file:"
-echo -e "   $(pwd)/local.conf using your editor: ${EDITOR}\n"
-echo "Please change/review the settings to reflect your local site."
-echo -n "Enter to continue: "; read ans
-${EDITOR} local.conf
+if ! $batch; then			#Interactive mode
+  if [ -z "$EDITOR" ]; then
+    echo "Error: Can't find a user-defined text editor" >&2; exit 1
+  fi
 
-npm run cert -t spa "${host}.%"
+  locdir="$(pwd)/local"
+  mkdir -p $locdir
+  if [ ! -f $locdir/local.conf ]; then
+    cp example.conf $locdir/local.conf
+  else
+    echo "It appears your certificates are already built or partially configured."
+    echo "You can continue to regenerate any certificates older than the configuration"
+    echo "or Ctrl-C now to abort."
+    echo -n "Enter to continue (may overwrite certs): "; read ans
+  fi
 
-npm run cert -t data "${host}.%"
-npm run cert -t data admin
-npm run cert -t data users
+  echo "You will now enter the file:"
+  echo -e "   $locdir/local.conf using your configured editor: ${EDITOR}\n"
+  echo "Please change/review the settings to reflect your local site."
+  echo -n "Enter to continue: "; read ans
+  ${EDITOR} $locdir/local.conf
+fi
 
-npm run cert -t peer "${host}.%"
+for type in ${pargs[*]}; do
+  case $type in
+    spa)
+      npm run cert --silent -- -t spa "${host}.%";;
+    data)
+      npm run cert --silent -- -t data "${host}.%";
+      npm run cert --silent -- -t data admin;
+      npm run cert --silent -- -t data users;;
+    peer)
+      npm run cert --silent -- -t peer "${host}.%";;
+    *)
+      echo "Unknown certificate type: $type";
+      exit 1;;
+  esac
+done
 
-ls -l local
-
-cat <<EOF
-Above are the certificates created.  Make sure the pki/local folder is not 
-publicly readable.  For many configurations you will need to do more or 
-different certificates.  See pki/README for more details.
-EOF
+if ! $batch; then
+  pwd
+  ls -l local
+  cat <<-EOF
+	Above are the certificates created.  Make sure the pki/local folder is not 
+	publicly readable.  For many configurations you will need to do more or 
+	different certificates.  See pki/README for more details.
+	EOF
+fi
