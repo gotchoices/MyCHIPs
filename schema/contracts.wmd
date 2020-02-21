@@ -24,6 +24,7 @@ tabdef mychips.contracts_v -f {
     {"name":"edit","format":"strdoc","slave":true},
     {"name":"publish","ask":true}
   ]}
+  export {"contract"}
   launch {{
     "initial": 1,
     "import": "json.import"

@@ -29,6 +29,7 @@ tabdef mychips.users_v -fields {
   ]}
   where {{"and":true,"items":[{"left":"user_ent","not":true,"oper":"isnull"}, {"left":"ent_inact","not":true,"oper":"true"}, {"left":"ent_type","oper":"=","entry":"p"}]}}
   subviews {["base.addr_v", "base.comm_v"]}
+  export {"user"}
   launch {{
     "initial": 1,
     "import": "json.import"

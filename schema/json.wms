@@ -2,6 +2,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
+#- users_v.json should probably export nested addr/comm data too
 #- Can I keep id and fk's out of these views and still insert data as needed?
 #- 
 module mychips
@@ -100,7 +101,7 @@ view json.contract {json mychips.contracts_v} {select
   , digest
   , sections
     from	mychips.contracts_v
-} -primary {author title version language}
+} -primary {domain name version language}
 
 # Import possibly nested JSON data structures
 #----------------------------------------------------------------
@@ -128,7 +129,7 @@ function {json.import(data jsonb, keys jsonb default null)} {json.user json.addr
 
       for tableName in select jsonb_object_keys(data) loop		-- For each record in toplevel object (normally just one)
         tmpObject = data->tableName;					-- Value of user, address, contact, etc
---raise notice '  process:% data:%', tableName, data->tableName;
+raise notice '  process:% data:%', tableName, data->tableName;
 
         for tmpKey in select jsonb_object_keys(keys) loop		-- For any primary key values passed in from above
           tmpObject = jsonb_set(tmpObject, array[tmpkey], keys->tmpkey);	-- Assign them into our record
@@ -142,7 +143,7 @@ function {json.import(data jsonb, keys jsonb default null)} {json.user json.addr
         select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray, fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = tableName;
 --raise notice '  fieldArray:% fieldList:%', fieldArray, fieldList;
         cmd = 'insert into json.' || quote_ident(tableName) || ' (' || fieldList || ') select ' || fieldList || ' from jsonb_populate_record(NULL::json.' || quote_ident(tableName) || ', $1) returning ' || primKeyList;
---raise notice '  cmd :%', cmd;
+--raise notice '  cmd :% :%', cmd, tmpObject;
         execute cmd into newRecord using tmpObject;			-- Insert the record
 
 --raise notice '  New PK:%', to_jsonb(newRecord);
