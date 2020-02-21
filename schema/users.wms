@@ -60,6 +60,18 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
   , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost)			as peer_addr
   , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_endp
   , greatest(ee.mod_date, pe.mod_date, ue.mod_date) as mod_date
+  , jsonb_build_object(
+      'id',		ee.id
+    , 'cid',		pe.peer_cid
+    , 'name',		ee.ent_name
+    , 'type',		ee.ent_type
+    , 'first',		ee.fir_name
+    , 'middle',		ee.mid_name
+    , 'prefer',		ee.pref_name
+    , 'begin',		ee.born_date
+    , 'juris',		ee.country
+    , 'taxid',		ee.tax_id
+    ) as json
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id
