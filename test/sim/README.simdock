@@ -169,29 +169,28 @@ get killed.  You may have to do that manually.
 Command Examples:
 -------------------------------------------------------------------------------
   export NODE_DEBUG=debug
-  ./simdock startup		#Run mongo/development/PG/SPA containers
-  ./simdock tickets		#Connect to SPA servers via browser
-  ./simdock start sim		#Run simulation
-  ./simdock stop sim		#Stop simulation
-  ./simdock shutdown		#Stop everything
+  ./simdock startup			#Run mongo/development/PG/SPA containers
+  ./simdock tickets			#Connect to SPA servers via browser
+  ./simdock start sim --runs=50		#Run simulation
+  ./simdock stop sim			#Stop simulation
+  ./simdock shutdown			#Stop everything
 
-  ./simdock init		#Reset users/peers/tallies to start values
+  ./simdock init			#Reset users/peers/tallies to start values
   
-  ./simdock start pg 0		#Start the first postgres
-  ./simdock start pg all	#Start all postgres containers
-  ./simdock start spa all	#Start all SPA servers
-  ./simdock start site 1-3	#Start postgres and SPA servers 1 through 3
-  ./simdock -s=10 start sites	#Start sites 0-9
-  ./simdock stop pg 0		#Stop the first postgres
-  ./simdock stop pg0		#Ditto (but only works for stop, not start)
-  ./simdock stop pg all		#Stop all postgres containers
+  ./simdock start pg 0			#Start the first postgres
+  ./simdock start pg all		#Start all postgres containers
+  ./simdock start spa all		#Start all SPA servers
+  ./simdock start site 1-3		#Start postgres and SPA servers 1 through 3
+  ./simdock -s=10 start sites		#Start sites 0-9
+  ./simdock stop pg 0			#Stop the first postgres
+  ./simdock stop pg0			#Ditto (but only works for stop, not start)
+  ./simdock stop pg all			#Stop all postgres containers
   ./simdock stop pg 2-4
   
-  ./simdock start peer all	#Start all peer servers
-  ./simdock start peers		#Ditto
+  ./simdock start peer all		#Start all peer servers
+  ./simdock start peers			#Ditto
   ./simdock start agents --runs=10	#Run agents to do 10 iterations
-  ./simdock stop agents		#Stop all agents
+  ./simdock stop agents			#Stop all agents
 
-  ./simdock start mongo		#Start mongodb (public database)
-  ./simdock stop mongo		#Stop mongodb
-  
+  ./simdock start mongo			#Start mongodb (public database)
+  ./simdock stop mongo			#Stop mongodb

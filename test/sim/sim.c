@@ -93,6 +93,6 @@ case $command in
 
   q) query "$@";;		#DB query
 
-  *) $command $@;;		#Arbitrary shell command
+  *) $command "$@";;	#Arbitrary shell command
     
 esac

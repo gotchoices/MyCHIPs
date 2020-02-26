@@ -445,11 +445,15 @@ function start {
       for i in $(seq 0 $maxsite); do 
         start_log $i agent -x ${agentwins[0]} -y ${agentwins[1]}
         start_log $i peer -x ${peerwins[0]} -y ${peerwins[1]}
+      done
+      for i in $(seq 0 $maxsite); do 
         SITE=$i remote dbcheck
         SITE=$i remote usercheck
-        start_peer $i
-        start_agent $i "$@"
+        start_peer $i &
       done 
+      for i in $(seq 0 $maxsite); do 
+        start_agent $i "$@" &
+      done
       ;;
   esac
 }

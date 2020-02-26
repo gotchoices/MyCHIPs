@@ -1,2 +1,0 @@
-./simnet stop; ./qdoc clear; ./simnet init
-./simnet start --runs=50

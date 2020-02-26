@@ -3,7 +3,7 @@
 #TODO:
 #- 
 
-DBHOST=${MYCHIPS_DBHOST}; if [ -z "$DBHOST" ]; then DBNAME="localhost"; fi
+DBHOST=${MYCHIPS_DBHOST}; if [ -z "$DBHOST" ]; then DBHOST="localhost"; fi
 DBNAME=${MYCHIPS_DBNAME}; if [ -z "$DBNAME" ]; then DBNAME="mychips"; fi
 
 count=1

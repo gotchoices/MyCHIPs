@@ -9,4 +9,4 @@ source ../sim/functions
 url="$(../../bin/adminticket -Q)"
 #url="http://google.com"
 echo "url:$url"
-browserTab $url
+#browserTab $url
