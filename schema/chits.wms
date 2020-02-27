@@ -10,9 +10,9 @@ require config.tcl trigview.tcl
 
 namespace eval chits {
     def chits_pk	{chit_ent chit_seq chit_idx}
-    def chits_v_up	{request signature units pro_quo memo}
+    def chits_v_up	{request signature units quidpro memo}
     def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_guid chit_type]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_guid chit_type $glob::stampfn chit_date]
+    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_guid chit_type $glob::stampfn chit_date ordinal digest]
 }
 
 table mychips.chits {mychips.tallies} {
@@ -24,8 +24,9 @@ table mychips.chits {mychips.tallies} {
   , chit_date	timestamptz	not null default current_timestamp
   , request	text		check(request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
   , signature	text
+  , ordinal	int
   , units	bigint		not null
-  , pro_quo	text
+  , quidpro	text
   , memo	text
   , digest	bytea
     eval(s $glob::stamps)
@@ -201,10 +202,12 @@ $$;}
 function {mychips.chit_json(ch mychips.chits)} {mychips.chits} {
   returns jsonb stable language sql as $$
     select jsonb_build_object(
+       'ordinal',	ch.ordinal,
        'guid',		ch.chit_guid,
        'type',		ch.chit_type,
        'date',		ch.chit_date,
        'units',		ch.units,
+       'for',		ch.quidpro,
        'signed',	ch.signature
     )
 $$;}
@@ -225,7 +228,10 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
   , mychips.chit_open(ch.request, ch.signature)			as open
 --  , ch.request is null and not ch.signature isnull and ch.signature != 'void'	as open
   , mychips.chit_state(isdebit(), ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
-  , mychips.chit_json(ch)					as json
+  , mychips.chit_json(ch)					as json_core
+  , mychips.chit_json(ch) || jsonb_build_object(
+      'digest',		ch.digest
+    )								as json
 
     from	mychips.chits		ch
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq;
@@ -283,11 +289,11 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
             select into trec * from mychips.tallies where tally_ent = erec.id and tally_guid = (msg->>'tally')::uuid;
             if not found then return null; end if;
             
-            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,signature,units,pro_quo,memo) values ($1,$2,$3,$4,current_timestamp,$5,$6,$7,$8) returning chit_ent, chit_seq, chit_idx' into crec
+            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,signature,units,quidpro,memo) values ($1,$2,$3,$4,current_timestamp,$5,$6,$7,$8) returning chit_ent, chit_seq, chit_idx' into crec
                 using trec.tally_ent, trec.tally_seq, guid, obj->>'type', obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo';
           else						-- Chit already exists, do update
 --Fixme: we are currently ignoring the recipe update fields and only updating from the object fields!
-            execute 'update mychips.chits set signature = $1, units = $2, pro_quo = $3, memo = $4, request = null, mod_date = current_timestamp, mod_by = session_user where chit_ent = $5 and chit_seq = $6 and chit_idx = $7'
+            execute 'update mychips.chits set signature = $1, units = $2, quidpro = $3, memo = $4, request = null, mod_date = current_timestamp, mod_by = session_user where chit_ent = $5 and chit_seq = $6 and chit_idx = $7'
                 using obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo', crec.chit_ent, crec.chit_seq, crec.chit_idx;
             delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
           end if;

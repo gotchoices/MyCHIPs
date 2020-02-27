@@ -349,7 +349,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , coalesce(tc.units,0)::float8 / multSign()	as total
   , coalesce(tc.chits,0)			as chits
   , greatest(coalesce(tc.latest, te.mod_date), te.mod_date)	as latest
-  , mychips.tally_json(te, ue.peer_cid, pe.peer_cid)		as json_terms
+  , mychips.tally_json(te, ue.peer_cid, pe.peer_cid)		as json_core
   , mychips.tally_json(te, ue.peer_cid, pe.peer_cid) || jsonb_build_object(
       'signed',		json_build_object(
         'digest',	te.digest,
