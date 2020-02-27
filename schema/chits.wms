@@ -27,6 +27,7 @@ table mychips.chits {mychips.tallies} {
   , units	bigint		not null
   , pro_quo	text
   , memo	text
+  , digest	bytea
     eval(s $glob::stamps)
 }
 index {} mychips.chits chit_guid
@@ -46,7 +47,7 @@ table mychips.chit_tries {mychips.chits} {
 function mychips.chits_tf_seq() {mychips.tallies} {
   returns trigger language plpgsql security definer as $$
     begin
-        if new.chit_idx is null then
+        if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
           update mychips.tallies set _last_chit = greatest(
               coalesce(_last_chit,0) + 1,
               (select coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq)
@@ -60,6 +61,22 @@ function mychips.chits_tf_seq() {mychips.tallies} {
 $$;}
 trigger mychips_chits_tr_seq {} {
     before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
+}
+
+# Before updating each chit record
+#----------------------------------------------------------------
+function mychips.chits_tf_bu() {mychips.chit_json(mychips.chits) mychips.chit_open(text,text)} {
+  returns trigger language plpgsql security definer as $$
+    begin
+      if mychips.chit_open(new.request, new.signature) and not mychips.chit_open(old.request, old.signature) then
+-- Need to incorporate previous hash somehow
+--        new.digest = sha256(mychips.chit_json(new)::text::bytea);
+      end if;
+      return new;
+    end;
+$$;}
+trigger mychips_chits_tr_bu {} {
+    before update on mychips.chits for each row execute procedure mychips.chits_tf_bu();
 }
 
 # Cache the total of tallies when the chits change
@@ -89,8 +106,8 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
   returns boolean language plpgsql security definer as $$
     declare
         act	text	= chit.request;
-        jrec	jsonb	= '{"target": "chit"}';
         channel	text	= 'mychips_peer';
+        jrec	jsonb;			-- Holds notify record
         trec	record;			-- Talley
         urec	record;			-- User
         rrec	record;			-- Retries
@@ -106,17 +123,18 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
           on conflict (ctry_ent,ctry_seq,ctry_idx) do update set tries = mychips.chit_tries.tries + 1, last = current_timestamp
             returning * into rrec;
         
---Fixme: better way to build json record?
---Fixme: get rid of what is redundant with {object} or otherwise not needed
-        jrec = jsonb_set(jrec, '{peer}', to_jsonb(trec.part_cid));
-        jrec = jsonb_set(jrec, '{user}', to_jsonb(trec.user_cid));
-        jrec = jsonb_set(jrec, '{entity}', to_jsonb(chit.chit_ent));
-        jrec = jsonb_set(jrec, '{tally}', to_jsonb(trec.tally_guid));
-        jrec = jsonb_set(jrec, '{action}', to_jsonb(act));
-        jrec = jsonb_set(jrec, '{try}', to_jsonb(rrec.tries));
-        jrec = jsonb_set(jrec, '{last}', to_jsonb(rrec.last));
-        jrec = jsonb_set(jrec, '{at}', to_jsonb(trec.part_sock));
-        jrec = jsonb_set(jrec, '{object}', (select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx));
+        jrec = jsonb_build_object(		--Fixme: get rid of what is redundant with {object} or otherwise not needed
+          'target',	'chit',
+          'peer',	trec.part_cid,
+          'user',	trec.user_cid,
+          'entity',	chit.chit_ent,
+          'tally',	trec.tally_guid,
+          'action',	act,
+          'try',	rrec.tries,
+          'last',	rrec.last,
+          'at',		trec.part_sock,
+          'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
+        );
 --raise notice 'Chit notice:% %', channel, jrec::text;
         perform pg_notify(channel, jrec::text);
         return true;
@@ -178,10 +196,23 @@ function {mychips.chit_open(request text, signature text)} {mychips.chits} {
       select request is null and not signature is null and signature != 'void'
 $$;}
 
+# Compute standard json output for a chit
+#----------------------------------------------------------------
+function {mychips.chit_json(ch mychips.chits)} {mychips.chits} {
+  returns jsonb stable language sql as $$
+    select jsonb_build_object(
+       'guid',		ch.chit_guid,
+       'type',		ch.chit_type,
+       'date',		ch.chit_date,
+       'units',		ch.units,
+       'signed',	ch.signature
+    )
+$$;}
+
 # Base view of chits
 #----------------------------------------------------------------
 define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
-view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text) mychips.chit_open(text,text)} {select 
+view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text) mychips.chit_open(text,text) mychips.chit_json(mychips.chits)} {select 
     eval(fld_list $chits::chits_se	ch)
   , te.user_cid
   , te.part_cid
@@ -194,13 +225,8 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
   , mychips.chit_open(ch.request, ch.signature)			as open
 --  , ch.request is null and not ch.signature isnull and ch.signature != 'void'	as open
   , mychips.chit_state(isdebit(), ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
-  , jsonb_build_object(
-       'guid',		ch.chit_guid,
-       'type',		ch.chit_type,
-       'date',		ch.chit_date,
-       'units',		ch.units,
-       'signed',	ch.signature
-  )						as json
+  , mychips.chit_json(ch)					as json
+
     from	mychips.chits		ch
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq;
 
