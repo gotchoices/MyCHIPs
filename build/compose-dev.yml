@@ -1,0 +1,59 @@
+version: '3.7'
+
+services:
+  mychips:
+    image: gotchoices/mychips
+    command: ["npm", "start"]
+    container_name: mychips
+    hostname: mychips
+#    dns_search: simulation
+#    domainname: mychips.simulation
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    environment:
+      NODE_DEBUG: debug
+      MYCHIPS_DBHOST: postgres
+    labels:
+      name: mychips
+    working_dir: /usr/local/devel/mychips
+    volumes:
+      - "../..:/usr/local/devel"
+      - "../local/log:/var/tmp/mychips"
+      - "~/.inputrc:/root/.inputrc"
+      - "~/.bashrc:/root/.bashrc"
+    depends_on:
+      - postgres
+#    deploy:
+#      mode: replicated
+#      replicas: 2
+#      endpoint_mode: vip
+    ports:
+      - "8000"
+      - "54320"
+    networks:
+      - backend
+      - frontend
+
+  postgres:
+    image: gotchoices/pg
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.pg
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    tty: true
+    stdin_open: true
+    labels:
+      name: pg
+    volumes:
+      - "../local/pgdata:/var/lib/postgresql/data/pgdata"
+      - "./dbcheck.sh:/docker-entrypoint-initdb.d/dbcheck.sh"
+      - "~/.inputrc:/root/.inputrc"
+      - "~/.bashrc:/root/.bashrc"
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:

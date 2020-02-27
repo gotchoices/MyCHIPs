@@ -1,0 +1,51 @@
+version: '3.7'
+
+services:
+  server:
+    image: gotchoices/mychips
+    command: ["npm", "start"]
+    build:
+      context: ..
+      labels:
+        - "org.gotchoices.description=server"
+      dockerfile: build/Dockerfile
+    links:
+      - postgres
+    environment:
+      NODE_DEBUG: debug
+#    volumes:
+#      - ${MYCHIPS_CODE_PATH:-.}:/app
+    depends_on:
+      - postgres
+    ports:
+      - "${MYCHIPS_SPAPORT:-8000}:8000"
+      - "${MYCHIPS_WSPORT:-54320}:54320"
+    networks:
+      - backend
+      - frontend
+#    env_file:
+#      - prod.env
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - ${MYCHIPS_DBPORT:-15432}:5432
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ${MYCHIPS_DBNAME:-postgres}
+      POSTGRES_USER: ${MYCHIPS_DBADMIN:-postgres}
+      POSTGRES_PASSWORD: ${MYCHIPS_DBPASSWORD:-postgres}
+    tty: true
+    stdin_open: true
+    labels:
+      name: postgres-data
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+#    env_file:
+#      - prod.env
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
