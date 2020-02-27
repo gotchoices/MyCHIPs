@@ -2,7 +2,8 @@ Instructions to demonstrate reference code. (Jun 2019)
 Currently tested on a Fedora 29 linux machine using chrome as the browser:
 
 - Install Postgres, as root:
-  dnf install postgresql postgresql-server postgresql-devel postgresql-pltcl postgresql-contrib
+  dnf install postgresql postgresql-server postgresql-devel \
+  	postgresql-pltcl postgresql-plpython postgresql-contrib
   dnf install ruby rubygem-pg rubygem-tk	#If you plan to modify the schema
   su -l postgres -c initdb
   systemctl enable postgresql
@@ -143,6 +144,11 @@ Want to browse the database schema:
   npm run server -- -w
   
 - Direct your browser to:	https://<hostname>:8000/wysegi.html
+
+You may want to monitor notice logging from postgres.  If so, you may
+have to edit pgsql/data/postgresql.conf and set the following:
+
+log_min_messages=notice
 
 ---------------------------------------------------------------------  
 If you will be working on wyseman source code:
