@@ -192,10 +192,9 @@ export default {
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
 //console.log("URnet async:", dat)
 
-      if (dat.target == 'peers')
+      if (dat.target == 'peers' || dat.target == 'tallies')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
-      if (dat.target == 'tallies')
-        this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
+      this.$refs.svg.$emit('bump')		//Automatic bump each time something changes
     })
   },
 
