@@ -1,0 +1,102 @@
+Frequently Asked Questions
+-------------------------------------------------------------------------------
+Why so defensive (as to make a FAQ)?
+
+99% of the time a developer reviews this project, they start out by wanting to
+change the way it has been implemented.  While I don't doubt there are many
+different ways the project could have been done, I have made the best choices I
+could given all the requirements before me.
+
+I don't think it would be constructive to back up or start over on significant
+parts of the toolchain used.  Rather, I think the best pathway forward is to 
+get this reference implementation working as well as possible given its current 
+implementation methods.  If it works, there will be time and motivation for 
+other "from-scratch" versions to come along that might be more efficient or
+elegant.
+-------------------------------------------------------------------------------
+Can you build this system on top of (Etherium, holochain, other blockchain...)?
+
+Not really.  Maybe somehow, but why?  Blockchain is a centralized data topology.
+Transactions are designed to go through a common, public store.  MyCHIPs is a 
+distributed data model.  There is no double-spending problem, no proof of Work, 
+Stake, etc. required.
+
+The part of blockchain technology that _is_ applicable is the notion of chained
+hashes.  MyCHIPs does make use of them but it is implemented inside the
+database so there is not really much benefit in trying to smash this algorithm
+on top of another framework.
+-------------------------------------------------------------------------------
+Why use Javascript on the backend?
+
+The asynchronous character of Javascript is key to the way the server runs.  A
+single process can be started which is really several servers in one.  Or, many
+processes can be launched with a more singular purpose to each one.  This could
+be more challenging to achieve in a single-minded or threaded model.
+-------------------------------------------------------------------------------
+Why use Vuejs?
+
+All the UI developed so far is for my benefit as a developer.  While the admin
+console could be used in production, that is not necessary.  I fully expect
+other UI's to be developed if/when the middle and back is proven effective.
+
+Certainly the end-user UI will need to be a user-friendly mobile app.  Whether
+that is done in Vuejs, NativeScript, or Native Apple/Android coding is yet to
+be determined.
+-------------------------------------------------------------------------------
+What is all this Wy* stuff?
+
+Wyatt-ERP is a group of libraries I developed some years ago which provide for
+rapid development of database applications.  It was originally implemented in 
+TCL/TK for use PostgreSQL.  I ported the parts that were most useful to develop
+MyCHIPs.  This involves 4 npm libraries:
+
+  Wylib: Front End UI library, now ported to Vuejs
+  Wyseman: Schema manager and database portal
+  Wyclif: Control layer interface
+  Wyseman: ERP schema library
+
+-------------------------------------------------------------------------------
+Why use Wyatt-ERP?
+
+Because I wanted to use PostgreSQL and Wyseman is the easiest/best way I know 
+to do SQL development in a stable and repeatable way.
+-------------------------------------------------------------------------------
+Why use PostgreSQL?
+
+First requirement of the system was that it be ACID.  There are transactions
+coming into the model from all different directions and commits need to be
+atomic.
+
+PostgreSQL is at least as good as any other alternative in this category, if
+not the best.
+-------------------------------------------------------------------------------
+Why not use a NoSQL database?
+
+SQL is very helpful in querying the types of data structures produced in the
+MyCHIPs algorithms.  Without it, there would be a huge amount of coding work
+to be done in other ways.  SQL makes that quick and easy.
+
+Document databases seem to shine most when the structure of the data being 
+stored is not really known before-hand.  In those cases, we make good use of
+PostgreSQL's JSON data type.
+-------------------------------------------------------------------------------
+Can I use MySQL (SQLlite, etc.)
+
+No.  MyCHIPs does not just store data in the database.  It is a model with
+build-in intelligence consisting of many stored procedures and views.  
+Switching to another database would be nearly starting over from scratch.
+-------------------------------------------------------------------------------
+Why is your code so tightly packed?
+
+Sorry, that's how I code.  It is easier for me to understand the code structure
+when I can see larger parts of the logic flow in one page.  Each line tends to
+be more concentrated than in other code you may see.  I don't get paid by the
+line.
+
+I also code a lot wider than 80 columns.  Assuming you're not still using a
+VT100 or a teletype, make your window wider.  It will work.
+-------------------------------------------------------------------------------
+Will it run on Windows?
+
+Sure.  In Docker!
+-------------------------------------------------------------------------------
