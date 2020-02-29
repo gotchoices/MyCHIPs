@@ -300,6 +300,10 @@ function start_log {
 
   local geom="+$(expr $x + \( $n \* $xoff \))+$(expr $y + \( $n \* $yoff \))"
 #echo "start_log n:$n mach:$mach geom:$geom logfile:$logfile"
+  if ! which xterm; then
+    echo "As you don't have xterm installed, $mach log viewer can not be launched"
+    return
+  fi
   xterm -T "$mach: $log" -geometry "$geom" -e /bin/bash -l -c "tail -n 0 -f $logfile" &
   local pid=$!
   echo "  Terminal log PID: $pid"
