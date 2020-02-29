@@ -41,3 +41,17 @@ tabtext mychips.confirms {Confirmations}	{Contains records evidencing each time 
     {sum		{Sum}			{The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)}}
     {signature		{Signature}		{The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table}}
 }
+
+tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {
+    {ent		{Entity}		{The entity ID of the owner of the tally the chain belongs to}}
+    {seq		{Sequence}		{The sequence (tally) number of the owner of the tally the chain belongs to}}
+    {digest		{Digest}		{A SHA256 hash of the MyCHIPs compliant data contained in the individual chit or tally}}
+    {chain_idx		{Chain Index}		{The record number in the chain.  Base tally is -1, first chit is 0, second chit is 1...}}
+    {chain_prv		{Prior Hash}		{Contains the hash of the prior link (chit or tally) in the chain}}
+    {prev_ok		{Prior Links}		{Is true if this and all previous records properly contain the hash copied from the prior record}}
+    {hash_ok		{Prior Hashes}		{Is true if this and all previous records contain an accurate hash of the relevant data in their record}}
+    {ok			{Chain Valid}		{True if all hashes are correctly computed up through this record}}
+    {last		{End of Chain}		{True if this is the last record in the chain}}
+    {length		{Length}		{Indicates how many chits are part of the chain}}
+    {guids		{GUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
+}

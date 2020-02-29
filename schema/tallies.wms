@@ -24,7 +24,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target lift_marg drop_marg lift_max drop_max status units_c cr_limit dr_limit $glob::stampfn]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target lift_marg drop_marg lift_max drop_max status digest units_c cr_limit dr_limit $glob::stampfn]
 }
 
 table mychips.tallies {mychips mychips.users mychips.peers} {
@@ -191,11 +191,11 @@ function {mychips.tally_set(ent text, seq int, sets jsonb)} {mychips.tally_sets}
         if lrec.key = any('{target,lift_marg,drop_marg,lift_max,drop_max}') then
           qflds = qflds || (quote_ident(lrec.key) || ' = ' || lrec.value::text);
         end if;
-raise notice 'Tally set % = %', lrec.key, lrec.value;
+--raise notice 'Tally set % = %', lrec.key, lrec.value;
       end loop;
 --raise notice '  qflds: %', array_to_string(qflds,', ');
       qstrg = 'update mychips.tallies set ' || array_to_string(qflds, ', ') || ' where tally_ent = $1 and tally_seq = $2';
-raise notice '  qstrg: %', qstrg;
+--raise notice '  qstrg: %', qstrg;
       execute qstrg using ent, seq;
 
 --Fixme: how/where to get real signature?
@@ -237,7 +237,7 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychip
         insert into mychips.tally_tries (ttry_ent, ttry_seq) values (tally.tally_ent, tally.tally_seq)
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
-raise notice 'Try:%-%', tally.tally_ent, tally.tally_seq;
+--raise notice 'Try:%-%', tally.tally_ent, tally.tally_seq;
 --raise notice 'Tn c:% h:% p:% u:% s:%', channel, grec.user_serv, trec.part_cid, trec.user_cid, trec.part_sock;
 
         jrec = jsonb_build_object(		--Fixme: get rid of what is redundant with object or otherwise not needed
@@ -357,7 +357,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
         'foil',		case when te.tally_type = 'stock' then te.part_sig else te.user_sig end
       )
     )		as json
-  , sha256(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text::bytea)	as digest
+  , sha256(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text::bytea) as digest_v
   , sha256(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text::bytea) = coalesce(te.digest,'') as clean
 
     from	mychips.tallies	te
@@ -550,7 +550,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 
         select into trec tally_ent, tally_seq, state from mychips.tallies_v where tally_ent = erec.id and tally_guid = guid;
         curState = trec.state;
-raise notice 'Tally cid:% entity:% state:% recipe:%', cid, erec.id, curState, recipe;
+--raise notice 'Tally cid:% entity:% state:% recipe:%', cid, erec.id, curState, recipe;
         if not found then
             curState = 'null';			-- Special code for when the tally doesn't exist yet
         end if;
@@ -569,12 +569,12 @@ raise notice 'Tally cid:% entity:% state:% recipe:%', cid, erec.id, curState, re
             if not found then return null; end if;
 
             execute 'insert into mychips.tallies (tally_ent,tally_guid,tally_type,tally_date,version,partner,contract,status,comment,user_sig,part_sig,cr_limit,dr_limit) 
-              values ($1,$2,$3,current_timestamp,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning tally_ent, tally_seq' into trec
-                using erec.id, guid, tallyType, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
+              values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) returning tally_ent, tally_seq' into trec
+                using erec.id, guid, tallyType, (obj->>'created')::timestamptz, (obj->>'version')::int, partner, obj->'contract', 'draft', obj->>'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0);
           else						-- Tally already exists, do update
 --Fixme: we are currently ignoring the recipe update fields and only updating from the object fields!
             execute 'update mychips.tallies set version = $1, contract = $2, status = $3, comment = $4, user_sig = $5, part_sig = $6, cr_limit = $7, dr_limit = $8, request = null, mod_date = current_timestamp, mod_by = session_user  where tally_ent = $9 and tally_seq = $10'
-                using (obj->>'version')::int, obj->'contract', 'draft', obj->'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
+                using (obj->>'version')::int, obj->'contract', 'draft', obj->>'comment', obj->'signed'->>tallyType, obj->'signed'->>notType, coalesce((obj->>'crLimit')::bigint,0), coalesce((obj->>'drLimit')::bigint,0), trec.tally_ent, trec.tally_seq;
           end if;
           acted = true;
         end if;
@@ -587,7 +587,7 @@ raise notice 'Tally cid:% entity:% state:% recipe:%', cid, erec.id, curState, re
         end if;
 
         if acted then
-raise notice 'Clear:%-%', trec.tally_ent, trec.tally_seq;
+--raise notice 'Clear:%-%', trec.tally_ent, trec.tally_seq;
           delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
         else
           return null;		-- Don't proceed if we didn't do anything
