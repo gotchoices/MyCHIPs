@@ -205,7 +205,7 @@ function {mychips.lift_cycle(maxNum int default 1)} {mychips.tallies_v_paths bas
 
 -- These are all internal lifts for now (circuit)      
       while count < maxNum loop
-        tstr = 'select length, min, max, cost, path, guids from mychips.tallies_v_paths where circuit and min >= $1 order by ' || orders || ' limit 1';
+        tstr = 'select length, min, max, margin, path, guids from mychips.tallies_v_paths where circuit and min >= $1 order by ' || orders || ' limit 1';
 --raise notice 'LC2 min:% max:% ord:% sql:%', min_units, maxNum, orders, tstr;
         execute tstr into prec using min_units;			-- Look for the highest priority lift to execute
         get diagnostics rows = ROW_COUNT;
