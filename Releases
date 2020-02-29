@@ -1,5 +1,20 @@
 Change Log:
 
+0.1.8	2020-Feb
+	- Tallies/chits impemented as hash chains
+	- Network graph auto-arranges
+	- Docker-based simulation environment
+	- Implement lift trading variables
+	- Can do backend signature validation
+	- Initial tally contracts in structured document format
+	- Peer pathways survey protocol
+	- Polling/retries on failed packets
+	- User permissions working in DB
+	- Support SSL connection to database
+	- Key generation for SPA connection
+	- Agent modeler version 2
+	- Network simulation environment
+
 0.1.6	2019-Feb
 	- Migrate duplicated code into new wylib launcher
 	- Support for Wylib authenticated login
