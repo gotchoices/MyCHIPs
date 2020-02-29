@@ -4,15 +4,7 @@
 
 ./simdock init			#Update DB, reset users, tallies
 
-peers=1				#Wait for old sim processes to die
-agents=1
-while [[ $peers -gt 0 || $agents -gt 0 ]]; do
-  echo "Waiting..."		#Wait for simulation to die
-  sleep 1
-  peers=$(docker ps -f 'name=peer.' -q |wc -l)
-  agents=$(docker ps -f 'name=agent.' -q |wc -l)
-  echo "peers:$peers agents:$agents"
-done
+./simdock wait agent peer	#Wait for old sim processes to die
 
 d=$(date)			#Blank log files
 for f in  local/ds*/agent local/ds*/peer local/ds*/tally local/ds*/chit; do

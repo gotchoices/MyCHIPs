@@ -513,6 +513,17 @@ elif [[ 'dbcheck|usercheck|q' =~ $command ]]; then
   n="${1:-all}"; shift
   one_or_many remote $n $command "$@"
 
+elif [[ $command = 'wait' ]]; then	#Wait for specified containers to stop
+  found=1
+  while [ "$found" -gt 0 ]; do
+    found=0
+    for pn in "$@"; do
+      found=$(expr $found + $(docker ps -f "name=$pn" -q |wc -l))
+    done
+    if [ $found -gt 0 ]; then echo "Waiting for: $found of $@"; fi
+    sleep 1
+  done
+
 else
   echo "Unknown command: $command" >&2
   exit 1
