@@ -1,5 +1,19 @@
-Instructions to demonstrate reference code. (Jun 2019)
-Currently tested on a Fedora 29 linux machine using chrome as the browser:
+Instructions to demonstrate reference code. (Feb 2020)
+
+Current testing limited to: 
+Fedora linux, Chrome, Firefox, PostgreSQL 9-11, docker
+
+---------------------------------------------------------------------
+Docker Simulation
+
+If you just want to run the docker network simulation, install Docker on your
+machine and then get into mychips/test/sim and consult the file README.simdock.
+
+The simulation model was developed on MacOS but it should also be possible to 
+run on a Linux host.
+
+---------------------------------------------------------------------
+To manually configure a Linux environment for testing/debug:
 
 - Install Postgres, as root:
   dnf install postgresql postgresql-server postgresql-devel \
@@ -85,6 +99,11 @@ Currently tested on a Fedora 29 linux machine using chrome as the browser:
   reissue a connection token using the procedure above.  The admin user can issue
   connection tokens for other users using the admin GUI.
   
+  URL Tickets:
+  It is now possible using the -Q switch to make adminticket produce a URL which
+  you can connect to directly, eliminating the need to import a key file into the
+  UI as described above.
+  
   See the documentation in the wylib package for more detailed information on 
   connection keys.
   
@@ -151,55 +170,65 @@ have to edit pgsql/data/postgresql.conf and set the following:
 log_min_messages=notice
 
 ---------------------------------------------------------------------  
-If you will be working on wyseman source code:
+If you will be working on the Wyatt-ERP source code:
 
-- Remove mychips/node_modules/wyseman
-  cd mychips/..				#Directory above mychips
-  git clone https://github.com/gotchoices/wyseman.git
-  npm install wyseman
+- You will need to run "npm develop" script.  This will remove the four Wyatt 
+  modules out of mychips/node_modules.  It will expect to find those same 
+  modules (wyseman, wylib, wyselib, wyclif) in a folder at the same level as 
+  the mychips folder.  You will have to check these of from github, for
+  example:
 
-- See wyseman/INSTALL for more installation details
-  dnf install rubygem-pg rubygem-tk gcc-c++	;As root
-  gem install json				;As you
+    git clone https://github.com/gotchoices/wyselib.git
+  
+  The develop script will run an "npm install" at that level (just above 
+  mychips) which will build an npm_modules folder there and make the required 
+  modules accessible to MyCHIPs.
+  
+  By doing it this way, you are able to edit/change things in the Wyatt code
+  and the changes will be immediately accessible to the next run of MyCHIPs.
 
 ---------------------------------------------------------------------  
-If you will be working on the PostgreSQL schema:
+  If you are editing the database schema, you will likely need the following 
+  package installations:
 
-- Remove mychips/node_modules/wyselib
-  cd mychips/..
-  git clone https://github.com/gotchoices/wyselib.git
-  npm install wyselib
+    dnf install rubygem-pg rubygem-tk gcc-c++
+    gem install json
+  
+  See wyseman/INSTALL for more installation details
 
-- You may have to drop your database, if it was created automatically
-
-- Build schema in your database from sources:
-  Set WYATTDB if you use a DB name different from your username
+- To build/rebuild the schema in your database from sources:
   cd mychips/schema
   make all
+  
+  This may fail on the first run if your schema was instantiated by MyCHIPs
+  (as opposed to this manual build method).
 
 ---------------------------------------------------------------------  
 If you will be working on Wylib:
 
-- Remove mychips/node_modules/wylib
-  cd mychips/..
-  git clone https://github.com/gotchoices/wylib.git
-  npm install wylib
+- Check out the wylib source (if not already done):
+    git clone https://github.com/gotchoices/wylib.git
+    
+- Run the "npm develop" script as noted above.
   
-- Run 'watched' build in wylib:
+- Run a 'watched' build in wylib:
   cd wylib
   npm run dev-build
 
-- Run hot build in mychips:
+- Run a similar build in mychips:
   cd mychips
-  npm run dev-hot
+  npm run dev-build
 
-- Direct browser to port 3000 to get hot-loaded SPA
-  Now changes in wylib or mychips SPA code should auto rebuild/reload
-  This does not work well when testing/using wylib reports
+- Any changes you make in either the wylib source, or the MyCHIPs source
+  will be detected and the packges will be automatically rebuilt.  You can
+  just reload your browser to grab the latest changes to the SPA.
   
-  If you are testing reports, hot loading may not work so instead:
-  - Use in mychips: npm run dev-build
-  - And browse to port 8000
+  If you are making changes to the server side code, you will have to
+  restart that manually.
+  
+  It is also possible to run "npm run dev-hot" in the mychips directory.
+  This allows you to run the SPA out of port 3000 (rather than 8000).  This
+  may not work right if you are working on wylib reports.
 
 ---------------------------------------------------------------------  
 Testing:
