@@ -1,0 +1,107 @@
+#!/usr/bin/env wish
+#Searchable window to display log files
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+#package require Tclx
+set font {Courier 10}
+
+namespace eval color {
+  namespace export +
+  variable map {
+    bold 1 light 2 blink 5 invert 7
+    black 30 red 31 green 32 yellow 33 blue 34 purple 35 cyan 36 white 37
+    Black 40 Red 41 Green 42 Yellow 43 Blue 44 Purple 45 Cyan 46 White 47
+  }
+
+  proc + {args} {			;#Manual insert shortcut
+    variable map
+    set t 0
+    foreach i $args {
+      set ix [lsearch -exact $map $i]
+      if {$ix>-1} {lappend t [lindex $map [incr ix]]}
+    }
+    return "\033\[[join $t {;}]m"
+  }
+
+  proc get {code} {
+    variable map
+    set res [list]
+    foreach i [split $code ";"] {
+      set ix [lsearch -exact $map $i]
+      if {$ix>-1} {lappend res [lindex $map [incr ix -1]]}
+    }
+    set res
+  }
+
+  proc text {w args} {
+    variable $w.tags ""
+    eval ::text $w $args
+    rename ::$w ::_$w
+
+    proc ::$w {cmd args} {
+      regsub -all @ {([^@]*)(@\[([^m]+)m)} \x1b re
+      set self [lindex [info level 0] 0]
+      if {$cmd=="insert"} {
+        foreach {pos text tags} $args break
+        set arglist {}
+        while {[regexp $re $text -> before esc code]} {		;#text contains escape codes
+#puts "before:$before\ncode:$code\n"
+          lappend arglist $before [set color::$self.tags]
+          set color::$self.tags [color::get $code]
+          regsub $re $text {} text
+        }
+        lappend arglist $text [concat $self.tags $tags]
+        _$self insert $pos {*}$arglist
+      } else {
+        uplevel 1 _$self $cmd $args
+      }
+    }
+    foreach i {black red green yellow blue purple cyan white} {
+      _$w tag configure $i -foreground $i
+    }
+    foreach i {Black Red Green Yellow Blue Purple Cyan White} {
+      _$w tag configure $i -background [string tolower $i]
+    }
+    set w
+  }
+}
+
+#Call this when data is available from the logger
+#------------------------------------------
+proc answer {} {
+  global fp
+  set ans [read $fp]
+#puts -nonewline "$ans"
+  .win configure -state normal
+  .win insert end $ans
+  .win configure -state disabled	;#Makes it so we can't copy text!
+  .win see end
+}
+
+scrollbar .ys -orient v -command {.win yview}
+color::text .win -yscroll {.ys set} -font $font
+pack .ys -side right -fill y
+pack .win
+
+bind Text <Command-KeyPress-k> {	;#Clear command compatible with iTerm
+#  puts "clear"
+  %W delete 0.0 end
+}
+
+set file [lindex $argv 0]
+#puts "file:$file"
+wm title . $file
+
+if {$file == {test}} {
+  namespace import color::+
+  .win insert end "12345678901234567890123456789012345678901234567890123456789012345678901234567890\n"
+  .win insert end "Starting [+ Red white]this is red[+]\n"
+  .win insert end "A [+ blue]this is blue[+] on this line\n"
+  .win insert end "And [+ Yellow green]a yellow[+] line\n"
+} else {
+  set fp [open "|tail -f $file"]
+  fconfigure $fp -blocking no
+  fileevent $fp readable answer
+}
+
+#trap {exit 0} SIGKILL

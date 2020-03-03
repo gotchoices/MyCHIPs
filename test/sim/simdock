@@ -298,13 +298,20 @@ function start_log {
   local logfile="$locdir/$mach/$log"
   if [ -d $locdir/$mach -a ! -f $logfile ]; then touch $logfile; fi
 
-  local geom="+$(expr $x + \( $n \* $xoff \))+$(expr $y + \( $n \* $yoff \))"
 #echo "start_log n:$n mach:$mach geom:$geom logfile:$logfile"
-  if ! which xterm; then
-    echo "As you don't have xterm installed, $mach log viewer can not be launched"
+  if [ "$logviewer" = logwin ]; then
+    y=$(expr $y + 22)			#Mac kludge: why does wish place differently than xterm?
+  fi
+  local geom="+$(expr $x + \( $n \* $xoff \))+$(expr $y + \( $n \* $yoff \))"
+  if [ "$logviewer" = logwin ]; then
+    wish logwin $logfile -geometry "$geom" 2>/dev/null &
+  
+  elif [ "$logviewer" = xterm ] && which xterm >/dev/null; then
+    xterm -T "$mach: $log" -geometry "$geom" -e /bin/bash -l -c "tail -n 0 -f $logfile" &
+
+  else					#Don't launch any viewer
     return
   fi
-  xterm -T "$mach: $log" -geometry "$geom" -e /bin/bash -l -c "tail -n 0 -f $logfile" &
   local pid=$!
   echo "  Terminal log PID: $pid"
   echo "$n $pid" >>$pidfile
@@ -322,7 +329,7 @@ function stop_log {
   while read pn pid; do
     if [[ ! -z $pid && ( $n == $pn || $n = 'all' ) ]]; then
       echo "  Kill PID: $pn $pid"
-      kill $pid
+      pkill -P $pid
     fi
   done <$pidfile
   if [[ $n = 'all' ]]; then rm -f $pidfile; fi
