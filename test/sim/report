@@ -1,0 +1,28 @@
+#!/bin/bash
+#Run pre-defined reports on selected remote sites
+#
+#TODO:
+#- 
+
+report="$1"; shift
+nodes="$1"; shift
+if [ -z "$nodes" ]; then
+  nodes="0"
+fi
+  
+case $report in
+    routes)
+      query="select * from mychips.routes_v";;
+    lifts)
+      query="select first,path,status,state,dest_addr,lift_margin,lift_reward,lift_min,lift_max from mychips.routes_v_lifts";;
+    paths)
+      query="select first,last,length,path,lift_min,lift_max,bang,lift_margin,lift_reward from mychips.tallies_v_paths where corein and fora and forz"
+      ;;
+    *)
+      echo "Unknown report: $report"
+      exit 1
+      ;;
+esac
+
+echo "./simdock q \"$nodes\" \"$query\" $@"
+./simdock q "$nodes" "$query" "$@"
