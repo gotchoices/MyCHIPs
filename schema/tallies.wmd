@@ -17,14 +17,15 @@ tabdef mychips.tallies -fields [concat {
     {contract		ent	20	{0 6 4}		}
     {stock_terms	mle	{80 2}	{0 7 2}		}
     {foil_terms		mle	{80 2}	{0 8 4}		}
-    {bal_target		ent	8	{0 9}		}
-    {lift_marg		ent	8	{1 9}		}
-    {drop_marg		ent	8	{2 9}		}
+    {target		ent	8	{0 9}		}
+    {reward		ent	8	{1 9}		}
+    {clutch		ent	8	{2 9}		}
+    {bound		ent	8	{3 9}		}
     {dr_limit		ent	12	{0 10}		}
     {cr_limit		ent	12	{1 10}		}
     {units		ent	16	{2 10}		}
 } $glob::stampd] -display {
-  tally_ent tally_seq tally_type status partner tally_date tally_guid dr_limit cr_limit lift_marg bal_target
+  tally_ent tally_seq tally_type status partner tally_date tally_guid dr_limit cr_limit reward target
 }
 
 # A view with some additional pseudo fields
@@ -36,7 +37,7 @@ tabdef mychips.tallies_v -fields {
     {part_sock		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
     {part_name		ent	28	{3 16}		-opt 1 -sta readonly -wr 0}
 } -display {
-  tally_ent tally_seq tally_type status partner part_name lift_marg dr_limit cr_limit bal_target
+  tally_ent tally_seq tally_type status partner part_name reward dr_limit cr_limit target
 }
 
 # User view

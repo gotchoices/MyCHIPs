@@ -11,6 +11,8 @@
 #TODO:
 #X- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman
 #X- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
+#- Can create digest offline in JavaScript that matches the detest in tally_sets
+#- Can validate tally_sets record against supplied signature, mark cache field as valid
 #- See Fixme's below
 #- Include serv_id in tally_v to reduce queries in notice triggers?
 #- Add constraints to assure things like contract and signatures are valid?
@@ -24,7 +26,11 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target lift_marg drop_marg lift_max drop_max status digest units_c cr_limit dr_limit $glob::stampfn]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target reward clutch bound status digest units_c cr_limit dr_limit $glob::stampfn]
+
+    def tally_sets_pk	{tset_ent tset_seq tset_idx}
+    def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
+    def tally_sets_se	[concat $tally_sets_v_in tset_idx digest]
 }
 
 table mychips.tallies {mychips mychips.users mychips.peers} {
@@ -46,15 +52,13 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
 
   , stock_terms	jsonb					-- Terms client grants to vendor (stock)
   , dr_limit	bigint		not null default 0	-- A stock term
-
   , foil_terms	jsonb					-- Terms vendor grants to client (foil)
   , cr_limit	bigint		not null default 0	-- A foil term
 
   , target	bigint		not null default 0	-- Lift settings
-  , lift_marg	float		not null default 0 constraint "!mychips.tallies.LMG" check (lift_marg >= -1 and lift_marg <= 1)
-  , drop_marg	float		not null default 1 constraint "!mychips.tallies.DMG" check (drop_marg >=  0 and drop_marg <= 1)
-  , lift_max	bigint		not null default 0
-  , drop_max	bigint		not null default 0
+  , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
+  , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
+  , bound	bigint		not null default 0
 
   , digest	bytea
   , units_c	bigint		default 0 not null
@@ -72,10 +76,14 @@ table mychips.tally_sets {mychips.tallies} {
   , tset_seq	int	      , foreign key (tset_ent, tset_seq) references mychips.tallies on update cascade on delete cascade
   , tset_idx	int	      , primary key (tset_ent, tset_seq, tset_idx)
   , tset_date	timestamptz	not null default current_timestamp
-  , settings	jsonb		not null
+  , target	bigint
+  , reward	float
+  , clutch	float
+  , bound	bigint
   , signature	text		not null
+  , digest	bytea
 }
-index {} mychips.tally_sets tset_date
+#index {} mychips.tally_sets tset_date
 
 table mychips.confirms {mychips.tallies} {
     conf_ent	text
@@ -126,7 +134,7 @@ function mychips.tallies_tf_bu() {mychips.tally_opencheck(mychips.tallies)} {
   returns trigger language plpgsql security definer as $$
     begin
       if new.status = 'open' and old.status != 'open' then	-- Need to generate record digest?
-        return mychips.tallies.tally_opencheck(new);
+        return mychips.tally_opencheck(new);
       end if;
       return new;
     end;
@@ -154,18 +162,25 @@ $$;}
 
 # Generate unique sequence for new tally setting
 #----------------------------------------------------------------
-function mychips.tally_sets_tf_seq() {mychips.tally_sets} {
+function mychips.tally_sets_tf_seq() {mychips.tally_sets mychips.tset_json(mychips.tally_sets)} {
   returns trigger language plpgsql security definer as $$
+    declare
+      tfld	text;
+      qflds	text[];
+      qstrg	text;
     begin
-        if new.tset_idx is null then
-          update mychips.tallies set _last_tset = greatest(
-              coalesce(_last_tset,0) + 1,
-              (select coalesce(max(tset_idx),0)+1 from mychips.tally_sets where tset_ent = new.tset_ent and tset_seq = new.tset_seq)
-            ) where tally_ent = new.tset_ent and tally_seq = new.tset_seq
-              returning _last_tset into new.tset_idx;
-          if not found then new.tset_idx = 1; end if;
-        end if;
-        return new;
+      if new.tset_idx is null then
+        update mychips.tallies set _last_tset = greatest(
+            coalesce(_last_tset,0) + 1,
+            (select coalesce(max(tset_idx),0)+1 from mychips.tally_sets where tset_ent = new.tset_ent and tset_seq = new.tset_seq)
+          ) where tally_ent = new.tset_ent and tally_seq = new.tset_seq
+            returning _last_tset into new.tset_idx;
+        if not found then new.tset_idx = 1; end if;
+      end if;
+      new.digest = sha256(mychips.tset_json(new)::text::bytea);
+
+      update mychips.tallies set target = coalesce(new.target,target), reward = coalesce(new.reward,reward), clutch = coalesce(new.clutch,clutch), bound = coalesce(new.bound,bound) where tally_ent = new.tset_ent and tally_seq = new.tset_seq;
+      return new;
     end;
 $$;}
 trigger mychips_sets_tr_seq {} {
@@ -191,32 +206,6 @@ $$;}
 trigger mychips_confirms_tr_seq {} {
     before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
 }
-
-# Assert new trading parameters for a specified tally
-#----------------------------------------------------------------
-function {mychips.tally_set(ent text, seq int, sets jsonb)} {mychips.tally_sets} {
-  returns timestamptz language plpgsql security definer as $$
-    declare
-      lrec	record;		-- Looping variable
-      qflds	text[];
-      qstrg	text;
-    begin
-      for lrec in select * from jsonb_each_text(sets) loop
-        if lrec.key = any('{target,lift_marg,drop_marg,lift_max,drop_max}') then
-          qflds = qflds || (quote_ident(lrec.key) || ' = ' || lrec.value::text);
-        end if;
---raise notice 'Tally set % = %', lrec.key, lrec.value;
-      end loop;
---raise notice '  qflds: %', array_to_string(qflds,', ');
-      qstrg = 'update mychips.tallies set ' || array_to_string(qflds, ', ') || ' where tally_ent = $1 and tally_seq = $2';
---raise notice '  qstrg: %', qstrg;
-      execute qstrg using ent, seq;
-
---Fixme: how/where to get real signature?
-      insert into mychips.tally_sets (tset_ent,tset_seq,settings,signature) values (ent, seq, sets, 'Sig');
-      return current_timestamp;
-    end;
-$$;}
 
 # Notify the peer server process of tally state changes, and next state request, that needs attention in the database
 #----------------------------------------------------------------
@@ -317,6 +306,18 @@ function {mychips.tally_json(te mychips.tallies, ucid text, pcid text)} {mychips
     )
 $$;}
 
+# Compute standard json output for tally settings
+#----------------------------------------------------------------
+function {mychips.tset_json(ts mychips.tally_sets)} {mychips.tally_sets} {
+  returns jsonb stable language sql as $$
+    select jsonb_strip_nulls(jsonb_build_object(
+       'target',	ts.target,
+       'reward',	ts.reward,
+       'clutch',	ts.clutch,
+       'bound',		ts.bound
+    ))
+$$;}
+
 # Compute current state of a tally, based on its various fields
 #----------------------------------------------------------------
 function {mychips.tally_state(status text, request text, user_sig text, part_sig text, total bigint)} {mychips} {
@@ -386,6 +387,23 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
 -- Simulations use these.  Are they needed in production?
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
+}
+
+# Base view of tally settings
+#----------------------------------------------------------------
+view mychips.tally_sets_v {mychips.tally_sets mychips.tset_json(mychips.tally_sets)} {select 
+    eval(fld_list $tallies::tally_sets_se	ts)
+  
+  , mychips.tset_json(ts)				as json_core
+  , mychips.tset_json(ts) || jsonb_build_object(
+      'signature',	ts.digest
+    )		as json
+  , sha256(mychips.tset_json(ts)::text::bytea)		as digest_v
+  , sha256(mychips.tset_json(ts)::text::bytea) = coalesce(ts.digest,'') as clean
+
+    from	mychips.tally_sets	ts;
+
+    eval(trigview::insert mychips.tally_sets_v mychips.tally_sets $tallies::tally_sets_v_in $tallies::tally_sets_pk {tset_date current_timestamp});
 }
 
 # User view of tallies
@@ -497,27 +515,24 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
 #----------------------------------------------------------------
 view mychips.tallies_v_net {mychips.tallies} {select 
     coalesce(ts.tally_guid,tf.tally_guid)	as guid
-  , ts.tally_guid				as stock_guid
-  , tf.tally_guid				as foil_guid
   , coalesce(ts.tally_ent,tf.partner)		as stock_ent
   , coalesce(tf.tally_ent,ts.partner)		as foil_ent
   , ts.tally_ent				as stock_user
   , tf.tally_ent				as foil_user
-  , ts.dr_limit					as stock_drl
-  , ts.cr_limit					as stock_crl
---  , ts.bal_target				as stock_tgt
-  , tf.dr_limit					as foil_drl
-  , tf.cr_limit					as foil_crl
---  , tf.bal_target				as foil_tgt
-  , greatest(ts.dr_limit, tf.dr_limit)		as dr_max
-  , greatest(ts.cr_limit, tf.cr_limit)		as cr_max
---  , coalesce(ts.lift_marg,0) + coalesce(tf.lift_marg,0)		as lift_marg
-, 1 as lift_marg
---  , coalesce(ts.drop_marg,0) + coalesce(tf.drop_marg,0)		as drop_marg
-, 1 as drop_marg
---  , least(ts.bal_target, tf.bal_target)		as target
-, 0 as target
-  , coalesce(ts.units_c, tf.units_c)		as units
+  , ts.units_c					as units
+  , ts.units_c = tf.units_c			as clean
+  
+  , tf.target					as lift_target
+  , tf.reward					as lift_reward
+  , ts.clutch					as lift_margin
+  , tf.units_c - least(-tf.target, 0)				as lift_min
+  , tf.units_c - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
+  
+  , ts.target					as drop_target
+  , ts.reward					as drop_reward
+  , tf.clutch					as drop_margin
+  , greatest(ts.target, 0) - ts.units_c				as drop_min
+  , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_c	as drop_max
   
   from			(select * from mychips.tallies where tally_type = 'stock') ts
   full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_guid = ts.tally_guid

@@ -116,12 +116,12 @@ function {mychips.chit_opencheck(ch mychips.chits)} {mychips.chit_json(mychips.c
       crec	record;
     begin
 
-raise notice 'Chit digest:%', ch.digest;
       select into crec * from mychips.chits where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq and not digest isnull order by chain_idx desc limit 1;
       if found then
         ch.chain_prv = crec.digest;
         ch.chain_idx = crec.chain_idx + 1;
         ch.digest = sha256(mychips.chit_json(ch)::text::bytea);
+--raise notice 'Chit digest:%', ch.digest;
         return ch;
       end if;
       

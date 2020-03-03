@@ -78,8 +78,13 @@ table mychips.route_tries {mychips.routes} {
 # Recursive view of tallies to show pathways native to our system
 #----------------------------------------------------------------
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift_max(bigint,bigint,bigint,bigint)} {
-  with recursive tally_path(first, last, length, path, guids, cycle, circuit, margin, min, max, inside, corein, fora, forz) as (
-    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 0::float, null::bigint, null::bigint, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull
+  with recursive tally_path(first, last, length, path, guids, cycle, circuit, inside, corein, fora, forz,
+      lift_margin, lift_reward, lift_min, lift_max,
+      drop_margin, drop_reward, drop_min, drop_max
+    ) as (
+    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull,
+      0::float, 0::float, null::bigint, null::bigint,
+      0::float, 0::float, null::bigint, null::bigint
     from	mychips.users_v p
     where	not p.peer_ent isnull
   union all
@@ -90,11 +95,6 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift
       , tp.guids || t.guid				as guids
       , t.stock_ent = any(tp.path)			as cycle
       , tp.path[1] = t.stock_ent			as circuit
-      , tp.margin + t.lift_marg * (1 - tp.margin)	as margin
-      , least(tp.min, mychips.lift_max(
-          t.units, t.target, t.cr_max, t.dr_max
-        ))						as min
-      , coalesce(greatest(t.units,tp.max), t.units)	as max
       , tp.inside and not t.stock_user isnull		as inside
       , case when tp.length < 2 then not t.stock_user isnull
         when tp.length = 2 then not tp.forz
@@ -102,20 +102,32 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift
         end						as corein
       , tp.fora						as fora
       , t.stock_user isnull				as forz
+
+      , tp.lift_margin + t.lift_margin * (1 - tp.lift_margin)	as lift_margin
+      , tp.lift_reward + t.lift_reward * (1 - tp.lift_reward)	as lift_reward
+      , least(t.lift_min,tp.lift_min)			as lift_min
+      , least(t.lift_max,tp.lift_max)			as lift_max
+      , tp.drop_margin + t.drop_margin * (1 - tp.drop_margin)	as drop_margin
+      , tp.drop_reward + t.drop_reward * (1 - tp.drop_reward)	as drop_reward
+      , least(t.drop_min,tp.drop_min)			as drop_min
+      , least(t.drop_max,tp.drop_max)			as drop_max
+
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
   ) select tpr.first, tpr.last
     , tpr.length, tpr.path, tpr.guids
-    , tpr.circuit, tpr.margin, tpr.min, tpr.max
-    , tpr.length * tpr.min as bang
-    , tpr.inside, tpr.corein, tpr.fora, tpr.forz
+    , tpr.circuit, tpr.inside, tpr.corein, tpr.fora, tpr.forz
+    , tpr.lift_margin, tpr.lift_reward, tpr.drop_margin, tpr.drop_reward
+    , greatest(tpr.lift_min,0) as lift_min, greatest(tpr.lift_max,0) as lift_max
+    , greatest(tpr.drop_min,0) as drop_min, greatest(tpr.drop_max,0) as drop_max
+    , tpr.length * tpr.lift_min as bang
   from tally_path tpr where tpr.length > 1
 } -primary {last first length}
 
 # Simplified view for discovering inside lifts
 #----------------------------------------------------------------
 view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
-  select bang,length,min,max,path from mychips.tallies_v_paths where circuit order by 1 desc
+  select * from mychips.tallies_v_paths where circuit order by 1 desc
 }
 
 # View showing join of inside pathways and outside routes
@@ -127,6 +139,7 @@ view mychips.routes_v_lifts {mychips.tallies_v_paths mychips.routes_v} {select
   , tp.length
   , tp.path
   , tp.corein
+  , r.status
   , r.state
   , r.dest_ent		--Fixme update with latest available fields
   , r.dest_chid
@@ -189,11 +202,11 @@ function {mychips.lift_cycle(maxNum int default 1)} {mychips.tallies_v_paths bas
       tarr	text[];
       oarr	text[];
       lift_id	uuid;
-      min_units	int default base.parm('lifts','minimum',1);	-- Only do lifts of this size or bigger
+      min_units	int default base.parm('lifts','minimum',1);		-- Only do lifts of this size or bigger
+      ord_by	text default base.parm('lifts','order','bang desc'::text);	-- How to prioritize lifts to perform
       count	int default 0;
       rows	int;
     begin
-      select into prec * from base.parm_v where module = 'lifts' and parm = 'order';
       if found then				-- Build a custom order-by clause
         foreach tstr in array regexp_split_to_array(prec.value, ',') loop
           oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
@@ -203,15 +216,14 @@ function {mychips.lift_cycle(maxNum int default 1)} {mychips.tallies_v_paths bas
         orders = array_to_string(tarr, ', ');
       end if;
 
--- These are all internal lifts for now (circuit)      
-      while count < maxNum loop
-        tstr = 'select length, min, max, margin, path, guids from mychips.tallies_v_paths where circuit and min >= $1 order by ' || orders || ' limit 1';
---raise notice 'LC2 min:% max:% ord:% sql:%', min_units, maxNum, orders, tstr;
+      while count < maxNum loop			-- Search for internal lifts
+        tstr = 'select length, lift_min, lift_max, lift_margin, path, guids from mychips.tallies_v_paths where circuit and lift_margin <= 0 and lift_min >= $1 order by ' || orders || ' limit 1';
+raise notice 'LC2 min:% max:% ord:% sql:%', min_units, maxNum, orders, tstr;
         execute tstr into prec using min_units;			-- Look for the highest priority lift to execute
         get diagnostics rows = ROW_COUNT;
---raise notice 'LC3 :% % % %', prec.length, prec.min, prec.max, rows;
+raise notice 'LC3 :% % % %', prec.length, prec.lift_min, prec.lift_max, rows;
         if rows < 1 then exit; end if;
-        if not mychips.internal_lift(prec.min, prec.guids) then exit; end if;
+        if not mychips.internal_lift(prec.lift_min, prec.guids) then exit; end if;
         count = count + 1;
       end loop;
     return jsonb_set(status, '{done}', count::text::jsonb);
@@ -269,33 +281,33 @@ $$;}
 #----------------------------------------------------------------
 view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.route_state(text,boolean,boolean) base.parm_v mychips.route_life()} {select 
     eval(fld_list $paths::routes_se	ro)
-  , re.peer_cid		as route_cid
+  , re.peer_cid		as route_cid		-- Route base entity
   , re.peer_addr	as route_addr
   , re.peer_sock	as route_sock
   , re.peer_endp	as route_endp
   , re.std_name		as route_name
 
-  , de.peer_cid		as dest_cid
+  , de.peer_cid		as dest_cid		-- Destination entity
   , de.peer_addr	as dest_addr
   , de.peer_sock	as dest_sock
   , de.peer_endp	as dest_endp
   , de.std_name		as dest_name
 
-  , te.peer_cid		as topu_cid
+  , te.peer_cid		as topu_cid		-- Top of local segment
   , te.peer_addr	as topu_addr
   , te.peer_sock	as topu_sock
   , te.peer_endp	as topu_endp
-  , te.serv_id		as topu_serv
   , te.std_name		as topu_name
+  , te.serv_id		as topu_serv
 
-  , be.peer_cid		as botu_cid
+  , be.peer_cid		as botu_cid		-- Bottom of local segment
   , be.peer_addr	as botu_addr
   , be.peer_sock	as botu_sock
   , be.peer_endp	as botu_endp
   , be.std_name		as botu_name
   , be.serv_id		as botu_serv
 
-  , qe.peer_cid		as requ_cid
+  , qe.peer_cid		as requ_cid		-- Who requested this route
   , qe.peer_addr	as requ_addr
   , qe.peer_sock	as requ_sock
   , qe.peer_endp	as requ_endp

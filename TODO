@@ -14,9 +14,9 @@ X- Can launch terminal windows to watch logs automatically
 X- New chit records correctly build/maintain hash chains
 X- Recursive view to show all tallies as valid/invalid?
 X- Perform validity checks on each chit
+X- Expand route views to calculate lift limits according to trading parameters
+X- Retool tallies.wms so tally_sets is an archive table only (real fields cached in tally)
 - 
-- Expand route views to calculate lift limits according to trading parameters
-- Retool tallies.wms so tally_sets is an archive table only (real fields cached in tally)
 - Build function to initiate a linear lift
 - Build function to initiate a circular lift
 - 

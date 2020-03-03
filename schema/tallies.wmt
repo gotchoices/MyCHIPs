@@ -32,11 +32,10 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {foil_terms		{Foilee Terms}		{The credit terms by which the holder of the tally foil is governed}}
     {dr_limit		{Debit Limit}		{The maximum amount the Vendor (Stock) is granted to borrow from the Client (Foil) in exchange for goods and services}}
     {cr_limit		{Credit Limit}		{The maximum amount the Client (Foil) is granted to borrow from the Vendor (Stock) in exchange for goods and services}}
-    {target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value are subject to margin costs.}}
-    {lift_marg		{Lift Margin}		{A cost associated with a lift through this tally, in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts done.}}
-    {drop_marg		{Drop Margin}		{A cost associated with a reverse lift (or drop) through this tally, in excess of the target value.  Zero means no cost.  A value of 1 (the default) will effectively prevent further drops.}}
-    {lift_max		{Lift Limit}		{The maximum amount of debt, stock to foil, that can be accrued through lifts}}
-    {drop_max		{Drop Limit}		{The maximum amount of debt, foil to stock, that can be accrued through drops}}
+    {target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value may be subject to margin costs.}}
+    {reward		{Buy Margin}		{A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.}}
+    {clutch		{Sell Margin}		{A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.}}
+    {bound		{Trade Limit}		{The maximum amount of value the stock/foil owner is willing to accumulate on this tally}}
     {units_c		{Cached Units}		{A cached copy of the total of all the chits on this tally, from the perspective of the tally's owner}}
 } $glob::stampt] -messages {
     {LMG		{Invalid Lift Margin}	{The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.}}
@@ -83,24 +82,4 @@ tabtext mychips.tally_tries {Tally Retries}	{Table contains information about re
     {ttry_seq		{Tally Sequence}	{The unique sequence number of the tally}}
     {tries		{Retries}		{How many times the peer server has attempted to act on the state request for this tally}}
     {last		{Last Tried}		{When the last attempt was made to process state changes on this tally}}
-}
-
-tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} [concat {
-    {chit_ent		{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
-    {chit_seq		{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
-    {chit_idx		{Chit Index}		{A unique identifier within the tally, identifying this chit}}
-    {chit_guid		{Chit GUID}		{A globally unique identifier for this transaction}}
-    {chit_type		{Chit Type}		{The type of transaction represented by this flow of credit} {
-        {gift		{Gift}			{The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.}}
-        {lift		{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity}}
-        {loan		{Loan}			{The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.}}
-        {tran		{Transaction}		{The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.}}
-    }}
-    {chit_date		{Date/Time}		{The date and time when this transaction is effective}}
-    {units		{Units}			{The amount of the transaction, as measured in milli-CHIPs (1/1,000)}}
-    {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
-    {pro_quo		{Quid Pro Quo}		{A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties}}
-    {memo		{Memo}			{Any other description or explanation for the transaction}}
-} $glob::stampt] -messages {
-    {X {Y} {Z}}
 }
