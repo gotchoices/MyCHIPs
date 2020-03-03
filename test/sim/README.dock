@@ -47,10 +47,10 @@ This should fetch and build the necessary docker images.  Next, it will launch
 the mongo and devel containers.  It will then launch a number of sites
 (equivalent to running "simdock start sites" manually).
 
-This step includes opening a bunch of xterms on your screen to view the 
-logfiles.  So if things don't work right (like your screen is narrower than
-1920 pixels, for example) now is a good time to check out the configuration
-file: config.dock.
+This step includes opening a bunch of xterms (or the local logwin script) on 
+your screen to view the logfiles.  So if things don't work right (like your 
+screen is smaller than 1920 pixels, for example) now is a good time to check 
+out the configuration file: config.dock.
 
 If you want to change things, make a similar file in the "local" subdirectory:
 

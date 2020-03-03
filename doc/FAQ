@@ -1,11 +1,10 @@
 Frequently Asked Questions
 -------------------------------------------------------------------------------
-Why so defensive (as to make a FAQ)?
 
-99% of the time a developer reviews this project, they start out by wanting to
-change the way it has been implemented.  While I don't doubt there are many
-different ways the project could have been done, I have made the best choices I
-could given all the requirements before me.
+Often of the time a developer reviews this (or any) project, they start out by 
+wanting to change the way it has been implemented.  While I don't doubt there 
+are many other good ways the project could have been done, I have made the best 
+choices I could given all the requirements before me.
 
 I don't think it would be constructive to back up or start over on significant
 parts of the toolchain used.  Rather, I think the best pathway forward is to 
@@ -41,7 +40,9 @@ other UI's to be developed if/when the middle and back is proven effective.
 
 Certainly the end-user UI will need to be a user-friendly mobile app.  Whether
 that is done in Vuejs, NativeScript, or Native Apple/Android coding is yet to
-be determined.
+be determined.  For now, the user UI is simply a data-centric way to see and
+access the resources expected to be available to a user in the eventual
+production UI.
 -------------------------------------------------------------------------------
 What is all this Wy* stuff?
 
