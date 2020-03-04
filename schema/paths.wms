@@ -139,6 +139,8 @@ view mychips.routes_v_lifts {mychips.tallies_v_paths mychips.routes_v} {select
   , tp.length
   , tp.path
   , tp.corein
+  , tp.lift_margin, tp.lift_reward, tp.lift_min, tp.lift_max
+  , tp.drop_margin, tp.drop_reward, tp.drop_min, tp.drop_max
   , r.status
   , r.state
   , r.dest_ent		--Fixme update with latest available fields
@@ -147,7 +149,7 @@ view mychips.routes_v_lifts {mychips.tallies_v_paths mychips.routes_v} {select
   , r.dest_addr
   , r.lift_count
   
-  from		mychips.tallies_v_paths	tp
+  from	mychips.tallies_v_paths	tp
   join	mychips.routes_v	r on r.route_ent = tp.first and r.dest_ent = tp.last
   where tp.corein and r.native and tp.fora and tp.forz;
 }
