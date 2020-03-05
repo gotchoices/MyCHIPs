@@ -59,6 +59,17 @@ if [ ! -f $pkidir/local.conf ]; then
 	EOF
 fi
 
+#See if we can run our logfile viewer
+#-------------------------------------------------------------------------------
+if [ "$logviewer" = "logwin" ]; then
+  for d in $mychips/node_modules $mychips/../node_modules; do
+    if [ -f $d/.bin/wylib-info ]; then
+      export TCLLIBPATH="$($d/.bin/wylib-info path) $TCLLIBPATH"
+      break
+    fi
+  done			;#echo "TCLLIBPATH:$TCLLIBPATH"; exit 0
+fi
+
 #Encode command line arguments
 #-------------------------------------------------------------------------------
 function encode {

@@ -3,6 +3,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
 #package require Tclx
+package require wylib
 set font {Courier 10}
 
 namespace eval color {
@@ -74,7 +75,7 @@ proc answer {} {
 #puts -nonewline "$ans"
   .win configure -state normal
   .win insert end $ans
-  .win configure -state disabled	;#Makes it so we can't copy text!
+#  .win configure -state disabled	;#Makes it so we can't copy text?
   .win see end
 }
 
@@ -99,7 +100,7 @@ if {$file == {test}} {
   .win insert end "A [+ blue]this is blue[+] on this line\n"
   .win insert end "And [+ Yellow green]a yellow[+] line\n"
 } else {
-  set fp [open "|tail -f $file"]
+  set fp [open "|tail -n 0 -f $file"]
   fconfigure $fp -blocking no
   fileevent $fp readable answer
 }
