@@ -262,7 +262,7 @@ $$;}
 
 # Generate notifications about updated tallies for listening peer servers
 #----------------------------------------------------------------
-function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies) mychips.route_check(mychips.tallies)} {
+function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies) mychips.route_circuit(text)} {
   returns trigger language plpgsql security definer as $$
     declare
       notify	boolean default false;
@@ -274,7 +274,7 @@ function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies) mych
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
-          perform mychips.route_check(new);		-- New tally, let's query for route info
+          perform mychips.route_circuit(new.tally_ent);		-- New tally, let's query for route info
         end if;
       end if;
       if notify then perform mychips.tally_notify(new); end if;

@@ -133,25 +133,31 @@ view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
 # View showing join of inside pathways and outside routes
 # to discover/analyze possible distributed lifts
 #----------------------------------------------------------------
-view mychips.routes_v_lifts {mychips.tallies_v_paths mychips.routes_v} {select
-    tp.first
-  , tp.last
-  , tp.length
-  , tp.path
-  , tp.corein
+view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
+    tp.first, tp.last
+  , tp.length, tp.path
+  , tp.corein, tp.fora, tp.forz
   , tp.lift_margin, tp.lift_reward, tp.lift_min, tp.lift_max
   , tp.drop_margin, tp.drop_reward, tp.drop_min, tp.drop_max
-  , r.status
-  , r.state
+  , r.status, r.state, r.native
   , r.dest_ent		--Fixme update with latest available fields
   , r.dest_chid
   , r.dest_host
   , r.dest_addr
+  , r.dest_chad
   , r.lift_count
+  , not r.dest_ent isnull and r.dest_ent = tp.last as circuit
   
   from	mychips.tallies_v_paths	tp
-  join	mychips.routes_v	r on r.route_ent = tp.first and r.dest_ent = tp.last
-  where tp.corein and r.native and tp.fora and tp.forz;
+  join	mychips.routes_v	r on r.route_ent = tp.first
+  where tp.corein and tp.fora;
+}
+
+# View showing join of inside pathways and outside routes
+# to discover/analyze possible distributed lifts
+#----------------------------------------------------------------
+view mychips.routes_v_lifts {mychips.routes_v_paths} {
+  select * from mychips.routes_v_paths where native and forz and circuit order by 1 desc
 }
 
 # Generate a maximum lift amount for a given tally set
@@ -514,23 +520,43 @@ $$;}
 function {mychips.route_retry(new mychips.routes)} {mychips.routes} {
   returns boolean language plpgsql as $$
     begin
---raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
+raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
 --Fixme: How/when do we decide to mark an old record to retry?
     return false;
     end;
 $$;}
 
-# Check for possible new route requests associated with a newly created tally
+# Check for possible new circular routes associated with a specified entity
 #----------------------------------------------------------------
-function {mychips.route_check(new mychips.tallies)} {mychips.tallies mychips.routes mychips.tallies_v_paths} {
+function {mychips.route_circuit(entity text)} {mychips.routes mychips.tallies_v_paths} {
   returns void language plpgsql as $$
     declare
       trec	record;
     begin
-      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and new.tally_ent = any(path) and corein and fora and forz loop
---raise notice 'Route Check: % % % %', new.tally_ent, new.tally_seq, trec.first, trec.last;
+      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and entity = any(path) and corein and fora and forz loop
+--raise notice 'Route Circuit: % % %', entity, trec.first, trec.last;
         insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, requ_ent) 
-          values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], new.tally_ent)
+          values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], entity)
+            on conflict (route_ent, dest_chid, dest_host)
+              do update set status = 'draft' where mychips.route_retry(excluded);
+      end loop;
+    end;
+$$;}
+
+# Check for possible new linear routes from an entity to a specified destination peer
+#----------------------------------------------------------------
+function {mychips.route_linear(entity text, peer text, host text)} {mychips.routes mychips.tallies_v_paths} {
+  returns void language plpgsql as $$
+    declare
+      trec	record;
+      locid	text;
+    begin
+      select into locid id from mychips.peers_v where peer_cid = peer and peer_chost = host;	-- Is this peer known to our system?
+      
+      for trec in select first,last,path from mychips.tallies_v_paths where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
+raise notice 'Route Linear: % % %', entity, peer, trec.first;
+        insert into mychips.routes (route_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent) 
+          values (trec.first, peer, host, trec.path[2], entity, entity)
             on conflict (route_ent, dest_chid, dest_host)
               do update set status = 'draft' where mychips.route_retry(excluded);
       end loop;
