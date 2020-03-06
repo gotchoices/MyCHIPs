@@ -75,7 +75,7 @@ proc answer {} {
 #puts -nonewline "$ans"
   .win configure -state normal
   .win insert end $ans
-#  .win configure -state disabled	;#Makes it so we can't copy text?
+  .win configure -state disabled	;#Makes it so we can't copy text?
   .win see end
 }
 
@@ -83,6 +83,7 @@ scrollbar .ys -orient v -command {.win yview}
 color::text .win -yscroll {.ys set} -font $font
 pack .ys -side right -fill y
 pack .win
+focus .win	;#Seems to need to take focus once or '-state disabled' above makes it so we never can get focus from mouse
 
 bind Text <Command-KeyPress-k> {	;#Clear command compatible with iTerm
 #  puts "clear"
