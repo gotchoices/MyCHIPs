@@ -523,8 +523,8 @@ view mychips.tallies_v_net {mychips.tallies} {select
   , ts.units_c = tf.units_c			as clean
   
   , tf.target					as lift_target
-  , tf.reward					as lift_reward
-  , ts.clutch					as lift_margin
+  , coalesce(tf.reward,0)			as lift_reward
+  , coalesce(ts.clutch,0)			as lift_margin
   , tf.units_c - least(-tf.target, 0)				as lift_min
   , tf.units_c - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
   

@@ -42,7 +42,7 @@ namespace eval paths {
     def routes_pk	{route_ent dest_chid dest_host}
 #    def routes_v_up	{request comment cr_limit dr_limit}
 #    def routes_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
-    def routes_se	[concat $routes_pk dest_ent topu_ent botu_ent requ_ent status lift_count lift_date good_date]
+    def routes_se	[concat $routes_pk dest_ent topu_ent botu_ent requ_ent status min max margin reward lift_count lift_date good_date]
 }
 
 module mychips
@@ -60,6 +60,10 @@ table mychips.routes {mychips.peers} {
   , botu_ent	text		not null references mychips.peers on update cascade on delete cascade
   , requ_ent	text		not null references mychips.peers on update cascade on delete cascade
   , status	text		not null default 'draft'
+  , min		bigint		default 0
+  , max		bigint		default 0
+  , margin	float		not null default 0 constraint "!mychips.paths.MRG" check (margin >= -1 and margin <= 1)
+  , reward	float		not null default 0 constraint "!mychips.paths.RWD" check (reward >= -1 and reward <= 1)
   , lift_count	int		not null default 0
   , lift_date	timestamptz	not null default current_timestamp
   , good_date	timestamptz	not null default current_timestamp
@@ -454,9 +458,16 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
         select into dest_r id, user_ent, peer_cid, peer_chost from mychips.users_v where peer_cid = obj->>'to' and peer_chost = obj->>'tat';	-- Do we recognize the destination entity?
 
         if recipe ? 'query' then			-- If there a query key in the recipe object
-          if not dest_r.id isnull then			-- If destination is a locally known peer
-            select into qrec first from mychips.tallies_v_paths where first = dest_r.id and last = from_r.id and corein limit 1;
-            if found then return 'affirm'; end if;	-- Do we have a direct pathway from here to the destination peer?
+          if not dest_r.id isnull then			-- If destination is a locally known user
+            select into qrec first,lift_min,lift_max,lift_margin,lift_reward from mychips.tallies_v_paths where first = dest_r.id and last = from_r.id and corein limit 1;
+            if found then
+              return 'affirm|' || jsonb_build_object(
+                'min',		qrec.lift_min,
+                'max',		qrec.lift_max,
+                'margin',	qrec.lift_margin,
+                'reward',	qrec.lift_reward
+              )::text;
+            end if;	-- Do we have a direct pathway from here to the destination peer?
           end if;
 --Fixme: check here for max step > local limit (base.parm) and bail if getting too deep
 
