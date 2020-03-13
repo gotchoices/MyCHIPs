@@ -42,7 +42,7 @@ know or trust.
 However, the goal is to make these credits fungible, or in our case, 
 "effectively fungible."  That means we can't literally substitute one entity's 
 credits for another, but through the lift algorithm, we will accomplish 
-something roughly equivalent.
+something roughly equivalent--you can trade what you have for what you want.
 
 After a sufficient volume of trading, each entity will have accumulated a 
 certain amount of asset value in IOU's from the entity upstream from him.  As
@@ -66,7 +66,7 @@ However, we will need to do this in a way that no one gets hurt--particularly
 if someone in the circle tries to cheat.
 
 One way to accomplish this is to use a transactional database model.  The idea
-is to que up all four of our credit exchanges belonging to a single lift and
+is to queue up all four of our credit exchanges belonging to a single lift and
 make them part of an atomic database transaction.  This means the database will 
 attempt all 4 transfers, but if any one of them fails, the other 3 will roll 
 back too. So the lift will either work in its entirety, or it will not work at 
@@ -78,7 +78,7 @@ Now the bad news.  In order to do this, we would have to have all our entities
 in a single database.  That means our system would be too centralized and 
 unscalable.  Centralization is prone to manipulation and corruption.  
 Scalability is the critical feature we need to surpass what alternative systems 
-like blockchain have been unable to achieve.
+such as blockchain have been unable to achieve.
 
 It would be nice to have an algorithm that will achieve an atomic result even 
 when all 4 of our users have their data in different databases on different 
@@ -96,7 +96,7 @@ may not know or be able to fully trust, this just may not be achievable.
 
 So to get over this otherwise insurmountable hurdle, we are going to make a
 simple compromise:  Instead of making sure no one gets hurt during a lift, we
-will instead, be satisfied if we can make sure no honest people get hurt.
+will instead, be satisfied if we can make sure no responsible people get hurt.
 
 To do so, we will set up our transaction in several basic phases:
 
@@ -134,7 +134,7 @@ The deadbeat's partner on the downstream side has the opposite effect.  He got
 the credits he wanted in the lift, but doesn't have to give anything up until
 the deadbeat gets back online and completes the transaction.
 
-The deadbeat has the further problem that he has burned his bridges to the 
+The deadbeat has the further problem that he may have burned his bridges to the 
 network of trust.  The two entities who know and trust him, now know he is either
 up to no good or at least, unreliable.  No further traffic can be performed by 
 this entity--at least through the peers he has just disappointed.
@@ -164,7 +164,8 @@ This is the same party who will be issuing the final ratifying signature for
 the lift.  If parties don't receive the final signature through the linear
 pathway of the lift, the transaction would time out.  Then, the stranted 
 parties could reach out directly to the lift initiator to obtain the final
-authorizing signature.
+authorizing signature (or be told that it has been rolled back and can be
+ignored).
 
 -------------------------------------------------------------------------------
 Linear Lifts:
@@ -201,11 +202,11 @@ D to A.  If we can find enough cooperating parties willing to do so in a path
 that starts with D and ends with A, we can complete the transaction.
 
 In nearly every other way, this is identical to a circular lift.  But the
-special case does need to be accommodated.  In fact, it may likely become the
-more prevalent form of lift.
+special case does need to be accommodated.  In fact, it may well turn out to be
+the more prevalent form of lift.
 
 -------------------------------------------------------------------------------
-Lift Algorithm:
+Lift Algorithm: (Section OBSOLETE)
 
 If lifts were to be discovered and executed in real time, the process would be
 something like the following:
@@ -235,7 +236,7 @@ something like the following:
 Lift Calculation:
 
 In reality, it wouldn't be very efficient to recalculate every lift pathway
-from scratch.  Rather, we should populate a database with information about our
+from scratch.  Rather, we will populate a database with information about our
 own local users and the foreign users they share tallies with that will help 
 us figure out pathways in advance that are likely to succeed.  Successful 
 pathways can be used over and over again.
@@ -286,7 +287,7 @@ directions.
 Routes
 
 The route table is used for this purpose.  It is designed to model two 
-different cases:
+particular cases:
 
 Native:
 A native route represents a hypothetical link we would like to discover which
@@ -307,15 +308,16 @@ route information even though it has no local record for C.  In this case, it
 will just store the CHIP address and not a local relational link.
 
 Two further complications:  A relay record is just a query from a downstream
-system.  We really don't need to know about this path for the purpose of
-initiating our own lifts.  Rather, we hope to get lifts coming from downstream
-through this channel.  Since we don't know where C is ourselves, the only way
-we can hope to find out is by sending more relay requests to our own upstream
-peers.  If/when an answer does come back, we will need to remember enough
-information about our downstream requester so we can tell him properly whether
-the route has succeeded or failed.
+system.  We may not need to know about this path for the purpose of initiating 
+our own lifts (at least not immediately).  Rather, we hope to get lifts coming 
+from downstream through this channel.  Since we don't know where C is 
+ourselves, the only way we can hope to find out is by sending more relay 
+requests to our own upstream peers.  If/when an answer comes back, we will need 
+to remember enough information about our downstream requester so we can tell 
+him properly whether the route has succeeded or failed.
 
-So our complete lift information system consists of two basic data sets:
+So our complete lift route pathway information system consists of two basic 
+data sets:
 
 The view tallies_v_paths: which links all our known tallies together in a
 queriable chain of internal pathways; and the table/view routes/routes_v which 
@@ -327,6 +329,20 @@ array begins with upstream peers and proceeds downstream.
 By convention, the route table has more of an upstream feel to its flow.  That
 is, it begins with a foreign peer known to our system, and reaches upward to 
 find another external peer we are searching for.
+
+Linear Lifts
+Finally, we mentioned above that foreign routes may not be locally significant.
+But this ignores the significance they may hold for linear lifts.  When
+transmitting value along a linear lift path (as opposed to circular), the peer
+at the end of the line may very well not be known as a peer or user on our own
+system.  Rather, he will be known only by his CHIP ID and host, or possibly
+even an anonymized ID known only to the given host.
+
+This kind of query looks very much like a foreign path since it will not 
+contain a local ID field.  It could, and may often be generated by local
+request.  But if foreign queries have previously searched for this user, we
+may well have a record in our system telling us just how to find him.  If so,
+all the better.  No need to make our own query.
 
 Model Requirements:
 Native:
@@ -400,20 +416,25 @@ prior nodes:
 
   NewRate = PriorRate + MyRate * (1 - PriorRate)
 
+Trading costs/rewards are computed according to the tally trading parameters
+discussed in the "Tallies" file in this folder.  Each user sets 4 trading
+values to indicate his appetite for collecting the credits associated with that
+tally.  The lift algorithm figures it out from there.
+
 -------------------------------------------------------------------------------
 Lift State Analysis:
 
 In order to understand how to maintain state for lifts, let's first consider 
 some possible scenarios.  A lift can be initiated in several different ways:
 
-  Local Circular: Our local database automatically detects a segment which is 
-    in need of a lift and so initiates a process to discover an external 
-    pathway that can satisfy the lift requirements (relieve built-up 
-    credits).
+  Local Circular: Our local system automatically detects a segment which is 
+    in need of a lift (has a mutually correllated credit imbalance) and so it 
+    initiates a process to discover/utilize an external pathway that can satisfy 
+    the lift requirements (relieve the built-up credits).
 
   Local Linear: One of our local users initiates a transmission of value to 
-    a peer he is not directly connected to.  This would indicate a need to pay
-    someone right now, in real time.
+    a peer he is not directly connected to.  This would indicate a potential 
+    need to pay someone right then, in real time.
 
   Remote Relay: We receive a lift request from downstream, bound for a peer we 
     do not host or otherwise have a direct connection to.  Hopefully we are
@@ -431,7 +452,8 @@ some possible scenarios.  A lift can be initiated in several different ways:
 These cases really stem from two basic conditions:
 
   Local: Either a user is initiating a linear lift (a payment), or our system
-    has detected the need to lift a particular segment.
+    has detected the need to lift a particular segment, that is hopefully part
+    of a larger external circuit.
     
   Remote: Some system downstream of us has originated its own local action 
     which has bubbled upstream to arrive at our system.  Either we host the
@@ -447,7 +469,7 @@ More on the 5 specific modes, starting with simpler cases first:
     circuit.  Then we wait for the final validating signature.  If it doesn't 
     come in time, we must seek it out.
   
-  Remote Relay: This is pretty similar to Remote Circuit.  Main difference
+  Remote Relay: This is pretty similar to Remote Circular.  The main difference
     is, we don't know (or care) if the lift is linear or circular.  We just
     pick an optimal path (if we have one), record a series of conditional 
     chits along the segment, and then pass the lift onto the next node.  Like 
@@ -458,7 +480,7 @@ More on the 5 specific modes, starting with simpler cases first:
     "next node" to propagate the message to.  We are the end of the line.  We
     will have to make contact with the originator of the lift at the socket
     address provided in the lift.  This is a system we may not necessarily 
-    know or  trust.  However, if we receive a valid signature matching what
+    know or trust.  However, if we receive a valid signature matching what
     has been agreed to by our own downstream peer, we can accept the 
     validating signature and then propagate it back downstream.
     
@@ -473,14 +495,14 @@ More on the 5 specific modes, starting with simpler cases first:
     The user can then issue a command to commence payment (a set of conditional
     chits) along a selected pathway.
 
-  Local Circular: This is similar to Local Linear except the computer is
-    initiating the process.  Any time a new chit is recorded, we should run a
-    quick query to see if it has resulted in any imbalances.  This is defined
-    as an actual tally balance which is out of range of the settings for the
-    desired balance.  If this is found, we should check the status of our
-    possible upstream pathways.  If they need to be refreshed, we do that now.
-    If/when the pathways are freshened with hypothetical value limits, we pick
-    the most cost effective pathway and initiate a lift request.
+  Local Circular: This is similar to Local Linear except a computer is starting
+    the process.  Any time a new chit is recorded, we should run a quick query 
+    to see if it has resulted in any imbalances.  This is defined as an actual 
+    tally balance that is out of range of the desired balance.  If this is 
+    found, we should check the status of our possible upstream pathways.  If 
+    they need to be refreshed, we do that now.  If/when the pathways are 
+    freshened with hypothetical value limits, we pick the most cost effective 
+    pathway and initiate a lift request.
 
 The main complications arise for the Local cases.  If we are a remote node, we
 are mostly reactive to the process, indicating our desire and ability to
@@ -495,21 +517,20 @@ user's payment succeeded or it didn't.  If it didn't, he may have other
 
 Under autonomous control (Local Circular) the system will need some kind of
 state to keep track of what has been attempted already so it can make 
-reasonable retries and know when to give up.  Perhaps this state can be kept
-in the tally itself?
-
-Questions:
-- Do I need a "lifts" table to hold status about lifts initiated locally?
-- Can I handle all Remote cases without making an entry to the lifts table?
+reasonable retries and know when to give up.
 
 -------------------------------------------------------------------------------
 Lift States:
 
 It was originally assumed that the lift would be implemented in its own state 
 machine, much like the tally, chit, and path states shown in the accompanying 
-States.odg file.  However, a lift is really just a set of chits, linked 
-together with a single uuid.  So it is hoped most of this can be handled as an
-extension of the chit state diagram.
+States.odg file.  Then it was noted that a lift really just consists of chits 
+so why not just extend the chit state diagram to implement lifts?
+
+Problem is, a lift is really a set of chits, all linked by a single uuid.  But
+all those chits that belong to the same system need to act in a single, unified 
+transaction.  We really need single state (per system) to represent all the
+local chits, part of the lift.
 
 The original chit state diagram considered only chits between parties who share 
 a tally directly.  Local circular lifts were implemented in a stored procedure.
@@ -531,20 +552,21 @@ and Kathleen.  And a single foil from Kathleen to Stacey.  That is 4 tallies
 in total (on our system) which will receive a lift chit, marked with the UUID 
 unique to the particular lift, and eventually signed by the lift initiator.
 
+Conclusion is, we need a lift table containing a lift record with its own
+state.  This record will, at some point in the process, refer to a set of
+prospective chits, which will commit all-or-none.
+
 We mentioned earlier the 3-phases for the lift:
 
 Phase 1: Seek/verify a circuit or path for the lift and its amount
-Phase 2: Send a conditional lift around the circuit, upstream
-Phase 3: Issue validation signature downstream through the circuit
+Phase 2: Send a conditional lift proposal around the circuit, upstream
+Phase 3: Issue validation or cancellation downstream through the circuit
+
+The states of the lift record are as follows:
 
 xxxxxxxxxxxxx WIP xxxxxxxxxxxxx
 
-Phase 1 should really be represented in the paths table because, up to this
-point, we may be considering multiple pathways for the lift.  Still, we would
-like to know we are in phase 1 somehow.  Maybe a
-
-If there is no
-
+  userRequest
 
 The original, payment-based states are as follows:
   null:		No chit yet created
@@ -567,12 +589,17 @@ The original, payment-based states are as follows:
 		notified the peer that requested the payment.
   userVoid:	We have notified the peer our guy will not be paying.
 
+
+OBSOLETE:
 For the case of lift chits, we will implement the following states.  All 
 tallies in our system along the lift segment will contain a chit which is in
 the indicated state.  We can query only foils with foreign peers in order to
 produce a single instance of the lift in process.
 
-  liftInvoice:	Our local user has created a local 
+OBSOLETE:
+  liftInvoice:	Our local user has created a request to be paid through a
+		linear lift.
+
   liftDraft:	A lift has been sought which we received via a known, foreign
 		peer who holds a stock tally with one of our local users (a
 		downstream, foreign peer).  We have discovered the intended 
