@@ -71,9 +71,10 @@ case $command in
     fi
 
     if $dobuild; then
-      make objects parm
+      make objects
       date >$lastfile
     fi
+    make parm
     ;;
 
   usercheck)

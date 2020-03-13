@@ -192,9 +192,10 @@ function dbcheck {
   fi
 
   if $dobuild; then
-    make objects parm
+    make objects
     date >$lastfile
   fi
+  make parm
 
   cd $mychips
   users="$(psql -A -t $dbname $admin -c "select * from mychips.users_v where ent_num > 1" |wc -l)"
