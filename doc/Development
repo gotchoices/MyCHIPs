@@ -7,13 +7,13 @@ Fedora linux, Chrome, Firefox, PostgreSQL 9-11, docker
 Docker Simulation
 
 If you just want to run the docker network simulation, install Docker on your
-machine and then get into mychips/test/sim and consult the file README.simdock.
+machine and then get into mychips/test/sim and consult the file README.dock.
 
-The simulation model was developed on MacOS but it should also be possible to 
-run on a Linux host.
+The docker simulation model was developed on MacOS but it should also be 
+possible to run on a Linux host.
 
 ---------------------------------------------------------------------
-To manually configure a Linux environment for testing/debug:
+To manually configure a Linux environment for testing the MyCHIPs server:
 
 - Install Postgres, as root:
   dnf install postgresql postgresql-server postgresql-devel \

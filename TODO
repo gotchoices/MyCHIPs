@@ -17,7 +17,17 @@ X- Perform validity checks on each chit
 X- Expand route views to calculate lift limits according to trading parameters
 X- Retool tallies.wms so tally_sets is an archive table only (real fields cached in tally)
 - 
+- Set site default to correct hostname in dbcheck
+- Make agent2 fiddle trading parameters
+- Make agent2 pay according to availability of money
+- Does the lift capacity appear correctly in the route table?
+- 
+- 'Max' should be the smallest amount with reward paid (around pathway)
 - Build function to initiate a linear lift
+-   Phase 1: initiate/refresh routes
+-   Phase 2: propose specific lift amount
+-   Phase 3: generate signing key, start commit
+- 
 - Build function to initiate a circular lift
 - 
 - How to determine if end of chain hash matches my peer
