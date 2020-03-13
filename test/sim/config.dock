@@ -20,6 +20,7 @@ logoffset=30			#Offset logging windows from each other
 agentwins=( 0 0 )		#Coordinates where debug windows start
 peerwins=( 600 0 )
 spawins=( 1200 0 )
+pgwins=( 1320 160 )
 userargs=()			#Additional arguments provided to 'docker run'
 
 images=( mongo pg mychips devel)	#Images to be built, if necessary

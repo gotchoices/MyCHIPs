@@ -59,7 +59,7 @@ if [ ! -f $pkidir/local.conf ]; then
 	EOF
 fi
 
-#See if we can run our logfile viewer
+#See if we will run our local logfile viewer
 #-------------------------------------------------------------------------------
 if [ "$logviewer" = "logwin" ]; then
   for d in $mychips/node_modules $mychips/../node_modules; do
@@ -127,6 +127,7 @@ function start_pg {
   local mach="$sitebase$n"
   local machtmp="$locdir/$mach"
   if [[ -d $machtmp ]]; then mkdir -p $machtmp; fi
+#  rm -f "$locdir/devel/schema_build.pg$n"	#Force schema rebuild first time
 #echo "start_pg mach:$mach"
 
   local pgname="pg$n"
@@ -272,6 +273,7 @@ function start_devel {
 function start_site {
   local n="${1:-0}"; shift
   start_pg $n
+  start_log $n pg -x ${pgwins[0]} -y ${pgwins[1]}
   start_log $n mychips -x ${spawins[0]} -y ${spawins[1]}
   start_spa $n
 }
@@ -284,6 +286,7 @@ echo "Stopping site:$n"
   stop spa $n
   stop pg $n
   stop_log $n mychips
+  stop_log $n pg
 }
 
 #Start debug logging
@@ -306,19 +309,24 @@ function start_log {
   local log="${pargs[1]:-combined.log}"
   local mach="$sitebase$n"
   local pidfile="$locdir/log-$log.pids"
-  local logfile="$locdir/$mach/$log"
-  if [ -d $locdir/$mach -a ! -f $logfile ]; then touch $logfile; fi
+  if [ "$log" = "pg" ]; then
+    local cmd="docker logs -f pg$n"
+  else
+    local logfile="$locdir/$mach/$log"
+    local cmd="tail -n 0 -f $logfile"
+    if [ -d $locdir/$mach -a ! -f $logfile ]; then touch $logfile; fi
+  fi
 
-#echo "start_log n:$n mach:$mach geom:$geom logfile:$logfile"
+#echo "start_log n:$n mach:$mach geom:$geom cmd:$cmd"
   if [ "$logviewer" = logwin ]; then
     y=$(expr $y + 22)			#Mac kludge: why does wish place differently than xterm?
   fi
   local geom="+$(expr $x + \( $n \* $xoff \))+$(expr $y + \( $n \* $yoff \))"
   if [ "$logviewer" = logwin ]; then
-    wish logwin $logfile -geometry "$geom" 2>/dev/null &
+    wish logwin -geometry "$geom" -- $cmd 2>/dev/null &
   
   elif [ "$logviewer" = xterm ] && which xterm >/dev/null; then
-    xterm -T "$mach: $log" -geometry "$geom" -e /bin/bash -l -c "tail -n 0 -f $logfile" &
+    xterm -T "$mach: $log" -geometry "$geom" -e /bin/bash -l -c "$cmd" &
 
   else					#Don't launch any viewer
     return
@@ -429,6 +437,7 @@ function shutdown {
   stop spas
   stop pgs
   stop_logs mychips
+  stop_logs pg
   stop mongo
   stop devel
 }
