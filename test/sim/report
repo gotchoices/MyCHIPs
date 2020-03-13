@@ -11,13 +11,19 @@ if [ -z "$nodes" ]; then
 fi
   
 case $report in
-    routes)
-      query="select * from mychips.routes_v";;
-    lifts)
-      query="select first,path,status,state,dest_addr,lift_margin,lift_reward,lift_min,lift_max from mychips.routes_v_lifts";;
-    paths)
+    xlifts)		#External lifts
+      query="select first,path,status,state,dest_addr,lift_margin,lift_reward,lift_min,lift_max from mychips.routes_v_lifts order by 3";;
+
+    xpaths)		#External pathways
+      query="select first,last,length,path,lift_min,lift_max,status,circuit,dest_chad from mychips.routes_v_paths where status = 'good'";;
+
+    paths)		#Local paths
       query="select first,last,length,path,lift_min,lift_max,bang,lift_margin,lift_reward from mychips.tallies_v_paths where corein and fora and forz"
       ;;
+
+    routes)
+      query="select route_ent,route_addr,dest_chad,status,min,max,margin,reward from mychips.routes_v";;
+
     *)
       echo "Unknown report: $report"
       exit 1
