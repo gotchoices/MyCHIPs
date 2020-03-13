@@ -72,11 +72,13 @@ namespace eval color {
 proc answer {} {
   global fp
   set ans [read $fp]
+  set yv [lindex [.win yview] 1]
 #puts -nonewline "$ans"
+#puts "yv:$yv ([.win yview])"
   .win configure -state normal
   .win insert end $ans
-  .win configure -state disabled	;#Makes it so we can't copy text?
-  .win see end
+  .win configure -state disabled	;#Makes it so we can't select text
+  if {$yv >= 0.98} {.win see end}	;#If near the bottom, keep EOF in view
 }
 
 scrollbar .ys -orient v -command {.win yview}
@@ -86,13 +88,19 @@ pack .win
 focus .win	;#Seems to need to take focus once or '-state disabled' above makes it so we never can get focus from mouse
 
 bind Text <Command-KeyPress-k> {	;#Clear command compatible with iTerm
-#  puts "clear"
+  .win configure -state normal
   %W delete 0.0 end
+  .win configure -state disabled
 }
 
+#bind Text <Command-KeyPress-d> {	;#Debug
+#puts "scroll: [.win yview]"
+#}
+
 set file [lindex $argv 0]
-#puts "file:$file"
-wm title . $file
+set command [join $argv]
+#puts "cmd:$command"		;exit 1
+wm title . "$command"
 
 if {$file == {test}} {
   namespace import color::+
@@ -101,7 +109,7 @@ if {$file == {test}} {
   .win insert end "A [+ blue]this is blue[+] on this line\n"
   .win insert end "And [+ Yellow green]a yellow[+] line\n"
 } else {
-  set fp [open "|tail -n 0 -f $file"]
+  set fp [open "|$command"]
   fconfigure $fp -blocking no
   fileevent $fp readable answer
 }
