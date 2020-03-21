@@ -1,28 +1,18 @@
 TODO:
 
 Immediate:
-X- Make simulation environment run on container-based servers
-X- Make docker config files specific to simulation environment
-X- Can create config.local for simulations
-X- Can launch N instances of SPA server
-X- Can launch N instances of peer server
-X- Can launch N instances of agent process
-X- Can launch admin browsers on each instance automatically
-X- test/local folder contains data folders for simulation server logs
-X- test/local folder contains data folders for postgres instances
-X- Can launch terminal windows to watch logs automatically
-X- New chit records correctly build/maintain hash chains
-X- Recursive view to show all tallies as valid/invalid?
-X- Perform validity checks on each chit
-X- Expand route views to calculate lift limits according to trading parameters
-X- Retool tallies.wms so tally_sets is an archive table only (real fields cached in tally)
+X- Set site default to correct hostname in dbcheck
+X- Make agent2 fiddle trading parameters
+X- Make agent2 pay according to availability of money
+X- 'Max' should be the smallest amount with reward paid (around pathway)
+X- Does the lift capacity appear correctly in the route table?
+X- Function to update route lading with optional upstream lading
+X- Routes now show lading capacity correctly
+-   Understand paths.wms:mychips.paths_process better (lines preceeding 'update')
 - 
-- Set site default to correct hostname in dbcheck
-- Make agent2 fiddle trading parameters
-- Make agent2 pay according to availability of money
-- Does the lift capacity appear correctly in the route table?
+- Build lift state table
+- Draw lift state diagram
 - 
-- 'Max' should be the smallest amount with reward paid (around pathway)
 - Build function to initiate a linear lift
 -   Phase 1: initiate/refresh routes
 -   Phase 2: propose specific lift amount

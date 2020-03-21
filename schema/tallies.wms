@@ -342,6 +342,7 @@ $$;}
 # Base view of tallies
 #----------------------------------------------------------------
 define multSign {case when te.tally_type = 'stock' then unitMultiplier().00 else -unitMultiplier().00 end}
+define uSign {case when te.tally_type = 'stock' then %1 else -%1 end}
 view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.chit_open(text,text) mychips.tally_state(text,text,text,text,bigint) mychips.tally_json(mychips.tallies,text,text)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , ue.peer_cid		as user_cid
@@ -359,7 +360,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , not pe.user_ent is null						as inside
   , mychips.tally_state(status,request,user_sig,part_sig,units_c)	as state
   , mychips.tally_state(status,request,user_sig,part_sig,units_c) = any(array['peerProffer','closing']) as action
-  , coalesce(tc.units,0)			as units
+  , coalesce(uSign(tc.units),0)			as units
   , te.units_c::float8 / multSign()		as total_c
   , coalesce(tc.units,0)::float8 / multSign()	as total
   , coalesce(tc.chits,0)			as chits
@@ -374,6 +375,12 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
     )		as json
   , sha256(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text::bytea) as digest_v
   , sha256(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text::bytea) = coalesce(te.digest,'') as clean
+  , jsonb_build_object(
+      'target',		te.target,
+      'reward',		te.reward,
+      'clutch',		te.clutch,
+      'bound',		te.bound
+    )		as policy
 
     from	mychips.tallies	te
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
@@ -449,6 +456,12 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(units)						as unitss
   , array_agg(inside)						as insides
 
+  , array_agg(target)						as targets
+  , array_agg(reward)						as rewards
+  , array_agg(bound)						as bounds
+  , array_agg(clutch)						as clutchs
+  , array_agg(policy)						as policies
+
   , sum(total) filter (where tally_type = 'stock')		as stock_tot
   , sum(total) filter (where tally_type = 'foil')		as foil_tot
   , sum(units) filter (where tally_type = 'stock')		as stock_uni
@@ -497,6 +510,12 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.totals, '{}'::float8[])		as totals
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
   , coalesce(s.insides, '{}'::boolean[])	as insides
+
+  , coalesce(s.targets, '{}'::bigint[])		as targets
+  , coalesce(s.rewards, '{}'::float[])		as rewards
+  , coalesce(s.bounds, '{}'::bigint[])		as bounds
+  , coalesce(s.clutchs, '{}'::float[])		as clutchs
+  , coalesce(s.policies, '{}'::jsonb[])		as policies
   
   , coalesce(s.client_cids, '{}'::text[])	as client_cids
   , coalesce(s.vendor_cids, '{}'::text[])	as vendor_cids
@@ -529,8 +548,8 @@ view mychips.tallies_v_net {mychips.tallies} {select
   , tf.units_c - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
   
   , ts.target					as drop_target
-  , ts.reward					as drop_reward
-  , tf.clutch					as drop_margin
+  , coalesce(ts.reward,0)			as drop_reward
+  , coalesce(tf.clutch,0)			as drop_margin
   , greatest(ts.target, 0) - ts.units_c				as drop_min
   , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_c	as drop_max
   

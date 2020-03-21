@@ -26,10 +26,10 @@ of people and companies.
 As products and services are delivered, payment is exchanged in the form of
 private credit, or an IOU.  As this is an accounting function, it has a dual
 entry nature (debit and credit).  A credit (negative, liability) is entered for 
-the entity making payment.  And a debit (positive, asset) is entered for the
-entity receiving payment.
+the entity (A) making payment.  And a debit (positive, asset) is entered for 
+the entity (B) receiving payment.
 
-If the signs of the transaction didn't seem to make sense, please visit:
+If the signs of the transaction didn't seem to make sense, please review this:
   http://gotchoices.org/book/account.html
 
 Keep in mind, these debits and credits themselves do not actually flow 
@@ -42,15 +42,16 @@ know or trust.
 However, the goal is to make these credits fungible, or in our case, 
 "effectively fungible."  That means we can't literally substitute one entity's 
 credits for another, but through the lift algorithm, we will accomplish 
-something roughly equivalent--you can trade what you have for what you want.
+something roughly equivalent--you can trade what you have for what you need or
+want.
 
-After a sufficient volume of trading, each entity will have accumulated a 
-certain amount of asset value in IOU's from the entity upstream from him.  As
-you can imagine, this can only go on so long.  For example, if B gets too many
-IOU's from A, eventually he won't want any more.  He has reached his 
-maximum "trust level."
+After a sufficient volume of buying, each entity will have accumulated some
+amount of asset value in IOU's from the entity upstream from him.  As you can 
+imagine, this can only go on so long.  For example, if B gets too many IOU's 
+from A, eventually he won't want any more.  He has reached his maximum "trust 
+level," or "credit limit."
 
-What B really needs is some IOUs from C where B buys his stuff.  The lift 
+What B really needs are some IOUs from C where B buys his stuff.  The lift 
 function will allow B to give up some of his A credits in exchange for some C 
 credits, just as he needs to complete his purchases.
 
@@ -62,7 +63,7 @@ relieved a little bit without costing anyone anything.
 
 Everyone around the circuit will benefit from this transaction because they
 will all give up credits they don't need in exchange for credits they do need.
-However, we will need to do this in a way that no one gets hurt--particularly
+However, we will have to do this in a way that no one gets hurt--particularly
 if someone in the circle tries to cheat.
 
 One way to accomplish this is to use a transactional database model.  The idea
@@ -76,8 +77,8 @@ ones they expect in return.
 
 Now the bad news.  In order to do this, we would have to have all our entities 
 in a single database.  That means our system would be too centralized and 
-unscalable.  Centralization is prone to manipulation and corruption.  
-Scalability is the critical feature we need to surpass what alternative systems 
+unscalable.  Centralization is also prone to manipulation and corruption.  
+Scalability is a critical feature we need to surpass what alternative systems 
 such as blockchain have been unable to achieve.
 
 It would be nice to have an algorithm that will achieve an atomic result even 
@@ -100,18 +101,18 @@ will instead, be satisfied if we can make sure no responsible people get hurt.
 
 To do so, we will set up our transaction in several basic phases:
 
-In the first phase, we will discover circuits in the network which might be 
-capable of supporting a lift.
+In the first phase, we will discover circuits, or routes in the network which 
+might be capable of supporting a lift.
 
 In the next phase, we will initiate a proposed lift around that circuit.  Each
 peer who is willing to participate on the suggested terms will give a 
 conditional commitment.  This commitment is structured as a digital contract
 which, when properly signed, becomes a binding CHIP credit.  In other words,
 it is money to the recipient and debt to the issuer.  It just needs a final
-signature.
+signature to become valid.
 
 In the final phase, we want to lock down each conditional credit and make it
-real, official and binding.  This is where the 2 generals dilemma would hurt us
+real, valid and binding.  This is where the 2 generals dilemma would hurt us
 if we were dependent on a fully transactional commit.  It would be possible for
 someone to conditionally commit in the prior phase, but then fail to cooperate
 in the final commitment phase.
@@ -119,7 +120,7 @@ in the final commitment phase.
 However, because everyone already posesses conditional credits, lacking only
 the proper digital signature, all we really need is a way to get that signature
 out to everyone and they will have their money.  Any deadbeat who drops off the
-network in between these two phases will simply miss out.  He has already given
+network between these two phases will simply miss out.  He has already given
 his conditional approval in the previous phase, so his immediate peer can prove
 he is part of the lift and owes the value.  It is only the deadbeat himself who
 is lacking the final credits he needs to be made whole.
@@ -149,9 +150,9 @@ signature and send it back around the loop.  If he sends it in both directions
 deadbeat can get the final signature they need.  
 
 If there are two deadbeats in a single lift, it is possible for them to
-deprive everyone in between them of the final signing key.  This could
-conceivably be orchestrated between two corrupt nodes on the network, working
-together and using a modified version of the server.
+deprive everyone between them of the final signing key.  This could conceivably 
+be orchestrated between two corrupt nodes on the network, working together and 
+using a modified version of the server.
 
 However, they can only do damage if the lift will run them into credit 
 territory (i.e. a negative balance) with the party they are attemping to harm.  
@@ -171,12 +172,10 @@ ignored).
 Linear Lifts:
 
 The lift algorithm described above is performed in a complete circle.  It's
-function is to relieve credit surpluses and deficits around a complete circuit
-of trading entities.
-
-So the assumption is, a bunch of people have already been trading using
-existing private credit relationships, and they want to participate in a lift
-to relieve built up credits so they can keep going.
+function is to relieve credit surpluses and deficits around a full circuit of 
+trading entities.  So the assumption is, a bunch of people have already been 
+trading using existing private credit relationships, and they want to 
+participate in a lift to relieve built up credits so they can keep going.
 
 But there is another kind of lift possible and it travels in a straight line.  
 See the figure on page 3 of the accompanying Lifts.odg document entitled 
@@ -262,25 +261,24 @@ outside world, or if there is a lift pathway from D to C.
 
 If C and D are both hosted by another single database, it would be pretty easy
 to just ask: "Hey, are C and D connected?  And is a lift possible going 
-through D and eventually getting to C?"  That database could answer the
-question just as easily as we can for our own interconnected users.  And it
-would not really have to give us much information, other than to say that a
-lift along that path is possible.
+through D and eventually getting to C?"  That system could answer the question 
+just as easily as we can for our own interconnected users.  And it would not 
+really have to give us much information, other than to say that a lift along 
+that path is possible.
 
 But what if they are not on the same server?  That is where it gets more
 complicated.  Essentially, D's host database would have to note that C is not
-its customer, but that it would be useful to be able to find an upstream
-connection to C, wherever in the world it might be hosted.  And so it could
-pass the query on to those foreign hosts it knows about who are upstream from
-D.
+its customer, but that it would be useful to be able to find an upstream route
+to C, wherever in the world it might be hosted.  And so it could pass the query 
+on to those foreign hosts it knows about who are upstream from D.
 
-If one of those hosts C, it can answer and D's host can then relay the
+If one of those systems hosts C, it can answer and D's host can then relay the
 information back to A's host.  If not, they can pass the inquiry along for as
-long as it takes until either there are no more upstream pathways to query
-or C's host is eventually discovered.
+long as it takes until either there are no more upstream pathways to query or 
+C's host is eventually discovered.
 
 In practice we hope to deliver some hints as well that will make this process
-more efficient so hosts don't have to continue querying off in useless 
+more efficient so hosts don't have to continue sending queryies off in useless 
 directions.
 
 -------------------------------------------------------------------------------
@@ -342,9 +340,9 @@ This kind of query looks very much like a foreign path since it will not
 contain a local ID field.  It could, and may often be generated by local
 request.  But if foreign queries have previously searched for this user, we
 may well have a record in our system telling us just how to find him.  If so,
-all the better.  No need to make our own query.
+all the better.  No need to initiate our own query.
 
-Model Requirements:
+Model Requirements (in general terms):
 Native:
   Route Entity: The local ID of a foreign peer (D) who holds a foil tally with 
   	one of our users (A).
@@ -405,7 +403,7 @@ Relay 2:		(On tricia_mayo's system: lux3)
 Lift Costing:
 
 Refer to the Costing spreadsheet.  This shows how costs are propagated through
-a segment.  At each node, the cost may be 0, a positive percentage, or a
+a chain.  At each node, the cost may be 0, a positive percentage, or a
 negative percentage.  A negative cost implies the node will be paying to
 participate in the lift.  A positive cost implies the node will be charging
 others to use its channel for the lift.
@@ -422,13 +420,29 @@ values to indicate his appetite for collecting the credits associated with that
 tally.  The lift algorithm figures it out from there.
 
 -------------------------------------------------------------------------------
+Lading Capacity:
+
+Lading describes the capacity of a chain or a route to handle a lift of a given
+size.  See the Tally document for the lower level values computed in views to
+determine lading capacity.
+
+In the route table, we aggregate and store these values from one site to the 
+next to determine the size of a possible lift distributed across multiple 
+sites:
+
+  min:		The least anyone along the chain is willing to lift for free.
+  max:		The most you can expect to lift, including at a cost.
+  reward:	The foil fee for lift amounts over min, up to max.
+  margin:	Combined stock fees (usually zero) for any amount of lift.
+
+-------------------------------------------------------------------------------
 Lift State Analysis:
 
 In order to understand how to maintain state for lifts, let's first consider 
 some possible scenarios.  A lift can be initiated in several different ways:
 
   Local Circular: Our local system automatically detects a segment which is 
-    in need of a lift (has a mutually correllated credit imbalance) and so it 
+    in need of a lift (has a mutually correlated credit imbalance) and so it 
     initiates a process to discover/utilize an external pathway that can satisfy 
     the lift requirements (relieve the built-up credits).
 
@@ -507,8 +521,8 @@ More on the 5 specific modes, starting with simpler cases first:
 The main complications arise for the Local cases.  If we are a remote node, we
 are mostly reactive to the process, indicating our desire and ability to
 participate in a particular lift.  When we are handling a local case, we have
-a job to do: either make a linear payment, or relieve a credit imbalance.  If
-our first attempt does not succeed, we will need a way to back out and try a
+more work to do: either make a linear payment, or relieve a credit imbalance.
+If our first attempt does not succeed, we will need a way to back out and try a
 different option, if one can be found.
 
 Under user control (Local Linear) this should not be too difficult.  Either the
@@ -552,7 +566,7 @@ and Kathleen.  And a single foil from Kathleen to Stacey.  That is 4 tallies
 in total (on our system) which will receive a lift chit, marked with the UUID 
 unique to the particular lift, and eventually signed by the lift initiator.
 
-Conclusion is, we need a lift table containing a lift record with its own
+Conclusion is, we do need a lift table containing a lift record with its own
 state.  This record will, at some point in the process, refer to a set of
 prospective chits, which will commit all-or-none.
 
@@ -561,8 +575,9 @@ We mentioned earlier the 3-phases for the lift:
 Phase 1: Seek/verify a circuit or path for the lift and its amount
 Phase 2: Send a conditional lift proposal around the circuit, upstream
 Phase 3: Issue validation or cancellation downstream through the circuit
+	 Respond (indefinitely) to requests for validation of the lift
 
-The states of the lift record are as follows:
+Valid states for the lift record are as follows:
 
 xxxxxxxxxxxxx WIP xxxxxxxxxxxxx
 
@@ -632,7 +647,5 @@ OBSOLETE:
 		make this binding money.
   liftPending:	We have sent the specific lift along upstream.  We expect to
 		receive a final signature next to make this final.
-
-xxxxxxxxx
 
 -------------------------------------------------------------------------------

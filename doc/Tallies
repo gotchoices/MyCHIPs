@@ -1,5 +1,19 @@
 Tallies
 
+Site Definition:
+-------------------------------------------------------------------------------
+A site is:
+ - A model and controller
+ - A collection of algorithms and settings
+ - A representation of the interests of an individual or corporation
+ - A server to process requests from other peer sites
+ - A Client to make requests from other peer sites
+ - An interface to negotiate approvals with the owner user
+ - An interface to process actions initiated by the owner user
+ - A data repository
+ - A platform for trading credits
+
+The Tally
 -------------------------------------------------------------------------------
 A tally is, at its essence, a contract between two parties.  By the tally, they 
 agree to "keep track" of a net amount owing between them, on mutually 
@@ -418,17 +432,70 @@ If credit has been extended to the customer as part of the tally, the customer
 can begin to buy things using the tally as payment, within the specified credit
 terms.
 
-Site Definition:
+Pathways:
 -------------------------------------------------------------------------------
-A site is:
- - A model and controller
- - A collection of algorithms and settings
- - A representation of the interests of an individual or corporation
- - A server to process requests from other peer sites
- - A Client to make requests from other peer sites
- - An interface to negotiate approvals with the owner user
- - An interface to process actions initiated by the owner user
- - A data repository
- - A platform for trading credits
+The admin tool includes a network visualization tool that shows all users local
+to the site, known foreign peers, and the tallies that interconnect them.  Each
+database will store both a stock and a foil that connect local users to each
+other.  But it will only contain a single stock or foil leading from or to a
+foreign peer.
+
+The first step in making sense of the network is a recursive view called
+mychips.tallies_v_net.  This view joins stock and foil together on those 
+segments of the network between local users, where we have both halves of the
+tally.  For links from/to foreign peers, the row contains only the data we have 
+and fills in nulls for the other half of the tally.
+
+The goal is to show the effect on each user's trading variables (see
+above) on the capacity "lading" of each segment of the network to carry lifts.
+
+Specifically, we boil the trading variables down to 4 lift parameters:
+
+  lift_target
+  lift_bound
+  lift_reward
+  lift_margin
+
+The target, bound and reward are identical in meaning to the foil trading
+variables by the same name.  The margin, however is a result of the clutch
+value from the corresponding stock.  The idea is, it represents the cost
+charged by the stock holder (usually 0) for doing a lift through this segment.
+
+There are also 4 corresponding values for drops (lifts in the opposite 
+direction):
+
+  drop_target
+  drop_bound
+  drop_reward
+  drop_margin
+
+The first three are a result of the corresponding stock trading variables.
+The drop margin comes from the foil clutch value (a cost asserted by the foil
+for doing a drop through the segment).
+
+The next layer is a recursive view called mychips.tallies_v_paths.  This view
+joins segments together to form chains through the local database.  Circular
+chains are of interest for the possibility of doing a lift entirely locally,
+within a single database.
+
+Also of interest are linear chains which have a stock with a foreign peer at
+one end, a foil with a foreign peer at the other end, and all local users in
+between.  A segment like this can become part of a distributed lift where we
+will cooperate with other systems to send value in a circular, or a linear
+fashion (see Lift document).
+
+The lading values get aggregated along these chains to become:
+
+  lift_min:	The smallest free liftable amount along this chain (the most we
+  		can expect to lift through this chain at no cost).
+  lift_max:	The smallest liftable amount along this chain, which may have
+  		a cost (the most we can expect to lift).
+  lift_reward	The cost rate asserted by foils for that part of the lift 
+  		greater than lift_min and less than lift_max.
+  lift_margin	The aggregated cost asserted by stocks for lifting any amount
+  		through this chain.
+
+During route discovery (see Lift document), these values are queried in order 
+to determine lading capacity through pathways that span across multiple sites.
 
 -------------------------------------------------------------------------------
