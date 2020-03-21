@@ -78,11 +78,11 @@ proc answer {} {
   .win configure -state normal
   .win insert end $ans
   .win configure -state disabled	;#Makes it so we can't select text
-  if {$yv >= 0.98} {.win see end}	;#If near the bottom, keep EOF in view
+  if {$yv >= 0.99} {.win see end}	;#If near the bottom, keep EOF in view
 }
 
 scrollbar .ys -orient v -command {.win yview}
-color::text .win -yscroll {.ys set} -font $font
+color::text .win -yscroll {.ys set} -font $font -wrap word
 pack .ys -side right -fill y
 pack .win
 focus .win	;#Seems to need to take focus once or '-state disabled' above makes it so we never can get focus from mouse
@@ -91,6 +91,15 @@ bind Text <Command-KeyPress-k> {	;#Clear command compatible with iTerm
   .win configure -state normal
   %W delete 0.0 end
   .win configure -state disabled
+}
+
+bind Text <Control-w> {			;#Toggle wrapping mode
+  set mode [.win cget -wrap]
+  if {$mode == {none}} {
+    .win configure -wrap word
+  } else {
+    .win configure -wrap none
+  }
 }
 
 #bind Text <Command-KeyPress-d> {	;#Debug
