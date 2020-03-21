@@ -310,7 +310,7 @@ function start_log {
   local mach="$sitebase$n"
   local pidfile="$locdir/log-$log.pids"
   if [ "$log" = "pg" ]; then
-    local cmd="docker logs -f pg$n"
+    local cmd="docker logs -f pg$n --tail 0"
   else
     local logfile="$locdir/$mach/$log"
     local cmd="tail -n 0 -f $logfile"
