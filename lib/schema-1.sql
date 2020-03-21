@@ -18,8 +18,8 @@ create or replace function wm.create_role(grp text, subs text[] default '{}') re
     return retval;
   end;
 $$;
-create or replace function wm.release() returns int stable language plpgsql as $$
-  begin return 1; end;
+create or replace function wm.release() returns int stable language sql as $$
+  select 1;
 $$;
 create type audit_type as enum ('update','delete');
 create schema base;
@@ -1425,6 +1425,15 @@ route_ent	text		not null references mychips.peers on update cascade on delete ca
   , botu_ent	text		not null references mychips.peers on update cascade on delete cascade
   , requ_ent	text		not null references mychips.peers on update cascade on delete cascade
   , status	text		not null default 'draft'
+  , step	int		not null default 0
+  , lift_min	bigint		default 0
+  , lift_margin	float		not null default 0 constraint "!mychips.paths.LMG" check (lift_margin >= -1 and lift_margin <= 1)
+  , lift_max	bigint		default 0
+  , lift_reward	float		not null default 0 constraint "!mychips.paths.LRW" check (lift_reward >= -1 and lift_reward <= 1)
+  , drop_min	bigint		default 0
+  , drop_margin	float		not null default 0 constraint "!mychips.paths.DMG" check (drop_margin >= -1 and drop_margin <= 1)
+  , drop_max	bigint		default 0
+  , drop_reward	float		not null default 0 constraint "!mychips.paths.DRW" check (drop_reward >= -1 and drop_reward <= 1)
   , lift_count	int		not null default 0
   , lift_date	timestamptz	not null default current_timestamp
   , good_date	timestamptz	not null default current_timestamp
@@ -1449,15 +1458,13 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
 
   , stock_terms	jsonb					-- Terms client grants to vendor (stock)
   , dr_limit	bigint		not null default 0	-- A stock term
-
   , foil_terms	jsonb					-- Terms vendor grants to client (foil)
   , cr_limit	bigint		not null default 0	-- A foil term
 
   , target	bigint		not null default 0	-- Lift settings
-  , lift_marg	float		not null default 0 constraint "!mychips.tallies.LMG" check (lift_marg >= -1 and lift_marg <= 1)
-  , drop_marg	float		not null default 1 constraint "!mychips.tallies.DMG" check (drop_marg >=  0 and drop_marg <= 1)
-  , lift_max	bigint		not null default 0
-  , drop_max	bigint		not null default 0
+  , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
+  , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
+  , bound	bigint		not null default 0
 
   , digest	bytea
   , units_c	bigint		default 0 not null
@@ -1483,6 +1490,10 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
 
         end if;
 
+
+        if new.status = 'open' then	-- Should only happen in simulations
+          return mychips.tally_opencheck(new);
+        end if;
         return new;
     end;
 $$;
@@ -1862,7 +1873,7 @@ create function mychips.route_life() returns interval language plpgsql stable as
 $$;
 create function mychips.route_retry(new mychips.routes) returns boolean language plpgsql as $$
     begin
-
+raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
 
     return false;
     end;
@@ -1878,27 +1889,24 @@ create trigger mychips_tallies_tr_change after insert or update or delete on myc
 create trigger mychips_tallies_tr_seq before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
 create view mychips.tallies_v_net as select 
     coalesce(ts.tally_guid,tf.tally_guid)	as guid
-  , ts.tally_guid				as stock_guid
-  , tf.tally_guid				as foil_guid
   , coalesce(ts.tally_ent,tf.partner)		as stock_ent
   , coalesce(tf.tally_ent,ts.partner)		as foil_ent
   , ts.tally_ent				as stock_user
   , tf.tally_ent				as foil_user
-  , ts.dr_limit					as stock_drl
-  , ts.cr_limit					as stock_crl
-
-  , tf.dr_limit					as foil_drl
-  , tf.cr_limit					as foil_crl
-
-  , greatest(ts.dr_limit, tf.dr_limit)		as dr_max
-  , greatest(ts.cr_limit, tf.cr_limit)		as cr_max
-
-, 1 as lift_marg
-
-, 1 as drop_marg
-
-, 0 as target
-  , coalesce(ts.units_c, tf.units_c)		as units
+  , ts.units_c					as units
+  , ts.units_c = tf.units_c			as clean
+  
+  , tf.target					as lift_target
+  , coalesce(tf.reward,0)			as lift_reward
+  , coalesce(ts.clutch,0)			as lift_margin
+  , tf.units_c - least(-tf.target, 0)				as lift_min
+  , tf.units_c - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
+  
+  , ts.target					as drop_target
+  , coalesce(ts.reward,0)			as drop_reward
+  , coalesce(tf.clutch,0)			as drop_margin
+  , greatest(ts.target, 0) - ts.units_c				as drop_min
+  , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_c	as drop_max
   
   from			(select * from mychips.tallies where tally_type = 'stock') ts
   full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_guid = ts.tally_guid;
@@ -1935,8 +1943,12 @@ tset_ent	text
   , tset_seq	int	      , foreign key (tset_ent, tset_seq) references mychips.tallies on update cascade on delete cascade
   , tset_idx	int	      , primary key (tset_ent, tset_seq, tset_idx)
   , tset_date	timestamptz	not null default current_timestamp
-  , settings	jsonb		not null
+  , target	bigint
+  , reward	float
+  , clutch	float
+  , bound	bigint
   , signature	text		not null
+  , digest	bytea
 );
 create table mychips.tally_tries (
 ttry_ent	text	      , primary key (ttry_ent, ttry_seq)
@@ -2239,93 +2251,13 @@ create function mychips.routes_tf_biu() returns trigger language plpgsql securit
         return new;
     end;
 $$;
-create view mychips.routes_v as select 
-    ro.route_ent, ro.dest_chid, ro.dest_host, ro.dest_ent, ro.topu_ent, ro.botu_ent, ro.requ_ent, ro.status, ro.lift_count, ro.lift_date, ro.good_date
-  , re.peer_cid		as route_cid
-  , re.peer_addr	as route_addr
-  , re.peer_sock	as route_sock
-  , re.peer_endp	as route_endp
-  , re.std_name		as route_name
-
-  , de.peer_cid		as dest_cid
-  , de.peer_addr	as dest_addr
-  , de.peer_sock	as dest_sock
-  , de.peer_endp	as dest_endp
-  , de.std_name		as dest_name
-
-  , te.peer_cid		as topu_cid
-  , te.peer_addr	as topu_addr
-  , te.peer_sock	as topu_sock
-  , te.peer_endp	as topu_endp
-  , te.serv_id		as topu_serv
-  , te.std_name		as topu_name
-
-  , be.peer_cid		as botu_cid
-  , be.peer_addr	as botu_addr
-  , be.peer_sock	as botu_sock
-  , be.peer_endp	as botu_endp
-  , be.std_name		as botu_name
-  , be.serv_id		as botu_serv
-
-  , qe.peer_cid		as requ_cid
-  , qe.peer_addr	as requ_addr
-  , qe.peer_sock	as requ_sock
-  , qe.peer_endp	as requ_endp
-  , qe.std_name		as requ_name
-  , not qe.user_ent isnull	as requ_user
-
-  , not qe.user_ent isnull			as native
-  , ro.dest_chid || '@' || ro.dest_host		as dest_chad
-  , greatest(ro.good_date,ro.lift_date) + mychips.route_life()		as expires
-  , rt.tries		as tries
-  , rt.last		as last
-  , mychips.route_state(status
-    , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()	-- Expired
-    , coalesce(rt.tries,0) >= base.parm('routes','tries',4)				-- Max tries
-  )			as state
-  , jsonb_build_object(				-- Packet we will transmit upstream
-       'from'	,	re.peer_cid
-     , 'fat'	,	re.peer_chost
-     , 'to'	,	coalesce(de.peer_cid, ro.dest_chid)
-     , 'tat'	,	coalesce(de.peer_host, ro.dest_host)
-     , 'by'	,	te.peer_cid
-     , 'bat'	,	te.peer_chost
-     , 'port'	,	te.peer_cport
-    )			as relay
-  , jsonb_build_object(				-- Overlay for packet we transmit downstream
-       'from'	,	be.peer_cid
-     , 'fat'	,	be.peer_chost
-     , 'to'	,	coalesce(de.peer_cid, ro.dest_chid)
-     , 'tat'	,	coalesce(de.peer_host, ro.dest_host)
-     , 'by'	,	qe.peer_cid
-     , 'bat'	,	qe.peer_chost
-     , 'port'	,	qe.peer_cport
-    )			as reverse
-
-    from	mychips.routes	ro
-    join	mychips.peers_v	re on re.peer_ent = ro.route_ent	-- start of route
-    join	mychips.users_v	te on te.peer_ent = ro.topu_ent		-- top local user in chain
-    join	mychips.users_v	be on be.peer_ent = ro.botu_ent		-- bottom local user in chain
-    join	mychips.users_v	qe on qe.peer_ent = ro.requ_ent		-- requesting user or downstream foreign peer
-    left join	mychips.users_v	de on de.peer_ent = ro.dest_ent		-- destination
-    left join	mychips.route_tries rt on rt.rtry_ent = ro.route_ent and rt.rtry_chid = ro.dest_chid and rtry_host = ro.dest_host;
-create function mychips.tallies_tf_bu() returns trigger language plpgsql security definer as $$
-    declare
-      pe mychips.users_v;
-      ue mychips.users_v;
-    begin
-      if new.status = 'open' and old.status != 'open' then	-- Need to generate record digest?
-        select into pe * from mychips.users_v where peer_ent = new.partner;
-        if not found then return null; end if;
-        select into ue * from mychips.users_v where user_ent = new.tally_ent;
-        if not found then return null; end if;
-        new.digest = sha256(mychips.tally_json(new, ue.peer_cid, pe.peer_cid)::text::bytea);
-      end if;
-      return new;
-    end;
-$$;
-create view mychips.tallies_v_paths as with recursive tally_path(first, last, length, path, guids, cycle, circuit, margin, min, max, inside, corein, fora, forz) as (
-    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, 0::float, null::bigint, null::bigint, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull
+create view mychips.tallies_v_paths as with recursive tally_path(first, last, length, path, guids, cycle, circuit, inside, corein, fora, forz,
+      lift_min, lift_margin, lift_max, lift_reward,
+      drop_min, drop_margin, drop_max, drop_reward
+    ) as (
+    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull,
+      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float, 
+      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float
     from	mychips.users_v p
     where	not p.peer_ent isnull
   union all
@@ -2336,11 +2268,6 @@ create view mychips.tallies_v_paths as with recursive tally_path(first, last, le
       , tp.guids || t.guid				as guids
       , t.stock_ent = any(tp.path)			as cycle
       , tp.path[1] = t.stock_ent			as circuit
-      , tp.margin + t.lift_marg * (1 - tp.margin)	as margin
-      , least(tp.min, mychips.lift_max(
-          t.units, t.target, t.cr_max, t.dr_max
-        ))						as min
-      , coalesce(greatest(t.units,tp.max), t.units)	as max
       , tp.inside and not t.stock_user isnull		as inside
       , case when tp.length < 2 then not t.stock_user isnull
         when tp.length = 2 then not tp.forz
@@ -2348,13 +2275,37 @@ create view mychips.tallies_v_paths as with recursive tally_path(first, last, le
         end						as corein
       , tp.fora						as fora
       , t.stock_user isnull				as forz
+
+      , least(t.lift_min,tp.lift_min)				as lift_min
+      , tp.lift_margin + t.lift_margin * (1 - tp.lift_margin)	as lift_margin
+
+      , case when t.lift_min < tp.lift_min then
+          least(t.lift_max,tp.lift_min)
+        else
+          least(tp.lift_max,t.lift_min) end			as lift_max
+      , case when t.lift_min < tp.lift_min then t.lift_reward else tp.lift_reward end as lift_reward
+
+
+      , least(t.drop_min,tp.drop_min)				as drop_min
+      , tp.drop_margin + t.drop_margin * (1 - tp.drop_margin)	as drop_margin
+
+      , case when t.drop_min < tp.drop_min then
+          least(t.drop_max,tp.drop_min)
+        else
+          least(tp.drop_max,t.drop_min) end			as drop_max
+      , case when t.drop_min < tp.drop_min then t.drop_reward else tp.drop_reward end as drop_reward
+
+
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
   ) select tpr.first, tpr.last
     , tpr.length, tpr.path, tpr.guids
-    , tpr.circuit, tpr.margin, tpr.min, tpr.max
-    , tpr.length * tpr.min as bang
-    , tpr.inside, tpr.corein, tpr.fora, tpr.forz
+    , tpr.circuit, tpr.inside, tpr.corein, tpr.fora, tpr.forz
+    , tpr.lift_margin, tpr.lift_reward, tpr.drop_margin, tpr.drop_reward
+    , greatest(tpr.lift_min, 0) as lift_min, greatest(tpr.lift_max, 0) as lift_max	-- Don't generate negative lift/drop allowances
+    , greatest(tpr.drop_min, 0) as drop_min, greatest(tpr.drop_max, 0) as drop_max
+
+    , tpr.length * tpr.lift_min as bang
   from tally_path tpr where tpr.length > 1;
 create function mychips.tally_notices() returns int language plpgsql as $$
     declare
@@ -2380,40 +2331,17 @@ create function mychips.tally_notices() returns int language plpgsql as $$
         return didem;
     end;
 $$;
-create function mychips.tally_sets_tf_seq() returns trigger language plpgsql security definer as $$
-    begin
-        if new.tset_idx is null then
-          update mychips.tallies set _last_tset = greatest(
-              coalesce(_last_tset,0) + 1,
-              (select coalesce(max(tset_idx),0)+1 from mychips.tally_sets where tset_ent = new.tset_ent and tset_seq = new.tset_seq)
-            ) where tally_ent = new.tset_ent and tally_seq = new.tset_seq
-              returning _last_tset into new.tset_idx;
-          if not found then new.tset_idx = 1; end if;
-        end if;
-        return new;
-    end;
-$$;
-create index mychips_tally_sets_x_tset_date on mychips.tally_sets (tset_date);
-create function mychips.tally_set(ent text, seq int, sets jsonb) returns timestamptz language plpgsql security definer as $$
+create function mychips.tally_opencheck(ta mychips.tallies) returns mychips.tallies stable language plpgsql security definer as $$
     declare
-      lrec	record;
-      qflds	text[];
-      qstrg	text;
+      pe mychips.users_v;
+      ue mychips.users_v;
     begin
-      for lrec in select * from jsonb_each_text(sets) loop
-        if lrec.key = any('{target,lift_marg,drop_marg,lift_max,drop_max}') then
-          qflds = qflds || (quote_ident(lrec.key) || ' = ' || lrec.value::text);
-        end if;
-
-      end loop;
-
-      qstrg = 'update mychips.tallies set ' || array_to_string(qflds, ', ') || ' where tally_ent = $1 and tally_seq = $2';
-
-      execute qstrg using ent, seq;
-
-
-      insert into mychips.tally_sets (tset_ent,tset_seq,settings,signature) values (ent, seq, sets, 'Sig');
-      return current_timestamp;
+      select into pe * from mychips.users_v where peer_ent = ta.partner;
+      if not found then return null; end if;
+      select into ue * from mychips.users_v where user_ent = ta.tally_ent;
+      if not found then return null; end if;
+      ta.digest = sha256(mychips.tally_json(ta, ue.peer_cid, pe.peer_cid)::text::bytea);
+      return ta;
     end;
 $$;
 create function mychips.ticket_login(uid text) returns base.token_v_ticket language plpgsql as $$
@@ -2428,6 +2356,14 @@ create function mychips.ticket_login(uid text) returns base.token_v_ticket langu
       trec.port = coalesce(urec.user_port, base.parm_int('mychips','user_port'), trec.port);
       return trec;
     end;
+$$;
+create function mychips.tset_json(ts mychips.tally_sets) returns jsonb stable language sql as $$
+    select jsonb_strip_nulls(jsonb_build_object(
+       'target',	ts.target,
+       'reward',	ts.reward,
+       'clutch',	ts.clutch,
+       'bound',		ts.bound
+    ))
 $$;
 create function mychips.users_v_check(new mychips.users_v, old mychips.users_v, tgop text) returns mychips.users_v language plpgsql security definer as $$
     begin
@@ -2574,12 +2510,12 @@ create function mychips.chit_opencheck(ch mychips.chits) returns mychips.chits s
       crec	record;
     begin
 
-raise notice 'Chit digest:%', ch.digest;
       select into crec * from mychips.chits where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq and not digest isnull order by chain_idx desc limit 1;
       if found then
         ch.chain_prv = crec.digest;
         ch.chain_idx = crec.chain_idx + 1;
         ch.digest = sha256(mychips.chit_json(ch)::text::bytea);
+
         return ch;
       end if;
       
@@ -2619,10 +2555,10 @@ create function mychips.lift_cycle(maxNum int default 1) returns jsonb language 
       oarr	text[];
       lift_id	uuid;
       min_units	int default base.parm('lifts','minimum',1);
+      ord_by	text default base.parm('lifts','order','bang desc'::text);
       count	int default 0;
       rows	int;
     begin
-      select into prec * from base.parm_v where module = 'lifts' and parm = 'order';
       if found then				-- Build a custom order-by clause
         foreach tstr in array regexp_split_to_array(prec.value, ',') loop
           oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
@@ -2632,15 +2568,14 @@ create function mychips.lift_cycle(maxNum int default 1) returns jsonb language 
         orders = array_to_string(tarr, ', ');
       end if;
 
-
-      while count < maxNum loop
-        tstr = 'select length, min, max, cost, path, guids from mychips.tallies_v_paths where circuit and min >= $1 order by ' || orders || ' limit 1';
-
+      while count < maxNum loop			-- Search for internal lifts
+        tstr = 'select length, lift_min, lift_max, lift_margin, path, guids from mychips.tallies_v_paths where circuit and lift_margin <= 0 and lift_min >= $1 order by ' || orders || ' limit 1';
+raise notice 'LC2 min:% max:% ord:% sql:%', min_units, maxNum, orders, tstr;
         execute tstr into prec using min_units;
         get diagnostics rows = ROW_COUNT;
-
+raise notice 'LC3 :% % % %', prec.length, prec.lift_min, prec.lift_max, rows;
         if rows < 1 then exit; end if;
-        if not mychips.internal_lift(prec.min, prec.guids) then exit; end if;
+        if not mychips.internal_lift(prec.lift_min, prec.guids) then exit; end if;
         count = count + 1;
       end loop;
     return jsonb_set(status, '{done}', count::text::jsonb);
@@ -2648,168 +2583,96 @@ create function mychips.lift_cycle(maxNum int default 1) returns jsonb language 
 $$;
 create trigger mychips_peers_v_tr_ins instead of insert on mychips.peers_v for each row execute procedure mychips.peers_v_insfunc();
 create trigger mychips_peers_v_tr_upd instead of update on mychips.peers_v for each row execute procedure mychips.peers_v_updfunc();
-create function mychips.route_check(new mychips.tallies) returns void language plpgsql as $$
+create function mychips.route_circuit(entity text) returns void language plpgsql as $$
     declare
       trec	record;
     begin
-      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and new.tally_ent = any(path) and corein and fora and forz loop
+      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and entity = any(path) and corein and fora and forz loop
 
         insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, requ_ent) 
-          values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], new.tally_ent)
+          values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], entity)
             on conflict (route_ent, dest_chid, dest_host)
               do update set status = 'draft' where mychips.route_retry(excluded);
       end loop;
     end;
 $$;
-create function mychips.route_notify(route mychips.routes) returns boolean language plpgsql security definer as $$
+create function mychips.route_linear(entity text, peer text, host text) returns void language plpgsql as $$
     declare
-        act	text;
-        jrec	jsonb;
-        orec	record;
-        rrec	record;
-        channel	text = 'mychips_peer';
+      trec	record;
+      locid	text;
     begin
-
-        if route.status = 'draft' or route.status = 'good' or route.status = 'none' then		-- Determine next action
-            act = route.status;
-        end if;
-
-        if act isnull then return false; end if;
-
-        select into orec route_ent,route_cid,route_addr,requ_sock,topu_sock,topu_serv,route_sock,dest_chid,dest_host,status,state,relay,reverse from mychips.routes_v where route_ent = route.route_ent and dest_chid = route.dest_chid;
-        if not found then return false; end if;
-
-        if not orec.topu_serv isnull then
-            channel = channel || '_' || orec.topu_serv;
-        end if;
-
-
-        insert into mychips.route_tries (rtry_ent, rtry_chid, rtry_host) values (route.route_ent, route.dest_chid, route.dest_host)
-          on conflict (rtry_ent,rtry_chid,rtry_host) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
-            returning * into rrec;
-
-
-        jrec = jsonb_build_object('target', 'route'
-          , 'action'	, act
-          , 'at'	, orec.route_sock
-          , 'try'	, rrec.tries
-          , 'step'	, 1
-          , 'last'	, rrec.last
-          , 'here'	, orec.topu_sock
-          , 'back'	, orec.requ_sock
-          , 'object'	, orec.relay
-          , 'reverse'	, orec.reverse
-        );
-
-        perform pg_notify(channel, jrec::text);
-        return true;
-    end;
-$$;
-create function mychips.route_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
-    declare
-        obj		jsonb = msg->'object';
-        from_r		record;
-        requ_r		record;
-        dest_r		record;
-        route_r		record;
-        qrec		record;
-        trec		record;
-        qstrg		text;
-        curState	text;
-        fwdcnt		int default 0;
-    begin
-
-        select into from_r id, serv_id, peer_cid from mychips.users_v where peer_cid = obj->>'from' and peer_chost = obj->>'fat';
-        if not found then return null; end if;
-
-
-        select into requ_r id, peer_cid from mychips.users_v where peer_cid = obj->>'by' and peer_chost = obj->>'bat';
-        if not found then return null; end if;
-
-        select into dest_r id, user_ent, peer_cid, peer_chost from mychips.users_v where peer_cid = obj->>'to' and peer_chost = obj->>'tat';
-
-        if recipe ? 'query' then			-- If there a query key in the recipe object
-          if not dest_r.id isnull then			-- If destination is a locally known peer
-            select into qrec first from mychips.tallies_v_paths where first = dest_r.id and last = from_r.id and corein limit 1;
-            if found then return 'affirm'; end if;
-          end if;
-
-
-          for qrec in select first,last,path from mychips.tallies_v_paths where last = from_r.id and fora loop	-- Find all upstream paths we might query further
-          
-
-
-            select into trec route_ent,dest_chid,topu_ent,botu_ent,requ_ent,native from mychips.routes_v where route_ent = qrec.first and dest_chid = coalesce(dest_r.peer_cid,obj->>'to') and dest_host = coalesce(dest_r.peer_chost,obj->>'tat');
-            if found then
-
-              if trec.native then return 'fail'; end if;
-            end if;
-
-            execute 'insert into mychips.routes (route_ent, dest_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent) values ($1,$2,$3,$4,$5,$6,$7)
-                on conflict (route_ent,dest_chid,dest_host) do nothing'
-
-
-              using qrec.first, dest_r.id, coalesce(dest_r.peer_cid,obj->>'to'), coalesce(dest_r.peer_chost,obj->>'tat'),
-                    qrec.path[2], from_r.id, requ_r.id;
-            fwdcnt = fwdcnt + 1;
-          end loop;
-          if fwdcnt > 0 then
-            return 'relay';
-          else
-            return 'fail';
-          end if;
-        end if;
-
-
-        if dest_r.id isnull then
-          select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_chid = obj->>'to' and dest_host = obj->>'tat';
-
-        else
-          select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_ent = dest_r.id;
-
-        end if;
-        curstate = coalesce(route_r.state,'null');
-
-
-        if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-
-            return curState;
-        end if;
-
-        if not route_r.route_ent isnull and recipe ? 'update' then
-          qstrg = mychips.state_updater(recipe, 'mychips.routes', '{status}', '{"good_date = current_timestamp"}');
-          execute qstrg || ' route_ent = $1 and dest_chid = $2 and dest_host = $3' using route_r.route_ent, route_r.dest_chid, route_r.dest_host;
-          if recipe->'update'->>'status' in ('good','none') then		-- Resolution found, delete retry counter
-            delete from mychips.route_tries where rtry_ent = route_r.route_ent and rtry_chid = route_r.dest_chid and rtry_host = route_r.dest_host;
-          end if;
-        end if;
-
-      select into route_r route_ent,state from mychips.routes_v where route_ent = route_r.route_ent and dest_chid = route_r.dest_chid and dest_host = route_r.dest_host;
-
-        return route_r.state;
+      select into locid id from mychips.peers_v where peer_cid = peer and peer_chost = host;
+      
+      for trec in select first,last,path from mychips.tallies_v_paths where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
+raise notice 'Route Linear: % % %', entity, peer, trec.first;
+        insert into mychips.routes (route_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent) 
+          values (trec.first, peer, host, trec.path[2], entity, entity)
+            on conflict (route_ent, dest_chid, dest_host)
+              do update set status = 'draft' where mychips.route_retry(excluded);
+      end loop;
     end;
 $$;
 create trigger mychips_routes_tr_biu before insert or update on mychips.routes for each row execute procedure mychips.routes_tf_biu();
-create view mychips.routes_v_lifts as select
-    tp.first
-  , tp.last
-  , tp.length
-  , tp.path
-  , tp.corein
-  , r.state
+create view mychips.routes_v_paths as select
+    tp.first, tp.last
+  , tp.length, tp.path
+  , tp.corein, tp.fora, tp.forz
+  , r.status
   , r.dest_ent		--Fixme update with latest available fields
   , r.dest_chid
-  , r.dest_host
-  , r.dest_addr
+  , r.topu_ent
+  , r.botu_ent
+  , r.requ_ent
   , r.lift_count
+  , not r.requ_ent is null as native
+  , not r.dest_ent isnull and r.dest_ent = tp.last as circuit
+  , tp.lift_min		as path_lift_min
+  , tp.lift_margin	as path_lift_margin
+  , tp.lift_max		as path_lift_max
+  , tp.lift_reward	as path_lift_reward
+  , tp.drop_min		as path_drop_min
+  , tp.drop_margin	as path_drop_margin
+  , tp.drop_max		as path_drop_max
+  , tp.drop_reward	as path_drop_reward
+
+  , r.lift_min		as route_lift_min
+  , r.lift_margin	as route_lift_margin
+  , r.lift_max		as route_lift_max
+  , r.lift_reward	as route_lift_reward
+  , r.drop_min		as route_drop_min
+  , r.drop_margin	as route_drop_margin
+  , r.drop_max		as route_drop_max
+  , r.drop_reward	as route_drop_reward
   
-  from		mychips.tallies_v_paths	tp
-  join	mychips.routes_v	r on r.route_ent = tp.first and r.dest_ent = tp.last
-  where tp.corein and r.native and tp.fora and tp.forz;
-create trigger mychips_sets_tr_seq before insert on mychips.tally_sets for each row execute procedure mychips.tally_sets_tf_seq();
-create trigger mychips_tallies_tr_bu before update on mychips.tallies for each row execute procedure mychips.tallies_tf_bu();
+  , least(tp.lift_min,r.lift_min)				as lift_min
+  , r.lift_margin + tp.lift_margin * (1 - r.lift_margin)	as lift_margin
+  , case when tp.lift_min < r.lift_min then
+      least(tp.lift_max,r.lift_min)
+    else
+      least(r.lift_max,tp.lift_min) end				as lift_max
+  , case when tp.lift_min < r.lift_min then tp.lift_reward else r.lift_reward end as lift_reward
+
+  , least(tp.drop_min,r.drop_min)				as drop_min
+  , r.drop_margin + tp.drop_margin * (1 - r.drop_margin)	as drop_margin
+  , case when tp.drop_min < r.drop_min then
+      least(tp.drop_max,r.drop_min)
+    else
+      least(r.drop_max,tp.drop_min) end				as drop_max
+  , case when tp.drop_min < r.drop_min then tp.drop_reward else r.drop_reward end as drop_reward
+  
+  from	mychips.tallies_v_paths	tp
+  join	mychips.routes	r on r.route_ent = tp.first
+  where tp.corein and tp.fora;
+create function mychips.tallies_tf_bu() returns trigger language plpgsql security definer as $$
+    begin
+      if new.status = 'open' and old.status != 'open' then	-- Need to generate record digest?
+        return mychips.tally_opencheck(new);
+      end if;
+      return new;
+    end;
+$$;
 create view mychips.tallies_v as select 
-    te.tally_ent, te.tally_seq, te.tally_type, te.tally_guid, te.tally_date, te.version, te.partner, te.request, te.comment, te.contract, te.target, te.lift_marg, te.drop_marg, te.lift_max, te.drop_max, te.status, te.digest, te.units_c, te.cr_limit, te.dr_limit, te.crt_by, te.mod_by, te.crt_date, te.mod_date
+    te.tally_ent, te.tally_seq, te.tally_type, te.tally_guid, te.tally_date, te.version, te.partner, te.request, te.comment, te.contract, te.target, te.reward, te.clutch, te.bound, te.status, te.digest, te.units_c, te.cr_limit, te.dr_limit, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , ue.peer_cid		as user_cid
   , ue.peer_addr	as user_addr
   , ue.peer_sock	as user_sock
@@ -2825,7 +2688,7 @@ create view mychips.tallies_v as select
   , not pe.user_ent is null						as inside
   , mychips.tally_state(status,request,user_sig,part_sig,units_c)	as state
   , mychips.tally_state(status,request,user_sig,part_sig,units_c) = any(array['peerProffer','closing']) as action
-  , coalesce(tc.units,0)			as units
+  , coalesce(case when te.tally_type = 'stock' then tc.units else -tc.units end,0)			as units
   , te.units_c::float8 / case when te.tally_type = 'stock' then 1000.00 else -1000.00 end		as total_c
   , coalesce(tc.units,0)::float8 / case when te.tally_type = 'stock' then 1000.00 else -1000.00 end	as total
   , coalesce(tc.chits,0)			as chits
@@ -2840,6 +2703,12 @@ create view mychips.tallies_v as select
     )		as json
   , sha256(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text::bytea) as digest_v
   , sha256(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text::bytea) = coalesce(te.digest,'') as clean
+  , jsonb_build_object(
+      'target',		te.target,
+      'reward',		te.reward,
+      'clutch',		te.clutch,
+      'bound',		te.bound
+    )		as policy
 
     from	mychips.tallies	te
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
@@ -2853,7 +2722,40 @@ create view mychips.tallies_v as select
 
     ;
     ;
-create view mychips.tallies_v_lifts as select bang,length,min,max,path from mychips.tallies_v_paths where circuit order by 1 desc;
+create view mychips.tallies_v_lifts as select * from mychips.tallies_v_paths where circuit order by 1 desc;
+create function mychips.tally_sets_tf_seq() returns trigger language plpgsql security definer as $$
+    declare
+      tfld	text;
+      qflds	text[];
+      qstrg	text;
+    begin
+      if new.tset_idx is null then
+        update mychips.tallies set _last_tset = greatest(
+            coalesce(_last_tset,0) + 1,
+            (select coalesce(max(tset_idx),0)+1 from mychips.tally_sets where tset_ent = new.tset_ent and tset_seq = new.tset_seq)
+          ) where tally_ent = new.tset_ent and tally_seq = new.tset_seq
+            returning _last_tset into new.tset_idx;
+        if not found then new.tset_idx = 1; end if;
+      end if;
+      new.digest = sha256(mychips.tset_json(new)::text::bytea);
+
+      update mychips.tallies set target = coalesce(new.target,target), reward = coalesce(new.reward,reward), clutch = coalesce(new.clutch,clutch), bound = coalesce(new.bound,bound) where tally_ent = new.tset_ent and tally_seq = new.tset_seq;
+      return new;
+    end;
+$$;
+create view mychips.tally_sets_v as select 
+    ts.tset_ent, ts.tset_seq, ts.target, ts.reward, ts.clutch, ts.bound, ts.signature, ts.tset_idx, ts.digest
+  
+  , mychips.tset_json(ts)				as json_core
+  , mychips.tset_json(ts) || jsonb_build_object(
+      'signature',	ts.digest
+    )		as json
+  , sha256(mychips.tset_json(ts)::text::bytea)		as digest_v
+  , sha256(mychips.tset_json(ts)::text::bytea) = coalesce(ts.digest,'') as clean
+
+    from	mychips.tally_sets	ts;
+
+    ;
 create trigger mychips_users_v_tr_ins instead of insert on mychips.users_v for each row execute procedure mychips.users_v_insfunc();
 create trigger mychips_users_v_tr_upd instead of update on mychips.users_v for each row execute procedure mychips.users_v_updfunc();
 create trigger wylib_data_v_tr_del instead of delete on wylib.data_v for each row execute procedure wylib.data_v_tf_del();
@@ -2928,19 +2830,86 @@ grant insert on table mychips.chits_v to chit_2;
 grant update on table mychips.chits_v to chit_2;
 select wm.create_role('chit_3');
 grant delete on table mychips.chits_v to chit_3;
-create function mychips.routes_tf_notify() returns trigger language plpgsql security definer as $$
-    declare
-        dirty	boolean default false;
-    begin
-        if TG_OP = 'INSERT' then
-            dirty = true;
-        elsif new.status != old.status then
-            dirty = true;
-        end if;
-        if dirty then perform mychips.route_notify(new); end if;
-        return new;
-    end;
-$$;
+create view mychips.routes_v as select 
+    ro.route_ent, ro.dest_chid, ro.dest_host, ro.dest_ent, ro.topu_ent, ro.botu_ent, ro.requ_ent, ro.status, ro.lift_min, ro.lift_margin, ro.lift_max, ro.lift_reward, ro.drop_min, ro.drop_margin, ro.drop_max, ro.drop_reward, ro.step, ro.lift_count, ro.lift_date, ro.good_date
+  , re.peer_cid		as route_cid		-- Route base entity
+  , re.peer_addr	as route_addr
+  , re.peer_sock	as route_sock
+  , re.peer_endp	as route_endp
+  , re.std_name		as route_name
+
+  , de.peer_cid		as dest_cid		-- Destination entity
+  , de.peer_addr	as dest_addr
+  , de.peer_sock	as dest_sock
+  , de.peer_endp	as dest_endp
+  , de.std_name		as dest_name
+
+  , te.peer_cid		as topu_cid		-- Top of local segment
+  , te.peer_addr	as topu_addr
+  , te.peer_sock	as topu_sock
+  , te.peer_endp	as topu_endp
+  , te.std_name		as topu_name
+  , te.serv_id		as topu_serv
+
+  , be.peer_cid		as botu_cid		-- Bottom of local segment
+  , be.peer_addr	as botu_addr
+  , be.peer_sock	as botu_sock
+  , be.peer_endp	as botu_endp
+  , be.std_name		as botu_name
+  , be.serv_id		as botu_serv
+
+  , qe.peer_cid		as requ_cid		-- Who requested this route
+  , qe.peer_addr	as requ_addr
+  , qe.peer_sock	as requ_sock
+  , qe.peer_endp	as requ_endp
+  , qe.std_name		as requ_name
+  , not qe.user_ent isnull	as requ_user
+
+  , not qe.user_ent isnull			as native
+  , ro.dest_chid || '@' || ro.dest_host		as dest_chad
+  , greatest(ro.good_date,ro.lift_date) + mychips.route_life()		as expires
+  , rt.tries		as tries
+  , rt.last		as last
+  , mychips.route_state(ro.status
+    , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()	-- Expired
+    , coalesce(rt.tries,0) >= base.parm('routes','tries',4)				-- Max tries
+  )			as state
+  , jsonb_build_object(				-- Packet we will transmit upstream
+       'from'	,	re.peer_cid				-- route start peer
+     , 'fat'	,	re.peer_chost				-- and his host
+     , 'to'	,	coalesce(de.peer_cid, ro.dest_chid)	-- route destination peer
+     , 'tat'	,	coalesce(de.peer_host, ro.dest_host)	-- destination host
+     , 'by'	,	te.peer_cid				-- requester
+     , 'bat'	,	te.peer_chost				-- and his host
+     , 'port'	,	te.peer_cport				-- and his port
+    )			as relay
+  , jsonb_build_object(				-- Overlay for packet we will transmit back downstream
+       'from'	,	be.peer_cid
+     , 'fat'	,	be.peer_chost
+     , 'to'	,	coalesce(de.peer_cid, ro.dest_chid)
+     , 'tat'	,	coalesce(de.peer_host, ro.dest_host)
+     , 'by'	,	qe.peer_cid
+     , 'bat'	,	qe.peer_chost
+     , 'port'	,	qe.peer_cport
+     , 'lading' ,	jsonb_build_object(
+          'lmin'   , 	rp.lift_min, 	'lmax'   , 	rp.lift_max
+        , 'lmargin',	rp.lift_margin, 'lreward',	rp.lift_reward
+        , 'dmin'   , 	rp.drop_min, 	'dmax'   , 	rp.drop_max
+        , 'dmargin',	rp.drop_margin, 'dreward',	rp.drop_reward
+       )
+    )			as reverse
+
+    from	mychips.routes		ro
+    join	mychips.peers_v		re on re.peer_ent = ro.route_ent	-- start of route
+    join	mychips.users_v		te on te.peer_ent = ro.topu_ent		-- top local user in chain
+    join	mychips.users_v		be on be.peer_ent = ro.botu_ent		-- bottom local user in chain
+    join	mychips.users_v		qe on qe.peer_ent = ro.requ_ent		-- requesting user or downstream foreign peer
+    left join	mychips.users_v		de on de.peer_ent = ro.dest_ent		-- destination
+    left join	mychips.route_tries	rt on rt.rtry_ent = ro.route_ent and rt.rtry_chid = ro.dest_chid and rtry_host = ro.dest_host
+    left join	mychips.routes_v_paths	rp on rp.first = ro.route_ent and rp.last = ro.requ_ent and ro.status = 'good';
+create view mychips.routes_v_lifts as select * from mychips.routes_v_paths where native and forz and circuit order by 1 desc;
+create trigger mychips_sets_tr_seq before insert on mychips.tally_sets for each row execute procedure mychips.tally_sets_tf_seq();
+create trigger mychips_tallies_tr_bu before update on mychips.tallies for each row execute procedure mychips.tallies_tf_bu();
 create view mychips.tallies_v_graph as select 
     tally_guid as guid    
   , case when tally_type = 'stock' then tally_ent else partner end as stock_ent
@@ -2990,6 +2959,12 @@ create view mychips.tallies_v_sum as select
   , array_agg(total)						as totals
   , array_agg(units)						as unitss
   , array_agg(inside)						as insides
+
+  , array_agg(target)						as targets
+  , array_agg(reward)						as rewards
+  , array_agg(bound)						as bounds
+  , array_agg(clutch)						as clutchs
+  , array_agg(policy)						as policies
 
   , sum(total) filter (where tally_type = 'stock')		as stock_tot
   , sum(total) filter (where tally_type = 'foil')		as foil_tot
@@ -3147,6 +3122,18 @@ create function mychips.tally_process(msg jsonb, recipe jsonb) returns text lang
         end if;
         return trec.state;
     end;
+$$;
+create function mychips.tally_sets_v_insfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
+  begin
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tally_sets_v';
+    execute 'select ' || str || ';' into trec using new;
+    insert into mychips.tally_sets (tset_ent,tset_seq,target,reward,clutch,bound,signature,tset_date) values (new.tset_ent,new.tset_seq,trec.target,trec.reward,trec.clutch,trec.bound,trec.signature,current_timestamp) returning tset_ent,tset_seq,tset_idx into new.tset_ent, new.tset_seq, new.tset_idx;
+    select into new * from mychips.tally_sets_v where tset_ent = new.tset_ent and tset_seq = new.tset_seq and tset_idx = new.tset_idx;
+    return new;
+  end;
 $$;
 select wm.create_role('mychips', '{"peer_2","contract_1","tally_2","chit_2","mychips_1"}'); select base.pop_role('mychips');
 create function json.import(data jsonb, keys jsonb default null) returns record language plpgsql as $$
@@ -3376,7 +3363,142 @@ create function mychips.chits_v_updfunc() returns trigger language plpgsql secur
     return new;
   end;
 $$;
-create trigger mychips_routes_tr_notice after insert or update on mychips.routes for each row execute procedure mychips.routes_tf_notify();
+create function mychips.route_notify(route mychips.routes) returns boolean language plpgsql security definer as $$
+    declare
+        act	text;
+        jrec	jsonb;
+        orec	record;
+        rrec	record;
+        channel	text = 'mychips_peer';
+    begin
+
+        if route.status = 'draft' or route.status = 'good' or route.status = 'none' then		-- Determine next action
+            act = route.status;
+        end if;
+
+        if act isnull then return false; end if;
+
+        select into orec route_ent,route_cid,route_addr,requ_sock,topu_sock,topu_serv,route_sock,dest_chid,dest_host,status,state,relay,reverse,step from mychips.routes_v where route_ent = route.route_ent and dest_chid = route.dest_chid;
+        if not found then return false; end if;
+
+        if not orec.topu_serv isnull then
+            channel = channel || '_' || orec.topu_serv;
+        end if;
+
+
+        insert into mychips.route_tries (rtry_ent, rtry_chid, rtry_host) values (route.route_ent, route.dest_chid, route.dest_host)
+          on conflict (rtry_ent,rtry_chid,rtry_host) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
+            returning * into rrec;
+
+
+        jrec = jsonb_build_object('target', 'route'
+          , 'action'	, act
+          , 'at'	, orec.route_sock
+          , 'try'	, rrec.tries
+          , 'step'	, orec.step
+          , 'last'	, rrec.last
+          , 'here'	, orec.topu_sock
+          , 'back'	, orec.requ_sock
+          , 'object'	, orec.relay
+          , 'reverse'	, orec.reverse
+        );
+
+        perform pg_notify(channel, jrec::text);
+        return true;
+    end;
+$$;
+create function mychips.route_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
+    declare
+        obj		jsonb = msg->'object';
+        from_r		record;
+        requ_r		record;
+        dest_r		record;
+        route_r		record;
+        qrec		record;
+        trec		record;
+        qstrg		text;
+        curState	text;
+        fwdcnt		int default 0;
+    begin
+
+        select into from_r id, serv_id, peer_cid from mychips.users_v where peer_cid = obj->>'from' and peer_chost = obj->>'fat';
+        if not found then return null; end if;
+
+
+        select into requ_r id, peer_cid from mychips.users_v where peer_cid = obj->>'by' and peer_chost = obj->>'bat';
+        if not found then return null; end if;
+
+        select into dest_r id, user_ent, peer_cid, peer_chost from mychips.users_v where peer_cid = obj->>'to' and peer_chost = obj->>'tat';
+
+        if recipe ? 'query' then			-- If there a query key in the recipe object
+          if not dest_r.id isnull then			-- If destination is a locally known user
+            select into qrec first,lift_min,lift_max,lift_margin,lift_reward,drop_min,drop_max,drop_margin,drop_reward from mychips.tallies_v_paths where first = dest_r.id and last = requ_r.id and corein limit 1;
+            if found then
+              return 'affirm|' || jsonb_build_object(
+                'lmin',		qrec.lift_min,		'lmax',		qrec.lift_max,
+                'lmargin',	qrec.lift_margin,	'lreward',	qrec.lift_reward,
+                'dmin',		qrec.drop_min,		'dmax',		qrec.drop_max,
+                'dmargin',	qrec.drop_margin,	'dreward',	qrec.drop_reward
+              )::text;
+            end if;
+          end if;
+
+
+          for qrec in select first,last,path from mychips.tallies_v_paths where last = from_r.id and fora loop	-- Find all upstream paths we might query further
+          
+
+
+            select into trec route_ent,dest_chid,topu_ent,botu_ent,requ_ent,native from mychips.routes_v where route_ent = qrec.first and dest_chid = coalesce(dest_r.peer_cid,obj->>'to') and dest_host = coalesce(dest_r.peer_chost,obj->>'tat');
+            if found then
+
+              if trec.native then return 'fail'; end if;
+            end if;
+
+            execute 'insert into mychips.routes (route_ent, dest_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent, step) values ($1,$2,$3,$4,$5,$6,$7,$8)
+                on conflict (route_ent,dest_chid,dest_host) do nothing'
+
+
+              using qrec.first, dest_r.id, coalesce(dest_r.peer_cid,obj->>'to'), coalesce(dest_r.peer_chost,obj->>'tat'),
+                    qrec.path[2], from_r.id, requ_r.id, coalesce((msg->'step')::int,1);
+            fwdcnt = fwdcnt + 1;
+          end loop;
+          if fwdcnt > 0 then
+            return 'relay';
+          else
+            return 'fail';
+          end if;
+        end if;
+
+
+        if dest_r.id isnull then		-- If destination unknown to this system
+          select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_chid = obj->>'to' and dest_host = obj->>'tat';
+
+        else
+          select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_ent = dest_r.id;
+
+        end if;
+        curstate = coalesce(route_r.state,'null');
+
+
+        if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
+
+            return curState;
+        end if;
+
+        if not route_r.route_ent isnull and recipe ? 'update' then
+          qstrg = mychips.state_updater(recipe, 'mychips.routes', '{status, lift_min, lift_margin, lift_max, lift_reward, drop_min, drop_margin, drop_max, drop_reward}', '{"good_date = current_timestamp"}');
+
+          execute qstrg || ' route_ent = $1 and dest_chid = $2 and dest_host = $3' using route_r.route_ent, route_r.dest_chid, route_r.dest_host;
+          if recipe->'update'->>'status' in ('good','none') then		-- Resolution found, delete retry counter
+            delete from mychips.route_tries where rtry_ent = route_r.route_ent and rtry_chid = route_r.dest_chid and rtry_host = route_r.dest_host;
+          end if;
+        end if;
+
+        select into route_r route_ent,state from mychips.routes_v where route_ent = route_r.route_ent and dest_chid = route_r.dest_chid and dest_host = route_r.dest_host;
+
+        return route_r.state;
+    end;
+$$;
 create function mychips.tallies_tf_notify() returns trigger language plpgsql security definer as $$
     declare
       notify	boolean default false;
@@ -3388,7 +3510,7 @@ create function mychips.tallies_tf_notify() returns trigger language plpgsql sec
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
-          perform mychips.route_check(new);
+          perform mychips.route_circuit(new.tally_ent);
         end if;
       end if;
       if notify then perform mychips.tally_notify(new); end if;
@@ -3397,6 +3519,7 @@ create function mychips.tallies_tf_notify() returns trigger language plpgsql sec
 $$;
 create trigger mychips_tallies_v_tr_ins instead of insert on mychips.tallies_v for each row execute procedure mychips.tallies_v_insfunc();
 create trigger mychips_tallies_v_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
+create trigger mychips_tally_sets_v_tr_ins instead of insert on mychips.tally_sets_v for each row execute procedure mychips.tally_sets_v_insfunc();
 create view mychips.users_v_tallysum as select 
     u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_sock, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
@@ -3418,6 +3541,12 @@ create view mychips.users_v_tallysum as select
   , coalesce(s.totals, '{}'::float8[])		as totals
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
   , coalesce(s.insides, '{}'::boolean[])	as insides
+
+  , coalesce(s.targets, '{}'::bigint[])		as targets
+  , coalesce(s.rewards, '{}'::float[])		as rewards
+  , coalesce(s.bounds, '{}'::bigint[])		as bounds
+  , coalesce(s.clutchs, '{}'::float[])		as clutchs
+  , coalesce(s.policies, '{}'::jsonb[])		as policies
   
   , coalesce(s.client_cids, '{}'::text[])	as client_cids
   , coalesce(s.vendor_cids, '{}'::text[])	as vendor_cids
@@ -3433,7 +3562,21 @@ create view mychips.users_v_tallysum as select
 create trigger mychips_chits_tr_notice after insert or update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
 create trigger mychips_chits_v_tr_ins instead of insert on mychips.chits_v for each row execute procedure mychips.chits_v_insfunc();
 create trigger mychips_chits_v_tr_upd instead of update on mychips.chits_v for each row execute procedure mychips.chits_v_updfunc();
+create function mychips.routes_tf_notify() returns trigger language plpgsql security definer as $$
+    declare
+        dirty	boolean default false;
+    begin
+        if TG_OP = 'INSERT' then
+            dirty = true;
+        elsif new.status != old.status then
+            dirty = true;
+        end if;
+        if dirty then perform mychips.route_notify(new); end if;
+        return new;
+    end;
+$$;
 create trigger mychips_tallies_tr_notice after insert or update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
+create trigger mychips_routes_tr_notice after insert or update on mychips.routes for each row execute procedure mychips.routes_tf_notify();
 
 --Data Dictionary:
 insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
@@ -3492,6 +3635,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','parm_audit','eng','Parameters Auditing','Table tracking changes to the parameters table'),
   ('base','priv','eng','Privileges','Permissions assigned to each system user defining what tasks they can perform and what database objects they can access'),
   ('base','priv_v','eng','Privileges','Privileges assigned to each entity'),
+  ('mychips','chits','eng','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
   ('mychips','chits_v','eng','Chits','Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.'),
   ('mychips','chits_v_me','eng','My Chits','View of all transactions on the tallies of the current user'),
   ('mychips','confirms','eng','Confirmations','Contains records evidencing each time the parties confirmed the present balance of their tally.'),
@@ -3509,13 +3653,14 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('mychips','tallies_v_me','eng','My Tallies','View containing all the tallies owned by the current user.'),
   ('mychips','tally_sets','eng','Tally Settings','An archive of past trading settings applied by the tally owner'),
   ('mychips','tally_tries','eng','Tally Retries','Table contains information about retries with peers to establish tallies'),
-  ('mychips','chits','eng','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
   ('mychips','users','eng','CHIP Users','Entities who have CHIP accounts on this server'),
   ('mychips','users_v','eng','CHIP Users','Entities who have CHIP accounts on this server.'),
   ('mychips','users','fin','CHIP käyttäjät','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
   ('mychips','users_v','fin','CHIP käytäjät näkymä','Yksiköt, joilla on CHIP-tilejä tällä palvelimella');
 
 insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
+  ('wylib','data','ruid','eng','Record ID','A unique ID number generated for each data record'),
+  ('base','addr','city','eng','City','The name of the city this address is in'),
   ('wm','releases','release','eng','Release','The integer number of the release, starting with 1.  The current number in this field always designates a work-in-progress.  The number prior indicates the last public release.'),
   ('wm','releases','crt_date','eng','Created','When this record was created.  Indicates when development started on this release (And the prior release was frozen).'),
   ('wm','releases','sver_1','eng','BS Version','Dummy column with a name indicating the version of these bootstrap tables (which can''t be managed by wyseman themselves).'),
@@ -3710,7 +3855,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('wm','column_ambig','spec','eng','Specified','True if the definitive native table has been specified explicitly in the schema definition files'),
   ('wm','column_ambig','count','eng','Count','The number of possible native tables for this column'),
   ('wm','column_ambig','natives','eng','Natives','A list of the possible native tables for this column'),
-  ('wylib','data','ruid','eng','Record ID','A unique ID number generated for each data record'),
   ('wylib','data','component','eng','Component','The part of the graphical, or other user interface that uses this data'),
   ('wylib','data','name','eng','Name','A name explaining the version or configuration this data represents (i.e. Default, Searching, Alphabetical, Urgent, Active, etc.)'),
   ('wylib','data','descr','eng','Description','A full description of what this configuration is for'),
@@ -3731,7 +3875,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','addr','addr_type','eng','Type','The kind of address'),
   ('base','addr','addr_prim','eng','Primary','If checked this is the primary address for contacting this entity'),
   ('base','addr','addr_cmt','eng','Comment','Any other notes about this address'),
-  ('base','addr','city','eng','City','The name of the city this address is in'),
   ('base','addr','state','eng','State','The name of the state or province this address is in'),
   ('base','addr','pcode','eng','Zip/Postal','Zip or other mailing code applicable to this address.'),
   ('base','addr','country','eng','Country','The name of the country this address is in.  Use standard international country code abbreviations.'),
@@ -3899,6 +4042,20 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','priv_v','std_name','eng','Entity Name','The name of the entity being granted the privilege'),
   ('base','priv_v','priv_list','eng','Priv List','In the case where the privilege refers to a group role, this shows which underlying privileges belong to that role.'),
   ('base','priv_v','username','eng','Username','The username within the database for this entity'),
+  ('mychips','chits','chit_ent','eng','Tally Entity','Entity ID of the owner of the tally this chit belongs to'),
+  ('mychips','chits','chit_seq','eng','Tally Sequence','Sequence number of the owner of the tally this chit belongs to'),
+  ('mychips','chits','chit_idx','eng','Chit Index','A unique identifier within the tally, identifying this chit'),
+  ('mychips','chits','chit_guid','eng','Chit GUID','A globally unique identifier for this transaction'),
+  ('mychips','chits','chit_type','eng','Chit Type','The type of transaction represented by this flow of credit'),
+  ('mychips','chits','chit_date','eng','Date/Time','The date and time when this transaction is effective'),
+  ('mychips','chits','units','eng','Units','The amount of the transaction, as measured in milli-CHIPs (1/1,000)'),
+  ('mychips','chits','signature','eng','Signature','Digital signature of the party authorizing the transaction'),
+  ('mychips','chits','pro_quo','eng','Quid Pro Quo','A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties'),
+  ('mychips','chits','memo','eng','Memo','Any other description or explanation for the transaction'),
+  ('mychips','chits','crt_date','eng','Created','The date this record was created'),
+  ('mychips','chits','crt_by','eng','Created By','The user who entered this record'),
+  ('mychips','chits','mod_date','eng','Modified','The date this record was last modified'),
+  ('mychips','chits','mod_by','eng','Modified By','The user who last modified this record'),
   ('mychips','chits_v','effect','eng','Effect','Indicates whether this would debit (increase) or credit (decrease) the tally total'),
   ('mychips','chits_v','value','eng','CHIP Value','The value of the transfer in CHIPs'),
   ('mychips','chits_v','amount','eng','Amount','A signed amount (positive or negative) indicating the effect of the transfer on the tally'),
@@ -3943,15 +4100,49 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','routes','dest_chid','eng','Destination CHIP ID','A regular destination CHIP address or an obscured ID unique to the unknown foreign peer and recognized by the peer''s host system'),
   ('mychips','routes','dest_host','eng','Destination Host','The hostname or IP address of the system that hosts this peer''s account, in the case there is no local record for the foreign peer'),
   ('mychips','routes','dest_ent','eng','Destination Entity','The local ID, if one exists, of the foreign entity this pathway leads to'),
-  ('mychips','routes','topu_ent','eng','Top User','The local ID of the user on our system who shares a tally with the foreign peer who is the begginning of this route'),
+  ('mychips','routes','topu_ent','eng','Top User','The local ID of the user on our system who shares a tally with the foreign peer who is the beginning of this route'),
   ('mychips','routes','botu_ent','eng','Bottom user','The local ID of the user on our system who was requested from downstream as the beginning of the route'),
   ('mychips','routes','requ_ent','eng','Requester','The local ID of the entity through whom the request originated, and whose connection socket we will use to return query answers if a downstream response is required'),
   ('mychips','routes','status','eng','Status','Indicates whether this route is useable or if not, what progress is being made to discover such a route'),
   ('mychips','routes','lift_count','eng','Use Count','A counter that is incremented each time this path is used in a lift'),
   ('mychips','routes','lift_date','eng','Last Used','The date/time this path was last used in a lift'),
   ('mychips','routes','good_date','eng','Date Found','The date/time this path was last marked as good by an upstream foreign server'),
-  ('mychips','routes_v','route_addr','eng','Route Address','The CHIP address of the route base entity'),
-  ('mychips','routes_v','dest_addr','eng','Destination Address','The CHIP address of the route destination entity'),
+  ('mychips','routes_v','route_cid','eng','Route CHIP ID','CHIP name of the route base entity'),
+  ('mychips','routes_v','route_addr','eng','Route Address','CHIP address of the route base entity'),
+  ('mychips','routes_v','route_sock','eng','Route Socket','Socket address of the route base entity'),
+  ('mychips','routes_v','route_endp','eng','Route Endpoint','Full endpoint address of the route base entity'),
+  ('mychips','routes_v','route_name','eng','Route Name','Regular name of the route base entity'),
+  ('mychips','routes_v','dest_cid','eng','Destination CHIP ID','CHIP name of the route destination entity'),
+  ('mychips','routes_v','dest_addr','eng','Destination Address','CHIP address of the route destination entity'),
+  ('mychips','routes_v','dest_sock','eng','Destination Socket','Socket address of the route destination entity'),
+  ('mychips','routes_v','dest_endp','eng','Destination Endpoint','Full endpoint address of the route destination entity'),
+  ('mychips','routes_v','dest_name','eng','Destination Name','Regular name of the route destination entity'),
+  ('mychips','routes_v','dest_chad','eng','Destination','The CHIP address of the destination of this route, regardless of whether it is a local or foreign entity'),
+  ('mychips','routes_v','topu_cid','eng','Top CHIP ID','CHIP name of the top user entity'),
+  ('mychips','routes_v','topu_addr','eng','Top Address','CHIP address of the top user entity'),
+  ('mychips','routes_v','topu_sock','eng','Top Socket','Socket address of the top user entity'),
+  ('mychips','routes_v','topu_endp','eng','Top Endpoint','Full endpoint address of the top user entity'),
+  ('mychips','routes_v','topu_name','eng','Top Name','Regular name of the top user entity'),
+  ('mychips','routes_v','topu_serv','eng','Top Server','Server host for the top user entity'),
+  ('mychips','routes_v','botu_cid','eng','Bottom CHIP ID','CHIP name of the bottom user entity'),
+  ('mychips','routes_v','botu_addr','eng','Bottom Address','CHIP address of the bottom user entity'),
+  ('mychips','routes_v','botu_sock','eng','Bottom Socket','Socket address of the bottom user entity'),
+  ('mychips','routes_v','botu_endp','eng','Bottom Endpoint','Full endpoint address of the bottom user entity'),
+  ('mychips','routes_v','botu_name','eng','Bottom Name','Regular name of the bottom user entity'),
+  ('mychips','routes_v','botu_serv','eng','Bottom Server','Server host for the bottom user entity'),
+  ('mychips','routes_v','requ_cid','eng','Requester CHIP ID','CHIP name of the route request entity'),
+  ('mychips','routes_v','requ_addr','eng','Requester Address','CHIP address of the route request entity'),
+  ('mychips','routes_v','requ_sock','eng','Requester Socket','Socket address of the route request entity'),
+  ('mychips','routes_v','requ_endp','eng','Requester Endpoint','Full endpoint address of the route request entity'),
+  ('mychips','routes_v','requ_name','eng','Requester Name','Regular name of the route request entity'),
+  ('mychips','routes_v','requ_user','eng','User Requested','The requesting entity is a local user'),
+  ('mychips','routes_v','native','eng','Native','The requesting entity is a local user'),
+  ('mychips','routes_v','expires','eng','Expires','When this route will be considered uncertain'),
+  ('mychips','routes_v','tries','eng','Tries','How many times has this route request tried without connecting to the intended peer'),
+  ('mychips','routes_v','last','eng','Last Try','When was the last retry done'),
+  ('mychips','routes_v','state','eng','State','Indicates how/whether this route might be useable'),
+  ('mychips','routes_v','relay','eng','Relay Data','JSON data to transmit as upstream packet'),
+  ('mychips','routes_v','reverse','eng','Reverse Data','JSON data to transmit as downstream packet'),
   ('mychips','tallies_v_paths','first','eng','Path Start','Entity ID of the peer this pathway starts with'),
   ('mychips','tallies_v_paths','last','eng','Path End','Entity ID of the peer this pathway ends with'),
   ('mychips','tallies_v_paths','length','eng','Node Length','The number of unique peer nodes in this pathway'),
@@ -3995,11 +4186,10 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','foil_terms','eng','Foilee Terms','The credit terms by which the holder of the tally foil is governed'),
   ('mychips','tallies','dr_limit','eng','Debit Limit','The maximum amount the Vendor (Stock) is granted to borrow from the Client (Foil) in exchange for goods and services'),
   ('mychips','tallies','cr_limit','eng','Credit Limit','The maximum amount the Client (Foil) is granted to borrow from the Vendor (Stock) in exchange for goods and services'),
-  ('mychips','tallies','target','eng','Target Balance','The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value are subject to margin costs.'),
-  ('mychips','tallies','lift_marg','eng','Lift Margin','A cost associated with a lift through this tally, in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts done.'),
-  ('mychips','tallies','drop_marg','eng','Drop Margin','A cost associated with a reverse lift (or drop) through this tally, in excess of the target value.  Zero means no cost.  A value of 1 (the default) will effectively prevent further drops.'),
-  ('mychips','tallies','lift_max','eng','Lift Limit','The maximum amount of debt, stock to foil, that can be accrued through lifts'),
-  ('mychips','tallies','drop_max','eng','Drop Limit','The maximum amount of debt, foil to stock, that can be accrued through drops'),
+  ('mychips','tallies','target','eng','Target Balance','The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value may be subject to margin costs.'),
+  ('mychips','tallies','reward','eng','Buy Margin','A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.'),
+  ('mychips','tallies','clutch','eng','Sell Margin','A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.'),
+  ('mychips','tallies','bound','eng','Trade Limit','The maximum amount of value the stock/foil owner is willing to accumulate on this tally'),
   ('mychips','tallies','units_c','eng','Cached Units','A cached copy of the total of all the chits on this tally, from the perspective of the tally''s owner'),
   ('mychips','tallies','crt_date','eng','Created','The date this record was created'),
   ('mychips','tallies','crt_by','eng','Created By','The user who entered this record'),
@@ -4027,20 +4217,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tally_tries','ttry_seq','eng','Tally Sequence','The unique sequence number of the tally'),
   ('mychips','tally_tries','tries','eng','Retries','How many times the peer server has attempted to act on the state request for this tally'),
   ('mychips','tally_tries','last','eng','Last Tried','When the last attempt was made to process state changes on this tally'),
-  ('mychips','chits','chit_ent','eng','Tally Entity','Entity ID of the owner of the tally this chit belongs to'),
-  ('mychips','chits','chit_seq','eng','Tally Sequence','Sequence number of the owner of the tally this chit belongs to'),
-  ('mychips','chits','chit_idx','eng','Chit Index','A unique identifier within the tally, identifying this chit'),
-  ('mychips','chits','chit_guid','eng','Chit GUID','A globally unique identifier for this transaction'),
-  ('mychips','chits','chit_type','eng','Chit Type','The type of transaction represented by this flow of credit'),
-  ('mychips','chits','chit_date','eng','Date/Time','The date and time when this transaction is effective'),
-  ('mychips','chits','units','eng','Units','The amount of the transaction, as measured in milli-CHIPs (1/1,000)'),
-  ('mychips','chits','signature','eng','Signature','Digital signature of the party authorizing the transaction'),
-  ('mychips','chits','pro_quo','eng','Quid Pro Quo','A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties'),
-  ('mychips','chits','memo','eng','Memo','Any other description or explanation for the transaction'),
-  ('mychips','chits','crt_date','eng','Created','The date this record was created'),
-  ('mychips','chits','crt_by','eng','Created By','The user who entered this record'),
-  ('mychips','chits','mod_date','eng','Modified','The date this record was last modified'),
-  ('mychips','chits','mod_by','eng','Modified By','The user who last modified this record'),
   ('mychips','users','user_ent','eng','User Entity','A link to the entities base table'),
   ('mychips','users','user_host','eng','User Host Address','The hostname or IP number where the users''s mobile application connects'),
   ('mychips','users','user_port','eng','User Port','The port to which the user''s mobile device will connect'),
@@ -4062,10 +4238,6 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','tallies','request','draft','eng','Draft','One party is suggesting terms for a tally'),
   ('mychips','tallies','request','open','eng','Open','One party is requesting to open the tally according to the specified terms'),
   ('mychips','tallies','request','close','eng','Close','One party is requesting to discontinue further trading on this tally'),
-  ('mychips','chits','chit_type','gift','eng','Gift','The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.'),
-  ('mychips','chits','chit_type','lift','eng','Credit Lift','The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity'),
-  ('mychips','chits','chit_type','loan','eng','Loan','The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.'),
-  ('mychips','chits','chit_type','tran','eng','Transaction','The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.'),
   ('mychips','users','user_stat','act','eng','Active','Good to conduct trades'),
   ('mychips','users','user_stat','lck','eng','Lockdown','Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.'),
   ('mychips','users','user_stat','off','eng','Offline','Account completely off line.  No trades possible.'),
@@ -4105,6 +4277,10 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('base','parm','type','text','eng','Text','The parameter can contain any text value'),
   ('base','parm','type','float','eng','Float','The parameter can contain only values of floating point type (integer portion, decimal, fractional portion)'),
   ('base','parm','type','boolean','eng','Boolean','The parameter can contain only the values of true or false'),
+  ('mychips','chits','chit_type','gift','eng','Gift','The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.'),
+  ('mychips','chits','chit_type','lift','eng','Credit Lift','The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity'),
+  ('mychips','chits','chit_type','loan','eng','Loan','The credit is not given, but is advanced with the expectation of a later return.  Consideration would normally be a note of some kind.'),
+  ('mychips','chits','chit_type','tran','eng','Transaction','The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.'),
   ('mychips','routes','status','draft','eng','Draft','The route has been hypothesized but no current requests have yet been made'),
   ('mychips','routes','status','pend','eng','Pending','A request has been made upstream to discover this route'),
   ('mychips','routes','status','good','eng','Good','The upstream peer server has answered that this route is possible'),
@@ -4117,6 +4293,8 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','tallies','status','close','eng','Close','No further trading can occur on this tally');
 
 insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
+  ('mychips','users','BCD','fin','Koetus 2','Toinen testiviesti'),
+  ('mychips','users','DEF','fin','Koetus 3','Kolmanen testiviesti'),
   ('wylib','data','IAT','eng','Invalid Access Type','Access type must be: priv, read, or write'),
   ('wylib','data','appSave','eng','Save State','Re-save the layout and operating state of the application to the current named configuration, if there is one'),
   ('wylib','data','appSaveAs','eng','Save State As','Save the layout and operating state of the application, and all its subordinate windows, using a named configuration'),
@@ -4309,6 +4487,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
     '),
   ('base','priv','CLV','eng','Illegal Level','The privilege level must be null or a positive integer between 1 and 9'),
   ('base','priv_v','suspend','eng','Suspend User','Disable permissions for this user (not yet implemented)'),
+  ('mychips','chits','X','eng','Y','Z'),
   ('mychips','contracts','BVN','eng','Bad Version Number','Version number for contracts should start with 1 and move progressively larger'),
   ('mychips','contracts','PBC','eng','Publish Constraints','When publishing a document, one must specify the digest hash, the source location, and the content sections'),
   ('mychips','contracts','UNC','eng','Unknown Command','The contract editor report received an unrecognized action command'),
@@ -4340,7 +4519,6 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
       <p>Tallies are used to document and track trading agreements between partners.
       <p>You can request a new tally from the action menu in the Peer tab.
     '),
-  ('mychips','chits','X','eng','Y','Z'),
   ('mychips','users','X','eng','Y','Z'),
   ('mychips','users_v','ticket','eng','User Ticket','Generate a temporary, one-time pass to allow a user to establish a secure connection with the server'),
   ('mychips','users_v','lock','eng','Lock Account','Put the specified account(s) into lockdown mode, so no further trading can occur'),
@@ -4357,9 +4535,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
          So if you are adding a new user, search first to see if they are already an existing peer
          or other entity, and then furnish the additional information to fill out the user fields.
     '),
-  ('mychips','users','ABC','fin','Koetus 1','Ensimmäinen testiviesti'),
-  ('mychips','users','BCD','fin','Koetus 2','Toinen testiviesti'),
-  ('mychips','users','DEF','fin','Koetus 3','Kolmanen testiviesti');
+  ('mychips','users','ABC','fin','Koetus 1','Ensimmäinen testiviesti');
 
 insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('wm','table_text','focus','"code"','t'),
@@ -4406,8 +4582,8 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','peers_v','display','["id","std_name","peer_cid","peer_sock","ent_type","born_date","!fir_name","!ent_name"]','t'),
   ('mychips','peers_v_me','display','["id","std_name","peer_cid","peer_sock","ent_type"]','t'),
   ('mychips','peers_v_flat','display','["id","peer_cid","std_name","bill_addr","bill_city","bill_state"]','t'),
-  ('mychips','tallies','display','["tally_ent","tally_seq","tally_type","status","partner","tally_date","tally_guid","dr_limit","cr_limit","lift_marg","bal_target"]','t'),
-  ('mychips','tallies_v','display','["tally_ent","tally_seq","tally_type","status","partner","part_name","lift_marg","dr_limit","cr_limit","bal_target"]','t'),
+  ('mychips','tallies','display','["tally_ent","tally_seq","tally_type","status","partner","tally_date","tally_guid","dr_limit","cr_limit","reward","target"]','t'),
+  ('mychips','tallies_v','display','["tally_ent","tally_seq","tally_type","status","partner","part_name","reward","dr_limit","cr_limit","target"]','t'),
   ('mychips','tallies_v_me','actions','[
     {"name":"close","ask":"1"},
     {"name":"lock","ask":"1"},
@@ -4447,6 +4623,16 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','users_v_flat','display','["id","user_cid","std_name","bill_addr","bill_city","bill_state"]','t');
 
 insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
+  ('base','addr','addr_cmt','size','50'),
+  ('base','comm_v','comm_type','sort','1'),
+  ('wm','value_text','help','size','40'),
+  ('base','addr','addr_seq','input','ent'),
+  ('base','addr','addr_seq','size','4'),
+  ('base','addr','addr_seq','subframe','10 1'),
+  ('base','addr','addr_seq','state','readonly'),
+  ('base','addr','addr_seq','justify','r'),
+  ('base','addr','addr_seq','hide','1'),
+  ('base','addr','addr_seq','write','0'),
   ('wm','table_text','language','size','4'),
   ('wm','table_text','title','size','40'),
   ('wm','table_text','help','size','40'),
@@ -4459,7 +4645,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('wm','column_text','code','focus','true'),
   ('wm','value_text','language','size','4'),
   ('wm','value_text','title','size','40'),
-  ('wm','value_text','help','size','40'),
   ('wm','value_text','help','special','edw'),
   ('wm','value_text','code','focus','true'),
   ('wm','message_text','language','size','4'),
@@ -4491,13 +4676,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('wm','objects','min_rel','size','4'),
   ('wm','objects','max_rel','size','4'),
   ('wm','objects','obj_nam','focus','true'),
-  ('base','addr','addr_seq','input','ent'),
-  ('base','addr','addr_seq','size','4'),
-  ('base','addr','addr_seq','subframe','10 1'),
-  ('base','addr','addr_seq','state','readonly'),
-  ('base','addr','addr_seq','justify','r'),
-  ('base','addr','addr_seq','hide','1'),
-  ('base','addr','addr_seq','write','0'),
   ('base','addr','pcode','input','ent'),
   ('base','addr','pcode','size','10'),
   ('base','addr','pcode','subframe','1 1'),
@@ -4532,7 +4710,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','addr','physical','subframe','3 3'),
   ('base','addr','physical','initial','true'),
   ('base','addr','addr_cmt','input','ent'),
-  ('base','addr','addr_cmt','size','50'),
   ('base','addr','addr_cmt','subframe','1 5 4'),
   ('base','addr','addr_cmt','special','edw'),
   ('base','addr','addr_ent','input','ent'),
@@ -4567,6 +4744,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','addr','mod_date','input','inf'),
   ('base','addr','mod_date','size','18'),
   ('base','addr','mod_date','subframe','2 99'),
+  ('base','ent_v_pub','crt_by','size','10'),
   ('base','addr','mod_date','optional','1'),
   ('base','addr','mod_date','write','0'),
   ('base','addr','mod_date','state','readonly'),
@@ -4658,7 +4836,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm_v','std_name','in','comm_ent'),
   ('base','comm_v','comm_prim','input','chk'),
   ('base','comm_v','comm_prim','size','2'),
-  ('mychips','users_v_flat','id','sort','2'),
   ('base','comm_v','comm_prim','subframe','3 2'),
   ('base','comm_v','comm_prim','initial','false'),
   ('base','comm_v','comm_prim','onvalue','t'),
@@ -4670,7 +4847,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm_v','comm_spec','display','2'),
   ('base','comm_v','comm_type','display','1'),
   ('base','comm_v','comm_seq','sort','2'),
-  ('base','comm_v','comm_type','sort','1'),
   ('base','ent','id','input','ent'),
   ('base','ent','id','size','7'),
   ('base','ent','id','subframe','0 1'),
@@ -4841,7 +5017,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','ent_v_pub','crt_date','state','readonly'),
   ('base','ent_v_pub','crt_date','write','0'),
   ('base','ent_v_pub','crt_by','input','ent'),
-  ('base','ent_v_pub','crt_by','size','10'),
   ('base','ent_v_pub','crt_by','subframe','2 6'),
   ('base','ent_v_pub','crt_by','optional','1'),
   ('base','ent_v_pub','crt_by','state','readonly'),
@@ -4910,6 +5085,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','parm_v','crt_by','optional','1'),
   ('base','parm_v','crt_by','write','0'),
   ('base','parm_v','crt_by','state','readonly'),
+  ('mychips','tallies','clutch','size','8'),
   ('base','parm_v','crt_date','input','inf'),
   ('base','parm_v','crt_date','size','18'),
   ('base','parm_v','crt_date','subframe','2 98'),
@@ -5000,7 +5176,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('wylib','data','crt_date','input','ent'),
   ('wylib','data','crt_date','size','14'),
   ('wylib','data','crt_date','subframe','1 6'),
-  ('mychips','users_v_flat','std_name','sort','1'),
   ('wylib','data','crt_date','optional','1'),
   ('wylib','data','crt_date','state','disabled'),
   ('wylib','data','mod_by','input','ent'),
@@ -5132,8 +5307,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies_v_paths','length','display','2'),
   ('mychips','tallies_v_paths','path','display','6'),
   ('mychips','tallies_v_paths','circuit','display','5'),
-  ('mychips','tallies_v_paths','min','display','3'),
-  ('mychips','tallies_v_paths','max','display','4'),
   ('mychips','tallies_v_paths','bang','display','1'),
   ('mychips','routes','route_ent','size','7'),
   ('mychips','routes','dest_ent','size','7'),
@@ -5151,8 +5324,8 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','routes_v','status','display','5'),
   ('mychips','routes_v','route_addr','display','2'),
   ('mychips','routes_v','dest_addr','display','4'),
+  ('mychips','routes_v_lifts','status','display','5'),
   ('mychips','routes_v_lifts','dest_ent','display','3'),
-  ('mychips','routes_v_lifts','dest_addr','display','4'),
   ('mychips','peers','peer_ent','input','ent'),
   ('mychips','peers','peer_ent','size','6'),
   ('mychips','peers','peer_ent','subframe','0 20'),
@@ -5282,15 +5455,17 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies','foil_terms','input','mle'),
   ('mychips','tallies','foil_terms','size','80 2'),
   ('mychips','tallies','foil_terms','subframe','0 8 4'),
-  ('mychips','tallies','bal_target','input','ent'),
-  ('mychips','tallies','bal_target','size','8'),
-  ('mychips','tallies','bal_target','subframe','0 9'),
-  ('mychips','tallies','lift_marg','input','ent'),
-  ('mychips','tallies','lift_marg','size','8'),
-  ('mychips','tallies','lift_marg','subframe','1 9'),
-  ('mychips','tallies','drop_marg','input','ent'),
-  ('mychips','tallies','drop_marg','size','8'),
-  ('mychips','tallies','drop_marg','subframe','2 9'),
+  ('mychips','tallies','target','input','ent'),
+  ('mychips','tallies','target','size','8'),
+  ('mychips','tallies','target','subframe','0 9'),
+  ('mychips','tallies','reward','input','ent'),
+  ('mychips','tallies','reward','size','8'),
+  ('mychips','tallies','reward','subframe','1 9'),
+  ('mychips','tallies','clutch','input','ent'),
+  ('mychips','tallies','clutch','subframe','2 9'),
+  ('mychips','tallies','bound','input','ent'),
+  ('mychips','tallies','bound','size','8'),
+  ('mychips','tallies','bound','subframe','3 9'),
   ('mychips','tallies','dr_limit','input','ent'),
   ('mychips','tallies','dr_limit','size','12'),
   ('mychips','tallies','dr_limit','subframe','0 10'),
@@ -5333,7 +5508,8 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies','status','display','4'),
   ('mychips','tallies','dr_limit','display','8'),
   ('mychips','tallies','cr_limit','display','9'),
-  ('mychips','tallies','lift_marg','display','10'),
+  ('mychips','tallies','target','display','11'),
+  ('mychips','tallies','reward','display','10'),
   ('mychips','tallies_v','user_cid','input','ent'),
   ('mychips','tallies_v','user_cid','size','28'),
   ('mychips','tallies_v','user_cid','subframe','3 14'),
@@ -5374,7 +5550,8 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies_v','tally_seq','display','2'),
   ('mychips','tallies_v','tally_type','display','3'),
   ('mychips','tallies_v','partner','display','5'),
-  ('mychips','tallies_v','lift_marg','display','7'),
+  ('mychips','tallies_v','target','display','10'),
+  ('mychips','tallies_v','reward','display','7'),
   ('mychips','tallies_v','status','display','4'),
   ('mychips','tallies_v','cr_limit','display','9'),
   ('mychips','tallies_v','dr_limit','display','8'),
@@ -5459,77 +5636,84 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v_flat','std_name','display','3'),
   ('mychips','users_v_flat','bill_addr','display','4'),
   ('mychips','users_v_flat','bill_city','display','5'),
-  ('mychips','users_v_flat','bill_state','display','6');
+  ('mychips','users_v_flat','bill_state','display','6'),
+  ('mychips','users_v_flat','id','sort','2'),
+  ('mychips','users_v_flat','std_name','sort','1');
 
 insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,nat_exp,pkey) values
   ('base','country','cur_name','base','country','cur_name','f','f'),
   ('base','language','eng_name','base','language','eng_name','f','f'),
+  ('mychips','tallies_v','bound','mychips','tallies','bound','f','f'),
+  ('mychips','tallies_v_me','bound','mychips','tallies','bound','f','f'),
+  ('mychips','tallies','bound','mychips','tallies','bound','f','f'),
+  ('mychips','tally_sets','bound','mychips','tally_sets','bound','f','f'),
+  ('mychips','tally_sets_v','bound','mychips','tally_sets','bound','f','f'),
   ('base','comm','comm_inact','base','comm','comm_inact','f','f'),
   ('base','comm_v','comm_inact','base','comm','comm_inact','f','f'),
-  ('mychips','tallies_v','mod_date','mychips','tallies','mod_date','f','f'),
-  ('mychips','tallies','mod_date','mychips','tallies','mod_date','f','f'),
-  ('mychips','tallies_v_me','mod_date','mychips','tallies','mod_date','f','f'),
-  ('mychips','chits_v_me','mod_date','mychips','chits','mod_date','f','f'),
   ('mychips','chits_v','mod_date','mychips','chits','mod_date','f','f'),
+  ('mychips','tallies_v','mod_date','mychips','tallies','mod_date','f','f'),
+  ('mychips','chits_v_me','mod_date','mychips','chits','mod_date','f','f'),
+  ('mychips','tallies_v_me','mod_date','mychips','tallies','mod_date','f','f'),
   ('wm','objects_v','mod_date','wm','objects','mod_date','f','f'),
   ('wm','objects','mod_date','wm','objects','mod_date','f','f'),
-  ('mychips','chits','mod_date','mychips','chits','mod_date','f','f'),
-  ('mychips','users_v_flat','mod_date','mychips','users','mod_date','f','f'),
   ('wm','objects_v_depth','mod_date','wm','objects','mod_date','f','f'),
-  ('base','token','mod_date','base','token','mod_date','f','f'),
-  ('mychips','peers','mod_date','mychips','peers','mod_date','f','f'),
+  ('mychips','contracts','mod_date','mychips','contracts','mod_date','f','f'),
   ('base','ent','mod_date','base','ent','mod_date','f','f'),
-  ('mychips','tokens','mod_date','mychips','tokens','mod_date','f','f'),
-  ('mychips','users','mod_date','mychips','users','mod_date','f','f'),
-  ('base','ent_v','mod_date','base','ent','mod_date','f','f'),
   ('base','parm','mod_date','base','parm','mod_date','f','f'),
-  ('base','ent_link','mod_date','base','ent_link','mod_date','f','f'),
+  ('base','ent_v','mod_date','base','ent','mod_date','f','f'),
   ('base','comm','mod_date','base','comm','mod_date','f','f'),
+  ('mychips','users','mod_date','mychips','users','mod_date','f','f'),
   ('base','addr','mod_date','base','addr','mod_date','f','f'),
+  ('mychips','tokens','mod_date','mychips','tokens','mod_date','f','f'),
+  ('mychips','peers','mod_date','mychips','peers','mod_date','f','f'),
+  ('mychips','contracts_v','mod_date','mychips','contracts','mod_date','f','f'),
   ('base','ent_link_v','mod_date','base','ent_link','mod_date','f','f'),
   ('base','ent_v_pub','mod_date','base','ent','mod_date','f','f'),
   ('base','parm_v','mod_date','base','parm','mod_date','f','f'),
   ('base','token_v','mod_date','base','token','mod_date','f','f'),
-  ('mychips','contracts_v','mod_date','mychips','contracts','mod_date','f','f'),
-  ('mychips','contracts','mod_date','mychips','contracts','mod_date','f','f'),
-  ('wylib','data_v','mod_date','wylib','data','mod_date','f','f'),
+  ('base','token','mod_date','base','token','mod_date','f','f'),
+  ('base','ent_link','mod_date','base','ent_link','mod_date','f','f'),
+  ('mychips','chits','mod_date','mychips','chits','mod_date','f','f'),
   ('base','comm_v','mod_date','base','comm','mod_date','f','f'),
   ('base','addr_v','mod_date','base','addr','mod_date','f','f'),
+  ('wylib','data_v','mod_date','wylib','data','mod_date','f','f'),
   ('wylib','data','mod_date','wylib','data','mod_date','f','f'),
+  ('mychips','tallies','mod_date','mychips','tallies','mod_date','f','f'),
   ('mychips','peers_v_flat','mod_date','mychips','peers','mod_date','f','f'),
-  ('mychips','users_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
+  ('mychips','users_v_flat','mod_date','mychips','users','mod_date','f','f'),
   ('base','addr_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
   ('mychips','peers_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
-  ('mychips','users_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
+  ('mychips','users_v_flat','ship_state','base','addr_v_flat','ship_state','f','f'),
   ('base','comm_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
   ('mychips','peers_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
+  ('mychips','users_v_flat','cell_comm','base','comm_v_flat','cell_comm','f','f'),
   ('mychips','routes_v','lift_date','mychips','routes','lift_date','f','f'),
   ('mychips','routes','lift_date','mychips','routes','lift_date','f','f'),
-  ('mychips','chits_v_me','chit_type','mychips','chits','chit_type','f','f'),
   ('mychips','chits_v','chit_type','mychips','chits','chit_type','f','f'),
+  ('mychips','chits_v_me','chit_type','mychips','chits','chit_type','f','f'),
   ('mychips','chits','chit_type','mychips','chits','chit_type','f','f'),
-  ('mychips','tallies_v_net','dr_max','mychips','tallies_v_net','dr_max','f','f'),
   ('mychips','tallies_v_sum','partners','mychips','tallies_v_sum','partners','f','f'),
   ('mychips','users_v_tallysum','partners','mychips','tallies_v_sum','partners','f','f'),
-  ('mychips','tallies_v_net','foil_crl','mychips','tallies_v_net','foil_crl','f','f'),
   ('base','addr_v_flat','phys_city','base','addr_v_flat','phys_city','f','f'),
-  ('mychips','chits_v_me','effect','mychips','chits_v','effect','f','f'),
   ('mychips','chits_v','effect','mychips','chits_v','effect','f','f'),
+  ('mychips','chits_v_me','effect','mychips','chits_v','effect','f','f'),
   ('mychips','tallies_v','user_name','mychips','tallies_v','user_name','f','f'),
   ('mychips','tallies_v_me','user_name','mychips','tallies_v','user_name','f','f'),
   ('wm','depends_v','od_release','wm','depends_v','od_release','f','f'),
-  ('mychips','chits_v_me','quidpro','mychips','chits','quidpro','f','f'),
   ('mychips','chits_v','quidpro','mychips','chits','quidpro','f','f'),
+  ('mychips','chits_v_me','quidpro','mychips','chits','quidpro','f','f'),
   ('mychips','chits','quidpro','mychips','chits','quidpro','f','f'),
-  ('mychips','tallies_v_net','stock_drl','mychips','tallies_v_net','stock_drl','f','f'),
   ('base','addr_v_flat','phys_state','base','addr_v_flat','phys_state','f','f'),
-  ('mychips','tallies_v_lifts','min','mychips','tallies_v_paths','min','f','f'),
-  ('mychips','users_v_flat','giv_name','base','ent_v','giv_name','f','f'),
   ('base','ent_v','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','users_v_flat','giv_name','base','ent_v','giv_name','f','f'),
   ('mychips','peers_v_flat','giv_name','base','ent_v','giv_name','f','f'),
   ('mychips','chits_v_chains','hash_ok','mychips','chits_v_chains','hash_ok','f','f'),
   ('wm','depends_v','od_typ','wm','depends_v','od_typ','f','f'),
   ('mychips','routes_v','route_addr','mychips','routes_v','route_addr','f','f'),
+  ('mychips','routes_v_paths','path_lift_max','mychips','routes_v_paths','path_lift_max','f','f'),
+  ('mychips','routes_v_lifts','path_lift_max','mychips','routes_v_paths','path_lift_max','f','f'),
+  ('mychips','routes_v_paths','route_lift_reward','mychips','routes_v_paths','route_lift_reward','f','f'),
+  ('mychips','routes_v_lifts','route_lift_reward','mychips','routes_v_paths','route_lift_reward','f','f'),
   ('base','country','com_name','base','country','com_name','f','f'),
   ('mychips','routes_v','topu_addr','mychips','routes_v','topu_addr','f','f'),
   ('mychips','tallies_v_sum','unitss','mychips','tallies_v_sum','unitss','f','f'),
@@ -5538,109 +5722,129 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','column_style','sw_value','wm','column_style','sw_value','f','f'),
   ('mychips','tallies_v_sum','seqs','mychips','tallies_v_sum','seqs','f','f'),
   ('mychips','users_v_tallysum','seqs','mychips','tallies_v_sum','seqs','f','f'),
-  ('mychips','users_v_flat','user_host','mychips','users','user_host','f','f'),
   ('mychips','users','user_host','mychips','users','user_host','f','f'),
+  ('mychips','users_v_flat','user_host','mychips','users','user_host','f','f'),
+  ('mychips','tallies_v_sum','bounds','mychips','tallies_v_sum','bounds','f','f'),
+  ('mychips','users_v_tallysum','bounds','mychips','tallies_v_sum','bounds','f','f'),
   ('mychips','routes_v','requ_ent','mychips','routes','requ_ent','f','f'),
+  ('mychips','routes_v_paths','requ_ent','mychips','routes','requ_ent','f','f'),
+  ('mychips','routes_v_lifts','requ_ent','mychips','routes','requ_ent','f','f'),
   ('mychips','routes','requ_ent','mychips','routes','requ_ent','f','f'),
-  ('mychips','chits_v_me','chain_idx','mychips','chits','chain_idx','f','f'),
   ('mychips','chits_v','chain_idx','mychips','chits','chain_idx','f','f'),
   ('mychips','chits_v_chains','chain_idx','mychips','chits','chain_idx','f','f'),
+  ('mychips','chits_v_me','chain_idx','mychips','chits','chain_idx','f','f'),
   ('mychips','chits','chain_idx','mychips','chits','chain_idx','f','f'),
   ('base','country','cur_code','base','country','cur_code','f','f'),
-  ('mychips','users_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('base','addr_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('mychips','peers_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
+  ('mychips','users_v_flat','ship_country','base','addr_v_flat','ship_country','f','f'),
   ('base','addr_v_flat','phys_pcode','base','addr_v_flat','phys_pcode','f','f'),
-  ('mychips','users_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('base','addr_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('mychips','peers_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
+  ('mychips','users_v_flat','bill_state','base','addr_v_flat','bill_state','f','f'),
   ('mychips','routes_v','botu_serv','mychips','routes_v','botu_serv','f','f'),
   ('base','parm','v_int','base','parm','v_int','f','f'),
   ('mychips','tally_sets','tset_date','mychips','tally_sets','tset_date','f','f'),
   ('base','ent_audit','a_reason','base','ent_audit','a_reason','f','f'),
   ('base','parm_audit','a_reason','base','parm_audit','a_reason','f','f'),
+  ('mychips','tallies_v','policy','mychips','tallies_v','policy','f','f'),
+  ('mychips','tallies_v_me','policy','mychips','tallies_v','policy','f','f'),
   ('wm','depends_v','depend','wm','depends_v','depend','f','f'),
-  ('mychips','users_v_flat','peer_addr','mychips','users_v','peer_addr','f','f'),
   ('mychips','peers_v_flat','peer_addr','mychips','peers_v','peer_addr','f','f'),
+  ('mychips','users_v_flat','peer_addr','mychips','users_v','peer_addr','f','f'),
+  ('mychips','tallies_v_sum','rewards','mychips','tallies_v_sum','rewards','f','f'),
+  ('mychips','users_v_tallysum','rewards','mychips','tallies_v_sum','rewards','f','f'),
   ('wm','depends_v','cycle','wm','depends_v','cycle','f','f'),
-  ('wm','objects_v_depth','module','wm','objects','module','f','f'),
+  ('mychips','routes_v_paths','path_lift_margin','mychips','routes_v_paths','path_lift_margin','f','f'),
+  ('mychips','routes_v_lifts','path_lift_margin','mychips','routes_v_paths','path_lift_margin','f','f'),
   ('wm','objects_v','module','wm','objects','module','f','f'),
   ('wm','objects','module','wm','objects','module','f','f'),
-  ('base','token','allows','base','token','allows','f','f'),
+  ('wm','objects_v_depth','module','wm','objects','module','f','f'),
   ('mychips','tokens','allows','mychips','tokens','allows','f','f'),
   ('base','token_v','allows','base','token','allows','f','f'),
+  ('base','token','allows','base','token','allows','f','f'),
   ('base','token_v_ticket','allows','base','token','allows','f','f'),
-  ('mychips','chits_v_me','open','mychips','chits_v','open','f','f'),
   ('mychips','chits_v','open','mychips','chits_v','open','f','f'),
+  ('mychips','chits_v_me','open','mychips','chits_v','open','f','f'),
   ('mychips','routes_v','requ_endp','mychips','routes_v','requ_endp','f','f'),
   ('mychips','routes_v','dest_endp','mychips','routes_v','dest_endp','f','f'),
-  ('mychips','routes_v_lifts','dest_addr','mychips','routes_v','dest_addr','f','f'),
   ('mychips','routes_v','dest_addr','mychips','routes_v','dest_addr','f','f'),
-  ('wylib','data','component','wylib','data','component','f','f'),
   ('wylib','data_v','component','wylib','data','component','f','f'),
+  ('wylib','data','component','wylib','data','component','f','f'),
   ('mychips','tallies_v','json_core','mychips','tallies_v','json_core','f','f'),
-  ('mychips','chits_v_me','json_core','mychips','chits_v','json_core','f','f'),
-  ('mychips','chits_v','json_core','mychips','chits_v','json_core','f','f'),
   ('mychips','tallies_v_me','json_core','mychips','tallies_v','json_core','f','f'),
+  ('mychips','chits_v','json_core','mychips','chits_v','json_core','f','f'),
+  ('mychips','chits_v_me','json_core','mychips','chits_v','json_core','f','f'),
+  ('mychips','tally_sets_v','json_core','mychips','tally_sets_v','json_core','f','f'),
+  ('mychips','routes_v_paths','route_drop_max','mychips','routes_v_paths','route_drop_max','f','f'),
+  ('mychips','routes_v_lifts','route_drop_max','mychips','routes_v_paths','route_drop_max','f','f'),
   ('mychips','routes_v','topu_sock','mychips','routes_v','topu_sock','f','f'),
-  ('mychips','users_v_flat','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users','user_stat','mychips','users','user_stat','f','f'),
-  ('mychips','users_v_flat','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','users_v_flat','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','peers','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','users_v_flat','peer_hid','mychips','peers','peer_hid','f','f'),
   ('mychips','peers_v_flat','peer_hid','mychips','peers','peer_hid','f','f'),
-  ('mychips','users_v_flat','serv_id','mychips','users','serv_id','f','f'),
   ('mychips','users','serv_id','mychips','users','serv_id','f','f'),
-  ('base','ent_link','supr_path','base','ent_link','supr_path','f','f'),
+  ('mychips','users_v_flat','serv_id','mychips','users','serv_id','f','f'),
   ('base','ent_link_v','supr_path','base','ent_link','supr_path','f','f'),
-  ('mychips','users_v_flat','conn_pub','base','ent','conn_pub','f','f'),
+  ('base','ent_link','supr_path','base','ent_link','supr_path','f','f'),
+  ('mychips','routes_v_paths','path_drop_margin','mychips','routes_v_paths','path_drop_margin','f','f'),
+  ('mychips','routes_v_lifts','path_drop_margin','mychips','routes_v_paths','path_drop_margin','f','f'),
   ('base','ent','conn_pub','base','ent','conn_pub','f','f'),
   ('base','ent_v','conn_pub','base','ent','conn_pub','f','f'),
+  ('mychips','users_v_flat','conn_pub','base','ent','conn_pub','f','f'),
   ('mychips','peers_v_flat','conn_pub','base','ent','conn_pub','f','f'),
-  ('mychips','users_v_flat','peer_chost','mychips','users_v','peer_chost','f','f'),
+  ('mychips','tallies_v_lifts','forz','mychips','tallies_v_paths','forz','f','f'),
+  ('mychips','routes_v_paths','forz','mychips','tallies_v_paths','forz','f','f'),
+  ('mychips','routes_v_lifts','forz','mychips','tallies_v_paths','forz','f','f'),
   ('wm','depends_v','od_nam','wm','depends_v','od_nam','f','f'),
   ('mychips','peers_v_flat','peer_chost','mychips','peers_v','peer_chost','f','f'),
+  ('mychips','users_v_flat','peer_chost','mychips','users_v','peer_chost','f','f'),
   ('base','parm','v_date','base','parm','v_date','f','f'),
-  ('wm','value_text','help','wm','value_text','help','f','f'),
   ('wm','table_text','help','wm','table_text','help','f','f'),
+  ('wm','value_text','help','wm','value_text','help','f','f'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','column_text','help','wm','column_text','help','f','f'),
   ('base','addr','addr_type','base','addr','addr_type','f','f'),
   ('base','addr_v','addr_type','base','addr','addr_type','f','f'),
   ('mychips','tallies_v_sum','foil_unis','mychips','tallies_v_sum','foil_unis','f','f'),
-  ('mychips','users_v_flat','marital','base','ent','marital','f','f'),
   ('base','ent','marital','base','ent','marital','f','f'),
   ('base','ent_v','marital','base','ent','marital','f','f'),
+  ('mychips','users_v_flat','marital','base','ent','marital','f','f'),
   ('mychips','peers_v_flat','marital','base','ent','marital','f','f'),
   ('wm','objects_v_depth','object','wm','objects_v','object','f','f'),
   ('wm','objects_v','object','wm','objects_v','object','f','f'),
   ('wm','depends_v','object','wm','depends_v','object','f','f'),
-  ('mychips','users_v_tallysum','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','chits_v_chains','ent','mychips','chits_v_chains','ent','f','f'),
-  ('mychips','users_v_flat','peer_sock','mychips','users_v','peer_sock','f','f'),
+  ('mychips','users_v_tallysum','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','peers_v_flat','peer_sock','mychips','peers_v','peer_sock','f','f'),
+  ('mychips','users_v_flat','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','users_v_tallysum','ent_type','base','ent','ent_type','f','f'),
-  ('mychips','users_v_flat','ent_type','base','ent','ent_type','f','f'),
   ('base','ent','ent_type','base','ent','ent_type','f','f'),
   ('base','ent_v','ent_type','base','ent','ent_type','f','f'),
   ('base','ent_v_pub','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','users_v_flat','ent_type','base','ent','ent_type','f','f'),
   ('mychips','peers_v_flat','ent_type','base','ent','ent_type','f','f'),
   ('mychips','tallies_v_sum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
+  ('mychips','routes_v_paths','path_lift_reward','mychips','routes_v_paths','path_lift_reward','f','f'),
+  ('mychips','routes_v_lifts','path_lift_reward','mychips','routes_v_paths','path_lift_reward','f','f'),
   ('mychips','parm_v_user','uport','mychips','parm_v_user','uport','f','f'),
   ('mychips','routes_v','requ_name','mychips','routes_v','requ_name','f','f'),
   ('mychips','routes_v','requ_cid','mychips','routes_v','requ_cid','f','f'),
-  ('mychips','tallies_v_me','total','mychips','tallies_v','total','f','f'),
-  ('mychips','tallies_v_sum','total','mychips','tallies_v','total','f','f'),
   ('mychips','tallies_v','total','mychips','tallies_v','total','f','f'),
-  ('mychips','users_v_tallysum','total','mychips','tallies_v','total','f','f'),
   ('mychips','tallies_v_graph','total','mychips','tallies_v_graph','total','f','f'),
-  ('wm','objects_v_depth','deps','wm','objects','deps','f','f'),
+  ('mychips','tallies_v_sum','total','mychips','tallies_v','total','f','f'),
+  ('mychips','tallies_v_me','total','mychips','tallies_v','total','f','f'),
   ('wm','objects_v','deps','wm','objects','deps','f','f'),
   ('wm','objects','deps','wm','objects','deps','f','f'),
+  ('mychips','users_v_tallysum','total','mychips','tallies_v','total','f','f'),
+  ('wm','objects_v_depth','deps','wm','objects','deps','f','f'),
   ('base','ent_link_v','mem_name','base','ent_link_v','mem_name','f','f'),
+  ('mychips','tallies_v_lifts','guids','mychips','tallies_v_paths','guids','f','f'),
+  ('mychips','chits_v_chains','guids','mychips','chits_v_chains','guids','f','f'),
   ('mychips','tallies_v_sum','guids','mychips','tallies_v_sum','guids','f','f'),
   ('mychips','users_v_tallysum','guids','mychips','tallies_v_sum','guids','f','f'),
-  ('mychips','chits_v_chains','guids','mychips','chits_v_chains','guids','f','f'),
   ('base','addr_v_flat','phys_addr','base','addr_v_flat','phys_addr','f','f'),
   ('base','comm_v_flat','other_comm','base','comm_v_flat','other_comm','f','f'),
   ('base','ent_audit','a_by','base','ent_audit','a_by','f','f'),
@@ -5654,126 +5858,137 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','token_v','valid','base','token_v','valid','f','f'),
   ('mychips','tallies','_last_chit','mychips','tallies','_last_chit','f','f'),
   ('mychips','routes_v','topu_serv','mychips','routes_v','topu_serv','f','f'),
-  ('mychips','users_v_flat','age','base','ent_v','age','f','f'),
   ('base','ent_v','age','base','ent_v','age','f','f'),
+  ('mychips','users_v_flat','age','base','ent_v','age','f','f'),
   ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
-  ('mychips','tallies','version','mychips','tallies','version','f','f'),
   ('mychips','tallies_v_me','version','mychips','tallies','version','f','f'),
+  ('mychips','tallies','version','mychips','tallies','version','f','f'),
   ('base','comm','comm_type','base','comm','comm_type','f','f'),
   ('base','comm_v','comm_type','base','comm','comm_type','f','f'),
-  ('mychips','users_v_flat','ent_inact','base','ent','ent_inact','f','f'),
   ('base','ent','ent_inact','base','ent','ent_inact','f','f'),
   ('base','ent_v','ent_inact','base','ent','ent_inact','f','f'),
   ('base','ent_v_pub','ent_inact','base','ent','ent_inact','f','f'),
+  ('mychips','users_v_flat','ent_inact','base','ent','ent_inact','f','f'),
   ('mychips','peers_v_flat','ent_inact','base','ent','ent_inact','f','f'),
   ('base','language','fra_name','base','language','fra_name','f','f'),
   ('mychips','routes_v','route_cid','mychips','routes_v','route_cid','f','f'),
-  ('mychips','chits_v_me','value','mychips','chits_v','value','f','f'),
   ('mychips','chits_v','value','mychips','chits_v','value','f','f'),
+  ('mychips','chits_v_me','value','mychips','chits_v','value','f','f'),
   ('base','parm_v','value','base','parm_v','value','f','f'),
   ('mychips','tallies_v_sum','types','mychips','tallies_v_sum','types','f','f'),
   ('mychips','users_v_tallysum','types','mychips','tallies_v_sum','types','f','f'),
   ('mychips','tallies_v_net','units','mychips','tallies_v_net','units','f','f'),
-  ('mychips','tallies_v_me','units','mychips','chits','units','f','f'),
-  ('mychips','tallies_v_sum','units','mychips','chits','units','f','f'),
+  ('mychips','chits_v','units','mychips','chits','units','f','f'),
   ('mychips','tallies_v','units','mychips','chits','units','f','f'),
   ('mychips','chits_v_me','units','mychips','chits','units','f','f'),
+  ('mychips','tallies_v_sum','units','mychips','chits','units','f','f'),
+  ('mychips','tallies_v_me','units','mychips','chits','units','f','f'),
   ('mychips','users_v_tallysum','units','mychips','chits','units','f','f'),
-  ('mychips','chits_v','units','mychips','chits','units','f','f'),
   ('mychips','chits','units','mychips','chits','units','f','f'),
-  ('mychips','tallies_v_me','state','mychips','tallies_v','state','f','f'),
-  ('mychips','routes_v_lifts','state','mychips','routes_v','state','f','f'),
-  ('mychips','tallies_v','state','mychips','tallies_v','state','f','f'),
-  ('mychips','chits_v_me','state','mychips','chits_v','state','f','f'),
   ('mychips','chits_v','state','mychips','chits_v','state','f','f'),
-  ('mychips','tallies_v_graph','state','mychips','tallies_v','state','f','f'),
+  ('mychips','tallies_v','state','mychips','tallies_v','state','f','f'),
   ('mychips','routes_v','state','mychips','routes_v','state','f','f'),
+  ('mychips','tallies_v_graph','state','mychips','tallies_v','state','f','f'),
+  ('mychips','tallies_v_me','state','mychips','tallies_v','state','f','f'),
+  ('mychips','chits_v_me','state','mychips','chits_v','state','f','f'),
   ('base','addr','state','base','addr','state','f','f'),
   ('base','addr_v','state','base','addr','state','f','f'),
   ('base','addr','city','base','addr','city','f','f'),
   ('base','addr_v','city','base','addr','city','f','f'),
+  ('mychips','tallies_v_lifts','first','mychips','tallies_v_paths','first','f','f'),
+  ('mychips','routes_v_paths','first','mychips','tallies_v_paths','first','f','f'),
   ('mychips','routes_v_lifts','first','mychips','tallies_v_paths','first','f','f'),
-  ('wm','objects_v_depth','drp_sql','wm','objects','drp_sql','f','f'),
   ('wm','objects_v','drp_sql','wm','objects','drp_sql','f','f'),
   ('wm','objects','drp_sql','wm','objects','drp_sql','f','f'),
+  ('wm','objects_v_depth','drp_sql','wm','objects','drp_sql','f','f'),
   ('base','priv','level','base','priv','level','f','f'),
   ('base','priv_v','level','base','priv','level','f','f'),
   ('mychips','tallies_v_sum','tallies','mychips','tallies_v_sum','tallies','f','f'),
   ('mychips','users_v_tallysum','tallies','mychips','tallies_v_sum','tallies','f','f'),
   ('mychips','routes_v','botu_cid','mychips','routes_v','botu_cid','f','f'),
-  ('mychips','users_v_flat','country','base','ent','country','f','f'),
-  ('base','token','used','base','token','used','f','f'),
   ('base','ent','country','base','ent','country','f','f'),
-  ('mychips','tokens','used','mychips','tokens','used','f','f'),
   ('base','ent_v','country','base','ent','country','f','f'),
   ('base','addr','country','base','addr','country','f','f'),
+  ('mychips','tokens','used','mychips','tokens','used','f','f'),
   ('base','token_v','used','base','token','used','f','f'),
+  ('base','token','used','base','token','used','f','f'),
   ('base','addr_v','country','base','addr','country','f','f'),
+  ('mychips','users_v_flat','country','base','ent','country','f','f'),
   ('mychips','peers_v_flat','country','base','ent','country','f','f'),
   ('mychips','tokens','exp_date','mychips','tokens','exp_date','f','f'),
   ('mychips','parm_v_user','pport','mychips','parm_v_user','pport','f','f'),
   ('base','comm_v_flat','pager_comm','base','comm_v_flat','pager_comm','f','f'),
+  ('mychips','tallies_v_net','lift_target','mychips','tallies_v_net','lift_target','f','f'),
   ('mychips','tallies_v','dr_limit','mychips','tallies','dr_limit','f','f'),
-  ('mychips','tallies','dr_limit','mychips','tallies','dr_limit','f','f'),
   ('mychips','tallies_v_me','dr_limit','mychips','tallies','dr_limit','f','f'),
-  ('mychips','tally_sets','settings','mychips','tally_sets','settings','f','f'),
-  ('mychips','users_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('mychips','tallies','dr_limit','mychips','tallies','dr_limit','f','f'),
   ('base','comm_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
   ('mychips','peers_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
-  ('mychips','tallies_v','lift_max','mychips','tallies','lift_max','f','f'),
-  ('mychips','tallies','lift_max','mychips','tallies','lift_max','f','f'),
-  ('mychips','tallies_v_me','lift_max','mychips','tallies','lift_max','f','f'),
+  ('mychips','users_v_flat','email_comm','base','comm_v_flat','email_comm','f','f'),
+  ('mychips','routes_v','lift_max','mychips','tallies_v_net','lift_max','f','f'),
+  ('mychips','tallies_v_lifts','lift_max','mychips','tallies_v_net','lift_max','f','f'),
+  ('mychips','routes_v_paths','lift_max','mychips','tallies_v_net','lift_max','f','f'),
+  ('mychips','tallies_v_net','lift_max','mychips','tallies_v_net','lift_max','f','f'),
+  ('mychips','routes_v_lifts','lift_max','mychips','tallies_v_net','lift_max','f','f'),
+  ('mychips','routes','lift_max','mychips','routes','lift_max','f','f'),
   ('mychips','routes_v','requ_sock','mychips','routes_v','requ_sock','f','f'),
   ('mychips','tallies_v_sum','stock_unis','mychips','tallies_v_sum','stock_unis','f','f'),
   ('mychips','tallies_v','user_sock','mychips','tallies_v','user_sock','f','f'),
   ('mychips','tallies_v_me','user_sock','mychips','tallies_v','user_sock','f','f'),
   ('mychips','users_v_flat','user_sock','mychips','users_v','user_sock','f','f'),
   ('mychips','tallies_v','part_sig','mychips','tallies','part_sig','f','f'),
-  ('mychips','tallies','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies_v_me','part_sig','mychips','tallies','part_sig','f','f'),
+  ('mychips','tallies','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','routes_v','requ_user','mychips','routes_v','requ_user','f','f'),
   ('base','parm','v_boolean','base','parm','v_boolean','f','f'),
-  ('mychips','users_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
   ('base','addr_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
   ('mychips','peers_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
+  ('mychips','users_v_flat','bill_pcode','base','addr_v_flat','bill_pcode','f','f'),
   ('base','token_v_ticket','host','base','token_v_ticket','host','f','f'),
   ('mychips','tallies_v','user_sig','mychips','tallies','user_sig','f','f'),
-  ('mychips','tallies','user_sig','mychips','tallies','user_sig','f','f'),
   ('mychips','tallies_v_me','user_sig','mychips','tallies','user_sig','f','f'),
-  ('wm','objects_v_depth','grants','wm','objects','grants','f','f'),
+  ('mychips','tallies','user_sig','mychips','tallies','user_sig','f','f'),
   ('wm','objects_v','grants','wm','objects','grants','f','f'),
   ('wm','objects','grants','wm','objects','grants','f','f'),
-  ('mychips','tallies_v_lifts','max','mychips','tallies_v_paths','max','f','f'),
-  ('mychips','users_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('wm','objects_v_depth','grants','wm','objects','grants','f','f'),
   ('base','ent','ent_cmt','base','ent','ent_cmt','f','f'),
   ('base','ent_v','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','users_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
   ('mychips','peers_v_flat','ent_cmt','base','ent','ent_cmt','f','f'),
   ('mychips','tallies_v_sum','totals','mychips','tallies_v_sum','totals','f','f'),
   ('mychips','users_v_tallysum','totals','mychips','tallies_v_sum','totals','f','f'),
-  ('wm','objects_v_depth','mod_ver','wm','objects','mod_ver','f','f'),
   ('wm','objects_v','mod_ver','wm','objects','mod_ver','f','f'),
   ('wm','objects','mod_ver','wm','objects','mod_ver','f','f'),
+  ('wm','objects_v_depth','mod_ver','wm','objects','mod_ver','f','f'),
   ('base','addr','pcode','base','addr','pcode','f','f'),
   ('base','addr_v','pcode','base','addr','pcode','f','f'),
   ('base','country','capital','base','country','capital','f','f'),
   ('base','ent','_last_comm','base','ent','_last_comm','f','f'),
   ('mychips','tallies_v','contract','mychips','tallies','contract','f','f'),
-  ('mychips','tallies','contract','mychips','tallies','contract','f','f'),
   ('mychips','tallies_v_me','contract','mychips','tallies','contract','f','f'),
+  ('mychips','tallies','contract','mychips','tallies','contract','f','f'),
   ('mychips','parm_v_user','uhost','mychips','parm_v_user','uhost','f','f'),
   ('mychips','routes_v','topu_ent','mychips','routes','topu_ent','f','f'),
+  ('mychips','routes_v_paths','topu_ent','mychips','routes','topu_ent','f','f'),
+  ('mychips','routes_v_lifts','topu_ent','mychips','routes','topu_ent','f','f'),
   ('mychips','routes','topu_ent','mychips','routes','topu_ent','f','f'),
-  ('wylib','data','data','wylib','data','data','f','f'),
   ('wylib','data_v','data','wylib','data','data','f','f'),
+  ('wylib','data','data','wylib','data','data','f','f'),
+  ('mychips','routes_v','lift_min','mychips','tallies_v_net','lift_min','f','f'),
+  ('mychips','tallies_v_lifts','lift_min','mychips','tallies_v_net','lift_min','f','f'),
+  ('mychips','routes_v_paths','lift_min','mychips','tallies_v_net','lift_min','f','f'),
+  ('mychips','tallies_v_net','lift_min','mychips','tallies_v_net','lift_min','f','f'),
+  ('mychips','routes_v_lifts','lift_min','mychips','tallies_v_net','lift_min','f','f'),
+  ('mychips','routes','lift_min','mychips','routes','lift_min','f','f'),
   ('base','country','iso_3','base','country','iso_3','f','f'),
   ('mychips','tallies_v_sum','client_cids','mychips','tallies_v_sum','client_cids','f','f'),
   ('mychips','users_v_tallysum','client_cids','mychips','tallies_v_sum','client_cids','f','f'),
-  ('wm','objects_v_depth','source','wm','objects','source','f','f'),
   ('wm','objects_v','source','wm','objects','source','f','f'),
   ('wm','objects','source','wm','objects','source','f','f'),
+  ('wm','objects_v_depth','source','wm','objects','source','f','f'),
   ('mychips','contracts_v','source','mychips','contracts_v','source','f','f'),
-  ('mychips','users_v_flat','peer_port','mychips','peers','peer_port','f','f'),
   ('mychips','peers','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','users_v_flat','peer_port','mychips','peers','peer_port','f','f'),
   ('mychips','peers_v_flat','peer_port','mychips','peers','peer_port','f','f'),
   ('mychips','tallies_v_sum','insides','mychips','tallies_v_sum','insides','f','f'),
   ('mychips','users_v_tallysum','insides','mychips','tallies_v_sum','insides','f','f'),
@@ -5781,9 +5996,9 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','comm_v','comm_prim','base','comm_v','comm_prim','f','f'),
   ('mychips','tallies_v_sum','clients','mychips','tallies_v_sum','clients','f','f'),
   ('mychips','users_v_tallysum','clients','mychips','tallies_v_sum','clients','f','f'),
-  ('base','priv','cmt','base','priv','cmt','f','f'),
   ('base','parm','cmt','base','parm','cmt','f','f'),
   ('base','parm_v','cmt','base','parm','cmt','f','f'),
+  ('base','priv','cmt','base','priv','cmt','f','f'),
   ('base','priv_v','cmt','base','priv','cmt','f','f'),
   ('mychips','routes_v','dest_chad','mychips','routes_v','dest_chad','f','f'),
   ('wm','column_native','nat_tab','wm','column_native','nat_tab','f','f'),
@@ -5793,248 +6008,282 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_sum','stock_guids','mychips','tallies_v_sum','stock_guids','f','f'),
   ('mychips','users_v_tallysum','stock_guids','mychips','tallies_v_sum','stock_guids','f','f'),
   ('wm','column_native','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('mychips','users_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
   ('base','addr_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
   ('mychips','peers_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
+  ('mychips','users_v_flat','bill_addr','base','addr_v_flat','bill_addr','f','f'),
   ('mychips','chits_v_chains','ok','mychips','chits_v_chains','ok','f','f'),
   ('mychips','tallies_v','cr_limit','mychips','tallies','cr_limit','f','f'),
-  ('mychips','tallies','cr_limit','mychips','tallies','cr_limit','f','f'),
   ('mychips','tallies_v_me','cr_limit','mychips','tallies','cr_limit','f','f'),
-  ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
+  ('mychips','tallies','cr_limit','mychips','tallies','cr_limit','f','f'),
   ('base','addr_v_flat','mail_state','base','addr_v_flat','mail_state','f','f'),
   ('base','comm_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
   ('mychips','peers_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
+  ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
   ('mychips','routes_v','expires','mychips','routes_v','expires','f','f'),
-  ('base','token','expires','base','token','expires','f','f'),
   ('base','token_v','expires','base','token','expires','f','f'),
+  ('base','token','expires','base','token','expires','f','f'),
   ('base','token_v_ticket','expires','base','token','expires','f','f'),
   ('mychips','tallies_v_net','stock_user','mychips','tallies_v_net','stock_user','f','f'),
-  ('mychips','users_v_flat','peer_endp','mychips','users_v','peer_endp','f','f'),
   ('mychips','peers_v_flat','peer_endp','mychips','peers_v','peer_endp','f','f'),
+  ('mychips','users_v_flat','peer_endp','mychips','users_v','peer_endp','f','f'),
   ('mychips','tallies_v_sum','stock_tot','mychips','tallies_v_sum','stock_tot','f','f'),
   ('mychips','users_v_tallysum','stock_tot','mychips','tallies_v_sum','stock_tot','f','f'),
-  ('mychips','chits_v_me','chain_prv','mychips','chits','chain_prv','f','f'),
   ('mychips','chits_v','chain_prv','mychips','chits','chain_prv','f','f'),
   ('mychips','chits_v_chains','chain_prv','mychips','chits','chain_prv','f','f'),
+  ('mychips','chits_v_me','chain_prv','mychips','chits','chain_prv','f','f'),
   ('mychips','chits','chain_prv','mychips','chits','chain_prv','f','f'),
   ('mychips','routes_v','botu_sock','mychips','routes_v','botu_sock','f','f'),
   ('mychips','routes_v','route_endp','mychips','routes_v','route_endp','f','f'),
   ('base','addr_v_flat','mail_country','base','addr_v_flat','mail_country','f','f'),
-  ('mychips','chits_v_me','chit_guid','mychips','chits','chit_guid','f','f'),
   ('mychips','chits_v','chit_guid','mychips','chits','chit_guid','f','f'),
+  ('mychips','chits_v_me','chit_guid','mychips','chits','chit_guid','f','f'),
   ('mychips','chits','chit_guid','mychips','chits','chit_guid','f','f'),
   ('base','ent_audit','a_date','base','ent_audit','a_date','f','f'),
   ('base','parm_audit','a_date','base','parm_audit','a_date','f','f'),
   ('mychips','routes_v','botu_name','mychips','routes_v','botu_name','f','f'),
+  ('mychips','routes_v_paths','path_drop_min','mychips','routes_v_paths','path_drop_min','f','f'),
+  ('mychips','routes_v_lifts','path_drop_min','mychips','routes_v_paths','path_drop_min','f','f'),
   ('base','parm','v_float','base','parm','v_float','f','f'),
   ('mychips','tallies_v','tally_date','mychips','tallies','tally_date','f','f'),
-  ('mychips','tallies','tally_date','mychips','tallies','tally_date','f','f'),
   ('mychips','tallies_v_me','tally_date','mychips','tallies','tally_date','f','f'),
-  ('mychips','tallies_v','crt_date','mychips','tallies','crt_date','f','f'),
-  ('mychips','tallies','crt_date','mychips','tallies','crt_date','f','f'),
-  ('mychips','tallies_v_me','crt_date','mychips','tallies','crt_date','f','f'),
-  ('mychips','tallies_v_sum','stock_tots','mychips','tallies_v_sum','stock_tots','f','f'),
-  ('mychips','chits_v_me','crt_date','mychips','chits','crt_date','f','f'),
-  ('mychips','users_v_tallysum','stock_tots','mychips','tallies_v_sum','stock_tots','f','f'),
+  ('mychips','tallies','tally_date','mychips','tallies','tally_date','f','f'),
   ('mychips','chits_v','crt_date','mychips','chits','crt_date','f','f'),
-  ('mychips','users_v_flat','crt_date','mychips','users','crt_date','f','f'),
+  ('mychips','tallies_v','crt_date','mychips','tallies','crt_date','f','f'),
+  ('mychips','chits_v_me','crt_date','mychips','chits','crt_date','f','f'),
+  ('mychips','tallies_v_sum','stock_tots','mychips','tallies_v_sum','stock_tots','f','f'),
+  ('mychips','tallies_v_me','crt_date','mychips','tallies','crt_date','f','f'),
   ('wm','objects_v','crt_date','wm','objects','crt_date','f','f'),
   ('wm','objects','crt_date','wm','objects','crt_date','f','f'),
   ('wm','releases','crt_date','wm','releases','crt_date','f','f'),
-  ('mychips','chits','crt_date','mychips','chits','crt_date','f','f'),
+  ('mychips','users_v_tallysum','stock_tots','mychips','tallies_v_sum','stock_tots','f','f'),
   ('wm','objects_v_depth','crt_date','wm','objects','crt_date','f','f'),
-  ('base','token','crt_date','base','token','crt_date','f','f'),
-  ('mychips','peers','crt_date','mychips','peers','crt_date','f','f'),
+  ('mychips','contracts','crt_date','mychips','contracts','crt_date','f','f'),
   ('base','ent','crt_date','base','ent','crt_date','f','f'),
-  ('mychips','tokens','crt_date','mychips','tokens','crt_date','f','f'),
-  ('mychips','users','crt_date','mychips','users','crt_date','f','f'),
-  ('base','ent_v','crt_date','base','ent','crt_date','f','f'),
   ('base','parm','crt_date','base','parm','crt_date','f','f'),
-  ('base','ent_link','crt_date','base','ent_link','crt_date','f','f'),
+  ('base','ent_v','crt_date','base','ent','crt_date','f','f'),
   ('base','comm','crt_date','base','comm','crt_date','f','f'),
+  ('mychips','users','crt_date','mychips','users','crt_date','f','f'),
   ('base','addr','crt_date','base','addr','crt_date','f','f'),
+  ('mychips','tokens','crt_date','mychips','tokens','crt_date','f','f'),
+  ('mychips','peers','crt_date','mychips','peers','crt_date','f','f'),
+  ('mychips','contracts_v','crt_date','mychips','contracts','crt_date','f','f'),
   ('base','ent_link_v','crt_date','base','ent_link','crt_date','f','f'),
   ('base','ent_v_pub','crt_date','base','ent','crt_date','f','f'),
   ('base','parm_v','crt_date','base','parm','crt_date','f','f'),
   ('base','token_v','crt_date','base','token','crt_date','f','f'),
-  ('mychips','contracts_v','crt_date','mychips','contracts','crt_date','f','f'),
-  ('mychips','contracts','crt_date','mychips','contracts','crt_date','f','f'),
-  ('wylib','data_v','crt_date','wylib','data','crt_date','f','f'),
+  ('base','token','crt_date','base','token','crt_date','f','f'),
+  ('base','ent_link','crt_date','base','ent_link','crt_date','f','f'),
+  ('mychips','chits','crt_date','mychips','chits','crt_date','f','f'),
   ('base','comm_v','crt_date','base','comm','crt_date','f','f'),
   ('base','addr_v','crt_date','base','addr','crt_date','f','f'),
+  ('wylib','data_v','crt_date','wylib','data','crt_date','f','f'),
   ('wylib','data','crt_date','wylib','data','crt_date','f','f'),
+  ('mychips','tallies','crt_date','mychips','tallies','crt_date','f','f'),
+  ('mychips','users_v_flat','crt_date','mychips','users','crt_date','f','f'),
   ('mychips','peers_v_flat','crt_date','mychips','peers','crt_date','f','f'),
-  ('mychips','users_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
   ('mychips','peers','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','users_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
   ('mychips','peers_v_flat','peer_cmt','mychips','peers','peer_cmt','f','f'),
   ('mychips','tallies_v_sum','foils','mychips','tallies_v_sum','foils','f','f'),
   ('mychips','users_v_tallysum','foils','mychips','tallies_v_sum','foils','f','f'),
+  ('mychips','routes_v_paths','native','mychips','routes_v_paths','native','f','f'),
+  ('mychips','routes_v_lifts','native','mychips','routes_v_paths','native','f','f'),
   ('mychips','routes_v','native','mychips','routes_v','native','f','f'),
-  ('mychips','tallies_v','status','mychips','tallies','status','f','f'),
-  ('mychips','tallies','status','mychips','tallies','status','f','f'),
-  ('mychips','tallies_v_me','status','mychips','tallies','status','f','f'),
   ('mychips','routes_v','status','mychips','routes','status','f','f'),
+  ('mychips','routes_v_paths','status','mychips','routes','status','f','f'),
+  ('mychips','tallies_v','status','mychips','tallies','status','f','f'),
+  ('mychips','routes_v_lifts','status','mychips','routes','status','f','f'),
+  ('mychips','tallies_v_me','status','mychips','tallies','status','f','f'),
   ('mychips','routes','status','mychips','routes','status','f','f'),
+  ('mychips','tallies','status','mychips','tallies','status','f','f'),
+  ('mychips','tallies_v_sum','targets','mychips','tallies_v_sum','targets','f','f'),
+  ('mychips','users_v_tallysum','targets','mychips','tallies_v_sum','targets','f','f'),
   ('mychips','tallies_v','digest_v','mychips','tallies_v','digest_v','f','f'),
-  ('mychips','chits_v_me','digest_v','mychips','chits_v','digest_v','f','f'),
-  ('mychips','chits_v','digest_v','mychips','chits_v','digest_v','f','f'),
   ('mychips','tallies_v_me','digest_v','mychips','tallies_v','digest_v','f','f'),
+  ('mychips','chits_v','digest_v','mychips','chits_v','digest_v','f','f'),
+  ('mychips','chits_v_me','digest_v','mychips','chits_v','digest_v','f','f'),
+  ('mychips','tally_sets_v','digest_v','mychips','tally_sets_v','digest_v','f','f'),
   ('mychips','tallies_v_sum','part_cids','mychips','tallies_v_sum','part_cids','f','f'),
   ('mychips','users_v_tallysum','part_cids','mychips','tallies_v_sum','part_cids','f','f'),
   ('base','addr','addr_prim','base','addr','addr_prim','f','f'),
   ('base','addr_v','addr_prim','base','addr_v','addr_prim','f','f'),
   ('mychips','users_v_tallysum','ent_name','base','ent','ent_name','f','f'),
-  ('mychips','users_v_flat','ent_name','base','ent','ent_name','f','f'),
   ('base','ent','ent_name','base','ent','ent_name','f','f'),
   ('base','ent_v','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','users_v_flat','ent_name','base','ent','ent_name','f','f'),
   ('mychips','peers_v_flat','ent_name','base','ent','ent_name','f','f'),
   ('mychips','confirms','conf_id','mychips','confirms','conf_id','f','f'),
   ('mychips','routes_v','topu_cid','mychips','routes_v','topu_cid','f','f'),
-  ('mychips','tallies_v','request','mychips','tallies','request','f','f'),
-  ('mychips','tallies','request','mychips','tallies','request','f','f'),
-  ('mychips','tallies_v_me','request','mychips','tallies','request','f','f'),
-  ('mychips','chits_v_me','request','mychips','chits','request','f','f'),
   ('mychips','chits_v','request','mychips','chits','request','f','f'),
+  ('mychips','tallies_v','request','mychips','tallies','request','f','f'),
+  ('mychips','chits_v_me','request','mychips','chits','request','f','f'),
+  ('mychips','tallies_v_me','request','mychips','tallies','request','f','f'),
   ('mychips','chits','request','mychips','chits','request','f','f'),
+  ('mychips','tallies','request','mychips','tallies','request','f','f'),
   ('wm','column_native','nat_exp','wm','column_native','nat_exp','f','f'),
   ('mychips','tallies_v_graph','foil_cid','mychips','tallies_v_graph','foil_cid','f','f'),
   ('base','addr_v_flat','mail_addr','base','addr_v_flat','mail_addr','f','f'),
   ('base','ent_audit','a_column','base','ent_audit','a_column','f','f'),
   ('base','parm_audit','a_column','base','parm_audit','a_column','f','f'),
-  ('mychips','users_v_flat','bank','base','ent','bank','f','f'),
   ('base','ent','bank','base','ent','bank','f','f'),
   ('base','ent_v','bank','base','ent','bank','f','f'),
+  ('mychips','users_v_flat','bank','base','ent','bank','f','f'),
   ('mychips','peers_v_flat','bank','base','ent','bank','f','f'),
   ('mychips','chits_v_chains','prev_ok','mychips','chits_v_chains','prev_ok','f','f'),
+  ('mychips','tallies_v_sum','policies','mychips','tallies_v_sum','policies','f','f'),
+  ('mychips','users_v_tallysum','policies','mychips','tallies_v_sum','policies','f','f'),
+  ('mychips','chits_v','tally_type','mychips','tallies','tally_type','f','f'),
   ('mychips','tallies_v','tally_type','mychips','tallies','tally_type','f','f'),
-  ('mychips','tallies','tally_type','mychips','tallies','tally_type','f','f'),
   ('mychips','tallies_v_me','tally_type','mychips','tallies','tally_type','f','f'),
   ('mychips','chits_v_me','tally_type','mychips','tallies','tally_type','f','f'),
-  ('mychips','chits_v','tally_type','mychips','tallies','tally_type','f','f'),
+  ('mychips','tallies','tally_type','mychips','tallies','tally_type','f','f'),
   ('mychips','users_v_tallysum','peer_cid','mychips','peers','peer_cid','f','f'),
-  ('mychips','users_v_flat','peer_cid','mychips','peers','peer_cid','f','f'),
   ('mychips','peers','peer_cid','mychips','peers','peer_cid','f','f'),
+  ('mychips','users_v_flat','peer_cid','mychips','peers','peer_cid','f','f'),
   ('mychips','peers_v_flat','peer_cid','mychips','peers','peer_cid','f','f'),
-  ('mychips','contracts_v','tag','mychips','contracts','tag','f','f'),
   ('mychips','contracts','tag','mychips','contracts','tag','f','f'),
+  ('mychips','contracts_v','tag','mychips','contracts','tag','f','f'),
   ('mychips','tallies_v','part_name','mychips','tallies_v','part_name','f','f'),
   ('mychips','tallies_v_me','part_name','mychips','tallies_v','part_name','f','f'),
   ('mychips','tallies','_last_tset','mychips','tallies','_last_tset','f','f'),
-  ('base','token','token','base','token','token','f','f'),
   ('mychips','tokens','token','mychips','tokens','token','f','f'),
   ('base','ent_link_v','org_name','base','ent_link_v','org_name','f','f'),
   ('base','token_v','token','base','token','token','f','f'),
+  ('base','token','token','base','token','token','f','f'),
   ('base','token_v_ticket','token','base','token','token','f','f'),
   ('mychips','routes_v','topu_endp','mychips','routes_v','topu_endp','f','f'),
-  ('mychips','contracts_v','published','mychips','contracts','published','f','f'),
   ('mychips','contracts','published','mychips','contracts','published','f','f'),
-  ('mychips','confirms','signature','mychips','confirms','signature','f','f'),
-  ('mychips','tally_sets','signature','mychips','tally_sets','signature','f','f'),
-  ('mychips','chits_v_me','signature','mychips','chits','signature','f','f'),
+  ('mychips','contracts_v','published','mychips','contracts','published','f','f'),
   ('mychips','chits_v','signature','mychips','chits','signature','f','f'),
+  ('mychips','chits_v_me','signature','mychips','chits','signature','f','f'),
+  ('mychips','confirms','signature','mychips','confirms','signature','f','f'),
   ('mychips','chits','signature','mychips','chits','signature','f','f'),
+  ('mychips','tally_sets','signature','mychips','tally_sets','signature','f','f'),
+  ('mychips','tally_sets_v','signature','mychips','tally_sets','signature','f','f'),
   ('base','ent_audit','a_value','base','ent_audit','a_value','f','f'),
   ('base','parm_audit','a_value','base','parm_audit','a_value','f','f'),
   ('mychips','routes_v','route_sock','mychips','routes_v','route_sock','f','f'),
   ('mychips','routes_v','botu_endp','mychips','routes_v','botu_endp','f','f'),
   ('mychips','confirms','sum','mychips','confirms','sum','f','f'),
   ('mychips','users_v_tallysum','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','users_v_flat','fir_name','base','ent','fir_name','f','f'),
   ('base','ent','fir_name','base','ent','fir_name','f','f'),
   ('base','ent_v','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','users_v_flat','fir_name','base','ent','fir_name','f','f'),
   ('mychips','peers_v_flat','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','users_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
   ('base','addr_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
   ('mychips','peers_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
+  ('mychips','users_v_flat','ship_pcode','base','addr_v_flat','ship_pcode','f','f'),
   ('mychips','routes_v','route_name','mychips','routes_v','route_name','f','f'),
   ('wm','depends_v','fpath','wm','depends_v','fpath','f','f'),
   ('mychips','tallies_v_sum','foil_tot','mychips','tallies_v_sum','foil_tot','f','f'),
   ('mychips','users_v_tallysum','foil_tot','mychips','tallies_v_sum','foil_tot','f','f'),
   ('mychips','tallies_v','target','mychips','tallies','target','f','f'),
-  ('mychips','tallies_v_net','target','mychips','tallies','target','f','f'),
-  ('mychips','tallies','target','mychips','tallies','target','f','f'),
   ('mychips','tallies_v_me','target','mychips','tallies','target','f','f'),
-  ('mychips','tallies_v','lift_marg','mychips','tallies','lift_marg','f','f'),
-  ('mychips','tallies_v_net','lift_marg','mychips','tallies','lift_marg','f','f'),
-  ('mychips','tallies','lift_marg','mychips','tallies','lift_marg','f','f'),
-  ('mychips','tallies_v_me','lift_marg','mychips','tallies','lift_marg','f','f'),
-  ('mychips','users_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
+  ('mychips','tallies','target','mychips','tallies','target','f','f'),
+  ('mychips','tally_sets','target','mychips','tally_sets','target','f','f'),
+  ('mychips','tally_sets_v','target','mychips','tally_sets','target','f','f'),
+  ('mychips','routes_v_paths','path_drop_reward','mychips','routes_v_paths','path_drop_reward','f','f'),
+  ('mychips','routes_v_lifts','path_drop_reward','mychips','routes_v_paths','path_drop_reward','f','f'),
   ('base','addr_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
   ('mychips','peers_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
-  ('mychips','users_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','users_v_flat','bill_country','base','addr_v_flat','bill_country','f','f'),
   ('mychips','peers','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','users_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
   ('mychips','peers_v_flat','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('wylib','data','descr','wylib','data','descr','f','f'),
   ('wylib','data_v','descr','wylib','data','descr','f','f'),
-  ('mychips','users_v_flat','title','base','ent','title','f','f'),
-  ('wm','value_text','title','wm','value_text','title','f','f'),
+  ('wylib','data','descr','wylib','data','descr','f','f'),
   ('wm','table_text','title','wm','table_text','title','f','f'),
+  ('wm','value_text','title','wm','value_text','title','f','f'),
   ('wm','message_text','title','wm','message_text','title','f','f'),
   ('wm','column_text','title','wm','column_text','title','f','f'),
+  ('mychips','contracts','title','mychips','contracts','title','f','f'),
   ('base','ent','title','base','ent','title','f','f'),
   ('base','ent_v','title','base','ent','title','f','f'),
   ('mychips','contracts_v','title','mychips','contracts','title','f','f'),
-  ('mychips','contracts','title','mychips','contracts','title','f','f'),
+  ('mychips','users_v_flat','title','base','ent','title','f','f'),
   ('mychips','peers_v_flat','title','base','ent','title','f','f'),
   ('base','ent','_last_addr','base','ent','_last_addr','f','f'),
   ('mychips','tallies_v','chits','mychips','tallies_v','chits','f','f'),
   ('mychips','tallies_v_me','chits','mychips','tallies_v','chits','f','f'),
-  ('mychips','routes_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
   ('mychips','tallies_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
+  ('mychips','routes_v_paths','path','mychips','tallies_v_paths','path','f','f'),
+  ('mychips','routes_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
   ('wm','depends_v','path','wm','depends_v','path','f','f'),
-  ('mychips','users_v_flat','frm_name','base','ent_v','frm_name','f','f'),
   ('base','ent_v','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','users_v_flat','frm_name','base','ent_v','frm_name','f','f'),
   ('mychips','peers_v_flat','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','tallies_v_net','clean','mychips','tallies_v_net','clean','f','f'),
   ('mychips','tallies_v','clean','mychips','tallies_v','clean','f','f'),
-  ('mychips','chits_v_me','clean','mychips','chits_v','clean','f','f'),
-  ('mychips','chits_v','clean','mychips','chits_v','clean','f','f'),
+  ('mychips','tallies_v','reward','mychips','tallies','reward','f','f'),
   ('mychips','tallies_v_me','clean','mychips','tallies_v','clean','f','f'),
-  ('wm','objects_v_depth','clean','wm','objects','clean','f','f'),
+  ('mychips','tallies_v_me','reward','mychips','tallies','reward','f','f'),
+  ('mychips','chits_v','clean','mychips','chits_v','clean','f','f'),
   ('wm','objects_v','clean','wm','objects','clean','f','f'),
   ('wm','objects','clean','wm','objects','clean','f','f'),
-  ('mychips','tallies_v_me','total_c','mychips','tallies_v','total_c','f','f'),
+  ('mychips','chits_v_me','clean','mychips','chits_v','clean','f','f'),
+  ('wm','objects_v_depth','clean','wm','objects','clean','f','f'),
+  ('mychips','tallies','reward','mychips','tallies','reward','f','f'),
+  ('mychips','tally_sets','reward','mychips','tally_sets','reward','f','f'),
+  ('mychips','tally_sets_v','clean','mychips','tally_sets_v','clean','f','f'),
+  ('mychips','tally_sets_v','reward','mychips','tally_sets','reward','f','f'),
   ('mychips','tallies_v','total_c','mychips','tallies_v','total_c','f','f'),
+  ('mychips','tallies_v_me','total_c','mychips','tallies_v','total_c','f','f'),
   ('mychips','routes_v','botu_ent','mychips','routes','botu_ent','f','f'),
+  ('mychips','routes_v_paths','botu_ent','mychips','routes','botu_ent','f','f'),
+  ('mychips','routes_v_lifts','botu_ent','mychips','routes','botu_ent','f','f'),
   ('mychips','routes','botu_ent','mychips','routes','botu_ent','f','f'),
-  ('wm','objects_v_depth','ndeps','wm','objects','ndeps','f','f'),
   ('wm','objects_v','ndeps','wm','objects','ndeps','f','f'),
   ('wm','objects','ndeps','wm','objects','ndeps','f','f'),
+  ('wm','objects_v_depth','ndeps','wm','objects','ndeps','f','f'),
   ('mychips','tallies_v_net','foil_user','mychips','tallies_v_net','foil_user','f','f'),
+  ('mychips','tallies_v','clutch','mychips','tallies','clutch','f','f'),
+  ('mychips','tallies_v_me','clutch','mychips','tallies','clutch','f','f'),
+  ('mychips','tallies','clutch','mychips','tallies','clutch','f','f'),
+  ('mychips','tally_sets','clutch','mychips','tally_sets','clutch','f','f'),
+  ('mychips','tally_sets_v','clutch','mychips','tally_sets','clutch','f','f'),
   ('mychips','tallies','_last_conf','mychips','tallies','_last_conf','f','f'),
   ('mychips','tallies_v','comment','mychips','tallies','comment','f','f'),
-  ('mychips','tallies','comment','mychips','tallies','comment','f','f'),
   ('mychips','tallies_v_me','comment','mychips','tallies','comment','f','f'),
+  ('mychips','tallies','comment','mychips','tallies','comment','f','f'),
   ('base','country','iana','base','country','iana','f','f'),
   ('mychips','routes_v','botu_addr','mychips','routes_v','botu_addr','f','f'),
-  ('mychips','users_v_flat','peer_cport','mychips','users_v','peer_cport','f','f'),
   ('mychips','peers_v_flat','peer_cport','mychips','peers_v','peer_cport','f','f'),
-  ('mychips','tallies_v_net','foil_guid','mychips','tallies_v_net','foil_guid','f','f'),
-  ('mychips','tallies_v_sum','latest','mychips','tallies_v','latest','f','f'),
+  ('mychips','users_v_flat','peer_cport','mychips','users_v','peer_cport','f','f'),
   ('mychips','tallies_v','latest','mychips','tallies_v','latest','f','f'),
-  ('mychips','users_v_tallysum','latest','mychips','tallies_v','latest','f','f'),
   ('mychips','tallies_v_graph','latest','mychips','tallies_v','latest','f','f'),
+  ('mychips','tallies_v_sum','latest','mychips','tallies_v','latest','f','f'),
   ('mychips','tallies_v_me','latest','mychips','tallies_v','latest','f','f'),
+  ('mychips','users_v_tallysum','latest','mychips','tallies_v','latest','f','f'),
   ('mychips','tallies','stock_terms','mychips','tallies','stock_terms','f','f'),
+  ('mychips','tallies_v_lifts','fora','mychips','tallies_v_paths','fora','f','f'),
+  ('mychips','routes_v_paths','fora','mychips','tallies_v_paths','fora','f','f'),
+  ('mychips','routes_v_lifts','fora','mychips','tallies_v_paths','fora','f','f'),
   ('mychips','tallies_v_net','stock_ent','mychips','tallies_v_net','stock_ent','f','f'),
   ('mychips','tallies_v_graph','stock_ent','mychips','tallies_v_graph','stock_ent','f','f'),
   ('wylib','data_v','access','wylib','data','access','f','f'),
   ('wylib','data','access','wylib','data','access','f','f'),
   ('mychips','tallies_v','user_addr','mychips','tallies_v','user_addr','f','f'),
   ('mychips','tallies_v_me','user_addr','mychips','tallies_v','user_addr','f','f'),
-  ('wm','objects_v_depth','checked','wm','objects','checked','f','f'),
   ('wm','objects_v','checked','wm','objects','checked','f','f'),
   ('wm','objects','checked','wm','objects','checked','f','f'),
-  ('mychips','routes_v_lifts','dest_ent','mychips','routes','dest_ent','f','f'),
+  ('wm','objects_v_depth','checked','wm','objects','checked','f','f'),
   ('mychips','routes_v','dest_ent','mychips','routes','dest_ent','f','f'),
+  ('mychips','routes_v_paths','dest_ent','mychips','routes','dest_ent','f','f'),
+  ('mychips','routes_v_lifts','dest_ent','mychips','routes','dest_ent','f','f'),
   ('mychips','routes','dest_ent','mychips','routes','dest_ent','f','f'),
-  ('mychips','tallies_v_me','action','mychips','tallies_v','action','f','f'),
   ('mychips','tallies_v','action','mychips','tallies_v','action','f','f'),
-  ('mychips','chits_v_me','action','mychips','chits_v','action','f','f'),
+  ('mychips','tallies_v_me','action','mychips','tallies_v','action','f','f'),
   ('mychips','chits_v','action','mychips','chits_v','action','f','f'),
-  ('mychips','tallies_v_net','stock_guid','mychips','tallies_v_net','stock_guid','f','f'),
+  ('mychips','chits_v_me','action','mychips','chits_v','action','f','f'),
   ('mychips','tallies_v_sum','foil_guids','mychips','tallies_v_sum','foil_guids','f','f'),
   ('mychips','users_v_tallysum','foil_guids','mychips','tallies_v_sum','foil_guids','f','f'),
   ('base','parm','v_text','base','parm','v_text','f','f'),
+  ('mychips','routes_v','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
+  ('mychips','tallies_v_lifts','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
+  ('mychips','routes_v_paths','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
+  ('mychips','tallies_v_net','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
+  ('mychips','routes_v_lifts','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
+  ('mychips','routes','drop_reward','mychips','routes','drop_reward','f','f'),
   ('mychips','tallies_v','part_addr','mychips','tallies_v','part_addr','f','f'),
   ('mychips','tallies_v_me','part_addr','mychips','tallies_v','part_addr','f','f'),
   ('mychips','tallies_v_sum','stock_seqs','mychips','tallies_v_sum','stock_seqs','f','f'),
@@ -6046,193 +6295,245 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','part_sock','mychips','tallies_v','part_sock','f','f'),
   ('mychips','tallies_v_me','part_sock','mychips','tallies_v','part_sock','f','f'),
   ('mychips','tallies_v','tally_guid','mychips','tallies','tally_guid','f','f'),
-  ('mychips','tallies','tally_guid','mychips','tallies','tally_guid','f','f'),
   ('mychips','tallies_v_me','tally_guid','mychips','tallies','tally_guid','f','f'),
-  ('mychips','tallies_v','crt_by','mychips','tallies','crt_by','f','f'),
-  ('mychips','tallies','crt_by','mychips','tallies','crt_by','f','f'),
-  ('mychips','tallies_v_me','crt_by','mychips','tallies','crt_by','f','f'),
-  ('mychips','chits_v_me','crt_by','mychips','chits','crt_by','f','f'),
+  ('mychips','tallies','tally_guid','mychips','tallies','tally_guid','f','f'),
   ('mychips','chits_v','crt_by','mychips','chits','crt_by','f','f'),
-  ('mychips','users_v_flat','crt_by','mychips','users','crt_by','f','f'),
-  ('mychips','chits','crt_by','mychips','chits','crt_by','f','f'),
-  ('base','token','crt_by','base','token','crt_by','f','f'),
-  ('mychips','peers','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','tallies_v','crt_by','mychips','tallies','crt_by','f','f'),
+  ('mychips','chits_v_me','crt_by','mychips','chits','crt_by','f','f'),
+  ('mychips','tallies_v_me','crt_by','mychips','tallies','crt_by','f','f'),
+  ('mychips','contracts','crt_by','mychips','contracts','crt_by','f','f'),
   ('base','ent','crt_by','base','ent','crt_by','f','f'),
-  ('mychips','tokens','crt_by','mychips','tokens','crt_by','f','f'),
-  ('mychips','users','crt_by','mychips','users','crt_by','f','f'),
-  ('base','ent_v','crt_by','base','ent','crt_by','f','f'),
   ('base','parm','crt_by','base','parm','crt_by','f','f'),
-  ('base','ent_link','crt_by','base','ent_link','crt_by','f','f'),
+  ('base','ent_v','crt_by','base','ent','crt_by','f','f'),
   ('base','comm','crt_by','base','comm','crt_by','f','f'),
+  ('mychips','users','crt_by','mychips','users','crt_by','f','f'),
   ('base','addr','crt_by','base','addr','crt_by','f','f'),
+  ('mychips','tokens','crt_by','mychips','tokens','crt_by','f','f'),
+  ('mychips','peers','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','contracts_v','crt_by','mychips','contracts','crt_by','f','f'),
   ('base','ent_link_v','crt_by','base','ent_link','crt_by','f','f'),
   ('base','ent_v_pub','crt_by','base','ent','crt_by','f','f'),
   ('base','parm_v','crt_by','base','parm','crt_by','f','f'),
   ('base','token_v','crt_by','base','token','crt_by','f','f'),
-  ('mychips','contracts_v','crt_by','mychips','contracts','crt_by','f','f'),
-  ('mychips','contracts','crt_by','mychips','contracts','crt_by','f','f'),
-  ('wylib','data_v','crt_by','wylib','data','crt_by','f','f'),
+  ('base','token','crt_by','base','token','crt_by','f','f'),
+  ('base','ent_link','crt_by','base','ent_link','crt_by','f','f'),
+  ('mychips','chits','crt_by','mychips','chits','crt_by','f','f'),
   ('base','comm_v','crt_by','base','comm','crt_by','f','f'),
   ('base','addr_v','crt_by','base','addr','crt_by','f','f'),
+  ('wylib','data_v','crt_by','wylib','data','crt_by','f','f'),
   ('wylib','data','crt_by','wylib','data','crt_by','f','f'),
+  ('mychips','tallies','crt_by','mychips','tallies','crt_by','f','f'),
+  ('mychips','users_v_flat','crt_by','mychips','users','crt_by','f','f'),
   ('mychips','peers_v_flat','crt_by','mychips','peers','crt_by','f','f'),
-  ('base','ent_link','role','base','ent_link','role','f','f'),
   ('base','ent_link_v','role','base','ent_link','role','f','f'),
+  ('base','ent_link','role','base','ent_link','role','f','f'),
   ('mychips','parm_v_user','phost','mychips','parm_v_user','phost','f','f'),
   ('mychips','users','_last_tally','mychips','users','_last_tally','f','f'),
-  ('mychips','routes_v_lifts','lift_count','mychips','routes','lift_count','f','f'),
   ('mychips','routes_v','lift_count','mychips','routes','lift_count','f','f'),
+  ('mychips','routes_v_paths','lift_count','mychips','routes','lift_count','f','f'),
+  ('mychips','routes_v_lifts','lift_count','mychips','routes','lift_count','f','f'),
   ('mychips','routes','lift_count','mychips','routes','lift_count','f','f'),
   ('base','token_v','expired','base','token_v','expired','f','f'),
-  ('mychips','tally_tries','tries','mychips','tally_tries','tries','f','f'),
   ('mychips','routes_v','tries','mychips','route_tries','tries','f','f'),
-  ('mychips','chit_tries','tries','mychips','chit_tries','tries','f','f'),
   ('mychips','route_tries','tries','mychips','route_tries','tries','f','f'),
+  ('mychips','chit_tries','tries','mychips','chit_tries','tries','f','f'),
+  ('mychips','tally_tries','tries','mychips','tally_tries','tries','f','f'),
+  ('mychips','routes_v_paths','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
+  ('mychips','routes_v_lifts','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
   ('base','comm','comm_cmt','base','comm','comm_cmt','f','f'),
   ('base','comm_v','comm_cmt','base','comm','comm_cmt','f','f'),
-  ('mychips','tally_tries','last','mychips','tally_tries','last','f','f'),
+  ('mychips','tallies_v_lifts','last','mychips','tallies_v_paths','last','f','f'),
+  ('mychips','routes_v_paths','last','mychips','tallies_v_paths','last','f','f'),
   ('mychips','routes_v_lifts','last','mychips','tallies_v_paths','last','f','f'),
   ('mychips','routes_v','last','mychips','route_tries','last','f','f'),
   ('mychips','chits_v_chains','last','mychips','chits_v_chains','last','f','f'),
-  ('mychips','chit_tries','last','mychips','chit_tries','last','f','f'),
   ('mychips','route_tries','last','mychips','route_tries','last','f','f'),
+  ('mychips','chit_tries','last','mychips','chit_tries','last','f','f'),
+  ('mychips','tally_tries','last','mychips','tally_tries','last','f','f'),
   ('mychips','routes_v','relay','mychips','routes_v','relay','f','f'),
   ('mychips','tallies_v_sum','foil_uni','mychips','tallies_v_sum','foil_uni','f','f'),
   ('base','language','iso_2','base','language','iso_2','f','f'),
+  ('mychips','chits_v','user_cid','mychips','tallies_v','user_cid','f','f'),
   ('mychips','tallies_v','user_cid','mychips','tallies_v','user_cid','f','f'),
   ('mychips','tallies_v_me','user_cid','mychips','tallies_v','user_cid','f','f'),
   ('mychips','chits_v_me','user_cid','mychips','tallies_v','user_cid','f','f'),
-  ('mychips','chits_v','user_cid','mychips','tallies_v','user_cid','f','f'),
   ('base','comm_v_flat','fax_comm','base','comm_v_flat','fax_comm','f','f'),
-  ('wylib','data','name','wylib','data','name','f','f'),
   ('wylib','data_v','name','wylib','data','name','f','f'),
-  ('mychips','chits_v_me','memo','mychips','chits','memo','f','f'),
+  ('wylib','data','name','wylib','data','name','f','f'),
   ('mychips','chits_v','memo','mychips','chits','memo','f','f'),
+  ('mychips','chits_v_me','memo','mychips','chits','memo','f','f'),
   ('mychips','chits','memo','mychips','chits','memo','f','f'),
-  ('mychips','routes_v_lifts','length','mychips','tallies_v_paths','length','f','f'),
   ('mychips','tallies_v_lifts','length','mychips','tallies_v_paths','length','f','f'),
+  ('mychips','routes_v_paths','length','mychips','tallies_v_paths','length','f','f'),
+  ('mychips','routes_v_lifts','length','mychips','tallies_v_paths','length','f','f'),
   ('mychips','chits_v_chains','length','mychips','chits_v_chains','length','f','f'),
+  ('mychips','tallies_v_lifts','inside','mychips','tallies_v_paths','inside','f','f'),
   ('mychips','tallies_v','inside','mychips','tallies_v','inside','f','f'),
   ('mychips','tallies_v_me','inside','mychips','tallies_v','inside','f','f'),
-  ('mychips','users_v_flat','ent_num','base','ent','ent_num','f','f'),
   ('base','ent','ent_num','base','ent','ent_num','f','f'),
   ('base','ent_v','ent_num','base','ent','ent_num','f','f'),
   ('base','ent_v_pub','ent_num','base','ent','ent_num','f','f'),
+  ('mychips','users_v_flat','ent_num','base','ent','ent_num','f','f'),
   ('mychips','peers_v_flat','ent_num','base','ent','ent_num','f','f'),
-  ('mychips','tallies_v_net','stock_crl','mychips','tallies_v_net','stock_crl','f','f'),
-  ('mychips','users_v_flat','cas_name','base','ent_v','cas_name','f','f'),
   ('base','ent_v','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','users_v_flat','cas_name','base','ent_v','cas_name','f','f'),
   ('mychips','peers_v_flat','cas_name','base','ent_v','cas_name','f','f'),
   ('mychips','tallies_v_sum','foil_tots','mychips','tallies_v_sum','foil_tots','f','f'),
   ('mychips','users_v_tallysum','foil_tots','mychips','tallies_v_sum','foil_tots','f','f'),
-  ('wm','objects_v_depth','col_data','wm','objects','col_data','f','f'),
   ('wm','objects_v','col_data','wm','objects','col_data','f','f'),
   ('wm','objects','col_data','wm','objects','col_data','f','f'),
+  ('wm','objects_v_depth','col_data','wm','objects','col_data','f','f'),
   ('mychips','routes_v','requ_addr','mychips','routes_v','requ_addr','f','f'),
   ('mychips','routes_v','dest_cid','mychips','routes_v','dest_cid','f','f'),
-  ('mychips','users_v_flat','user_port','mychips','users','user_port','f','f'),
+  ('mychips','tallies_v_lifts','circuit','mychips','tallies_v_paths','circuit','f','f'),
+  ('mychips','routes_v_paths','circuit','mychips','routes_v_paths','circuit','f','f'),
+  ('mychips','routes_v_lifts','circuit','mychips','routes_v_paths','circuit','f','f'),
   ('mychips','users','user_port','mychips','users','user_port','f','f'),
+  ('mychips','users_v_flat','user_port','mychips','users','user_port','f','f'),
+  ('mychips','tallies_v_lifts','corein','mychips','tallies_v_paths','corein','f','f'),
+  ('mychips','routes_v_paths','corein','mychips','tallies_v_paths','corein','f','f'),
   ('mychips','routes_v_lifts','corein','mychips','tallies_v_paths','corein','f','f'),
   ('wm','column_native','nat_col','wm','column_native','nat_col','f','f'),
-  ('mychips','users_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
   ('base','addr_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
   ('mychips','peers_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
+  ('mychips','users_v_flat','bill_city','base','addr_v_flat','bill_city','f','f'),
   ('wm','table_style','inherit','wm','table_style','inherit','f','f'),
   ('base','addr_v_flat','mail_pcode','base','addr_v_flat','mail_pcode','f','f'),
-  ('wm','objects_v_depth','max_rel','wm','objects','max_rel','f','f'),
+  ('mychips','tallies_v_sum','clutchs','mychips','tallies_v_sum','clutchs','f','f'),
+  ('mychips','users_v_tallysum','clutchs','mychips','tallies_v_sum','clutchs','f','f'),
   ('wm','objects_v','max_rel','wm','objects','max_rel','f','f'),
   ('wm','objects','max_rel','wm','objects','max_rel','f','f'),
+  ('wm','objects_v_depth','max_rel','wm','objects','max_rel','f','f'),
+  ('mychips','routes_v_paths','path_drop_max','mychips','routes_v_paths','path_drop_max','f','f'),
+  ('mychips','routes_v_lifts','path_drop_max','mychips','routes_v_paths','path_drop_max','f','f'),
+  ('mychips','routes_v_paths','route_drop_reward','mychips','routes_v_paths','route_drop_reward','f','f'),
   ('mychips','tallies_v','user_serv','mychips','tallies_v','user_serv','f','f'),
+  ('mychips','routes_v_lifts','route_drop_reward','mychips','routes_v_paths','route_drop_reward','f','f'),
   ('mychips','tallies_v_me','user_serv','mychips','tallies_v','user_serv','f','f'),
+  ('mychips','routes_v','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
+  ('mychips','tallies_v_lifts','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
+  ('mychips','routes_v_paths','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
+  ('mychips','tallies_v_net','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
+  ('mychips','routes_v_lifts','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
+  ('mychips','routes','drop_margin','mychips','routes','drop_margin','f','f'),
   ('base','parm','type','base','parm','type','f','f'),
   ('base','parm_v','type','base','parm','type','f','f'),
   ('base','country','dial_code','base','country','dial_code','f','f'),
-  ('mychips','users_v_flat','born_date','base','ent','born_date','f','f'),
   ('base','ent','born_date','base','ent','born_date','f','f'),
   ('base','ent_v','born_date','base','ent','born_date','f','f'),
+  ('mychips','users_v_flat','born_date','base','ent','born_date','f','f'),
   ('mychips','peers_v_flat','born_date','base','ent','born_date','f','f'),
   ('mychips','tallies_v_net','foil_ent','mychips','tallies_v_net','foil_ent','f','f'),
   ('mychips','tallies_v_graph','foil_ent','mychips','tallies_v_graph','foil_ent','f','f'),
-  ('mychips','tallies_v','drop_max','mychips','tallies','drop_max','f','f'),
-  ('mychips','tallies','drop_max','mychips','tallies','drop_max','f','f'),
-  ('mychips','tallies_v_me','drop_max','mychips','tallies','drop_max','f','f'),
+  ('mychips','routes_v','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
+  ('mychips','tallies_v_lifts','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
+  ('mychips','routes_v_paths','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
+  ('mychips','tallies_v_net','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
+  ('mychips','routes_v_lifts','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
+  ('mychips','routes','lift_margin','mychips','routes','lift_margin','f','f'),
+  ('mychips','routes_v','drop_max','mychips','tallies_v_net','drop_max','f','f'),
+  ('mychips','tallies_v_lifts','drop_max','mychips','tallies_v_net','drop_max','f','f'),
+  ('mychips','routes_v_paths','drop_max','mychips','tallies_v_net','drop_max','f','f'),
+  ('mychips','tallies_v_net','drop_max','mychips','tallies_v_net','drop_max','f','f'),
+  ('mychips','routes_v_lifts','drop_max','mychips','tallies_v_net','drop_max','f','f'),
+  ('mychips','routes','drop_max','mychips','routes','drop_max','f','f'),
   ('mychips','tallies','foil_terms','mychips','tallies','foil_terms','f','f'),
-  ('mychips','users_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
   ('base','addr_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
   ('base','addr_v_flat','mail_city','base','addr_v_flat','mail_city','f','f'),
   ('mychips','peers_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
-  ('mychips','contracts_v','sections','mychips','contracts','sections','f','f'),
+  ('mychips','users_v_flat','ship_city','base','addr_v_flat','ship_city','f','f'),
   ('mychips','contracts','sections','mychips','contracts','sections','f','f'),
+  ('mychips','contracts_v','sections','mychips','contracts','sections','f','f'),
   ('mychips','tallies_v_sum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
   ('mychips','users_v_tallysum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
-  ('wm','objects_v_depth','crt_sql','wm','objects','crt_sql','f','f'),
   ('wm','objects_v','crt_sql','wm','objects','crt_sql','f','f'),
   ('wm','objects','crt_sql','wm','objects','crt_sql','f','f'),
-  ('mychips','chits_v_me','chit_date','mychips','chits','chit_date','f','f'),
+  ('wm','objects_v_depth','crt_sql','wm','objects','crt_sql','f','f'),
   ('mychips','chits_v','chit_date','mychips','chits','chit_date','f','f'),
+  ('mychips','chits_v_me','chit_date','mychips','chits','chit_date','f','f'),
   ('mychips','chits','chit_date','mychips','chits','chit_date','f','f'),
+  ('mychips','chits_v','digest','mychips','chits','digest','f','f'),
   ('mychips','tallies_v','digest','mychips','tallies','digest','f','f'),
-  ('mychips','tallies','digest','mychips','tallies','digest','f','f'),
+  ('mychips','chits_v_chains','digest','mychips','tallies','digest','f','f'),
   ('mychips','tallies_v_me','digest','mychips','tallies','digest','f','f'),
   ('mychips','chits_v_me','digest','mychips','chits','digest','f','f'),
-  ('mychips','chits_v','digest','mychips','chits','digest','f','f'),
-  ('mychips','chits_v_chains','digest','mychips','tallies','digest','f','f'),
-  ('mychips','chits','digest','mychips','chits','digest','f','f'),
-  ('mychips','contracts_v','digest','mychips','contracts','digest','f','f'),
   ('mychips','contracts','digest','mychips','contracts','digest','f','f'),
+  ('mychips','contracts_v','digest','mychips','contracts','digest','f','f'),
+  ('mychips','chits','digest','mychips','chits','digest','f','f'),
+  ('mychips','tallies','digest','mychips','tallies','digest','f','f'),
+  ('mychips','tally_sets','digest','mychips','tally_sets','digest','f','f'),
+  ('mychips','tally_sets_v','digest','mychips','tally_sets','digest','f','f'),
   ('wm','releases','sver_1','wm','releases','sver_1','f','f'),
-  ('mychips','users_v_flat','username','base','ent','username','f','f'),
-  ('mychips','users_v_flat','mid_name','base','ent','mid_name','f','f'),
   ('base','ent','username','base','ent','username','f','f'),
   ('base','ent','mid_name','base','ent','mid_name','f','f'),
   ('base','ent_v','username','base','ent','username','f','f'),
   ('base','ent_v','mid_name','base','ent','mid_name','f','f'),
   ('base','ent_v_pub','username','base','ent','username','f','f'),
-  ('base','priv_v','username','base','ent','username','f','f'),
   ('base','token_v','username','base','ent','username','f','f'),
-  ('mychips','peers_v_flat','mid_name','base','ent','mid_name','f','f'),
+  ('base','priv_v','username','base','ent','username','f','f'),
+  ('mychips','users_v_flat','username','base','ent','username','f','f'),
+  ('mychips','users_v_flat','mid_name','base','ent','mid_name','f','f'),
   ('mychips','peers_v_flat','username','base','ent','username','f','f'),
-  ('mychips','users_v_flat','pref_name','base','ent','pref_name','f','f'),
+  ('mychips','peers_v_flat','mid_name','base','ent','mid_name','f','f'),
   ('base','ent','pref_name','base','ent','pref_name','f','f'),
   ('base','ent_v','pref_name','base','ent','pref_name','f','f'),
+  ('mychips','users_v_flat','pref_name','base','ent','pref_name','f','f'),
   ('mychips','peers_v_flat','pref_name','base','ent','pref_name','f','f'),
-  ('mychips','users_v_flat','user_cmt','mychips','users','user_cmt','f','f'),
+  ('mychips','routes_v','step','mychips','routes','step','f','f'),
+  ('mychips','routes','step','mychips','routes','step','f','f'),
   ('mychips','users','user_cmt','mychips','users','user_cmt','f','f'),
+  ('mychips','users_v_flat','user_cmt','mychips','users','user_cmt','f','f'),
   ('base','comm_v_flat','text_comm','base','comm_v_flat','text_comm','f','f'),
+  ('mychips','routes_v_paths','route_drop_min','mychips','routes_v_paths','route_drop_min','f','f'),
+  ('mychips','routes_v_lifts','route_drop_min','mychips','routes_v_paths','route_drop_min','f','f'),
   ('mychips','tallies_v_sum','stocks','mychips','tallies_v_sum','stocks','f','f'),
   ('mychips','users_v_tallysum','stocks','mychips','tallies_v_sum','stocks','f','f'),
   ('mychips','tallies_v_sum','foil_seqs','mychips','tallies_v_sum','foil_seqs','f','f'),
   ('mychips','users_v_tallysum','foil_seqs','mychips','tallies_v_sum','foil_seqs','f','f'),
+  ('mychips','chits_v','part_cid','mychips','tallies_v','part_cid','f','f'),
   ('mychips','tallies_v','part_cid','mychips','tallies_v','part_cid','f','f'),
   ('mychips','tallies_v_me','part_cid','mychips','tallies_v','part_cid','f','f'),
   ('mychips','chits_v_me','part_cid','mychips','tallies_v','part_cid','f','f'),
-  ('mychips','chits_v','part_cid','mychips','tallies_v','part_cid','f','f'),
-  ('mychips','tallies_v','drop_marg','mychips','tallies','drop_marg','f','f'),
-  ('mychips','tallies_v_net','drop_marg','mychips','tallies','drop_marg','f','f'),
-  ('mychips','tallies','drop_marg','mychips','tallies','drop_marg','f','f'),
-  ('mychips','tallies_v_me','drop_marg','mychips','tallies','drop_marg','f','f'),
-  ('wm','objects_v_depth','min_rel','wm','objects','min_rel','f','f'),
+  ('mychips','routes_v','drop_min','mychips','tallies_v_net','drop_min','f','f'),
+  ('mychips','tallies_v_lifts','drop_min','mychips','tallies_v_net','drop_min','f','f'),
+  ('mychips','routes_v_paths','drop_min','mychips','tallies_v_net','drop_min','f','f'),
+  ('mychips','routes_v_paths','route_lift_margin','mychips','routes_v_paths','route_lift_margin','f','f'),
+  ('mychips','tallies_v_net','drop_min','mychips','tallies_v_net','drop_min','f','f'),
+  ('mychips','routes_v_lifts','drop_min','mychips','tallies_v_net','drop_min','f','f'),
+  ('mychips','routes_v_lifts','route_lift_margin','mychips','routes_v_paths','route_lift_margin','f','f'),
+  ('mychips','routes','drop_min','mychips','routes','drop_min','f','f'),
   ('wm','objects_v','min_rel','wm','objects','min_rel','f','f'),
   ('wm','objects','min_rel','wm','objects','min_rel','f','f'),
-  ('mychips','users_v_flat','tax_id','base','ent','tax_id','f','f'),
+  ('wm','objects_v_depth','min_rel','wm','objects','min_rel','f','f'),
   ('base','ent','tax_id','base','ent','tax_id','f','f'),
   ('base','ent_v','tax_id','base','ent','tax_id','f','f'),
+  ('mychips','users_v_flat','tax_id','base','ent','tax_id','f','f'),
   ('mychips','peers_v_flat','tax_id','base','ent','tax_id','f','f'),
-  ('mychips','users_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
+  ('mychips','tallies_v_net','drop_target','mychips','tallies_v_net','drop_target','f','f'),
   ('base','addr_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
   ('mychips','peers_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
+  ('mychips','users_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
   ('mychips','confirms','conf_date','mychips','confirms','conf_date','f','f'),
-  ('mychips','users_v_flat','gender','base','ent','gender','f','f'),
   ('base','ent','gender','base','ent','gender','f','f'),
   ('base','ent_v','gender','base','ent','gender','f','f'),
+  ('mychips','users_v_flat','gender','base','ent','gender','f','f'),
   ('mychips','peers_v_flat','gender','base','ent','gender','f','f'),
-  ('mychips','tallies_v_net','cr_max','mychips','tallies_v_net','cr_max','f','f'),
+  ('mychips','routes_v_paths','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
+  ('mychips','routes_v_lifts','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
+  ('mychips','routes_v_paths','path_lift_min','mychips','routes_v_paths','path_lift_min','f','f'),
+  ('mychips','routes_v_lifts','path_lift_min','mychips','routes_v_paths','path_lift_min','f','f'),
   ('base','addr','addr_spec','base','addr','addr_spec','f','f'),
   ('base','addr_v','addr_spec','base','addr','addr_spec','f','f'),
-  ('mychips','chits_v_me','amount','mychips','chits_v','amount','f','f'),
+  ('mychips','routes_v','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','tallies_v_lifts','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','routes_v_paths','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','tallies_v_net','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','routes_v_lifts','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','routes','lift_reward','mychips','routes','lift_reward','f','f'),
   ('mychips','chits_v','amount','mychips','chits_v','amount','f','f'),
-  ('mychips','users_v_flat','peer_host','mychips','peers','peer_host','f','f'),
+  ('mychips','chits_v_me','amount','mychips','chits_v','amount','f','f'),
   ('mychips','peers','peer_host','mychips','peers','peer_host','f','f'),
+  ('mychips','users_v_flat','peer_host','mychips','peers','peer_host','f','f'),
   ('mychips','peers_v_flat','peer_host','mychips','peers','peer_host','f','f'),
   ('base','ent_audit','a_action','base','ent_audit','a_action','f','f'),
   ('base','parm_audit','a_action','base','parm_audit','a_action','f','f'),
@@ -6241,75 +6542,77 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes','good_date','mychips','routes','good_date','f','f'),
   ('mychips','tallies_v_lifts','bang','mychips','tallies_v_paths','bang','f','f'),
   ('base','language','iso_3b','base','language','iso_3b','f','f'),
-  ('mychips','users_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
   ('base','comm_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
   ('mychips','peers_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
+  ('mychips','users_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
   ('base','addr_v_flat','phys_country','base','addr_v_flat','phys_country','f','f'),
   ('mychips','tallies_v','partner','mychips','tallies','partner','f','f'),
-  ('mychips','tallies','partner','mychips','tallies','partner','f','f'),
   ('mychips','tallies_v_me','partner','mychips','tallies','partner','f','f'),
+  ('mychips','tallies','partner','mychips','tallies','partner','f','f'),
+  ('mychips','routes_v_paths','route_drop_margin','mychips','routes_v_paths','route_drop_margin','f','f'),
+  ('mychips','routes_v_lifts','route_drop_margin','mychips','routes_v_paths','route_drop_margin','f','f'),
   ('mychips','tallies_v','json','mychips','tallies_v','json','f','f'),
-  ('mychips','chits_v_me','json','mychips','chits_v','json','f','f'),
-  ('mychips','chits_v','json','mychips','chits_v','json','f','f'),
   ('mychips','tallies_v_me','json','mychips','tallies_v','json','f','f'),
-  ('mychips','users_v_flat','json','mychips','users_v','json','f','f'),
+  ('mychips','chits_v','json','mychips','chits_v','json','f','f'),
+  ('mychips','chits_v_me','json','mychips','chits_v','json','f','f'),
   ('mychips','contracts_v','json','mychips','contracts_v','json','f','f'),
+  ('mychips','tally_sets_v','json','mychips','tally_sets_v','json','f','f'),
+  ('mychips','users_v_flat','json','mychips','users_v','json','f','f'),
   ('mychips','users_v_tallysum','std_name','base','ent_v','std_name','f','f'),
-  ('mychips','users_v_flat','std_name','base','ent_v','std_name','f','f'),
   ('base','ent_v','std_name','base','ent_v','std_name','f','f'),
   ('base','ent_v_pub','std_name','base','ent_v','std_name','f','f'),
-  ('base','priv_v','std_name','base','ent_v','std_name','f','f'),
   ('base','token_v','std_name','base','ent_v','std_name','f','f'),
   ('base','comm_v','std_name','base','ent_v','std_name','f','f'),
   ('base','addr_v','std_name','base','ent_v','std_name','f','f'),
+  ('base','priv_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','users_v_flat','std_name','base','ent_v','std_name','f','f'),
   ('mychips','peers_v_flat','std_name','base','ent_v','std_name','f','f'),
   ('wm','depends_v','depth','wm','depends_v','depth','f','f'),
   ('wm','objects_v_depth','depth','wm','depends_v','depth','f','f'),
   ('mychips','tallies_v_graph','stock_cid','mychips','tallies_v_graph','stock_cid','f','f'),
   ('base','addr','addr_inact','base','addr','addr_inact','f','f'),
   ('base','addr_v','addr_inact','base','addr','addr_inact','f','f'),
-  ('mychips','tallies_v','mod_by','mychips','tallies','mod_by','f','f'),
-  ('mychips','tallies','mod_by','mychips','tallies','mod_by','f','f'),
-  ('mychips','tallies_v_me','mod_by','mychips','tallies','mod_by','f','f'),
-  ('mychips','chits_v_me','mod_by','mychips','chits','mod_by','f','f'),
   ('mychips','chits_v','mod_by','mychips','chits','mod_by','f','f'),
-  ('mychips','users_v_flat','mod_by','mychips','users','mod_by','f','f'),
-  ('mychips','chits','mod_by','mychips','chits','mod_by','f','f'),
-  ('base','token','mod_by','base','token','mod_by','f','f'),
-  ('mychips','peers','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','tallies_v','mod_by','mychips','tallies','mod_by','f','f'),
+  ('mychips','chits_v_me','mod_by','mychips','chits','mod_by','f','f'),
+  ('mychips','tallies_v_me','mod_by','mychips','tallies','mod_by','f','f'),
+  ('mychips','contracts','mod_by','mychips','contracts','mod_by','f','f'),
   ('base','ent','mod_by','base','ent','mod_by','f','f'),
-  ('mychips','users','mod_by','mychips','users','mod_by','f','f'),
-  ('base','ent_v','mod_by','base','ent','mod_by','f','f'),
   ('base','parm','mod_by','base','parm','mod_by','f','f'),
-  ('base','ent_link','mod_by','base','ent_link','mod_by','f','f'),
+  ('base','ent_v','mod_by','base','ent','mod_by','f','f'),
   ('base','comm','mod_by','base','comm','mod_by','f','f'),
+  ('mychips','users','mod_by','mychips','users','mod_by','f','f'),
   ('base','addr','mod_by','base','addr','mod_by','f','f'),
+  ('mychips','tokens','mod_by','mychips','tokens','mod_by','f','f'),
+  ('mychips','peers','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','contracts_v','mod_by','mychips','contracts','mod_by','f','f'),
   ('base','ent_link_v','mod_by','base','ent_link','mod_by','f','f'),
   ('base','ent_v_pub','mod_by','base','ent','mod_by','f','f'),
   ('base','parm_v','mod_by','base','parm','mod_by','f','f'),
   ('base','token_v','mod_by','base','token','mod_by','f','f'),
-  ('mychips','contracts_v','mod_by','mychips','contracts','mod_by','f','f'),
-  ('mychips','contracts','mod_by','mychips','contracts','mod_by','f','f'),
-  ('mychips','tokens','mod_by','mychips','tokens','mod_by','f','f'),
-  ('wylib','data_v','mod_by','wylib','data','mod_by','f','f'),
+  ('base','token','mod_by','base','token','mod_by','f','f'),
+  ('base','ent_link','mod_by','base','ent_link','mod_by','f','f'),
+  ('mychips','chits','mod_by','mychips','chits','mod_by','f','f'),
   ('base','comm_v','mod_by','base','comm','mod_by','f','f'),
   ('base','addr_v','mod_by','base','addr','mod_by','f','f'),
+  ('wylib','data_v','mod_by','wylib','data','mod_by','f','f'),
   ('wylib','data','mod_by','wylib','data','mod_by','f','f'),
+  ('mychips','tallies','mod_by','mychips','tallies','mod_by','f','f'),
+  ('mychips','users_v_flat','mod_by','mychips','users','mod_by','f','f'),
   ('mychips','peers_v_flat','mod_by','mychips','peers','mod_by','f','f'),
   ('mychips','routes_v','dest_name','mychips','routes_v','dest_name','f','f'),
-  ('mychips','tallies_v_net','foil_drl','mychips','tallies_v_net','foil_drl','f','f'),
-  ('base','priv','priv_level','base','priv','priv_level','f','f'),
   ('base','addr','addr_cmt','base','addr','addr_cmt','f','f'),
-  ('base','priv_v','priv_level','base','priv','priv_level','f','f'),
+  ('base','priv','priv_level','base','priv','priv_level','f','f'),
   ('base','addr_v','addr_cmt','base','addr','addr_cmt','f','f'),
+  ('base','priv_v','priv_level','base','priv','priv_level','f','f'),
   ('wylib','data_v','owner','wylib','data','owner','f','f'),
   ('wylib','data','owner','wylib','data','owner','f','f'),
   ('mychips','routes_v','topu_name','mychips','routes_v','topu_name','f','f'),
-  ('mychips','contracts_v','text','mychips','contracts','text','f','f'),
   ('mychips','contracts','text','mychips','contracts','text','f','f'),
+  ('mychips','contracts_v','text','mychips','contracts','text','f','f'),
   ('mychips','tallies_v','units_c','mychips','tallies','units_c','f','f'),
-  ('mychips','tallies','units_c','mychips','tallies','units_c','f','f'),
   ('mychips','tallies_v_me','units_c','mychips','tallies','units_c','f','f'),
+  ('mychips','tallies','units_c','mychips','tallies','units_c','f','f'),
   ('mychips','tallies_v_sum','stock_uni','mychips','tallies_v_sum','stock_uni','f','f'),
   ('base','addr','addr_seq','base','addr','addr_seq','f','t'),
   ('base','addr','addr_ent','base','addr','addr_ent','f','t'),
@@ -6321,16 +6624,16 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','addr_v_flat','id','base','ent','id','f','t'),
   ('base','comm','comm_ent','base','comm','comm_ent','f','t'),
   ('base','comm','comm_seq','base','comm','comm_seq','f','t'),
+  ('base','comm_prim','prim_seq','base','comm_prim','prim_seq','f','t'),
   ('base','comm_prim','prim_type','base','comm_prim','prim_type','f','t'),
   ('base','comm_prim','prim_ent','base','comm_prim','prim_ent','f','t'),
-  ('base','comm_prim','prim_seq','base','comm_prim','prim_seq','f','t'),
   ('base','comm_v','comm_seq','base','comm','comm_seq','f','t'),
   ('base','comm_v','comm_ent','base','comm','comm_ent','f','t'),
   ('base','comm_v_flat','id','base','ent','id','f','t'),
   ('base','country','code','base','country','code','f','t'),
   ('base','ent','id','base','ent','id','f','t'),
-  ('base','ent_audit','id','base','ent_audit','id','f','t'),
   ('base','ent_audit','a_seq','base','ent_audit','a_seq','f','t'),
+  ('base','ent_audit','id','base','ent_audit','id','f','t'),
   ('base','ent_link','mem','base','ent_link','mem','f','t'),
   ('base','ent_link','org','base','ent_link','org','f','t'),
   ('base','ent_link_v','mem','base','ent_link','mem','f','t'),
@@ -6338,150 +6641,292 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_v','id','base','ent','id','f','t'),
   ('base','ent_v_pub','id','base','ent','id','f','t'),
   ('base','language','code','base','language','code','f','t'),
-  ('base','parm','module','base','parm','module','f','t'),
   ('base','parm','parm','base','parm','parm','f','t'),
-  ('base','parm_audit','a_seq','base','parm_audit','a_seq','f','t'),
+  ('base','parm','module','base','parm','module','f','t'),
   ('base','parm_audit','parm','base','parm_audit','parm','f','t'),
   ('base','parm_audit','module','base','parm_audit','module','f','t'),
-  ('base','parm_v','module','base','parm','module','f','t'),
+  ('base','parm_audit','a_seq','base','parm_audit','a_seq','f','t'),
   ('base','parm_v','parm','base','parm','parm','f','t'),
+  ('base','parm_v','module','base','parm','module','f','t'),
   ('base','priv','grantee','base','priv','grantee','f','t'),
   ('base','priv','priv','base','priv','priv','f','t'),
   ('base','priv_v','priv','base','priv','priv','f','t'),
   ('base','priv_v','grantee','base','priv','grantee','f','t'),
-  ('base','token','token_seq','base','token','token_seq','f','t'),
   ('base','token','token_ent','base','token','token_ent','f','t'),
-  ('base','token_v','token_ent','base','token','token_ent','f','t'),
+  ('base','token','token_seq','base','token','token_seq','f','t'),
   ('base','token_v','token_seq','base','token','token_seq','f','t'),
+  ('base','token_v','token_ent','base','token','token_ent','f','t'),
   ('base','token_v_ticket','token_ent','base','token','token_ent','f','t'),
-  ('mychips','chit_tries','ctry_idx','mychips','chit_tries','ctry_idx','f','t'),
   ('mychips','chit_tries','ctry_ent','mychips','chit_tries','ctry_ent','f','t'),
+  ('mychips','chit_tries','ctry_idx','mychips','chit_tries','ctry_idx','f','t'),
   ('mychips','chit_tries','ctry_seq','mychips','chit_tries','ctry_seq','f','t'),
-  ('mychips','chits','chit_idx','mychips','chits','chit_idx','f','t'),
   ('mychips','chits','chit_ent','mychips','chits','chit_ent','f','t'),
   ('mychips','chits','chit_seq','mychips','chits','chit_seq','f','t'),
+  ('mychips','chits','chit_idx','mychips','chits','chit_idx','f','t'),
   ('mychips','chits_v','chit_idx','mychips','chits','chit_idx','f','t'),
   ('mychips','chits_v','chit_ent','mychips','chits','chit_ent','f','t'),
   ('mychips','chits_v','chit_seq','mychips','chits','chit_seq','f','t'),
   ('mychips','chits_v_me','chit_ent','mychips','chits','chit_ent','f','t'),
-  ('mychips','chits_v_me','chit_idx','mychips','chits','chit_idx','f','t'),
   ('mychips','chits_v_me','chit_seq','mychips','chits','chit_seq','f','t'),
+  ('mychips','chits_v_me','chit_idx','mychips','chits','chit_idx','f','t'),
   ('mychips','confirms','conf_ent','mychips','confirms','conf_ent','f','t'),
-  ('mychips','confirms','conf_seq','mychips','confirms','conf_seq','f','t'),
   ('mychips','confirms','conf_idx','mychips','confirms','conf_idx','f','t'),
-  ('mychips','contracts','domain','mychips','contracts','domain','f','t'),
-  ('mychips','contracts','version','mychips','contracts','version','f','t'),
-  ('mychips','contracts','language','mychips','contracts','language','f','t'),
+  ('mychips','confirms','conf_seq','mychips','confirms','conf_seq','f','t'),
   ('mychips','contracts','name','mychips','contracts','name','f','t'),
-  ('mychips','contracts_v','domain','mychips','contracts','domain','f','t'),
+  ('mychips','contracts','domain','mychips','contracts','domain','f','t'),
+  ('mychips','contracts','language','mychips','contracts','language','f','t'),
+  ('mychips','contracts','version','mychips','contracts','version','f','t'),
   ('mychips','contracts_v','language','mychips','contracts','language','f','t'),
-  ('mychips','contracts_v','version','mychips','contracts','version','f','t'),
   ('mychips','contracts_v','name','mychips','contracts','name','f','t'),
+  ('mychips','contracts_v','domain','mychips','contracts','domain','f','t'),
+  ('mychips','contracts_v','version','mychips','contracts','version','f','t'),
   ('mychips','peers','peer_ent','mychips','peers','peer_ent','f','t'),
-  ('mychips','peers_v_flat','peer_ent','mychips','peers','peer_ent','f','t'),
   ('mychips','peers_v_flat','id','base','ent','id','f','t'),
+  ('mychips','peers_v_flat','peer_ent','mychips','peers','peer_ent','f','t'),
   ('mychips','route_tries','rtry_ent','mychips','route_tries','rtry_ent','f','t'),
-  ('mychips','route_tries','rtry_host','mychips','route_tries','rtry_host','f','t'),
   ('mychips','route_tries','rtry_chid','mychips','route_tries','rtry_chid','f','t'),
-  ('mychips','routes','dest_host','mychips','routes','dest_host','f','t'),
+  ('mychips','route_tries','rtry_host','mychips','route_tries','rtry_host','f','t'),
   ('mychips','routes','route_ent','mychips','routes','route_ent','f','t'),
+  ('mychips','routes','dest_host','mychips','routes','dest_host','f','t'),
   ('mychips','routes','dest_chid','mychips','routes','dest_chid','f','t'),
-  ('mychips','routes_v','route_ent','mychips','routes','route_ent','f','t'),
   ('mychips','routes_v','dest_chid','mychips','routes','dest_chid','f','t'),
+  ('mychips','routes_v','route_ent','mychips','routes','route_ent','f','t'),
   ('mychips','routes_v','dest_host','mychips','routes','dest_host','f','t'),
   ('mychips','routes_v_lifts','dest_chid','mychips','routes','dest_chid','f','t'),
-  ('mychips','routes_v_lifts','dest_host','mychips','routes','dest_host','f','t'),
+  ('mychips','routes_v_paths','dest_chid','mychips','routes','dest_chid','f','t'),
   ('mychips','tallies','tally_ent','mychips','tallies','tally_ent','f','t'),
   ('mychips','tallies','tally_seq','mychips','tallies','tally_seq','f','t'),
-  ('mychips','tallies_v','tally_seq','mychips','tallies','tally_seq','f','t'),
   ('mychips','tallies_v','tally_ent','mychips','tallies','tally_ent','f','t'),
-  ('mychips','tallies_v_me','tally_seq','mychips','tallies','tally_seq','f','t'),
+  ('mychips','tallies_v','tally_seq','mychips','tallies','tally_seq','f','t'),
   ('mychips','tallies_v_me','tally_ent','mychips','tallies','tally_ent','f','t'),
+  ('mychips','tallies_v_me','tally_seq','mychips','tallies','tally_seq','f','t'),
   ('mychips','tallies_v_sum','tally_ent','mychips','tallies','tally_ent','f','t'),
   ('mychips','tally_sets','tset_idx','mychips','tally_sets','tset_idx','f','t'),
-  ('mychips','tally_sets','tset_ent','mychips','tally_sets','tset_ent','f','t'),
   ('mychips','tally_sets','tset_seq','mychips','tally_sets','tset_seq','f','t'),
+  ('mychips','tally_sets','tset_ent','mychips','tally_sets','tset_ent','f','t'),
+  ('mychips','tally_sets_v','tset_idx','mychips','tally_sets','tset_idx','f','t'),
+  ('mychips','tally_sets_v','tset_ent','mychips','tally_sets','tset_ent','f','t'),
+  ('mychips','tally_sets_v','tset_seq','mychips','tally_sets','tset_seq','f','t'),
   ('mychips','tally_tries','ttry_ent','mychips','tally_tries','ttry_ent','f','t'),
   ('mychips','tally_tries','ttry_seq','mychips','tally_tries','ttry_seq','f','t'),
-  ('mychips','tokens','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','tokens','token_seq','mychips','tokens','token_seq','f','t'),
+  ('mychips','tokens','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','users','user_ent','mychips','users','user_ent','f','t'),
   ('mychips','users_v_flat','peer_ent','mychips','peers','peer_ent','f','t'),
   ('mychips','users_v_flat','id','base','ent','id','f','t'),
   ('mychips','users_v_flat','user_ent','mychips','users','user_ent','f','t'),
-  ('mychips','users_v_tallysum','peer_ent','mychips','peers','peer_ent','f','t'),
-  ('mychips','users_v_tallysum','user_ent','mychips','users','user_ent','f','t'),
   ('mychips','users_v_tallysum','id','base','ent','id','f','t'),
-  ('wm','column_native','cnt_col','wm','column_native','cnt_col','f','t'),
+  ('mychips','users_v_tallysum','user_ent','mychips','users','user_ent','f','t'),
+  ('mychips','users_v_tallysum','peer_ent','mychips','peers','peer_ent','f','t'),
   ('wm','column_native','cnt_sch','wm','column_native','cnt_sch','f','t'),
   ('wm','column_native','cnt_tab','wm','column_native','cnt_tab','f','t'),
-  ('wm','column_style','sw_name','wm','column_style','sw_name','f','t'),
-  ('wm','column_style','cs_col','wm','column_style','cs_col','f','t'),
-  ('wm','column_style','cs_tab','wm','column_style','cs_tab','f','t'),
+  ('wm','column_native','cnt_col','wm','column_native','cnt_col','f','t'),
   ('wm','column_style','cs_sch','wm','column_style','cs_sch','f','t'),
+  ('wm','column_style','cs_tab','wm','column_style','cs_tab','f','t'),
+  ('wm','column_style','cs_col','wm','column_style','cs_col','f','t'),
+  ('wm','column_style','sw_name','wm','column_style','sw_name','f','t'),
   ('wm','column_text','ct_col','wm','column_text','ct_col','f','t'),
-  ('wm','column_text','language','wm','column_text','language','f','t'),
   ('wm','column_text','ct_tab','wm','column_text','ct_tab','f','t'),
   ('wm','column_text','ct_sch','wm','column_text','ct_sch','f','t'),
+  ('wm','column_text','language','wm','column_text','language','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
-  ('wm','message_text','language','wm','message_text','language','f','t'),
-  ('wm','message_text','mt_sch','wm','message_text','mt_sch','f','t'),
   ('wm','message_text','mt_tab','wm','message_text','mt_tab','f','t'),
-  ('wm','objects','obj_nam','wm','objects','obj_nam','f','t'),
+  ('wm','message_text','mt_sch','wm','message_text','mt_sch','f','t'),
+  ('wm','message_text','language','wm','message_text','language','f','t'),
   ('wm','objects','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','objects','obj_ver','wm','objects','obj_ver','f','t'),
-  ('wm','objects_v','obj_nam','wm','objects','obj_nam','f','t'),
+  ('wm','objects','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','objects_v','obj_typ','wm','objects','obj_typ','f','t'),
   ('wm','objects_v','release','wm','releases','release','f','t'),
   ('wm','objects_v','obj_ver','wm','objects','obj_ver','f','t'),
-  ('wm','objects_v_depth','obj_ver','wm','objects','obj_ver','f','t'),
+  ('wm','objects_v','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','objects_v_depth','release','wm','releases','release','f','t'),
   ('wm','objects_v_depth','obj_typ','wm','objects','obj_typ','f','t'),
+  ('wm','objects_v_depth','obj_ver','wm','objects','obj_ver','f','t'),
   ('wm','objects_v_depth','obj_nam','wm','objects','obj_nam','f','t'),
   ('wm','releases','release','wm','releases','release','f','t'),
-  ('wm','table_style','sw_name','wm','table_style','sw_name','f','t'),
   ('wm','table_style','ts_sch','wm','table_style','ts_sch','f','t'),
+  ('wm','table_style','sw_name','wm','table_style','sw_name','f','t'),
   ('wm','table_style','ts_tab','wm','table_style','ts_tab','f','t'),
-  ('wm','table_text','language','wm','table_text','language','f','t'),
   ('wm','table_text','tt_sch','wm','table_text','tt_sch','f','t'),
   ('wm','table_text','tt_tab','wm','table_text','tt_tab','f','t'),
-  ('wm','value_text','vt_col','wm','value_text','vt_col','f','t'),
-  ('wm','value_text','vt_sch','wm','value_text','vt_sch','f','t'),
-  ('wm','value_text','vt_tab','wm','value_text','vt_tab','f','t'),
+  ('wm','table_text','language','wm','table_text','language','f','t'),
   ('wm','value_text','value','wm','value_text','value','f','t'),
+  ('wm','value_text','vt_tab','wm','value_text','vt_tab','f','t'),
   ('wm','value_text','language','wm','value_text','language','f','t'),
+  ('wm','value_text','vt_sch','wm','value_text','vt_sch','f','t'),
+  ('wm','value_text','vt_col','wm','value_text','vt_col','f','t'),
   ('wylib','data','ruid','wylib','data','ruid','f','t'),
   ('wylib','data_v','ruid','wylib','data','ruid','f','t'),
-  ('json','address','comment','json','address','comment','f','f'),
-  ('json','address','id','json','address','id','f','t'),
-  ('json','address','locale','json','address','locale','f','f'),
-  ('json','address','main','json','address','main','f','f'),
-  ('json','address','post','json','address','post','f','f'),
-  ('json','address','prior','json','address','prior','f','f'),
-  ('json','address','seq','json','address','seq','f','t'),
-  ('json','address','spec','json','address','spec','f','f'),
-  ('json','address','state','base','addr','state','f','f'),
-  ('json','address','type','json','address','type','f','f'),
-  ('json','connect','comment','json','connect','comment','f','f'),
-  ('json','connect','id','json','connect','id','f','t'),
-  ('json','connect','media','json','connect','media','f','f'),
-  ('json','connect','prior','json','connect','prior','f','f'),
-  ('json','connect','seq','json','connect','seq','f','t'),
-  ('json','connect','spec','json','connect','spec','f','f'),
-  ('json','user','begin','json','user','begin','f','f'),
-  ('json','user','cid','json','user','cid','f','f'),
-  ('json','user','first','json','user','first','f','f'),
-  ('json','user','id','base','ent','id','f','t'),
-  ('json','user','juris','json','user','juris','f','f'),
-  ('json','user','middle','json','user','middle','f','f'),
-  ('json','user','name','json','user','name','f','f'),
-  ('json','user','prefer','json','user','prefer','f','f'),
-  ('json','user','taxid','json','user','taxid','f','f'),
-  ('json','user','type','json','user','type','f','f'),
+  ('wm','fkey_data','conname','wm','fkey_data','conname','f','t'),
+  ('wm','fkey_data','key','wm','fkey_data','key','f','f'),
+  ('wm','fkey_data','keys','wm','fkey_data','keys','f','f'),
+  ('wm','fkey_data','kyf_col','wm','fkey_data','kyf_col','f','f'),
+  ('wm','fkey_data','kyf_field','wm','fkey_data','kyf_field','f','f'),
+  ('wm','fkey_data','kyf_sch','wm','fkey_data','kyf_sch','f','f'),
+  ('wm','fkey_data','kyf_tab','wm','fkey_data','kyf_tab','f','f'),
+  ('wm','fkey_data','kyt_col','wm','fkey_data','kyt_col','f','f'),
+  ('wm','fkey_data','kyt_field','wm','fkey_data','kyt_field','f','f'),
+  ('wm','fkey_data','kyt_sch','wm','fkey_data','kyt_sch','f','f'),
+  ('wm','fkey_data','kyt_tab','wm','fkey_data','kyt_tab','f','f'),
+  ('wm','view_column_usage','column_name','information_schema','view_column_usage','column_name','f','f'),
+  ('wm','view_column_usage','table_catalog','information_schema','view_column_usage','table_catalog','f','f'),
+  ('wm','view_column_usage','table_name','information_schema','view_column_usage','table_name','f','f'),
+  ('wm','view_column_usage','table_schema','information_schema','view_column_usage','table_schema','f','f'),
+  ('wm','view_column_usage','view_catalog','information_schema','view_column_usage','view_catalog','f','f'),
+  ('wm','view_column_usage','view_name','information_schema','view_column_usage','view_name','f','t'),
+  ('wm','view_column_usage','view_schema','information_schema','view_column_usage','view_schema','f','t'),
+  ('wm','fkey_pub','conname','wm','fkey_data','conname','f','t'),
+  ('wm','fkey_pub','fn_col','wm','fkey_pub','fn_col','f','f'),
+  ('wm','fkey_pub','fn_obj','wm','fkey_pub','fn_obj','f','f'),
+  ('wm','fkey_pub','fn_sch','wm','fkey_pub','fn_sch','f','f'),
+  ('wm','fkey_pub','fn_tab','wm','fkey_pub','fn_tab','f','f'),
+  ('wm','fkey_pub','ft_col','wm','fkey_pub','ft_col','f','f'),
+  ('wm','fkey_pub','ft_obj','wm','fkey_pub','ft_obj','f','f'),
+  ('wm','fkey_pub','ft_sch','wm','fkey_pub','ft_sch','f','f'),
+  ('wm','fkey_pub','ft_tab','wm','fkey_pub','ft_tab','f','f'),
+  ('wm','fkey_pub','key','wm','fkey_data','key','f','f'),
+  ('wm','fkey_pub','keys','wm','fkey_data','keys','f','f'),
+  ('wm','fkey_pub','tn_col','wm','fkey_pub','tn_col','f','f'),
+  ('wm','fkey_pub','tn_obj','wm','fkey_pub','tn_obj','f','f'),
+  ('wm','fkey_pub','tn_sch','wm','fkey_pub','tn_sch','f','f'),
+  ('wm','fkey_pub','tn_tab','wm','fkey_pub','tn_tab','f','f'),
+  ('wm','fkey_pub','tt_col','wm','fkey_pub','tt_col','f','f'),
+  ('wm','fkey_pub','tt_obj','wm','fkey_pub','tt_obj','f','f'),
+  ('wm','fkey_pub','tt_sch','wm','fkey_pub','tt_sch','f','f'),
+  ('wm','fkey_pub','tt_tab','wm','fkey_pub','tt_tab','f','f'),
+  ('wm','fkey_pub','unikey','wm','fkey_pub','unikey','f','f'),
+  ('wm','column_istyle','cs_col','wm','column_style','cs_col','f','t'),
+  ('wm','column_istyle','cs_obj','wm','column_istyle','cs_obj','f','f'),
+  ('wm','column_istyle','cs_sch','wm','column_style','cs_sch','f','t'),
+  ('wm','column_istyle','cs_tab','wm','column_style','cs_tab','f','t'),
+  ('wm','column_istyle','cs_value','wm','column_istyle','cs_value','f','f'),
+  ('wm','column_istyle','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_istyle','nat_sch','wm','column_native','nat_sch','f','f'),
+  ('wm','column_istyle','nat_tab','wm','column_native','nat_tab','f','f'),
+  ('wm','column_istyle','nat_value','wm','column_istyle','nat_value','f','f'),
+  ('wm','column_istyle','sw_name','wm','column_style','sw_name','f','t'),
+  ('wm','column_istyle','sw_value','wm','column_style','sw_value','f','f'),
+  ('wm','fkeys_data','conname','wm','fkeys_data','conname','f','t'),
+  ('wm','fkeys_data','ksf_cols','wm','fkeys_data','ksf_cols','f','f'),
+  ('wm','fkeys_data','ksf_sch','wm','fkeys_data','ksf_sch','f','f'),
+  ('wm','fkeys_data','ksf_tab','wm','fkeys_data','ksf_tab','f','f'),
+  ('wm','fkeys_data','kst_cols','wm','fkeys_data','kst_cols','f','f'),
+  ('wm','fkeys_data','kst_sch','wm','fkeys_data','kst_sch','f','f'),
+  ('wm','fkeys_data','kst_tab','wm','fkeys_data','kst_tab','f','f'),
+  ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
+  ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
+  ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
+  ('wm','column_data','def','wm','column_data','def','f','f'),
+  ('wm','column_data','field','wm','column_data','field','f','f'),
+  ('wm','column_data','is_pkey','wm','column_data','is_pkey','f','f'),
+  ('wm','column_data','length','wm','column_data','length','f','f'),
+  ('wm','column_data','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_data','nat_sch','wm','column_native','nat_sch','f','f'),
+  ('wm','column_data','nat_tab','wm','column_native','nat_tab','f','f'),
+  ('wm','column_data','nonull','wm','column_data','nonull','f','f'),
+  ('wm','column_data','pkey','wm','column_native','pkey','f','f'),
+  ('wm','column_data','tab_kind','wm','column_data','tab_kind','f','f'),
+  ('wm','column_data','type','wm','column_data','type','f','f'),
+  ('wm','column_pub','col','wm','column_pub','col','f','t'),
+  ('wm','column_pub','def','wm','column_data','def','f','f'),
+  ('wm','column_pub','field','wm','column_data','field','f','f'),
+  ('wm','column_pub','help','wm','column_text','help','f','f'),
+  ('wm','column_pub','is_pkey','wm','column_data','is_pkey','f','f'),
+  ('wm','column_pub','language','wm','column_text','language','f','f'),
+  ('wm','column_pub','length','wm','column_data','length','f','f'),
+  ('wm','column_pub','nat','wm','column_pub','nat','f','f'),
+  ('wm','column_pub','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_pub','nat_sch','wm','column_native','nat_sch','f','f'),
+  ('wm','column_pub','nat_tab','wm','column_native','nat_tab','f','f'),
+  ('wm','column_pub','nonull','wm','column_data','nonull','f','f'),
+  ('wm','column_pub','obj','wm','column_pub','obj','f','f'),
+  ('wm','column_pub','pkey','wm','column_native','pkey','f','f'),
+  ('wm','column_pub','sch','wm','column_pub','sch','f','t'),
+  ('wm','column_pub','tab','wm','column_pub','tab','f','t'),
+  ('wm','column_pub','title','wm','column_text','title','f','f'),
+  ('wm','column_pub','type','wm','column_data','type','f','f'),
+  ('wm','column_meta','col','wm','column_meta','col','f','t'),
+  ('wm','column_meta','def','wm','column_data','def','f','f'),
+  ('wm','column_meta','field','wm','column_data','field','f','f'),
+  ('wm','column_meta','is_pkey','wm','column_data','is_pkey','f','f'),
+  ('wm','column_meta','length','wm','column_data','length','f','f'),
+  ('wm','column_meta','nat','wm','column_meta','nat','f','f'),
+  ('wm','column_meta','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_meta','nat_sch','wm','column_native','nat_sch','f','f'),
+  ('wm','column_meta','nat_tab','wm','column_native','nat_tab','f','f'),
+  ('wm','column_meta','nonull','wm','column_data','nonull','f','f'),
+  ('wm','column_meta','obj','wm','column_meta','obj','f','f'),
+  ('wm','column_meta','pkey','wm','column_native','pkey','f','f'),
+  ('wm','column_meta','sch','wm','column_meta','sch','f','t'),
+  ('wm','column_meta','styles','wm','column_meta','styles','f','f'),
+  ('wm','column_meta','tab','wm','column_meta','tab','f','t'),
+  ('wm','column_meta','type','wm','column_data','type','f','f'),
+  ('wm','column_meta','values','wm','column_meta','values','f','f'),
+  ('wm','column_lang','col','wm','column_lang','col','f','t'),
+  ('wm','column_lang','help','wm','column_text','help','t','f'),
+  ('wm','column_lang','language','wm','column_text','language','t','f'),
+  ('wm','column_lang','nat','wm','column_lang','nat','f','f'),
+  ('wm','column_lang','nat_col','wm','column_native','nat_col','f','f'),
+  ('wm','column_lang','nat_sch','wm','column_native','nat_sch','f','f'),
+  ('wm','column_lang','nat_tab','wm','column_native','nat_tab','f','f'),
+  ('wm','column_lang','obj','wm','column_lang','obj','f','f'),
+  ('wm','column_lang','sch','wm','column_lang','sch','f','t'),
+  ('wm','column_lang','system','wm','column_lang','system','f','f'),
+  ('wm','column_lang','tab','wm','column_lang','tab','f','t'),
+  ('wm','column_lang','title','wm','column_text','title','t','f'),
+  ('wm','column_lang','values','wm','column_lang','values','f','f'),
+  ('wm','table_data','cols','wm','table_data','cols','f','f'),
+  ('wm','table_data','has_pkey','wm','table_data','has_pkey','f','f'),
+  ('wm','table_data','obj','wm','table_data','obj','f','f'),
+  ('wm','table_data','pkey','wm','column_native','pkey','f','f'),
+  ('wm','table_data','system','wm','table_data','system','f','f'),
+  ('wm','table_data','tab_kind','wm','table_data','tab_kind','f','f'),
+  ('wm','table_data','td_sch','wm','table_data','td_sch','f','t'),
+  ('wm','table_data','td_tab','wm','table_data','td_tab','f','t'),
+  ('wm','table_pub','cols','wm','table_data','cols','f','f'),
+  ('wm','table_pub','has_pkey','wm','table_data','has_pkey','f','f'),
+  ('wm','table_pub','help','wm','table_text','help','f','f'),
+  ('wm','table_pub','language','wm','table_text','language','f','t'),
+  ('wm','table_pub','obj','wm','table_pub','obj','f','f'),
+  ('wm','table_pub','pkey','wm','column_native','pkey','f','f'),
+  ('wm','table_pub','sch','wm','table_pub','sch','f','t'),
+  ('wm','table_pub','system','wm','table_data','system','f','f'),
+  ('wm','table_pub','tab','wm','table_pub','tab','f','t'),
+  ('wm','table_pub','tab_kind','wm','table_data','tab_kind','f','f'),
+  ('wm','table_pub','title','wm','table_text','title','f','f'),
+  ('wm','table_meta','cols','wm','table_data','cols','f','f'),
+  ('wm','table_meta','columns','wm','table_meta','columns','f','f'),
+  ('wm','table_meta','fkeys','wm','table_meta','fkeys','f','f'),
+  ('wm','table_meta','has_pkey','wm','table_data','has_pkey','f','f'),
+  ('wm','table_meta','obj','wm','table_meta','obj','f','f'),
+  ('wm','table_meta','pkey','wm','table_data','pkey','t','f'),
+  ('wm','table_meta','sch','wm','column_meta','sch','f','t'),
+  ('wm','table_meta','styles','wm','column_meta','styles','f','f'),
+  ('wm','table_meta','system','wm','table_data','system','f','f'),
+  ('wm','table_meta','tab','wm','column_meta','tab','f','t'),
+  ('wm','table_meta','tab_kind','wm','table_data','tab_kind','f','f'),
+  ('wm','table_lang','columns','wm','table_lang','columns','f','f'),
+  ('wm','table_lang','help','wm','table_text','help','t','f'),
+  ('wm','table_lang','language','wm','table_text','language','t','t'),
+  ('wm','table_lang','messages','wm','table_lang','messages','f','f'),
+  ('wm','table_lang','obj','wm','table_lang','obj','f','f'),
+  ('wm','table_lang','sch','wm','column_lang','sch','f','t'),
+  ('wm','table_lang','tab','wm','column_lang','tab','f','t'),
+  ('wm','table_lang','title','wm','table_text','title','t','f'),
   ('wm','role_members','level','wm','role_members','level','f','f'),
   ('wm','role_members','member','wm','role_members','member','f','t'),
   ('wm','role_members','priv','wm','role_members','priv','f','f'),
   ('wm','role_members','role','wm','role_members','role','f','t'),
+  ('wm','column_def','col','wm','column_pub','col','f','t'),
+  ('wm','column_def','obj','wm','column_pub','obj','f','f'),
+  ('wm','column_def','val','wm','column_def','val','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','fkeys_pub','conname','wm','fkeys_data','conname','f','t'),
   ('wm','fkeys_pub','fn_obj','wm','fkeys_pub','fn_obj','f','f'),
   ('wm','fkeys_pub','fn_sch','wm','fkeys_pub','fn_sch','f','f'),
@@ -6497,51 +6942,54 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_obj','wm','fkeys_pub','tt_obj','f','f'),
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
-  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
-  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
-  ('mychips','peers_v_me','mod_date','mychips','peers','mod_date','f','f'),
-  ('mychips','peers_v_me','giv_name','base','ent_v','giv_name','f','f'),
-  ('mychips','peers_v_me','peer_addr','mychips','peers_v','peer_addr','f','f'),
-  ('mychips','peers_v_me','peer_hid','mychips','peers','peer_hid','f','f'),
-  ('mychips','peers_v_me','conn_pub','base','ent','conn_pub','f','f'),
-  ('mychips','peers_v_me','peer_chost','mychips','peers_v','peer_chost','f','f'),
-  ('mychips','peers_v_me','marital','base','ent','marital','f','f'),
-  ('mychips','peers_v_me','peer_sock','mychips','peers_v','peer_sock','f','f'),
-  ('mychips','peers_v_me','ent_type','base','ent','ent_type','f','f'),
-  ('mychips','peers_v_me','ent_inact','base','ent','ent_inact','f','f'),
-  ('mychips','peers_v_me','country','base','ent','country','f','f'),
-  ('mychips','peers_v_me','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('mychips','peers_v_me','peer_port','mychips','peers','peer_port','f','f'),
-  ('mychips','peers_v_me','peer_endp','mychips','peers_v','peer_endp','f','f'),
-  ('mychips','peers_v_me','crt_date','mychips','peers','crt_date','f','f'),
-  ('mychips','peers_v_me','peer_cmt','mychips','peers','peer_cmt','f','f'),
-  ('mychips','peers_v_me','ent_name','base','ent','ent_name','f','f'),
-  ('mychips','peers_v_me','bank','base','ent','bank','f','f'),
-  ('mychips','peers_v_me','peer_cid','mychips','peers','peer_cid','f','f'),
-  ('mychips','peers_v_me','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','peers_v_me','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('mychips','peers_v_me','title','base','ent','title','f','f'),
-  ('mychips','peers_v_me','count','mychips','peers_v_me','count','f','f'),
-  ('mychips','peers_v_me','frm_name','base','ent_v','frm_name','f','f'),
-  ('mychips','peers_v_me','peer_cport','mychips','peers_v','peer_cport','f','f'),
-  ('mychips','peers_v_me','crt_by','mychips','peers','crt_by','f','f'),
-  ('mychips','peers_v_me','ent_num','base','ent','ent_num','f','f'),
-  ('mychips','peers_v_me','cas_name','base','ent_v','cas_name','f','f'),
-  ('mychips','peers_v_me','born_date','base','ent','born_date','f','f'),
-  ('mychips','peers_v_me','username','base','ent','username','f','f'),
-  ('mychips','peers_v_me','mid_name','base','ent','mid_name','f','f'),
-  ('mychips','peers_v_me','pref_name','base','ent','pref_name','f','f'),
-  ('mychips','peers_v_me','tax_id','base','ent','tax_id','f','f'),
-  ('mychips','peers_v_me','gender','base','ent','gender','f','f'),
-  ('mychips','peers_v_me','peer_host','mychips','peers','peer_host','f','f'),
-  ('mychips','peers_v_me','std_name','base','ent_v','std_name','f','f'),
-  ('mychips','peers_v_me','mod_by','mychips','peers','mod_by','f','f'),
-  ('mychips','peers_v_me','id','base','ent','id','f','t'),
-  ('mychips','peers_v_me','peer_ent','mychips','peers','peer_ent','f','f'),
+  ('json','contract','digest','mychips','contracts','digest','f','f'),
+  ('json','contract','domain','mychips','contracts','domain','f','t'),
+  ('json','contract','language','mychips','contracts','language','f','t'),
+  ('json','contract','name','mychips','contracts','name','f','t'),
+  ('json','contract','published','mychips','contracts','published','f','f'),
+  ('json','contract','sections','mychips','contracts','sections','f','f'),
+  ('json','contract','tag','mychips','contracts','tag','f','f'),
+  ('json','contract','text','mychips','contracts','text','f','f'),
+  ('json','contract','title','mychips','contracts','title','f','f'),
+  ('json','contract','version','mychips','contracts','version','f','t'),
+  ('mychips','peers_v','bank','base','ent','bank','f','f'),
+  ('mychips','peers_v','born_date','base','ent','born_date','f','f'),
+  ('mychips','peers_v','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','peers_v','conn_pub','base','ent','conn_pub','f','f'),
+  ('mychips','peers_v','country','base','ent','country','f','f'),
+  ('mychips','peers_v','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','peers_v','crt_date','mychips','peers','crt_date','f','f'),
+  ('mychips','peers_v','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','peers_v','ent_inact','base','ent','ent_inact','f','f'),
+  ('mychips','peers_v','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','peers_v','ent_num','base','ent','ent_num','f','f'),
+  ('mychips','peers_v','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','peers_v','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','peers_v','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','peers_v','gender','base','ent','gender','f','f'),
+  ('mychips','peers_v','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','peers_v','id','base','ent','id','f','t'),
+  ('mychips','peers_v','marital','base','ent','marital','f','f'),
+  ('mychips','peers_v','mid_name','base','ent','mid_name','f','f'),
+  ('mychips','peers_v','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','peers_v','mod_date','mychips','peers','mod_date','f','f'),
+  ('mychips','peers_v','peer_addr','mychips','peers_v','peer_addr','f','f'),
+  ('mychips','peers_v','peer_chost','mychips','peers_v','peer_chost','f','f'),
+  ('mychips','peers_v','peer_cid','mychips','peers','peer_cid','f','f'),
+  ('mychips','peers_v','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','peers_v','peer_cport','mychips','peers_v','peer_cport','f','f'),
+  ('mychips','peers_v','peer_endp','mychips','peers_v','peer_endp','f','f'),
+  ('mychips','peers_v','peer_ent','mychips','peers','peer_ent','f','f'),
+  ('mychips','peers_v','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','peers_v','peer_host','mychips','peers','peer_host','f','f'),
+  ('mychips','peers_v','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','peers_v','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','peers_v','peer_sock','mychips','peers_v','peer_sock','f','f'),
+  ('mychips','peers_v','pref_name','base','ent','pref_name','f','f'),
+  ('mychips','peers_v','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','peers_v','tax_id','base','ent','tax_id','f','f'),
+  ('mychips','peers_v','title','base','ent','title','f','f'),
+  ('mychips','peers_v','username','base','ent','username','f','f'),
   ('mychips','users_v','age','base','ent_v','age','f','f'),
   ('mychips','users_v','bank','base','ent','bank','f','f'),
   ('mychips','users_v','born_date','base','ent','born_date','f','f'),
@@ -6589,213 +7037,71 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v','user_sock','mychips','users_v','user_sock','f','f'),
   ('mychips','users_v','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v','username','base','ent','username','f','f'),
-  ('wm','fkey_data','conname','wm','fkey_data','conname','f','t'),
-  ('wm','fkey_data','key','wm','fkey_data','key','f','f'),
-  ('wm','fkey_data','keys','wm','fkey_data','keys','f','f'),
-  ('wm','fkey_data','kyf_col','wm','fkey_data','kyf_col','f','f'),
-  ('wm','fkey_data','kyf_field','wm','fkey_data','kyf_field','f','f'),
-  ('wm','fkey_data','kyf_sch','wm','fkey_data','kyf_sch','f','f'),
-  ('wm','fkey_data','kyf_tab','wm','fkey_data','kyf_tab','f','f'),
-  ('wm','fkey_data','kyt_col','wm','fkey_data','kyt_col','f','f'),
-  ('wm','fkey_data','kyt_field','wm','fkey_data','kyt_field','f','f'),
-  ('wm','fkey_data','kyt_sch','wm','fkey_data','kyt_sch','f','f'),
-  ('wm','fkey_data','kyt_tab','wm','fkey_data','kyt_tab','f','f'),
-  ('wm','view_column_usage','column_name','information_schema','view_column_usage','column_name','f','f'),
-  ('wm','view_column_usage','table_catalog','information_schema','view_column_usage','table_catalog','f','f'),
-  ('wm','view_column_usage','table_name','information_schema','view_column_usage','table_name','f','f'),
-  ('wm','view_column_usage','table_schema','information_schema','view_column_usage','table_schema','f','f'),
-  ('wm','view_column_usage','view_catalog','information_schema','view_column_usage','view_catalog','f','f'),
-  ('wm','view_column_usage','view_name','information_schema','view_column_usage','view_name','f','t'),
-  ('wm','view_column_usage','view_schema','information_schema','view_column_usage','view_schema','f','t'),
-  ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
-  ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
-  ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
-  ('wm','column_data','def','wm','column_data','def','f','f'),
-  ('wm','column_data','field','wm','column_data','field','f','f'),
-  ('wm','column_data','is_pkey','wm','column_data','is_pkey','f','f'),
-  ('wm','column_data','length','wm','column_data','length','f','f'),
-  ('wm','column_data','nat_col','wm','column_native','nat_col','f','f'),
-  ('wm','column_data','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('wm','column_data','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_data','nonull','wm','column_data','nonull','f','f'),
-  ('wm','column_data','pkey','wm','column_native','pkey','f','f'),
-  ('wm','column_data','tab_kind','wm','column_data','tab_kind','f','f'),
-  ('wm','column_data','type','wm','column_data','type','f','f'),
-  ('wm','fkeys_data','conname','wm','fkeys_data','conname','f','t'),
-  ('wm','fkeys_data','ksf_cols','wm','fkeys_data','ksf_cols','f','f'),
-  ('wm','fkeys_data','ksf_sch','wm','fkeys_data','ksf_sch','f','f'),
-  ('wm','fkeys_data','ksf_tab','wm','fkeys_data','ksf_tab','f','f'),
-  ('wm','fkeys_data','kst_cols','wm','fkeys_data','kst_cols','f','f'),
-  ('wm','fkeys_data','kst_sch','wm','fkeys_data','kst_sch','f','f'),
-  ('wm','fkeys_data','kst_tab','wm','fkeys_data','kst_tab','f','f'),
-  ('wm','fkey_pub','conname','wm','fkey_data','conname','f','t'),
-  ('wm','fkey_pub','fn_col','wm','fkey_pub','fn_col','f','f'),
-  ('wm','fkey_pub','fn_obj','wm','fkey_pub','fn_obj','f','f'),
-  ('wm','fkey_pub','fn_sch','wm','fkey_pub','fn_sch','f','f'),
-  ('wm','fkey_pub','fn_tab','wm','fkey_pub','fn_tab','f','f'),
-  ('wm','fkey_pub','ft_col','wm','fkey_pub','ft_col','f','f'),
-  ('wm','fkey_pub','ft_obj','wm','fkey_pub','ft_obj','f','f'),
-  ('wm','fkey_pub','ft_sch','wm','fkey_pub','ft_sch','f','f'),
-  ('wm','fkey_pub','ft_tab','wm','fkey_pub','ft_tab','f','f'),
-  ('wm','fkey_pub','key','wm','fkey_data','key','f','f'),
-  ('wm','fkey_pub','keys','wm','fkey_data','keys','f','f'),
-  ('wm','fkey_pub','tn_col','wm','fkey_pub','tn_col','f','f'),
-  ('wm','fkey_pub','tn_obj','wm','fkey_pub','tn_obj','f','f'),
-  ('wm','fkey_pub','tn_sch','wm','fkey_pub','tn_sch','f','f'),
-  ('wm','fkey_pub','tn_tab','wm','fkey_pub','tn_tab','f','f'),
-  ('wm','fkey_pub','tt_col','wm','fkey_pub','tt_col','f','f'),
-  ('wm','fkey_pub','tt_obj','wm','fkey_pub','tt_obj','f','f'),
-  ('wm','fkey_pub','tt_sch','wm','fkey_pub','tt_sch','f','f'),
-  ('wm','fkey_pub','tt_tab','wm','fkey_pub','tt_tab','f','f'),
-  ('wm','fkey_pub','unikey','wm','fkey_pub','unikey','f','f'),
-  ('wm','column_istyle','cs_col','wm','column_style','cs_col','f','t'),
-  ('wm','column_istyle','cs_obj','wm','column_istyle','cs_obj','f','f'),
-  ('wm','column_istyle','cs_sch','wm','column_style','cs_sch','f','t'),
-  ('wm','column_istyle','cs_tab','wm','column_style','cs_tab','f','t'),
-  ('wm','column_istyle','cs_value','wm','column_istyle','cs_value','f','f'),
-  ('wm','column_istyle','nat_col','wm','column_native','nat_col','f','f'),
-  ('wm','column_istyle','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('wm','column_istyle','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_istyle','nat_value','wm','column_istyle','nat_value','f','f'),
-  ('wm','column_istyle','sw_name','wm','column_style','sw_name','f','t'),
-  ('wm','column_istyle','sw_value','wm','column_style','sw_value','f','f'),
-  ('wm','column_pub','col','wm','column_pub','col','f','t'),
-  ('wm','column_pub','def','wm','column_data','def','f','f'),
-  ('wm','column_pub','field','wm','column_data','field','f','f'),
-  ('wm','column_pub','help','wm','column_text','help','f','f'),
-  ('wm','column_pub','is_pkey','wm','column_data','is_pkey','f','f'),
-  ('wm','column_pub','language','wm','column_text','language','f','f'),
-  ('wm','column_pub','length','wm','column_data','length','f','f'),
-  ('wm','column_pub','nat','wm','column_pub','nat','f','f'),
-  ('wm','column_pub','nat_col','wm','column_native','nat_col','f','f'),
-  ('wm','column_pub','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('wm','column_pub','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_pub','nonull','wm','column_data','nonull','f','f'),
-  ('wm','column_pub','obj','wm','column_pub','obj','f','f'),
-  ('wm','column_pub','pkey','wm','column_native','pkey','f','f'),
-  ('wm','column_pub','sch','wm','column_pub','sch','f','t'),
-  ('wm','column_pub','tab','wm','column_pub','tab','f','t'),
-  ('wm','column_pub','title','wm','column_text','title','f','f'),
-  ('wm','column_pub','type','wm','column_data','type','f','f'),
-  ('wm','table_data','cols','wm','table_data','cols','f','f'),
-  ('wm','table_data','has_pkey','wm','table_data','has_pkey','f','f'),
-  ('wm','table_data','obj','wm','table_data','obj','f','f'),
-  ('wm','table_data','pkey','wm','column_native','pkey','f','f'),
-  ('wm','table_data','system','wm','table_data','system','f','f'),
-  ('wm','table_data','tab_kind','wm','table_data','tab_kind','f','f'),
-  ('wm','table_data','td_sch','wm','table_data','td_sch','f','t'),
-  ('wm','table_data','td_tab','wm','table_data','td_tab','f','t'),
-  ('wm','column_meta','col','wm','column_meta','col','f','t'),
-  ('wm','column_meta','def','wm','column_data','def','f','f'),
-  ('wm','column_meta','field','wm','column_data','field','f','f'),
-  ('wm','column_meta','is_pkey','wm','column_data','is_pkey','f','f'),
-  ('wm','column_meta','length','wm','column_data','length','f','f'),
-  ('wm','column_meta','nat','wm','column_meta','nat','f','f'),
-  ('wm','column_meta','nat_col','wm','column_native','nat_col','f','f'),
-  ('wm','column_meta','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('wm','column_meta','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_meta','nonull','wm','column_data','nonull','f','f'),
-  ('wm','column_meta','obj','wm','column_meta','obj','f','f'),
-  ('wm','column_meta','pkey','wm','column_native','pkey','f','f'),
-  ('wm','column_meta','sch','wm','column_meta','sch','f','t'),
-  ('wm','column_meta','styles','wm','column_meta','styles','f','f'),
-  ('wm','column_meta','tab','wm','column_meta','tab','f','t'),
-  ('wm','column_meta','type','wm','column_data','type','f','f'),
-  ('wm','column_meta','values','wm','column_meta','values','f','f'),
-  ('wm','column_lang','col','wm','column_lang','col','f','t'),
-  ('wm','column_lang','help','wm','column_text','help','t','f'),
-  ('wm','column_lang','language','wm','column_text','language','t','f'),
-  ('wm','column_lang','nat','wm','column_lang','nat','f','f'),
-  ('wm','column_lang','nat_col','wm','column_native','nat_col','f','f'),
-  ('wm','column_lang','nat_sch','wm','column_native','nat_sch','f','f'),
-  ('wm','column_lang','nat_tab','wm','column_native','nat_tab','f','f'),
-  ('wm','column_lang','obj','wm','column_lang','obj','f','f'),
-  ('wm','column_lang','sch','wm','column_lang','sch','f','t'),
-  ('wm','column_lang','system','wm','column_lang','system','f','f'),
-  ('wm','column_lang','tab','wm','column_lang','tab','f','t'),
-  ('wm','column_lang','title','wm','column_text','title','t','f'),
-  ('wm','column_lang','values','wm','column_lang','values','f','f'),
-  ('wm','table_pub','cols','wm','table_data','cols','f','f'),
-  ('wm','table_pub','has_pkey','wm','table_data','has_pkey','f','f'),
-  ('wm','table_pub','help','wm','table_text','help','f','f'),
-  ('wm','table_pub','language','wm','table_text','language','f','t'),
-  ('wm','table_pub','obj','wm','table_pub','obj','f','f'),
-  ('wm','table_pub','pkey','wm','column_native','pkey','f','f'),
-  ('wm','table_pub','sch','wm','table_pub','sch','f','t'),
-  ('wm','table_pub','system','wm','table_data','system','f','f'),
-  ('wm','table_pub','tab','wm','table_pub','tab','f','t'),
-  ('wm','table_pub','tab_kind','wm','table_data','tab_kind','f','f'),
-  ('wm','table_pub','title','wm','table_text','title','f','f'),
-  ('wm','table_meta','cols','wm','table_data','cols','f','f'),
-  ('wm','table_meta','columns','wm','table_meta','columns','f','f'),
-  ('wm','table_meta','fkeys','wm','table_meta','fkeys','f','f'),
-  ('wm','table_meta','has_pkey','wm','table_data','has_pkey','f','f'),
-  ('wm','table_meta','obj','wm','table_meta','obj','f','f'),
-  ('wm','table_meta','pkey','wm','table_data','pkey','t','f'),
-  ('wm','table_meta','sch','wm','column_meta','sch','f','t'),
-  ('wm','table_meta','styles','wm','column_meta','styles','f','f'),
-  ('wm','table_meta','system','wm','table_data','system','f','f'),
-  ('wm','table_meta','tab','wm','column_meta','tab','f','t'),
-  ('wm','table_meta','tab_kind','wm','table_data','tab_kind','f','f'),
-  ('wm','table_lang','columns','wm','table_lang','columns','f','f'),
-  ('wm','table_lang','help','wm','table_text','help','t','f'),
-  ('wm','table_lang','language','wm','table_text','language','t','t'),
-  ('wm','table_lang','messages','wm','table_lang','messages','f','f'),
-  ('wm','table_lang','obj','wm','table_lang','obj','f','f'),
-  ('wm','table_lang','sch','wm','column_lang','sch','f','t'),
-  ('wm','table_lang','tab','wm','column_lang','tab','f','t'),
-  ('wm','table_lang','title','wm','table_text','title','t','f'),
-  ('wm','column_def','col','wm','column_pub','col','f','t'),
-  ('wm','column_def','obj','wm','column_pub','obj','f','f'),
-  ('wm','column_def','val','wm','column_def','val','f','f'),
-  ('mychips','peers_v','bank','base','ent','bank','f','f'),
-  ('mychips','peers_v','born_date','base','ent','born_date','f','f'),
-  ('mychips','peers_v','cas_name','base','ent_v','cas_name','f','f'),
-  ('mychips','peers_v','conn_pub','base','ent','conn_pub','f','f'),
-  ('mychips','peers_v','country','base','ent','country','f','f'),
-  ('mychips','peers_v','crt_by','mychips','peers','crt_by','f','f'),
-  ('mychips','peers_v','crt_date','mychips','peers','crt_date','f','f'),
-  ('mychips','peers_v','ent_cmt','base','ent','ent_cmt','f','f'),
-  ('mychips','peers_v','ent_inact','base','ent','ent_inact','f','f'),
-  ('mychips','peers_v','ent_name','base','ent','ent_name','f','f'),
-  ('mychips','peers_v','ent_num','base','ent','ent_num','f','f'),
-  ('mychips','peers_v','ent_type','base','ent','ent_type','f','f'),
-  ('mychips','peers_v','fir_name','base','ent','fir_name','f','f'),
-  ('mychips','peers_v','frm_name','base','ent_v','frm_name','f','f'),
-  ('mychips','peers_v','gender','base','ent','gender','f','f'),
-  ('mychips','peers_v','giv_name','base','ent_v','giv_name','f','f'),
-  ('mychips','peers_v','id','base','ent','id','f','t'),
-  ('mychips','peers_v','marital','base','ent','marital','f','f'),
-  ('mychips','peers_v','mid_name','base','ent','mid_name','f','f'),
-  ('mychips','peers_v','mod_by','mychips','peers','mod_by','f','f'),
-  ('mychips','peers_v','mod_date','mychips','peers','mod_date','f','f'),
-  ('mychips','peers_v','peer_addr','mychips','peers_v','peer_addr','f','f'),
-  ('mychips','peers_v','peer_chost','mychips','peers_v','peer_chost','f','f'),
-  ('mychips','peers_v','peer_cid','mychips','peers','peer_cid','f','f'),
-  ('mychips','peers_v','peer_cmt','mychips','peers','peer_cmt','f','f'),
-  ('mychips','peers_v','peer_cport','mychips','peers_v','peer_cport','f','f'),
-  ('mychips','peers_v','peer_endp','mychips','peers_v','peer_endp','f','f'),
-  ('mychips','peers_v','peer_ent','mychips','peers','peer_ent','f','f'),
-  ('mychips','peers_v','peer_hid','mychips','peers','peer_hid','f','f'),
-  ('mychips','peers_v','peer_host','mychips','peers','peer_host','f','f'),
-  ('mychips','peers_v','peer_port','mychips','peers','peer_port','f','f'),
-  ('mychips','peers_v','peer_pub','mychips','peers','peer_pub','f','f'),
-  ('mychips','peers_v','peer_sock','mychips','peers_v','peer_sock','f','f'),
-  ('mychips','peers_v','pref_name','base','ent','pref_name','f','f'),
-  ('mychips','peers_v','std_name','base','ent_v','std_name','f','f'),
-  ('mychips','peers_v','tax_id','base','ent','tax_id','f','f'),
-  ('mychips','peers_v','title','base','ent','title','f','f'),
-  ('mychips','peers_v','username','base','ent','username','f','f'),
-  ('json','contract','digest','mychips','contracts','digest','f','f'),
-  ('json','contract','domain','mychips','contracts','domain','f','t'),
-  ('json','contract','language','mychips','contracts','language','f','t'),
-  ('json','contract','name','mychips','contracts','name','f','t'),
-  ('json','contract','published','mychips','contracts','published','f','f'),
-  ('json','contract','sections','mychips','contracts','sections','f','f'),
-  ('json','contract','tag','mychips','contracts','tag','f','f'),
-  ('json','contract','text','mychips','contracts','text','f','f'),
-  ('json','contract','title','mychips','contracts','title','f','f'),
-  ('json','contract','version','mychips','contracts','version','f','t'),
+  ('json','address','comment','json','address','comment','f','f'),
+  ('json','address','id','json','address','id','f','t'),
+  ('json','address','locale','json','address','locale','f','f'),
+  ('json','address','main','json','address','main','f','f'),
+  ('json','address','post','json','address','post','f','f'),
+  ('json','address','prior','json','address','prior','f','f'),
+  ('json','address','seq','json','address','seq','f','t'),
+  ('json','address','spec','json','address','spec','f','f'),
+  ('json','address','state','base','addr','state','f','f'),
+  ('json','address','type','json','address','type','f','f'),
+  ('json','connect','comment','json','connect','comment','f','f'),
+  ('json','connect','id','json','connect','id','f','t'),
+  ('json','connect','media','json','connect','media','f','f'),
+  ('json','connect','prior','json','connect','prior','f','f'),
+  ('json','connect','seq','json','connect','seq','f','t'),
+  ('json','connect','spec','json','connect','spec','f','f'),
+  ('json','user','begin','json','user','begin','f','f'),
+  ('json','user','cid','json','user','cid','f','f'),
+  ('json','user','first','json','user','first','f','f'),
+  ('json','user','id','base','ent','id','f','t'),
+  ('json','user','juris','json','user','juris','f','f'),
+  ('json','user','middle','json','user','middle','f','f'),
+  ('json','user','name','json','user','name','f','f'),
+  ('json','user','prefer','json','user','prefer','f','f'),
+  ('json','user','taxid','json','user','taxid','f','f'),
+  ('json','user','type','json','user','type','f','f'),
+  ('mychips','peers_v_me','bank','base','ent','bank','f','f'),
+  ('mychips','peers_v_me','born_date','base','ent','born_date','f','f'),
+  ('mychips','peers_v_me','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','peers_v_me','conn_pub','base','ent','conn_pub','f','f'),
+  ('mychips','peers_v_me','count','mychips','peers_v_me','count','f','f'),
+  ('mychips','peers_v_me','country','base','ent','country','f','f'),
+  ('mychips','peers_v_me','crt_by','mychips','peers','crt_by','f','f'),
+  ('mychips','peers_v_me','crt_date','mychips','peers','crt_date','f','f'),
+  ('mychips','peers_v_me','ent_cmt','base','ent','ent_cmt','f','f'),
+  ('mychips','peers_v_me','ent_inact','base','ent','ent_inact','f','f'),
+  ('mychips','peers_v_me','ent_name','base','ent','ent_name','f','f'),
+  ('mychips','peers_v_me','ent_num','base','ent','ent_num','f','f'),
+  ('mychips','peers_v_me','ent_type','base','ent','ent_type','f','f'),
+  ('mychips','peers_v_me','fir_name','base','ent','fir_name','f','f'),
+  ('mychips','peers_v_me','frm_name','base','ent_v','frm_name','f','f'),
+  ('mychips','peers_v_me','gender','base','ent','gender','f','f'),
+  ('mychips','peers_v_me','giv_name','base','ent_v','giv_name','f','f'),
+  ('mychips','peers_v_me','id','base','ent','id','f','t'),
+  ('mychips','peers_v_me','marital','base','ent','marital','f','f'),
+  ('mychips','peers_v_me','mid_name','base','ent','mid_name','f','f'),
+  ('mychips','peers_v_me','mod_by','mychips','peers','mod_by','f','f'),
+  ('mychips','peers_v_me','mod_date','mychips','peers','mod_date','f','f'),
+  ('mychips','peers_v_me','peer_addr','mychips','peers_v','peer_addr','f','f'),
+  ('mychips','peers_v_me','peer_chost','mychips','peers_v','peer_chost','f','f'),
+  ('mychips','peers_v_me','peer_cid','mychips','peers','peer_cid','f','f'),
+  ('mychips','peers_v_me','peer_cmt','mychips','peers','peer_cmt','f','f'),
+  ('mychips','peers_v_me','peer_cport','mychips','peers_v','peer_cport','f','f'),
+  ('mychips','peers_v_me','peer_endp','mychips','peers_v','peer_endp','f','f'),
+  ('mychips','peers_v_me','peer_ent','mychips','peers','peer_ent','f','f'),
+  ('mychips','peers_v_me','peer_hid','mychips','peers','peer_hid','f','f'),
+  ('mychips','peers_v_me','peer_host','mychips','peers','peer_host','f','f'),
+  ('mychips','peers_v_me','peer_port','mychips','peers','peer_port','f','f'),
+  ('mychips','peers_v_me','peer_pub','mychips','peers','peer_pub','f','f'),
+  ('mychips','peers_v_me','peer_sock','mychips','peers_v','peer_sock','f','f'),
+  ('mychips','peers_v_me','pref_name','base','ent','pref_name','f','f'),
+  ('mychips','peers_v_me','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','peers_v_me','tax_id','base','ent','tax_id','f','f'),
+  ('mychips','peers_v_me','title','base','ent','title','f','f'),
+  ('mychips','peers_v_me','username','base','ent','username','f','f'),
   ('json','users','addresses','json','users','addresses','f','f'),
   ('json','users','begin','json','user','begin','f','f'),
   ('json','users','cid','json','user','cid','f','f'),
@@ -6807,16 +7113,13 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('json','users','prefer','json','user','prefer','f','f'),
   ('json','users','taxid','json','user','taxid','f','f'),
   ('json','users','type','json','user','type','f','f'),
-  ('json','tally','contract','mychips','tallies','contract','f','f'),
-  ('json','tally','created','json','tally','created','f','f'),
-  ('json','tally','foil','json','tally','foil','f','f'),
-  ('json','tally','guid','json','tally','guid','f','f'),
-  ('json','tally','id','json','tally','id','f','t'),
-  ('json','tally','stock','json','tally','stock','f','f'),
-  ('json','tally','version','mychips','tallies','version','f','f'),
   ('mychips','tallies_v_paths','bang','mychips','tallies_v_paths','bang','f','f'),
   ('mychips','tallies_v_paths','circuit','mychips','tallies_v_paths','circuit','f','f'),
   ('mychips','tallies_v_paths','corein','mychips','tallies_v_paths','corein','f','f'),
+  ('mychips','tallies_v_paths','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
+  ('mychips','tallies_v_paths','drop_max','mychips','tallies_v_net','drop_max','f','f'),
+  ('mychips','tallies_v_paths','drop_min','mychips','tallies_v_net','drop_min','f','f'),
+  ('mychips','tallies_v_paths','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
   ('mychips','tallies_v_paths','first','mychips','tallies_v_paths','first','f','t'),
   ('mychips','tallies_v_paths','fora','mychips','tallies_v_paths','fora','f','f'),
   ('mychips','tallies_v_paths','forz','mychips','tallies_v_paths','forz','f','f'),
@@ -6824,10 +7127,18 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_paths','inside','mychips','tallies_v_paths','inside','f','f'),
   ('mychips','tallies_v_paths','last','mychips','tallies_v_paths','last','f','t'),
   ('mychips','tallies_v_paths','length','mychips','tallies_v_paths','length','f','t'),
-  ('mychips','tallies_v_paths','margin','mychips','tallies_v_paths','margin','f','f'),
-  ('mychips','tallies_v_paths','max','mychips','tallies_v_paths','max','f','f'),
-  ('mychips','tallies_v_paths','min','mychips','tallies_v_paths','min','f','f'),
-  ('mychips','tallies_v_paths','path','mychips','tallies_v_paths','path','f','f');
+  ('mychips','tallies_v_paths','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
+  ('mychips','tallies_v_paths','lift_max','mychips','tallies_v_net','lift_max','f','f'),
+  ('mychips','tallies_v_paths','lift_min','mychips','tallies_v_net','lift_min','f','f'),
+  ('mychips','tallies_v_paths','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','tallies_v_paths','path','mychips','tallies_v_paths','path','f','f'),
+  ('json','tally','contract','mychips','tallies','contract','f','f'),
+  ('json','tally','created','json','tally','created','f','f'),
+  ('json','tally','foil','json','tally','foil','f','f'),
+  ('json','tally','guid','json','tally','guid','f','f'),
+  ('json','tally','id','json','tally','id','f','t'),
+  ('json','tally','stock','json','tally','stock','f','f'),
+  ('json','tally','version','mychips','tallies','version','f','f');
 
 --Initialization SQL:
 insert into base.country (code,com_name,capital,cur_code,cur_name,dial_code,iso_3,iana) values

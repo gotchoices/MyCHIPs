@@ -1,5 +1,13 @@
 Change Log:
 
+0.1.9	2020-Mar
+	- Documentation improvements
+	- Agent model modifies trading parameters
+	- Discover, relay trading parameters in route table
+	- Automated launch of admin UI in simulation mode
+	- Custom logfile viewer for simulations
+	- Preliminary logic for distributed lift states
+
 0.1.8	2020-Feb
 	- Tallies/chits impemented as hash chains
 	- Network graph auto-arranges
