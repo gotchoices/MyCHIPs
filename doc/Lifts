@@ -537,20 +537,15 @@ reasonable retries and know when to give up.
 Lift States:
 
 It was originally assumed that the lift would be implemented in its own state 
-machine, much like the tally, chit, and path states shown in the accompanying 
+machine, just like the tally, chit, and route states shown in the accompanying 
 States.odg file.  Then it was noted that a lift really just consists of chits 
 so why not just extend the chit state diagram to implement lifts?
 
-Problem is, a lift is really a set of chits, all linked by a single uuid.  But
-all those chits that belong to the same system need to act in a single, unified 
-transaction.  We really need single state (per system) to represent all the
-local chits, part of the lift.
-
-The original chit state diagram considered only chits between parties who share 
-a tally directly.  Local circular lifts were implemented in a stored procedure.
-It was a little more complicated than a single transaction because it entails 
-multiple sets of chits, committed to a circular chain of tallies, both stock 
-and foil.
+Problem is, a lift is really a set of chits, all linked by a single uuid.  And
+all those chits that belong to the same system will need to act in a single, 
+unified transaction.  We really need single state record (per system) to 
+represent all the local chits, part of the lift.  It would be difficult to
+try to maintain state in multiple chit records all at once.
 
 In a distributed lift, each system will identify one or more local users
 arrayed in a linear chain with one foreign peer at each end of the chain.  For
@@ -570,82 +565,55 @@ Conclusion is, we do need a lift table containing a lift record with its own
 state.  This record will, at some point in the process, refer to a set of
 prospective chits, which will commit all-or-none.
 
-We mentioned earlier the 3-phases for the lift:
+It was noted earlier, the 3-phases for the lift are:
 
-Phase 1: Seek/verify a circuit or path for the lift and its amount
+Phase 1: Seek/discover a circuit or path for the lift and its amount
 Phase 2: Send a conditional lift proposal around the circuit, upstream
-Phase 3: Issue validation or cancellation downstream through the circuit
-	 Respond (indefinitely) to requests for validation of the lift
+Phase 3: Issue validation/cancellation downstream through the circuit
+Cleanup: Respond (indefinitely) to requests for validation of the lift
 
 Valid states for the lift record are as follows:
 
-xxxxxxxxxxxxx WIP xxxxxxxxxxxxx
+  init:		We have identified a lift segment we will now propose to the 
+	outside network.  This is a result of the user interacting with his UI 
+	to pay someone, or it may be a circular lift initiated automatically by 
+	the site.
 
-  userRequest
+  seek:		We have sent a query request for our own proposed lift along 
+	the marked segment.  The lift has a UUID and a range of amounts we will 
+	find acceptable.
 
-The original, payment-based states are as follows:
-  null:		No chit yet created
-  userRequest:	A payment request has been created by one user, but not yet 
-   		communicated to the other user.
-  userInvoice:	The payment request has now been transmitted to the other
-		user.
-  peerValid:	The other user has agreed to, and signed the payment to our
-		local user.
-  peerDecline:	The other user has refused to pay the request.
-  userDraft:	Another user has offered our user a payment but we haven't
-		told our guy about it yet.
-  userValid:	We have now notified our guy of the receipt of payment.
-  peerInvoice:	A remote user has asked our user to make a payment and we
-		have notified our user.
-  userAgree:	Our user has agreed and signed, but we haven't yet
-		transmitted confirmation to the recipient.
-  userValid:	We have now transmitted the signed payment to the other guy.
-  userDecline:	Our user has declined to make the payment but we haven't yet
-		notified the peer that requested the payment.
-  userVoid:	We have notified the peer our guy will not be paying.
+  pend:		We received a request for lift via a downstream foreign peer.
+	Either:
+	- We have knowledge of one or more pathways for the lift which connects 
+	  with the intended recipient, a single, known, upstream foreign peer 
+	  who holds a foil with one of our local users; or
+	- We have discovered the intended recipient of the lift to be one of 
+	  our local users.  If this is one of our own lifts, it just came full 
+	  circle.  If not, our user is the end of a linear lift.
+  
+  closed:	We have now upgraded our own prospective lift to a proposal 
+	with a specific amount, and a token which can be used to validate a 
+	final commit signature.
 
+  void:		The lift has been abandoned by the originator.
+  
+  timeout:	Our request for lift has not been answered.  We will need a 
+  	provision to retry or redirect to another pathway.
 
-OBSOLETE:
-For the case of lift chits, we will implement the following states.  All 
-tallies in our system along the lift segment will contain a chit which is in
-the indicated state.  We can query only foils with foreign peers in order to
-produce a single instance of the lift in process.
+Obsolete?
+-------------------------------------------------------------------------------
+  relay:	We have forwarded our willingness and terms for a sought lift
+		which was previoiusly in the query state.
 
-OBSOLETE:
-  liftInvoice:	Our local user has created a request to be paid through a
+  invoice:	Our local user has created a request to be paid through a
 		linear lift.
 
-  liftDraft:	A lift has been sought which we received via a known, foreign
-		peer who holds a stock tally with one of our local users (a
-		downstream, foreign peer).  We have discovered the intended 
-		recipient of the lift to be one of our local users, who did 
-		not initiate the lift (but may have requested it off-network).  
-		Therefore this is a linear lift with our guy at the end of the 
-		transaction.
-  
-  liftInit:	We have marked out a lift segment we would like to propose to
-		the outside network.
-  liftSeek:	We have sent a seek request for our own possible lift along the
-		marked segment.  The lift has a UUID and a range of amounts we
-		will find acceptable.
-  
-  liftQuery:	A lift has been sought which we received via a downstream
-		foreign peer.  We have discovered one or more pathways which 
-		terminate with a single known, foreign peer who holds a foil 
-		tally with one of our local users (an upstream, foreign peer.)
-  liftRelay:	We have forwarded our willingness and terms for a sought lift
-		which was previoiusly in the liftQuery state.
+  propose:	Our prospective lift has now been communicated upstream.
 
-  liftSet:	We have now upgraded our own prospective lift to a proposal 
-		with a specific amount, and a token which can be used to 
-		validate a final commit signature.
-  liftPropose:	Our prospective lift has now been communicated upstream.
-
-  liftProffer:	We have received an upgrade from downstream to a previous lift
+  proffer:	We have received an upgrade from downstream to a previous lift
 		query that has not yet expired.  We accept the specific terms
 		and choose to participate.  All we need now is a signature to
 		make this binding money.
-  liftPending:	We have sent the specific lift along upstream.  We expect to
+  pending:	We have sent the specific lift along upstream.  We expect to
 		receive a final signature next to make this final.
-
--------------------------------------------------------------------------------

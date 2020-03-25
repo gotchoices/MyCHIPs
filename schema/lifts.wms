@@ -1,0 +1,293 @@
+#Schema for tracking the status of distributed lifts
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+#TODO:
+#X- Make state digram
+#- Port from chits template
+#- Make middleware state transition handler
+#- 
+module mychips
+
+namespace eval lifts {
+    def lifts_pk	{lift_guid}
+    def lifts_v_up	{request status}
+    def lifts_v_in	[concat lift_guid $lifts_v_up ]
+    def lifts_se	[concat lift_guid $lifts_v_up lift_type lift_date digest]
+}
+
+table mychips.lifts {mychips.chits} {
+    lift_guid	uuid		primary key
+  , lift_type	text		not null default 'linear' check(lift_type in ('circular','linear'))
+  , request	text		check(request is null or request in ('init'))
+  , status	text		check(status in ('init','seek','failed','closed','pend','void'))
+  , dest_cid	text		not null
+  , dest_host	text		not null
+  , min_units	bigint		not null
+  , max_units	bigint		not null
+  , lift_date	timestamptz	not null default current_timestamp
+  , digest	bytea		
+  , signature	text
+}
+index {} mychips.lifts lift_type
+
+table mychips.lift_tries {mychips.lifts} {
+    ltry_guid	uuid	      , primary key (ltry_guid)
+  , tries	int		not null default 1
+  , last	timestamptz	not null default current_timestamp
+}
+
+# Generate unique primary key for a new lift
+#----------------------------------------------------------------
+function mychips.lifts_tf_bi() {mychips.lifts} {
+  returns trigger language plpgsql security definer as $$
+    begin
+        if new.lift_guid is null then
+          new.lift_guid = uuid_generate_v5(uuid_generate_v4(), new.dest_cid || '@' || new.dest_host);
+        end if;
+
+--        if mychips.lift_open(new.request, new.signature) then		-- A received, signed lift can come in as open
+--          return mychips.lift_opencheck(new);
+--        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_lifts_tr_bi {} {
+    before insert on mychips.lifts for each row execute procedure mychips.lifts_tf_bi();
+}
+
+# Before updating each lift record
+#----------------------------------------------------------------
+#function mychips.lifts_tf_bu() {mychips.lift_opencheck(mychips.lifts) mychips.lift_open(text,text)} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#      if mychips.lift_open(new.request, new.signature) and not mychips.lift_open(old.request, old.signature) then
+#        return mychips.lift_opencheck(new);
+#      end if;
+#      return new;
+#    end;
+#$$;}
+#trigger mychips_lifts_tr_bu {} {
+#    before update on mychips.lifts for each row execute procedure mychips.lifts_tf_bu();
+#}
+
+# Quality check for a lift in open state
+#----------------------------------------------------------------
+#function {mychips.lift_opencheck(ch mychips.lifts)} {mychips.lift_json(mychips.lifts)} {
+#  returns mychips.lifts stable language plpgsql security definer as $$
+#    declare
+#      trec	record;
+#      crec	record;
+#    begin
+#
+#      select into crec * from mychips.lifts where lift_ent = ch.lift_ent and lift_seq = ch.lift_seq and not digest isnull order by chain_idx desc limit 1;
+#      if found then
+#        ch.chain_prv = crec.digest;
+#        ch.chain_idx = crec.chain_idx + 1;
+#        ch.digest = sha256(mychips.lift_json(ch)::text::bytea);
+#--raise notice 'Chit digest:%', ch.digest;
+#        return ch;
+#      end if;
+#      
+#      select into trec * from mychips.tallies where tally_ent = ch.lift_ent and tally_seq = ch.lift_seq;
+#      if not found or trec.digest is null then
+#        raise exception 'Attempted lift link to invalid tally: %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
+#        return null;
+#      end if;
+#      ch.chain_prv = trec.digest;
+#      ch.chain_idx = 0;
+#      ch.digest = sha256(mychips.lift_json(ch)::text::bytea);
+#      return ch;
+#    end;
+#$$;}
+
+# Notify the peer server process of lift state changes that need attention in the database
+#----------------------------------------------------------------
+function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v mychips.lift_tries} {
+  returns boolean language plpgsql security definer as $$
+    declare
+--#        act	text	= lift.request;
+--#        channel	text	= 'mychips_peer';
+--#        jrec	jsonb;			-- Holds notify record
+--#        trec	record;			-- Talley
+--#        urec	record;			-- User
+--#        rrec	record;			-- Retries
+    begin
+--#        if act is null then return false; end if;
+--#        
+--#        select into trec * from mychips.tallies_v where tally_ent = lift.lift_ent and tally_seq = lift.lift_seq;
+--#        select into urec serv_id from mychips.users_v where user_ent = lift.lift_ent;
+--#        if not urec.serv_id is null then
+--#            channel = channel || '_' || urec.serv_id;
+--#        end if;
+--#        insert into mychips.lift_tries (ltry_ent, ltry_seq, ltry_idx) values (lift.lift_ent, lift.lift_seq, lift.lift_idx)
+--#          on conflict (ltry_ent,ltry_seq,ltry_idx) do update set tries = mychips.lift_tries.tries + 1, last = current_timestamp
+--#            returning * into rrec;
+--#        
+--#        jrec = jsonb_build_object(		--Fixme: get rid of what is redundant with {object} or otherwise not needed
+--#          'target',	'lift',
+--#          'peer',	trec.part_cid,
+--#          'user',	trec.user_cid,
+--#          'entity',	lift.lift_ent,
+--#          'tally',	trec.tally_guid,
+--#          'action',	act,
+--#          'try',	rrec.tries,
+--#          'last',	rrec.last,
+--#          'at',		trec.part_sock,
+--#          'object',	(select json from mychips.lifts_v where lift_ent = lift.lift_ent and lift_seq = lift.lift_seq and lift_idx = lift.lift_idx)
+--#        );
+--raise notice 'Lift notice:% %', channel, jrec::text;
+--#        perform pg_notify(channel, jrec::text);
+--#        return true;
+    end;
+$$;}
+
+# Generate notifications about updated lifts for listening peer servers
+#----------------------------------------------------------------
+function mychips.lifts_tf_notify() {mychips.lifts} {
+  returns trigger language plpgsql security definer as $$
+    declare
+        dirty	boolean default false;
+    begin
+        if TG_OP = 'INSERT' then
+            dirty = true;
+        elsif new.request is not null and new.request is distinct from old.request then
+            dirty = true;
+        end if;
+--raise notice 'Lift update: %', dirty;
+        if dirty then perform mychips.lift_notify(new); end if;
+        return new;
+    end;
+$$;}
+trigger mychips_lifts_tr_notice {} {
+    after insert or update on mychips.lifts for each row execute procedure mychips.lifts_tf_notify();
+}
+
+# Compute standard json output for a lift
+#----------------------------------------------------------------
+function {mychips.lift_json(lf mychips.lifts)} {mychips.lifts} {
+  returns jsonb stable language sql as $$
+    select jsonb_build_object(
+       'lift',		lf.lift_guid,
+       'cid',		lf.dest_cid,
+       'host',		lf.dest_host,
+       'signature',	lf.signature
+    )
+$$;}
+
+# Compute current state of a lift
+#----------------------------------------------------------------
+function {mychips.lift_state(status text, expired boolean, trymax boolean)} {mychips} {
+  returns text stable language plpgsql as $$
+    begin
+      return case when status = 'draft'				then 'draft'
+         when status = 'none'					then 'none'
+         when status = 'pend' then
+           case when expired and not trymax			then 'timeout'
+                when expired and trymax				then 'unknown'
+           else 'pend' end
+         when status = 'good' then
+           case when expired					then 'stale'
+           else 'good' end
+         when status = 'none'					then 'none'
+         else 'undefined' end;
+    end;
+$$;}
+
+# Cache lift expiration interval
+#----------------------------------------------------------------
+function {mychips.lift_life()} {mychips base.parm_v} {
+  returns interval language plpgsql stable as $$
+    begin
+      return base.parm('lifts', 'life', '2 minutes'::text)::interval;
+    end;
+$$;}
+
+# Base view of lifts
+#----------------------------------------------------------------
+view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,boolean,boolean) mychips.lift_json(mychips.lifts)} {select 
+    eval(fld_list $lifts::lifts_se	lf)
+  , mychips.route_state(lf.status
+    , current_timestamp > lf.lift_date + mychips.lift_life()		-- Expired
+    , coalesce(lt.tries,0) >= base.parm('routes','tries',4)		-- Max tries
+  )			as state
+
+  , mychips.lift_json(lf)					as json_core
+  , mychips.lift_json(lf) || jsonb_build_object(
+      'digest',		lf.digest
+    )								as json
+  , sha256(mychips.lift_json(lf)::text::bytea) as digest_v
+  , sha256(mychips.lift_json(lf)::text::bytea) = coalesce(lf.digest,'') as clean
+
+    from	mychips.lifts		lf
+    left join	mychips.lift_tries	lt on lt.ltry_guid = lf.lift_guid
+
+--    ev-al(trigview::insert mychips.lifts_v mychips.lifts $lifts::lifts_v_in $lifts::lifts_pk [concat $glob::stampin {request 'userDraft'}]);
+--    ev-al(trigview::update mychips.lifts_v mychips.lifts $lifts::lifts_v_up $lifts::lifts_pk $glob::stampup);
+} -grant {
+    {lift	{s} {i u} {d}}
+}
+
+# Process lift state transitions requested by the peer server process
+#----------------------------------------------------------------
+function {mychips.lift_process(msg jsonb, recipe jsonb)} {mychips.users_v mychips.lifts_v} {
+  returns text language plpgsql as $$
+    declare
+--        cid		text	= msg->>'user';
+--        obj		jsonb	= msg->'object';
+--        guid		uuid	= obj->>'guid';
+--        curState	text;
+--        qstrg		text;		-- Temporary string
+--        crec		record;		-- Holds lift record(s)
+--        trec		record;		-- Holds associated tally
+--        qflds		text[];		-- Temporary array
+--        lrec		record;		-- Looping variable
+--        erec		record;		-- Tally entity, we will ignore the one in msg
+    begin
+--#        select into erec id, serv_id from mychips.users_v where peer_cid = cid;
+--#        if not found then return null; end if;
+--#
+--#        select into crec lift_ent, lift_seq, lift_idx, state from mychips.lifts_v where lift_ent = erec.id and lift_guid = guid;
+--#        curState = crec.state;
+--#--raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.lift_ent, curState, recipe;
+--#        if not found then
+--#            curState = 'null';		-- Special code for when the specified lift doesn't exist yet
+--#        end if;
+--#
+--#        if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
+--#--raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+--#            return curState;
+--#        end if;
+--#
+--#        if recipe ? 'upsert' then
+--#--raise notice '  upsert obj:% curState:%', obj, curState;
+--#          if curState = 'null' then			-- Need to do insert
+--#            select into trec * from mychips.tallies where tally_ent = erec.id and tally_guid = (msg->>'tally')::uuid;
+--#            if not found then return null; end if;
+--#            
+--#            execute 'insert into mychips.lifts (lift_ent,lift_seq,lift_guid,lift_type,lift_date,signature,units,quidpro,memo,chain_idx,chain_prv,digest) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning lift_ent, lift_seq, lift_idx' into crec
+--#                using trec.tally_ent, trec.tally_seq, guid, obj->>'type', (obj->>'date')::timestamptz, obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea;
+--#          else						-- Chit already exists, do update
+--#--Fixme: we are currently ignoring the recipe update fields and only updating from the object fields!
+--#--When does this get used anyway?
+--#            execute 'update mychips.lifts set signature = $1, units = $2, quidpro = $3, memo = $4, request = null, mod_date = current_timestamp, mod_by = session_user where lift_ent = $5 and lift_seq = $6 and lift_idx = $7'
+--#                using obj->>'signed', (obj->>'units')::bigint, obj->>'link', obj->>'memo', crec.lift_ent, crec.lift_seq, crec.lift_idx;
+--#            delete from mychips.lift_tries where ltry_ent = crec.lift_ent and ltry_seq = crec.lift_seq and ltry_idx = crec.lift_idx;
+--#          end if;
+--#        end if;
+--#
+--#        if recipe ? 'update' then			-- There's an update key in the recipe
+--#          qstrg = mychips.state_updater(recipe, 'mychips.lifts', '{signature}');
+--#--raise notice 'SQL:%', qstrg;
+--#          execute qstrg || ' lift_ent = $1 and lift_seq = $2 and lift_idx = $3' using crec.lift_ent, crec.lift_seq, crec.lift_idx;
+--#          delete from mychips.lift_tries where ltry_ent = crec.lift_ent and ltry_seq = crec.lift_seq and ltry_idx = crec.lift_idx;
+--#        end if;
+--#
+--#        select into crec lift_ent,lift_seq,lift_idx,state,action,json from mychips.lifts_v where lift_ent = crec.lift_ent and lift_seq = crec.lift_seq and lift_idx = crec.lift_idx;
+--#        if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
+--#--raise notice '  lift notify for user channel: mychips_user_%', crec.lift_ent;
+--#            perform pg_notify('mychips_user_' || crec.lift_ent, crec.json::text);
+--#            perform pg_notify('mychips_user', crec.json::text);		-- Simulations use this
+--#        end if;
+--#        return crec.state;
+    end;
+$$;}
