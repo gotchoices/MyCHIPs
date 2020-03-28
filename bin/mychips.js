@@ -42,7 +42,7 @@ var argv = Args({
   .alias('m','model')    .default('model',	false)	//Run agent-based model
   .argv
 
-//log.trace("argv:", argv)
+//log.debug("argv:", argv)
 var credentials = (!argv.noHTTPS && argv.spaPort) ? Credentials(argv.spaKey, argv.spaCert, null, log) : null
 var sslAdmin = Credentials(argv.dbAdminKey, argv.dbAdminCert, argv.dbCA)	//Ignore errors
 var sslUser = Credentials(argv.dbUserKey, argv.dbUserCert, argv.dbCA)
@@ -83,11 +83,11 @@ var wyseman = new Wyseman({				//Launch SPA server and associated web socket
 
 if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communications
   const PeerCont = require('../lib/peer.js')		//Peer communications controller
+  let ssl = Credentials(argv.peerKey, argv.peerCert, null, log)
   var peer = new PeerCont({
     port: argv.peerPort, 
     servID: argv.servID,
-    poll: true
-//Fixme: add in peer credentials here
+    poll: true, ssl
   }, {
     host: argv.dbHost,
     database:argv.dbName,
