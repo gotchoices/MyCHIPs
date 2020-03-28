@@ -1,20 +1,5 @@
 Tallies
 
-Site Definition:
--------------------------------------------------------------------------------
-A site is:
- - A model and controller
- - A collection of algorithms and settings
- - A representation of the interests of an individual or corporation
- - A server to process requests from other peer sites
- - A Client to make requests from other peer sites
- - An interface to negotiate approvals with the owner user
- - An interface to process actions initiated by the owner user
- - A data repository
- - A platform for trading credits
-
-The Tally
--------------------------------------------------------------------------------
 A tally is, at its essence, a contract between two parties.  By the tally, they 
 agree to "keep track" of a net amount owing between them, on mutually 
 acceptable terms.
@@ -498,4 +483,99 @@ The lading values get aggregated along these chains to become:
 During route discovery (see Lift document), these values are queried in order 
 to determine lading capacity through pathways that span across multiple sites.
 
+Chit Chains:
 -------------------------------------------------------------------------------
+One of the challenges of a distributed system is to keep different copies of 
+important data in sync across systems.  This is where parts of blockchain 
+technology will be helpful to us.
+
+While we don't have the problem of thousands of different databases all trying
+to reach consensus about a single data set, we do have two copies of each
+ledger: Stock and Foil.  And while they are bound to get out of sync from time
+to time, it is important that they converge to the same answer eventually as
+they go along.
+
+So we will employ the design pattern of a hash chain.  The chits belonging to a 
+tally will form a linked list where each chit in the chain will nold a copy the 
+hash of the prior chit in the chain.  This way, if our two peers can agree on 
+the index number and hash value of the last chit in the chain, they can rest 
+assured, they also agree on the contents of all prior chits in the chain.
+
+Here are a some basic rules for our algorithm:
+  - Either side of the tally can authorize their own chits when the result of
+    that chit would be to transfer value to the other party.
+  - Either side may also request a chit from the other when the result is to
+    receive value.
+  - But you can't unilaterally transfer value from the other party to yourself.
+  - Once you sign (using your private key) a chit, you immediately send it to 
+    the other party.
+  - This packet includes the chain index and hash, so the other party can see
+    at any time how much of the chain you may both agree on.
+
+Foil Specifics:
+  - You add signed chits to the chain as you become aware of them.  The order 
+    you pick for chits in the chain is authoritative.
+  - Upon receiving a signed chit from the Stock, attempt to add it to your
+    own chain.
+  - If it can be added at the end of your chain with the same index number,
+    and your computed hash matches, send an acknowledge.  Also record for the
+    tally that the Stock agrees with you up through this latest index.
+  - If a received chit can not be added at the specified index, add it at the
+    end of your chain and then send an adjustment record including all chits
+    greater than the last agreed upon index.
+
+Stock Specifics:
+  - If you are the Stock, you must adapt to the ordering of chits selected by
+    the Foil.  If the Foil refuses to acknowledge a chit, this could be a 
+    reason to end the relationship.  But as long as it gets integrated at some 
+    point, you don't need to worry about where it landed in the chain.
+  - Upon receiving a signed chit from the Foil, attempt to add it to your
+    own chain.
+  - If it can be added at the end of your chain with the same index number,
+    and your computed hash matches, send an acknowledge.  Also record for the
+    tally that the Stock agrees with you up through this latest index.
+  - Fixme: What do do if a received chit specifies an index earlier than
+    the last validated index?
+  - Otherwise, if a received chit specifies an index already occupied by a 
+    record in your own chain, install the new chit at the specified index and
+    increment the index number of the conflicting chit (and any after it).
+  - If the computed hash matches for the installed record, send an Ack and
+    note the latest validated index number.
+  - Otherwise, if there are any records in your chain before the one you just
+    inserted and with index numbers higher than the latest validated, resend
+    them to the Foil (as they have probably been missed somehow).
+  - If you get an adjustment record from the Foil containing multiple chits,
+    insert them all in your chain at the specified indexes, moving any
+    conflicting chits later in your chain.  If your computed hash matches up
+    through the end of the adjustment matches, send an Ack and record the
+    latest validate index.
+
+In general, if you get a chit that already agrees with what you have on the
+chain, send an Ack back.  If you get an Ack through a certain index number
+move your latest valid index number forward (but not back) to that number.
+
+See the section in the Tallies document for more on treatment of chits that
+belong to a lift transaction.
+
+Chit States:
+-------------------------------------------------------------------------------
+The state of a chit can be looked at from several different angles, depending 
+on what is needed.
+
+State Machine:
+The view field "state" tells us a state name, based on the values of verious
+physical fields in the chit record.  This field is slower because it is
+computed, but it really only needs to be consulted when considering whether
+various state changes are allowable.
+
+Status:
+There is a physical field called "status" which should tell us whether a
+chit should be considered when computing the tally total.  Available values
+are: void (disregard), pend (include in projected balance), clsd (include in
+available balance).
+
+Verified:
+If a chit includes a hash and a chain index, it has been added to the local 
+hash chain.  But it might not yet be verified.  If its index is less than or
+equal to the "verified" field of the tally, then it is verified and should be
+considered irrevocable.

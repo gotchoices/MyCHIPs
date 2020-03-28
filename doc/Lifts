@@ -601,8 +601,7 @@ Valid states for the lift record are as follows:
   timeout:	Our request for lift has not been answered.  We will need a 
   	provision to retry or redirect to another pathway.
 
-Obsolete?
--------------------------------------------------------------------------------
+Obsolete States?
   relay:	We have forwarded our willingness and terms for a sought lift
 		which was previoiusly in the query state.
 
@@ -617,3 +616,26 @@ Obsolete?
 		make this binding money.
   pending:	We have sent the specific lift along upstream.  We expect to
 		receive a final signature next to make this final.
+
+
+Chit Chains and Lifts:
+-------------------------------------------------------------------------------
+For an understanding of how chits are stored in a hash-chained linked list, see
+the Tallies document.
+
+The lift and chit state machines are closely intertwined.  When a lift is
+completed, we will be entering a series of chits on a number of local tallies
+and expecting our peer sites to do so as well in a cascade of coordinated 
+transactions.
+
+In some respects, we want lift chits to be exempt from actions occuring in the
+regular chit state diagram.  For example, if we create a draft chit, intended
+to become part of an eventual lift, we don't want to start transmitting that
+to peer sites.  And we don't want to create any triggers for the UI.
+
+However, when it comes time to commit signed chits to tallies, there is no
+guaranty that the two halves of the tally are in sych with each other at that
+moment.  We need to be able to commit the chits and then trust the chit state
+machine to clean up after us by inserting the chits into the hash-chain and
+the communicating with their other half if necessary to resolve any conflicts
+in the order of resulting chits.

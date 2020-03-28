@@ -31,7 +31,7 @@
     "dev-server": "bin/mychips.js --spaPort=0",
     "dev": "npm-run-all --parallel dev-build dev-server",
     "server": "bin/mychips.js",
-    "start": "bin/localcerts -b spa && bin/mychips.js",
+    "start": "bin/localcerts -b spa peer && bin/mychips.js",
     "cert": "wyclif-cert",
     "init": "bin/localcerts spa",
     "adminticket": "bin/adminticket -o test/local/admin.json",

@@ -18,7 +18,7 @@ Can you build this system on top of (Etherium, holochain, other blockchain...)?
 Not really.  Maybe somehow, but why?  Blockchain is a centralized data topology.
 Transactions are designed to go through a common, public store.  MyCHIPs is a 
 distributed data model.  There is no double-spending problem, no proof of Work, 
-Stake, etc. required.
+proof of Stake, etc. is required.
 
 The part of blockchain technology that _is_ applicable is the notion of chained
 hashes.  MyCHIPs does make use of them but it is implemented inside the
@@ -100,4 +100,13 @@ VT100 or a teletype, make your window wider.  It will work.
 Will it run on Windows?
 
 Sure.  In Docker!
+
+In all seriousness, maybe.  But I haven't spent any effort trying this.  The
+core of the system is implemented in PostgreSQL and Node, so running natively
+on Windows could very well be possible.
+
+The support scripts and simulation environment make heavy use of Bash.  So you 
+would likely have to have that installed.  
+
+If anyone wants to test/validate on Windows, your help would be welcome.
 -------------------------------------------------------------------------------

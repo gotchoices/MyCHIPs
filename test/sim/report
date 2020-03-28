@@ -26,6 +26,9 @@ case $report in
     tallies)
       query="select tally_ent,tally_seq,tally_type,target,bound,reward,clutch from mychips.tallies_v";;
 
+    lifts)
+      query="select * from mychips.lifts_v";;
+
     *)
       echo "Unknown report: $report"
       exit 1

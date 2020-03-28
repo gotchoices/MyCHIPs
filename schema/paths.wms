@@ -343,6 +343,7 @@ $$;}
 view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.routes_v_paths mychips.route_state(text,boolean,boolean) base.parm_v mychips.route_life()} {select 
     eval(fld_list $paths::routes_se	ro)
   , re.peer_cid		as route_cid		-- Route base entity
+  , re.peer_chost	as route_host
   , re.peer_addr	as route_addr
   , re.peer_sock	as route_sock
   , re.peer_endp	as route_endp
@@ -355,6 +356,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , de.std_name		as dest_name
 
   , te.peer_cid		as topu_cid		-- Top of local segment
+  , te.peer_chost	as topu_host
   , te.peer_addr	as topu_addr
   , te.peer_sock	as topu_sock
   , te.peer_endp	as topu_endp
@@ -362,6 +364,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , te.serv_id		as topu_serv
 
   , be.peer_cid		as botu_cid		-- Bottom of local segment
+  , be.peer_chost	as botu_host
   , be.peer_addr	as botu_addr
   , be.peer_sock	as botu_sock
   , be.peer_endp	as botu_endp
@@ -369,6 +372,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , be.serv_id		as botu_serv
 
   , qe.peer_cid		as requ_cid		-- Who requested this route
+  , qe.peer_chost	as requ_host
   , qe.peer_addr	as requ_addr
   , qe.peer_sock	as requ_sock
   , qe.peer_endp	as requ_endp
@@ -553,10 +557,10 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
         end if;					-- recipe ? 'query'
 
 --Fixme: do I need both kinds of search when normally updating?
-        if dest_r.id isnull then		-- If destination unknown to this system
+        if dest_r.id isnull then		-- If destination unknown to this system, find route to update from separate chip id and host
           select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_chid = obj->>'to' and dest_host = obj->>'tat';
 --raise notice '  From:% % to:% % %', from_r.id, from_r.peer_cid, route_r.route_ent, obj->>'to', obj->>'tat';
-        else
+        else					-- Else search by local peer ID
           select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_ent = dest_r.id;
 --raise notice '  from:% % to:% % %', from_r.id, from_r.peer_cid, dest_r.id, dest_r.peer_cid, dest_r.peer_chost;
         end if;
