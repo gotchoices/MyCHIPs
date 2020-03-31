@@ -43,9 +43,11 @@ To get started, run the following commands:
   export NODE_DEBUG=debug
   ./simdock startup
 
-This should fetch and build the necessary docker images.  Next, it will launch
-the mongo and devel containers.  It will then launch a number of sites
-(equivalent to running "simdock start sites" manually).
+This should fetch and build the necessary docker images (which can take a long
+time).  Next, it will launch the mongo and devel containers.  It will then launch 
+a number of sites, equivalent to running "simdock start sites" manually.  This
+can take a while the first time you run because it has to initialize a database
+for each site.
 
 This step includes opening a bunch of xterms (or the local logwin script) on 
 your screen to view the logfiles.  So if things don't work right (like your 
@@ -83,9 +85,9 @@ You can check your running containers with:
 
 You should see a mongo, a devel, and N instances of postgres and the SPA server.
 You should have 4 xterms on your screen showing the logs of the running SPA
-servers.  You can access the postgres logs of the first site with:
-
-  docker logs -f pg0
+servers.  There should be another 4 showing the postgres logs.  Make sure those
+servers get initialized and launched all the way before launching the UI's as
+noted below.
 
 Next, you will need to put some aliases in your /etc/hosts (or other DNS
 mechanism) to resolve the hostnames we will use in the simulation.  Your
@@ -132,6 +134,16 @@ Note that, as with most plural commands in simdock, you can also do:
 
 to launch a single admin console (to site 2 in this case).
 
+Last setup step is to rebuild all the database objects from scratch.  The
+default server will build a pre-compiled schema by default.  But we would like
+the simulation to run from our source folder so if you want to tweak the
+schema, you can see the effect of your changes.  This actually gets done
+automatically with the simulation run, but the first time, it can be a little
+more clear to run it explicitlyKeep in mind, this will also take a while when 
+run for the first time:
+
+  ./simdock dbcheck all
+
 Finally, it's time to start the simulation.  Run this:
 
   ./simdock start sim --runs=50
@@ -170,6 +182,7 @@ Command Examples:
 -------------------------------------------------------------------------------
   export NODE_DEBUG=debug
   ./simdock startup			#Run mongo/development/PG/SPA containers
+  ./simdock dbcheck all			#Update the database schema from source
   ./simdock tickets			#Connect to SPA servers via browser
   ./simdock start sim --runs=50		#Run simulation
   ./simdock stop sim			#Stop simulation

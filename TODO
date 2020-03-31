@@ -9,17 +9,32 @@ X- Build lift state table
 X- Draw lift state diagram
 X- Build test function to initiate a circular lift
 X- Launch server with knowledge of site private/public key
-- lift packet includes (dummy for now) site public key and connection endpoint
+X- Build function to query/initiate circular lifts
+X- Chit state machine sets status field at appropriate states
+X- Streamline upsert code? (see comments)
+X- State = 'good' only valid on conditions of request=null and signature valid
+X- Implement pending balance in tally
+- Routes/lifts should respect pending balance--not established one
 - 
-- Test lift states
-- Build test function to initiate a linear lift
-- Test linear lift
+- Implement consensus algorithm when adding chits to hash chain
+- Ack/Nak are extensions to the chit protocol?
+- Packets for good chits include chain index and hash
+- Ack/Naks include chits and/or chain segments as applicable
 - 
+- Test Lift States:
 -   Phase 1: initiate/refresh routes
 -   Phase 2: propose specific lift amount
 -   Phase 3: generate signing key, start commit
+- When a lift is created, forge the associated chits in pending status
+- When lift is committed, move all chits on my site to 'good'
+- Chit state machine should clean up the rest / propagate the changes
+- Lift packet includes (dummy for now) site public key and connection endpoint
+- How to trigger a manual signature query if a lift times out?
 - 
-- Build function to query/initiate circular lifts
+- Build test function to initiate a linear lift
+- Test linear lift
+- Recipient needs to communicate via lift initiator's specified endpoint
+- 
 - Create function in server to call circular lift function on specified interval
 - Clean up demonstration instructions
 - Public Proof-of-concept release
