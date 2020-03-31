@@ -38,7 +38,7 @@ init:
 	wyseman ${OPT} ${WYSELIB}/base/*.wmi *.wmi
 
 parm:
-	wyseman ${OPT} *.wmi
+	wyseman ${OPT} --no-make *.wmi
 
 run:
 	wyseman ${OPT} ${WMPATH}/lib/run_time.wms
