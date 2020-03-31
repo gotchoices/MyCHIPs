@@ -21,6 +21,7 @@
 <script>
 import Wylib from 'wylib'
 const Bias = 10				//Amount to nudge nodes based on which end of the tally they are on
+const CHIPmult = 1000
 
 export default {
   name: 'app-urnet',
@@ -52,10 +53,10 @@ export default {
   },
   methods: {
     peer(dat) {				//Generate SVG code for a user/peer node
-//console.log("User", dat.id, dat.peer_cid, this.totals[dat.peer_cid])
+//console.log("User", dat.id, dat.peer_cid, this.unitss[dat.peer_cid])
       let { id, std_name, peer_cid, peer_sock, user_ent } = dat
-        , fColor = (dat.total < 0 ? '#ff0000' : '#0000ff')
-        , sumLine = user_ent ? `${dat.stock_tot.toFixed(3)} - ${-dat.foil_tot.toFixed(3)} = <tspan stroke="${fColor}" fill="${fColor}">${dat.total.toFixed(3)}</tspan>` : ''
+        , fColor = (dat.units < 0 ? '#ff0000' : '#0000ff')
+        , sumLine = user_ent ? `${dat.stock_uni/CHIPmult} - ${-dat.foil_uni/CHIPmult} = <tspan stroke="${fColor}" fill="${fColor}">${(dat.units/CHIPmult)}</tspan>` : ''
         , yOff = this.fontSize + 3
         , host = peer_sock.split('.')[0]
         , cidLine = `${peer_cid}@${host}`
@@ -83,7 +84,7 @@ export default {
       let node = this.state.nodes[cid]					//Get node's state object
         , guid = dat.guids[i]
         , isFoil = (dat.types[i] == 'foil')
-        , amount = dat.totals[i]
+        , amount = dat.unitss[i] / CHIPmult
         , link = dat.part_cids[i]		//Which other node this link is pointing to
         , inside = dat.insides[i]		//Native or foreign user
         , noDraw = (isFoil && inside)
@@ -115,7 +116,7 @@ export default {
 
     updateNodes(dTime) {
       let where = [['peer_ent', 'notnull']]
-        , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'total', 'stock_tot', 'foil_tot', 'tallies', 'types', 'totals', 'states', 'guids', 'part_cids', 'insides']
+        , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'units', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'states', 'guids', 'part_cids', 'insides']
         , spec = {view: 'mychips.users_v_tallysum', fields, where, order: 1}
       if (dTime) where.push(['latest', '>=', dTime])
 

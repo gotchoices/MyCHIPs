@@ -5,4 +5,4 @@ namespace eval mychips {
   set usergroup	{mychips}		;#Default role all regular users belong to
 }
 
-define unitMultiplier 1000
+#define unitMultiplier 1000

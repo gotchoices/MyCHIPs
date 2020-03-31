@@ -11,6 +11,7 @@
 #TODO:
 #X- Totals should include only valid, open chits; can't draw from chits_v without recursion loop in wyseman
 #X- Rename host_id to serv_id? (Host sounds more like the service provider rather than the traffic server instance)
+#X- Abandon columns computed in CHIPs, providing only units.  Leave the multiplier to the UI.
 #- Can create digest offline in JavaScript that matches the detest in tally_sets
 #- Can validate tally_sets record against supplied signature, mark cache field as valid
 #- See Fixme's below
@@ -26,7 +27,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target reward clutch bound status digest units_c cr_limit dr_limit $glob::stampfn]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_guid tally_date version partner request comment contract target reward clutch bound status digest cr_limit dr_limit $glob::stampfn]
 
     def tally_sets_pk	{tset_ent tset_seq tset_idx}
     def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
@@ -61,10 +62,12 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , bound	bigint		not null default 0
 
   , digest	bytea
-  , units_c	bigint		default 0 not null
+  , chain_conf	int		default 0 not null
+  , units_gc	bigint		default 0 not null
+  , units_pc	bigint		default 0 not null
   , _last_chit	int		not null default 0
-  , _last_conf	int		not null default 0
   , _last_tset	int		not null default 0
+--  , _last_conf	int		not null default 0
     eval(s $glob::stamps)
 }
 index {} mychips.tallies tally_guid
@@ -85,15 +88,15 @@ table mychips.tally_sets {mychips.tallies} {
 }
 #index {} mychips.tally_sets tset_date
 
-table mychips.confirms {mychips.tallies} {
-    conf_ent	text
-  , conf_seq	int	      , foreign key (conf_ent, conf_seq) references mychips.tallies on update cascade on delete cascade
-  , conf_idx	int	      , primary key (conf_ent, conf_seq, conf_idx)
-  , conf_id	uuid
-  , conf_date	timestamptz	not null default current_timestamp
-  , sum		bigint		not null
-  , signature	text
-}
+#table mychips.confirms {mychips.tallies} {
+#    conf_ent	text
+#  , conf_seq	int	      , foreign key (conf_ent, conf_seq) references mychips.tallies on update cascade on delete cascade
+#  , conf_idx	int	      , primary key (conf_ent, conf_seq, conf_idx)
+#  , conf_id	uuid
+#  , conf_date	timestamptz	not null default current_timestamp
+#  , sum		bigint		not null
+#  , signature	text
+#}
 
 table mychips.tally_tries {mychips.tallies} {
     ttry_ent	text	      , primary key (ttry_ent, ttry_seq)
@@ -189,23 +192,23 @@ trigger mychips_sets_tr_seq {} {
 
 # Generate unique sequence for new confirmation
 #----------------------------------------------------------------
-function mychips.confirms_tf_seq() {mychips.confirms} {
-  returns trigger language plpgsql security definer as $$
-    begin
-        if new.conf_idx is null then
-          update mychips.tallies set _last_conf = greatest(
-              coalesce(_last_conf,0) + 1,
-              (select coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq)
-            ) where tally_ent = new.conf_ent and tally_seq = new.conf_seq
-              returning _last_conf into new.conf_idx;
-          if not found then new.conf_idx = 1; end if;
-        end if;
-        return new;
-    end;
-$$;}
-trigger mychips_confirms_tr_seq {} {
-    before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
-}
+#function mychips.confirms_tf_seq() {mychips.confirms} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#        if new.conf_idx is null then
+#          update mychips.tallies set _last_conf = greatest(
+#              coalesce(_last_conf,0) + 1,
+#              (select coalesce(max(conf_idx),0)+1 from mychips.confirms where conf_ent = new.conf_ent and conf_seq = new.conf_seq)
+#            ) where tally_ent = new.conf_ent and tally_seq = new.conf_seq
+#              returning _last_conf into new.conf_idx;
+#          if not found then new.conf_idx = 1; end if;
+#        end if;
+#        return new;
+#    end;
+#$$;}
+#trigger mychips_confirms_tr_seq {} {
+#    before insert on mychips.confirms for each row execute procedure mychips.confirms_tf_seq();
+#}
 
 # Notify the peer server process of tally state changes, and next state request, that needs attention in the database
 #----------------------------------------------------------------
@@ -341,9 +344,8 @@ $$;}
 
 # Base view of tallies
 #----------------------------------------------------------------
-define multSign {case when te.tally_type = 'stock' then unitMultiplier().00 else -unitMultiplier().00 end}
 define uSign {case when te.tally_type = 'stock' then %1 else -%1 end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.chit_open(text,text) mychips.tally_state(text,text,text,text,bigint) mychips.tally_json(mychips.tallies,text,text)} {select 
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.tally_state(text,text,text,text,bigint) mychips.tally_json(mychips.tallies,text,text)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , ue.peer_cid		as user_cid
   , ue.peer_addr	as user_addr
@@ -358,11 +360,11 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
   , te.part_sig
   
   , not pe.user_ent is null						as inside
-  , mychips.tally_state(status,request,user_sig,part_sig,units_c)	as state
-  , mychips.tally_state(status,request,user_sig,part_sig,units_c) = any(array['peerProffer','closing']) as action
+  , mychips.tally_state(status,request,user_sig,part_sig,units_gc)	as state
+  , mychips.tally_state(status,request,user_sig,part_sig,units_gc) = any(array['peerProffer','closing']) as action
   , coalesce(uSign(tc.units),0)			as units
-  , te.units_c::float8 / multSign()		as total_c
-  , coalesce(tc.units,0)::float8 / multSign()	as total
+  , uSign(units_gc)				as units_gc
+  , uSign(units_pc)				as units_pc
   , coalesce(tc.chits,0)			as chits
   , greatest(coalesce(tc.latest, te.mod_date), te.mod_date)	as latest
   , mychips.tally_json(te, ue.peer_cid, pe.peer_cid)		as json_core
@@ -386,7 +388,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
     join	mychips.users_v	ue on ue.user_ent = te.tally_ent
     join	mychips.users_v	pe on pe.peer_ent = te.partner
     left join	(
-      select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where mychips.chit_open(request, signature)
+      select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where status = 'good'
       group by 1,2
     ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
     ;
@@ -423,28 +425,11 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
     {tally	{s} {s i u} {d}}
 }
 
-# View showing a single entry for each credit relationship (for network graph, obsolete?)
-# Could this be obsoleted in favor of tallies_v_net or users_v_tallies below?
-#----------------------------------------------------------------
-view mychips.tallies_v_graph {mychips.tallies_v} {select 
-    tally_guid as guid    
-  , case when tally_type = 'stock' then tally_ent else partner end as stock_ent
-  , case when tally_type = 'stock' then partner else tally_ent end as foil_ent
-  , case when tally_type = 'stock' then user_cid else part_cid end as stock_cid
-  , case when tally_type = 'stock' then part_cid else user_cid end as foil_cid
-  , case when tally_type = 'stock' then total_c else -total_c end as total
-  , state
-  , max(latest) as latest
-  
-  from mychips.tallies_v group by 1,2,3,4,5,6,7;
-}
-
 # Summarize data about open tallies
 #----------------------------------------------------------------
 view mychips.tallies_v_sum {mychips.tallies_v} {select 
     tally_ent
   , count(tally_seq)						as tallies
-  , sum(total)							as total
   , sum(units)							as units
   , array_agg(partner)						as partners
   , array_agg(part_cid)						as part_cids
@@ -452,7 +437,6 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(tally_seq)					as seqs
   , array_agg(tally_type)					as types
   , array_agg(state)						as states
-  , array_agg(total)						as totals
   , array_agg(units)						as unitss
   , array_agg(inside)						as insides
 
@@ -462,8 +446,6 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(clutch)						as clutchs
   , array_agg(policy)						as policies
 
-  , sum(total) filter (where tally_type = 'stock')		as stock_tot
-  , sum(total) filter (where tally_type = 'foil')		as foil_tot
   , sum(units) filter (where tally_type = 'stock')		as stock_uni
   , sum(units) filter (where tally_type = 'foil')		as foil_uni
 
@@ -477,8 +459,6 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(tally_guid) filter (where tally_type = 'foil')	as foil_guids
   , array_agg(tally_seq) filter (where tally_type = 'stock')	as stock_seqs
   , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
-  , array_agg(total) filter (where tally_type = 'stock')	as stock_tots
-  , array_agg(total) filter (where tally_type = 'foil')		as foil_tots
   , array_agg(units) filter (where tally_type = 'stock')	as stock_unis
   , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
 
@@ -492,12 +472,11 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
     u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_sock, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
-  , coalesce(s.total, 0.0)			as total
   , coalesce(s.units, 0)			as units
   , coalesce(s.stocks, 0)			as stocks
   , coalesce(s.foils, 0)			as foils
-  , coalesce(s.stock_tot, 0.0)			as stock_tot
-  , coalesce(s.foil_tot, 0.0)			as foil_tot
+  , coalesce(s.stock_uni, 0.0)			as stock_uni
+  , coalesce(s.foil_uni, 0.0)			as foil_uni
   , coalesce(s.partners, '{}'::text[])		as partners
   , coalesce(s.clients, '{}'::text[])		as clients
   , coalesce(s.vendors, '{}'::text[])		as vendors
@@ -507,7 +486,6 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.seqs, '{}'::int[])		as seqs
   , coalesce(s.types, '{}'::text[])		as types
   , coalesce(s.states, '{}'::text[])		as states
-  , coalesce(s.totals, '{}'::float8[])		as totals
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
   , coalesce(s.insides, '{}'::boolean[])	as insides
 
@@ -523,8 +501,8 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.foil_guids, '{}'::uuid[])	as foil_guids
   , coalesce(s.stock_seqs, '{}'::int[])		as stock_seqs
   , coalesce(s.foil_seqs, '{}'::int[])		as foil_seqs
-  , coalesce(s.stock_tots, '{}'::float8[])	as stock_tots
-  , coalesce(s.foil_tots, '{}'::float8[])	as foil_tots
+  , coalesce(s.stock_unis, '{}'::bigint[])	as stock_unis
+  , coalesce(s.foil_unis, '{}'::bigint[])	as foil_unis
   , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
     from	mychips.users_v u
     left join	mychips.tallies_v_sum s on s.tally_ent = u.peer_ent;
@@ -538,20 +516,18 @@ view mychips.tallies_v_net {mychips.tallies} {select
   , coalesce(tf.tally_ent,ts.partner)		as foil_ent
   , ts.tally_ent				as stock_user
   , tf.tally_ent				as foil_user
-  , ts.units_c					as units
-  , ts.units_c = tf.units_c			as clean
   
-  , tf.target					as lift_target
-  , coalesce(tf.reward,0)			as lift_reward
-  , coalesce(ts.clutch,0)			as lift_margin
-  , tf.units_c - least(-tf.target, 0)				as lift_min
-  , tf.units_c - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
+  , tf.target							as lift_target
+  , coalesce(tf.reward,0)					as lift_reward
+  , coalesce(ts.clutch,0)					as lift_margin
+  , tf.units_pc - least(-tf.target, 0)				as lift_min
+  , tf.units_pc - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
   
-  , ts.target					as drop_target
-  , coalesce(ts.reward,0)			as drop_reward
-  , coalesce(tf.clutch,0)			as drop_margin
-  , greatest(ts.target, 0) - ts.units_c				as drop_min
-  , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_c	as drop_max
+  , ts.target							as drop_target
+  , coalesce(ts.reward,0)					as drop_reward
+  , coalesce(tf.clutch,0)					as drop_margin
+  , greatest(ts.target, 0) - ts.units_pc			as drop_min
+  , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_pc	as drop_max
   
   from			(select * from mychips.tallies where tally_type = 'stock') ts
   full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_guid = ts.tally_guid

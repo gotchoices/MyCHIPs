@@ -86,7 +86,7 @@ table mychips.route_tries {mychips.routes} {
 
 # Recursive view of tallies to show pathways native to our system
 #----------------------------------------------------------------
-view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift_max(bigint,bigint,bigint,bigint)} {
+view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
   with recursive tally_path(first, last, length, path, guids, cycle, circuit, inside, corein, fora, forz,
       lift_min, lift_margin, lift_max, lift_reward,
       drop_min, drop_margin, drop_max, drop_reward
@@ -114,23 +114,19 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net mychips.lift
 
       , least(t.lift_min,tp.lift_min)				as lift_min
       , tp.lift_margin + t.lift_margin * (1 - tp.lift_margin)	as lift_margin
---      , least(t.lift_max,tp.lift_max,t.lift_min)		as lift_max
       , case when t.lift_min < tp.lift_min then
           least(t.lift_max,tp.lift_min)
         else
           least(tp.lift_max,t.lift_min) end			as lift_max
       , case when t.lift_min < tp.lift_min then t.lift_reward else tp.lift_reward end as lift_reward
---      , tp.lift_reward + t.lift_reward * (1 - tp.lift_reward)	as lift_reward
 
       , least(t.drop_min,tp.drop_min)				as drop_min
       , tp.drop_margin + t.drop_margin * (1 - tp.drop_margin)	as drop_margin
---      , least(t.drop_max,tp.drop_max,t.drop_min)		as drop_max
       , case when t.drop_min < tp.drop_min then
           least(t.drop_max,tp.drop_min)
         else
           least(tp.drop_max,t.drop_min) end			as drop_max
       , case when t.drop_min < tp.drop_min then t.drop_reward else tp.drop_reward end as drop_reward
---      , tp.drop_reward + t.drop_reward * (1 - tp.drop_reward)	as drop_reward
 
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
@@ -212,17 +208,6 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes} {select
 view mychips.routes_v_lifts {mychips.routes_v_paths} {
   select * from mychips.routes_v_paths where native and forz and circuit order by 1 desc
 }
-
-# Generate a maximum lift amount for a given tally set
-#----------------------------------------------------------------
-function {mychips.lift_max(units bigint, target bigint, crmax bigint, drmax bigint)} {mychips} {
-  returns bigint language plpgsql immutable as $$
-    declare
---Fixme: consider/honor credit/debit limits here
-    begin
-      return greatest(units, units-target);
-    end;
-$$;}
 
 # Generate a set of chits for a lift involving the specified tallies, all our own users
 #----------------------------------------------------------------
