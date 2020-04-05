@@ -6,6 +6,7 @@ configfile=/var/lib/postgresql/data/pgdata/postgresql.conf
 if ! grep '^log_min_messages' $configfile; then
   echo "Configuring Postgres for logging notices"
   echo 'log_min_messages = notice' >>$configfile
+  echo 'log_error_verbosity = terse' >>$configfile
 fi
 
 set -e
