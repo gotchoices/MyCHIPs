@@ -23,11 +23,14 @@ case $report in
     routes)
       query="select route_ent,route_addr,dest_chad,status,step,lift_min,lift_margin,lift_max,lift_reward from mychips.routes_v where status = 'good'";;
 
+    chits)
+      query="select chit_ent,chit_seq,chit_idx,chit_type,chit_guid,units,status,state from mychips.chits_v";;
+
     tallies)
-      query="select tally_ent,tally_seq,tally_type,target,bound,reward,clutch from mychips.tallies_v";;
+      query="select tally_ent,tally_seq,partner,tally_type,units,units_gc,units_pc,target,bound,reward,clutch from mychips.tallies_v";;
 
     lifts)
-      query="select * from mychips.lifts_v";;
+      query="select lift_guid,request,status,state,units,circular,topu_ent,dest_chid,dest_host from mychips.lifts_v";;
 
     *)
       echo "Unknown report: $report"

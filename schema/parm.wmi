@@ -7,15 +7,14 @@ if [[ ! -z "$MYCHIPS_DEFAULT_HOST" ]]; then host="$MYCHIPS_DEFAULT_HOST"; fi
 #Default parameters for connection port
 cat <<EOF
 insert into base.parm (module, parm, type, v_int, v_text, cmt) values 
-  ('mychips', 'user_host', 'text', null, '${host}', 'Default IP where mobile application connects.')
+  ('mychips', 'site_ent', 'text', null, 'r1', 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
+ ,('mychips', 'user_host', 'text', null, '${host}', 'Default IP where mobile application connects.')
  ,('mychips', 'user_port', 'int', 54320, null, 'Default port where mobile user application connects.')
  ,('mychips', 'peer_host', 'text', null, '${host}', 'Default IP where peer servers connect.')
  ,('mychips', 'peer_port', 'int', 65430, null, 'Default port where peer servers connect.')
 
  ,('peers', 'min_time', 'int', 5, null, 'Minimum number of minutes between retrying a message to a peer.')
  ,('peers', 'max_tries', 'int', 100, null, 'How many times to retry sending messages to a peer before giving up.')
-
- ,('mychips', 'site_ent', 'text', null, 'r1', 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
 
  ,('routes', 'life', 'text', null, '60 min', 'A valid SQL interval describing how long a route should last before being considered stale')
  ,('routes', 'tries', 'int', 4, null, 'The number of times to retry discovering a pathway before giving up')
@@ -29,3 +28,7 @@ insert into base.parm (module, parm, type, v_int, v_text, cmt) values
     set type = EXCLUDED.type, v_int = EXCLUDED.v_int, v_text = EXCLUDED.v_text, cmt = EXCLUDED.cmt
 ;
 EOF
+
+#These should really be in the peer server's control--not so much the database
+# ,('lifts', 'conf_host', 'text', null, '${host}', 'Default IP where peer servers connect to validate lifts.')
+# ,('lifts', 'conf_port', 'int', 65430, null, 'Default port where peer servers connect to validate lifts.')

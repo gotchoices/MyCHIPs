@@ -543,19 +543,19 @@ so why not just extend the chit state diagram to implement lifts?
 
 Problem is, a lift is really a set of chits, all linked by a single uuid.  And
 all those chits that belong to the same system will need to act in a single, 
-unified transaction.  We really need single state record (per system) to 
+unified transaction.  We really need a single state record (per system) to 
 represent all the local chits, part of the lift.  It would be difficult to
 try to maintain state in multiple chit records all at once.
 
 In a distributed lift, each system will identify one or more local users
-arrayed in a linear chain with one foreign peer at each end of the chain.  For
-example, see the "Route Test Case" figure referenced previously.  Gena Avila
-and Kathleen Ramsey are the two local users.  Tricia Mayo and Stacey Welch are
-the foreign peers at the two ends of a segment which could possibly be found to 
-be part of a larger, external circuit.
+arrayed in a linear segment with one foreign peer at each end of the chain.  
+For example, see the "Route Test Case" figure referenced previously.  Gena 
+Avila and Kathleen Ramsey are the two local users.  Tricia Mayo and Stacey 
+Welch are the foreign peers at the two ends of a segment which could possibly 
+be found to be part of a larger, external circuit.
 
 When a single database commits its portion of a lift (whether conditional or
-final), it should commit at once all tallies along the segment.  In this 
+final), it should atomically commit all the tallies along the segment.  In this 
 example, there is a stock from Tricia to Gena, a stock and foil between Gena 
 and Kathleen.  And a single foil from Kathleen to Stacey.  That is 4 tallies 
 in total (on our system) which will receive a lift chit, marked with the UUID 
@@ -563,14 +563,14 @@ unique to the particular lift, and eventually signed by the lift initiator.
 
 Conclusion is, we do need a lift table containing a lift record with its own
 state.  This record will, at some point in the process, refer to a set of
-prospective chits, which will commit all-or-none.
+pending chits, which will commit all-or-none.
 
-It was noted earlier, the 3-phases for the lift are:
+It was noted earlier, the lift phases are:
 
-Phase 1: Seek/discover a circuit or path for the lift and its amount
-Phase 2: Send a conditional lift proposal around the circuit, upstream
-Phase 3: Issue validation/cancellation downstream through the circuit
-Cleanup: Respond (indefinitely) to requests for validation of the lift
+  Phase 1: Seek/discover a circuit or path for the lift and its amount
+  Phase 2: Send a conditional lift proposal around the circuit, upstream
+  Phase 3: Issue validation/cancellation downstream through the circuit
+  Cleanup: Respond (indefinitely) to requests for validation of the lift
 
 Valid states for the lift record are as follows:
 
@@ -617,11 +617,10 @@ Obsolete States?
   pending:	We have sent the specific lift along upstream.  We expect to
 		receive a final signature next to make this final.
 
-
 Chit Chains and Lifts:
 -------------------------------------------------------------------------------
 For an understanding of how chits are stored in a hash-chained linked list, see
-the Tallies document.
+"Chit Chains" in the Tallies document.
 
 The lift and chit state machines are closely intertwined.  When a lift is
 completed, we will be entering a series of chits on a number of local tallies
@@ -634,8 +633,45 @@ to become part of an eventual lift, we don't want to start transmitting that
 to peer sites.  And we don't want to create any triggers for the UI.
 
 However, when it comes time to commit signed chits to tallies, there is no
-guaranty that the two halves of the tally are in sych with each other at that
+guaranty that the two halves of the tally are in sync with each other at that
 moment.  We need to be able to commit the chits and then trust the chit state
 machine to clean up after us by inserting the chits into the hash-chain and
-the communicating with their other half if necessary to resolve any conflicts
+then communicating with their other half if necessary to resolve any conflicts
 in the order of resulting chits.
+
+The Lift Record:
+-------------------------------------------------------------------------------
+A lift can either be linear or circular.  In the case of a circular lift, we 
+need to keep track of:
+
+  - The top peer in our segment (also the base of the external route)
+  - The bottom peer in our segment (also the destination peer)
+  - The set of local users in between (to know what chits to build)
+
+It should be possible to discover multiple internal pathways that have the same 
+top and bottom peer.  So we need a way to know which one was contemplated when 
+the lift was initiated.
+
+In the case of a linear lift, we must track:
+
+  - The local user who is sending value (base of our local segment)
+  - The intended recipient (for whom we probably don't have a user ID)
+  - The top peer in our segment (also base of the external route)
+  - The string of local users who will be part of the lift
+
+In order to uniquely remember which users will be part of the lift, we should
+probably store the path and tally-guid arrays.  That way, we won't need to
+recompute pathways when it comes time to make chits.
+
+
+If the lift was not initiated on our local system, it was propagated to us
+from below.  In this case, the destination is either A or B:
+
+  A- One of our users:
+    - Linear lifts end with the destination user.
+    - Circular lifts have one more chit to circle back to the originator.
+  
+  B- Not one of our users:
+    - Circular or Linear, we treat it the same.  Compute the best local
+      segment and pass the lift on to the best possible route anchored on
+      that segment.

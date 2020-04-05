@@ -138,6 +138,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     , greatest(tpr.drop_min, 0) as drop_min, greatest(tpr.drop_max, 0) as drop_max
 --    , tpr.lift_min, tpr.lift_max, tpr.drop_min, tpr.drop_max
     , tpr.length * tpr.lift_min as bang
+    , corein and fora and forz as segment
   from tally_path tpr where tpr.length > 1
 } -primary {last first length}
 
@@ -152,11 +153,13 @@ view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
 #----------------------------------------------------------------
 view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes} {select
     tp.first, tp.last
-  , tp.length, tp.path
-  , tp.corein, tp.fora, tp.forz
-  , r.status
-  , r.dest_ent		--Fixme update with latest available fields
+  , tp.length, tp.path, tp.guids
+  , tp.segment, tp.corein, tp.fora, tp.forz
+  , r.route_ent
+  , r.dest_ent
   , r.dest_chid
+  , r.dest_host
+  , r.status
   , r.topu_ent
   , r.botu_ent
   , r.requ_ent
@@ -208,73 +211,6 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes} {select
 view mychips.routes_v_lifts {mychips.routes_v_paths} {
   select * from mychips.routes_v_paths where native and forz and circuit order by 1 desc
 }
-
-# Generate a set of chits for a lift involving the specified tallies, all our own users
-#----------------------------------------------------------------
-function {mychips.internal_lift(units bigint, uupath uuid[])} {mychips.tallies mychips.chits uuid} {
-  returns boolean language plpgsql security definer as $$
-    declare
-      tally_id	uuid;
-      lift_id	uuid;
-      trec	record;
-      tcount	int;
-    begin
-      lift_id = uuid_generate_v1();
---raise notice 'Lift :% %', units, uupath;
-      foreach tally_id in array uupath loop
-        tcount = 0;
-        for trec in select * from mychips.tallies where tally_guid = tally_id order by tally_type loop
-          insert into mychips.chits (chit_ent, chit_seq, chit_guid, chit_type, signature, units) values (trec.tally_ent, trec.tally_seq, lift_id, 'lift', 'Valid', -units);
-          tcount = tcount + 1;
-        end loop;
-        if tcount != 2 then
-          raise exception 'Could not find exactly two tallies for UUID:%', tally_id;
-          return false;
-        end if;
-      end loop;
-      return true;
-    end;
-$$;}
-
-# Query the database for possible internal lifts, initiating one or more if needed
-#----------------------------------------------------------------
-function {mychips.lift_cycle(maxNum int default 1)} {mychips.tallies_v_paths base.parm_v} {
-  returns jsonb language plpgsql security definer as $$
-    declare
-      status	jsonb = '{"done": 0}';
-      prec	record;			-- Paths
-      orders	text default 'bang desc';
-      tstr	text;
-      tarr	text[];
-      oarr	text[];
-      lift_id	uuid;
-      min_units	int default base.parm('lifts','minimum',1);		-- Only do lifts of this size or bigger
-      ord_by	text default base.parm('lifts','order','bang desc'::text);	-- How to prioritize lifts to perform
-      count	int default 0;
-      rows	int;
-    begin
-      if found then				-- Build a custom order-by clause
-        foreach tstr in array regexp_split_to_array(prec.value, ',') loop
-          oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
---raise notice 'LC1 tstr:% el0:%', tstr, oarr[1];
-          tarr = array_append(tarr, quote_ident(oarr[1]) || case when oarr[2] = 'desc' then ' desc' else '' end);
-        end loop;
-        orders = array_to_string(tarr, ', ');
-      end if;
-
-      while count < maxNum loop			-- Search for internal lifts
-        tstr = 'select length, lift_min, lift_max, lift_margin, path, guids from mychips.tallies_v_paths where circuit and lift_margin <= 0 and lift_min >= $1 order by ' || orders || ' limit 1';
-raise notice 'LC2 min:% max:% ord:% sql:%', min_units, maxNum, orders, tstr;
-        execute tstr into prec using min_units;			-- Look for the highest priority lift to execute
-        get diagnostics rows = ROW_COUNT;
-raise notice 'LC3 :% % % %', prec.length, prec.lift_min, prec.lift_max, rows;
-        if rows < 1 then exit; end if;
-        if not mychips.internal_lift(prec.lift_min, prec.guids) then exit; end if;
-        count = count + 1;
-      end loop;
-    return jsonb_set(status, '{done}', count::text::jsonb);
-    end;
-$$;}
 
 # Consistency check for new/updated routes
 #----------------------------------------------------------------
@@ -405,7 +341,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
     join	mychips.users_v		qe on qe.peer_ent = ro.requ_ent		-- requesting user or downstream foreign peer
     left join	mychips.users_v		de on de.peer_ent = ro.dest_ent		-- destination
     left join	mychips.route_tries	rt on rt.rtry_ent = ro.route_ent and rt.rtry_chid = ro.dest_chid and rtry_host = ro.dest_host
-    left join	mychips.routes_v_paths	rp on rp.first = ro.route_ent and rp.last = ro.requ_ent and ro.status = 'good'
+    left join	mychips.routes_v_paths	rp on rp.first = ro.route_ent and rp.dest_chid = ro.dest_chid and rp.dest_host = ro.dest_host and rp.last = ro.requ_ent and ro.status = 'good'
 }
 
 # Notify the peer server process of route state changes, and next state request, that needs attention in the database
@@ -424,7 +360,6 @@ function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.
             act = route.status;
         end if;
 --raise notice 'RN:% % % % %', act, route.route_ent, route.dest_ent, route.dest_chid, route.dest_host;
-        if act isnull then return false; end if;			-- Must have a valid action
 
         select into orec route_ent,route_cid,route_addr,requ_sock,topu_sock,topu_serv,route_sock,dest_chid,dest_host,status,state,relay,reverse,step from mychips.routes_v where route_ent = route.route_ent and dest_chid = route.dest_chid;
         if not found then return false; end if;				-- Find the full-view route record
@@ -463,7 +398,7 @@ function mychips.routes_tf_notify() {mychips.route_notify(mychips.routes)} {
     declare
         dirty	boolean default false;
     begin
-        if TG_OP = 'INSERT' then
+        if TG_OP = 'INSERT' and not new.request isnull then
             dirty = true;
         elsif new.status != old.status then
             dirty = true;
@@ -590,8 +525,8 @@ function {mychips.route_circuit(entity text)} {mychips.routes mychips.tallies_v_
     declare
       trec	record;
     begin
-      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and entity = any(path) and corein and fora and forz loop
---raise notice 'Route Circuit: % % %', entity, trec.first, trec.last;
+      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and entity = any(path) and segment loop
+raise notice 'Route Circuit check: % % %', entity, trec.first, trec.last;
         insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, requ_ent) 
           values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], entity)
             on conflict (route_ent, dest_chid, dest_host)
@@ -611,7 +546,7 @@ function {mychips.route_linear(entity text, peer text, host text)} {mychips.rout
       select into locid id from mychips.peers_v where peer_cid = peer and peer_chost = host;	-- Is this peer known to our system?
       
       for trec in select first,last,path from mychips.tallies_v_paths where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
-raise notice 'Route Linear: % % %', entity, peer, trec.first;
+raise notice 'Route Linear check: % % %', entity, peer, trec.first;
         insert into mychips.routes (route_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent) 
           values (trec.first, peer, host, trec.path[2], entity, entity)
             on conflict (route_ent, dest_chid, dest_host)

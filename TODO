@@ -1,20 +1,16 @@
 TODO:
 
 Immediate:
-X- 'Max' should be the smallest amount with reward paid (around pathway)
-X- Does the lift capacity appear correctly in the route table?
-X- Function to update route lading with optional upstream lading
-X- Routes now show lading capacity correctly
-X- Build lift state table
-X- Draw lift state diagram
-X- Build test function to initiate a circular lift
-X- Launch server with knowledge of site private/public key
-X- Build function to query/initiate circular lifts
 X- Chit state machine sets status field at appropriate states
 X- Streamline upsert code? (see comments)
 X- State = 'good' only valid on conditions of request=null and signature valid
 X- Implement pending balance in tally
-- Routes/lifts should respect pending balance--not established one
+X- Routes/lifts should respect pending balance--not established one
+X- How does a lift know which pathway it is using (currently, can resolve to more than one)
+X- Make pending chits when a lift is initialized
+X- Remote lift gets entered as 'pend'
+X- Build or inherit hash? (inherit and compare?)
+X- Implement remote handler to pend status
 - 
 - Implement consensus algorithm when adding chits to hash chain
 - Ack/Nak are extensions to the chit protocol?
@@ -22,22 +18,22 @@ X- Implement pending balance in tally
 - Ack/Naks include chits and/or chain segments as applicable
 - 
 - Test Lift States:
--   Phase 1: initiate/refresh routes
--   Phase 2: propose specific lift amount
--   Phase 3: generate signing key, start commit
-- When a lift is created, forge the associated chits in pending status
-- When lift is committed, move all chits on my site to 'good'
-- Chit state machine should clean up the rest / propagate the changes
-- Lift packet includes (dummy for now) site public key and connection endpoint
+X-   Phase 1: initiate/refresh routes
+X-   Phase 2: propose specific lift amount
+X-   Phase 3: generate signing key, start commit
+X- When a lift is created, forge the associated chits in pending status
+X- When lift is committed, move all chits on my site to 'good'
+X- Lift packet includes (dummy for now) site public key and connection endpoint
 - How to trigger a manual signature query if a lift times out?
 - 
 - Build test function to initiate a linear lift
 - Test linear lift
 - Recipient needs to communicate via lift initiator's specified endpoint
-- 
-- Create function in server to call circular lift function on specified interval
+- Write initial tally/chit/lift contracts
 - Clean up demonstration instructions
 - Public Proof-of-concept release
+
+- Create function in server to call circular lift function on specified interval
 - 
 
 General roadmap:

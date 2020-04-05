@@ -279,6 +279,7 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
   , te.user_cid
   , te.part_cid
   , te.tally_type
+  , te.tally_guid
   , case when isdebit() then 'debit' else 'credit' end		as effect
   , case when ch.status = 'good' then ch.units else 0 end	as units_g
   , case when ch.status = 'void' then 0 else ch.units end	as units_p
