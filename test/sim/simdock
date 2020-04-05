@@ -379,11 +379,14 @@ function one_or_many {
 #echo "one_or_many $cmd $@"
   
   if [[ $range == 'all' ]]; then
-    local min=0 max=$maxsite
+    local sites="$(seq 0 $maxsite)"
   elif [[ $range =~ [0-9]+-[0-9]+ ]]; then	#Start a range n-x (n through x)
     IFS='-' read min max <<<$(echo $range)
+    local sites="$(seq $min $max)"
+  else
+    local sites="$(echo $range |tr ',' ' ')"
   fi
-  for i in $(seq $min $max); do 
+  for i in $sites; do 
     if [[ $cmd == 'remote' ]]; then
       SITE=$i $cmd "$@"
     else
