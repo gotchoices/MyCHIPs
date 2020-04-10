@@ -207,3 +207,6 @@ Command Examples:
 
   ./simdock start mongo			#Start mongodb (public database)
   ./simdock stop mongo			#Stop mongodb
+
+  ./simdock backup all profile1		#Backup all DB's to a folder called profile1 (stop spas,peers,agents first)
+  ./simdock restore all profile1	#Restore all DB's from a folder called profile1
