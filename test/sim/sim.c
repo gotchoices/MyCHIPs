@@ -94,6 +94,24 @@ case $command in
 
   q) query "$@";;		#DB query
 
+  backup)
+    profile=${1:-backup}; shift
+    backdir=$tmpdir/save/$profile; mkdir -p $backdir >/dev/null
+    backfile=$backdir/$MYCHIPS_DBHOST.dump
+    echo "Backup to: $backfile"
+    pg_dump -d $dbname -U $admin -h $MYCHIPS_DBHOST >$backfile
+    ;;
+
+  restore)
+    profile=${1:-backup}; shift
+    backfile=$tmpdir/save/$profile/$MYCHIPS_DBHOST.dump
+    echo "Restore from: $backfile"
+    createdb -U $admin -h $MYCHIPS_DBHOST $dbname
+    psql -d $dbname -U $admin -h $MYCHIPS_DBHOST -f $backfile
+    ;;
+
+  dropdb) dropdb -U $admin -h $MYCHIPS_DBHOST $dbname;;
+
   *) $command "$@";;	#Arbitrary shell command
     
 esac

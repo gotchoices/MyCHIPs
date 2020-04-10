@@ -543,7 +543,7 @@ echo "Stop simulation"
 if [[ $(type -t $command) == "function" ]]; then
   $command "$@"
 
-elif [[ 'dbcheck|usercheck|q' =~ $command ]]; then
+elif [[ 'dbcheck|usercheck|q|backup|restore|dropdb' =~ $command ]]; then
   n="${1:-all}"; shift
   one_or_many remote $n $command "$@"
 
