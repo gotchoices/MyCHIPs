@@ -1,0 +1,55 @@
+---
+  contract:
+    domain: mychips.org
+    name: 'Credit_Terms'
+    version: 1
+    language: eng
+    published: null
+    title: 'Terms and Conditions for Credit Authorized by Stock and Foil'
+    text: >-
+      When executing a Tally Agreement with each other, the Client and Vendor each decide the amount of credit they will extend to the other Party.
+      They may also specify parameters that influence how and when the debt will be satisfied.
+      Those parameters are referred to generally as Credit Terms.
+      Such terms can be specified by the Vendor to be applied by credit issued by the Client.
+      They can also be specified by the Client to be applied by credit issued by the Vendor in such cases where the Tally may develop a negative balance.
+      The various credit terms are defined as follows:
+    sections:
+      -
+        title: 'Maximum Balance'
+        text: >-
+          This indicates the most the Issuer can count on borrowing against Product it obtains from the Recipient.
+          The balance may be expressed as a single number, or as an expression, which is a function of time.
+          Expressions may be used to amortize a loan, requiring principal to be paid down over time.
+      -
+        title: 'Maximum Paydown'
+        text: >-
+          This specifies the most the Issuer can pay down principal in advance of otherwise prevailing requirements and have his interest calculations reduced accordingly.
+          This can be used to create a minimum interest return for a Recipient, while still allowing the Issuer to store value in the loan balance.
+      -
+        title: 'Compound Interval'
+        text: >-
+          The amount of time that passes before interest is calculated and applied to a balance.
+          This may also define when payments are due.
+          For example, if the application of such a charge raises a balance above the Maximum Balance, some kind of Lifting will have to occur to correct this.
+      -
+        title: 'Grace Period'
+        text: >-
+          New amounts of indebtedness will not accrue interest charges until this amount of time has passed.
+      -
+        title: 'Rate'
+        text: >-
+          An annualized rate expressed as a positive floating point number.
+          For example, 0.05 means 5% per annum.
+          This number will be scaled to match the Compound Interval in order to compute the interest/dividend charges to be applied during that an interval.
+      -
+        title: 'Call Notice'
+        text: >-
+          The amount of notice required to be given by Recipient to the Issuer in order to require all principal and accrued charges due and payable.
+          If not present, the Issuer has no obligation to reduce principal any faster than is indicated by the Minimum Payment.
+          The Call Notice is triggered by affixing a signed Call to the tally.
+          The debt must be satisfied within the specified number of days after the date of the Call.
+          For a fully amortizing debt, a Recipient would register an immediate call, with the number of notice days set to the term of the amortization.
+      -
+        title: 'Minimum Payment'
+        text: >-
+          An amount, or a formula for the smallest amount that may be paid at each Compound Interval.

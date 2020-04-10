@@ -1,0 +1,51 @@
+---
+  contract:
+    domain: mychips.org
+    name: 'Sending_Value'
+    version: 1
+    language: eng
+    published: null
+    title: 'How Value is Transmitted in a MyCHIPs Network'
+    text: >-
+      A Tally contains individual Pledges or Chits, each of which constitutes a promise by the Issuer to deliver value, quantified in CHIPs, to the Recipient at some future time.
+      Since this promise can be offered in exchange for Product, CHIPs can be thought of as money, or a substitute for money.
+      However MyCHIPs resolves these promises in a very different way than credit transactions quantified in traditional money:
+    sections:
+      -
+        title: 'CHIPs Not Transferrable'
+        text: >-
+          While most traditional money is transferrable from one party to another, the CHIPs subject to this Contract are not.
+          Rather, Pledges are given by the Issuer to the Recipient, for the sole benefit of the Recipient and no other party.
+          The Recipient does not have the right to reassign an indebtedness to any third party.
+      -
+        title: 'Credit Lifts'
+        text: >-
+          As with traditional money, a Recipient of credit is entitled to be "paid" within the specified terms.
+          However in the context of MyCHIPs, getting paid means exchanging CHIPs which are held by the Recipient but not wanted, for other CHIPs, issued by other parties which are wanted by the Recipient.
+          This exchange occurs as part of a transaction called a Credit Lift which typically involves multiple parties in a MyCHIPs network and can be accomplished without the need for transferability.
+      -
+        title: 'Neutral Transaction'
+        text: >-
+          As a participant in a Credit Lift, a party might agree to receive back CHIPs it has previously Issued to a Vendor, in return for giving up an equal number of CHIPS back to one of its own Clients.
+          Furthermore, a party can agree to receive CHIPs from a Vendor it plans to obtain Product from in the future, in exchange for issuing CHIPs back to a Client who might want to pay for the party's own Product in the future.
+          In other words, the Lift transaction creates neither a loss nor a gain for cooperating entities who merely pass value along.
+      -
+        title: 'Lifts Mutually Beneficial'
+        text: >-
+          However, a Credit Lift does produce a substantial benefit for each participant because it has the effect of moving credit in the opposite direction of normal flow.
+          In other words, it relieves pent-up pressure in the network so that regular trading can continue.
+      -
+        title: 'Lifts Explained'
+        text: >-
+          If a party has an accumlation of Stock credits, or assets, and an accumulation of Foil credits, or liabilities, this can be thought of in the context of traditional money as follows:
+          The party has money, or assets, and it has bills to pay, or liabilities.
+          The Credit Lift has the effect of using one's assets to pay relieve one's liabilities.
+          In simpler terms: using your money to pay your bills.
+      -
+        title: 'Trading Fitness'
+        text: >-
+          Since the resolution of debt is accomplished by Credit Lifts, Parties to the Tally will need tally relationships with additional parties so Lifts can be accomplished.
+          At a minimum, each MyCHIPs user must have at least one Client and one Vendor relationship.
+          For example, if you are a Client in a tally with a given party, you will also need to be a Vendor in at least one other suitable tally so your Vendor has a viable pathway available for accomplishing the needed Lifts.
+          In terms more applicable to traditional money: If you expect to purchase something on credit, you must have suitable means of income in order to resolve the ensuing debt.
+          In simpler terms: to buy things, you need a job.

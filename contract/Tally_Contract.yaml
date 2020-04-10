@@ -1,0 +1,39 @@
+---
+  contract:
+    domain: mychips.org
+    name: 'Tally_Contract'
+    version: 1
+    language: eng
+    title: 'Tally Contract'
+    text: >-
+      This Contract has been incorporated into a MyCHIPs Tally by reference, which includes a digital hash of the contents of the document.
+      This Contract also incorporates further documents by reference, including their digital hashes.
+      All such terms and conditions, including those contained in the Tally itself, this document, and the ones it references, together form the complete Tally Agreement between the Parties.
+    sections:
+      -
+        title: 'Recitals'
+        source: 'mychips.org/Recitals-1-eng'
+      -
+        title: 'Tally Definition'
+        source: 'mychips.org/Tally Definition-1-eng'
+      -
+        title: 'CHIP Definition'
+        source: 'mychips.org/CHIP Definition-1-eng'
+      -
+        title: 'Obligations'
+        source: 'mychips.org/Obligations-1-eng'
+      -
+        title: 'Representations'
+        source: 'mychips.org/Representations-1-eng'
+      -
+        title: 'Defaults'
+        source: 'mychips.org/Defaults-1-eng'
+      -
+        title: 'Rights'
+        source: 'mychips.org/-1-eng'
+      -
+        title: 'Credit Terms'
+        source: 'mychips.org/Credit_Terms-1-eng'
+      -
+        title: 'Ethics'
+        source: 'mychips.org/Ethics-1-eng'

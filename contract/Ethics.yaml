@@ -1,0 +1,37 @@
+---
+  contract:
+    domain: mychips.org
+    name: 'Ethics'
+    version: 1
+    language: eng
+    published: null
+    title: 'Ethical Conduct'
+    text: >-
+      The credits, or Chits, under a tally agreement constitute a Pledge of value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally.
+      In order for such a Pledge to be a valid, and therefore enforceable, the following conditions must also be met:
+    sections:
+      -
+        title: 'Competency'
+        text: >-
+          The Issuer is of such age and mental capacity to understand the obligations he/she is entering into.
+      -
+        title: 'Informed Consent'
+        text: >-
+          Both parties are reasonably informed by the other as to all material terms of the transaction.
+          This includes the nature and quality of the Product, as well as the nature and quality of the credit being offered as consideration.
+      -
+        title: 'Dispute Resolution'
+        text: >-
+          In case of a dispute over any transaction involving MyCHIPs between the Parties being resolved by legal remedy, the prevailing Party shall be entitled to collect from the losing Party actual incurred damages, plus all collection costs, including attorneys fees.
+      -
+        title: 'Fraud'
+        text: >-
+          When intentional fraud can be proven in such a dispute, the penalty shall be increased to three times the actual incurred damages, plus all collection costs, including attorneys fees.
+      -
+        title: 'Severability'
+        text: >-
+          If any portion of this agreement is deemed to be unenforceable by any means, the remaining portions shall remain in full effect.
+      -
+        title: 'Honor'
+        text: >-
+          The debtor agrees to not excuse himself/herself from honoring the agreement by reason of bankruptcy or similar recourse, even though the prevailing law may allow it.

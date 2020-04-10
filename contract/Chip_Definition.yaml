@@ -1,0 +1,45 @@
+---
+  contract:
+    domain: mychips.org
+    name: 'CHIP Definition'
+    version: 1
+    language: eng
+    title: 'Defining a CHIP'
+    text: >-
+      MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of credit between willing parties.
+      This credit is comprised of a number of individual promises, or Chits, made by one Party, for the benefit of the other Party, to deliver future value according to terms and conditions mutually agreed upon by the Parties.
+      The party Pledging the future value is referred to as the Issuer.
+      The party the Pledge is made to is referred to as the Recipient.
+      A Pledge accrues as a receivable asset to the Recipient and a payable liability to the Issuer just as with any open-account indebtedness that might be incurred in the ordinary course of business.
+    sections:
+      -
+        text: >-
+          The amount of value represented in a Tally or a Chit is quantified in units of CHIPs.
+          Internally a MyCHIPs server is expected to record transactions in fractional, integer units of 1/1000th of a CHIP.
+      -
+        text: >-
+          All trades conducted using MyCHIPs software shall be quantified exlusively in CHIPs and not using any other unit of measure.
+          For example, it is a breach of this covenant to use MyCHIPs to document a debt measured in dollars.
+          It is not a breach to buy or sell dollars using MyCHIPs and at a price denominated in CHIPs.
+      -
+        text: >-
+          One CHIP is defined as having a value equal to:
+        sections:
+          -
+            text: 'The value produced by one continuously applied hour of adult human work;'
+          -
+            text: 'in such circumstance where there is neither a shortage nor a surplus of such willing labor available; and'
+          -
+            text: 'where the task can be reasonably understood with only minimal training and orientation; and'
+          -
+            text: 'without considering the added productivity achieved by the use of labor-saving capital equipment; and'
+          -
+            text: 'where the person performing the work has a normal, or average, functioning mind and body; and'
+          -
+            text: 'can communicate effectively as needed with others in his/her work; and'
+          -
+            text: 'can read and write effectively as needed to understand his/her work; and'
+          -
+            text: 'understands, and can effectively employ basic arithmetic and counting as necessary for the work; and'
+          -
+            text: 'otherwise, possesses no unusual strengths, weaknesses, developed skills, talents or abilities relevant to the work.'

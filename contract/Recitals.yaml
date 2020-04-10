@@ -1,0 +1,28 @@
+---
+  contract:
+    domain: mychips.org
+    name: "Recitals"
+    version: 1
+    language: eng
+    published: null
+    title: 'Purpose of The Contract'
+    text: 'Whereas:'
+    sections:
+      -
+        text: >-
+          As part of the ordinary course of business, the Parties wish to engage in the exchange of goods and services, hereinafter referred to as Product; and
+      -
+        text: >-
+          It is unlikely in any specific transacton that a two-way exchange of Product can be found that is exactly balanced in both time and value and/or is desired by the Parties; and
+      -
+        text: >-
+          The Parties desire an efficient way to conduct a single transfer of Product with consideration being given in the form of a Pledge of Value, or a debt, to be realized at some future time in a form acceptable to the Parties; and
+      -
+        text: >-
+          The Parties wishing to issue, receive, and formalize such Pledges of Value, or Credit, in a system of open-account indebtedness and in a digital format for the sake of convenience and accuracy; and
+      -
+        text: >-
+          The Parties wish to use the MyCHIPs Protocol as published and explained by mychips.org and demonstrated by its Reference Implementation, to accomplish this;
+      -
+        text: >-
+          It is hereby agreed as follows:

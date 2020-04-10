@@ -3,23 +3,22 @@ words, it is a contract--payable from one party and receivable to the other.
 
 So one job of MyCHIPs is to organize and document these contracts.  And it
 will do so just as you might imagine with any legally binding agreement.
-That way, if both parties share a legal jurisdiction, their agreements can
-be enforced by that jurisdiction, in addition to the negative consequences
-that would result in the trading community as a result of defaulting on a 
-contract.
+That way, if both parties share a legal jurisdiction, their agreements could be 
+enforced by that jurisdiction.  This is in addition to the expected negative 
+consequence of tarnished reputation that will naturally result in the trading 
+community as a result of defaulting on a contract.
 
-This directory contains a few boilerplate examples of contract fragments.
-Normally, a contract would be comprised of multiple fragments.  The idea is, 
-you mix and match various clauses together to build up a complete contract 
-agreement that is acceptable to both parties.  Ideally, there would be a 
-relatively small universe of "standard" contracts people recognize and get 
-comfortable with.
+This directory contains examples of contracts and their components. Normally, a 
+contract would be comprised of multiple components.  The idea is, you mix and 
+match various clauses together to build up a complete contract agreement that 
+is acceptable to both parties.  Ideally, there would be a relatively small 
+universe of "standard" contracts people recognize and get comfortable with.
 
 Contracts can be incorporated into other contracts by referring to the contract 
 key (domain, file, version and language) and a hash digest of the contract
 contents.  This way the contract itself doesn't actually have to get included 
 inline.  But the terms, or effect of the contract, still get included as you 
-invoke them by reference.
+invoke it by reference.
 
 Contract Format:
 -------------------------------------------------------------------------------
@@ -108,3 +107,67 @@ A contract is represented as a JSON object with the following properties:
       If a source URL is specified in a subsection, it means that the specified
       contract is included by reference at this point in the containing
       document.  The digest is mandatory in this case.
+
+Tally Agreement Layout:
+-------------------------------------------------------------------------------
+The tally itself is an agreement between two parties.  For clarity, we will
+refer to it at this top level as the "Tally Agreement."
+
+By inclusion or reference, the Tally Agreement should contain enough data to
+clearly explain the commitments each of the parties is making to each other.
+
+When a tally agreement is printed out, it should look something like this:
+
+-------------------------------------------------------------------------------
+This Tally Agreement is made by and between the Parties:
+
+  Vendor: <Name of stock entity in the tally>
+  Vendor ID Type: email, domain, usa, etc.
+  Vendor ID: <email_address>, <domain_name>, <Tax ID Number>, etc.
+  Vendor Public: <Stock entity's public trading key>
+
+and:
+  Client: <Name of the foil entity in the tally>
+  Client ID Type: email, domain, usa, etc.
+  Client ID: <email_address>, <domain_name>, <Tax ID Number>, etc.
+  Client Public: <Foil entity's public trading key>
+
+which Agreement is made according to the following terms and conditions:
+
+  Stock Credit Terms:				(see doc/Tallies)
+    <Enumerated list of Stock's credit terms>
+  Foil Credit Terms:				(see doc/Tallies)
+    <Enumerated list of Foil's credit terms>
+
+and according to the definitions, terms, and conditions specified in the
+following contract which is incorporated herein and made a part of this
+Agreement:
+
+  Contract: <publisher.domain/Tally_Contract-version-language>
+  Contract Hash: <Contract digest>
+
+this Agreement being made binding, as of:
+  Tally Date: <Date the tally was signed>
+
+by the digital signatures of the parties as follows:
+  Tally Hash: <Tally digest>
+  Stock Signature: <Stock's signature of tally hash>
+  Foil Signature: <Foil's signature of tally hash>
+
+<QR Code containing Tally JSON>
+
+-------------------------------------------------------------------------------
+The Tally Contract itself whould then be structured something like this:
+
+  Recitals
+  Tally_Definition		Roles of the parties
+  Chip_Definition		
+  Sending_Value
+  Free
+  Ethics
+  Duties_Rights			Recourse / Governing law
+  Representations
+  Defaults
+  Credit Terms			Definition of specific terms
+
+-------------------------------------------------------------------------------

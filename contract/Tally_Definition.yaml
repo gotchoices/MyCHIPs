@@ -1,0 +1,76 @@
+---
+  contract:
+    domain: mychips.org
+    name: 'Tally Definition'
+    version: 1
+    language: eng
+    published: null
+    title: 'What a Tally is and How it Works'
+    text: >-
+      Pledges of Value are tracked by means of a Tally.
+      A Tally is an agreement between two willing Parties, normally stored on a computer, and by which the Parties document and enforce a series of Pledges of Value, or Chits, made between them.
+    sections:
+      -
+        title: 'Signing Keys'
+        text: >-
+          Each Party is in possession of a digital key consisting of a private part and a public part..
+          Each Party is responsible to maintain knowledge and possession of its key and to keep the private portion absolutely confidential.
+          The public part of the key will be used to validate one's digital signature and so must be shared with the other Party.
+      -
+        title: 'Signing the Tally'
+        text: >-
+          The Parties agree to the terms and conditions incorporated in the Tally by computing a standardized hash from the normalized contents of the Tally, and encrypting that hash using their private key.
+          This act of signing is normally conducted by a user interacting with an application running on a computer or mobile device.
+          By producing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions contained in that Tally, including those that may be incorporated by digital reference.
+          If one Party is in possession of a valid signature of the Tally, which can be verified by the other Party's public key, this is sufficient proof of the consent of the other Party to the Agreement in its entirety.
+      -
+        title: 'Stock and Foil'
+        text: >-
+          The two Parties to a Tally are distinct with respect to their expected roles.
+          Specifically, the Tally is stored as two complementary counterparts: a Stock, and a Foil, each held or stored by one of the Parties or its agent service provider.
+      -
+        title: 'Vendor Role'
+        text: >-
+          The Party holding the Stock is expected to be the provider of Product most often in the normal course of transactions.
+          This role is referred to as the "Vendor."
+      -
+        title: 'Client Role'
+        text: >-
+          The Party holding the Foil is expected to most often be the recipient of Product.
+          This role is referred to as the "Client."
+      -
+        title: 'Typical Examples'
+        text: >-
+          For example, if a regular customer establishes a Tally with a merchant to buy Product from that merchant, the customer would hold the Foil and the merchant would hold the Stock.
+          In an employment scenario, the employer will hold the Foil and the Employee will hold the Stock.
+      -
+        title: 'Chits'
+        text: >-
+          Each Pledge contained in a Tally is referred to as a Chit.
+          The Party who is pledging value by the Chit is referred to as the Issuer of credit for that Chit.
+          The Party the pledge is made to is the Receiver of credit.
+          Either Party may add valid, digitally signed Chits to the Tally as long as it does so as an Issuer.
+      -
+        title: 'Authority to Pledge'
+        text: >-
+          Neither Party may unilaterally add a Chit as Receiver, or a Chit which would grant value from the other Party to itself.
+          However, either Party may request such a Pledge from the other Party.
+      -
+        title: 'Net Credit'
+        text: >-
+          In spite of the distinct definition of the Vendor and Client, individual Pledges may be made by either Party, to the other Party.
+          For example, a Vendor may also make Pledges to a Client.
+          When added together, the net value of all Pledges contained in the Tally, form a total value for the Tally.
+          Unless that value is zero, it will result in a net indebtedness of one Party to the other.
+      -
+        title: 'Net Issuer and Recipient'
+        text: >-
+          This indebtedness is credit, which can be thought of as a loan, a debt, or and IOU.
+          At any given time, the indebted Party is referred to as the Net Issuer of credit.
+          At that same time, the other Party is referred to as the Net Recipient of credit.
+      -
+        title: 'Variable Roles'
+        text: >-
+          The roles of Vendor and Client remain constant in the context of the Tally with its two parts, Stock and Foil.
+          As the Tally Stock accumulates a positive value, the Client would be the Net Issuer and the Vendor would be the Net Recipient.
+          But the roles of Net Issuer and Net Recipient of credit can become reversed if the balance of the Tally moves from positive to negative.

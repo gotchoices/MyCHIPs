@@ -14,11 +14,12 @@ Version 3, a copy of which is included in this distribution (AGPL-3.0), subject
 to the following two conditions, which constitute binding amendments to the 
 License:
 
-  Condition 1: End users (individuals and companies) of The Software 
-    incorporate the terms and conditions specified in contracts/Free.json, in 
-    their full force and effect, in contracts (chits, tallies, lifts, payments,
-    trades, etc.) they may engage in.  This obligation pertains to the version 
-    of Free.json published with the version of the software being used to host 
+  Condition 1: End users (including individuals, companies and other 
+    organizations) of The Software incorporate the terms and conditions 
+    referenced in contracts/Free.yaml, in their full force and effect, in 
+    all contracts and transactions (chits, tallies, lifts, payments, trades, 
+    etc.) they may engage in.  This obligation pertains to the version of 
+    Free.yaml published with the version of the software being used to host 
     the user's account at such time as the contracts in question are agreed to
     by that user.
     
@@ -28,18 +29,26 @@ License:
        obligations under this license, most notably Condition 1 above; and
     B) proactively collect, and pay monthly to the Author, any royalties due, 
        as explained below, from those who do not abide by Condition 1.
+    C) deal honestly with, and representing the best interests of, the users
+       they host services for.
 
 Paid Option:
-Service providers and end users who do not abide by the Conditions above may
-use this software by instead paying a royalty consisting of:
+Service providers and end users using the software who do not abide by the 
+Conditions above automatically become subject to the paid option consisting of:
+
   A) 1% of all gross revenues associated directly or indirectly with the use 
      of The Software, remitted voluntarily and monthly to, and without explicit 
-     invoice or demand by, the Author.
+     invoice or demand by, the Author; and
   B) An additional 9% of all such revenues, plus all associated collection 
      costs, including attorneys fees, in such case that the 1% royalty payments 
      noted above are not made timely or otherwise require collection efforts by 
-     the Author or its agents.
+     the Author or its agents; and
+  C) The greater of $5000 or 300% of any loss incurred by any user, plus 
+     collection costs and attorneys fees, as a result of any intentional act by 
+     a service provider to cheat or defraud one of their users.  The Author 
+     hereby authorizes any user so victimized to collect on its behalf in 
+     exchange for voluntarily remitting 10% of any such recovered fees.
 
-For purposes of this License, the term "revenue" shall mean any accrual or 
-receipt of value, whether in CHIPs or some other measure, which is obtained as 
-a gift or in exchange for goods, services or other consideration.
+For purposes of this License, the term "revenue" shall mean any accrual, pledge,
+or receipt of value, whether measured in CHIPs or some other unit, which is
+recorded or transferred using the software.

@@ -1,0 +1,31 @@
+---
+  contract:
+    domain: mychips.org
+    name: 'Defaults'
+    version: 1
+    language: eng
+    published: null
+    title: 'Contract Breaches and Conditions of Default'
+    text: >-
+      Any of the following actions by either Party constitute a breach of the Agreement and therefore, the Party is deemed to be in Default:
+    sections:
+      -
+        title: 'Failure of Duty'
+        text: >-
+          Failure to honor any obligation outlined in the Tally, including all its referenced Contract components.
+      -
+        title: 'False Representation'
+        text: >-
+          Determination that any representation given in connection with the Tally is factually untrue.
+      -
+        title: 'Failure to Commit'
+        text: >-
+          Failure to complete a Credit Lift transactions previously committed to as a result of intentional manipulation of software and/or a network.
+      -
+        title: 'Attempt to Cheat'
+        text: >-
+          Failure to complete a Credit Lift honestly and according to the protocol documented and demonstrated by the reference server implementation published by mychips.org.
+      -
+        title: 'Failure to Honor'
+        text: >-
+          Failure to provide sufficient connections to accomplish necessary Credit Lifts, followed by failure to make a Recipient whole by alternative means.
