@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+//Convert YAML file to JSON format
+//Usage ./yaml2json
+//TODO:
+//- 
+
+const Fs = require('fs')
+const Os = require('os')
+const Yaml = require('yaml')
+var argv = require('yargs').argv
+//console.log("argv:", argv)
+
+var pretty	= argv.p
+//var outFile	= argv.o ? (Array.isArray(argv.o) ? argv.o.pop() : argv.o) : null
+console.log("pretty:", pretty)
+
+argv._.forEach(file => {
+  console.log("file:", file)
+  let yData = Fs.readFileSync(file).toString()
+    , jData = Yaml.parse(yData)
+  console.log(JSON.stringify(jData, null, pretty))
+})
