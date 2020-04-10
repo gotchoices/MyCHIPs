@@ -677,9 +677,9 @@ $$;}
 trigger mychips_tallies_tr_change {} {
     after insert or update or delete on mychips.tallies for each statement execute procedure mychips.change_tf_notify('tallies');
 }
-trigger mychips_chits_tr_change {} {
-    after insert or update or delete on mychips.chits for each statement execute procedure mychips.change_tf_notify('chits');
-}
+#trigger mychips_chits_tr_change {} {	--Redundant?
+#    after insert or update or delete on mychips.chits for each statement execute procedure mychips.change_tf_notify('chits');
+#}
 
 # Find an open tally meeting certain criteria, returning the sequence number (currently used only in agent1 model)
 #----------------------------------------------------------------
