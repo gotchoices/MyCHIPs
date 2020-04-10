@@ -195,7 +195,8 @@ export default {
 
       if (dat.target == 'peers' || dat.target == 'tallies')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
-      this.$refs.svg.$emit('change')		//Automatic bump each time something changes
+      if (dat.oper == 'DELETE' || dat.oper == 'INSERT')
+        this.$refs.svg.$emit('change')		//Automatic bump each time something changes
     })
   },
 
