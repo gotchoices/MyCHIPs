@@ -12,6 +12,8 @@ X- Remote lift gets entered as 'pend'
 X- Build or inherit hash? (inherit and compare?)
 X- Implement remote handler to pend status
 - 
+- Debug Lori Michelenko lift, not working
+- 
 - Implement consensus algorithm when adding chits to hash chain
 - Ack/Nak are extensions to the chit protocol?
 - Packets for good chits include chain index and hash
@@ -24,15 +26,21 @@ X-   Phase 3: generate signing key, start commit
 X- When a lift is created, forge the associated chits in pending status
 X- When lift is committed, move all chits on my site to 'good'
 X- Lift packet includes (dummy for now) site public key and connection endpoint
-- How to trigger a manual signature query if a lift times out?
+- Make local lift work again (create lift record only, let chitcheck create chits)
 - 
-- Build test function to initiate a linear lift
-- Test linear lift
+- Build test function to initiate a linear lift:
+- Test linear lift:
 - Recipient needs to communicate via lift initiator's specified endpoint
-- Write initial tally/chit/lift contracts
-- Clean up demonstration instructions
+- 
+- Review demonstration instructions
+X- Write initial tally/chit/lift contracts
+- Report to preview a tally contract (in User Interface)
+-
 - Public Proof-of-concept release
-
+-
+- Does it work to re-probe for an existing (expired, pending or railed) route?
+- Need a scheduler to do this occasionally (and particularly when necessary)
+- How to trigger a manual signature query if a lift times out?
 - Create function in server to call circular lift function on specified interval
 - 
 
@@ -42,7 +50,7 @@ X- Create agent client module to model user, reads/writes/listens direct with DB
 X- Can spawn N user agents against M server instances
 X- Create graphical canvas view of all users balance sheets
 X- Implement single-db lift algorithm
-- Implement multi-db lift algorithm
+X- Implement multi-db lift algorithm
 - Public Proof-of-Concept release
 - Improve agent model (see below)
 - Write unit test suite

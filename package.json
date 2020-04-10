@@ -69,6 +69,7 @@
     "wylib": "^1.0.20",
     "wyselib": "^1.0.15",
     "wyseman": "^1.0.16",
+    "yaml": "^1.8.3",
     "yargs": "^15.0.2"
   },
   "devDependencies": {
