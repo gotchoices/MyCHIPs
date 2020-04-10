@@ -360,6 +360,7 @@ function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.
             act = route.status;
         end if;
 --raise notice 'RN:% % % % %', act, route.route_ent, route.dest_ent, route.dest_chid, route.dest_host;
+        if act isnull then return false; end if;			-- Must have a valid action
 
         select into orec route_ent,route_cid,route_addr,requ_sock,topu_sock,topu_serv,route_sock,dest_chid,dest_host,status,state,relay,reverse,step from mychips.routes_v where route_ent = route.route_ent and dest_chid = route.dest_chid;
         if not found then return false; end if;				-- Find the full-view route record
@@ -398,7 +399,7 @@ function mychips.routes_tf_notify() {mychips.route_notify(mychips.routes)} {
     declare
         dirty	boolean default false;
     begin
-        if TG_OP = 'INSERT' and not new.request isnull then
+        if TG_OP = 'INSERT' then
             dirty = true;
         elsif new.status != old.status then
             dirty = true;
