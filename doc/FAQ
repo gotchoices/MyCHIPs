@@ -41,6 +41,14 @@ publish a critical review so others can avoid the same pitfall.  However, that
 is separate from the primary function of MyCHIPs--to transfer value through a
 web of locally interconnected peers.
 
+For those of you who insist that MyCHIPs be build "on top of something else":
+Sorry, I've tried.  But "from scratch" was the best way I could find to get the
+job done.  It is difficult to model relativity using Newtonian physics.  Time
+and space start to break down.  Likewise, it is hard to model private credit in
+the context of equity-based notions (like public ledgers, reputation-based 
+trust, and the like).  Those are helpful constructs--just not directly 
+applicable to a tokenless money system based on private credit.
+
 -------------------------------------------------------------------------------
 Why use Javascript on the backend?
 

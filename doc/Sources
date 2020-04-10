@@ -52,3 +52,9 @@ schema
 test
     Contains mocha tests as well as a variety of sample data for use in
     development.
+    
+    The test/sim folder contains several simulation environments.  The most
+    recent of which is "simdock" which spins up any number of instances of 
+    sites and servers in docker containers to simulate a real network.  This 
+    can be used in conjunction with the agent-based model to create distributed 
+    data sets for testing and validation.

@@ -5,11 +5,11 @@ This is *not* a Bitcoin/blockchain derivative, but rather it seeks to address
 several serious problems inherent with those technologies.
 
 Briefly, if block-chain based coins can be thought of as a crypto-stock
-or crypto-equity, MyCHIPs can be characterized as a crypto-bond.  Either _can_
-be used as a currency, or medium of exchange.  However, a credit-based 
-solution will be much more resilient to such forces as speculation,
-volatility, inflation, and deflation.  So it would be much better solution
-when considering the three primary purposes of money:
+or crypto-equity, MyCHIPs can be characterized as a crypto-bond.
+Either one _can_ be used as money, or a medium of exchange.
+However, a solution based on private will be much more resilient to such forces as speculation,
+volatility, inflation, and deflation.
+So it will be much better solution when considering these three primary purposes of money:
 
     - a medium of exchange,
     - a store of value, and 
@@ -27,29 +27,34 @@ Specifically, [Wyseman](http://github.com/gotchoices/wyseman) and
 [Wyselib](http://github.com/gotchoices/wyselib) for deployment of a backend database, and
 [Wylib](http://github.com/gotchoices/wylib) for a frontend GUI.
 
-While Wylib is probably not the best solution for an eventual user GUI, it will do well
-for an administrative console.  And it will suffice for a user SPA until a dedicated mobile
-app can be built.  Besides, I wanted to use it on some other projects as well, so bringing
-it up-to-date with modern web protocols seemed like a good idea.
+While Wylib is not the right solution for an eventual user GUI, it will do fine
+for an administrative console.  And it can suffice for a user SPA until a dedicated mobile
+app can be built.
+
+I have kept the source closed for several years while I tried to work out an algorithm for performing a distributed lift.
+It also took me a while to come up with a licensing mechanism I would be comfortable with.
+I wanted MyCHIPs to be free for anyone to use, but only if they respect the principles of choice it was designed to promote.
 
 ### Current Project Status:
 The _holy grail_ of MyCHIPs is a network implementation of the lift protocol introduced
 in [this article](http://gotchoices.org/mychips/coupon.html) and explained in some more detail 
-in [this article](http://gotchoices.org/mychips/acdc.html).  Unfortunately, that part is
-not done yet.
+in [this article](http://gotchoices.org/mychips/acdc.html).
 
-However, I _have_ completed a functional framework which includes the following:
+As of March, 2020, the software is successfully computing and performing fully distributed lifts in a simulated network.
+I consider this "preliminary proof of concept" and so am ready to release this code subject to the attched LICENSE.
+
+Here is a rough outline of what has been done so far:
 
 - Backend PostgreSQL database
   - Database authoring/modification tool
   - Data dictionary, including multi-language support
-  - Basic schema to support many users per instance, multiple admins
-  - Group/permission structures
+  - Basic schema to support many users per instance
+  - User/group/permission structures
+  - Future capability for full ERP integration
 - Multi-function Javascript server
   - Peer-to-peer process
   - Administrator server
   - User server (skeleton)
-  - Agent-based modeling process (skeleton)
 - Frontend GUI framework
   - Vue-based Single Page Applications for administration
   - Vue-based Single Page Applications for user access (skeleton)
@@ -58,6 +63,18 @@ However, I _have_ completed a functional framework which includes the following:
   - Record editor
   - Parametric search tool
   - Support for reports, actions, other control-layer functions
+  - Support for editing/viewing tally contracts
+- Simulations
+  - Agent-based modeling simulation process (very basic)
+  - Local simulation engine (single host)
+  - Network based simulation engine (multiple sites)
+  - Docker based simulation engine (N sites)
+  - Command line UI to create/analyze simulated data sets
+- Model algorithm
+  - Users can negotiate tallies with each other
+  - Users can exchange chits with each other
+  - Sites can discover possible lift pathways through the network
+  - Can (manually) initiate circular lifts through the network
 
 If you are interested in participating, clone this repo and follow the instructions
 in the [Developer Instructions](doc/Development).  You should be able to get a
@@ -72,14 +89,15 @@ simple demo network running and visualize it in the administrator console.
   - Database GUI access tool **(Done)**
   - Tally/Chit exchange protocol **(Done)**
   - Basic user/peer/tally schema **(Done)**
-  - Develop agent-based modeling tool **(In process)**
-  - Develop lift algorithm
-  - Implement test network across multiple databases
-  - Develop contract editing, publishing, rendering, validation
-  - Develop simple Wylib-based user SPA
-  - Harden Database (implement users, groups, permissions, logins)
-  - Harden Wylib/Wyseman (user validation)
+  - Implement test network across multiple databases **(Done)**
+  - Harden Wylib/Wyseman (user validation) **(Done)**
+  - Develop agent-based modeling tool **(Working, needs work)**
+  - Develop lift algorithm **(Working, needs testing)**
+  - Develop contract editing, publishing, rendering, validation **(Working, needs testing)**
+  - Develop simple Wylib-based user SPA **(Basic, needs work)**
+  - Harden Database (implement users, groups, permissions, logins) **(Basic, needs testing)**
   - Harden network communication (tickets, key exchange, noise-protocol)
+  - Develop more unit tests
 - Early adopter testing (sandbox trading network)
 - Rollout!
 - Develop dedicated mobile user app

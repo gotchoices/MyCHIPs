@@ -11,8 +11,15 @@ X- Make pending chits when a lift is initialized
 X- Remote lift gets entered as 'pend'
 X- Build or inherit hash? (inherit and compare?)
 X- Implement remote handler to pend status
+X- Debug Lori Michelenko lift, not working
 - 
-- Debug Lori Michelenko lift, not working
+- Licensing/contracts:
+- You covenant not to defraud your partner or anyone it is connected to
+- You assign your right not to be defrauded to each of your connections
+- You assign your rights to pursue remedies to each of your connections
+- Loser pays
+- Frivolous claim loser pays double
+- Fraud/cheater loser pays triple
 - 
 - Implement consensus algorithm when adding chits to hash chain
 - Ack/Nak are extensions to the chit protocol?
