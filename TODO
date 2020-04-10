@@ -1,12 +1,6 @@
 TODO:
 
 Immediate:
-X- Chit state machine sets status field at appropriate states
-X- Streamline upsert code? (see comments)
-X- State = 'good' only valid on conditions of request=null and signature valid
-X- Implement pending balance in tally
-X- Routes/lifts should respect pending balance--not established one
-X- How does a lift know which pathway it is using (currently, can resolve to more than one)
 X- Make pending chits when a lift is initialized
 X- Remote lift gets entered as 'pend'
 X- Build or inherit hash? (inherit and compare?)
@@ -21,10 +15,8 @@ X- Debug Lori Michelenko lift, not working
 - Frivolous claim loser pays double
 - Fraud/cheater loser pays triple
 - 
-- Implement consensus algorithm when adding chits to hash chain
-- Ack/Nak are extensions to the chit protocol?
-- Packets for good chits include chain index and hash
-- Ack/Naks include chits and/or chain segments as applicable
+X- Implement consensus algorithm when adding chits to hash chain
+X- Packets for good chits include chain index and hash
 - 
 - Test Lift States:
 X-   Phase 1: initiate/refresh routes
@@ -33,18 +25,24 @@ X-   Phase 3: generate signing key, start commit
 X- When a lift is created, forge the associated chits in pending status
 X- When lift is committed, move all chits on my site to 'good'
 X- Lift packet includes (dummy for now) site public key and connection endpoint
-- Make local lift work again (create lift record only, let chitcheck create chits)
-- 
+X- Make local lift work again (create lift record only, let chitcheck create chits)
 - Build test function to initiate a linear lift:
 - Test linear lift:
 - Recipient needs to communicate via lift initiator's specified endpoint
 - 
-- Review demonstration instructions
+X- Review demonstration instructions
 X- Write initial tally/chit/lift contracts
 - Report to preview a tally contract (in User Interface)
 -
 - Public Proof-of-concept release
 -
+- Chit consensus:
+-   Can tolerate network outages:
+-   Will re-synch no matter how many chits got added during outage
+-   Add ack/nak to chit protocol?
+-   Ack/naks include chits and/or chain segments as applicable
+- Routes count how many successful lifts they have conveyed
+- Routes refresh their expiration upon last successful lift
 - Does it work to re-probe for an existing (expired, pending or railed) route?
 - Need a scheduler to do this occasionally (and particularly when necessary)
 - How to trigger a manual signature query if a lift times out?
