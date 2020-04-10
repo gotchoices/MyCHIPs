@@ -337,7 +337,7 @@ function {mychips.lift_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
 --        select into erec id, serv_id from mychips.users_v where peer_cid = cid;
 --        if not found then return null; end if;
 
-        select into dest_r id, user_ent, peer_cid, peer_chost from mychips.users_v where peer_cid = dchid and peer_chost = dhost;	-- Is the destinatino a local user?
+        select into dest_r id from mychips.users_v where peer_cid = dchid and peer_chost = dhost and not user_ent isnull;	-- Is the destination a local user?
 
         select into lrec lift_guid, route_ent, dest_chid, dest_host, state from mychips.lifts_v where lift_guid = guid;
         curState = lrec.state;
@@ -364,14 +364,16 @@ function {mychips.lift_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
 
           if dest_r.id isnull then		-- If destination is not locally known
 
-raise notice 'Remote destination: :%@% units:%', dchid, dhost, units;
+raise notice 'Remote dest: :%@% units:% last:% botu:%', dchid, dhost, units, from_r.id, user_r.id;
 -- Attempt to find the next segment for the lift:
             select into qrec route_ent,path,guids from mychips.routes_v_paths
               where dest_chid = dchid and dest_host = dhost
-              and last = from_r.id and botu_ent = user_r.id and route_lift_min >= units
+              and last = from_r.id 
+              and path[array_upper(path,1)-1] = user_r.id	-- was: botu_ent = user_r.id (wrong)
+              and route_lift_min >= units
               order by length desc limit 1;
 raise notice 'Relay lift:% path:%', guid, qrec.path;
-            if not found then return 'fail'; end if;	-- No upstream paths found
+            if not found then return 'fail'; end if;		-- No upstream paths found
 
             execute 'insert into mychips.lifts (lift_guid,route_ent,circuit,path,tallies,dest_chid,dest_host,units,socket,public,req_date,exp_date,request) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,''relay'')'
               using guid, qrec.route_ent, circ, qrec.path, qrec.guids, dchid, dhost, units, obj->>'socket', obj->>'public', ldate, xdate;
