@@ -1,7 +1,7 @@
 [MyCHIPs License Agreement
 Version 2, Nov 28, 2019
 
-(For a common language interpretation, please see the file: FREE-USE)
+(For a common language summary, please see the file: FREE-USE)
 
 The Author of the MyCHIPs package contained herein offers a dual license to 
 the programs, code, files, algorithms, API's, documentation and other content 
@@ -45,10 +45,10 @@ Conditions above automatically become subject to the paid option consisting of:
      the Author or its agents; and
   C) The greater of $5000 or 300% of any loss incurred by any user, plus 
      collection costs and attorneys fees, as a result of any intentional act by 
-     a service provider to cheat or defraud one of their users.  The Author 
-     hereby authorizes any user so victimized to collect on its behalf in 
-     exchange for voluntarily remitting 10% of any such recovered fees.
+     a service provider to cheat or defraud a user.  The Author hereby 
+     authorizes any user so harmed to sue and to collect on its behalf in 
+     exchange for voluntarily remitting 10% of the gross of any such recovery.
 
 For purposes of this License, the term "revenue" shall mean any accrual, pledge,
 or receipt of value, whether measured in CHIPs or some other unit, which is
-recorded or transferred using the software.
+received in connection with the use of the software.
