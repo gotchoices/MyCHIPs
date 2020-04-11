@@ -49,13 +49,13 @@ case $command in
     ;;
 
   dbcheck)
-#    echo "DBCheck: pg:$MYCHIPS_DBHOST PATH:$PATH cwd:$(pwd)"
+#    echo "DBCheck: pg:$MYCHIPS_DBHOST PATH:$PATH cwd:$(pwd) @:$@"
     if ! cd schema; then
       echo "Can't find db schema directory" >&2; exit 1
     fi
     lastfile=${tmpdir}/schema_build.$MYCHIPS_DBHOST
     dobuild=false
-    if [ ! -f $lastfile ]; then
+    if [ ! -f $lastfile -o "x$1" = "x-f" ]; then
       dobuild=true
     else
       news=$(find . -newer $lastfile |wc -l)
