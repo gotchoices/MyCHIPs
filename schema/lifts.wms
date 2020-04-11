@@ -65,7 +65,7 @@ function mychips.lifts_tf_bi() {mychips.lift_json(mychips.lifts)} {
           new.exp_date = current_timestamp + base.parm('lifts', 'life', '2 minutes'::text)::interval;
         end if;
 
-        new.digest = sha256(mychips.lift_json(new)::text::bytea);
+        new.digest = sha256(quote_literal(mychips.lift_json(new)::text)::bytea);
         return new;
     end;
 $$;}
@@ -99,7 +99,7 @@ function mychips.lifts_tf_bu() {mychips.lift_chitcheck(mychips.lifts) mychips.ch
 --        update mychips.chits set chit_guid = new.lift_guid where chit_type = 'lift' and chit_guid = old.lift_guid;
 --      end if;						-- Now done with foreign key
       if new.units != old.units or new.socket != old.socket or new.public != old.public then
-        new.digest = sha256(mychips.lift_json(new)::text::bytea);
+        new.digest = sha256(quote_literal(mychips.lift_json(new)::text)::bytea);
       end if;
       if old.request != 'init' and new.request = 'init' then
         return mychips.lift_chitcheck(new);
@@ -247,8 +247,8 @@ view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,te
   , mychips.lift_json(lf) || jsonb_build_object(
       'digest',		lf.digest
     )								as json
-  , sha256(mychips.lift_json(lf)::text::bytea) as digest_v
-  , sha256(mychips.lift_json(lf)::text::bytea) = coalesce(lf.digest,'') as clean
+  , sha256(quote_literal(mychips.lift_json(lf)::text)::bytea) as digest_v
+  , sha256(quote_literal(mychips.lift_json(lf)::text)::bytea) = coalesce(lf.digest,'') as clean
   
   , re.peer_cid		as route_cid		-- Top of segment peer
   , re.peer_chost	as route_host

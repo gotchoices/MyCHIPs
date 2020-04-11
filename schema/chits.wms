@@ -156,12 +156,12 @@ function {mychips.chit_goodcheck(ch mychips.chits)} {mychips.chit_json(mychips.c
       if trec.tally_type = 'foil' then		-- Consensus algorithm for chit hash-chain:
         ch.chain_idx = thisidx;			-- Foil ignores any specified index, just append at end of its chain
         ch.chain_prv = prevhash;
-        ch.digest = sha256(mychips.chit_json(ch)::text::bytea);
+        ch.digest = sha256(quote_literal(mychips.chit_json(ch)::text)::bytea);
 
       else					-- We hold a stock, which must conform to foil
         if ch.chain_idx isnull then		-- Stock has no specified index, append at end of chain
           ch.chain_idx = thisidx;
-          if ch.digest isnull then ch.digest = sha256(mychips.chit_json(ch)::text::bytea); end if;
+          if ch.digest isnull then ch.digest = sha256(quote_literal(mychips.chit_json(ch)::text)::bytea); end if;
           if ch.chain_prv isnull then ch.chain_prv = prevhash; end if;
 
         elsif ch.chain_idx >= 1 and ch.chain_idx <= thisidx then	-- There are existing chits in our way; stock must conform
@@ -315,8 +315,8 @@ view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean
   , mychips.chit_json(ch) || jsonb_build_object(
       'digest',		ch.digest
     )								as json
-  , sha256(mychips.chit_json(ch)::text::bytea) as digest_v
-  , sha256(mychips.chit_json(ch)::text::bytea) = coalesce(ch.digest,'') as clean
+  , sha256(quote_literal(mychips.chit_json(ch)::text)::bytea) as digest_v
+  , sha256(quote_literal(mychips.chit_json(ch)::text)::bytea) = coalesce(ch.digest,'') as clean
 
     from	mychips.chits		ch
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq;
