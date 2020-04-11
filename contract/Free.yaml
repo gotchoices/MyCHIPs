@@ -4,13 +4,17 @@
     name: 'Free'
     version: 1
     language: eng
-    title: 'How to Use MyCHIPs at No Cost"
+    published: '2020-Apr-01'
+    digest: '\xb858781fb6d8ca6cf05bfbc370fc223ff021e87b5d3131352b0c5a71da441d02'
+    title: 'How to Use MyCHIPs at No Cost'
     text: >-
       End users may use MyCHIPs royalty free on the condition that, in all contracts and transactions, the following contract sections are included in their full force and intent, and abided by:
     sections:
       -
         title: 'CHIP Definition'
-        source: 'mychips.org/Chip_Definition-1-eng'
+        source: 'mychips.org/CHIP_Definition-1-eng'
+        digest: '\x152fe12217db6307bee73c248b5ee4efc7a4f12ac29aea6add9845e7a4b9afcc'
       -
         title: 'Ethics'
         source: 'mychips.org/Ethics-1-eng'
+        digest: '\x4d7a2c44887ac2fcb70e818795829f46c020740f571a0a5e9133059bbc75f417'

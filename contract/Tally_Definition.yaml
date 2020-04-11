@@ -1,10 +1,11 @@
 ---
   contract:
     domain: mychips.org
-    name: 'Tally Definition'
+    name: 'Tally_Definition'
     version: 1
     language: eng
-    published: null
+    published: '2020-Apr-01'
+    digest: '\x18de3cbaa87968bcb043461f8dbe86bb9e954c34270d9c01b641355a8913fc3d'
     title: 'What a Tally is and How it Works'
     text: >-
       Pledges of Value are tracked by means of a Tally.

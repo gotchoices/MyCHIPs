@@ -1,0 +1,45 @@
+#!/bin/env node
+//Insert standard MyCHIPs contracts into the database
+const	Path	= require("path")
+const	Glob	= require("glob")
+const	Yaml	= require("yaml")
+const	Fs	= require("fs")
+const	Format	= require("pg-format")
+
+var condir = Path.join(__dirname, '../contract')
+//console.log("mydir:", __dirname, "condir:", condir)
+
+//Reach each YAML file from the contract folder
+Glob(condir + '/*.yaml', null, (err, files) => {
+  let comma = ''
+  console.log("insert into mychips.contracts (domain, name, version, language, published, digest, title, text, sections) values\n")
+
+  files.forEach(file => {
+    let fileContent = Fs.readFileSync(file).toString()
+      , contObj = Yaml.parse(fileContent)
+//console.log("File:", file, "Object:", contObj)
+    let { domain, name, version, language, published, title, digest, text } = contObj.contract
+      , sections = JSON.stringify(contObj.contract.sections)
+    console.log(`${comma}(
+      ${Format.literal(domain)},
+      ${Format.literal(name)},
+      ${version},
+      ${Format.literal(language)},
+      ${Format.literal(published)},
+      ${Format.literal(digest)},
+      ${Format.literal(title)},
+      ${Format.literal(text)},
+      ${Format.literal(sections)}
+    )`)
+    comma = ','
+  })
+
+  console.log(`
+    on conflict on constraint contracts_pkey do update set 
+          published	= EXCLUDED.published,
+          digest	= EXCLUDED.digest,
+          title		= EXCLUDED.title,
+          text		= EXCLUDED.text,
+          sections	= EXCLUDED.sections
+  `)
+})

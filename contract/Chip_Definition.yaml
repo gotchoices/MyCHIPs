@@ -1,9 +1,11 @@
 ---
   contract:
     domain: mychips.org
-    name: 'CHIP Definition'
+    name: 'CHIP_Definition'
     version: 1
     language: eng
+    published: '2020-Apr-01'
+    digest: '\x152fe12217db6307bee73c248b5ee4efc7a4f12ac29aea6add9845e7a4b9afcc'
     title: 'Defining a CHIP'
     text: >-
       MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of credit between willing parties.

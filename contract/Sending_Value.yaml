@@ -4,7 +4,8 @@
     name: 'Sending_Value'
     version: 1
     language: eng
-    published: null
+    published: '2020-Apr-01'
+    digest: '\xeeb74b8a26dcfa4457c2ef6494054bf109c19b13856c22a61d73d27a3bc16cd1'
     title: 'How Value is Transmitted in a MyCHIPs Network'
     text: >-
       A Tally contains individual Pledges or Chits, each of which constitutes a promise by the Issuer to deliver value, quantified in CHIPs, to the Recipient at some future time.

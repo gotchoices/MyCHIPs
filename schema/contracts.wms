@@ -29,7 +29,7 @@ table mychips.contracts {mychips base.language base.ent} {
   , title	varchar		not null
   , tag		varchar
   , text	varchar
-  , digest	varchar	      , unique (digest)
+  , digest	bytea
   , sections	jsonb
   , primary key(domain, name, version, language)
     eval(s $glob::stamps)
@@ -42,24 +42,35 @@ function {mychips.contract_url(dom text, nam text, ver int, lan text, dig text)}
     select dom || '/' || nam || '-' || ver::text || '-' || lan || case when dig is null then '' else '?' || dig end;
 $$;}
 
+# Compute standard json output for a contract
+#----------------------------------------------------------------
+function {mychips.contract_json(c mychips.contracts)} {mychips.contracts} {
+  returns jsonb stable language sql as $$
+    select jsonb_build_object(
+        'domain',	c.domain
+      , 'name',		c.name
+      , 'version',	c.version
+      , 'language',	c.language
+      , 'published',	c.published
+      , 'title',	c.title
+      , 'tag',		c.tag
+      , 'text',		c.text
+      , 'sections',	c.sections
+    )
+$$;}
+
 #Basic view
 #----------------------------------------------------------------
 view mychips.contracts_v {mychips.contracts} {
     select eval(fld_list $contracts::contracts_se c)
-  , mychips.contract_url(c.domain, c.name, c.version, c.language, c.digest) as source
-  , jsonb_build_object(
-      'domain',		c.domain
-    , 'name',		c.name
-    , 'version',	c.version
-    , 'language',	c.language
-    , 'published',	c.published
-    , 'title',		c.title
-    , 'tag',		c.tag
-    , 'text',		c.text
-    , 'digest',		c.digest
-    , 'sections',	c.sections
-    ) as json
-
+  , mychips.contract_url(c.domain, c.name, c.version, c.language, c.digest::text) as source
+  , mychips.contract_json(c)					as json_core
+  , mychips.contract_json(c) || jsonb_build_object(
+      'digest',		c.digest
+    )								as json
+  , sha256(quote_literal(mychips.contract_json(c)::text)::bytea) as digest_v
+  , sha256(quote_literal(mychips.contract_json(c)::text)::bytea) = coalesce(c.digest,'') as clean
+  
     from	mychips.contracts c;
 
     eval(trigview::insert mychips.contracts_v mychips.contracts $contracts::contracts_in $contracts::contracts_pk $glob::stampin);
@@ -84,21 +95,21 @@ trigger mychips_contracts_tr_bi {} {
     before insert on mychips.contracts for each row execute procedure mychips.contracts_tf_bi();
 }
 
-# Update contracts in an orderly way
+# Update contracts in an orderly way (should really do this in the permissioned view)
 #----------------------------------------------------------------
-function mychips.contracts_tf_bu() {mychips.contracts} {
-  returns trigger language plpgsql security definer as $$
-    begin
-      if old.published is not null then		-- Can't edit published contracts
-        return null;
-      end if;
-      if new.version < new.version then		-- Can't go back on versions
-        new.version = old.version;		
-      end if;
-      return new;
-    end;
-$$;}
-trigger mychips_contracts_tr_bu {} {
-    before update on mychips.contracts for each row execute procedure mychips.contracts_tf_bu();
-}
+#function mychips.contracts_tf_bu() {mychips.contracts} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#      if old.published is not null then		-- Can't edit published contracts
+#        return null;
+#      end if;
+#      if new.version < new.version then		-- Can't go back on versions
+#        new.version = old.version;		
+#      end if;
+#      return new;
+#    end;
+#$$;}
+#trigger mychips_contracts_tr_bu {} {
+#    before update on mychips.contracts for each row execute procedure mychips.contracts_tf_bu();
+#}
 

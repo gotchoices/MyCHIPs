@@ -4,7 +4,8 @@
     name: 'Ethics'
     version: 1
     language: eng
-    published: null
+    published: '2020-Apr-01'
+    digest: '\x4d7a2c44887ac2fcb70e818795829f46c020740f571a0a5e9133059bbc75f417'
     title: 'Ethical Conduct'
     text: >-
       The credits, or Chits, under a tally agreement constitute a Pledge of value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally.

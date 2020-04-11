@@ -4,7 +4,8 @@
     name: "Recitals"
     version: 1
     language: eng
-    published: null
+    published: '2020-Apr-01'
+    digest: '\xcb4855eba4518a1af6390f629e738fc0fd0c99b4d44a7208fee2d36c24211f6a'
     title: 'Purpose of The Contract'
     text: 'Whereas:'
     sections:
