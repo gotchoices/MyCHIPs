@@ -21,25 +21,27 @@ namespace eval chits {
     def chits_pk	{chit_ent chit_seq chit_idx}
     def chits_v_up	{request signature units quidpro memo}
     def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_guid chit_type]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_guid chit_type $glob::stampfn chit_date chain_idx chain_prv status digest]
+    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_guid chit_type $glob::stampfn chit_date chain_idx chain_prv lift_seq status digest]
 }
 
-table mychips.chits {mychips.tallies} {
+table mychips.chits {mychips.tallies mychips.lifts} {
     chit_ent	text
   , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
   , chit_guid	uuid		not null
-  , chit_type	text		not null default 'tran' check(chit_type in ('lift','tran'))
+  , chit_type	text		not null default 'tran' constraint "!mychips.tallies.BCT" check(chit_type in ('lift','tran'))
   , chit_date	timestamptz	not null default current_timestamp
-  , request	text		check(request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
+  , request	text	        constraint "mychips.tallies.BRQ" check (request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
   , signature	text
   , units	bigint		not null
   , quidpro	text
   , memo	text
-  , status	text		not null default 'void' check(status in ('void','pend','good') and (status != 'good' or (request is null and not signature is null and signature != 'void')))
+  , status	text		not null default 'void' constraint "!mychips.tallies.BST" check(status in ('void','pend','good') and (status != 'good' or (request is null and not signature is null and signature != 'void')))
   , digest	bytea		
   , chain_prv	bytea
   , chain_idx	int	      , unique(chit_ent, chit_seq, chain_idx)
+  , lift_seq	int           , foreign key (chit_guid, lift_seq) references mychips.lifts (lift_guid, lift_seq) on update cascade on delete cascade
+  , constraint "!mychips.tallies.BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
     eval(s $glob::stamps)
 }
 index {} mychips.chits chit_guid

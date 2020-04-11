@@ -17,6 +17,7 @@
 #X- Track if path consists of only inside, user members
 #X- Properly handle peers that are not our users (we only have a stock or foil type tally)
 #X- Pull minimum lift size from system parameters
+#- Should notify the user at end of route_process if a route has just been verified?
 #- Add validity check for routes.status
 #- Test/debug route query retries
 #- Handle special case where head and tail of segment are the same foreign peer (automatically good)

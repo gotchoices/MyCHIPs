@@ -4,20 +4,23 @@
 #TODO:
 #X- Are upeer_ent,dpeer_ent fields necessary in lift table?
 #X- Remove some unused fields in lifts_v (topu_xxx, botu_xxx)
+#X- Probably need a sequence for lift primary key (A single lift could travel through the same site more than once!)
+#- How/when do I compromise on non-zero lift_margins?
 #- Include real site public key and origin port in lift message
 #- Generate error if no site public key present (later)
 #- 
 module mychips
 
 namespace eval lifts {
-    def lifts_pk	{lift_guid}
+    def lifts_pk	{lift_guid lift_seq}
 #    def lifts_v_up	{request status signature}
-#    def lifts_v_in	[concat lift_guid $lifts_v_up exp_date]
-    def lifts_se	[concat lift_guid route_ent circuit path tallies units request status signature socket public dest_chid dest_host req_date exp_date digest]
+#    def lifts_v_in	[concat $lifts_pk $lifts_v_up exp_date]
+    def lifts_se	{lift_guid lift_seq route_ent circuit path tallies units request status signature socket public dest_chid dest_host req_date exp_date digest}
 }
 
-table mychips.lifts {mychips.chits} {
-    lift_guid	uuid		primary key
+table mychips.lifts {} {
+    lift_guid	uuid
+  , lift_seq	int	      , primary key (lift_guid, lift_seq)
   , request	text		constraint "!mychips.lifts.IVR" check(request isnull or request in ('draft','init','relay','local'))
   , status	text		default 'void' constraint "!mychips.lifts.IVS" check(status in ('init','seek','failed','good','relay','local','pend','void'))
   , inside	boolean		default false
@@ -40,7 +43,8 @@ table mychips.lifts {mychips.chits} {
 #index {} mychips.lifts exp_date
 
 table mychips.lift_tries {mychips.lifts} {
-    ltry_guid	uuid	      , primary key (ltry_guid)
+    ltry_guid	uuid	      , primary key (ltry_guid, ltry_seq)
+  , ltry_seq	int	      , foreign key (ltry_guid, ltry_seq) references mychips.lifts on update cascade on delete cascade
   , tries	int		not null default 1
   , last	timestamptz	not null default current_timestamp
 }
@@ -52,7 +56,10 @@ function mychips.lifts_tf_bi() {mychips.lift_json(mychips.lifts)} {
     begin
         if new.lift_guid isnull then
           new.lift_guid = uuid_generate_v5(uuid_generate_v4(), coalesce(new.dest_chid || '@' || new.dest_host, 'localhost'));
-        end if;
+          new.lift_seq = 0;
+        elsif new.lift_seq isnull then		-- This is not safe for concurrent insertions
+          select into new.lift_seq coalesce(max(lift_seq)+1,0) from mychips.lifts where lift_guid = new.lift_guid;
+        end if;					-- Will a single lift guid ever get requests for two new extensions at the same time?  To fix it we will require a separate sequence table.
 
         if new.exp_date is null then
           new.exp_date = current_timestamp + base.parm('lifts', 'life', '2 minutes'::text)::interval;
@@ -66,7 +73,7 @@ trigger mychips_lifts_tr_bi {} {
     before insert on mychips.lifts for each row execute procedure mychips.lifts_tf_bi();
 }
 
-# After each insert
+# After each insert (Fixme: can we move into before now?)
 #----------------------------------------------------------------
 function mychips.lifts_tf_ai() {mychips.lift_chitcheck(mychips.lifts)} {
   returns trigger language plpgsql security definer as $$
@@ -88,56 +95,27 @@ function mychips.lifts_tf_bu() {mychips.lift_chitcheck(mychips.lifts) mychips.ch
     begin
       if old.status = 'good' then return null; end if;	-- One-way ticket to good status
       
-      if new.lift_guid != new.lift_guid then		-- Referential integrity to attached chits (shouldn't be updating guid anyway!)
-        update mychips.chits set chit_guid = new.lift_guid where chit_type = 'lift' and chit_guid = old.lift_guid;
-      end if;
+--      if new.lift_guid != new.lift_guid then		-- Referential integrity to attached chits (shouldn't be updating guid anyway!)
+--        update mychips.chits set chit_guid = new.lift_guid where chit_type = 'lift' and chit_guid = old.lift_guid;
+--      end if;						-- Now done with foreign key
       if new.units != old.units or new.socket != old.socket or new.public != old.public then
         new.digest = sha256(mychips.lift_json(new)::text::bytea);
       end if;
       if old.request != 'init' and new.request = 'init' then
         return mychips.lift_chitcheck(new);
       end if;
+-- raise notice 'Going to Good:% %', new.lift_guid, new.lift_seq;
       if old.status != 'good' and new.status = 'good' then
-        update mychips.chits set signature = 'Valid', status = 'good' where chit_guid = new.lift_guid;
+        update mychips.chits set signature = 'Valid', status = 'good' where chit_guid = new.lift_guid and lift_seq = new.lift_seq;
       end if;
       if old.status != 'failed' and new.status = 'failed' then
-        update mychips.chits set status = 'void' where chit_guid = new.lift_guid;
+        update mychips.chits set status = 'void' where chit_guid = new.lift_guid and lift_seq = new.lift_seq;
       end if;
       return new;
     end;
 $$;}
 trigger mychips_lifts_tr_bu {} {
     before update on mychips.lifts for each row execute procedure mychips.lifts_tf_bu();
-}
-
-# Before deleting a lift record
-#----------------------------------------------------------------
-function mychips.lifts_tf_bd() {mychips.chits} {
-  returns trigger language plpgsql security definer as $$
-    begin
-      delete from mychips.chits where chit_type = 'lift' and chit_guid = old.lift_guid;
-      return old;
-    end;
-$$;}
-trigger mychips_lifts_tr_bd {} {
-    before delete on mychips.lifts for each row execute procedure mychips.lifts_tf_bd();
-}
-
-# Referential integrity from lift chits
-#----------------------------------------------------------------
-function mychips.lifts_tf_chits() {mychips.chits} {
-  returns trigger language plpgsql security definer as $$
-    begin
-raise notice 'RI check: % %', new.chit_type, new.chit_guid;
-      if new.chit_type = 'lift' and not new.chit_guid isnull
-        and not exists (select lift_guid from mychips.lifts where lift_guid = new.chit_guid) then
-          return null;
-      end if;
-      return new;
-    end;
-$$;}
-trigger mychips_lifts_tr_chits {} {
-    before insert or update on mychips.chits for each row execute procedure mychips.lifts_tf_chits();
 }
 
 # Create pending chits for this lift
@@ -151,14 +129,14 @@ function {mychips.lift_chitcheck(lf mychips.lifts)} {mychips.lifts} {
       stat	text = case when lf.status = 'good' then 'good' else 'pend' end;
     begin
 
---raise notice 'Chit check:% guid:% stat:%', lf.units, lf.lift_guid, stat;
+--raise notice 'Chit check:% guid:% seq:% stat:%', lf.units, lf.lift_guid, lf.lift_seq, stat;
       foreach guid in array lf.tallies loop
         tcount = 0;
 --raise notice 'Tally units:% guid:%', lf.units, guid;
         for trec in select * from mychips.tallies where tally_guid = guid order by tally_type loop
 --raise notice '  tally:% % % %', trec.tally_type, trec.tally_ent, trec.tally_seq, lf.lift_guid;
-          insert into mychips.chits (chit_ent, chit_seq, chit_guid, chit_type, chit_date, units, status, signature)
-            values (trec.tally_ent, trec.tally_seq, lf.lift_guid, 'lift', lf.req_date, -lf.units, stat, 'Inside Lift');
+          insert into mychips.chits (chit_ent, chit_seq, chit_guid, lift_seq, chit_type, chit_date, units, status, signature)
+            values (trec.tally_ent, trec.tally_seq, lf.lift_guid, lf.lift_seq, 'lift', lf.req_date, -lf.units, stat, 'Inside Lift');
         end loop;
         if tcount > 2 then return null; end if;
       end loop;
@@ -177,13 +155,13 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v mychips.lift
         lrec		record;			-- Lift view record
         rrec		record;			-- Retries
     begin
-        select into lrec route_cid,route_sock,topu_cid,topu_serv,topu_sock,route_user from mychips.lifts_v where lift_guid = lift.lift_guid;
+        select into lrec route_cid,route_sock,topu_cid,topu_serv,topu_sock,route_user from mychips.lifts_v where lift_guid = lift.lift_guid and lift_seq = lift.lift_seq;
         if not lrec.topu_serv is null then
             channel = channel || '_' || urec.serv_id;
         end if;
 
-        insert into mychips.lift_tries (ltry_guid) values (lift.lift_guid)
-          on conflict (ltry_guid) do update set tries = mychips.lift_tries.tries + 1, last = current_timestamp
+        insert into mychips.lift_tries (ltry_guid, ltry_seq) values (lift.lift_guid, lift.lift_seq)
+          on conflict (ltry_guid, ltry_seq) do update set tries = mychips.lift_tries.tries + 1, last = current_timestamp
             returning * into rrec;
         
         jrec = jsonb_build_object(
@@ -196,7 +174,7 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v mychips.lift
           'from',	lrec.topu_cid,
           'fat',	lrec.topu_sock,
           'local',	lrec.route_user,
-          'object',	(select json from mychips.lifts_v where lift_guid = lift.lift_guid)
+          'object',	(select json from mychips.lifts_v where lift_guid = lift.lift_guid and lift_seq = lift.lift_seq)
         );
 raise notice 'Lift notice:% %', channel, jrec::text;
         perform pg_notify(channel, jrec::text);
@@ -258,7 +236,7 @@ $$;}
 
 # Base view of lifts
 #----------------------------------------------------------------
-view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,text,boolean) mychips.lift_json(mychips.lifts)} {select 
+view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,text,boolean) mychips.lift_json(mychips.lifts) mychips.lift_tries} {select 
     eval(fld_list $lifts::lifts_se	lf)
   , not lf.circuit isnull					as circular
   , mychips.lift_state(lf.status, lf.request
@@ -311,7 +289,7 @@ view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,te
     join	mychips.users_v		te on te.peer_ent = lf.path[array_lower(lf.path,1)+1]
     join	mychips.users_v		be on be.peer_ent = lf.path[array_upper(lf.path,1)-1]
     join	mychips.users_v		le on le.peer_ent = lf.path[array_upper(lf.path,1)]
-    left join	mychips.lift_tries	lt on lt.ltry_guid = lf.lift_guid
+    left join	mychips.lift_tries	lt on lt.ltry_guid = lf.lift_guid and lt.ltry_seq = lf.lift_seq
 
 --    ev--al(trigview::insert mychips.lifts_v mychips.lifts $lifts::lifts_v_in $lifts::lifts_pk [concat $glob::stampin {request 'userDraft'}]);
 --    ev--al(trigview::update mychips.lifts_v mychips.lifts $lifts::lifts_v_up $lifts::lifts_pk $glob::stampup);
@@ -324,100 +302,101 @@ view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,te
 function {mychips.lift_process(msg jsonb, recipe jsonb)} {mychips.users_v mychips.lifts_v} {
   returns text language plpgsql as $$
     declare
-        obj		jsonb		= msg->'object';
-        guid		uuid		= obj->>'lift';
-        units		bigint		= obj->>'units';
-        dchid		text		= obj->>'target';
-        dhost		text		= obj->>'host';
-        circ		text		= obj->>'circuit';
-        ldate		timestamptz	= obj->>'date';
-        xdate		timestamptz	= obj->>'expires';
-        curState	text;
+        obj		jsonb		= msg->'object';		-- Lift JSON record
+        guid		uuid		= obj->>'lift';			-- Lift guid
+        units		bigint		= obj->>'units';		-- Lift amount
+        dchid		text		= obj->>'target';		-- Destined for
+        dhost		text		= obj->>'host';			-- Desination host
+        circ		text		= obj->>'circuit';		-- Circuit-completing entity
+        ldate		timestamptz	= obj->>'date';			-- Lift date
+        xdate		timestamptz	= obj->>'expires';		-- Expiration date
+        curState	text;		-- Current state
         qstrg		text;		-- Temporary string
+        did		text;		-- Destination local record ID
         lrec		record;		-- Holds lift record(s)
         qrec		record;		-- Pathway/Route record
         dest_r		record;		-- Destination entity
         from_r		record;		-- Peer on previous system
-        user_r		record;		-- Peer on previous system
-        circ_r		record;		-- Circuit completion user
+        user_r		record;		-- Receiving user on this system
     begin
 
--- I don't think we need serv_id (unless notifies below get used)
---        select into erec id, serv_id from mychips.users_v where peer_cid = cid;
+--        select into erec id, serv_id from mychips.users_v where peer_cid = cid;	-- Will need serv_id if/when user gets notified below
 --        if not found then return null; end if;
 
-        select into dest_r id from mychips.users_v where peer_cid = dchid and peer_chost = dhost and not user_ent isnull;	-- Is the destination a local user?
+        select into dest_r id,user_ent from mychips.users_v where peer_cid = dchid and peer_chost = dhost;	-- Is the destination a local user or peer?
 
-        select into lrec lift_guid, route_ent, dest_chid, dest_host, state from mychips.lifts_v where lift_guid = guid;
+--raise notice 'User search:%@%', msg->>'user', msg->>'at';
+        select into user_r id, peer_cid from mychips.users_v where peer_cid = msg->>'user' and peer_sock = msg->>'at';	-- Look up the local user the query is coming via
+        if not found then return null; end if;
+
+        if recipe ? 'query' then		-- If there a query key in the recipe object
+raise notice 'Lift query dest ent:% msg:%', dest_r.id, msg;
+          select into from_r id, peer_cid from mychips.users_v where peer_cid = msg->>'from' and peer_sock = msg->>'fat';	-- Look up the base entity
+          if not found then return null; end if;
+
+          if dest_r.user_ent isnull then		-- If destination is not a local user
+
+raise notice 'Remote dest: :%@% units:% last:% botu:%', dchid, dhost, units, from_r.id, user_r.id;
+-- Attempt to find the next segment for the lift:
+            if not dest_r.id isnull then		-- But it is a known peer
+              select into qrec first,path,guids from mychips.tallies_v_paths where first = dest_r.id and last = from_r.id and lift_min >= units order by length desc limit 1;
+            end if;
+            
+            if not found or dest_r.id isnull then	-- Didn't work out finding an internal path
+              select into qrec first,path,guids from mychips.routes_v_paths
+                where dest_chid = dchid and dest_host = dhost
+                and last = from_r.id 
+                and path[array_upper(path,1)-1] = user_r.id	-- was: botu_ent = user_r.id (wrong)
+                and route_lift_min >= units order by length desc limit 1;
+            end if;
+raise notice 'Relay lift:% path:%', guid, qrec.path;
+            if not found then return 'fail'; end if;		-- No upstream paths found
+
+            execute 'insert into mychips.lifts (lift_guid,route_ent,circuit,path,tallies,dest_chid,dest_host,units,socket,public,req_date,exp_date,request) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,''relay'')'
+              using guid, qrec.first, circ, qrec.path, qrec.guids, dchid, dhost, units, obj->>'socket', obj->>'public', ldate, xdate;
+            return 'relay';			-- We relayed the lift
+
+          else					-- Destination is a locally known user
+raise notice 'Local destination:% circ:%', dest_r.id, circ;
+-- Attempt to find local segment for the lift:
+            if circ isnull then			-- This is a linear lift, no loopback
+              did = dest_r.id;
+            else
+              select into did id from mychips.users_v where peer_cid = circ;		-- Look up the user that completes the circuit, if given
+              if not found then return null; end if;
+            end if;
+
+            select into qrec path,guids from mychips.tallies_v_paths where first = did and last = from_r.id and lift_min >= units order by length desc limit 1;
+            if not found then return 'fail'; end if;		-- No local paths found
+              
+            execute 'insert into mychips.lifts (lift_guid,route_ent,circuit,path,tallies,dest_chid,dest_host,units,socket,public,req_date,exp_date,request) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,''local'')'
+              using guid, did, circ, qrec.path, qrec.guids, dchid, dhost, units, obj->>'socket', obj->>'public', ldate, xdate;
+                
+            return 'local';
+          end if;				-- dest_r.id isnull
+        end if;					-- recipe ? 'query'
+
+        select into lrec lift_guid, lift_seq, route_ent, dest_chid, dest_host, path, state from mychips.lifts_v where lift_guid = guid and user_r.id = any(path);	-- Find correct lift record for this segment
         curState = lrec.state;
 --raise notice 'Lift guid:% state:% recipe:%', guid, curState, recipe;
-        if not found then
-            curState = 'null';		-- Special code for when the specified lift doesn't exist yet
-        end if;
+raise notice 'Lift search:% user:% path:%', guid, user_r.id, lrec.path;
+        if not found then curState = 'null'; end if;	-- Special code for when the specified lift doesn't exist yet
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
 --raise notice 'Lift Z:% C:%', jsonb_build_array(curState), recipe->'context';
             return curState;
         end if;
 
-        if recipe ? 'query' then		-- If there a query key in the recipe object
---raise notice 'Lift query dest ent:% msg:%', dest_r.id, msg;
-          select into from_r id, peer_cid from mychips.users_v where peer_cid = msg->>'from' and peer_sock = msg->>'fat';	-- Look up the base entity
-          if not found then return null; end if;
-
---raise notice 'User search:%@%', msg->>'user', msg->>'at';
-          select into user_r id, peer_cid from mychips.users_v where peer_cid = msg->>'user' and peer_sock = msg->>'at';	-- Look up the local user the query is coming via
-          if not found then return null; end if;
-
---Fixme: How/when do I compromise on non-zero lift_margins?
-
-          if dest_r.id isnull then		-- If destination is not locally known
-
-raise notice 'Remote dest: :%@% units:% last:% botu:%', dchid, dhost, units, from_r.id, user_r.id;
--- Attempt to find the next segment for the lift:
-            select into qrec route_ent,path,guids from mychips.routes_v_paths
-              where dest_chid = dchid and dest_host = dhost
-              and last = from_r.id 
-              and path[array_upper(path,1)-1] = user_r.id	-- was: botu_ent = user_r.id (wrong)
-              and route_lift_min >= units
-              order by length desc limit 1;
-raise notice 'Relay lift:% path:%', guid, qrec.path;
-            if not found then return 'fail'; end if;		-- No upstream paths found
-
-            execute 'insert into mychips.lifts (lift_guid,route_ent,circuit,path,tallies,dest_chid,dest_host,units,socket,public,req_date,exp_date,request) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,''relay'')'
-              using guid, qrec.route_ent, circ, qrec.path, qrec.guids, dchid, dhost, units, obj->>'socket', obj->>'public', ldate, xdate;
-            return 'relay';			-- We relayed the lift
-
-          else					-- Destination is a locally known user
-raise notice 'Local destination:%', dest_r.id;
--- Attempt to find local segment for the lift:
-            if not circ isnull then
-              select into circ_r id, peer_cid from mychips.users_v where peer_cid = circ;		-- Look up the user that completes the circuit
-              if not found then return null; end if;
-            end if;
-          
-            select into qrec path,guids from mychips.tallies_v_paths
-              where first = coalesce(circ_r.id, dest_r.id)	-- complete circuit if specified
-              and last = from_r.id and lift_min >= units
-              order by length desc limit 1;
-            if not found then return 'fail'; end if;		-- No local paths found
-            
-            execute 'insert into mychips.lifts (lift_guid,route_ent,circuit,path,tallies,dest_chid,dest_host,units,socket,public,req_date,exp_date,request) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,''local'')'
-              using guid, coalesce(circ_r.id,dest_r.id), circ, qrec.path, qrec.guids, dchid, dhost, units, obj->>'socket', obj->>'public', ldate, xdate;
-          end if;				-- dest_r.id isnull
-          return 'local';
-        end if;					-- recipe ? 'query'
-
         if recipe ? 'update' then			-- There's an update key in the recipe
           qstrg = mychips.state_updater(recipe, 'mychips.lifts', '{status, request, socket, public, signature}', case when recipe->'update' ? 'request' then '{}'::text[] else '{"request = null"}' end);
-raise notice 'SQL:%', qstrg;
-          execute qstrg || ' lift_guid = $1;' using lrec.lift_guid;
-          delete from mychips.lift_tries where ltry_guid = lrec.lift_guid;
+raise notice 'SQL:% % %', qstrg, lrec.lift_guid, lrec.lift_seq;
+          execute qstrg || ' lift_guid = $1 and lift_seq = $2;' using lrec.lift_guid, lrec.lift_seq;
+          delete from mychips.lift_tries where ltry_guid = lrec.lift_guid and ltry_seq = lrec.lift_seq;
         end if;
 
-        select into lrec lift_guid,state,circuit,botu_cid,lasp_sock,signature from mychips.lifts_v where lift_guid = lrec.lift_guid;
+        select into lrec lift_guid,lift_seq,state,circuit,botu_cid,lasp_cid,lasp_sock,signature from mychips.lifts_v where lift_guid = lrec.lift_guid;
 
---Fixme: are there any notifies to be done here?
+--Fixme: are there any notifies needed to the user (like when a lift completes)?
 --        if lrec.action or (lrec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
 --raise notice '  lift notify for user channel: mychips_user_%', crec.lift_ent;
 --            perform pg_notify('mychips_user_' || crec.lift_ent, crec.json::text);
@@ -426,6 +405,8 @@ raise notice 'SQL:%', qstrg;
 
         return jsonb_build_object(
           'state',	lrec.state,
+          'from',	lrec.botu_cid,
+          'user',	lrec.lasp_cid,
           'return',	lrec.lasp_sock,
           'signature',	lrec.signature
         )::text;
@@ -489,5 +470,23 @@ function {mychips.lift_circuit(top text, bot text)} {mychips.lifts_v mychips.rou
       
       insert into mychips.lifts (request,route_ent,circuit,path,tallies,dest_chid,dest_host,units)
       	values ('draft',rrec.first,botu_cid,rrec.path,rrec.guids,rrec.dest_chid,rrec.dest_host,rrec.lift_min);
+    end;
+$$;}
+
+# Attempt a linear distributed from a local user to a remote peer
+#----------------------------------------------------------------
+function {mychips.lift_linear(frm text, tocid text, tohost text, units bigint)} {mychips.lifts_v mychips.routes_v_paths mychips.users_v} {
+  returns bigint language plpgsql as $$
+    declare
+      rrec	record;
+--      botu_cid	text;
+    begin
+      select into rrec first,botu_ent,path,guids,dest_chid,dest_host,lift_min from mychips.routes_v_paths where last = frm and dest_chid = tocid and dest_host = tohost and status = 'good' order by lift_margin limit 1;
+      if not found then return null; end if;
+--      select into botu_cid peer_cid from mychips.users_v where id = rrec.botu_ent;
+      
+      insert into mychips.lifts (request,route_ent,path,tallies,dest_chid,dest_host,units)
+      	values ('draft',rrec.first,rrec.path,rrec.guids,rrec.dest_chid,rrec.dest_host,units);
+      return units;
     end;
 $$;}
