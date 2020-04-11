@@ -7,16 +7,17 @@
 const Fs = require('fs')
 const Os = require('os')
 const Yaml = require('yaml')
-var argv = require('yargs').argv
+var argv = require('yargs')
+	.alias('p','pretty')	.default('Pretty', 2)
+	.argv
 //console.log("argv:", argv)
 
-var pretty	= argv.p
 //var outFile	= argv.o ? (Array.isArray(argv.o) ? argv.o.pop() : argv.o) : null
-console.log("pretty:", pretty)
+//console.log("pretty:", argv.pretty)
 
 argv._.forEach(file => {
-  console.log("file:", file)
+//  console.log("file:", file)
   let yData = Fs.readFileSync(file).toString()
     , jData = Yaml.parse(yData)
-  console.log(JSON.stringify(jData, null, pretty))
+  console.log(JSON.stringify(jData, null, argv.pretty))
 })
