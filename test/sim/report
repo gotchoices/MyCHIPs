@@ -12,7 +12,7 @@ fi
   
 case $report in
     xlifts)		#External lifts
-      query="select first,path,status,state,dest_addr,lift_margin,lift_reward,lift_min,lift_max from mychips.routes_v_lifts order by 3";;
+      query="select first,path,status,lift_margin,lift_reward,lift_min,lift_max from mychips.routes_v_lifts order by 3";;
 
     xpaths)		#External pathways
       query="select first,last,length,path,lift_min,lift_margin,lift_max,lift_reward,status,dest_chid from mychips.routes_v_paths where status = 'good'";;
@@ -30,7 +30,7 @@ case $report in
       query="select tally_ent,tally_seq,partner,tally_type,units,units_gc,units_pc,target,bound,reward,clutch from mychips.tallies_v";;
 
     lifts)
-      query="select lift_guid,request,status,state,units,circular,topu_ent,dest_chid,dest_host from mychips.lifts_v";;
+      query="select lift_guid,lift_seq,request,status,units,circular,path,dest_chid,dest_host,signature from mychips.lifts_v";;
 
     *)
       echo "Unknown report: $report"
@@ -38,5 +38,5 @@ case $report in
       ;;
 esac
 
-echo "./simdock q \"$nodes\" \"$query\" $@"
+echo "./simdock q $nodes \"$query\" $@"
 ./simdock q "$nodes" "$query" "$@"
