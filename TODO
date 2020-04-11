@@ -26,21 +26,22 @@ X- When a lift is created, forge the associated chits in pending status
 X- When lift is committed, move all chits on my site to 'good'
 X- Lift packet includes (dummy for now) site public key and connection endpoint
 X- Make local lift work again (create lift record only, let chitcheck create chits)
-- Build test function to initiate a linear lift:
-- Test linear lift:
-- Recipient needs to communicate via lift initiator's specified endpoint
-- 
+X- Build test function to initiate a linear lift:
+X- Test linear lift:
+X-   Recipient communicates via lift initiator's specified endpoint
 X- Review demonstration instructions
 X- Write initial tally/chit/lift contracts
+- Document missing DB columns
 - Report to preview a tally contract (in User Interface)
 -
 - Public Proof-of-concept release
 -
 - Chit consensus:
--   Can tolerate network outages:
--   Will re-synch no matter how many chits got added during outage
--   Add ack/nak to chit protocol?
+-   Can tolerate network outages
+-   Will re-synch chain no matter how many chits got added during outage
+-   Need ack/nak added to chit protocol?
 -   Ack/naks include chits and/or chain segments as applicable
+- Need to handle more than one lift per site with the same guid (when a lift passes through the same site more than once)
 - Routes count how many successful lifts they have conveyed
 - Routes refresh their expiration upon last successful lift
 - Does it work to re-probe for an existing (expired, pending or railed) route?
