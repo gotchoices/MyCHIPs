@@ -17,6 +17,15 @@ tabtext mychips.routes	{Foreign Routes}	{Information collected from foreign serv
     {lift_count		{Use Count}		{A counter that is incremented each time this path is used in a lift}}
     {lift_date		{Last Used}		{The date/time this path was last used in a lift}}
     {good_date		{Date Found}		{The date/time this path was last marked as good by an upstream foreign server}}
+    {lift_min		{Lift Minimum}		{The most we can expect to lift along this route without pushing foils past their target setting}}
+    {lift_max		{Lift Maximum}		{The most we can expect to lift along this route, which might incur an extra transaction fee}}
+    {lift_margin	{Lift Margin}		{The fee ratio we can expect to move any lift transaction along this route}}
+    {lift_reward	{Lift Reward}		{An additional fee ratio we can expect to move lifts beyong the Lift Minimum amount}}
+    {drop_min		{Drop Minimum}		{The most we can expect to drop along this route without pushing stocks past their target setting}}
+    {drop_max		{Drop Maximum}		{The most we can expect to drop along this route, which might incur an extra transaction fee}}
+    {drop_margin	{Drop Margin}		{The fee ratio we can expect to move any reverse lift transaction along this route}}
+    {drop_reward	{Drop Reward}		{An additional fee ratio we can expect to move reverse lifts beyong the Drop Minimum amount}}
+    {step		{Step}			{How many steps we are along the way from where this route request was originated}}
 }
 
 tabtext mychips.routes_v	{Foreign Routes}	{A view showing foreign peers that can be reached by way of one of our known foreign peers} {
@@ -78,4 +87,12 @@ tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathway
     {fora		{First Foreign}		{The first node in the path is a user on the local system}}
     {forz		{Last Foreign}		{The last node in the path is a user on the local system}}
     {corein		{Core Inside}		{All nodes, not considering the first and last, are local users on the system}}
+}
+
+tabtext mychips.route_tries {Route Retries}	{Tracks how many times the route state transition algorithm has tried to communicate a transition to a peer} {
+    {rtry_chid		{Retry CHIP ID}		{The route destination CHIP ID we are tracking retries for}}
+    {rtry_ent		{Retry Entity}		{The route destination entity we are tracking retries for}}
+    {rtry_host		{Retry Host}		{The route destination hostname we are tracking retries for}}
+    {last		{Last Try}		{The last time we tried}}
+    {tries		{Tries}			{How many tries we are up to}}
 }

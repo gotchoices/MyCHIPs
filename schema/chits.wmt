@@ -13,9 +13,15 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
         {tran		{Transaction}		{The credit is exchanged for goods or services.  There should be an invoice or receipt referenced evidencing due consideration in order to make this transaction enforceable.}}
     }}
     {chit_date		{Date/Time}		{The date and time when this transaction is effective}}
+    {chain_idx		{Chain Index}		{Chits are stored in a hash-chain to prevent them from being altered later.  This indicates the order of the chit records in the hash chain.}}
+    {digest		{Digest Hash}		{A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the chit}}
+    {chain_prv		{Chain Previous}	{A copy of the hash from the previous chit in the hash chain}}
+    {lift_seq		{Lift Sequence}		{If a chit is part of a lift transaction, this indicates which tally record the chits belong to.  There can be more than one lift record per lift in some cases.}}
+    {quidpro		{Quid Pro Quo}		{A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties}}
+    {request		{Request}		{The state transition algorithm for chits responds to transition requests entered into this field.}}
+    {status		{Status}		{The status field indicates if the state has progressed to the point where the amount of the chit can be considered pending or final}}
     {units		{Units}			{The amount of the transaction, as measured in milli-CHIPs (1/1,000)}}
     {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
-    {pro_quo		{Quid Pro Quo}		{A reference to an invoice, a purchase order, a receipt or other document evidencing goods or services rendered, and a trading relationship between the parties}}
     {memo		{Memo}			{Any other description or explanation for the transaction}}
 } $glob::stampt] -messages {
     {X {Y} {Z}}
@@ -27,19 +33,19 @@ tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each ch
     {amount		{Amount}		{A signed amount (positive or negative) indicating the effect of the transfer on the tally}}
     {state		{State}			{The state is used to track a transaction in process}}
     {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
-    {json		{JSON}			{A JSON representation of the chit transaction}}
+    {json_core		{JSON Core}		{A JSON representation of the parts of the chit transaction that will be digitally hashed and signed}}
+    {json		{JSON}			{A JSON representation of the chit transaction, including the digital hash}}
+    {part_cid		{Partner CID}		{CHIP identifier for the partner to the tally this chit belongs to}}
+    {user_cid		{USER CID}		{CHIP identifier for the user/owner of the tally this chit belongs to}}
+    {units_g		{Good Units}		{The units on this chit which can be considered good and final}}
+    {units_p		{Pending Units}		{The units on this chit which can be considered only as pending, or not final}}
+    {digest_v		{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
+    {clean		{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the record has not been tampered with.}}
 }
 
-tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user}
-
-tabtext mychips.confirms {Confirmations}	{Contains records evidencing each time the parties confirmed the present balance of their tally.} {
-    {conf_ent		{Confirm Entity}	{Entity ID of the owner of the tally this confirmation belongs to}}
-    {conf_seq		{Confirm Sequence}	{Sequence number of the owner of the tally this confirmation belongs to}}
-    {conf_idx		{Confirm Index}		{A unique identifier within the tally, identifying this confirmation}}
-    {conf_guid		{Confirmation GUID}	{A globally unique identifier for this confirmation}}
-    {conf_date		{Date & Time}		{The date and time when this account total is computed}}
-    {sum		{Sum}			{The total of all transaction, or chits, on this tally as of the confirmation moment, and as measured in micro-CHIPs (1/1,000,000)}}
-    {signature		{Signature}		{The digital signature of the other party, computed on a record containing the other (non-signature) fields in this table}}
+tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user} {
+    {part_cid		{Partner CID}		{CHIP identifier for the partner to the tally this chit belongs to}}
+    {user_cid		{USER CID}		{CHIP identifier for the user/owner of the tally this chit belongs to}}
 }
 
 tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {
@@ -54,4 +60,12 @@ tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-li
     {last		{End of Chain}		{True if this is the last record in the chain}}
     {length		{Length}		{Indicates how many chits are part of the chain}}
     {guids		{GUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
+}
+
+tabtext mychips.chit_tries {Chit Retries}	{Tracks how many times the chit state transition algorithm has tried to communicate a transition to a peer} {
+    {ctry_ent		{Entity}		{The entity the chit/tally belongs to}}
+    {ctry_seq		{Sequence}		{The sequence number of the tally/chit}}
+    {ctry_idx		{Index}			{The index number of this chit}}
+    {last		{Last Try}		{The last time we tried}}
+    {tries		{Tries}			{How many tries we are up to}}
 }

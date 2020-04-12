@@ -1,0 +1,18 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabtext mychips.tokens	{Tokens}		{Tracks one-time connection tokens for foreign peers} [concat {
+    {token_ent		{Token Entity}		{Entity ID of the this token is issued for}}
+    {token_seq		{Token Sequence}	{Keeps count of the various tokens created for this entity}}
+    {token		{Token}			{The digital code of the token}}
+    {allows		{Allows}		{Indicates what operations can be allowed using this token} {
+        {stock		{Stock}			{The holder can connect to create a new tally stock}}
+        {foil		{Foil}			{The holder can connect to create a new tally foil}}
+        {user		{User}			{?}}
+    }}
+    {token_cmt		{Comment}		{A private comment pertaining to the token}}
+    {used		{Used}			{Indicates true once the token has been used}}
+    {exp_date		{Expires}		{Indicates when the token is no longer valid}}
+} $glob::stampt] -messages {
+    {X {Y} {Z}}
+}

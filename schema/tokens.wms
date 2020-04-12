@@ -25,7 +25,7 @@ table mychips.tokens {mychips base.ent} {
     token_ent	text		references base.ent on update cascade on delete cascade
   , token_seq	int	      , primary key (token_ent, token_seq)
   , token	text		not null unique
-  , allows	text		not null default 'stock' constraint "!mychips.tokens.ITA" check (allows in ('stock','foil','query','user'))
+  , allows	text		not null default 'stock' constraint "!mychips.tokens.ITA" check (allows in ('stock','foil','user'))
   , token_cmt	text		
   , used	boolean		not null default false
   , exp_date	timestamp(0)	default current_timestamp + '45 minutes'
