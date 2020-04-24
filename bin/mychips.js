@@ -37,7 +37,7 @@ var argv = Args({
 })
   .alias('h','servID')   .default('servID',	null)	//If peer servers run on multiple hosts, this identifies our host
   .alias('p','peerPort') .default('peerPort',	65430)	//Peer-to-peer connections at this port
-  .alias('d','docPort')  .default('docPort',	8001)	//HTML document server
+  .alias('d','docs')     .default('docs',	true)	//HTML document server
   .alias('l','lifts')    .default('lifts',	false)	//Run lift scheduler
   .alias('m','model')    .default('model',	false)	//Run agent-based model
   .argv
@@ -52,13 +52,19 @@ log.info("SPA Port:   ", argv.spaPort, argv.wyclif, argv.spaKey, argv.spaCert)
 log.debug("Server ID:  ", argv.servID)
 log.debug("CLIF Port:  ", argv.clifPort)
 log.debug("Peer Port:  ", argv.peerPort)
-log.debug("Doc Port:   ", argv.docPort)
+log.debug("Doc Viewer: ", argv.docs)
 log.debug("Database:", argv.dbHost, argv.dbName, argv.dbAdmin)
 log.trace("Database SSL:", sslAdmin, sslUser)
 log.trace("Agent:", argv.model, "Lifts:", argv.lifts)
 log.trace("Actions:", actions)
 
-var expApp = SpaServer({spaPort: argv.spaPort, wyclif: !!argv.wyclif, pubDir, credentials}, log)
+var expApp = SpaServer({
+  spaPort: argv.spaPort,
+  wyclif: !!argv.wyclif,
+  favIconFile: 'favicon.png',
+  pubDir, credentials
+}, log)
+
 var wyseman = new Wyseman({				//Launch SPA server and associated web socket
   host: argv.dbHost,
   password: argv.dbPassword,
@@ -95,11 +101,10 @@ if (Boolean(argv.peerPort)) {				//Create socket server for peer-to-peer communi
   })
 }
 
-if (Boolean(argv.docPort)) {				//Create web server for contract documents
+if (Boolean(argv.docs)) {			//Serve up contract documents
   const DocServ = require('../lib/doc.js')
   var docs = new DocServ({
-    docPort: argv.docPort,
-    pubDir
+    pubDir, expApp
   }, {
     host: argv.dbHost,
     database:argv.dbName,

@@ -4,8 +4,8 @@
     name: 'Tally_Definition'
     version: 1
     language: eng
-    published: '2020-Apr-01'
-    digest: '\x18de3cbaa87968bcb043461f8dbe86bb9e954c34270d9c01b641355a8913fc3d'
+    published: '2020-04-01'
+    digest: '\x67dfacfc0f0e77688e5a911585c9490bb18f5c1642c327ff55d063e38f16f8ec'
     title: 'What a Tally is and How it Works'
     text: >-
       Pledges of Value are tracked by means of a Tally.
@@ -14,7 +14,7 @@
       -
         title: 'Signing Keys'
         text: >-
-          Each Party is in possession of a digital key consisting of a private part and a public part..
+          Each Party is in possession of a digital key consisting of a private part and a public part.
           Each Party is responsible to maintain knowledge and possession of its key and to keep the private portion absolutely confidential.
           The public part of the key will be used to validate one's digital signature and so must be shared with the other Party.
       -

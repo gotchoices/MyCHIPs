@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+//Generate a hash for the specified yaml file(s)
+//Usage: ./hashup file.yaml
+//TODO:
+//- 
+
+const Fs = require('fs')
+const Os = require('os')
+const Yaml = require('yaml')
+const Stringify = require('json-stable-stringify')
+const Hash = require('hash.js')
+var argv = require('yargs').argv
+//console.log("argv:", argv)
+
+argv._.forEach(file => {
+//  console.log("file:", file)
+  let yData = Fs.readFileSync(file).toString()
+    , jData = Yaml.parse(yData)
+    , contract = jData.contract
+  core = Object.assign({}, contract)
+  delete core.digest
+  let strung = Stringify(core)
+    , digest = Hash.sha256().update(strung).digest('hex')
+//  console.log('strung:',strung)
+  console.log(digest)
+})

@@ -46,7 +46,7 @@ $$;}
 #----------------------------------------------------------------
 function {mychips.contract_json(c mychips.contracts)} {mychips.contracts} {
   returns jsonb stable language sql as $$
-    select jsonb_build_object(
+    select jsonb_strip_nulls(jsonb_build_object(
         'domain',	c.domain
       , 'name',		c.name
       , 'version',	c.version
@@ -56,20 +56,20 @@ function {mychips.contract_json(c mychips.contracts)} {mychips.contracts} {
       , 'tag',		c.tag
       , 'text',		c.text
       , 'sections',	c.sections
-    )
+    ))
 $$;}
 
 #Basic view
 #----------------------------------------------------------------
-view mychips.contracts_v {mychips.contracts} {
+view mychips.contracts_v {mychips.contracts mychips.contract_json(mychips.contracts) mychips.j2h(jsonb)} {
     select eval(fld_list $contracts::contracts_se c)
   , mychips.contract_url(c.domain, c.name, c.version, c.language, c.digest::text) as source
   , mychips.contract_json(c)					as json_core
   , mychips.contract_json(c) || jsonb_build_object(
       'digest',		c.digest
     )								as json
-  , sha256(quote_literal(mychips.contract_json(c)::text)::bytea) as digest_v
-  , sha256(quote_literal(mychips.contract_json(c)::text)::bytea) = coalesce(c.digest,'') as clean
+  , mychips.j2h(mychips.contract_json(c)) as digest_v
+  , mychips.j2h(mychips.contract_json(c)) = coalesce(c.digest,'') as clean
   
     from	mychips.contracts c;
 

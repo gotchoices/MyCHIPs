@@ -8,6 +8,8 @@ X- Implement remote handler to pend status
 X- Debug Lori Michelenko lift, not working
 - 
 - Licensing/contracts:
+X- Get hashing compatible between front/back ends
+X- How to escape backslashes,quotes other than quote_literal (which injects surrounding single quotes)
 - You covenant not to defraud your partner or anyone it is connected to
 - You assign your right not to be defrauded to each of your connections
 - You assign your rights to pursue remedies to each of your connections
@@ -29,10 +31,11 @@ X- Make local lift work again (create lift record only, let chitcheck create chi
 X- Build test function to initiate a linear lift:
 X- Test linear lift:
 X-   Recipient communicates via lift initiator's specified endpoint
-X- Review demonstration instructions
 X- Write initial tally/chit/lift contracts
-- Document missing DB columns
-- Report to preview a tally contract (in User Interface)
+X- Document (some) missing DB columns
+- Review demonstration instructions
+- Report to preview a tally contract (in User Interface or browser?)
+- Server serves up standard contracts (at what port?)
 -
 - Public Proof-of-concept release
 -

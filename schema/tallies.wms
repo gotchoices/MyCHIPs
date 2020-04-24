@@ -148,7 +148,7 @@ trigger mychips_tallies_tr_bu {} {
 
 # Quality check for a tally coming into open state
 #----------------------------------------------------------------
-function {mychips.tally_opencheck(ta mychips.tallies)} {mychips.users_v mychips.tally_json(mychips.tallies,text,text)} {
+function {mychips.tally_opencheck(ta mychips.tallies)} {mychips.users_v mychips.tally_json(mychips.tallies,text,text) mychips.j2h(jsonb)} {
   returns mychips.tallies stable language plpgsql security definer as $$
     declare
       pe mychips.users_v;
@@ -158,14 +158,14 @@ function {mychips.tally_opencheck(ta mychips.tallies)} {mychips.users_v mychips.
       if not found then return null; end if;			-- Digest fails if we can't find peer records
       select into ue * from mychips.users_v where user_ent = ta.tally_ent;
       if not found then return null; end if;
-      ta.digest = sha256(quote_literal(mychips.tally_json(ta, ue.peer_cid, pe.peer_cid)::text)::bytea);
+      ta.digest = mychips.j2h(mychips.tally_json(ta, ue.peer_cid, pe.peer_cid));
       return ta;
     end;
 $$;}
 
 # Generate unique sequence for new tally setting
 #----------------------------------------------------------------
-function mychips.tally_sets_tf_seq() {mychips.tally_sets mychips.tset_json(mychips.tally_sets)} {
+function mychips.tally_sets_tf_seq() {mychips.tally_sets mychips.tset_json(mychips.tally_sets) mychips.j2h(jsonb)} {
   returns trigger language plpgsql security definer as $$
     declare
       tfld	text;
@@ -180,7 +180,7 @@ function mychips.tally_sets_tf_seq() {mychips.tally_sets mychips.tset_json(mychi
             returning _last_tset into new.tset_idx;
         if not found then new.tset_idx = 1; end if;
       end if;
-      new.digest = sha256(quote_literal(mychips.tset_json(new)::text)::bytea);
+      new.digest = mychips.j2h(mychips.tset_json(new));
 
       update mychips.tallies set target = coalesce(new.target,target), reward = coalesce(new.reward,reward), clutch = coalesce(new.clutch,clutch), bound = coalesce(new.bound,bound) where tally_ent = new.tset_ent and tally_seq = new.tset_seq;
       return new;
@@ -345,7 +345,7 @@ $$;}
 # Base view of tallies
 #----------------------------------------------------------------
 define uSign {case when te.tally_type = 'stock' then %1 else -%1 end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.tally_state(text,text,text,text,bigint) mychips.tally_json(mychips.tallies,text,text)} {select 
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.peers_v mychips.tally_state(text,text,text,text,bigint) mychips.tally_json(mychips.tallies,text,text) mychips.j2h(jsonb)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , ue.peer_cid		as user_cid
   , ue.peer_addr	as user_addr
@@ -375,8 +375,8 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
         'foil',		case when te.tally_type = 'stock' then te.part_sig else te.user_sig end
       )
     )		as json
-  , sha256(quote_literal(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text)::bytea) as digest_v
-  , sha256(quote_literal(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)::text)::bytea) = coalesce(te.digest,'') as clean
+  , mychips.j2h(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)) as digest_v
+  , mychips.j2h(mychips.tally_json(te, ue.peer_cid, pe.peer_cid)) = coalesce(te.digest,'') as clean
   , jsonb_build_object(
       'target',		te.target,
       'reward',		te.reward,
@@ -400,15 +400,15 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.pe
 
 # Base view of tally settings
 #----------------------------------------------------------------
-view mychips.tally_sets_v {mychips.tally_sets mychips.tset_json(mychips.tally_sets)} {select 
+view mychips.tally_sets_v {mychips.tally_sets mychips.tset_json(mychips.tally_sets) mychips.j2h(jsonb)} {select 
     eval(fld_list $tallies::tally_sets_se	ts)
   
   , mychips.tset_json(ts)				as json_core
   , mychips.tset_json(ts) || jsonb_build_object(
       'signature',	ts.digest
     )		as json
-  , sha256(quote_literal(mychips.tset_json(ts)::text)::bytea)		as digest_v
-  , sha256(quote_literal(mychips.tset_json(ts)::text)::bytea) = coalesce(ts.digest,'') as clean
+  , mychips.j2h(mychips.tset_json(ts))		as digest_v
+  , mychips.j2h(mychips.tset_json(ts)) = coalesce(ts.digest,'') as clean
 
     from	mychips.tally_sets	ts;
 

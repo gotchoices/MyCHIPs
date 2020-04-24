@@ -51,7 +51,7 @@ table mychips.lift_tries {mychips.lifts} {
 
 # Generate unique primary key for a new lift
 #----------------------------------------------------------------
-function mychips.lifts_tf_bi() {mychips.lift_json(mychips.lifts)} {
+function mychips.lifts_tf_bi() {mychips.lift_json(mychips.lifts) mychips.j2h(jsonb)} {
   returns trigger language plpgsql security definer as $$
     begin
         if new.lift_guid isnull then
@@ -65,7 +65,7 @@ function mychips.lifts_tf_bi() {mychips.lift_json(mychips.lifts)} {
           new.exp_date = current_timestamp + base.parm('lifts', 'life', '2 minutes'::text)::interval;
         end if;
 
-        new.digest = sha256(quote_literal(mychips.lift_json(new)::text)::bytea);
+        new.digest = mychips.j2h(mychips.lift_json(new));
         return new;
     end;
 $$;}
@@ -90,7 +90,7 @@ trigger mychips_lifts_tr_ai {} {
 
 # Before updating each lift record
 #----------------------------------------------------------------
-function mychips.lifts_tf_bu() {mychips.lift_chitcheck(mychips.lifts) mychips.chits mychips.lift_json(mychips.lifts)} {
+function mychips.lifts_tf_bu() {mychips.lift_chitcheck(mychips.lifts) mychips.chits mychips.lift_json(mychips.lifts) mychips.j2h(jsonb)} {
   returns trigger language plpgsql security definer as $$
     begin
       if old.status = 'good' then return null; end if;	-- One-way ticket to good status
@@ -99,7 +99,7 @@ function mychips.lifts_tf_bu() {mychips.lift_chitcheck(mychips.lifts) mychips.ch
 --        update mychips.chits set chit_guid = new.lift_guid where chit_type = 'lift' and chit_guid = old.lift_guid;
 --      end if;						-- Now done with foreign key
       if new.units != old.units or new.socket != old.socket or new.public != old.public then
-        new.digest = sha256(quote_literal(mychips.lift_json(new)::text)::bytea);
+        new.digest = mychips.j2h(mychips.lift_json(new));
       end if;
       if old.request != 'init' and new.request = 'init' then
         return mychips.lift_chitcheck(new);
@@ -236,7 +236,7 @@ $$;}
 
 # Base view of lifts
 #----------------------------------------------------------------
-view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,text,boolean) mychips.lift_json(mychips.lifts) mychips.lift_tries} {select 
+view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,text,boolean) mychips.lift_json(mychips.lifts) mychips.lift_tries mychips.j2h(jsonb)} {select 
     eval(fld_list $lifts::lifts_se	lf)
   , not lf.circuit isnull					as circular
   , mychips.lift_state(lf.status, lf.request
@@ -247,8 +247,8 @@ view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,te
   , mychips.lift_json(lf) || jsonb_build_object(
       'digest',		lf.digest
     )								as json
-  , sha256(quote_literal(mychips.lift_json(lf)::text)::bytea) as digest_v
-  , sha256(quote_literal(mychips.lift_json(lf)::text)::bytea) = coalesce(lf.digest,'') as clean
+  , mychips.j2h(mychips.lift_json(lf)) as digest_v
+  , mychips.j2h(mychips.lift_json(lf)) = coalesce(lf.digest,'') as clean
   
   , re.peer_cid		as route_cid		-- Top of segment peer
   , re.peer_chost	as route_host

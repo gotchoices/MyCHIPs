@@ -4,8 +4,8 @@
     name: 'Tally_Contract'
     version: 1
     language: eng
-    published: '2020-Apr-01'
-    digest: '\x7ec7be0343522ec24022715b86a69ae813564426a255d1b92391132c39635cee'
+    published: '2020-04-01'
+    digest: '\x53878ea88fc0abc6e3b32860f38b7efbca809cf7147a6ff04bec387d96a3c65b'
     title: 'Tally Contract'
     text: >-
       This Contract has been incorporated into a MyCHIPs Tally by reference, which includes a digital hash of the contents of the document.
@@ -14,33 +14,25 @@
     sections:
       -
         title: 'Recitals'
-        source: 'mychips.org/Recitals-1-eng'
-        digest: '\xcb4855eba4518a1af6390f629e738fc0fd0c99b4d44a7208fee2d36c24211f6a'
+        source: 'mychips.org/Recitals-1-eng?digest=cb4855eba4518a1af6390f629e738fc0fd0c99b4d44a7208fee2d36c24211f6a'
       -
         title: 'Tally Definition'
-        source: 'mychips.org/Tally_Definition-1-eng'
-        digest: '\x18de3cbaa87968bcb043461f8dbe86bb9e954c34270d9c01b641355a8913fc3d'
+        source: 'mychips.org/Tally_Definition-1-eng?digest=18de3cbaa87968bcb043461f8dbe86bb9e954c34270d9c01b641355a8913fc3d'
       -
         title: 'CHIP Definition'
-        source: 'mychips.org/CHIP_Definition-1-eng'
-        digest: '\x152fe12217db6307bee73c248b5ee4efc7a4f12ac29aea6add9845e7a4b9afcc'
+        source: 'mychips.org/CHIP_Definition-1-eng?digest=152fe12217db6307bee73c248b5ee4efc7a4f12ac29aea6add9845e7a4b9afcc'
       -
         title: 'Duties and Rights'
-        source: 'mychips.org/Duties_Rights-1-eng'
-        digest: '\x050279d41890af77f1d9717a12924b71ead73e7b1365af9e2048bc49a8c477fb'
+        source: 'mychips.org/Duties_Rights-1-eng?digest=050279d41890af77f1d9717a12924b71ead73e7b1365af9e2048bc49a8c477fb'
       -
         title: 'Representations'
-        source: 'mychips.org/Representations-1-eng'
-        digest: '\xf0a866200d5c4b211afdc1b18d877f9ceacd1a8d2114605de16ca1fb37417970'
+        source: 'mychips.org/Representations-1-eng?digest=f0a866200d5c4b211afdc1b18d877f9ceacd1a8d2114605de16ca1fb37417970'
       -
         title: 'Defaults'
-        source: 'mychips.org/Defaults-1-eng'
-        digest: '\xf6503a7ddd454daf725d27a3ff2c9ae242efd5521f2883cad528eadab223aff8'
+        source: 'mychips.org/Defaults-1-eng?digest=f6503a7ddd454daf725d27a3ff2c9ae242efd5521f2883cad528eadab223aff8'
       -
         title: 'Credit Terms'
-        source: 'mychips.org/Credit_Terms-1-eng'
-        digest: '\xd81fa07ef9de7326c520b072a9f0322941c0dfafd489d0730a432ae95cc18112'
+        source: 'mychips.org/Credit_Terms-1-eng?digest=d81fa07ef9de7326c520b072a9f0322941c0dfafd489d0730a432ae95cc18112'
       -
         title: 'Ethics'
-        source: 'mychips.org/Ethics-1-eng'
-        digest: '\x4d7a2c44887ac2fcb70e818795829f46c020740f571a0a5e9133059bbc75f417'
+        source: 'mychips.org/Ethics-1-eng?digest=4d7a2c44887ac2fcb70e818795829f46c020740f571a0a5e9133059bbc75f417'

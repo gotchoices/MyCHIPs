@@ -55,14 +55,19 @@ new Vue({
     Wylib.Common.ajax(url, data => {
       let tmpDoc = Object.assign({}, data)
       delete tmpDoc.digest
-      this.digested = Hash.sha256().update(Stringify(tmpDoc)).digest('hex')
+      let strung = Stringify(tmpDoc)
+console.log("Str:", strung)
+      this.digested = Hash.sha256().update(strung).digest('hex')
 
 console.log("Got:", JSON.stringify(data))
       ;['tag','title','text','sections'].forEach(t=>{
         this.state[t] = data[t]
       })
       this.key = [data.domain, data.name, data.version, data.language].join('-')
-      this.digest = data.digest
+      this.digest = data.digest.replace(/^\\x/,'')
+
+console.log("Digest:", this.digest)
+console.log("Computed:", this.digested)
     })
   },
 })

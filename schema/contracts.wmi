@@ -41,5 +41,5 @@ Glob(condir + '/*.yaml', null, (err, files) => {
           title		= EXCLUDED.title,
           text		= EXCLUDED.text,
           sections	= EXCLUDED.sections
-  `)
+  ;`)
 })
