@@ -362,7 +362,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
         end if;
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
---raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
             return curState;
         end if;
 
@@ -374,13 +374,13 @@ raise notice '  upsert curState:% obj:%', curState, obj;
             
             execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,status,signature,units,quidpro,memo,chain_idx,chain_prv,digest) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
                      returning chit_ent, chit_seq, chit_idx, chain_idx, chain_prv, digest' into crec
-              using trec.tally_ent, trec.tally_seq, guid, obj->>'type', (obj->>'date')::timestamptz, recipe->'upsert'->>'status', obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', (obj->'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea;
-raise notice '  upsert post:% % %', trec.tally_type, obj->'index', crec;
+              using trec.tally_ent, trec.tally_seq, guid, obj->>'type', (obj->>'date')::timestamptz, recipe->'upsert'->>'status', obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea;
+--raise notice '  upsert post:% % %', trec.tally_type, obj->'index', crec;
           else						-- Chit already exists, do update
 
 --Test: When does update part of upsert get called? (when renegotiating a previously refused chit?)
             execute 'update mychips.chits set signature = $1, units = $2, status = $3, quidpro = $4, memo = $5, request = null, mod_date = current_timestamp, mod_by = session_user where chit_ent = $6 and chit_seq = $7 and chit_idx = $8'
-                using obj->>'signed', (obj->>'units')::bigint, recipe->'upsert'->>status, obj->>'link', obj->>'memo', crec.chit_ent, crec.chit_seq, crec.chit_idx;
+                using obj->>'signed', (obj->>'units')::bigint, recipe->'upsert'->>'status', obj->>'link', obj->>'memo', crec.chit_ent, crec.chit_seq, crec.chit_idx;
             delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
           end if;
         end if;
