@@ -11,8 +11,7 @@ const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's c
 const Os = require('os')
 const Path = require('path')
 const { Args, Dispatch, Log, Credentials, SpaServer} = require('wyclif')
-Log.setPath(process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))	//Default directory for all logging
-var log = Log('mychips')
+var log = Log('mychips', 'warn', process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))
 const { Wyseman } = require('wyseman')
 var { actions, Parser } = require('wyselib')
 Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
