@@ -5,7 +5,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x2aa6e4435f7a219a479c6049cf8e364a115899585db4d58f80ca62e2a9a66c4d'
+    digest: '\x6d85c4e579a91ecee5449763c972a082ffa337157209a58224be79b8730123cc'
     title: "Duties of the Parties to Each Other"
     text: >-
       Each Party has certain duties under this Agreement which duties posit corresponding rights to the other Party as follows:
@@ -17,23 +17,23 @@
       -
         title: 'Good Faith'
         text: >-
-          Each Party can expect the other to behave honestly and with integrity in the transactions facilitated by the Tally.
+          Each Party shall behave honestly and with integrity in the transactions facilitated by the Tally.
           Neither Party shall use the Tally to intentionally cheat, defraud, or steal value from the other Party.
       -
         title: 'Competency'
         text: >-
-          Each Party shall take reasonable measures to determine that the other Party is mentally competent to enter into the Contract and its associated transactions.
+          Each Party shall take reasonable care to ensure that the other Party is mentally competent to enter into the Contract and its associated transactions.
           This includes avoiding the receipt of Pledges from those who are too young, too old, or otherwise unable to fully understand the obligations they are entering into.
       -
         title: 'Disclosure'
         text: >-
           Each Party shall honestly inform the other Party of information relevant to its decision to execute this Tally and/or its associated Pledges.
           This includes disclosures about any known dangers or deficiences regarding Product purchased by way of the Tally.
-          It also includes known information about one's ability or past performance in satisfying Pledges via Credit Lifts.
+          It also includes known information about one's ability or past performance in fulfilling Pledges made to other parties.
       -
         title: 'Consent'
         text: >-
-          Each Party shall make a reasonable effort to ensure that the other Party has entered into this Contract of its own free will and choice.
+          Each Party shall take reasonable care to ensure that the other Party has entered into this Contract of its own free will and choice.
       -
         title: 'Identity'
         text: >-
@@ -45,21 +45,22 @@
       -
         title: 'Lift Execution'
         text: >-
-          Each Party shall make reasonable efforts to use software which faithfully executes the MyCHIPs protocol in good faith.
-          Each Party's server shall, once having completed the conditional phase of a Lift transaction, shall then make every effort to commit the final phase of that lift.
-          Use of a current, unmodified official release of the MyCHIPs software as distributed by mychips.org satisfies the requirements of this section.
+          Each Party shall make reasonable efforts to use software which faithfully executes the MyCHIPs protocol, as published by mychips.org, in good faith.
+          Each Party's server, having completed the conditional phase of a Lift transaction, shall then make every effort to commit the final phase of that lift in accordance with the agreed upon terms.
+          Use of a current, unmodified, official release of the MyCHIPs software as distributed by mychips.org satisfies the requirements of this section.
       -
         title: 'Resolution by Other Means'
         text: >-
-          Should a Party fail, within 10 days of request, to provide suitable connections to resolve an outstanding debt by way of Credit Lifts, it shall provide payment upon demand in some other medium satisfactory to the Receiver.
-          This includes payment by a government currency in common use by the Receiver such as Dollars or Euros, for example.
+          Should a Party fail, within 10 days of request, to provide or maintain suitable connections to satisfy an outstanding Pledges by way of Credit Lifts, it shall provide payment upon demand in some other medium satisfactory to the Receiver.
+          This includes payment by a sound government currency in common use by the Receiver such as Dollars or Euros, for example.
           It could include payment in gold, silver or other precious commodities acceptable to the Receiver.
           It could also include Product furnished by the Issuer and satisfactory to the Receiver.
+          The Receiver shall not unreasonably refuse a good faith payment offered by such other means.
       -
         title: 'Lift Authority'
         text: >-
-          Each Party authorizes the system that hosts its account to sign Credit Lifts, on behalf of that Party, using the system's own private/public key.
-          All such lifts executed and signed by the Party's host system shall be binding upon the Party so long as they conform to the Trading Variables established and signed by the Party in its private copy of the Tally.
+          Each Party authorizes its agent host system to sign Credit Lifts, on behalf of that Party, using the system's own private/public key.
+          All such lifts executed and signed by the Party's host system shall be binding upon the Party so long as they conform to the Trading Variables established and signed by the Party in its private counterpart of the Tally.
           Each Party shall hold its system operator(s) harmless for untinentional errors or losses incurred while using a current, unmodified official release of the MyCHIPs sotware as distributed by mychips.org.
       -
         title: 'Notice of Default'
@@ -69,13 +70,12 @@
       -
         title: 'Cure of Default'
         text: >-
-          Upon receiving a notice of Default, a Party must make a timely, good faith effort to satisfy the complaint of the noticing Party.
-          Upon receiving a notice of Default, a Party has up to 10 days to cure the Default.
+          Upon receiving a notice of Default, a Party must make a timely, good faith effort to satisfy the complaint of the noticing Party within 10 days.
       -
         title: 'Publication'
         text: >-
           If a Default is not cured within 10 days, the non-breaching Party is entitled to publish the identity of the breaching Party and information about the nature of the breach, notwithstanding any obligations regarding privacy.
-          Such shall be done solely to inform others who might contemplate entering into a similar transaction with the breaching Party.
+          Such publication shall be done solely to inform others who might contemplate entering into a similar transaction with the breaching Party.
           If a Party has previously published such information and the breaching Party subsequently and satisfactorily cures the breach, the publishing Party shall then also similarly publish information indicating that the breach has been cured.
       -
         title: 'Collateral'

@@ -5,11 +5,11 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x67dfacfc0f0e77688e5a911585c9490bb18f5c1642c327ff55d063e38f16f8ec'
+    digest: '\xc5cccb77998e3bb0c3af1b8b7c60e7ddc680be8662c0d7226161c35df3a712b2'
     title: 'What a Tally is and How it Works'
     text: >-
       Pledges of Value are tracked by means of a Tally.
-      A Tally is an agreement between two willing Parties, normally stored on a computer, and by which the Parties document and enforce a series of Pledges of Value, or Chits, made between them.
+      A Tally is an agreement between two willing Parties, normally stored as a digital electronic record, and by which the Parties document and enforce a series of Pledges of Value, or Chits, made between them.
     sections:
       -
         title: 'Signing Keys'
@@ -22,7 +22,7 @@
         text: >-
           The Parties agree to the terms and conditions incorporated in the Tally by computing a standardized hash from the normalized contents of the Tally, and encrypting that hash using their private key.
           This act of signing is normally conducted by a user interacting with an application running on a computer or mobile device.
-          By producing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions contained in that Tally, including those that may be incorporated by digital reference.
+          By producing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions contained in that Tally, including those that are incorporated by reference.
           If one Party is in possession of a valid signature of the Tally, which can be verified by the other Party's public key, this is sufficient proof of the consent of the other Party to the Agreement in its entirety.
       -
         title: 'Stock and Foil'
@@ -44,13 +44,14 @@
         text: >-
           For example, if a regular customer establishes a Tally with a merchant to buy Product from that merchant, the customer would hold the Foil and the merchant would hold the Stock.
           In an employment scenario, the employer will hold the Foil and the Employee will hold the Stock.
+          In less formal trading relationships, the Parties can select their roles of Vendor and Client as seems best to fit the trading relationship.
       -
         title: 'Chits'
         text: >-
-          Each Pledge contained in a Tally is referred to as a Chit.
+          Each Pledge of Credit contained in a Tally is referred to as a Chit.
           The Party who is pledging value by the Chit is referred to as the Issuer of credit for that Chit.
           The Party the pledge is made to is the Receiver of credit.
-          Either Party may add valid, digitally signed Chits to the Tally as long as it does so as an Issuer.
+          Either Party may unilaterally add valid, digitally signed Chits to the Tally as long as it does so as an Issuer.
       -
         title: 'Authority to Pledge'
         text: >-
@@ -68,10 +69,10 @@
         text: >-
           This indebtedness is credit, which can be thought of as a loan, a debt, or and IOU.
           At any given time, the indebted Party is referred to as the Net Issuer of credit.
-          At that same time, the other Party is referred to as the Net Recipient of credit.
+          The other Party is referred to as the Net Recipient of credit.
       -
         title: 'Variable Roles'
         text: >-
-          The roles of Vendor and Client remain constant in the context of the Tally with its two parts, Stock and Foil.
+          The roles of Vendor and Client remain constant in the context of the Tally with its two counterparts, Stock and Foil.
           As the Tally Stock accumulates a positive value, the Client would be the Net Issuer and the Vendor would be the Net Recipient.
           But the roles of Net Issuer and Net Recipient of credit can become reversed if the balance of the Tally moves from positive to negative.

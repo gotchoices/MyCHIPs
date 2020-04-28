@@ -5,10 +5,10 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x4585db4671176e991aa75fd243b08885ac0870682ec8df7198a25f212bd14683'
+    digest: '\x1cd3723016779fb231941234c59582c4b57af1a0a8e950fc1679f33a9e2800bf'
     title: 'Ethical Conduct'
     text: >-
-      The credits, or Chits, under a tally agreement constitute a Pledge of value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally.
+      The credits, or Chits, under a Tally agreement constitute a Pledge of Value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally.
       In order for such a Pledge to be a valid, and therefore enforceable, the following conditions must also be met:
     sections:
       -
@@ -23,7 +23,11 @@
       -
         title: 'Dispute Resolution'
         text: >-
-          In case of a dispute over any transaction involving MyCHIPs between the Parties being resolved by legal remedy, the prevailing Party shall be entitled to collect from the losing Party actual incurred damages, plus all collection costs, including attorneys fees.
+          In case of a dispute between the Parties over any associated transaction being resolved by legal remedy, the prevailing Party shall be entitled to collect from the losing Party actual incurred damages, plus all collection costs, including attorneys fees.
+      -
+        title: 'Frivolous Claims'
+        text: >-
+          Should any cause of action brought by one Party against the other be shown to be frivolous, or without basis, the penalty shall be increased to two times the actual incurred damages, plus all collection costs, including attorneys fees.
       -
         title: 'Fraud'
         text: >-
@@ -35,4 +39,15 @@
       -
         title: 'Honor'
         text: >-
-          The debtor agrees to not excuse himself/herself from honoring the agreement by reason of bankruptcy or similar recourse, even though the prevailing law may allow it.
+          The debtor agrees to not excuse itself from honoring the agreement by reason of bankruptcy or similar recourse, even though the prevailing law may allow it.
+      -
+        title: 'Indemnity'
+        text: >-
+          The Parties shall hold harmless mychips.org and all author(s) of the MyCHIPs software for any loss related to the use of the software.
+      -
+        title: 'Chain of Honor'
+        text: >-
+          The obligations related to good faith and honesty made by the Parties also extend to other parties they may be indirectly connected to.
+          For example, it is a breach of this covenant to use your trading relationship under this Tally to defraud another party somewhere else on the network.
+          Each Party agrees to cooperate with the other in the rectification of any fraud or loss which may occur in the course of trading on this Tally.
+          This implies the assignment of contract rights, as applicable such that any unduly harmed party may invoke the rights of each party along a chain of transactions in order to remedy a fraud or undue loss.

@@ -16,9 +16,9 @@ universe of "standard" contracts people recognize and get comfortable with.
 
 Contracts can be incorporated into other contracts by referring to the contract 
 key (domain, file, version and language) and a hash digest of the contract
-contents.  This way the contract itself doesn't actually have to get included 
-inline.  But the terms, or effect of the contract, still get included as you 
-invoke it by reference.
+contents.  This way the contract itself doesn't actually have to get repeated
+inline.  But the terms, or effect of the contract, still are included because
+they are invoked by reference.
 
 Contract Format:
 -------------------------------------------------------------------------------
@@ -75,6 +75,11 @@ A contract is represented as a JSON object with the following properties:
   
   - published
     A date indicating when this contract version was published by the author.
+    This must be in ISO format YYYY-MM-DD where the month is a two digit 
+    number, and not a word in any particular language.  The day should also
+    be a two digit number.  This exact format is important so hashes
+    generated in different contexts (in the database or in a JS frontend) will 
+    properly match.
 
   - title
     A concise title, in the target language, for the contract.  This will be
@@ -162,12 +167,12 @@ The Tally Contract itself whould then be structured something like this:
   Recitals
   Tally_Definition		Roles of the parties
   Chip_Definition		
-  Sending_Value
-  Free
-  Ethics
   Duties_Rights			Recourse / Governing law
   Representations
   Defaults
   Credit Terms			Definition of specific terms
+  Sending_Value
+  Free
+  Ethics
 
 -------------------------------------------------------------------------------

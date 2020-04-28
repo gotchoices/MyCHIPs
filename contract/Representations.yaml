@@ -5,7 +5,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x8c3d40afd9cdccc46c735e43ebb374307c89bddbadb38e7b2c826fb7a833cdeb'
+    digest: '\x2dbfb7f6c02e1f310adea8ed76d612039a8741878c594dc0dbbcef288bde7f4c'
     title: 'General Representations of the Parties'
     text: >-
       The Parties represent as follows about themselves:
@@ -13,15 +13,15 @@
       -
         title: 'Competency'
         text: >-
-          Each Party is of such age and mental capacity to understand the obligations he/she is entering into by executing this Tally.
+          Each Party is of such age and mental capacity to understand the obligations it is entering into by executing this Tally.
       -
         title: 'Financial Capacity'
         text: >-
-          Each Party has the means to satisfy the debts it accrues under the Tally.
+          Each Party has the means to satisfy the debts it incurs under the Tally.
       -
         title: 'Network Connections'
         text: >-
-          Each Party will maintain sufficient Client relationships to reasonably facilitate Lifts.
+          Each Party will maintain sufficient Client relationships to reasonably facilitate Credit Lifts.
       -
         title: 'Identity'
         text: >-
@@ -32,7 +32,7 @@
           If a Party is a corporation or other organization, that individual executing the Tally represents that he/she is duly authorized to enter into the Tally on behalf of the organization.
       -
         text: >-
-          The Tally will not be used to create an investment or financial relationship where a future return is promised which is a function of the financial success of a venture.
+          This Tally will not be used to create an investment or financial relationship where a future return is promised which is a function of the financial success of a venture.
           Rather, the Tally will be used to document an indebtedness such as the following:
 
         sections:
