@@ -18,7 +18,7 @@ namespace eval lifts {
     def lifts_se	{lift_guid lift_seq route_ent circuit path tallies units request status signature socket public dest_chid dest_host req_date exp_date digest}
 }
 
-table mychips.lifts {} {
+table mychips.lifts {mychips} {
     lift_guid	uuid
   , lift_seq	int	      , primary key (lift_guid, lift_seq)
   , request	text		constraint "!mychips.lifts.IVR" check(request isnull or request in ('draft','init','relay','local'))
