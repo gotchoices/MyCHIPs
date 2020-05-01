@@ -22,6 +22,7 @@
 import Wylib from 'wylib'
 const Bias = 10				//Amount to nudge nodes based on which end of the tally they are on
 const CHIPmult = 1000
+var updatePending = false
 
 export default {
   name: 'app-urnet',
@@ -118,9 +119,12 @@ export default {
       let where = [['peer_ent', 'notnull']]
         , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'units', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'states', 'guids', 'part_cids', 'insides']
         , spec = {view: 'mychips.users_v_tallysum', fields, where, order: 1}
+      updatePending = true
       if (dTime) where.push(['latest', '>=', dTime])
+//console.log("UN:", dTime, typeof dTime, where)
 
       Wylib.Wyseman.request('urnet.peer.'+this._uid, 'select', spec, (data,err) => {
+        updatePending = false
         let notFound = Object.assign({}, this.state.nodes)	//Track any nodes on our graph but no longer returned in the query
           , needLinks = {}
 //console.log("Update nodes:", dTime, this.state.nodes, data.length, data)
@@ -191,10 +195,12 @@ export default {
     Wylib.Common.stateCheck(this)
     
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
-//console.log("URnet async:", dat)
+      let dTime = updatePending || dat.oper == 'DELETE' ? null : dat.time	//Only query late changing entries
+//console.log("URnet async:", dat, dat.oper == 'DELETE', updatePending, dTime)
 
       if (dat.target == 'peers' || dat.target == 'tallies')
-        this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
+        this.updateNodes(dTime)
+
       if (dat.oper == 'DELETE' || dat.oper == 'INSERT')
         this.$refs.svg.$emit('change')		//Automatic bump each time something changes
     })
