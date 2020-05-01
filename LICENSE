@@ -1,54 +1,66 @@
-[MyCHIPs License Agreement
-Version 2, Nov 28, 2019
+MyCHIPs License Agreement
+Version 3, Apr 30, 2020
 
 (For a common language summary, please see the file: FREE-USE)
 
-The Author of the MyCHIPs package contained herein offers a dual license to 
-the programs, code, files, algorithms, API's, documentation and other content 
-in this package, hereinafter "The Software," such that The Software may be 
-used according to one of the following two options:
+The MyCHIPS Foundation, Owner of the MyCHIPs package contained herein, grants a 
+dual license to the programs, code, files, algorithms, API's, documentation and 
+other content in this package, hereinafter "the Software," such that The 
+Software may be used according to one of the two Options desribed below.
+
+For purposes of this License, the term "CHIP Trader" shall mean any individual
+or organization who uses the Software to establish and/or conduct a credit 
+relationship, a "Tally," with another individual or organization.  The term 
+"Service Provider" shall mean any individual or organization who uses the 
+Software to host an account for one or more CHIP Traders.  The term "Revenue"
+shall mean any accrual, pledge, or receipt of value, whether measured in CHIPs 
+or some other unit, which is received in connection with the use of the Software.
 
 Free Option:
 You may use The Software according to the GNU Affero General Public License 
 Version 3, a copy of which is included in this distribution (AGPL-3.0), subject 
-to the following two conditions, which constitute binding amendments to the 
-License:
+to the following two conditions, which constitute binding amendments to that
+license:
 
-  Condition 1: End users (including individuals, companies and other 
-    organizations) of The Software incorporate the terms and conditions 
-    referenced in contracts/Free.yaml, in their full force and effect, in 
-    all contracts and transactions (chits, tallies, lifts, payments, trades, 
-    etc.) they may engage in.  This obligation pertains to the version of 
-    Free.yaml published with the version of the software being used to host 
-    the user's account at such time as the contracts in question are agreed to
-    by that user.
+  Condition 1: CHIP Traders incorporate into all their Tallies and hence, their
+    credit transactions, the terms and conditions referenced in 
+    contracts/Free.yaml, and further agree that such terms and conditions 
+    supercede any additional terms and conditions they may agree to as part of 
+    those Tallies and transactions.  This obligation pertains to the version of 
+    Free.yaml published with the version of the software being used at such 
+    time as a given Tally is agreed to; and
     
-  Condition 2: Service providers who host services (i.e hosts and operators of 
-    computers running The Software) on behalf of themselves or other end users,
-    A) take prudent and effective measures to inform the end users of their 
-       obligations under this license, most notably Condition 1 above; and
-    B) proactively collect, and pay monthly to the Author, any royalties due, 
+  Condition 2: Service Providers
+    A) take commercially reasonable measures to inform the CHIP Traders of 
+       their obligations under this License, most notably Condition 1 above; 
+       and
+    B) proactively collect, and remit monthly to the Owner, any payments due, 
        as explained below, from those who do not abide by Condition 1.
-    C) deal honestly with, and representing the best interests of, the users
-       they host services for.
+    C) deal honestly with, and representing the best interests of, the CHIP
+       Traders they host services for and exchange credits with.
 
 Paid Option:
-Service providers and end users using the software who do not abide by the 
-Conditions above automatically become subject to the paid option consisting of:
+Service Providers and CHIP Traders using the Software who do not abide by the 
+Conditions above automatically become subject to the Paid Option and agree to
+remit to the Owner:
 
   A) 1% of all gross revenues associated directly or indirectly with the use 
      of The Software, remitted voluntarily and monthly to, and without explicit 
-     invoice or demand by, the Author; and
+     invoice or demand by, the Owner; and
   B) An additional 9% of all such revenues, plus all associated collection 
      costs, including attorneys fees, in such case that the 1% royalty payments 
      noted above are not made timely or otherwise require collection efforts by 
-     the Author or its agents; and
-  C) The greater of $5000 or 300% of any loss incurred by any user, plus 
-     collection costs and attorneys fees, as a result of any intentional act by 
-     a service provider to cheat or defraud a user.  The Author hereby 
-     authorizes any user so harmed to sue and to collect on its behalf in 
-     exchange for voluntarily remitting 10% of the gross of any such recovery.
+     the Owner or its agents; furthermore
+  C) Should a Service Provider have intentionally cheated or defrauded a CHIP
+     Trader, then the Service Provider, in addition to the fees due under
+     subsections (A) and (B) above, shall be liable for the greater of $5000 
+     USD or 300% of any resulting loss by the CHIP Trader, plus collection 
+     costs and attorney's fees.  The Owner hereby assigns this claim to any
+     CHIP Trader so harmed by a Service Provider pursuant to this subsection
+     (C) for purposes of suing and collecting on the Owner's claim provided
+     the CHIP Trader shall, as a condition of said assignment, remit 10% of the
+     gross recover amounts to the Owner.
 
-For purposes of this License, the term "revenue" shall mean any accrual, pledge,
-or receipt of value, whether measured in CHIPs or some other unit, which is
-received in connection with the use of the software.
+All proceeds collected from the Paid Option, or resulting from damage claims, 
+shall be used by the Owner for the advancement of the charitable purpose of the 
+Owner as defined in its governing documents.

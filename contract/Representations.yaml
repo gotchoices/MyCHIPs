@@ -5,7 +5,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x2dbfb7f6c02e1f310adea8ed76d612039a8741878c594dc0dbbcef288bde7f4c'
+    digest: '\x'
     title: 'General Representations of the Parties'
     text: >-
       The Parties represent as follows about themselves:
@@ -31,9 +31,10 @@
         text: >-
           If a Party is a corporation or other organization, that individual executing the Tally represents that he/she is duly authorized to enter into the Tally on behalf of the organization.
       -
+        title: 'Nature of Credit Obligations'
         text: >-
-          This Tally will not be used to create an investment or financial relationship where a future return is promised which is a function of the financial success of a venture.
-          Rather, the Tally will be used to document an indebtedness such as the following:
+          This Tally will not be used to document an equity or financial interest where a future return is promised which is a function of the financial success of a venture.
+          Rather, the Tally will be used to record and track debt obligations such as the following:
 
         sections:
           -
