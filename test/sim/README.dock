@@ -1,13 +1,13 @@
 Containerized Simulation:				(Try 3)
 -------------------------------------------------------------------------------
-This is a re-implementation of the simnet script where instead, all processes 
-are launched as docker containers.  This seems to have much less memory 
-overhead than the simnet implementation so a single system can support the 
-simulation of many more sites.  However it is still quite CPU intensive so 
-things can run slow if you are modeling lots of sites.
+This is a re-implementation of the simnet script where, instead of running on
+separate virtual machines, all processes are launched as docker containers.  
+This seems to have much less memory overhead than the simnet implementation so 
+a single system can support the simulation of more sites.  However it is still 
+quite CPU intensive so things can run slow if you are modeling lots of sites.
 
-Hopefully a docker-based simulation will work better for running a larger
-scale simulation in the cloud.
+Hopefully this docker-based simulation can be easily adapted to launch many
+containers in the cloud for a much larger-scale simulation.
 
 The simulation keeps run-time data in a subdirectory of this folder called
 'local.'  For example, all instances of the postgres database directory get
@@ -35,19 +35,23 @@ simulation.
 There is also a "devel" container which is a dummy Fedora filesystem primarily
 used for development tasks such as updating the database schema in between runs
 of the simulation (say, in the case where you have made programming changes).
-One can also launch a shell on the devel container to examine the simulation
-network from the perspective of a machine on that network.
+You can launch a shell on the devel container to examine the simulation network 
+from the perspective of a machine on that network.
+
+The devel container can also backup and restore all your databases to a named
+profile.  This allows you to save a certain state for later analysis or
+debugging.
 
 To get started, run the following commands:
 
   export NODE_DEBUG=debug
   ./simdock startup
 
-This should fetch and build the necessary docker images (which can take a long
-time).  Next, it will launch the mongo and devel containers.  It will then launch 
-a number of sites, equivalent to running "simdock start sites" manually.  This
-can take a while the first time you run because it has to initialize a database
-for each site.
+This should fetch and build the necessary docker images (which can take quite a 
+long time).  Next, it will launch the mongo and devel containers.  It will then 
+launch a number of sites, equivalent to running "simdock start sites" manually.  
+This can take a while the first time you run because it has to initialize a 
+database for each site.
 
 This step includes opening a bunch of xterms (or the local logwin script) on 
 your screen to view the logfiles.  So if things don't work right (like your 
@@ -69,7 +73,7 @@ this folder.  Some good things to focus on include:
   userargs			#Additional command line switches to docker
   				 run command.  For example, I use this so each
   				 container runs bash with my preferred settings:
-  userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )
+  userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )	#Custom bashrc, key mappings
 
 If you have made changes, shut things down using:
 
@@ -84,10 +88,10 @@ You can check your running containers with:
   docker ps
 
 You should see a mongo, a devel, and N instances of postgres and the SPA server.
-You should have 4 xterms on your screen showing the logs of the running SPA
-servers.  There should be another 4 showing the postgres logs.  Make sure those
-servers get initialized and launched all the way before launching the UI's as
-noted below.
+You should have N xterms on your screen showing the logs of the running SPA
+servers.  There should be another set showing the postgres logs.  Make sure 
+those servers get initialized and launched all the way before launching the 
+UI's as noted below.
 
 Next, you will need to put some aliases in your /etc/hosts (or other DNS
 mechanism) to resolve the hostnames we will use in the simulation.  Your
@@ -112,7 +116,7 @@ ticket.  At this point, you should get a security warning because you are
 connecting via https to a node with a self-signed CA.  Look for a CA
 certificate in:
 
-  local/pki/spa-ca.crt
+  test/sim/local/pki/spa-ca.crt
 
 and install it in your browser (and/or OS).  
 
@@ -120,9 +124,9 @@ On MAC and Windows, you should be able to double click on the file to install
 the certificate.  You will then have to find and adjust the setting to trust
 all certificates signed by this authority.
 
-Note: Firefox may require you to set the value security.enterprise_roots.enabled
+Note: Firefox requires you to set the value security.enterprise_roots.enabled
 to true (in about:config) in order to read certificate information from the OS.
-Firefox may also need to be restarted.
+Firefox probably also needs to be restarted.
 
 Once you get all that sorted out, rerun the "simdock tickets" command and see
 that the admin console is successfully connecting to each of the running SPA
@@ -135,12 +139,12 @@ Note that, as with most plural commands in simdock, you can also do:
 to launch a single admin console (to site 2 in this case).
 
 Last setup step is to rebuild all the database objects from scratch.  The
-default server will build a pre-compiled schema by default.  But we would like
-the simulation to run from our source folder so if you want to tweak the
-schema, you can see the effect of your changes.  This actually gets done
+default MyCHIPs server will build a pre-compiled schema by default.  But we 
+would like the simulation to run from our source folder so if you want to tweak 
+the schema, you can see the effect of your changes.  This actually gets done
 automatically with the simulation run, but the first time, it can be a little
-more clear to run it explicitlyKeep in mind, this will also take a while when 
-run for the first time:
+more clear to run it explicitly.  Keep in mind, this will also take a while 
+when run for the first time:
 
   ./simdock dbcheck all
 

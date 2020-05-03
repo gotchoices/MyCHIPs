@@ -1,7 +1,7 @@
 Instructions to demonstrate reference code. (Feb 2020)
 
 Current testing limited to: 
-Fedora linux, Chrome, Firefox, PostgreSQL 9-11, docker
+Fedora linux, Chrome, Firefox, PostgreSQL 9-11, Docker
 
 ---------------------------------------------------------------------
 Docker Simulation
@@ -24,17 +24,16 @@ To manually configure a Linux environment for testing the MyCHIPs server:
   systemctl start postgresql
   su -l postgres -c 'createuser -d -s -r admin'
 
-- Other known dependencies that may not be installed on your system by default:
-  bash, openssl, others?
+- Other known dependencies hopefully installed on your system by default:
+  bash, openssl, nodejs, others?
 
 - Create a folder to work in:
   mkdir devel; cd devel			#For example
 
-- checkout mychips (currently on bitbucket):
-  git clone https://your-username@bitbucket.org/kylebateman/mychips.git
+- checkout mychips:
+  git clone https://github.com/gotchoices/MyCHIPs.git
   cd mychips
   npm install				#Install all dependencies
-  
   npm init				#Initialize local certificates
 
 - Create an admin login ticket		#This will also build the db schema
@@ -44,17 +43,21 @@ To manually configure a Linux environment for testing the MyCHIPs server:
   npm run server
 
   If you have trouble, set NODE_DEBUG=debug environment variable
-  and watch logs in /var/tmp/mychips
-  You can do limited testing running insecurely: npm run server -- -n
+  and watch log files in /var/tmp/mychips
+  (Limited testing is possible without SSL: npm run server -- -n)
 
 - Try connecting to the SPA (possibly from another machine):
   Direct your browser to:	https://<hostname>:8000/admin.html
-                      or:	http://<hostname>:8000/admin.html
   
   If connecting over https, your browser should warn you of an insecure site.  
-  For testing, you can just proceed anyway (at least in chrome).  
-  See the file ./pki/README for more details about securing your site with an
-  SSL certificate (whether you use a commercial certificate or make your own).
+  For testing, you may be able to just proceed anyway.  Better yet, the
+  "npm init" command above should have created a certificate in
+  pki/local/spa-ca.crt.  If you tell your os/browser you trust that CA, you
+  can proceed without warnings.
+  
+  See the file in pki/README for more details about securing your site with
+  an SSL certificate (whether you use a commercial certificate or make your 
+  own).
   
   If the connection is working, you should see an open connection dialog in the 
   upper right corner of the app.
@@ -65,6 +68,7 @@ To manually configure a Linux environment for testing the MyCHIPs server:
   
   Otherwise, you need to generate a new one so do that now:
   
+  npm run adminticket			#or:
   npm run adminticket -- -H hostname -P port -o ticket_file.json
   
   For example, something like:
@@ -102,7 +106,9 @@ To manually configure a Linux environment for testing the MyCHIPs server:
   URL Tickets:
   It is now possible using the -Q switch to make adminticket produce a URL which
   you can connect to directly, eliminating the need to import a key file into the
-  UI as described above.
+  UI as described above.  Something like:
+  
+    chrome $(bin/adminticket -Q)
   
   See the documentation in the wylib package for more detailed information on 
   connection keys.
@@ -111,25 +117,25 @@ To manually configure a Linux environment for testing the MyCHIPs server:
 
     cd test
     
-  Edit settings file to set IP number of the test machine you are on
+  Edit the settings file to set IP number of the test machine your database is
+  on, and then:
   
     cd sample
     ./kickstart
 
-  Reload the user preview in the admin GUI, should see 5 users.
+  Reload the user preview in the admin GUI, should see 4 users.
 
 - View the live network graph (Network tab)
-  See your 5 users on the graph
+  See your users on the graph
   Use the graph menu (Upper Right) to Reset or Arrange if necessary
 
 - Add sample tallies/chits (while watching the live Network display)
-  Still in test/sample
-  Specify database name only if not the same as your username (default)
-  psql <Database_Name> admin -f tallies.sql
-  psql <Database_Name> admin -f chits.sql
+  Still in test/sample:
+    psql mychips admin -f tallies.sql
+    psql mychips admin -f chits.sql
   
   Remove them again with
-  psql <Database_Name> admin -c "delete from mychips.tallies"
+    psql mychips admin -c "delete from mychips.tallies"
 
 - Add more random users (while still watching the graph)
   ./randuser					# or:
@@ -146,15 +152,17 @@ To manually configure a Linux environment for testing the MyCHIPs server:
   
 - Lifts
   When the graph accumulates some debits and credits, you can try executing
-  some credit lifts.
+  some local credit lifts.  Keep in mind, this is not a network simulation
+  but only working with a set of users within a single database.
+  To work with distributed lifts, go to test/sim/README.dock.
   
-  To examine the lift path table, execute this SQL:
+  To examine the local lift path table, execute this SQL:
 
-  select * from mychips.paths_v_lifts  
+    select * from mychips.tallies_v_lifts  
   
   To run a single credit lift, execute this SQL:
   
-  select mychips.lift_cycle(1)		-- Argument = max number of lifts
+    select mychips.lift_cycle(1)		-- Argument = max number of lifts
 
 ---------------------------------------------------------------------  
 Want to browse the database schema:
@@ -164,6 +172,15 @@ Want to browse the database schema:
   
 - Direct your browser to:	https://<hostname>:8000/wysegi.html
 
+You will need the same admin connection key as was established above.  Go to 
+the working admin console, click the server button near the top right, select
+your connection key and then "Export keys" from the menu.  This should export
+your key to your Downloads folder.  Then go to the Wysegi UI and import that
+same key into the server connection dialog.
+
+---------------------------------------------------------------------  
+Database Logging:
+
 You may want to monitor notice logging from postgres.  If so, you may
 have to edit pgsql/data/postgresql.conf and set the following:
 
@@ -172,17 +189,17 @@ log_min_messages=notice
 ---------------------------------------------------------------------  
 If you will be working on the Wyatt-ERP source code:
 
-- You will need to run "npm develop" script.  This will remove the four Wyatt 
-  modules out of mychips/node_modules.  It will expect to find those same 
-  modules (wyseman, wylib, wyselib, wyclif) in a folder at the same level as 
-  the mychips folder.  You will have to check these of from github, for
+- You will need to run the "npm develop" script.  This will remove the four 
+  Wyatt modules out of mychips/node_modules.  It will expect to find those 
+  same modules (wyseman, wylib, wyselib, wyclif) in folders at the same level 
+  as the mychips folder.  You will have to check these out from github, for
   example:
 
     git clone https://github.com/gotchoices/wyselib.git
   
-  The develop script will run an "npm install" at that level (just above 
-  mychips) which will build an npm_modules folder there and make the required 
-  modules accessible to MyCHIPs.
+  The develop script will run an "npm install" at one level above mychips 
+  which will build an npm_modules folder there and make the required modules 
+  accessible to MyCHIPs.
   
   By doing it this way, you are able to edit/change things in the Wyatt code
   and the changes will be immediately accessible to the next run of MyCHIPs.
@@ -196,12 +213,17 @@ If you will be working on the Wyatt-ERP source code:
   
   See wyseman/INSTALL for more installation details
 
-- To build/rebuild the schema in your database from sources:
-  cd mychips/schema
-  make all
-  
-  This may fail on the first run if your schema was instantiated by MyCHIPs
-  (as opposed to this manual build method).
+  When MyCHIPs runs for the first time, it will build a stock schema in the
+  database if it can't find one.  But you can modify that schema on the fly
+  from the sources in the schema folder.  This is done by:
+
+    cd mychips/schema
+    make objects
+    
+  This will also build a few more items in the database for tracking the state
+  of the schema (so it knows which objects need to be rebuilt at any given
+  time).  So it may generate errors on the first run if your schema was 
+  instantiated by MyCHIPs (as opposed to this manual build method).
 
 ---------------------------------------------------------------------  
 If you will be working on Wylib:
@@ -228,7 +250,7 @@ If you will be working on Wylib:
   
   It is also possible to run "npm run dev-hot" in the mychips directory.
   This allows you to run the SPA out of port 3000 (rather than 8000).  This
-  may not work right if you are working on wylib reports.
+  may not always work right if you are working on actions/reports.
 
 ---------------------------------------------------------------------  
 Testing:

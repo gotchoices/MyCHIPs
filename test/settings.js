@@ -2,7 +2,7 @@ module.exports={
   DatabaseName: "mychipsTestDB",
   DatabaseHost: "localhost",
   DatabasePort: 5432,
-  MachineIP: "192.168.56.101",
+  MachineIP: "192.168.56.10",
   DBAdmin: "admin",
   AdminID: "r1",
   UserPort: 54320,

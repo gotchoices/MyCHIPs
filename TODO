@@ -35,9 +35,10 @@ X- Write initial tally/chit/lift contracts
 X- Document (some) missing DB columns
 X- Report to preview a tally contract (in User Interface or browser?)
 X- Server serves up standard contracts (at what port?)
-- Review demonstration instructions
+X- Review demonstration instructions
 -
 - Public Proof-of-concept release
+- How to move my repo to github?
 -
 - Chit consensus:
 -   Can tolerate network outages
