@@ -1,59 +1,18 @@
 TODO:
 
 Immediate:
-X- Make pending chits when a lift is initialized
-X- Remote lift gets entered as 'pend'
-X- Build or inherit hash? (inherit and compare?)
-X- Implement remote handler to pend status
-X- Debug Lori Michelenko lift, not working
+X- Integrate DSR phase-1 work into source tree
+X-   Clean DOS files
+-   Can view/modify/render .puml diagrams
+X-   Move results.md to root
+X-   Reference licensing in standard way
+X-   Integrate patches into simulation (and then erase DSR files)
 - 
-- Licensing/contracts:
-X- Get hashing compatible between front/back ends
-X- How to escape backslashes,quotes other than quote_literal (which injects surrounding single quotes)
-X- You covenant not to defraud your partner or anyone it is connected to
-X- You assign your right not to be defrauded to each of your connections
-X- You assign your rights to pursue remedies to each of your connections
-X- Loser pays
-X- Frivolous claim loser pays double
-X- Fraud/cheater loser pays triple
-- 
-X- Implement consensus algorithm when adding chits to hash chain
-X- Packets for good chits include chain index and hash
-- 
-- Test Lift States:
-X-   Phase 1: initiate/refresh routes
-X-   Phase 2: propose specific lift amount
-X-   Phase 3: generate signing key, start commit
-X- When a lift is created, forge the associated chits in pending status
-X- When lift is committed, move all chits on my site to 'good'
-X- Lift packet includes (dummy for now) site public key and connection endpoint
-X- Make local lift work again (create lift record only, let chitcheck create chits)
-X- Build test function to initiate a linear lift:
-X- Test linear lift:
-X-   Recipient communicates via lift initiator's specified endpoint
-X- Write initial tally/chit/lift contracts
-X- Document (some) missing DB columns
-X- Report to preview a tally contract (in User Interface or browser?)
-X- Server serves up standard contracts (at what port?)
-X- Review demonstration instructions
+- Read/review trading contracts one more time
+- All source code files bear license banner
+- Write phase-2 proposal using arbiter/Transaction_Manager, possibly Paxos
+- Publish source code (How to move the repo to github?)
 -
-- Public Proof-of-concept release
-- How to move my repo to github?
--
-- Chit consensus:
--   Can tolerate network outages
--   Will re-synch chain no matter how many chits got added during outage
--   Need ack/nak added to chit protocol?
--   Ack/naks include chits and/or chain segments as applicable
-- Need to handle more than one lift per site with the same guid (when a lift passes through the same site more than once)
-- Routes count how many successful lifts they have conveyed
-- Routes refresh their expiration upon last successful lift
-- Does it work to re-probe for an existing (expired, pending or railed) route?
-- Need a scheduler to do this occasionally (and particularly when necessary)
-- How to trigger a manual signature query if a lift times out?
-- Create function in server to call circular lift function on specified interval
-- 
-
 General roadmap:
 X- Can create/exchange tallies, chits with a peer
 X- Create agent client module to model user, reads/writes/listens direct with DB
@@ -62,18 +21,17 @@ X- Create graphical canvas view of all users balance sheets
 X- Implement single-db lift algorithm
 X- Implement multi-db lift algorithm
 - Public Proof-of-Concept release
-- Improve agent model (see below)
-- Write unit test suite
-- Implement basic contracts (author, display, print, publish)
-X- Review copyright; Should we limit free to people who respect a base contract?
-X- Harden SPA connections, implement user ID's, schema permissions
-- Make Wylib User SPA GUI useable
+- Iterate on TLA+ modeling until protocol is sufficiently safe/live
+- Integrate improved protocol into source code
+- Improve/expand agent model (see below)
+- Write unit tests
+- Implement basic contract handling (author, display, print, publish)
+- Make Wylib User SPA GUI useable (or jump to basic mobile app?)
 - Implement digital signatures for tallies, chits, contracts, lifts
-- Implement encrypted peer communications using noise protocol
+- Implement encrypted peer-to-peer communications using noise protocol
 - Harden database schema, nothing accessible except user-based views/functions
 - Finish schema version control/upgrade mechanism in wyseman
 - Docker-based production server
-X- Make Admin SPA GUI useable, replace all functions of mc_admin
 - Production rollout
 - Create more optimal User SPA GUI for mobile
 - Async email/text notifications
@@ -111,12 +69,27 @@ General tasks by level of expertise required (redundant)
 -     Starting a credit certification aggregator (savings and loan)
 -     Starting a vendor aggregator (credit card company)
 - High Level: (architecture/design)
+-   Close security holes found by DSR study (implement arbiter into protocol?)
 -   Does the existing tally state transition chart accurately represent all necessary cases?
 -   Does the existing chit state transition chart accurately represent all necessary cases?
 -   Augment the chit state transition chart to model distributed lifts
 -   Augment the chit state machine to implement distributed lifts
 -   Add key signing/validation regimen to tally process
 -   Add key signing/validation regimen to chit/lift process
+
+- Chit consensus:
+-   Can tolerate network outages
+-   Will re-synch chain no matter how many chits got added during outage
+-   Need ack/nak added to chit protocol?
+-   Ack/naks include chits and/or chain segments as applicable
+- Need to handle more than one lift per site with the same guid (when a lift passes through the same site more than once)
+- Routes count how many successful lifts they have conveyed
+- Routes refresh their expiration upon last successful lift
+- Does it work to re-probe for an existing (expired, pending or railed) route?
+- Need a scheduler to do this occasionally (and particularly when necessary)
+- How to trigger a manual signature query if a lift times out?
+- Create function in server to call circular lift function on specified interval
+- 
 
 State Transition Refinements:
 - How to resolve order conflict if two chits are committed at once on the same tally?

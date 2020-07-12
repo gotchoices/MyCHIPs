@@ -1,0 +1,89 @@
+Thoughts on Future Direction, July 2020:
+
+Lessons Learned:
+The original demonstration code for the lift algorithm was written without 
+fully understanding how it would turn out.
+
+Admittedly, that is not an ideal development path.  But in my case, taking an 
+initial pass at coding was necessary to my understanding the problem well 
+enough to be able to properly design it--kind of a chicken/egg problem.
+
+I had the theory of what I was trying to accomplish from an accounting and 
+economic standpoint. And I knew the principles I wanted to honor.  But I 
+wasn't quite sure how (or even if) a lift could be performed in a completely 
+distributed system.
+
+In any case, the coding exercise was useful as it created a platform for 
+visualizing the complexity happening below the surface in a credit lift.  And 
+it made it possible for me to articulate the problem well enough for the DSR 
+study to even take place.
+
+That study was a huge learning experience.  Most notably, it helped discover 
+analysis tools (such as TLA+) that can shake out the bugs in the algorithm 
+before even attempting to make the next coding pass.
+
+Going through the TLA+ tutorial was helpful just to see how others have dealt 
+with achieving consensus in a distributed network.
+
+
+The Central Problem:
+It would appear there is no perfect way to guaranty both safety and liveness in 
+a fully distributed, and de-centralized network.  There are algorithms for 
+achieving consensus (Two-phase commit) but they rely on some authority 
+(Transaction Manager) to arbitrate the results of the final commit.
+
+And even the Two-phase commit algorithm has its potential problems.  We have to 
+rely on the honesty and the integrity of the Transaction Manager (TM).  If that 
+node goes down in the middle of the transaction, we can be left in an 
+inconsistent state.  Leslie Lamport, the author of TLA+, has proposed the Paxos 
+Commit algorithm which makes this process much more robust by using multiple 
+TMs and hoping at least a majority of them remain reachable through the 
+transaction.  That would likely provide the consistency MyCHIPs needs as long 
+as the issue of de-centralization can be solved.
+
+De-centralization is critical to success.  If there is a company, an agency,
+a database, or some other ultimate authority at the center of a system, it will
+ultimately become the target of some kind of corruption.  That may be an attack
+by those who do not want decentralized money to succeed, or it may be an effort
+to coopt the system for personal gain.  Either way, the goal of MyCHIPs is to
+avoid all that and make a system regular people can use by themselves and for
+themselves.
+
+A Proposed Solution:
+So what if we resolve to use a TM for each lift, but the protocol allows for 
+anyone to become a TM?  The idea is: the lift initiator would propose a node it
+would like to use as TM for the lift.  Each node along the lift chain could
+decide if it trusts the proposed TM or not.  Participation in the lift is
+always voluntary.
+
+If the originator chooses a well known and trusted node as TM, it is more
+likely to get participants for the lift.  In fact, nodes could return a
+special code if they opt out purely because the proposed TM is not acceptable.
+That would be a good signal to try again with a better recognized TM.
+
+A further enhancement would be to allow sites to execute trading tallies with
+a number of TMs.  TMs could, for a fee, offer lift insurance.  The TM would
+guaranty not to leave the site in an inconsistent state.  And if it did, it
+would provide a lift pathway to heal the imbalance of the resulting broken
+lift.  If a TM site holds a tally with each party to the lift, it should be
+able to formulate a fixup lift, after-the-fact, to cure any inconsistency
+at no real cost (just making sure all the credits and debits cancel out).
+
+Summary:
+  - There can be any number of nodes in the network willing to serve as TM's
+  - Each site can determine nodes it finds trustworthy enough to be TM
+  - In addition to TM services, nodes could offer lift insurance
+  - If a site gets lots of lift requests for a particular TM, not in its
+    list of trusted TMs, it might want to consider establishing a 
+    relationship with the new TM.
+  - Objectives:
+    - There is no singular authoritative system of trust.
+    - Parties decide on their own who to trust.
+    - Traders decide who to establish tallies with.
+    - Sites decide who to trust to perform lifts.
+    - Safety:
+      - Sites guaranty their users lifts that will safely resolve imbalances.
+      - Sites guaranty to each other to act honorably when called upon as TM.
+      - Malicious actors can harm only themselves or their adjacent partner.
+    - Liveness:
+    - All lift transactions are guaranteed to terminate (Paxos Commit).

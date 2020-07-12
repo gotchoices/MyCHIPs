@@ -1,5 +1,5 @@
 # MyCHIPs
-MyCHIPs is an open-source network for implementing a new kind of digital money based on private credit.
+MyCHIPs is an open-source network for implementing a novel kind of digital money based on private credit.
 
 This is *not* a Bitcoin/blockchain derivative, but rather it seeks to address
 several notorious problems with those technologies, most notably: it is fully decentralized and infinitely scalabile.
@@ -7,7 +7,7 @@ several notorious problems with those technologies, most notably: it is fully de
 Briefly, if blockchain-based coins can be thought of as a crypto-stock or crypto-equity, a digital CHIP can be characterized as a crypto-bond.
 Either one _can_ be used as money, or a medium of exchange.
 However, a system based on private credit is more resilient to such forces as speculation, volatility, inflation, and deflation.
-So it is a better solution when considering these three primary purposes of money:
+So it is a better solution when considering these three purposes of money:
 
     - a medium of exchange,
     - a store of value, and 
@@ -32,9 +32,9 @@ Specifically, [Wyseman](http://github.com/gotchoices/wyseman) and
 While Wylib is not the solution for an eventual user interface, it has been what I needed for an administrative console during development.
 And it can suffice for a crude user SPA until a dedicated mobile app can be built.
 
-I have kept the source closed for some time while I tried to work out the algorithm for performing a distributed credit lift.
+I have kept the source closed for some time while I tried to work out an algorithm for performing a distributed credit lift.
 It also took me a while to come up with a licensing mechanism I would be comfortable with.
-I wanted MyCHIPs to be free for everyone to use, but only if they will use it in honest trade.
+I wanted MyCHIPs to be free for everyone to use, but only if they will use it in honest trade as it was intended.
 
 ### Current Project Status:
 The _holy grail_ of MyCHIPs has been a network implementation of the lift protocol introduced
@@ -43,9 +43,16 @@ in [this article](http://gotchoices.org/mychips/acdc.html).
 
 As of March, 2020, the software is successfully computing and performing fully distributed lifts in a simulated network.
 I consider this a "preliminary proof of concept" and so am ready to release this code subject to the attched LICENSE.
-It needs a lot more work to be production ready, but maybe more people will want to take a look now that there is actually something to see.
+It needs a lot more work to be production ready, but maybe more people will want to take a look now that there is actually something to see and test.
 
-Here is a rough outline of what has been done so far:
+To kick off that process, I commissioned a study by [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
+As expected, they uncovered several issues that need improvement before the system can be expected to perform in production.
+Their work and results are included under the test/analysis directory.
+
+In response to that study, I have created a file doc/Safety, my attempt to resolve the issues uncovered by the DSR study.
+This represents the current state of the project.
+
+### Milestones Completed so Far
 
 - Backend PostgreSQL database
   - Database authoring/modification tool
@@ -75,40 +82,21 @@ Here is a rough outline of what has been done so far:
   - Command line UI to create/analyze simulated data sets
 - Model algorithm
   - Users can negotiate tallies with each other
-  - Users can exchange chits with each other
-  - Sites can discover possible lift pathways through the network
-  - Can (manually) initiate circular and linear lifts through the network
-  - Chit transactions stored in hash-chain list
+  - Users can exchange chits (credit pledges) with each other
+  - Sites can discover possible lift pathways through the network, with no central authority
+  - Can (currently manually) initiate circular and linear lifts through the network
+  - Chit transactions are stored in hash-chain list
   - Consensus algorithm between stock and foil
+- Test algorithm (DSR Study)
 
 If you are interested in participating, clone this repo and follow the instructions in the [Developer Instructions](doc/Development).
 You should be able to get a simulated network running and visualize credit lifts in the administrator console.
+Then review the work and results in the DSR study and see if you can help us move the project forward to deployment.
 
-### Project Roadmap:
-- Background: http://gotchoices.org/mychips/beginner.html **(Done)**
-- Functional description: http://gotchoices.org/mychips/replace.html **(Done)**
-- Basic architecture: http://gotchoices.org/mychips/software.html **(Done)**
-- Reference server implementation **(In progress)**
-  - Database schema management tool **(Done)**
-  - Database GUI access tool **(Done)**
-  - Tally/Chit exchange protocol **(Done)**
-  - Basic user/peer/tally schema **(Done)**
-  - Implement test network across multiple databases **(Done)**
-  - Harden Wylib/Wyseman (user validation) **(Done)**
-  - Develop agent-based modeling tool **(Working, needs work)**
-  - Develop lift algorithm **(Working, needs more testing)**
-  - Develop contract editing, publishing, rendering, validation **(Working, needs more testing)**
-  - Develop simple Wylib-based user SPA **(Testing version only, needs work)**
-  - Harden Database (implement users, groups, permissions, logins) **(Basic, needs more testing)**
-  - Harden network communication (tickets, key exchange, noise-protocol)
-  - Implement actual key signing/validation to tallies, chits, lifts
-  - Finish schema version control/update mechanism
-  - Develop more unit tests
-- Early adopter testing (sandbox trading network)
-- Rollout!
-- Develop dedicated mobile user app
+There is a project roadmap in the TODO file.
 
 ### Talent needs:
+- Background: Distributed asynchronous network consensus protocols
 - Background: SSL/TLS, private/public key encryption
 - Background: General Internet security
 - Understand: Internet protocols
