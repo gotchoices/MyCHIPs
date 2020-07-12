@@ -214,4 +214,5 @@ Command Examples:
 
   ./simdock dbcheck 0 -f		#Rebuild the database even if the schema doesn't appear to have changed since last build
   ./simdock backup all profile1		#Backup all DB's to a folder called profile1 (stop spas,peers,agents first)
+  ./simdock dropdb all			#Drop all databases (run this prior to a restore)
   ./simdock restore all profile1	#Restore all DB's from a folder called profile1
