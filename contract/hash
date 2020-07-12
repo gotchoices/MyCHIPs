@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 //Generate a hash for the specified yaml file(s)
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 //Usage: ./hashup file.yaml
 //TODO:
 //- 

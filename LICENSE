@@ -1,12 +1,13 @@
 MyCHIPs License Agreement
-Version 3, Apr 30, 2020
+Version 3, Jul 12, 2020
 
-(For a common language summary, please see the file: FREE-USE)
+(For a non-binding, common language summary, please see the file: FREE-USE)
 
-The MyCHIPS Foundation, Owner of the MyCHIPs package contained herein, grants a 
-dual license to the programs, code, files, algorithms, API's, documentation and 
-other content in this package, hereinafter "the Software," such that The 
-Software may be used according to one of the two Options desribed below.
+The Got Choices Foundation, Owner of the MyCHIPs package contained herein, 
+grants a dual License to the programs, code, files, algorithms, API's, 
+documentation and other content in this package, hereinafter "the Software," 
+such that The Software may be used according to one of the two Options desribed 
+below.
 
 For purposes of this License, the term "CHIP Trader" shall mean any individual
 or organization who uses the Software to establish and/or conduct a credit 
@@ -14,7 +15,8 @@ relationship, a "Tally," with another individual or organization.  The term
 "Service Provider" shall mean any individual or organization who uses the 
 Software to host an account for one or more CHIP Traders.  The term "Revenue"
 shall mean any accrual, pledge, or receipt of value, whether measured in CHIPs 
-or some other unit, which is received in connection with the use of the Software.
+or some other unit, which is received in connection with the use of the 
+Software.
 
 Free Option:
 You may use The Software according to the GNU Affero General Public License 
@@ -23,12 +25,12 @@ to the following two conditions, which constitute binding amendments to that
 license:
 
   Condition 1: CHIP Traders incorporate into all their Tallies and hence, their
-    credit transactions, the terms and conditions referenced in 
-    contracts/Free.yaml, and further agree that such terms and conditions 
-    supercede any additional terms and conditions they may agree to as part of 
-    those Tallies and transactions.  This obligation pertains to the version of 
-    Free.yaml published with the version of the software being used at such 
-    time as a given Tally is agreed to; and
+    transactions, the terms and conditions referenced in contracts/Free.yaml, 
+    and further agree that such terms and conditions supercede any additional 
+    terms and conditions they may agree to as part of those Tallies and 
+    transactions.  This obligation pertains to the version of Free.yaml 
+    published with the version of the Software being used at such time as a 
+    given Tally is agreed to; and
     
   Condition 2: Service Providers
     A) take commercially reasonable measures to inform the CHIP Traders of 
@@ -37,14 +39,15 @@ license:
     B) proactively collect, and remit monthly to the Owner, any payments due, 
        as explained below, from those who do not abide by Condition 1.
     C) deal honestly with, and representing the best interests of, the CHIP
-       Traders they host services for and exchange credits with.
+       Traders they host services for and exchange credits with, whether
+       directly or indirectly.
 
 Paid Option:
 Service Providers and CHIP Traders using the Software who do not abide by the 
 Conditions above automatically become subject to the Paid Option and agree to
 remit to the Owner:
 
-  A) 1% of all gross revenues associated directly or indirectly with the use 
+  A) 1% of all gross Revenues associated directly or indirectly with the use 
      of The Software, remitted voluntarily and monthly to, and without explicit 
      invoice or demand by, the Owner; and
   B) An additional 9% of all such revenues, plus all associated collection 
@@ -62,5 +65,5 @@ remit to the Owner:
      gross recover amounts to the Owner.
 
 All proceeds collected from the Paid Option, or resulting from damage claims, 
-shall be used by the Owner for the advancement of the charitable purpose of the 
+shall be used by the Owner for the advancement of the stated purpose of the
 Owner as defined in its governing documents.

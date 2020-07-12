@@ -1,4 +1,6 @@
 #!/bin/sh
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #SSH tunnel, helpful if one or more of your test machines are running as a VM
 #under a host OS and so are not directly reachable from the outside.
 #Execute this from the host, to the VM to open a socket

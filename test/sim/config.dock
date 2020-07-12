@@ -15,7 +15,7 @@ agentversion=2			#Which agent model version to run
 newusers=4			#How many local users to put on each machine
 sites=4				#How many DB sites to create
 
-logviewer=logwin		#How to view logs on screen ("none" to disable)
+logviewer=logwin		#How to view logs on screen (linux:xterm mac:logwin disable:none)
 logoffset=30			#Offset logging windows from each other
 agentwins=( 0 0 )		#Coordinates where debug windows start
 peerwins=( 600 0 )

@@ -1,4 +1,6 @@
 #!/bin/env node
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 //Initialize an empty database with sample testing data
 //TODO:
 //X- Deprecate mc_admin

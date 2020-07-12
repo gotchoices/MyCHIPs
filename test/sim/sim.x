@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Called by simnet script to execute via ssh on a remote or local simulation machine
 #Not normally called directly by the user
 

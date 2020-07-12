@@ -1,6 +1,7 @@
 #!/bin/bash
 #Run pre-defined reports on selected remote sites
-#
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #TODO:
 #- 
 

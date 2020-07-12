@@ -1,4 +1,6 @@
 // webpack.config.js
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const path = require('path');
                 

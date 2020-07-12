@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Called within a container to launch various server processes in simulation mode
 #Normally called from simdock--not directly by the user
 tmpdir="/var/tmp/mychips"

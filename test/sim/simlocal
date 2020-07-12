@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Run multiple servers on a single machine to simulate a small MyCHIPs network
 size="80x64"						#X-window size
 gx=20; gy=320; offx=500; offy=0;			#Window geometry placement offsets

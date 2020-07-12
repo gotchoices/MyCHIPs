@@ -1,6 +1,0 @@
-#!/bin/sh
-#Do the specified test run
-
-#reset
-killall -SIGHUP tailalogfile
-npm run $@

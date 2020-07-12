@@ -1,0 +1,89 @@
+@startuml
+actor F
+actor S
+
+note over S, F
+- Comparing to implementation in code, here we combine `request` and `status` into just `state` (see `lift_state` function in code).
+end note
+
+note over F, S
+1. Stock invoices Foil: Foil agrees
+end note
+S -> S: Signs `chit_json`: <font color=purple>`signatureS`
+S -> S: Inserts a Chit:\n- <font color=darkgreen>`userRequest` state\n- <font color=purple>`signatureS`
+S -> F: Sends `chit_json` (see `chit_notify`):\n- no chain_idx yet\n- <font color=purple>`signatureS`\n- <font color=blue>action: `peerInvoice`
+S -> S: Updates the Chit:\n- <font color=darkgreen>`invoiced` state
+note over S
+In the implementation
+the Chit status becomes `pend`.
+This is not correct (see Analysis document, Issue 1).
+end note
+F -> F: Verifies <font color=purple>`signatureS`
+F -> F: Inserts a Chit:\n- <font color=darkgreen>`pend` state\n- <font color=purple>`signatureS`
+F -> F: Signs `chit_json`: <font color=purple>`signatureF`
+F -> F: Updates the Chit:\n- <font color=darkgreen>`userAgree` state\n- <font color=purple>`signatureF`
+note over F
+In the implementation
+the `peerValid` action is sent at this point,
+that is before the Chit is applied to the chain,
+so that there is no chain_idx sent to the Stock
+and the Stock can not follow Foil's order of chits.
+end note
+F -> F: Updates the Chit:"\n- <font color=darkgreen>`good` state\n- `chain_idx` (added to the Chain)
+F -> S: Sends `chit_json`:\n- `chain_idx`\n- <font color=purple>`signatureF`\n- <font color=blue>action: `peerValid`
+S -> S: Verifies <font color=purple>`signatureF`
+S -> S: Updates the Chit:\n- <font color=darkgreen>`good` state\n- <font color=purple>`signatureF`\n- `chain_idx` (added to the Chain; use `chain_idx` from the sent msg)
+
+note over F, S
+2. Stock invoices Foil: Foil disagrees
+end note
+S -> S: Signs `chit_json`: <font color=purple>`signatureS`
+S -> S: Inserts a Chit:\n- <font color=darkgreen>`userRequest` state\n- <font color=purple>`signatureS`
+S -> F: Sends `chit_json` (see `chit_notify`):\n- no chain_idx yet\n- <font color=purple>`signatureS`\n- <font color=blue>action: `peerInvoice`
+S -> S: Updates the Chit:\n- <font color=darkgreen>`invoiced` state
+note over S
+In the implementation
+the Chit status becomes `pend`.
+This is not correct (see Analysis document, Issue 1).
+end note
+F -> F: Verifies <font color=purple>`signatureS`
+F -> F: Inserts a Chit:\n- <font color=darkgreen>`pend` state\n- <font color=purple>`signatureS`
+F -> F: Signs `chit_json`: <font color=purple>`signatureF`
+F -> F: Updates the Chit:\n- <font color=darkgreen>`userDecline` state\n- <font color=purple>`signatureF`
+note over F
+In the implementation
+the `peerDecline` action is sent at this point,
+that is before the Chit is applied to the chain,
+so that there is no chain_idx sent to the Stock
+and the Stock can not follow Foil's order of chits.
+end note
+F -> S: Sends `chit_json`:\n- `chain_idx`\n- <font color=purple>`signatureF`\n- <font color=blue>action: `peerDecline`
+S -> S: Verifies <font color=purple>`signatureF`
+S -> S: Updates the Chit:\n- <font color=darkgreen>`userDecline` state\n- <font color=purple>`signatureF`\n- `chain_idx` (added to the Chain; use `chain_idx` from the sent msg)
+
+
+note over F, S
+3. Foil pays to Stock
+end note
+F -> F: Signs `chit_json`: <font color=purple>`signatureF`
+F -> F: Inserts the Chit:\n- <font color=darkgreen>`userDraft` state\n- <font color=purple>`signatureF`
+F -> F: Updates the Chit:"\n- <font color=darkgreen>`good` state\n- `chain_idx` (added to the Chain)
+F -> S: Sends `chit_json`:\n- `chain_idx`\n- <font color=purple>`signatureF`\n- <font color=blue>action: `peerValid`
+S -> S: Verifies <font color=purple>`signatureF`
+S -> S: Inserts the Chit:\n- <font color=darkgreen>`good` state\n- <font color=purple>`signatureF`\n- `chain_idx` (added to the Chain; use `chain_idx` from the sent msg)
+
+
+note over F, S
+4. Lift Chit
+end note
+Peer -> S: Sends `lift_json`, <font color=blue> action: `query`
+S -> S: Inserts a Chit (as part of the Lift's `query`):\n- <font color=darkgreen>`pend` state
+S -> F: Sends `lift_json`, <font color=blue>action: `query`
+F -> F: Inserts a Chit (as part of the Lift's `query`):\n- <font color=darkgreen>`pend` state
+
+F -> F: Updates the Chit:\n- <font color=darkgreen>`good` state\n- <font color=purple>Lift Initiator's signature\n- `chain_idx` (added to the Chain)
+F -> S: Sends `lift_json`, <font color=blue>action: `commit`
+S -> S: Updates the Chit:\n- <font color=darkgreen>`good` state\n- <font color=purple>Lift Initiator's signature\n- `chain_idx` (added to the Chain)
+
+
+@enduml

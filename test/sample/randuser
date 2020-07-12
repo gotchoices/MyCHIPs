@@ -1,5 +1,7 @@
 #!/bin/bash
 #Make one or more random users for use in agent modeling
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #TODO:
 #- 
 

@@ -1,4 +1,6 @@
 //Test json import and export functions
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 //TODO:
 //- 
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 //Convert YAML file to JSON format
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 //Usage ./yaml2json
 //TODO:
 //- 

@@ -1,4 +1,6 @@
 #Test signature validation inside database
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Dependencies
 # dnf install postgresql-python
 # pip install rsa

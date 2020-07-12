@@ -1,0 +1,16 @@
+In getting the docker simulation to run, the DSR staff made changes to these 
+files which are found in test/sim.  Setting the viewer to "xterm" should have 
+been done in local/config.dock.  
+
+The other issues have to do with the way the docker images are built.  For
+example, the image for the "devel" container was originally built without its 
+own static copy of the mychips app (in the /app dir).
+
+When the images are launched, they mount the local mychips folder on 
+/usr/local/devel and use that rather than the /app folder.  This makes it so
+any changes to the code will get invoked right away, without having to rebuild
+the image.
+
+However, DSR had trouble with this and suggested the changes.  Pending results
+from others who also may have trouble with the simulation, some or all of 
+these changes may need to be considered more closely.

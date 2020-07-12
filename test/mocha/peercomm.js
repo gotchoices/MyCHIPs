@@ -1,5 +1,6 @@
 //Test peer-to-peer communications channel
-
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 const port1 = 55551
 const port2 = 55552
 const assert = require("assert");

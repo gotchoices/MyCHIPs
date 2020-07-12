@@ -1,4 +1,6 @@
 #Run a network simulation
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 
 ./simnet stop
 ./qdoc clear

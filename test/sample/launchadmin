@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Launch admin UI in a browser from a newly generated connection ticket
 
 browser="firefox"

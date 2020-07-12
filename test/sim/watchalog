@@ -1,4 +1,6 @@
 #!/bin/sh
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Show the contents of a specified logfile
 #Clear the screen and restart tail on receiving signal SIGHUP
 #Clear all logs with: killall -SIGHUP tailit

@@ -1,0 +1,35 @@
+#Default configuration parameters for docker-based network simulations
+#Create a file local/config.dock and include assignments to override defaults
+
+browser="firefox"		#User's preferred browser
+admin="admin"			#Username to connect to postgres
+dbname="mychips"		#Postgres database name
+netname="simnet"		#Containers communicate on this network name
+domname="mychips.sim"		#Containers see this domain name
+locdir="$mypath/local"		#Container logging and data goes here
+pkidir="$locdir/pki"		#Where certificates will be generated
+sitebase="ds"			#Docker site = database + spa + agent + N peer servers
+imagebase="gotchoices"		#Base part of image names we will create
+mongorepset=rs0			#Name of replica set
+agentversion=2			#Which agent model version to run
+newusers=4			#How many local users to put on each machine
+sites=4				#How many DB sites to create
+
+logviewer=xterm		#How to view logs on screen ("none" to disable)
+logoffset=30			#Offset logging windows from each other
+agentwins=( 0 0 )		#Coordinates where debug windows start
+peerwins=( 600 0 )
+spawins=( 1200 0 )
+pgwins=( 1320 160 )
+userargs=()			#Additional arguments provided to 'docker run'
+
+images=( mongo pg mychips devel)	#Images to be built, if necessary
+versions=( 4.2.3 11 )			#Mongo, Postgres versions
+
+confile="${MYCHIPS_SIM:-$mypath/local/config.dock}"
+#echo "Pwd:$(pwd) my:$mypath confile:$confile" >&2
+if [ -f $confile ]; then		#Read local settings
+  source $confile
+fi
+
+source $mypath/functions

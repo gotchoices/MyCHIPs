@@ -1,0 +1,7 @@
+/spec/*.toolbox/*
+!/spec/*.toolbox/.project
+!/spec/*.toolbox/*.launch
+/spec/*.toolbox/*_SnapShot_*.launch
+!/spec/*.toolbox/.settings/
+/spec/*.toolbox/.settings/*
+!/spec/*.toolbox/.settings/org.lamport.tla.toolbox.prefs

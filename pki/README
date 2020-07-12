@@ -1,3 +1,7 @@
+All files here in subject to:
+Copyright MyCHIPs.org; See license in root of this package
+-----------------------------------------------------------------------------
+
 This folder contains recipes for creating self-signed certificates.  We will
 use such certificates in three separate instances:
 

@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Query the mongo database, agents collection
 
 this="$(basename ${BASH_SOURCE})"

@@ -1,6 +1,6 @@
 # Build docker OS image optimized for MyCHIPs development maintenance
 # This image should be capable of rebuilding mychips/schema and/or
-# issueing psql commands to a running postgres database
+# issuing psql commands to a running postgres database
 #Useage: docker image build .
 
 FROM fedora:latest

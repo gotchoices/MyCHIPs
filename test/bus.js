@@ -1,6 +1,7 @@
 //Message bus
-//Allow a context to register itself to receive notification from a different async context
+//Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
+//Allow a context to register itself to receive notification from a different async context
 
 module.exports = function(name) {
   this.name = name

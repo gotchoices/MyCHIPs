@@ -1,4 +1,6 @@
 //Test tallys and chits between peers
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 //TODO:
 //- Sometimes this test doesn't terminate.  Why?
 //- 

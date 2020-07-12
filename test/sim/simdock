@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Run multiple servers in multiple containers to simulate a larger MyCHIPs network
 #Usage:	(see README)
 #

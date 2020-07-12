@@ -1,0 +1,63 @@
+@startuml
+actor A
+actor D
+actor C
+actor B
+note over A, B
+- Let's consider
+    - A Circular lift
+    - Usual (downstream) flow: A->B->C->D->A
+    - all nodes belong to separate hosting sites
+    - `A` initiates a lift (Lift's originator)
+    - `B` is a Lift destination
+- We assume that phase 1 of the lift protocol (path discovery) is already done, so this diagram describes Phases 2 (conditional commit) and 3 (final commit) only.
+- Comparing to implementation in code, here we combine `request` and `status` into just `state` (see `lift_state` function in code).
+- Some of the state transitions there may be skipped; see `lift-success` diagram for the full sequence.
+end note
+A -> A: Initiates a Lift: creates a `lift_json` (see lift_notify)\ncirc_id=A, dest_id=B
+A -> A: Inserts a Lift:\n- <font color=teal>`draft` state
+A -> A: Inserts Chits for all Tallies in the Lift:\n- `lift` type\n- <font color=darkgreen>`pend` state
+A -> A: Updates the Lift:\n- <font color=teal>`init` state\n- `pubkey`\n- `socket`
+A -> D: Sends `lift_json`:\n- <font color=blue>action: `query`
+A -> A: Updates the Lift:\n- <font color=teal>`seek` state
+
+D -> D: Inserts a Lift:\n- <font color=teal>`relay` state
+D -> D: Inserts Chits for all Tallies in the Lift:\n- `lift` type\n- <font color=darkgreen>`pend` state
+D -> C: Sends `lift_json`:\n- <font color=blue>action: `query`
+D -> D: Updates the Lift:\n- <font color=teal>`pend` state
+
+C -> C: Inserts a Lift:\n- <font color=teal>`relay` state
+C -> C: Inserts Chits for all Tallies in the Lift:\n- `lift` type\n- <font color=darkgreen>`pend` state
+C -> B: Sends `lift_json`:\n- <font color=blue>action: `query`
+C -> C: Updates the Lift:\n- <font color=teal>`pend` state
+
+B -> B: Inserts a Lift:\n- <font color=teal>`local` state
+B -> B: Inserts Chits for all Tallies in the Lift:\n- `lift` type\n- <font color=darkgreen>`pend` state
+B -> A: Sends `lift_json`:\n- <font color=blue>action: `terminus`
+B -> B: Updates the Lift:\n- <font color=teal>`pend` state
+
+A -> A: Checks that Terminus is valid
+A -> A: Signs `lift_json`: <font color=purple>`sigFinal`
+A -> A: Updates the Lift:\n- <font color=teal>`good` state
+A -> A: Updates Chits for all Tallies in the Lift:\n- <font color=darkgreen>`good` state\n- `chain_idx` (added to the Chain)
+A -> B: Sends `lift_json`:\n- <font color=purple>`sigFinal`\n- <font color=blue>action: `commit`
+
+B -> B: Verifies signature <font color=purple>`sigFinal`
+B -> B: Updates the Lift:\n- <font color=teal>`good` state
+B -> B: Updates Chits for all Tallies in the Lift:\n- <font color=darkgreen>`good` state\n- `chain_idx` (added to the Chain)
+B -> C: Sends `lift_json`:\n- <font color=purple>`sigFinal`\n- <font color=blue>action: `commit`
+
+C -> C: Verifies signature <font color=purple>`sigFinal`
+C -> C: Updates the Lift:\n- <font color=teal>`good` state
+C -> C: Updates Chits for all Tallies in the Lift:\n- <font color=darkgreen>`good` state\n- `chain_idx` (added to the Chain)
+C -> D: Sends `lift_json`:\n- <font color=purple>`sigFinal`\n- <font color=blue>action: `commit`
+
+D -> D: Verifies signature <font color=purple>`sigFinal`
+D -> D: Updates the Lift:\n- <font color=teal>`good` state
+D -> D: Updates Chits for all Tallies in the Lift:\n- <font color=darkgreen>`good` state\n- `chain_idx` (added to the Chain)
+D -> A: Sends `lift_json`:\n- <font color=purple>`sigFinal`\n- <font color=blue>action: `commit`
+
+
+A -> A: stop
+
+@enduml

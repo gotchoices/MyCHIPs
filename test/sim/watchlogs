@@ -1,4 +1,6 @@
 #!/bin/sh
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Open multiple windows to watch various log files
 size="80x60"						#X-window size
 gx=5; gy=140; offx=250; offy=100;			#Window geometry placement offsets

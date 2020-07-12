@@ -1,2 +1,5 @@
-Some experiments to see how much entity information we can pack into 
-a certificate, and how it will display as a barcode.
+Copyright MyCHIPs.org; See license in root of this package
+-----------------------------------------------------------------------------
+
+This folder contains some experiments to see how much entity information we can 
+pack into a certificate, and how it will display as a barcode.

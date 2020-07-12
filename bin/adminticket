@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 //Create a connection ticket for the admin account
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
 //Usage ./adminticket -H spaHost -P spaPort -u username -o outfile -d database -h databaseHost -p databasePort
 //TODO:
 //- 

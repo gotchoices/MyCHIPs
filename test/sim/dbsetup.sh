@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Do any initialization of postgres that may be necessary.
 #This is intended to be run inside a docker postgresql container.
 

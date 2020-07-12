@@ -1,5 +1,6 @@
 #Run a docker-based simulation
-
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 ./simdock stop sim		#Stop any prior simulation
 
 ./simdock init			#Update DB, reset users, tallies

@@ -1,0 +1,18 @@
+All work in and below this level is subject to:
+Copyright MyCHIPs.org; See license in root of this package
+-----------------------------------------------------------------------------
+
+In early 2020, the code was just starting to demonstrate distributed lifts in 
+a simulated network of users.
+
+Soon thereafter, DSR Corporation (https://en.dsr-corporation.com/contact-us) 
+was retained to conduct a study of the proposed lift algorithm and protocol, 
+according to the working specification at the time and, as well as could be 
+determined, the software implementation so far.  Of particular interest was 
+whether the protocol suffered from safety and/or liveness issues.
+
+The deliverable for that analysis is in the phase-1 folder.  The study
+revealed several issues related to tradeoffs between safety and liveness.
+Specifically, there was no clear way to assure both at the same time.  Based
+on this study, it seems evident the protocol will need to be improved in
+some way.

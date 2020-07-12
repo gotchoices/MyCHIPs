@@ -1,0 +1,136 @@
+@startuml
+actor A
+actor D
+actor C
+actor B
+note over A, B
+In this option lift is cancelled in downstream direction only.
+
+- <b>This Option is not fully implemented.
+<b>   - Case 1 is implemented in the both source code and TLA+ specification;
+<b>   - Case 2 is implemented in TLA+ specification only;
+<b>   - Other cases are implemented in neither source code nor TLA+ specification.
+- Let's consider
+    - A Circular lift
+    - Usual (downstream) flow: A->B->C->D->A
+    - all nodes belong to separate hosting sites
+    - `A` initiates a lift (Lift's originator)
+    - `B` is a Lift destination
+- We assume that phase 1 of the lift protocol (path discovery) is already done, so this diagram describes Phases 2 (conditional commit) and 3 (final commit) only.
+- Comparing to implementation in code, here we combine `request` and `status` into just `state` (see `lift_state` function in code).
+- Some of the state transitions there may be skipped; see `lift-success` diagram for the full sequence.
+end note
+
+note over A, B
+1. Cancellation by non-Originator during Conditional Commit
+
+The same as in Option 1 (see `lift-cancel-option1`).
+end note
+
+note over A, B
+2. Cancellation by Originator due to invalid Terminus during Conditional Commit
+
+The same as in Option 1 (see `lift-cancel-option1`).
+end note
+
+
+
+note over A, B
+3. Cancellation by Timeout:
+Originator didn't receive terminus (the same case as in Item 3 from `lift-cancel-option1` diagram).
+
+Cancellation request is initiated by a non-originator node
+and propagated till the node who doesn't have a Lift query (conditional commit).
+
+In this example node D triggered the time out first.
+end note
+A -> A: Initiates a Lift (see `lift-success` diagram)
+A -> D: Sends `lift_json`, <font color=blue>action: `query`
+
+D -> D: Inserts a pending Lift (see `lift-success` diagram)
+D -> C: Sends `lift_json`, <font color=blue>action: `query`
+
+C -> C: <font color=red>The node is not available
+
+D -> D: <font color=red>Timeout is triggered
+D -> C: Sends `lift_json`, <font color=blue>action: `timeout_request`
+
+C -> C: Doen't know this Lift
+C -> D: Sends `lift_json`, <font color=blue>action: `timeout`
+
+D -> D: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+D -> A: Sends `lift_json`, <font color=blue>action: `timeout`
+
+A -> A: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+note over A, B
+4. Cancellation by Timeout:
+Originator doesn't send a Final Commit.
+
+Cancellation request is initiated by a non-originator node
+and propagated till the Lift Destination.
+
+In this example node D triggered the time out first.
+end note
+A -> A: Initiates a Lift (see `lift-success` diagram)
+A -> D: Sends `lift_json`, <font color=blue>action: `query`
+
+D -> D: Inserts a pending Lift (see `lift-success` diagram)
+D -> C: Sends `lift_json`, <font color=blue>action: `query`
+
+C -> C: Inserts a pending Lift (see `lift-success` diagram)
+C -> B: Sends `lift_json`, <font color=blue>action: `query`
+
+B -> B: Inserts a pending Lift (see `lift-success` diagram)
+B -> A: Sends `lift_json`, <font color=blue>action: `terminus`
+
+A -> A: Lift and Chits are in <font color=teal>`pre-commit` state</font> (see Section 2)
+A -> A: <font color=red>Doesn't send Final Commit\n<font color=red>or there is no connection between A and B
+
+D -> D: <font color=red>Timeout is triggered
+D -> C: Sends `lift_json`, <font color=blue>action: `timeout_request`
+
+C -> B: Sends `lift_json`, <font color=blue>action: `timeout_request`
+
+B -> A: tries to get a Final Commit from A
+B -> B: <font color=red>Can not get a Final Commit from A
+
+B -> B: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+B -> C: Sends `lift_json`, <font color=blue>action: `timeout`
+
+C -> C: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+C -> D: Sends `lift_json`, <font color=blue>action: `timeout`
+
+D -> D: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+D -> A: Sends `lift_json`, <font color=blue>action: `timeout`
+
+A -> B: Check if the lift is really canceled, <font color=blue>action: `confirm_timeout`
+B -> A: Confirm the lift is canceled, <font color=blue>action: `timeout_confirmed`
+A -> A: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+
+note over A, B
+5. Changes in a common success workflow
+Originator doesn't put the Lift and Chits into good state after sending the Final Commit.
+It waits for the loopback message (either Commit or Timeout) instead, and
+verifies the loopback message with the downstream (destination) node.
+
+
+Only the changes against `lift-success` diagram are show there. All other skipped steps
+are the same as in `lift-success` diagram.
+end note
+...
+B -> A: Sends `lift_json`:\n- <font color=blue>action: `terminus`
+
+A -> A: Checks that Terminus is valid
+A -> A: Signs `lift_json`: <font color=purple>`sigFinal`
+A -> A: Updates the Lift:\n- <font color=teal>`pre-commit` state
+A -> A: Updates Chits for all Tallies in the Lift:\n- <font color=darkgreen>`pre-commit` state
+A -> B: Sends `lift_json`:\n- <font color=purple>`sigFinal`\n- <font color=blue>action: `commit`
+...
+D -> A: Sends `lift_json`:\n- <font color=purple>`sigFinal`\n- <font color=blue>action: `commit`
+A -> B: Check if the lift is really committed, <font color=blue>action: `confirm_commit`
+B -> A: Confirm the lift is committed, <font color=blue>action: `commit_confirmed`
+A -> A: Updates the Lift:\n- <font color=teal>`good` state
+A -> A: Updates Chits for all Tallies in the Lift:\n- <font color=darkgreen>`good` state\n- `chain_idx` (added to the Chain)
+
+
+@enduml

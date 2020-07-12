@@ -1,4 +1,6 @@
 #!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 #Run multiple servers on multiple machines to simulate a larger MyCHIPs network
 #Usage:	./simnet
 #	./simnet stop

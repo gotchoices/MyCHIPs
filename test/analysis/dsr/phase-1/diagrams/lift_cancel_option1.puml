@@ -1,0 +1,106 @@
+@startuml
+actor A
+actor D
+actor C
+actor B
+note over A, B
+In this option cancellation of the lift is done by the lift originator only (except Case 1).
+
+- <b>This Option is implemented in TLA+ specification only, not in the source code.
+ <b>   - Case 1 is implemented in the source code as well;
+ <b>   - Case 4 is implemented in neither source code nor TLA+ specification.
+- Let's consider
+    - A Circular lift
+    - Usual (downstream) flow: A->B->C->D->A
+    - all nodes belong to separate hosting sites
+    - `A` initiates a lift (Lift's originator)
+    - `B` is a Lift destination
+- We assume that phase 1 of the lift protocol (path discovery) is already done, so this diagram describes Phases 2 (conditional commit) and 3 (final commit) only.
+- Comparing to implementation in code, here we combine `request` and `status` into just `state` (see `lift_state` function in code).
+- Some of the state transitions there may be skipped; see `lift-success` diagram for the full sequence.
+end note
+
+note over A, B
+1. Cancellation by non-Originator during Conditional Commit
+end note
+A -> A: Initiates a Lift (see `lift-success` diagram)
+A -> D: Sends `lift_json`, <font color=blue>action: `query`
+
+D -> D: Inserts a pending Lift (see `lift-success` diagram)
+D -> C: Sends `lift_json`, <font color=blue>action: `query`
+
+C -> C: <font color=red>Cancel the lift\n<font color=red>(doesn't want or can't participate)
+C -> C: Insert a Lift with `failed` status
+C -> D: Sends  `lift_json`, <font color=blue>action: `fail
+
+D -> D: Cancel the Lift\n(update Lift status to `failed` and Chits status to `failed`)
+D -> A: Sends  `lift_json`, <font color=blue>action: `fail
+
+A -> A: Cancel the Lift\n(update Lift status to `failed` and Chits status to `failed`)
+
+note over A, B
+2. Cancellation by Originator due to invalid Terminus during Conditional Commit
+end note
+A -> A: Initiates a Lift (see `lift-success` diagram)
+A -> D: Sends `lift_json`, <font color=blue>action: `query`
+
+D -> D: Inserts a pending Lift (see `lift-success` diagram)
+D -> C: Sends `lift_json`, <font color=blue>action: `query`
+
+C -> C: Inserts a pending Lift (see `lift-success` diagram)
+C -> B: Sends `lift_json`, <font color=blue>action: `query`
+
+B -> B: Inserts a pending Lift (see `lift-success` diagram)
+B -> A: Sends `lift_json`, <font color=blue>action: `terminus`
+
+A -> A: <font color=red>Invalid Terminus
+A -> A: Cancel the Lift\n(update Lift status to `failed` and Chits status to `failed`)
+A -> B: Sends  `lift_json`, <font color=blue>action: `fail
+
+B -> B: Cancel the Lift\n(update Lift status to `failed` and Chits status to `failed`)
+B -> C: Sends  `lift_json`, <font color=blue>action: `fail
+
+C -> C: Cancel the Lift\n(update Lift status to `failed` and Chits status to `failed`)
+C -> D: Sends  `lift_json`, <font color=blue>action: `fail
+
+D -> D: Cancel the Lift\n(update Lift status to `failed` and Chits status to `failed`)
+D -> A: Sends  `lift_json`, <font color=blue>action: `fail
+
+note over A, B
+3. Cancellation by Originator due to timeout during Conditional Commit
+end note
+A -> A: Initiates a Lift (see `lift-success` diagram)
+A -> D: Sends `lift_json`, <font color=blue>action: `query`
+
+D -> D: Inserts a pending Lift (see `lift-success` diagram)
+D -> C: Sends `lift_json`, <font color=blue>action: `query`
+
+C -> C: Inserts a pending Lift (see `lift-success` diagram)
+C -> B: Sends `lift_json`, <font color=blue>action: `query`
+
+B -> B: <font color=red>The node is not available
+
+A -> A: <font color=red>Trigger timeout due to lack of Terminus in the given time
+A -> A: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+A -> D: Sends  `lift_json`, <font color=blue>action: `timeout
+
+D -> D: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+D -> C: Sends  `lift_json`, <font color=blue>action: `timeout`
+
+C -> C: Cancel the Lift\n(update Lift status to `timeout` and Chits status to `timeout`)
+C -> B: Sends  `lift_json`, <font color=blue>action: `timeout`
+
+
+note over A, B
+4. Changes in a common success workflow
+A node can ask the lift originator for a missing Final Commit
+end note
+...
+A -> B: Sends `lift_json`: <font color=blue>action: `commit`
+B -> B: <font color=red>The node crashed and not available
+C -> A: Sends `lift_json`, <font color=blue>action: `commit_request`
+A -> C: Sends `lift_json`:\n- <font color=purple>`sigFinal`\n- <font color=blue>action: `commit`
+C -> D: Sends `lift_json`: <font color=blue>action: `commit`
+D -> A: Sends `lift_json`: <font color=blue>action: `commit`
+...
+@enduml

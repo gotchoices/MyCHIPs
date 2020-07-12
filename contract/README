@@ -1,3 +1,9 @@
+All documents herein subject to:
+Copyright MyCHIPs.org; See license in root of this package
+-----------------------------------------------------------------------------
+
+General:
+-----------------------------------------------------------------------------
 A CHIP is, at its heart, a credit agreement between two parties.  In other 
 words, it is a contract--payable from one party and receivable to the other.
 

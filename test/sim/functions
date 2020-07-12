@@ -1,3 +1,5 @@
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
 
 browserTab() {			#Open a specified page in the user's favorite browser
   if [ -z "$browser" ]; then browser=firefox; fi
