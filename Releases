@@ -1,7 +1,17 @@
 Change Log:
 
-0.1.10	2020-Apr
+0.1.10	2020-Jul
+	- Include DSR algorithm results
+	- Basic previewing of contract documents
 	- Basic distributed circular lift working
+	- Basic distributed linear lift working
+	- Draft of standard tally contract
+	- Standard contracts import to database with validated hashes
+	- Standard contracts now in yaml
+	- Simulation state backup and restore
+	- Local lifts use actual lift table
+	- Chain-chain consensus algorithm
+	- Site key properly loaded and available to peer modules
 
 0.1.9	2020-Mar
 	- Documentation improvements
