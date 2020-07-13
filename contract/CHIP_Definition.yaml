@@ -7,7 +7,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x8febe533127260f31fdff07fd54d7dc10b3e5a21cd173befbefea0cee07f8172'
+    digest: '\x6a3fe8b8b275127c2f8168ea4a544916aa6173c73ca66e2d25bb5971b26ebdb6'
     title: 'Defining a CHIP'
     text: >-
       MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of Credit between willing parties.
@@ -23,7 +23,7 @@
           User interfaces are expected to render values as decimal CHIPs with up to 3 digits after a decimal point, for example: 1234.567.
       -
         text: >-
-          All trades associated with this Tally shall be quantified exlusively in CHIPs, as defined herein, and not using any other unit of measure.
+          All transactions associated with this Tally shall be quantified exlusively in CHIPs, as defined herein, and not using any other unit of measure.
           For example, it is a breach of this covenant to produce a Pledge which the Parties understand to be measured in Dollars or Euros.
           It is not a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs.
       -

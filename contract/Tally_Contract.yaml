@@ -7,7 +7,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x53878ea88fc0abc6e3b32860f38b7efbca809cf7147a6ff04bec387d96a3c65b'
+    digest: '\xf78db2fd8fe99f4f6bd2a61dc9cade7c2874038bf8756f0f43f895a805ae6013'
     title: 'Tally Contract'
     text: >-
       This Contract has been incorporated into a MyCHIPs Tally by reference, which includes a digital hash of the contents of the document.
@@ -24,6 +24,9 @@
         title: 'CHIP Definition'
         source: 'mychips.org/CHIP_Definition-1-eng?digest=152fe12217db6307bee73c248b5ee4efc7a4f12ac29aea6add9845e7a4b9afcc'
       -
+        title: 'Ethics'
+        source: 'mychips.org/Ethics-1-eng?digest=4d7a2c44887ac2fcb70e818795829f46c020740f571a0a5e9133059bbc75f417'
+      -
         title: 'Duties and Rights'
         source: 'mychips.org/Duties_Rights-1-eng?digest=050279d41890af77f1d9717a12924b71ead73e7b1365af9e2048bc49a8c477fb'
       -
@@ -35,6 +38,3 @@
       -
         title: 'Credit Terms'
         source: 'mychips.org/Credit_Terms-1-eng?digest=d81fa07ef9de7326c520b072a9f0322941c0dfafd489d0730a432ae95cc18112'
-      -
-        title: 'Ethics'
-        source: 'mychips.org/Ethics-1-eng?digest=4d7a2c44887ac2fcb70e818795829f46c020740f571a0a5e9133059bbc75f417'

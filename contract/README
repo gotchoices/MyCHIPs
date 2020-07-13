@@ -182,3 +182,18 @@ The Tally Contract itself whould then be structured something like this:
   Ethics
 
 -------------------------------------------------------------------------------
+Building Hashes
+
+When changes are made to contract documents, it will be necessary to
+regenerate the hash for that document.  This can be done with the hashes script
+as follows:
+
+  ./hashes Free.yaml			#or
+  ./hashes *.yaml
+
+Then, you may need to re-import the documents into the database by running (in
+the schema directory):
+
+  make init
+
+-------------------------------------------------------------------------------
