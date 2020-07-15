@@ -1,25 +1,33 @@
 # MyCHIPs
-MyCHIPs is an open-source network for implementing a novel kind of digital money based on private credit.
+MyCHIPs is an open-source network protocol for implementing a novel kind of digital money based on private credit.
+
+[![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/mychips/acdc.html)
 
 This is *not* a Bitcoin/blockchain derivative, but rather it seeks to address
-several notorious problems with those technologies, most notably: it is fully decentralized and infinitely scalabile.
+several notorious problems with those technologies, most notably: it is fully decentralized and infinitely scalable.
 
-Briefly, if blockchain-based coins can be thought of as a crypto-stock or crypto-equity, a digital CHIP can be characterized as a crypto-bond.
+If blockchain-based coins can be thought of as a crypto-stock or crypto-equity, a digital CHIP can be characterized as a crypto-bond.
 Either one _can_ be used as money, or a medium of exchange.
-However, a system based on private credit is more resilient to such forces as speculation, volatility, inflation, and deflation.
-So it is a better solution when considering these three purposes of money:
+However, a system based on private credit is more resilient to such forces as speculation, volatility, corruption, inflation, and deflation.
+So it is a better solution when considering these three closely related purposes of money:
 
     - a medium of exchange,
     - a store of value, and 
     - a measure of value.
 
-For more in-depth information, please visit [this site.](http://gotchoices.org/mychips/intro.html)
+For introductory information the algorithm, please see [the MyCHIPs Papers.](http://gotchoices.org/mychips/intro.html)
+For technical information about this implementation, you may want to start with
+[Tallies](doc/Tallies) and then
+[Lifts](doc/Lifts).
 
 ### Getting Started:
 To try out the software, follow the [Developer Instructions](doc/Development).
 
+At the current development state, you can launch a configurable number of server processes, as well as a network simulator to create bot users that will begin trading with each other.
+There is also a rudimentary admin console that allows you to browse the database, generate user connection tokens, and peruse trading contracts.
+
 ### Project Background:
-In 2017, I posted this as an empty project on [github](http://github.com/gotchoices/mychips) hoping to attract a team of participants.
+In 2017, I posted this as an empty project hoping to attract a team of participants.
 But there was not much traffic, and less interest.
 Nearly everyone interested in monetary reform seemed to now be chasing after big returns in Blockchain money.
 So I began programming the project myself.
@@ -32,24 +40,24 @@ Specifically, [Wyseman](http://github.com/gotchoices/wyseman) and
 While Wylib is not the solution for an eventual user interface, it has been what I needed for an administrative console during development.
 And it can suffice for a crude user SPA until a dedicated mobile app can be built.
 
-I have kept the source closed for some time while I tried to work out an algorithm for performing a distributed credit lift.
-It also took me a while to come up with a licensing mechanism I would be comfortable with.
-I wanted MyCHIPs to be free for everyone to use, but only if they will use it in honest trade as it was intended.
+I have kept the source closed for some time while I tried to work out an algorithm for performing a distributed lift (the credit clearing function that makes the system work).
+It also took me a while to figure out a contract and licensing structure I felt would make the system robust and resilient to attack.
+I want MyCHIPs to be free for everyone to use, but only if they will use it in honest commerce and trade as it is intended.
 
 ### Current Project Status:
-The _holy grail_ of MyCHIPs has been a network implementation of the lift protocol introduced
-in [this article](http://gotchoices.org/mychips/coupon.html) and explained in some more detail 
+The _holy grail_ of MyCHIPs has been a network implementation of the lift protocol introduced in an intuitive way
+in [this article](http://gotchoices.org/mychips/coupon.html) and explained in some more technical detail 
 in [this article](http://gotchoices.org/mychips/acdc.html).
 
-As of March, 2020, the software is successfully computing and performing fully distributed lifts in a simulated network.
-I consider this a "preliminary proof of concept" and so am ready to release this code subject to the attched LICENSE.
-It needs a lot more work to be production ready, but maybe more people will want to take a look now that there is actually something to see and test.
+As of March, 2020, the software is successfully discovering, computing and performing fully distributed lifts in a simulated network.
+I consider this as a "preliminary proof of concept" and so am ready to release this code subject to the attched LICENSE.
+It needs a lot more work to be production ready, but maybe this provides enough of a testing platform that others will be more willing to get involved.
 
-To kick off that process, I commissioned a study by [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
-As expected, they uncovered several issues that need improvement before the system can be expected to perform in production.
-Their work and results are included under the test/analysis directory.
+To kick off the public release, I commissioned a study by [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
+As expected, they uncovered several issues that need improvement before the system can be expected to perform in a fault-tolerant way.
+Their work and results are summarized [here](test/analysis/dsr/phase-1/results.md).
 
-In response to that study, I have created a file doc/Safety, my attempt to resolve the issues uncovered by the DSR study.
+In response to that study, I have created an [outline](doc/Safety) of where the project might best go next to resolve the issues uncovered by the DSR study.
 This represents the current state of the project.
 
 ### Milestones Completed so Far
@@ -93,17 +101,17 @@ If you are interested in participating, clone this repo and follow the instructi
 You should be able to get a simulated network running and visualize credit lifts in the administrator console.
 Then review the work and results in the DSR study and see if you can help us move the project forward to deployment.
 
-There is a project roadmap in the TODO file.
+There is a project roadmap in the [TODO file](TODO).
 
 ### Talent needs:
-- Background: Distributed asynchronous network consensus protocols
-- Background: SSL/TLS, private/public key encryption
-- Background: General Internet security
-- Understand: Internet protocols
-- Background: peer-to-peer networking
-- Background: JavaScript coding
-- Background: SQL, PLPGSQL coding
-- Background: Mobile app development
-- Understand: accounting
-- Understand: economics
-- Understand: contract law
+- Distributed asynchronous network consensus protocols (TLA+, SPIN)
+- SSL/TLS, private/public key encryption
+- General Internet security
+- Internet protocols
+- Peer-to-peer networking
+- JavaScript/Node coding
+- SQL, PLPGSQL coding
+- Mobile app development
+- Accounting
+- Economics
+- Contract law
