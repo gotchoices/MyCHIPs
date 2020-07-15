@@ -2,29 +2,16 @@ TODO:
 
 Immediate:
 X- Integrate DSR phase-1 work into source tree
-X-   Clean DOS files
 -   Can view/modify/render .puml diagrams
-X-   Move results.md to root
-X-   Reference licensing in standard way
-X-   Integrate patches into simulation (and then erase DSR files)
+-   Integrate patches into simulation folder?
 - 
-- Read/review trading contracts one more time
-- All source code files bear license banner
-- Write phase-2 proposal using arbiter/Transaction_Manager, possibly Paxos
-- Publish source code (How to move the repo to github?)
--
+
 General roadmap:
-X- Can create/exchange tallies, chits with a peer
-X- Create agent client module to model user, reads/writes/listens direct with DB
-X- Can spawn N user agents against M server instances
-X- Create graphical canvas view of all users balance sheets
-X- Implement single-db lift algorithm
-X- Implement multi-db lift algorithm
-- Public Proof-of-Concept release
+X- Public Proof-of-Concept release
 - Iterate on TLA+ modeling until protocol is sufficiently safe/live
 - Integrate improved protocol into source code
 - Improve/expand agent model (see below)
-- Write unit tests
+- Write more unit tests
 - Implement basic contract handling (author, display, print, publish)
 - Make Wylib User SPA GUI useable (or jump to basic mobile app?)
 - Implement digital signatures for tallies, chits, contracts, lifts
