@@ -1,10 +1,12 @@
 # MyCHIPs
 MyCHIPs is an open-source network protocol for implementing a novel kind of digital money based on private credit.
 
-[![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/mychips/acdc.html)
+[![CHIP Money](doc/chip.svg)]
 
 This is *not* a Bitcoin/blockchain derivative, but rather it seeks to address
 several notorious problems with those technologies, most notably: it is fully decentralized and infinitely scalable.
+
+[![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/mychips/acdc.html)
 
 If blockchain-based coins can be thought of as a crypto-stock or crypto-equity, a digital CHIP can be characterized as a crypto-bond.
 Either one _can_ be used as money, or a medium of exchange.
