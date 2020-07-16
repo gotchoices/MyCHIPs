@@ -17,7 +17,7 @@ So it is a better solution when considering these three closely related purposes
     - a store of value, and 
     - a measure of value.
 
-For introductory information the algorithm, please see [the MyCHIPs Papers.](http://gotchoices.org/mychips/intro.html)
+For introductory information on the algorithm, please see [the MyCHIPs Papers.](http://gotchoices.org/mychips/intro.html)
 For technical information about this implementation, you may want to start with
 [Tallies](doc/Tallies) and then
 [Lifts](doc/Lifts).
@@ -105,7 +105,7 @@ Then review the work and results in the DSR study and see if you can help us mov
 
 There is a project roadmap in the [TODO file](TODO).
 
-### Talent needs:
+### Talent Needs:
 - Distributed asynchronous network consensus protocols (TLA+, SPIN)
 - SSL/TLS, private/public key encryption
 - General Internet security
@@ -117,3 +117,7 @@ There is a project roadmap in the [TODO file](TODO).
 - Accounting
 - Economics
 - Contract law
+
+### Related Projects/Sites:
+- [Offset Credit](http://offsetcredit.org)
+- [Ripple](http://ripple.com)
