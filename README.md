@@ -118,6 +118,9 @@ There is a project roadmap in the [TODO file](TODO).
 - Economics
 - Contract law
 
-### Related Projects/Sites:
+### Interesting Projects/Sites/Resources:
 - [Offset Credit](http://offsetcredit.org)
+- [The End of Money](https://www.amazon.com/End-Money-Future-Civilization/dp/1603580786)
 - [Ripple](http://ripple.com)
+- [Open Credit Network](https://opencredit.network/)
+- [Credit Commons](http://www.creditcommons.net)
