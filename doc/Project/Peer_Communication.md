@@ -7,7 +7,7 @@ relationships which can be used to exchange, clear and transmit value.
 Simply put, it implements a monetary system.
 
 Individual user accounts are hosted on a set of servers (or systems of servers)
-which are shown on this [LibreOffice figure](doc/Scaling.odg).  The system
+which are shown on this [LibreOffice figure](/doc/Scaling.odg).  The system
 model data are contained in the PostgreSQL database.  There is one such
 database per "node" in the network.  But there may be multiple NodeJS servers
 which direct traffic to/from the model and also provide a certain amount of
@@ -16,7 +16,7 @@ control logic.
 Specifically, there are shown one or more "Peer Servers" which are merely
 processes that communicate with other similar nodes on the MyCHIPs network.
 The low-level communication portion of this process is currently implemented 
-in [this file.](lib/peercomm.js).
+in [this file.](/lib/peercomm.js).
 
 The strategy is to always present a pathway for messages to any other node on
 the network with which we may share a tally (credit relationship).  Although

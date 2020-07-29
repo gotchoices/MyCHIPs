@@ -40,7 +40,7 @@ critical principles are the following:
   the attacker and the victim.
 
 ## Strategy:
-One suggested strategy is outlined in [this document](doc/Safety).
+One suggested strategy is outlined in [this document](/doc/Safety).
 It involves the introduction of an arbiter node who serves in a role similar to
 a Transaction Manager (TM) in a traditional two-phase commit.  Specifically, the
 proposer of the lift will choose a TM for the lift and furnish the TM with a

@@ -5,10 +5,10 @@ July 2020
 The current MyCHIPs proof-of-concept release maintains state in a PostgreSQL
 database.  This database is surrounded by one or more NodeJS server processes
 which route traffic to/from administrators, users and peer systems.  This is 
-shown in this [LibreOffice figure.](doc/Scaling.odg).
+shown in this [LibreOffice figure.](/doc/Scaling.odg).
 
 The originally released code was crafted according to a set of proposed state 
-transitions documented [here](doc/States.odg).  The protocol and state
+transitions documented [here](/doc/States.odg).  The protocol and state
 machines evolved through an iterative process while trying to understand and
 develop the process itself.  This is not ideal for the generation of clean
 and efficient code.
@@ -18,11 +18,11 @@ unit tests would be created first and then the code would be produced to match
 a clearly crafted specification.  The algorithm was not initially understood 
 well enough to follow this design pattern.
 
-A [study](test/analysis/dsr/phase-1/results.md) was recently commissioned to
+A [study](/test/analysis/dsr/phase-1/results.md) was recently commissioned to
 study the proposed state flow--particularly as it relates to the distributed
 lift protocol.  This study revealed several potential flaws in the protocol.
 
-There is a parallel [project](doc/projects/Lift_Protocol.md) to refine the
+There is a parallel [project](/doc/projects/Lift_Protocol.md) to refine the
 lift protocol to address the current flaws.  Subject to the results of that
 project, it will be necessary to upgrade the current state transitioni logic
 to implement the improved protococl specification.

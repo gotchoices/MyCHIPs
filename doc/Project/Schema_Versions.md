@@ -13,7 +13,7 @@ ability.  However, it has not yet been fully completed.
 So far Wyseman has been used very successfully to maintain and update the
 schema during development.  It stores SQL create/drop code in a separate 
 area of the database itself.  Then as the developer makes changes to the 
-[schema source code](schema) wyseman can be run to compare the current
+[schema source code](/schema) wyseman can be run to compare the current
 operating schema to the version contained in the source files.  Any database
 objects that have been modified are dropped and re-created (or replaced) in
 an atomic transaction which can occur while other transactions are occuring

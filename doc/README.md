@@ -18,10 +18,10 @@ actually been implemented.
 The figures included as .odg files can be opened in LibreOffice or a compatible 
 program and are referenced at times from the documentation files.
 
-The file [chipglass.svg](doc/chipglass.svg) is an attempt at a logo for MyCHIPs 
+The file [chipglass.svg](chipglass.svg) is an attempt at a logo for MyCHIPs 
 that indicates its origin in the notion that 
 [time is money](http://gotchoices.org/mychips/whychips.html).  
-The file [chip.svg](doc/chip.svg) is a suggested
+The file [chip.svg](chip.svg) is a suggested
 "chip sign" analogous to the "dollar sign" to indicate units of CHIPs. 
 It can easily be hand written by making a "figure 8" with two vertical lines through.
 Alternately, one can write a "backwards 3" (or curly "E") followed by a closely 
@@ -34,20 +34,20 @@ price of human work in various economies.  Admittedly, the MyCHIPs definition
 of value is still not entirely objective.  However, it is much more objective 
 than the modern definition of a Dollar, a Euro, or any other fiat currency.
 
-The [Notes](doc/Notes) folder contains scans of original hand sketches notes, and 
+The [Notes](Notes) folder contains scans of original hand sketches notes, and 
 calculations which could be helpful in understanding the implementation of the
 software (if they can be read).
 
-The [Projects](doc/Proj) folder contains specifications for coding projects 
+The [Project](Project) folder contains specifications for coding projects 
 developers might want to consider working on.
 
 If you are starting work on MyCHIPs, it is a good idea to understand most of what
 is in this folder.  Here is a suggested reading list:
-- [Frequently Asked Questions](doc/FAQ)
-- [Getting Started](doc/Development)
-- [General Principles](doc/General)
-- [How Tallies Work](doc/Tallies)
-- [How Lifts Work](doc/Lifts)
-- [Known Issues](doc/Bugs)
-- [Response to the DSR Study](doc/Safety)
-- [Source Tree](doc/Sources)
+- [Frequently Asked Questions](FAQ)
+- [Getting Started](Development)
+- [General Principles](General)
+- [How Tallies Work](Tallies)
+- [How Lifts Work](Lifts)
+- [Known Issues](Bugs)
+- [Response to the DSR Study](Safety)
+- [Source Tree](Sources)

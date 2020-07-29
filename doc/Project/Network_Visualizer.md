@@ -8,8 +8,8 @@ User Interface.
 
 In addition to viewing/editing users and contract documents, this UI includes a 
 network visualizer for observing local users and their remote connections in a 
-graphical way.  See, for example page 4 of this [LibreOffice document](doc/Lifts.odg) 
-or launch the simulation as explained [here.](test/sim/README.simdock).
+graphical way.  See, for example page 4 of this [LibreOffice document](/doc/Lifts.odg) 
+or launch the simulation as explained [here.](/test/sim/README.simdock).
 
 The existing code, implemented in VueJS is part of Wylib, is mostly in the files:
 [svgraph](http://github.com/gotchoices/wylib/src/svgraph.vue) and
@@ -47,7 +47,7 @@ In practice, one must hold the button for quite a while to get a readable graph.
 ## Objectives:
 The goal of this project is to improve network visualization tool so it can more
 efficiently display the graphical data that will be created using the 
-[enhanced agent model simulator.](doc/projects/Agent_Model.md).
+[enhanced agent model simulator.](/doc/projects/Agent_Model.md).
 
 There are existing Javascript libraries that model graph dataabase content visually
 including: [Cytoscape](https://js.cytoscape.org/).  It might be possible to use
@@ -60,7 +60,7 @@ in the example.  This example does not appear to be deterministic, as it generat
 a different result each time the button is pressed.
 
 [This example](https://ivis-at-bilkent.github.io/cytoscape.js-fcose/demo.html)
-reveals more of the parameters being used behnd the scenes to generate the graph.
+reveals more of the parameters being used behind the scenes to generate the graph.
 
 [This example](https://cytoscape.org/cytoscape.js-cola/) appears to be a bit more
 deterministic.  It also appears to be modeling forces in 3D in order to find more
@@ -82,7 +82,7 @@ Features should include:
 - The user can easily zoom in/out on the display and focus in on different areas
   of interest in the graph.
 - A possible third use-case would be the display of a
-  [Visual Balance Sheet](doc/VisualBS.odg) intended to be the home page of an
+  [Visual Balance Sheet](/doc/VisualBS.odg) intended to be the home page of an
   eventual MyCHIPs mobile application.
 
 ## Strategy:

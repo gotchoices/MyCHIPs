@@ -3,7 +3,7 @@ July 2020
 
 ## Project Background:
 The current proof-of-concept release of MyCHIPs focuses on the testing and
-evaluation of a set of backend [servers and processes](doc/Scaling.odg).
+evaluation of a set of backend [servers and processes](/doc/Scaling.odg).
 But the success of the project will ultimately be dependent upon a moble 
 interface for the end user that is intuitive and easy to use.
 
@@ -23,7 +23,7 @@ a graphical presentation that gives an instant and intuitive sense of how/where
 value is stored and how it is transmitted.
 
 ## Objectives:
-The source tree includes an example of a [visual balance sheet](doc/VisualBS.odg).
+The source tree includes an example of a [visual balance sheet](/doc/VisualBS.odg).
 The goal with this graph is to show a user an intuitive indication of their net
 wealth--a value that consists of the difference between their total assets and
 their total liabilities.
@@ -48,7 +48,7 @@ Additionally, the user interface will need the ability to do the following:
 - Generate/manage/protect connection keys
 - Generate/manage/protect private trading keys
 - Respond to alarms generated from the users host server
-- Set/modify [trading parameters](doc/Tallies)
+- Set/modify [trading parameters](/doc/Tallies)
 
 Users whether consumers or sellers should be able to interact using the app
 by generating QR codes on their screen and having the trading partner scan the
