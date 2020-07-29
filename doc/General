@@ -35,55 +35,63 @@ or less of the stuff (inflation, for example).
 Next problem is authenticity.  We commonly think of money as a thing that
 allows two strangers, who have no preexisting relationship of trust, to engage
 in a buy-sell transaction.  But this assumes the seller has some way to verify
-that they money being given in consideration of the sale is genuine and real.
+that the money being given in consideration of the sale is genuine and real.
 
-And especially when the money is digital, we have the double-spending problem.
-How can he know the money hasn't already been given to someone else.
+And when the money is digital, we have a double-spending dilemma.  How can one
+be sure a digital token hasn't already been given to someone else, or many
+someone elses?
 
-These problems have been dealt with in various ways by blockchain based money.
-MyCHIPs takes a little different approach.  The result is a bit complicated.
-But appears to yield some very desirable benefits.
+These problems have been addressed in various ways by blockchain based money
+but those systems are not without their own set of problems.  Most notably, 
+they are very difficult to scale up to real-world use.
 
-So to be effective as a developer, you should try to un-learn a couple of ideas
-that may be burned very deeply into your psyche about how money has to work.
+MyCHIPs takes a different approach from a public ledger.  The result is indeed
+a bit complicated.  But it has some very desirable benefits.
+
+So to be most effective as a developer, you should try to un-learn some ideas
+about how money has to work that may be burned very deeply into your psyche.
 
 Money as Credit
 -------------------------------------------------------------------------------
-The first thing to unlearn is that money has to be a commodity (i.e. gold,
-silver, Bitcoin, etc.).  This is one of the reasons the "money supply" is such
-a strange notion.  Because we think it is a thing, rather than an abstraction
-meant to represent a real thing.
+The first thing to unlearn is that money has to be a commodity, an equity--a
+thing that can be possessed (i.e. gold, silver, Bitcoin, etc.).  This is one of 
+the reasons the "money supply" is such a difficult notion to grasp.  Because we 
+think it is a thing, rather than just an abstraction (a promise) meant to 
+represent a real thing, or the delivery of a real thing at some point in the
+future.
 
 In our ledger example above, it was easy to think about moving things (units)
 around.  We just need the notion of ownership (equity) of things (units).  And
 then we start making entries to keep track of who owns each unique thing.  As
 long as no one (in authority or not) manages to create (counterfeit) 
-unauthorized units, everything should work just fine.  But the problems of
-authority, and money supply have proven over the last century to be too big.
+unauthorized units, everything should work just fine.  But these problems of
+authority, and money supply have proven over the last century to be too big to
+handle--even for a large and powerful government.
 
 Even the iconic Austrian economist Mises recognized that, in addition to what
 he terms "real money" (gold, silver or similar commodities), there can be such
-a thing as "money substitutes."  Credit money is one such substitute.
+a thing as "money substitutes."  Credit money is one such substitute.  In fact,
+nearly all money in use today is credit money.
 
-In the MyCHIPs lexicon, we refer to credit money as simply "money."  And what
-Mises called money, we call "commodity money."
+In the MyCHIPs lexicon, we will often refer to credit money as simply "money." 
+And what Mises called money, we may call "commodity money" for clarity.
 
 Credit money can seem scary to some.  But it actually has some very desirable
 qualities.  It is very egalitarian.  Commodity money is hard for anyone to
 create.  You might have to discover a gold mine, or buy lots of servers to mine
-Bitcoins.  But credit money can be created privately (even though we haven't
-always had access to an infrastructure that can do so safely and effectively).
-So anyone can create it.  And it can come into existence just as it is needed
-for the necessary transactions.
+Bitcoins.  But credit money can be created privately between any two willing
+parties.  So anyone can create it.  And it can come into existence just as it 
+is needed for the necessary transactions.
 
 This solves the problem of how Bob pays Mary.  Everyone starts out at zero and
 Bob just pays Mary.  Easy as that.  Bob's money goes negative and Mary's goes
 positive.  It is a false assumption that the total, net money supply has to be
-a positive number.  In fact, the rules of accounting tell us it must be zero.
+a positive number.  In fact, the basic rules of accounting tell us it must be 
+zero.
 
 Another way to explain this is in terms of physics.  We know that magnets
 exist as "dipoles."  This means there is always a North pole for every South
-pole.  It is debatable whether magnetic "monopoles" even exist in nature.  But
+pole.  It is doubtful whether magnetic "monopoles" even exist in nature.  But
 we are all familiar with the dipolar nature of magnets.
 
 And you can take a non-magnetic piece of steel and turn it into a North magnet
@@ -95,14 +103,14 @@ can be created out of nothing as long as you create a credit for every debit.
 Just keep it in balance.
 
 You can more easily think of commodity money as a monopole (even though that 
-notion may not be entirely true).  It is easy to see how the total gold supply
-could be a larger or smaller, but still positive number.  Pretty hard to 
-imagine having "negative gold."  Maybe you could owe some gold to someone.  But
-that's really what we're talking about with credit money.
+notion may not be entirely true either).  It is easier to see how the total 
+gold supply could be a larger or smaller, but still positive number.  It is 
+pretty hard to imagine having "negative gold."  Maybe you could owe some gold 
+to someone.  But that's really what we're talking about with credit money.
 
 So that's it.  We just need our ledger system to handle positive and negative
-amounts, always making sure the net of all entries is zero, and we've solve the
-money supply problem.
+amounts, always making sure the net of all entries is zero, and we've solved 
+the money supply problem.
 
 Decentralization
 -------------------------------------------------------------------------------
@@ -123,7 +131,7 @@ to ultimately agree on the data to be considered valid.
 In other words, it is one ledger--just distributed in the way it is stored and
 composed.
 
-The remaining centralized nature of the blockchain is its ultimately achilles
+The remaining centralized nature of the blockchain is ultimately its achilles
 heel.  This is often called the scalability problem.  Since there is really
 only one ledger, transactions must compete for the limited bandwidth to get
 into a block on the ledger.  This means, as more people try to use it, the cost
@@ -138,9 +146,9 @@ have to understand what true decentralization really means.  How do you track
 transactions in multiple ledgers and still assure no one is cheating?
 
 The answer comes in the nature of credit money as a dipole.  In the case of
-the money Bob gave Mary, only Bob's ledger and Mary's ledger need to keep
-track of that transaction.  No one else's system need be encumbered with that
-data.  As long as Bob and Mary agree, that is enough.
+the money Bob gave Mary, only Bob's ledger and Mary's ledger need to keep track 
+of that transaction.  No one else's system need be encumbered with that data.  
+As long as Bob and Mary agree, that is enough.
 
 But that introduces a huge potential trust problem.  How do I do business with
 people I don't trust?  This is why commodity money has such an appeal for most
@@ -148,13 +156,14 @@ advocates of monetary reform.
 
 This is where the MyCHIPs lift algorithm shines.  It allows us to:
 
-- Establish relationships with just a few other entities we trust
-- Secure those relationships with binding contracts
-- Pass value to entities with whom we do not share a direct connection
+- Establish relationships with just a few other entities we trust;
+- Secure those relationships with binding contracts;
+- Pass value through the network to entities with whom we do not share a direct 
+  connection of trust.
 
 Discipline
 -------------------------------------------------------------------------------
-As one works on this project, it can be difficult to maintain the principles
+As one works on this project, it can be difficult to maintain these principles
 and concepts firmly in mind, as necessary to achieve full decentralization.
 
 For example, DNS itself has become a centralized system.  It started out quite
@@ -163,17 +172,18 @@ necessary to prevent people from spoofing a domain name.  So SSL and site
 certificates were introduced to make sure the website we connect to is really
 the one we intended.  This works pretty well as long as you trust the issuer of 
 the toplevel certificate hard-coded into your browser.  But like nearly all
-forms of centralization, it creates in the best case, a monopoly and in the
-worst case, potential for corruption and abuse.
+forms of centralization, it creates (in the best case) a monopoly or (in the
+worst case) potential for corruption and abuse.
 
 MyCHIPs hopes to avoid as much centralization as possible:  No central 
-clearinghouse for transactions, no central database for ID's, and not even
-a central address or port for meeting other potential partners.
+clearinghouse for transactions, no central database for ID's, and not even a 
+central address or port for meeting other potential partners.
 
-In its place, we expect people to meet, agree on trading terms, and then
-exchange trusted data in a strictly peer-to-peer way.  Rather than creating a 
-central trading depot, we want to create a billion separate and secure
-connections--a billion separate and secure ledgers.  Then trusted partners can 
-trade directly over these private and intimate connections.  Strangers can 
-trade indirectly by rippling value through the network--but only if they are 
-trustworthy enough to maintain their own local connections of trust.
+In its place, we expect people to meet in the real world, agree on trading 
+terms, and then exchange trusted data in a strictly peer-to-peer way.  Rather 
+than creating a central trading depot, we want to create a billion separate and 
+secure connections--a billion separate and secure ledgers.  Then trusted 
+partners can trade directly over these private and intimate connections.  
+Strangers can trade indirectly by rippling value through the network--but only 
+if they are trustworthy enough to maintain their own local connections of 
+trust.

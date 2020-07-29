@@ -1,8 +1,8 @@
-# Lift Protocol Enhancements
+# Lift/Tally Protocol Enhancements
 July 2020
 
 ## Project Background:
-A [professional analysis](test/analysis/dsr/phase-1/results.md) was recently 
+A [professional analysis](/test/analysis/dsr/phase-1/results.md) was recently 
 conducted to assess the viability of the lift protocol as documented and partially
 implemented in the initial proof-of-concept release of the MyCHIPs reference server.
 This analysis exposed several potential flaws which could cause the protocol to
@@ -10,9 +10,9 @@ fail, either leaving a group of participating nodes in an inconsistent state
 (safety), or failing to properly terminate a lift transaction (liveness).
 
 There are several notable issues at the heart of the potential failures:
-- We would like to think the lift proposer will only commit if it can verify the 
-  affirmation of all participating nodes, within the proposed time allowance for
-  the lift.
+- We would like to think the lift proposer is honest and will only commit if it 
+  can verify the affirmation of all participating nodes, within the proposed time 
+  allowance for the lift.
 - But since the network is fully distributed, it is difficult to know if the 
   proposer can be trusted in every case.
 - It can also be difficult for a participating node to know for sure that the lift
@@ -58,6 +58,10 @@ normally.  But in edge cases where a node goes down, or if the particpants becom
 partitioned, they will have the second option to reach out to the TM to complete
 the lift (or to determine that it has been canceled).
 
+In addition to lift protocol, there are also state machines to manage tallies,
+chits, and routes.  These are much less of a concern from a safety/liveness
+point of view.  However, they should also be reviewed, modeled and proven.
+
 ## Outcomes:
 - Review/critique existing TLA+ code used in the DSR analysis
 - Re-run the model checker to reproduce/validate the DSR results
@@ -68,7 +72,7 @@ the lift (or to determine that it has been canceled).
 - Evaluate your competing models for safety/liveness
 - Compare all proposed protocol models, suggesting the one which provides
   the best overall performance according to project values and objectives.
-- Publish the research results
+- Publish research results
 
 ## Technical Considerations:
 Typical consensus algorithms are based on the premise of a single transaction log
@@ -81,3 +85,15 @@ communicate directly with their adjacent neighbor but not necessarily with other
 nodes involved in the lift.  In fact most nodes won't know much at all about other
 participants in the lift.  This interjects some differences and potential 
 complications.
+
+The current implementation only considers a case where a lift occurs as single 
+thread rippling through a series of interconnected peers.  The possibility also
+exists that a lift could split into two or more threads and rejoin later on.
+This would allow multiple low-capacity pathways to combine to match a larger
+capacity pathway somewhere else in the lift circuit.
+
+It would also be helpful to eventually model the case where each node along
+the way can retry multiple potential pathways until one is found that will
+complete the circuit at the desired lift value.  Right now the implementation
+will simply pick what it thinks is the best potential pathway and then succeed
+or fail on that path.
