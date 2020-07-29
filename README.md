@@ -122,6 +122,6 @@ There is a project roadmap in the [TODO file](TODO).
 - [Offset Credit](http://offsetcredit.org)
 - [The End of Money](https://www.amazon.com/End-Money-Future-Civilization/dp/1603580786)
 - [Ripple](http://ripple.com)
-- [Trustlines](http://www.trustlines.net)
+- [Trustlines](http://www.trustlines.network)
 - [Open Credit Network](https://opencredit.network/)
 - [Credit Commons](http://www.creditcommons.net)
