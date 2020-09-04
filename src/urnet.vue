@@ -195,11 +195,12 @@ export default {
     Wylib.Common.stateCheck(this)
     
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
-      let dTime = updatePending || dat.oper == 'DELETE' ? null : dat.time	//Only query late changing entries
+//      let dTime = updatePending || dat.oper == 'DELETE' ? null : dat.time	//Only query late changing entries
 //console.log("URnet async:", dat, dat.oper == 'DELETE', updatePending, dTime)
 
       if (dat.target == 'peers' || dat.target == 'tallies')
-        this.updateNodes(dTime)
+        this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
+//        this.updateNodes(dTime)		//Disable 01-May-2020 patch for now as it messes up screen redraws
 
       if (dat.oper == 'DELETE' || dat.oper == 'INSERT')
         this.$refs.svg.$emit('change')		//Automatic bump each time something changes
