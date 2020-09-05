@@ -49,7 +49,7 @@ The goal of this project is to improve network visualization tool so it can more
 efficiently display the graphical data that will be created using the 
 [enhanced agent model simulator.](/doc/projects/Agent_Model.md).
 
-There are existing Javascript libraries that model graph dataabase content visually
+There are existing Javascript libraries that model graph database content visually
 including: [Cytoscape](https://js.cytoscape.org/).  It might be possible to use
 such a library, or to learn from it.
 

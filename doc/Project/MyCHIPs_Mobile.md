@@ -64,11 +64,11 @@ demonstrated in a rudientary way by the existing Wylib-based User Interface.
   - Other?
 - Create simple UI that starts with a graphical balance sheet visualizer
 - Limited UI buttons/actions (Invite, Send, Request)
-- Allow users to drill into deeper
+- Allow users to drill into deeper levels
 
 ## Outcomes:
 - The mobile app is extremely easy for a new user to use
-- No particular traning is necessary
+- No particular training is necessary
 - All necessary prompting/help occurs in the course of use
 - Mobile app communicates with the backend system via the existing API
 

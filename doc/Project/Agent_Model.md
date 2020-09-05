@@ -30,7 +30,7 @@ and then to run the model at varying scales in order to evaluate and predict the
 efficiency of a private credit network in actual operation.
 
 Examples Include:
-- The more you have, the less you spend
+- The more you have, the more you spend
 - The less you have, the less you spend
 - If you have too little, you will try to earn more or find better income streams
 - How much savings are you comfortable with?
