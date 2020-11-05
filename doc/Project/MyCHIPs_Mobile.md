@@ -23,7 +23,7 @@ a graphical presentation that gives an instant and intuitive sense of how/where
 value is stored and how it is transmitted.
 
 ## Objectives:
-The source tree includes an example of a [visual balance sheet](/doc/VisualBS.odg).
+The source tree includes an example of a [visual balance sheet](/doc/VisualBS.jpg).
 The goal with this graph is to show a user an intuitive indication of their net
 wealth--a value that consists of the difference between their total assets and
 their total liabilities.
