@@ -1,4 +1,4 @@
-Instructions to demonstrate reference code. (Feb 2020)
+Instructions to demonstrate reference code (Feb 2020)
 
 Current testing limited to: 
 Fedora linux, Chrome, Firefox, PostgreSQL 9-11, Docker
@@ -7,7 +7,7 @@ Fedora linux, Chrome, Firefox, PostgreSQL 9-11, Docker
 Docker Simulation
 
 If you just want to run the docker network simulation, install Docker on your
-machine and then get into mychips/test/sim and consult the file README.dock.
+machine and then get into test/sim and follow instructions in README.dock.
 
 The docker simulation model was developed on MacOS but it should also be 
 possible to run on a Linux host.
