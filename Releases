@@ -1,5 +1,10 @@
 Change Log:
 
+0.1.11	2020-Nov
+	- Minor fixes
+	- Documentation improvements
+	- Start BYU testing/validation
+
 0.1.10	2020-Jul
 	- Include DSR algorithm results
 	- Basic previewing of contract documents
