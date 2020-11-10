@@ -20,9 +20,9 @@ peer server, and an agent modeler.  The idea is, a site represents a single
 MyCHIPs service provider and its customers.
 
 In this docker-based version, each process is a separate container.  So the
-notion of a "site" is a less clear.  It is probably best to think of a site as
-an "instance of postgres."  Then, there are other processes (SPA, peer and
-agent) that are part of that logical site but run in their own containers.
+notion of a "site" is not quite as clear.  It is probably best to think of a 
+site as an "instance of postgre."  Then, there are other processes (SPA, peer 
+and agent) that are part of that logical site but run in their own containers.
 This is likely how a larger-scale service provider might operate anyway--with
 different processes running on different servers, all a part of the same site.
 
@@ -65,14 +65,14 @@ If you want to change things, make a similar file in the "local" subdirectory:
 and put in there whatever settings you want to modify from the config.dock in
 this folder.  Some good things to focus on include:
 
-  agentwins, peerwins, spawins	#x,y coordinates of logging xterms
+  agentwins, peerwins, spawins	#X,Y screen coordinates of logging xterms
   logoffset			#How xterms are tiled on the screen
   browser			#Only firefox/chrome tested for now
-  newusers			#How many users are on each site
+  newusers			#How many users to create on each site
   sites				#How many sites to launch on simulation runs
   userargs			#Additional command line switches to docker
-  				 run command.  For example, I use this so each
-  				 container runs bash with my preferred settings:
+	  			 run command.  For example, you could make each
+  				 container's bash run your preferred settings:
   userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )	#Custom bashrc, key mappings
 
 If you have made changes, shut things down using:
@@ -112,7 +112,7 @@ OK, now make sure you have a browser (firefox,chrome) window running and do:
 
 This should generate connection tickets for each of the running SPA servers
 and launch a browser tab for the admin console of each, using the applicable
-ticket.  At this point, you should get a security warning because you are
+ticket.  At this point, you may well get a security warning because you are
 connecting via https to a node with a self-signed CA.  Look for a CA
 certificate in:
 
@@ -132,7 +132,8 @@ Once you get all that sorted out, rerun the "simdock tickets" command and see
 that the admin console is successfully connecting to each of the running SPA
 servers.
 
-Note that, as with most plural commands in simdock, you can also do:
+Note that, as with most plural (like "tickets") commands in simdock, you can 
+also do:
 
   ./simdock ticket 2
 
@@ -141,10 +142,14 @@ to launch a single admin console (to site 2 in this case).
 Last setup step is to rebuild all the database objects from scratch.  The
 default MyCHIPs server will build a pre-compiled schema by default.  But we 
 would like the simulation to run from our source folder so if you want to tweak 
-the schema, you can see the effect of your changes.  This actually gets done
-automatically with the simulation run, but the first time, it can be a little
-more clear to run it explicitly.  Keep in mind, this will also take a while 
-when run for the first time:
+the schema, you can see the effect of your changes.  Additionally, this will
+update the database with some helpful configuration settings, such as default 
+host names and ports.
+
+This actually gets done automatically (if the schema has changed) with each 
+simulation run, but the first time, it can be a little more clear to run it 
+explicitly.  Keep in mind, this can also take a while when run for the first 
+time:
 
   ./simdock dbcheck all
 
@@ -170,17 +175,18 @@ To kill the simulation, do:
   ./simdock stop sim
 
 This will issue shutdown commands to the applicable containers.  However it
-will take some time for them all to shut down.  The script exits, but you will
-see a confirmation in the terminal as each container shuts down.  You can run a 
-"docker ps" to make sure they are gone before re-launching.
+will take some time for them all to shut down.  The script exits quickly, but 
+you will see a confirmation some seconds later in the terminal as each container 
+actually shuts down.  You can run a "docker ps" to make sure they are gone before 
+re-launching.
 
 Finally, this command should kill any/all containers related to the simulation:
 
   ./simdock shutdown
 
-Keep in mind, if you launched the simulation with sites set to 6 and then
-changed it to 4 before doing the shutdown command, not all your containers will
-get killed.  You may have to do that manually.
+Keep in mind, if you launched the simulation with sites set to 6 and then 
+changed the configuration to 4 before doing the shutdown command, not all your 
+containers will get killed.  You may have to do that manually.
 
 Command Examples:
 -------------------------------------------------------------------------------
