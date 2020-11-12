@@ -9,7 +9,7 @@
   "bugs": {
     "url": "https://github.com/gotchoices/MyCHIPs/issues"
   },
-  "homepage": "https://github.com/gotchoices/MyCHIPs#readme",
+  "homepage": "https://gotchoices.org/mychips",
   "directories": {
     "dist": "dist",
     "static": "static"
@@ -42,7 +42,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gotchoices/MyCHIPs.git"
+    "url": "https://github.com/gotchoices/MyCHIPs.git"
   },
   "keywords": [
     "digital",
