@@ -14,8 +14,8 @@ class TallyListPageState extends State<TallyListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text("My Tallies")),
-        body: buildTallyList(),
+      appBar: AppBar(title: Text("My Tallies")),
+      body: buildTallyList(),
       drawer: MainDrawer(),
     );
   }
@@ -36,7 +36,8 @@ class TallyListPageState extends State<TallyListPage> {
   Widget buildRow(Tally t) {
     return ListTile(
         title : Text(t.friend, style: TextStyle(fontSize: 18)),
-        trailing: Text(t.balance, style: TextStyle(fontSize: 18))
+        trailing: Text(t.balance.toString(), style: TextStyle(fontSize: 18)),
+        // onTap: ,
     );
   }
 }

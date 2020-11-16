@@ -10,8 +10,18 @@ class MyChips extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         theme: ThemeData(primaryColor: Color(0xff53ab77)),
-        home: TallyListPage(),
+        home: HomePage(),
         // Scaffold(appBar: AppBar(title: Text("MyCHIPs"),),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: AppBar(title: Text("MyCHIPs home")),
+      drawer: MainDrawer(),
     );
   }
 }
@@ -30,13 +40,19 @@ class MainDrawer extends StatelessWidget {
               ),
             ),
             new ListTile(
+              title: new Text("Home"),
+              onTap: () {
+                Navigator.push(context, new MaterialPageRoute(
+                    builder: (BuildContext context) => new HomePage()
+                ));
+            }),
+            new ListTile(
               title: new Text("My Tallies"),
               onTap: () {
                 Navigator.push(context, new MaterialPageRoute(
                     builder: (BuildContext context) => new TallyListPage()
                 ));
-              },
-            )
+              })
           ],
         )
     );
