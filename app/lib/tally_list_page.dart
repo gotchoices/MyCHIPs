@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/main.dart';
+import 'main.dart';
 import 'tally.dart';
-import 'dart:convert';
+import 'tally_page.dart';
 
 class TallyListPage extends StatefulWidget {
   @override
@@ -36,8 +36,12 @@ class TallyListPageState extends State<TallyListPage> {
   Widget buildRow(Tally t) {
     return ListTile(
         title : Text(t.friend, style: TextStyle(fontSize: 18)),
-        trailing: Text(t.balance.toString(), style: TextStyle(fontSize: 18)),
-        // onTap: ,
+        trailing: Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
+        onTap: () {
+          Navigator.push(context, new MaterialPageRoute(
+              builder: (BuildContext context) => new TallyPage(t.friend, t.balance)
+          ));
+        }
     );
   }
 }
