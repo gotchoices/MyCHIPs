@@ -11,4 +11,4 @@ Things I hard code based on Meta information:
     If a message was lost that was proposing or propogating a lift proposal 1. The sender will always contact the arbitrator. 2. The Arbitrator will always declare the lift Failed. (Something to check is the effect of aditional "Seek" responses from the Arbitrator before the ultimate failure.)
 
 
-
+Note if I use "RandomElement(S)" during computation this can negativly effect state matching and make performance very bad.
