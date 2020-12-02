@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'main.dart';
 import 'tally.dart';
 import 'tally_page.dart';
+import 'create_tally_page.dart';
 
 class TallyListPage extends StatefulWidget {
   @override
@@ -43,13 +44,14 @@ class TallyListPageState extends State<TallyListPage> {
               onPressed: () {
                 setState(() {
                   searching = !searching;
-                });
-              }
+                });}
           ),
         ]
       ),
-      body: Container(child: new Stack(children: [
-        Container(child : buildTallyList()),
+      body: Container(child:
+        Stack(children: [
+          Container(child : buildTallyList()),
+          Container(child : buildButton())
       ])),
       drawer: MainDrawer(),
     );
@@ -77,6 +79,27 @@ class TallyListPageState extends State<TallyListPage> {
               builder: (BuildContext context) => new TallyPage(t.friend, t.balance)
           ));
         }
+    );
+  }
+
+  Widget buildButton() {
+    var maxButtonWidth = (MediaQuery.of(context).size.width) / 1.75;
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child : Padding(
+      padding: const EdgeInsets.all(15),
+      child: MaterialButton(
+        onPressed: () {
+          Navigator.push(context, new MaterialPageRoute(
+            builder: (BuildContext context) => new CreateTallyPage()));
+        },
+        child: const Text("Create a New Tally", style: TextStyle(fontSize: 20)),
+        color: Colors.blue,
+        textColor: Colors.white,
+        elevation: 5,
+        height: 50,
+        minWidth: maxButtonWidth
+      ))
     );
   }
 
