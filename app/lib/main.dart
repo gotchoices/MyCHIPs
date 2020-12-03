@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/transaction_page.dart';
 import 'tally_list_page.dart';
 import 'create_tally_page.dart';
 
@@ -61,6 +62,13 @@ class MainDrawer extends StatelessWidget {
                   builder: (BuildContext context) => CreateTallyPage()
                 ));
               }),
+            ListTile(
+                title: new Text("New Transaction"),
+                onTap: () {
+                  Navigator.push(context, new MaterialPageRoute(
+                      builder: (BuildContext context) => new TransactionPage()
+                  ));
+                })
           ],
         )
     );
