@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/transaction_page.dart';
 import 'tally_list_page.dart';
 
 void main() {
@@ -52,7 +53,14 @@ class MainDrawer extends StatelessWidget {
                 Navigator.push(context, new MaterialPageRoute(
                     builder: (BuildContext context) => new TallyListPage()
                 ));
-              })
+              }),
+            new ListTile(
+                title: new Text("New Transaction"),
+                onTap: () {
+                  Navigator.push(context, new MaterialPageRoute(
+                      builder: (BuildContext context) => new TransactionPage()
+                  ));
+                })
           ],
         )
     );
