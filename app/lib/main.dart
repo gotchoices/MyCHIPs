@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/transaction_page.dart';
 import 'tally_list_page.dart';
+import 'create_tally_page.dart';
 
 void main() {
   runApp(MyChips());
@@ -33,28 +34,35 @@ class MainDrawer extends StatelessWidget {
     return new Drawer(
         child:ListView(
           children: <Widget>[
-            new UserAccountsDrawerHeader(
-              accountName: new Text("myAccount"),
-              accountEmail: new Text("myemail@gmail.com"),
-              currentAccountPicture: new CircleAvatar(
-                backgroundImage: new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
+            UserAccountsDrawerHeader(
+              accountName: Text("myAccount"),
+              accountEmail: Text("myemail@gmail.com"),
+              currentAccountPicture: CircleAvatar(
+                backgroundImage: NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
               ),
             ),
-            new ListTile(
-              title: new Text("Home"),
+            ListTile(
+              title: Text("Home"),
               onTap: () {
-                Navigator.push(context, new MaterialPageRoute(
-                    builder: (BuildContext context) => new HomePage()
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (BuildContext context) => HomePage()
                 ));
             }),
-            new ListTile(
-              title: new Text("My Tallies"),
+            ListTile(
+              title: Text("My Tallies"),
               onTap: () {
-                Navigator.push(context, new MaterialPageRoute(
-                    builder: (BuildContext context) => new TallyListPage()
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (BuildContext context) => TallyListPage()
                 ));
               }),
-            new ListTile(
+            ListTile(
+              title: Text("Create a New Tally"),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (BuildContext context) => CreateTallyPage()
+                ));
+              }),
+            ListTile(
                 title: new Text("New Transaction"),
                 onTap: () {
                   Navigator.push(context, new MaterialPageRoute(

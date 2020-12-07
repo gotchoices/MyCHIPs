@@ -5,10 +5,12 @@ class Transaction {
   DateTime date;
   String sender;
   String receiver;
+  String message;
   var amount;
 
-  Transaction(date, sender, receiver, amount) {
+  Transaction(date, message, sender, receiver, amount) {
     this.date = date;
+    this.message = message;
     this.sender = sender;
     this.receiver = receiver;
     this.amount = amount;
@@ -22,7 +24,7 @@ class TransactionGenerator {
     for (int i = 0; i < numToGenerate; i++) {
       Transaction t = new Transaction(
           RandomDate.withRange(2000, 2020).random(),
-          "sender", "receiver",
+          "fake message", "sender", "receiver",
           rng.nextInt(50) + rng.nextDouble() - 50);
       results.add(t);
     }
