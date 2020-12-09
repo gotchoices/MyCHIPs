@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/transaction_page.dart';
+import 'package:flutter_app/user_info.dart';
 import 'tally_list_page.dart';
 import 'sign_in.dart';
 import 'create_tally_page.dart';
@@ -13,7 +14,8 @@ class MyChips extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(primaryColor: Color(0xff53ab77)),
-      home: HomePage(),
+      //TODO: Determine if a user is logged in already, if so go to HomePage instead of Login page
+      home: SignInPage()
       // Scaffold(appBar: AppBar(title: Text("MyCHIPs"),),
     );
   }
@@ -38,9 +40,15 @@ class MainDrawer extends StatelessWidget {
             UserAccountsDrawerHeader(
               accountName: Text("myAccount"),
               accountEmail: Text("myemail@gmail.com"),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
-              ),
+              currentAccountPicture: GestureDetector (
+                onTap: () {
+                  Navigator.push(context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => UserInfoPage(false)));
+                },
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
+              )),
             ),
             ListTile(
               title: Text("Home"),

@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/main.dart';
-import 'package:flutter_app/tally_list_page.dart';
+import 'scanner.dart';
 
 class UserInfoPage extends StatefulWidget {
+  final bool registering;
+  UserInfoPage(this.registering, {Key key}): super(key: key);
   @override
   UserInfoPageState createState() => new UserInfoPageState();
 }
@@ -75,22 +77,25 @@ class UserInfoPageState extends State<UserInfoPage> {
                                   showContact = !showContact;
                                 });
                               }),
-                          Text("Display Contact Info on public profile?  "),
+                          Text("Display Contact Info Publicly?  "),
                           Text(showContact ? "Yes" : "No")
                         ],
                       ),
                       MaterialButton(
                           onPressed: () {
-                            Navigator.push(
+                            //TODO: Instead of jumping into scanner if registering, give the option for them to connect to a bot for their first tally.
+                            widget.registering ?
+                              Navigator.push(
                                 context,
                                 new MaterialPageRoute(
-                                    builder: (BuildContext context) =>
-                                        new TallyListPage()));
+                                  builder: (BuildContext context) =>
+                                    Scanner()))
+                              : Navigator.pop(context);
                           },
-                          child: Text('Save Changes',
+                          child: Text(widget.registering ? "Continue" : "Save Changes",
                               style: TextStyle(fontSize: 20)),
-                          color: Colors.amber,
-                          textColor: Colors.black,
+                          color: Colors.blue,
+                          textColor: Colors.white,
                           elevation: 5,
                           height: 50,
                           minWidth: (MediaQuery.of(context).size.width))

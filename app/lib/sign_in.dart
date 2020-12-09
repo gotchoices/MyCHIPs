@@ -49,11 +49,11 @@ class SignInPageState extends State<SignInPage> {
                         context,
                         new MaterialPageRoute(
                             builder: (BuildContext context) =>
-                                new UserInfoPage()));
+                                new UserInfoPage(true)));
                   },
                   child: Text('Get Started', style: TextStyle(fontSize: 20)),
-                  color: Colors.amber,
-                  textColor: Colors.black,
+                  color: Colors.blue,
+                  textColor: Colors.white,
                   elevation: 5,
                   height: 50,
                   minWidth: (MediaQuery.of(context).size.width / 1.5)),
@@ -66,11 +66,12 @@ class SignInPageState extends State<SignInPage> {
                         context,
                         new MaterialPageRoute(
                             builder: (BuildContext context) =>
-                                new TallyListPage()));
+                            //TODO: figure out how reconnection works and create a reconnect page
+                                new HomePage()));
                   },
-                  child: Text('Connect Device', style: TextStyle(fontSize: 20)),
-                  color: Colors.amber,
-                  textColor: Colors.black,
+                  child: Text('Reconnect', style: TextStyle(fontSize: 20)),
+                  color: Colors.blue,
+                  textColor: Colors.white,
                   elevation: 5,
                   height: 50,
                   minWidth: (MediaQuery.of(context).size.width / 1.5))
