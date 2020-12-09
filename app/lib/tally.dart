@@ -15,11 +15,8 @@ class TallyGenerator {
     var rng = new Random();
     List<Tally> results = <Tally>[];
     for (int i = 0; i < numToGenerate; i++) {
-      var faker =  new Faker();
-      Tally t = new Tally(
-          faker.person.name(),
-          rng.nextInt(100)
-      );
+      var faker = new Faker();
+      Tally t = new Tally(faker.person.name(), rng.nextInt(100));
       results.add(t);
     }
     return results;

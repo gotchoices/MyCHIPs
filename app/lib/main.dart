@@ -12,7 +12,7 @@ class MyChips extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(primaryColor: Color(0xff53ab77)),
-      home: SignInPage(),
+      home: HomePage(),
       // Scaffold(appBar: AppBar(title: Text("MyCHIPs"),),
     );
   }
