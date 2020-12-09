@@ -14,9 +14,6 @@ class TransactionPageState extends State<TransactionPage> {
     return Scaffold(
         appBar: AppBar(
           title: Text("MyCHIPs Transaction"),
-          actions: [
-            CircleAvatar(backgroundImage:
-            new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),)],
         ),
         body: buildPage(),
         drawer: MainDrawer()
