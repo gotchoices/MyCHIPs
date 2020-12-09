@@ -55,6 +55,8 @@ class TransactionPageState extends State<TransactionPage> {
               Expanded(
                 child: MaterialButton(
                   onPressed: () {
+                    //TODO: PAY LOGIC
+                    Navigator.pop(context);
                     print("pressed 'pay'");},
                   child: Text('PAY',
                     style: TextStyle(fontSize: 20)),
@@ -65,6 +67,8 @@ class TransactionPageState extends State<TransactionPage> {
                   minWidth: (MediaQuery.of(context).size.width) / 2.25)),
               MaterialButton(
                 onPressed: () {
+                  //TODO: REQUEST PAYMENT LOGIC
+                  Navigator.pop(context);
                   print("pressed 'request'");},
                 child: Text('REQUEST',
                   style: TextStyle(fontSize: 20)),
@@ -86,6 +90,7 @@ class TransactionPageState extends State<TransactionPage> {
               flex: 1,
               child: MaterialButton(
               onPressed: () {
+                Navigator.pop(context);
                 print("pressed "+ transactionType);},
               child: Text(transactionType, style: TextStyle(fontSize: 20)),
               color: Colors.blue,
