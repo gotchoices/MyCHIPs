@@ -3,6 +3,8 @@ import 'main.dart';
 import 'transaction.dart';
 import 'tally.dart';
 import 'package:date_format/date_format.dart';
+import 'transaction_page.dart';
+
 
 class TallyPage extends StatefulWidget {
   final Tally tally;
@@ -90,7 +92,7 @@ class TallyPageState extends State<TallyPage> {
         alignment: Alignment.bottomLeft,
         child: MaterialButton(
           onPressed: () {
-            print("pressed 'pay'");
+            showDialog(context: context, builder: (BuildContext context){return AlertDialog(content: buildTransactionWidget(context, 'PAY', widget.tally.friend));});
           },
           child: const Text('PAY', style: TextStyle(fontSize: 20)),
           color: Colors.blue,
@@ -105,7 +107,7 @@ class TallyPageState extends State<TallyPage> {
           alignment: Alignment.bottomRight,
           child: MaterialButton(
             onPressed: () {
-              print("pressed 'request'");
+              showDialog(context: context, builder: (BuildContext context){return AlertDialog(content: buildTransactionWidget(context, 'REQUEST', widget.tally.friend));});
             },
             child: const Text('REQUEST', style: TextStyle(fontSize: 20)),
             color: Colors.blue,
@@ -115,4 +117,20 @@ class TallyPageState extends State<TallyPage> {
             minWidth: maxButtonWidth
     )))]));
   }
-}
+
+  Widget buildPopupVersion(transactionType){
+    return Column(
+      children: [
+        TextField(
+            decoration: InputDecoration(
+              icon: Icon(Icons.alternate_email),
+              labelText: transactionType + 'who?',)),
+        TextField(
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+              icon: Icon(Icons.attach_money), labelText: 'how much?'
+          ),
+        )
+      ],
+    );
+  }}
