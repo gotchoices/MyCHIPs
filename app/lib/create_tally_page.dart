@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'scanner.dart';
 
 class CreateTallyPage extends StatefulWidget {
   @override
@@ -50,8 +51,8 @@ class CreateTallyPageState extends State<CreateTallyPage> {
         child: MaterialButton(
           onPressed: () {
               print("Load the QRCode scanner page");
-            // Navigator.push(context, new MaterialPageRoute(
-            //   builder: (BuildContext context) => new CreateTallyPage()));
+            Navigator.push(context, new MaterialPageRoute(
+               builder: (BuildContext context) => new Scanner()));
           },
           child: const Text("Scan QR Code", style: TextStyle(fontSize: 20)),
           color: Colors.blue,

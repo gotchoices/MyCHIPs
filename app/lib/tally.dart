@@ -1,27 +1,41 @@
+import 'dart:convert';
+
 import 'package:faker/faker.dart';
 import 'dart:math';
 
 class Tally {
   String friend;
   var balance;
+  String host;
+  String port;
   Tally(friend, balance) {
     this.friend = friend;
     this.balance = balance;
+  }
+
+  static Tally parseTallyTicket(ticket) {
+    //put server logic here
+    print(ticket.toString());
+    return TallyGenerator.generateFakeTally();
   }
 }
 
 class TallyGenerator {
   static List<Tally> generateFakeTallies([numToGenerate = 10]) {
-    var rng = new Random();
     List<Tally> results = <Tally>[];
     for (int i = 0; i < numToGenerate; i++) {
-      var faker =  new Faker();
-      Tally t = new Tally(
-          faker.person.name(),
-          rng.nextInt(100)
-      );
+      Tally t = generateFakeTally();
       results.add(t);
     }
     return results;
+  }
+
+  static Tally generateFakeTally() {
+    var rng = new Random();
+    var faker =  new Faker();
+    return new Tally(
+        faker.person.name(),
+        rng.nextInt(100)
+    );
   }
 }

@@ -76,7 +76,7 @@ class TallyListPageState extends State<TallyListPage> {
         trailing: Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           Navigator.push(context, new MaterialPageRoute(
-              builder: (BuildContext context) => new TallyPage(t.friend, t.balance)
+              builder: (BuildContext context) => new TallyPage(Tally(t.friend, t.balance))
           ));
         }
     );
