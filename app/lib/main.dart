@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/transaction_page.dart';
 import 'tally_list_page.dart';
+import 'sign_in.dart';
 import 'create_tally_page.dart';
 
 void main() {
@@ -11,9 +12,9 @@ class MyChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(primaryColor: Color(0xff53ab77)),
-        home: HomePage(),
-        // Scaffold(appBar: AppBar(title: Text("MyCHIPs"),),
+      theme: ThemeData(primaryColor: Color(0xff53ab77)),
+      home: HomePage(),
+      // Scaffold(appBar: AppBar(title: Text("MyCHIPs"),),
     );
   }
 }
