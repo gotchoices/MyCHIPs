@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/ticket.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'tally.dart';
+import 'tally_page.dart';
+import 'dart:convert';
 
 const flashOn = 'FLASH ON';
 const flashOff = 'FLASH OFF';
 const frontCamera = 'FRONT CAMERA';
 const backCamera = 'BACK CAMERA';
 
-class QRViewExample extends StatefulWidget {
-  const QRViewExample({Key key,}) : super(key: key);
+class Scanner extends StatefulWidget {
+  const Scanner({Key key,}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _QRViewExampleState();
+  State<StatefulWidget> createState() => ScannerState();
 }
 
-class _QRViewExampleState extends State<QRViewExample> {
+class ScannerState extends State<Scanner> {
   var qrText = '';
   var flashState = flashOn;
   var cameraState = frontCamera;
@@ -46,7 +50,6 @@ class _QRViewExampleState extends State<QRViewExample> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Text('This is the result of scan: $qrText'),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -95,30 +98,6 @@ class _QRViewExampleState extends State<QRViewExample> {
                       )
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        margin: EdgeInsets.all(8),
-                        child: RaisedButton(
-                          onPressed: () {
-                            controller?.pauseCamera();
-                          },
-                          child: Text('pause', style: TextStyle(fontSize: 20)),
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.all(8),
-                        child: RaisedButton(
-                          onPressed: () {
-                            controller?.resumeCamera();
-                          },
-                          child: Text('resume', style: TextStyle(fontSize: 20)),
-                        ),
-                      )
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -140,9 +119,50 @@ class _QRViewExampleState extends State<QRViewExample> {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       setState(() {
-        qrText = scanData;
+        print("scanned " + scanData);
+        controller.pauseCamera();
+        //pop this context so pushing the back button won't bring us back to the camera
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return getTallyApprovalDialog(scanData);},);
       });
     });
+  }
+
+  Widget getTallyApprovalDialog(scanData) {
+    Tally tally = Tally.parseTallyTicket(
+        TallyTicket.fromJson(jsonDecode(scanData)));
+    return AlertDialog(
+      title: Text('AlertDialog Title'),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Text('Would you like to start a tally with ' + tally.friend + "?"),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text('Cancel'),
+          onPressed: () {
+            Navigator.of(context).pop();
+            controller.resumeCamera();
+          }),
+        TextButton(
+          child: Text('Confirm'),
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.pop(context);
+            TransitionToNewTally(tally);
+          }),
+      ],
+    );
+  }
+
+  void TransitionToNewTally(tally) {
+    Navigator.push(context, new MaterialPageRoute(
+        builder: (BuildContext context) => new TallyPage(tally)));
   }
 
   @override

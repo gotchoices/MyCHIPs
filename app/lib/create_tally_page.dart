@@ -52,7 +52,7 @@ class CreateTallyPageState extends State<CreateTallyPage> {
           onPressed: () {
               print("Load the QRCode scanner page");
             Navigator.push(context, new MaterialPageRoute(
-               builder: (BuildContext context) => new QRViewExample()));
+               builder: (BuildContext context) => new Scanner()));
           },
           child: const Text("Scan QR Code", style: TextStyle(fontSize: 20)),
           color: Colors.blue,

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
 import 'transaction.dart';
+import 'tally.dart';
 import 'package:date_format/date_format.dart';
 
 class TallyPage extends StatefulWidget {
-  final String friend;
-  final int balance;
-  TallyPage(this.friend, this.balance, {Key key}): super(key: key);
+  final Tally tally;
+  TallyPage(this.tally, {Key key}): super(key: key);
 
   @override
   TallyPageState createState() => new TallyPageState();
@@ -19,7 +19,7 @@ class TallyPageState extends State<TallyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("Tally with " + widget.friend),
+          title: Text("Tally with " + widget.tally.friend),
           actions: [
             CircleAvatar(backgroundImage: new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),)
           ],),
@@ -49,7 +49,7 @@ class TallyPageState extends State<TallyPage> {
           alignment: Alignment.topCenter,
           child: Column(
           children: [
-            Text("₵" + widget.balance.toString(),  style: TextStyle(fontSize: 75)),
+            Text("₵" + widget.tally.balance.toString(),  style: TextStyle(fontSize: 75)),
             Text("balance",  style: TextStyle(fontSize: 25)),
           ],
     ))));
