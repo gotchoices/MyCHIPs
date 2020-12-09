@@ -92,7 +92,10 @@ class TallyPageState extends State<TallyPage> {
         alignment: Alignment.bottomLeft,
         child: MaterialButton(
           onPressed: () {
-            showDialog(context: context, builder: (BuildContext context){return AlertDialog(content: buildTransactionWidget(context, 'PAY', widget.tally.friend));});
+            showDialog(context: context, builder: (BuildContext context){
+              return AlertDialog(
+                scrollable: true,
+                content: buildTransactionWidget(context, 'PAY', widget.tally.friend));});
           },
           child: const Text('PAY', style: TextStyle(fontSize: 20)),
           color: Colors.blue,
@@ -107,7 +110,10 @@ class TallyPageState extends State<TallyPage> {
           alignment: Alignment.bottomRight,
           child: MaterialButton(
             onPressed: () {
-              showDialog(context: context, builder: (BuildContext context){return AlertDialog(content: buildTransactionWidget(context, 'REQUEST', widget.tally.friend));});
+              showDialog(context: context, builder: (BuildContext context){
+                return AlertDialog(
+                  scrollable: true,
+                  content: buildTransactionWidget(context, 'REQUEST', widget.tally.friend));});
             },
             child: const Text('REQUEST', style: TextStyle(fontSize: 20)),
             color: Colors.blue,

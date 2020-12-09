@@ -46,6 +46,7 @@ class TransactionPageState extends State<TransactionPage> {
   }
 
   Widget createButtons(context, transactionType) {
+  //TODO: Verify valid input before allowing button logic to be executed.
     if(transactionType == BOTH) {
     return Container(
       child: Padding(
