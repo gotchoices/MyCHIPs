@@ -33,6 +33,7 @@ dependencies:
   cupertino_icons: ^1.0.0
 
 dev_dependencies:
+  pie_chart: 4.0.1
   flutter_test:
     sdk: flutter
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pie_chart/pie_chart.dart';
 import 'package:flutter_app/transaction_page.dart';
 import 'package:flutter_app/user_info.dart';
 import 'tally_list_page.dart';
@@ -21,14 +22,60 @@ class MyChips extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  PieChartWidget createState() => PieChartWidget();
+}
+
+class PieChartWidget extends State<HomePage> {
+  Map<String, double> dataMap = {
+    "House Mortgage": 1,
+    "Company Investments": 1,
+    "MyCHIPs Software Developer": 2,
+    "T-Shirt Sales": 1,
+  };
+
+  List<Color> colorList = [
+    Colors.red,
+    Colors.orange,
+    Colors.green,
+    Colors.greenAccent
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: AppBar(title: Text("MyCHIPs home")),
-      drawer: MainDrawer(),
-    );
-  }
+      return new Scaffold(
+        appBar: AppBar(title: Text("MyCHIPs home")),
+        body: Center(
+            child: PieChart(
+              dataMap: dataMap,
+              animationDuration: Duration(milliseconds: 3000),
+              chartLegendSpacing: 32,
+              chartRadius: MediaQuery.of(context).size.width / 1.2,
+              colorList: colorList,
+              initialAngleInDegree: 0,
+              chartType: ChartType.disc,
+              ringStrokeWidth: 32,
+              legendOptions: LegendOptions(
+                showLegendsInRow: true,
+                legendPosition: LegendPosition.top,
+                showLegends: true,
+                legendShape: BoxShape.circle,
+                legendTextStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              chartValuesOptions: ChartValuesOptions(
+                showChartValueBackground: false,
+                showChartValues: true,
+                showChartValuesInPercentage: true,
+                showChartValuesOutside: false,
+              ),
+            )
+        ),
+        drawer: MainDrawer(),
+      );
+    }
 }
 
 class MainDrawer extends StatelessWidget {
