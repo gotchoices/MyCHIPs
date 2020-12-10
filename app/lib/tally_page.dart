@@ -5,7 +5,6 @@ import 'tally.dart';
 import 'package:date_format/date_format.dart';
 import 'transaction_page.dart';
 
-
 class TallyPage extends StatefulWidget {
   final Tally tally;
   TallyPage(this.tally, {Key key}): super(key: key);
@@ -123,20 +122,4 @@ class TallyPageState extends State<TallyPage> {
             minWidth: maxButtonWidth
     )))]));
   }
-
-  Widget buildPopupVersion(transactionType){
-    return Column(
-      children: [
-        TextField(
-            decoration: InputDecoration(
-              icon: Icon(Icons.alternate_email),
-              labelText: transactionType + 'who?',)),
-        TextField(
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-              icon: Icon(Icons.attach_money), labelText: 'how much?'
-          ),
-        )
-      ],
-    );
-  }}
+}

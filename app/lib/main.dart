@@ -5,6 +5,7 @@ import 'package:flutter_app/user_info.dart';
 import 'tally_list_page.dart';
 import 'sign_in.dart';
 import 'create_tally_page.dart';
+import 'scanner.dart';
 
 void main() {
   runApp(MyChips());
@@ -46,7 +47,7 @@ class PieChartWidget extends State<HomePage> {
   Widget build(BuildContext context) {
       return new Scaffold(
         appBar: AppBar(title: Text("MyCHIPs home")),
-        body: Center(
+        body: Stack(children: [Center(
             child: PieChart(
               dataMap: dataMap,
               animationDuration: Duration(milliseconds: 2500),
@@ -72,10 +73,50 @@ class PieChartWidget extends State<HomePage> {
                 showChartValuesOutside: false,
               ),
             )
-        ),
+        ), buildButtons()]),
         drawer: MainDrawer(),
       );
     }
+
+  Widget buildButtons() {
+    var maxButtonWidth = (MediaQuery.of(context).size.width) / 2.25;
+    return Container(
+        child: Row(children: [
+          Padding(
+              padding: const EdgeInsets.all(10),
+              child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: MaterialButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (BuildContext context) => Scanner()));
+                      },
+                      child: Row(children: [Text('SCAN', style: TextStyle(fontSize: 20)), Icon(Icons.qr_code)]),
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      elevation: 5,
+                      height: 50,
+                      minWidth: maxButtonWidth
+                  ))),
+          Padding(
+              padding: const EdgeInsets.all(10),
+              child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: MaterialButton(
+                      onPressed: () {
+                        showDialog(context: context, builder: (BuildContext context){
+                          return AlertDialog(
+                              scrollable: true,
+                              content: buildTransactionWidget(context, 'BOTH'));});
+                      },
+                      child: const Text('Pay/Request', style: TextStyle(fontSize: 20)),
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      elevation: 5,
+                      height: 50,
+                      minWidth: maxButtonWidth
+                  )))]));
+  }
 }
 
 class MainDrawer extends StatelessWidget {
@@ -118,13 +159,6 @@ class MainDrawer extends StatelessWidget {
                   builder: (BuildContext context) => CreateTallyPage()
                 ));
               }),
-            ListTile(
-                title: new Text("New Transaction"),
-                onTap: () {
-                  Navigator.push(context, new MaterialPageRoute(
-                      builder: (BuildContext context) => new TransactionPage()
-                  ));
-                })
           ],
         )
     );
