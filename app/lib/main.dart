@@ -49,7 +49,7 @@ class PieChartWidget extends State<HomePage> {
         body: Center(
             child: PieChart(
               dataMap: dataMap,
-              animationDuration: Duration(milliseconds: 3000),
+              animationDuration: Duration(milliseconds: 2500),
               chartLegendSpacing: 32,
               chartRadius: MediaQuery.of(context).size.width / 1.2,
               colorList: colorList,
