@@ -21,7 +21,7 @@ MyCHIPs service provider and its customers.
 
 In this docker-based version, each process is a separate container.  So the
 notion of a "site" is not quite as clear.  It is probably best to think of a 
-site as an "instance of postgre."  Then, there are other processes (SPA, peer 
+site as an "instance of postgres."  Then, there are other processes (SPA, peer 
 and agent) that are part of that logical site but run in their own containers.
 This is likely how a larger-scale service provider might operate anyway--with
 different processes running on different servers, all a part of the same site.

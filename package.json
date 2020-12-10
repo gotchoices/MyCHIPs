@@ -1,6 +1,6 @@
 {
   "name": "mychips",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Reference MyCHIPs server",
   "main": "lib/mychips.js",
   "preferGlobal": "true",
