@@ -36,6 +36,7 @@
     "cert": "wyclif-cert",
     "init": "bin/localcerts spa",
     "adminticket": "bin/adminticket -o test/local/admin.json",
+    "docker": "docker-compose -f build/compose-dev.yml --env-file build/config-dev.env up",
     "agent": "test/sim/agent -m 2",
     "builddb": "cd schema; make objects",
     "preversion": "npm-run-all --parallel contract-hashes build-sql build && git add -A"

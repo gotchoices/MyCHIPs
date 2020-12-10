@@ -9,4 +9,6 @@ FROM postgres:${version}
 RUN apt-get update; \
 	apt-get install -y postgresql-plpython-11; \
 	apt-get install -y postgresql-pltcl-11; \
-	apt-get install -y postgresql-contrib-11;
+	apt-get install -y postgresql-contrib-11; \
+	apt-get install -y less iputils-ping; \
+	apt-get install -y busybox; busybox --install -s

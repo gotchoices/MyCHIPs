@@ -1,20 +1,26 @@
+#TODO:
+#- UNFINISHED, UNTESTED!
+#- Make production version of compose-dev that runs out of /app folder
+#- 
 version: '3.7'
 
 services:
-  server:
+  mychips:
     image: gotchoices/mychips
-    command: ["npm", "start"]
+    command: npm start
+    container_name: mychips
+    hostname: mychips
     build:
       context: ..
-      labels:
-        - "org.gotchoices.description=server"
       dockerfile: build/Dockerfile
-    links:
-      - postgres
     environment:
       NODE_DEBUG: debug
-#    volumes:
-#      - ${MYCHIPS_CODE_PATH:-.}:/app
+      MYCHIPS_DBHOST: postgres
+    working_dir: /usr/local/devel/mychips
+    volumes:
+      - ${MYCHIPS_CODE_PATH:-.}:/app
+      - "~/.inputrc:/root/.inputrc"
+      - "~/.bashrc:/root/.bashrc"
     depends_on:
       - postgres
     ports:
@@ -23,26 +29,25 @@ services:
     networks:
       - backend
       - frontend
-#    env_file:
-#      - prod.env
 
   postgres:
-    image: postgres:latest
-    ports:
-      - ${MYCHIPS_DBPORT:-15432}:5432
+    image: gotchoices/pg
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.pg
+    container_name: pg
+#    ports:
+#      - ${MYCHIPS_DBPORT:-15432}:5432
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
-      POSTGRES_DB: ${MYCHIPS_DBNAME:-postgres}
-      POSTGRES_USER: ${MYCHIPS_DBADMIN:-postgres}
-      POSTGRES_PASSWORD: ${MYCHIPS_DBPASSWORD:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: trust
     tty: true
     stdin_open: true
-    labels:
-      name: postgres-data
     volumes:
       - ./pgdata:/var/lib/postgresql/data/pgdata
-#    env_file:
-#      - prod.env
+      - "./dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh"
+      - "~/.inputrc:/root/.inputrc"
+      - "~/.bashrc:/root/.bashrc"
     networks:
       - backend
 

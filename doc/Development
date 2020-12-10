@@ -1,19 +1,101 @@
 Instructions to demonstrate reference code (Feb 2020)
 
-Current testing limited to: 
-Fedora linux, Chrome, Firefox, PostgreSQL 9-11, Docker
-
 ---------------------------------------------------------------------
 Docker Simulation
 
-If you just want to run the docker network simulation, install Docker on your
-machine and then get into test/sim and follow instructions in README.dock.
+The docker simulation script allows you to launch any number of MyCHIPs
+server instances in docker containers.  There is also an agent model
+modules that will run on behalf of simulated users to create a data set of
+CHIP trades.
 
-The docker simulation model was developed on MacOS but it should also be 
-possible to run on a Linux host.
+To run the simulation, install Docker on your machine and then get into 
+test/sim and follow instructions in README.dock.
+
+The simulation environment was developed on MacOS but it should also be 
+possible (though not well tested) to run on a Linux host.
 
 ---------------------------------------------------------------------
-To manually configure a Linux environment for testing the MyCHIPs server:
+Docker Test Instance
+
+This is probably the best way to take MyCHIPs for a quick test run.  You will
+need docker installed on your system.  But theoretically, you should be able
+to do this on Mac, Linux or Windows.
+
+To launch a server/database pair:
+
+  npm run docker
+
+This will probably take a while on first run to build some images.  But it
+will be faster on subsequent runs.  It will run until you interrupt it with
+a CTRL-C or the like.
+
+The server is configured from the file build/config-dev.env.  By making
+multiple such configuration files, you should be able to launch multiple
+instances of the server pair.  Keep in mind, the hostname you choose for
+the MyCHIPs server will have to resolve on your system.  For testing, you can
+solve this with a line in /etc/hosts:
+
+  127.0.0.1	mychips0
+
+This hostname is what we will be entering into the browser to get the admin
+app.  It is also what will be built into the SSL certificates so all that
+has to use the same hostname for the browser to be happy.
+
+Once your server pair is running, you will need to connect to it.  You will
+have to use a bootstrap command to get the database to grant a connection for
+the admin user:
+
+  docker exec mychips0 bin/adminticket -S 8000 -P 54320 -H mychips0 -Q
+
+The SPA port and WebSocket ports in this command must match up with what you
+have in the configuration files for the server pair you launched.  That
+command will spit out a URL which you can copy/paste into your browser.  Or
+if you are really tricky you can do it all in one whack something like 
+this (on Mac OS):
+
+  open -n -a Firefox.app --args -new-tab \
+    $(d exec mychips0 bin/adminticket -S 8000 -P 54320 -H mychips0 -Q)
+
+This will probably complain because you are connecting to a URL with an
+unknown certificate authority.  To fix that, you will have to import the
+CA file created by the system as follows (again for Mac OS):
+
+  open test/local/docker/pki/spa-ca.crt
+
+You will need to tell the OS (in Keychain Access) to fully trust this CA.
+You should find it called Chippies.chip.
+
+Windows has a similar system for importing certificate authorities.  For
+Linux, you may have to import it directly into the browser you are using.
+You may also have to restart Firefox if that is what you are using.
+
+Then generate a fresh connection ticket as noted above and connect to it.
+
+The MyCHIPs server should be creating logs which you can view with:
+
+  tail -f test/local/docker/mychips0.log/combined.log
+
+The PostgreSQL server creates logs you can view with this command:
+
+  docker logs -f postgres0 --tail -0
+
+Once connected, you should be able to view users by finding the "Load All"
+button in the smaller hamburger menu on the upper left area of the preview
+window.  There will probably be only a single user: admin.
+
+To make things more interesting, try this:
+
+  docker exec mychips0 test/sample/randuser -n 4
+
+Now reload to see 4 more users on your system.  Double click on one of those
+users to open an editing pane.  Execute the Actions menu item in the editing
+pane to generate a connection ticket for that user.  This is a QR code by
+default, but there are also links there to copy/paste a URL into a browser
+to connect to the User (as opposed to admin) UI.
+
+---------------------------------------------------------------------
+To manually configure a native Linux environment for testing the MyCHIPs 
+server:
 
 - Install Postgres, as root:
   dnf install postgresql postgresql-server postgresql-devel \

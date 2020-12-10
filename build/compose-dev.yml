@@ -1,36 +1,36 @@
+#This version ignores the copy of mychips in the /app folder and instead
+#mounts the local source tree under a development folder (/usr/local/devel).
+#This allows one to #make and test changes without having to rebuild the 
+#docker images.
+#TODO:
+#- Implement encryption between mychips and postgres
+#- 
 version: '3.7'
 
 services:
   mychips:
     image: gotchoices/mychips
-    command: ["npm", "start"]
-    container_name: mychips
-    hostname: mychips
-#    dns_search: simulation
-#    domainname: mychips.simulation
+    command: bash -c "PATH=\${PATH}:${MYCHIPS_DEVDIR}/node_modules/.bin npm start"
+    container_name: $MYCHIPS_HOST
+    hostname: $MYCHIPS_HOST
     build:
       context: ..
-      dockerfile: build/Dockerfile
+      dockerfile: build/docker-mychips
     environment:
-      NODE_DEBUG: debug
-      MYCHIPS_DBHOST: postgres
-    labels:
-      name: mychips
-    working_dir: /usr/local/devel/mychips
+      NODE_DEBUG: $MYCHIPS_DEBUG
+      MYCHIPS_DBHOST: $MYCHIPS_DBHOST
+    working_dir: ${MYCHIPS_DEVDIR}/mychips
     volumes:
-      - "../..:/usr/local/devel"
-      - "../local/log:/var/tmp/mychips"
-      - "~/.inputrc:/root/.inputrc"
-      - "~/.bashrc:/root/.bashrc"
+      - "../..:${MYCHIPS_DEVDIR}"
+      - "../test/local/docker/${MYCHIPS_HOST}.log:/var/tmp/mychips"
+      - "../test/local/docker/pki:${MYCHIPS_DEVDIR}/mychips/pki/local"
+      - "$MYCHIPS_KEYMAP:/root/.inputrc"
+      - "$MYCHIPS_SHELLRC:/root/.bashrc"
     depends_on:
       - postgres
-#    deploy:
-#      mode: replicated
-#      replicas: 2
-#      endpoint_mode: vip
     ports:
-      - "8000"
-      - "54320"
+      - "${MYCHIPS_SPAPORT:-8000}:8000"
+      - "${MYCHIPS_WSPORT:-54320}:54320"
     networks:
       - backend
       - frontend
@@ -39,18 +39,19 @@ services:
     image: gotchoices/pg
     build:
       context: ..
-      dockerfile: build/Dockerfile.pg
+      dockerfile: build/docker-pg
+    container_name: $MYCHIPS_DBHOST
+    hostname: $MYCHIPS_DBHOST
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_HOST_AUTH_METHOD: trust
     tty: true
     stdin_open: true
-    labels:
-      name: pg
     volumes:
-      - "../local/pgdata:/var/lib/postgresql/data/pgdata"
-      - "./dbcheck.sh:/docker-entrypoint-initdb.d/dbcheck.sh"
-      - "~/.inputrc:/root/.inputrc"
-      - "~/.bashrc:/root/.bashrc"
+      - "../test/local/docker/${MYCHIPS_DBHOST}.pgdata:/var/lib/postgresql/data/pgdata"
+      - "./dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh"
+      - "$MYCHIPS_KEYMAP:/root/.inputrc"
+      - "$MYCHIPS_SHELLRC:/root/.bashrc"
     networks:
       - backend
 

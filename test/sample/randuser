@@ -10,8 +10,8 @@ DBNAME=${MYCHIPS_DBNAME}; if [ -z "$DBNAME" ]; then DBNAME="mychips"; fi
 
 count=1
 servID='null'
-minDate="Jan 01, 1940"
-maxDate="Dec 31, 2009"
+minDate="1940-01-01"
+maxDate="2009-12-31"
 minSecs=$(date -d "$minDate" +%s)
 diffSecs=$(expr $(date -d "$maxDate" +%s) - $minSecs)
 while [ $# -gt 0 ]; do
@@ -25,7 +25,8 @@ done
 #echo "DBNAME:$DBNAME count:$count servID:$servID diffSecs:$diffSecs"
 
 while [ $count -gt 0 ]; do
-  name="$(curl -s www.pseudorandom.name)"
+#  name="$(curl -s www.pseudorandom.name)"
+  name="$(wget -O - www.pseudorandom.name 2>/dev/null)"
   read first last <<< "$name"
   cid="$(echo ${first}_${last} |tr '[:upper:]' '[:lower:]')"
   secs=$(expr ${RANDOM}${RANDOM} % $diffSecs + $minSecs)
