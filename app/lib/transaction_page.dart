@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'main.dart';
+
+const BOTH = 'BOTH';
 
 class TransactionPage extends StatefulWidget {
   @override
@@ -14,19 +15,17 @@ class TransactionPageState extends State<TransactionPage> {
     return Scaffold(
         appBar: AppBar(
           title: Text("MyCHIPs Transaction"),
-          actions: [
-            CircleAvatar(backgroundImage:
-            new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),)],
         ),
-        body: buildPage(),
+        body: buildTransactionWidget(context, BOTH),
         drawer: MainDrawer()
     );
   }
+}
 
-  Widget buildPage() {
+  Widget buildTransactionWidget(context, transactionType, [friend = null]) {
     return Column(
         children: [
-          createPaymentTextFields(),
+          createPaymentTextFields(friend),
           Divider(
               thickness: 2,
               color: Colors.black
@@ -34,6 +33,7 @@ class TransactionPageState extends State<TransactionPage> {
           Container(
               child: Padding(
                 padding: EdgeInsets.only(bottom: 100, left: 5),
+                //TODO: Make the text in this textfield wrap
                 child: TextField(
                   decoration: InputDecoration(
                       border: InputBorder.none,
@@ -41,44 +41,67 @@ class TransactionPageState extends State<TransactionPage> {
                       hintStyle: TextStyle(color: Colors.grey)),
                   style: TextStyle(color: Colors.black),),)
           ),
-          createButtons()
+          createButtons(context, transactionType)
         ]);
   }
 
-  Widget createButtons() {
+  Widget createButtons(context, transactionType) {
+  //TODO: Verify valid input before allowing button logic to be executed.
+    if(transactionType == BOTH) {
     return Container(
-        child: Padding(
-            padding: EdgeInsets.all(10),
-            child: Row(
-                children: [
-                  Expanded(
-                      flex: 1,
-                      child: MaterialButton(
-                          onPressed: () {
-                            print("pressed 'pay'");},
-                          child: Text('PAY',
-                              style: TextStyle(fontSize: 20)),
-                          color: Colors.amber,
-                          textColor: Colors.black,
-                          elevation: 5,
-                          height: 50,
-                          minWidth: (MediaQuery.of(context).size.width) / 2.25)),
-                  MaterialButton(
-                      onPressed: () {
-                        print("pressed 'request'");},
-                      child: Text('REQUEST',
-                          style: TextStyle(fontSize: 20)),
-                      color: Colors.amber,
-                      textColor: Colors.black,
-                      elevation: 5,
-                      height: 50,
-                      minWidth: (MediaQuery.of(context).size.width) / 2.25)
+      child: Padding(
+        padding: EdgeInsets.all(10),
+          child: Row(
+            children: [
+              Expanded(
+                child: MaterialButton(
+                  onPressed: () {
+                    //TODO: PAY LOGIC
+                    Navigator.pop(context);
+                    print("pressed 'pay'");},
+                  child: Text('PAY',
+                    style: TextStyle(fontSize: 20)),
+                  color: Colors.blue,
+                  textColor: Colors.white,
+                  elevation: 5,
+                  height: 50,
+                  minWidth: (MediaQuery.of(context).size.width) / 2.25)),
+              MaterialButton(
+                onPressed: () {
+                  //TODO: REQUEST PAYMENT LOGIC
+                  Navigator.pop(context);
+                  print("pressed 'request'");},
+                child: Text('REQUEST',
+                  style: TextStyle(fontSize: 20)),
+                color: Colors.blue,
+                textColor: Colors.white,
+                elevation: 5,
+                height: 50,
+                minWidth: (MediaQuery.of(context).size.width) / 2.25)
                 ])
         )
     );
+    }
+    return Container (
+      child: Padding(
+        padding: EdgeInsets.all(10),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: MaterialButton(
+              onPressed: () {
+                Navigator.pop(context);
+                print("pressed "+ transactionType);},
+              child: Text(transactionType, style: TextStyle(fontSize: 20)),
+              color: Colors.blue,
+              textColor: Colors.white,
+              elevation: 5,
+              // height:50
+              ))])));
   }
 
-  Widget createPaymentTextFields() {
+  Widget createPaymentTextFields(friend) {
     return Container(
         child: Padding(
             padding: EdgeInsets.only(left: 5),
@@ -87,7 +110,7 @@ class TransactionPageState extends State<TransactionPage> {
                 children: [
                   Expanded(
                       flex: 2,
-                      child: TextField(
+                      child: friend != null ? Text(friend): TextField(
                           onChanged: (input) {
                             searchTallies(input);},
                           decoration: InputDecoration(
@@ -116,4 +139,3 @@ class TransactionPageState extends State<TransactionPage> {
     //put logic to filter searched users here (probably the same as what's on the tally page)
     print(input);
   }
-}
