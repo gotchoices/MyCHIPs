@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<!--
+TODO:
+X- More inner donut to show assets vs debt (debt ratio)
+X- CHIP summary wedges show up on East axis
+X- Call force to arrange nodes (clients on top, vendors on bottom)
+X- Implement/draw links from partners to pie slices
+X- Pie doesn't respond to dragging
+X- Zoom treated differently on different objects
+X- Split updateData into initData and updateData
+X- Sort asset CHIPs to top of circle
+- Center circle shade indicates net worth
+- Something better than ID to know which slice I'm over (whole group)
+- While lines on Ego don't zoom chart (do nothing)
+- 
+- Native holdings change value on zoom
+- Partners change value on zoom
+- Graph updates
+- Everything else passes zoom to regular scrolling function
+- After zoom, partner bubbles seek new floor/ceiling
+- 
+- Plus icon, slides out New menu
+- Menu includes: Stock, Foil, Real, Fiat
+- Click on holding to reveal Minus icon (that deletes holding)
+- Can add, delete holdings
+- Bounds check conventional assets/liabilities to positive numbers
+- Chip type holdings can go negative (and change color with net)
+- Tooltip displays name (and other data?)
+- Click on ring 1 toggles: show all assets or only CHIP assets
+- 
+- Finally:
+- Make this a vue component in MyCHIPs
+- Make (and use) generic graph handler in Wylib?
+-->
+<html lang="en">
+ <head>
+  <meta charset="utf-8" />
+  <title>Visual Balance Sheet</title>
+  <style>
+    body {
+//      border: 1px purple solid;
+    }
+    .visbs {
+      border: 1px blue solid;
+      width: 100%;
+      height: auto;
+      font-family: sans-serif;
+      font-size: 12px;
+      text-anchor: middle;
+    }
+    .visbs .ring .name {
+      font-weight: bold;
+    }
+    .partner circle {
+      stroke: #666;
+    }
+    .link {
+      fill: none;
+      stroke: #666;
+      stroke-width: 2px;
+      opacity: 0.5;
+      marker-end: url(#arrow);
+    }
+  </style>
+ </head>
+<body>
+  <div class="buttons">
+    <button onclick="addHolding('chip')">New Tally</button>
+    <button onclick="addHolding('real')">New Real</button>
+    <button onclick="addHolding('fiat')">New Fiat</button>
+    <button onclick="delHolding()">Delete</button>
+  </div>
+  <svg class="visbs">
+    <defs>
+      <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      </marker>
+      <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z"/>
+      </marker>
+      <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5">
+        <circle cx="5" cy="5" r="5" fill="red" stroke="black"/>
+      </marker>
+    </defs>
+  </svg>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8" type="text/javascript"></script>
+<script>
+const markerWidth = 12
+const markerHeight = 8
+const arrowPoints = [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]
+
+const holdRad = 240			//Holdings bubble
+const holdRads = [2, holdRad * 0.2, holdRad * 0.4, holdRad * 0.8, holdRad]
+const gapAngle = 0.004
+const startAngle = Math.PI/2		//Start/end on East
+const endAngle = Math.PI/2*5
+const partRad = 35			//Partner bubbles
+var svgWid = 650, svgHei = 650
+var slices, rings, parts, tallies, subs	//Sorting arrays
+
+var holdings = [
+  {id:  0, type: "chip", asset: true,  name: 'Alice',  amount: 100},
+  {id:  1, type: "chip", asset: true,  name: 'Bob',    amount: 200},
+  {id:  2, type: "chip", asset: true,  name: 'Chuck',  amount: 300},
+  {id:  3, type: "chip", asset: true,  name: 'David',  amount: 400},
+  {id:  4, type: "chip", asset: false, name: 'Edward', amount: 80},
+  {id:  5, type: "chip", asset: false, name: 'Frank',  amount: 180},
+  {id:  6, type: "chip", asset: false, name: 'George', amount: 280},
+  {id:  7, type: "chip", asset: false, name: 'Harry',  amount: 380},
+  {id:  8, type: "real", asset: true,  name: 'House',  amount: 10000},
+  {id:  9, type: "real", asset: true,  name: 'Car',    amount: 2500},
+  {id: 10, type: "fiat", asset: true,  name: 'Cash',   amount: 3000},
+  {id: 11, type: "fiat", asset: false, name: 'Mortgage', amount: 8000},
+  {id: 12, type: "fiat", asset: false, name: 'Car Loan', amount: 2000},
+]
+const sumWorth  = {id: -1, type: 'nw', ring: 0, name: 'Net Worth',       amount: 0, color: '#888'}
+const sumAssets = {id: -2, type: 'as', ring: 1, name: 'Assets',          amount: 0, color: 'hsl(230,40%,40%)'}
+const sumLiabs  = {id: -3, type: 'li', ring: 1, name: 'Liabilities',     amount: 0, color: 'hsl(350,40%,40%)'}
+const sumCHIPsR = {id: -4, type: 'zchr', ring: 2, name: 'CHIP Receivable', amount: 0, color: 'hsl(200,100%,30%)'}
+const sumCHIPsP = {id: -5, type: 'achp', ring: 2, name: 'CHIP Payable',    amount: 0, color: 'hsl(10,100%,30%)'}
+
+const Ranges = {	//Lookup table for ranges of colors, based on holding type
+  chip:	{
+    plus:	d3.interpolate("hsl(200,100%,70%)", "hsl(200,100%,30%)"),
+    minus:	d3.interpolate("hsl( 10,100%,70%)", "hsl( 10,100%,30%)"),
+  },
+  fiat:	{
+    plus:	d3.interpolate("hsl(145,100%,30%)", "hsl(145,100%,70%)"),
+    minus:	d3.interpolate("hsl(325,100%,30%)", "hsl(325,100%,70%)"),
+  },
+  real:	{
+    plus:	d3.interpolate("#a5672E", "#DCAD82"),	//https://icolorpalette.com/color/earthtone
+  }
+}
+
+const svg = d3.select(".visbs")
+    .attr("viewBox", [-svgWid / 2, -svgHei / 2, svgWid, svgHei])
+    .attr("width", svgWid).attr("height", svgHei)
+    .attr("transform", d3.zoomIdentity)
+//.call(s=>s.append("g").append("path").attr("stroke","#BFB").attr("d","M0,-1000V1000 M-1000,0H1000"))	//Crosshairs for debug
+    
+const ego = svg.append("g").attr("class", "ego")		//Whole me circle
+  .call(s => s.append("g").attr("class", "ring ring0"))		//Net worth
+  .call(s => s.append("g").attr("class", "ring ring1")		//Assets/Liabilities
+    .on("click", e=>{
+console.log("Clickit", e)
+    })
+  )
+  .call(s => s.append("g").attr("class", "ring ring2 sizable"))	//By type
+  .call(s => s.append("g").attr("class", "ring ring3 sizable"))	//CHIP only
+
+const alii = svg.append("g").attr("class", "partners")		//Others
+const nexi = svg.append("g").attr("class", "links")		//Links
+
+svg.select('#arrow')
+  .attr('viewBox', [0, 0, markerWidth, markerHeight])
+  .attr('refX', 0).attr('refY', markerHeight/2)
+  .attr('markerWidth', markerWidth).attr('markerHeight', markerHeight)
+  .append('path').attr('d', d3.line()(arrowPoints))
+
+const drag = d3.drag()			//Drag function called by partner bubbles below
+  .on("drag", function (e,d) {
+//console.log("drag:", e, d)
+    d3.select(this).attr("cx", d.x += e.dx).attr("cy", d.y += e.dy)
+    d.fx = d.x; d.fy = d.y		//Fix position during dragging
+    simulation.alpha(1).restart()
+  })
+  .on("end", function (e,d) {
+    delete d.fx; delete d.fy		//Unfix, allow to be placed
+  })
+
+svg.call(d3.zoom()			//Default zoom scales whole graph
+  .on("zoom", e => {
+//console.log("svg zoom:", e.transform)
+    let { k } = e.transform
+      , wid = svgWid / k, hei = svgHei / k
+    svg.attr("viewBox", [-wid / 2, -hei / 2, wid, hei])
+  })
+)
+
+svg.selectAll(".sizable").call(d3.zoom()	//Some pie slices grow/shrink on zoom
+  .on("zoom", e => {
+    let { k } = e.transform
+      , wheelDelta = e.sourceEvent.wheelDeltaY
+      , holdID = e.sourceEvent.target.id
+      , holding = holdings.find(e=>(e.id == holdID))
+    if (!holdID || holdID < 0 || !holding) return
+console.log("Size zoom:", holdID, holding.amount, wheelDelta)
+    holding.amount -= wheelDelta
+    summData()
+    paintRing(2)
+    paintRing(3)
+    let i; for(i = 0; i <= 3; i++) tallies = paintRing(i)
+  })
+)
+
+const pie = d3.pie()			//Pie slice generator
+  .padAngle(gapAngle)
+  .startAngle(startAngle).endAngle(endAngle)
+  .sort(null)				//Already sorted
+  .value(d=>d.amount)
+
+function paintRing(i) {			//Render one layer of the pie chart
+  let data = rings[i]
+    , group = '.ring' + i		//Build class name
+    , oRad = holdRads[i+1], iRad = holdRads[i] + 1.5
+    , arcs = pie(data)
+    , arc = d3.arc().cornerRadius(3).innerRadius(iRad).outerRadius(oRad)
+//console.log("arcs:", arcs)
+
+  ego.select(group).selectAll(".holding")
+    .data(arcs)
+    .join(ent=>ent.append("g").attr("class", "holding")
+      .call(g=>g.append("path").attr("id",d=>(d.data.id)).append("title"))
+      .call(g=>g.append("text")
+        .call(t=>t.append("tspan").attr("class", "name"))
+        .call(t=>t.append("tspan").attr("class", "amount"))
+      )
+    )
+    .call(g=>g.select("path")
+      .attr("fill", d => (d.data.color))
+      .attr("d", d=>{
+        d.data.cent = arc.centroid(d)		//Cache centroid for later
+        return arc(d)
+      })
+    .select("title")
+      .text(d => `${d.data.id}: ${d.data.name} ${d.data.amount.toLocaleString()}`)
+    )
+    .select("text")
+      .attr("transform", d => `translate(${arc.centroid(d)})`)
+      .call(t=>t.select(".name")
+        .attr("y", "-0.4em")
+        .text(d => (d.data.name)))
+      .call(t=>t.filter(d => (d.endAngle - d.startAngle) > 0.125).select(".amount")
+        .attr("x", 0)
+        .attr("y", "0.7em")
+        .text(d => d.data.net.toLocaleString()))
+  return arcs
+}
+
+function paintPartners() {
+//console.log("data:", parts)
+  alii.selectAll(".partner")
+    .data(parts)
+    .join(ent=>ent.append("g").attr("class", "partner")
+      .call(g=>g.append("circle").attr("r", partRad).append("title"))
+      .call(g=>g.append("text"))
+    )
+    .call(drag)
+    .attr("transform", d => `translate(${d.x},${d.y})`)
+    .call(g=>g.select("text").text(d=>d.holding.name))
+    .select("circle").attr("fill", d=>d.holding.color)
+      .select("title")
+        .text(d => (d.holding.name + ': ' + d.holding.amount.toLocaleString()))
+    
+  nexi.selectAll(".link")
+    .data(tallies)
+    .join("path")
+      .attr("class", "link")
+      .attr("d", d3.linkRadial()
+        .source(d=>{
+//console.log("Tally:", d)
+          return [(d.startAngle + d.endAngle)/2, holdRad]
+        })
+        .target(d=>{
+          let p = d.data.part
+          return [Math.atan2(p.y, p.x) + Math.PI/2, 
+              Math.sqrt(Math.pow(p.y,2)+Math.pow(p.x,2)) - partRad - markerWidth]
+        })
+      )
+}
+
+function initData() {		//Re-initialize derived data structures
+  rings = [[], [], [], []]
+  parts = []
+  slices = [sumWorth, sumAssets, sumLiabs, sumCHIPsR, sumCHIPsP]
+
+  holdings.forEach(h => {				//Create summary records
+    h.cent = [0,0]					//Initial centroid
+    slices.push(h)
+    h.net = h.asset ? h.amount : -h.amount		//Net is derived value
+    h.ring = (h.type == 'chip') ? 3 : 2			//Which annular ring
+    if (h.type == 'chip' && h.part == undefined) {
+      let part = {					//Create a partner record
+        x: (Math.random()-0.5) * holdRad * 2, 
+        y: (Math.random()-0.5) * holdRad * 2, 
+        holding: h,
+        type: h.asset ? 'foil' : 'stock'
+      }
+      h.part = part
+      parts.push(part)
+    }
+  })
+  subs = {
+    chip: {plus: [], minus: []},
+    fiat: {plus: [], minus: []},
+    real: {plus: []},
+  }
+  holdings.forEach(h => {	//Separate holdings by type and positive/negative
+    let sign = h.net >= 0 ? 'plus' : 'minus'
+      , type = h.type || 'chip'
+      , sub = subs[type][sign]
+console.log('ty:', type, 'si:', sign, 'sub:', sub)
+    if (sub) sub.push(h)
+  })
+console.log("subs:", subs)
+
+  summData()
+  slices.sort((ao,bo) => {			//Arrange the order slices will appear
+    let a = ao.net, aSign = Math.sign(a)
+      , b = bo.net, bSign = Math.sign(b)
+    if (ao.ring > bo.ring) return 1		//Sort first by ring
+    if (ao.ring < bo.ring) return -1
+    if (aSign > bSign) return 1			//Then by sign
+    if (aSign < bSign) return -1
+    if (ao.type > bo.type) return 1		//Then by type (CHIP type names put them on East)
+    if (ao.type < bo.type) return -1
+    return (a - b)				//Then by net
+  })
+  slices.forEach(s => {				//Assign them to rings
+    rings[s.ring].push(s)
+  })
+}
+
+function summData() {		//Re-compute summary data and slices
+  slices.forEach(s => {
+    if (s.id < 0) s.amount = 0
+    s.net = 0
+  })
+
+  holdings.forEach(h => {				//Create summary records
+    h.net = h.asset ? h.amount : -h.amount		//Net is derived value
+    sumWorth.net += h.net
+    if (h.net >= 0) sumAssets.amount += h.amount; else sumLiabs.amount += h.amount
+    if (h.type == 'chip') {
+      if (h.net >= 0) sumCHIPsR.amount += h.amount; else sumCHIPsP.amount += h.amount
+    }
+  })
+  sumWorth.amount = Math.abs(sumWorth.net)
+  sumAssets.net = sumAssets.amount; sumLiabs.net = -sumLiabs.amount
+  sumCHIPsR.net = sumCHIPsR.amount; sumCHIPsP.net = -sumCHIPsP.amount
+
+  Object.keys(Ranges).forEach(t => {		//Assign each holding a color
+    ['plus','minus'].forEach(s => {
+      let sub = subs[t][s]; if (sub) {
+        let len = Math.max(2, sub.length)	//Can't quantize length 1
+          , shades = d3.quantize(Ranges[t][s], len)
+//console.log('t:',t,'s:',s,'sub:',sub, Ranges[t][s])
+        if (sub) sub.sort((a,b) => (a.net > b.net)).forEach((h,i) => {
+//console.log('i:',i, shades)
+          h.color = shades[i]
+        })
+      }
+    })
+  })
+}
+
+function addHolding(t) {
+  let ans = prompt("Input Name and Value", "Partner 10")
+  console.log("t:", t, "ans:", ans)
+}
+
+function delHolding() {
+  let ans = prompt("Input ID to delete:")
+  console.log("ans:", ans)
+}
+
+initData()
+var i; for(i = 0; i <= 3; i++) 
+  tallies = paintRing(i)		//Last one (outer ring) will be our tallies
+paintPartners()
+
+const simulation = d3.forceSimulation(parts)
+  .alphaDecay(0.02)
+  .velocityDecay(0.4)
+//  .force('charge', d3.forceManyBody().strength(3))
+  .force('x', d3.forceX().strength(0.1).x(function(d) {
+//console.log('force:', d.holding)
+    return d.holding.cent[0]
+  }))
+  .force('y', d3.forceY().strength(0.1).y(function(d) {
+    return (d.holding.asset ? -1 : 1) * (svgHei/2 - partRad)
+  }))
+  .force('collision', d3.forceCollide().strength(0.5).radius(partRad))
+  .on('tick', () => {
+//console.log('ticked')
+    paintPartners()
+  })
+
+</script>
+</body>
+</html>

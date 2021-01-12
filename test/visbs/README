@@ -1,0 +1,7 @@
+Standalone test of visual balance sheet using d3
+
+To run, do:
+
+./server
+
+And then browse to: localhost:8020
