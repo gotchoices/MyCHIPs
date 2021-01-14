@@ -46,7 +46,7 @@ admin app.  It is also what will be built into the SSL certificates so all that
 has to use the same hostname for the browser to be happy.
 
 Once the server pair is running, you will want to connect to it using the admin
-UI.  But the backend will now allow this without an authorized connection token.
+UI.  But the backend will not allow this without an authorized connection token.
 You can create it using the following bootstrap command:
 
   docker exec mychips0 bin/adminticket -S 8000 -P 54320 -H mychips0 -Q
