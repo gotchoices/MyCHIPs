@@ -9,15 +9,15 @@ X- Pie doesn't respond to dragging
 X- Zoom treated differently on different objects
 X- Split updateData into initData and updateData
 X- Sort asset CHIPs to top of circle
-- Center circle shade indicates net worth
+X- Center circle shade indicates net worth
+X- Links follow slices
+X- Native holdings change value on zoom
+X- After zoom, partner bubbles seek new floor/ceiling
+- Links point from stock->foil
 - Something better than ID to know which slice I'm over (whole group)
-- While lines on Ego don't zoom chart (do nothing)
-- 
-- Native holdings change value on zoom
-- Partners change value on zoom
-- Graph updates
+- White lines on Ego don't zoom chart (do nothing)
+- Zoom on partners changes slice value
 - Everything else passes zoom to regular scrolling function
-- After zoom, partner bubbles seek new floor/ceiling
 - 
 - Plus icon, slides out New menu
 - Menu includes: Stock, Foil, Real, Fiat
@@ -96,6 +96,7 @@ const endAngle = Math.PI/2*5
 const partRad = 35			//Partner bubbles
 var svgWid = 650, svgHei = 650
 var slices, rings, parts, tallies, subs	//Sorting arrays
+var simulation
 
 var holdings = [
   {id:  0, type: "chip", asset: true,  name: 'Alice',  amount: 100},
@@ -112,16 +113,25 @@ var holdings = [
   {id: 11, type: "fiat", asset: false, name: 'Mortgage', amount: 8000},
   {id: 12, type: "fiat", asset: false, name: 'Car Loan', amount: 2000},
 ]
+const maxChipP = "hsl(200,100%,30%)"	//Darkest positive CHIP
+const minChipP = "hsl(200,100%,70%)"	//Lightest positive CHIP
+const maxChipN = "hsl(10,100%,30%)"	//Darkest negative CHIP
+const minChipN = "hsl(10,100%,70%)"	//Lightest negative CHIP
+const maxNetW  = "hsl(230,50%,40%)"	//Positive, assets
+const minNetW  = "hsl(350,50%,40%)"	//Negative, liabilities
 const sumWorth  = {id: -1, type: 'nw', ring: 0, name: 'Net Worth',       amount: 0, color: '#888'}
-const sumAssets = {id: -2, type: 'as', ring: 1, name: 'Assets',          amount: 0, color: 'hsl(230,40%,40%)'}
-const sumLiabs  = {id: -3, type: 'li', ring: 1, name: 'Liabilities',     amount: 0, color: 'hsl(350,40%,40%)'}
-const sumCHIPsR = {id: -4, type: 'zchr', ring: 2, name: 'CHIP Receivable', amount: 0, color: 'hsl(200,100%,30%)'}
-const sumCHIPsP = {id: -5, type: 'achp', ring: 2, name: 'CHIP Payable',    amount: 0, color: 'hsl(10,100%,30%)'}
+const sumAssets = {id: -2, type: 'as', ring: 1, name: 'Assets',          amount: 0, color: maxNetW}
+const sumLiabs  = {id: -3, type: 'li', ring: 1, name: 'Liabilities',     amount: 0, color: minNetW}
+const sumCHIPsR = {id: -4, type: 'zchr', ring: 2, name: 'CHIP Receivable', amount: 0, color: maxChipP}
+const sumCHIPsP = {id: -5, type: 'achp', ring: 2, name: 'CHIP Payable',    amount: 0, color: maxChipN}
+const neutral = '#AAA'
+const posRange = d3.interpolate(neutral, maxNetW)
+const negRange = d3.interpolate(neutral, minNetW)
 
 const Ranges = {	//Lookup table for ranges of colors, based on holding type
   chip:	{
-    plus:	d3.interpolate("hsl(200,100%,70%)", "hsl(200,100%,30%)"),
-    minus:	d3.interpolate("hsl( 10,100%,70%)", "hsl( 10,100%,30%)"),
+    plus:	d3.interpolate(minChipP, maxChipP),
+    minus:	d3.interpolate(minChipN, maxChipN),
   },
   fiat:	{
     plus:	d3.interpolate("hsl(145,100%,30%)", "hsl(145,100%,70%)"),
@@ -162,7 +172,7 @@ const drag = d3.drag()			//Drag function called by partner bubbles below
 //console.log("drag:", e, d)
     d3.select(this).attr("cx", d.x += e.dx).attr("cy", d.y += e.dy)
     d.fx = d.x; d.fy = d.y		//Fix position during dragging
-    simulation.alpha(1).restart()
+    simulation.alpha(0.25).restart()
   })
   .on("end", function (e,d) {
     delete d.fx; delete d.fy		//Unfix, allow to be placed
@@ -175,6 +185,9 @@ svg.call(d3.zoom()			//Default zoom scales whole graph
       , wid = svgWid / k, hei = svgHei / k
     svg.attr("viewBox", [-wid / 2, -hei / 2, wid, hei])
   })
+  .on("end", e => {
+    init_simulation(0.25, 0.01)
+  })
 )
 
 svg.selectAll(".sizable").call(d3.zoom()	//Some pie slices grow/shrink on zoom
@@ -184,12 +197,14 @@ svg.selectAll(".sizable").call(d3.zoom()	//Some pie slices grow/shrink on zoom
       , holdID = e.sourceEvent.target.id
       , holding = holdings.find(e=>(e.id == holdID))
     if (!holdID || holdID < 0 || !holding) return
-console.log("Size zoom:", holdID, holding.amount, wheelDelta)
+//console.log("Size zoom:", holdID, holding.amount, wheelDelta)
     holding.amount -= wheelDelta
     summData()
-    paintRing(2)
-    paintRing(3)
     let i; for(i = 0; i <= 3; i++) tallies = paintRing(i)
+    simulation.alpha(0.5).restart()
+  })
+  .on("end", e => {
+    init_simulation(0.25, 0.01)
   })
 )
 
@@ -338,6 +353,11 @@ function summData() {		//Re-compute summary data and slices
   sumWorth.amount = Math.abs(sumWorth.net)
   sumAssets.net = sumAssets.amount; sumLiabs.net = -sumLiabs.amount
   sumCHIPsR.net = sumCHIPsR.amount; sumCHIPsP.net = -sumCHIPsP.amount
+//console.log("ALW", sumAssets.net, sumLiabs.net, sumWorth.net)
+  if (sumWorth.net >= 0)
+      sumWorth.color = posRange(sumWorth.net / sumAssets.net)
+  else
+      sumWorth.color = negRange(sumWorth.net / sumLiabs.net)
 
   Object.keys(Ranges).forEach(t => {		//Assign each holding a color
     ['plus','minus'].forEach(s => {
@@ -354,6 +374,29 @@ function summData() {		//Re-compute summary data and slices
   })
 }
 
+function init_simulation(alph = 1, dec = 0.02) {
+  let [ x, y, w, h ] = svg.attr("viewBox").split(',')
+    , height = Math.max(h/2, holdRad+partRad*2)
+  simulation = d3.forceSimulation(parts)
+    .alpha(alph)
+    .alphaDecay(dec)
+    .velocityDecay(0.4)
+//  .force('charge', d3.forceManyBody().strength(3))
+    .force('x', d3.forceX().strength(0.1).x(function(d) {
+//console.log('X:', d.holding.cent)
+      return d.holding.cent[0]
+    }))
+    .force('y', d3.forceY().strength(0.1).y(d => {
+//console.log('Y:', height)
+      return (d.holding.asset ? -1 : 1) * (height - partRad)
+    }))
+    .force('collision', d3.forceCollide().strength(0.5).radius(partRad))
+    .on('tick', () => {
+//console.log('ticked')
+      paintPartners()
+    })
+}
+
 function addHolding(t) {
   let ans = prompt("Input Name and Value", "Partner 10")
   console.log("t:", t, "ans:", ans)
@@ -368,23 +411,7 @@ initData()
 var i; for(i = 0; i <= 3; i++) 
   tallies = paintRing(i)		//Last one (outer ring) will be our tallies
 paintPartners()
-
-const simulation = d3.forceSimulation(parts)
-  .alphaDecay(0.02)
-  .velocityDecay(0.4)
-//  .force('charge', d3.forceManyBody().strength(3))
-  .force('x', d3.forceX().strength(0.1).x(function(d) {
-//console.log('force:', d.holding)
-    return d.holding.cent[0]
-  }))
-  .force('y', d3.forceY().strength(0.1).y(function(d) {
-    return (d.holding.asset ? -1 : 1) * (svgHei/2 - partRad)
-  }))
-  .force('collision', d3.forceCollide().strength(0.5).radius(partRad))
-  .on('tick', () => {
-//console.log('ticked')
-    paintPartners()
-  })
+init_simulation()
 
 </script>
 </body>
