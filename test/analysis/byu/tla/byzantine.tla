@@ -397,7 +397,7 @@ end process
 
 
 end algorithm *)
-\* BEGIN TRANSLATION - the hash of the PCal code: PCal-06c00f963b7eeab92c159c86fe76119f
+\* BEGIN TRANSLATION - the hash of the PCal code: PCal-a7ad259469ea717df101a16bbada0b5c
 \* Label ProposeLift of procedure ProposeLift at line 103 col 5 changed to ProposeLift_
 \* Label lsm of procedure ProposeLift at line 107 col 5 changed to lsm_
 \* Label HandleLift of procedure HandleLift at line 103 col 5 changed to HandleLift_
@@ -491,7 +491,7 @@ VARIABLES Users, LiftProposers, ReliableUsers, Links, Cycles, tallies,
           prevPeer, timeout, from_Co, to_Co, liftId_Co, signature_C, 
           nextPeer_C, liftValue_C, from_F, to, liftId_F, signature, nextPeer, 
           liftValue_F, from, liftId, arbitrator, cycle_, liftValue_, 
-          arbitrator_, toAct, lostMes, printBuffer
+          arbitrator_, toAct, lostMes, printBuffer, initialState
 
 vars == << Users, LiftProposers, ReliableUsers, Links, Cycles, tallies, 
            messages, readMessages, lostMessages, lifts, initialStates, 
@@ -509,7 +509,8 @@ vars == << Users, LiftProposers, ReliableUsers, Links, Cycles, tallies,
            signature_R, prevPeer, timeout, from_Co, to_Co, liftId_Co, 
            signature_C, nextPeer_C, liftValue_C, from_F, to, liftId_F, 
            signature, nextPeer, liftValue_F, from, liftId, arbitrator, cycle_, 
-           liftValue_, arbitrator_, toAct, lostMes, printBuffer >>
+           liftValue_, arbitrator_, toAct, lostMes, printBuffer, initialState
+        >>
 
 ProcSet == (Users)
 
@@ -610,6 +611,7 @@ Init == (* Global variables *)
         /\ toAct = [self \in Users |-> defaultInitValue]
         /\ lostMes = [self \in Users |-> defaultInitValue]
         /\ printBuffer = [self \in Users |-> <<>>]
+        /\ initialState = [self \in Users |-> []]
         /\ stack = [self \in ProcSet |-> << >>]
         /\ pc = [self \in ProcSet |-> "ProcStart"]
 
@@ -649,7 +651,7 @@ ProposeLift_(self) == /\ pc[self] = "ProposeLift_"
                                       liftId_F, signature, nextPeer, 
                                       liftValue_F, from, liftId, arbitrator, 
                                       cycle_, liftValue_, arbitrator_, toAct, 
-                                      lostMes >>
+                                      lostMes, initialState >>
 
 lsm_(self) == /\ pc[self] = "lsm_"
               /\ IF MESSAGES_FAIL
@@ -686,7 +688,7 @@ lsm_(self) == /\ pc[self] = "lsm_"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 PLR(self) == /\ pc[self] = "PLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -718,7 +720,7 @@ PLR(self) == /\ pc[self] = "PLR"
                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                              signature, nextPeer, liftValue_F, from, liftId, 
                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, printBuffer, initialState >>
 
 ProposeLift(self) == ProposeLift_(self) \/ lsm_(self) \/ PLR(self)
 
@@ -756,7 +758,7 @@ HandleLift_(self) == /\ pc[self] = "HandleLift_"
                                      from_F, to, liftId_F, signature, nextPeer, 
                                      liftValue_F, from, liftId, arbitrator, 
                                      cycle_, liftValue_, arbitrator_, toAct, 
-                                     lostMes >>
+                                     lostMes, initialState >>
 
 L1_(self) == /\ pc[self] = "L1_"
              /\ tallies' = [tallies EXCEPT ![<<to_[self], prevPeer_[self], "Stock">>].projectedBalance = tallies[<<to_[self], prevPeer_[self], "Stock">>].projectedBalance - liftValue_H[self]]
@@ -782,7 +784,7 @@ L1_(self) == /\ pc[self] = "L1_"
                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                              signature, nextPeer, liftValue_F, from, liftId, 
                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, printBuffer, initialState >>
 
 lsm_H(self) == /\ pc[self] = "lsm_H"
                /\ IF MESSAGES_FAIL
@@ -819,7 +821,7 @@ lsm_H(self) == /\ pc[self] = "lsm_H"
                                nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                                signature, nextPeer, liftValue_F, from, liftId, 
                                arbitrator, cycle_, liftValue_, arbitrator_, 
-                               toAct, lostMes >>
+                               toAct, lostMes, initialState >>
 
 losm_(self) == /\ pc[self] = "losm_"
                /\ IF MESSAGES_FAIL
@@ -856,7 +858,7 @@ losm_(self) == /\ pc[self] = "losm_"
                                nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                                signature, nextPeer, liftValue_F, from, liftId, 
                                arbitrator, cycle_, liftValue_, arbitrator_, 
-                               toAct, lostMes >>
+                               toAct, lostMes, initialState >>
 
 HLR(self) == /\ pc[self] = "HLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -890,7 +892,7 @@ HLR(self) == /\ pc[self] = "HLR"
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
                              liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
+                             printBuffer, initialState >>
 
 HandleLift(self) == HandleLift_(self) \/ L1_(self) \/ lsm_H(self)
                        \/ losm_(self) \/ HLR(self)
@@ -937,7 +939,7 @@ DecideLiftValidity_(self) == /\ pc[self] = "DecideLiftValidity_"
                                              signature, nextPeer, liftValue_F, 
                                              from, liftId, arbitrator, cycle_, 
                                              liftValue_, arbitrator_, toAct, 
-                                             lostMes >>
+                                             lostMes, initialState >>
 
 lsom_(self) == /\ pc[self] = "lsom_"
                /\ IF MESSAGES_FAIL
@@ -974,7 +976,7 @@ lsom_(self) == /\ pc[self] = "lsom_"
                                nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                                signature, nextPeer, liftValue_F, from, liftId, 
                                arbitrator, cycle_, liftValue_, arbitrator_, 
-                               toAct, lostMes >>
+                               toAct, lostMes, initialState >>
 
 lchecktime_(self) == /\ pc[self] = "lchecktime_"
                      /\ \E validDecision \in {"Good", "Fail"}:
@@ -1011,7 +1013,7 @@ lchecktime_(self) == /\ pc[self] = "lchecktime_"
                                      from_F, to, liftId_F, signature, nextPeer, 
                                      liftValue_F, from, liftId, arbitrator, 
                                      cycle_, liftValue_, arbitrator_, toAct, 
-                                     lostMes, printBuffer >>
+                                     lostMes, printBuffer, initialState >>
 
 lsm_D(self) == /\ pc[self] = "lsm_D"
                /\ IF MESSAGES_FAIL
@@ -1048,7 +1050,7 @@ lsm_D(self) == /\ pc[self] = "lsm_D"
                                nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                                signature, nextPeer, liftValue_F, from, liftId, 
                                arbitrator, cycle_, liftValue_, arbitrator_, 
-                               toAct, lostMes >>
+                               toAct, lostMes, initialState >>
 
 lprintDecision_(self) == /\ pc[self] = "lprintDecision_"
                          /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], result_[self])]
@@ -1083,7 +1085,7 @@ lprintDecision_(self) == /\ pc[self] = "lprintDecision_"
                                          signature, nextPeer, liftValue_F, 
                                          from, liftId, arbitrator, cycle_, 
                                          liftValue_, arbitrator_, toAct, 
-                                         lostMes >>
+                                         lostMes, initialState >>
 
 DLVR_(self) == /\ pc[self] = "DLVR_"
                /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1118,7 +1120,7 @@ DLVR_(self) == /\ pc[self] = "DLVR_"
                                nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                                signature, nextPeer, liftValue_F, from, liftId, 
                                arbitrator, cycle_, liftValue_, arbitrator_, 
-                               toAct, lostMes, printBuffer >>
+                               toAct, lostMes, printBuffer, initialState >>
 
 DecideLiftValidity(self) == DecideLiftValidity_(self) \/ lsom_(self)
                                \/ lchecktime_(self) \/ lsm_D(self)
@@ -1166,7 +1168,7 @@ CkeckLiftValidity(self) == /\ pc[self] = "CkeckLiftValidity"
                                            signature, nextPeer, liftValue_F, 
                                            from, liftId, arbitrator, cycle_, 
                                            liftValue_, arbitrator_, toAct, 
-                                           lostMes >>
+                                           lostMes, initialState >>
 
 lsr(self) == /\ pc[self] = "lsr"
              /\ lifts' = [lifts EXCEPT ![arbitrator_C[self]] = liftId_C[self] :> [originator |-> originator[self], originatorPublicKey |-> originatorPublicKey[self], value |-> liftValue[self], state |-> result_C[self], route |-> route[self], arbitrator |-> arbitrator_C[self], arbitratorPublicKey |-> arbitratorPublicKey[self]]]
@@ -1193,7 +1195,7 @@ lsr(self) == /\ pc[self] = "lsr"
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
                              liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
+                             printBuffer, initialState >>
 
 lsm2(self) == /\ pc[self] = "lsm2"
               /\ IF MESSAGES_FAIL
@@ -1230,7 +1232,7 @@ lsm2(self) == /\ pc[self] = "lsm2"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 lsom(self) == /\ pc[self] = "lsom"
               /\ IF MESSAGES_FAIL
@@ -1267,7 +1269,7 @@ lsom(self) == /\ pc[self] = "lsom"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 lchecktime(self) == /\ pc[self] = "lchecktime"
                     /\ \E validDecision \in {"Seek", "Fail"}:
@@ -1299,7 +1301,8 @@ lchecktime(self) == /\ pc[self] = "lchecktime"
                                     liftValue_C, from_F, to, liftId_F, 
                                     signature, nextPeer, liftValue_F, from, 
                                     liftId, arbitrator, cycle_, liftValue_, 
-                                    arbitrator_, toAct, lostMes, printBuffer >>
+                                    arbitrator_, toAct, lostMes, printBuffer, 
+                                    initialState >>
 
 lprintDecision(self) == /\ pc[self] = "lprintDecision"
                         /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], result_C[self])]
@@ -1333,7 +1336,8 @@ lprintDecision(self) == /\ pc[self] = "lprintDecision"
                                         liftValue_C, from_F, to, liftId_F, 
                                         signature, nextPeer, liftValue_F, from, 
                                         liftId, arbitrator, cycle_, liftValue_, 
-                                        arbitrator_, toAct, lostMes >>
+                                        arbitrator_, toAct, lostMes, 
+                                        initialState >>
 
 DLVR(self) == /\ pc[self] = "DLVR"
               /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1367,7 +1371,7 @@ DLVR(self) == /\ pc[self] = "DLVR"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes, printBuffer >>
+                              toAct, lostMes, printBuffer, initialState >>
 
 CheckLiftValidity(self) == CkeckLiftValidity(self) \/ lsr(self)
                               \/ lsm2(self) \/ lsom(self)
@@ -1414,7 +1418,7 @@ ValidateLift_(self) == /\ pc[self] = "ValidateLift_"
                                        liftId_F, signature, nextPeer, 
                                        liftValue_F, from, liftId, arbitrator, 
                                        cycle_, liftValue_, arbitrator_, toAct, 
-                                       lostMes >>
+                                       lostMes, initialState >>
 
 lpsi_(self) == /\ pc[self] = "lpsi_"
                /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Signature Invalid")]
@@ -1442,7 +1446,7 @@ lpsi_(self) == /\ pc[self] = "lpsi_"
                                nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                                signature, nextPeer, liftValue_F, from, liftId, 
                                arbitrator, cycle_, liftValue_, arbitrator_, 
-                               toAct, lostMes >>
+                               toAct, lostMes, initialState >>
 
 lpt_(self) == /\ pc[self] = "lpt_"
               /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Lift Invalid")]
@@ -1469,7 +1473,7 @@ lpt_(self) == /\ pc[self] = "lpt_"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 lsm1(self) == /\ pc[self] = "lsm1"
               /\ IF MESSAGES_FAIL
@@ -1506,7 +1510,7 @@ lsm1(self) == /\ pc[self] = "lsm1"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 L1(self) == /\ pc[self] = "L1"
             /\ tallies' = [tallies EXCEPT ![<<to_R[self], prevPeer_R[self], "Foil">>].projectedBalance = tallies[<<to_R[self], prevPeer_R[self], "Foil">>].projectedBalance - lifts[to_R[self]][liftId_R[self]].value]
@@ -1532,7 +1536,7 @@ L1(self) == /\ pc[self] = "L1"
                             liftValue_C, from_F, to, liftId_F, signature, 
                             nextPeer, liftValue_F, from, liftId, arbitrator, 
                             cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            printBuffer, initialState >>
 
 lpv(self) == /\ pc[self] = "lpv"
              /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Lift Valid")]
@@ -1558,7 +1562,8 @@ lpv(self) == /\ pc[self] = "lpv"
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
-                             liftValue_, arbitrator_, toAct, lostMes >>
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             initialState >>
 
 lsm(self) == /\ pc[self] = "lsm"
              /\ IF MESSAGES_FAIL
@@ -1593,7 +1598,7 @@ lsm(self) == /\ pc[self] = "lsm"
                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                              signature, nextPeer, liftValue_F, from, liftId, 
                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes >>
+                             toAct, lostMes, initialState >>
 
 L2(self) == /\ pc[self] = "L2"
             /\ tallies' = [tallies EXCEPT ![<<to_R[self], prevPeer_R[self], "Foil">>].balance = tallies[<<to_R[self], prevPeer_R[self], "Foil">>].balance + lifts[to_R[self]][liftId_R[self]].value]
@@ -1619,7 +1624,7 @@ L2(self) == /\ pc[self] = "L2"
                             liftValue_C, from_F, to, liftId_F, signature, 
                             nextPeer, liftValue_F, from, liftId, arbitrator, 
                             cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            printBuffer, initialState >>
 
 VLR_(self) == /\ pc[self] = "VLR_"
               /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1651,7 +1656,7 @@ VLR_(self) == /\ pc[self] = "VLR_"
                               liftValue_C, from_F, to, liftId_F, signature, 
                               nextPeer, liftValue_F, from, liftId, arbitrator, 
                               cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                              printBuffer >>
+                              printBuffer, initialState >>
 
 ReceiveLiftValidResult(self) == ValidateLift_(self) \/ lpsi_(self)
                                    \/ lpt_(self) \/ lsm1(self) \/ L1(self)
@@ -1695,7 +1700,7 @@ ValidateLift(self) == /\ pc[self] = "ValidateLift"
                                       liftId_F, signature, nextPeer, 
                                       liftValue_F, from, liftId, arbitrator, 
                                       cycle_, liftValue_, arbitrator_, toAct, 
-                                      lostMes >>
+                                      lostMes, initialState >>
 
 lpsi_R(self) == /\ pc[self] = "lpsi_R"
                 /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Signature Invalid")]
@@ -1724,7 +1729,7 @@ lpsi_R(self) == /\ pc[self] = "lpsi_R"
                                 signature_C, nextPeer_C, liftValue_C, from_F, 
                                 to, liftId_F, signature, nextPeer, liftValue_F, 
                                 from, liftId, arbitrator, cycle_, liftValue_, 
-                                arbitrator_, toAct, lostMes >>
+                                arbitrator_, toAct, lostMes, initialState >>
 
 lpt(self) == /\ pc[self] = "lpt"
              /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Lift Invalid")]
@@ -1764,7 +1769,7 @@ lpt(self) == /\ pc[self] = "lpt"
                              signature_R, prevPeer, timeout, from_Co, to_Co, 
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from, liftId, arbitrator, cycle_, liftValue_, 
-                             arbitrator_, toAct, lostMes >>
+                             arbitrator_, toAct, lostMes, initialState >>
 
 VLR(self) == /\ pc[self] = "VLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1795,7 +1800,8 @@ VLR(self) == /\ pc[self] = "VLR"
                              signature_C, nextPeer_C, liftValue_C, from_F, to, 
                              liftId_F, signature, nextPeer, liftValue_F, from, 
                              liftId, arbitrator, cycle_, liftValue_, 
-                             arbitrator_, toAct, lostMes, printBuffer >>
+                             arbitrator_, toAct, lostMes, printBuffer, 
+                             initialState >>
 
 ReceiveLiftCheckResult(self) == ValidateLift(self) \/ lpsi_R(self)
                                    \/ lpt(self) \/ VLR(self)
@@ -1835,7 +1841,7 @@ CommitLift_(self) == /\ pc[self] = "CommitLift_"
                                      liftId_F, signature, nextPeer, 
                                      liftValue_F, from, liftId, arbitrator, 
                                      cycle_, liftValue_, arbitrator_, toAct, 
-                                     lostMes >>
+                                     lostMes, initialState >>
 
 CL2_(self) == /\ pc[self] = "CL2_"
               /\ tallies' = [tallies EXCEPT ![<<to_Co[self], from_Co[self], "Stock">>].balance = tallies[<<to_Co[self], from_Co[self], "Stock">>].balance - liftValue_C[self]]
@@ -1866,7 +1872,7 @@ CL2_(self) == /\ pc[self] = "CL2_"
                               liftValue_C, from_F, to, liftId_F, signature, 
                               nextPeer, liftValue_F, from, liftId, arbitrator, 
                               cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                              printBuffer >>
+                              printBuffer, initialState >>
 
 CL4_(self) == /\ pc[self] = "CL4_"
               /\ IF MESSAGES_FAIL
@@ -1903,7 +1909,7 @@ CL4_(self) == /\ pc[self] = "CL4_"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 CL3_(self) == /\ pc[self] = "CL3_"
               /\ tallies' = [tallies EXCEPT ![<<to_Co[self], nextPeer_C[self], "Foil">>].balance = tallies[<<to_Co[self], nextPeer_C[self], "Foil">>].balance + liftValue_C[self]]
@@ -1930,7 +1936,7 @@ CL3_(self) == /\ pc[self] = "CL3_"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes, printBuffer >>
+                              toAct, lostMes, printBuffer, initialState >>
 
 lpsi_C(self) == /\ pc[self] = "lpsi_C"
                 /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Signature Invalid")]
@@ -1959,7 +1965,7 @@ lpsi_C(self) == /\ pc[self] = "lpsi_C"
                                 signature_C, nextPeer_C, liftValue_C, from_F, 
                                 to, liftId_F, signature, nextPeer, liftValue_F, 
                                 from, liftId, arbitrator, cycle_, liftValue_, 
-                                arbitrator_, toAct, lostMes >>
+                                arbitrator_, toAct, lostMes, initialState >>
 
 CLR_(self) == /\ pc[self] = "CLR_"
               /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1991,7 +1997,7 @@ CLR_(self) == /\ pc[self] = "CLR_"
                               timeout, from_F, to, liftId_F, signature, 
                               nextPeer, liftValue_F, from, liftId, arbitrator, 
                               cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                              printBuffer >>
+                              printBuffer, initialState >>
 
 CommitLift(self) == CommitLift_(self) \/ CL2_(self) \/ CL4_(self)
                        \/ CL3_(self) \/ lpsi_C(self) \/ CLR_(self)
@@ -2032,7 +2038,7 @@ FailLift_(self) == /\ pc[self] = "FailLift_"
                                    nextPeer_C, liftValue_C, from_F, to, 
                                    liftId_F, signature, nextPeer, from, liftId, 
                                    arbitrator, cycle_, liftValue_, arbitrator_, 
-                                   toAct, lostMes >>
+                                   toAct, lostMes, initialState >>
 
 lpsi(self) == /\ pc[self] = "lpsi"
               /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Signature Invalid")]
@@ -2059,7 +2065,7 @@ lpsi(self) == /\ pc[self] = "lpsi"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 CL2(self) == /\ pc[self] = "CL2"
              /\ tallies' = [tallies EXCEPT ![<<to[self], from_F[self], "Stock">>].projectedBalance = tallies[<<to[self], from_F[self], "Stock">>].projectedBalance + liftValue_F[self]]
@@ -2089,7 +2095,7 @@ CL2(self) == /\ pc[self] = "CL2"
                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                              signature, liftValue_F, from, liftId, arbitrator, 
                              cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
+                             printBuffer, initialState >>
 
 CL4(self) == /\ pc[self] = "CL4"
              /\ IF MESSAGES_FAIL
@@ -2124,7 +2130,7 @@ CL4(self) == /\ pc[self] = "CL4"
                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                              signature, nextPeer, liftValue_F, from, liftId, 
                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes >>
+                             toAct, lostMes, initialState >>
 
 CL3(self) == /\ pc[self] = "CL3"
              /\ tallies' = [tallies EXCEPT ![<<to[self], nextPeer[self], "Foil">>].projectedBalance = tallies[<<to[self], nextPeer[self], "Foil">>].projectedBalance - liftValue_F[self]]
@@ -2150,7 +2156,7 @@ CL3(self) == /\ pc[self] = "CL3"
                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                              signature, nextPeer, liftValue_F, from, liftId, 
                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, printBuffer, initialState >>
 
 CLR(self) == /\ pc[self] = "CLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -2181,7 +2187,8 @@ CLR(self) == /\ pc[self] = "CLR"
                              signature_R, prevPeer, timeout, from_Co, to_Co, 
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from, liftId, arbitrator, cycle_, liftValue_, 
-                             arbitrator_, toAct, lostMes, printBuffer >>
+                             arbitrator_, toAct, lostMes, printBuffer, 
+                             initialState >>
 
 FailLift(self) == FailLift_(self) \/ lpsi(self) \/ CL2(self) \/ CL4(self)
                      \/ CL3(self) \/ CLR(self)
@@ -2218,7 +2225,7 @@ CheckTimeout_(self) == /\ pc[self] = "CheckTimeout_"
                                        liftId_F, signature, nextPeer, 
                                        liftValue_F, from, liftId, arbitrator, 
                                        cycle_, liftValue_, arbitrator_, toAct, 
-                                       lostMes >>
+                                       lostMes, initialState >>
 
 losm(self) == /\ pc[self] = "losm"
               /\ IF MESSAGES_FAIL
@@ -2255,7 +2262,7 @@ losm(self) == /\ pc[self] = "losm"
                               nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                               signature, nextPeer, liftValue_F, from, liftId, 
                               arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes >>
+                              toAct, lostMes, initialState >>
 
 CTR(self) == /\ pc[self] = "CTR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -2284,7 +2291,7 @@ CTR(self) == /\ pc[self] = "CTR"
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, printBuffer, initialState >>
 
 CheckTimeout(self) == CheckTimeout_(self) \/ losm(self) \/ CTR(self)
 
@@ -2317,7 +2324,8 @@ ProcStart(self) == /\ pc[self] = "ProcStart"
                                    nextPeer_C, liftValue_C, from_F, to, 
                                    liftId_F, signature, nextPeer, liftValue_F, 
                                    from, liftId, arbitrator, cycle_, 
-                                   liftValue_, arbitrator_, toAct, lostMes >>
+                                   liftValue_, arbitrator_, toAct, lostMes, 
+                                   initialState >>
 
 l1(self) == /\ pc[self] = "l1"
             /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], self)]
@@ -2369,7 +2377,7 @@ l1(self) == /\ pc[self] = "l1"
                             liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                             from_F, to, liftId_F, signature, nextPeer, 
                             liftValue_F, from, liftId, arbitrator, toAct, 
-                            lostMes >>
+                            lostMes, initialState >>
 
 lsn(self) == /\ pc[self] = "lsn"
              /\ startedNodes' = UNION{startedNodes, {self}}
@@ -2395,7 +2403,7 @@ lsn(self) == /\ pc[self] = "lsn"
                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                              signature, nextPeer, liftValue_F, from, liftId, 
                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, printBuffer, initialState >>
 
 las(self) == /\ pc[self] = "las"
              /\ startedNodes = Users
@@ -2422,7 +2430,7 @@ las(self) == /\ pc[self] = "las"
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
                              liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
+                             printBuffer, initialState >>
 
 l2w(self) == /\ pc[self] = "l2w"
              /\ IF NotDone(lifts, Users, messages, UNION{readMessages, lostMessages})
@@ -2509,7 +2517,8 @@ l2w(self) == /\ pc[self] = "l2w"
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
-                             liftValue_, arbitrator_, lostMes, printBuffer >>
+                             liftValue_, arbitrator_, lostMes, printBuffer, 
+                             initialState >>
 
 l5(self) == /\ pc[self] = "l5"
             /\ IF toAct[self].type = "LiftCommitJSON"
@@ -2552,7 +2561,7 @@ l5(self) == /\ pc[self] = "l5"
                             from_F, to, liftId_F, signature, nextPeer, 
                             liftValue_F, from, liftId, arbitrator, cycle_, 
                             liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            printBuffer, initialState >>
 
 l6(self) == /\ pc[self] = "l6"
             /\ IF toAct[self].type = "LiftFailJSON"
@@ -2595,7 +2604,7 @@ l6(self) == /\ pc[self] = "l6"
                             from_Co, to_Co, liftId_Co, signature_C, nextPeer_C, 
                             liftValue_C, from, liftId, arbitrator, cycle_, 
                             liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            printBuffer, initialState >>
 
 l7(self) == /\ pc[self] = "l7"
             /\ IF toAct[self].type = "LiftValidateJSON"
@@ -2647,7 +2656,8 @@ l7(self) == /\ pc[self] = "l7"
                             signature_C, nextPeer_C, liftValue_C, from_F, to, 
                             liftId_F, signature, nextPeer, liftValue_F, from, 
                             liftId, arbitrator, cycle_, liftValue_, 
-                            arbitrator_, toAct, lostMes, printBuffer >>
+                            arbitrator_, toAct, lostMes, printBuffer, 
+                            initialState >>
 
 l8(self) == /\ pc[self] = "l8"
             /\ IF toAct[self].type = "LiftCheckJSON"
@@ -2698,7 +2708,8 @@ l8(self) == /\ pc[self] = "l8"
                             signature_C, nextPeer_C, liftValue_C, from_F, to, 
                             liftId_F, signature, nextPeer, liftValue_F, from, 
                             liftId, arbitrator, cycle_, liftValue_, 
-                            arbitrator_, toAct, lostMes, printBuffer >>
+                            arbitrator_, toAct, lostMes, printBuffer, 
+                            initialState >>
 
 l9(self) == /\ pc[self] = "l9"
             /\ IF toAct[self].type = "LiftValidResultJSON"
@@ -2741,7 +2752,7 @@ l9(self) == /\ pc[self] = "l9"
                             liftValue_C, from_F, to, liftId_F, signature, 
                             nextPeer, liftValue_F, from, liftId, arbitrator, 
                             cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            printBuffer, initialState >>
 
 l10(self) == /\ pc[self] = "l10"
              /\ IF toAct[self].type = "LiftCheckResultJSON"
@@ -2784,7 +2795,8 @@ l10(self) == /\ pc[self] = "l10"
                              signature_C, nextPeer_C, liftValue_C, from_F, to, 
                              liftId_F, signature, nextPeer, liftValue_F, from, 
                              liftId, arbitrator, cycle_, liftValue_, 
-                             arbitrator_, toAct, lostMes, printBuffer >>
+                             arbitrator_, toAct, lostMes, printBuffer, 
+                             initialState >>
 
 l4(self) == /\ pc[self] = "l4"
             /\ readMessages' = UNION{readMessages, {toAct[self]}}
@@ -2810,7 +2822,7 @@ l4(self) == /\ pc[self] = "l4"
                             liftValue_C, from_F, to, liftId_F, signature, 
                             nextPeer, liftValue_F, from, liftId, arbitrator, 
                             cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            printBuffer, initialState >>
 
 clm(self) == /\ pc[self] = "clm"
              /\ lostMes' = [lostMes EXCEPT ![self] = CHOOSE message \in lostMessages : message \notin readMessages /\ (message.to = self \/ message.from = self)]
@@ -2836,7 +2848,8 @@ clm(self) == /\ pc[self] = "clm"
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
-                             liftValue_, arbitrator_, toAct, printBuffer >>
+                             liftValue_, arbitrator_, toAct, printBuffer, 
+                             initialState >>
 
 lcl(self) == /\ pc[self] = "lcl"
              /\ IF (lostMes[self].type = "LiftCommitJSON" \/ lostMes[self].type = "LiftFailJSON") /\ lostMes[self].to = self
@@ -2877,7 +2890,7 @@ lcl(self) == /\ pc[self] = "lcl"
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, printBuffer, initialState >>
 
 lpl(self) == /\ pc[self] = "lpl"
              /\ IF lostMes[self].type = "LiftProposeJSON" /\ lostMes[self].from = self
@@ -2918,7 +2931,7 @@ lpl(self) == /\ pc[self] = "lpl"
                              liftId_Co, signature_C, nextPeer_C, liftValue_C, 
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, printBuffer, initialState >>
 
 lrlmf(self) == /\ pc[self] = "lrlmf"
                /\ readMessages' = UNION{readMessages, {lostMes[self]}}
@@ -2945,7 +2958,7 @@ lrlmf(self) == /\ pc[self] = "lrlmf"
                                nextPeer_C, liftValue_C, from_F, to, liftId_F, 
                                signature, nextPeer, liftValue_F, from, liftId, 
                                arbitrator, cycle_, liftValue_, arbitrator_, 
-                               toAct, lostMes, printBuffer >>
+                               toAct, lostMes, printBuffer, initialState >>
 
 lpb(self) == /\ pc[self] = "lpb"
              /\ PrintT(printBuffer[self])
@@ -2972,7 +2985,7 @@ lpb(self) == /\ pc[self] = "lpb"
                              from_F, to, liftId_F, signature, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
                              liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
+                             printBuffer, initialState >>
 
 procId(self) == ProcStart(self) \/ l1(self) \/ lsn(self) \/ las(self)
                    \/ l2w(self) \/ l5(self) \/ l6(self) \/ l7(self)
@@ -3008,7 +3021,7 @@ Spec == /\ Init /\ [][Next]_vars
 
 Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
-\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-0608b83b23e61fc9edeefde1e9c1e811
+\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-97a0c0c8e7cd3924e19f5f28f35dc714
 
 
 
@@ -3041,7 +3054,7 @@ PartnersBalancesAreSymmetricalInTheEnd ==
             /\ tallies[<<x, y, "Foil">>].projectedBalance = -tallies[<<y, x, "Stock">>].projectedBalance
         )
 
-EndStatesBetterThenPreLiftStates ==
+EndStatesBetterThenInitialStates ==
     \A user \in Users:
         \A id \in DOMAIN lifts[user]:
             (
