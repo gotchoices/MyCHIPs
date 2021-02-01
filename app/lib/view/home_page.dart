@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/presenter/user_info_presenter.dart';
 import 'package:pie_chart/pie_chart.dart';
 import 'transaction_page.dart';
 import 'user_info_page.dart';
@@ -7,6 +8,7 @@ import 'sign_in_page.dart';
 import 'create_tally_page.dart';
 import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
+import 'package:flutter_app/objects/account.dart';
 
 class MyChips extends StatelessWidget {
   var presenter = new HomePresenter();
@@ -120,14 +122,16 @@ class PieChartWidget extends State<HomePage> {
 }
 
 class MainDrawer extends StatelessWidget {
+  var presenter = new UserInfoPresenter();
   @override
   Widget build(BuildContext context) {
+    Account userAccount = presenter.getAccountInfo();
     return new Drawer(
         child:ListView(
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text("myAccount"),
-              accountEmail: Text("myemail@gmail.com"),
+              accountName: Text(userAccount.displayName),
+              accountEmail: Text(userAccount.email),
               currentAccountPicture: GestureDetector (
                   onTap: () {
                     Navigator.push(context,
