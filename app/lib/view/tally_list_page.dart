@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
-import 'tally.dart';
+import 'home_page.dart';
+import '../objects/tally.dart';
 import 'tally_page.dart';
 import 'create_tally_page.dart';
 

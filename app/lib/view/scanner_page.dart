@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/ticket.dart';
+import 'package:flutter_app/presenter/scanner_presenter.dart';
+import '../objects/tally.dart';
+import '../objects/tally_ticket.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'tally.dart';
 import 'tally_page.dart';
 import 'dart:convert';
 
@@ -23,6 +24,7 @@ class ScannerState extends State<Scanner> {
   var cameraState = frontCamera;
   QRViewController controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  var presenter = new ScannerPresenter();
 
   @override
   Widget build(BuildContext context) {
@@ -131,8 +133,8 @@ class ScannerState extends State<Scanner> {
   }
 
   Widget getTallyApprovalDialog(scanData) {
-    Tally tally = Tally.parseTallyTicket(
-        TallyTicket.fromJson(jsonDecode(scanData)));
+    TallyTicket ticket = TallyTicket.fromJson(jsonDecode(scanData));
+    Tally tally = Tally.parseTallyTicket(ticket);
     //TODO: Check which version of the build this is so we can return a "CupertinoAlertDialog" if on iOS
     return AlertDialog(
       title: Text('AlertDialog Title'),
@@ -155,13 +157,16 @@ class ScannerState extends State<Scanner> {
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.pop(context);
-            TransitionToNewTally(tally);
+            if (presenter.registerNewTally(ticket))
+              transitionToNewTally(tally);
+            else //TODO: show an error on screen if there was an error establishing the tally
+              print('err');
           }),
       ],
     );
   }
 
-  void TransitionToNewTally(tally) {
+  void transitionToNewTally(tally) {
     Navigator.push(context, new MaterialPageRoute(
         builder: (BuildContext context) => new TallyPage(tally)));
   }

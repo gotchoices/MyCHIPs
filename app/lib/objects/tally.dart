@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:faker/faker.dart';
 import 'dart:math';
 
@@ -14,7 +12,6 @@ class Tally {
   }
 
   static Tally parseTallyTicket(ticket) {
-    //put server logic here
     print(ticket.toString());
     return TallyGenerator.generateFakeTally();
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'scanner.dart';
+import 'scanner_page.dart';
 
 class CreateTallyPage extends StatefulWidget {
   @override
@@ -50,7 +50,7 @@ class CreateTallyPageState extends State<CreateTallyPage> {
         padding: const EdgeInsets.all(15),
         child: MaterialButton(
           onPressed: () {
-              print("Load the QRCode scanner page");
+            print("Load the QRCode scanner page");
             Navigator.push(context, new MaterialPageRoute(
                builder: (BuildContext context) => new Scanner()));
           },

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_app/user_info.dart';
-import 'tally_list_page.dart';
-
-import 'main.dart';
+import 'user_info_page.dart';
+import 'home_page.dart';
 
 class SignInPage extends StatefulWidget {
   @override

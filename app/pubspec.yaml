@@ -27,6 +27,7 @@ dependencies:
   faker: ^1.2.1
   random_date: ^0.0.5
   qr_code_scanner: ^0.0.13
+  random_color: ^1.0.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
-import 'transaction.dart';
-import 'tally.dart';
+import 'home_page.dart';
+import '../objects/transaction.dart';
+import '../objects/tally.dart';
 import 'package:date_format/date_format.dart';
 import 'transaction_page.dart';
 

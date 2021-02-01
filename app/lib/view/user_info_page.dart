@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/main.dart';
-import 'scanner.dart';
+import 'home_page.dart';
+import 'scanner_page.dart';
 
 class UserInfoPage extends StatefulWidget {
   final bool registering;
