@@ -10,6 +10,7 @@ import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
 import 'package:flutter_app/objects/account.dart';
 
+//TODO: Observer and notifier for when someone else pays/requests payment to you
 class MyChips extends StatelessWidget {
   var presenter = new HomePresenter();
   @override

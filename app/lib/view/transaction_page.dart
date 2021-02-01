@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'home_page.dart';
 
 const BOTH = 'BOTH';
@@ -46,7 +47,9 @@ class TransactionPageState extends State<TransactionPage> {
   }
 
   Widget createButtons(context, transactionType) {
-  //TODO: Verify valid input before allowing button logic to be executed.
+    var presenter = TransactionPresenter();
+    //TODO: Verify valid input before allowing button logic to be executed.
+    //TODO: tie input to a transaction object to send through the presenter
     if(transactionType == BOTH) {
     return Container(
       child: Padding(
@@ -56,9 +59,10 @@ class TransactionPageState extends State<TransactionPage> {
               Expanded(
                 child: MaterialButton(
                   onPressed: () {
-                    //TODO: PAY LOGIC
+                    //TODO:
+                    presenter.sendPayment(null);
                     Navigator.pop(context);
-                    print("pressed 'pay'");},
+                    },
                   child: Text('PAY',
                     style: TextStyle(fontSize: 20)),
                   color: Colors.blue,
@@ -68,9 +72,10 @@ class TransactionPageState extends State<TransactionPage> {
                   minWidth: (MediaQuery.of(context).size.width) / 2.25)),
               MaterialButton(
                 onPressed: () {
-                  //TODO: REQUEST PAYMENT LOGIC
+                  //TODO:
+                  presenter.requestPayment(null);
                   Navigator.pop(context);
-                  print("pressed 'request'");},
+                  },
                 child: Text('REQUEST',
                   style: TextStyle(fontSize: 20)),
                 color: Colors.blue,
