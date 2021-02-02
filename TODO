@@ -7,6 +7,8 @@ X- Set user host/port and peer port correctly on simulated hosts
 X- Can view/modify/render .puml diagrams
 X- Edit Tally, Lift documents, include diagrams
 - Port state diagrams to puml
+- Make sequence diagrams for each state diagram
+- Make chit consensus sequence/state diagrams
 - 
 - Integrate DSR patches into simulation folder?
 - 

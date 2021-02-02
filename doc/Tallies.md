@@ -86,7 +86,7 @@ choice of values.
 To understand better what we are trying to model, we will first outline a few 
 examples of credit relationship:
 
-- Peer Accounts:
+- **Peer Accounts**:
   This might represent two companies or two individuals who regularly do
   business with each other.  There is probably a direction in which money 
   normally flows from Client to Vendor.  But there may also be occasions when 
@@ -102,7 +102,7 @@ examples of credit relationship:
   is more likely in concentrating too much of that total value in any single 
   debtor--particularly one who may not be capable of redeeming it all.
   
-- Merchants (corporate Vendors):
+- **Merchants** (corporate Vendors):
   Clients of merchants may wish to accumulate value by collecting the credits 
   of the merchants where they like to shop.  This is one way of storing value,
   or in common terms, saving money.  But it can also be viewed as a loan from 
@@ -114,7 +114,7 @@ examples of credit relationship:
   to buy.  But he should not exceed the amount of debt he can reasonably redeem 
   through product sales, or other exchanges.
   
-- Secured Loans:
+- **Secured Loans**:
   Consumers (Clients) and businesses (Vendors) alike can benefit from 
   maintaining one or more collateralized loans.  You start by purchasing an 
   asset over time from a seller who would like to earn income by financing the 
@@ -125,7 +125,7 @@ examples of credit relationship:
   way, the asset can form a store of value--perhaps more reliable than just 
   holding the credits of your favorite vendors (who might go out of business).
 
-- Money Markets:
+- **Money Markets**:
   Since money normally flows in a single, expected direction, there is a
   natural demand for credit lifts to temporarily move that flow backward,
   resetting the potential for more purchasing power.  But such "win-win" lift 
@@ -152,21 +152,21 @@ conditions Vendor offers to Client.  In other words, the terms of Client's
 credit, or the terms by which Client may incur debt payable to Vendor.
 
 Credit Terms Tally Variables:
-  - Maximum Balance:
+  - **Maximum Balance**:
     This indicates the most the debtor can count on borrowing against products
     or services he obtains from the creditor.  It may be expressed as a single 
     number, or as an expression, which is a function of time.  Expressions may 
     be used to amortize a loan, or to cause principal to be paid down over 
     time.
     
-  - Maximum Paydown:
+  - **Maximum Paydown**:
     This represents the maximum amount the debtor can pay down principal in
     advance of otherwise prevailing requirements, and have his interest 
     calculations reduced accordingly.  This can be used to create a minimum 
     interest return for a lender, while still allowing the borrower to store 
     value in the loan balance.
 
-  - Compound Interval:
+  - **Compound Interval**:
     The amount of time that passes before interest (or dividend, if you prefer) 
     is calculated and applied to a balance.  This may also define when payments 
     are due.  For example, if the application of such a charge raises a balance 
@@ -174,17 +174,17 @@ Credit Terms Tally Variables:
     correct this.  This value may be specified as a number, of days, weeks, 
     months, or years.
 
-  - Grace Period:
+  - **Grace Period**:
     New amounts of indebtedness will not accrue interest/dividend charges until 
     this amount of time has passed.
 
-  - Rate:
+  - **Rate**:
     An annualized rate expressed as a positive floating point number.  For 
     example, 0.05 means 5% per annum.  This number will be scaled to match the 
     Compound Interval in order to compute the interest/dividend charges to be 
     applied during that an interval.
 
-  - Call Notice:
+  - **Call Notice**:
     The amount of notice required to be given by Vendor to Client in order to 
     call all principal and accrued charges due and payable (i.e. to cancel 
     further credit authorization).  If not present, the debtor has no 
@@ -195,11 +195,11 @@ Credit Terms Tally Variables:
     register an immediate call, with the number of notice days set to the term 
     of the amortization.
 
-  - Minimum Payment:
+  - **Minimum Payment**:
     An amount, or a formula for the smallest amount that may be paid at each
     Compound Interval.
 
-Credit Terms Examples:
+#### Some Credit Terms Examples
 - Casual Peer to Peer, no interest, cancelation with notice:
     - Maximum Balance: 100
     - Call Notice: 30
@@ -217,7 +217,7 @@ Credit Terms Examples:
     - Compound Interval: 1 month
     - Rate: 0.10
 
-- Credit card requiring full payment over 4 months:
+- Credit card requiring full payment over four months:
     - Maximum Balance: 300
     - Grace Period: 30
     - Minimum Payment: Min(10, Bal / 4)
@@ -281,7 +281,7 @@ act in accordance with the settings.
 ![Trading Variables](Lifts-5.jpg "Visualizing Trading Variables")
 
 Client's (Foil) Trading Varibles:
-  - Lift Target (Vendor -> Client):	Default: 0
+  - **Lift Target** (Vendor -> Client):	Default: 0
     The ideal amount of Vendor's credits Client wishes to accumulate.  A 
     negative tally balance is normally accomplished through credit lifts, as 
     this is in the opposite direction of normal credit flow.  This can exceed
@@ -290,13 +290,13 @@ Client's (Foil) Trading Varibles:
     here constitutes value savings by the Client in the currency of the 
     Vendor--something he must accept in payment or as part of a future drop.
 
-  - Lift Limit: (Foil bound)		Default: Debit Limit (dr_limit)
+  - *Lift Limit*: (Foil bound)		Default: Debit Limit (dr_limit)
     This can exceed the dr_limit setting in the tally to allow higher 
     indebtedness of Vendor to Client, occuring as the result of a lift.  No 
     lifts should be performed which would result in a balance more negative
     than this amount.
 
-  - Lift Margin: (Foil reward)		Default: 0
+  - *Lift Margin*: (Foil reward)	Default: 0
     This indicates Client's willingness to conducts lifts through this Foil.
 
     The number 0 is neutral, meaning zero cost.  A positive number
@@ -309,7 +309,7 @@ Client's (Foil) Trading Varibles:
     balance is reduced to the Lift Target (default 0).  If a lift beyond that 
     point is requested, it may be subject to a cost (positive margin).
 
-  - Drop Margin: (Foil clutch)		Default: 0
+  - **Drop Margin**: (Foil clutch)		Default: 0
     Specifies the Client's willingness to conduct drops through this Foil.
     If the user wants to retain the chips in the foil, he can enter a
     positive number (1 disables drops altogether).  If he wants to get rid of
@@ -317,25 +317,25 @@ Client's (Foil) Trading Varibles:
     
 Vendor's (Stock) Trading Varibles:
 
-  - Drop Target (Client -> Vendor):	Default: 0
+  - **Drop Target** (Client -> Vendor):	Default: 0
     The ideal amount of Client's credits Vendor wishes to accumulate or 
     maintain.  This is like collecting your payroll checks without cashing them 
     for a while.
 
-  - Drop Limit: (Stock bound)		Default: Credit Limit (cr_limit)
+  - **Drop Limit**: (Stock bound)	Default: Credit Limit (cr_limit)
     This can exceed the cr_limit setting in the tally to allow higher 
     indebtedness of Client to Vendor, occuring as a result of a drop. No drops 
     should be allowed resulting in a tally balance more positive of this 
     amount.
 
-  - Drop Margin: (Stock reward)		Default: 0
+  - **Drop Margin*8: (Stock reward)	Default: 0
     This indicates a willingness to conduct drops, or lifts in the opposite 
     direction of normal (downhill) through this Stock.  All drops must be
     allowed at par or better until the Drop Target (default 0) is reached.
     Drops requested beyond that point are subject to a cost at the specified 
     margin.
 
-  - Lift Margin: (Stock clutch)		Default 0
+  - **Lift Margin**: (Stock clutch)	Default 0
     Specifies the Vendor's willingness to conduct lifts through this Stock.
     If the user wants to retain the chips in the stock, he can enter a
     positive number (1 disables lifts altogether).  If he wants to get rid of
@@ -343,27 +343,29 @@ Vendor's (Stock) Trading Varibles:
   
 ### Invoicing
 An invoice is a request for payment from one party to another.  When the 
-parties share a tally, the invoice takes the form of a draft chit applied to 
-the tally.  The parties can negotiate over it until it is agreeable.  Once
-signed by the remitter, it becomes a binding part of the tally.
+parties [share a tally](#establishing-a-tally), this is pretty straightforward:
+One party enters a draft chit on the tally and waits for the other party (who will be paying) to approve it.
+The parties can negotiate over it until it is agreeable.  
+Once signed by the remitter, it becomes a binding part of the tally.
 
-If an invoice is to be sent to a party who does not share a direct tally, it
-should be sent independently, off the CHIP network (such as via mail, email,
-QR code, etc.).  Payment for this will be accomplished via a linear lift.  So
-the invoice should include:
+If an invoice is to be sent to a party who does not share a direct tally, it is a little more complicated.
+The payment request must be sent independently, off the CHIP network (such as via mail, email, QR code, etc.).
+This is called an "out-of-band" communication and it is necessary because these parties don't really share any direct connection that can be trusted on-network.
 
-  - The name of the system that hosts the recipient's CHIP account
-  - Connection socket for the recipient's host system
-  - An ID (possibly hashed) of the user who will be receiving payment
+The actual payment for will be accomplished by way of a linear lift.
+So the invoice should include:
+  - The name or IP address of the system that hosts the recipient's CHIP account
+  - A connection socket endpoint for the recipient's host system
+  - The ID (possibly hashed) of the user who will be receiving payment
   - A list of routing hints (downstream host systems who may be well known)
   - The amount due
   - A reference field (order or merchandise number, for example)
 
-The payor system will attempt to generate a route to the recipient.  If
-successful, a linear lift can be initiated to complete the payment.
+The payor system will attempt to generate a route to the recipient.
+If successful, a linear lift can be initiated to complete the payment.
 
 ### Normal Consumer Transaction (payment without a tally)
-- The vendor displays a generic invoice QR code as described above
+- The vendor displays a generic invoice QR code as described in the [Invoicing section](#invoicing).
   - This can be custom generated for the transaction; or
   - It can be generic (a printed decal with no amount or reference field)
 - The customer scans the invoice into his MyCHIPs app.
@@ -378,10 +380,17 @@ successful, a linear lift can be initiated to complete the payment.
 - The app initiates a linear lift to the recipient's system.  When the user
   signs the transaction, the lift is completed.
   
-### Consumer Account Setup: (establishing a private tally)
-- The Vendor displays a ticket QR code, consisting of
-  - The name of the system that hosts the recipient's CHIP account
-  - Connection socket for the recipient's host system
+### Establishing a Tally
+A MyCHIPs server will never accept a connection from anyone it doesn't already know about.
+So if two parties want to create a tally between them, one of the parties will have to issue a connection token to the other.
+Like an invoice, this information must be passed out-of-band.
+
+The party who initiates the tally would create a draft tally on his own system and then issue a connection token to be used by the other party.
+In the case of a commercial account like a retailer or restaurant, for example:
+
+- The Vendor would display or transmit a ticket QR code, containing:
+  - The name or IP address of the system that hosts the recipient's CHIP account
+  - A connection socket enpoint for the recipient's host system
   - A connection authorization token:
     - May be configured to expire after a one-time use
     - May be configured for multiple use by multiple parties (printed decal)
@@ -401,23 +410,21 @@ successful, a linear lift can be initiated to complete the payment.
 
 - The customer scans the ticket using his app
 - The customer's host contacts the Vendor's host system at the specified port
-  and presents the connection token.  The system must prove itself via the
-  system's public key supplied in the ticket.
-- The two systems exchange/update account information for the two users
-- Depending on how the token was configured, the Vendor's system may proceed
-  automatically to offer a tally on its preferred terms.
+  and presents the connection token.
+  The system must prove its authenticity via the public key it supplied in the ticket.
+- The two systems exchange/update account information for the two users.
+- The Vendor's system will offer the draft tally (or a clone of it when the token is meant to handle multiple connections).
 - The user will be given the opportunity to accept/modify/reject the tally.
-- Some human user (or authorized bot) on the Vendor's end will also have to
-  sign the tally with a private key that matches the public key in the
-  certificate that is part of the ticket.
+- If he accepts it, we are done.  The draft tally has already been signed with its preferred terms.
+- If he modifies it with a counteroffer, some human user (or authorized bot) on the 
+  Vendor's end would have to re-sign the tally (assuming they are willing to) before the tally becomes active.
 
-Once the tally is established, the customer can set parameters on the tally to
-collect Vendor credits, if so desired.  Once collected, those credits can be
-spent.
+Once the tally is established, the customer can [set parameters](#trading-variables) on the tally to
+collect Vendor credits, if so desired.
+Once collected, those credits can be spent.
 
 If credit has been extended to the customer as part of the tally, the customer
-can begin to buy things using the tally as payment, within the specified credit
-terms.
+can begin to buy things using the tally as payment, within the specified credit terms.
 
 ### Pathways
 The admin tool includes a network visualization tool that shows all users local
@@ -435,7 +442,7 @@ and fills in nulls for the other half of the tally.
 The goal is to show the effect on each user's trading variables (see
 above) on the capacity "lading" of each segment of the network to carry lifts.
 
-Specifically, we boil the trading variables down to 4 lift parameters:
+Specifically, we boil the trading variables down to four lift parameters:
 - lift_target
 - lift_bound
 - lift_reward
@@ -446,7 +453,7 @@ variables by the same name.  The margin, however is a result of the clutch
 value from the corresponding stock.  The idea is, it represents the cost
 charged by the stock holder (usually 0) for doing a lift through this segment.
 
-There are also 4 corresponding values for drops (lifts in the opposite direction):
+There are also four corresponding values for drops (lifts in the opposite direction):
 - drop_target
 - drop_bound
 - drop_reward
@@ -547,26 +554,25 @@ In general, if you get a chit that already agrees with what you have on the
 chain, send an Ack back.  If you get an Ack through a certain index number
 move your latest valid index number forward (but not back) to that number.
 
-See the section in the Tallies document for more on treatment of chits that
-belong to a lift transaction.
+See [this section](Lifts.md#lift-states) for more on treatment of chits that belong to a lift transaction.
 
 ### Chit States
 The state of a chit can be looked at from several different angles, depending 
 on what is needed.
 
-State Machine:
+- **State Machine**:
 The view field "state" tells us a state name, based on the values of verious
 physical fields in the chit record.  This field is slower because it is
 computed, but it really only needs to be consulted when considering whether
 various state changes are allowable.
 
-Status:
+- **Status**:
 There is a physical field called "status" which should tell us whether a
 chit should be considered when computing the tally total.  Available values
 are: void (disregard), pend (include in projected balance), clsd (include in
 available balance).
 
-Verified:
+- **Verified**:
 If a chit includes a hash and a chain index, it has been added to the local 
 hash chain.  But it might not yet be verified.  If its index is less than or
 equal to the "verified" field of the tally, then it is verified and should be

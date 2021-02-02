@@ -1,7 +1,10 @@
 #Build UML files
 PUML="plantuml"
 
-all: state-tally.png state-chit.png scaling.png
+all: scaling.png use-chit.png use-tally.png state-tally.png state-chit.png
 
 %.png: %.puml common.puml style.puml
 	${PUML} $<
+
+%.svg: %.puml common.puml style.puml
+	${PUML} -tsvg $<

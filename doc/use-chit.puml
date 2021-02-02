@@ -1,13 +1,12 @@
-'Typical use cases for MyCHIPs
 @startuml
 !include common.puml
+$title(Payments/Chits On an Established Tally)
 left to right direction
 
 actor "Local User" as user
 actor "Direct Partner" as partner
 actor "Indirect Peer" as peer
 
-usecase "New Tally" as newTally
 usecase "Send Direct Payment" as sendDirPmt
 usecase "Request Direct Payment" as reqDirPay
 usecase "Request Direct Invoice" as reqDirInv
@@ -18,8 +17,6 @@ usecase "Request Invoice" as reqInv
 usecase "Pay Invoice" as payInv
 '  usecase "Seek Payment Route" as seekRoute
 
-user	--	newTally
-		newTally	--	partner
 user	--	sendDirPmt
 		sendDirPmt	--	partner
 user	--	reqDirPay
