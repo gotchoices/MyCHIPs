@@ -87,7 +87,7 @@ when all 4 of our users have their data in different databases on different
 computers distributed around the Internet.  
 
 And now, the bad news:
-It [isn't impossible.](https://en.wikipedia.org/wiki/Two_Generals%27_Problem)
+It [isn't possible.](https://en.wikipedia.org/wiki/Two_Generals%27_Problem)
 
 It turns out this is a pretty old problem.  It is hard enough to get a group
 of updates to operate as a single transaction inside a single database.  But
