@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/presenter/tally_list_presenter.dart';
 import 'home_page.dart';
 import '../objects/tally.dart';
 import 'tally_page.dart';
@@ -12,6 +13,7 @@ class TallyListPage extends StatefulWidget {
 class TallyListPageState extends State<TallyListPage> {
   final List tallyList = <Tally>[];
   bool searching = false;
+  var presenter = new TallyListPresenter();
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class TallyListPageState extends State<TallyListPage> {
       appBar: AppBar(
         title: searching ? TextField(
           onChanged: (input) {
-            filterUsers(input);
+            presenter.filterUsers(input);
           },
           decoration: InputDecoration(
               icon: Icon(Icons.search, color: Colors.white,),
@@ -64,7 +66,8 @@ class TallyListPageState extends State<TallyListPage> {
           if(item.isOdd) return Divider();
           int index = item ~/ 2;
           if (index >= tallyList.length)
-            tallyList.addAll(TallyGenerator.generateFakeTallies(10));
+            //if we've reached the end of the list, query the presenter for more, providing the last tally in the list for reference
+            tallyList.addAll(presenter.getUserTallies(tallyList[tallyList.length - 1]));
           return buildRow(tallyList[index]);
         }
     );
@@ -103,8 +106,5 @@ class TallyListPageState extends State<TallyListPage> {
     );
   }
 
-  void filterUsers(input) {
-    //put logic to filter searched users here
-    print(input);
-  }
+
 }
