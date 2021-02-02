@@ -4,8 +4,10 @@ Immediate:
 X- Integrate DSR phase-1 work into source tree
 X- Why can't user UI connect to sim spa hosts?
 X- Set user host/port and peer port correctly on simulated hosts
+X- Can view/modify/render .puml diagrams
+- Port state diagrams to puml
+- Edit Tally, Lift documents, include diagrams
 - 
-- Can view/modify/render .puml diagrams
 - Integrate DSR patches into simulation folder?
 - 
 

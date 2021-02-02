@@ -23,7 +23,8 @@ For technical information about the implementation, you may want to start with
 [Lifts](doc/Lifts).
 
 ### Getting Started:
-To try out the software, follow the [Developer Instructions](doc/Development).
+General documentation is in [here](doc/Readme.md).
+To try out the software, follow the [Developer Instructions](doc/Development.md).
 
 At the current development state, you can launch a configurable number of server processes, as well as a network simulator to create bot users that will begin trading with each other.
 There is also a rudimentary admin console that allows you to browse the database, generate user connection tokens, and peruse trading contracts.
@@ -59,7 +60,7 @@ To kick off the public release, I commissioned a study by [DSR Corporation](http
 As expected, they uncovered several issues that need improvement before the system can be expected to perform in a fault-tolerant way.
 Their work and results are summarized [here](test/analysis/dsr/phase-1/results.md).
 
-In response to that study, I created an [outline](doc/Safety) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
+In response to that study, I created an [outline](doc/Safety.md) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
 Now there is work being done at [BYU](www.byu.edu) to both validate the original DSR results, and evaluate proposed solutions.
 This represents the current state of the project.
 
@@ -100,7 +101,7 @@ This represents the current state of the project.
   - Consensus algorithm between stock and foil
 - Test algorithm (DSR Study)
 
-If you are interested in participating, clone this repo and follow the instructions in the [Developer Instructions](doc/Development).
+If you are interested in participating, clone this repo and follow the instructions in the [Developer Instructions](doc/Development.md).
 You should be able to get a simulated network running and visualize credit lifts in the administrator console.
 Then review the work and results in the DSR study and see if you can help us move the project forward to deployment.
 
