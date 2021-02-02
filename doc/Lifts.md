@@ -7,13 +7,13 @@ As we discuss the alorithm, we will refer to the following figure:
 
 ![A Simple Lift](Lifts-1.jpg "Visualizing a Lift With Four Participants")
 
-This example considers 4 trading entities.  In this example, there are two people
+This example considers four trading entities.  In this example, there are two people
 and two companies.  The arrows indicate the normal flow of credits, or credit
 promises (think of payments).  So presumably, products and services are flowing 
 in the opposite direction.
 
 For example, person B works for company A and shops at company C.  Person D
-works for company C and shops at copmany A.
+works for company C and shops at company A.
 
 Entities do not always have to alternate between companies and people in this 
 way.  But generally, you are selling something (product, services, or labor) to 
@@ -83,7 +83,7 @@ Scalability is a critical feature we need to surpass what alternative systems
 such as blockchain have been unable to achieve.
 
 It would be nice to have an algorithm that will achieve an atomic result even 
-when all 4 of our users have their data in different databases on different 
+when all four of our users have their data in different databases on different 
 computers distributed around the Internet.  
 
 And now, the bad news:
@@ -413,7 +413,7 @@ prior nodes:
   NewRate = PriorRate + MyRate * (1 - PriorRate)
 ```
 Trading costs/rewards are computed according to the tally trading parameters
-discussed in the "Tallies" file in this folder.  Each user sets 4 trading
+discussed in the "Tallies" file in this folder.  Each user sets four trading
 values to indicate his appetite for collecting the credits associated with that
 tally.  The lift algorithm figures it out from there.
 
@@ -467,7 +467,7 @@ These cases really stem from two basic conditions:
     which has bubbled upstream to arrive at our system.  Either we host the
     intended endpoint of the lift or we will have to pass it on.
 
-More on the 5 specific modes, starting with simpler cases first:
+More on the five specific modes, starting with simpler cases first:
 
 - **Remote Circular**: This is always a circuit lift.  We can determine our
     system to be the last node in the chain because the destination user is a
@@ -549,7 +549,7 @@ be found to be part of a larger, external circuit.
 When a single database commits its portion of a lift (whether conditional or
 final), it should atomically commit all the tallies along the segment.  In this 
 example, there is a stock from Tricia to Gena, a stock and foil between Gena 
-and Kathleen.  And a single foil from Kathleen to Stacey.  That is 4 tallies 
+and Kathleen.  And a single foil from Kathleen to Stacey.  That is four tallies 
 in total (on our system) which will receive a lift chit, marked with the UUID 
 unique to the particular lift, and eventually signed by the lift initiator.
 
