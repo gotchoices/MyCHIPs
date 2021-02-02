@@ -1,7 +1,7 @@
-##Instructions for Running Reference Code
+## Instructions for Running Reference Code
 Dec 2020
 
-###Docker Simulation
+### Docker Simulation
 
 The docker simulation script allows you to launch any number of MyCHIPs
 server instances in docker containers.  There is also an agent model module 
@@ -18,7 +18,7 @@ docker to mount volumes from your drive:
 
   See https://docs.docker.com/docker-for-windows/#shared-drives
 
-###Docker Test Instance
+### Docker Test Instance
 
 This is probably the best way to take MyCHIPs for simple testing and evalation.
 You will need docker and node/npm installed on your system.  Windows users
@@ -96,7 +96,7 @@ in the editing pane to generate a connection ticket for that user.  This
 displays a QR code by default, but there are also links there to copy/paste a 
 URL into a browser to connect to the User (as opposed to admin) UI.
 
-###Manually configuring a native Linux environment
+### Manually configuring a native Linux environment
 (as opposed to Docker)
 
 - Install Postgres, as root:
@@ -260,7 +260,7 @@ URL into a browser to connect to the User (as opposed to admin) UI.
     select mychips.lift_cycle(1)		-- Argument = max number of lifts
 ```
 
-###Want to browse the database schema:
+### Want to browse the database schema:
 
 - Launch the server with the -w switch:
 ```
@@ -274,7 +274,7 @@ your connection key and then "Export keys" from the menu.  This should export
 your key to your Downloads folder.  Then go to the Wysegi UI and import that
 same key into the server connection dialog.
 
-###Database Logging:
+### Database Logging:
 
 You may want to monitor notice logging from postgres.  If so, you may
 have to edit pgsql/data/postgresql.conf and set the following:
@@ -282,7 +282,7 @@ have to edit pgsql/data/postgresql.conf and set the following:
   log_min_messages=notice
 ```
 
-###If you will be working on the Wyatt-ERP source code:
+### If you will be working on the Wyatt-ERP source code:
 
 - You will need to run the "npm develop" script.  This will remove the four 
   Wyatt modules out of mychips/node_modules.  It will expect to find those 
@@ -299,7 +299,7 @@ have to edit pgsql/data/postgresql.conf and set the following:
   By doing it this way, you are able to edit/change things in the Wyatt code
   and the changes will be immediately accessible to the next run of MyCHIPs.
 
-###Schema Hacking:
+### Schema Hacking:
   If you are editing the database schema, you will likely need the following 
   package installations:
 ```
@@ -320,7 +320,7 @@ have to edit pgsql/data/postgresql.conf and set the following:
   time).  So it may generate errors on the first run if your schema was 
   instantiated by MyCHIPs (as opposed to this manual build method).
 
-###If you will be working on Wylib:
+### If you will be working on Wylib:
 
 - Check out the wylib source (if not already done):
 ```
@@ -349,7 +349,7 @@ have to edit pgsql/data/postgresql.conf and set the following:
   This allows you to run the SPA out of port 3000 (rather than 8000).  This
   may not always work right if you are working on actions/reports.
 
-###Testing:
+### Testing:
 
 - Run Mocha tests 		(This is done in a separate database)
   Can set NODE_DEBUG=debug (or trace) and observe logs in /var/tmp/mychips
