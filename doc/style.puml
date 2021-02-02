@@ -8,8 +8,8 @@
 !$FONTSIZE = 11
 !endif
 
-!$ACCENT = "2a86e2"
-!$ACCENTDARK = "1a66c2"
+!$ACCENT = "4af"
+!$ACCENTDARK = "27d"
 !$PRIMARYFONTCOLOR = "003"
 !$SECONDARY = "333"
 !$ARROWCOLOR = "000"
@@ -68,7 +68,7 @@ skinparam class {
   attributeIconSize $FONTSIZE
 }
 
-' Sequence diagrams
+'skinparam actorStyle awesome
 skinparam actor {
   accent_style()
   font_style()

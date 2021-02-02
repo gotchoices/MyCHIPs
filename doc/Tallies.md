@@ -1,29 +1,31 @@
-Tallies
+## Tallies
 
 A tally is, at its essence, a contract between two parties.  By the tally, they 
 agree to "keep track" of a net amount owing between them, on mutually 
 acceptable terms.
 
-The tally is modeled after the "split tally," an instrument used historically
-to keep track of private credit arrangements.
+The tally is modeled after the historical
+[split tally,](https://www.bbc.com/news/business-40189959)
+an instrument used by past cultures to keep track of private credit balances.
 
-https://www.bbc.com/news/business-40189959
+Like a split tally, a digital tally has two parts, a stock and a foil.
+The stock (which was often longer) is held by the party who normally provides a product or service and so is 
+normally owed value for the transaction.
+We will call this the Vendor.
+The foil (or ["short end of the stick"](https://english.stackexchange.com/questions/283103/what-is-the-origin-of-get-a-hold-of-the-short-wrong-end-of-the-stick?noredirect=1&lq=1)) 
+is held by the Client, or the entity who will be expected to deliver (pay) that value at some point in the future.
 
-Like a split tally, a digital tally has two parts, a stock and a foil.  The 
-stock is held by the party who normally provides a product or service and so is 
-normally owed value for the transaction.  We will call this the Vendor.  The 
-foil is held by the Client, or the entity who will be expected to deliver (pay)
-that value at some point in the future.
+[![A Split Tally](https://valens-files.s3.amazonaws.com/institutional-dailies/edm-id79-image2.png)](https://www.valens-research.com/investor-essentials-daily/this-ancient-tradition-is-the-reason-we-long-and-short-stocks-today/)
 
 Perhaps the biggest functional difference with a MyCHIPs tally is, unlike its
 wooden predecessor, it can easily be amended by adding new credits or debits.
 It is a living ledger, keeping constant track of what is owed by one party to
 another.
 
-As a consequence, it is possible for the stock to accrue a credit (negative) 
+As a consequence, it is also possible for the stock to accrue a credit (negative) 
 balance and the foil to accrue a debit (positive) balance.  This makes the 
 terms stock (Vendor) and foil (Client) potentially less clear in terms of who 
-becomes the creditor (Recipient) and who is the debtor (Issuer).  However, we 
+becomes the creditor (Recipient) and who is the debtor (Issuer).  However, we will
 still use the terms Stock and Foil because it is helpful to differentiate the 
 two ends of the credit relationship when computing lifts and drops.
 
@@ -51,7 +53,8 @@ A tally includes the following information:
   - A list of transactions, which total to the net indebtedness
   - A list of unilateral (one party) settings to various lift parameters
 
-Each atomic change to the amount owing is referred to as a "chit" and includes:
+Each atomic change to the amount owing is referred to as a 
+["chit"](https://www.dictionary.com/browse/chit) and includes:
   - Transaction date and time
   - Transaction amount, in mCHIPs (1/1000th part of a CHIP)
   - A transaction type:
@@ -70,12 +73,11 @@ Each setting includes:
   - Signature date
   - Signature of the modifying party
 
-Tally data and chits are shared between Stock and Foil.  However, the settings 
-reside only with one side and are controlled by the owner of that half of the 
-tally.  They tell the site agent how to execute lifts on behalf of the owner.
+Tally data and chits must be duplicated exactly on the Stock and Foil.  
+However, the settings reside only with one side and are controlled by the owner of that half of the tally.
+They tell the site agent how to execute lifts on behalf of the owner.
 
-Credit Terms:
--------------------------------------------------------------------------------
+### Credit Terms
 This portion of the tally is actually comprised of a series of variables, some 
 of which are optional.  The purpose is to have enough variables that virtually 
 any common type of credit arrangement can be reasonably represented by a proper 
@@ -84,7 +86,7 @@ choice of values.
 To understand better what we are trying to model, we will first outline a few 
 examples of credit relationship:
 
-  Peer Accounts:
+- Peer Accounts:
   This might represent two companies or two individuals who regularly do
   business with each other.  There is probably a direction in which money 
   normally flows from Client to Vendor.  But there may also be occasions when 
@@ -100,7 +102,7 @@ examples of credit relationship:
   is more likely in concentrating too much of that total value in any single 
   debtor--particularly one who may not be capable of redeeming it all.
   
-  Merchants (corporate Vendors):
+- Merchants (corporate Vendors):
   Clients of merchants may wish to accumulate value by collecting the credits 
   of the merchants where they like to shop.  This is one way of storing value,
   or in common terms, saving money.  But it can also be viewed as a loan from 
@@ -112,7 +114,7 @@ examples of credit relationship:
   to buy.  But he should not exceed the amount of debt he can reasonably redeem 
   through product sales, or other exchanges.
   
-  Secured Loans:
+- Secured Loans:
   Consumers (Clients) and businesses (Vendors) alike can benefit from 
   maintaining one or more collateralized loans.  You start by purchasing an 
   asset over time from a seller who would like to earn income by financing the 
@@ -123,7 +125,7 @@ examples of credit relationship:
   way, the asset can form a store of value--perhaps more reliable than just 
   holding the credits of your favorite vendors (who might go out of business).
 
-  Money Markets:
+- Money Markets:
   Since money normally flows in a single, expected direction, there is a
   natural demand for credit lifts to temporarily move that flow backward,
   resetting the potential for more purchasing power.  But such "win-win" lift 
@@ -198,31 +200,31 @@ Credit Terms Tally Variables:
     Compound Interval.
 
 Credit Terms Examples:
-  Casual Peer to Peer, no interest, cancelation with notice:
+- Casual Peer to Peer, no interest, cancelation with notice:
     - Maximum Balance: 100
     - Call Notice: 30
 
-  Customer (Client) to merchant (Vendor) (coupons):
+- Customer (Client) to merchant (Vendor) (coupons):
     - Maximum Balance: 0
 
-  Merchant (Vendor) to customer (Client), debit account:
+- Merchant (Vendor) to customer (Client), debit account:
     - Maximum Balance: 0
 
-  Credit card requiring full payment every month:
+- Credit card requiring full payment every month:
     - Maximum Balance: 200
     - Minimum Payment: Bal
     - Grace Period: 1 month
     - Compound Interval: 1 month
     - Rate: 0.10
 
-  Credit card requiring full payment over 4 months:
+- Credit card requiring full payment over 4 months:
     - Maximum Balance: 300
     - Grace Period: 30
     - Minimum Payment: Min(10, Bal / 4)
     - Payment Interval: 30
     - Rate: 0.10
 
-  20 year fully amortizing laon with fixed payment, limited early payoff:
+- 20 year fully amortizing laon with fixed payment, limited early payoff:
     - Maximum Balance: Amort(10000, 240)
     - Minimum Payment: Int
     - Maximum Paydown: 1000
@@ -230,13 +232,13 @@ Credit Terms Examples:
     - Rate: 0.06
     - Call Notice: 20 year (register call upon closing)
 
-  Business line, pay weekly interest, can be called with 60 day notice:
+- Business line, pay weekly interest, can be called with 60 day notice:
     - Maximum Balance: 10000
     - Compound Interval: week
     - Rate: 0.08
     - Call Notice: 60
 
-  90 Day personal loan, fixed term, balloon payoff
+- 90 Day personal loan, fixed term, balloon payoff
     - Rate: 0.12
     - Call Notice: 90 day (register upon closing)
 
@@ -245,24 +247,26 @@ transactions users may manually initiate.  For example, a credit limit, does
 not prevent one peer from unilaterally sending value (chits) to the other
 party, even if that would push a total past a credit limit.
 
-For example, even though I might only trust you with credit for $100, that 
-wouldn't prevent you from writing a check to me for $1000.  And I might well
+For example, even though I might only trust you with credit for \$100, that 
+wouldn't prevent you from writing a check to me for \$1000.  And I might well
 accept that extra large check.  I may just decline to give you product or
 services in exchange for it--at least until I had funged it into a form of
 value I was more comfortable with.
 
-Trading Variables:
--------------------------------------------------------------------------------
+### Trading Variables
 MyCHIPs credits are, by design, not transferrable.  This means, if someone owes 
 you value, you don't have the right to reassign that asset to a third party.  
 This limitation is imposed to avoid the need for trust among unrelated parties
 and it also makes CHIPs less vulnerable to theft or loss.
 
 But it seems like a pretty serious limitation--especially on something we are 
-trying to use as money.  So in order to make value transmittable (effectively
-fungible), we need the credit lift alorithm (see gotchoices.org/mychips).  To 
-facilitate lifts, each tally half (stock or foil) maintains a set of parameter 
+trying to use as money.  So in order to make *value* transmittable (effectively
+fungible), we need the 
+[credit lift alorithm](http://gotchoices.org/mychips/acdc.html)
+To facilitate lifts, each tally half (stock or foil) maintains a set of parameter 
 settings that define how lifts will take place.
+
+[![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/figures/money_ac.svg "Click to see/run a decentralized private credit model")
 
 Lifts are largely executed autonomously (without direct user interaction).  So
 the system needs a defined set of rules to know how the user wants this done.
@@ -274,8 +278,9 @@ manually set certain preferences themselves.  The instruction for changing
 these settings is digitally signed by the user, authorizing the system agent to 
 act in accordance with the settings.
 
-Client's (Foil) Trading Varibles:	See Lifts.odg, page 5
+![Trading Variables](Lifts-5.jpg "Visualizing Trading Variables")
 
+Client's (Foil) Trading Varibles:
   - Lift Target (Vendor -> Client):	Default: 0
     The ideal amount of Vendor's credits Client wishes to accumulate.  A 
     negative tally balance is normally accomplished through credit lifts, as 
@@ -310,7 +315,7 @@ Client's (Foil) Trading Varibles:	See Lifts.odg, page 5
     positive number (1 disables drops altogether).  If he wants to get rid of
     the chips, he could consider entering a negative margin.
     
-Vendor's (Stock) Trading Varibles:	See Lifts.odg, page 5
+Vendor's (Stock) Trading Varibles:
 
   - Drop Target (Client -> Vendor):	Default: 0
     The ideal amount of Client's credits Vendor wishes to accumulate or 
@@ -336,8 +341,7 @@ Vendor's (Stock) Trading Varibles:	See Lifts.odg, page 5
     positive number (1 disables lifts altogether).  If he wants to get rid of
     the chips, he could consider entering a negative margin.
   
-Invoicing:
--------------------------------------------------------------------------------
+### Invoicing
 An invoice is a request for payment from one party to another.  When the 
 parties share a tally, the invoice takes the form of a draft chit applied to 
 the tally.  The parties can negotiate over it until it is agreeable.  Once
@@ -358,8 +362,7 @@ the invoice should include:
 The payor system will attempt to generate a route to the recipient.  If
 successful, a linear lift can be initiated to complete the payment.
 
-Normal Consumer Transaction: (payment without a tally)
--------------------------------------------------------------------------------
+### Normal Consumer Transaction (payment without a tally)
 - The vendor displays a generic invoice QR code as described above
   - This can be custom generated for the transaction; or
   - It can be generic (a printed decal with no amount or reference field)
@@ -375,8 +378,7 @@ Normal Consumer Transaction: (payment without a tally)
 - The app initiates a linear lift to the recipient's system.  When the user
   signs the transaction, the lift is completed.
   
-Consumer Account Setup: (establishing a private tally)
--------------------------------------------------------------------------------
+### Consumer Account Setup: (establishing a private tally)
 - The Vendor displays a ticket QR code, consisting of
   - The name of the system that hosts the recipient's CHIP account
   - Connection socket for the recipient's host system
@@ -417,8 +419,7 @@ If credit has been extended to the customer as part of the tally, the customer
 can begin to buy things using the tally as payment, within the specified credit
 terms.
 
-Pathways:
--------------------------------------------------------------------------------
+### Pathways
 The admin tool includes a network visualization tool that shows all users local
 to the site, known foreign peers, and the tallies that interconnect them.  Each
 database will store both a stock and a foil that connect local users to each
@@ -435,24 +436,21 @@ The goal is to show the effect on each user's trading variables (see
 above) on the capacity "lading" of each segment of the network to carry lifts.
 
 Specifically, we boil the trading variables down to 4 lift parameters:
-
-  lift_target
-  lift_bound
-  lift_reward
-  lift_margin
+- lift_target
+- lift_bound
+- lift_reward
+- lift_margin
 
 The target, bound and reward are identical in meaning to the foil trading
 variables by the same name.  The margin, however is a result of the clutch
 value from the corresponding stock.  The idea is, it represents the cost
 charged by the stock holder (usually 0) for doing a lift through this segment.
 
-There are also 4 corresponding values for drops (lifts in the opposite 
-direction):
-
-  drop_target
-  drop_bound
-  drop_reward
-  drop_margin
+There are also 4 corresponding values for drops (lifts in the opposite direction):
+- drop_target
+- drop_bound
+- drop_reward
+- drop_margin
 
 The first three are a result of the corresponding stock trading variables.
 The drop margin comes from the foil clutch value (a cost asserted by the foil
@@ -471,20 +469,15 @@ fashion (see Lift document).
 
 The lading values get aggregated along these chains to become:
 
-  lift_min:	The smallest free liftable amount along this chain (the most we
-  		can expect to lift through this chain at no cost).
-  lift_max:	The smallest liftable amount along this chain, which may have
-  		a cost (the most we can expect to lift).
-  lift_reward	The cost rate asserted by foils for that part of the lift 
-  		greater than lift_min and less than lift_max.
-  lift_margin	The aggregated cost asserted by stocks for lifting any amount
-  		through this chain.
+-  **lift_min:**	The smallest free liftable amount along this chain (the most we can expect to lift through this chain at no cost).
+-  **lift_max:**	The smallest liftable amount along this chain, which may have a cost (the most we can expect to lift).
+-  **lift_reward:**	The cost rate asserted by foils for that part of the lift greater than lift_min and less than lift_max.
+-  **lift_margin:**	The aggregated cost asserted by stocks for lifting any amount through this chain.
 
 During route discovery (see Lift document), these values are queried in order 
 to determine lading capacity through pathways that span across multiple sites.
 
-Chit Chains:
--------------------------------------------------------------------------------
+### Chit Chains
 One of the challenges of a distributed system is to keep different copies of 
 important data in sync across systems.  This is where parts of blockchain 
 technology will be helpful to us.
@@ -557,8 +550,7 @@ move your latest valid index number forward (but not back) to that number.
 See the section in the Tallies document for more on treatment of chits that
 belong to a lift transaction.
 
-Chit States:
--------------------------------------------------------------------------------
+### Chit States
 The state of a chit can be looked at from several different angles, depending 
 on what is needed.
 

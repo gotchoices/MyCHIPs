@@ -8,4 +8,4 @@
 #docker run -it --rm --name markserv -p 3000:8080 -v $PWD/..:/usr/src/app/ mhowlett/markserv-docker
 
 #https://hub.docker.com/r/thomsch98/markserv
-docker run -it --rm --name markserv -p 3000:3080 -v $PWD/..:/data thomsch98/markserv
+docker run -it --rm --name markserv -p 3080:3080 -v $PWD/..:/data thomsch98/markserv

@@ -17,8 +17,8 @@ actually been implemented.
 - [Running the Software](Development.md)
 - [System Topology](Network.md)
 - [General Principles](General.md)
-- [How Tallies Work](Tallies)
-- [How Lifts Work](Lifts)
+- [How Tallies Work](Tallies.md)
+- [How Lifts Work](Lifts.md)
 - [Known Issues](Bugs.md)
 - [Upgrade Strategy](Upgrading.md)
 - [User Interface Design](Users.md)
@@ -35,7 +35,7 @@ software (if they can be read).
 The [Project](Project/README.md) folder contains specifications for coding projects 
 developers might want to consider working on.
 
-Here are some older, possibly outdated documents:
+Also some older, possibly outdated information here:
 - [Early Concept of Protocols](Dialogs.md)
 
 ## Design Figures
@@ -44,12 +44,13 @@ program and are referenced at times from the documentation files.
 
 The file [chipglass.svg](chipglass.svg) is an attempt at a logo for MyCHIPs 
 that indicates its origin in the notion that 
-[time is money](http://gotchoices.org/mychips/whychips.html).  
+[time is money](http://gotchoices.org/mychips/whychips.html).
+
 The file [chip.svg](chip.svg) is a suggested
-"chip sign" analogous to the "dollar sign" to indicate units of CHIPs. 
-It can easily be hand written by making a "figure 8" with two vertical lines through.
-Alternately, one can write a "backwards 3" (or curly "E") followed by a closely 
-placed "3" (to approximate an hourglass) and then add the two vertical lines.
+“chip sign” analogous to the “dollar sign” to indicate units of CHIPs. 
+It can easily be hand written by making a “figure 8” with two vertical lines through.
+Alternately, one can write a “backwards 3” (or curly “E”) followed by a closely 
+placed “3” (to approximate an hourglass) and then add the two vertical lines.
 
 The intent of this is to make a standard international symbol for a more
 objective measure of value based on the essence of human time, and independent 
