@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/presenter/tally_page_presenter.dart';
 import 'home_page.dart';
 import '../objects/transaction.dart';
 import '../objects/tally.dart';
@@ -15,6 +16,7 @@ class TallyPage extends StatefulWidget {
 
 class TallyPageState extends State<TallyPage> {
   final List transactionList = <Transaction>[];
+  var presenter = TallyPagePresenter();
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class TallyPageState extends State<TallyPage> {
         appBar: AppBar(
           title: Text("Tally with " + widget.tally.friend),
           actions: [
+            //TODO: Where is the user profile image URL stored? How and when is it fetched?
             CircleAvatar(backgroundImage: new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),)
           ],),
         body: buildPage(),
@@ -69,7 +72,7 @@ class TallyPageState extends State<TallyPage> {
           if(item.isOdd) return Divider();
           int index = item ~/ 2;
           if (index >= transactionList.length)
-            transactionList.addAll(TransactionGenerator.generateFakeTransactions(10));
+            transactionList.addAll(transactionList.length == 0 ? presenter.getUserTransactions() : presenter.getUserTransactions(transactionList[transactionList.length - 1]));
           return buildRow(transactionList[index]);
         }
     );

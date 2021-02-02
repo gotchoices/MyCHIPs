@@ -67,7 +67,7 @@ class TallyListPageState extends State<TallyListPage> {
           int index = item ~/ 2;
           if (index >= tallyList.length)
             //if we've reached the end of the list, query the presenter for more, providing the last tally in the list for reference
-            tallyList.addAll(presenter.getUserTallies(tallyList[tallyList.length - 1]));
+            tallyList.addAll(tallyList.length == 0 ? presenter.getUserTallies() : presenter.getUserTallies(tallyList[tallyList.length - 1]));
           return buildRow(tallyList[index]);
         }
     );
