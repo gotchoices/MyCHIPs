@@ -23,7 +23,7 @@ For technical information about the implementation, you may want to start with
 [Lifts](doc/Lifts).
 
 ### Getting Started:
-General documentation is in [here](doc/Readme.md).
+General documentation is in [here](doc/README.md).
 To try out the software, follow the [Developer Instructions](doc/Development.md).
 
 At the current development state, you can launch a configurable number of server processes, as well as a network simulator to create bot users that will begin trading with each other.

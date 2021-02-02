@@ -1,6 +1,6 @@
-##Frequently Asked Questions
+## Frequently Asked Questions
 
-###Introduction
+### Introduction
 Often, when a developer reviews this (or any) project, they start out by 
 wanting to change the way it has been implemented.  While I don't doubt there 
 are many other good ways the project could have been done, I have made the best 
@@ -19,7 +19,7 @@ current implementation design.  When that works, there will be more time and
 motivation for other possible "from-scratch" versions to come along that might 
 be more elegant or efficient.
 
-###Can you build this system on top of (Etherium, holochain, other blockchain...)?
+### Can you build this system on top of (Etherium, holochain, other blockchain...)?
 
 Possibly.  Maybe somehow, but why?  Blockchain is a centralized data topology.
 Transactions are designed to go through a common, public store.  MyCHIPs is a 
@@ -50,7 +50,7 @@ notions (like public ledgers, reputation-based trust, and the like).  Those are
 helpful constructs--just not directly applicable to a tokenless money system 
 based on private credit.
 
-###Why use Javascript on the backend?
+### Why use Javascript on the backend?
 
 The asynchronous character of Javascript is key to the way the server runs.  A
 single process can be started which is really several servers in one.  Or, many
@@ -63,7 +63,7 @@ attempts to code the server in synchronous languages, I quickly decided that
 learning Node.js would be worth the investment.  I am convinced, it was a good
 choice.
 
-###Why use Vuejs?
+### Why use Vuejs?
 
 In terms of the choice between React, Angular and Vuejs, I chose Vuejs simply
 because it is lighter and much less opinionated.  I have too many of my own
@@ -80,7 +80,7 @@ else  is yet to be determined.  For now, the user UI is simply a data-centric
 way to see and access the resources expected to be available to a user in the 
 eventual production UI.
 
-###Why use PostgreSQL?
+### Why use PostgreSQL?
 
 First requirement of the system was that it be ACID.  There are transactions
 coming into the model from all different directions and commits need to be
@@ -102,7 +102,7 @@ In many cases, the ability to store/retrieve data as JSON is a big help to the
 Nodejs server process (and the front end).  While Mongo would do that part very 
 well, Postgres has good enough JSON functionality to fill the gap.
 
-###What is all this Wy* stuff?
+### What is all this Wy* stuff?
 
 Wyatt-ERP is a group of libraries I developed some years ago which provide for
 rapid development of database applications.  It was originally implemented in 
@@ -114,7 +114,7 @@ MyCHIPs.  This (an "old hammer") involves 4 npm libraries:
   Wyclif: Control layer interface and application glue
   Wyselib: ERP schema library, partially ported
 
-###Why use Wyatt-ERP?
+### Why use Wyatt-ERP?
 
 Because I wanted to use PostgreSQL and Wyseman is the easiest/best way I know 
 to do SQL development in a stable, extendable and repeatable way.
@@ -127,7 +127,7 @@ To develop that, make changes, and keep everything in synch can be quite a
 challenge (and one of the reasons people get frustrated with SQL databases).
 Wyseman makes that much more convenient--even possible in this case.
 
-###Can I use MySQL (SQLlite, etc.)
+### Can I use MySQL (SQLlite, etc.)
 
 No.  PostgreSQL is doing so much more than just storing data in tables.  It is 
 both a model and a state controller.  There is no compelling reason to try to 
@@ -135,7 +135,7 @@ accommodate more than one such platform.
 
 Switching to another database would be nearly starting over from scratch.
 
-###Why is your code so tightly packed?
+### Why is your code so tightly packed?
 
 Sorry, that's how I code.  It is easier for me to understand the code structure
 when I can see larger parts of the logic flow in one page.  Each line tends to
@@ -145,7 +145,7 @@ the line.  Unfortunately, I don't seem to be getting paid at all!
 I also code a lot wider than 80 columns.  Assuming you're not still using a
 VT100 or a teletype, make your window wider.  It will work.
 
-###Will it run on Windows?
+### Will it run on Windows?
 
 Sure.  In Docker!
 
@@ -158,7 +158,7 @@ would likely have to have that installed.
 
 If anyone wants to test/validate on Windows, your help would be welcome.
 
-###Is there an API?
+### Is there an API?
 
 Absolutely, but possibly not what you're used to if you think API implies 
 something implemented on top of HTTP.
@@ -178,7 +178,7 @@ sending queries that are represented as JSON structures (hey, kind of like
 No-SQL!).  The data comes back to you as JSON as well so you can almost pretend
 you're talking to Mongo.
 
-###Why not implement this as a more standard web protocol?
+### Why not implement this as a more standard web protocol?
 
 That's probably code for: Why didn't you implement this on top of HTTP?
 

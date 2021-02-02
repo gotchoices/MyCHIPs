@@ -1,7 +1,7 @@
-##Thoughts on Future Direction
+## Thoughts on Future Direction
 July 2020
 
-###Lessons Learned:
+### Lessons Learned:
 The original demonstration code for the lift algorithm was written without 
 fully understanding how it would turn out.
 
@@ -26,7 +26,7 @@ before even attempting to make the next coding pass.
 Going through the TLA+ tutorial was helpful just to see how others have dealt 
 with achieving consensus in a distributed network.
 
-###The Central Problem:
+### The Central Problem:
 It would appear there is no perfect way to guaranty both safety and liveness in 
 a fully distributed, and de-centralized network.  There are algorithms for 
 achieving consensus (Two-phase commit) but they rely on some authority 
@@ -51,7 +51,7 @@ succeed, or it may just be an effort to coopt the system for personal gain.
 Either way, the goal of MyCHIPs is to avoid all that and make a reliable 
 system regular (i.e. honest) people can use by themselves and for themselves.
 
-###A Proposed Solution:
+### A Proposed Solution:
 So what if we resolve to use a TM (i.e. a bit of centralization) for each lift, 
 but have the protocol allow for anyone to become a TM?  The idea is: the lift 
 initiator would propose a node it would like to use as TM for that lift.  Each 

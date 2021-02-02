@@ -1,10 +1,10 @@
-##Bugs and Problems
+## Bugs and Problems
 
 This file is for tracking identified, unsolved problems with the general 
 security related to the Tally and Lift architecture.  It is not intended for 
 program bugs that can be solved with better coding.
 
-###Crooked Admin / Hacked Host
+### Crooked Admin / Hacked Host
 
 In this scenario, a site admin has set out to defraud one of his own users.  He
 could modify the server software to earn extra CHIPs he is not entitled to.

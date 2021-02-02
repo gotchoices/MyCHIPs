@@ -1,4 +1,4 @@
-##General Principles to Understand About How MyCHIPs Works
+## General Principles to Understand About How MyCHIPs Works
 
 One of the first comments I often get after a code review is: "Wow, that is 
 pretty complicated!"  Yes, there are a lot of moving parts in the algorithm.
@@ -50,7 +50,7 @@ a bit complicated.  But it has some very desirable benefits.
 So to be most effective as a developer, you should try to un-learn some ideas
 about how money has to work that may be burned very deeply into your psyche.
 
-###Money as Credit
+### Money as Credit
 The first thing to unlearn is that money has to be a commodity, an equity--a
 thing that can be possessed (i.e. gold, silver, Bitcoin, etc.).  This is one of 
 the reasons the "money supply" is such a difficult notion to grasp.  Because we 
@@ -110,7 +110,7 @@ So that's it.  We just need our ledger system to handle positive and negative
 amounts, always making sure the net of all entries is zero, and we've solved 
 the money supply problem.
 
-###Decentralization
+### Decentralization
 Now to the bigger problem relating to authority and trust.
 
 Blockchain is said to be a decentralized system, and in many ways it is.  But
@@ -158,7 +158,7 @@ This is where the MyCHIPs lift algorithm shines.  It allows us to:
 - Pass value through the network to entities with whom we do not share a direct 
   connection of trust.
 
-###Discipline
+### Discipline
 As one works on this project, it can be difficult to maintain these principles
 and concepts firmly in mind, as necessary to achieve full decentralization.
 

@@ -1,4 +1,4 @@
-##Upgrading the Software
+## Upgrading the Software
 
 As with any software service, it becomes necessary from time to time to install
 the latest version of the software.
@@ -21,7 +21,7 @@ The goal is to design a system that can get as close to 100% uptime as
 possible, and to have a strategy for software updates that creates the smallest
 possible disruption to the overall user experience.
 
-###General Architecture
+### General Architecture
 
 The system is designed with a PostgreSQL (PG) database at the center.  This is 
 where the authoritative state of the system is maintained.
@@ -43,7 +43,7 @@ If a change in state succeeds, the database will have it.  If it does not go
 through, the database will still be in the prior, consistent state and a retry
 process can keep iterating until everything works out OK.
 
-###Upgrading the Database
+### Upgrading the Database
 
 There are two issues surrounding the backend database:
   - The PostgreSQL server itself (version 11, 12, etc.)
@@ -64,7 +64,7 @@ With the right external configuration, it should also be possible to use a hot
 standby to do automatic failover should the master server crash for some
 reason.
 
-###Upgrading the Schema
+### Upgrading the Schema
 
 The intent here is to use Wyseman in such a way that we never really have to
 turn off the database to do an upgrade.  Wyseman is designed (work in process

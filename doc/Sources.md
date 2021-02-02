@@ -1,11 +1,11 @@
-##Brief description of what is in the various folders:
+## Brief description of what is in the various folders:
 
-###bin
+### bin
 Things you would execute from the command line on the hosting computer.
 This may end up being limited to the MyCHIPs server as it is turning out to 
 encompass all the different functionality within a single program.
 
-###contract
+### contract
 MyCHIPs tokens are not stand-alone coins as with Bitcoin.  Rather, a CHIP
 is an agreement between two parties.  So instead of being based on the
 notion of authority, it is based on mutual consent between two willing
@@ -17,7 +17,7 @@ conduct their credit dealings.
     
 The source language for these contracts is kept here.
 
-###lib
+### lib
 Contains modules that are required by the MyCHIPs server.
 Functionality includes:
   - A web server to serve up user and admin SPA's described below
@@ -27,16 +27,16 @@ Functionality includes:
   - Communication with peer users' servers
   - Interaction with the database
 
-###src
+### src
 Contains code for the admin and user SPA.  These applications run in a
 browser to allow the administrator and MyCHIPs user to access the
 relevant data and functions of the server and database.  
     
-###pub
+### pub
 Contains webpack bundles of the SPAs.  The web server points here as its
 base folder to serve up the SPA applications.
     
-###schema
+### schema
 Contains a definition of the database schema, authored and maintained in 
 the Wyseman format.  This means, source files are written as TCL 
 structures which contain SQL fragments, macros and shortcuts which will
@@ -49,7 +49,7 @@ detect that the required tables are not present, and so will build it
 according to the compiled SQL file (in lib) which is derived from the
 Wyseman sources in this folder.
 
-###test
+### test
 Contains mocha tests as well as a variety of sample data for use in
 development.
     

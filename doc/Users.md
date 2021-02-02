@@ -1,6 +1,6 @@
-##MyCHIPs User Interface
+## MyCHIPs User Interface
 
-###Visual Balance Sheet
+### Visual Balance Sheet
 It is a pretty obvious goal of MyCHIPs to create a dependable, alternative 
 medium of exchange.  A less obvious goal is to build a diverse web of trusted
 links of interdependency throughout society in order to make the world a more 
@@ -52,7 +52,7 @@ Proposed Graph Dimensions:
   - Shade of slices (different assets or liabilities)
   - Relative size and color of center core (net worth)
 
-###Some Original Design Concepts (from 2017)
+### Some Original Design Concepts (from 2017)
 In addition to managing connections with other peer servers, a MyCHIPs server 
 must manage connections with its own set of users.
 

@@ -1,12 +1,12 @@
-##The MyCHIPs Network
+## The MyCHIPs Network
 
-###General Topology
+### General Topology
 This diagram shows the basic parts of a single site, which represents one
 or more logical nodes, or entities:
 
 [![System Design](scaling.png)](scaling.png)
 
-###Trading entity
+### Trading entity
 An entity is a person or a company who establishes itself on the network for
 the purpose of trading credits with other entities.
 
@@ -23,7 +23,7 @@ any number of ID's at one time.  This is like having multiple debit cards.  As
 long as you collect value in each account before spending that value, no one
 gets hurt by you having more than one account.
 
-###Database Instance
+### Database Instance
 A backend database contains a data set for one or more different trading 
 entities (users).  This data set includes information about what credit 
 connections each user has with others on the network.  It also includes what 
@@ -51,7 +51,7 @@ The database must properly maintain state, respond to authorized state change
 requests, execute orderly state changes, and notify any listeners of applicable
 state changes.
 
-###Peer Server Instance
+### Peer Server Instance
 Each database instance can interact with one or more peer server instances.  
 The peer server listens for connections from other peer servers (i.e. other
 instances of itself, or similarly functioning software).  It will also initiate
@@ -67,7 +67,7 @@ It therefore should register itself with the database instance so as to receive
 notifications, which might have been intiated elsewhere, but which are 
 applicable to the user(s) the peer server works on behalf of.
 
-###User Server Instance
+### User Server Instance
 This server may run together or separately from the peer server.
 
 In the initial implementation, it serves up and communicates with a user SPA to 
@@ -81,7 +81,7 @@ than an SPA).  This should provide much better security for stored keys and
 the like.  Hopefully, the client app and client SPA can utilize the same API
 for communicating with the user server.
 
-###Admin Portal
+### Admin Portal
 This is actually a separate SPA that communicates through the user server
 mentioned above.
 
@@ -93,7 +93,7 @@ The admin app also contains an interative flow chart to show the network nodes
 its database server knows about.  It is hoped this display will be helpful in 
 planning, designing, visualizing debugging the lift algorithm.
 
-###Connections
+### Connections
 Each user entity would typically have at least one up-stream and one down-
 stream trading connection (tally) in order to effectively trade on the network.  
 However, in some instances those two connections can virtually be with a single 
@@ -114,7 +114,7 @@ So in a credit lift, we will reverse the flow of value so the money will appear
 to move back "up the hill" as you collect back credits from your vendors and 
 send it back to your customers.
 
-###Circuits
+### Circuits
 The objective of the network is to discover strings of connections that link
 together, normally in a single direction (i.e. up stream), but find their way 
 back to the original entity coming from the other direction (i.e. from down 
@@ -125,7 +125,7 @@ flowing in a loop.  Once this circle has been discovered, a server can attempt
 to initiate a credit lift around the circle, which will be a transaction
 involving all the entities in the loop.
 
-###Scaling
+### Scaling
 The MyCHIPs server is designed to be able to run all server processes in a
 single process.  So on a small system, it should be pretty easy to get up and
 running.  Everything can run on a single system, including the database.
@@ -156,7 +156,7 @@ gathers and analyses relationship chains for the sole purpose of facilitating
 lifts.  This reference implementation is not currently attempting anything of
 that scope.
 
-###Events
+### Events
 All processes should be mostly event driven.  Most state transitions would
 occur directly or indirectly as a result of actions by a user somewhere.
 But there are some exceptions.

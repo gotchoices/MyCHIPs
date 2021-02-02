@@ -1,7 +1,7 @@
-##This is an outline of the dialogs that occur between processes:
+## This is an outline of the dialogs that occur between processes:
 Aug 2018 (Information likely to be outdated)
 
-###Initialization/administration of site
+### Initialization/administration of site
 - Upon first launch of the admin server:
   - If database not built, build it (need to finish wyseman command to do this from the app)
   - Execute any initialization scripts
@@ -20,7 +20,7 @@ Aug 2018 (Information likely to be outdated)
   - Put a user (or the whole site) into lockdown mode
   - Edit site configuration defaults
 
-###Initialization of keys between the user's mobile device and the user's site
+### Initialization of keys between the user's mobile device and the user's site
 - Initially, the service provider must set up a user account on its site
   This will include name, address, contact info, etc.
   But the provider should not know the user's private key information.
@@ -53,7 +53,7 @@ Aug 2018 (Information likely to be outdated)
   Otherwise, it returns nothing, refusing to read further information on the connection.
   Regardless, the token is invalidated and so can no longer be used.
 
-###Normal connection between the user's mobile device and the user port server
+### Normal connection between the user's mobile device and the user port server
 - Connection is initiated by the mobile app
 - Once connected, the app can query periodically for status updates, if desired.
 - It might also open a secure socket on which to receive asynchronous alarms.
@@ -73,7 +73,7 @@ Aug 2018 (Information likely to be outdated)
 - The connection will remain open until one of the sides closes it.
   Normally the mobile app will do the closing.
 
-###Initial connection between peer site servers
+### Initial connection between peer site servers
 - User A will request a tally ticket for his account
   This authorizes a peer site to establish a connection, absent key information.
   The ticket will be disclosed to User B, via a reliable path.
@@ -97,7 +97,7 @@ Aug 2018 (Information likely to be outdated)
   Otherwise, it returns nothing, refusing to read further information on the port.
   Regardless, the ticket and its associated token are invalidated for further use.
 
-###Normal connection between peer site servers
+### Normal connection between peer site servers
 - Consider a connection initiated by the User A's site.
   In this case, we will call A's site the client.
 

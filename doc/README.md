@@ -1,7 +1,7 @@
-#MyCHIPs Documentation
+# MyCHIPs Documentation
 Copyright MyCHIPs.org; See license in root of this package
 
-##Design
+## Design
 The high-level design of the software was created by writing the
 [MyCHIPs Papers](http://gotchoices.org/mychips) published on gotchoices.org 
 starting around the beginning of 2018.  The information there is quite 
@@ -13,7 +13,7 @@ become more clear in the process of developing actual source code.  So the
 documents here are often more current and more specific to the way MyCHIPs has
 actually been implemented.
 
-##Sections
+## Sections
 - [Running the Software](Development.md)
 - [System Topology](Network.md)
 - [General Principles](General.md)
@@ -27,7 +27,7 @@ actually been implemented.
 - [Source Tree](Sources.md)
 - [Frequently Asked Questions](FAQ.md)
 
-##Other Documents
+## Other Documents
 The [Notes](Notes/README.md) folder contains scans of original hand sketches notes, and 
 calculations which could be helpful in understanding the implementation of the
 software (if they can be read).
@@ -38,7 +38,7 @@ developers might want to consider working on.
 Here are some older, possibly outdated documents:
 - [Early Concept of Protocols](Dialogs.md)
 
-##Design Figures
+## Design Figures
 The figures included as .odg files can be opened in LibreOffice or a compatible 
 program and are referenced at times from the documentation files.
 
