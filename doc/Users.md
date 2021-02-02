@@ -1,19 +1,17 @@
-MyCHIPs User Interface
+##MyCHIPs User Interface
 
--------------------------------------------------------------------------------
-Visual Balance Sheet
+###Visual Balance Sheet
 It is a pretty obvious goal of MyCHIPs to create a dependable, alternative 
-medium of exchange.  A less obvious goal is to build a diverse web of stable 
-bonds of interdependency throughout society in order to make the world a more 
+medium of exchange.  A less obvious goal is to build a diverse web of trusted
+links of interdependency throughout society in order to make the world a more 
 peaceful and friendly place to live in.
 
 In order to accomplish these goals, the end-user interface must be simple
 enough for everyone to use and understand.  It would be an added bonus if the
 interface would imbue the user with deeper insights into:
-
-  - The true nature of money/value
+  - The [true nature](http://gotchoices.org/mychips/value.html) of money/value
   - Sustainable and dependable savings strategies (Balance Sheet)
-  - Healthy balance of productivity and expenses (P&E)
+  - Healthy balance of productivity versus expenses (P&E)
 
 Many people approach money management solely from the standpoint of meeting
 their monthly expenses (P&E).  They produce what they need to pay the bills.
@@ -37,9 +35,9 @@ to have a very intuitive graphical way of displaying net worth--something that
 could be understood with a glance and that would encourage people to behave in
 a way that is in their best financial interest.
 
-This "Visual Balance Sheet" is intended to quantify several important aspects
-of one's balance sheet into a graphical object that is interesting to look at
-and easy to understand.
+This "Visual Balance Sheet" ([prototyped here](../test/visbs/index.html))
+is intended to quantify several important aspects of one's balance sheet into 
+a graphical object that is interesting to look at and easy to understand.
 
 Quantities to model:
   - Total tally assets (stocks and debit-balance foils)
@@ -54,8 +52,7 @@ Proposed Graph Dimensions:
   - Shade of slices (different assets or liabilities)
   - Relative size and color of center core (net worth)
 
-Design Concepts From 2017
--------------------------------------------------------------------------------
+###Some Original Design Concepts (from 2017)
 In addition to managing connections with other peer servers, a MyCHIPs server 
 must manage connections with its own set of users.
 
@@ -68,5 +65,3 @@ use that information as the first step to try to hack into the user's account.
 It would be perfectly feasible to accept user connections only on a different
 port and even a completely different IP number.  Ideally, this endpoint would
 be known only to the user who uses it.
-
--------------------------------------------------------------------------------

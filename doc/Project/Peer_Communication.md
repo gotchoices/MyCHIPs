@@ -7,7 +7,7 @@ relationships which can be used to exchange, clear and transmit value.
 Simply put, it implements a monetary system.
 
 Individual user accounts are hosted on a set of servers (or systems of servers)
-which are shown on this [LibreOffice figure](/doc/Scaling.odg).  The system
+which are shown on this [LibreOffice figure](/doc/Scaling.png).  The system
 model data are contained in the PostgreSQL database.  There is one such
 database per "node" in the network.  But there may be multiple NodeJS servers
 which direct traffic to/from the model and also provide a certain amount of

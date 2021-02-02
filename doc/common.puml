@@ -1,5 +1,4 @@
-!define LIGHTGREEN
-!includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
+!include style.puml
 
 !$user = "#green"
 !$db = "#red"

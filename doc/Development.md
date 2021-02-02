@@ -1,7 +1,7 @@
-Instructions to demonstrate reference code (Dec 2020)
+##Instructions for Running Reference Code
+Dec 2020
 
----------------------------------------------------------------------
-Docker Simulation
+###Docker Simulation
 
 The docker simulation script allows you to launch any number of MyCHIPs
 server instances in docker containers.  There is also an agent model module 
@@ -9,26 +9,25 @@ that runs on behalf of simulated users to create a data set of random CHIP
 trades.
 
 To run the simulation, install Docker on your machine and then get into 
-test/sim and follow instructions in README.dock.
+the test/sim folder and follow instructions in [README.dock](/test/sim/README.dock).
 
 The simulation environment was developed on MacOS but it should also be 
 possible (though not well tested) to run on a Linux host.  Not much testing
 has been done on Windows.  However at a minimum, you will need to allow
-docker to mount volumes from your drive.
+docker to mount volumes from your drive:
 
-  https://docs.docker.com/docker-for-windows/#shared-drives
+  See https://docs.docker.com/docker-for-windows/#shared-drives
 
----------------------------------------------------------------------
-Docker Test Instance
+###Docker Test Instance
 
 This is probably the best way to take MyCHIPs for simple testing and evalation.
 You will need docker and node/npm installed on your system.  Windows users
 should enable shared drives as noted above.
 
 To launch a single server/database pair:
-
+```
   npm run docker
-
+```
 This will take a while on first run as it builds several images.  It will be 
 faster on subsequent runs.  Once containers are launched, t will run until you 
 interrupt it with a CTRL-C.
@@ -38,9 +37,9 @@ multiple such configuration files, you should be able to launch multiple
 instances of the server pair.  Keep in mind, the hostname you choose for the 
 MyCHIPs server will have to resolve on your system.  For testing, you can solve 
 this with a line in /etc/hosts or C:\Windows\System32\drivers\etc\hosts.
-
+```
   127.0.0.1	mychips0
-
+```
 This hostname is what we will be entering into the browser URL bar to get the 
 admin app.  It is also what will be built into the SSL certificates so all that
 has to use the same hostname for the browser to be happy.
@@ -48,24 +47,24 @@ has to use the same hostname for the browser to be happy.
 Once the server pair is running, you will want to connect to it using the admin
 UI.  But the backend will not allow this without an authorized connection token.
 You can create it using the following bootstrap command:
-
+```
   docker exec mychips0 bin/adminticket -S 8000 -P 54320 -H mychips0 -Q
-
+```
 The https SPA port and WebSocket ports in this command must match up with what 
 is in the config-dev.env file for the server pair you just launched.  The
 bootstrap command will output a URL (containing the connection token) which 
 you can copy/paste into your browser.  Or if you are really tricky you can do 
 it all in one step with something like this (on Mac OS):
-
+```
   open -n -a Firefox.app --args -new-tab \
     $(docker exec mychips0 bin/adminticket -S 8000 -P 54320 -H mychips0 -Q)
-
+```
 Next, the browser will complain that you are connecting to an SSL web server 
 using a certificate signed by an unknown certificate authority.  To fix that, 
 you can import the CA file created by the system as follows (again for Mac OS):
-
+```
   open test/local/docker/pki/spa-ca.crt
-
+```
 You will need to tell the OS (in Keychain Access) to fully trust this CA.
 The certificate is called: Chippies.chip.
 
@@ -76,31 +75,32 @@ also have to restart Firefox if that is the browser you are using.
 Then generate a fresh connection ticket as noted above and try again.
 
 The MyCHIPs server should be creating logs which you can view with:
-
+```
   tail -f test/local/docker/mychips0.log/combined.log
-
+```
 The PostgreSQL server creates logs you can view with this command:
-
+```
   docker logs -f postgres0 --tail -0
-
+```
 Once connected, you should be able to view users by finding the "Load All"
 button in the smaller hamburger menu on the upper left area of the preview
 window.  There will probably be only a single user: admin.
 
 To make things more interesting, try this:
-
+```
   docker exec mychips0 test/sample/randuser -n 4
-
+```
 Now reload the preview to see 4 more users on your system.  Double click on 
 one of those users to open an editing pane.  Execute the Actions menu item 
 in the editing pane to generate a connection ticket for that user.  This
 displays a QR code by default, but there are also links there to copy/paste a 
 URL into a browser to connect to the User (as opposed to admin) UI.
 
----------------------------------------------------------------------
-Manually configuring a native Linux environment (as opposed to Docker)
+###Manually configuring a native Linux environment
+(as opposed to Docker)
 
 - Install Postgres, as root:
+```
   dnf install postgresql postgresql-server postgresql-devel \
   	postgresql-pltcl postgresql-plpython postgresql-contrib
   dnf install ruby rubygem-pg rubygem-tk	#If you plan to modify the schema
@@ -108,31 +108,36 @@ Manually configuring a native Linux environment (as opposed to Docker)
   systemctl enable postgresql
   systemctl start postgresql
   su -l postgres -c 'createuser -d -s -r admin'
-
+```
 - Other known dependencies hopefully installed on your system by default:
   bash, openssl, nodejs, others?
 
 - Create a folder to work in:
-  mkdir devel; cd devel			#For example
-
+```
+    mkdir devel; cd devel			#For example
+```
 - checkout mychips:
+```
   git clone https://github.com/gotchoices/MyCHIPs.git
   cd mychips
   npm install				#Install all dependencies
   npm init				#Initialize local certificates
-
+```
 - Create an admin login ticket		#This will also build the db schema
+```
   npm run adminticket
-
+```
 - Run mychips server:
+```
   npm run server
-
+```
   If you have trouble, set NODE_DEBUG=debug environment variable
   and watch log files in /var/tmp/mychips
   (Limited testing is possible without SSL: npm run server -- -n)
 
 - Try connecting to the SPA (possibly from another machine):
-  Direct your browser to:	https://<hostname>:8000/admin.html
+
+  Direct your browser to:  https://<hostname>:8000/admin.html
   
   If connecting over https, your browser should warn you of an insecure site.  
   For testing, you may be able to just proceed anyway.  Better yet, the
@@ -152,14 +157,15 @@ Manually configuring a native Linux environment (as opposed to Docker)
   If it hasn't expired yet, you can use it now.
   
   Otherwise, you need to generate a new one so do that now:
-  
-  npm run adminticket			#or:
-  npm run adminticket -- -H hostname -P port -o ticket_file.json
-  
+```  
+    npm run adminticket			#or:
+    npm run adminticket -- -H hostname -P port -o ticket_file.json
+```  
   For example, something like:
-  npm run adminticket -- -H 192.168.56.101 -o test/local/ticket.json	#or
-  bin/adminticket mychips.mydomain.com -o test/tmp/ticket.json
-  
+```
+    npm run adminticket -- -H 192.168.56.101 -o test/local/ticket.json	#or
+    bin/adminticket mychips.mydomain.com -o test/tmp/ticket.json
+```  
   Make sure the host address matches what is on the spa certificate you built
   using the "npm run init" or "npm run cert" commands.  (See pki/README for
   more detailed info on this.)
@@ -192,22 +198,22 @@ Manually configuring a native Linux environment (as opposed to Docker)
   It is now possible using the -Q switch to make adminticket produce a URL which
   you can connect to directly, eliminating the need to import a key file into the
   UI as described above.  Something like:
-  
+```  
     chrome $(bin/adminticket -Q)
-  
+```  
   See the documentation in the wylib package for more detailed information on 
   connection keys.
   
 - Now add some sample test data to the database:
-
+```
     cd test
-    
+```    
   Edit the settings file to set IP number of the test machine your database is
   on, and then:
-  
+```  
     cd sample
     ./kickstart
-
+```
   Reload the user preview in the admin GUI, should see 4 users.
 
 - View the live network graph (Network tab)
@@ -216,22 +222,26 @@ Manually configuring a native Linux environment (as opposed to Docker)
 
 - Add sample tallies/chits (while watching the live Network display)
   Still in test/sample:
+```
     psql mychips admin -f tallies.sql
     psql mychips admin -f chits.sql
-  
+```  
   Remove them again with
+```
     psql mychips admin -c "delete from mychips.tallies"
-
+```
 - Add more random users (while still watching the graph)
+```
   ./randuser					# or:
   ./randuser -n Number_of_Users_to_Add
-  
+```  
   Press Arrange button (or hold it) in graph menu to arrange nodes better
 
 - Launch the agent simulation model:
+```
   cd test/sim
   ./agent
-  
+```  
   You can watch as the user nodes will begin to form tallies with each other 
   and begin to trade chits over the tallies.
   
@@ -242,19 +252,20 @@ Manually configuring a native Linux environment (as opposed to Docker)
   To work with distributed lifts, go to test/sim/README.dock.
   
   To examine the local lift path table, execute this SQL:
-
+```
     select * from mychips.tallies_v_lifts  
-  
+```  
   To run a single credit lift, execute this SQL:
-  
+```  
     select mychips.lift_cycle(1)		-- Argument = max number of lifts
+```
 
----------------------------------------------------------------------  
-Want to browse the database schema:
+###Want to browse the database schema:
 
 - Launch the server with the -w switch:
+```
   npm run server -- -w
-  
+```  
 - Direct your browser to:	https://<hostname>:8000/wysegi.html
 
 You will need the same admin connection key as was established above.  Go to 
@@ -263,25 +274,24 @@ your connection key and then "Export keys" from the menu.  This should export
 your key to your Downloads folder.  Then go to the Wysegi UI and import that
 same key into the server connection dialog.
 
----------------------------------------------------------------------  
-Database Logging:
+###Database Logging:
 
 You may want to monitor notice logging from postgres.  If so, you may
 have to edit pgsql/data/postgresql.conf and set the following:
+```
+  log_min_messages=notice
+```
 
-log_min_messages=notice
-
----------------------------------------------------------------------  
-If you will be working on the Wyatt-ERP source code:
+###If you will be working on the Wyatt-ERP source code:
 
 - You will need to run the "npm develop" script.  This will remove the four 
   Wyatt modules out of mychips/node_modules.  It will expect to find those 
   same modules (wyseman, wylib, wyselib, wyclif) in folders at the same level 
   as the mychips folder.  You will have to check these out from github, for
   example:
-
+```
     git clone https://github.com/gotchoices/wyselib.git
-  
+```
   The develop script will run an "npm install" at one level above mychips 
   which will build an npm_modules folder there and make the required modules 
   accessible to MyCHIPs.
@@ -289,43 +299,45 @@ If you will be working on the Wyatt-ERP source code:
   By doing it this way, you are able to edit/change things in the Wyatt code
   and the changes will be immediately accessible to the next run of MyCHIPs.
 
----------------------------------------------------------------------  
+###Schema Hacking:
   If you are editing the database schema, you will likely need the following 
   package installations:
-
+```
     dnf install rubygem-pg rubygem-tk gcc-c++
     gem install json
-  
+```
   See wyseman/INSTALL for more installation details
 
   When MyCHIPs runs for the first time, it will build a stock schema in the
   database if it can't find one.  But you can modify that schema on the fly
   from the sources in the schema folder.  This is done by:
-
+```
     cd mychips/schema
     make objects
-    
+```    
   This will also build a few more items in the database for tracking the state
   of the schema (so it knows which objects need to be rebuilt at any given
   time).  So it may generate errors on the first run if your schema was 
   instantiated by MyCHIPs (as opposed to this manual build method).
 
----------------------------------------------------------------------  
-If you will be working on Wylib:
+###If you will be working on Wylib:
 
 - Check out the wylib source (if not already done):
+```
     git clone https://github.com/gotchoices/wylib.git
-    
+```    
 - Run the "npm develop" script as noted above.
   
 - Run a 'watched' build in wylib:
+```
   cd wylib
   npm run dev-build
-
+```
 - Run a similar build in mychips:
+```
   cd mychips
   npm run dev-build
-
+```
 - Any changes you make in either the wylib source, or the MyCHIPs source
   will be detected and the packges will be automatically rebuilt.  You can
   just reload your browser to grab the latest changes to the SPA.
@@ -337,14 +349,15 @@ If you will be working on Wylib:
   This allows you to run the SPA out of port 3000 (rather than 8000).  This
   may not always work right if you are working on actions/reports.
 
----------------------------------------------------------------------  
-Testing:
+###Testing:
 
 - Run Mocha tests 		(This is done in a separate database)
   Can set NODE_DEBUG=debug (or trace) and observe logs in /var/tmp/mychips
+```
   cd devel/mychips/test
+```
   Adjust settings in test/settings.js for your environment
-
+```
   npm test				#Or, separately:
   
   npm run test-peercom
@@ -352,5 +365,4 @@ Testing:
   npm run test-peer
 
   dropdb mychipsTestDB			#When finished with tests
-  
----------------------------------------------------------------------  
+```  

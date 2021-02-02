@@ -1,0 +1,83 @@
+@startuml
+!include common.puml
+
+node mobile1 as "Mobile 1 (1..u)" {
+  node browser1 as "Browser" {
+    component spa1 as "User SPA (HTML5/JS) " {
+      component wysemanC1 as "Wyseman C-API"
+    }
+  }
+}
+
+node computer3 as "Computer (1..a)" {
+  node browser3 as "Browser" {
+    component spa3 as "Admin SPA (HTML5/JS) " {
+      component wysemanC3 as "Wyseman C-API"
+    }
+  }
+}
+
+node mobile2 as "Mobile 2 (1..m)" {
+  component app2 as "Native App"
+}
+
+cloud cloud1 as "Internet" {
+  node peernodes as "Other Peer Sites (1..p)" {
+    component peers as "Other Peer Server"
+  }
+}
+
+node site1 as "Site Service Group" {
+
+  card userv1 as "User Service (1..y)" {
+    component userserv1 as "User Server" {
+      component wysemanS1 as "Wyseman S-API"
+    }
+    component spaserv1 as "SPA Server"
+    component report1 as "Report Generator"
+  }
+
+  database pgsql as "PostgreSQL" {
+    frame "mychips DB" {
+      component mychips as "mychips schema"
+      component base as "wyselib/wm"
+      mychips --> base
+    }
+  }
+
+  card pserv1 as "Peer Service (1..x)" {
+    component peerserv1 as "Peer Server"
+  }
+
+  card sim1 as "Simulation (1..z)" {
+    component agent1 as "Agent Modeler"
+  }
+}
+
+browser1 -- spaserv1 #violet;text:violet : https
+spa1 -- report1 #violet;text:violet : https
+browser3 -- spaserv1 #violet;text:violet : https
+spa3 -- report1 #violet;text:violet : https
+wysemanC1 -- wysemanS1 #teal;text:teal : WM-API/WebSocket
+wysemanC3 -- wysemanS1 #teal;text:teal : WM-API/WebSocket
+wysemanS1 -- report1
+app2 -- wysemanS1 #red;text:red : WM-API/Noise
+
+userserv1 -- mychips #blue;text:blue : SQL
+peerserv1 -- mychips #blue;text:blue : SQL
+peerserv1 -- peers #red;text:red : MyCHIPs/Noise
+agent1 -- mychips #blue;text:blue : SQL
+agent1 -- peerserv1 : MyCHIPs
+
+'Placement hints (not working very well):
+'userv1 .right.> pgsql
+'pgsql .r.> pserv1
+'mobile1 .r.> site1
+'computer3 .r.> site1
+'computer3 .d.> mobile2
+'cloud1 .[hidden].> pgsql
+'userv1 .right.> mobile1
+'userv1 .right.> computer3
+'userv1 .right.> mobile2
+
+@enduml
