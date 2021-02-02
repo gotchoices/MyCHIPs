@@ -19,8 +19,8 @@ So it is a [better solution](http://gotchoices.org/mychips/bitcoin.html) when co
 
 For introductory information on the algorithm, check out the [MyCHIPs Papers.](http://gotchoices.org/mychips/intro.html)
 For technical information about the implementation, you may want to start with
-[Tallies](doc/Tallies) and then
-[Lifts](doc/Lifts).
+[Tallies](doc/Tallies.md) and then
+[Lifts](doc/Lifts.md).
 
 ### Getting Started:
 General documentation is in [here](doc/README.md).
