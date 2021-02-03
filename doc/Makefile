@@ -8,3 +8,6 @@ all: scaling.png use-chit.png use-tally.png state-tally.png state-chit.png
 
 %.svg: %.puml common.puml style.puml
 	${PUML} -tsvg $<
+
+clean:
+	rm -f *.cmapx

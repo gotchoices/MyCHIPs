@@ -22,7 +22,10 @@ closed : Balance is zero
 open : E: Add peer's signature
 
 'State transition rules:
-void -[$peer]-> peerProffer : $trans($peer,Proposed Tally,valid signature,Notify user)
+void -[$peer]-> peerProffer : $trans($peer,Proposes a Tally,valid signature,Notify user)
+note on link
+  [[Tallies.md#establishing-a-tally{Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys} User-initiated]]
+endnote
 void -[$user]-> userDraft : $trans($user,New Tally Record,valid signature)
 
 userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:userVoid)

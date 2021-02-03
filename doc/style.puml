@@ -152,8 +152,6 @@ skinparam sequence {
 '  font_style()
 '}
 
-' State diagrams
-
 skinparam state {
   basic_style()
   font_style()
@@ -162,13 +160,10 @@ skinparam state {
   endColor $ACCENTDARK
 }
 
-' Object diagrams
-
-'skinparam object {
-'  basic_style()
-'  font_style()
-'  arrow_style()
-'}
+skinparam note {
+  basic_style()
+  font_style()
+}
 
 ' Common
 

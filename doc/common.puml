@@ -25,7 +25,7 @@
   !return "<font color=" + $color + ">" + $src + ":\n" + $trig + $if + $act
 !endfunction
 
-!unquoted procedure $title($t)
-'  left header <font size=24>$t</font>
+!unquoted procedure $title($t, $d = %date())
   title $t
+  footer $d
 !endprocedure
