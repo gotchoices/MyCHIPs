@@ -2,8 +2,19 @@ TODO:
 
 Immediate:
 X- Integrate DSR phase-1 work into source tree
--   Can view/modify/render .puml diagrams
--   Integrate patches into simulation folder?
+X- Why can't user UI connect to sim spa hosts?
+X- Set user host/port and peer port correctly on simulated hosts
+X- Can view/modify/render .puml diagrams
+X- Edit Tally, Lift documents, include diagrams
+- Make a sequence diagram for each use case
+- Port state diagrams to puml
+- Make chit consensus sequence/state diagrams
+- Make a markdown document for state processing to hold all digrams
+- 
+- Extend Wyseman to receive connections on TCP socket
+- Make command-line user interface?
+- 
+- Integrate DSR patches into simulation folder?
 - 
 
 General roadmap:

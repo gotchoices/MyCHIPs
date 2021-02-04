@@ -1,0 +1,12 @@
+#!/bin/sh
+#Launch a test web server on port 8000
+
+#Way 1:
+python -m SimpleHTTPServer 8020
+#python -m SimpleHTTPServer 8020 -bind 192.168.5.50
+
+#Way 2:
+#ruby -run -e httpd . -p 8080
+
+#Way 3:
+#ruby -r webrick -e "s = WEBrick::HTTPServer.new(:Port => 8000, :DocumentRoot => Dir.pwd); trap('INT') { s.shutdown }; s.start"

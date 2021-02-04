@@ -1,29 +1,30 @@
 # MyCHIPs
-MyCHIPs is an open-source network protocol for implementing a novel kind of digital money based on private credit.
+MyCHIPs is an open-source network protocol for implementing a novel kind of digital money based on private credit and quantified in units of [CHIPs](http://gotchoices.org/mychips/definition.html):
 
-<img src="doc/chip.svg" alt="A CHIP" width="60"/>
+The CHIP Symbol: <img src="doc/chip.svg" alt="A CHIP" height="30"/>
 
-This is *not* a Bitcoin/blockchain derivative, but rather it seeks to address
-several notorious problems with those technologies, most notably: it is fully decentralized and infinitely scalable.
+This is *not* a Bitcoin/blockchain derivative, but rather a whole new (and yet [very old](https://www.bbc.com/news/business-40189959)) approach that solves several notorious problems with public blockchain systems.
+Most notably, it is more fully decentralized and infinitely scalable.
 
-[![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/mychips/acdc.html)
+[![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/mychips/acdc.html "Click to see/run a decentralized private credit model")
 
-If blockchain-based coins can be thought of as a crypto-stock or crypto-equity, a digital CHIP can be characterized as a crypto-bond.
+If blockchain-based coins can be thought of as a crypto-stock or crypto-equity, a digital CHIP would be more like a *crypto-bond*.
 Either one _can_ be used as money, or a medium of exchange.
-However, a system based on private credit is more resilient to such forces as speculation, volatility, corruption, inflation, and deflation.
-So it is a better solution when considering these three closely related purposes of money:
+However, a system based on private credit is more resilient to things like speculation, volatility, corruption, inflation, and deflation.
+So it is a [better solution](http://gotchoices.org/mychips/bitcoin.html) when considering these three closely related purposes of money:
 
     - a medium of exchange,
     - a store of value, and 
     - a measure of value.
 
-For introductory information on the algorithm, please see [the MyCHIPs Papers.](http://gotchoices.org/mychips/intro.html)
-For technical information about this implementation, you may want to start with
-[Tallies](doc/Tallies) and then
-[Lifts](doc/Lifts).
+For introductory information on the algorithm, check out the [MyCHIPs Papers.](http://gotchoices.org/mychips/intro.html)
+For technical information about the implementation, you may want to start with
+[Tallies](doc/Tallies.md) and then
+[Lifts](doc/Lifts.md).
 
 ### Getting Started:
-To try out the software, follow the [Developer Instructions](doc/Development).
+General documentation is in [here](doc/README.md).
+To try out the software, follow the [Developer Instructions](doc/Development.md).
 
 At the current development state, you can launch a configurable number of server processes, as well as a network simulator to create bot users that will begin trading with each other.
 There is also a rudimentary admin console that allows you to browse the database, generate user connection tokens, and peruse trading contracts.
@@ -52,14 +53,15 @@ in [this article](http://gotchoices.org/mychips/coupon.html) and explained in so
 in [this article](http://gotchoices.org/mychips/acdc.html).
 
 As of March, 2020, the software is successfully discovering, computing and performing fully distributed lifts in a simulated network.
-I consider this as a "preliminary proof of concept" and so am ready to release this code subject to the attched LICENSE.
-It needs a lot more work to be production ready, but maybe this provides enough of a testing platform that others will be more willing to get involved.
+I consider this as a "preliminary proof of concept" and so am ready to release this code subject to the attched [LICENSE](LICENSE).
+It will need a lot more work to become production ready, but maybe this provides enough of a testing platform that others will be more willing to help make that happen.
 
 To kick off the public release, I commissioned a study by [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
 As expected, they uncovered several issues that need improvement before the system can be expected to perform in a fault-tolerant way.
 Their work and results are summarized [here](test/analysis/dsr/phase-1/results.md).
 
-In response to that study, I have created an [outline](doc/Safety) of where the project might best go next to resolve the issues uncovered by the DSR study.
+In response to that study, I created an [outline](doc/Safety.md) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
+Now there is work being done at [BYU](www.byu.edu) to both validate the original DSR results, and evaluate proposed solutions.
 This represents the current state of the project.
 
 ### Milestones Completed so Far
@@ -99,7 +101,7 @@ This represents the current state of the project.
   - Consensus algorithm between stock and foil
 - Test algorithm (DSR Study)
 
-If you are interested in participating, clone this repo and follow the instructions in the [Developer Instructions](doc/Development).
+If you are interested in participating, clone this repo and follow the instructions in the [Developer Instructions](doc/Development.md).
 You should be able to get a simulated network running and visualize credit lifts in the administrator console.
 Then review the work and results in the DSR study and see if you can help us move the project forward to deployment.
 
@@ -120,8 +122,9 @@ There is a project roadmap in the [TODO file](TODO).
 
 ### Interesting Projects/Sites/Resources:
 - [Offset Credit](http://offsetcredit.org)
-- [The End of Money](https://www.amazon.com/End-Money-Future-Civilization/dp/1603580786)
 - [Ripple](http://ripple.com)
 - [Trustlines](http://trustlines.network)
 - [Open Credit Network](https://opencredit.network/)
 - [Credit Commons](http://www.creditcommons.net)
+- [The End of Money](https://www.amazon.com/End-Money-Future-Civilization/dp/1603580786)
+- [Life After Google](https://www.amazon.com/Life-After-Google-Blockchain-Economy/dp/1621575764)

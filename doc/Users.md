@@ -1,0 +1,184 @@
+## MyCHIPs User Interface
+
+### Visual Balance Sheet
+It is a fairly obvious goal of MyCHIPs to create a dependable, alternative 
+medium of exchange.  A less obvious goal is to build a diverse web of trusted
+links of interdependency throughout society in order to make the world a more 
+peaceful and friendly place to live in.
+
+In order to accomplish these goals, the end-user interface must be simple
+enough for everyone to use and understand.  It would be an added bonus if the
+interface would imbue the user with deeper insights into:
+  - The [true nature](http://gotchoices.org/mychips/value.html) of money/value
+  - Sustainable and dependable savings strategies (Balance Sheet)
+  - Healthy balance of productivity versus expenses (P&E)
+
+Many people approach money management solely from the standpoint of meeting
+their monthly expenses (P&E).  They produce what they need to pay the bills.
+If there is extra left over, it gets spent on luxuries.  If there is not
+enough, they may go without or try to get a raise or a better job.
+
+This approach leaves many very close to the edge.  Some people live only one 
+paycheck away from financial disaster.
+
+A more healthy approach is to focus on the Balance Sheet, an indication of 
+one's net worth, which is derived as the difference between one's assets and 
+liabilities.  When people focus on increasing their net worth, the natural
+outcome is to produce more than you consume.
+
+Like the P&E approach, this assures there is enough to cover expenses each 
+month.  But it also encourages you to save a little each month.  That is the
+only way to get the balance sheet to grow.
+
+Since most people are not used to reading a balance sheet, it would be helpful
+to have a very intuitive graphical way of displaying net worth--something that
+could be understood with a glance and that would encourage people to behave in
+a way that is in their best financial interest.
+
+This "Visual Balance Sheet" ([prototyped here](../test/visbs/index.html))
+is intended to quantify several important aspects of one's balance sheet into 
+a graphical object that is interesting to look at and easy to understand.
+
+Quantities to model:
+  - Total tally assets (stocks and debit-balance foils)
+  - Total tally liabilities (foils and credit-balance stocks)
+  - Number of tallies
+  - Aggregate Magnitude (assets + liabilities)
+  - Net Worth
+
+Proposed Graph Dimensions:
+  - Annular pie graph, relative size of slices
+  - Hue of slices (asset/liability)
+  - Shade of slices (different assets or liabilities)
+  - Relative size and color of center core (net worth)
+
+### Some Original Design Concepts (from 2017)
+In addition to managing connections with other peer servers, a MyCHIPs server 
+must manage connections with its own set of users.
+
+It would be ideal if users could connect to their server in an entirely
+different way than other peers do.  For example, the identity (or at least the
+address and port) of my server will become known to one's partners as soon as
+tallies are established with them.  It seems less than ideal if they can then 
+use that information as the first step to try to hack into the user's account.
+
+It would be perfectly feasible to accept user connections only on a different
+port and even a completely different IP number.  Ideally, this endpoint would
+be known only to the user who uses it.
+
+### User API
+Processes communicate with the MyCHIPs server by exchanging JSON objects
+across sockets.
+
+There are three particular cases to consider here:
+- User Interface (including Admin) running as a web app in a browser
+- User Interface (including Admin) running as a native mobile app
+- Peer-to-peer server communications
+
+In the first case (Single Page Application), the user directs his browser to
+a trusted server where he can load the SPA over https.  The SPA then opens an
+encrypted websocket back to the same server to serve as a data connection.
+
+The first time a user connects, he must have a connection ticket, which
+includes a one-time use token.  Upon presentation of the token, the database
+will allow a connection for that user.  Then the SPA will generate a
+permanent connection key and securely exchange keys with the server.
+From then on, the user can connect by encryping a known object with the
+user's private key.  The particulars of this authentication scheme are not
+separately documented, but can be examined in more detail in the Wyseman
+[client source code](https://github.com/gotchoices/wylib/blob/master/src/wyseman.js)
+and the
+[server source code](https://github.com/gotchoices/wyseman/blob/master/lib/wyseman.js).
+
+For native user applications and Peer-to-Peer communications, the connection
+connection will be secured using
+[Noise Protocol](http://www.noiseprotocol.org/).
+Authentication for a native user application will need to use the same basic pattern
+as is currently implemented for websocket connections.
+However, the Wyseman server module will need to be extended to also listen on
+a standard TCP socket.
+Also, since certain details related to the http server itself become part of the
+authentication validation object, that part of the algorithm will need to be
+modified as well.
+
+### User API Objects
+The User API is nearly a direct abstracton of the database connection itself.
+The Wyseman process receives JSON objects and translates them (mostly) to SQL
+before forwarding those queries on to the database.
+As responses come back from the database, they are relayed back to the user
+application, along with an identifier unique to the query so they can be
+correctly handled on the remote end.
+
+The details of the communication objects can be determined by examining the
+"handler()" function in the
+[server side code](https://github.com/gotchoices/wyseman/blob/master/lib/wyseman.js).
+
+In brief, the object consists of at least these three properties:
+- **id**: An unique identifier kept by the client so it can associate any response correctly with this query.
+- **view**: The name of a database view, this action will be associated with.
+  Although some actions may not strictly be bound to a view, everything is still associated with a view--particularly from the standpoint of the data dictionary.
+- **action**: One of:
+  - **lang**: A query of human readable titles, descriptions and tooltips associated with the named view.
+  - **meta**: A query of database metadata such as field lengths, types, enumerated values, ranges and so forth associated with the named view.
+  - **tuple**: The query is expected to return a single tuple.
+  - **select**: The query is expected to return 0 or more tuples.
+  - **update**: The query is intended to modify 0 or more tuples.
+  - **insert**: The query contains information to insert a tuple.
+  - **delete**: The query is intended to remove 0 or more tuples.
+
+The received object may also include one or more of the following properties:
+- **table**: A table name (or name of a stored procedure) should this need to differ from the "view" property mentioned above.
+- **params**: An array of parameters to use, should the table actually indicate the name of a stored procedure.
+- **fields**: An array of fields to include in a select query.
+- **where**: An object describing what tuples to include in a select, update, or delete query.
+  For details on this object's structure see "buildWhere()" function.
+- **order**: An object describing how to sort tuples that are returned from a select query.
+  For details on this object structure see "buildOrder()" function.
+
+Once the query is complete, a result object will be returned to the caller, which includes these properties:
+- **id**: The original identifier.
+- **view**: The original view.
+- **action**: The original action.
+- **error**: An error object, if an error occurred in the transaction.
+- **data**: The data, if any returned by the transaction.
+  This may differ greatly, depending on what type of transaction was requested.
+
+In addition to the standard CRUD actions defined above, Wyseman allows the calling
+application to include an extended action handler.
+This is specifically handled in the
+[dispatch manager](https://github.com/gotchoices/wyclif/blob/master/lib/dispatch.js),
+part of the
+[Wyclif](https://github.com/gotchoices/wyclif)
+library.
+
+MyCHIPs makes use of this in order to implement report handlers.
+These are registered with Wyclif in the
+[main program](https://github.com/gotchoices/MyCHIPs/blob/master/bin/mychips.js)
+using the "Parser()" call currently around line 17.
+And the report functions themselves are found in
+[this](https://github.com/gotchoices/MyCHIPs/blob/master/lib/control1.js)
+file and
+[this](https://github.com/gotchoices/MyCHIPs/blob/master/lib/control2.js)
+file.
+
+Report handlers can return information in a variety of formats.
+This can include html, svg, jpg and pdf, as well as JSON data that may be specific to
+a particular UI widget.
+
+For example, a user connection ticket is actually generated in the backend,
+including the QR code.
+The admin app needs only specify the report handler it wants to call and the
+backend will serve up everything it needs in order to display the connection code.
+
+### Summary
+Apologies in advance for the scarcity of documention for the API.
+Hopefully as it develops, there can be more help to develop both the API and its documentation further.
+
+Best advice for now is:
+- Get the server running;
+- Enable logging as explained in the [instructions](README.md);.
+- Try out the sample UI's (user and admin);
+- Experiment with reading and writing records;
+- Experiment with calling reports;
+- Insert additional logging commands where you need more information about what is going on;
+- There are also logging commands you can uncomment in the SPI clients that will show up in the browser debug console;

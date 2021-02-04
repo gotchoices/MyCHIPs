@@ -1,0 +1,56 @@
+#TODO:
+#- UNFINISHED, UNTESTED!
+#- Make production version of compose-dev that runs out of /app folder
+#- 
+version: '3.7'
+
+services:
+  mychips:
+    image: gotchoices/mychips
+    command: npm start
+    container_name: mychips
+    hostname: mychips
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    environment:
+      NODE_DEBUG: debug
+      MYCHIPS_DBHOST: postgres
+    working_dir: /usr/local/devel/mychips
+    volumes:
+      - ${MYCHIPS_CODE_PATH:-.}:/app
+      - "~/.inputrc:/root/.inputrc"
+      - "~/.bashrc:/root/.bashrc"
+    depends_on:
+      - postgres
+    ports:
+      - "${MYCHIPS_SPAPORT:-8000}:8000"
+      - "${MYCHIPS_WSPORT:-54320}:54320"
+    networks:
+      - backend
+      - frontend
+
+  postgres:
+    image: gotchoices/pg
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.pg
+    container_name: pg
+#    ports:
+#      - ${MYCHIPS_DBPORT:-15432}:5432
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_HOST_AUTH_METHOD: trust
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+      - "./dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh"
+      - "~/.inputrc:/root/.inputrc"
+      - "~/.bashrc:/root/.bashrc"
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:

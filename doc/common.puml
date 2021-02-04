@@ -1,0 +1,31 @@
+!include style.puml
+
+!$user = "#green"
+!$db = "#red"
+!$peer = "#blue"
+!unquoted function $trans($src, $trig, $if="", $act="")
+  !if $src == $peer
+    !$color = "blue"
+    !$src = "Peer"
+  !elseif $src == $db
+    !$color = "red"
+    !$src = "DB Trigger"
+  !elseif $src == $user
+    !$color = "green"
+    !$src = "User"
+  !else
+    !$color = "black"
+  !endif
+  !if $if != ""
+    !$if = "\n[" + $if + "]"
+  !endif
+  !if $act != ""
+    !$act = "\n/" + $act
+  !endif
+  !return "<font color=" + $color + ">" + $src + ":\n" + $trig + $if + $act
+!endfunction
+
+!unquoted procedure $title($t, $d = %date())
+  title $t
+  footer $d
+!endprocedure

@@ -1,0 +1,52 @@
+@startuml
+!include common.puml
+
+$title(Tally State Diagram)
+[*] --> void
+state "void  (or No Tally)" as void
+
+'States are determined by a combination of values, as defined here:
+userVoid : Stat: draft, Req->void
+accepted : Stat: draft, Req->open
+userDraft : Stat: void, Req->draft
+userClose : Stat: open, Req->close
+void : Stat->void, Req: null
+open : Stat->open, Req: null
+closing : Stat->close, Req: null
+peerProffer : Stat->draft, Req: null
+peerProffer : Peer signature only
+userProffer : Stat->draft, Req: null
+userProffer : User signature only
+closed : Stat->closed, Req: null
+closed : Balance is zero
+open : E: Add peer's signature
+
+'State transition rules:
+void -[$peer]-> peerProffer : $trans($peer,Proposes a Tally,valid signature,Notify user)
+note on link
+  [[Tallies.md#establishing-a-tally{Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys} User-initiated]]
+endnote
+void -[$user]-> userDraft : $trans($user,New Tally Record,valid signature)
+
+userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:userVoid)
+
+peerProffer -[$user]-> userVoid : $trans($user,Request to void)
+peerProffer -[$user]-> userDraft : $trans($user,Modifies tally,valid signature)
+peerProffer -[$user]-> accepted : $trans($user,Accepts tally,valid signature)
+
+accepted -[$db]-> open : $trans($db,req:open detected,'',Transmit act:userAccept)
+
+userDraft -[$db]-> userProffer : $trans($db,Req:draft detected,,Transmit Act:peerProffer)
+
+userProffer -[$peer]-> open : $trans($peer,Accepted tally)
+userProffer -[$peer]-> void : $trans($peer,"Refused tally\nor timed out",Notify user)
+userProffer -[$peer]-> peerProffer : $trans($peer,Counter-offered,'',Notify user)
+
+open -left[$user]-> userClose : $trans($user,Requests close)
+open -[$peer]-> closing : $trans($peer,Requests close)
+userClose -[$db]-> closing : $trans($db,Req:close detected,'',Transmit act:userClose)
+closing -left[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
+
+'closed --> [*]
+
+@enduml

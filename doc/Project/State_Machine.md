@@ -5,7 +5,7 @@ July 2020
 The current MyCHIPs proof-of-concept release maintains state in a PostgreSQL
 database.  This database is surrounded by one or more NodeJS server processes
 which route traffic to/from administrators, users and peer systems.  This is 
-shown in this [LibreOffice figure.](/doc/Scaling.odg).
+shown in this [LibreOffice figure.](/doc/Scaling.png).
 
 The originally released code was crafted according to a set of proposed state 
 transitions documented [here](/doc/States.odg).  The protocol and state

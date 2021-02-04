@@ -1,0 +1,14 @@
+What is stopping the Originator from immediatly requesting commit permission from Arbitrator? Does each indivudual digitally sign the lift along the way?
+
+Denial of service attack is possible with Arbitrator.
+
+<><><>
+
+Got to be careful about Originator propegating a Fail result to a node who has not heard of the lift yet.
+
+Things I hard code based on Meta information:
+    If a message was lost that was Comitting or Failing a lift, the intended recipient always checks with the Arbitrator. The recipient was expecting the message so after some finite amount of time their timeout will trip and they will contact the Arbitrator.
+    If a message was lost that was proposing or propogating a lift proposal 1. The sender will always contact the arbitrator. 2. The Arbitrator will always declare the lift Failed. (Something to check is the effect of aditional "Seek" responses from the Arbitrator before the ultimate failure.)
+
+
+Note if I use "RandomElement(S)" during computation this can negativly effect state matching and make performance very bad.

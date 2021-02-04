@@ -1,0 +1,57 @@
+@startuml
+!include common.puml
+$title(Establishing a Tally)
+actor "Proposer" as prop
+database "Proposer DB" as propDB
+database "Subject DB" as subjDB
+actor "Subject" as subj
+
+prop	->>	propDB:		Create draft, signed tally/ticket
+note over propDB
+  Ticket may be permanent or expiring and for one or multiple peers
+end note
+prop	-[#red]>> subj:		Communicate ticket to peer via QR code (out-of-band)
+subj	->>	subjDB:		Add peer specified in ticket
+subjDB	->>	propDB:		Connect via ticket, exchange keys
+propDB	->	propDB:		Detect pending proposed tally
+propDB	->>	subjDB:		Send proposed tally
+subjDB	->>	subj:		Present for review
+loop until satisfied
+ subj	->>	subjDB:		Modify tally terms
+end loop
+
+alt Terms agreeable
+ subj	->>	subjDB:		Accept/sign tally
+ subjDB ->>	propDB:		Send accepted tally
+ propDB	->>	prop:		Store and notify user
+
+else Want to counter
+ subj	->>	subjDB:		Counter offer
+ subjDB	->>	propDB:		Send proposed tally
+ propDB	->>	prop:		Present for review
+ prop	->>	propDB:		Accept/sign tally
+ propDB	->>	subjDB:		Send accepted tally
+ subjDB	->>	subj:		Store and notify user
+
+else Refuse terms
+ subj	->>	subjDB:		Mark tally as refused
+ subjDB ->>	propDB:		Send accepted tally
+ propDB	->>	prop:		Store and notify user
+end
+
+note over propDB, subjDB
+  Signed tally can be used for [[Tallies.md#invoicing transactions]]
+end note
+
+subj	->>	subjDB:		Request tally be closed
+subjDB	->>	propDB:		Mark as closing and notify peer
+propDB	->	propDB:		Mark as closing
+loop until balance == 0
+ subjDB <->	propDB:		Participate in lifts
+end loop
+
+note over propDB, subjDB
+  Tally marked as closing automatically closes when balance hits zero
+end note
+
+@enduml

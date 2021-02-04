@@ -1,17 +1,23 @@
 #!/bin/sh
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-host=$(hostname)
-if [[ ! -z "$MYCHIPS_DEFAULT_HOST" ]]; then host="$MYCHIPS_DEFAULT_HOST"; fi
+user_host=$(hostname)
+user_port=54320
+peer_host=$(hostname)
+peer_port=65430
+if [[ ! -z "$MYCHIPS_USER_HOST" ]]; then user_host="$MYCHIPS_USER_HOST"; fi
+if [[ ! -z "$MYCHIPS_USER_PORT" ]]; then user_port="$MYCHIPS_USER_PORT"; fi
+if [[ ! -z "$MYCHIPS_PEER_HOST" ]]; then peer_host="$MYCHIPS_PEER_HOST"; fi
+if [[ ! -z "$MYCHIPS_PEER_PORT" ]]; then peer_port="$MYCHIPS_PEER_PORT"; fi
 
 #Default parameters for connection port
 cat <<EOF
 insert into base.parm (module, parm, type, v_int, v_text, cmt) values 
   ('mychips', 'site_ent', 'text', null, 'r1', 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
- ,('mychips', 'user_host', 'text', null, '${host}', 'Default IP where mobile application connects.')
- ,('mychips', 'user_port', 'int', 54320, null, 'Default port where mobile user application connects.')
- ,('mychips', 'peer_host', 'text', null, '${host}', 'Default IP where peer servers connect.')
- ,('mychips', 'peer_port', 'int', 65430, null, 'Default port where peer servers connect.')
+ ,('mychips', 'user_host', 'text', null, '${user_host}', 'Default IP where mobile application connects.')
+ ,('mychips', 'user_port', 'int', ${user_port}, null, 'Default port where mobile user application connects.')
+ ,('mychips', 'peer_host', 'text', null, '${peer_host}', 'Default IP where peer servers connect.')
+ ,('mychips', 'peer_port', 'int', ${peer_port}, null, 'Default port where peer servers connect.')
 
  ,('peers', 'min_time', 'int', 5, null, 'Minimum number of minutes between retrying a message to a peer.')
  ,('peers', 'max_tries', 'int', 100, null, 'How many times to retry sending messages to a peer before giving up.')
@@ -28,7 +34,3 @@ insert into base.parm (module, parm, type, v_int, v_text, cmt) values
     set type = EXCLUDED.type, v_int = EXCLUDED.v_int, v_text = EXCLUDED.v_text, cmt = EXCLUDED.cmt
 ;
 EOF
-
-#These should really be in the peer server's control--not so much the database
-# ,('lifts', 'conf_host', 'text', null, '${host}', 'Default IP where peer servers connect to validate lifts.')
-# ,('lifts', 'conf_port', 'int', 65430, null, 'Default port where peer servers connect to validate lifts.')

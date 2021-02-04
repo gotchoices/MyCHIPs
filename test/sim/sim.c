@@ -28,10 +28,12 @@ if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
   export PATH="${PATH}:$nodebin"
 fi
 if [[ ! -z $SITE ]]; then			#SITE is our site number 0..N
-  export MYCHIPS_DEFAULT_HOST="peer$SITE"
+  export MYCHIPS_USER_HOST="spa$SITE"
+  export MYCHIPS_USER_PORT=$(expr $wsports + $SITE)
+  export MYCHIPS_PEER_HOST="peer$SITE"
   export MYCHIPS_DBHOST="pg$SITE"
 fi
-#echo "command:$command PATH:$PATH NODE_DEBUG:$NODE_DEBUG args:$@"
+#echo "command:$command PATH:$PATH NODE_DEBUG:$NODE_DEBUG wsports:$wsports args:$@"
 
 function query {
   psql -h $MYCHIPS_DBHOST $dbname $admin -c "$@"

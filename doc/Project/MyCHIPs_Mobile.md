@@ -3,7 +3,7 @@ July 2020
 
 ## Project Background:
 The current proof-of-concept release of MyCHIPs focuses on the testing and
-evaluation of a set of backend [servers and processes](/doc/Scaling.odg).
+evaluation of a set of backend [servers and processes](/doc/Scaling.png).
 But the success of the project will ultimately be dependent upon a moble 
 interface for the end user that is intuitive and easy to use.
 
@@ -23,7 +23,8 @@ a graphical presentation that gives an instant and intuitive sense of how/where
 value is stored and how it is transmitted.
 
 ## Objectives:
-The source tree includes an example of a [visual balance sheet](/doc/VisualBS.odg).
+The source tree includes an example of a 
+[visual balance sheet](/test/visbs/index.html).
 The goal with this graph is to show a user an intuitive indication of their net
 wealth--a value that consists of the difference between their total assets and
 their total liabilities.

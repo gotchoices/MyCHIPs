@@ -1,6 +1,6 @@
 {
   "name": "mychips",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "description": "Reference MyCHIPs server",
   "main": "lib/mychips.js",
   "preferGlobal": "true",
@@ -9,7 +9,7 @@
   "bugs": {
     "url": "https://github.com/gotchoices/MyCHIPs/issues"
   },
-  "homepage": "https://github.com/gotchoices/MyCHIPs#readme",
+  "homepage": "https://gotchoices.org/mychips",
   "directories": {
     "dist": "dist",
     "static": "static"
@@ -36,13 +36,14 @@
     "cert": "wyclif-cert",
     "init": "bin/localcerts spa",
     "adminticket": "bin/adminticket -o test/local/admin.json",
+    "docker": "docker-compose -f build/compose-dev.yml --env-file build/config-dev.env up",
     "agent": "test/sim/agent -m 2",
     "builddb": "cd schema; make objects",
     "preversion": "npm-run-all --parallel contract-hashes build-sql build && git add -A"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gotchoices/MyCHIPs.git"
+    "url": "https://github.com/gotchoices/MyCHIPs.git"
   },
   "keywords": [
     "digital",
@@ -55,15 +56,15 @@
     "bitcoin"
   ],
   "dependencies": {
-    "interactjs": "^1.9.20",
+    "interactjs": "^1.10.0",
     "jquery": "^3.5.1",
     "json-stable-stringify": "^1.0.1",
     "pg-format": "^1.0.4",
     "qr-image": "^3.2.0",
     "string-hash": "^1.1.3",
-    "vue": "^2.6.11",
+    "vue": "^2.6.12",
     "winston": "^3.3.3",
-    "ws": "^7.3.1",
+    "ws": "^7.4.0",
     "wyclif": "^1.0.8",
     "wylib": "^1.0.21",
     "wyselib": "^1.0.16",
@@ -79,18 +80,18 @@
     "css-loader": "^3.6.0",
     "element-resize-detector": "^1.2.1",
     "file-loader": "^5.1.0",
-    "less": "^3.11.3",
+    "less": "^3.12.2",
     "less-loader": "^5.0.0",
     "mocha": "^7.2.0",
-    "mongodb": "^3.5.9",
+    "mongodb": "^3.6.3",
     "node-sass": "^4.14.1",
     "npm-run-all": "^4.1.5",
     "sass-loader": "^8.0.2",
-    "style-loader": "^1.2.1",
-    "vue-loader": "^15.9.3",
-    "vue-router": "^3.3.4",
-    "vue-template-compiler": "^2.6.11",
-    "webpack": "^4.43.0",
+    "style-loader": "^1.3.0",
+    "vue-loader": "^15.9.5",
+    "vue-router": "^3.4.9",
+    "vue-template-compiler": "^2.6.12",
+    "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
   }

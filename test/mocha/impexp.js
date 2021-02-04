@@ -31,6 +31,7 @@ function dbAndCheck(sqlFile, db, done, check) {
 
 describe("JSON import/export", function() {
   var db
+  this.timeout(5000)		//May take a while to build database
 
   before('Connect to (or create) test database', function(done) {
     db = new dbClient(dbConfig, (chan, data) => {

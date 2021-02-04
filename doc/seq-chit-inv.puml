@@ -1,0 +1,37 @@
+@startuml
+!include common.puml
+$title(Chit Invoice Sequence)
+actor "Payor" as pay
+database "Payor DB" as payDB
+database "Receiver DB" as recDB
+actor "Receiver" as rec
+
+rec	->>	recDB:		Submit draft chit w/\nvalue --> receiver
+recDB	->>	payDB:		Store, transmit to peer
+
+alt Terms agreeable
+ pay	->>	payDB:		Accept/sign chit
+ payDB	->>	recDB:		Send accepted chit
+ recDB	->>	rec:		Store and notify user
+ note over payDB, recDB
+   Payment is now binding
+ end note
+loop until consensus
+ payDB	<->	recDB:		Consensus acks/naks
+end loop
+
+else Want to counter
+ loop until satisfied
+  pay	->>	payDB:		Modify invoice terms
+ end loop
+ pay	->>	payDB:		Return counteroffer
+ payDB	->>	recDB:		Send modified draft chit
+ recDB	->>	rec:		Store and notify user
+
+else Refuse terms
+ pay	->>	payDB:		Mark chit as refused
+ payDB	->>	recDB:		Send refused chit
+ recDB	->>	rec:		Store and notify user
+end
+
+@enduml

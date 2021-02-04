@@ -5,9 +5,6 @@
 #Usage:	(see README)
 #
 #TODO:
-#X- When to encrypt args to sim.c (and not)?
-#X- Agent isn't making connections to peer servers; why?
-#X- Custom mounts (inputrc, bashrc) are settable from config.dock
 #- 
 
 #Initialize
@@ -19,8 +16,8 @@ source $mypath/config.dock
 pargs=()						#Will hold positional arguments
 while [[ $# -gt 0 ]]; do				#Grab command line arguments
   case $1 in
-    -s|--sites) sites=$2; shift;;			#Specify how many sites to launch
-    -u|--users) newusers=$2; shift;;
+    -s|--sites) sites=$2; shift;;			#How many sites to launch
+    -u|--users) newusers=$2; shift;;			#How many users per site
     -a|--admin) pargs+=("admin");;			#For compatibility with simnet
     -c|--config) source $2; shift;;			#Load additional configuration
     --) shift; pargs+=("$@"); shift $#;;		#Done with switches
@@ -154,8 +151,8 @@ function start_spa {
 
   local pgname="pg$n"
   local spaname="spa$n"
-  local spaxport=$(expr 48000 + $n)
-  local wsxport=$(expr 60000 + $n)
+  local spaxport=$(expr $spaports + $n)
+  local wsxport=$(expr $wsports + $n)
   if ! run gotchoices/mychips --name $spaname -p ${wsxport}:54320 -p ${spaxport}:8000 \
   	-v "$machtmp:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
@@ -221,8 +218,8 @@ function ticket {
 #  local machtmp="$locdir/$mach"
 #echo "ticket mach:$mach"
   local spaname="spa$n"
-  local spaxport=$(expr 48000 + $n)
-  local wsxport=$(expr 60000 + $n)
+  local spaxport=$(expr $spaports + $n)
+  local wsxport=$(expr $wsports + $n)
   local hostname="${spaname}.${domname}"
 
   docker exec -it $spaname bash -c \
@@ -365,7 +362,7 @@ function remote {
   local cmd="${1:-dbcheck}"; shift
 #echo "remote $SITE $cmd $@"
 
-  cmdstrg="SITE=$SITE \
+  cmdstrg="SITE=$SITE NODE_DEBUG=$NODE_DEBUG wsports=$wsports spaports=$spaports \
     newusers=$newusers admin=$admin dbname='$dbname' \
     ${mysim}sim.c $cmd $(encode "$@")"
 #echo "docker exec devel bash -c '$cmdstrg'"
