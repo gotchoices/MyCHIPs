@@ -3,24 +3,6 @@ EXTENDS Integers, Sequences, TLC
 
 CONSTANTS MESSAGES_FAIL
 
-A == "A"
-B == "B"
-C == "C"
-D == "D"
-
-NextIndexIn(i, ring) == (i % Len(ring)) + 1  \* 1 indexed between 1 and length
-
-PrevIndexIn(i, ring) == ((i - 2) % Len(ring)) + 1 \* -2 +1 to get correctly in 1 ... len
-\* not sure why this is not 0 indexed. I assume personal preferences
-
-NextElemIn(elem, ring) == \*syntactic sugar to get next element in cycle using User not index
-    LET I == CHOOSE i \in 1..Len(ring): ring[i] = elem
-    IN ring[NextIndexIn(I, ring)]
-
-PrevElemIn(elem, ring) == \*syntactic sugar to get previous element in cycle using User not index
-    LET I == CHOOSE i \in 1..Len(ring): ring[i] = elem
-    IN ring[PrevIndexIn(I, ring)]
-
 InitTallyBalance(id) == IF id = <<"D", "A", "Foil">> THEN -20 ELSE
                         IF id = <<"A", "D", "Stock">> THEN 20 ELSE
                         IF id[3] = "Foil" THEN -100 ELSE 100
@@ -29,19 +11,11 @@ InitTallyProjBalance(id) == IF id = <<"D", "A", "Foil">> THEN -20 ELSE
                         IF id[3] = "Foil" THEN -100 ELSE 100
 
 Min(s) == CHOOSE x \in s: \A y \in s: y >= x
-
 Values(f) == {f[x]: x \in DOMAIN f}
-
-MaxLiftValueFor(route, tallies) == 
-Min(Values([foilId \in {id \in DOMAIN tallies:
-        \E i \in DOMAIN route: <<route[i], route[NextIndexIn(i, route)], "Foil">> = id}
-                    |-> -tallies[foilId].balance]))
 
 TalliesOfType(tallies, type) == [id \in {id \in DOMAIN tallies: id[3] = type} |-> tallies[id]] \* gets all tallies of a given type
 
-NoConversationBetween(x, y, messages, doneMessages) == ~\E msg \in messages : msg \notin doneMessages /\ {msg.from, msg.to} = {x, y}
-
-NotDone(lifts, users,  messages, doneMessages) ==
+NotDone(lifts, users,  messages, doneMessages) == \* TODO make sure this is still correct
 \/ \E user \in DOMAIN lifts : \E lid \in DOMAIN lifts[user] : lifts[user][lid].state = "Seek"
 \/ \E x, y \in users : ~NoConversationBetween(x, y, messages, doneMessages)
 
@@ -375,71 +349,71 @@ end process
 
 
 end algorithm *)
-\* BEGIN TRANSLATION - the hash of the PCal code: PCal-f68180bede1f9c703ed5e182c7ecbc71
-\* Label ProposeLift of procedure ProposeLift at line 101 col 5 changed to ProposeLift_
-\* Label lsm of procedure ProposeLift at line 105 col 5 changed to lsm_
-\* Label HandleLift of procedure HandleLift at line 101 col 5 changed to HandleLift_
-\* Label L1 of procedure HandleLift at line 147 col 13 changed to L1_
-\* Label lsm of procedure HandleLift at line 105 col 5 changed to lsm_H
-\* Label losm of procedure HandleLift at line 105 col 5 changed to losm_
-\* Label DecideLiftValidity of procedure DecideLiftValidity at line 101 col 5 changed to DecideLiftValidity_
-\* Label lchecktime of procedure DecideLiftValidity at line 164 col 25 changed to lchecktime_
-\* Label lsm of procedure DecideLiftValidity at line 105 col 5 changed to lsm_D
-\* Label lsom of procedure DecideLiftValidity at line 105 col 5 changed to lsom_
-\* Label lprintDecision of procedure DecideLiftValidity at line 101 col 5 changed to lprintDecision_
-\* Label DLVR of procedure DecideLiftValidity at line 177 col 11 changed to DLVR_
-\* Label ValidateLift of procedure ReceiveLiftValidResult at line 101 col 5 changed to ValidateLift_
-\* Label lpt of procedure ReceiveLiftValidResult at line 101 col 5 changed to lpt_
-\* Label VLR of procedure ReceiveLiftValidResult at line 225 col 14 changed to VLR_
-\* Label CommitLift of procedure CommitLift at line 101 col 5 changed to CommitLift_
-\* Label CL2 of procedure CommitLift at line 252 col 10 changed to CL2_
-\* Label CL4 of procedure CommitLift at line 105 col 5 changed to CL4_
-\* Label CL3 of procedure CommitLift at line 256 col 14 changed to CL3_
-\* Label CLR of procedure CommitLift at line 258 col 10 changed to CLR_
-\* Label FailLift of procedure FailLift at line 101 col 5 changed to FailLift_
-\* Label CheckTimeout of procedure CheckTimeout at line 101 col 5 changed to CheckTimeout_
-\* Process variable cycle of process procId at line 292 col 9 changed to cycle_
-\* Process variable liftValue of process procId at line 293 col 9 changed to liftValue_
-\* Process variable arbitrator of process procId at line 294 col 9 changed to arbitrator_
-\* Procedure variable nextPeer of procedure ProposeLift at line 123 col 9 changed to nextPeer_
-\* Procedure variable prevPeer of procedure HandleLift at line 139 col 9 changed to prevPeer_
-\* Procedure variable result of procedure DecideLiftValidity at line 158 col 9 changed to result_
-\* Procedure variable result of procedure CheckLiftValidity at line 182 col 9 changed to result_C
-\* Procedure variable prevPeer of procedure ReceiveLiftValidResult at line 206 col 9 changed to prevPeer_R
-\* Procedure variable timeout of procedure ReceiveLiftValidResult at line 207 col 9 changed to timeout_
-\* Procedure variable nextPeer of procedure CommitLift at line 245 col 9 changed to nextPeer_C
-\* Procedure variable liftValue of procedure CommitLift at line 246 col 9 changed to liftValue_C
-\* Procedure variable liftValue of procedure FailLift at line 264 col 9 changed to liftValue_F
-\* Parameter liftValue of procedure ProposeLift at line 121 col 41 changed to liftValue_P
-\* Parameter arbitrator of procedure ProposeLift at line 121 col 52 changed to arbitrator_P
-\* Parameter from of procedure HandleLift at line 137 col 23 changed to from_
-\* Parameter to of procedure HandleLift at line 137 col 29 changed to to_
-\* Parameter route of procedure HandleLift at line 137 col 33 changed to route_
-\* Parameter liftValue of procedure HandleLift at line 137 col 40 changed to liftValue_H
-\* Parameter originator of procedure HandleLift at line 137 col 51 changed to originator_
-\* Parameter liftId of procedure HandleLift at line 137 col 63 changed to liftId_
-\* Parameter arbitrator of procedure HandleLift at line 137 col 71 changed to arbitrator_H
-\* Parameter from of procedure DecideLiftValidity at line 156 col 30 changed to from_D
-\* Parameter to of procedure DecideLiftValidity at line 156 col 36 changed to to_D
-\* Parameter route of procedure DecideLiftValidity at line 156 col 40 changed to route_D
-\* Parameter liftValue of procedure DecideLiftValidity at line 156 col 47 changed to liftValue_D
-\* Parameter originator of procedure DecideLiftValidity at line 156 col 58 changed to originator_D
-\* Parameter liftId of procedure DecideLiftValidity at line 156 col 70 changed to liftId_D
-\* Parameter arbitrator of procedure DecideLiftValidity at line 156 col 78 changed to arbitrator_D
-\* Parameter from of procedure CheckLiftValidity at line 180 col 29 changed to from_C
-\* Parameter to of procedure CheckLiftValidity at line 180 col 35 changed to to_C
-\* Parameter liftId of procedure CheckLiftValidity at line 180 col 69 changed to liftId_C
-\* Parameter arbitrator of procedure CheckLiftValidity at line 180 col 77 changed to arbitrator_C
-\* Parameter to of procedure ReceiveLiftValidResult at line 204 col 35 changed to to_R
-\* Parameter liftId of procedure ReceiveLiftValidResult at line 204 col 39 changed to liftId_R
-\* Parameter result of procedure ReceiveLiftValidResult at line 204 col 47 changed to result_R
-\* Parameter to of procedure ReceiveLiftCheckResult at line 228 col 35 changed to to_Re
-\* Parameter liftId of procedure ReceiveLiftCheckResult at line 228 col 39 changed to liftId_Re
-\* Parameter from of procedure CommitLift at line 243 col 23 changed to from_Co
-\* Parameter to of procedure CommitLift at line 243 col 29 changed to to_Co
-\* Parameter liftId of procedure CommitLift at line 243 col 33 changed to liftId_Co
-\* Parameter from of procedure FailLift at line 261 col 21 changed to from_F
-\* Parameter liftId of procedure FailLift at line 261 col 31 changed to liftId_F
+\* BEGIN TRANSLATION - the hash of the PCal code: PCal-4b4540571c31f7938badddf875b28932
+\* Label ProposeLift of procedure ProposeLift at line 75 col 5 changed to ProposeLift_
+\* Label lsm of procedure ProposeLift at line 79 col 5 changed to lsm_
+\* Label HandleLift of procedure HandleLift at line 75 col 5 changed to HandleLift_
+\* Label L1 of procedure HandleLift at line 121 col 13 changed to L1_
+\* Label lsm of procedure HandleLift at line 79 col 5 changed to lsm_H
+\* Label losm of procedure HandleLift at line 79 col 5 changed to losm_
+\* Label DecideLiftValidity of procedure DecideLiftValidity at line 75 col 5 changed to DecideLiftValidity_
+\* Label lchecktime of procedure DecideLiftValidity at line 138 col 25 changed to lchecktime_
+\* Label lsm of procedure DecideLiftValidity at line 79 col 5 changed to lsm_D
+\* Label lsom of procedure DecideLiftValidity at line 79 col 5 changed to lsom_
+\* Label lprintDecision of procedure DecideLiftValidity at line 75 col 5 changed to lprintDecision_
+\* Label DLVR of procedure DecideLiftValidity at line 151 col 11 changed to DLVR_
+\* Label ValidateLift of procedure ReceiveLiftValidResult at line 75 col 5 changed to ValidateLift_
+\* Label lpt of procedure ReceiveLiftValidResult at line 75 col 5 changed to lpt_
+\* Label VLR of procedure ReceiveLiftValidResult at line 199 col 14 changed to VLR_
+\* Label CommitLift of procedure CommitLift at line 75 col 5 changed to CommitLift_
+\* Label CL2 of procedure CommitLift at line 226 col 10 changed to CL2_
+\* Label CL4 of procedure CommitLift at line 79 col 5 changed to CL4_
+\* Label CL3 of procedure CommitLift at line 230 col 14 changed to CL3_
+\* Label CLR of procedure CommitLift at line 232 col 10 changed to CLR_
+\* Label FailLift of procedure FailLift at line 75 col 5 changed to FailLift_
+\* Label CheckTimeout of procedure CheckTimeout at line 75 col 5 changed to CheckTimeout_
+\* Process variable cycle of process procId at line 266 col 9 changed to cycle_
+\* Process variable liftValue of process procId at line 267 col 9 changed to liftValue_
+\* Process variable arbitrator of process procId at line 268 col 9 changed to arbitrator_
+\* Procedure variable nextPeer of procedure ProposeLift at line 97 col 9 changed to nextPeer_
+\* Procedure variable prevPeer of procedure HandleLift at line 113 col 9 changed to prevPeer_
+\* Procedure variable result of procedure DecideLiftValidity at line 132 col 9 changed to result_
+\* Procedure variable result of procedure CheckLiftValidity at line 156 col 9 changed to result_C
+\* Procedure variable prevPeer of procedure ReceiveLiftValidResult at line 180 col 9 changed to prevPeer_R
+\* Procedure variable timeout of procedure ReceiveLiftValidResult at line 181 col 9 changed to timeout_
+\* Procedure variable nextPeer of procedure CommitLift at line 219 col 9 changed to nextPeer_C
+\* Procedure variable liftValue of procedure CommitLift at line 220 col 9 changed to liftValue_C
+\* Procedure variable liftValue of procedure FailLift at line 238 col 9 changed to liftValue_F
+\* Parameter liftValue of procedure ProposeLift at line 95 col 41 changed to liftValue_P
+\* Parameter arbitrator of procedure ProposeLift at line 95 col 52 changed to arbitrator_P
+\* Parameter from of procedure HandleLift at line 111 col 23 changed to from_
+\* Parameter to of procedure HandleLift at line 111 col 29 changed to to_
+\* Parameter route of procedure HandleLift at line 111 col 33 changed to route_
+\* Parameter liftValue of procedure HandleLift at line 111 col 40 changed to liftValue_H
+\* Parameter originator of procedure HandleLift at line 111 col 51 changed to originator_
+\* Parameter liftId of procedure HandleLift at line 111 col 63 changed to liftId_
+\* Parameter arbitrator of procedure HandleLift at line 111 col 71 changed to arbitrator_H
+\* Parameter from of procedure DecideLiftValidity at line 130 col 30 changed to from_D
+\* Parameter to of procedure DecideLiftValidity at line 130 col 36 changed to to_D
+\* Parameter route of procedure DecideLiftValidity at line 130 col 40 changed to route_D
+\* Parameter liftValue of procedure DecideLiftValidity at line 130 col 47 changed to liftValue_D
+\* Parameter originator of procedure DecideLiftValidity at line 130 col 58 changed to originator_D
+\* Parameter liftId of procedure DecideLiftValidity at line 130 col 70 changed to liftId_D
+\* Parameter arbitrator of procedure DecideLiftValidity at line 130 col 78 changed to arbitrator_D
+\* Parameter from of procedure CheckLiftValidity at line 154 col 29 changed to from_C
+\* Parameter to of procedure CheckLiftValidity at line 154 col 35 changed to to_C
+\* Parameter liftId of procedure CheckLiftValidity at line 154 col 69 changed to liftId_C
+\* Parameter arbitrator of procedure CheckLiftValidity at line 154 col 77 changed to arbitrator_C
+\* Parameter to of procedure ReceiveLiftValidResult at line 178 col 35 changed to to_R
+\* Parameter liftId of procedure ReceiveLiftValidResult at line 178 col 39 changed to liftId_R
+\* Parameter result of procedure ReceiveLiftValidResult at line 178 col 47 changed to result_R
+\* Parameter to of procedure ReceiveLiftCheckResult at line 202 col 35 changed to to_Re
+\* Parameter liftId of procedure ReceiveLiftCheckResult at line 202 col 39 changed to liftId_Re
+\* Parameter from of procedure CommitLift at line 217 col 23 changed to from_Co
+\* Parameter to of procedure CommitLift at line 217 col 29 changed to to_Co
+\* Parameter liftId of procedure CommitLift at line 217 col 33 changed to liftId_Co
+\* Parameter from of procedure FailLift at line 235 col 21 changed to from_F
+\* Parameter liftId of procedure FailLift at line 235 col 31 changed to liftId_F
 CONSTANT defaultInitValue
 VARIABLES Users, LiftProposers, ReliableUsers, Links, Cycles, tallies, 
           messages, readMessages, lostMessages, lifts, startedNodes, 
@@ -560,7 +534,7 @@ ProposeLift_(self) == /\ pc[self] = "ProposeLift_"
                       /\ prevPeer' = [prevPeer EXCEPT ![self] = PrevElemIn(proposer[self], cycle[self])]
                       /\ liftGuid' = [liftGuid EXCEPT ![self] = nextLiftGuid]
                       /\ nextLiftGuid' = nextLiftGuid + 1
-                      /\ lifts' = [lifts EXCEPT ![proposer[self]] = liftGuid'[self] :> [originator |-> proposer[self], value |-> liftValue_P[self], state |-> "Seek", route |-> cycle[self], arbitrator |-> arbitrator_P[self]]]
+                      /\ lifts' = [lifts EXCEPT ![proposer[self]] = lifts[proposer[self]] @@ liftGuid'[self] :> [originator |-> proposer[self], value |-> liftValue_P[self], state |-> "Seek", route |-> cycle[self], arbitrator |-> arbitrator_P[self]]]
                       /\ tallies' = [tallies EXCEPT ![<<proposer[self], prevPeer'[self], "Stock">>].projectedBalance = tallies[<<proposer[self], prevPeer'[self], "Stock">>].projectedBalance - liftValue_P[self]]
                       /\ pc' = [pc EXCEPT ![self] = "lsm_"]
                       /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
@@ -643,7 +617,7 @@ ProposeLift(self) == ProposeLift_(self) \/ lsm_(self) \/ PLR(self)
 HandleLift_(self) == /\ pc[self] = "HandleLift_"
                      /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Handling Lift")]
                      /\ prevPeer_' = [prevPeer_ EXCEPT ![self] = PrevElemIn(to_[self], route_[self])]
-                     /\ lifts' = [lifts EXCEPT ![to_[self]] = liftId_[self] :> [originator |-> originator_[self], value |-> liftValue_H[self], state |-> "Seek", route |-> route_[self], arbitrator |-> arbitrator_H[self]]]
+                     /\ lifts' = [lifts EXCEPT ![to_[self]] = lifts[to_[self]] @@ liftId_[self] :> [originator |-> originator_[self], value |-> liftValue_H[self], state |-> "Seek", route |-> route_[self], arbitrator |-> arbitrator_H[self]]]
                      /\ tallies' = [tallies EXCEPT ![<<to_[self], from_[self], "Foil">>].projectedBalance = tallies[<<to_[self], from_[self], "Foil">>].projectedBalance + liftValue_H[self]]
                      /\ IF to_[self] /= originator_[self]
                            THEN /\ pc' = [pc EXCEPT ![self] = "L1_"]
@@ -845,7 +819,7 @@ lchecktime_(self) == /\ pc[self] = "lchecktime_"
                      /\ \E validDecision \in {"Good", "Fail"}:
                           result_' = [result_ EXCEPT ![self] = validDecision]
                      /\ IF from_D[self] = originator_D[self]
-                           THEN /\ lifts' = [lifts EXCEPT ![arbitrator_D[self]] = liftId_D[self] :> [originator |-> originator_D[self], value |-> liftValue_D[self], state |-> result_'[self], route |-> route_D[self], arbitrator |-> arbitrator_D[self]]]
+                           THEN /\ lifts' = [lifts EXCEPT ![arbitrator_D[self]] = lifts[arbitrator_D[self]] @@ liftId_D[self] :> [originator |-> originator_D[self], value |-> liftValue_D[self], state |-> result_'[self], route |-> route_D[self], arbitrator |-> arbitrator_D[self]]]
                                 /\ pc' = [pc EXCEPT ![self] = "lsm_D"]
                            ELSE /\ pc' = [pc EXCEPT ![self] = "lprintDecision_"]
                                 /\ lifts' = lifts
@@ -989,7 +963,7 @@ CkeckLiftValidity(self) == /\ pc[self] = "CkeckLiftValidity"
                                            arbitrator_, toAct, lostMes >>
 
 lsr(self) == /\ pc[self] = "lsr"
-             /\ lifts' = [lifts EXCEPT ![arbitrator_C[self]] = liftId_C[self] :> [originator |-> originator[self], value |-> liftValue[self], state |-> result_C[self], route |-> route[self], arbitrator |-> arbitrator_C[self]]]
+             /\ lifts' = [lifts EXCEPT ![arbitrator_C[self]] = lifts[arbitrator_C[self]] @@ liftId_C[self] :> [originator |-> originator[self], value |-> liftValue[self], state |-> result_C[self], route |-> route[self], arbitrator |-> arbitrator_C[self]]]
              /\ pc' = [pc EXCEPT ![self] = "lsm2"]
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
@@ -2337,7 +2311,7 @@ Spec == /\ Init /\ [][Next]_vars
 
 Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
-\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-63d14b8833c79724c6530e0a191c0c15
+\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-685231db13669189ab8bfe259cccc897
 
 LinkValid ==
     /\ Links \subseteq Users \X Users \* Links are a pair of users (user, user)

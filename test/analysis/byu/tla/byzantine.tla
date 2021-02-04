@@ -134,7 +134,7 @@ ProposeLift:
     nextLiftGuid := nextLiftGuid + 1;
     originatorPublicKey := originatorPublicKeyInit; \* pick an arbitrary unique number for each lift
     arbitratorPublicKey := arbitratorPublicKeyInit; \* pick an arbitrary unique number for each Lift
-    lifts[proposer] := liftGuid :> [originator |-> proposer, originatorPublicKey |-> originatorPublicKey, value |-> liftValue, state |-> "Seek", route |-> cycle, arbitrator |-> arbitrator, arbitratorPublicKey |-> arbitratorPublicKey];
+    lifts[proposer] := [lifts[proposer] EXCEPT !liftGuid = [originator |-> proposer, originatorPublicKey |-> originatorPublicKey, value |-> liftValue, state |-> "Seek", route |-> cycle, arbitrator |-> arbitrator, arbitratorPublicKey |-> arbitratorPublicKey]];
     tallies[<<proposer, prevPeer, "Stock">>].projectedBalance := tallies[<<proposer, prevPeer, "Stock">>].projectedBalance - liftValue;
     lsm: sendMessage([liftId |-> liftGuid, originator |-> proposer, originatorPublicKey |-> originatorPublicKey, from |-> proposer, to |-> prevPeer, type |-> "LiftProposeJSON", route |-> cycle, value |-> liftValue, arbitrator |-> arbitrator, arbitratorPublicKey |-> arbitratorPublicKey]);
 	PLR: return;

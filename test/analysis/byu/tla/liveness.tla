@@ -2,6 +2,7 @@
 EXTENDS Integers, Sequences, TLC
 
 CONSTANTS MESSAGES_FAIL
+CONSTANTS NUM_SIMULTANEOUS_LIFTS
 
 A == "A"
 B == "B"
@@ -53,7 +54,7 @@ variables
     LiftProposers = {A},
     ReliableUsers = {D},
     Links = {<<A, B>>, <<B, C>>, <<C, D>>, <<C, A>>, <<D, A>>},
-    Cycles = {<<A, B, C>>},
+    Cycles = {<<A, B, C>>, <<A, B, C, D>>},
 	tallies = [id \in UNION{{<<x, y, "Foil">>, <<y, x, "Stock">>}: <<x, y>> \in Links} |-> [balance |-> InitTallyBalance(id), projectedBalance |-> InitTallyProjBalance(id) ]],
     messages = {},
     readMessages = {},
@@ -61,6 +62,7 @@ variables
     lifts = [user \in Users |-> [id \in {} |-> 0]], \* init empty map
     startedNodes = {},
     nextLiftGuid = 1,
+    numLiftsStarted = 0,
 
 macro printLater(item) begin
     printBuffer := Append(printBuffer, item);
@@ -93,7 +95,7 @@ ProposeLift:
     prevPeer := PrevElemIn(proposer, cycle);
     liftGuid := nextLiftGuid;
     nextLiftGuid := nextLiftGuid + 1;
-    lifts[proposer] := liftGuid :> [originator |-> proposer, value |-> liftValue, state |-> "Seek", route |-> cycle, arbitrator |-> arbitrator];
+    lifts[proposer] := lifts[proposer] @@ liftGuid :> [originator |-> proposer, value |-> liftValue, state |-> "Seek", route |-> cycle, arbitrator |-> arbitrator];
     tallies[<<proposer, prevPeer, "Stock">>].projectedBalance := tallies[<<proposer, prevPeer, "Stock">>].projectedBalance - liftValue;
     lsm: sendMessage([liftId |-> liftGuid, originator |-> proposer, from |-> proposer, to |-> prevPeer, type |-> "LiftProposeJSON", route |-> cycle, value |-> liftValue, arbitrator |-> arbitrator]);
 	PLR: return;
@@ -106,7 +108,7 @@ begin
 HandleLift:
 	printLater("Handling Lift");
     prevPeer := PrevElemIn(to, route);
-        lifts[to] := liftId :> [originator |-> originator, value |-> liftValue, state |-> "Seek", route |-> route, arbitrator |-> arbitrator];
+        lifts[to] := lifts[to] @@ liftId :> [originator |-> originator, value |-> liftValue, state |-> "Seek", route |-> route, arbitrator |-> arbitrator];
         tallies[<<to, from, "Foil">>].projectedBalance := tallies[<<to, from, "Foil">>].projectedBalance + liftValue;
     if to /= originator then
         L1: tallies[<<to, prevPeer, "Stock">>].projectedBalance := tallies[<<to, prevPeer, "Stock">>].projectedBalance - liftValue;
@@ -130,7 +132,7 @@ DecideLiftValidity:
                 result := validDecision;
             end with;
             if from = originator then
-                lifts[arbitrator] := liftId :> [originator |-> originator, value |-> liftValue, state |-> result, route |-> route, arbitrator |-> arbitrator];
+                lifts[arbitrator] := lifts[arbitrator] @@ liftId :> [originator |-> originator, value |-> liftValue, state |-> result, route |-> route, arbitrator |-> arbitrator];
                 lsm: sendMessage([from |-> to, to |-> from, type |-> "LiftValidResultJSON", liftId |-> liftId, result |-> result]);
             end if
             \* TODO if not from originator send a Error response? Only originator can request validity (final commit)
@@ -156,7 +158,7 @@ CkeckLiftValidity:
                 result := validDecision;
             end with;
         end if;
-        lsr: lifts[arbitrator] := liftId :> [originator |-> originator, value |-> liftValue, state |-> result, route |-> route, arbitrator |-> arbitrator];
+        lsr: lifts[arbitrator] := lifts[arbitrator] @@ liftId :> [originator |-> originator, value |-> liftValue, state |-> result, route |-> route, arbitrator |-> arbitrator];
         lsm2: sendMessage([from |-> to, to |-> from, type |-> "LiftCheckResultJSON", liftId |-> liftId, result |-> result]);
     else \* if Good or Fail allready send results
         result := lifts[arbitrator][liftId].state;
@@ -259,16 +261,22 @@ fair process procId \in Users \* one process for each user
         arbitrator,
         toAct,
         lostMes,
+        selectedCycles = {},
+        cIndex = 0,
         printBuffer = <<>>,
 begin
 ProcStart:
     printLater("Start");
     l1: printLater(self);
     if self \in LiftProposers then
-        cycle := CHOOSE c \in Cycles : c[1] = self; \* pick a cycle
-        liftValue := MaxLiftValueFor(cycle, tallies);
-        arbitrator := CHOOSE a \in ReliableUsers : TRUE;
-        call ProposeLift(self, cycle, liftValue, arbitrator);
+        lw: while (numLiftsStarted < NUM_SIMULTANEOUS_LIFTS) do
+            numLiftsStarted := numLiftsStarted + 1;
+            cycle := CHOOSE c \in (Cycles \ selectedCycles) : c[1] = self; \* pick a cycle
+            selectedCycles := UNION{selectedCycles, {cycle}};
+            liftValue := MaxLiftValueFor(cycle, tallies);
+            arbitrator := CHOOSE a \in ReliableUsers : TRUE;
+            call ProposeLift(self, cycle, liftValue, arbitrator);
+        end while;
     end if;
     lsn: startedNodes := UNION{startedNodes, {self}};
     las: await startedNodes = Users; \* wait for the first message to pop in the bag
@@ -303,7 +311,7 @@ ProcStart:
     else
         if \E message \in lostMessages : message \notin readMessages /\ message.to = self then
         \* if a message to me was lost
-            clm: lostMes := CHOOSE message \in lostMessages : message \notin readMessages /\ (message.to = self \/ message.from = self) ;
+            lostMes := CHOOSE message \in lostMessages : message \notin readMessages /\ (message.to = self \/ message.from = self) ;
             lcl: if (lostMes.type = "LiftCommitJSON" \/ lostMes.type = "LiftFailJSON") /\ lostMes.to = self then
             \* will for sure check if the message was lost
                 if lostMes.liftId \in DOMAIN lifts[self] /\ lifts[self][lostMes.liftId].arbitrator /= self /\ lifts[self][lostMes.liftId].state = "Seek" then
@@ -339,97 +347,98 @@ end process
 
 
 end algorithm *)
-\* BEGIN TRANSLATION - the hash of the PCal code: PCal-a2ef078ae9eafa2148ca70c7614ae376
-\* Label ProposeLift of procedure ProposeLift at line 66 col 5 changed to ProposeLift_
-\* Label lsm of procedure ProposeLift at line 70 col 5 changed to lsm_
-\* Label HandleLift of procedure HandleLift at line 66 col 5 changed to HandleLift_
-\* Label L1 of procedure HandleLift at line 112 col 13 changed to L1_
-\* Label lsm of procedure HandleLift at line 70 col 5 changed to lsm_H
-\* Label losm of procedure HandleLift at line 70 col 5 changed to losm_
-\* Label DecideLiftValidity of procedure DecideLiftValidity at line 66 col 5 changed to DecideLiftValidity_
-\* Label lchecktime of procedure DecideLiftValidity at line 129 col 25 changed to lchecktime_
-\* Label lsm of procedure DecideLiftValidity at line 70 col 5 changed to lsm_D
-\* Label lsom of procedure DecideLiftValidity at line 70 col 5 changed to lsom_
-\* Label lprintDecision of procedure DecideLiftValidity at line 66 col 5 changed to lprintDecision_
-\* Label DLVR of procedure DecideLiftValidity at line 142 col 11 changed to DLVR_
-\* Label ValidateLift of procedure ReceiveLiftValidResult at line 66 col 5 changed to ValidateLift_
-\* Label lpt of procedure ReceiveLiftValidResult at line 66 col 5 changed to lpt_
-\* Label VLR of procedure ReceiveLiftValidResult at line 190 col 14 changed to VLR_
-\* Label CommitLift of procedure CommitLift at line 66 col 5 changed to CommitLift_
-\* Label CL2 of procedure CommitLift at line 217 col 10 changed to CL2_
-\* Label CL4 of procedure CommitLift at line 70 col 5 changed to CL4_
-\* Label CL3 of procedure CommitLift at line 221 col 14 changed to CL3_
-\* Label CLR of procedure CommitLift at line 223 col 10 changed to CLR_
-\* Label FailLift of procedure FailLift at line 66 col 5 changed to FailLift_
-\* Label CheckTimeout of procedure CheckTimeout at line 66 col 5 changed to CheckTimeout_
-\* Process variable cycle of process procId at line 257 col 9 changed to cycle_
-\* Process variable liftValue of process procId at line 258 col 9 changed to liftValue_
-\* Process variable arbitrator of process procId at line 259 col 9 changed to arbitrator_
-\* Procedure variable nextPeer of procedure ProposeLift at line 88 col 9 changed to nextPeer_
-\* Procedure variable prevPeer of procedure HandleLift at line 104 col 9 changed to prevPeer_
-\* Procedure variable result of procedure DecideLiftValidity at line 123 col 9 changed to result_
-\* Procedure variable result of procedure CheckLiftValidity at line 147 col 9 changed to result_C
-\* Procedure variable prevPeer of procedure ReceiveLiftValidResult at line 171 col 9 changed to prevPeer_R
-\* Procedure variable timeout of procedure ReceiveLiftValidResult at line 172 col 9 changed to timeout_
-\* Procedure variable nextPeer of procedure CommitLift at line 210 col 9 changed to nextPeer_C
-\* Procedure variable liftValue of procedure CommitLift at line 211 col 9 changed to liftValue_C
-\* Procedure variable liftValue of procedure FailLift at line 229 col 9 changed to liftValue_F
-\* Parameter liftValue of procedure ProposeLift at line 86 col 41 changed to liftValue_P
-\* Parameter arbitrator of procedure ProposeLift at line 86 col 52 changed to arbitrator_P
-\* Parameter from of procedure HandleLift at line 102 col 23 changed to from_
-\* Parameter to of procedure HandleLift at line 102 col 29 changed to to_
-\* Parameter route of procedure HandleLift at line 102 col 33 changed to route_
-\* Parameter liftValue of procedure HandleLift at line 102 col 40 changed to liftValue_H
-\* Parameter originator of procedure HandleLift at line 102 col 51 changed to originator_
-\* Parameter liftId of procedure HandleLift at line 102 col 63 changed to liftId_
-\* Parameter arbitrator of procedure HandleLift at line 102 col 71 changed to arbitrator_H
-\* Parameter from of procedure DecideLiftValidity at line 121 col 30 changed to from_D
-\* Parameter to of procedure DecideLiftValidity at line 121 col 36 changed to to_D
-\* Parameter route of procedure DecideLiftValidity at line 121 col 40 changed to route_D
-\* Parameter liftValue of procedure DecideLiftValidity at line 121 col 47 changed to liftValue_D
-\* Parameter originator of procedure DecideLiftValidity at line 121 col 58 changed to originator_D
-\* Parameter liftId of procedure DecideLiftValidity at line 121 col 70 changed to liftId_D
-\* Parameter arbitrator of procedure DecideLiftValidity at line 121 col 78 changed to arbitrator_D
-\* Parameter from of procedure CheckLiftValidity at line 145 col 29 changed to from_C
-\* Parameter to of procedure CheckLiftValidity at line 145 col 35 changed to to_C
-\* Parameter liftId of procedure CheckLiftValidity at line 145 col 69 changed to liftId_C
-\* Parameter arbitrator of procedure CheckLiftValidity at line 145 col 77 changed to arbitrator_C
-\* Parameter to of procedure ReceiveLiftValidResult at line 169 col 35 changed to to_R
-\* Parameter liftId of procedure ReceiveLiftValidResult at line 169 col 39 changed to liftId_R
-\* Parameter result of procedure ReceiveLiftValidResult at line 169 col 47 changed to result_R
-\* Parameter to of procedure ReceiveLiftCheckResult at line 193 col 35 changed to to_Re
-\* Parameter liftId of procedure ReceiveLiftCheckResult at line 193 col 39 changed to liftId_Re
-\* Parameter from of procedure CommitLift at line 208 col 23 changed to from_Co
-\* Parameter to of procedure CommitLift at line 208 col 29 changed to to_Co
-\* Parameter liftId of procedure CommitLift at line 208 col 33 changed to liftId_Co
-\* Parameter from of procedure FailLift at line 226 col 21 changed to from_F
-\* Parameter liftId of procedure FailLift at line 226 col 31 changed to liftId_F
+\* BEGIN TRANSLATION - the hash of the PCal code: PCal-5f204270e67e86060b13d9d269d9631d
+\* Label ProposeLift of procedure ProposeLift at line 68 col 5 changed to ProposeLift_
+\* Label lsm of procedure ProposeLift at line 72 col 5 changed to lsm_
+\* Label HandleLift of procedure HandleLift at line 68 col 5 changed to HandleLift_
+\* Label L1 of procedure HandleLift at line 114 col 13 changed to L1_
+\* Label lsm of procedure HandleLift at line 72 col 5 changed to lsm_H
+\* Label losm of procedure HandleLift at line 72 col 5 changed to losm_
+\* Label DecideLiftValidity of procedure DecideLiftValidity at line 68 col 5 changed to DecideLiftValidity_
+\* Label lchecktime of procedure DecideLiftValidity at line 131 col 25 changed to lchecktime_
+\* Label lsm of procedure DecideLiftValidity at line 72 col 5 changed to lsm_D
+\* Label lsom of procedure DecideLiftValidity at line 72 col 5 changed to lsom_
+\* Label lprintDecision of procedure DecideLiftValidity at line 68 col 5 changed to lprintDecision_
+\* Label DLVR of procedure DecideLiftValidity at line 144 col 11 changed to DLVR_
+\* Label ValidateLift of procedure ReceiveLiftValidResult at line 68 col 5 changed to ValidateLift_
+\* Label lpt of procedure ReceiveLiftValidResult at line 68 col 5 changed to lpt_
+\* Label VLR of procedure ReceiveLiftValidResult at line 192 col 14 changed to VLR_
+\* Label CommitLift of procedure CommitLift at line 68 col 5 changed to CommitLift_
+\* Label CL2 of procedure CommitLift at line 219 col 10 changed to CL2_
+\* Label CL4 of procedure CommitLift at line 72 col 5 changed to CL4_
+\* Label CL3 of procedure CommitLift at line 223 col 14 changed to CL3_
+\* Label CLR of procedure CommitLift at line 225 col 10 changed to CLR_
+\* Label FailLift of procedure FailLift at line 68 col 5 changed to FailLift_
+\* Label CheckTimeout of procedure CheckTimeout at line 68 col 5 changed to CheckTimeout_
+\* Process variable cycle of process procId at line 259 col 9 changed to cycle_
+\* Process variable liftValue of process procId at line 260 col 9 changed to liftValue_
+\* Process variable arbitrator of process procId at line 261 col 9 changed to arbitrator_
+\* Procedure variable nextPeer of procedure ProposeLift at line 90 col 9 changed to nextPeer_
+\* Procedure variable prevPeer of procedure HandleLift at line 106 col 9 changed to prevPeer_
+\* Procedure variable result of procedure DecideLiftValidity at line 125 col 9 changed to result_
+\* Procedure variable result of procedure CheckLiftValidity at line 149 col 9 changed to result_C
+\* Procedure variable prevPeer of procedure ReceiveLiftValidResult at line 173 col 9 changed to prevPeer_R
+\* Procedure variable timeout of procedure ReceiveLiftValidResult at line 174 col 9 changed to timeout_
+\* Procedure variable nextPeer of procedure CommitLift at line 212 col 9 changed to nextPeer_C
+\* Procedure variable liftValue of procedure CommitLift at line 213 col 9 changed to liftValue_C
+\* Procedure variable liftValue of procedure FailLift at line 231 col 9 changed to liftValue_F
+\* Parameter liftValue of procedure ProposeLift at line 88 col 41 changed to liftValue_P
+\* Parameter arbitrator of procedure ProposeLift at line 88 col 52 changed to arbitrator_P
+\* Parameter from of procedure HandleLift at line 104 col 23 changed to from_
+\* Parameter to of procedure HandleLift at line 104 col 29 changed to to_
+\* Parameter route of procedure HandleLift at line 104 col 33 changed to route_
+\* Parameter liftValue of procedure HandleLift at line 104 col 40 changed to liftValue_H
+\* Parameter originator of procedure HandleLift at line 104 col 51 changed to originator_
+\* Parameter liftId of procedure HandleLift at line 104 col 63 changed to liftId_
+\* Parameter arbitrator of procedure HandleLift at line 104 col 71 changed to arbitrator_H
+\* Parameter from of procedure DecideLiftValidity at line 123 col 30 changed to from_D
+\* Parameter to of procedure DecideLiftValidity at line 123 col 36 changed to to_D
+\* Parameter route of procedure DecideLiftValidity at line 123 col 40 changed to route_D
+\* Parameter liftValue of procedure DecideLiftValidity at line 123 col 47 changed to liftValue_D
+\* Parameter originator of procedure DecideLiftValidity at line 123 col 58 changed to originator_D
+\* Parameter liftId of procedure DecideLiftValidity at line 123 col 70 changed to liftId_D
+\* Parameter arbitrator of procedure DecideLiftValidity at line 123 col 78 changed to arbitrator_D
+\* Parameter from of procedure CheckLiftValidity at line 147 col 29 changed to from_C
+\* Parameter to of procedure CheckLiftValidity at line 147 col 35 changed to to_C
+\* Parameter liftId of procedure CheckLiftValidity at line 147 col 69 changed to liftId_C
+\* Parameter arbitrator of procedure CheckLiftValidity at line 147 col 77 changed to arbitrator_C
+\* Parameter to of procedure ReceiveLiftValidResult at line 171 col 35 changed to to_R
+\* Parameter liftId of procedure ReceiveLiftValidResult at line 171 col 39 changed to liftId_R
+\* Parameter result of procedure ReceiveLiftValidResult at line 171 col 47 changed to result_R
+\* Parameter to of procedure ReceiveLiftCheckResult at line 195 col 35 changed to to_Re
+\* Parameter liftId of procedure ReceiveLiftCheckResult at line 195 col 39 changed to liftId_Re
+\* Parameter from of procedure CommitLift at line 210 col 23 changed to from_Co
+\* Parameter to of procedure CommitLift at line 210 col 29 changed to to_Co
+\* Parameter liftId of procedure CommitLift at line 210 col 33 changed to liftId_Co
+\* Parameter from of procedure FailLift at line 228 col 21 changed to from_F
+\* Parameter liftId of procedure FailLift at line 228 col 31 changed to liftId_F
 CONSTANT defaultInitValue
 VARIABLES Users, LiftProposers, ReliableUsers, Links, Cycles, tallies, 
           messages, readMessages, lostMessages, lifts, startedNodes, 
-          nextLiftGuid, pc, stack, proposer, cycle, liftValue_P, arbitrator_P, 
-          nextPeer_, liftGuid, from_, to_, route_, liftValue_H, originator_, 
-          liftId_, arbitrator_H, prevPeer_, from_D, to_D, route_D, 
-          liftValue_D, originator_D, liftId_D, arbitrator_D, result_, from_C, 
-          to_C, route, liftValue, originator, liftId_C, arbitrator_C, 
-          result_C, to_R, liftId_R, result_R, prevPeer_R, timeout_, to_Re, 
-          liftId_Re, result, prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-          nextPeer_C, liftValue_C, from_F, to, liftId_F, nextPeer, 
-          liftValue_F, from, liftId, arbitrator, cycle_, liftValue_, 
-          arbitrator_, toAct, lostMes, printBuffer
+          nextLiftGuid, numLiftsStarted, pc, stack, proposer, cycle, 
+          liftValue_P, arbitrator_P, nextPeer_, liftGuid, from_, to_, route_, 
+          liftValue_H, originator_, liftId_, arbitrator_H, prevPeer_, from_D, 
+          to_D, route_D, liftValue_D, originator_D, liftId_D, arbitrator_D, 
+          result_, from_C, to_C, route, liftValue, originator, liftId_C, 
+          arbitrator_C, result_C, to_R, liftId_R, result_R, prevPeer_R, 
+          timeout_, to_Re, liftId_Re, result, prevPeer, timeout, from_Co, 
+          to_Co, liftId_Co, nextPeer_C, liftValue_C, from_F, to, liftId_F, 
+          nextPeer, liftValue_F, from, liftId, arbitrator, cycle_, liftValue_, 
+          arbitrator_, toAct, lostMes, selectedCycles, cIndex, printBuffer
 
 vars == << Users, LiftProposers, ReliableUsers, Links, Cycles, tallies, 
            messages, readMessages, lostMessages, lifts, startedNodes, 
-           nextLiftGuid, pc, stack, proposer, cycle, liftValue_P, 
-           arbitrator_P, nextPeer_, liftGuid, from_, to_, route_, liftValue_H, 
-           originator_, liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-           route_D, liftValue_D, originator_D, liftId_D, arbitrator_D, 
+           nextLiftGuid, numLiftsStarted, pc, stack, proposer, cycle, 
+           liftValue_P, arbitrator_P, nextPeer_, liftGuid, from_, to_, route_, 
+           liftValue_H, originator_, liftId_, arbitrator_H, prevPeer_, from_D, 
+           to_D, route_D, liftValue_D, originator_D, liftId_D, arbitrator_D, 
            result_, from_C, to_C, route, liftValue, originator, liftId_C, 
            arbitrator_C, result_C, to_R, liftId_R, result_R, prevPeer_R, 
            timeout_, to_Re, liftId_Re, result, prevPeer, timeout, from_Co, 
            to_Co, liftId_Co, nextPeer_C, liftValue_C, from_F, to, liftId_F, 
            nextPeer, liftValue_F, from, liftId, arbitrator, cycle_, 
-           liftValue_, arbitrator_, toAct, lostMes, printBuffer >>
+           liftValue_, arbitrator_, toAct, lostMes, selectedCycles, cIndex, 
+           printBuffer >>
 
 ProcSet == (Users)
 
@@ -438,7 +447,7 @@ Init == (* Global variables *)
         /\ LiftProposers = {A}
         /\ ReliableUsers = {D}
         /\ Links = {<<A, B>>, <<B, C>>, <<C, D>>, <<C, A>>, <<D, A>>}
-        /\ Cycles = {<<A, B, C>>}
+        /\ Cycles = {<<A, B, C>>, <<A, B, C, D>>}
         /\ tallies = [id \in UNION{{<<x, y, "Foil">>, <<y, x, "Stock">>}: <<x, y>> \in Links} |-> [balance |-> InitTallyBalance(id), projectedBalance |-> InitTallyProjBalance(id) ]]
         /\ messages = {}
         /\ readMessages = {}
@@ -446,6 +455,7 @@ Init == (* Global variables *)
         /\ lifts = [user \in Users |-> [id \in {} |-> 0]]
         /\ startedNodes = {}
         /\ nextLiftGuid = 1
+        /\ numLiftsStarted = 0
         (* Procedure ProposeLift *)
         /\ proposer = [ self \in ProcSet |-> defaultInitValue]
         /\ cycle = [ self \in ProcSet |-> defaultInitValue]
@@ -514,6 +524,8 @@ Init == (* Global variables *)
         /\ arbitrator_ = [self \in Users |-> defaultInitValue]
         /\ toAct = [self \in Users |-> defaultInitValue]
         /\ lostMes = [self \in Users |-> defaultInitValue]
+        /\ selectedCycles = [self \in Users |-> {}]
+        /\ cIndex = [self \in Users |-> 0]
         /\ printBuffer = [self \in Users |-> <<>>]
         /\ stack = [self \in ProcSet |-> << >>]
         /\ pc = [self \in ProcSet |-> "ProcStart"]
@@ -523,27 +535,29 @@ ProposeLift_(self) == /\ pc[self] = "ProposeLift_"
                       /\ prevPeer' = [prevPeer EXCEPT ![self] = PrevElemIn(proposer[self], cycle[self])]
                       /\ liftGuid' = [liftGuid EXCEPT ![self] = nextLiftGuid]
                       /\ nextLiftGuid' = nextLiftGuid + 1
-                      /\ lifts' = [lifts EXCEPT ![proposer[self]] = liftGuid'[self] :> [originator |-> proposer[self], value |-> liftValue_P[self], state |-> "Seek", route |-> cycle[self], arbitrator |-> arbitrator_P[self]]]
+                      /\ lifts' = [lifts EXCEPT ![proposer[self]] = lifts[proposer[self]] @@ liftGuid'[self] :> [originator |-> proposer[self], value |-> liftValue_P[self], state |-> "Seek", route |-> cycle[self], arbitrator |-> arbitrator_P[self]]]
                       /\ tallies' = [tallies EXCEPT ![<<proposer[self], prevPeer'[self], "Stock">>].projectedBalance = tallies[<<proposer[self], prevPeer'[self], "Stock">>].projectedBalance - liftValue_P[self]]
                       /\ pc' = [pc EXCEPT ![self] = "lsm_"]
                       /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                       Links, Cycles, messages, readMessages, 
-                                      lostMessages, startedNodes, stack, 
-                                      proposer, cycle, liftValue_P, 
-                                      arbitrator_P, nextPeer_, from_, to_, 
-                                      route_, liftValue_H, originator_, 
-                                      liftId_, arbitrator_H, prevPeer_, from_D, 
-                                      to_D, route_D, liftValue_D, originator_D, 
-                                      liftId_D, arbitrator_D, result_, from_C, 
-                                      to_C, route, liftValue, originator, 
-                                      liftId_C, arbitrator_C, result_C, to_R, 
-                                      liftId_R, result_R, prevPeer_R, timeout_, 
-                                      to_Re, liftId_Re, result, timeout, 
-                                      from_Co, to_Co, liftId_Co, nextPeer_C, 
+                                      lostMessages, startedNodes, 
+                                      numLiftsStarted, stack, proposer, cycle, 
+                                      liftValue_P, arbitrator_P, nextPeer_, 
+                                      from_, to_, route_, liftValue_H, 
+                                      originator_, liftId_, arbitrator_H, 
+                                      prevPeer_, from_D, to_D, route_D, 
+                                      liftValue_D, originator_D, liftId_D, 
+                                      arbitrator_D, result_, from_C, to_C, 
+                                      route, liftValue, originator, liftId_C, 
+                                      arbitrator_C, result_C, to_R, liftId_R, 
+                                      result_R, prevPeer_R, timeout_, to_Re, 
+                                      liftId_Re, result, timeout, from_Co, 
+                                      to_Co, liftId_Co, nextPeer_C, 
                                       liftValue_C, from_F, to, liftId_F, 
                                       nextPeer, liftValue_F, from, liftId, 
                                       arbitrator, cycle_, liftValue_, 
-                                      arbitrator_, toAct, lostMes >>
+                                      arbitrator_, toAct, lostMes, 
+                                      selectedCycles, cIndex >>
 
 lsm_(self) == /\ pc[self] = "lsm_"
               /\ IF MESSAGES_FAIL
@@ -560,19 +574,21 @@ lsm_(self) == /\ pc[self] = "lsm_"
               /\ pc' = [pc EXCEPT ![self] = "PLR"]
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, readMessages, lifts, 
-                              startedNodes, nextLiftGuid, stack, proposer, 
-                              cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                              liftGuid, from_, to_, route_, liftValue_H, 
-                              originator_, liftId_, arbitrator_H, prevPeer_, 
-                              from_D, to_D, route_D, liftValue_D, originator_D, 
-                              liftId_D, arbitrator_D, result_, from_C, to_C, 
-                              route, liftValue, originator, liftId_C, 
-                              arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                              prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                              prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes >>
+                              startedNodes, nextLiftGuid, numLiftsStarted, 
+                              stack, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex >>
 
 PLR(self) == /\ pc[self] = "PLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -586,6 +602,57 @@ PLR(self) == /\ pc[self] = "PLR"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
+                             numLiftsStarted, from_, to_, route_, liftValue_H, 
+                             originator_, liftId_, arbitrator_H, prevPeer_, 
+                             from_D, to_D, route_D, liftValue_D, originator_D, 
+                             liftId_D, arbitrator_D, result_, from_C, to_C, 
+                             route, liftValue, originator, liftId_C, 
+                             arbitrator_C, result_C, to_R, liftId_R, result_R, 
+                             prevPeer_R, timeout_, to_Re, liftId_Re, result, 
+                             prevPeer, timeout, from_Co, to_Co, liftId_Co, 
+                             nextPeer_C, liftValue_C, from_F, to, liftId_F, 
+                             nextPeer, liftValue_F, from, liftId, arbitrator, 
+                             cycle_, liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
+
+ProposeLift(self) == ProposeLift_(self) \/ lsm_(self) \/ PLR(self)
+
+HandleLift_(self) == /\ pc[self] = "HandleLift_"
+                     /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Handling Lift")]
+                     /\ prevPeer_' = [prevPeer_ EXCEPT ![self] = PrevElemIn(to_[self], route_[self])]
+                     /\ lifts' = [lifts EXCEPT ![to_[self]] = lifts[to_[self]] @@ liftId_[self] :> [originator |-> originator_[self], value |-> liftValue_H[self], state |-> "Seek", route |-> route_[self], arbitrator |-> arbitrator_H[self]]]
+                     /\ tallies' = [tallies EXCEPT ![<<to_[self], from_[self], "Foil">>].projectedBalance = tallies[<<to_[self], from_[self], "Foil">>].projectedBalance + liftValue_H[self]]
+                     /\ IF to_[self] /= originator_[self]
+                           THEN /\ pc' = [pc EXCEPT ![self] = "L1_"]
+                           ELSE /\ pc' = [pc EXCEPT ![self] = "losm_"]
+                     /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
+                                     Links, Cycles, messages, readMessages, 
+                                     lostMessages, startedNodes, nextLiftGuid, 
+                                     numLiftsStarted, stack, proposer, cycle, 
+                                     liftValue_P, arbitrator_P, nextPeer_, 
+                                     liftGuid, from_, to_, route_, liftValue_H, 
+                                     originator_, liftId_, arbitrator_H, 
+                                     from_D, to_D, route_D, liftValue_D, 
+                                     originator_D, liftId_D, arbitrator_D, 
+                                     result_, from_C, to_C, route, liftValue, 
+                                     originator, liftId_C, arbitrator_C, 
+                                     result_C, to_R, liftId_R, result_R, 
+                                     prevPeer_R, timeout_, to_Re, liftId_Re, 
+                                     result, prevPeer, timeout, from_Co, to_Co, 
+                                     liftId_Co, nextPeer_C, liftValue_C, 
+                                     from_F, to, liftId_F, nextPeer, 
+                                     liftValue_F, from, liftId, arbitrator, 
+                                     cycle_, liftValue_, arbitrator_, toAct, 
+                                     lostMes, selectedCycles, cIndex >>
+
+L1_(self) == /\ pc[self] = "L1_"
+             /\ tallies' = [tallies EXCEPT ![<<to_[self], prevPeer_[self], "Stock">>].projectedBalance = tallies[<<to_[self], prevPeer_[self], "Stock">>].projectedBalance - liftValue_H[self]]
+             /\ pc' = [pc EXCEPT ![self] = "lsm_H"]
+             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
+                             Cycles, messages, readMessages, lostMessages, 
+                             lifts, startedNodes, nextLiftGuid, 
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
                              from_, to_, route_, liftValue_H, originator_, 
                              liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
                              route_D, liftValue_D, originator_D, liftId_D, 
@@ -597,56 +664,7 @@ PLR(self) == /\ pc[self] = "PLR"
                              liftValue_C, from_F, to, liftId_F, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
                              liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
-
-ProposeLift(self) == ProposeLift_(self) \/ lsm_(self) \/ PLR(self)
-
-HandleLift_(self) == /\ pc[self] = "HandleLift_"
-                     /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Handling Lift")]
-                     /\ prevPeer_' = [prevPeer_ EXCEPT ![self] = PrevElemIn(to_[self], route_[self])]
-                     /\ lifts' = [lifts EXCEPT ![to_[self]] = liftId_[self] :> [originator |-> originator_[self], value |-> liftValue_H[self], state |-> "Seek", route |-> route_[self], arbitrator |-> arbitrator_H[self]]]
-                     /\ tallies' = [tallies EXCEPT ![<<to_[self], from_[self], "Foil">>].projectedBalance = tallies[<<to_[self], from_[self], "Foil">>].projectedBalance + liftValue_H[self]]
-                     /\ IF to_[self] /= originator_[self]
-                           THEN /\ pc' = [pc EXCEPT ![self] = "L1_"]
-                           ELSE /\ pc' = [pc EXCEPT ![self] = "losm_"]
-                     /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
-                                     Links, Cycles, messages, readMessages, 
-                                     lostMessages, startedNodes, nextLiftGuid, 
-                                     stack, proposer, cycle, liftValue_P, 
-                                     arbitrator_P, nextPeer_, liftGuid, from_, 
-                                     to_, route_, liftValue_H, originator_, 
-                                     liftId_, arbitrator_H, from_D, to_D, 
-                                     route_D, liftValue_D, originator_D, 
-                                     liftId_D, arbitrator_D, result_, from_C, 
-                                     to_C, route, liftValue, originator, 
-                                     liftId_C, arbitrator_C, result_C, to_R, 
-                                     liftId_R, result_R, prevPeer_R, timeout_, 
-                                     to_Re, liftId_Re, result, prevPeer, 
-                                     timeout, from_Co, to_Co, liftId_Co, 
-                                     nextPeer_C, liftValue_C, from_F, to, 
-                                     liftId_F, nextPeer, liftValue_F, from, 
-                                     liftId, arbitrator, cycle_, liftValue_, 
-                                     arbitrator_, toAct, lostMes >>
-
-L1_(self) == /\ pc[self] = "L1_"
-             /\ tallies' = [tallies EXCEPT ![<<to_[self], prevPeer_[self], "Stock">>].projectedBalance = tallies[<<to_[self], prevPeer_[self], "Stock">>].projectedBalance - liftValue_H[self]]
-             /\ pc' = [pc EXCEPT ![self] = "lsm_H"]
-             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
-                             Cycles, messages, readMessages, lostMessages, 
-                             lifts, startedNodes, nextLiftGuid, stack, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             selectedCycles, cIndex, printBuffer >>
 
 lsm_H(self) == /\ pc[self] = "lsm_H"
                /\ IF MESSAGES_FAIL
@@ -663,20 +681,21 @@ lsm_H(self) == /\ pc[self] = "lsm_H"
                /\ pc' = [pc EXCEPT ![self] = "HLR"]
                /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                Cycles, tallies, readMessages, lifts, 
-                               startedNodes, nextLiftGuid, stack, proposer, 
-                               cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                               liftGuid, from_, to_, route_, liftValue_H, 
-                               originator_, liftId_, arbitrator_H, prevPeer_, 
-                               from_D, to_D, route_D, liftValue_D, 
-                               originator_D, liftId_D, arbitrator_D, result_, 
-                               from_C, to_C, route, liftValue, originator, 
-                               liftId_C, arbitrator_C, result_C, to_R, 
-                               liftId_R, result_R, prevPeer_R, timeout_, to_Re, 
-                               liftId_Re, result, prevPeer, timeout, from_Co, 
-                               to_Co, liftId_Co, nextPeer_C, liftValue_C, 
-                               from_F, to, liftId_F, nextPeer, liftValue_F, 
-                               from, liftId, arbitrator, cycle_, liftValue_, 
-                               arbitrator_, toAct, lostMes >>
+                               startedNodes, nextLiftGuid, numLiftsStarted, 
+                               stack, proposer, cycle, liftValue_P, 
+                               arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                               route_, liftValue_H, originator_, liftId_, 
+                               arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                               liftValue_D, originator_D, liftId_D, 
+                               arbitrator_D, result_, from_C, to_C, route, 
+                               liftValue, originator, liftId_C, arbitrator_C, 
+                               result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                               timeout_, to_Re, liftId_Re, result, prevPeer, 
+                               timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                               liftValue_C, from_F, to, liftId_F, nextPeer, 
+                               liftValue_F, from, liftId, arbitrator, cycle_, 
+                               liftValue_, arbitrator_, toAct, lostMes, 
+                               selectedCycles, cIndex >>
 
 losm_(self) == /\ pc[self] = "losm_"
                /\ IF MESSAGES_FAIL
@@ -693,20 +712,21 @@ losm_(self) == /\ pc[self] = "losm_"
                /\ pc' = [pc EXCEPT ![self] = "HLR"]
                /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                Cycles, tallies, readMessages, lifts, 
-                               startedNodes, nextLiftGuid, stack, proposer, 
-                               cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                               liftGuid, from_, to_, route_, liftValue_H, 
-                               originator_, liftId_, arbitrator_H, prevPeer_, 
-                               from_D, to_D, route_D, liftValue_D, 
-                               originator_D, liftId_D, arbitrator_D, result_, 
-                               from_C, to_C, route, liftValue, originator, 
-                               liftId_C, arbitrator_C, result_C, to_R, 
-                               liftId_R, result_R, prevPeer_R, timeout_, to_Re, 
-                               liftId_Re, result, prevPeer, timeout, from_Co, 
-                               to_Co, liftId_Co, nextPeer_C, liftValue_C, 
-                               from_F, to, liftId_F, nextPeer, liftValue_F, 
-                               from, liftId, arbitrator, cycle_, liftValue_, 
-                               arbitrator_, toAct, lostMes >>
+                               startedNodes, nextLiftGuid, numLiftsStarted, 
+                               stack, proposer, cycle, liftValue_P, 
+                               arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                               route_, liftValue_H, originator_, liftId_, 
+                               arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                               liftValue_D, originator_D, liftId_D, 
+                               arbitrator_D, result_, from_C, to_C, route, 
+                               liftValue, originator, liftId_C, arbitrator_C, 
+                               result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                               timeout_, to_Re, liftId_Re, result, prevPeer, 
+                               timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                               liftValue_C, from_F, to, liftId_F, nextPeer, 
+                               liftValue_F, from, liftId, arbitrator, cycle_, 
+                               liftValue_, arbitrator_, toAct, lostMes, 
+                               selectedCycles, cIndex >>
 
 HLR(self) == /\ pc[self] = "HLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -722,18 +742,18 @@ HLR(self) == /\ pc[self] = "HLR"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_D, to_D, route_D, 
-                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
-                             result_, from_C, to_C, route, liftValue, 
-                             originator, liftId_C, arbitrator_C, result_C, 
-                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
-                             to_Re, liftId_Re, result, prevPeer, timeout, 
-                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
                              liftValue_C, from_F, to, liftId_F, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
                              liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
+                             selectedCycles, cIndex, printBuffer >>
 
 HandleLift(self) == HandleLift_(self) \/ L1_(self) \/ lsm_H(self)
                        \/ losm_(self) \/ HLR(self)
@@ -749,8 +769,9 @@ DecideLiftValidity_(self) == /\ pc[self] = "DecideLiftValidity_"
                                              ReliableUsers, Links, Cycles, 
                                              tallies, messages, readMessages, 
                                              lostMessages, lifts, startedNodes, 
-                                             nextLiftGuid, stack, proposer, 
-                                             cycle, liftValue_P, arbitrator_P, 
+                                             nextLiftGuid, numLiftsStarted, 
+                                             stack, proposer, cycle, 
+                                             liftValue_P, arbitrator_P, 
                                              nextPeer_, liftGuid, from_, to_, 
                                              route_, liftValue_H, originator_, 
                                              liftId_, arbitrator_H, prevPeer_, 
@@ -768,7 +789,8 @@ DecideLiftValidity_(self) == /\ pc[self] = "DecideLiftValidity_"
                                              to, liftId_F, nextPeer, 
                                              liftValue_F, from, liftId, 
                                              arbitrator, cycle_, liftValue_, 
-                                             arbitrator_, toAct, lostMes >>
+                                             arbitrator_, toAct, lostMes, 
+                                             selectedCycles, cIndex >>
 
 lsom_(self) == /\ pc[self] = "lsom_"
                /\ IF MESSAGES_FAIL
@@ -785,40 +807,41 @@ lsom_(self) == /\ pc[self] = "lsom_"
                /\ pc' = [pc EXCEPT ![self] = "lprintDecision_"]
                /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                Cycles, tallies, readMessages, lifts, 
-                               startedNodes, nextLiftGuid, stack, proposer, 
-                               cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                               liftGuid, from_, to_, route_, liftValue_H, 
-                               originator_, liftId_, arbitrator_H, prevPeer_, 
-                               from_D, to_D, route_D, liftValue_D, 
-                               originator_D, liftId_D, arbitrator_D, result_, 
-                               from_C, to_C, route, liftValue, originator, 
-                               liftId_C, arbitrator_C, result_C, to_R, 
-                               liftId_R, result_R, prevPeer_R, timeout_, to_Re, 
-                               liftId_Re, result, prevPeer, timeout, from_Co, 
-                               to_Co, liftId_Co, nextPeer_C, liftValue_C, 
-                               from_F, to, liftId_F, nextPeer, liftValue_F, 
-                               from, liftId, arbitrator, cycle_, liftValue_, 
-                               arbitrator_, toAct, lostMes >>
+                               startedNodes, nextLiftGuid, numLiftsStarted, 
+                               stack, proposer, cycle, liftValue_P, 
+                               arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                               route_, liftValue_H, originator_, liftId_, 
+                               arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                               liftValue_D, originator_D, liftId_D, 
+                               arbitrator_D, result_, from_C, to_C, route, 
+                               liftValue, originator, liftId_C, arbitrator_C, 
+                               result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                               timeout_, to_Re, liftId_Re, result, prevPeer, 
+                               timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                               liftValue_C, from_F, to, liftId_F, nextPeer, 
+                               liftValue_F, from, liftId, arbitrator, cycle_, 
+                               liftValue_, arbitrator_, toAct, lostMes, 
+                               selectedCycles, cIndex >>
 
 lchecktime_(self) == /\ pc[self] = "lchecktime_"
                      /\ \E validDecision \in {"Good", "Fail"}:
                           result_' = [result_ EXCEPT ![self] = validDecision]
                      /\ IF from_D[self] = originator_D[self]
-                           THEN /\ lifts' = [lifts EXCEPT ![arbitrator_D[self]] = liftId_D[self] :> [originator |-> originator_D[self], value |-> liftValue_D[self], state |-> result_'[self], route |-> route_D[self], arbitrator |-> arbitrator_D[self]]]
+                           THEN /\ lifts' = [lifts EXCEPT ![arbitrator_D[self]] = lifts[arbitrator_D[self]] @@ liftId_D[self] :> [originator |-> originator_D[self], value |-> liftValue_D[self], state |-> result_'[self], route |-> route_D[self], arbitrator |-> arbitrator_D[self]]]
                                 /\ pc' = [pc EXCEPT ![self] = "lsm_D"]
                            ELSE /\ pc' = [pc EXCEPT ![self] = "lprintDecision_"]
                                 /\ lifts' = lifts
                      /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                      Links, Cycles, tallies, messages, 
                                      readMessages, lostMessages, startedNodes, 
-                                     nextLiftGuid, stack, proposer, cycle, 
-                                     liftValue_P, arbitrator_P, nextPeer_, 
-                                     liftGuid, from_, to_, route_, liftValue_H, 
-                                     originator_, liftId_, arbitrator_H, 
-                                     prevPeer_, from_D, to_D, route_D, 
-                                     liftValue_D, originator_D, liftId_D, 
-                                     arbitrator_D, from_C, to_C, route, 
-                                     liftValue, originator, liftId_C, 
+                                     nextLiftGuid, numLiftsStarted, stack, 
+                                     proposer, cycle, liftValue_P, 
+                                     arbitrator_P, nextPeer_, liftGuid, from_, 
+                                     to_, route_, liftValue_H, originator_, 
+                                     liftId_, arbitrator_H, prevPeer_, from_D, 
+                                     to_D, route_D, liftValue_D, originator_D, 
+                                     liftId_D, arbitrator_D, from_C, to_C, 
+                                     route, liftValue, originator, liftId_C, 
                                      arbitrator_C, result_C, to_R, liftId_R, 
                                      result_R, prevPeer_R, timeout_, to_Re, 
                                      liftId_Re, result, prevPeer, timeout, 
@@ -826,7 +849,8 @@ lchecktime_(self) == /\ pc[self] = "lchecktime_"
                                      liftValue_C, from_F, to, liftId_F, 
                                      nextPeer, liftValue_F, from, liftId, 
                                      arbitrator, cycle_, liftValue_, 
-                                     arbitrator_, toAct, lostMes, printBuffer >>
+                                     arbitrator_, toAct, lostMes, 
+                                     selectedCycles, cIndex, printBuffer >>
 
 lsm_D(self) == /\ pc[self] = "lsm_D"
                /\ IF MESSAGES_FAIL
@@ -843,20 +867,21 @@ lsm_D(self) == /\ pc[self] = "lsm_D"
                /\ pc' = [pc EXCEPT ![self] = "lprintDecision_"]
                /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                Cycles, tallies, readMessages, lifts, 
-                               startedNodes, nextLiftGuid, stack, proposer, 
-                               cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                               liftGuid, from_, to_, route_, liftValue_H, 
-                               originator_, liftId_, arbitrator_H, prevPeer_, 
-                               from_D, to_D, route_D, liftValue_D, 
-                               originator_D, liftId_D, arbitrator_D, result_, 
-                               from_C, to_C, route, liftValue, originator, 
-                               liftId_C, arbitrator_C, result_C, to_R, 
-                               liftId_R, result_R, prevPeer_R, timeout_, to_Re, 
-                               liftId_Re, result, prevPeer, timeout, from_Co, 
-                               to_Co, liftId_Co, nextPeer_C, liftValue_C, 
-                               from_F, to, liftId_F, nextPeer, liftValue_F, 
-                               from, liftId, arbitrator, cycle_, liftValue_, 
-                               arbitrator_, toAct, lostMes >>
+                               startedNodes, nextLiftGuid, numLiftsStarted, 
+                               stack, proposer, cycle, liftValue_P, 
+                               arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                               route_, liftValue_H, originator_, liftId_, 
+                               arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                               liftValue_D, originator_D, liftId_D, 
+                               arbitrator_D, result_, from_C, to_C, route, 
+                               liftValue, originator, liftId_C, arbitrator_C, 
+                               result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                               timeout_, to_Re, liftId_Re, result, prevPeer, 
+                               timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                               liftValue_C, from_F, to, liftId_F, nextPeer, 
+                               liftValue_F, from, liftId, arbitrator, cycle_, 
+                               liftValue_, arbitrator_, toAct, lostMes, 
+                               selectedCycles, cIndex >>
 
 lprintDecision_(self) == /\ pc[self] = "lprintDecision_"
                          /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], result_[self])]
@@ -864,24 +889,26 @@ lprintDecision_(self) == /\ pc[self] = "lprintDecision_"
                          /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                          Links, Cycles, tallies, messages, 
                                          readMessages, lostMessages, lifts, 
-                                         startedNodes, nextLiftGuid, stack, 
-                                         proposer, cycle, liftValue_P, 
-                                         arbitrator_P, nextPeer_, liftGuid, 
-                                         from_, to_, route_, liftValue_H, 
-                                         originator_, liftId_, arbitrator_H, 
-                                         prevPeer_, from_D, to_D, route_D, 
-                                         liftValue_D, originator_D, liftId_D, 
-                                         arbitrator_D, result_, from_C, to_C, 
-                                         route, liftValue, originator, 
-                                         liftId_C, arbitrator_C, result_C, 
-                                         to_R, liftId_R, result_R, prevPeer_R, 
+                                         startedNodes, nextLiftGuid, 
+                                         numLiftsStarted, stack, proposer, 
+                                         cycle, liftValue_P, arbitrator_P, 
+                                         nextPeer_, liftGuid, from_, to_, 
+                                         route_, liftValue_H, originator_, 
+                                         liftId_, arbitrator_H, prevPeer_, 
+                                         from_D, to_D, route_D, liftValue_D, 
+                                         originator_D, liftId_D, arbitrator_D, 
+                                         result_, from_C, to_C, route, 
+                                         liftValue, originator, liftId_C, 
+                                         arbitrator_C, result_C, to_R, 
+                                         liftId_R, result_R, prevPeer_R, 
                                          timeout_, to_Re, liftId_Re, result, 
                                          prevPeer, timeout, from_Co, to_Co, 
                                          liftId_Co, nextPeer_C, liftValue_C, 
                                          from_F, to, liftId_F, nextPeer, 
                                          liftValue_F, from, liftId, arbitrator, 
                                          cycle_, liftValue_, arbitrator_, 
-                                         toAct, lostMes >>
+                                         toAct, lostMes, selectedCycles, 
+                                         cIndex >>
 
 DLVR_(self) == /\ pc[self] = "DLVR_"
                /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -897,18 +924,18 @@ DLVR_(self) == /\ pc[self] = "DLVR_"
                /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                Cycles, tallies, messages, readMessages, 
                                lostMessages, lifts, startedNodes, nextLiftGuid, 
-                               proposer, cycle, liftValue_P, arbitrator_P, 
-                               nextPeer_, liftGuid, from_, to_, route_, 
-                               liftValue_H, originator_, liftId_, arbitrator_H, 
-                               prevPeer_, from_C, to_C, route, liftValue, 
-                               originator, liftId_C, arbitrator_C, result_C, 
-                               to_R, liftId_R, result_R, prevPeer_R, timeout_, 
-                               to_Re, liftId_Re, result, prevPeer, timeout, 
-                               from_Co, to_Co, liftId_Co, nextPeer_C, 
+                               numLiftsStarted, proposer, cycle, liftValue_P, 
+                               arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                               route_, liftValue_H, originator_, liftId_, 
+                               arbitrator_H, prevPeer_, from_C, to_C, route, 
+                               liftValue, originator, liftId_C, arbitrator_C, 
+                               result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                               timeout_, to_Re, liftId_Re, result, prevPeer, 
+                               timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
                                liftValue_C, from_F, to, liftId_F, nextPeer, 
                                liftValue_F, from, liftId, arbitrator, cycle_, 
                                liftValue_, arbitrator_, toAct, lostMes, 
-                               printBuffer >>
+                               selectedCycles, cIndex, printBuffer >>
 
 DecideLiftValidity(self) == DecideLiftValidity_(self) \/ lsom_(self)
                                \/ lchecktime_(self) \/ lsm_D(self)
@@ -927,13 +954,14 @@ CkeckLiftValidity(self) == /\ pc[self] = "CkeckLiftValidity"
                            /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                            Links, Cycles, tallies, messages, 
                                            readMessages, lostMessages, lifts, 
-                                           startedNodes, nextLiftGuid, stack, 
-                                           proposer, cycle, liftValue_P, 
-                                           arbitrator_P, nextPeer_, liftGuid, 
-                                           from_, to_, route_, liftValue_H, 
-                                           originator_, liftId_, arbitrator_H, 
-                                           prevPeer_, from_D, to_D, route_D, 
-                                           liftValue_D, originator_D, liftId_D, 
+                                           startedNodes, nextLiftGuid, 
+                                           numLiftsStarted, stack, proposer, 
+                                           cycle, liftValue_P, arbitrator_P, 
+                                           nextPeer_, liftGuid, from_, to_, 
+                                           route_, liftValue_H, originator_, 
+                                           liftId_, arbitrator_H, prevPeer_, 
+                                           from_D, to_D, route_D, liftValue_D, 
+                                           originator_D, liftId_D, 
                                            arbitrator_D, result_, from_C, to_C, 
                                            route, liftValue, originator, 
                                            liftId_C, arbitrator_C, to_R, 
@@ -944,27 +972,29 @@ CkeckLiftValidity(self) == /\ pc[self] = "CkeckLiftValidity"
                                            from_F, to, liftId_F, nextPeer, 
                                            liftValue_F, from, liftId, 
                                            arbitrator, cycle_, liftValue_, 
-                                           arbitrator_, toAct, lostMes >>
+                                           arbitrator_, toAct, lostMes, 
+                                           selectedCycles, cIndex >>
 
 lsr(self) == /\ pc[self] = "lsr"
-             /\ lifts' = [lifts EXCEPT ![arbitrator_C[self]] = liftId_C[self] :> [originator |-> originator[self], value |-> liftValue[self], state |-> result_C[self], route |-> route[self], arbitrator |-> arbitrator_C[self]]]
+             /\ lifts' = [lifts EXCEPT ![arbitrator_C[self]] = lifts[arbitrator_C[self]] @@ liftId_C[self] :> [originator |-> originator[self], value |-> liftValue[self], state |-> result_C[self], route |-> route[self], arbitrator |-> arbitrator_C[self]]]
              /\ pc' = [pc EXCEPT ![self] = "lsm2"]
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
-                             lostMessages, startedNodes, nextLiftGuid, stack, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             lostMessages, startedNodes, nextLiftGuid, 
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                             from_, to_, route_, liftValue_H, originator_, 
+                             liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
 lsm2(self) == /\ pc[self] = "lsm2"
               /\ IF MESSAGES_FAIL
@@ -981,19 +1011,21 @@ lsm2(self) == /\ pc[self] = "lsm2"
               /\ pc' = [pc EXCEPT ![self] = "lprintDecision"]
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, readMessages, lifts, 
-                              startedNodes, nextLiftGuid, stack, proposer, 
-                              cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                              liftGuid, from_, to_, route_, liftValue_H, 
-                              originator_, liftId_, arbitrator_H, prevPeer_, 
-                              from_D, to_D, route_D, liftValue_D, originator_D, 
-                              liftId_D, arbitrator_D, result_, from_C, to_C, 
-                              route, liftValue, originator, liftId_C, 
-                              arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                              prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                              prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes >>
+                              startedNodes, nextLiftGuid, numLiftsStarted, 
+                              stack, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex >>
 
 lsom(self) == /\ pc[self] = "lsom"
               /\ IF MESSAGES_FAIL
@@ -1010,19 +1042,21 @@ lsom(self) == /\ pc[self] = "lsom"
               /\ pc' = [pc EXCEPT ![self] = "lprintDecision"]
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, readMessages, lifts, 
-                              startedNodes, nextLiftGuid, stack, proposer, 
-                              cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                              liftGuid, from_, to_, route_, liftValue_H, 
-                              originator_, liftId_, arbitrator_H, prevPeer_, 
-                              from_D, to_D, route_D, liftValue_D, originator_D, 
-                              liftId_D, arbitrator_D, result_, from_C, to_C, 
-                              route, liftValue, originator, liftId_C, 
-                              arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                              prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                              prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes >>
+                              startedNodes, nextLiftGuid, numLiftsStarted, 
+                              stack, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex >>
 
 lchecktime(self) == /\ pc[self] = "lchecktime"
                     /\ \E validDecision \in {"Seek", "Fail"}:
@@ -1031,21 +1065,23 @@ lchecktime(self) == /\ pc[self] = "lchecktime"
                     /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                     Cycles, tallies, messages, readMessages, 
                                     lostMessages, lifts, startedNodes, 
-                                    nextLiftGuid, stack, proposer, cycle, 
-                                    liftValue_P, arbitrator_P, nextPeer_, 
-                                    liftGuid, from_, to_, route_, liftValue_H, 
-                                    originator_, liftId_, arbitrator_H, 
-                                    prevPeer_, from_D, to_D, route_D, 
-                                    liftValue_D, originator_D, liftId_D, 
-                                    arbitrator_D, result_, from_C, to_C, route, 
-                                    liftValue, originator, liftId_C, 
-                                    arbitrator_C, to_R, liftId_R, result_R, 
-                                    prevPeer_R, timeout_, to_Re, liftId_Re, 
-                                    result, prevPeer, timeout, from_Co, to_Co, 
-                                    liftId_Co, nextPeer_C, liftValue_C, from_F, 
-                                    to, liftId_F, nextPeer, liftValue_F, from, 
-                                    liftId, arbitrator, cycle_, liftValue_, 
-                                    arbitrator_, toAct, lostMes, printBuffer >>
+                                    nextLiftGuid, numLiftsStarted, stack, 
+                                    proposer, cycle, liftValue_P, arbitrator_P, 
+                                    nextPeer_, liftGuid, from_, to_, route_, 
+                                    liftValue_H, originator_, liftId_, 
+                                    arbitrator_H, prevPeer_, from_D, to_D, 
+                                    route_D, liftValue_D, originator_D, 
+                                    liftId_D, arbitrator_D, result_, from_C, 
+                                    to_C, route, liftValue, originator, 
+                                    liftId_C, arbitrator_C, to_R, liftId_R, 
+                                    result_R, prevPeer_R, timeout_, to_Re, 
+                                    liftId_Re, result, prevPeer, timeout, 
+                                    from_Co, to_Co, liftId_Co, nextPeer_C, 
+                                    liftValue_C, from_F, to, liftId_F, 
+                                    nextPeer, liftValue_F, from, liftId, 
+                                    arbitrator, cycle_, liftValue_, 
+                                    arbitrator_, toAct, lostMes, 
+                                    selectedCycles, cIndex, printBuffer >>
 
 lprintDecision(self) == /\ pc[self] = "lprintDecision"
                         /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], result_C[self])]
@@ -1053,15 +1089,16 @@ lprintDecision(self) == /\ pc[self] = "lprintDecision"
                         /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                         Links, Cycles, tallies, messages, 
                                         readMessages, lostMessages, lifts, 
-                                        startedNodes, nextLiftGuid, stack, 
-                                        proposer, cycle, liftValue_P, 
-                                        arbitrator_P, nextPeer_, liftGuid, 
-                                        from_, to_, route_, liftValue_H, 
-                                        originator_, liftId_, arbitrator_H, 
-                                        prevPeer_, from_D, to_D, route_D, 
-                                        liftValue_D, originator_D, liftId_D, 
-                                        arbitrator_D, result_, from_C, to_C, 
-                                        route, liftValue, originator, liftId_C, 
+                                        startedNodes, nextLiftGuid, 
+                                        numLiftsStarted, stack, proposer, 
+                                        cycle, liftValue_P, arbitrator_P, 
+                                        nextPeer_, liftGuid, from_, to_, 
+                                        route_, liftValue_H, originator_, 
+                                        liftId_, arbitrator_H, prevPeer_, 
+                                        from_D, to_D, route_D, liftValue_D, 
+                                        originator_D, liftId_D, arbitrator_D, 
+                                        result_, from_C, to_C, route, 
+                                        liftValue, originator, liftId_C, 
                                         arbitrator_C, result_C, to_R, liftId_R, 
                                         result_R, prevPeer_R, timeout_, to_Re, 
                                         liftId_Re, result, prevPeer, timeout, 
@@ -1069,7 +1106,8 @@ lprintDecision(self) == /\ pc[self] = "lprintDecision"
                                         liftValue_C, from_F, to, liftId_F, 
                                         nextPeer, liftValue_F, from, liftId, 
                                         arbitrator, cycle_, liftValue_, 
-                                        arbitrator_, toAct, lostMes >>
+                                        arbitrator_, toAct, lostMes, 
+                                        selectedCycles, cIndex >>
 
 DLVR(self) == /\ pc[self] = "DLVR"
               /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1085,18 +1123,18 @@ DLVR(self) == /\ pc[self] = "DLVR"
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, messages, readMessages, 
                               lostMessages, lifts, startedNodes, nextLiftGuid, 
-                              proposer, cycle, liftValue_P, arbitrator_P, 
-                              nextPeer_, liftGuid, from_, to_, route_, 
-                              liftValue_H, originator_, liftId_, arbitrator_H, 
-                              prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                              originator_D, liftId_D, arbitrator_D, result_, 
-                              to_R, liftId_R, result_R, prevPeer_R, timeout_, 
-                              to_Re, liftId_Re, result, prevPeer, timeout, 
-                              from_Co, to_Co, liftId_Co, nextPeer_C, 
-                              liftValue_C, from_F, to, liftId_F, nextPeer, 
-                              liftValue_F, from, liftId, arbitrator, cycle_, 
-                              liftValue_, arbitrator_, toAct, lostMes, 
-                              printBuffer >>
+                              numLiftsStarted, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, to_R, liftId_R, result_R, 
+                              prevPeer_R, timeout_, to_Re, liftId_Re, result, 
+                              prevPeer, timeout, from_Co, to_Co, liftId_Co, 
+                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
+                              nextPeer, liftValue_F, from, liftId, arbitrator, 
+                              cycle_, liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex, printBuffer >>
 
 CheckLiftValidity(self) == CkeckLiftValidity(self) \/ lsr(self)
                               \/ lsm2(self) \/ lsom(self)
@@ -1114,23 +1152,24 @@ ValidateLift_(self) == /\ pc[self] = "ValidateLift_"
                        /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                        Links, Cycles, tallies, messages, 
                                        readMessages, lostMessages, lifts, 
-                                       startedNodes, nextLiftGuid, stack, 
-                                       proposer, cycle, liftValue_P, 
-                                       arbitrator_P, nextPeer_, liftGuid, 
-                                       from_, to_, route_, liftValue_H, 
-                                       originator_, liftId_, arbitrator_H, 
-                                       prevPeer_, from_D, to_D, route_D, 
-                                       liftValue_D, originator_D, liftId_D, 
-                                       arbitrator_D, result_, from_C, to_C, 
-                                       route, liftValue, originator, liftId_C, 
-                                       arbitrator_C, result_C, to_R, liftId_R, 
-                                       result_R, timeout_, to_Re, liftId_Re, 
-                                       result, prevPeer, timeout, from_Co, 
-                                       to_Co, liftId_Co, nextPeer_C, 
+                                       startedNodes, nextLiftGuid, 
+                                       numLiftsStarted, stack, proposer, cycle, 
+                                       liftValue_P, arbitrator_P, nextPeer_, 
+                                       liftGuid, from_, to_, route_, 
+                                       liftValue_H, originator_, liftId_, 
+                                       arbitrator_H, prevPeer_, from_D, to_D, 
+                                       route_D, liftValue_D, originator_D, 
+                                       liftId_D, arbitrator_D, result_, from_C, 
+                                       to_C, route, liftValue, originator, 
+                                       liftId_C, arbitrator_C, result_C, to_R, 
+                                       liftId_R, result_R, timeout_, to_Re, 
+                                       liftId_Re, result, prevPeer, timeout, 
+                                       from_Co, to_Co, liftId_Co, nextPeer_C, 
                                        liftValue_C, from_F, to, liftId_F, 
                                        nextPeer, liftValue_F, from, liftId, 
                                        arbitrator, cycle_, liftValue_, 
-                                       arbitrator_, toAct, lostMes >>
+                                       arbitrator_, toAct, lostMes, 
+                                       selectedCycles, cIndex >>
 
 lpt_(self) == /\ pc[self] = "lpt_"
               /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Lift Invalid")]
@@ -1138,11 +1177,11 @@ lpt_(self) == /\ pc[self] = "lpt_"
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, messages, readMessages, 
                               lostMessages, lifts, startedNodes, nextLiftGuid, 
-                              stack, proposer, cycle, liftValue_P, 
-                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
-                              route_, liftValue_H, originator_, liftId_, 
-                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
-                              liftValue_D, originator_D, liftId_D, 
+                              numLiftsStarted, stack, proposer, cycle, 
+                              liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                              from_, to_, route_, liftValue_H, originator_, 
+                              liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                              route_D, liftValue_D, originator_D, liftId_D, 
                               arbitrator_D, result_, from_C, to_C, route, 
                               liftValue, originator, liftId_C, arbitrator_C, 
                               result_C, to_R, liftId_R, result_R, prevPeer_R, 
@@ -1150,7 +1189,8 @@ lpt_(self) == /\ pc[self] = "lpt_"
                               timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
                               liftValue_C, from_F, to, liftId_F, nextPeer, 
                               liftValue_F, from, liftId, arbitrator, cycle_, 
-                              liftValue_, arbitrator_, toAct, lostMes >>
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex >>
 
 lsm1(self) == /\ pc[self] = "lsm1"
               /\ IF MESSAGES_FAIL
@@ -1167,39 +1207,41 @@ lsm1(self) == /\ pc[self] = "lsm1"
               /\ pc' = [pc EXCEPT ![self] = "L1"]
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, readMessages, lifts, 
-                              startedNodes, nextLiftGuid, stack, proposer, 
-                              cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                              liftGuid, from_, to_, route_, liftValue_H, 
-                              originator_, liftId_, arbitrator_H, prevPeer_, 
-                              from_D, to_D, route_D, liftValue_D, originator_D, 
-                              liftId_D, arbitrator_D, result_, from_C, to_C, 
-                              route, liftValue, originator, liftId_C, 
-                              arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                              prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                              prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes >>
+                              startedNodes, nextLiftGuid, numLiftsStarted, 
+                              stack, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex >>
 
 L1(self) == /\ pc[self] = "L1"
             /\ tallies' = [tallies EXCEPT ![<<to_R[self], prevPeer_R[self], "Foil">>].projectedBalance = tallies[<<to_R[self], prevPeer_R[self], "Foil">>].projectedBalance - lifts[to_R[self]][liftId_R[self]].value]
             /\ pc' = [pc EXCEPT ![self] = "VLR_"]
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             messages, readMessages, lostMessages, lifts, 
-                            startedNodes, nextLiftGuid, stack, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-                            route_D, liftValue_D, originator_D, liftId_D, 
-                            arbitrator_D, result_, from_C, to_C, route, 
-                            liftValue, originator, liftId_C, arbitrator_C, 
-                            result_C, to_R, liftId_R, result_R, prevPeer_R, 
-                            timeout_, to_Re, liftId_Re, result, prevPeer, 
-                            timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
-                            liftValue_C, from_F, to, liftId_F, nextPeer, 
-                            liftValue_F, from, liftId, arbitrator, cycle_, 
-                            liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            startedNodes, nextLiftGuid, numLiftsStarted, stack, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            from_C, to_C, route, liftValue, originator, 
+                            liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
+                            result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
+                            result, prevPeer, timeout, from_Co, to_Co, 
+                            liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
+                            liftId_F, nextPeer, liftValue_F, from, liftId, 
+                            arbitrator, cycle_, liftValue_, arbitrator_, toAct, 
+                            lostMes, selectedCycles, cIndex, printBuffer >>
 
 lpv(self) == /\ pc[self] = "lpv"
              /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Lift Valid")]
@@ -1207,19 +1249,20 @@ lpv(self) == /\ pc[self] = "lpv"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             stack, proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes >>
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                             from_, to_, route_, liftValue_H, originator_, 
+                             liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex >>
 
 lsm(self) == /\ pc[self] = "lsm"
              /\ IF MESSAGES_FAIL
@@ -1235,39 +1278,40 @@ lsm(self) == /\ pc[self] = "lsm"
              /\ pc' = [pc EXCEPT ![self] = "L2"]
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, readMessages, lifts, 
-                             startedNodes, nextLiftGuid, stack, proposer, 
-                             cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                             liftGuid, from_, to_, route_, liftValue_H, 
-                             originator_, liftId_, arbitrator_H, prevPeer_, 
-                             from_D, to_D, route_D, liftValue_D, originator_D, 
-                             liftId_D, arbitrator_D, result_, from_C, to_C, 
-                             route, liftValue, originator, liftId_C, 
-                             arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                             prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                             prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                             nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                             nextPeer, liftValue_F, from, liftId, arbitrator, 
-                             cycle_, liftValue_, arbitrator_, toAct, lostMes >>
+                             startedNodes, nextLiftGuid, numLiftsStarted, 
+                             stack, proposer, cycle, liftValue_P, arbitrator_P, 
+                             nextPeer_, liftGuid, from_, to_, route_, 
+                             liftValue_H, originator_, liftId_, arbitrator_H, 
+                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                             originator_D, liftId_D, arbitrator_D, result_, 
+                             from_C, to_C, route, liftValue, originator, 
+                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
+                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
+                             result, prevPeer, timeout, from_Co, to_Co, 
+                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
+                             liftId_F, nextPeer, liftValue_F, from, liftId, 
+                             arbitrator, cycle_, liftValue_, arbitrator_, 
+                             toAct, lostMes, selectedCycles, cIndex >>
 
 L2(self) == /\ pc[self] = "L2"
             /\ tallies' = [tallies EXCEPT ![<<to_R[self], prevPeer_R[self], "Foil">>].balance = tallies[<<to_R[self], prevPeer_R[self], "Foil">>].balance + lifts[to_R[self]][liftId_R[self]].value]
             /\ pc' = [pc EXCEPT ![self] = "VLR_"]
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             messages, readMessages, lostMessages, lifts, 
-                            startedNodes, nextLiftGuid, stack, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-                            route_D, liftValue_D, originator_D, liftId_D, 
-                            arbitrator_D, result_, from_C, to_C, route, 
-                            liftValue, originator, liftId_C, arbitrator_C, 
-                            result_C, to_R, liftId_R, result_R, prevPeer_R, 
-                            timeout_, to_Re, liftId_Re, result, prevPeer, 
-                            timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
-                            liftValue_C, from_F, to, liftId_F, nextPeer, 
-                            liftValue_F, from, liftId, arbitrator, cycle_, 
-                            liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            startedNodes, nextLiftGuid, numLiftsStarted, stack, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            from_C, to_C, route, liftValue, originator, 
+                            liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
+                            result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
+                            result, prevPeer, timeout, from_Co, to_Co, 
+                            liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
+                            liftId_F, nextPeer, liftValue_F, from, liftId, 
+                            arbitrator, cycle_, liftValue_, arbitrator_, toAct, 
+                            lostMes, selectedCycles, cIndex, printBuffer >>
 
 VLR_(self) == /\ pc[self] = "VLR_"
               /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1280,18 +1324,19 @@ VLR_(self) == /\ pc[self] = "VLR_"
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, messages, readMessages, 
                               lostMessages, lifts, startedNodes, nextLiftGuid, 
-                              proposer, cycle, liftValue_P, arbitrator_P, 
-                              nextPeer_, liftGuid, from_, to_, route_, 
-                              liftValue_H, originator_, liftId_, arbitrator_H, 
-                              prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                              originator_D, liftId_D, arbitrator_D, result_, 
-                              from_C, to_C, route, liftValue, originator, 
-                              liftId_C, arbitrator_C, result_C, to_Re, 
-                              liftId_Re, result, prevPeer, timeout, from_Co, 
-                              to_Co, liftId_Co, nextPeer_C, liftValue_C, 
-                              from_F, to, liftId_F, nextPeer, liftValue_F, 
-                              from, liftId, arbitrator, cycle_, liftValue_, 
-                              arbitrator_, toAct, lostMes, printBuffer >>
+                              numLiftsStarted, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex, printBuffer >>
 
 ReceiveLiftValidResult(self) == ValidateLift_(self) \/ lpt_(self)
                                    \/ lsm1(self) \/ L1(self) \/ lpv(self)
@@ -1306,12 +1351,13 @@ ValidateLift(self) == /\ pc[self] = "ValidateLift"
                       /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                       Links, Cycles, tallies, messages, 
                                       readMessages, lostMessages, lifts, 
-                                      startedNodes, nextLiftGuid, stack, 
-                                      proposer, cycle, liftValue_P, 
-                                      arbitrator_P, nextPeer_, liftGuid, from_, 
-                                      to_, route_, liftValue_H, originator_, 
-                                      liftId_, arbitrator_H, prevPeer_, from_D, 
-                                      to_D, route_D, liftValue_D, originator_D, 
+                                      startedNodes, nextLiftGuid, 
+                                      numLiftsStarted, stack, proposer, cycle, 
+                                      liftValue_P, arbitrator_P, nextPeer_, 
+                                      liftGuid, from_, to_, route_, 
+                                      liftValue_H, originator_, liftId_, 
+                                      arbitrator_H, prevPeer_, from_D, to_D, 
+                                      route_D, liftValue_D, originator_D, 
                                       liftId_D, arbitrator_D, result_, from_C, 
                                       to_C, route, liftValue, originator, 
                                       liftId_C, arbitrator_C, result_C, to_R, 
@@ -1321,7 +1367,8 @@ ValidateLift(self) == /\ pc[self] = "ValidateLift"
                                       liftValue_C, from_F, to, liftId_F, 
                                       nextPeer, liftValue_F, from, liftId, 
                                       arbitrator, cycle_, liftValue_, 
-                                      arbitrator_, toAct, lostMes >>
+                                      arbitrator_, toAct, lostMes, 
+                                      selectedCycles, cIndex >>
 
 lpt(self) == /\ pc[self] = "lpt"
              /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], "Lift Invalid")]
@@ -1342,18 +1389,19 @@ lpt(self) == /\ pc[self] = "lpt"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes >>
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                             route_, liftValue_H, originator_, liftId_, 
+                             arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
+                             result_, from_C, to_C, route, liftValue, 
+                             originator, liftId_C, arbitrator_C, result_C, 
+                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                             to_Re, liftId_Re, result, prevPeer, timeout, 
+                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex >>
 
 VLR(self) == /\ pc[self] = "VLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1366,18 +1414,19 @@ VLR(self) == /\ pc[self] = "VLR"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                             route_, liftValue_H, originator_, liftId_, 
+                             arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
+                             result_, from_C, to_C, route, liftValue, 
+                             originator, liftId_C, arbitrator_C, result_C, 
+                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
 ReceiveLiftCheckResult(self) == ValidateLift(self) \/ lpt(self)
                                    \/ VLR(self)
@@ -1390,22 +1439,23 @@ CommitLift_(self) == /\ pc[self] = "CommitLift_"
                      /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                      Links, Cycles, tallies, messages, 
                                      readMessages, lostMessages, startedNodes, 
-                                     nextLiftGuid, stack, proposer, cycle, 
-                                     liftValue_P, arbitrator_P, nextPeer_, 
-                                     liftGuid, from_, to_, route_, liftValue_H, 
-                                     originator_, liftId_, arbitrator_H, 
-                                     prevPeer_, from_D, to_D, route_D, 
-                                     liftValue_D, originator_D, liftId_D, 
-                                     arbitrator_D, result_, from_C, to_C, 
-                                     route, liftValue, originator, liftId_C, 
-                                     arbitrator_C, result_C, to_R, liftId_R, 
-                                     result_R, prevPeer_R, timeout_, to_Re, 
-                                     liftId_Re, result, prevPeer, timeout, 
-                                     from_Co, to_Co, liftId_Co, nextPeer_C, 
-                                     from_F, to, liftId_F, nextPeer, 
-                                     liftValue_F, from, liftId, arbitrator, 
-                                     cycle_, liftValue_, arbitrator_, toAct, 
-                                     lostMes >>
+                                     nextLiftGuid, numLiftsStarted, stack, 
+                                     proposer, cycle, liftValue_P, 
+                                     arbitrator_P, nextPeer_, liftGuid, from_, 
+                                     to_, route_, liftValue_H, originator_, 
+                                     liftId_, arbitrator_H, prevPeer_, from_D, 
+                                     to_D, route_D, liftValue_D, originator_D, 
+                                     liftId_D, arbitrator_D, result_, from_C, 
+                                     to_C, route, liftValue, originator, 
+                                     liftId_C, arbitrator_C, result_C, to_R, 
+                                     liftId_R, result_R, prevPeer_R, timeout_, 
+                                     to_Re, liftId_Re, result, prevPeer, 
+                                     timeout, from_Co, to_Co, liftId_Co, 
+                                     nextPeer_C, from_F, to, liftId_F, 
+                                     nextPeer, liftValue_F, from, liftId, 
+                                     arbitrator, cycle_, liftValue_, 
+                                     arbitrator_, toAct, lostMes, 
+                                     selectedCycles, cIndex >>
 
 CL2_(self) == /\ pc[self] = "CL2_"
               /\ tallies' = [tallies EXCEPT ![<<to_Co[self], from_Co[self], "Stock">>].balance = tallies[<<to_Co[self], from_Co[self], "Stock">>].balance - liftValue_C[self]]
@@ -1416,20 +1466,21 @@ CL2_(self) == /\ pc[self] = "CL2_"
                          /\ UNCHANGED nextPeer_C
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, messages, readMessages, lostMessages, 
-                              lifts, startedNodes, nextLiftGuid, stack, 
-                              proposer, cycle, liftValue_P, arbitrator_P, 
-                              nextPeer_, liftGuid, from_, to_, route_, 
-                              liftValue_H, originator_, liftId_, arbitrator_H, 
-                              prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                              originator_D, liftId_D, arbitrator_D, result_, 
-                              from_C, to_C, route, liftValue, originator, 
-                              liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                              result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                              result, prevPeer, timeout, from_Co, to_Co, 
-                              liftId_Co, liftValue_C, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                              printBuffer >>
+                              lifts, startedNodes, nextLiftGuid, 
+                              numLiftsStarted, stack, proposer, cycle, 
+                              liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                              from_, to_, route_, liftValue_H, originator_, 
+                              liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                              route_D, liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, liftValue_C, 
+                              from_F, to, liftId_F, nextPeer, liftValue_F, 
+                              from, liftId, arbitrator, cycle_, liftValue_, 
+                              arbitrator_, toAct, lostMes, selectedCycles, 
+                              cIndex, printBuffer >>
 
 CL4_(self) == /\ pc[self] = "CL4_"
               /\ IF MESSAGES_FAIL
@@ -1446,39 +1497,42 @@ CL4_(self) == /\ pc[self] = "CL4_"
               /\ pc' = [pc EXCEPT ![self] = "CL3_"]
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, readMessages, lifts, 
-                              startedNodes, nextLiftGuid, stack, proposer, 
-                              cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                              liftGuid, from_, to_, route_, liftValue_H, 
-                              originator_, liftId_, arbitrator_H, prevPeer_, 
-                              from_D, to_D, route_D, liftValue_D, originator_D, 
-                              liftId_D, arbitrator_D, result_, from_C, to_C, 
-                              route, liftValue, originator, liftId_C, 
-                              arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                              prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                              prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes >>
+                              startedNodes, nextLiftGuid, numLiftsStarted, 
+                              stack, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex >>
 
 CL3_(self) == /\ pc[self] = "CL3_"
               /\ tallies' = [tallies EXCEPT ![<<to_Co[self], nextPeer_C[self], "Foil">>].balance = tallies[<<to_Co[self], nextPeer_C[self], "Foil">>].balance + liftValue_C[self]]
               /\ pc' = [pc EXCEPT ![self] = "CLR_"]
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, messages, readMessages, lostMessages, 
-                              lifts, startedNodes, nextLiftGuid, stack, 
-                              proposer, cycle, liftValue_P, arbitrator_P, 
-                              nextPeer_, liftGuid, from_, to_, route_, 
-                              liftValue_H, originator_, liftId_, arbitrator_H, 
-                              prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                              originator_D, liftId_D, arbitrator_D, result_, 
-                              from_C, to_C, route, liftValue, originator, 
-                              liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                              result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                              result, prevPeer, timeout, from_Co, to_Co, 
-                              liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                              liftId_F, nextPeer, liftValue_F, from, liftId, 
-                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                              toAct, lostMes, printBuffer >>
+                              lifts, startedNodes, nextLiftGuid, 
+                              numLiftsStarted, stack, proposer, cycle, 
+                              liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                              from_, to_, route_, liftValue_H, originator_, 
+                              liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                              route_D, liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex, printBuffer >>
 
 CLR_(self) == /\ pc[self] = "CLR_"
               /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1491,18 +1545,19 @@ CLR_(self) == /\ pc[self] = "CLR_"
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, messages, readMessages, 
                               lostMessages, lifts, startedNodes, nextLiftGuid, 
-                              proposer, cycle, liftValue_P, arbitrator_P, 
-                              nextPeer_, liftGuid, from_, to_, route_, 
-                              liftValue_H, originator_, liftId_, arbitrator_H, 
-                              prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                              originator_D, liftId_D, arbitrator_D, result_, 
-                              from_C, to_C, route, liftValue, originator, 
-                              liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                              result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                              result, prevPeer, timeout, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                              printBuffer >>
+                              numLiftsStarted, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex, printBuffer >>
 
 CommitLift(self) == CommitLift_(self) \/ CL2_(self) \/ CL4_(self)
                        \/ CL3_(self) \/ CLR_(self)
@@ -1518,20 +1573,22 @@ FailLift_(self) == /\ pc[self] = "FailLift_"
                    /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                    Cycles, tallies, messages, readMessages, 
                                    lostMessages, startedNodes, nextLiftGuid, 
-                                   stack, proposer, cycle, liftValue_P, 
-                                   arbitrator_P, nextPeer_, liftGuid, from_, 
-                                   to_, route_, liftValue_H, originator_, 
-                                   liftId_, arbitrator_H, prevPeer_, from_D, 
-                                   to_D, route_D, liftValue_D, originator_D, 
-                                   liftId_D, arbitrator_D, result_, from_C, 
-                                   to_C, route, liftValue, originator, 
-                                   liftId_C, arbitrator_C, result_C, to_R, 
-                                   liftId_R, result_R, prevPeer_R, timeout_, 
-                                   to_Re, liftId_Re, result, prevPeer, timeout, 
+                                   numLiftsStarted, stack, proposer, cycle, 
+                                   liftValue_P, arbitrator_P, nextPeer_, 
+                                   liftGuid, from_, to_, route_, liftValue_H, 
+                                   originator_, liftId_, arbitrator_H, 
+                                   prevPeer_, from_D, to_D, route_D, 
+                                   liftValue_D, originator_D, liftId_D, 
+                                   arbitrator_D, result_, from_C, to_C, route, 
+                                   liftValue, originator, liftId_C, 
+                                   arbitrator_C, result_C, to_R, liftId_R, 
+                                   result_R, prevPeer_R, timeout_, to_Re, 
+                                   liftId_Re, result, prevPeer, timeout, 
                                    from_Co, to_Co, liftId_Co, nextPeer_C, 
                                    liftValue_C, from_F, to, liftId_F, nextPeer, 
                                    from, liftId, arbitrator, cycle_, 
-                                   liftValue_, arbitrator_, toAct, lostMes >>
+                                   liftValue_, arbitrator_, toAct, lostMes, 
+                                   selectedCycles, cIndex >>
 
 CL2(self) == /\ pc[self] = "CL2"
              /\ tallies' = [tallies EXCEPT ![<<to[self], from_F[self], "Stock">>].projectedBalance = tallies[<<to[self], from_F[self], "Stock">>].projectedBalance + liftValue_F[self]]
@@ -1542,20 +1599,21 @@ CL2(self) == /\ pc[self] = "CL2"
                         /\ UNCHANGED nextPeer
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, messages, readMessages, lostMessages, 
-                             lifts, startedNodes, nextLiftGuid, stack, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, liftValue_F, from, liftId, arbitrator, 
-                             cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                             printBuffer >>
+                             lifts, startedNodes, nextLiftGuid, 
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                             from_, to_, route_, liftValue_H, originator_, 
+                             liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, liftValue_F, 
+                             from, liftId, arbitrator, cycle_, liftValue_, 
+                             arbitrator_, toAct, lostMes, selectedCycles, 
+                             cIndex, printBuffer >>
 
 CL4(self) == /\ pc[self] = "CL4"
              /\ IF MESSAGES_FAIL
@@ -1571,27 +1629,8 @@ CL4(self) == /\ pc[self] = "CL4"
              /\ pc' = [pc EXCEPT ![self] = "CL3"]
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, readMessages, lifts, 
-                             startedNodes, nextLiftGuid, stack, proposer, 
-                             cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                             liftGuid, from_, to_, route_, liftValue_H, 
-                             originator_, liftId_, arbitrator_H, prevPeer_, 
-                             from_D, to_D, route_D, liftValue_D, originator_D, 
-                             liftId_D, arbitrator_D, result_, from_C, to_C, 
-                             route, liftValue, originator, liftId_C, 
-                             arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                             prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                             prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                             nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                             nextPeer, liftValue_F, from, liftId, arbitrator, 
-                             cycle_, liftValue_, arbitrator_, toAct, lostMes >>
-
-CL3(self) == /\ pc[self] = "CL3"
-             /\ tallies' = [tallies EXCEPT ![<<to[self], nextPeer[self], "Foil">>].projectedBalance = tallies[<<to[self], nextPeer[self], "Foil">>].projectedBalance - liftValue_F[self]]
-             /\ pc' = [pc EXCEPT ![self] = "CLR"]
-             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
-                             Cycles, messages, readMessages, lostMessages, 
-                             lifts, startedNodes, nextLiftGuid, stack, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
+                             startedNodes, nextLiftGuid, numLiftsStarted, 
+                             stack, proposer, cycle, liftValue_P, arbitrator_P, 
                              nextPeer_, liftGuid, from_, to_, route_, 
                              liftValue_H, originator_, liftId_, arbitrator_H, 
                              prevPeer_, from_D, to_D, route_D, liftValue_D, 
@@ -1603,7 +1642,28 @@ CL3(self) == /\ pc[self] = "CL3"
                              liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
                              liftId_F, nextPeer, liftValue_F, from, liftId, 
                              arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             toAct, lostMes, selectedCycles, cIndex >>
+
+CL3(self) == /\ pc[self] = "CL3"
+             /\ tallies' = [tallies EXCEPT ![<<to[self], nextPeer[self], "Foil">>].projectedBalance = tallies[<<to[self], nextPeer[self], "Foil">>].projectedBalance - liftValue_F[self]]
+             /\ pc' = [pc EXCEPT ![self] = "CLR"]
+             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
+                             Cycles, messages, readMessages, lostMessages, 
+                             lifts, startedNodes, nextLiftGuid, 
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                             from_, to_, route_, liftValue_H, originator_, 
+                             liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
 CLR(self) == /\ pc[self] = "CLR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1616,18 +1676,19 @@ CLR(self) == /\ pc[self] = "CLR"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                             route_, liftValue_H, originator_, liftId_, 
+                             arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
+                             result_, from_C, to_C, route, liftValue, 
+                             originator, liftId_C, arbitrator_C, result_C, 
+                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                             to_Re, liftId_Re, result, prevPeer, timeout, 
+                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
 FailLift(self) == FailLift_(self) \/ CL2(self) \/ CL4(self) \/ CL3(self)
                      \/ CLR(self)
@@ -1638,23 +1699,24 @@ CheckTimeout_(self) == /\ pc[self] = "CheckTimeout_"
                        /\ UNCHANGED << Users, LiftProposers, ReliableUsers, 
                                        Links, Cycles, tallies, messages, 
                                        readMessages, lostMessages, lifts, 
-                                       startedNodes, nextLiftGuid, stack, 
-                                       proposer, cycle, liftValue_P, 
-                                       arbitrator_P, nextPeer_, liftGuid, 
-                                       from_, to_, route_, liftValue_H, 
-                                       originator_, liftId_, arbitrator_H, 
-                                       prevPeer_, from_D, to_D, route_D, 
-                                       liftValue_D, originator_D, liftId_D, 
-                                       arbitrator_D, result_, from_C, to_C, 
-                                       route, liftValue, originator, liftId_C, 
-                                       arbitrator_C, result_C, to_R, liftId_R, 
-                                       result_R, prevPeer_R, timeout_, to_Re, 
-                                       liftId_Re, result, prevPeer, timeout, 
-                                       from_Co, to_Co, liftId_Co, nextPeer_C, 
-                                       liftValue_C, from_F, to, liftId_F, 
-                                       nextPeer, liftValue_F, from, liftId, 
-                                       arbitrator, cycle_, liftValue_, 
-                                       arbitrator_, toAct, lostMes >>
+                                       startedNodes, nextLiftGuid, 
+                                       numLiftsStarted, stack, proposer, cycle, 
+                                       liftValue_P, arbitrator_P, nextPeer_, 
+                                       liftGuid, from_, to_, route_, 
+                                       liftValue_H, originator_, liftId_, 
+                                       arbitrator_H, prevPeer_, from_D, to_D, 
+                                       route_D, liftValue_D, originator_D, 
+                                       liftId_D, arbitrator_D, result_, from_C, 
+                                       to_C, route, liftValue, originator, 
+                                       liftId_C, arbitrator_C, result_C, to_R, 
+                                       liftId_R, result_R, prevPeer_R, 
+                                       timeout_, to_Re, liftId_Re, result, 
+                                       prevPeer, timeout, from_Co, to_Co, 
+                                       liftId_Co, nextPeer_C, liftValue_C, 
+                                       from_F, to, liftId_F, nextPeer, 
+                                       liftValue_F, from, liftId, arbitrator, 
+                                       cycle_, liftValue_, arbitrator_, toAct, 
+                                       lostMes, selectedCycles, cIndex >>
 
 losm(self) == /\ pc[self] = "losm"
               /\ IF MESSAGES_FAIL
@@ -1671,19 +1733,21 @@ losm(self) == /\ pc[self] = "losm"
               /\ pc' = [pc EXCEPT ![self] = "CTR"]
               /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                               Cycles, tallies, readMessages, lifts, 
-                              startedNodes, nextLiftGuid, stack, proposer, 
-                              cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                              liftGuid, from_, to_, route_, liftValue_H, 
-                              originator_, liftId_, arbitrator_H, prevPeer_, 
-                              from_D, to_D, route_D, liftValue_D, originator_D, 
-                              liftId_D, arbitrator_D, result_, from_C, to_C, 
-                              route, liftValue, originator, liftId_C, 
-                              arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                              prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                              prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                              nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                              nextPeer, liftValue_F, from, liftId, arbitrator, 
-                              cycle_, liftValue_, arbitrator_, toAct, lostMes >>
+                              startedNodes, nextLiftGuid, numLiftsStarted, 
+                              stack, proposer, cycle, liftValue_P, 
+                              arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                              route_, liftValue_H, originator_, liftId_, 
+                              arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                              liftValue_D, originator_D, liftId_D, 
+                              arbitrator_D, result_, from_C, to_C, route, 
+                              liftValue, originator, liftId_C, arbitrator_C, 
+                              result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                              timeout_, to_Re, liftId_Re, result, prevPeer, 
+                              timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                              liftValue_C, from_F, to, liftId_F, nextPeer, 
+                              liftValue_F, from, liftId, arbitrator, cycle_, 
+                              liftValue_, arbitrator_, toAct, lostMes, 
+                              selectedCycles, cIndex >>
 
 CTR(self) == /\ pc[self] = "CTR"
              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
@@ -1694,18 +1758,19 @@ CTR(self) == /\ pc[self] = "CTR"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, cycle_, 
-                             liftValue_, arbitrator_, toAct, lostMes, 
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                             route_, liftValue_H, originator_, liftId_, 
+                             arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
+                             result_, from_C, to_C, route, liftValue, 
+                             originator, liftId_C, arbitrator_C, result_C, 
+                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                             to_Re, liftId_Re, result, prevPeer, timeout, 
+                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, cycle_, liftValue_, arbitrator_, 
+                             toAct, lostMes, selectedCycles, cIndex, 
                              printBuffer >>
 
 CheckTimeout(self) == CheckTimeout_(self) \/ losm(self) \/ CTR(self)
@@ -1716,27 +1781,50 @@ ProcStart(self) == /\ pc[self] = "ProcStart"
                    /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                    Cycles, tallies, messages, readMessages, 
                                    lostMessages, lifts, startedNodes, 
-                                   nextLiftGuid, stack, proposer, cycle, 
-                                   liftValue_P, arbitrator_P, nextPeer_, 
-                                   liftGuid, from_, to_, route_, liftValue_H, 
-                                   originator_, liftId_, arbitrator_H, 
-                                   prevPeer_, from_D, to_D, route_D, 
-                                   liftValue_D, originator_D, liftId_D, 
-                                   arbitrator_D, result_, from_C, to_C, route, 
-                                   liftValue, originator, liftId_C, 
-                                   arbitrator_C, result_C, to_R, liftId_R, 
-                                   result_R, prevPeer_R, timeout_, to_Re, 
-                                   liftId_Re, result, prevPeer, timeout, 
+                                   nextLiftGuid, numLiftsStarted, stack, 
+                                   proposer, cycle, liftValue_P, arbitrator_P, 
+                                   nextPeer_, liftGuid, from_, to_, route_, 
+                                   liftValue_H, originator_, liftId_, 
+                                   arbitrator_H, prevPeer_, from_D, to_D, 
+                                   route_D, liftValue_D, originator_D, 
+                                   liftId_D, arbitrator_D, result_, from_C, 
+                                   to_C, route, liftValue, originator, 
+                                   liftId_C, arbitrator_C, result_C, to_R, 
+                                   liftId_R, result_R, prevPeer_R, timeout_, 
+                                   to_Re, liftId_Re, result, prevPeer, timeout, 
                                    from_Co, to_Co, liftId_Co, nextPeer_C, 
                                    liftValue_C, from_F, to, liftId_F, nextPeer, 
                                    liftValue_F, from, liftId, arbitrator, 
                                    cycle_, liftValue_, arbitrator_, toAct, 
-                                   lostMes >>
+                                   lostMes, selectedCycles, cIndex >>
 
 l1(self) == /\ pc[self] = "l1"
             /\ printBuffer' = [printBuffer EXCEPT ![self] = Append(printBuffer[self], self)]
             /\ IF self \in LiftProposers
-                  THEN /\ cycle_' = [cycle_ EXCEPT ![self] = CHOOSE c \in Cycles : c[1] = self]
+                  THEN /\ pc' = [pc EXCEPT ![self] = "lw"]
+                  ELSE /\ pc' = [pc EXCEPT ![self] = "lsn"]
+            /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
+                            tallies, messages, readMessages, lostMessages, 
+                            lifts, startedNodes, nextLiftGuid, numLiftsStarted, 
+                            stack, proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            from_C, to_C, route, liftValue, originator, 
+                            liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
+                            result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
+                            result, prevPeer, timeout, from_Co, to_Co, 
+                            liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
+                            liftId_F, nextPeer, liftValue_F, from, liftId, 
+                            arbitrator, cycle_, liftValue_, arbitrator_, toAct, 
+                            lostMes, selectedCycles, cIndex >>
+
+lw(self) == /\ pc[self] = "lw"
+            /\ IF (numLiftsStarted < NUM_SIMULTANEOUS_LIFTS)
+                  THEN /\ numLiftsStarted' = numLiftsStarted + 1
+                       /\ cycle_' = [cycle_ EXCEPT ![self] = CHOOSE c \in (Cycles \ selectedCycles[self]) : c[1] = self]
+                       /\ selectedCycles' = [selectedCycles EXCEPT ![self] = UNION{selectedCycles[self], {cycle_'[self]}}]
                        /\ liftValue_' = [liftValue_ EXCEPT ![self] = MaxLiftValueFor(cycle_'[self], tallies)]
                        /\ arbitrator_' = [arbitrator_ EXCEPT ![self] = CHOOSE a \in ReliableUsers : TRUE]
                        /\ /\ arbitrator_P' = [arbitrator_P EXCEPT ![self] = arbitrator_'[self]]
@@ -1744,7 +1832,7 @@ l1(self) == /\ pc[self] = "l1"
                           /\ liftValue_P' = [liftValue_P EXCEPT ![self] = liftValue_'[self]]
                           /\ proposer' = [proposer EXCEPT ![self] = self]
                           /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "ProposeLift",
-                                                                   pc        |->  "lsn",
+                                                                   pc        |->  "lw",
                                                                    nextPeer_ |->  nextPeer_[self],
                                                                    liftGuid  |->  liftGuid[self],
                                                                    proposer  |->  proposer[self],
@@ -1756,9 +1844,10 @@ l1(self) == /\ pc[self] = "l1"
                        /\ liftGuid' = [liftGuid EXCEPT ![self] = defaultInitValue]
                        /\ pc' = [pc EXCEPT ![self] = "ProposeLift_"]
                   ELSE /\ pc' = [pc EXCEPT ![self] = "lsn"]
-                       /\ UNCHANGED << stack, proposer, cycle, liftValue_P, 
-                                       arbitrator_P, nextPeer_, liftGuid, 
-                                       cycle_, liftValue_, arbitrator_ >>
+                       /\ UNCHANGED << numLiftsStarted, stack, proposer, cycle, 
+                                       liftValue_P, arbitrator_P, nextPeer_, 
+                                       liftGuid, cycle_, liftValue_, 
+                                       arbitrator_, selectedCycles >>
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             tallies, messages, readMessages, lostMessages, 
                             lifts, startedNodes, nextLiftGuid, from_, to_, 
@@ -1771,27 +1860,28 @@ l1(self) == /\ pc[self] = "l1"
                             liftId_Re, result, prevPeer, timeout, from_Co, 
                             to_Co, liftId_Co, nextPeer_C, liftValue_C, from_F, 
                             to, liftId_F, nextPeer, liftValue_F, from, liftId, 
-                            arbitrator, toAct, lostMes >>
+                            arbitrator, toAct, lostMes, cIndex, printBuffer >>
 
 lsn(self) == /\ pc[self] = "lsn"
              /\ startedNodes' = UNION{startedNodes, {self}}
              /\ pc' = [pc EXCEPT ![self] = "las"]
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
-                             lostMessages, lifts, nextLiftGuid, stack, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             lostMessages, lifts, nextLiftGuid, 
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                             from_, to_, route_, liftValue_H, originator_, 
+                             liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
 las(self) == /\ pc[self] = "las"
              /\ startedNodes = Users
@@ -1799,19 +1889,20 @@ las(self) == /\ pc[self] = "las"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             stack, proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                             from_, to_, route_, liftValue_H, originator_, 
+                             liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
 l2w(self) == /\ pc[self] = "l2w"
              /\ IF NotDone(lifts, Users, messages, UNION{readMessages, lostMessages})
@@ -1857,9 +1948,12 @@ l2w(self) == /\ pc[self] = "l2w"
                                                               liftId_, 
                                                               arbitrator_H, 
                                                               prevPeer_, toAct >>
+                                   /\ UNCHANGED lostMes
                               ELSE /\ IF \E message \in lostMessages : message \notin readMessages /\ message.to = self
-                                         THEN /\ pc' = [pc EXCEPT ![self] = "clm"]
+                                         THEN /\ lostMes' = [lostMes EXCEPT ![self] = CHOOSE message \in lostMessages : message \notin readMessages /\ (message.to = self \/ message.from = self)]
+                                              /\ pc' = [pc EXCEPT ![self] = "lcl"]
                                          ELSE /\ pc' = [pc EXCEPT ![self] = "l2w"]
+                                              /\ UNCHANGED lostMes
                                    /\ UNCHANGED << stack, from_, to_, route_, 
                                                    liftValue_H, originator_, 
                                                    liftId_, arbitrator_H, 
@@ -1867,21 +1961,22 @@ l2w(self) == /\ pc[self] = "l2w"
                    ELSE /\ pc' = [pc EXCEPT ![self] = "lpb"]
                         /\ UNCHANGED << stack, from_, to_, route_, liftValue_H, 
                                         originator_, liftId_, arbitrator_H, 
-                                        prevPeer_, toAct >>
+                                        prevPeer_, toAct, lostMes >>
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_D, to_D, route_D, 
-                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
-                             result_, from_C, to_C, route, liftValue, 
-                             originator, liftId_C, arbitrator_C, result_C, 
-                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
-                             to_Re, liftId_Re, result, prevPeer, timeout, 
-                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
                              liftValue_C, from_F, to, liftId_F, nextPeer, 
                              liftValue_F, from, liftId, arbitrator, cycle_, 
-                             liftValue_, arbitrator_, lostMes, printBuffer >>
+                             liftValue_, arbitrator_, selectedCycles, cIndex, 
+                             printBuffer >>
 
 l5(self) == /\ pc[self] = "l5"
             /\ IF toAct[self].type = "LiftCommitJSON"
@@ -1904,19 +1999,19 @@ l5(self) == /\ pc[self] = "l5"
                                        nextPeer_C, liftValue_C >>
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             tallies, messages, readMessages, lostMessages, 
-                            lifts, startedNodes, nextLiftGuid, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-                            route_D, liftValue_D, originator_D, liftId_D, 
-                            arbitrator_D, result_, from_C, to_C, route, 
-                            liftValue, originator, liftId_C, arbitrator_C, 
-                            result_C, to_R, liftId_R, result_R, prevPeer_R, 
-                            timeout_, to_Re, liftId_Re, result, prevPeer, 
-                            timeout, from_F, to, liftId_F, nextPeer, 
-                            liftValue_F, from, liftId, arbitrator, cycle_, 
-                            liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            lifts, startedNodes, nextLiftGuid, numLiftsStarted, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            from_C, to_C, route, liftValue, originator, 
+                            liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
+                            result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
+                            result, prevPeer, timeout, from_F, to, liftId_F, 
+                            nextPeer, liftValue_F, from, liftId, arbitrator, 
+                            cycle_, liftValue_, arbitrator_, toAct, lostMes, 
+                            selectedCycles, cIndex, printBuffer >>
 
 l6(self) == /\ pc[self] = "l6"
             /\ IF toAct[self].type = "LiftFailJSON"
@@ -1939,19 +2034,19 @@ l6(self) == /\ pc[self] = "l6"
                                        liftValue_F >>
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             tallies, messages, readMessages, lostMessages, 
-                            lifts, startedNodes, nextLiftGuid, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-                            route_D, liftValue_D, originator_D, liftId_D, 
-                            arbitrator_D, result_, from_C, to_C, route, 
-                            liftValue, originator, liftId_C, arbitrator_C, 
-                            result_C, to_R, liftId_R, result_R, prevPeer_R, 
-                            timeout_, to_Re, liftId_Re, result, prevPeer, 
-                            timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
-                            liftValue_C, from, liftId, arbitrator, cycle_, 
-                            liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            lifts, startedNodes, nextLiftGuid, numLiftsStarted, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            from_C, to_C, route, liftValue, originator, 
+                            liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
+                            result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
+                            result, prevPeer, timeout, from_Co, to_Co, 
+                            liftId_Co, nextPeer_C, liftValue_C, from, liftId, 
+                            arbitrator, cycle_, liftValue_, arbitrator_, toAct, 
+                            lostMes, selectedCycles, cIndex, printBuffer >>
 
 l7(self) == /\ pc[self] = "l7"
             /\ IF toAct[self].type = "LiftValidateJSON"
@@ -1981,18 +2076,18 @@ l7(self) == /\ pc[self] = "l7"
                                        arbitrator_D, result_ >>
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             tallies, messages, readMessages, lostMessages, 
-                            lifts, startedNodes, nextLiftGuid, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_C, to_C, 
-                            route, liftValue, originator, liftId_C, 
-                            arbitrator_C, result_C, to_R, liftId_R, result_R, 
-                            prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                            prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                            nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                            nextPeer, liftValue_F, from, liftId, arbitrator, 
-                            cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            lifts, startedNodes, nextLiftGuid, numLiftsStarted, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_C, to_C, route, liftValue, 
+                            originator, liftId_C, arbitrator_C, result_C, to_R, 
+                            liftId_R, result_R, prevPeer_R, timeout_, to_Re, 
+                            liftId_Re, result, prevPeer, timeout, from_Co, 
+                            to_Co, liftId_Co, nextPeer_C, liftValue_C, from_F, 
+                            to, liftId_F, nextPeer, liftValue_F, from, liftId, 
+                            arbitrator, cycle_, liftValue_, arbitrator_, toAct, 
+                            lostMes, selectedCycles, cIndex, printBuffer >>
 
 l8(self) == /\ pc[self] = "l8"
             /\ IF toAct[self].type = "LiftCheckJSON"
@@ -2022,18 +2117,19 @@ l8(self) == /\ pc[self] = "l8"
                                        result_C >>
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             tallies, messages, readMessages, lostMessages, 
-                            lifts, startedNodes, nextLiftGuid, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-                            route_D, liftValue_D, originator_D, liftId_D, 
-                            arbitrator_D, result_, to_R, liftId_R, result_R, 
-                            prevPeer_R, timeout_, to_Re, liftId_Re, result, 
-                            prevPeer, timeout, from_Co, to_Co, liftId_Co, 
-                            nextPeer_C, liftValue_C, from_F, to, liftId_F, 
-                            nextPeer, liftValue_F, from, liftId, arbitrator, 
-                            cycle_, liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            lifts, startedNodes, nextLiftGuid, numLiftsStarted, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                            to_Re, liftId_Re, result, prevPeer, timeout, 
+                            from_Co, to_Co, liftId_Co, nextPeer_C, liftValue_C, 
+                            from_F, to, liftId_F, nextPeer, liftValue_F, from, 
+                            liftId, arbitrator, cycle_, liftValue_, 
+                            arbitrator_, toAct, lostMes, selectedCycles, 
+                            cIndex, printBuffer >>
 
 l9(self) == /\ pc[self] = "l9"
             /\ IF toAct[self].type = "LiftValidResultJSON"
@@ -2056,19 +2152,19 @@ l9(self) == /\ pc[self] = "l9"
                                        prevPeer_R, timeout_ >>
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             tallies, messages, readMessages, lostMessages, 
-                            lifts, startedNodes, nextLiftGuid, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-                            route_D, liftValue_D, originator_D, liftId_D, 
-                            arbitrator_D, result_, from_C, to_C, route, 
-                            liftValue, originator, liftId_C, arbitrator_C, 
-                            result_C, to_Re, liftId_Re, result, prevPeer, 
-                            timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
-                            liftValue_C, from_F, to, liftId_F, nextPeer, 
-                            liftValue_F, from, liftId, arbitrator, cycle_, 
-                            liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
+                            lifts, startedNodes, nextLiftGuid, numLiftsStarted, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            from_C, to_C, route, liftValue, originator, 
+                            liftId_C, arbitrator_C, result_C, to_Re, liftId_Re, 
+                            result, prevPeer, timeout, from_Co, to_Co, 
+                            liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
+                            liftId_F, nextPeer, liftValue_F, from, liftId, 
+                            arbitrator, cycle_, liftValue_, arbitrator_, toAct, 
+                            lostMes, selectedCycles, cIndex, printBuffer >>
 
 l10(self) == /\ pc[self] = "l10"
              /\ IF toAct[self].type = "LiftCheckResultJSON"
@@ -2092,58 +2188,39 @@ l10(self) == /\ pc[self] = "l10"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                             route_, liftValue_H, originator_, liftId_, 
+                             arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
+                             result_, from_C, to_C, route, liftValue, 
+                             originator, liftId_C, arbitrator_C, result_C, 
+                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
 l4(self) == /\ pc[self] = "l4"
             /\ readMessages' = UNION{readMessages, {toAct[self]}}
             /\ pc' = [pc EXCEPT ![self] = "l2w"]
             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, Cycles, 
                             tallies, messages, lostMessages, lifts, 
-                            startedNodes, nextLiftGuid, stack, proposer, cycle, 
-                            liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
-                            from_, to_, route_, liftValue_H, originator_, 
-                            liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
-                            route_D, liftValue_D, originator_D, liftId_D, 
-                            arbitrator_D, result_, from_C, to_C, route, 
-                            liftValue, originator, liftId_C, arbitrator_C, 
-                            result_C, to_R, liftId_R, result_R, prevPeer_R, 
-                            timeout_, to_Re, liftId_Re, result, prevPeer, 
-                            timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
-                            liftValue_C, from_F, to, liftId_F, nextPeer, 
-                            liftValue_F, from, liftId, arbitrator, cycle_, 
-                            liftValue_, arbitrator_, toAct, lostMes, 
-                            printBuffer >>
-
-clm(self) == /\ pc[self] = "clm"
-             /\ lostMes' = [lostMes EXCEPT ![self] = CHOOSE message \in lostMessages : message \notin readMessages /\ (message.to = self \/ message.from = self)]
-             /\ pc' = [pc EXCEPT ![self] = "lcl"]
-             /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
-                             Cycles, tallies, messages, readMessages, 
-                             lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             stack, proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, printBuffer >>
+                            startedNodes, nextLiftGuid, numLiftsStarted, stack, 
+                            proposer, cycle, liftValue_P, arbitrator_P, 
+                            nextPeer_, liftGuid, from_, to_, route_, 
+                            liftValue_H, originator_, liftId_, arbitrator_H, 
+                            prevPeer_, from_D, to_D, route_D, liftValue_D, 
+                            originator_D, liftId_D, arbitrator_D, result_, 
+                            from_C, to_C, route, liftValue, originator, 
+                            liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
+                            result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
+                            result, prevPeer, timeout, from_Co, to_Co, 
+                            liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
+                            liftId_F, nextPeer, liftValue_F, from, liftId, 
+                            arbitrator, cycle_, liftValue_, arbitrator_, toAct, 
+                            lostMes, selectedCycles, cIndex, printBuffer >>
 
 lcl(self) == /\ pc[self] = "lcl"
              /\ IF (lostMes[self].type = "LiftCommitJSON" \/ lostMes[self].type = "LiftFailJSON") /\ lostMes[self].to = self
@@ -2166,18 +2243,19 @@ lcl(self) == /\ pc[self] = "lcl"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, cycle_, 
-                             liftValue_, arbitrator_, toAct, lostMes, 
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                             route_, liftValue_H, originator_, liftId_, 
+                             arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
+                             result_, from_C, to_C, route, liftValue, 
+                             originator, liftId_C, arbitrator_C, result_C, 
+                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                             to_Re, liftId_Re, result, prevPeer, timeout, 
+                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, cycle_, liftValue_, arbitrator_, 
+                             toAct, lostMes, selectedCycles, cIndex, 
                              printBuffer >>
 
 lpl(self) == /\ pc[self] = "lpl"
@@ -2201,18 +2279,19 @@ lpl(self) == /\ pc[self] = "lpl"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, cycle_, 
-                             liftValue_, arbitrator_, toAct, lostMes, 
+                             numLiftsStarted, proposer, cycle, liftValue_P, 
+                             arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                             route_, liftValue_H, originator_, liftId_, 
+                             arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                             liftValue_D, originator_D, liftId_D, arbitrator_D, 
+                             result_, from_C, to_C, route, liftValue, 
+                             originator, liftId_C, arbitrator_C, result_C, 
+                             to_R, liftId_R, result_R, prevPeer_R, timeout_, 
+                             to_Re, liftId_Re, result, prevPeer, timeout, 
+                             from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, cycle_, liftValue_, arbitrator_, 
+                             toAct, lostMes, selectedCycles, cIndex, 
                              printBuffer >>
 
 lrlmf(self) == /\ pc[self] = "lrlmf"
@@ -2220,20 +2299,21 @@ lrlmf(self) == /\ pc[self] = "lrlmf"
                /\ pc' = [pc EXCEPT ![self] = "l2w"]
                /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                                Cycles, tallies, messages, lostMessages, lifts, 
-                               startedNodes, nextLiftGuid, stack, proposer, 
-                               cycle, liftValue_P, arbitrator_P, nextPeer_, 
-                               liftGuid, from_, to_, route_, liftValue_H, 
-                               originator_, liftId_, arbitrator_H, prevPeer_, 
-                               from_D, to_D, route_D, liftValue_D, 
-                               originator_D, liftId_D, arbitrator_D, result_, 
-                               from_C, to_C, route, liftValue, originator, 
-                               liftId_C, arbitrator_C, result_C, to_R, 
-                               liftId_R, result_R, prevPeer_R, timeout_, to_Re, 
-                               liftId_Re, result, prevPeer, timeout, from_Co, 
-                               to_Co, liftId_Co, nextPeer_C, liftValue_C, 
-                               from_F, to, liftId_F, nextPeer, liftValue_F, 
-                               from, liftId, arbitrator, cycle_, liftValue_, 
-                               arbitrator_, toAct, lostMes, printBuffer >>
+                               startedNodes, nextLiftGuid, numLiftsStarted, 
+                               stack, proposer, cycle, liftValue_P, 
+                               arbitrator_P, nextPeer_, liftGuid, from_, to_, 
+                               route_, liftValue_H, originator_, liftId_, 
+                               arbitrator_H, prevPeer_, from_D, to_D, route_D, 
+                               liftValue_D, originator_D, liftId_D, 
+                               arbitrator_D, result_, from_C, to_C, route, 
+                               liftValue, originator, liftId_C, arbitrator_C, 
+                               result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                               timeout_, to_Re, liftId_Re, result, prevPeer, 
+                               timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                               liftValue_C, from_F, to, liftId_F, nextPeer, 
+                               liftValue_F, from, liftId, arbitrator, cycle_, 
+                               liftValue_, arbitrator_, toAct, lostMes, 
+                               selectedCycles, cIndex, printBuffer >>
 
 lpb(self) == /\ pc[self] = "lpb"
              /\ PrintT(printBuffer[self])
@@ -2241,24 +2321,25 @@ lpb(self) == /\ pc[self] = "lpb"
              /\ UNCHANGED << Users, LiftProposers, ReliableUsers, Links, 
                              Cycles, tallies, messages, readMessages, 
                              lostMessages, lifts, startedNodes, nextLiftGuid, 
-                             stack, proposer, cycle, liftValue_P, arbitrator_P, 
-                             nextPeer_, liftGuid, from_, to_, route_, 
-                             liftValue_H, originator_, liftId_, arbitrator_H, 
-                             prevPeer_, from_D, to_D, route_D, liftValue_D, 
-                             originator_D, liftId_D, arbitrator_D, result_, 
-                             from_C, to_C, route, liftValue, originator, 
-                             liftId_C, arbitrator_C, result_C, to_R, liftId_R, 
-                             result_R, prevPeer_R, timeout_, to_Re, liftId_Re, 
-                             result, prevPeer, timeout, from_Co, to_Co, 
-                             liftId_Co, nextPeer_C, liftValue_C, from_F, to, 
-                             liftId_F, nextPeer, liftValue_F, from, liftId, 
-                             arbitrator, cycle_, liftValue_, arbitrator_, 
-                             toAct, lostMes, printBuffer >>
+                             numLiftsStarted, stack, proposer, cycle, 
+                             liftValue_P, arbitrator_P, nextPeer_, liftGuid, 
+                             from_, to_, route_, liftValue_H, originator_, 
+                             liftId_, arbitrator_H, prevPeer_, from_D, to_D, 
+                             route_D, liftValue_D, originator_D, liftId_D, 
+                             arbitrator_D, result_, from_C, to_C, route, 
+                             liftValue, originator, liftId_C, arbitrator_C, 
+                             result_C, to_R, liftId_R, result_R, prevPeer_R, 
+                             timeout_, to_Re, liftId_Re, result, prevPeer, 
+                             timeout, from_Co, to_Co, liftId_Co, nextPeer_C, 
+                             liftValue_C, from_F, to, liftId_F, nextPeer, 
+                             liftValue_F, from, liftId, arbitrator, cycle_, 
+                             liftValue_, arbitrator_, toAct, lostMes, 
+                             selectedCycles, cIndex, printBuffer >>
 
-procId(self) == ProcStart(self) \/ l1(self) \/ lsn(self) \/ las(self)
-                   \/ l2w(self) \/ l5(self) \/ l6(self) \/ l7(self)
-                   \/ l8(self) \/ l9(self) \/ l10(self) \/ l4(self)
-                   \/ clm(self) \/ lcl(self) \/ lpl(self) \/ lrlmf(self)
+procId(self) == ProcStart(self) \/ l1(self) \/ lw(self) \/ lsn(self)
+                   \/ las(self) \/ l2w(self) \/ l5(self) \/ l6(self)
+                   \/ l7(self) \/ l8(self) \/ l9(self) \/ l10(self)
+                   \/ l4(self) \/ lcl(self) \/ lpl(self) \/ lrlmf(self)
                    \/ lpb(self)
 
 (* Allow infinite stuttering to prevent deadlock on termination. *)
@@ -2289,7 +2370,7 @@ Spec == /\ Init /\ [][Next]_vars
 
 Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
-\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-2aabe8c935d5122506c5104fc303653e
+\* END TRANSLATION - the hash of the generated TLA code (remove to silence divergence warnings): TLA-0ba57742a5e6f944178daeb997c3360e
 
 RECURSIVE Sum(_)
 Sum(f) ==
