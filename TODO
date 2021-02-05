@@ -9,7 +9,8 @@ X- Edit Tally, Lift documents, include diagrams
 - Make a sequence diagram for each use case
 - Port state diagrams to puml
 - Make chit consensus sequence/state diagrams
-- Make a markdown document for state processing to hold all digrams
+- Make a master protocol document/folder to hold all diagrams
+- Include property descriptions used by spin models
 - 
 - Extend Wyseman to receive connections on TCP socket
 - Make command-line user interface?
