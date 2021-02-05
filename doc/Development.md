@@ -9,12 +9,13 @@ Make, or get into a folder to work in:
 If you plan to do any [hacking](#wyatt-hacking) on any of the support libraries, it will be helpful
 if this folder will be used only for MyCHIPs.  Otherwise, you can put mychips wherever you like.
 
-Grab the source code from the repository.  
+Grab the source code from the repository.
+If the folder gets created as "MyCHIPs" rather than "mychips" that could
+cause some problems on some platforms, so rename it if necessary to "mychips."
 ```
-  git clone https://github.com/gotchoices/MyCHIPs.git
+  git clone https://github.com/gotchoices/mychips
   cd mychips
   npm install				#Install all dependencies
-  npm init				#Initialize local certificates
 ```
 Now that the software is installed, you have 3 basic options to give it a try:
 - [Docker Test Instance](#docker-test-instance):
@@ -136,8 +137,13 @@ URL into a browser to connect to the User (as opposed to admin) UI.
   bash, openssl, nodejs, others?
 
 - Checkout MyCHIPs as [noted above](#getting-started).
+  After doing the "npm install" do:
+```
+  npm initcerts				#Initialize local certificates
+```
 
-- Create an admin login ticket		#This will also build the db schema
+- Next, we will create an admin login ticket.
+  This will also build the db schema if it doesn't exist already.
 ```
   npm run adminticket
 ```

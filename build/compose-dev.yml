@@ -23,7 +23,7 @@ services:
     volumes:
       - "../..:${MYCHIPS_DEVDIR}"
       - "../test/local/docker/${MYCHIPS_HOST}.log:/var/tmp/mychips"
-      - "../test/local/docker/pki:${MYCHIPS_DEVDIR}/mychips/pki/local"
+      - "../test/local/docker/pki:${MYCHIPS_DEVDIR}/${MYCHIPS_DIR:-mychips}/pki/local"
     depends_on:
       - postgres
     ports:
