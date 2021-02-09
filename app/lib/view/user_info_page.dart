@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/main.dart';
-import 'scanner.dart';
+import 'package:flutter_app/presenter/user_info_presenter.dart';
+import 'home_page.dart';
+import 'scanner_page.dart';
+import 'package:flutter_app/objects/account.dart';
 
 class UserInfoPage extends StatefulWidget {
   final bool registering;
@@ -12,7 +14,7 @@ class UserInfoPage extends StatefulWidget {
 
 class UserInfoPageState extends State<UserInfoPage> {
   bool showContact = false;
-
+  var presenter = new UserInfoPresenter();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,6 +25,9 @@ class UserInfoPageState extends State<UserInfoPage> {
   }
 
   Widget buildPage() {
+    if(!widget.registering) {
+
+    }
     return (Container(
         alignment: Alignment.topCenter,
         child: Padding(
@@ -37,6 +42,7 @@ class UserInfoPageState extends State<UserInfoPage> {
                     child: Padding(
                   padding: EdgeInsets.only(top: 16),
                   child: Column(
+                    //TODO: Supply these textfields with controllers so we can access and modify them from the code
                     children: [
                       TextField(
                         decoration: InputDecoration(
@@ -83,6 +89,8 @@ class UserInfoPageState extends State<UserInfoPage> {
                       ),
                       MaterialButton(
                           onPressed: () {
+                            //TODO: Connect textFields to the new account here
+                            presenter.setAccountInfo(new Account());
                             //TODO: Instead of jumping into scanner if registering, give the option for them to connect to a bot for their first tally.
                             widget.registering ?
                               Navigator.push(

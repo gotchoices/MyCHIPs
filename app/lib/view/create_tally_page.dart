@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'scanner.dart';
+import 'package:flutter_app/presenter/qr_presenter.dart';
+import 'scanner_page.dart';
 
 class CreateTallyPage extends StatefulWidget {
   @override
@@ -7,6 +8,7 @@ class CreateTallyPage extends StatefulWidget {
 }
 
 class CreateTallyPageState extends State<CreateTallyPage> {
+  var presenter = QRPresenter();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,10 +38,11 @@ class CreateTallyPageState extends State<CreateTallyPage> {
   }
 
   Widget buildQRCode() {
+    Image qr = presenter.generateQRCode();
     //replace with call to backend
     return Align(
       alignment: Alignment.center,
-      child: Image(image : NetworkImage('https://i.pinimg.com/originals/60/c1/4a/60c14a43fb4745795b3b358868517e79.png')));
+      child: qr);
   }
 
   Widget buildScanButton() {
@@ -50,7 +53,7 @@ class CreateTallyPageState extends State<CreateTallyPage> {
         padding: const EdgeInsets.all(15),
         child: MaterialButton(
           onPressed: () {
-              print("Load the QRCode scanner page");
+            print("Load the QRCode scanner page");
             Navigator.push(context, new MaterialPageRoute(
                builder: (BuildContext context) => new Scanner()));
           },

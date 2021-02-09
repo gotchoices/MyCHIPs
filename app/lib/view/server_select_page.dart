@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:faker/faker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/main.dart';
+import 'home_page.dart';
 
 class ServerSelectPage extends StatefulWidget {
   @override

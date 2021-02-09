@@ -115,7 +115,14 @@ packages:
       name: qr_code_scanner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.13"
+    version: "0.0.14"
+  random_color:
+    dependency: "direct main"
+    description:
+      name: random_color
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.5"
   random_date:
     dependency: "direct main"
     description:
