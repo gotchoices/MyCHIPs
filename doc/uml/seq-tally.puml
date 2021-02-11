@@ -40,18 +40,7 @@ else Refuse terms
 end
 
 note over propDB, subjDB
-  Signed tally can be used for [[Tallies.md#invoicing transactions]]
-end note
-
-subj	->>	subjDB:		Request tally be closed
-subjDB	->>	propDB:		Mark as closing and notify peer
-propDB	->	propDB:		Mark as closing
-loop until balance == 0
- subjDB <->	propDB:		Participate in lifts
-end loop
-
-note over propDB, subjDB
-  Tally marked as closing automatically closes when balance hits zero
+  Signed tally can now be used for [[Tallies.md#invoicing transactions]]
 end note
 
 @enduml

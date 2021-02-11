@@ -19,6 +19,7 @@ actually been implemented.
 - [General Principles](General.md)
 - [How Tallies Work](Tallies.md)
 - [How Lifts Work](Lifts.md)
+- [The MyCHIPs Protocol](Protocol.md)
 - [Known Issues](Bugs.md)
 - [Upgrade Strategy](Upgrading.md)
 - [User Interface Design](Users.md)

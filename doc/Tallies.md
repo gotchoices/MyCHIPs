@@ -8,6 +8,7 @@ The tally is modeled after the historical
 [split tally,](https://www.bbc.com/news/business-40189959)
 an instrument used by past cultures to keep track of private credit balances.
 
+### Tally Parts
 Like a split tally, a digital tally has two parts, a stock and a foil.
 The stock (which was often longer) is held by the party who normally provides a product or service and so is 
 normally owed value for the transaction.

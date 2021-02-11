@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="886px" preserveAspectRatio="none" style="width:1606px;height:886px;" version="1.1" viewBox="0 0 1606 886" width="1606px" zoomAndPan="magnify"><defs><filter height="300%" id="f1nn4adh21z2lk" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><!--MD5=[0d412ba7b19125dd0828b9802228843b]
+cluster mobile1--><polygon fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" points="1248,16,1258,6,1589,6,1589,291,1579,301,1248,301,1248,16" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="1579" x2="1589" y1="16" y2="6"/><line style="stroke:#000000;stroke-width:1.5;" x1="1248" x2="1579" y1="16" y2="16"/><line style="stroke:#000000;stroke-width:1.5;" x1="1579" x2="1579" y1="16" y2="301"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="102" x="1363.5" y="32.5352">Mobile 1 (1..u)</text><!--MD5=[f228167ae37ab53dd6bbb3ad13bc3586]
+cluster browser1--><polygon fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" points="1280,72,1290,62,1557,62,1557,259,1547,269,1280,269,1280,72" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="1547" x2="1557" y1="72" y2="62"/><line style="stroke:#000000;stroke-width:1.5;" x1="1280" x2="1547" y1="72" y2="72"/><line style="stroke:#000000;stroke-width:1.5;" x1="1547" x2="1547" y1="72" y2="269"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="58" x="1385.5" y="88.5352">Browser</text><!--MD5=[789d627cef762006d5d6451170846b79]
+cluster spa1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="103" style="stroke:#202024;stroke-width:1.5;" width="189" x="1328" y="126"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="1497" y="131"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1495" y="133"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1495" y="137"/><text fill="#000033" font-family="Helvetica" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="113" x="1364.5" y="147.4702">User SPA (HTML5/JS)</text><!--MD5=[4db7736c7d1b4a64e42a1a9e7772be84]
+cluster computer3--><polygon fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" points="16,16,26,6,357,6,357,291,347,301,16,301,16,16" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="347" x2="357" y1="16" y2="6"/><line style="stroke:#000000;stroke-width:1.5;" x1="16" x2="347" y1="16" y2="16"/><line style="stroke:#000000;stroke-width:1.5;" x1="347" x2="347" y1="16" y2="301"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="109" x="128" y="32.5352">Computer (1..a)</text><!--MD5=[cbf765aa970ed160e99b1e1cc6f33de9]
+cluster browser3--><polygon fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" points="48,72,58,62,325,62,325,259,315,269,48,269,48,72" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="315" x2="325" y1="72" y2="62"/><line style="stroke:#000000;stroke-width:1.5;" x1="48" x2="315" y1="72" y2="72"/><line style="stroke:#000000;stroke-width:1.5;" x1="315" x2="315" y1="72" y2="269"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="58" x="153.5" y="88.5352">Browser</text><!--MD5=[426903973c4dbdf3822b921a13c7f14e]
+cluster spa3--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="103" style="stroke:#202024;stroke-width:1.5;" width="189" x="88" y="126"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="257" y="131"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="255" y="133"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="255" y="137"/><text fill="#000033" font-family="Helvetica" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="124" x="119" y="147.4702">Admin SPA (HTML5/JS)</text><!--MD5=[13d849b7aa0f2f4396423467c3a802bb]
+cluster mobile2--><polygon fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" points="1041,134,1051,124,1224,124,1224,211,1214,221,1041,221,1041,134" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="1214" x2="1224" y1="134" y2="124"/><line style="stroke:#000000;stroke-width:1.5;" x1="1041" x2="1214" y1="134" y2="134"/><line style="stroke:#000000;stroke-width:1.5;" x1="1214" x2="1214" y1="134" y2="221"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="107" x="1075" y="150.5352">Mobile 2 (1..m)</text><!--MD5=[f9e2e10b1766cf86e00c9124af6ab292]
+cluster cloud1--><path d="M1057.6133,571.4613 C1063.3867,562.3831 1070.4984,563.3075 1075.7659,571.9788 C1080.055,564.108 1089.0716,563.1283 1093.9584,571.3012 C1098.996,562.8381 1105.1507,562.5525 1110.2261,571.2654 C1116.1471,560.4546 1122.6522,562.2426 1129.8878,569.8631 C1135.5593,562.2604 1140.6423,560.4797 1146.6286,569.547 C1152.1487,561.0546 1161.0724,560.0075 1165.4621,570.6591 C1169.6508,560.9665 1177.0319,561.13 1183.7113,567.8976 C1188.8843,558.4888 1197.4538,561.4105 1201.5719,569.0057 C1206.4748,561.182 1212.8165,561.4977 1217.1808,569.5358 C1222.8289,561.0168 1231.1739,563.7203 1234.6962,571.7814 C1240.4858,562.1783 1246.1971,563.0787 1253.0017,570.7028 C1259.4875,563.147 1267.1489,562.3578 1271.9508,572.5053 C1277.3744,562.7788 1285.906,563.2775 1290.956,572.8729 C1300.3636,564.8687 1308.0843,566.6907 1313,578 C1314.0925,578.4079 1314.1784,579.0919 1313.349,579.8604 C1326.239,584.8583 1326.8467,594.4073 1317.3236,603.219 C1330.4883,606.3217 1333.1956,615.1612 1324.362,625.2818 C1335.5873,630.3387 1335.8288,637.1042 1327.8302,645.4645 C1337.9129,655.7828 1336.0162,665.3679 1322.35,670.4843 C1329.291,678.3543 1329.7068,687.7054 1317.5217,691.0949 C1329.5115,705.3833 1323.2665,716.7911 1306,719 C1306.74,718.0894 1307.6977,718.0648 1308.3468,719.1092 C1304.7669,728.8121 1297.4362,730.1424 1290.2457,722.9857 C1283.1748,731.9972 1275.9088,732.0916 1270.8883,721.0103 C1267.0801,730.9997 1258.9314,731.1469 1253.1534,722.9291 C1249.339,731.3003 1242.7441,731.0153 1237.5469,724.3657 C1232.4097,732.8373 1226.0915,733.289 1220.1823,725.174 C1215.0639,734.9347 1208.512,736.9568 1200.4757,728.2952 C1194.6915,735.1144 1188.5332,735.8951 1183.13,727.8505 C1176.1999,737.3322 1168.8298,734.7472 1164.2044,725.5192 C1159.9094,735.4161 1151.7018,736.7664 1145.7024,727.134 C1140.4636,733.9105 1132.8748,732.2266 1129.5637,724.9243 C1123.6825,732.6065 1114.5583,731.7171 1111.466,722.0201 C1106.0653,730.5789 1100.3434,730.521 1094.9343,722.0284 C1089.6795,730.5389 1079.8287,730.4072 1075.0321,721.5048 C1061.3303,731.265 1052.8967,729.0947 1049,712 C1050.7622,712.559 1051.1494,714.1549 1049.5031,715.2427 C1037.9431,709.9156 1037.733,700.9092 1045.9597,692.4992 C1032.4485,688.1661 1031.9991,676.4408 1041.4327,667.8873 C1028.1697,662.094 1026.638,655.0469 1037.5462,645.1262 C1030.7045,637.3727 1030.7314,630.088 1041.3489,625.7633 C1031.7577,616.1752 1036.2864,605.3915 1047.946,601.607 C1036.3883,589.8057 1040.2783,575.623 1056,571 C1056.6015,570.4652 1057.4031,570.6278 1057.6133,571.4613 " fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="57" x="1152.5" y="589.5352">Internet</text><!--MD5=[821c05217012eef6d10b5cd61f5a43c5]
+cluster peernodes--><polygon fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" points="1065,616,1075,606,1297,606,1297,693,1287,703,1065,703,1065,616" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="1287" x2="1297" y1="616" y2="606"/><line style="stroke:#000000;stroke-width:1.5;" x1="1065" x2="1287" y1="616" y2="616"/><line style="stroke:#000000;stroke-width:1.5;" x1="1287" x2="1287" y1="616" y2="703"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="156" x="1099" y="632.5352">Other Peer Sites (1..p)</text><!--MD5=[3c8a5fdc50c77ffe879f2c69461a32d9]
+cluster site1--><polygon fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" points="381,91,391,81,1017,81,1017,869,1007,879,381,879,381,91" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="1007" x2="1017" y1="91" y2="81"/><line style="stroke:#000000;stroke-width:1.5;" x1="381" x2="1007" y1="91" y2="91"/><line style="stroke:#000000;stroke-width:1.5;" x1="1007" x2="1007" y1="91" y2="879"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="130" x="630" y="107.5352">Site Service Group</text><!--MD5=[4d65bd28eeb2122f0be83c7f9d7eebdd]
+cluster userv1--><rect fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" height="357" style="stroke:#000000;stroke-width:1.5;" width="357" x="636" y="346"/><line style="stroke:#000000;stroke-width:1.5;" x1="636" x2="993" y1="366.4883" y2="366.4883"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="125" x="752" y="361.5352">User Service (1..y)</text><!--MD5=[0847b9c84e5499a6c59d8b35317b8d16]
+cluster userserv1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="103" style="stroke:#202024;stroke-width:1.5;" width="187" x="668" y="397"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="835" y="402"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="833" y="404"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="833" y="408"/><text fill="#000033" font-family="Helvetica" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="60" x="731.5" y="418.4702">User Server</text><!--MD5=[72603f5dbbb55eb506dcc3e1b1012933]
+cluster pgsql--><path d="M408,563 C408,553 510,553 510,553 C510,553 612,553 612,563 L612,845 C612,855 510,855 510,855 C510,855 408,855 408,845 L408,563 " fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" style="stroke:#000000;stroke-width:1.5;"/><path d="M408,563 C408,573 510,573 510,573 C510,573 612,573 612,563 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="83" x="468.5" y="588.5352">PostgreSQL</text><!--MD5=[de07489133013c57493e45023542b00d]
+cluster mychips DB--><rect fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" height="220" style="stroke:#000000;stroke-width:1.5;" width="156" x="432" y="611"/><path d="M527,611 L527,620.4883 L517,630.4883 L432,630.4883 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="85" x="435" y="625.5352">mychips DB</text><!--MD5=[69ad3d1777582c9146e45abb385fd53b]
+cluster pserv1--><rect fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" height="92" style="stroke:#000000;stroke-width:1.5;" width="140" x="472" y="400"/><line style="stroke:#000000;stroke-width:1.5;" x1="472" x2="612" y1="420.4883" y2="420.4883"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="124" x="480" y="415.5352">Peer Service (1..x)</text><!--MD5=[9a41b1760971bc427e5b47c4b8ef1427]
+cluster sim1--><rect fill="#FFFFFF" filter="url(#f1nn4adh21z2lk)" height="92" style="stroke:#000000;stroke-width:1.5;" width="142" x="437" y="129"/><line style="stroke:#000000;stroke-width:1.5;" x1="437" x2="579" y1="149.4883" y2="149.4883"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="116" x="450" y="144.5352">Simulation (1..z)</text><!--MD5=[21e862e23e7d99feb61d4d94edafffbc]
+entity wysemanC1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="121" x="1352.5" y="164"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="1453.5" y="169"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1451.5" y="171"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1451.5" y="175"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="1367.5" y="192.4702">Wyseman C-API</text><!--MD5=[c69fa5292cd251f3d50376cd9e91cc6f]
+entity wysemanC3--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="121" x="131.5" y="164"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="232.5" y="169"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="230.5" y="171"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="230.5" y="175"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="146.5" y="192.4702">Wyseman C-API</text><!--MD5=[81be28259591a23f63462d93727ccfe3]
+entity app2--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="93" x="1057.5" y="164"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="1130.5" y="169"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1128.5" y="171"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1128.5" y="175"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="53" x="1072.5" y="192.4702">Native App</text><!--MD5=[235740326534577bedb77f53d5715d69]
+entity peers--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="130" x="1081" y="646"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="1191" y="651"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1189" y="653"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="1189" y="657"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="1096" y="674.4702">Other Peer Server</text><!--MD5=[4c25f3d5adea2395455ed7f8bd1be38b]
+entity spaserv1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="97" x="879.5" y="435"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="956.5" y="440"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="954.5" y="442"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="954.5" y="446"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="57" x="894.5" y="463.4702">SPA Server</text><!--MD5=[8bfdddced45975cef7e47e2a11e27fbb]
+entity report1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="126" x="708" y="646"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="814" y="651"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="812" y="653"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="812" y="657"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="86" x="723" y="674.4702">Report Generator</text><!--MD5=[ca68d80c4da0eb82f0daf95b0f06b656]
+entity wysemanS1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="120" x="711" y="435"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="811" y="440"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="809" y="442"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="809" y="446"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="80" x="726" y="463.4702">Wyseman S-API</text><!--MD5=[658ca87598d7f5e0afb26e10b1caad83]
+entity mychips--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="123" x="448.5" y="646"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="551.5" y="651"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="549.5" y="653"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="549.5" y="657"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="83" x="463.5" y="674.4702">mychips schema</text><!--MD5=[21ab09ffd5d05f413c587b952aee3778]
+entity base--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="96" x="462" y="774"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="538" y="779"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="536" y="781"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="536" y="785"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="477" y="802.4702">wyselib/wm</text><!--MD5=[fec14ceed61151b6a1b0486ec5116d3c]
+entity peerserv1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="99" x="491.5" y="435"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="570.5" y="440"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="568.5" y="442"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="568.5" y="446"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="59" x="506.5" y="463.4702">Peer Server</text><!--MD5=[833402e9087644217c99f5118e0d0956]
+entity agent1--><rect fill="#E8E8EA" filter="url(#f1nn4adh21z2lk)" height="41" style="stroke:#202024;stroke-width:1.5;" width="110" x="453" y="164"/><rect fill="#E8E8EA" height="10" style="stroke:#202024;stroke-width:1.5;" width="15" x="543" y="169"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="541" y="171"/><rect fill="#E8E8EA" height="2" style="stroke:#202024;stroke-width:1.5;" width="4" x="541" y="175"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="70" x="468" y="192.4702">Agent Modeler</text><!--MD5=[228a33f464561c7ea09d51a597fd3d17]
+link mychips to base--><path d="M510,687.19 C510,709.19 510,744.87 510,768.75 " fill="none" id="mychips-to-base" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="510,773.95,514,764.95,510,768.95,506,764.95,510,773.95" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[715d67db9b42c51169b0a27a9d3cbc43]
+link browser1 to spaserv1--><path d="M1279.8019,196.6809 C1279.7126,196.7991 1279.6226,196.9181 1279.532,197.0379 C1278.8067,197.9965 1278.0386,199.0057 1277.2289,200.062 C1270.7516,208.5128 1261.6181,219.9806 1250.5613,232.6662 C1228.4475,258.0375 1198.64,288.28 1167,309 C1158.64,314.47 1154.93,312.54 1146,317 C1073.95,353 995.44,406.35 955.18,434.86 " fill="none" id="browser1-spaserv1" style="stroke:#EE82EE;stroke-width:1.0;"/><text fill="#EE82EE" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="1147" y="326.4702">https</text><!--MD5=[a82690c74d7e60d6af08aa3d8eab0801]
+link spa1 to report1--><path d="M1511.6204,229.1535 C1511.6019,229.924 1511.5798,230.7 1511.5538,231.4813 C1510.72,256.48 1505.87,286.745 1490,309 C1446.47,370.05 967.83,580.47 816.55,645.92 " fill="none" id="spa1-report1" style="stroke:#EE82EE;stroke-width:1.0;"/><text fill="#EE82EE" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="1452" y="458.4702">https</text><!--MD5=[8564a4b8ad7ef997596a49bea7d4d61a]
+link browser3 to spaserv1--><path d="M325.1277,196.6613 C325.2162,196.7793 325.3054,196.8981 325.3952,197.0177 C326.1141,197.9746 326.8755,198.9821 327.6781,200.0367 C334.0988,208.4734 343.1525,219.9244 354.115,232.5988 C376.04,257.9475 405.6,288.19 437,309 C458.46,323.23 465.75,324.97 491,330 C510.4,333.87 829.57,328.64 847,338 C885.85,358.86 909.97,407.51 920.97,434.88 " fill="none" id="browser3-spaserv1" style="stroke:#EE82EE;stroke-width:1.0;"/><text fill="#EE82EE" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="492" y="326.4702">https</text><!--MD5=[98ea6124b49e4738659b821b866aaf9a]
+link spa3 to report1--><path d="M94.5552,229.5524 C94.5722,229.9365 94.59,230.3219 94.6087,230.7088 C95.8075,255.465 100.635,285.745 115,309 C198.61,444.34 260.44,454.14 407,516 C454.46,536.04 470.06,529.28 521,537 C550.65,541.5 559.83,534.7 588,545 C652.13,568.45 716.3,618.26 748.92,645.93 " fill="none" id="spa3-report1" style="stroke:#EE82EE;stroke-width:1.0;"/><text fill="#EE82EE" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="408" y="458.4702">https</text><!--MD5=[b48f8fea9e7413e176a66f14088edcf0]
+link wysemanC1 to wysemanS1--><path d="M1409.05,205.4 C1402.25,233.83 1385.39,285.22 1349,309 C1337.54,316.49 1239.52,314.82 1226,317 C1203.33,320.65 1198.74,326.82 1176,330 C1157.23,332.62 851.2,328.16 835,338 C799.89,359.33 782.67,407.32 775.43,434.58 " fill="none" id="wysemanC1-wysemanS1" style="stroke:#008080;stroke-width:1.0;"/><text fill="#008080" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="99" x="1227" y="326.4702">WM-API/WebSocket</text><!--MD5=[cc8fe2fd1664dbdd8d85e56c2e33dbb0]
+link wysemanC3 to wysemanS1--><path d="M191.76,205.2 C192.58,237.43 199.44,300.75 239,330 C259.91,345.46 684.73,324.57 707,338 C742.17,359.22 759.38,407.25 766.59,434.55 " fill="none" id="wysemanC3-wysemanS1" style="stroke:#008080;stroke-width:1.0;"/><text fill="#008080" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="99" x="240" y="326.4702">WM-API/WebSocket</text><!--MD5=[c38c6425c30640d060e4c8164bd30daf]
+link wysemanS1 to report1--><path d="M771,476.16 C771,516 771,605.82 771,645.74 " fill="none" id="wysemanS1-report1" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[a7aaeaad136012eb34f0a9e09c0e3421]
+link app2 to wysemanS1--><path d="M1057.32,202.65 C999.28,225.89 899.95,272.18 835,338 C806.96,366.42 787.59,409.63 777.98,434.66 " fill="none" id="app2-wysemanS1" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="71" x="854" y="326.4702">WM-API/Noise</text><!--MD5=[54e7c7eec5a411087ac239bfefd6e90e]
+link userserv1 to mychips--><path d="M667.9142,466.6789 C667.676,466.9789 667.4331,467.2848 667.1855,467.5964 C666.1954,468.843 665.1317,470.1824 663.9993,471.6081 C661.7346,474.4594 659.1957,477.6562 656.423,481.1472 C645.3322,495.1113 630.5019,513.7838 614.5288,533.895 C582.5825,574.1175 546.065,620.095 525.75,645.67 " fill="none" id="userserv1-mychips" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="22" x="623" y="533.4702">SQL</text><!--MD5=[fee57ecb2dd60761f6044a50301e9b8e]
+link peerserv1 to mychips--><path d="M538.08,476.16 C532.18,516 518.85,605.82 512.93,645.74 " fill="none" id="peerserv1-mychips" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="22" x="531" y="533.4702">SQL</text><!--MD5=[ec0c5b3c05fdfc55f29d4c0f0741efc0]
+link peerserv1 to peers--><path d="M572,476.09 C595.27,489.75 628.44,507.09 660,516 C802.97,556.38 854.87,490.31 993,545 C1049.59,567.4 1102.24,617.88 1128.51,645.87 " fill="none" id="peerserv1-peers" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="78" x="970" y="533.4702">MyCHIPs/Noise</text><!--MD5=[23261344b3422f7b485d1a82fbe89c28]
+link agent1 to mychips--><path d="M498.07,205.08 C484.28,233.49 460,288.21 451,338 C436.93,415.85 436.22,438.28 451,516 C460.28,564.79 485.18,618.01 499.49,645.91 " fill="none" id="agent1-mychips" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="22" x="452" y="458.4702">SQL</text><!--MD5=[da2aa0df8feea0dca874315c6b4d4e8e]
+link agent1 to peerserv1--><path d="M510.43,205.28 C516.53,255.03 532.46,384.91 538.57,434.69 " fill="none" id="agent1-peerserv1" style="stroke:#000000;stroke-width:1.0;"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="47" x="527" y="326.4702">MyCHIPs</text><!--MD5=[7c54a3f9445368c7135bd0833326efa2]
+@startuml
+!include common.puml
+
+node mobile1 as "Mobile 1 (1..u)" {
+  node browser1 as "Browser" {
+    component spa1 as "User SPA (HTML5/JS) " {
+      component wysemanC1 as "Wyseman C-API"
+    }
+  }
+}
+
+node computer3 as "Computer (1..a)" {
+  node browser3 as "Browser" {
+    component spa3 as "Admin SPA (HTML5/JS) " {
+      component wysemanC3 as "Wyseman C-API"
+    }
+  }
+}
+
+node mobile2 as "Mobile 2 (1..m)" {
+  component app2 as "Native App"
+}
+
+cloud cloud1 as "Internet" {
+  node peernodes as "Other Peer Sites (1..p)" {
+    component peers as "Other Peer Server"
+  }
+}
+
+node site1 as "Site Service Group" {
+
+  card userv1 as "User Service (1..y)" {
+    component userserv1 as "User Server" {
+      component wysemanS1 as "Wyseman S-API"
+    }
+    component spaserv1 as "SPA Server"
+    component report1 as "Report Generator"
+  }
+
+  database pgsql as "PostgreSQL" {
+    frame "mychips DB" {
+      component mychips as "mychips schema"
+      component base as "wyselib/wm"
+      mychips - -> base
+    }
+  }
+
+  card pserv1 as "Peer Service (1..x)" {
+    component peerserv1 as "Peer Server"
+  }
+
+  card sim1 as "Simulation (1..z)" {
+    component agent1 as "Agent Modeler"
+  }
+}
+
+browser1 - - spaserv1 #violet;text:violet : https
+spa1 - - report1 #violet;text:violet : https
+browser3 - - spaserv1 #violet;text:violet : https
+spa3 - - report1 #violet;text:violet : https
+wysemanC1 - - wysemanS1 #teal;text:teal : WM-API/WebSocket
+wysemanC3 - - wysemanS1 #teal;text:teal : WM-API/WebSocket
+wysemanS1 - - report1
+app2 - - wysemanS1 #red;text:red : WM-API/Noise
+
+userserv1 - - mychips #blue;text:blue : SQL
+peerserv1 - - mychips #blue;text:blue : SQL
+peerserv1 - - peers #red;text:red : MyCHIPs/Noise
+agent1 - - mychips #blue;text:blue : SQL
+agent1 - - peerserv1 : MyCHIPs
+
+'Placement hints (not working very well):
+'userv1 .right.> pgsql
+'pgsql .r.> pserv1
+'mobile1 .r.> site1
+'computer3 .r.> site1
+'computer3 .d.> mobile2
+'cloud1 .[hidden].> pgsql
+'userv1 .right.> mobile1
+'userv1 .right.> computer3
+'userv1 .right.> mobile2
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+
+node mobile1 as "Mobile 1 (1..u)" {
+  node browser1 as "Browser" {
+    component spa1 as "User SPA (HTML5/JS) " {
+      component wysemanC1 as "Wyseman C-API"
+    }
+  }
+}
+
+node computer3 as "Computer (1..a)" {
+  node browser3 as "Browser" {
+    component spa3 as "Admin SPA (HTML5/JS) " {
+      component wysemanC3 as "Wyseman C-API"
+    }
+  }
+}
+
+node mobile2 as "Mobile 2 (1..m)" {
+  component app2 as "Native App"
+}
+
+cloud cloud1 as "Internet" {
+  node peernodes as "Other Peer Sites (1..p)" {
+    component peers as "Other Peer Server"
+  }
+}
+
+node site1 as "Site Service Group" {
+
+  card userv1 as "User Service (1..y)" {
+    component userserv1 as "User Server" {
+      component wysemanS1 as "Wyseman S-API"
+    }
+    component spaserv1 as "SPA Server"
+    component report1 as "Report Generator"
+  }
+
+  database pgsql as "PostgreSQL" {
+    frame "mychips DB" {
+      component mychips as "mychips schema"
+      component base as "wyselib/wm"
+      mychips - -> base
+    }
+  }
+
+  card pserv1 as "Peer Service (1..x)" {
+    component peerserv1 as "Peer Server"
+  }
+
+  card sim1 as "Simulation (1..z)" {
+    component agent1 as "Agent Modeler"
+  }
+}
+
+browser1 - - spaserv1 #violet;text:violet : https
+spa1 - - report1 #violet;text:violet : https
+browser3 - - spaserv1 #violet;text:violet : https
+spa3 - - report1 #violet;text:violet : https
+wysemanC1 - - wysemanS1 #teal;text:teal : WM-API/WebSocket
+wysemanC3 - - wysemanS1 #teal;text:teal : WM-API/WebSocket
+wysemanS1 - - report1
+app2 - - wysemanS1 #red;text:red : WM-API/Noise
+
+userserv1 - - mychips #blue;text:blue : SQL
+peerserv1 - - mychips #blue;text:blue : SQL
+peerserv1 - - peers #red;text:red : MyCHIPs/Noise
+agent1 - - mychips #blue;text:blue : SQL
+agent1 - - peerserv1 : MyCHIPs
+
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
