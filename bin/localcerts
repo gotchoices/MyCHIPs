@@ -5,6 +5,7 @@
 # Usage: localcerts spa data peer
 batch=false
 pkidir="pki"
+defeditor="vi"
 host="$(hostname -s)"
 pargs=()						#Positional arguments
 while [[ $# -gt 0 ]]; do
@@ -31,7 +32,12 @@ fi
 
 if ! $batch; then			#Interactive mode
   if [ -z "$EDITOR" ]; then
-    echo "Error: Can't find a user-defined text editor" >&2; exit 1
+    if ! which "$defeditor" >/dev/null; then
+      echo "Error: Can't find a user-defined text editor, exiting" >&2
+      exit 1
+    fi
+    echo "Error: Can't find a user-defined text editor, defaulting to $defeditor" >&2
+    EDITOR="$defeditor"
   fi
 
   locdir="$(pwd)/local"
@@ -70,10 +76,10 @@ done
 
 if ! $batch; then
   pwd
-  ls -l local
+  ls -l local/*.crt
   cat <<-EOF
 	Above are the certificates created.  Make sure the pki/local folder is not 
-	publicly readable.  For many configurations you will need to do more or 
-	different certificates.  See pki/README for more details.
+	publicly readable.  For a secure configuration, you may need to do more (or
+	different) certificates.  See pki/README.md for more details.
 	EOF
 fi
