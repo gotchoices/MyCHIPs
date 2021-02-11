@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1050px" preserveAspectRatio="none" style="width:754px;height:1050px;" version="1.1" viewBox="0 0 754 1050" width="754px" zoomAndPan="magnify"><defs><filter height="300%" id="fh5rxxn7yamv4" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="169" x="286.05" y="17.4023">Tally State Diagram</text><ellipse cx="258.1" cy="222.6992" fill="#44AAFF" filter="url(#fh5rxxn7yamv4)" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><g id="void"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="141" x="198.6" y="373.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="198.6" x2="339.6" y1="394.1992" y2="394.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="225.6" y="386.6694">void  (or No Tally)</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="121" x="203.6" y="410.8008">Stat-&gt;void, Req: null</text></g><g id="userVoid"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="149" x="63.6" y="197.6992"/><line style="stroke:#202024;stroke-width:1.5;" x1="63.6" x2="212.6" y1="218.6992" y2="218.6992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="43" x="116.6" y="211.1694">userVoid</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="129" x="68.6" y="235.3008">Stat: draft, Req-&gt;void</text></g><g id="accepted"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="154" x="529.1" y="293.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="529.1" x2="683.1" y1="314.1992" y2="314.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="45" x="583.6" y="306.6694">accepted</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="134" x="534.1" y="330.8008">Stat: draft, Req-&gt;open</text></g><g id="userDraft"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="149" x="149.6" y="518.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="149.6" x2="298.6" y1="539.1992" y2="539.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="46" x="201.1" y="531.6694">userDraft</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="129" x="154.6" y="555.8008">Stat: void, Req-&gt;draft</text></g><g id="userClose"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="155" x="220.6" y="810.6992"/><line style="stroke:#202024;stroke-width:1.5;" x1="220.6" x2="375.6" y1="831.6992" y2="831.6992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="273.1" y="824.1694">userClose</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="135" x="225.6" y="848.3008">Stat: open, Req-&gt;close</text></g><g id="open"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="59.2656" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="156" x="488.1" y="806.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="488.1" x2="644.1" y1="827.1992" y2="827.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="554.1" y="819.6694">open</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="126" x="493.1" y="843.8008">Stat-&gt;open, Req: null</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="136" x="493.1" y="857.9336">E: Add peer's signature</text></g><g id="closing"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="146" x="372.1" y="964.6992"/><line style="stroke:#202024;stroke-width:1.5;" x1="372.1" x2="518.1" y1="985.6992" y2="985.6992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="34" x="428.1" y="978.1694">closing</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="126" x="377.1" y="1002.3008">Stat-&gt;close, Req: null</text></g><g id="peerProffer"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="59.2656" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="145" x="265.6" y="28.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="265.6" x2="410.6" y1="49.1992" y2="49.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="55" x="310.6" y="41.6694">peerProffer</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="125" x="270.6" y="65.8008">Stat-&gt;draft, Req: null</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="110" x="270.6" y="79.9336">Peer signature only</text></g><g id="userProffer"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="59.2656" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="145" x="358.6" y="663.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="358.6" x2="503.6" y1="684.1992" y2="684.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="55" x="403.6" y="676.6694">userProffer</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="125" x="363.6" y="700.8008">Stat-&gt;draft, Req: null</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="110" x="363.6" y="714.9336">User signature only</text></g><g id="closed"><rect fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" height="59.2656" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="154" x="91.1" y="960.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="91.1" x2="245.1" y1="981.1992" y2="981.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="32" x="152.1" y="973.6694">closed</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="134" x="96.1" y="997.8008">Stat-&gt;closed, Req: null</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="87" x="96.1" y="1011.9336">Balance is zero</text></g><!--MD5=[eb2730c87370629c3c3d87a1a2ccbb41]
+link *start to void--><path d="M258.69,233.0292 C260.28,258.0892 264.69,327.6692 267.23,367.7492 " fill="none" id="*start-to-void" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="267.56,372.9592,270.9859,363.7254,267.2454,367.9691,263.0017,364.2287,267.56,372.9592" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[7505974e352a697c40b5a979226705dc]
+link void to peerProffer--><path d="M279.13,373.0492 C282.67,363.8292 286.43,353.1392 289.1,343.1992 C313.05,254.1092 327.89,146.0592 334.34,92.3692 " fill="none" id="void-to-peerProffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="334.94,87.3392,329.9116,95.8077,334.3533,92.3047,337.8563,96.7464,334.94,87.3392" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="357.6" y="191.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="82" x="329.6" y="202.6694">Proposes a Tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="332.6" y="213.6694">[valid signature]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="342.6" y="224.6694">/Notify user</text><path d="M326.1,233.1992 L326.1,254.1992 L411.1,254.1992 L411.1,243.1992 L401.1,233.1992 L326.1,233.1992 " fill="#E8E8EA" filter="url(#fh5rxxn7yamv4)" style="stroke:#0000FF;stroke-width:1.0;"/><path d="M401.1,233.1992 L401.1,243.1992 L411.1,243.1992 L401.1,233.1992 " fill="#E8E8EA" style="stroke:#0000FF;stroke-width:1.0;"/><a href="Tallies.md#establishing-a-tally" target="_top" title="Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys" xlink:actuate="onRequest" xlink:href="Tallies.md#establishing-a-tally" xlink:show="new" xlink:title="Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys" xlink:type="simple"><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" text-decoration="underline" textLength="64" x="332.1" y="246.6694">User-initiated</text></a><!--MD5=[4f5e7d5c0334881400bb03d542b6e1be]
+link void to userDraft--><path d="M261.47,423.4592 C253.68,448.2092 241.58,486.6392 233.27,513.0392 " fill="none" id="void-to-userDraft" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="231.77,517.8192,238.285,510.4331,233.2695,513.0494,230.6532,508.0339,231.77,517.8192" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="282.1" y="462.6694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="252.1" y="473.6694">New Tally Record</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="257.6" y="484.6694">[valid signature]</text><!--MD5=[6d291786cb24f46a4240ab0fc8738824]
+link userVoid to void--><path d="M131.55,248.0092 C126.09,273.9392 121.93,315.0792 141.1,343.1992 C153.49,361.3692 173.29,373.4492 193.66,381.4692 " fill="none" id="userVoid-to-void" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="198.56,383.3192,191.5445,376.4067,193.8801,381.5589,188.728,383.8945,198.56,383.3192" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="169.6" y="310.1694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="88" x="153.6" y="321.1694">Req:void detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="111" x="142.1" y="332.1694">/Transmit Act:userVoid</text><!--MD5=[c7ac37025faefbcdfa5e2680d3e0f310]
+link peerProffer to userVoid--><path d="M279.63,87.3392 C264.19,96.0192 247.98,106.1992 234.1,117.1992 C205.56,139.8092 177.98,171.1492 159.76,193.5992 " fill="none" id="peerProffer-to-userVoid" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="156.46,197.6792,165.2299,193.1971,159.6043,193.7917,159.0098,188.1661,156.46,197.6792" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="259.6" y="132.1694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="235.1" y="143.1694">Request to void</text><!--MD5=[5a677363dbee82a844a3a2699cbcf052]
+link peerProffer to userDraft--><path d="M265.54,67.1692 C196.21,79.5292 95.2,109.5892 46.1,182.1992 C6,241.4992 15.09,276.4992 41.1,343.1992 C70,417.3392 140.88,480.5492 185.46,514.7992 " fill="none" id="peerProffer-to-userDraft" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="189.69,518.0192,184.9637,509.3785,185.7158,514.9851,180.1092,515.7373,189.69,518.0192" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="66.6" y="310.1694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="62" x="49.1" y="321.1694">Modifies tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="42.1" y="332.1694">[valid signature]</text><!--MD5=[4911864218e186f8eb412168b5793dc9]
+link peerProffer to accepted--><path d="M410.86,68.5792 C446.16,76.5992 487.08,91.0892 516.1,117.1992 C567.5,163.4592 591.27,244.7392 600.74,288.0692 " fill="none" id="peerProffer-to-accepted" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="601.82,293.1592,603.8531,283.5225,600.7763,288.2694,596.0294,285.1925,601.82,293.1592" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="568.6" y="126.6694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="62" x="551.1" y="137.6694">Accepts tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="544.1" y="148.6694">[valid signature]</text><!--MD5=[3f7c08820a54b3fe9d1923718b822a2e]
+link accepted to open--><path d="M610.26,343.3592 C615,373.0192 622.1,424.8992 622.1,469.6992 C622.1,469.6992 622.1,469.6992 622.1,693.6992 C622.1,732.8292 603.24,774.0192 587.41,801.7092 " fill="none" id="accepted-to-open" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="584.9,806.0392,592.865,800.2462,587.4007,801.7095,585.9374,796.2452,584.9,806.0392" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="656.6" y="535.1694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="88" x="640.6" y="546.1694">req:open detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="123" x="623.1" y="557.1694">/Transmit act:userAccept</text><!--MD5=[de356edad13472afc7f6bff6bdbc586e]
+link userDraft to userProffer--><path d="M215.66,568.2292 C210.47,587.7192 207.17,614.8592 221.1,633.1992 C237.4,654.6592 300.55,670.3492 353.38,680.0392 " fill="none" id="userDraft-to-userProffer" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="358.46,680.9592,350.3278,675.4034,353.5418,680.0585,348.8867,683.2725,358.46,680.9592" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="255.6" y="607.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="238.6" y="618.6694">Req:draft detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="123" x="222.1" y="629.6694">/Transmit Act:peerProffer</text><!--MD5=[ab43650b9e226fe3d785eadc3ee14834]
+link userProffer to open--><path d="M458.42,722.2292 C480.5,745.2992 511.61,777.7892 534.72,801.9292 " fill="none" id="userProffer-to-open" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="538.36,805.7292,535.0296,796.4606,534.9039,802.116,529.2484,801.9903,538.36,805.7292" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="528.1" y="761.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="68" x="507.1" y="772.6694">Accepted tally</text><!--MD5=[20977e86b08024021f234dd1a3fc6495]
+link userProffer to void--><path d="M423.52,662.8792 C408.46,607.1392 374.01,487.0592 348.1,453.1992 C340.26,442.9492 329.9,433.9492 319.27,426.3792 " fill="none" id="userProffer-to-void" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="315.03,423.4392,320.1605,431.8462,319.1435,426.2816,324.7082,425.2646,315.03,423.4392" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="414.6" y="529.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="396.1" y="540.6694">Refused tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="57" x="399.1" y="551.6694">or timed out</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="59" x="398.1" y="562.6694">[Notify user]</text><!--MD5=[cb3564aa29e0dd29935cf7ec7e45e987]
+link userProffer to peerProffer--><path d="M450.09,663.1092 C467.34,634.3292 490.1,588.0492 490.1,544.1992 C490.1,221.6992 490.1,221.6992 490.1,221.6992 C490.1,164.0892 438.69,118.3592 395.66,90.1692 " fill="none" id="userProffer-to-peerProffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="391.26,87.3292,396.6478,95.5737,395.4594,90.0431,400.99,88.8547,391.26,87.3292" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="516.6" y="390.1694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="77" x="491.1" y="401.1694">Counter-offered</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="501.6" y="412.1694">/Notify user</text><!--MD5=[655b5aaaf4b3ad4dc848a1695ed551d7]
+reverse link userClose to open--><path d="M381.03,835.6992 C415.07,835.6992 454.29,835.6992 487.83,835.6992 " fill="none" id="userClose-backto-open" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="375.62,835.6992,384.62,839.6992,380.62,835.6992,384.62,831.6992,375.62,835.6992" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="418.35" y="818.1694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="393.85" y="829.1694">Requests close</text><!--MD5=[86ada14e9b63e8043e17c90ca3377d50]
+link open to closing--><path d="M543.34,865.2892 C521.77,892.3892 489.53,932.8792 467.93,960.0192 " fill="none" id="open-to-closing" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="464.56,964.2492,473.3017,959.7124,467.68,960.3421,467.0503,954.7204,464.56,964.2492" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="542.1" y="910.1694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="517.1" y="921.1694">Requests close</text><!--MD5=[46451cad79990bdc8741a2a06aa9c965]
+link userClose to closing--><path d="M313.09,860.8692 C326.03,880.6892 345.93,908.8592 367.1,930.1992 C378.24,941.4292 391.64,952.2492 404.16,961.4692 " fill="none" id="userClose-to-closing" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="408.37,964.5392,403.4476,956.0087,404.3276,961.5967,398.7396,962.4766,408.37,964.5392" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="398.6" y="904.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="94" x="379.6" y="915.6694">Req:close detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="117" x="368.1" y="926.6694">/Transmit act:userClose</text><!--MD5=[1173effca0fb4868365d6bdb07246d54]
+reverse link closed to closing--><path d="M250.4,989.6992 C288.9,989.6992 334.37,989.6992 371.69,989.6992 " fill="none" id="closed-backto-closing" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="245.26,989.6992,254.26,993.6992,250.26,989.6992,254.26,985.6992,245.26,989.6992" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#000000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="18" x="299.6" y="961.1694">DB:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="263.6" y="972.1694">(No explicit action)</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="89" x="264.1" y="983.1694">[Tally sum is zero]</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="148" x="296.55" y="1042.1328">Thu Feb 11 08:17:47 MST 2021</text><!--MD5=[a25ece1f2b31955ae0ac542b26a0ca93]
+@startuml
+!include common.puml
+
+$title(Tally State Diagram)
+[*] - -> void
+state "void  (or No Tally)" as void
+
+'States are determined by a combination of values, as defined here:
+userVoid : Stat: draft, Req->void
+accepted : Stat: draft, Req->open
+userDraft : Stat: void, Req->draft
+userClose : Stat: open, Req->close
+void : Stat->void, Req: null
+open : Stat->open, Req: null
+closing : Stat->close, Req: null
+peerProffer : Stat->draft, Req: null
+peerProffer : Peer signature only
+userProffer : Stat->draft, Req: null
+userProffer : User signature only
+closed : Stat->closed, Req: null
+closed : Balance is zero
+open : E: Add peer's signature
+
+'State transition rules:
+void -[$peer]-> peerProffer : $trans($peer,Proposes a Tally,valid signature,Notify user)
+note on link
+  [[Tallies.md#establishing-a-tally{Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys} User-initiated]]
+endnote
+void -[$user]-> userDraft : $trans($user,New Tally Record,valid signature)
+
+userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:userVoid)
+
+peerProffer -[$user]-> userVoid : $trans($user,Request to void)
+peerProffer -[$user]-> userDraft : $trans($user,Modifies tally,valid signature)
+peerProffer -[$user]-> accepted : $trans($user,Accepts tally,valid signature)
+
+accepted -[$db]-> open : $trans($db,req:open detected,'',Transmit act:userAccept)
+
+userDraft -[$db]-> userProffer : $trans($db,Req:draft detected,,Transmit Act:peerProffer)
+
+userProffer -[$peer]-> open : $trans($peer,Accepted tally)
+userProffer -[$peer]-> void : $trans($peer,"Refused tally\nor timed out",Notify user)
+userProffer -[$peer]-> peerProffer : $trans($peer,Counter-offered,'',Notify user)
+
+open -left[$user]-> userClose : $trans($user,Requests close)
+open -[$peer]-> closing : $trans($peer,Requests close)
+userClose -[$db]-> closing : $trans($db,Req:close detected,'',Transmit act:userClose)
+closing -left[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
+
+'closed - -> [*]
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+
+  title Tally State Diagram
+  footer Thu Feb 11 08:17:47 MST 2021
+[*] - -> void
+state "void  (or No Tally)" as void
+
+userVoid : Stat: draft, Req->void
+accepted : Stat: draft, Req->open
+userDraft : Stat: void, Req->draft
+userClose : Stat: open, Req->close
+void : Stat->void, Req: null
+open : Stat->open, Req: null
+closing : Stat->close, Req: null
+peerProffer : Stat->draft, Req: null
+peerProffer : Peer signature only
+userProffer : Stat->draft, Req: null
+userProffer : User signature only
+closed : Stat->closed, Req: null
+closed : Balance is zero
+open : E: Add peer's signature
+
+void -[#blue]-> peerProffer : <font color=blue>Peer:\nProposes a Tally\n[valid signature]\n/Notify user
+note on link
+  [[Tallies.md#establishing-a-tally{Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys} User-initiated]]
+endnote
+void -[#green]-> userDraft : <font color=green>User:\nNew Tally Record\n[valid signature]
+
+userVoid -[#red]-> void : <font color=red>DB Trigger:\nReq:void detected\n/Transmit Act:userVoid
+
+peerProffer -[#green]-> userVoid : <font color=green>User:\nRequest to void
+peerProffer -[#green]-> userDraft : <font color=green>User:\nModifies tally\n[valid signature]
+peerProffer -[#green]-> accepted : <font color=green>User:\nAccepts tally\n[valid signature]
+
+accepted -[#red]-> open : <font color=red>DB Trigger:\nreq:open detected\n/Transmit act:userAccept
+
+userDraft -[#red]-> userProffer : <font color=red>DB Trigger:\nReq:draft detected\n/Transmit Act:peerProffer
+
+userProffer -[#blue]-> open : <font color=blue>Peer:\nAccepted tally
+userProffer -[#blue]-> void : <font color=blue>Peer:\nRefused tally\nor timed out\n[Notify user]
+userProffer -[#blue]-> peerProffer : <font color=blue>Peer:\nCounter-offered\n/Notify user
+
+open -left[#green]-> userClose : <font color=green>User:\nRequests close
+open -[#blue]-> closing : <font color=blue>Peer:\nRequests close
+userClose -[#red]-> closing : <font color=red>DB Trigger:\nReq:close detected\n/Transmit act:userClose
+closing -left[#red]-> closed : <font color=black>DB:\n(No explicit action)\n[Tally sum is zero]
+
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

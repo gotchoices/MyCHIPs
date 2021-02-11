@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="536px" preserveAspectRatio="none" style="width:402px;height:536px;" version="1.1" viewBox="0 0 402 536" width="402px" zoomAndPan="magnify"><defs><filter height="300%" id="f1t0fov63lht47" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="344" x="22.5" y="17.4023">Payments/Chits On an Established Tally</text><!--MD5=[8fc3522a43f8c7199df5e09e5bb0188e]
+entity user--><ellipse cx="32.5" cy="249.1992" fill="#44AAFF" filter="url(#f1t0fov63lht47)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:1.5;"/><path d="M32.5,257.1992 L32.5,284.1992 M19.5,265.1992 L45.5,265.1992 M32.5,284.1992 L19.5,299.1992 M32.5,284.1992 L45.5,299.1992 " fill="none" filter="url(#f1t0fov63lht47)" style="stroke:#2277DD;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="53" x="6" y="313.1694">Local User</text><!--MD5=[0a9d2036654273fcbcb25eddf1759b63]
+entity partner--><ellipse cx="361" cy="253.1992" fill="#44AAFF" filter="url(#f1t0fov63lht47)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:1.5;"/><path d="M361,261.1992 L361,288.1992 M348,269.1992 L374,269.1992 M361,288.1992 L348,303.1992 M361,288.1992 L374,303.1992 " fill="none" filter="url(#f1t0fov63lht47)" style="stroke:#2277DD;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="68" x="327" y="317.1694">Direct Partner</text><!--MD5=[d485e071d3b2cecb429446dbada4f35a]
+entity peer--><ellipse cx="361" cy="369.1992" fill="#44AAFF" filter="url(#f1t0fov63lht47)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:1.5;"/><path d="M361,377.1992 L361,404.1992 M348,385.1992 L374,385.1992 M361,404.1992 L348,419.1992 M361,404.1992 L374,419.1992 " fill="none" filter="url(#f1t0fov63lht47)" style="stroke:#2277DD;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="62" x="330" y="433.1694">Indirect Peer</text><ellipse cx="193.2377" cy="42.9468" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="66.7377" ry="15.7475" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="103" x="141.7377" y="43.917">Send Direct Payment</text><ellipse cx="193.0387" cy="110.907" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="74.0387" ry="17.2077" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="119" x="133.5387" y="111.8772">Request Direct Payment</text><ellipse cx="192.8684" cy="179.6729" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="70.3684" ry="16.4737" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="111" x="137.3684" y="180.6431">Request Direct Invoice</text><ellipse cx="193.0022" cy="245.6997" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="60.5022" ry="14.5004" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="89" x="148.5022" y="246.6699">Pay Direct Invoice</text><ellipse cx="192.7845" cy="429.6561" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="52.7845" ry="12.9569" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="71" x="157.2845" y="430.6263">Send Payment</text><ellipse cx="193.126" cy="492.5244" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="59.626" ry="14.3252" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="149.626" y="493.4946">Request Payment</text><ellipse cx="193.1648" cy="308.8322" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="56.1648" ry="13.633" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="153.6648" y="309.8024">Request Invoice</text><ellipse cx="193.1192" cy="369.5231" fill="#E8E8EA" filter="url(#f1t0fov63lht47)" rx="47.1192" ry="11.8238" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="57" x="164.6192" y="370.4933">Pay Invoice</text><!--MD5=[f4d745e8da1aebfe5557cf7e678f5cf9]
+link user to sendDirPmt--><path d="M40.84,239.5192 C51.18,195.0392 74.05,121.7492 119,75.6992 C127.84,66.6392 139.62,59.8592 151.13,54.8692 " fill="none" id="user-sendDirPmt" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[294d0e1d9a0d6622a45ca11b299b0b0b]
+link sendDirPmt to partner--><path d="M234.73,54.9992 C246.24,59.9892 258.05,66.7492 267,75.6992 C314.16,122.8792 339.69,198.2392 351.53,243.5492 " fill="none" id="sendDirPmt-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[2e4c5dedbcdedfe6466fa9ecbe233cc1]
+link user to reqDirPay--><path d="M51.02,239.5192 C65.79,210.7292 89.28,171.8492 119,145.6992 C128.6,137.2492 140.6,130.3892 152.08,125.0492 " fill="none" id="user-reqDirPay" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[a75e24468e33f29e97e266dbff7007dc]
+link reqDirPay to partner--><path d="M233.41,125.0192 C245,130.3892 257.19,137.2792 267,145.6992 C298.91,173.0792 324.84,213.8592 341.13,243.6192 " fill="none" id="reqDirPay-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[8c01232367acaf461f864dcc8f3e5e1e]
+link user to reqDirInv--><path d="M59.09,256.3392 C75.59,243.1392 97.84,226.3592 119,213.6992 C131.12,206.4492 145.04,199.6292 157.45,194.0292 " fill="none" id="user-reqDirInv" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[02ef4dfe76417b3cbf01b4fec36bda99]
+link reqDirInv to partner--><path d="M228.51,194.0992 C240.92,199.7092 254.84,206.5192 267,213.6992 C287.66,225.9092 309.39,241.6092 326.64,254.8492 " fill="none" id="reqDirInv-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[b3eaf67675d511954ead4ca2519e5d8b]
+link user to payDir--><path d="M59.32,272.4892 C82.74,267.7592 117.82,260.6792 146.02,254.9792 " fill="none" id="user-payDir" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[09abc32d641afa00b0c3cb00ad923224]
+link payDir to partner--><path d="M238.48,255.3492 C266.34,261.3892 301.62,269.0392 326.98,274.5392 " fill="none" id="payDir-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[fe1696849a1ba71af9eaf0b20c28e723]
+link user to sendPmt--><path d="M52.68,315.9292 C67.64,342.4692 90.62,376.9992 119,399.6992 C130.13,408.5992 144.26,415.2192 157.12,419.9492 " fill="none" id="user-sendPmt" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[ce23281f3abf26aeb9a347cd05c9e637]
+link sendPmt to partner--><path d="M227.88,419.8792 C240.9,415.0992 255.41,408.4492 267,399.6992 C295.83,377.9292 320.69,345.1792 337.43,319.6992 " fill="none" id="sendPmt-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[c23f05a83089f4188ece8e9e4b64c77b]
+link sendPmt to peer--><path d="M235.46,421.7092 C264.75,416.0592 303.34,408.6192 329.75,403.5292 " fill="none" id="sendPmt-peer" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[00335df5b8c016b225c66356f9cd5d69]
+link user to reqPmt--><path d="M42.75,316.0492 C54.33,356.7192 77.85,420.5192 119,460.6992 C128.51,469.9792 141.15,476.7992 153.24,481.6992 " fill="none" id="user-reqPmt" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[690daade49a6dd71e88e44e350df0a05]
+link reqPmt to partner--><path d="M232.21,481.6692 C244.4,476.7392 257.24,469.9192 267,460.6992 C309.78,420.3092 299.67,394.7992 327,342.6992 C330.86,335.3392 335.04,327.5192 339.08,320.0192 " fill="none" id="reqPmt-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[7a22cb4cca6852775e5c18990879e2d0]
+link reqPmt to peer--><path d="M225.5,480.3692 C238.6,474.8692 253.79,467.9892 267,460.6992 C288.86,448.6392 312.11,432.8892 329.89,420.1492 " fill="none" id="reqPmt-peer" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[b5eb61fc5d090ea44b0c6dddca920ff9]
+link user to reqInv--><path d="M59.32,282.7492 C83.53,287.4792 120.19,294.6592 148.85,300.2592 " fill="none" id="user-reqInv" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[c76597a4a3171a1505caa6bb951ae066]
+link reqInv to partner--><path d="M239.8,301.2492 C267.44,296.7592 302.02,291.1292 326.98,287.0692 " fill="none" id="reqInv-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[14e1c796485218b7aa63c5f53d78aba9]
+link reqInv to peer--><path d="M222.85,320.2692 C236.45,325.9992 252.77,333.2692 267,340.6992 C288.48,351.9292 311.73,366.1792 329.61,377.6192 " fill="none" id="reqInv-peer" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[27ab2a68d25d8c4671568fb0d59cd482]
+link user to payInv--><path d="M59.37,298.9492 C75.79,311.7992 97.86,327.9092 119,339.6992 C133.36,347.7092 150.3,354.7992 164.24,360.0792 " fill="none" id="user-payInv" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[e4957bfb45ad7a4aaa4d98d033fa2c04]
+link payInv to partner--><path d="M220.84,359.9192 C234.85,354.4992 252.12,347.3292 267,339.6992 C287.49,329.1992 309.39,315.6592 326.78,304.3092 " fill="none" id="payInv-partner" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[2e438865c2fc12239905eff8ecf28fa1]
+link payInv to peer--><path d="M232.92,376.2592 C262.53,381.2592 302.69,388.0292 329.87,392.6192 " fill="none" id="payInv-peer" style="stroke:#000000;stroke-width:1.0;"/><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="148" x="120.5" y="527.5176">Thu Feb 11 08:17:45 MST 2021</text><!--MD5=[2d332338015b2989bc91e309863d2627]
+@startuml
+!include common.puml
+$title(Payments/Chits On an Established Tally)
+left to right direction
+
+actor "Local User" as user
+actor "Direct Partner" as partner
+actor "Indirect Peer" as peer
+
+usecase "Send Direct Payment" as sendDirPmt
+usecase "Request Direct Payment" as reqDirPay
+usecase "Request Direct Invoice" as reqDirInv
+usecase "Pay Direct Invoice" as payDir
+usecase "Send Payment" as sendPmt
+usecase "Request Payment" as reqPmt
+usecase "Request Invoice" as reqInv
+usecase "Pay Invoice" as payInv
+'  usecase "Seek Payment Route" as seekRoute
+
+user	- -	sendDirPmt
+		sendDirPmt	- -	partner
+user	- -	reqDirPay
+		reqDirPay	- -	partner
+user	- -	reqDirInv
+		reqDirInv	- -	partner
+user	- -	payDir
+		payDir	- -	partner
+user	- -	sendPmt
+		sendPmt	- -	partner
+		sendPmt	- -	peer
+user	- -	reqPmt
+		reqPmt	- -	partner
+		reqPmt	- -	peer
+user	- -	reqInv
+		reqInv	- -	partner
+		reqInv	- -	peer
+user	- -	payInv
+		payInv	- -	partner
+		payInv	- -	peer
+'user	- -	
+'			- -	partner
+'			- -	peer
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+  title Payments/Chits On an Established Tally
+  footer Thu Feb 11 08:17:45 MST 2021
+left to right direction
+
+actor "Local User" as user
+actor "Direct Partner" as partner
+actor "Indirect Peer" as peer
+
+usecase "Send Direct Payment" as sendDirPmt
+usecase "Request Direct Payment" as reqDirPay
+usecase "Request Direct Invoice" as reqDirInv
+usecase "Pay Direct Invoice" as payDir
+usecase "Send Payment" as sendPmt
+usecase "Request Payment" as reqPmt
+usecase "Request Invoice" as reqInv
+usecase "Pay Invoice" as payInv
+
+user	- -	sendDirPmt
+		sendDirPmt	- -	partner
+user	- -	reqDirPay
+		reqDirPay	- -	partner
+user	- -	reqDirInv
+		reqDirInv	- -	partner
+user	- -	payDir
+		payDir	- -	partner
+user	- -	sendPmt
+		sendPmt	- -	partner
+		sendPmt	- -	peer
+user	- -	reqPmt
+		reqPmt	- -	partner
+		reqPmt	- -	peer
+user	- -	reqInv
+		reqInv	- -	partner
+		reqInv	- -	peer
+user	- -	payInv
+		payInv	- -	partner
+		payInv	- -	peer
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

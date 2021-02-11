@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="416px" preserveAspectRatio="none" style="width:456px;height:416px;" version="1.1" viewBox="0 0 456 416" width="456px" zoomAndPan="magnify"><defs><filter height="300%" id="f1v9utjweedhix" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="126" x="167.25" y="29.4023">Closing a Tally</text><rect fill="#FFFFFF" filter="url(#f1v9utjweedhix)" height="42.3105" style="stroke:#000000;stroke-width:2.0;" width="280" x="112.5" y="223.1992"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="30" x2="30" y1="118.1992" y2="317.5098"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="167.5" x2="167.5" y1="118.1992" y2="317.5098"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="343.5" x2="343.5" y1="118.1992" y2="317.5098"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="434.5" x2="434.5" y1="118.1992" y2="317.5098"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="45" x="5" y="115.6694">Proposer</text><ellipse cx="30.5" cy="50.1992" fill="#44AAFF" filter="url(#f1v9utjweedhix)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M30.5,58.1992 L30.5,85.1992 M17.5,66.1992 L43.5,66.1992 M30.5,85.1992 L17.5,100.1992 M30.5,85.1992 L43.5,100.1992 " fill="none" filter="url(#f1v9utjweedhix)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="45" x="5" y="324.98">Proposer</text><ellipse cx="30.5" cy="337.5098" fill="#44AAFF" filter="url(#f1v9utjweedhix)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M30.5,345.5098 L30.5,372.5098 M17.5,353.5098 L43.5,353.5098 M30.5,372.5098 L17.5,387.5098 M30.5,372.5098 L43.5,387.5098 " fill="none" filter="url(#f1v9utjweedhix)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="122.5" y="115.2461">Proposer DB</text><path d="M149.5,65.7109 C149.5,55.7109 167.5,55.7109 167.5,55.7109 C167.5,55.7109 185.5,55.7109 185.5,65.7109 L185.5,91.7109 C185.5,101.7109 167.5,101.7109 167.5,101.7109 C167.5,101.7109 149.5,101.7109 149.5,91.7109 L149.5,65.7109 " fill="#FEFECE" filter="url(#f1v9utjweedhix)" style="stroke:#000000;stroke-width:1.5;"/><path d="M149.5,65.7109 C149.5,75.7109 167.5,75.7109 167.5,75.7109 C167.5,75.7109 185.5,75.7109 185.5,65.7109 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="122.5" y="330.0449">Proposer DB</text><path d="M149.5,342.998 C149.5,332.998 167.5,332.998 167.5,332.998 C167.5,332.998 185.5,332.998 185.5,342.998 L185.5,368.998 C185.5,378.998 167.5,378.998 167.5,378.998 C167.5,378.998 149.5,378.998 149.5,368.998 L149.5,342.998 " fill="#FEFECE" filter="url(#f1v9utjweedhix)" style="stroke:#000000;stroke-width:1.5;"/><path d="M149.5,342.998 C149.5,352.998 167.5,352.998 167.5,352.998 C167.5,352.998 185.5,352.998 185.5,342.998 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="304.5" y="115.2461">Subject DB</text><path d="M325.5,65.7109 C325.5,55.7109 343.5,55.7109 343.5,55.7109 C343.5,55.7109 361.5,55.7109 361.5,65.7109 L361.5,91.7109 C361.5,101.7109 343.5,101.7109 343.5,101.7109 C343.5,101.7109 325.5,101.7109 325.5,91.7109 L325.5,65.7109 " fill="#FEFECE" filter="url(#f1v9utjweedhix)" style="stroke:#000000;stroke-width:1.5;"/><path d="M325.5,65.7109 C325.5,75.7109 343.5,75.7109 343.5,75.7109 C343.5,75.7109 361.5,75.7109 361.5,65.7109 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="304.5" y="330.0449">Subject DB</text><path d="M325.5,342.998 C325.5,332.998 343.5,332.998 343.5,332.998 C343.5,332.998 361.5,332.998 361.5,342.998 L361.5,368.998 C361.5,378.998 343.5,378.998 343.5,378.998 C343.5,378.998 325.5,378.998 325.5,368.998 L325.5,342.998 " fill="#FEFECE" filter="url(#f1v9utjweedhix)" style="stroke:#000000;stroke-width:1.5;"/><path d="M325.5,342.998 C325.5,352.998 343.5,352.998 343.5,352.998 C343.5,352.998 361.5,352.998 361.5,342.998 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="36" x="413.5" y="115.6694">Subject</text><ellipse cx="434.5" cy="50.1992" fill="#44AAFF" filter="url(#f1v9utjweedhix)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M434.5,58.1992 L434.5,85.1992 M421.5,66.1992 L447.5,66.1992 M434.5,85.1992 L421.5,100.1992 M434.5,85.1992 L447.5,100.1992 " fill="none" filter="url(#f1v9utjweedhix)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="36" x="413.5" y="324.98">Subject</text><ellipse cx="434.5" cy="337.5098" fill="#44AAFF" filter="url(#f1v9utjweedhix)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M434.5,345.5098 L434.5,372.5098 M421.5,353.5098 L447.5,353.5098 M434.5,372.5098 L421.5,387.5098 M434.5,372.5098 L447.5,387.5098 " fill="none" filter="url(#f1v9utjweedhix)" style="stroke:#2277DD;stroke-width:2.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="165.5" x2="155.5" y1="145.1992" y2="141.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="165.5" x2="155.5" y1="145.1992" y2="149.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="30.5" x2="166.5" y1="145.1992" y2="145.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="113" x="37.5" y="140.6694">Request tally be closed</text><line style="stroke:#000000;stroke-width:1.0;" x1="341.5" x2="331.5" y1="170.1992" y2="166.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="341.5" x2="331.5" y1="170.1992" y2="174.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="167.5" x2="342.5" y1="170.1992" y2="170.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="152" x="174.5" y="165.6694">Mark as closing and notify peer</text><line style="stroke:#000000;stroke-width:1.0;" x1="343.5" x2="385.5" y1="195.1992" y2="195.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="385.5" x2="385.5" y1="195.1992" y2="208.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="344.5" x2="385.5" y1="208.1992" y2="208.1992"/><polygon fill="#000000" points="354.5,204.1992,344.5,208.1992,354.5,212.1992,350.5,208.1992" style="stroke:#000000;stroke-width:1.0;"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="77" x="350.5" y="190.6694">Mark as closing</text><path d="M112.5,223.1992 L186.5,223.1992 L186.5,230.1992 L176.5,240.1992 L112.5,240.1992 L112.5,223.1992 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="42.3105" style="stroke:#000000;stroke-width:2.0;" width="280" x="112.5" y="223.1992"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="29" x="127.5" y="236.7676">loop</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="113" x="201.5" y="235.834">[until balance == 0]</text><polygon fill="#000000" points="178.5,253.5098,168.5,257.5098,178.5,261.5098,174.5,257.5098" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="331.5,253.5098,341.5,257.5098,331.5,261.5098,335.5,257.5098" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="172.5" x2="337.5" y1="257.5098" y2="257.5098"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="184.5" y="252.98">Participate in lifts</text><path d="M77,277.5098 L77,298.5098 L429,298.5098 L429,287.5098 L419,277.5098 L77,277.5098 " fill="#E8E8EA" filter="url(#f1v9utjweedhix)" style="stroke:#202024;stroke-width:1.0;"/><path d="M419,277.5098 L419,287.5098 L429,287.5098 L419,277.5098 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="331" x="83" y="290.98">Tally marked as closing automatically closes when balance hits zero</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="148" x="156.25" y="408.1777">Thu Feb 11 08:31:22 MST 2021</text><!--MD5=[f300ef6eb88ec17cb6402db9e64633bc]
+@startuml
+!include common.puml
+$title(Closing a Tally)
+actor "Proposer" as prop
+database "Proposer DB" as propDB
+database "Subject DB" as subjDB
+actor "Subject" as subj
+
+prop	->>	propDB:		Request tally be closed
+propDB	->>	subjDB:		Mark as closing and notify peer
+subjDB	->	subjDB:		Mark as closing
+loop until balance == 0
+ propDB <->	subjDB:		Participate in lifts
+end loop
+
+note over propDB, subjDB
+  Tally marked as closing automatically closes when balance hits zero
+end note
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+  title Closing a Tally
+  footer Thu Feb 11 08:31:22 MST 2021
+actor "Proposer" as prop
+database "Proposer DB" as propDB
+database "Subject DB" as subjDB
+actor "Subject" as subj
+
+prop	->>	propDB:		Request tally be closed
+propDB	->>	subjDB:		Mark as closing and notify peer
+subjDB	->	subjDB:		Mark as closing
+loop until balance == 0
+ propDB <->	subjDB:		Participate in lifts
+end loop
+
+note over propDB, subjDB
+  Tally marked as closing automatically closes when balance hits zero
+end note
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

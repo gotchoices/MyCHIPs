@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="912px" preserveAspectRatio="none" style="width:607px;height:912px;" version="1.1" viewBox="0 0 607 912" width="607px" zoomAndPan="magnify"><defs><filter height="300%" id="fx3bl9upv9d0j" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="166" x="218.75" y="29.4023">Establishing a Tally</text><rect fill="#FFFFFF" filter="url(#fx3bl9upv9d0j)" height="42.3105" style="stroke:#000000;stroke-width:2.0;" width="234" x="359.5" y="358.1992"/><rect fill="#FFFFFF" filter="url(#fx3bl9upv9d0j)" height="347.2207" style="stroke:#000000;stroke-width:2.0;" width="583.5" x="10" y="414.5098"/><rect fill="#FFFFFF" height="164.9551" style="stroke:none;stroke-width:1.0;" width="583.5" x="10" y="506.8203"/><rect fill="#FFFFFF" height="89.9551" style="stroke:none;stroke-width:1.0;" width="583.5" x="10" y="671.7754"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="45" x2="45" y1="118.1992" y2="813.7305"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="216.5" x2="216.5" y1="118.1992" y2="813.7305"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="408.5" x2="408.5" y1="118.1992" y2="813.7305"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="562.5" x2="562.5" y1="118.1992" y2="813.7305"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="45" x="20" y="115.6694">Proposer</text><ellipse cx="45.5" cy="50.1992" fill="#44AAFF" filter="url(#fx3bl9upv9d0j)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M45.5,58.1992 L45.5,85.1992 M32.5,66.1992 L58.5,66.1992 M45.5,85.1992 L32.5,100.1992 M45.5,85.1992 L58.5,100.1992 " fill="none" filter="url(#fx3bl9upv9d0j)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="45" x="20" y="821.2007">Proposer</text><ellipse cx="45.5" cy="833.7305" fill="#44AAFF" filter="url(#fx3bl9upv9d0j)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M45.5,841.7305 L45.5,868.7305 M32.5,849.7305 L58.5,849.7305 M45.5,868.7305 L32.5,883.7305 M45.5,868.7305 L58.5,883.7305 " fill="none" filter="url(#fx3bl9upv9d0j)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="171.5" y="115.2461">Proposer DB</text><path d="M198.5,65.7109 C198.5,55.7109 216.5,55.7109 216.5,55.7109 C216.5,55.7109 234.5,55.7109 234.5,65.7109 L234.5,91.7109 C234.5,101.7109 216.5,101.7109 216.5,101.7109 C216.5,101.7109 198.5,101.7109 198.5,91.7109 L198.5,65.7109 " fill="#FEFECE" filter="url(#fx3bl9upv9d0j)" style="stroke:#000000;stroke-width:1.5;"/><path d="M198.5,65.7109 C198.5,75.7109 216.5,75.7109 216.5,75.7109 C216.5,75.7109 234.5,75.7109 234.5,65.7109 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="171.5" y="826.2656">Proposer DB</text><path d="M198.5,839.2188 C198.5,829.2188 216.5,829.2188 216.5,829.2188 C216.5,829.2188 234.5,829.2188 234.5,839.2188 L234.5,865.2188 C234.5,875.2188 216.5,875.2188 216.5,875.2188 C216.5,875.2188 198.5,875.2188 198.5,865.2188 L198.5,839.2188 " fill="#FEFECE" filter="url(#fx3bl9upv9d0j)" style="stroke:#000000;stroke-width:1.5;"/><path d="M198.5,839.2188 C198.5,849.2188 216.5,849.2188 216.5,849.2188 C216.5,849.2188 234.5,849.2188 234.5,839.2188 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="369.5" y="115.2461">Subject DB</text><path d="M390.5,65.7109 C390.5,55.7109 408.5,55.7109 408.5,55.7109 C408.5,55.7109 426.5,55.7109 426.5,65.7109 L426.5,91.7109 C426.5,101.7109 408.5,101.7109 408.5,101.7109 C408.5,101.7109 390.5,101.7109 390.5,91.7109 L390.5,65.7109 " fill="#FEFECE" filter="url(#fx3bl9upv9d0j)" style="stroke:#000000;stroke-width:1.5;"/><path d="M390.5,65.7109 C390.5,75.7109 408.5,75.7109 408.5,75.7109 C408.5,75.7109 426.5,75.7109 426.5,65.7109 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="369.5" y="826.2656">Subject DB</text><path d="M390.5,839.2188 C390.5,829.2188 408.5,829.2188 408.5,829.2188 C408.5,829.2188 426.5,829.2188 426.5,839.2188 L426.5,865.2188 C426.5,875.2188 408.5,875.2188 408.5,875.2188 C408.5,875.2188 390.5,875.2188 390.5,865.2188 L390.5,839.2188 " fill="#FEFECE" filter="url(#fx3bl9upv9d0j)" style="stroke:#000000;stroke-width:1.5;"/><path d="M390.5,839.2188 C390.5,849.2188 408.5,849.2188 408.5,849.2188 C408.5,849.2188 426.5,849.2188 426.5,839.2188 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="36" x="541.5" y="115.6694">Subject</text><ellipse cx="562.5" cy="50.1992" fill="#44AAFF" filter="url(#fx3bl9upv9d0j)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M562.5,58.1992 L562.5,85.1992 M549.5,66.1992 L575.5,66.1992 M562.5,85.1992 L549.5,100.1992 M562.5,85.1992 L575.5,100.1992 " fill="none" filter="url(#fx3bl9upv9d0j)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="36" x="541.5" y="821.2007">Subject</text><ellipse cx="562.5" cy="833.7305" fill="#44AAFF" filter="url(#fx3bl9upv9d0j)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M562.5,841.7305 L562.5,868.7305 M549.5,849.7305 L575.5,849.7305 M562.5,868.7305 L549.5,883.7305 M562.5,868.7305 L575.5,883.7305 " fill="none" filter="url(#fx3bl9upv9d0j)" style="stroke:#2277DD;stroke-width:2.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="214.5" x2="204.5" y1="145.1992" y2="141.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="214.5" x2="204.5" y1="145.1992" y2="149.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="215.5" y1="145.1992" y2="145.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="147" x="52.5" y="140.6694">Create draft, signed tally/ticket</text><path d="M44,158.1992 L44,179.1992 L384,179.1992 L384,168.1992 L374,158.1992 L44,158.1992 " fill="#E8E8EA" filter="url(#fx3bl9upv9d0j)" style="stroke:#202024;stroke-width:1.0;"/><path d="M374,158.1992 L374,168.1992 L384,168.1992 L374,158.1992 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="319" x="50" y="171.6694">Ticket may be permanent or expiring and for one or multiple peers</text><line style="stroke:#FF0000;stroke-width:1.0;" x1="560.5" x2="550.5" y1="205.1992" y2="201.1992"/><line style="stroke:#FF0000;stroke-width:1.0;" x1="560.5" x2="550.5" y1="205.1992" y2="209.1992"/><line style="stroke:#FF0000;stroke-width:1.0;" x1="45.5" x2="561.5" y1="205.1992" y2="205.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="264" x="52.5" y="200.6694">Communicate ticket to peer via QR code (out-of-band)</text><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="230.1992" y2="226.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="230.1992" y2="234.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="561.5" y1="230.1992" y2="230.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="130" x="425.5" y="225.6694">Add peer specified in ticket</text><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="255.1992" y2="251.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="255.1992" y2="259.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="407.5" y1="255.1992" y2="255.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="168" x="233.5" y="250.6694">Connect via ticket, exchange keys</text><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="258.5" y1="280.1992" y2="280.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="258.5" x2="258.5" y1="280.1992" y2="293.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="217.5" x2="258.5" y1="293.1992" y2="293.1992"/><polygon fill="#000000" points="227.5,289.1992,217.5,293.1992,227.5,297.1992,223.5,293.1992" style="stroke:#000000;stroke-width:1.0;"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="144" x="223.5" y="275.6694">Detect pending proposed tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="406.5" x2="396.5" y1="318.1992" y2="314.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="406.5" x2="396.5" y1="318.1992" y2="322.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="407.5" y1="318.1992" y2="318.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="96" x="223.5" y="313.6694">Send proposed tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="560.5" x2="550.5" y1="343.1992" y2="339.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="560.5" x2="550.5" y1="343.1992" y2="347.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="561.5" y1="343.1992" y2="343.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="89" x="415.5" y="338.6694">Present for review</text><path d="M359.5,358.1992 L433.5,358.1992 L433.5,365.1992 L423.5,375.1992 L359.5,375.1992 L359.5,358.1992 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="42.3105" style="stroke:#000000;stroke-width:2.0;" width="234" x="359.5" y="358.1992"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="29" x="374.5" y="371.7676">loop</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="86" x="448.5" y="370.834">[until satisfied]</text><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="392.5098" y2="388.5098"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="392.5098" y2="396.5098"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="561.5" y1="392.5098" y2="392.5098"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="85" x="425.5" y="387.98">Modify tally terms</text><path d="M10,414.5098 L72,414.5098 L72,421.5098 L62,431.5098 L10,431.5098 L10,414.5098 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="347.2207" style="stroke:#000000;stroke-width:2.0;" width="583.5" x="10" y="414.5098"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="25" y="428.0781">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="101" x="87" y="427.1445">[Terms agreeable]</text><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="448.8203" y2="444.8203"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="448.8203" y2="452.8203"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="561.5" y1="448.8203" y2="448.8203"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="425.5" y="444.2905">Accept/sign tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="473.8203" y2="469.8203"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="473.8203" y2="477.8203"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="407.5" y1="473.8203" y2="473.8203"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="95" x="233.5" y="469.2905">Send accepted tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="55.5" y1="498.8203" y2="494.8203"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="55.5" y1="498.8203" y2="502.8203"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="215.5" y1="498.8203" y2="498.8203"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="101" x="62.5" y="494.2905">Store and notify user</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="10" x2="593.5" y1="507.8203" y2="507.8203"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="96" x="15" y="518.4551">[Want to counter]</text><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="538.7754" y2="534.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="538.7754" y2="542.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="561.5" y1="538.7754" y2="538.7754"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="64" x="425.5" y="534.2456">Counter offer</text><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="563.7754" y2="559.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="563.7754" y2="567.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="407.5" y1="563.7754" y2="563.7754"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="96" x="233.5" y="559.2456">Send proposed tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="55.5" y1="588.7754" y2="584.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="55.5" y1="588.7754" y2="592.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="215.5" y1="588.7754" y2="588.7754"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="89" x="62.5" y="584.2456">Present for review</text><line style="stroke:#000000;stroke-width:1.0;" x1="214.5" x2="204.5" y1="613.7754" y2="609.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="214.5" x2="204.5" y1="613.7754" y2="617.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="215.5" y1="613.7754" y2="613.7754"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="52.5" y="609.2456">Accept/sign tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="406.5" x2="396.5" y1="638.7754" y2="634.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="406.5" x2="396.5" y1="638.7754" y2="642.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="407.5" y1="638.7754" y2="638.7754"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="95" x="223.5" y="634.2456">Send accepted tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="560.5" x2="550.5" y1="663.7754" y2="659.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="560.5" x2="550.5" y1="663.7754" y2="667.7754"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="561.5" y1="663.7754" y2="663.7754"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="101" x="415.5" y="659.2456">Store and notify user</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="10" x2="593.5" y1="672.7754" y2="672.7754"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="82" x="15" y="683.4102">[Refuse terms]</text><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="703.7305" y2="699.7305"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="418.5" y1="703.7305" y2="707.7305"/><line style="stroke:#000000;stroke-width:1.0;" x1="408.5" x2="561.5" y1="703.7305" y2="703.7305"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="102" x="425.5" y="699.2007">Mark tally as refused</text><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="728.7305" y2="724.7305"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="226.5" y1="728.7305" y2="732.7305"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="407.5" y1="728.7305" y2="728.7305"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="95" x="233.5" y="724.2007">Send accepted tally</text><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="55.5" y1="753.7305" y2="749.7305"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="55.5" y1="753.7305" y2="757.7305"/><line style="stroke:#000000;stroke-width:1.0;" x1="45.5" x2="215.5" y1="753.7305" y2="753.7305"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="101" x="62.5" y="749.2007">Store and notify user</text><path d="M177,773.7305 L177,794.7305 L448,794.7305 L448,783.7305 L438,773.7305 L177,773.7305 " fill="#E8E8EA" filter="url(#fx3bl9upv9d0j)" style="stroke:#202024;stroke-width:1.0;"/><path d="M438,773.7305 L438,783.7305 L448,783.7305 L438,773.7305 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="157" x="196" y="787.2007">Signed tally can now be used for</text><a href="Tallies.md#invoicing" target="_top" title="Tallies.md#invoicing" xlink:actuate="onRequest" xlink:href="Tallies.md#invoicing" xlink:show="new" xlink:title="Tallies.md#invoicing" xlink:type="simple"><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" text-decoration="underline" textLength="60" x="356" y="787.2007">transactions</text></a><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="148" x="227.75" y="904.3984">Thu Feb 11 08:31:20 MST 2021</text><!--MD5=[9ddd1790889b9087b17ef8b38b7ddcdf]
+@startuml
+!include common.puml
+$title(Establishing a Tally)
+actor "Proposer" as prop
+database "Proposer DB" as propDB
+database "Subject DB" as subjDB
+actor "Subject" as subj
+
+prop	->>	propDB:		Create draft, signed tally/ticket
+note over propDB
+  Ticket may be permanent or expiring and for one or multiple peers
+end note
+prop	-[#red]>> subj:		Communicate ticket to peer via QR code (out-of-band)
+subj	->>	subjDB:		Add peer specified in ticket
+subjDB	->>	propDB:		Connect via ticket, exchange keys
+propDB	->	propDB:		Detect pending proposed tally
+propDB	->>	subjDB:		Send proposed tally
+subjDB	->>	subj:		Present for review
+loop until satisfied
+ subj	->>	subjDB:		Modify tally terms
+end loop
+
+alt Terms agreeable
+ subj	->>	subjDB:		Accept/sign tally
+ subjDB ->>	propDB:		Send accepted tally
+ propDB	->>	prop:		Store and notify user
+
+else Want to counter
+ subj	->>	subjDB:		Counter offer
+ subjDB	->>	propDB:		Send proposed tally
+ propDB	->>	prop:		Present for review
+ prop	->>	propDB:		Accept/sign tally
+ propDB	->>	subjDB:		Send accepted tally
+ subjDB	->>	subj:		Store and notify user
+
+else Refuse terms
+ subj	->>	subjDB:		Mark tally as refused
+ subjDB ->>	propDB:		Send accepted tally
+ propDB	->>	prop:		Store and notify user
+end
+
+note over propDB, subjDB
+  Signed tally can now be used for [[Tallies.md#invoicing transactions]]
+end note
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+  title Establishing a Tally
+  footer Thu Feb 11 08:31:20 MST 2021
+actor "Proposer" as prop
+database "Proposer DB" as propDB
+database "Subject DB" as subjDB
+actor "Subject" as subj
+
+prop	->>	propDB:		Create draft, signed tally/ticket
+note over propDB
+  Ticket may be permanent or expiring and for one or multiple peers
+end note
+prop	-[#red]>> subj:		Communicate ticket to peer via QR code (out-of-band)
+subj	->>	subjDB:		Add peer specified in ticket
+subjDB	->>	propDB:		Connect via ticket, exchange keys
+propDB	->	propDB:		Detect pending proposed tally
+propDB	->>	subjDB:		Send proposed tally
+subjDB	->>	subj:		Present for review
+loop until satisfied
+ subj	->>	subjDB:		Modify tally terms
+end loop
+
+alt Terms agreeable
+ subj	->>	subjDB:		Accept/sign tally
+ subjDB ->>	propDB:		Send accepted tally
+ propDB	->>	prop:		Store and notify user
+
+else Want to counter
+ subj	->>	subjDB:		Counter offer
+ subjDB	->>	propDB:		Send proposed tally
+ propDB	->>	prop:		Present for review
+ prop	->>	propDB:		Accept/sign tally
+ propDB	->>	subjDB:		Send accepted tally
+ subjDB	->>	subj:		Store and notify user
+
+else Refuse terms
+ subj	->>	subjDB:		Mark tally as refused
+ subjDB ->>	propDB:		Send accepted tally
+ propDB	->>	prop:		Store and notify user
+end
+
+note over propDB, subjDB
+  Signed tally can now be used for [[Tallies.md#invoicing transactions]]
+end note
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
