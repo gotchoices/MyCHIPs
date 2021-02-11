@@ -1,31 +1,41 @@
 @startuml
 !include common.puml
 
-$title(Chit State Diagram)
+$title(Direct Chit States)
 [*] --> void
 state "void (or No Chit)" as void
 
 'States are determined by a combination of values, as defined here:
 userRequest: Stat: void, Req=>userRequest
-userRequest : E: Store chit
 peerInvoice: Stat: void, Req=null
-peerInvoice : E: Store chit
+peerInvoice : E: Store/update chit
 userInvoice: Stat->pend, Req=null
 peerDecline : Stat:->void, Req=null
-peerInvoice : E: Update chit
+peerDecline : E: Update chit
+valid : Commence consensus algorithm
+valid : E: Update chit
+linked : Chit linked into hash chain
 
 'State transition rules:
-void -left[$peer]-> peerInvoice : $trans($peer,Requests payment,'',Notify user)
-void -right[$user]-> userRequest : $trans($user,Creates chit Record)
+void -[$user]-> userRequest : $trans($user,Creates draft chit\nvalue --> self)
+void -[$peer]-> peerInvoice : $trans($peer,Receive Act:peerInvoice,'',Notify user)
 
 userRequest -[$db]-> userInvoice : $trans($db,Req:userRequest detected,'',Transmit chit Act:peerInvoice)
 userInvoice --> userRequest : $trans(Timeout,No reply from peer)
-userInvoice -[$peer]-> peerDecline : $trans($peer,Declines,'',Notify user)
+userInvoice -[$peer]-> peerDecline : $trans($peer,Receive Act:peerDecline,'',Notify user)
 peerDecline -[$user]-> userRequest : $trans($user,Modifies chit,'')
-userInvoice -[$peer]-> peerDecline : $trans($peer,Declines,'',Notify user)
+userInvoice -[$peer]-> valid : $trans($peer,Receive Act:peerValid,'',Notify user)
 
-'Fixme: Need to add more states here
+peerInvoice -[$user]-> userDecline : $trans($user, Requests to decline)
+userDecline -[$db]-> userVoid : $trans($db, Req:userDecline detected, '', Transmit chit Act:peerDecline)
+userVoid -[$peer]-> peerInvoice : $trans($peer,Requests payment,'',Notify user)
 
-'closed --> [*]
+peerInvoice -[$user]-> userAgree : $trans($user, Signs chit)
+userAgree -[$db]-> valid : $trans($db, Req:userAgree detected,'', Transmit chit Act:peerValid)
+
+void -[$user]-> userDraft : $trans($user,Creates signed chit\nvalue --> partner)
+userDraft -[$db]-> valid : $trans($db, Req:userDraft detected,'', Transmit chit Act:peerValid)
+
+valid --> linked : [When consensus reached]
 
 @enduml
