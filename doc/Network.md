@@ -4,7 +4,7 @@
 This diagram shows the basic parts of a single site, which represents one
 or more logical nodes, or entities:
 
-[![System Design](scaling.png)](scaling.png)
+[![System Design](uml/scaling.svg)](uml/scaling.svg)
 
 ### Trading entity
 An entity is a person or a company who establishes itself on the network for

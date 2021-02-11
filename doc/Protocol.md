@@ -1,7 +1,7 @@
 ## MyCHIPs Protocol Description 1.0 (draft)
 February 2021
 
-### Overview
+### Overview ([TL;DR](#network-assumptions))
 In the beginning of the project, it was difficult to attempt a top-down design of the system.
 
 I had a basic, intuitive idea about how sites and nodes should communicate with each other,
@@ -40,7 +40,7 @@ A tally is established when two parties decide to formalize a relationship of tr
 
 ![use-tally](uml/use-tally.svg)
 
-There are four cases:
+Let us give some more color to the four use cases:
 - **Be My Vendor**:
   The User reaches out to a potential trading Partner and asks if he would like to establish a tally.
   This must alway happen via some communication channel outside the MyCHIPs protocol--for example: in-person, via email, teleconference or a traditional web connection.
@@ -78,22 +78,49 @@ If the debtor wants to close the tally, he will have to figure out how to provid
 
 ![seq-tally-close](uml/seq-tally-close.svg)
 
+So from the perspective of a single entity, we can derive the following state diagram to describe the tally protocol:
+
+![state-tally](uml/state-tally.svg)
+
+
 ### Chit Use Cases
 A chit constitutes a pledge of future value from one entity to the other.
-Therefore, the chit only needs to be signed by the entity pledging value.
-(There is an exception for [lift chits](Lifts.md), which are treated elsewhere.)
+There are two basic types of chits:
+- **Direct Chit**:
+  This is a simple chit issued by one entity, to its direct trading partner.
+  This type of chit only needs to be signed by the entity pledging value.
+- **Lift Chit**:
+  In this case, the chit is part of a larger [credit lift](Lifts.md).
+  There will be a whole group of chits, all bound to the lift.
+  A lift chit will to be signed by a *site* certificate, where the site is the system that hosts the MyCHIPs account for the particular user.
+  Clearly, the idea of letting one's Chip Service Provider sign chits on our behalf sounds potentially dangerous.
+  So there are some limitations on lift chits:
+  - The net effect on a user of a group of chits, belonging to a single lift, must be in accord with the [trading variables](Lifts.md#trading-variables) established and signed by that user.
+  - In general, this means the chits sum to zero.
+  - It could be non-zero if the trading variables specify a charge or allow a penalty.
 
 ![use-chit](uml/use-chit.svg)
 
-### Chit Protocol
+This diagram shows two sets of similar use cases.
+In the simpler case, we are negotiating a chip with a direct trading partner.
+In the more complex case, we are orchestrating a linear lift that will transmit value through the network to a peer we are not directly connected to.
+This lift will also involve at least 1 of our direct partners who will be the first link in a chain of entities the lift will flow through.
 
+### Direct Chit Protocol
+We will first deal with the simpler case where a single direct chit is being entered onto an existing tally between two entities.
 Either entity can make a direct payment to the other simply by making and signing a chit.
+
+This diagram shows the first case, Sending a Direct Payment:
 
 ![seq-chit-pmt](uml/seq-chit-pmt.svg)
 
-When requesting payment from the other party, the sequence is a little more complicated.
+When requesting a direct payment from the other party, the sequence gets a little more complicated.
+This involves the generation of an *invoice,* or request for payment:
 
 ![seq-chit-inv](uml/seq-chit-inv.svg)
+
+This diagram also covers the fourth use case, Pay Direct Invoice.
+This is what the Payor does once he receives the proposed chit (see the conditional block).
 
 It is important to note that the consensus algorithm has nothing to do with the validity of a chit.
 If a chit is signed by the party pledging value, it is a valid chit.
@@ -102,4 +129,14 @@ However, the parties do need to agree about the *order* in which chits are enter
 This is important from an implementation standpoint because the list of chits will be maintained as a [hash chain](https://en.wikipedia.org/wiki/Hash_chain).
 This *chit chain* can be thought of as a tiny blockchain, known only to the two entities who share the tally.
 When the data is kept this way, it is very easy for the two partners to verify that they have identical information, just by comparing the hash they hold for the last valid chit on the list.
+
+The third use case is one step before this.
+For example, say you acknowledge that a vendor has provided services to you and you want to send payment.
+You may not know the exact charge, but you want to initiate the process by Requesting a Direct Invoice.
+There is no provision for this in the MyCHIPs protocol.
+Because the parties share a tally, this process is conducted informally and outside the MyCHIPs network (via email, phone, or text message).
+
+Now, from the perspective of a single entity, we can derive the following state diagram to describe the direct chit protocol:
+
+![state-chit](uml/state-chit.svg)
 

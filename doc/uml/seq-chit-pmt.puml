@@ -1,6 +1,6 @@
 @startuml
 !include common.puml
-$title(Chit Payment Sequence)
+$title(Chit Direct Payment)
 actor "Payor" as pay
 database "Payor DB" as payDB
 database "Receiver DB" as recDB
