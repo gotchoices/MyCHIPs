@@ -9,21 +9,19 @@ node mobile1 as "Mobile 1 (1..u)" {
   }
 }
 
+node mobile2 as "Mobile 2 (1..m)" {
+  component app2 as "Native App"
+}
+
+node mobile3 as "Mobile 3 (1..r)" {
+  component app3 as "Native App"
+}
+
 node computer3 as "Computer (1..a)" {
   node browser3 as "Browser" {
     component spa3 as "Admin SPA (HTML5/JS) " {
       component wysemanC3 as "Wyseman C-API"
     }
-  }
-}
-
-node mobile2 as "Mobile 2 (1..m)" {
-  component app2 as "Native App"
-}
-
-cloud cloud1 as "Internet" {
-  node peernodes as "Other Peer Sites (1..p)" {
-    component peers as "Other Peer Server"
   }
 }
 
@@ -54,6 +52,12 @@ node site1 as "Site Service Group" {
   }
 }
 
+cloud cloud1 as "Internet" {
+  node peernodes as "Other Peer Sites (1..p)" {
+    component peers as "Other Peer Server"
+  }
+}
+
 browser1 -- spaserv1 #violet;text:violet : https
 spa1 -- report1 #violet;text:violet : https
 browser3 -- spaserv1 #violet;text:violet : https
@@ -62,6 +66,7 @@ wysemanC1 -- wysemanS1 #teal;text:teal : WM-API/WebSocket
 wysemanC3 -- wysemanS1 #teal;text:teal : WM-API/WebSocket
 wysemanS1 -- report1
 app2 -- wysemanS1 #red;text:red : WM-API/Noise
+app3 -- wysemanS1 #teal;text:teal : WM-API/WebSocket
 
 userserv1 -- mychips #blue;text:blue : SQL
 peerserv1 -- mychips #blue;text:blue : SQL
