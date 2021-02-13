@@ -11,7 +11,7 @@ const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's c
 const Os = require('os')
 const Path = require('path')
 const { Args, Dispatch, Log, Credentials, SpaServer} = require('wyclif')
-var log = Log('mychips', 'debug', process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))
+var log = Log('mychips', undefined, process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))
 const { Wyseman } = require('wyseman')
 var { actions, Parser } = require('wyselib')
 Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
@@ -23,6 +23,7 @@ var argv = Args({
   dbPort:	process.env.MYCHIPS_DBPORT	|| 5432,
   dbAdmin:	process.env.MYCHIPS_DBADMIN	|| 'admin',
   clifPort:	process.env.MYCHIPS_WSPORT	|| 54320,
+  clifNP:	process.env.MYCHIPS_NPPORT	|| 44320,
   spaPort:	process.env.MYCHIPS_SPAPORT	|| 8000,
   spaKey:	process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-%.key'),
   spaCert:	process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-%.crt'),
@@ -49,7 +50,7 @@ const pubDir = Path.join(__dirname, "..", "pub")
 
 log.info("SPA Port:   ", argv.spaPort, argv.wyclif, argv.spaKey, argv.spaCert)
 log.debug("Server ID:  ", argv.servID)
-log.debug("CLIF Port:  ", argv.clifPort)
+log.debug("CLIF Ports:  ", argv.clifPort, argv.clifNP)
 log.debug("Peer Port:  ", argv.peerPort)
 log.debug("Doc Viewer: ", argv.docs)
 log.debug("Database:", argv.dbHost, argv.dbName, argv.dbAdmin)
@@ -71,11 +72,10 @@ var wyseman = new Wyseman({				//Launch SPA server and associated web socket
   ssl: sslUser,
   user: null, log
 }, {
-  port: argv.clifPort, 
+  websock: {port: argv.clifPort, credentials, delta: MaxTimeDelta},
+  sock: argv.clifNP, 
   dispatch: Dispatch,
-  delta: MaxTimeDelta,
-  log, credentials, actions, 
-  expApp
+  log, actions, expApp
 }, {
   host: argv.dbHost,
   password: argv.dbPassword,
