@@ -1,9 +1,9 @@
 #!/bin/sh
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-user_host=$(hostname)
+user_host=mychips.org
 user_port=54320
-peer_host=$(hostname)
+peer_host=mychips.org
 peer_port=65430
 if [[ ! -z "$MYCHIPS_USER_HOST" ]]; then user_host="$MYCHIPS_USER_HOST"; fi
 if [[ ! -z "$MYCHIPS_USER_PORT" ]]; then user_port="$MYCHIPS_USER_PORT"; fi
