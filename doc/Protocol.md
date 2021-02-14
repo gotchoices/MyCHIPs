@@ -140,3 +140,14 @@ Now, from the perspective of a single entity, we can derive the following state 
 
 ![state-chit](uml/state-chit.svg)
 
+### Route Discovery Protocol
+Under construction
+
+### Lift Protocol
+Under construction
+
+### Chit Consensus Protocol
+Under construction
+
+### Referee Communication Protocol
+Under construction

@@ -1,5 +1,12 @@
 Change Log:
 
+0.1.13	2021-Feb
+	- Command-line demo program for UI connections
+	- Use UML for system modeling and diagrams
+	- Move documentation to markdown
+	- Prototype visualization for user app
+	- Progress on BYU protocol modeling
+
 0.1.12	2020-Dec
 	- Minor fixes
 	- Documentation improvements
