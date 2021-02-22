@@ -20,25 +20,24 @@ If there is not enough, they may go without or try to obtain a raise or a better
 
 This approach can leave people living close to the edge--sometimes only one paycheck away from financial disaster.
 
-A more sustainable approach is to focus on the Balance Sheet, an indication of 
-one's net worth, which is derived as the difference between one's assets and liabilities.  
-When people focus on increasing their net worth, the natural outcome is to produce more than you consume.
+A more sustainable approach is to focus on the Balance Sheet, an indication of one's net worth, 
+which is derived as the difference between one's assets and liabilities.  When people focus on 
+increasing their net worth, the natural outcome is to produce more than they consume.
 
-Like the P&E approach, this assures there is enough to cover expenses each month.  
-But it also encourages you to save a little each month.  
-That is the only way to get one's balance sheet to grow.
+Like the P&E approach, this assures there is enough to cover expenses each month.  But it also 
+encourages you to save a little each month.  That is the only way to get one's balance sheet to grow.
 
 Since most people are not used to reading a balance sheet, it would be helpful
 to have a very intuitive graphical way of displaying net worth--something that
 could be understood with a glance and that would encourage people to behave in
 a way that is in their best financial interest.
 
-The "Visual Balance Sheet" ([prototyped here](../test/visbs/index.html))
+The "Visual Balance Sheet" ([prototyped here](../test/visbs/README.md))
 is intended to quantify several important aspects of one's balance sheet into 
 a graphical object that is:
-- interesting to look at,
-- easy to understand,
-- fun to make changes that affect it in a positive way.
+  - interesting to look at,
+  - easy to understand,
+  - fun to make changes that affect it in a positive way.
 
 Quantities to model:
   - Total tally assets (stocks and debit-balance foils)
@@ -57,9 +56,9 @@ Proposed Graph Dimensions:
 Processes communicate with the MyCHIPs server by exchanging JSON objects across sockets.
 
 There are three particular cases to consider here:
-- User Interface (including Admin) running as a web app in a browser
-- User Interface (including Admin) running as a native mobile app
-- Peer-to-peer server communications
+  - User Interface (including Admin) running as a web app in a browser
+  - User Interface (including Admin) running as a native mobile app
+  - Peer-to-peer server communications
 
 In the first case (Single Page Application), the user directs his browser to
 a trusted server where he can load the SPA over https.
@@ -74,9 +73,9 @@ user's private key.
 
 The particulars of this authentication scheme are not
 separately documented, but can be examined in more detail in the Wyseman
-- [server source code](https://github.com/gotchoices/wyseman/blob/master/lib/wyseman.js),
-- Browser [client source code](https://github.com/gotchoices/wylib/blob/master/src/wyseman.js), and
-- Node.js [client source code](https://github.com/gotchoices/wyseman/blob/master/lib/client.js),
+  - [server source code](https://github.com/gotchoices/wyseman/blob/master/lib/wyseman.js),
+  - Browser [client source code](https://github.com/gotchoices/wylib/blob/master/src/wyseman.js), and
+  - Node.js [client source code](https://github.com/gotchoices/wyseman/blob/master/lib/client.js),
 
 There is also an [example client](https://github.com/gotchoices/MyCHIPs/blob/master/test/sample/entcli)
 written in node.js that accepts a few simple commands and displays some raw results from the database on stdout.
@@ -122,12 +121,12 @@ The received object may also include one or more of the following properties:
   For details on this object structure see "buildOrder()" function.
 
 Once the query is complete, a result object will be returned to the caller, which includes these properties:
-- **id**: The original identifier.
-- **view**: The original view.
-- **action**: The original action.
-- **error**: An error object, if an error occurred in the transaction.
-- **data**: The data, if any returned by the transaction.
-  This may differ greatly, depending on what type of transaction was requested.
+  - **id**: The original identifier.
+  - **view**: The original view.
+  - **action**: The original action.
+  - **error**: An error object, if an error occurred in the transaction.
+  - **data**: The data, if any returned by the transaction.
+    This may differ greatly, depending on what type of transaction was requested.
 
 In addition to the standard CRUD actions defined above, Wyseman allows the calling
 application to include an extended action handler.
@@ -156,8 +155,55 @@ including the QR code.
 The admin app needs only specify the report handler it wants to call and the
 backend will serve up everything it needs in order to display the connection code.
 
+### Sample Command-line Client
+There is a JS utility [here](https://github.com/gotchoices/MyCHIPs/blob/master/test/sample/entcli)
+meant to demonstrate how to connect a client to the backend.
+
+As mentioned, MyCHIPs uses [Wyseman](https://github.com/gotchoices/wyseman)
+to form its API to the backend.  The [Wylib](https://github.com/gotchoices/wylib)
+library has a compatible [module](https://github.com/gotchoices/wylib/src/wyseman.js) that
+allows a client, running in a browser, to connect to the backend and send 
+[CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) commands to the database.
+
+The sample command line program demonstrates how to do this without a browser in node.js.
+It makes use of a [client module](https://github.com/gotchoices/wylib/lib/client.js),
+provided by Wyseman, that is similar to the browser-side code in Wylib and performs a comparable
+function, allowing a user to authenticate and connect.
+
+To test the sample CLI, get the MyCHIPs server running as explained [elsewhere](doc/Develop.md).
+Generate a connection ticket:
+```
+  npm run adminticket
+```
+
+Then try running the client.  Note that for a docker-based server, the spa certificate will
+be somewhere else (probably test/local/docker/pki).  Specifying it to the CLI is comparable with
+installing it in your browser (or OS) for browser-based clients.
+```
+  cd test/sample
+  ./entcli -a mychips0 -c ../pki/local/spa-ca.crt -t ../test/local/admin.json -u admin
+```
+The program will provide logging (typically in /var/tmp/wyatt/combined.log) if you have the
+environment variable NODE_DEBUG set to "debug" or "trace".  The backend should be logging as
+usual (in /var/tmp/mychips/combined.log) assuming its environment has NODE_DEBUG set.
+
+The sample CLI will attempt to connect as the user you specify (admin).  If it succeeds, you
+should get a "> " prompt.  You can type "list" to query the standard user table/view in the database.
+There isn't much implemented other than "list" and "exit" as running commands is not really the point.
+It is meant to demonstrate authenticating and connecting.
+
+Once you have connected using a one-time connection token, the program will create a
+permanent connection key and will store it in its "vault" ($USER/.mychips_keys).
+Then you can connect more simply with:
+```
+  entcli -a mychips0 -c ../pki/local/spa-ca.crt
+```
+The key vault file is meant to be compatible with what is created/used in the browser-based sample GUI.
+So you should be able to import that same file into the browser GUI and connect successfully.
+
+
 ### Summary
-Apologies in advance for the scarcity of documention for the API.
+Apologies in advance for the scarcity of documention on the API.
 Hopefully as it develops, there can be more help to develop both the API and its documentation further.
 
 Best advice for now is:

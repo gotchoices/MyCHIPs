@@ -1,14 +1,16 @@
-Standalone test of visual balance sheet using d3
+## Standalone test of visual balance sheet using d3
 
-Operation:
-  To run, execute:
+### Operation:
+To run, execute:
+```  
     ./server
-  and then browse to: localhost:8020
+```  
+and then browse to: localhost:8020
 
 The interactive scaling of values is only for testing purposes and not meant
 to be part of a production UI.
 
-Theory and Objectives:
+### Theory and Objectives:
 The mere use of open source money based on private credit is an advantage for
 those who want to maximize control over their financial independence.  But
 there is an additional benefit that can be provided by the MyCHIPs user app.

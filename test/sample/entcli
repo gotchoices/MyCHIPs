@@ -4,8 +4,8 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // Usage examples:
-//   entcli -a lux0 -c ../pki/local/spa-ca.crt -t ../test/local/admin.json	//Connect with a one-time token
-//   entcli -a lux0 -c ../pki/local/spa-ca.crt					//Connect using my established key
+//   entcli -a mychips0 -c ../pki/local/spa-ca.crt -t ../test/local/admin.json -u admin		//Connect with a one-time token (must specify the username)
+//   entcli -a mychisp0 -c ../pki/local/spa-ca.crt						//Connect using an established key
 // -----------------------------------------------------------------------------
 // TODO:
 //- Adapt to use Wyseman library class
@@ -98,11 +98,11 @@ log.debug("Writing connection key to vault:", argv.vault)
   Fs.writeFileSync(argv.vault, JSON.stringify(cred))	//Store my key for later use
 })
 
-wmClient.connect(credential, ws => {			//Start a connection
+wmClient.on('error', err => {				//Error handler
+  log.debug("Websocket connection error:", err.stack)
+})
 
-  ws.on('error', err => {				//Error handler
-    log.debug("Websocket error:", err)
-  })
+wmClient.connect(credential, ws => {			//Start a connection
 
   ws.on('message', msg => {				//We have an incoming message
 log.debug("Websocket message:", msg)
