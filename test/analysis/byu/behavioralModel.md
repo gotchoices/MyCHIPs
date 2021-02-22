@@ -15,6 +15,7 @@
   - reflect the total value of all valid (committed and acknowledged) chits (a number that is the sum of all values)
   - reflect the total value of all conditional chits
   - Have consensus with trading partner's tally (order and total)
+  - Resolve consensus issues in a finite amount of time
 
 # Lifts
   - Reflect the value of the conditional chits promised
@@ -24,8 +25,7 @@
 # Chits
   - Hold a record of the value transferred
   - Hold a record of acceptance by both parties
-  - Hold a record of what continences must be met to make the chit valid
-  - Resolve consensus issues in a finite amount of time
+  - Hold a record of what contingencies must be met to make the chit valid
 
 
 ## Data
@@ -67,4 +67,4 @@ Cycles are an ordered list of nodes such that:
 ### Things that may be problematic in the model:
 
   - A Node appears more then once in a cycle.
-  - Interactions between site authority signing lift chits for individuals 
+  - Interactions when a site authority signing lift chits for individuals 
