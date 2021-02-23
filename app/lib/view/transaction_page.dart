@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/objects/tally.dart';
+import 'package:flutter_app/presenter/tally_list_presenter.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'home_page.dart';
 
@@ -107,6 +109,9 @@ class TransactionPageState extends State<TransactionPage> {
   }
 
   Widget createPaymentTextFields(friend) {
+    final List searchList = <Tally>[];
+    TallyListPresenter presenter = TallyListPresenter();
+    searchList.addAll(presenter.getUserTallies());
     return Container(
         child: Padding(
             padding: EdgeInsets.only(left: 5),
@@ -117,7 +122,9 @@ class TransactionPageState extends State<TransactionPage> {
                       flex: 2,
                       child: friend != null ? Text(friend): TextField(
                           onChanged: (input) {
-                            searchTallies(input);},
+                            searchList.clear();
+                            searchList.addAll(presenter.filterUsers(input, searchList));
+                            },
                           decoration: InputDecoration(
                               border: InputBorder.none,
                               hintText: "To Whom:",
@@ -138,9 +145,4 @@ class TransactionPageState extends State<TransactionPage> {
                 ])
         )
     );
-  }
-
-  void searchTallies(input){
-    //put logic to filter searched users here (probably the same as what's on the tally page)
-    print(input);
   }

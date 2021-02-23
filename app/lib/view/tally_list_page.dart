@@ -12,6 +12,7 @@ class TallyListPage extends StatefulWidget {
 
 class TallyListPageState extends State<TallyListPage> {
   final List tallyList = <Tally>[];
+  final List searchList = <Tally>[];
   bool searching = false;
   var presenter = new TallyListPresenter();
 
@@ -21,7 +22,9 @@ class TallyListPageState extends State<TallyListPage> {
       appBar: AppBar(
         title: searching ? TextField(
           onChanged: (input) {
-            presenter.filterUsers(input);
+            searchList.clear();
+            searchList.addAll(presenter.filterUsers(input, tallyList));
+            setState(() {});
           },
           decoration: InputDecoration(
               icon: Icon(Icons.search, color: Colors.white,),
@@ -37,6 +40,7 @@ class TallyListPageState extends State<TallyListPage> {
               icon: Icon(Icons.cancel_outlined),
               onPressed: () {
                 setState(() {
+                  searchList.clear();
                   searching = !searching;
                 });
               }
@@ -62,12 +66,19 @@ class TallyListPageState extends State<TallyListPage> {
   Widget buildTallyList() {
     return ListView.builder (
         padding: const EdgeInsets.all(16),
+        itemCount: searching ? searchList.length : null,
         itemBuilder:(context, item) {
-          if(item.isOdd) return Divider();
           int index = item ~/ 2;
-          if (index >= tallyList.length)
+          if(item.isOdd) return Divider();
+          if (index >= tallyList.length && !searching)
             //if we've reached the end of the list, query the presenter for more, providing the last tally in the list for reference
             tallyList.addAll(tallyList.length == 0 ? presenter.getUserTallies() : presenter.getUserTallies(tallyList[tallyList.length - 1]));
+          else if (searching && searchList.length > 0) {
+            if (index >= searchList.length) {
+              return SizedBox();
+            }
+            return buildRow(searchList[index]);
+          }
           return buildRow(tallyList[index]);
         }
     );
