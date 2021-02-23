@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:animated_check/animated_check.dart';
 //TODO: FIX ANIMATED CHECKMARK PLEASE
 
-/**
- * @param msg = message appearing at the bottom of the success notification
- */
 Widget buildSuccessWidget(context, [msg = "congrats!"]) {
   var animeController = AnimationController(vsync: context, duration: Duration(seconds: 1));
   Animation animation = new Tween<double>(begin: 0, end: 1)
@@ -30,5 +27,12 @@ Widget buildSuccessWidget(context, [msg = "congrats!"]) {
     ],
 
   );
+}
 
+void succPop(context, msg) {
+  showDialog(context: context, builder: (BuildContext context){
+    return AlertDialog(
+        scrollable: false,
+        content: buildSuccessWidget(context, msg)
+    );});
 }

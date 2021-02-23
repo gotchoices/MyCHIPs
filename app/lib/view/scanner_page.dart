@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/presenter/scanner_presenter.dart';
+import 'package:flutter_app/view/error_popup.dart';
+import 'package:flutter_app/view/success_popup.dart';
 import '../objects/tally.dart';
 import '../objects/tally_ticket.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -157,10 +159,13 @@ class ScannerState extends State<Scanner> {
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.pop(context);
-            if (presenter.registerNewTally(ticket))
+            if (presenter.registerNewTally(ticket)) {
+              //TODO: Comment this out when succPop works
+              // succPop(context, "Tally with " + tally.friend + " successfully established.");
               transitionToNewTally(tally);
-            else //TODO: show an error on screen if there was an error establishing the tally
-              print('err');
+            }
+            else
+              errPop(context, "Couldn't create a tally because [INSERT REASON HERE]");
           }),
       ],
     );

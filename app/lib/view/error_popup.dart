@@ -20,3 +20,12 @@ Widget buildErrorWidget(context, [errMsg = "Try again later."]) {
     ]
   );
 }
+
+void errPop(context, msg) {
+  showDialog(context: context, builder: (BuildContext context){
+    return AlertDialog(
+        scrollable: false,
+        content: buildErrorWidget(context, msg)
+    );
+  });
+}

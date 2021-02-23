@@ -186,19 +186,3 @@ Widget createPaymentTextFields(friend) {
       )
   );
 }
-
-void succPop(context, msg) {
-  showDialog(context: context, builder: (BuildContext context){
-    return AlertDialog(
-        scrollable: false,
-        content: buildSuccessWidget(context, "Request sent successfully!")
-    );});
-}
-void errPop(context, msg) {
-  showDialog(context: context, builder: (BuildContext context){
-    return AlertDialog(
-        scrollable: false,
-        content: buildErrorWidget(context, msg)
-    );
-  });
-}
