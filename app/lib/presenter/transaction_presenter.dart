@@ -6,10 +6,12 @@ class TransactionPresenter {
 
   bool sendPayment(transaction) {
     dao.sendPayment(transaction);
+    return false;
   }
 
   bool requestPayment(transaction) {
     dao.requestPayment(transaction);
+    return false;
   }
 
 }
