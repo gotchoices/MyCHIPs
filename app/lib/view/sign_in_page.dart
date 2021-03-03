@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'user_info_page.dart';
 import 'home_page.dart';
+import '../services.dart';
 
 class SignInPage extends StatefulWidget {
   @override
@@ -64,7 +65,7 @@ class SignInPageState extends State<SignInPage> {
                         context,
                         new MaterialPageRoute(
                             builder: (BuildContext context) =>
-                            //TODO: figure out how reconnection works and create a reconnect page
+                                //TODO: figure out how reconnection works and create a reconnect page
                                 new HomePage()));
                   },
                   child: Text('Reconnect', style: TextStyle(fontSize: 20)),
@@ -72,7 +73,13 @@ class SignInPageState extends State<SignInPage> {
                   textColor: Colors.white,
                   elevation: 5,
                   height: 50,
-                  minWidth: (MediaQuery.of(context).size.width / 1.5))
+                  minWidth: (MediaQuery.of(context).size.width / 1.5)),
+              MaterialButton(
+                onPressed: () {
+                  Services.getUserTallies(1);
+                },
+                child: Text('Test Mock API'),
+              )
             ])));
   }
 }

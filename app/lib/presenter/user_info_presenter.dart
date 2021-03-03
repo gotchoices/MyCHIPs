@@ -5,7 +5,7 @@ class UserInfoPresenter {
   var dao = new AccountDao();
 
   Account getAccountInfo() {
-    return dao.getAccountData();
+    return new Account();
   }
 
   void setAccountInfo(account) {
