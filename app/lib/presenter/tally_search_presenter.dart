@@ -1,15 +1,14 @@
 import 'package:flutter_app/objects/tally.dart';
-import 'package:flutter_app/model/tally_list_dao.dart';
+import 'package:flutter_app/model/tally_search_dao.dart';
 
-class TallyListPresenter {
+class TallySearchPresenter {
+  var dao = new TallySearchDao();
 
-  var dao = new TallyListDao();
-
-  List<Tally> filterUsers(input, List<Tally>tallyList) {
+  List<Tally> filterUsers(input, List<Tally> tallyList) {
     List<Tally> resultTallies = new List<Tally>();
     for (var i = 0; i < tallyList.length; i++) {
       Tally tempTally = tallyList[i];
-      if (tempTally.friend.contains(input)) {
+      if (tempTally.friend.toLowerCase().contains(input)) {
         resultTallies.add(tempTally);
       }
     }
