@@ -130,17 +130,51 @@ class PieChartWidget extends State<HomePage> {
   }
 }
 
-class MainDrawer extends StatelessWidget {
-  var presenter = new UserInfoPresenter();
+class MainDrawer extends StatefulWidget {
+  @override
+  MainDrawerState createState() {
+    var presenter = new UserInfoPresenter();
+    var state = MainDrawerState();
+    state.setPresenter(presenter);
+
+    return state;
+  }
+
+  const MainDrawer({Key key}) : super(key: key);
+}
+
+class MainDrawerState extends State<MainDrawer> {
+  Account user;
+  UserInfoPresenter presenter;
+
+  void setUser(Account _user) {
+    setState(() {
+      user = _user;
+    });
+  }
+
+  void setPresenter(UserInfoPresenter uip) {
+    setState(() {
+      presenter = uip;
+    });
+  }
+
+  Account getUser() {
+    return user;
+  }
+
+  UserInfoPresenter getPresenter() {
+    return presenter;
+  }
+
   @override
   Widget build(BuildContext context) {
-    Account userAccount = presenter.getAccountInfo();
     return new Drawer(
         child: ListView(
       children: <Widget>[
         UserAccountsDrawerHeader(
-          accountName: Text(userAccount.displayName),
-          accountEmail: Text(userAccount.email),
+          accountName: Text(user.displayName),
+          accountEmail: Text(user.email),
           currentAccountPicture: GestureDetector(
               onTap: () {
                 Navigator.push(
