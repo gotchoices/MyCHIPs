@@ -5,6 +5,7 @@ import 'transaction_page.dart';
 import 'user_info_page.dart';
 import 'tally_list_page.dart';
 import 'sign_in_page.dart';
+import 'pending_page.dart';
 import 'create_tally_page.dart';
 import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
@@ -164,6 +165,14 @@ class MainDrawer extends StatelessWidget {
                       builder: (BuildContext context) => CreateTallyPage()
                   ));
                 }),
+            ListTile(
+              title: Text("Pending Transactions"),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (BuildContext context) => PendingPage()
+                ));
+              }
+            ),
           ],
         )
     );
