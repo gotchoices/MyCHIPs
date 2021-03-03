@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/objects/transaction.dart';
 import 'home_page.dart';
 import 'package:random_date/random_date.dart';
+import 'package:intl/intl.dart';
 
 class PendingPage extends StatefulWidget {
   @override
@@ -13,6 +14,7 @@ class PendingPageState extends State<PendingPage> {
   Transaction tran1 = Transaction(RandomDate.withRange(2000, 2020).random(), "pizza", "John Doe", "you", 12);
   Transaction tran2 = Transaction(RandomDate.withRange(2000, 2020).random(), "wings", "you", "Jane Doe", 9);
   List transactionList = <Transaction>[];
+  final DateFormat dateFormatter = DateFormat('MMMM d');
 
   @override
   Widget build(BuildContext context) {
@@ -50,17 +52,19 @@ class PendingPageState extends State<PendingPage> {
     return ListTile(
       title: Text(
           t.receiver + " requested ₵" + t.amount.toString() + " from " + t.sender
-          , style: TextStyle(fontSize: 18)
+          , style: TextStyle(fontSize: 15)
       ),
-      trailing: usersRequest ? Text("Pending...") : 
+      subtitle: Text(dateFormatter.format(t.date)),
+      trailing: usersRequest ?
           MaterialButton(
-            onPressed: null,
+            onPressed: (){},
             child: Text('Send', style: TextStyle(fontSize: 20)),
             color: Colors.blue,
             textColor: Colors.white,
             elevation: 5,
             height: 50,
           )
+          : Text("pending...")
     );
   }
 }
