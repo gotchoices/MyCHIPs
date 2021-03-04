@@ -39,7 +39,7 @@ class TallyPageState extends State<TallyPage> {
     return Stack(
       children: [
         Column(children: [
-          buildBalance(),
+          //buildBalance(), FOR NOW
           buildHistory(),
         ]),
         buildButtons()
@@ -67,6 +67,8 @@ class TallyPageState extends State<TallyPage> {
   }
 
   Widget buildHistoryList() {
+    if (userTransactions.markedIndex == userTransactions.checkedIndex)
+      return Center(child: Text("Click Pay or Request to begin a transaction history with this person", style: TextStyle(fontSize: 25, fontStyle:FontStyle.italic)));
     return ListView.builder(
         padding: const EdgeInsets.all(16),
         itemBuilder:(context, item) {
@@ -78,6 +80,7 @@ class TallyPageState extends State<TallyPage> {
             transactionList.addAll(transactionList.length == 0 ? presenter.getUserTransactions() : presenter.getUserTransactions(transactionList[transactionList.length - 1]));
             userTransactions.transactionList = transactionList;
           }
+
           return buildRow(transactionList[index]);
         }
     );

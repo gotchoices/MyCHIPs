@@ -17,6 +17,7 @@ class TallySearchPage extends StatefulWidget {
 
 class TallySearchPageState extends State<TallySearchPage> {
   UserTallies userTallies = UserTallies();
+  UserTransactions userTransactions = UserTransactions();
   List tallyList;
   final List searchList = <Tally>[];
   bool searching = false;
@@ -88,7 +89,7 @@ class TallySearchPageState extends State<TallySearchPage> {
         padding: const EdgeInsets.all(16),
         itemCount: searching ? searchList.length : tallyList.length,
         itemBuilder: (context, item) {
-          int index = item ~/ 2;
+          int index = item ;
           if (item.isOdd) return Divider();
           if (index >= tallyList.length && !searching)
             //if we've reached the end of the list, query the presenter for more, providing the last tally in the list for reference
@@ -97,22 +98,23 @@ class TallySearchPageState extends State<TallySearchPage> {
             if (index >= searchList.length) {
               return SizedBox();
             }
-            return buildRow(searchList[index]);
+            return buildRow(searchList[index], index);
           }
           if (index >= tallyList.length) {
             return SizedBox();
           }
-          return buildRow(tallyList[index]);
+          return buildRow(tallyList[index], index);
         });
   }
 
-  Widget buildRow(Tally t) {
+  Widget buildRow(Tally t, int index) {
     return ListTile(
         title: Text(t.friend, style: TextStyle(fontSize: 18)),
-        trailing:
-            Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
+        // trailing: FOR NOW
+            // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           if (widget.searchResultType == 0) {
+            userTransactions.markedIndex = index;
             Navigator.push(
                 context,
                 new MaterialPageRoute(

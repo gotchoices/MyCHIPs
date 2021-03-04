@@ -15,7 +15,7 @@ class TallySearchPresenter {
     return resultTallies;
   }
 
-  List<Tally> getUserTallies([Tally lastTally, int numToFetch = 10]) {
+  List<Tally> getUserTallies([Tally lastTally, int numToFetch = 12]) {
     return dao.getUserTallies(lastTally, numToFetch);
   }
 }

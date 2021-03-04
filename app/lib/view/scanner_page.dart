@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/model/singletons.dart';
 import 'package:flutter_app/presenter/scanner_presenter.dart';
 import 'package:flutter_app/view/error_popup.dart';
-import 'package:flutter_app/view/success_popup.dart';
 import '../objects/tally.dart';
 import '../objects/tally_ticket.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -161,8 +160,10 @@ class ScannerState extends State<Scanner> {
             Navigator.of(context).pop();
             Navigator.pop(context);
             if (presenter.registerNewTally(ticket)) {
-              UserTallies().tallyList.add(tally);
-              UserTallies().tallyList.add(tally);
+              UserTallies userTallies = UserTallies();
+              userTallies.tallyList.add(tally);
+              userTallies.tallyList.add(tally);
+              UserTransactions().checkedIndex = userTallies.tallyList.length - 2;
               //TODO: Comment this out when succPop works
               // succPop(context, "Tally with " + tally.friend + " successfully established.");
               transitionToNewTally(tally);

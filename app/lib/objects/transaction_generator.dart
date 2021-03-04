@@ -6,13 +6,13 @@ class TransactionGenerator {
   static List<Transaction> generateFakeTransactions([numToGenerate = 10]) {
     List<Transaction> results = <Transaction>[];
     for (int i = 0; i < numToGenerate; i++) {
-      Transaction t = generateFakeTransation();
+      Transaction t = generateFakeTransaction();
       results.add(t);
     }
     return results;
   }
 
-  static generateFakeTransation() {
+  static generateFakeTransaction() {
     var rng = new Random();
     return Transaction(
         RandomDate.withRange(2000, 2020).random(),

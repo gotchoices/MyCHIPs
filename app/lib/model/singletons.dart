@@ -26,6 +26,8 @@ class UserTransactions {
 
   factory UserTransactions() => _instance ?? UserTransactions._internal();
   List transactionList = <Transaction>[];
+  int checkedIndex;
+  int markedIndex;
 }
 
 class UserTallies {

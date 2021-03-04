@@ -3,7 +3,7 @@ import 'dart:math';
 import 'tally.dart';
 
 class TallyGenerator {
-  static List<Tally> generateFakeTallies([numToGenerate = 10]) {
+  static List<Tally> generateFakeTallies([numToGenerate = 12]) {
     List<Tally> results = <Tally>[];
     for (int i = 0; i < numToGenerate; i++) {
       Tally t = generateFakeTally();
