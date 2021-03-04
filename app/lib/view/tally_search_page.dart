@@ -46,7 +46,7 @@ class TallySearchPageState extends State<TallySearchPage> {
             ),
             hintText: "type user here",
             hintStyle: TextStyle(color: Colors.white)),
-        autofocus: true,
+        autofocus: !(widget.searchResultType == 0),
         style: TextStyle(color: Colors.white),
         cursorColor: Colors.white,
       )
@@ -72,7 +72,7 @@ class TallySearchPageState extends State<TallySearchPage> {
       body: Container(
           child: Stack(children: [
         Container(child: buildTallyList()),
-        Container(child: buildButton())
+        Container(child: widget.searchResultType == 0 ? buildButton() : null)
       ])),
       drawer: MainDrawer(),
     );
