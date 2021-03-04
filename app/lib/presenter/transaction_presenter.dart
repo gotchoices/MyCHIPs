@@ -14,4 +14,12 @@ class TransactionPresenter {
     return false;
   }
 
+  bool declinePayment(transaction) {
+
+  }
+
+  bool cancelRequest(transaction) {
+
+  }
+
 }
