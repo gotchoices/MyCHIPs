@@ -67,6 +67,7 @@ class TallyPageState extends State<TallyPage> {
   }
 
   Widget buildHistoryList() {
+    //TODO: add logic to find which transactions from singleton belong to this tally relationship
     return ListView.builder(
         padding: const EdgeInsets.all(16),
         itemBuilder:(context, item) {
