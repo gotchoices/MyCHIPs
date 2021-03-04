@@ -55,6 +55,7 @@ class PendingPageState extends State<PendingPage> {
     return Dismissible (
       key: ValueKey(t),
       onDismissed: (DismissDirection direction) {
+        //TODO: an error still oddly pops up here we need to reconcile
         setState(() {
           bool result = false;
           if (usersRequest) result = presenter.cancelRequest(t);
