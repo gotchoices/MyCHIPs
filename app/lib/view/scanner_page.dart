@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/model/singletons.dart';
 import 'package:flutter_app/presenter/scanner_presenter.dart';
 import 'package:flutter_app/view/error_popup.dart';
 import 'package:flutter_app/view/success_popup.dart';
@@ -160,6 +161,8 @@ class ScannerState extends State<Scanner> {
             Navigator.of(context).pop();
             Navigator.pop(context);
             if (presenter.registerNewTally(ticket)) {
+              UserTallies().tallyList.add(tally);
+              UserTallies().tallyList.add(tally);
               //TODO: Comment this out when succPop works
               // succPop(context, "Tally with " + tally.friend + " successfully established.");
               transitionToNewTally(tally);

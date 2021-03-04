@@ -24,6 +24,8 @@ class TallySearchPageState extends State<TallySearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (userTallies.tallyList.length == 0)
+      userTallies.tallyList = presenter.getUserTallies();
     tallyList = userTallies.tallyList;
     return Scaffold(
       appBar: AppBar(
@@ -84,22 +86,21 @@ class TallySearchPageState extends State<TallySearchPage> {
   Widget buildTallyList() {
     return ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: searching ? searchList.length : null,
+        itemCount: searching ? searchList.length : tallyList.length,
         itemBuilder: (context, item) {
           int index = item ~/ 2;
           if (item.isOdd) return Divider();
-          if (index >= tallyList.length && !searching) {
+          if (index >= tallyList.length && !searching)
             //if we've reached the end of the list, query the presenter for more, providing the last tally in the list for reference
-            tallyList.addAll(tallyList.length == 0
-                ? presenter.getUserTallies()
-                : presenter.getUserTallies(tallyList[tallyList.length - 1]));
             userTallies.tallyList = tallyList;
-          }
           else if (searching && searchList.length > 0) {
             if (index >= searchList.length) {
               return SizedBox();
             }
             return buildRow(searchList[index]);
+          }
+          if (index >= tallyList.length) {
+            return SizedBox();
           }
           return buildRow(tallyList[index]);
         });
