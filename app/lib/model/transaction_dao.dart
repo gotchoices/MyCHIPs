@@ -9,4 +9,12 @@ class TransactionDao {
   void requestPayment(transaction) {
 
   }
+
+  void declineTransaction(transaction) {
+
+  }
+
+  void cancelRequest(transaction) {
+
+  }
 }
