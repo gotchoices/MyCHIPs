@@ -19,8 +19,7 @@ class MyChips extends StatelessWidget {
     return MaterialApp(
         theme: ThemeData(primaryColor: Color(0xff53ab77)),
         //TODO: Determine if a user is logged in already, if so go to HomePage instead of Login page
-        home: SignInPage()
-    );
+        home: SignInPage());
   }
 }
 
@@ -48,36 +47,40 @@ class PieChartWidget extends State<HomePage> {
     getUserChartData();
     return new Scaffold(
       appBar: AppBar(title: Text("MyCHIPs home")),
-      body: Stack(children: [Center(
-          child: PieChart(
-            dataMap: dataMap,
-            animationDuration: Duration(milliseconds: 2500),
-            chartLegendSpacing: 32,
-            chartRadius: MediaQuery.of(context).size.width / 1.2,
-            colorList: colorList,
-            initialAngleInDegree: 0,
-            chartType: ChartType.disc,
-            ringStrokeWidth: 32,
-            legendOptions: LegendOptions(
-              showLegendsInRow: true,
-              legendPosition: LegendPosition.top,
-              showLegends: true,
-              legendShape: BoxShape.circle,
-              legendTextStyle: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+      body: Stack(children: [
+        Center(
+            child: PieChart(
+          dataMap: dataMap,
+          animationDuration: Duration(milliseconds: 2500),
+          chartLegendSpacing: 32,
+          chartRadius: MediaQuery.of(context).size.width / 1.2,
+          colorList: colorList,
+          initialAngleInDegree: 0,
+          chartType: ChartType.disc,
+          ringStrokeWidth: 32,
+          legendOptions: LegendOptions(
+            showLegendsInRow: true,
+            legendPosition: LegendPosition.top,
+            showLegends: true,
+            legendShape: BoxShape.circle,
+            legendTextStyle: TextStyle(
+              fontWeight: FontWeight.bold,
             ),
-            chartValuesOptions: ChartValuesOptions(
-              showChartValueBackground: false,
-              showChartValues: true,
-              showChartValuesInPercentage: true,
-              showChartValuesOutside: false,
-            ),
-          )
-      ),
+          ),
+          chartValuesOptions: ChartValuesOptions(
+            showChartValueBackground: false,
+            showChartValues: true,
+            showChartValuesInPercentage: true,
+            showChartValuesOutside: false,
+          ),
+        )),
         buildButtons(),
-        Padding(padding: const EdgeInsets.all(15), child: Align(alignment : Alignment.topCenter, child:
-        Text("₵$userBalance", style: TextStyle(fontSize: 50))))]),
+        Padding(
+            padding: const EdgeInsets.all(15),
+            child: Align(
+                alignment: Alignment.topCenter,
+                child: Text("₵$userBalance", style: TextStyle(fontSize: 50))))
+      ]),
       drawer: MainDrawer(),
     );
   }
@@ -86,95 +89,150 @@ class PieChartWidget extends State<HomePage> {
     var maxButtonWidth = (MediaQuery.of(context).size.width) / 2.25;
     return Container(
         child: Row(children: [
-          Padding(
-              padding: const EdgeInsets.all(10),
-              child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: MaterialButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(
+      Padding(
+          padding: const EdgeInsets.all(10),
+          child: Align(
+              alignment: Alignment.bottomLeft,
+              child: MaterialButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
                             builder: (BuildContext context) => Scanner()));
-                      },
-                      child: Row(children: [Text('SCAN', style: TextStyle(fontSize: 20)), Icon(Icons.qr_code)]),
-                      color: Colors.blue,
-                      textColor: Colors.white,
-                      elevation: 5,
-                      height: 50,
-                      minWidth: maxButtonWidth
-                  ))),
-          Padding(
-              padding: const EdgeInsets.all(10),
-              child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: MaterialButton(
-                      onPressed: () {
-                        showDialog(context: context, builder: (BuildContext context){
+                  },
+                  child: Row(children: [
+                    Text('SCAN', style: TextStyle(fontSize: 20)),
+                    Icon(Icons.qr_code)
+                  ]),
+                  color: Colors.blue,
+                  textColor: Colors.white,
+                  elevation: 5,
+                  height: 50,
+                  minWidth: maxButtonWidth))),
+      Padding(
+          padding: const EdgeInsets.all(10),
+          child: Align(
+              alignment: Alignment.bottomRight,
+              child: MaterialButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
                           return AlertDialog(
                               scrollable: true,
-                              content: buildTransactionWidget(context, 'BOTH'));});
-                      },
-                      child: const Text('Pay/Request', style: TextStyle(fontSize: 20)),
-                      color: Colors.blue,
-                      textColor: Colors.white,
-                      elevation: 5,
-                      height: 50,
-                      minWidth: maxButtonWidth
-                  )))]));
+                              content: buildTransactionWidget(context, 'BOTH'));
+                        });
+                  },
+                  child:
+                      const Text('Pay/Request', style: TextStyle(fontSize: 20)),
+                  color: Colors.blue,
+                  textColor: Colors.white,
+                  elevation: 5,
+                  height: 50,
+                  minWidth: maxButtonWidth)))
+    ]));
   }
 }
 
-class MainDrawer extends StatelessWidget {
-  var presenter = new UserInfoPresenter();
+class MainDrawer extends StatefulWidget {
+  // @override
+  // MainDrawerState createState() {
+  //   var presenter = new UserInfoPresenter();
+  //   var state = MainDrawerState();
+  //   state.setPresenter(presenter);
+
+  //   return state;
+  // }
+
+  const MainDrawer({Key key}) : super(key: key);
+
+  @override
+  MainDrawerState createState() => new MainDrawerState();
+}
+
+class MainDrawerState extends State<MainDrawer> {
+  Account user;
+  UserInfoPresenter presenter;
+
+  MainDrawerState() {
+    presenter = new UserInfoPresenter();
+    user = presenter.getAccountInfo();
+  }
+
+  void setUser(Account _user) {
+    setState(() {
+      user = _user;
+    });
+  }
+
+  void setPresenter(UserInfoPresenter uip) {
+    setState(() {
+      presenter = uip;
+    });
+  }
+
+  Account getUser() {
+    return user;
+  }
+
+  UserInfoPresenter getPresenter() {
+    return presenter;
+  }
+
   @override
   Widget build(BuildContext context) {
-    Account userAccount = presenter.getAccountInfo();
     return new Drawer(
-        child:ListView(
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text(userAccount.displayName),
-              accountEmail: Text(userAccount.email),
-              currentAccountPicture: GestureDetector (
-                  onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => UserInfoPage(false)));
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
-                  )),
-            ),
-            ListTile(
-                title: Text("Home"),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (BuildContext context) => HomePage()
-                  ));
-                }),
-            ListTile(
-                title: Text("My Tallies"),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (BuildContext context) => TallyListPage()
-                  ));
-                }),
-            ListTile(
-                title: Text("Create a New Tally"),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (BuildContext context) => CreateTallyPage()
-                  ));
-                }),
-            ListTile(
-              title: Text("Pending Transactions"),
+        child: ListView(
+      children: <Widget>[
+        UserAccountsDrawerHeader(
+          accountName: Text(user.displayName),
+          accountEmail: Text(user.email),
+          currentAccountPicture: GestureDetector(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (BuildContext context) => PendingPage()
-                ));
-              }
-            ),
-          ],
-        )
-    );
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (BuildContext context) =>
+                            UserInfoPage(false)));
+              },
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(
+                    "https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
+              )),
+        ),
+        ListTile(
+            title: Text("Home"),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => HomePage()));
+            }),
+        ListTile(
+            title: Text("My Tallies"),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => TallyListPage()));
+            }),
+        ListTile(
+            title: Text("Create a New Tally"),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => CreateTallyPage()));
+            }),
+        ListTile(
+            title: Text("Pending Transactions"),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => PendingPage()));
+            }),
+      ],
+    ));
   }
 }
