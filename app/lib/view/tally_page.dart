@@ -69,6 +69,7 @@ class TallyPageState extends State<TallyPage> {
   Widget buildHistoryList() {
     if (userTransactions.markedIndex == userTransactions.checkedIndex)
       return Center(child: Text("Click Pay or Request to begin a transaction history with this person", style: TextStyle(fontSize: 25, fontStyle:FontStyle.italic)));
+    //TODO: add logic to find which transactions from singleton belong to this tally relationship
     return ListView.builder(
         padding: const EdgeInsets.all(16),
         itemBuilder:(context, item) {

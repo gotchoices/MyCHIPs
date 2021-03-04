@@ -128,6 +128,7 @@ class ScannerState extends State<Scanner> {
         //pop this context so pushing the back button won't bring us back to the camera
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (BuildContext context) {
             return getTallyApprovalDialog(scanData);},);
       });
@@ -139,7 +140,7 @@ class ScannerState extends State<Scanner> {
     Tally tally = Tally.parseTallyTicket(ticket);
     //TODO: Check which version of the build this is so we can return a "CupertinoAlertDialog" if on iOS
     return AlertDialog(
-      title: Text('AlertDialog Title'),
+      title: Text('Start a New Tally'),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
