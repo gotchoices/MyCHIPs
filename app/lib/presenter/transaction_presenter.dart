@@ -14,4 +14,14 @@ class TransactionPresenter {
     return false;
   }
 
+  bool declinePayment(transaction) {
+    dao.declineTransaction(transaction);
+    return true;
+  }
+
+  bool cancelRequest(transaction) {
+    dao.cancelRequest(transaction);
+    return true;
+  }
+
 }

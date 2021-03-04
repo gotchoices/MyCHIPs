@@ -4,6 +4,7 @@ import 'package:pie_chart/pie_chart.dart';
 import 'user_info_page.dart';
 import 'tally_search_page.dart';
 import 'sign_in_page.dart';
+import 'pending_page.dart';
 import 'create_tally_page.dart';
 import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
@@ -219,6 +220,14 @@ class MainDrawerState extends State<MainDrawer> {
                   context,
                   MaterialPageRoute(
                       builder: (BuildContext context) => CreateTallyPage()));
+            }),
+        ListTile(
+            title: Text("Pending Transactions"),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => PendingPage()));
             }),
       ],
     ));
