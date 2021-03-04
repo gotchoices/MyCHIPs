@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/presenter/user_info_presenter.dart';
 import 'package:pie_chart/pie_chart.dart';
-import 'transaction_page.dart';
 import 'user_info_page.dart';
-import 'tally_list_page.dart';
+import 'tally_search_page.dart';
 import 'sign_in_page.dart';
 import 'create_tally_page.dart';
 import 'scanner_page.dart';
@@ -114,13 +113,11 @@ class PieChartWidget extends State<HomePage> {
               alignment: Alignment.bottomRight,
               child: MaterialButton(
                   onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                              scrollable: true,
-                              content: buildTransactionWidget(context, 'BOTH'));
-                        });
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                TallySearchPage(1)));
                   },
                   child:
                       const Text('Pay/Request', style: TextStyle(fontSize: 20)),
@@ -213,7 +210,7 @@ class MainDrawerState extends State<MainDrawer> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (BuildContext context) => TallyListPage()));
+                      builder: (BuildContext context) => TallySearchPage(0)));
             }),
         ListTile(
             title: Text("Create a New Tally"),
