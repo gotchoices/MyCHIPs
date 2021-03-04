@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/model/singletons.dart';
 import 'package:flutter_app/presenter/tally_search_presenter.dart';
 import 'home_page.dart';
 import '../objects/tally.dart';
@@ -15,13 +16,15 @@ class TallySearchPage extends StatefulWidget {
 }
 
 class TallySearchPageState extends State<TallySearchPage> {
-  final List tallyList = <Tally>[];
+  UserTallies userTallies = UserTallies();
+  List tallyList;
   final List searchList = <Tally>[];
   bool searching = false;
   var presenter = new TallySearchPresenter();
 
   @override
   Widget build(BuildContext context) {
+    tallyList = userTallies.tallyList;
     return Scaffold(
       appBar: AppBar(
           title: TextField(
@@ -85,11 +88,13 @@ class TallySearchPageState extends State<TallySearchPage> {
         itemBuilder: (context, item) {
           int index = item ~/ 2;
           if (item.isOdd) return Divider();
-          if (index >= tallyList.length && !searching)
+          if (index >= tallyList.length && !searching) {
             //if we've reached the end of the list, query the presenter for more, providing the last tally in the list for reference
             tallyList.addAll(tallyList.length == 0
                 ? presenter.getUserTallies()
                 : presenter.getUserTallies(tallyList[tallyList.length - 1]));
+            userTallies.tallyList = tallyList;
+          }
           else if (searching && searchList.length > 0) {
             if (index >= searchList.length) {
               return SizedBox();

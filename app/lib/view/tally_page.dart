@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/model/singletons.dart';
 import 'package:flutter_app/presenter/tally_page_presenter.dart';
 import 'home_page.dart';
 import '../objects/transaction.dart';
@@ -15,11 +16,13 @@ class TallyPage extends StatefulWidget {
 }
 
 class TallyPageState extends State<TallyPage> {
-  final List transactionList = <Transaction>[];
+  UserTransactions userTransactions = UserTransactions();
+  List transactionList;
   var presenter = TallyPagePresenter();
 
   @override
   Widget build(BuildContext context) {
+    transactionList = userTransactions.transactionList;
     return Scaffold(
         appBar: AppBar(
           title: Text("Tally with " + widget.tally.friend),
@@ -71,8 +74,10 @@ class TallyPageState extends State<TallyPage> {
             return ListTile(title: Text("History"));
           if(item.isOdd) return Divider();
           int index = item ~/ 2;
-          if (index >= transactionList.length)
+          if (index >= transactionList.length) {
             transactionList.addAll(transactionList.length == 0 ? presenter.getUserTransactions() : presenter.getUserTransactions(transactionList[transactionList.length - 1]));
+            userTransactions.transactionList = transactionList;
+          }
           return buildRow(transactionList[index]);
         }
     );

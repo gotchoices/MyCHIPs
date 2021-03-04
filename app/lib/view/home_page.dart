@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/model/singletons.dart';
 import 'package:flutter_app/presenter/user_info_presenter.dart';
 import 'package:pie_chart/pie_chart.dart';
 import 'user_info_page.dart';
@@ -15,6 +16,7 @@ class MyChips extends StatelessWidget {
   var presenter = new HomePresenter();
   @override
   Widget build(BuildContext context) {
+    initiateSingletons();
     return MaterialApp(
         theme: ThemeData(primaryColor: Color(0xff53ab77)),
         //TODO: Determine if a user is logged in already, if so go to HomePage instead of Login page
@@ -29,6 +31,7 @@ class HomePage extends StatefulWidget {
 
 class PieChartWidget extends State<HomePage> {
   var presenter = new HomePresenter();
+  UserInfo userInfo = UserInfo();
   double userBalance;
   Map<String, double> dataMap;
   List<Color> colorList;
@@ -36,9 +39,14 @@ class PieChartWidget extends State<HomePage> {
   //TODO: How do we choose the colors for the pie chart? Needs to be dynamic as number of colors could be
   // List<Color> colorList = [Colors.red, Colors.orange,Colors.green,Colors.greenAccent];
   void getUserChartData() {
-    userBalance = presenter.getUserBalance();
-    dataMap = presenter.getUserPieChart();
-    colorList = presenter.getPieChartColors(dataMap);
+    if (userInfo.userBalance == null) {
+      userInfo.userBalance = presenter.getUserBalance();
+      userInfo.dataMap = presenter.getUserPieChart();
+      userInfo.colorList = presenter.getPieChartColors(userInfo.dataMap);
+    }
+    userBalance = userInfo.userBalance;
+    dataMap = userInfo.dataMap;
+    colorList = userInfo.colorList;
   }
 
   @override
