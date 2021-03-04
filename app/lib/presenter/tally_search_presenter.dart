@@ -8,7 +8,7 @@ class TallySearchPresenter {
     List<Tally> resultTallies = new List<Tally>();
     for (var i = 0; i < tallyList.length; i++) {
       Tally tempTally = tallyList[i];
-      if (tempTally.friend.toLowerCase().contains(input)) {
+      if (tempTally.friend.toLowerCase().contains(input.toString().toLowerCase())) {
         resultTallies.add(tempTally);
       }
     }
