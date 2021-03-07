@@ -1,4 +1,4 @@
-import 'package:flutter_app/model/tally_page_dao.dart';
+import 'package:flutter_app/DAOs/tally_page_dao.dart';
 import 'package:flutter_app/objects/transaction.dart';
 
 class TallyPagePresenter {

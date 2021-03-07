@@ -39,7 +39,7 @@ class CreateTallyPageState extends State<CreateTallyPage> {
 
   Widget buildQRCode() {
     Image qr = presenter.generateQRCode();
-    //replace with call to backend
+    //TODO: replace with call to backend
     return Align(
       alignment: Alignment.center,
       child: qr);

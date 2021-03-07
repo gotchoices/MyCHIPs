@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/model/singletons.dart';
+import 'package:flutter_app/objects/singletons.dart';
 import 'package:flutter_app/presenter/tally_page_presenter.dart';
-import 'home_page.dart';
 import '../objects/transaction.dart';
 import '../objects/tally.dart';
 import 'package:date_format/date_format.dart';
+import 'main_drawer_view.dart';
 import 'transaction_page.dart';
 
 class TallyPage extends StatefulWidget {
@@ -17,12 +17,12 @@ class TallyPage extends StatefulWidget {
 
 class TallyPageState extends State<TallyPage> {
   UserTransactions userTransactions = UserTransactions();
-  List transactionList;
+  Map transactionMap;
   var presenter = TallyPagePresenter();
 
   @override
   Widget build(BuildContext context) {
-    transactionList = userTransactions.transactionList;
+    transactionMap = userTransactions.transactionList;
     return Scaffold(
         appBar: AppBar(
           title: Text("Tally with " + widget.tally.friend),
@@ -41,48 +41,47 @@ class TallyPageState extends State<TallyPage> {
         Column(children: [
           //buildBalance(), FOR NOW
           buildHistory(),
+          buildButtons()
         ]),
-        buildButtons()
       ]
     );
   }
 
-  Widget buildBalance() {
-    return Container(
-      height:150,
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Column(
-          children: [
-            Text("₵" + widget.tally.balance.toString(),  style: TextStyle(fontSize: 75)),
-            Text("balance",  style: TextStyle(fontSize: 25)),
-          ],
-    ))));
-  }
+  //May use this function later
+  // Widget buildBalance() {
+  //   return Container(
+  //     height:150,
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(15),
+  //       child: Align(
+  //         alignment: Alignment.topCenter,
+  //         child: Column(
+  //         children: [
+  //           Text("₵" + widget.tally.balance.toString(),  style: TextStyle(fontSize: 75)),
+  //           Text("balance",  style: TextStyle(fontSize: 25)),
+  //         ],
+  //   ))));
+  // }
 
   Widget buildHistory() {
     return Expanded(child: buildHistoryList());
   }
 
   Widget buildHistoryList() {
-    if (userTransactions.markedIndex == userTransactions.checkedIndex)
+    List<Transaction> transactionList = transactionMap[widget.tally.personID];
+    if (transactionList.length == 0)
       return Center(child: Text("Click Pay or Request to begin a transaction history with this person", style: TextStyle(fontSize: 25, fontStyle:FontStyle.italic)));
-    //TODO: add logic to find which transactions from singleton belong to this tally relationship
     return ListView.builder(
+        itemCount: (transactionList.length * 2),
         padding: const EdgeInsets.all(16),
         itemBuilder:(context, item) {
           if(item == 0) 
-            return ListTile(title: Text("History"));
+            return ListTile(title: Text("History:", style: TextStyle(fontSize: 25, decoration: TextDecoration.underline),));
+          item--;
+          if(item == 0)
+            return buildRow(transactionList[0]);
           if(item.isOdd) return Divider();
-          int index = item ~/ 2;
-          if (index >= transactionList.length) {
-            transactionList.addAll(transactionList.length == 0 ? presenter.getUserTransactions() : presenter.getUserTransactions(transactionList[transactionList.length - 1]));
-            userTransactions.transactionList = transactionList;
-          }
-
-          return buildRow(transactionList[index]);
+          return buildRow(transactionList[item~/2]);
         }
     );
   }

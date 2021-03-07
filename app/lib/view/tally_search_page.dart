@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/model/singletons.dart';
+import 'package:flutter_app/objects/singletons.dart';
 import 'package:flutter_app/presenter/tally_search_presenter.dart';
-import 'home_page.dart';
-import '../objects/tally.dart';
+import 'package:flutter_app/objects/tally.dart';
+import 'main_drawer_view.dart';
 import 'tally_page.dart';
 import 'create_tally_page.dart';
 import 'transaction_page.dart';
 
+// ignore: must_be_immutable
 class TallySearchPage extends StatefulWidget {
   int searchResultType;
   TallySearchPage(this.searchResultType);
@@ -26,60 +27,42 @@ class TallySearchPageState extends State<TallySearchPage> {
   @override
   Widget build(BuildContext context) {
     if (userTallies.tallyList.length == 0)
-      userTallies.tallyList = presenter.getUserTallies();
+      presenter.getUserTallies();
     tallyList = userTallies.tallyList;
     return Scaffold(
       appBar: AppBar(
           title: TextField(
-        onChanged: (input) {
-          if (input.isNotEmpty) {
-            searchList.clear();
-            searchList.addAll(presenter.filterUsers(input, tallyList));
-            setState(() {
-              searching = true;
-            });
-          } else {
-            searchList.clear();
-            setState(() {
-              searching = false;
-            });
-          }
-        },
-        decoration: InputDecoration(
-            icon: Icon(
-              Icons.search,
-              color: Colors.white,
-            ),
-            hintText: "type user here",
-            hintStyle: TextStyle(color: Colors.white)),
-        autofocus: !(widget.searchResultType == 0),
-        style: TextStyle(color: Colors.white),
-        cursorColor: Colors.white,
-      )
-          // actions: <Widget>[
-          //   searching
-          //       ? IconButton(
-          //           icon: Icon(Icons.cancel_outlined),
-          //           onPressed: () {
-          //             setState(() {
-          //               searchList.clear();
-          //               searching = !searching;
-          //             });
-          //           })
-          //       : IconButton(
-          //           icon: Icon(Icons.search),
-          //           onPressed: () {
-          //             setState(() {
-          //               searching = !searching;
-          //             });
-          //           }),
-          // ]
-          ),
-      body: Container(
-          child: Stack(children: [
-        Container(child: buildTallyList()),
-        Container(child: widget.searchResultType == 0 ? buildButton() : null)
-      ])),
+            onChanged: (input) {
+              if (input.isNotEmpty) {
+                searchList.clear();
+                searchList.addAll(presenter.filterUsers(input, tallyList));
+                setState(() {
+                  searching = true;
+                });
+              } else {
+                searchList.clear();
+                setState(() {
+                  searching = false;
+                });
+              }
+              },
+            decoration: InputDecoration(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.white,
+                ),
+                hintText: "type user here",
+                hintStyle: TextStyle(color: Colors.white)),
+            autofocus: !(widget.searchResultType == 0),
+            style: TextStyle(color: Colors.white),
+            cursorColor: Colors.white,
+          )
+      ),
+      body: Container(child: Stack(children: [
+            Container(child: buildTallyList()),
+            //TODO: get that GOSH DANG BUTTON off the last item in the list
+            Container(child: widget.searchResultType == 0 ? buildButton() : null)
+          ])),
       drawer: MainDrawer(),
     );
   }
@@ -87,34 +70,30 @@ class TallySearchPageState extends State<TallySearchPage> {
   Widget buildTallyList() {
     return ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: searching ? searchList.length : tallyList.length,
+        itemCount: searching ? (searchList.length * 2) : (tallyList.length * 2),
         itemBuilder: (context, item) {
-          int index = item ;
+
+          if(item == 0 && searching)
+            return buildRow(searchList[0]);
+          else if (item == 0 && !searching)
+            return buildRow(tallyList[0]);
+
           if (item.isOdd) return Divider();
-          if (index >= tallyList.length && !searching)
-            //if we've reached the end of the list, query the presenter for more, providing the last tally in the list for reference
-            userTallies.tallyList = tallyList;
-          else if (searching && searchList.length > 0) {
-            if (index >= searchList.length) {
-              return SizedBox();
-            }
-            return buildRow(searchList[index], index);
-          }
-          if (index >= tallyList.length) {
-            return SizedBox();
-          }
-          return buildRow(tallyList[index], index);
+
+          if (searching)
+            return buildRow(searchList[item~/2]);
+          else
+            return buildRow(tallyList[item~/2]);
         });
   }
 
-  Widget buildRow(Tally t, int index) {
+  Widget buildRow(Tally t) {
     return ListTile(
         title: Text(t.friend, style: TextStyle(fontSize: 18)),
         // trailing: FOR NOW
             // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           if (widget.searchResultType == 0) {
-            userTransactions.markedIndex = index;
             Navigator.push(
                 context,
                 new MaterialPageRoute(

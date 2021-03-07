@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/objects/transaction.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
-import 'home_page.dart';
 import 'package:random_date/random_date.dart';
 import 'package:intl/intl.dart';
+
+import 'main_drawer_view.dart';
 
 class PendingPage extends StatefulWidget {
   @override

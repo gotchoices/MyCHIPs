@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/model/singletons.dart';
+import 'package:flutter_app/objects/singletons.dart';
 import 'package:flutter_app/presenter/scanner_presenter.dart';
 import 'package:flutter_app/view/error_popup.dart';
 import '../objects/tally.dart';
@@ -60,6 +60,7 @@ class ScannerState extends State<Scanner> {
                     children: <Widget>[
                       Container(
                         margin: EdgeInsets.all(8),
+                        // ignore: deprecated_member_use
                         child: RaisedButton(
                           onPressed: () {
                             if (controller != null) {
@@ -81,6 +82,7 @@ class ScannerState extends State<Scanner> {
                       ),
                       Container(
                         margin: EdgeInsets.all(8),
+                        // ignore: deprecated_member_use
                         child: RaisedButton(
                           onPressed: () {
                             if (controller != null) {
@@ -164,7 +166,7 @@ class ScannerState extends State<Scanner> {
               UserTallies userTallies = UserTallies();
               userTallies.tallyList.add(tally);
               userTallies.tallyList.add(tally);
-              UserTransactions().checkedIndex = userTallies.tallyList.length - 2;
+              UserTransactions().transactionList[tally.personID] = [];
               //TODO: Comment this out when succPop works
               // succPop(context, "Tally with " + tally.friend + " successfully established.");
               transitionToNewTally(tally);

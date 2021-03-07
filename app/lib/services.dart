@@ -41,5 +41,5 @@ class Services {
     return f;
   }
 
-  static String apiCall(var json) {}
+  static String apiCall(var json) { return null; }
 }

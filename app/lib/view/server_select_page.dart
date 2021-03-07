@@ -1,9 +1,8 @@
 import 'dart:math';
-
 import 'package:faker/faker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'main_drawer_view.dart';
 
 class ServerSelectPage extends StatefulWidget {
   @override

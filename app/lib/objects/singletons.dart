@@ -1,5 +1,6 @@
 import 'dart:ui';
-
+import 'dart:collection';
+import 'package:flutter_app/objects/account.dart';
 import 'package:flutter_app/objects/tally.dart';
 import 'package:flutter_app/objects/transaction.dart';
 
@@ -15,6 +16,7 @@ class UserInfo {
   double userBalance;
   Map<String, double> dataMap;
   List<Color> colorList;
+  Account account;
 }
 
 class UserTransactions {
@@ -25,9 +27,7 @@ class UserTransactions {
   }
 
   factory UserTransactions() => _instance ?? UserTransactions._internal();
-  List transactionList = <Transaction>[];
-  int checkedIndex;
-  int markedIndex;
+  HashMap transactionList = new HashMap<int, List<Transaction>>();
 }
 
 class UserTallies {

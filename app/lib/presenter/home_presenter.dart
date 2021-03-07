@@ -1,4 +1,4 @@
-import 'package:flutter_app/model/debits_credits.dart';
+import 'package:flutter_app/objects/debits_credits.dart';
 import 'package:random_color/random_color.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +15,7 @@ class HomePresenter {
 
   List<Color> getPieChartColors(dataMap) {
     RandomColor rc = RandomColor();
-    List<Color> colorList = new List();
+    List<Color> colorList = [];
     for (int i = 0; i < dataMap.length; i++)
       colorList.add(rc.randomColor());
     return colorList;

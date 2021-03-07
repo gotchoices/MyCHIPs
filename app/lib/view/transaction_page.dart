@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_app/objects/tally.dart';
 import 'package:flutter_app/presenter/tally_search_presenter.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
-import 'home_page.dart';
 import 'error_popup.dart';
+import 'main_drawer_view.dart';
 import 'success_popup.dart';
 
 const BOTH = 'BOTH';
@@ -32,19 +32,19 @@ class TransactionPageState extends State<TransactionPage> {
   and when it brings up the keyboard it destroys the formatting of everything behind it.
   It needs an "X" button, or some easy way for users to get off of this popup if they hit it by accident
   Additionally, if they're on the main page, we need to put a function that searches through all the tallies they
-  have and autofills/suggests the names of people they might be attempting to reach.
+  have and auto fills/suggests the names of people they might be attempting to reach.
   The boxes are all wrong. And after the error message pops up, it still is focused on wherever you typed last. dumb.
   Also, there has to be a better way to make the widget in its 3 different forms than the "BOTH" if statement.
 * */
-Widget buildTransactionWidget(context, transactionType, [friend = null]) {
+Widget buildTransactionWidget(context, transactionType, [friend]) {
   return Column(children: [
     createPaymentTextFields(friend),
     Divider(thickness: 2, color: Colors.black),
     Container(
         child: Padding(
       padding: EdgeInsets.only(bottom: 100, left: 5),
-      //TODO: Make the text in this textfield wrap
-      child: TextField(
+      //TODO: Make the text in this textField wrap
+          child: TextField(
         decoration: InputDecoration(
             border: InputBorder.none,
             hintText: "Purpose:",

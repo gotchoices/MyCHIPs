@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/model/singletons.dart';
-import 'package:flutter_app/presenter/user_info_presenter.dart';
+import 'package:flutter_app/objects/singletons.dart';
 import 'package:pie_chart/pie_chart.dart';
-import 'user_info_page.dart';
+import 'main_drawer_view.dart';
 import 'tally_search_page.dart';
 import 'sign_in_page.dart';
-import 'pending_page.dart';
-import 'create_tally_page.dart';
 import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
-import 'package:flutter_app/objects/account.dart';
 
 //TODO: Observer and notifier for when someone else pays/requests payment to you
+// ignore: must_be_immutable
 class MyChips extends StatelessWidget {
   var presenter = new HomePresenter();
   @override
   Widget build(BuildContext context) {
-    initiateSingletons();
     return MaterialApp(
         theme: ThemeData(primaryColor: Color(0xff53ab77)),
         //TODO: Determine if a user is logged in already, if so go to HomePage instead of Login page
@@ -96,148 +92,45 @@ class PieChartWidget extends State<HomePage> {
     var maxButtonWidth = (MediaQuery.of(context).size.width) / 2.25;
     return Container(
         child: Row(children: [
-      Padding(
-          padding: const EdgeInsets.all(10),
-          child: Align(
-              alignment: Alignment.bottomLeft,
-              child: MaterialButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => Scanner()));
-                  },
-                  child: Row(children: [
-                    Text('SCAN', style: TextStyle(fontSize: 20)),
-                    Icon(Icons.qr_code)
-                  ]),
-                  color: Colors.blue,
-                  textColor: Colors.white,
-                  elevation: 5,
-                  height: 50,
-                  minWidth: maxButtonWidth))),
-      Padding(
-          padding: const EdgeInsets.all(10),
-          child: Align(
-              alignment: Alignment.bottomRight,
-              child: MaterialButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                TallySearchPage(1)));
-                  },
-                  child:
+          Padding(
+              padding: const EdgeInsets.all(10),
+              child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: MaterialButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (BuildContext context) => Scanner()));
+                        },
+                      child: Row(children: [
+                        Text('SCAN', style: TextStyle(fontSize: 20)),
+                        Icon(Icons.qr_code)
+                      ]),
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      elevation: 5,
+                      height: 50,
+                      minWidth: maxButtonWidth))),
+          Padding(
+              padding: const EdgeInsets.all(10),
+              child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: MaterialButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (BuildContext context) =>
+                                    TallySearchPage(1)));
+                        },
+                      child:
                       const Text('Pay/Request', style: TextStyle(fontSize: 20)),
-                  color: Colors.blue,
-                  textColor: Colors.white,
-                  elevation: 5,
-                  height: 50,
-                  minWidth: maxButtonWidth)))
-    ]));
-  }
-}
-
-class MainDrawer extends StatefulWidget {
-  // @override
-  // MainDrawerState createState() {
-  //   var presenter = new UserInfoPresenter();
-  //   var state = MainDrawerState();
-  //   state.setPresenter(presenter);
-
-  //   return state;
-  // }
-
-  const MainDrawer({Key key}) : super(key: key);
-
-  @override
-  MainDrawerState createState() => new MainDrawerState();
-}
-
-class MainDrawerState extends State<MainDrawer> {
-  Account user;
-  UserInfoPresenter presenter;
-
-  MainDrawerState() {
-    presenter = new UserInfoPresenter();
-    user = presenter.getAccountInfo();
-  }
-
-  void setUser(Account _user) {
-    setState(() {
-      user = _user;
-    });
-  }
-
-  void setPresenter(UserInfoPresenter uip) {
-    setState(() {
-      presenter = uip;
-    });
-  }
-
-  Account getUser() {
-    return user;
-  }
-
-  UserInfoPresenter getPresenter() {
-    return presenter;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return new Drawer(
-        child: ListView(
-      children: <Widget>[
-        UserAccountsDrawerHeader(
-          accountName: Text(user.displayName),
-          accountEmail: Text(user.email),
-          currentAccountPicture: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (BuildContext context) =>
-                            UserInfoPage(false)));
-              },
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(
-                    "https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
-              )),
-        ),
-        ListTile(
-            title: Text("Home"),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (BuildContext context) => HomePage()));
-            }),
-        ListTile(
-            title: Text("My Tallies"),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (BuildContext context) => TallySearchPage(0)));
-            }),
-        ListTile(
-            title: Text("Create a New Tally"),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (BuildContext context) => CreateTallyPage()));
-            }),
-        ListTile(
-            title: Text("Pending Transactions"),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (BuildContext context) => PendingPage()));
-            }),
-      ],
-    ));
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      elevation: 5,
+                      height: 50,
+                      minWidth: maxButtonWidth)))
+        ]));
   }
 }

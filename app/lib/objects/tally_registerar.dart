@@ -1,4 +1,4 @@
-import '../objects/tally_ticket.dart';
+// import 'tally_ticket.dart';
 
 class TallyRegistrar
 {

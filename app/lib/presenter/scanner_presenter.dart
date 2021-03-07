@@ -1,5 +1,4 @@
-import 'package:flutter_app/model/tally_registerar.dart';
-
+import 'package:flutter_app/objects/tally_registerar.dart';
 class ScannerPresenter {
   var registrar = new TallyRegistrar();
   bool registerNewTally(tallyTicket) {

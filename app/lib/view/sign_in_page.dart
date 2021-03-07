@@ -15,7 +15,6 @@ class SignInPageState extends State<SignInPage> {
     return Scaffold(
       appBar: AppBar(title: Text("MyChips")),
       body: buildPage(),
-      drawer: MainDrawer(),
     );
   }
 
@@ -26,15 +25,15 @@ class SignInPageState extends State<SignInPage> {
   Widget createInputs() {
     return Container(
         child: Padding(
-      padding: EdgeInsets.only(
-        top: (MediaQuery.of(context).size.height / 4),
-      ),
-      child: Text(
-        'A New Approach to Currency',
-        style: TextStyle(fontSize: 48),
-        textAlign: TextAlign.center,
-      ),
-    ));
+          padding: EdgeInsets.only(
+            top: (MediaQuery.of(context).size.height / 4),
+          ),
+          child: Text(
+            'A New Approach to Currency',
+            style: TextStyle(fontSize: 48),
+            textAlign: TextAlign.center,
+          ),
+        ));
   }
 
   Widget createButtons() {

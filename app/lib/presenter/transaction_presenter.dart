@@ -1,4 +1,4 @@
-import 'package:flutter_app/model/transaction_dao.dart';
+import 'package:flutter_app/DAOs/transaction_dao.dart';
 
 class TransactionPresenter {
 
