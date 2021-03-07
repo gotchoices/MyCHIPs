@@ -1,4 +1,4 @@
-import 'package:flutter_app/objects/transaction.dart';
+// import 'package:flutter_app/objects/transaction.dart';
 
 class TransactionDao {
 
