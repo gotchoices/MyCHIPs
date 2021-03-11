@@ -1,21 +1,9 @@
 @startuml
 !include common.puml
-$title(Automatic Route Discovery (WIP))
-database "Debtor DB" as debtDB
-database "User DB" as userDB
-database "Creditor DB" as credDB
-
-note over debtDB
-  Debtor: A tally partner who owes our user
-  a balance larger than is optimal according
-  to the user's current trading parameters.
-end note
-
-note over credDB
-  Creditor: A tally partner who owes our user
-  a balance larger than is optimal according
-  to the user's current trading parameters.
-end note
+$title(Automatic Route Discovery WIP)
+database "Upstream DB" as upDB
+database "Local DB" as userDB
+database "Downstream DB" as downDB
 
 group User requests route via a specific tally/partner
   user		->>	userDB:		Request route to specified peer

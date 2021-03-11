@@ -193,19 +193,19 @@ It allows parties to transmit surplus credits (pledges) they hold, back through 
 
 The [lift algorithm](http://gotchoices.org/mychips/acdc.html) is like a way to “pay your bills” without the need for traditional money.
 It can be thought of as trading what you *have but don't need*, for what you *need but don't have*.
-This is sometimes called a “clearing function” as it “clears out” or “nets to zero” offsetting credits.
+This is sometimes called a “clearing function” as it “clears out” or “nets to zero” offsetting credits on each node it traverses.
 
 <p align="center"><img src="Lifts-1.jpg" width="500" title="Visualizing a lift with four participants"></p>
 
 This figure shows a circular loop of trading partners.
 The arrows show the normal flow of money, credit, or IOU's in a clock-wise direction.
-Each arrow also represents a tally, pointing from the foil at the tail, to the stock at the arrowhead.
+Each arrow also represents a tally, pointing from the foil at its tail, to the stock at its head.
 
-A circular credit lift would move value in the opposite, or counter-clockwise direction, clearing out credit imbalances along the way.
+A circular credit lift will move value in the opposite, or counter-clockwise direction, clearing out credit imbalances along the way.
 
 The linear version of the credit lift performs a related function, allowing you to send value through the network to an entity you are not directly connected to.
-It can be thought of as paying with what you have but don't want, while the receiver gets what he wants but does not yet have.
-Participating entities along the way also get the benefit of a clearing function on their own credit holdings.
+It can be thought of as paying with *what you have but don't want*, while the receiver gets *what he wants but does not yet have*.
+Participating entities along the way also get the benefit of a clearing function on their own tallies.
 
 <p align="center"><img src="Lifts-2.jpg" width="400" title="A lift to transmit value"></p>
 
@@ -216,21 +216,21 @@ A central-planning algorithm could simply determine the most efficient lift path
 But MyCHIPs is purposely designed as a distributed, de-centralized system.
 The intent is, no single database will contain knowledge of the whole network.
 Ideally, databases will only contain information about the *local* entities they host and other *foreign* entities their local users are directly connected to by tallies.
-And even then, information about foreign entities should be kept as limited as possible.
+Even then, information about foreign entities will be kept as limited as possible.
 
 To accomplish this, each database will build a map of theoretical routes believed to exist somewhere in the outside network.
 For the purposes of regular (circular) lifts, the goal is to find external routes:
 - from known, up-stream foreign entities,
 - to known, down-stream foreign entities.
 
-Knowing such external pathways, a site should be able to combine them with known, internal segments of entities for form a complete lift circuit.
+Knowing such external pathways, a site should be able to combine them with known, internal segments of entities to form a complete lift circuit.
 
 <p align="center"><img src="Lifts-3.jpg" width="400" title="A distributed lift"></p>
 
 For linear (payment) lifts, the process is similar.
 The goal is to find external pathways:
-- from known, up-stream foreign entities,
-- to a given, named foreign entity,
+- from a known, up-stream foreign entity,
+- to a particular, identified foreign entity,
 - who may also have provided *hints* about one or more well-known entities it has a direct down-stream connection to.
 
 We use the terminology *up-stream* to denote a peer who owes us excess money.
@@ -262,8 +262,15 @@ It will be reliant on site A, site B, and probably a bunch of other sites to exe
 
 A lift segment is defined as:
 - One or more local entities connected in a linear chain; and
-- A further foreign entity at the top of the chain; and
-- A further foriegn entity at the bottom of the chain.
+- A foreign entity at the top of the chain; and
+- A foriegn entity at the bottom of the chain.
+
+The *lift capacity* along a segment is computed by comparing the ability/desire of each entity in the chain to perform a lift.
+Individual entities define [trading variables](Lifts.md#trading_variables) that control how many credits they would like to maintain on any given tally.
+
+<p align="center"><img src="Lifts-5.jpg" width="400" title="Computing lift capacity"></p>
+
+The software compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
 
 ### Route Discovery Protocol
 Having identified local segments that have a capacity for lifts,
@@ -277,24 +284,36 @@ Site B doesn't really need to know many details about the route--just whether on
 The route may pass through many other sites.
 In fact, it may pass through the same site more than once, traversing multiple segments on one site.
 
+Now that site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as a single *node* in the lift--almost as though it were a single entity.
+The lift will be committed (or canceled) in a single, atomic transaction on behalf of all the nodes belonging to the segment.
+
 Route discovery requests can be initiated in two ways:
-- Manually by a user entity; or
-- By an automomous process acting as *agent* on behalf of the entity.  This just means part of the site server software.
+- Manually by a user/entity; or
+- By an automomous process acting as *agent* on behalf of the entity.  This just means part of the site server software such as a [CRON](https://en.wikipedia.org/wiki/Cron) job.
 
 ![use-route](uml/use-route.svg)
 
-A user would typically request a route because it intends to make a payment (linear lift) to some other entity.
+An entity would typically request a route because it intends to make a payment (linear lift) to some other entity.
 The payee entity's endpoint ID would typically be obtained by scanning a QR code.
-The User Interface would send that information (and any hints) to his hosting agent site.
-The agent process can then commence the discovery process for suitable external routes to complete the intended lift.
+The User Interface would send that information (and any hints) to his host site.
+The server process can then commence the discovery process for suitable external routes to complete the intended lift.
+
+Note: in this case, each end of the lift will involve a *half segment*.
+The payor node will consist of a local entity with zero or more other local entities upstream of it, and topped off by one foreign entity.
+For example: [B3, C1, C2].
+
+The payee node will consist of a local entity with zero or more other local entities downstream of it, and a single foreign entity at the bottom.
+For example: [A2, A3, B1].
+
+Nodes in the middle get the same experience as if this were a circular lift.
 
 ![seq-route](uml/seq-route-man.svg)
 
-Each site should also employ autonomous processes that continually scan for liftable balances along all local segments.
+As mentioned, autonomous agent processes are continually scanning for liftable balances along local segments.
 Upon discovering a segment with a capacity for a lift, the agent will check its database for possible external routes that can be used to complete the circuit and effect a circular lift.
 
-If a suitable route is not yet known, the agent should commence a search.
-If previous successful searches have been conducted, but appear too old to be reliable, a new search should be initiated to freshen the route in the database.
+If a suitable route is not yet known, the agent will commence a search.
+If previous successful searches have been conducted, but are too old to be reliable, a new search should be initiated to freshen the route in the database.
 If previous searches have been inconclusive, the agent should retry after a reasonable amount of time has passed.
 
 ![seq-route](uml/seq-route-auto.svg)
