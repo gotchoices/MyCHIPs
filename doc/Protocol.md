@@ -273,16 +273,16 @@ Individual entities define [trading variables](Lifts.md#trading_variables) that 
 The software compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
 
 ### Route Discovery Protocol
-Having identified local segments that have a capacity for lifts,
-each site then needs a way to cooperate with peer sites to gather just enough information so it can propose lifts that will eventually result in a complete circuit.
+Having identified local segments that have capacity for a potential lift,
+each site then needs a way to cooperate with peer sites to gather just enough information so it can reasonably initiate lift proposals where needed.
 
-The minimal information would be to verify that an external route exists where:
+Each site needs to know whether a potential external route exists where:
 - a lift can be initiated through the top of a local segment (A3); and
 - that lift will return to us via the bottom of the segment (C1).
 
 Site B doesn't really need to know many details about the route--just whether one or more such paths exist.
-The route may pass through many other sites.
-In fact, it may pass through the same site more than once, traversing multiple segments on one site.
+The route may pass through many other sites on its way back to C1.
+In fact, it may pass through some sites more than once, traversing multiple segments.
 
 Now that site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as a single *node* in the lift--almost as though it were a single entity.
 The lift will be committed (or canceled) in a single, atomic transaction on behalf of all the nodes belonging to the segment.
@@ -305,9 +305,9 @@ For example: [B3, C1, C2].
 The payee node will consist of a local entity with zero or more other local entities downstream of it, and a single foreign entity at the bottom.
 For example: [A2, A3, B1].
 
-Nodes in the middle get the same experience as if this were a circular lift.
+Nodes along the way get the same experience whether the lift is circular or linear.
 
-![seq-route](uml/seq-route-man.svg)
+![Manual Routing](uml/seq-route-man.svg "Manual initiating a route search")
 
 As mentioned, autonomous agent processes are continually scanning for liftable balances along local segments.
 Upon discovering a segment with a capacity for a lift, the agent will check its database for possible external routes that can be used to complete the circuit and effect a circular lift.
@@ -316,9 +316,11 @@ If a suitable route is not yet known, the agent will commence a search.
 If previous successful searches have been conducted, but are too old to be reliable, a new search should be initiated to freshen the route in the database.
 If previous searches have been inconclusive, the agent should retry after a reasonable amount of time has passed.
 
-![seq-route](uml/seq-route-auto.svg)
+![Automatic Routing](uml/seq-route-auto.svg "Automatic route scanning")
 
 As new information about route success or failure is discovered, it should be relayed to the applicable user entity.
+
+![Routing Relay](uml/seq-route.svg "Responding to route queries")
 
 ### Lift Protocol
 Under construction

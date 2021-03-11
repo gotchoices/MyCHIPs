@@ -1,98 +1,35 @@
 @startuml
 !include common.puml
-$title(Manual Route Discovery)
-actor "User" as user
-database "User DB" as userDB
-database "Partner DB" as partDB
-collections "Other Peers on Network" as net
+$title(Route Query Response (WIP))
+control "Lift Agent" as agent
+database "Local DB" as localDB
+database "Upstream DB" as upDB
+database "Downstream DB" as downDB
 
-user	->>	userDB:		Request route for\npossible lift to\nspecified Peer
+'collections "Other Peers on Network" as net
 
-note over userDB
-  User site determines globally whether
-  this partner should be considered/queried
-  regarding the specified lift:
-  - User requested this partner specifically?
-  - Ample alternate pathways already available?
-  - Partner has existing path to a hint node?
-  - Sufficient CHIPs available to contribute?
+localDB	->>	upDB:		Something here
+
+note over localDB
+  Note here
 end note
 
-alt User specified this partner explicitly
-  userDB	->	partDB:		Request route refresh
-  
-else This tally lacks capacity
-  userDB	->	userDB:
-  note right: Do nothing
-
-else No existing route found
-  userDB	->	partDB:		Query for new route
-
-else Existing stale route found
-  userDB	->	partDB:		Request route refresh
-
-else Existing route is (recently) failed
-  userDB	->	userDB:
-  note right: do nothing
-end
-
-note over partDB
-  Partner site receives a query for:
-  - A refresh of an existing route; or
-  - a new route
-end note
-
-alt Route impossible
-   partDB ->>	userDB:		Reply: route failed
-
-else Found possible tallies for route
-  loop Over existing routes
-    alt Route is fresh (or local and still good)
-      partDB ->>	partDB:		Note: have route
-   
-    else Existing stale route found
-      partDB ->>	net:		Request upstream refresh
-    end
-  end
-  
-  loop Over any other possible routes
-    alt Destination found locally
-      partDB ->>	partDB:		Note: have route
-  
-    else
-      partDB ->>	net:		Request upstream refresh
-    end
-  end
-else Received route affirmation from upstream
-  partDB ->>	partDB:			Note: have route
-end
-
-alt If/when at least one good route found
-  partDB ->>	userDB:		Reply: route good
-end
-
-'else Refuse terms
-' subj	->>	subjDB:		Mark tally as refused
-' subjDB ->>	propDB:		Send accepted tally
-' propDB	->>	prop:		Store and notify user
+'alt User specified this partner explicitly
+'  userDB	->	partDB:		Request route refresh
+'  
+'else This tally lacks capacity
+'  userDB	->	userDB:
+'  note right: Do nothing
+'
+'else No existing route found
+'  userDB	->	partDB:		Query for new route
+'
+'else Existing stale route found
+'  userDB	->	partDB:		Request route refresh
+'
+'else Existing route is (recently) failed
+'  userDB	->	userDB:
+'  note right: do nothing
 'end
-
-'note over propDB
-'  Ticket may be permanent or expiring and for one or multiple peers
-'end note
-'prop	-[#red]>> subj:		Communicate ticket to peer via QR code (out-of-band)
-'subj	->>	subjDB:		Add peer specified in ticket
-'subjDB	->>	propDB:		Connect via ticket, exchange keys
-'propDB	->	propDB:		Detect pending proposed tally
-'propDB	->>	subjDB:		Send proposed tally
-'subjDB	->>	subj:		Present for review
-'loop until satisfied
-' subj	->>	subjDB:		Modify tally terms
-'end loop
-'
-'
-'note over propDB, subjDB
-'  Signed tally can now be used for [[Tallies.md#invoicing transactions]]
-'end note
 
 @enduml

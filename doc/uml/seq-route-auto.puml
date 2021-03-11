@@ -1,40 +1,43 @@
 @startuml
 !include common.puml
-$title(Automatic Route Discovery WIP)
+$title(Automatic Route Discovery)
+control "Lift Agent" as agent
+database "Local DB" as localDB
 database "Upstream DB" as upDB
-database "Local DB" as userDB
-database "Downstream DB" as downDB
+'database "Downstream DB" as downDB
 
-group User requests route via a specific tally/partner
-  user		->>	userDB:		Request route to specified peer
+agent	->	localDB:		Request scan of local segments
 
-  alt Pathway found locally
-    userDB	->>	user:		Notify user: good
-  else Existing route found (good, failed, stale)
-    userDB	->>	partDB:		Request refresh
-  else No route found
-    userDB	->>	partDB:		Request route
-  end
-end
+note over localDB
+  Query for local segments that
+  - have lift capacity; and
+  - need route attention
+end note
 
-group User requests any/all routes
-  loop Over all tallies with lift capacity
-    alt Destination found locally
-      userDB ->>	user:		Update user: good
+loop Over all segments with lift capacity
+  alt Current routes available
+    localDB	->>	localDB:	Initiate lift request on segment
   
-    else Current good route found
-      userDB ->>	user:		Update user: good
+  else Stale route found (good or failed)
+    localDB	->>	upDB:		Request route refresh
     
-    else Current failed route found
-      userDB ->>	user:		Update user: failed
+  else No route found
+    localDB	->>	upDB:		Request new route
     
-    else Stale route found (good or failed)
-      userDB ->>	partDB:		Request upstream refresh
-
-    else No existing route found
-      userDB ->>	partDB:		Request upstream route
-    end
   end
 end
+
+  note over localDB: route status initially indeterminate (pending)
+
+alt Negative response
+  upDB	->>	localDB:		Route impossible
+  localDB	->>	localDB:	Set route status = bad
+  
+else Positive response
+  upDB	->>	localDB:		Route good
+  localDB	->>	localDB:	Set route status = good
+
+end
+  note over localDB: routes will eventually time\nout and become stale
   
 @enduml

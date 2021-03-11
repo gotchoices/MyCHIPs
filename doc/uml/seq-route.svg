@@ -1,100 +1,37 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1127px" preserveAspectRatio="none" style="width:551px;height:1127px;" version="1.1" viewBox="0 0 551 1127" width="551px" zoomAndPan="magnify"><defs><filter height="300%" id="fqvlrji7e53so" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="207" x="170" y="29.4023">Manual Route Discovery</text><rect fill="#FFFFFF" filter="url(#fqvlrji7e53so)" height="222.1309" style="stroke:#000000;stroke-width:2.0;" width="294" x="89.5" y="283.1992"/><rect fill="#FFFFFF" height="49.9551" style="stroke:none;stroke-width:1.0;" width="294" x="89.5" y="325.5098"/><rect fill="#FFFFFF" height="39.9551" style="stroke:none;stroke-width:1.0;" width="294" x="89.5" y="375.4648"/><rect fill="#FFFFFF" height="39.9551" style="stroke:none;stroke-width:1.0;" width="294" x="89.5" y="415.4199"/><rect fill="#FFFFFF" height="49.9551" style="stroke:none;stroke-width:1.0;" width="294" x="89.5" y="455.375"/><rect fill="#FFFFFF" filter="url(#fqvlrji7e53so)" height="378.418" style="stroke:#000000;stroke-width:2.0;" width="447.5" x="89.5" y="576.3301"/><rect fill="#FFFFFF" height="283.1523" style="stroke:none;stroke-width:1.0;" width="447.5" x="89.5" y="618.6406"/><rect fill="#FFFFFF" filter="url(#fqvlrji7e53so)" height="126.5762" style="stroke:#000000;stroke-width:2.0;" width="326" x="201" y="640.5957"/><rect fill="#FFFFFF" filter="url(#fqvlrji7e53so)" height="95.2656" style="stroke:#000000;stroke-width:2.0;" width="306" x="211" y="664.9063"/><rect fill="#FFFFFF" height="39.9551" style="stroke:none;stroke-width:1.0;" width="306" x="211" y="720.2168"/><rect fill="#FFFFFF" filter="url(#fqvlrji7e53so)" height="113.6211" style="stroke:#000000;stroke-width:2.0;" width="301.5" x="201" y="781.1719"/><rect fill="#FFFFFF" filter="url(#fqvlrji7e53so)" height="82.3105" style="stroke:#000000;stroke-width:2.0;" width="281.5" x="211" y="805.4824"/><rect fill="#FFFFFF" height="27" style="stroke:none;stroke-width:1.0;" width="281.5" x="211" y="860.793"/><rect fill="#FFFFFF" height="52.9551" style="stroke:none;stroke-width:1.0;" width="447.5" x="89.5" y="901.793"/><rect fill="#FFFFFF" filter="url(#fqvlrji7e53so)" height="42.3105" style="stroke:#000000;stroke-width:2.0;" width="304" x="89.5" y="968.748"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="20" x2="20" y1="118.1992" y2="1028.0586"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="128.5" x2="128.5" y1="118.1992" y2="1028.0586"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="260" x2="260" y1="118.1992" y2="1028.0586"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="411.5" x2="411.5" y1="118.1992" y2="1028.0586"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="5" y="115.6694">User</text><ellipse cx="20" cy="50.1992" fill="#44AAFF" filter="url(#fqvlrji7e53so)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M20,58.1992 L20,85.1992 M7,66.1992 L33,66.1992 M20,85.1992 L7,100.1992 M20,85.1992 L33,100.1992 " fill="none" filter="url(#fqvlrji7e53so)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="5" y="1035.5288">User</text><ellipse cx="20" cy="1048.0586" fill="#44AAFF" filter="url(#fqvlrji7e53so)" rx="8" ry="8" style="stroke:#2277DD;stroke-width:2.0;"/><path d="M20,1056.0586 L20,1083.0586 M7,1064.0586 L33,1064.0586 M20,1083.0586 L7,1098.0586 M20,1083.0586 L33,1098.0586 " fill="none" filter="url(#fqvlrji7e53so)" style="stroke:#2277DD;stroke-width:2.0;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="53" x="99.5" y="115.2461">User DB</text><path d="M111,65.7109 C111,55.7109 129,55.7109 129,55.7109 C129,55.7109 147,55.7109 147,65.7109 L147,91.7109 C147,101.7109 129,101.7109 129,101.7109 C129,101.7109 111,101.7109 111,91.7109 L111,65.7109 " fill="#FEFECE" filter="url(#fqvlrji7e53so)" style="stroke:#000000;stroke-width:1.5;"/><path d="M111,65.7109 C111,75.7109 129,75.7109 129,75.7109 C129,75.7109 147,75.7109 147,65.7109 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="53" x="99.5" y="1040.5938">User DB</text><path d="M111,1053.5469 C111,1043.5469 129,1043.5469 129,1043.5469 C129,1043.5469 147,1043.5469 147,1053.5469 L147,1079.5469 C147,1089.5469 129,1089.5469 129,1089.5469 C129,1089.5469 111,1089.5469 111,1079.5469 L111,1053.5469 " fill="#FEFECE" filter="url(#fqvlrji7e53so)" style="stroke:#000000;stroke-width:1.5;"/><path d="M111,1053.5469 C111,1063.5469 129,1063.5469 129,1063.5469 C129,1063.5469 147,1063.5469 147,1053.5469 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="221" y="115.2461">Partner DB</text><path d="M242,65.7109 C242,55.7109 260,55.7109 260,55.7109 C260,55.7109 278,55.7109 278,65.7109 L278,91.7109 C278,101.7109 260,101.7109 260,101.7109 C260,101.7109 242,101.7109 242,91.7109 L242,65.7109 " fill="#FEFECE" filter="url(#fqvlrji7e53so)" style="stroke:#000000;stroke-width:1.5;"/><path d="M242,65.7109 C242,75.7109 260,75.7109 260,75.7109 C260,75.7109 278,75.7109 278,65.7109 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="221" y="1040.5938">Partner DB</text><path d="M242,1053.5469 C242,1043.5469 260,1043.5469 260,1043.5469 C260,1043.5469 278,1043.5469 278,1053.5469 L278,1079.5469 C278,1089.5469 260,1089.5469 260,1089.5469 C260,1089.5469 242,1089.5469 242,1079.5469 L242,1053.5469 " fill="#FEFECE" filter="url(#fqvlrji7e53so)" style="stroke:#000000;stroke-width:1.5;"/><path d="M242,1053.5469 C242,1063.5469 260,1063.5469 260,1063.5469 C260,1063.5469 278,1063.5469 278,1053.5469 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><rect fill="#E8E8EA" filter="url(#fqvlrji7e53so)" height="25" style="stroke:#202024;stroke-width:1.5;" width="133" x="345.5" y="84.1992"/><rect fill="#E8E8EA" filter="url(#fqvlrji7e53so)" height="25" style="stroke:#202024;stroke-width:1.5;" width="133" x="341.5" y="88.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="119" x="348.5" y="103.6694">Other Peers on Network</text><rect fill="#E8E8EA" filter="url(#fqvlrji7e53so)" height="25" style="stroke:#202024;stroke-width:1.5;" width="133" x="345.5" y="1027.0586"/><rect fill="#E8E8EA" filter="url(#fqvlrji7e53so)" height="25" style="stroke:#202024;stroke-width:1.5;" width="133" x="341.5" y="1031.0586"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="119" x="348.5" y="1046.5288">Other Peers on Network</text><line style="stroke:#000000;stroke-width:1.0;" x1="127" x2="117" y1="167.1992" y2="163.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="127" x2="117" y1="167.1992" y2="171.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="20" x2="128" y1="167.1992" y2="167.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="85" x="27" y="140.6694">Request route for</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="65" x="27" y="151.6694">possible lift to</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="69" x="27" y="162.6694">specified Peer</text><path d="M5,180.1992 L5,267.1992 L248,267.1992 L248,190.1992 L238,180.1992 L5,180.1992 " fill="#E8E8EA" filter="url(#fqvlrji7e53so)" style="stroke:#202024;stroke-width:1.0;"/><path d="M238,180.1992 L238,190.1992 L248,190.1992 L238,180.1992 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="182" x="11" y="193.6694">User site determines globally whether</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="201" x="11" y="204.6694">this partner should be considered/queried</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="126" x="11" y="215.6694">regarding the specified lift:</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="203" x="11" y="226.6694">- User requested this partner specifically?</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="222" x="11" y="237.6694">- Ample alternate pathways already available?</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="202" x="11" y="248.6694">- Partner has existing path to a hint node?</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="200" x="11" y="259.6694">- Sufficient CHIPs available to contribute?</text><path d="M89.5,283.1992 L151.5,283.1992 L151.5,290.1992 L141.5,300.1992 L89.5,300.1992 L89.5,283.1992 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="222.1309" style="stroke:#000000;stroke-width:2.0;" width="294" x="89.5" y="283.1992"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="104.5" y="296.7676">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="212" x="166.5" y="295.834">[User specified this partner explicitly]</text><polygon fill="#000000" points="248,313.5098,258,317.5098,248,321.5098,252,317.5098" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="254" y1="317.5098" y2="317.5098"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="107" x="136" y="312.98">Request route refresh</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="89.5" x2="383.5" y1="326.5098" y2="326.5098"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="143" x="94.5" y="337.1445">[This tally lacks capacity]</text><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="171" y1="350.4648" y2="350.4648"/><line style="stroke:#000000;stroke-width:1.0;" x1="171" x2="171" y1="350.4648" y2="363.4648"/><line style="stroke:#000000;stroke-width:1.0;" x1="130" x2="171" y1="363.4648" y2="363.4648"/><polygon fill="#000000" points="140,359.4648,130,363.4648,140,367.4648,136,363.4648" style="stroke:#000000;stroke-width:1.0;"/><path d="M179,345.4648 L179,366.4648 L252,366.4648 L252,355.4648 L242,345.4648 L179,345.4648 " fill="#E8E8EA" filter="url(#fqvlrji7e53so)" style="stroke:#202024;stroke-width:1.0;"/><path d="M242,345.4648 L242,355.4648 L252,355.4648 L242,345.4648 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="52" x="185" y="358.9351">Do nothing</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="89.5" x2="383.5" y1="376.4648" y2="376.4648"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="141" x="94.5" y="387.0996">[No existing route found]</text><polygon fill="#000000" points="248,403.4199,258,407.4199,248,411.4199,252,407.4199" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="254" y1="407.4199" y2="407.4199"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="98" x="136" y="402.8901">Query for new route</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="89.5" x2="383.5" y1="416.4199" y2="416.4199"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="153" x="94.5" y="427.0547">[Existing stale route found]</text><polygon fill="#000000" points="248,443.375,258,447.375,248,451.375,252,447.375" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="254" y1="447.375" y2="447.375"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="107" x="136" y="442.8452">Request route refresh</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="89.5" x2="383.5" y1="456.375" y2="456.375"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="192" x="94.5" y="467.0098">[Existing route is (recently) failed]</text><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="171" y1="480.3301" y2="480.3301"/><line style="stroke:#000000;stroke-width:1.0;" x1="171" x2="171" y1="480.3301" y2="493.3301"/><line style="stroke:#000000;stroke-width:1.0;" x1="130" x2="171" y1="493.3301" y2="493.3301"/><polygon fill="#000000" points="140,489.3301,130,493.3301,140,497.3301,136,493.3301" style="stroke:#000000;stroke-width:1.0;"/><path d="M179,475.3301 L179,496.3301 L250,496.3301 L250,485.3301 L240,475.3301 L179,475.3301 " fill="#E8E8EA" filter="url(#fqvlrji7e53so)" style="stroke:#202024;stroke-width:1.0;"/><path d="M240,475.3301 L240,485.3301 L250,485.3301 L240,475.3301 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="185" y="488.8003">do nothing</text><path d="M166,517.3301 L166,560.3301 L350,560.3301 L350,527.3301 L340,517.3301 L166,517.3301 " fill="#E8E8EA" filter="url(#fqvlrji7e53so)" style="stroke:#202024;stroke-width:1.0;"/><path d="M340,517.3301 L340,527.3301 L350,527.3301 L340,517.3301 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="160" x="172" y="530.8003">Partner site receives a query for:</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="163" x="172" y="541.8003">- A refresh of an existing route; or</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="64" x="172" y="552.8003">- a new route</text><path d="M89.5,576.3301 L151.5,576.3301 L151.5,583.3301 L141.5,593.3301 L89.5,593.3301 L89.5,576.3301 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="378.418" style="stroke:#000000;stroke-width:2.0;" width="447.5" x="89.5" y="576.3301"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="104.5" y="589.8984">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="106" x="166.5" y="588.9648">[Route impossible]</text><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="139" y1="610.6406" y2="606.6406"/><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="139" y1="610.6406" y2="614.6406"/><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="259" y1="610.6406" y2="610.6406"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="146" y="606.1108">Reply: route failed</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="89.5" x2="537" y1="619.6406" y2="619.6406"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="185" x="94.5" y="630.2754">[Found possible tallies for route]</text><path d="M201,640.5957 L275,640.5957 L275,647.5957 L265,657.5957 L201,657.5957 L201,640.5957 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="126.5762" style="stroke:#000000;stroke-width:2.0;" width="326" x="201" y="640.5957"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="29" x="216" y="654.1641">loop</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="122" x="290" y="653.2305">[Over existing routes]</text><path d="M211,664.9063 L273,664.9063 L273,671.9063 L263,681.9063 L211,681.9063 L211,664.9063 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="95.2656" style="stroke:#000000;stroke-width:2.0;" width="306" x="211" y="664.9063"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="226" y="678.4746">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="224" x="288" y="677.541">[Route is fresh (or local and still good)]</text><line style="stroke:#000000;stroke-width:1.0;" x1="260" x2="302" y1="699.2168" y2="699.2168"/><line style="stroke:#000000;stroke-width:1.0;" x1="302" x2="302" y1="699.2168" y2="712.2168"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="302" y1="712.2168" y2="712.2168"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="271" y1="712.2168" y2="708.2168"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="271" y1="712.2168" y2="716.2168"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="267" y="694.687">Note: have route</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="211" x2="517" y1="721.2168" y2="721.2168"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="153" x="216" y="731.8516">[Existing stale route found]</text><line style="stroke:#000000;stroke-width:1.0;" x1="410" x2="400" y1="752.1719" y2="748.1719"/><line style="stroke:#000000;stroke-width:1.0;" x1="410" x2="400" y1="752.1719" y2="756.1719"/><line style="stroke:#000000;stroke-width:1.0;" x1="260" x2="411" y1="752.1719" y2="752.1719"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="128" x="267" y="747.6421">Request upstream refresh</text><path d="M201,781.1719 L275,781.1719 L275,788.1719 L265,798.1719 L201,798.1719 L201,781.1719 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="113.6211" style="stroke:#000000;stroke-width:2.0;" width="301.5" x="201" y="781.1719"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="29" x="216" y="794.7402">loop</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="181" x="290" y="793.8066">[Over any other possible routes]</text><path d="M211,805.4824 L273,805.4824 L273,812.4824 L263,822.4824 L211,822.4824 L211,805.4824 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="82.3105" style="stroke:#000000;stroke-width:2.0;" width="281.5" x="211" y="805.4824"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="226" y="819.0508">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="150" x="288" y="818.1172">[Destination found locally]</text><line style="stroke:#000000;stroke-width:1.0;" x1="260" x2="302" y1="839.793" y2="839.793"/><line style="stroke:#000000;stroke-width:1.0;" x1="302" x2="302" y1="839.793" y2="852.793"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="302" y1="852.793" y2="852.793"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="271" y1="852.793" y2="848.793"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="271" y1="852.793" y2="856.793"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="267" y="835.2632">Note: have route</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="211" x2="492.5" y1="861.793" y2="861.793"/><line style="stroke:#000000;stroke-width:1.0;" x1="410" x2="400" y1="879.793" y2="875.793"/><line style="stroke:#000000;stroke-width:1.0;" x1="410" x2="400" y1="879.793" y2="883.793"/><line style="stroke:#000000;stroke-width:1.0;" x1="260" x2="411" y1="879.793" y2="879.793"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="128" x="267" y="875.2632">Request upstream refresh</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="89.5" x2="537" y1="902.793" y2="902.793"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="247" x="94.5" y="913.4277">[Received route affirmation from upstream]</text><line style="stroke:#000000;stroke-width:1.0;" x1="260" x2="302" y1="933.748" y2="933.748"/><line style="stroke:#000000;stroke-width:1.0;" x1="302" x2="302" y1="933.748" y2="946.748"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="302" y1="946.748" y2="946.748"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="271" y1="946.748" y2="942.748"/><line style="stroke:#000000;stroke-width:1.0;" x1="261" x2="271" y1="946.748" y2="950.748"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="267" y="929.2183">Note: have route</text><path d="M89.5,968.748 L151.5,968.748 L151.5,975.748 L141.5,985.748 L89.5,985.748 L89.5,968.748 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="42.3105" style="stroke:#000000;stroke-width:2.0;" width="304" x="89.5" y="968.748"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="104.5" y="982.3164">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="222" x="166.5" y="981.3828">[If/when at least one good route found]</text><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="139" y1="1003.0586" y2="999.0586"/><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="139" y1="1003.0586" y2="1007.0586"/><line style="stroke:#000000;stroke-width:1.0;" x1="129" x2="259" y1="1003.0586" y2="1003.0586"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="86" x="146" y="998.5288">Reply: route good</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="153" x="197" y="1118.7266">Wed Mar 10 16:42:18 MST 2021</text><!--MD5=[2f73bb2a8a7e4c49573d3d3aeb5b5a2e]
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="266px" preserveAspectRatio="none" style="width:390px;height:266px;" version="1.1" viewBox="0 0 390 266" width="390px" zoomAndPan="magnify"><defs><filter height="300%" id="ftj4x7hkzl1rk" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="243" x="75.75" y="29.4023">Route Query Response (WIP)</text><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="41" x2="41" y1="102.6875" y2="182.6875"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="118" x2="118" y1="102.6875" y2="182.6875"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="218.5" x2="218.5" y1="102.6875" y2="182.6875"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="332.5" x2="332.5" y1="102.6875" y2="182.6875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="66" x="5" y="99.7344">Lift Agent</text><ellipse cx="41" cy="70.1992" fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><polygon fill="#A80036" points="37,58.1992,43,53.1992,41,58.1992,43,63.1992,37,58.1992" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="66" x="5" y="195.2227">Lift Agent</text><ellipse cx="41" cy="214.1758" fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><polygon fill="#A80036" points="37,202.1758,43,197.1758,41,202.1758,43,207.1758,37,202.1758" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="57" x="87" y="99.7344">Local DB</text><path d="M100.5,50.1992 C100.5,40.1992 118.5,40.1992 118.5,40.1992 C118.5,40.1992 136.5,40.1992 136.5,50.1992 L136.5,76.1992 C136.5,86.1992 118.5,86.1992 118.5,86.1992 C118.5,86.1992 100.5,86.1992 100.5,76.1992 L100.5,50.1992 " fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" style="stroke:#000000;stroke-width:1.5;"/><path d="M100.5,50.1992 C100.5,60.1992 118.5,60.1992 118.5,60.1992 C118.5,60.1992 136.5,60.1992 136.5,50.1992 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="57" x="87" y="195.2227">Local DB</text><path d="M100.5,208.1758 C100.5,198.1758 118.5,198.1758 118.5,198.1758 C118.5,198.1758 136.5,198.1758 136.5,208.1758 L136.5,234.1758 C136.5,244.1758 118.5,244.1758 118.5,244.1758 C118.5,244.1758 100.5,244.1758 100.5,234.1758 L100.5,208.1758 " fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" style="stroke:#000000;stroke-width:1.5;"/><path d="M100.5,208.1758 C100.5,218.1758 118.5,218.1758 118.5,218.1758 C118.5,218.1758 136.5,218.1758 136.5,208.1758 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="88" x="171.5" y="99.7344">Upstream DB</text><path d="M200.5,50.1992 C200.5,40.1992 218.5,40.1992 218.5,40.1992 C218.5,40.1992 236.5,40.1992 236.5,50.1992 L236.5,76.1992 C236.5,86.1992 218.5,86.1992 218.5,86.1992 C218.5,86.1992 200.5,86.1992 200.5,76.1992 L200.5,50.1992 " fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" style="stroke:#000000;stroke-width:1.5;"/><path d="M200.5,50.1992 C200.5,60.1992 218.5,60.1992 218.5,60.1992 C218.5,60.1992 236.5,60.1992 236.5,50.1992 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="88" x="171.5" y="195.2227">Upstream DB</text><path d="M200.5,208.1758 C200.5,198.1758 218.5,198.1758 218.5,198.1758 C218.5,198.1758 236.5,198.1758 236.5,208.1758 L236.5,234.1758 C236.5,244.1758 218.5,244.1758 218.5,244.1758 C218.5,244.1758 200.5,244.1758 200.5,234.1758 L200.5,208.1758 " fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" style="stroke:#000000;stroke-width:1.5;"/><path d="M200.5,208.1758 C200.5,218.1758 218.5,218.1758 218.5,218.1758 C218.5,218.1758 236.5,218.1758 236.5,208.1758 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="108" x="275.5" y="99.7344">Downstream DB</text><path d="M314.5,50.1992 C314.5,40.1992 332.5,40.1992 332.5,40.1992 C332.5,40.1992 350.5,40.1992 350.5,50.1992 L350.5,76.1992 C350.5,86.1992 332.5,86.1992 332.5,86.1992 C332.5,86.1992 314.5,86.1992 314.5,76.1992 L314.5,50.1992 " fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" style="stroke:#000000;stroke-width:1.5;"/><path d="M314.5,50.1992 C314.5,60.1992 332.5,60.1992 332.5,60.1992 C332.5,60.1992 350.5,60.1992 350.5,50.1992 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="108" x="275.5" y="195.2227">Downstream DB</text><path d="M314.5,208.1758 C314.5,198.1758 332.5,198.1758 332.5,198.1758 C332.5,198.1758 350.5,198.1758 350.5,208.1758 L350.5,234.1758 C350.5,244.1758 332.5,244.1758 332.5,244.1758 C332.5,244.1758 314.5,244.1758 314.5,234.1758 L314.5,208.1758 " fill="#FEFECE" filter="url(#ftj4x7hkzl1rk)" style="stroke:#000000;stroke-width:1.5;"/><path d="M314.5,208.1758 C314.5,218.1758 332.5,218.1758 332.5,218.1758 C332.5,218.1758 350.5,218.1758 350.5,208.1758 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="206.5" y1="129.6875" y2="125.6875"/><line style="stroke:#000000;stroke-width:1.0;" x1="216.5" x2="206.5" y1="129.6875" y2="133.6875"/><line style="stroke:#000000;stroke-width:1.0;" x1="118.5" x2="217.5" y1="129.6875" y2="129.6875"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="125.5" y="125.1577">Something here</text><path d="M82,142.6875 L82,163.6875 L151,163.6875 L151,152.6875 L141,142.6875 L82,142.6875 " fill="#E8E8EA" filter="url(#ftj4x7hkzl1rk)" style="stroke:#202024;stroke-width:1.0;"/><path d="M141,142.6875 L141,152.6875 L151,152.6875 L141,142.6875 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="48" x="88" y="156.1577">Note here</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="150" x="122.25" y="257.8438">Thu Mar 11 13:51:53 MST 2021</text><!--MD5=[071f9e32ea3fcf3f7500ba697b306778]
 @startuml
 !include common.puml
-$title(Manual Route Discovery)
-actor "User" as user
-database "User DB" as userDB
-database "Partner DB" as partDB
-collections "Other Peers on Network" as net
+$title(Route Query Response (WIP))
+control "Lift Agent" as agent
+database "Local DB" as localDB
+database "Upstream DB" as upDB
+database "Downstream DB" as downDB
 
-user	->>	userDB:		Request route for\npossible lift to\nspecified Peer
+'collections "Other Peers on Network" as net
 
-note over userDB
-  User site determines globally whether
-  this partner should be considered/queried
-  regarding the specified lift:
-  - User requested this partner specifically?
-  - Ample alternate pathways already available?
-  - Partner has existing path to a hint node?
-  - Sufficient CHIPs available to contribute?
+localDB	->>	upDB:		Something here
+
+note over localDB
+  Note here
 end note
 
-alt User specified this partner explicitly
-  userDB	->	partDB:		Request route refresh
-  
-else This tally lacks capacity
-  userDB	->	userDB:
-  note right: Do nothing
-
-else No existing route found
-  userDB	->	partDB:		Query for new route
-
-else Existing stale route found
-  userDB	->	partDB:		Request route refresh
-
-else Existing route is (recently) failed
-  userDB	->	userDB:
-  note right: do nothing
-end
-
-note over partDB
-  Partner site receives a query for:
-  - A refresh of an existing route; or
-  - a new route
-end note
-
-alt Route impossible
-   partDB ->>	userDB:		Reply: route failed
-
-else Found possible tallies for route
-  loop Over existing routes
-    alt Route is fresh (or local and still good)
-      partDB ->>	partDB:		Note: have route
-   
-    else Existing stale route found
-      partDB ->>	net:		Request upstream refresh
-    end
-  end
-  
-  loop Over any other possible routes
-    alt Destination found locally
-      partDB ->>	partDB:		Note: have route
-  
-    else
-      partDB ->>	net:		Request upstream refresh
-    end
-  end
-else Received route affirmation from upstream
-  partDB ->>	partDB:			Note: have route
-end
-
-alt If/when at least one good route found
-  partDB ->>	userDB:		Reply: route good
-end
-
-'else Refuse terms
-' subj	->>	subjDB:		Mark tally as refused
-' subjDB ->>	propDB:		Send accepted tally
-' propDB	->>	prop:		Store and notify user
+'alt User specified this partner explicitly
+'  userDB	->	partDB:		Request route refresh
+'  
+'else This tally lacks capacity
+'  userDB	->	userDB:
+'  note right: Do nothing
+'
+'else No existing route found
+'  userDB	->	partDB:		Query for new route
+'
+'else Existing stale route found
+'  userDB	->	partDB:		Request route refresh
+'
+'else Existing route is (recently) failed
+'  userDB	->	userDB:
+'  note right: do nothing
 'end
-
-'note over propDB
-'  Ticket may be permanent or expiring and for one or multiple peers
-'end note
-'prop	-[#red]>> subj:		Communicate ticket to peer via QR code (out-of-band)
-'subj	->>	subjDB:		Add peer specified in ticket
-'subjDB	->>	propDB:		Connect via ticket, exchange keys
-'propDB	->	propDB:		Detect pending proposed tally
-'propDB	->>	subjDB:		Send proposed tally
-'subjDB	->>	subj:		Present for review
-'loop until satisfied
-' subj	->>	subjDB:		Modify tally terms
-'end loop
-'
-'
-'note over propDB, subjDB
-'  Signed tally can now be used for [[Tallies.md#invoicing transactions]]
-'end note
 
 @enduml
 
@@ -285,78 +222,19 @@ skinparam note {
 
 
 
-  title Manual Route Discovery
-  footer Wed Mar 10 16:42:18 MST 2021
-actor "User" as user
-database "User DB" as userDB
-database "Partner DB" as partDB
-collections "Other Peers on Network" as net
+  title Route Query Response (WIP)
+  footer Thu Mar 11 13:51:53 MST 2021
+control "Lift Agent" as agent
+database "Local DB" as localDB
+database "Upstream DB" as upDB
+database "Downstream DB" as downDB
 
-user	->>	userDB:		Request route for\npossible lift to\nspecified Peer
 
-note over userDB
-  User site determines globally whether
-  this partner should be considered/queried
-  regarding the specified lift:
-  - User requested this partner specifically?
-  - Ample alternate pathways already available?
-  - Partner has existing path to a hint node?
-  - Sufficient CHIPs available to contribute?
+localDB	->>	upDB:		Something here
+
+note over localDB
+  Note here
 end note
-
-alt User specified this partner explicitly
-  userDB	->	partDB:		Request route refresh
-  
-else This tally lacks capacity
-  userDB	->	userDB:
-  note right: Do nothing
-
-else No existing route found
-  userDB	->	partDB:		Query for new route
-
-else Existing stale route found
-  userDB	->	partDB:		Request route refresh
-
-else Existing route is (recently) failed
-  userDB	->	userDB:
-  note right: do nothing
-end
-
-note over partDB
-  Partner site receives a query for:
-  - A refresh of an existing route; or
-  - a new route
-end note
-
-alt Route impossible
-   partDB ->>	userDB:		Reply: route failed
-
-else Found possible tallies for route
-  loop Over existing routes
-    alt Route is fresh (or local and still good)
-      partDB ->>	partDB:		Note: have route
-   
-    else Existing stale route found
-      partDB ->>	net:		Request upstream refresh
-    end
-  end
-  
-  loop Over any other possible routes
-    alt Destination found locally
-      partDB ->>	partDB:		Note: have route
-  
-    else
-      partDB ->>	net:		Request upstream refresh
-    end
-  end
-else Received route affirmation from upstream
-  partDB ->>	partDB:			Note: have route
-end
-
-alt If/when at least one good route found
-  partDB ->>	userDB:		Reply: route good
-end
-
 
 
 @enduml
