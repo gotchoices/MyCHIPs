@@ -1,4 +1,4 @@
-##Project Descriptions
+## Project Descriptions
 
 This folder contains specifications for various possible projects which might
 be undertaken to support MyCHIPs.

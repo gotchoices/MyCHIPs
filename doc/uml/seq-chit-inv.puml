@@ -8,14 +8,16 @@ actor "Receiver" as rec
 
 rec	->>	recDB:		Submit draft chit w/\nvalue --> receiver
 recDB	->>	payDB:		Store, transmit to peer
+payDB	->>	pay:		Notify user
 
 alt Terms agreeable
  pay	->>	payDB:		Accept/sign chit
- payDB	->>	recDB:		Send accepted chit
- recDB	->>	rec:		Store and notify user
  note over payDB, recDB
    Payment is now binding
  end note
+ payDB	->>	recDB:		Store and transmit to peer
+ recDB	->>	rec:		Store and notify user
+
 loop until consensus
  payDB	<->	recDB:		Consensus acks/naks
 end loop
@@ -27,6 +29,9 @@ else Want to counter
  pay	->>	payDB:		Return counteroffer
  payDB	->>	recDB:		Send modified draft chit
  recDB	->>	rec:		Store and notify user
+ note over recDB, rec
+   Invoice chit may then be modified/resubmitted (above)
+ end note
 
 else Refuse terms
  pay	->>	payDB:		Mark chit as refused

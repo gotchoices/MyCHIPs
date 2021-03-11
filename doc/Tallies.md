@@ -1,4 +1,5 @@
 ## Tallies
+February 2020
 
 A tally is, at its essence, a contract between two parties.  By the tally, they 
 agree to "keep track" of a net amount owing between them, on mutually 

@@ -1,0 +1,41 @@
+@startuml
+!include common.puml
+$title(Manual Route Discovery)
+actor "User" as user
+database "User DB" as userDB
+database "Partner DB" as partDB
+'collections "Other Peers on Network" as net
+
+group User requests route via a specific tally/partner
+  user		->>	userDB:		Request route to specified peer
+
+  alt Pathway found locally
+    userDB	->>	user:		Notify user: good
+  else Existing route found (good, failed or stale)
+    userDB	->>	partDB:		Request route refresh
+  else No route found
+    userDB	->>	partDB:		Request new route
+  end
+end
+
+group User requests any/all routes
+  loop Over all user's tallies with lift capacity
+    alt Destination found locally
+      userDB ->>	user:		Update user: good
+  
+    else Current good route found
+      userDB ->>	user:		Update user: good
+    
+    else Current failed route found
+      userDB ->>	user:		Update user: failed
+    
+    else Stale route found (good or failed)
+      userDB ->>	partDB:		Request route refresh
+
+    else No existing route found
+      userDB ->>	partDB:		Request new route
+    end
+  end
+end
+  
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+!include common.puml
+$title(Route Discovery Use Cases)
+left to right direction
+
+actor "User" as user
+node "User Agent" as userAgent
+node "Foreign Peer\nAgent" as forPeer
+node "Up-stream Partner\nAgent" as upPart
+node "Down-stream Partner\nAgent" as downPart
+
+usecase "I Need a Linear Route\nto a Foreign Peer" as findLinear
+usecase "My User Needs a\nCircuit Route" as findCircuit
+
+user		--	findLinear
+userAgent	--	findLinear
+			findLinear	-- forPeer
+
+userAgent	--	findCircuit
+			findCircuit	-- upPart
+			findCircuit	-- downPart
+
+@enduml

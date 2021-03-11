@@ -1,0 +1,52 @@
+@startuml
+!include common.puml
+$title(Automatic Route Discovery (WIP))
+database "Debtor DB" as debtDB
+database "User DB" as userDB
+database "Creditor DB" as credDB
+
+note over debtDB
+  Debtor: A tally partner who owes our user
+  a balance larger than is optimal according
+  to the user's current trading parameters.
+end note
+
+note over credDB
+  Creditor: A tally partner who owes our user
+  a balance larger than is optimal according
+  to the user's current trading parameters.
+end note
+
+group User requests route via a specific tally/partner
+  user		->>	userDB:		Request route to specified peer
+
+  alt Pathway found locally
+    userDB	->>	user:		Notify user: good
+  else Existing route found (good, failed, stale)
+    userDB	->>	partDB:		Request refresh
+  else No route found
+    userDB	->>	partDB:		Request route
+  end
+end
+
+group User requests any/all routes
+  loop Over all tallies with lift capacity
+    alt Destination found locally
+      userDB ->>	user:		Update user: good
+  
+    else Current good route found
+      userDB ->>	user:		Update user: good
+    
+    else Current failed route found
+      userDB ->>	user:		Update user: failed
+    
+    else Stale route found (good or failed)
+      userDB ->>	partDB:		Request upstream refresh
+
+    else No existing route found
+      userDB ->>	partDB:		Request upstream route
+    end
+  end
+end
+  
+@enduml

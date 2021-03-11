@@ -5,16 +5,16 @@ left to right direction
 
 actor "Local User" as user
 actor "Direct Partner" as partner
-actor "Indirect Peer" as peer
+actor "Indirect Peer(s)" as peer
 
 usecase "Send Direct Payment" as sendDirPmt
 usecase "Request Direct Payment" as reqDirPay
 usecase "Request Direct Invoice" as reqDirInv
 usecase "Pay Direct Invoice" as payDir
-usecase "Send Payment" as sendPmt
-usecase "Request Payment" as reqPmt
-usecase "Request Invoice" as reqInv
-usecase "Pay Invoice" as payInv
+usecase "Send Lift Payment" as sendPmt
+usecase "Request Lift Payment" as reqPmt
+usecase "Request Lift Invoice" as reqInv
+usecase "Pay Lift Invoice" as payInv
 '  usecase "Seek Payment Route" as seekRoute
 
 user	--	sendDirPmt
