@@ -27,9 +27,11 @@ dependencies:
   faker: ^1.2.1
   random_date: ^0.0.5
   qr_code_scanner: ^0.0.13
+  qr_flutter: ^4.0.0
   random_color: ^1.0.5
   animated_check: ^1.0.0
   intl: ^0.17.0
+  path_provider: ^2.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

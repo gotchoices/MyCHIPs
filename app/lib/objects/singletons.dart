@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:collection';
 import 'package:flutter_app/objects/account.dart';
+import 'package:flutter_app/objects/key_storage.dart';
 import 'package:flutter_app/objects/tally.dart';
 import 'package:flutter_app/objects/transaction.dart';
 
@@ -9,6 +10,10 @@ class UserInfo {
 
   UserInfo._internal() {
     _instance = this;
+    //gets the user's personal key
+    new KeyStorage().readKeyValue().then((String value) {
+        personalKey = value;
+    });
   }
 
   factory UserInfo() => _instance ?? UserInfo._internal();
@@ -17,6 +22,7 @@ class UserInfo {
   Map<String, double> dataMap;
   List<Color> colorList;
   Account account;
+  String personalKey;
 }
 
 class UserTransactions {

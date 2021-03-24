@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/objects/singletons.dart';
 import 'package:flutter_app/presenter/qr_presenter.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'scanner_page.dart';
 
 class CreateTallyPage extends StatefulWidget {
@@ -38,8 +40,11 @@ class CreateTallyPageState extends State<CreateTallyPage> {
   }
 
   Widget buildQRCode() {
-    Image qr = presenter.generateQRCode();
-    //TODO: replace with call to backend
+    QrImage qr = QrImage(
+      data: UserInfo().personalKey,
+      version: QrVersions.auto,
+      size: 350.0,
+    );
     return Align(
       alignment: Alignment.center,
       child: qr);
