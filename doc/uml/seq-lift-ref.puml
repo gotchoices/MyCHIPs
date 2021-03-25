@@ -1,0 +1,23 @@
+@startuml
+!include common.puml
+$title(Referee Queries)
+participant "Referee" as referee
+'database "Proposer DB" as propDB
+collections "Any node" as any
+
+note over any:	Node suspects lift has expired
+any		->>	referee:	Has this lift expired?
+
+alt Lift has been signed
+  referee	->>	any:		Its good, here's the signature
+
+else Lift not committed yet, but still within timeout
+  referee	->>	any:		Lift is still pending
+
+else Never heard of lift, but it would be expired by now
+  referee	->>	referee:	Remember this lift judged as expired
+  referee	->>	any:		Lift expired
+
+end
+
+@enduml

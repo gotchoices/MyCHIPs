@@ -1,0 +1,45 @@
+@startuml
+!include common.puml
+$title(Tally Class)
+left to right direction
+
+' Under Construction
+
+class tally {
+  version: Integer
+  guid: Uuid
+  created: Date
+  stock: String
+  foil: String
+  terms: tallyTerms
+  signed: signatures
+  comment: String
+  contract: JSON
+}
+
+class tallyTerms {
+  stock: terms
+  foil: terms
+}
+
+class terms {
+  limit: Integer
+  paydown: Integer
+  interval: Interval
+  grace: Interval
+  rate: Percentage
+  call: Interval
+  payment: 
+}
+
+class signatures {
+  stock: String
+  foil: String
+  digest: String
+}
+
+tally *-- tallyTerms
+tallyTerms *-- terms
+tally *-- signatures
+
+@enduml

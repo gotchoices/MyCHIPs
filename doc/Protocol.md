@@ -1,5 +1,10 @@
 ## MyCHIPs Protocol Description 1.0 (draft)
-February 2021
+March 2021
+
+### TODO
+- Expand state machines to handle retries
+- Refine/document chit consensus protocol
+- 
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.
@@ -26,7 +31,7 @@ Hopefully this will prepare the way for a further revision of the codebase to br
 
 ### Network Assumptions
 MyCHIPs assumes a network of peer entities who become interconnected through voluntary credit relationships they establish with each other.
-Such an entitiy could be an individual person or it could be a legal organization such as a corporation or a partnership (i.e. a group of people).
+Such an entity could be an individual person or it could be a legal organization such as a corporation or a partnership (i.e. a group of people).
 The term *user* is also used to be roughly synonymous with entity (with a possible bias toward human entities).
 
 Entities should quantify the degree to which they trust the peer entities they connect with.
@@ -59,7 +64,7 @@ The term *server* may be used sometimes as roughly synonymous with *site.*
 ### Tally Use Cases
 A tally is established when two parties decide to formalize a relationship of trust between them using the MyCHIPs protocol.
 
-![use-tally](uml/use-tally.svg)
+![use-tally](uml/use-tally.svg)]
 
 Here is some additional detail pertaining to these four use cases:
 - **Be My Vendor**:
@@ -107,8 +112,7 @@ If the debtor wants to close the tally sooner, he will have to figure out how to
 
 Now we can derive the following state diagram to describe the tally protocol from the perspective of a single entity:
 
-![state-tally](uml/state-tally.svg)
-
+[![state-tally](uml/state-tally.svg)](uml/state-tally.svg)
 
 ### Chit Use Cases
 A chit constitutes a pledge of future value from one entity to the other.
@@ -179,7 +183,7 @@ It can be generalized to the simpler case where an invoice is requested from a d
 
 Now we can derive the following state diagram to describe the direct chit protocol from the perspective of a single entity:
 
-![state-chit](uml/state-chit.svg)
+[![state-chit](uml/state-chit.svg)](uml/state-chit.svg)
 
 ### Credit Lifts Explained
 So far, the protocol has dealt primarily with transactions moving value between two partners who are directly connected by a tally.
@@ -263,7 +267,7 @@ It will be reliant on site A, site B, and probably a bunch of other sites to exe
 A lift segment is defined as:
 - One or more local entities connected in a linear chain; and
 - A foreign entity at the top of the chain; and
-- A foriegn entity at the bottom of the chain.
+- A foreign entity at the bottom of the chain.
 
 The *lift capacity* along a segment is computed by comparing the ability/desire of each entity in the chain to perform a lift.
 Individual entities define [trading variables](Lifts.md#trading_variables) that control how many credits they would like to maintain on any given tally.
@@ -289,7 +293,7 @@ The lift will be committed (or canceled) in a single, atomic transaction on beha
 
 Route discovery requests can be initiated in two ways:
 - Manually by a user/entity; or
-- By an automomous process acting as *agent* on behalf of the entity.  This just means part of the site server software such as a [CRON](https://en.wikipedia.org/wiki/Cron) job.
+- By an autonomous process acting as *agent* on behalf of the entity (such as a [CRON](https://en.wikipedia.org/wiki/Cron) job.)
 
 ![use-route](uml/use-route.svg)
 
@@ -298,7 +302,7 @@ The payee entity's endpoint ID would typically be obtained by scanning a QR code
 The User Interface would send that information (and any hints) to his host site.
 The server process can then commence the discovery process for suitable external routes to complete the intended lift.
 
-Note: in this case, each end of the lift will involve a *half segment*.
+Note: for a linear lift, each end of the lift will involve a *half segment*.
 The payor node will consist of a local entity with zero or more other local entities upstream of it, and topped off by one foreign entity.
 For example: [B3, C1, C2].
 
@@ -309,27 +313,125 @@ Nodes along the way get the same experience whether the lift is circular or line
 
 ![Manual Routing](uml/seq-route-man.svg "Manual initiating a route search")
 
-As mentioned, autonomous agent processes are continually scanning for liftable balances along local segments.
-Upon discovering a segment with a capacity for a lift, the agent will check its database for possible external routes that can be used to complete the circuit and effect a circular lift.
-
-If a suitable route is not yet known, the agent will commence a search.
-If previous successful searches have been conducted, but are too old to be reliable, a new search should be initiated to freshen the route in the database.
-If previous searches have been inconclusive, the agent should retry after a reasonable amount of time has passed.
+As mentioned, an autonomous agent process is continually scanning for liftable balances along local segments.
+Upon discovering a segment with a capacity for a lift, the system will check its database for possible external routes that can be used to complete the circuit.
 
 ![Automatic Routing](uml/seq-route-auto.svg "Automatic route scanning")
 
-As new information about route success or failure is discovered, it should be relayed to the applicable user entity.
+If a suitable route is not yet known, the agent will commence a search.
+This is done by creating a draft route record in the local database and then propagating the query upstream.
+
+If previous successful searches have been conducted, but are too old to be reliable, a new search should be initiated to freshen the route in the database.
+This is done by resetting the local record to draft state and again propagating a query upstream.
+
+If previous searches have been inconclusive, the agent should similarly retry after a reasonable amount of time has passed.
+
+As mentioned, each site acts in two roles:
+- It may initiate route queries necessary for conducting trades for local users; and
+- It may receive queries from downstream and act upon them.
+
+This second role is explained by the following sequence diagram:
 
 ![Routing Relay](uml/seq-route.svg "Responding to route queries")
 
-### Lift Protocol
-Under construction
+Now we can derive the following state diagram to describe the route discovery protocol from the perspective of a single site:
 
-### Linear Lift Payments
-Under construction
+[![state-route](uml/state-route.svg)](uml/state-route.svg)
+
+### Lift Protocol
+Once a site has discovered one or more viable external routes, it can proceed to propose an actual lift.
+The proposal is sent out via an upstream foreign peer at the top of the subject segment.
+This use diagram shows five possible phases of the resulting lift:
+
+![use-lift](uml/use-lift.svg)
+
+Here is the simplified example lift circuit again for reference.
+Remember, each node could represent a single user or a whole segment of users local to a single site.
+We will consider node A as the lift proposer.
+Node B will be considered the destination of the lift.
+
+<p align="center"><img src="Lifts-1.jpg" width="500" title="Visualizing a lift"></p>
+
+For a linear lift, just imagine the tally between A and B does not (or need not) exist.
+
+#### Proposal
+
+Proposals will travel counter-clockwise, against the normal flow of value (the arrows).
+Node A will propose the lift to node D because:
+  - Node A contains a route record indicating that an external pathway exists leading from node D, upstream to node B; and
+    - it has capacity for a circular lift through an internal segment with D at the top and B at the bottom; or
+    - it needs to transmit value from A to B (linear lift).
+
+  The lift proposal is a conditional contract of the form:
+  "If I were to send a specified value to you on this tally, would you agree to send that same value along through another node you are connected to, with value eventually reaching my intended destination?"
+  - The proposal also contains a time, indicating how long the lift proposal will stay alive, before it will time out and will be considered "expired" (and therefore void).
+  - It also contains the identity of a proposed referee whose job it is to declare when the lift time has expired (or certify its successful completion).
+    The referee is typically a well known, reliable site that is reachable by any node on the network.
+    Its identity consists of its
+    - network address (domain name or IP number), and
+    - (optional) network port
+  - It is each site's responsibility to decide what referees are worthy of trust, and to collect a public key for each referee it chooses to accept.
+  - If node D wants to participate in the lift, on its proposed terms, it indicates this by forwarding the proposal along to node C where the process repeats itself.
+  - This makes the lift binding upon D, subject only to receipt of an authorizing signature, generated within the specified timeout, as judged by the named referee.
+  - If/when C receives the validating signature, D's obligation to C becomes valid and provable, regardless of whether D cooperates and accepts the signature.
+    So every node has a natural incentive to cooperate in the second phase of the lift.
+    If they don't, they will lose value to their upstream connection without recapturing it from downstream.
+
+![seq-lift-prop](uml/seq-lift-prop.svg)
+
+#### Confirmation, Ratification, Commit
+  As long as a suitable route exists, the lift proposal will eventually reach its intended destination, or terminus node.
+  The terminus node will communicate a confirmation directly to the originator to indicate that the lift has successfully propagated through its intended circuit (or linear path) and is ready to commit.
+  The lift header contains a network address and port where the proposer can be reached for this purpose.
+
+  Once the proposer has obtained the confirmation, it can decide whether it wants to proceed to commit the lift.
+  But it can only do so if the time, originally set forth in the lift proposal, has not yet expired (in the judgement of the referee).
+  So the proposer sends a message to the referee requesting permission to commit.
+
+  Assuming permission/authorization is given by the referee, the requester now possesses a digital signature of the referee indicating that the lift is good and valid.
+  It will proceed to transmit this information clockwise through the lift chain, starting with node B.
+  Node B will forward the signature to C, and so forth until all the nodes in the circuit have received the signature.
+  Each node can make the lift chits binding by affixing this signature to the chit record.
+
+![seq-lift-conf](uml/seq-lift-conf.svg)
+
+#### Referee Queries
+  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more valued ones in their place.
+  But if part of the network had a problem part-way through the lift, some nodes might be left in an indeterminate state.
+  They are committed to the lift, but they don't have the required signature to complete so they really don't know for sure if the lift should go through or not.
+
+  Participating nodes can consult their local clock and get a pretty good idea of when the lift should have timed out.
+  If this time is exceeded, they can reach out to the referee node to ask the status of the lift.
+  The referee will:
+  - respond with a "timed out" message; or
+  - provide the authorization signature.
+
+![seq-lift-ref](uml/seq-lift-ref.svg)
+
+As long as connectivity can be maintained with either the proposer or the referee, each node should be able to complete the lift.
+If neither of these can be reached, the lift commit can block indefinitely.
+
+It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol suffers from potential safety and/or liveness issues.
+So it is important that sites maintain a list of trustworthy referees and their public keys.
+To support this function, a site willing to serve as referee should also support the following auxiliary protocol:
+
+![seq-ref-aux](uml/seq-ref-aux.svg)
+
+In general practice, it is expected that each host site will execute a tally with referee sites they expect to honor.
+Such tallies can contain contractual language expressing the referee's willingness to conduct its function with fidelity and good faith.
+It also supports the possibility of assessing fees in exchange for referee services.
+
+The Term of Service describes how long the referee commits to perform lifts.
+This will allow a service provider to discontinue service without breaking trust or losing reputation.
+
+#### Lift States
+Now we can derive the following state diagram to describe the lift protocol from the perspective of a single site:
+
+[![state-lift](uml/state-lift.svg)](uml/state-lift.svg)
+
+The referee lift state diagram is as follows:
+
+[![state-ref](uml/state-ref.svg)](uml/state-ref.svg)
 
 ### Chit Consensus Protocol
-Under construction
-
-### Referee Communication Protocol
 Under construction

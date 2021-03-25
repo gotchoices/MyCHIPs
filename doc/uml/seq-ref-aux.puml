@@ -1,0 +1,19 @@
+@startuml
+!include common.puml
+$title(Referee Auxiliary Protocol)
+collections "Any node" as any
+participant "Referee" as referee
+
+any		->>	referee:	Query credentials
+referee		->>	any:		Return credentials
+
+note over any
+  Referee credentials include:
+  - Entity name
+  - Contact information
+  - Public key
+  - Term of service
+  - Tally invitation ticket
+end note
+
+@enduml

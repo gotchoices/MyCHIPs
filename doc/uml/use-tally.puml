@@ -8,7 +8,7 @@ actor "Partner" as partner
 
 usecase "Be My Vendor?" as offerStock
 usecase "Be My Client?" as offerFoil
-usecase "[[use-chit.svg Transaction]]" as newChit
+usecase "[[../Protocol.md#chit-use-cases Transaction]]" as newChit
 usecase "Request Close" as reqClose
 
 user	--	offerStock

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1025px" preserveAspectRatio="none" style="width:1275px;height:1025px;" version="1.1" viewBox="0 0 1275 1025" width="1275px" zoomAndPan="magnify"><defs><filter height="300%" id="fwmbb3bwmsnkl" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="88" x="587.25" y="17.4023">Lift States</text><!--MD5=[97a2ad4198554bc8d8f2bd96e1202341]
+cluster signable--><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="424" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="402" x="861.5" y="409.1992"/><rect fill="#FFFFFF" height="397" rx="12.5" ry="12.5" style="stroke:#FFFFFF;stroke-width:1.0;" width="396" x="864.5" y="433.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="861.5" x2="1263.5" y1="430.1992" y2="430.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="40" x="1042.5" y="421.6694">signable</text><g id="signable.pend"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="141" x="912" y="447.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="912" x2="1053" y1="468.1992" y2="468.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="970.5" y="460.6694">pend</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="121" x="917" y="484.8008">Stat: pend, Req: N/A</text></g><g id="signable.time1"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="178" x="893.5" y="603.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="893.5" x2="1071.5" y1="624.1992" y2="624.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="969.5" y="616.6694">time1</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="158" x="898.5" y="640.8008">Stat: pend, Req: N/A, Time</text></g><g id="signable.time2"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="178" x="1009.5" y="759.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="1009.5" x2="1187.5" y1="780.1992" y2="780.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="1085.5" y="772.6694">time2</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="158" x="1014.5" y="796.8008">Stat: pend, Req: N/A, Time</text></g><ellipse cx="748.5" cy="37.1992" fill="#44AAFF" filter="url(#fwmbb3bwmsnkl)" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><g id="none"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="51" x="723" y="111.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="723" x2="774" y1="132.1992" y2="132.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="31" x="733" y="124.6694">No Lift</text></g><g id="draft"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="140" x="343.5" y="270.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="343.5" x2="483.5" y1="291.1992" y2="291.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="22" x="402.5" y="283.6694">draft</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="120" x="348.5" y="307.8008">Stat: void, Req: draft</text></g><g id="seek"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="138" x="89.5" y="447.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="89.5" x2="227.5" y1="468.1992" y2="468.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="146.5" y="460.6694">seek</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="118" x="94.5" y="484.8008">Stat: seek, Req: N/A</text></g><g id="term"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="138" x="184.5" y="603.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="184.5" x2="322.5" y1="624.1992" y2="624.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="22" x="242.5" y="616.6694">term</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="118" x="189.5" y="640.8008">Stat: term, Req: N/A</text></g><g id="call"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="130" x="261.5" y="759.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="261.5" x2="391.5" y1="780.1992" y2="780.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="16" x="318.5" y="772.6694">call</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="110" x="266.5" y="796.8008">Stat: call, Req: N/A</text></g><g id="good"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="140" x="532.5" y="944.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="532.5" x2="672.5" y1="965.1992" y2="965.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="590.5" y="957.6694">good</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="120" x="537.5" y="981.8008">Stat: good, Req: N/A</text></g><g id="void"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="135" x="391" y="603.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="391" x2="526" y1="624.1992" y2="624.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="20" x="448.5" y="616.6694">void</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="115" x="396" y="640.8008">Stat: void, Req: N/A</text></g><g id="local"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="138" x="913.5" y="270.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="913.5" x2="1051.5" y1="291.1992" y2="291.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="22" x="971.5" y="283.6694">local</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="118" x="918.5" y="307.8008">Stat: void, Req: local</text></g><g id="relay"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="140" x="708.5" y="270.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="708.5" x2="848.5" y1="291.1992" y2="291.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="766.5" y="283.6694">relay</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="120" x="713.5" y="307.8008">Stat: void, Req: relay</text></g><g id="timeout"><rect fill="#E8E8EA" filter="url(#fwmbb3bwmsnkl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="175" x="7" y="944.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="7" x2="182" y1="965.1992" y2="965.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="35" x="77" y="957.6694">timeout</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="155" x="12" y="981.8008">Stat: seek, Req: N/A, Time</text></g><!--MD5=[0ed2e745026fd0d436b1b77e9cdb1882]
+link *start to none--><path d="M748.5,47.4992 C748.5,60.8192 748.5,85.9192 748.5,105.8692 " fill="none" id="*start-to-none" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="748.5,111.0792,752.5,102.0792,748.5,106.0792,744.5,102.0792,748.5,111.0792" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[b8a2bd5f8bd0f500837135ebc7426c67]
+link none to draft--><path d="M722.79,146.6592 C694.1,157.4192 646.46,175.8792 606.5,194.1992 C556.23,217.2492 500.27,246.6792 461.61,267.6292 " fill="none" id="none-to-draft" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="456.98,270.1392,466.7974,269.3523,461.3722,267.75,462.9746,262.3248,456.98,270.1392" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="656" y="214.6694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="124" x="607.5" y="225.6694">User initiates lift Req:draft</text><!--MD5=[3a463f2653b48a5c7d220ce005e98019]
+link draft to seek--><path d="M378.31,320.3492 C331.1,352.7492 247.48,410.1292 198.11,444.0192 " fill="none" id="draft-to-seek" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="193.74,447.0192,203.4225,445.2166,197.8602,444.1866,198.8903,438.6243,193.74,447.0192" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="369" y="359.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="67" x="363.5" y="370.6694">draft detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="129" x="332.5" y="381.6694">/Send Upstream Act:query</text><!--MD5=[5e0422283bf9db92b2a93d1b3a79d7ae]
+link seek to void--><path d="M217.69,497.2992 C234.08,505.4592 251.26,515.5192 265.5,527.1992 C285.57,543.6692 280.36,558.1392 301.5,573.1992 C326.47,590.9892 357.78,603.3092 385.87,611.6492 " fill="none" id="seek-to-void" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="390.71,613.0592,383.1726,606.7199,385.9062,611.6724,380.9537,614.406,390.71,613.0592" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="362" y="542.1694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="75" x="337.5" y="553.1694">Receive Act:fail</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="145" x="302.5" y="564.1694">/Lift failed; Notify referee, user</text><!--MD5=[f35b15811fbcbbbf10963acabc051eb7]
+link seek to timeout--><path d="M133.46,497.2592 C125.84,505.9692 118.23,516.3492 113.5,527.1992 C50.99,670.5792 76.08,865.6492 88.82,938.8492 " fill="none" id="seek-to-timeout" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="89.71,943.9092,92.0819,934.3502,88.8394,938.9856,84.2041,935.7431,89.71,943.9092" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="119" y="698.1694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="64" x="115" y="709.1694">Local timeout</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="139" x="77.5" y="720.1694">/Lift dead; mark route as bad</text><!--MD5=[482d6309deee2766415261c82560d726]
+link seek to term--><path d="M140.05,497.4592 C126.25,518.7992 112.19,549.9792 127.5,573.1992 C139.57,591.4992 159.27,603.6192 179.54,611.6492 " fill="none" id="seek-to-term" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="184.42,613.4992,177.423,606.568,179.7448,611.7264,174.5865,614.0482,184.42,613.4992" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="181.5" y="536.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="104" x="142.5" y="547.6694">Receive confirm from</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="116" x="136.5" y="558.6694">destination Act:terminus</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="132" x="128.5" y="569.6694">/Circuit good, freshen route</text><!--MD5=[f762aa6b86640f97b061015827f08e19]
+link term to call--><path d="M246.51,653.2692 C241.76,674.4792 238.31,705.5892 250.5,729.1992 C255.96,739.7692 264.55,748.7192 274.02,756.1192 " fill="none" id="term-to-call" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="278.12,759.1892,273.32,750.5892,274.12,756.1892,268.52,756.9892,278.12,759.1892" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="296" y="692.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="284.5" y="703.6694">Detect loopback</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="85" x="281.5" y="714.6694">[Lift still desirable]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="145" x="251.5" y="725.6694">/Request commit from referee</text><!--MD5=[f762aa6b86640f97b061015827f08e19]
+link term to call--><path d="M322.71,636.9392 C352.05,644.0292 383.55,657.5392 401.5,683.1992 C413.22,699.9492 410.82,710.9992 401.5,729.1992 C396.12,739.6992 387.65,748.6192 378.31,755.9992 " fill="none" id="term-to-call-1" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="374.25,759.0692,383.836,756.809,378.2311,756.0442,378.9959,750.4393,374.25,759.0692" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="437" y="692.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="425.5" y="703.6694">Detect loopback</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="82" x="424" y="714.6694">[Change of mind]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="109" x="410.5" y="725.6694">/Notify referee of abort</text><!--MD5=[bd644e95feb6201a00b40e5eebab8e8c]
+link call to good--><path d="M341.74,809.3692 C361.12,838.2392 397.2,886.1392 439.5,914.1992 C465.8,931.6492 498.23,943.8992 527.22,952.2692 " fill="none" id="call-to-good" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="532.21,953.6792,524.6552,947.3606,527.4024,952.3056,522.4574,955.0528,532.21,953.6792" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="495" y="872.1694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="78" x="469" y="883.1694">Receive referee</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="99" x="458.5" y="894.1694">signature Act:signed</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="135" x="440.5" y="905.1694">/Commit lift chits; Consense</text><!--MD5=[f298bb4610193cbb3a76dfa4d3c48506]
+link call to timeout--><path d="M274.12,809.3192 C249.41,821.8892 220.22,838.5292 196.5,857.1992 C165.39,881.6792 135.44,915.9792 116.13,939.9492 " fill="none" id="call-to-timeout" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="112.89,943.9992,121.6317,939.4624,116.01,940.0921,115.3803,934.4704,112.89,943.9992" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="264" y="866.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="135" x="209.5" y="877.6694">Receive referee Act:timeout</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="42" x="256" y="888.6694">/Too late</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="55" x="249.5" y="899.6694">abandon lift</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="159" x="197.5" y="910.6694">May try again with longer timeout</text><!--MD5=[f0fd2271ca83be14b7113b9e02bdd7cb]
+link none to none--><path d="M774.3,126.3292 C791.84,123.4492 809,126.7392 809,136.1992 C809,144.6992 795.15,148.2192 779.62,146.7492 " fill="none" id="none-to-none" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="774.3,146.0692,782.7108,151.1935,779.2585,146.7122,783.7397,143.2599,774.3,146.0692" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="856" y="122.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="824" y="133.6694">Receive Act:query</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="108" x="815" y="144.6694">[Destination not found]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="828.5" y="155.6694">/Reply Act: failed</text><!--MD5=[040d5384375abe6efad2c82f9b7cae97]
+link none to relay--><path d="M743.77,161.4292 C740.57,182.6192 738.14,214.0192 745.5,240.1992 C747.99,249.0292 752.36,257.8492 757.13,265.7292 " fill="none" id="none-to-relay" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="759.81,269.9992,758.4232,260.2485,757.1562,265.7616,751.643,264.4946,759.81,269.9992" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="829.5" y="203.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="797.5" y="214.6694">Receive Act:query</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="136" x="774.5" y="225.6694">[Route found for destination]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="192" x="746.5" y="236.6694">/Store lift Req:relay; Forward Act: query</text><!--MD5=[932e2266dc25e87ddfbfaeec5d8ff01e]
+link relay to pend--><path d="M794.45,320.3492 C809.46,341.0192 833.87,369.8092 862.5,385.1992 C880.78,395.0292 890.21,383.3992 908.5,393.1992 C930.49,404.9892 949.69,425.7292 963.02,442.8592 " fill="none" id="relay-to-pend" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="966.28,447.1292,964.0032,437.5471,963.2481,443.1534,957.6418,442.3982,966.28,447.1292" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="890.5" y="359.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="59" x="889" y="370.6694">Detect relay</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="110" x="863.5" y="381.6694">/Forward lift Act: query</text><!--MD5=[c53c1e11ec8329e6f374aafba7fffcfc]
+link none to local--><path d="M774.08,137.7492 C814.98,139.9792 895.39,150.1192 943.5,194.1992 C963.56,212.5692 973.42,242.4992 978.19,264.8392 " fill="none" id="none-to-local" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="979.19,269.7692,981.3096,260.1511,978.1902,264.8702,973.4711,261.7508,979.19,269.7692" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="1020" y="203.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="988" y="214.6694">Receive Act:query</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="123" x="971.5" y="225.6694">[Destination found locally]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="92" x="987" y="236.6694">/Store lift Req: dest</text><!--MD5=[d3d9933f31736ef82111a9b8ed0b01e1]
+link local to pend--><path d="M982.5,320.5292 C982.5,352.2692 982.5,407.7392 982.5,441.7992 " fill="none" id="local-to-pend" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="982.5,447.0692,986.5,438.0692,982.5,442.0692,978.5,438.0692,982.5,447.0692" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="1034" y="359.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="59" x="1032.5" y="370.6694">Detect relay</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="157" x="983.5" y="381.6694">/Reply to proposer Act: terminus</text><!--MD5=[7bb3568b6385ea64f5bc0ad26dc870fd]
+link signable to good--><path d="M861.3099,490.275 C861.1164,490.6767 860.9198,491.0848 860.7201,491.4992 C860.3207,492.3279 859.909,493.1817 859.4853,494.06 C858.6379,495.8165 857.7424,497.6707 856.8011,499.6177 C849.2703,515.193 838.8044,536.698 826.5413,561.5142 C802.015,611.1467 770.3,674.0242 740.5,729.1992 C698.9,806.2292 646.38,895.0592 619.72,939.5992 " fill="none" id="signable-to-good" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="617.07,944.0292,625.1221,938.3579,619.6362,939.738,618.2561,934.252,617.07,944.0292" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="795.5" y="698.1694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="88" x="764.5" y="709.1694">Receive signature</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="71" x="773" y="720.1694">via consensus</text><!--MD5=[7bb3568b6385ea64f5bc0ad26dc870fd]
+link signable to good--><path d="M861.2643,476.2844 C861.0938,476.3505 860.9209,476.4177 860.7456,476.4859 C860.0445,476.7589 859.3046,477.0488 858.5272,477.3556 C852.3083,479.81 843.6919,483.3454 833.3194,487.9484 C812.5744,497.1545 784.805,510.6311 755.1425,528.2705 C695.8175,563.5492 628.92,615.4792 595.5,683.1992 C573.66,727.4492 590.09,875.6692 598.42,939.0492 " fill="none" id="signable-to-good-1" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="599.1,944.1892,601.8826,934.7416,598.4429,939.2326,593.952,935.7929,599.1,944.1892" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="651" y="692.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="113" x="607.5" y="703.6694">Receive signature from</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="100" x="614" y="714.6694">Proposer or Referee</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="135" x="596.5" y="725.6694">/Commit lift chits; Consense</text><!--MD5=[fa33cba2e816cc0bd786cd4e79d5cc4d]
+link pend to time1--><path d="M982.5,497.2592 C982.5,524.4192 982.5,568.5992 982.5,597.7892 " fill="none" id="pend-to-time1" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="982.5,603.0492,986.5,594.0492,982.5,598.0492,978.5,594.0492,982.5,603.0492" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="996.5" y="542.1694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="64" x="992.5" y="553.1694">Local timeout</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="82" x="983.5" y="564.1694">/Query Proposer</text><!--MD5=[6e4fd76c1d296e43530753e33a0a6a06]
+link time1 to time2--><path d="M999.27,653.3392 C1013.62,673.7692 1034.98,703.7292 1054.5,729.1992 C1061.01,737.6992 1068.28,746.7692 1075,755.0092 " fill="none" id="time1-to-time2" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="1078.26,758.9792,1075.672,749.4765,1075.1,755.1043,1069.4722,754.5324,1078.26,758.9792" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="1065.5" y="698.1694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="64" x="1061.5" y="709.1694">Local timeout</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="1055.5" y="720.1694">/Query Referee</text><!--MD5=[f079b69313e332776f5273e9f742d850]
+link time2 to pend--><path d="M1120.18,759.1192 C1126.75,750.3292 1133.11,739.9092 1136.5,729.1992 C1142.67,709.7092 1140.34,703.2792 1136.5,683.1992 C1122.47,609.9192 1123.08,583.8192 1074.5,527.1992 C1065.37,516.5592 1053.59,507.4892 1041.54,499.9892 " fill="none" id="time2-to-pend" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="1037.09,497.2992,1042.7297,505.3735,1041.3712,499.8822,1046.8625,498.5236,1037.09,497.2992" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="1151.5" y="620.1694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="64" x="1147.5" y="631.1694">Local timeout</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="96" x="1131.5" y="642.1694">/Keep trying forever</text><!--MD5=[9abc0c8fb63ef3ddcc818ab4a621ca0a]
+link signable to void--><path d="M861.1007,473.205 C860.8838,473.2059 860.663,473.2068 860.4383,473.2078 C858.6405,473.2156 856.5938,473.2275 854.3151,473.2452 C845.2002,473.3161 832.3728,473.4801 816.9156,473.8503 C786.0013,474.5908 744.5675,476.1561 701.275,479.4505 C614.69,486.0392 520.67,499.5442 488.5,527.1992 C468.18,544.6692 461.33,575.2992 459.16,598.0792 " fill="none" id="signable-to-void" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="458.74,603.0992,463.4715,594.4614,459.154,598.1164,455.499,593.7989,458.74,603.0992" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="526.5" y="536.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="100" x="489.5" y="547.6694">Receive cancel from</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="100" x="489.5" y="558.6694">Proposer or Referee</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="98" x="490.5" y="569.6694">/Void lift record/chits</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="155" x="553.75" y="1016.8672">Wed Mar 24 20:12:56 MDT 2021</text><!--MD5=[4c4420ae41f11e84f9ffe87f4d047bfd]
+@startuml
+!include common.puml
+
+$title(Lift States)
+[*] - -> none
+state "No Lift" as none
+
+'States are determined by a combination of values, as defined here:
+draft: Stat: void, Req: draft
+'init:  Stat: void, Req: init		'First implementation uses this.  Will try to avoid extra state in next version
+seek:  Stat: seek, Req: N/A
+term:  Stat: term, Req: N/A
+call:  Stat: call, Req: N/A
+good:  Stat: good, Req: N/A
+
+state signable {
+  pend:  Stat: pend, Req: N/A
+  time1:  Stat: pend, Req: N/A, Time
+  time2:  Stat: pend, Req: N/A, Time
+}
+void:  Stat: void, Req: N/A
+local:  Stat: void, Req: local
+relay:  Stat: void, Req: relay
+timeout:  Stat: seek, Req: N/A, Time
+
+'State transition rules:
+none -[$user]-> draft: $trans($user,User initiates lift Req:draft,'')
+'draft -[$db]-> init: $trans($db,draft detected,'',Forward Upstream Act:query)
+draft -[$db]-> seek: $trans($db,draft detected,'',Send Upstream Act:query)
+
+seek -[$peer]-> void: $trans($peer,Receive Act:fail,'','Lift failed; Notify referee, user')
+seek -[$db]-> timeout: $trans($db,Local timeout,'', Lift dead; mark route as bad)
+seek -[$peer]-> term: $trans($peer,'Receive confirm from\ndestination Act:terminus','', 'Circuit good, freshen route')
+term -[$db]-> call: $trans($db,Detect loopback,Lift still desirable, Request commit from referee)
+term -[$db]-> call: $trans($db,Detect loopback,Change of mind, Notify referee of abort)
+call -[$peer]-> good: $trans($peer,'Receive referee\nsignature Act:signed','', Commit lift chits; Consense)
+call -[$peer]-> timeout: $trans($peer,Receive referee Act:timeout,'', 'Too late\nabandon lift\nMay try again with longer timeout')
+
+none -[$peer]-> none: $trans($peer,Receive Act:query,Destination not found, Reply Act: failed)
+none -[$peer]-> relay: $trans($peer,Receive Act:query,Route found for destination, 'Store lift Req:relay; Forward Act: query')
+relay -[$db]-> pend: $trans($db,Detect relay,'', Forward lift Act: query)
+
+none -[$peer]-> local: $trans($peer,Receive Act:query,Destination found locally, 'Store lift Req: dest')
+local -[$db]-> pend: $trans($db,Detect relay,'', Reply to proposer Act: terminus)
+
+signable -[$peer]-> good: $trans($peer,'Receive signature\nvia consensus')
+pend -[$db]-> time1: $trans($db,Local timeout,'', Query Proposer)
+time1 -[$db]-> time2: $trans($db,Local timeout,'', Query Referee)
+time2 -[$db]-> pend: $trans($db,Local timeout,'', Keep trying forever)
+
+signable -[$peer]-> good: $trans($peer,'Receive signature from\nProposer or Referee','', 'Commit lift chits; Consense')
+signable -[$peer]-> void: $trans($peer,'Receive cancel from\nProposer or Referee','', 'Void lift record/chits')
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+
+  title Lift States
+  footer Wed Mar 24 20:12:56 MDT 2021
+[*] - -> none
+state "No Lift" as none
+
+draft: Stat: void, Req: draft
+seek:  Stat: seek, Req: N/A
+term:  Stat: term, Req: N/A
+call:  Stat: call, Req: N/A
+good:  Stat: good, Req: N/A
+
+state signable {
+  pend:  Stat: pend, Req: N/A
+  time1:  Stat: pend, Req: N/A, Time
+  time2:  Stat: pend, Req: N/A, Time
+}
+void:  Stat: void, Req: N/A
+local:  Stat: void, Req: local
+relay:  Stat: void, Req: relay
+timeout:  Stat: seek, Req: N/A, Time
+
+none -[#green]-> draft: <font color=green>User:\nUser initiates lift Req:draft
+draft -[#red]-> seek: <font color=red>DB Trigger:\ndraft detected\n/Send Upstream Act:query
+
+seek -[#blue]-> void: <font color=blue>Peer:\nReceive Act:fail\n/Lift failed; Notify referee, user
+seek -[#red]-> timeout: <font color=red>DB Trigger:\nLocal timeout\n/Lift dead; mark route as bad
+seek -[#blue]-> term: <font color=blue>Peer:\nReceive confirm from\ndestination Act:terminus\n/Circuit good, freshen route
+term -[#red]-> call: <font color=red>DB Trigger:\nDetect loopback\n[Lift still desirable]\n/Request commit from referee
+term -[#red]-> call: <font color=red>DB Trigger:\nDetect loopback\n[Change of mind]\n/Notify referee of abort
+call -[#blue]-> good: <font color=blue>Peer:\nReceive referee\nsignature Act:signed\n/Commit lift chits; Consense
+call -[#blue]-> timeout: <font color=blue>Peer:\nReceive referee Act:timeout\n/Too late\nabandon lift\nMay try again with longer timeout
+
+none -[#blue]-> none: <font color=blue>Peer:\nReceive Act:query\n[Destination not found]\n/Reply Act: failed
+none -[#blue]-> relay: <font color=blue>Peer:\nReceive Act:query\n[Route found for destination]\n/Store lift Req:relay; Forward Act: query
+relay -[#red]-> pend: <font color=red>DB Trigger:\nDetect relay\n/Forward lift Act: query
+
+none -[#blue]-> local: <font color=blue>Peer:\nReceive Act:query\n[Destination found locally]\n/Store lift Req: dest
+local -[#red]-> pend: <font color=red>DB Trigger:\nDetect relay\n/Reply to proposer Act: terminus
+
+signable -[#blue]-> good: <font color=blue>Peer:\nReceive signature\nvia consensus
+pend -[#red]-> time1: <font color=red>DB Trigger:\nLocal timeout\n/Query Proposer
+time1 -[#red]-> time2: <font color=red>DB Trigger:\nLocal timeout\n/Query Referee
+time2 -[#red]-> pend: <font color=red>DB Trigger:\nLocal timeout\n/Keep trying forever
+
+signable -[#blue]-> good: <font color=blue>Peer:\nReceive signature from\nProposer or Referee\n/Commit lift chits; Consense
+signable -[#blue]-> void: <font color=blue>Peer:\nReceive cancel from\nProposer or Referee\n/Void lift record/chits
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

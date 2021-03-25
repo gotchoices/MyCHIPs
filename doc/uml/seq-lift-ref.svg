@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="383px" preserveAspectRatio="none" style="width:329px;height:383px;" version="1.1" viewBox="0 0 329 383" width="329px" zoomAndPan="magnify"><defs><filter height="300%" id="fw9en9t37r0r8" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="137" x="96" y="29.4023">Referee Queries</text><rect fill="#FFFFFF" filter="url(#fw9en9t37r0r8)" height="160.2207" style="stroke:#000000;stroke-width:2.0;" width="298" x="10" y="151.1992"/><rect fill="#FFFFFF" height="39.9551" style="stroke:none;stroke-width:1.0;" width="298" x="10" y="193.5098"/><rect fill="#FFFFFF" height="77.9551" style="stroke:none;stroke-width:1.0;" width="298" x="10" y="233.4648"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="48" x2="48" y1="74.1992" y2="328.4199"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="238.5" x2="238.5" y1="74.1992" y2="328.4199"/><rect fill="#E8E8EA" filter="url(#fw9en9t37r0r8)" height="25" style="stroke:#202024;stroke-width:1.5;" width="53" x="20" y="44.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="39" x="27" y="59.6694">Referee</text><rect fill="#E8E8EA" filter="url(#fw9en9t37r0r8)" height="25" style="stroke:#202024;stroke-width:1.5;" width="53" x="20" y="327.4199"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="39" x="27" y="342.8901">Referee</text><rect fill="#E8E8EA" filter="url(#fw9en9t37r0r8)" height="25" style="stroke:#202024;stroke-width:1.5;" width="60" x="208.5" y="40.1992"/><rect fill="#E8E8EA" filter="url(#fw9en9t37r0r8)" height="25" style="stroke:#202024;stroke-width:1.5;" width="60" x="204.5" y="44.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="46" x="211.5" y="59.6694">Any node</text><rect fill="#E8E8EA" filter="url(#fw9en9t37r0r8)" height="25" style="stroke:#202024;stroke-width:1.5;" width="60" x="208.5" y="327.4199"/><rect fill="#E8E8EA" filter="url(#fw9en9t37r0r8)" height="25" style="stroke:#202024;stroke-width:1.5;" width="60" x="204.5" y="331.4199"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="46" x="211.5" y="346.8901">Any node</text><path d="M152,89.1992 L152,110.1992 L320,110.1992 L320,99.1992 L310,89.1992 L152,89.1992 " fill="#E8E8EA" filter="url(#fw9en9t37r0r8)" style="stroke:#202024;stroke-width:1.0;"/><path d="M310,89.1992 L310,99.1992 L320,99.1992 L310,89.1992 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="147" x="158" y="102.6694">Node suspects lift has expired</text><line style="stroke:#000000;stroke-width:1.0;" x1="48.5" x2="58.5" y1="136.1992" y2="132.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="48.5" x2="58.5" y1="136.1992" y2="140.1992"/><line style="stroke:#000000;stroke-width:1.0;" x1="48.5" x2="237.5" y1="136.1992" y2="136.1992"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="98" x="65.5" y="131.6694">Has this lift expired?</text><path d="M10,151.1992 L72,151.1992 L72,158.1992 L62,168.1992 L10,168.1992 L10,151.1992 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="160.2207" style="stroke:#000000;stroke-width:2.0;" width="298" x="10" y="151.1992"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="25" y="164.7676">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="121" x="87" y="163.834">[Lift has been signed]</text><line style="stroke:#000000;stroke-width:1.0;" x1="236.5" x2="226.5" y1="185.5098" y2="181.5098"/><line style="stroke:#000000;stroke-width:1.0;" x1="236.5" x2="226.5" y1="185.5098" y2="189.5098"/><line style="stroke:#000000;stroke-width:1.0;" x1="48.5" x2="237.5" y1="185.5098" y2="185.5098"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="141" x="55.5" y="180.98">Its good, here's the signature</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="10" x2="308" y1="194.5098" y2="194.5098"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="270" x="15" y="205.1445">[Lift not committed yet, but still within timeout]</text><line style="stroke:#000000;stroke-width:1.0;" x1="236.5" x2="226.5" y1="225.4648" y2="221.4648"/><line style="stroke:#000000;stroke-width:1.0;" x1="236.5" x2="226.5" y1="225.4648" y2="229.4648"/><line style="stroke:#000000;stroke-width:1.0;" x1="48.5" x2="237.5" y1="225.4648" y2="225.4648"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="84" x="55.5" y="220.9351">Lift is still pending</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="10" x2="308" y1="234.4648" y2="234.4648"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="293" x="15" y="245.0996">[Never heard of lift, but it would be expired by now]</text><line style="stroke:#000000;stroke-width:1.0;" x1="48.5" x2="90.5" y1="265.4199" y2="265.4199"/><line style="stroke:#000000;stroke-width:1.0;" x1="90.5" x2="90.5" y1="265.4199" y2="278.4199"/><line style="stroke:#000000;stroke-width:1.0;" x1="49.5" x2="90.5" y1="278.4199" y2="278.4199"/><line style="stroke:#000000;stroke-width:1.0;" x1="49.5" x2="59.5" y1="278.4199" y2="274.4199"/><line style="stroke:#000000;stroke-width:1.0;" x1="49.5" x2="59.5" y1="278.4199" y2="282.4199"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="176" x="55.5" y="260.8901">Remember this lift judged as expired</text><line style="stroke:#000000;stroke-width:1.0;" x1="236.5" x2="226.5" y1="303.4199" y2="299.4199"/><line style="stroke:#000000;stroke-width:1.0;" x1="236.5" x2="226.5" y1="303.4199" y2="307.4199"/><line style="stroke:#000000;stroke-width:1.0;" x1="48.5" x2="237.5" y1="303.4199" y2="303.4199"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="53" x="55.5" y="298.8901">Lift expired</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="155" x="87" y="375.0879">Wed Mar 24 17:13:17 MDT 2021</text><!--MD5=[cf5943d9d4e49bc5a1788a3333a19625]
+@startuml
+!include common.puml
+$title(Referee Queries)
+participant "Referee" as referee
+'database "Proposer DB" as propDB
+collections "Any node" as any
+
+note over any:	Node suspects lift has expired
+any		->>	referee:	Has this lift expired?
+
+alt Lift has been signed
+  referee	->>	any:		Its good, here's the signature
+
+else Lift not committed yet, but still within timeout
+  referee	->>	any:		Lift is still pending
+
+else Never heard of lift, but it would be expired by now
+  referee	->>	referee:	Remember this lift judged as expired
+  referee	->>	any:		Lift expired
+
+end
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+  title Referee Queries
+  footer Wed Mar 24 17:13:17 MDT 2021
+participant "Referee" as referee
+collections "Any node" as any
+
+note over any:	Node suspects lift has expired
+any		->>	referee:	Has this lift expired?
+
+alt Lift has been signed
+  referee	->>	any:		Its good, here's the signature
+
+else Lift not committed yet, but still within timeout
+  referee	->>	any:		Lift is still pending
+
+else Never heard of lift, but it would be expired by now
+  referee	->>	referee:	Remember this lift judged as expired
+  referee	->>	any:		Lift expired
+
+end
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

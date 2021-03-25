@@ -1,0 +1,35 @@
+@startuml
+!include common.puml
+$title(Lift Use Cases)
+left to right direction
+
+node "Proposer" as proposer
+node "Referee" as referee
+node "Relay Nodes" as relayNodes
+node "Destination" as destNode
+
+usecase "#1\nPropose a lift using a named referee" as proposed
+usecase "#2\nConfirm lift circuit completion" as confirm
+usecase "#3\nAsk the referee to ratify a lift" as ratify
+usecase "#4\nTransmit commit information" as commit
+usecase "#5\nQuery the referee" as query
+
+proposer	--	proposed
+			proposed	-- relayNodes
+			proposed	-- destNode
+
+proposer	--	confirm
+			confirm		-- destNode
+
+proposer	--	ratify
+referee		--	ratify
+
+proposer	--	commit
+			commit		-- relayNodes
+			commit		-- destNode
+
+referee		--	query
+			query		-- relayNodes
+			query		-- destNode
+
+@enduml

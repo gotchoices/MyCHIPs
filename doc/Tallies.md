@@ -5,7 +5,7 @@ A tally is, at its essence, a contract between two parties.  By the tally, they
 agree to "keep track" of a net amount owing between them, on mutually 
 acceptable terms.
 
-The tally is modeled after the historical
+The MyCHIPs digital tally is modeled after the historical
 [split tally,](https://www.bbc.com/news/business-40189959)
 an instrument used by past cultures to keep track of private credit balances.
 
@@ -16,6 +16,10 @@ normally owed value for the transaction.
 We will call this the Vendor.
 The foil (or ["short end of the stick"](https://english.stackexchange.com/questions/283103/what-is-the-origin-of-get-a-hold-of-the-short-wrong-end-of-the-stick?noredirect=1&lq=1)) 
 is held by the Client, or the entity who will be expected to deliver (pay) that value at some point in the future.
+
+It might help to remember that C is near F and V is near S in the alphabet:
+- Client: holds the Foil
+- Vendor: holds the Stock
 
 [![A Split Tally](https://valens-files.s3.amazonaws.com/institutional-dailies/edm-id79-image2.png)](https://www.valens-research.com/investor-essentials-daily/this-ancient-tradition-is-the-reason-we-long-and-short-stocks-today/)
 
@@ -226,7 +230,7 @@ Credit Terms Tally Variables:
     - Payment Interval: 30
     - Rate: 0.10
 
-- 20 year fully amortizing laon with fixed payment, limited early payoff:
+- 20 year fully amortizing loan with fixed payment, limited early payoff:
     - Maximum Balance: Amort(10000, 240)
     - Minimum Payment: Int
     - Maximum Paydown: 1000
@@ -264,7 +268,7 @@ and it also makes CHIPs less vulnerable to theft or loss.
 But it seems like a pretty serious limitation--especially on something we are 
 trying to use as money.  So in order to make *value* transmittable (effectively
 fungible), we need the 
-[credit lift alorithm](http://gotchoices.org/mychips/acdc.html)
+[credit lift algorithm](http://gotchoices.org/mychips/acdc.html)
 To facilitate lifts, each tally half (stock or foil) maintains a set of parameter 
 settings that define how lifts will take place.
 
@@ -272,7 +276,7 @@ settings that define how lifts will take place.
 
 Lifts are largely executed autonomously (without direct user interaction).  So
 the system needs a defined set of rules to know how the user wants this done.
-In the absense of any more specific direction, the system could simply examine 
+In the absence of any more specific direction, the system could simply examine 
 any credit imbalances and lift them back to zero.  While this would technically 
 work, it doesn't give the user much flexibility in how and where he may choose 
 to accumulate value (i.e. save money).  So for better control, users can 
@@ -282,7 +286,7 @@ act in accordance with the settings.
 
 ![Trading Variables](Lifts-5.jpg "Visualizing Trading Variables")
 
-Client's (Foil) Trading Varibles:
+Client's (Foil) Trading Variables:
   - **Lift Target** (Vendor -> Client):	Default: 0
     The ideal amount of Vendor's credits Client wishes to accumulate.  A 
     negative tally balance is normally accomplished through credit lifts, as 
@@ -294,7 +298,7 @@ Client's (Foil) Trading Varibles:
 
   - *Lift Limit*: (Foil bound)		Default: Debit Limit (dr_limit)
     This can exceed the dr_limit setting in the tally to allow higher 
-    indebtedness of Vendor to Client, occuring as the result of a lift.  No 
+    indebtedness of Vendor to Client, occurring as the result of a lift.  No 
     lifts should be performed which would result in a balance more negative
     than this amount.
 
@@ -302,7 +306,7 @@ Client's (Foil) Trading Varibles:
     This indicates Client's willingness to conducts lifts through this Foil.
 
     The number 0 is neutral, meaning zero cost.  A positive number
-    indicates a cost, or disinsentive to trade.  For example +0.02 means
+    indicates a cost, or disincentive to trade.  For example +0.02 means
     the Client would pass along only 98 chips for every 100 lifted up through 
     this Foil.  But -0.02 means the Client would pass 102 chips along for
     every 100 received.
@@ -317,7 +321,7 @@ Client's (Foil) Trading Varibles:
     positive number (1 disables drops altogether).  If he wants to get rid of
     the chips, he could consider entering a negative margin.
     
-Vendor's (Stock) Trading Varibles:
+Vendor's (Stock) Trading Variables:
 
   - **Drop Target** (Client -> Vendor):	Default: 0
     The ideal amount of Client's credits Vendor wishes to accumulate or 
@@ -326,11 +330,11 @@ Vendor's (Stock) Trading Varibles:
 
   - **Drop Limit**: (Stock bound)	Default: Credit Limit (cr_limit)
     This can exceed the cr_limit setting in the tally to allow higher 
-    indebtedness of Client to Vendor, occuring as a result of a drop. No drops 
+    indebtedness of Client to Vendor, occurring as a result of a drop. No drops 
     should be allowed resulting in a tally balance more positive of this 
     amount.
 
-  - **Drop Margin*8: (Stock reward)	Default: 0
+  - **Drop Margin**: (Stock reward)	Default: 0
     This indicates a willingness to conduct drops, or lifts in the opposite 
     direction of normal (downhill) through this Stock.  All drops must be
     allowed at par or better until the Drop Target (default 0) is reached.
@@ -392,7 +396,7 @@ In the case of a commercial account like a retailer or restaurant, for example:
 
 - The Vendor would display or transmit a ticket QR code, containing:
   - The name or IP address of the system that hosts the recipient's CHIP account
-  - A connection socket enpoint for the recipient's host system
+  - A connection socket endpoint for the recipient's host system
   - A connection authorization token:
     - May be configured to expire after a one-time use
     - May be configured for multiple use by multiple parties (printed decal)
@@ -498,7 +502,7 @@ to time, it is important that they converge to the same answer eventually as
 they go along.
 
 So we will employ the design pattern of a hash chain.  The chits belonging to a 
-tally will form a linked list where each chit in the chain will nold a copy the 
+tally will form a linked list where each chit in the chain will hold a copy the 
 hash of the prior chit in the chain.  This way, if our two peers can agree on 
 the index number and hash value of the last chit in the chain, they can rest 
 assured, they also agree on the contents of all prior chits in the chain.
@@ -563,7 +567,7 @@ The state of a chit can be looked at from several different angles, depending
 on what is needed.
 
 - **State Machine**:
-The view field "state" tells us a state name, based on the values of verious
+The view field "state" tells us a state name, based on the values of various
 physical fields in the chit record.  This field is slower because it is
 computed, but it really only needs to be consulted when considering whether
 various state changes are allowable.

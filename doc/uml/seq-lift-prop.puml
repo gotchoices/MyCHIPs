@@ -1,0 +1,30 @@
+@startuml
+!include common.puml
+$title(Lift Proposal)
+actor "User" as user
+control "Lift Agent" as agent
+database "Proposer DB" as propDB
+database "Upstream DB" as upDB
+database "Next Upstream Node" as next
+
+alt User initiates linear lift
+  user		->>	propDB:		Request payment to named peer
+
+else Autonomous agent initiates circular lift
+  agent		->>	propDB:		Request clearing lift\nthrough named\ndestination peer
+end
+
+propDB		->>	upDB:		Will you participate in a lift?
+
+alt Destination found locally
+  note over upDB: This case shown in a later diagram
+  
+else A route can be found to the named destination
+  upDB		->>	next:		Propagate lift via chosen route
+
+else No route found
+  upDB		-->	propDB:		Reply: lift failed with no route
+
+end
+  
+@enduml

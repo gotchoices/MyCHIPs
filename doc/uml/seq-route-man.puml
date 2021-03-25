@@ -14,7 +14,7 @@ group User requests route via a specific tally/partner
   else Existing route found (good, failed or stale)
     userDB	->>	partDB:		Request route refresh
   else No route found
-    userDB	->>	partDB:		Request new route
+    userDB	->>	partDB:		Create draft route\nQuery upstream
   end
 end
 
@@ -33,7 +33,7 @@ group User requests any/all routes
       userDB ->>	partDB:		Request route refresh
 
     else No existing route found
-      userDB ->>	partDB:		Request new route
+      userDB ->>	partDB:		Create draft route\nQuery upstream
     end
   end
 end

@@ -1,0 +1,45 @@
+@startuml
+!include common.puml
+$title(Lift Confirmation/Ratification)
+participant "Referee" as referee
+database "Proposer DB" as propDB
+collections "Intermediate nodes" as inter
+database "Terminus DB" as termDB
+
+propDB		->>	inter:		Will you participate in a lift?
+inter		->>	termDB:		Will you participate in a lift?
+
+note over termDB: The destination is a local user
+termDB		->>	propDB:		Terminus reached;\nauthenticate
+
+alt Proposer wants to cancel (or thinks the lift is expired)
+  propDB	->>	termDB:		Cancel lift
+  termDB	->>	inter:		Cancel lift
+  inter		->>	propDB:		Cancel lift
+
+else Proposer still wants to proceed with lift
+  propDB	->>	referee:	May I commit this lift?
+
+  alt Lift still within time
+    referee	->>	propDB:		OK, here's my signature
+    note over propDB
+      Lift is now irrevocably good and binding.
+      The signature is a liability to any node
+      who doesn't deploy it if their upstream 
+      neighbor manages to deploy it.
+    end note
+    
+    propDB	->>	termDB:		Commit; here's the signature
+    termDB	->>	inter:		Commit; here's the signature
+    inter	->>	propDB:		Commit; here's the signature
+
+  else Lift judged to have expired
+    referee	->>	propDB:		Sorry, lift expired
+    propDB	->>	termDB:		Cancel lift
+    termDB	->>	inter:		Cancel lift
+    inter	->>	propDB:		Cancel lift
+  end
+
+end
+  
+@enduml

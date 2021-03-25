@@ -1,0 +1,21 @@
+@startuml
+!include common.puml
+
+$title(Referee Lift States)
+[*] --> none
+state "Lift Unknown" as none
+
+'States are determined by:
+'draft: Stat: void, Req: draft
+'seek:  Stat: seek, Req: N/A
+'term:  Stat: term, Req: N/A
+
+'State transition rules:
+none -[$peer]-> good: $trans($peer,Receive proposer Req:call,'Within time', 'Generate signature\nStore:good\nReply Act:good')
+none -[$peer]-> timeout: $trans($peer,Receive request Req:call/query,'Time expired', 'Store:timeout\nReply Act:timeout')
+timeout -[$peer]-> timeout: $trans($peer,Receive request Req:N/A,'Already ruled expired', 'Reply Act:timeout')
+
+good -[$peer]-> good: $trans($peer,Receive peer Req:query,'Already signed', 'Reply Act:signed')
+none -[$peer]-> none: $trans($peer,Receive peer Req:query,'Time not expired', 'Reply Act:pending')
+
+@enduml

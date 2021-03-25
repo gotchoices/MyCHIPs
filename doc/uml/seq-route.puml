@@ -1,35 +1,39 @@
 @startuml
 !include common.puml
-$title(Route Query Response (WIP))
-control "Lift Agent" as agent
+$title(Route Query Response)
+database "Downstream DB" as downDB
 database "Local DB" as localDB
 database "Upstream DB" as upDB
-database "Downstream DB" as downDB
 
 'collections "Other Peers on Network" as net
 
-localDB	->>	upDB:		Something here
+downDB	->>	localDB:	Receive route query
 
-note over localDB
-  Note here
-end note
+alt Route impossible via this path
+  localDB	->>	downDB:	Reply action: fail
 
-'alt User specified this partner explicitly
-'  userDB	->	partDB:		Request route refresh
-'  
-'else This tally lacks capacity
-'  userDB	->	userDB:
-'  note right: Do nothing
-'
-'else No existing route found
-'  userDB	->	partDB:		Query for new route
-'
-'else Existing stale route found
-'  userDB	->	partDB:		Request route refresh
-'
-'else Existing route is (recently) failed
-'  userDB	->	userDB:
-'  note right: do nothing
-'end
+else Destination peer found locally
+  localDB	->>	downDB:	Reply action: affirm
+
+else Destination peer not found locally
+  loop On upstream peers with lift capacity
+    localDB	->>	upDB: Create draft route\nQuery upstream
+  end
+end
+
+  note over localDB: new route status indeterminate (pending)
+  
+alt Negative response
+  upDB	->>	localDB:		Route impossible
+  localDB	->>	localDB:	Set route status = fail
+  localDB	->>	downDB:	Reply action: fail
+  
+else Positive response
+  upDB	->>	localDB:		Route good
+  localDB	->>	localDB:	Set route status = affirm
+  localDB	->>	downDB:	Reply action: affirm
+
+end
+  note over localDB: routes will eventually time\nout and become stale
 
 @enduml

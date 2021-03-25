@@ -22,12 +22,12 @@ loop Over all segments with lift capacity
     localDB	->>	upDB:		Request route refresh
     
   else No route found
-    localDB	->>	upDB:		Request new route
+    localDB	->>	upDB:		Create draft route\nQuery upstream
     
   end
 end
 
-  note over localDB: route status initially indeterminate (pending)
+  note over localDB: new route status indeterminate (pending)
 
 alt Negative response
   upDB	->>	localDB:		Route impossible
