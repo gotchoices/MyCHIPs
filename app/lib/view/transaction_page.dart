@@ -8,6 +8,7 @@ import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'error_popup.dart';
 import 'main_drawer_view.dart';
 import 'success_popup.dart';
+import  'package:keyboard_actions/keyboard_actions.dart';
 
 const BOTH = 'BOTH';
 const PAY = 'PAY';
@@ -24,16 +25,12 @@ class TransactionPage extends StatefulWidget {
 
 class TransactionPageState extends State<TransactionPage> {
 
-  TextEditingController amtController;
-  TextEditingController msgController;
+  TextEditingController amtController = TextEditingController();
+  TextEditingController msgController = TextEditingController();
+  final FocusNode amtNode = FocusNode();
+  final FocusNode msgNode = FocusNode();
   Transaction curTransaction;
 
-  @override
-  void initState() {
-    super.initState();
-    amtController = TextEditingController();
-    msgController = TextEditingController();
-  }
   @override
   void dispose() {
     amtController.dispose();
@@ -41,9 +38,42 @@ class TransactionPageState extends State<TransactionPage> {
     super.dispose();
   }
 
-  @override
+  KeyboardActionsConfig buildConfig(BuildContext context) {
+    return KeyboardActionsConfig(
+      keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
+      keyboardBarColor: Colors.grey[200],
+      nextFocus: true,
+      actions: [
+        KeyboardActionsItem(focusNode: amtNode,),
+        KeyboardActionsItem(
+          focusNode: msgNode,
+          onTapAction: () {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Text("Custom Action"),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text("OK"),
+                        onPressed: () => Navigator.of(context).pop(),
+                      )
+                    ],
+                  );
+                });
+          },
+        )
+      ]
+    );
+  }
+
+    @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+      // KeyboardActions(
+      // config: buildConfig(context),
+      // child:
+      Scaffold(
         appBar: AppBar(
           title: Text("Payment Details"),
           automaticallyImplyLeading: false,
@@ -56,7 +86,9 @@ class TransactionPageState extends State<TransactionPage> {
         ),
         body: buildPage(),
         drawer: MainDrawer()
-    );
+    )
+    // )
+    ;
   }
 
   Widget buildPage() {
@@ -75,6 +107,7 @@ class TransactionPageState extends State<TransactionPage> {
           Expanded(
             child: TextField(
               controller: amtController,
+              focusNode: amtNode,
               onSubmitted: (String amt) => curTransaction.amount = double.parse(amt),
               decoration: InputDecoration(
                 border: InputBorder.none,
@@ -89,6 +122,7 @@ class TransactionPageState extends State<TransactionPage> {
         padding: EdgeInsets.fromLTRB(20,0,0,0),
         child: TextField(
           controller: msgController,
+          focusNode: msgNode,
           onSubmitted: (String msg) => curTransaction.message = msg,
           decoration: InputDecoration(
               border: InputBorder.none,
