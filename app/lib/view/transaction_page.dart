@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_app/objects/tally.dart';
 import 'package:flutter_app/objects/account.dart';
+import 'package:flutter_app/objects/tally.dart';
+import 'package:flutter_app/objects/transaction.dart';
 import 'package:flutter_app/presenter/tally_search_presenter.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'error_popup.dart';
@@ -14,14 +15,32 @@ const REQUEST = 'REQUEST';
 
 class TransactionPage extends StatefulWidget {
   final bool fromHome;
-  final Account account;
-  TransactionPage(this.fromHome, this.account, {Key key}): super(key: key);
+  final Account transactionPartner;
+  TransactionPage(this.fromHome, this.transactionPartner, {Key key}): super(key: key);
 
   @override
   TransactionPageState createState() => new TransactionPageState();
 }
 
 class TransactionPageState extends State<TransactionPage> {
+
+  TextEditingController amtController;
+  TextEditingController msgController;
+  Transaction curTransaction;
+
+  @override
+  void initState() {
+    super.initState();
+    amtController = TextEditingController();
+    msgController = TextEditingController();
+  }
+  @override
+  void dispose() {
+    amtController.dispose();
+    msgController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,9 +54,63 @@ class TransactionPageState extends State<TransactionPage> {
                 onPressed: ()=>Navigator.popUntil(context,
                     widget.fromHome ? ModalRoute.withName("home-page") : ModalRoute.withName("tally-page")),))
         ),
-        body: buildTransactionWidget(context, BOTH),
+        body: buildPage(),
         drawer: MainDrawer()
     );
+  }
+
+  Widget buildPage() {
+    return Stack(children: [
+      Column(children: [
+      Padding(
+        padding: EdgeInsets.fromLTRB(20, 15, 6, 8),
+        child: Row(children:[
+          buildAccountTitle() //currently the name is on a separate line from the payment textfield, but thanks to the row this can easily change
+      ])),
+      Divider(thickness: 2, indent: 20, endIndent: 20,),
+      Padding(
+        padding: EdgeInsets.fromLTRB(20, 8, 6, 8),
+        child: Row(children: [
+          Expanded(flex: 0, child: Text("₵")),
+          Expanded(
+            child: TextField(
+              controller: amtController,
+              onSubmitted: (String amt) => curTransaction.amount = double.parse(amt),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: "0.00",
+                hintStyle: TextStyle(color: Colors.grey)),
+              style: TextStyle(color: Colors.black),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              //TODO: currently this prevents using decimals, so no paying with partial mychips till we fix this.
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly]))])),
+      Divider(thickness: 2, indent: 20, endIndent: 20,),
+      Padding(
+        padding: EdgeInsets.fromLTRB(20,0,0,0),
+        child: TextField(
+          controller: msgController,
+          onSubmitted: (String msg) => curTransaction.message = msg,
+          decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: "Please enter a payment message",
+              hintStyle: TextStyle(color: Colors.grey, fontSize: 25)),
+          style: TextStyle(fontSize:25)
+        )
+      ),
+    ]),
+  ]);
+  }
+
+  Widget buildAccountTitle() {
+    return Container(
+      decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(40),
+      color: Colors.white),
+      child:Row(children:[
+        CircleAvatar(backgroundImage: new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png")),
+        Padding(padding: EdgeInsets.all(8.0), child:
+        Text(widget.transactionPartner.displayName, style: TextStyle(fontWeight: FontWeight.bold),))
+    ]));
   }
 }
 
