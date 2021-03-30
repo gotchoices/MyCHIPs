@@ -146,7 +146,7 @@ class ScannerState extends State<Scanner> {
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
-            Text('Would you like to start a tally with ' + tally.friend + "?"),
+            Text('Would you like to start a tally with ' + tally.friend.displayName + "?"),
           ],
         ),
       ),

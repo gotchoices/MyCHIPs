@@ -25,7 +25,7 @@ class TallyPageState extends State<TallyPage> {
     transactionMap = userTransactions.transactionList;
     return Scaffold(
         appBar: AppBar(
-          title: Text("Tally with " + widget.tally.friend),
+          title: Text("Tally with " + widget.tally.friend.displayName),
           actions: [
             //TODO: Where is the user profile image URL stored? How and when is it fetched?
             CircleAvatar(backgroundImage: new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),)
@@ -99,38 +99,18 @@ class TallyPageState extends State<TallyPage> {
       Padding(
       padding: const EdgeInsets.all(10),
       child: Align(
-        alignment: Alignment.bottomLeft,
+        alignment: Alignment.bottomCenter,
         child: MaterialButton(
-          onPressed: () {
-            showDialog(context: context, builder: (BuildContext context){
-              return AlertDialog(
-                scrollable: true,
-                content: buildTransactionWidget(context, 'PAY', widget.tally.friend));});
-          },
-          child: const Text('PAY', style: TextStyle(fontSize: 20)),
+          onPressed: () => Navigator.push(
+            context, MaterialPageRoute(builder: (BuildContext context) => TransactionPage(false, widget.tally.friend))
+          ),
+          child: const Text('PAY OR REQUEST', style: TextStyle(fontSize: 20)),
           color: Colors.blue,
           textColor: Colors.white,
           elevation: 5,
           height: 50,
           minWidth: maxButtonWidth
         ))),
-      Padding(
-        padding: const EdgeInsets.all(10),
-        child: Align(
-          alignment: Alignment.bottomRight,
-          child: MaterialButton(
-            onPressed: () {
-              showDialog(context: context, builder: (BuildContext context){
-                return AlertDialog(
-                  scrollable: true,
-                  content: buildTransactionWidget(context, 'REQUEST', widget.tally.friend));});
-            },
-            child: const Text('REQUEST', style: TextStyle(fontSize: 20)),
-            color: Colors.blue,
-            textColor: Colors.white,
-            elevation: 5,
-            height: 50,
-            minWidth: maxButtonWidth
-    )))]));
+    ]));
   }
 }

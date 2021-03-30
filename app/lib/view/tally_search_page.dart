@@ -89,25 +89,23 @@ class TallySearchPageState extends State<TallySearchPage> {
 
   Widget buildRow(Tally t) {
     return ListTile(
-        title: Text(t.friend, style: TextStyle(fontSize: 18)),
+        title: Text(t.friend.displayName, style: TextStyle(fontSize: 18)),
         // trailing: FOR NOW
             // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           if (widget.searchResultType == 0) {
             Navigator.push(
                 context,
-                new MaterialPageRoute(
+                MaterialPageRoute(
+                    settings: RouteSettings(name: "tally-page"),
                     builder: (BuildContext context) =>
-                        new TallyPage(Tally(t.friend, t.balance))));
+                        TallyPage(Tally(t.friend, t.balance))));
           } else if (widget.searchResultType == 1) {
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                      scrollable: true,
-                      content:
-                          buildTransactionWidget(context, 'BOTH', t.friend));
-                });
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                builder: (BuildContext context) =>
+                  TransactionPage(true, t.friend)));
           }
         });
   }

@@ -6,6 +6,7 @@ import 'tally_search_page.dart';
 import 'sign_in_page.dart';
 import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 //TODO: Observer and notifier for when someone else pays/requests payment to you
 // ignore: must_be_immutable
@@ -14,7 +15,13 @@ class MyChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(primaryColor: Color(0xff53ab77)),
+        theme: ThemeData(
+          primaryColor: Color(0xff53ab77),
+          accentColor: Color(0xfff3a43e),
+          primaryColorDark: Color(0xff5c6060),
+          scaffoldBackgroundColor: Color(0xfff5f6fb),
+          textTheme: GoogleFonts.quicksandTextTheme()
+        ),
         //TODO: Determine if a user is logged in already, if so go to HomePage instead of Login page
         home: SignInPage());
   }
@@ -104,11 +111,11 @@ class PieChartWidget extends State<HomePage> {
                                 builder: (BuildContext context) => Scanner()));
                         },
                       child: Row(children: [
-                        Text('SCAN', style: TextStyle(fontSize: 20)),
+                        Text('SCAN', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                         Icon(Icons.qr_code)
                       ]),
-                      color: Colors.blue,
-                      textColor: Colors.white,
+                      color: Colors.white,
+                      textColor: Theme.of(context).primaryColor,
                       elevation: 5,
                       height: 50,
                       minWidth: maxButtonWidth))),
@@ -121,13 +128,14 @@ class PieChartWidget extends State<HomePage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
+                                settings: RouteSettings(name: "tally-search-page"),
                                 builder: (BuildContext context) =>
                                     TallySearchPage(1)));
                         },
                       child:
-                      const Text('Pay/Request', style: TextStyle(fontSize: 20)),
-                      color: Colors.blue,
-                      textColor: Colors.white,
+                      const Text('Pay/Request', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      color: Colors.white,
+                      textColor: Theme.of(context).primaryColor,
                       elevation: 5,
                       height: 50,
                       minWidth: maxButtonWidth)))

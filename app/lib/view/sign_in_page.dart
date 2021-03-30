@@ -63,6 +63,7 @@ class SignInPageState extends State<SignInPage> {
                     Navigator.push(
                         context,
                         new MaterialPageRoute(
+                            settings: RouteSettings(name:"home-page"),
                             builder: (BuildContext context) =>
                                 //TODO: figure out how reconnection works and create a reconnect page
                                 new HomePage()));

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/objects/tally.dart';
+import 'package:flutter_app/objects/account.dart';
 import 'package:flutter_app/presenter/tally_search_presenter.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'error_popup.dart';
@@ -12,6 +13,10 @@ const PAY = 'PAY';
 const REQUEST = 'REQUEST';
 
 class TransactionPage extends StatefulWidget {
+  final bool fromHome;
+  final Account account;
+  TransactionPage(this.fromHome, this.account, {Key key}): super(key: key);
+
   @override
   TransactionPageState createState() => new TransactionPageState();
 }
@@ -21,10 +26,18 @@ class TransactionPageState extends State<TransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("MyCHIPs Transaction"),
+          title: Text("Payment Details"),
+          automaticallyImplyLeading: false,
+          leading: Builder(
+            builder: (BuildContext context) =>
+              IconButton(
+                icon: const Icon(Icons.clear_rounded),
+                onPressed: ()=>Navigator.popUntil(context,
+                    widget.fromHome ? ModalRoute.withName("home-page") : ModalRoute.withName("tally-page")),))
         ),
         body: buildTransactionWidget(context, BOTH),
-        drawer: MainDrawer());
+        drawer: MainDrawer()
+    );
   }
 }
 
@@ -76,12 +89,14 @@ Widget createButtons(context, transactionType) {
                           errPop(context, "Payment failed. Try again?");
                         }
                       },
-                      child: Text('PAY', style: TextStyle(fontSize: 20)),
-                      color: Colors.blue,
-                      textColor: Colors.white,
+                      child: Text('PAY', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      color: Colors.white,
+                      textColor: Theme.of(context).primaryColor,
                       elevation: 5,
                       height: 50,
-                      minWidth: (MediaQuery.of(context).size.width) / 2.25)),
+                      minWidth: (MediaQuery.of(context).size.width) / 2.5),
+              ),
+
               MaterialButton(
                   onPressed: () {
                     //TODO:
@@ -94,12 +109,12 @@ Widget createButtons(context, transactionType) {
                       errPop(context, 'request failed.');
                     }
                   },
-                  child: Text('REQUEST', style: TextStyle(fontSize: 20)),
-                  color: Colors.blue,
-                  textColor: Colors.white,
+                  child: Text('REQUEST', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  color: Colors.white,
+                  textColor: Theme.of(context).primaryColor,
                   elevation: 5,
                   height: 50,
-                  minWidth: (MediaQuery.of(context).size.width) / 2.25)
+                  minWidth: (MediaQuery.of(context).size.width) / 2.5)
             ])));
   }
   return Container(
