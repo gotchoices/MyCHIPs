@@ -8,7 +8,7 @@ import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'error_popup.dart';
 import 'main_drawer_view.dart';
 import 'success_popup.dart';
-import  'package:keyboard_actions/keyboard_actions.dart';
+import 'package:keyboard_actions/keyboard_actions.dart';
 
 const BOTH = 'BOTH';
 const PAY = 'PAY';
@@ -17,14 +17,14 @@ const REQUEST = 'REQUEST';
 class TransactionPage extends StatefulWidget {
   final bool fromHome;
   final Account transactionPartner;
-  TransactionPage(this.fromHome, this.transactionPartner, {Key key}): super(key: key);
+  TransactionPage(this.fromHome, this.transactionPartner, {Key key})
+      : super(key: key);
 
   @override
   TransactionPageState createState() => new TransactionPageState();
 }
 
 class TransactionPageState extends State<TransactionPage> {
-
   TextEditingController amtController = TextEditingController();
   TextEditingController msgController = TextEditingController();
   final FocusNode amtNode = FocusNode();
@@ -40,111 +40,185 @@ class TransactionPageState extends State<TransactionPage> {
 
   KeyboardActionsConfig buildConfig(BuildContext context) {
     return KeyboardActionsConfig(
-      keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
-      keyboardBarColor: Colors.grey[200],
-      nextFocus: true,
-      actions: [
-        KeyboardActionsItem(focusNode: amtNode,),
-        KeyboardActionsItem(
-          focusNode: msgNode,
-          onTapAction: () {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    content: Text("Custom Action"),
-                    actions: <Widget>[
-                      FlatButton(
-                        child: Text("OK"),
-                        onPressed: () => Navigator.of(context).pop(),
-                      )
-                    ],
-                  );
-                });
-          },
-        )
-      ]
-    );
+        keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
+        keyboardBarColor: Colors.grey[200],
+        nextFocus: true,
+        actions: [
+          KeyboardActionsItem(
+            focusNode: amtNode,
+          ),
+          KeyboardActionsItem(
+            focusNode: msgNode,
+            onTapAction: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Text("Custom Action"),
+                      actions: <Widget>[
+                        FlatButton(
+                          child: Text("OK"),
+                          onPressed: () => Navigator.of(context).pop(),
+                        )
+                      ],
+                    );
+                  });
+            },
+          )
+        ]);
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return
-      // KeyboardActions(
-      // config: buildConfig(context),
-      // child:
-      Scaffold(
-        appBar: AppBar(
-          title: Text("Payment Details"),
-          automaticallyImplyLeading: false,
-          leading: Builder(
-            builder: (BuildContext context) =>
-              IconButton(
-                icon: const Icon(Icons.clear_rounded),
-                onPressed: ()=>Navigator.popUntil(context,
-                    widget.fromHome ? ModalRoute.withName("home-page") : ModalRoute.withName("tally-page")),))
-        ),
-        body: buildPage(),
-        drawer: MainDrawer()
-    )
-    // )
-    ;
+        // KeyboardActions(
+        // config: buildConfig(context),
+        // child:
+        Scaffold(
+            appBar: AppBar(
+                title: Text("Payment Details"),
+                automaticallyImplyLeading: false,
+                leading: Builder(
+                    builder: (BuildContext context) => IconButton(
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () => Navigator.popUntil(
+                              context,
+                              widget.fromHome
+                                  ? ModalRoute.withName("home-page")
+                                  : ModalRoute.withName("tally-page")),
+                        ))),
+            body: buildPage(),
+            drawer: MainDrawer())
+        // )
+        ;
   }
 
   Widget buildPage() {
     return Stack(children: [
       Column(children: [
-      Padding(
-        padding: EdgeInsets.fromLTRB(20, 15, 6, 8),
-        child: Row(children:[
-          buildAccountTitle() //currently the name is on a separate line from the payment textfield, but thanks to the row this can easily change
-      ])),
-      Divider(thickness: 2, indent: 20, endIndent: 20,),
-      Padding(
-        padding: EdgeInsets.fromLTRB(20, 8, 6, 8),
-        child: Row(children: [
-          Expanded(flex: 0, child: Text("₵")),
-          Expanded(
+        Padding(
+            padding: EdgeInsets.fromLTRB(20, 15, 6, 8),
+            child: Row(children: [
+              buildAccountTitle() //currently the name is on a separate line from the payment textfield, but thanks to the row this can easily change
+            ])),
+        Divider(
+          thickness: 2,
+          indent: 20,
+          endIndent: 20,
+        ),
+        Padding(
+            padding: EdgeInsets.fromLTRB(20, 8, 6, 8),
+            child: Row(children: [
+              Expanded(flex: 0, child: Text("₵")),
+              Expanded(
+                  child: TextField(
+                      controller: amtController,
+                      focusNode: amtNode,
+                      onSubmitted: (String amt) =>
+                          curTransaction.amount = double.parse(amt),
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "0.00",
+                          hintStyle: TextStyle(color: Colors.grey)),
+                      style: TextStyle(color: Colors.black),
+                      keyboardType: TextInputType.number))
+            ])),
+        Divider(
+          thickness: 2,
+          indent: 20,
+          endIndent: 20,
+        ),
+        Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
             child: TextField(
-              controller: amtController,
-              focusNode: amtNode,
-              onSubmitted: (String amt) => curTransaction.amount = double.parse(amt),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: "0.00",
-                hintStyle: TextStyle(color: Colors.grey)),
-              style: TextStyle(color: Colors.black),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              //TODO: currently this prevents using decimals, so no paying with partial mychips till we fix this.
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly]))])),
-      Divider(thickness: 2, indent: 20, endIndent: 20,),
-      Padding(
-        padding: EdgeInsets.fromLTRB(20,0,0,0),
-        child: TextField(
-          controller: msgController,
-          focusNode: msgNode,
-          onSubmitted: (String msg) => curTransaction.message = msg,
-          decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: "Please enter a payment message",
-              hintStyle: TextStyle(color: Colors.grey, fontSize: 25)),
-          style: TextStyle(fontSize:25)
-        )
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                controller: msgController,
+                focusNode: msgNode,
+                onSubmitted: (String msg) => curTransaction.message = msg,
+                decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: "Please enter a payment message",
+                    hintStyle: TextStyle(color: Colors.grey, fontSize: 18)),
+                style: TextStyle(fontSize: 18))),
+      ]),
+      Positioned(
+        bottom: 10,
+        width: (MediaQuery.of(context).size.width),
+        child: createButtons(context),
       ),
-    ]),
-  ]);
+    ]);
   }
 
   Widget buildAccountTitle() {
     return Container(
-      decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(40),
-      color: Colors.white),
-      child:Row(children:[
-        CircleAvatar(backgroundImage: new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png")),
-        Padding(padding: EdgeInsets.all(8.0), child:
-        Text(widget.transactionPartner.displayName, style: TextStyle(fontWeight: FontWeight.bold),))
-    ]));
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(40), color: Colors.white),
+        child: Row(children: [
+          CircleAvatar(
+              backgroundImage: new NetworkImage(
+                  "https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png")),
+          Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                widget.transactionPartner.displayName,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ))
+        ]));
+  }
+
+  Widget createButtons(context) {
+    var presenter = TransactionPresenter();
+    //TODO: Verify valid input before allowing button logic to be executed.
+    //TODO: tie input to a transaction object to send through the presenter
+    return Container(
+        child: Padding(
+            padding: EdgeInsets.all(10),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              MaterialButton(
+                onPressed: () {
+                  //TODO:
+                  if (presenter.sendPayment(null)) {
+                    Navigator.pop(context);
+                    succPop(context, "Payment sent successfully");
+                  } else {
+                    errPop(context, "Payment failed. Try again?");
+                  }
+                },
+                child: Text('PAY',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                color: Colors.white,
+                textColor: Theme.of(context).primaryColor,
+                elevation: 5,
+                height: 50,
+                minWidth: (MediaQuery.of(context).size.width) / 2.5,
+              ),
+              Padding(
+                padding: EdgeInsets.all(10),
+              ),
+              MaterialButton(
+                onPressed: () {
+                  //TODO:
+                  if (presenter.requestPayment(null)) {
+                    //successful transaction
+                    Navigator.pop(context);
+                    succPop(context, 'great work mate. request sent');
+                  } else {
+                    //something went wrong...
+                    errPop(context, 'request failed.');
+                  }
+                },
+                child: Text('REQUEST',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                color: Colors.white,
+                textColor: Theme.of(context).primaryColor,
+                elevation: 5,
+                height: 50,
+                minWidth: (MediaQuery.of(context).size.width) / 2.5,
+              ),
+            ])));
   }
 }
 
@@ -164,7 +238,7 @@ Widget buildTransactionWidget(context, transactionType, [friend]) {
         child: Padding(
       padding: EdgeInsets.only(bottom: 100, left: 5),
       //TODO: Make the text in this textField wrap
-          child: TextField(
+      child: TextField(
         decoration: InputDecoration(
             border: InputBorder.none,
             hintText: "Purpose:",
@@ -172,96 +246,8 @@ Widget buildTransactionWidget(context, transactionType, [friend]) {
         style: TextStyle(color: Colors.black),
       ),
     )),
-    createButtons(context, transactionType)
+    //createButtons(context)
   ]);
-}
-
-Widget createButtons(context, transactionType) {
-  var presenter = TransactionPresenter();
-  //TODO: Verify valid input before allowing button logic to be executed.
-  //TODO: tie input to a transaction object to send through the presenter
-  if (transactionType == BOTH) {
-    return Container(
-        child: Padding(
-            padding: EdgeInsets.all(10),
-            child: Row(children: [
-              Expanded(
-                  child: MaterialButton(
-                      onPressed: () {
-                        //TODO:
-                        if (presenter.sendPayment(null)) {
-                          Navigator.pop(context);
-                          succPop(context, "Payment sent successfully");
-                        } else {
-                          errPop(context, "Payment failed. Try again?");
-                        }
-                      },
-                      child: Text('PAY', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      color: Colors.white,
-                      textColor: Theme.of(context).primaryColor,
-                      elevation: 5,
-                      height: 50,
-                      minWidth: (MediaQuery.of(context).size.width) / 2.5),
-              ),
-
-              MaterialButton(
-                  onPressed: () {
-                    //TODO:
-                    if (presenter.requestPayment(null)) {
-                      //successful transaction
-                      Navigator.pop(context);
-                      succPop(context, 'great work mate. request sent');
-                    } else {
-                      //something went wrong...
-                      errPop(context, 'request failed.');
-                    }
-                  },
-                  child: Text('REQUEST', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  color: Colors.white,
-                  textColor: Theme.of(context).primaryColor,
-                  elevation: 5,
-                  height: 50,
-                  minWidth: (MediaQuery.of(context).size.width) / 2.5)
-            ])));
-  }
-  return Container(
-      child: Padding(
-          padding: EdgeInsets.all(10),
-          child: Row(children: [
-            Expanded(
-                flex: 1,
-                child: MaterialButton(
-                  onPressed: () {
-                    //TODO:
-                    if (transactionType == PAY) {
-                      if (presenter.sendPayment(null)) {
-                        Navigator.pop(context);
-                        succPop(context, 'Payment sent successfully.');
-                      } else {
-                        errPop(context, 'payment failed. try again?');
-                      }
-                    } else if (transactionType == REQUEST) {
-                      if (presenter.requestPayment(null)) {
-                        Navigator.pop(context);
-                        succPop(context, 'Request sent successfully.');
-                      } else {
-                        errPop(context,
-                            'Failed to send request. Maybe try again?');
-                      }
-                    } else {
-                      // the transaction type was neither pay or request, what is going on
-                      //this is a
-                      print("BIG BOY ERROR");
-                    }
-                    print("pressed " + transactionType);
-                  },
-                  child: Text(transactionType, style: TextStyle(fontSize: 20)),
-                  color: Colors.blue,
-                  textColor: Colors.white,
-                  elevation: 5,
-                  // height:50
-                ))
-          ])));
 }
 
 Widget createPaymentTextFields(friend) {
