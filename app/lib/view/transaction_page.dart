@@ -178,16 +178,16 @@ class TransactionPageState extends State<TransactionPage> {
               MaterialButton(
                 onPressed: () {
                   //TODO:
-                  if (presenter.sendPayment(null)) {
+                  if (presenter.requestPayment(null)) {
                     Navigator.pop(context);
                     succPop(context, "Payment sent successfully");
                   } else {
                     errPop(context, "Payment failed. Try again?");
                   }
                 },
-                child: Text('PAY',
+                child: Text('REQUEST',
                     style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 color: Colors.white,
                 textColor: Theme.of(context).primaryColor,
                 elevation: 5,
@@ -200,7 +200,7 @@ class TransactionPageState extends State<TransactionPage> {
               MaterialButton(
                 onPressed: () {
                   //TODO:
-                  if (presenter.requestPayment(null)) {
+                  if (presenter.sendPayment(null)) {
                     //successful transaction
                     Navigator.pop(context);
                     succPop(context, 'great work mate. request sent');
@@ -209,9 +209,9 @@ class TransactionPageState extends State<TransactionPage> {
                     errPop(context, 'request failed.');
                   }
                 },
-                child: Text('REQUEST',
+                child: Text('PAY',
                     style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 color: Colors.white,
                 textColor: Theme.of(context).primaryColor,
                 elevation: 5,

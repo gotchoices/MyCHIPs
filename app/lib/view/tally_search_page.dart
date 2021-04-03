@@ -26,64 +26,61 @@ class TallySearchPageState extends State<TallySearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (userTallies.tallyList.length == 0)
-      presenter.getUserTallies();
+    if (userTallies.tallyList.length == 0) presenter.getUserTallies();
     tallyList = userTallies.tallyList;
     return Scaffold(
       appBar: AppBar(
           title: TextField(
-            onChanged: (input) {
-              if (input.isNotEmpty) {
-                searchList.clear();
-                searchList.addAll(presenter.filterUsers(input, tallyList));
-                setState(() {
-                  searching = true;
-                });
-              } else {
-                searchList.clear();
-                setState(() {
-                  searching = false;
-                });
-              }
-              },
-            decoration: InputDecoration(
-                icon: Icon(
-                  Icons.search,
-                  color: Colors.white,
-                ),
-                hintText: "type user here",
-                hintStyle: TextStyle(color: Colors.white)),
-            autofocus: !(widget.searchResultType == 0),
-            style: TextStyle(color: Colors.white),
-            cursorColor: Colors.white,
-          )
-      ),
-      body: Container(child: Stack(children: [
-            Container(child: buildTallyList()),
-            //TODO: get that GOSH DANG BUTTON off the last item in the list
-            Container(child: widget.searchResultType == 0 ? buildButton() : null)
-          ])),
+        onChanged: (input) {
+          if (input.isNotEmpty) {
+            searchList.clear();
+            searchList.addAll(presenter.filterUsers(input, tallyList));
+            setState(() {
+              searching = true;
+            });
+          } else {
+            searchList.clear();
+            setState(() {
+              searching = false;
+            });
+          }
+        },
+        decoration: InputDecoration(
+            icon: Icon(
+              Icons.search,
+              color: Colors.white,
+            ),
+            hintText: "type user here",
+            hintStyle: TextStyle(color: Colors.white)),
+        autofocus: !(widget.searchResultType == 0),
+        style: TextStyle(color: Colors.white),
+        cursorColor: Colors.white,
+      )),
+      body: Container(
+          child: Stack(children: [
+        Container(child: buildTallyList()),
+        Container(child: widget.searchResultType == 0 ? buildButton() : null)
+      ])),
       drawer: MainDrawer(),
     );
   }
 
   Widget buildTallyList() {
     return ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding:
+            const EdgeInsets.only(top: 16, right: 16, bottom: 75, left: 16),
         itemCount: searching ? (searchList.length * 2) : (tallyList.length * 2),
         itemBuilder: (context, item) {
-
-          if(item == 0 && searching)
+          if (item == 0 && searching)
             return buildRow(searchList[0]);
-          else if (item == 0 && !searching)
-            return buildRow(tallyList[0]);
+          else if (item == 0 && !searching) return buildRow(tallyList[0]);
 
           if (item.isOdd) return Divider();
 
           if (searching)
-            return buildRow(searchList[item~/2]);
+            return buildRow(searchList[item ~/ 2]);
           else
-            return buildRow(tallyList[item~/2]);
+            return buildRow(tallyList[item ~/ 2]);
         });
   }
 
@@ -91,7 +88,7 @@ class TallySearchPageState extends State<TallySearchPage> {
     return ListTile(
         title: Text(t.friend.displayName, style: TextStyle(fontSize: 18)),
         // trailing: FOR NOW
-            // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
+        // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           if (widget.searchResultType == 0) {
             Navigator.push(
@@ -104,8 +101,8 @@ class TallySearchPageState extends State<TallySearchPage> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                builder: (BuildContext context) =>
-                  TransactionPage(true, t.friend)));
+                    builder: (BuildContext context) =>
+                        TransactionPage(true, t.friend)));
           }
         });
   }
@@ -124,10 +121,11 @@ class TallySearchPageState extends State<TallySearchPage> {
                           builder: (BuildContext context) =>
                               new CreateTallyPage()));
                 },
-                child: const Text("Create a New Tally",
-                    style: TextStyle(fontSize: 20)),
-                color: Colors.blue,
-                textColor: Colors.white,
+                child: const Text("CREATE NEW TALLY",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                color: Colors.white,
+                textColor: Theme.of(context).primaryColor,
                 elevation: 5,
                 height: 50,
                 minWidth: maxButtonWidth)));
