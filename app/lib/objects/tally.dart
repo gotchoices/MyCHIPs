@@ -1,9 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter_app/objects/account.dart';
+
 import 'tally_generator.dart';
 
 class Tally {
-  String friend;
+  Account friend;
   var balance;
   int personID;
   String host;

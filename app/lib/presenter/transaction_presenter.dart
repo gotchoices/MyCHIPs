@@ -5,11 +5,13 @@ class TransactionPresenter {
   var dao = new TransactionDao();
 
   bool sendPayment(transaction) {
+    print(transaction);
     dao.sendPayment(transaction);
     return false;
   }
 
   bool requestPayment(transaction) {
+    print(transaction);
     dao.requestPayment(transaction);
     return false;
   }

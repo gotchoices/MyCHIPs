@@ -12,5 +12,10 @@ class Transaction {
     this.receiver = receiver;
     this.amount = amount;
   }
+
+  @override
+  String toString() {
+    return this.sender + " is sending " + this.amount.toString() + " to " + this.receiver + "\nMessage: " + this.message + "\nDate: " + this.date.toString();
+   }
 }
 

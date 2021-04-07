@@ -9,7 +9,7 @@ import 'transaction_page.dart';
 
 class TallyPage extends StatefulWidget {
   final Tally tally;
-  TallyPage(this.tally, {Key key}): super(key: key);
+  TallyPage(this.tally, {Key key}) : super(key: key);
 
   @override
   TallyPageState createState() => new TallyPageState();
@@ -25,26 +25,27 @@ class TallyPageState extends State<TallyPage> {
     transactionMap = userTransactions.transactionList;
     return Scaffold(
         appBar: AppBar(
-          title: Text("Tally with " + widget.tally.friend),
+          title: Text("Tally with " + widget.tally.friend.displayName),
           actions: [
             //TODO: Where is the user profile image URL stored? How and when is it fetched?
-            CircleAvatar(backgroundImage: new NetworkImage("https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),)
-          ],),
+            CircleAvatar(
+              backgroundImage: new NetworkImage(
+                  "https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
+            )
+          ],
+        ),
         body: buildPage(),
-        drawer: MainDrawer()
-    );
+        drawer: MainDrawer());
   }
 
   Widget buildPage() {
-    return Stack(
-      children: [
-        Column(children: [
-          //buildBalance(), FOR NOW
-          buildHistory(),
-          buildButtons()
-        ]),
-      ]
-    );
+    return Stack(children: [
+      Column(children: [
+        //buildBalance(), FOR NOW
+        buildHistory(),
+        buildButtons()
+      ]),
+    ]);
   }
 
   //May use this function later
@@ -70,67 +71,58 @@ class TallyPageState extends State<TallyPage> {
   Widget buildHistoryList() {
     List<Transaction> transactionList = transactionMap[widget.tally.personID];
     if (transactionList.length == 0)
-      return Center(child: Text("Click Pay or Request to begin a transaction history with this person", style: TextStyle(fontSize: 25, fontStyle:FontStyle.italic)));
+      return Center(
+          child: Text(
+              "Click Pay or Request to begin a transaction history with this person",
+              style: TextStyle(fontSize: 25, fontStyle: FontStyle.italic)));
     return ListView.builder(
         itemCount: (transactionList.length * 2),
         padding: const EdgeInsets.all(16),
-        itemBuilder:(context, item) {
-          if(item == 0) 
-            return ListTile(title: Text("History:", style: TextStyle(fontSize: 25, decoration: TextDecoration.underline),));
+        itemBuilder: (context, item) {
+          if (item == 0)
+            return ListTile(
+                title: Text(
+              "History:",
+              style:
+                  TextStyle(fontSize: 25, decoration: TextDecoration.underline),
+            ));
           item--;
-          if(item == 0)
-            return buildRow(transactionList[0]);
-          if(item.isOdd) return Divider();
-          return buildRow(transactionList[item~/2]);
-        }
-    );
+          if (item == 0) return buildRow(transactionList[0]);
+          if (item.isOdd) return Divider();
+          return buildRow(transactionList[item ~/ 2]);
+        });
   }
+
   Widget buildRow(Transaction t) {
     return ListTile(
-        title : Text(formatDate(t.date, [d, '-', M, '-', yy]), style: TextStyle(fontSize: 18)),
-        trailing: Text("₵" + t.amount.toStringAsFixed(2), style: TextStyle(fontSize: 18)),
+      title: Text(formatDate(t.date, [d, '-', M, '-', yy]),
+          style: TextStyle(fontSize: 18)),
+      trailing: Text("₵" + t.amount.toStringAsFixed(2),
+          style: TextStyle(fontSize: 18)),
     );
   }
 
   Widget buildButtons() {
-    var maxButtonWidth = (MediaQuery.of(context).size.width) / 2.25;
-    return Container(
-      child: Row(children: [
-      Padding(
-      padding: const EdgeInsets.all(10),
-      child: Align(
-        alignment: Alignment.bottomLeft,
-        child: MaterialButton(
-          onPressed: () {
-            showDialog(context: context, builder: (BuildContext context){
-              return AlertDialog(
-                scrollable: true,
-                content: buildTransactionWidget(context, 'PAY', widget.tally.friend));});
-          },
-          child: const Text('PAY', style: TextStyle(fontSize: 20)),
-          color: Colors.blue,
-          textColor: Colors.white,
-          elevation: 5,
-          height: 50,
-          minWidth: maxButtonWidth
-        ))),
-      Padding(
-        padding: const EdgeInsets.all(10),
-        child: Align(
-          alignment: Alignment.bottomRight,
-          child: MaterialButton(
-            onPressed: () {
-              showDialog(context: context, builder: (BuildContext context){
-                return AlertDialog(
-                  scrollable: true,
-                  content: buildTransactionWidget(context, 'REQUEST', widget.tally.friend));});
-            },
-            child: const Text('REQUEST', style: TextStyle(fontSize: 20)),
-            color: Colors.blue,
-            textColor: Colors.white,
-            elevation: 5,
-            height: 50,
-            minWidth: maxButtonWidth
-    )))]));
+    var maxButtonWidth = (MediaQuery.of(context).size.width) / 1.75;
+    return Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: MaterialButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      new MaterialPageRoute(
+                          builder: (BuildContext context) =>
+                              TransactionPage(false, widget.tally.friend)));
+                },
+                child: const Text("PAY/REQUEST",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                color: Colors.white,
+                textColor: Theme.of(context).primaryColor,
+                elevation: 5,
+                height: 50,
+                minWidth: maxButtonWidth)));
   }
 }

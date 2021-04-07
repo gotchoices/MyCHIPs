@@ -1,5 +1,6 @@
 import 'package:faker/faker.dart';
 import 'package:flutter_app/objects/singletons.dart';
+import 'package:flutter_app/objects/account.dart';
 import 'package:flutter_app/objects/transaction_generator.dart';
 import 'dart:math';
 import 'tally.dart';
@@ -22,7 +23,7 @@ class TallyGenerator {
     var rng = new Random();
     var faker =  new Faker();
     return new Tally(
-        faker.person.name(),
+        new Account(faker.person.name(), faker.person.firstName(), faker.person.lastName()),
         rng.nextInt(100)
     );
   }
