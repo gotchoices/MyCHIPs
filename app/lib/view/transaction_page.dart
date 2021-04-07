@@ -12,9 +12,8 @@ const PAY = 'PAY';
 const REQUEST = 'REQUEST';
 
 class TransactionPage extends StatefulWidget {
-  final bool fromHome;
   final Account transactionPartner;
-  TransactionPage(this.fromHome, this.transactionPartner, {Key key})
+  TransactionPage(this.transactionPartner, {Key key})
       : super(key: key);
 
   @override
@@ -43,10 +42,7 @@ class TransactionPageState extends State<TransactionPage> {
                     builder: (BuildContext context) => IconButton(
                           icon: const Icon(Icons.clear_rounded),
                           onPressed: () => Navigator.popUntil(
-                              context,
-                              widget.fromHome
-                                  ? ModalRoute.withName("home-page")
-                                  : ModalRoute.withName("tally-page")),
+                              context, (route) => route.isFirst),
                         ))),
             body: buildPage(),
             drawer: MainDrawer())
@@ -60,7 +56,7 @@ class TransactionPageState extends State<TransactionPage> {
         Padding(
             padding: EdgeInsets.fromLTRB(20, 15, 6, 8),
             child: Row(children: [
-              buildAccountTitle() //currently the name is on a separate line from the payment textfield, but thanks to the row this can easily change
+              buildAccountTitle()
             ])),
         Divider(
           thickness: 2,

@@ -94,8 +94,6 @@ class TallySearchPageState extends State<TallySearchPage> {
   Widget buildRow(Tally t) {
     return ListTile(
         title: Text(t.friend.displayName, style: TextStyle(fontSize: 18)),
-        // trailing: FOR NOW
-        // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           if (widget.searchResultType == 0) {
             Navigator.push(
@@ -109,7 +107,7 @@ class TallySearchPageState extends State<TallySearchPage> {
                 context,
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        TransactionPage(true, t.friend)));
+                        TransactionPage(t.friend)));
           }
         });
   }

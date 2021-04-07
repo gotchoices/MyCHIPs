@@ -38,8 +38,6 @@ class PieChartWidget extends State<HomePage> {
   Map<String, double> dataMap;
   List<Color> colorList;
 
-  //TODO: How do we choose the colors for the pie chart? Needs to be dynamic as number of colors could be
-  // List<Color> colorList = [Colors.red, Colors.orange,Colors.green,Colors.greenAccent];
   void getUserChartData() {
     if (userInfo.userBalance == null) {
       userInfo.userBalance = presenter.getUserBalance();

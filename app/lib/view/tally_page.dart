@@ -48,22 +48,6 @@ class TallyPageState extends State<TallyPage> {
     ]);
   }
 
-  //May use this function later
-  // Widget buildBalance() {
-  //   return Container(
-  //     height:150,
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(15),
-  //       child: Align(
-  //         alignment: Alignment.topCenter,
-  //         child: Column(
-  //         children: [
-  //           Text("₵" + widget.tally.balance.toString(),  style: TextStyle(fontSize: 75)),
-  //           Text("balance",  style: TextStyle(fontSize: 25)),
-  //         ],
-  //   ))));
-  // }
-
   Widget buildHistory() {
     return Expanded(child: buildHistoryList());
   }
@@ -114,7 +98,7 @@ class TallyPageState extends State<TallyPage> {
                       context,
                       new MaterialPageRoute(
                           builder: (BuildContext context) =>
-                              TransactionPage(false, widget.tally.friend)));
+                              TransactionPage(widget.tally.friend)));
                 },
                 child: const Text("PAY/REQUEST",
                     style:

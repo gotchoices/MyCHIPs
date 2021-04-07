@@ -15,10 +15,10 @@ class DebitsCredits {
   {
     //TODO: fetch data dynamically
     return {
-      "House Mortgage": 1,
-      "Company Investments": 1,
-      "MyCHIPs Software Developer": 2,
-      "T-Shirt Sales": 1,
+      "(D) House Mortgage": 1,
+      "(D) Company Investments": 1,
+      "(C) MyCHIPs Software Developer": 2,
+      "(C) T-Shirt Sales": 1,
     };
   }
 }
