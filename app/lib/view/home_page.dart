@@ -3,7 +3,6 @@ import 'package:flutter_app/objects/singletons.dart';
 import 'package:pie_chart/pie_chart.dart';
 import 'main_drawer_view.dart';
 import 'tally_search_page.dart';
-import 'sign_in_page.dart';
 import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,8 +21,8 @@ class MyChips extends StatelessWidget {
           scaffoldBackgroundColor: Color(0xfff5f6fb),
           textTheme: GoogleFonts.quicksandTextTheme()
         ),
-        //TODO: Determine if a user is logged in already, if so go to HomePage instead of Login page
-        home: SignInPage());
+        //TODO: What to do for the user's first time
+        home: HomePage());
   }
 }
 
@@ -89,7 +88,17 @@ class PieChartWidget extends State<HomePage> {
             padding: const EdgeInsets.all(15),
             child: Align(
                 alignment: Alignment.topCenter,
-                child: Text("₵$userBalance", style: TextStyle(fontSize: 50))))
+                child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                                content: Text("Your total represents the difference between your Credits(C) and your Debits(D)")
+                            );
+                          });
+                      },
+                    child:Text("₵$userBalance", style: TextStyle(fontSize: 50))))),
       ]),
       drawer: MainDrawer(),
     );

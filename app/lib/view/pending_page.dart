@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/objects/singletons.dart';
 import 'package:flutter_app/objects/transaction.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
-import 'package:random_date/random_date.dart';
 import 'package:intl/intl.dart';
 
 import 'main_drawer_view.dart';
@@ -13,12 +13,7 @@ class PendingPage extends StatefulWidget {
 
 class PendingPageState extends State<PendingPage> {
   TransactionPresenter presenter = new TransactionPresenter();
-  //TODO: Fetch transactions. For now statically put in these two
-  Transaction tran1 = Transaction(RandomDate.withRange(2000, 2020).random(),
-      "pizza", "John Doe", "You", 12);
-  Transaction tran2 = Transaction(
-      RandomDate.withRange(2000, 2020).random(), "wings", "you", "Jane Doe", 9);
-  List transactionList = <Transaction>[];
+  List transactionList = PendingTransactions().transactionList;
   final DateFormat dateFormatter = DateFormat('MMMM d');
 
   @override
@@ -30,14 +25,9 @@ class PendingPageState extends State<PendingPage> {
   }
 
   Widget buildBody() {
-    transactionList = <Transaction>[];
-    transactionList.add(tran1);
-    transactionList.add(tran2);
-    transactionList.add(
-        tran2); //TODO: because i put a divider in for even indexes, i had to put this in twice for it to appear. pls fix
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: transactionList.length,
+      itemCount: transactionList.length * 2,
       itemBuilder: (context, item) {
         int index = item ~/ 2;
         if (item.isOdd) return Divider();
@@ -48,14 +38,15 @@ class PendingPageState extends State<PendingPage> {
   }
 
   Widget buildRow(Transaction t, int index) {
-    //TODO: Implement a better system to check if current user is the requester or requestee
+    //TODO: See if the backend provides a better system to check if current user is the sender or receiver?
+    String startString = "Are you sure you wish to ";
     bool usersRequest = false;
-    if (t.sender == "you") usersRequest = true;
-    //TODO: Transactions should only be dismissible if they're incomplete and involve the user (although all they see should involve them)
+    String senderName = t.sender;
+    String receiverName = t.receiver;
+    if (senderName == "you") usersRequest = true;
     return Dismissible(
         key: ValueKey(t),
         onDismissed: (DismissDirection direction) {
-          //TODO: an error still oddly pops up here we need to reconcile
           setState(() {
             bool result = false;
             if (usersRequest)
@@ -64,22 +55,22 @@ class PendingPageState extends State<PendingPage> {
               result = presenter.declinePayment(t);
             //if the deletion was successful on the server
             if (result) //remove from list
-              transactionList.remove(index);
+              transactionList.removeAt(index);
           });
         },
         confirmDismiss: (DismissDirection direction) async {
           return await showDialog(
             context: context,
             builder: (BuildContext context) {
-              //TODO: Change this text based on the type of deletion (decline or cancellation)
               return AlertDialog(
                 title: const Text("Confirm"),
-                content:
-                    const Text("Are you sure you wish to delete this item?"),
+                content: usersRequest ?
+                Text(startString + "delete your request to " + receiverName) :
+                Text(startString + "deny " + senderName + "'s request?"),
                 actions: <Widget>[
                   TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text("DELETE")),
+                      child: usersRequest ? const Text("DELETE") : const Text("DENY")),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
                     child: const Text("GO BACK"),

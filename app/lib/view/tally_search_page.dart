@@ -57,10 +57,17 @@ class TallySearchPageState extends State<TallySearchPage> {
         cursorColor: Colors.white,
       )),
       body: Container(
-          child: Stack(children: [
-        Container(child: buildTallyList()),
-        Container(child: widget.searchResultType == 0 ? buildButton() : null)
-      ])),
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+          children: [
+            Expanded(flex: 7, child:Container(
+                height: MediaQuery.of(context).size.height * 0.8,
+                width: MediaQuery.of(context).size.width,
+                child: buildTallyList())),
+            Expanded(flex: 1, child: Container(child: widget.searchResultType == 0 ? buildButton() : null))
+          ]
+      )),
       drawer: MainDrawer(),
     );
   }
