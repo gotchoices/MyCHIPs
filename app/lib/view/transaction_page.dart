@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/objects/account.dart';
-import 'package:flutter_app/objects/tally.dart';
 import 'package:flutter_app/objects/transaction.dart';
-import 'package:flutter_app/presenter/tally_search_presenter.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'error_popup.dart';
 import 'main_drawer_view.dart';
 import 'success_popup.dart';
-import 'package:keyboard_actions/keyboard_actions.dart';
 
 const BOTH = 'BOTH';
 const PAY = 'PAY';
@@ -27,8 +24,6 @@ class TransactionPage extends StatefulWidget {
 class TransactionPageState extends State<TransactionPage> {
   TextEditingController amtController = TextEditingController();
   TextEditingController msgController = TextEditingController();
-  final FocusNode amtNode = FocusNode();
-  final FocusNode msgNode = FocusNode();
   Transaction curTransaction;
 
   @override
@@ -38,43 +33,9 @@ class TransactionPageState extends State<TransactionPage> {
     super.dispose();
   }
 
-  KeyboardActionsConfig buildConfig(BuildContext context) {
-    return KeyboardActionsConfig(
-        keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
-        keyboardBarColor: Colors.grey[200],
-        nextFocus: true,
-        actions: [
-          KeyboardActionsItem(
-            focusNode: amtNode,
-          ),
-          KeyboardActionsItem(
-            focusNode: msgNode,
-            onTapAction: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      content: Text("Custom Action"),
-                      actions: <Widget>[
-                        FlatButton(
-                          child: Text("OK"),
-                          onPressed: () => Navigator.of(context).pop(),
-                        )
-                      ],
-                    );
-                  });
-            },
-          )
-        ]);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return
-        // KeyboardActions(
-        // config: buildConfig(context),
-        // child:
-        Scaffold(
+    return Scaffold(
             appBar: AppBar(
                 title: Text("Payment Details"),
                 automaticallyImplyLeading: false,
@@ -113,9 +74,6 @@ class TransactionPageState extends State<TransactionPage> {
               Expanded(
                   child: TextField(
                       controller: amtController,
-                      focusNode: amtNode,
-                      onSubmitted: (String amt) =>
-                          curTransaction.amount = double.parse(amt),
                       decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: "0.00",
@@ -134,8 +92,6 @@ class TransactionPageState extends State<TransactionPage> {
                 keyboardType: TextInputType.multiline,
                 maxLines: null,
                 controller: msgController,
-                focusNode: msgNode,
-                onSubmitted: (String msg) => curTransaction.message = msg,
                 decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: "Please enter a payment message",
@@ -177,8 +133,9 @@ class TransactionPageState extends State<TransactionPage> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               MaterialButton(
                 onPressed: () {
-                  //TODO:
-                  if (presenter.requestPayment(null)) {
+                  Transaction t = Transaction(DateTime.now(), msgController.text, widget.transactionPartner.displayName, "curUser", amtController.text);
+                  print(t.toString());
+                  if (presenter.requestPayment(t)) {
                     Navigator.pop(context);
                     succPop(context, "Payment sent successfully");
                   } else {
@@ -199,8 +156,8 @@ class TransactionPageState extends State<TransactionPage> {
               ),
               MaterialButton(
                 onPressed: () {
-                  //TODO:
-                  if (presenter.sendPayment(null)) {
+                  Transaction t = Transaction(DateTime.now(), msgController.text, "curUser", widget.transactionPartner.displayName, amtController.text);
+                  if (presenter.sendPayment(t)) {
                     //successful transaction
                     Navigator.pop(context);
                     succPop(context, 'great work mate. request sent');
@@ -220,68 +177,4 @@ class TransactionPageState extends State<TransactionPage> {
               ),
             ])));
   }
-}
-
-/* TODO: This widget needs a major rework. It's ugly. It's so ugly.
-  and when it brings up the keyboard it destroys the formatting of everything behind it.
-  It needs an "X" button, or some easy way for users to get off of this popup if they hit it by accident
-  Additionally, if they're on the main page, we need to put a function that searches through all the tallies they
-  have and auto fills/suggests the names of people they might be attempting to reach.
-  The boxes are all wrong. And after the error message pops up, it still is focused on wherever you typed last. dumb.
-  Also, there has to be a better way to make the widget in its 3 different forms than the "BOTH" if statement.
-* */
-Widget buildTransactionWidget(context, transactionType, [friend]) {
-  return Column(children: [
-    createPaymentTextFields(friend),
-    Divider(thickness: 2, color: Colors.black),
-    Container(
-        child: Padding(
-      padding: EdgeInsets.only(bottom: 100, left: 5),
-      //TODO: Make the text in this textField wrap
-      child: TextField(
-        decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: "Purpose:",
-            hintStyle: TextStyle(color: Colors.grey)),
-        style: TextStyle(color: Colors.black),
-      ),
-    )),
-    //createButtons(context)
-  ]);
-}
-
-Widget createPaymentTextFields(friend) {
-  final List searchList = <Tally>[];
-  TallySearchPresenter presenter = TallySearchPresenter();
-  searchList.addAll(presenter.getUserTallies());
-  return Container(
-      child: Padding(
-          padding: EdgeInsets.only(left: 5),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Expanded(
-                flex: 2,
-                child: friend != null
-                    ? Text(friend)
-                    : TextField(
-                        onChanged: (input) {
-                          searchList.clear();
-                          searchList
-                              .addAll(presenter.filterUsers(input, searchList));
-                        },
-                        decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "To Whom:",
-                            hintStyle: TextStyle(color: Colors.grey)),
-                        style: TextStyle(color: Colors.black))),
-            Expanded(flex: 0, child: Text("\$")),
-            Expanded(
-                child: TextField(
-                    decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "0",
-                        hintStyle: TextStyle(color: Colors.grey)),
-                    style: TextStyle(color: Colors.black),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly]))
-          ])));
 }

@@ -34,7 +34,6 @@ dependencies:
   path_provider: ^2.0.1
   google_fonts: ^2.0.0
   flutter_svg: ^0.19.3
-  keyboard_actions: ^3.4.0
   currency_text_input_formatter: ^2.0.1
 
   # The following adds the Cupertino Icons font to your application.
