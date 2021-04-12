@@ -121,8 +121,6 @@ class TransactionPageState extends State<TransactionPage> {
 
   Widget createButtons(context) {
     var presenter = TransactionPresenter();
-    //TODO: Verify valid input before allowing button logic to be executed.
-    //TODO: tie input to a transaction object to send through the presenter
     return Container(
         child: Padding(
             padding: EdgeInsets.all(10),
@@ -131,11 +129,13 @@ class TransactionPageState extends State<TransactionPage> {
                 onPressed: () {
                   Transaction t = Transaction(DateTime.now(), msgController.text, widget.transactionPartner.displayName, "curUser", amtController.text);
                   print(t.toString());
-                  if (presenter.requestPayment(t)) {
-                    Navigator.pop(context);
-                    succPop(context, "Payment sent successfully");
-                  } else {
-                    errPop(context, "Payment failed. Try again?");
+                  if (checkParameterFormat(t)) {
+                    if (presenter.requestPayment(t)) {
+                      Navigator.pop(context);
+                      succPop(context, "Payment sent successfully.");
+                    } else {
+                      errPop(context, "Payment failed, please try again.");
+                    }
                   }
                 },
                 child: Text('REQUEST',
@@ -153,13 +153,15 @@ class TransactionPageState extends State<TransactionPage> {
               MaterialButton(
                 onPressed: () {
                   Transaction t = Transaction(DateTime.now(), msgController.text, "curUser", widget.transactionPartner.displayName, amtController.text);
-                  if (presenter.sendPayment(t)) {
-                    //successful transaction
-                    Navigator.pop(context);
-                    succPop(context, 'great work mate. request sent');
-                  } else {
-                    //something went wrong...
-                    errPop(context, 'request failed.');
+                  if (checkParameterFormat(t)) {
+                    if (presenter.sendPayment(t)) {
+                      //successful transaction
+                      Navigator.pop(context);
+                      succPop(context, 'Request sent successfully');
+                    } else {
+                      //something went wrong...
+                      errPop(context, 'Request failed, please try again.');
+                    }
                   }
                 },
                 child: Text('PAY',
@@ -172,5 +174,33 @@ class TransactionPageState extends State<TransactionPage> {
                 minWidth: (MediaQuery.of(context).size.width) / 2.5,
               ),
             ])));
+  }
+
+  bool checkParameterFormat(Transaction t) {
+    if (t.receiver == null || t.receiver == "") {
+      errPop(context, 'Please specify a recipient.');
+      return false;
+    }
+    else if (t.receiver == null || t.receiver == "") {
+      errPop(context, 'Something went wrong specifying your user identity.');
+      return false;
+    }
+    else if (t.message == null || t.message == "") {
+      errPop(context, 'Please specify the type of transaction in the message field.');
+      return false;
+    } else if ((t.amount = convertDynamic(t.amount)) == null) {
+      errPop(context, 'Please enter a valid amount.');
+      return false;
+    }
+
+    return true;
+  }
+
+  String convertDynamic(dynamic number) {
+    try {
+      return double.parse(number).toStringAsFixed(2);
+    } catch (FormatException) {
+      return null;
+    }
   }
 }
