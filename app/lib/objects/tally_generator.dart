@@ -24,7 +24,7 @@ class TallyGenerator {
     var faker =  new Faker();
     return new Tally(
         new Account(faker.person.name(), faker.person.firstName(), faker.person.lastName()),
-        rng.nextInt(100)
+        num.parse((rng.nextInt(100) + rng.nextDouble() - 50).toStringAsFixed(2))
     );
   }
 }

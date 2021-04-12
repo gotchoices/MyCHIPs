@@ -5,7 +5,6 @@ import 'main_drawer_view.dart';
 import 'tally_search_page.dart';
 import 'scanner_page.dart';
 import '../presenter/home_presenter.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 //TODO: Observer and notifier for when someone else pays/requests payment to you
 // ignore: must_be_immutable
@@ -19,7 +18,7 @@ class MyChips extends StatelessWidget {
           accentColor: Color(0xfff3a43e),
           primaryColorDark: Color(0xff5c6060),
           scaffoldBackgroundColor: Color(0xfff5f6fb),
-          textTheme: GoogleFonts.quicksandTextTheme()
+          fontFamily: 'Quicksand'
         ),
         //TODO: What to do for the user's first time
         home: HomePage());

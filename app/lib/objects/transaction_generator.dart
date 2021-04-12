@@ -17,6 +17,6 @@ class TransactionGenerator {
     return Transaction(
         RandomDate.withRange(2000, 2020).random(),
         "fake message", "sender", "receiver",
-        rng.nextInt(50) + rng.nextDouble() - 50);
+        rng.nextInt(50) + rng.nextDouble() - 25);
   }
 }

@@ -51,7 +51,7 @@ class TallySearchPageState extends State<TallySearchPage> {
               color: Colors.white,
             ),
             hintText: "type user here",
-            hintStyle: TextStyle(color: Colors.white)),
+            hintStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
         autofocus: !(widget.searchResultType == 0),
         style: TextStyle(color: Colors.white),
         cursorColor: Colors.white,
@@ -93,7 +93,9 @@ class TallySearchPageState extends State<TallySearchPage> {
 
   Widget buildRow(Tally t) {
     return ListTile(
-        title: Text(t.friend.displayName, style: TextStyle(fontSize: 18)),
+        title: Text(t.friend.displayName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+        // trailing: FOR NOW
+        // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           if (widget.searchResultType == 0) {
             Navigator.push(

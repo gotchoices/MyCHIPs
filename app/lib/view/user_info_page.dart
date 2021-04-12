@@ -26,7 +26,8 @@ class UserInfoPageState extends State<UserInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("User Information")),
+      appBar: AppBar(title: Text("User Information",
+      style: TextStyle(fontWeight: FontWeight.bold),)),
       body: buildPage(),
       drawer: (widget.registering) ? null : MainDrawer(),
     );

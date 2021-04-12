@@ -108,13 +108,13 @@ class TransactionPageState extends State<TransactionPage> {
             borderRadius: BorderRadius.circular(40), color: Colors.white),
         child: Row(children: [
           CircleAvatar(
-              backgroundImage: new NetworkImage(
-                  "https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png")),
+            child: new Text(widget.transactionPartner.displayName.substring(0, 1), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xffffffff))),
+            backgroundColor: Color(0xfff3a43e)),
           Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: EdgeInsets.only(top: 8, right: 24, bottom: 8, left: 16),
               child: Text(
                 widget.transactionPartner.displayName,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ))
         ]));
   }

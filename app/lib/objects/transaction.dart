@@ -1,4 +1,4 @@
-class Transaction {
+class Transaction implements Comparable {
   DateTime date;
   String sender;
   String receiver;
@@ -11,6 +11,16 @@ class Transaction {
     this.sender = sender;
     this.receiver = receiver;
     this.amount = amount;
+  }
+
+  @override
+  int compareTo(other) {
+    int i = this.date.compareTo(other.date);
+    if (i > 0)
+      return -1;
+    if (i < 0)
+      return 1;
+    return 0;
   }
 
   @override
