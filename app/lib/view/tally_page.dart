@@ -102,7 +102,7 @@ class TallyPageState extends State<TallyPage> {
         itemCount: (transactionList.length * 2),
         padding: const EdgeInsets.only(left: 16, right: 16),
         itemBuilder: (context, item) {
-          if (item.isEven) return Divider();
+          if (item.isOdd) return Divider();
           return buildRow(transactionList[item ~/ 2]);
         });
   }
