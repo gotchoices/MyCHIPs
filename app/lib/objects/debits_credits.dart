@@ -2,8 +2,7 @@ import 'dart:math';
 
 class DebitsCredits {
   double getUserBalance() {
-    var rng = new Random();
-    return roundDouble(rng.nextInt(200) + rng.nextDouble(), 2);
+    return 50;
   }
 
   double roundDouble(double value, int places){
@@ -15,7 +14,7 @@ class DebitsCredits {
   {
     //TODO: fetch data dynamically
     return {
-      "(D) House Mortgage": 1,
+      "(D) American Express": 1,
       "(D) Company Investments": 1,
       "(C) MyCHIPs Software Developer": 2,
       "(C) T-Shirt Sales": 1,
