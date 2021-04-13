@@ -45,9 +45,7 @@ class TransactionPageState extends State<TransactionPage> {
                               context, (route) => route.isFirst),
                         ))),
             body: buildPage(),
-            drawer: MainDrawer())
-        // )
-        ;
+            drawer: MainDrawer());
   }
 
   Widget buildPage() {

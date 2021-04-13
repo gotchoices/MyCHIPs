@@ -31,43 +31,42 @@ class TallySearchPageState extends State<TallySearchPage> {
     return Scaffold(
       appBar: AppBar(
           title: TextField(
-        onChanged: (input) {
-          if (input.isNotEmpty) {
-            searchList.clear();
-            searchList.addAll(presenter.filterUsers(input, tallyList));
-            setState(() {
-              searching = true;
-            });
-          } else {
-            searchList.clear();
-            setState(() {
-              searching = false;
-            });
-          }
-        },
-        decoration: InputDecoration(
-            icon: Icon(
-              Icons.search,
-              color: Colors.white,
-            ),
-            hintText: "type user here",
-            hintStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-        autofocus: !(widget.searchResultType == 0),
-        style: TextStyle(color: Colors.white),
-        cursorColor: Colors.white,
-      )),
+            onChanged: (input) {
+              if (input.isNotEmpty) {
+                searchList.clear();
+                searchList.addAll(presenter.filterUsers(input, tallyList));
+                setState(() {
+                  searching = true;
+                });
+              } else {
+                searchList.clear();
+                setState(() {
+                  searching = false;
+                });
+              }
+              },
+            decoration: InputDecoration(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.white,
+                ),
+                hintText: "type user here",
+                hintStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+            autofocus: !(widget.searchResultType == 0),
+            style: TextStyle(color: Colors.white),
+            cursorColor: Colors.white,
+          )),
       body: Container(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           child: Column(
-          children: [
-            Expanded(flex: 7, child:Container(
-                height: MediaQuery.of(context).size.height * 0.8,
-                width: MediaQuery.of(context).size.width,
-                child: buildTallyList())),
-            Expanded(flex: 1, child: Container(child: widget.searchResultType == 0 ? buildButton() : null))
-          ]
-      )),
+              children: [
+                Expanded(flex: 7, child:Container(
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    width: MediaQuery.of(context).size.width,
+                    child: buildTallyList())),
+                Expanded(flex: 1, child: Container(child: widget.searchResultType == 0 ? buildButton() : null))
+              ])),
       drawer: MainDrawer(),
     );
   }
@@ -75,7 +74,7 @@ class TallySearchPageState extends State<TallySearchPage> {
   Widget buildTallyList() {
     return ListView.builder(
         padding:
-            const EdgeInsets.only(top: 16, right: 16, bottom: 75, left: 16),
+        const EdgeInsets.only(top: 16, right: 16, bottom: 75, left: 16),
         itemCount: searching ? (searchList.length * 2) : (tallyList.length * 2),
         itemBuilder: (context, item) {
           if (item == 0 && searching)
@@ -94,8 +93,6 @@ class TallySearchPageState extends State<TallySearchPage> {
   Widget buildRow(Tally t) {
     return ListTile(
         title: Text(t.friend.displayName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-        // trailing: FOR NOW
-        // Text("₵" + t.balance.toString(), style: TextStyle(fontSize: 18)),
         onTap: () {
           if (widget.searchResultType == 0) {
             Navigator.push(

@@ -29,7 +29,6 @@ class TallyPageState extends State<TallyPage> {
 
     return Scaffold(
         appBar: AppBar(
-          // title: Text("Tally with " + widget.tally.friend.displayName),
           title: Text("Tally History"),
         ),
         body: buildPage(),
