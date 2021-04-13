@@ -7,7 +7,7 @@ class TransactionPresenter {
   bool sendPayment(transaction) {
     print(transaction);
     dao.sendPayment(transaction);
-    return false;
+    return true;
   }
 
   bool requestPayment(transaction) {

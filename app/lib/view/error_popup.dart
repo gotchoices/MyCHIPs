@@ -3,29 +3,36 @@ import 'package:flutter/material.dart';
 const errorImageDir = "assets/access_denied.png";
 
 Widget buildErrorWidget(context, [errMsg = "Try again later."]) {
-  return Column(
+  return ListBody(
     children:[
       Text("Something went wrong!"),
       Image.asset(errorImageDir),
       //TODO: Add specificity to this text. What went wrong? Was there no corresponding tally? Server error? Internet connection? Not enough funds?
       Text(errMsg),
-      MaterialButton(
-        onPressed: (){Navigator.pop(context);},
-        child: Text('okay',
-            style: TextStyle(fontSize: 20)),
-        color: Colors.blue,
-        textColor: Colors.white,
-        elevation: 5,
-      )
     ]
   );
 }
 
-void errPop(context, msg) {
+void errPop(context, [errMsg = "Try again later."]) {
   showDialog(context: context, builder: (BuildContext context){
     return AlertDialog(
         scrollable: false,
-        content: buildErrorWidget(context, msg)
+        content: SingleChildScrollView(
+            child: ListBody(
+                children:[
+                  Text("Something went wrong!"),
+                  Image.asset(errorImageDir),
+                  //TODO: Add specificity to this text. What went wrong? Was there no corresponding tally? Server error? Internet connection? Not enough funds?
+                  Text(errMsg),
+                ]
+            )
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('okay'),
+            onPressed: () {
+            Navigator.of(context).pop();
+          })]
     );
   });
 }

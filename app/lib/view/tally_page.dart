@@ -133,7 +133,7 @@ class TallyPageState extends State<TallyPage> {
                       context,
                       new MaterialPageRoute(
                           builder: (BuildContext context) =>
-                              TransactionPage(widget.tally.friend)));
+                              TransactionPage(widget.tally.friend, false)));
                 },
                 child: const Text("PAY/REQUEST",
                     style:
