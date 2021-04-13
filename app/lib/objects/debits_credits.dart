@@ -2,7 +2,7 @@ import 'dart:math';
 
 class DebitsCredits {
   double getUserBalance() {
-    return 41.23;
+    return 41.24;
   }
 
   double roundDouble(double value, int places){
