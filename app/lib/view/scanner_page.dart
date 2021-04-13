@@ -152,6 +152,7 @@ class ScannerState extends State<Scanner> {
   Widget getTallyApprovalDialog(scanData) {
     TallyTicket ticket = TallyTicket.fromJson(jsonDecode(scanData));
     Tally tally = Tally.parseTallyTicket(ticket);
+    tally.balance = 0;
     //TODO: Check which version of the build this is so we can return a "CupertinoAlertDialog" if on iOS
     return AlertDialog(
       title: Text('Start a New Tally'),
