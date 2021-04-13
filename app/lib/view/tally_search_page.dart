@@ -31,42 +31,43 @@ class TallySearchPageState extends State<TallySearchPage> {
     return Scaffold(
       appBar: AppBar(
           title: TextField(
-            onChanged: (input) {
-              if (input.isNotEmpty) {
-                searchList.clear();
-                searchList.addAll(presenter.filterUsers(input, tallyList));
-                setState(() {
-                  searching = true;
-                });
-              } else {
-                searchList.clear();
-                setState(() {
-                  searching = false;
-                });
-              }
-              },
-            decoration: InputDecoration(
-                icon: Icon(
-                  Icons.search,
-                  color: Colors.white,
-                ),
-                hintText: "type user here",
-                hintStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-            autofocus: !(widget.searchResultType == 0),
-            style: TextStyle(color: Colors.white),
-            cursorColor: Colors.white,
-          )),
+        onChanged: (input) {
+          if (input.isNotEmpty) {
+            searchList.clear();
+            searchList.addAll(presenter.filterUsers(input, tallyList));
+            setState(() {
+              searching = true;
+            });
+          } else {
+            searchList.clear();
+            setState(() {
+              searching = false;
+            });
+          }
+        },
+        decoration: InputDecoration(
+            icon: Icon(
+              Icons.search,
+              color: Colors.white,
+            ),
+            hintText: "type user here",
+            hintStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        autofocus: !(widget.searchResultType == 0),
+        style: TextStyle(color: Colors.white),
+        cursorColor: Colors.white,
+      ),
+      automaticallyImplyLeading: widget.searchResultType == 1 ? false : true,
+      leading: widget.searchResultType == 1 ? BackButton(
+          color: Colors.white
+      ) : null),
       body: Container(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
-          child: Column(
-              children: [
-                Expanded(flex: 7, child:Container(
-                    height: MediaQuery.of(context).size.height * 0.8,
-                    width: MediaQuery.of(context).size.width,
-                    child: buildTallyList())),
-                Expanded(flex: 1, child: Container(child: widget.searchResultType == 0 ? buildButton() : null))
-              ])),
+          child: Stack(
+          children: [
+            buildTallyList(),
+          buildButton()])
+      ),
       drawer: MainDrawer(),
     );
   }

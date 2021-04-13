@@ -61,29 +61,35 @@ class ScannerState extends State<Scanner> {
                       Container(
                         margin: EdgeInsets.all(8),
                         // ignore: deprecated_member_use
-                        child: RaisedButton(
-                          onPressed: () {
-                            if (controller != null) {
-                              controller.toggleFlash();
-                              if (_isFlashOn(flashState)) {
-                                setState(() {
-                                  flashState = flashOff;
-                                });
-                              } else {
-                                setState(() {
-                                  flashState = flashOn;
-                                });
+                        child: MaterialButton(
+                            onPressed: () {
+                              if (controller != null) {
+                                controller.toggleFlash();
+                                if (_isFlashOn(flashState)) {
+                                  setState(() {
+                                    flashState = flashOff;
+                                  });
+                                } else {
+                                  setState(() {
+                                    flashState = flashOn;
+                                  });
+                                }
                               }
-                            }
-                          },
-                          child:
-                          Text(flashState, style: TextStyle(fontSize: 20)),
+                            },
+                            child: Text(flashState,
+                                style:
+                                TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            color: Colors.white,
+                            textColor: Theme.of(context).primaryColor,
+                            elevation: 5,
+                            height: 50,
+                            minWidth: (MediaQuery.of(context).size.width) / 2.5,
                         ),
                       ),
                       Container(
                         margin: EdgeInsets.all(8),
                         // ignore: deprecated_member_use
-                        child: RaisedButton(
+                        child: MaterialButton(
                           onPressed: () {
                             if (controller != null) {
                               controller.flipCamera();
@@ -98,8 +104,14 @@ class ScannerState extends State<Scanner> {
                               }
                             }
                           },
-                          child:
-                          Text(cameraState, style: TextStyle(fontSize: 20)),
+                          child: Text(cameraState,
+                              style:
+                              TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          color: Colors.white,
+                          textColor: Theme.of(context).primaryColor,
+                          elevation: 5,
+                          height: 50,
+                          minWidth: (MediaQuery.of(context).size.width) / 2.5,
                         ),
                       )
                     ],

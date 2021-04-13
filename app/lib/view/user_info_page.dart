@@ -27,8 +27,7 @@ class UserInfoPageState extends State<UserInfoPage> {
   Widget build(BuildContext context) {
     showContact = UserInfo().showContact;
     return Scaffold(
-      appBar: AppBar(title: Text("User Information",
-      style: TextStyle(fontWeight: FontWeight.bold),)),
+      appBar: AppBar(title: Text("User Information")),
       body: buildPage(),
       drawer: (widget.registering) ? null : MainDrawer(),
     );
@@ -95,7 +94,9 @@ class UserInfoPageState extends State<UserInfoPage> {
                                           showContact = !showContact;
                                           UserInfo().showContact = showContact;
                                         });
-                                      }),
+                                      },
+                                      activeColor: Color(0xfff3a43e),
+                                  ),
                                   Text("Display Contact Info Publicly?  "),
                                   Text(showContact ? "Yes" : "No")
                                 ],
@@ -114,13 +115,14 @@ class UserInfoPageState extends State<UserInfoPage> {
                                         : Navigator.pop(context);
                                     },
                                   child: Text((widget.registering) ? "Continue" : "Save Changes",
-                                      style: TextStyle(fontSize: 20)),
-                                  color: Colors.blue,
-                                  textColor: Colors.white,
+                                      style:
+                                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  color: Colors.white,
+                                  textColor: Theme.of(context).primaryColor,
                                   elevation: 5,
                                   height: 50,
-                                  minWidth: (MediaQuery.of(context).size.width))
-                            ],
+                                  minWidth: (MediaQuery.of(context).size.width) / 1.75,
+                              )],
                           ),
                         ))
                   ],

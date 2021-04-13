@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_app/objects/account.dart';
 import 'package:flutter_app/objects/transaction.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
@@ -14,6 +15,7 @@ const REQUEST = 'REQUEST';
 class TransactionPage extends StatefulWidget {
   final Account transactionPartner;
   final bool fromHome;
+  final String chipSVG = 'assets/chip.svg';
   TransactionPage(this.transactionPartner, this.fromHome, {Key key})
       : super(key: key);
 
@@ -78,7 +80,7 @@ class TransactionPageState extends State<TransactionPage> with SingleTickerProvi
         Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 6, 8),
             child: Row(children: [
-              Expanded(flex: 0, child: Text("₵")),
+              Expanded(flex: 0, child: SvgPicture.asset(widget.chipSVG, height: 16,)),
               Expanded(
                   child: TextField(
                       controller: amtController,

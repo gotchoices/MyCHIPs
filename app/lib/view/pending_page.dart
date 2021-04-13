@@ -81,30 +81,33 @@ class PendingPageState extends State<PendingPage> {
           );
         },
         child: ListTile(
-            title: Text(
+            title: Padding(
+    padding: EdgeInsets.only(bottom: 8),
+    child: Text(
                 t.receiver +
-                    " requested ₵" +
+                    " requested " +
                     t.amount.toString() +
-                    " from " +
+                    " MyCHIPs from " +
                     t.sender,
-                style: TextStyle(fontSize: 15)),
+                style: TextStyle(fontSize: 15))),
             subtitle: Text(dateFormatter.format(t.date)),
             trailing: usersRequest
                 ? MaterialButton(
                     onPressed: () {},
-                    child: Text('Send', style: TextStyle(fontSize: 14)),
-                    color: Colors.blue,
-                    textColor: Colors.white,
-                    elevation: 5,
-                    height: 40,
+                    child: Text('Send', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      color: Colors.white,
+                      textColor: Theme.of(context).primaryColor,
+                      elevation: 5,
+                      height: 40,
                   )
+
                 : MaterialButton(
                     onPressed: () {},
-                    child: Text('Cancel', style: TextStyle(fontSize: 14)),
-                    color: Colors.grey,
-                    textColor: Colors.white,
-                    elevation: 5,
-                    height: 40,
+                    child: Text('Cancel', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      color: Colors.white,
+                      textColor: Theme.of(context).primaryColor,
+                      elevation: 5,
+                      height: 40,
                   )));
   }
 

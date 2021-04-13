@@ -16,13 +16,16 @@ Widget buildSuccessWidget(context, [msg = "congrats!"]) {
         size: 200,
       ),
       Text(msg),
+      Padding(padding: EdgeInsets.all(16),),
       MaterialButton(
-        onPressed: (){Navigator.pop(context);},
-        child: Text('okay',
-            style: TextStyle(fontSize: 20)),
-        color: Colors.blue,
-        textColor: Colors.white,
-        elevation: 5,
+          onPressed: (){Navigator.pop(context);},
+          child: Text('okay',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          color: Colors.white,
+          textColor: Theme.of(context).primaryColor,
+          elevation: 5,
+          height: 50,
+          minWidth: (MediaQuery.of(context).size.width) / 2.5
       )
     ],
 
