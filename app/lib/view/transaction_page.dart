@@ -57,7 +57,7 @@ class TransactionPageState extends State<TransactionPage> with SingleTickerProvi
                           icon: const Icon(Icons.clear_rounded),
                           onPressed: () => Navigator.popUntil(context,
                               widget.fromHome
-                                  ? ModalRoute.withName("home-page")
+                                  ? (route) => route.isFirst
                                   : ModalRoute.withName("tally-page")),
                         ))),
             body: buildPage(),
@@ -143,7 +143,7 @@ class TransactionPageState extends State<TransactionPage> with SingleTickerProvi
     await Future.delayed(const Duration(seconds: 1), (){});
     Navigator.popUntil(context,
         widget.fromHome
-            ? ModalRoute.withName("home-page")
+            ? (route) => route.isFirst
             : ModalRoute.withName("tally-page"));
   }
 
