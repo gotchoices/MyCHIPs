@@ -31,42 +31,41 @@ class TallySearchPageState extends State<TallySearchPage> {
     return Scaffold(
       appBar: AppBar(
           title: TextField(
-        onChanged: (input) {
-          if (input.isNotEmpty) {
-            searchList.clear();
-            searchList.addAll(presenter.filterUsers(input, tallyList));
-            setState(() {
-              searching = true;
-            });
-          } else {
-            searchList.clear();
-            setState(() {
-              searching = false;
-            });
-          }
-        },
-        decoration: InputDecoration(
-            icon: Icon(
-              Icons.search,
-              color: Colors.white,
-            ),
-            hintText: "type user here",
-            hintStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-        autofocus: !(widget.searchResultType == 0),
-        style: TextStyle(color: Colors.white),
-        cursorColor: Colors.white,
-      ),
-      automaticallyImplyLeading: widget.searchResultType == 1 ? false : true,
-      leading: widget.searchResultType == 1 ? BackButton(
-          color: Colors.white
-      ) : null),
+            onChanged: (input) {
+              if (input.isNotEmpty) {
+                searchList.clear();
+                searchList.addAll(presenter.filterUsers(input, tallyList));
+                setState(() {
+                  searching = true;
+                });
+              } else {
+                searchList.clear();
+                setState(() {
+                  searching = false;
+                });
+              }
+              },
+            decoration: InputDecoration(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.white,
+                ),
+                hintText: "type user here",
+                hintStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+            autofocus: !(widget.searchResultType == 0),
+            style: TextStyle(color: Colors.white),
+            cursorColor: Colors.white,
+          ),
+          automaticallyImplyLeading: widget.searchResultType == 1 ? false : true,
+          leading: widget.searchResultType == 1 ? BackButton(
+              color: Colors.white) : null),
       body: Container(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           child: Stack(
-          children: [
-            buildTallyList(),
-          buildButton()])
+              children: [
+                buildTallyList(),
+                buildButton()])
       ),
       drawer: MainDrawer(),
     );
@@ -101,7 +100,7 @@ class TallySearchPageState extends State<TallySearchPage> {
                 MaterialPageRoute(
                     settings: RouteSettings(name: "tally-page"),
                     builder: (BuildContext context) =>
-                        TallyPage(Tally(t.friend, t.balance))));
+                        TallyPage(t)));
           } else if (widget.searchResultType == 1) {
             Navigator.push(
                 context,

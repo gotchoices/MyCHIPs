@@ -17,21 +17,54 @@ class TallyGenerator {
       transactionList[t.personID] = TransactionGenerator.generateFakeTransactions();
       results.add(t);
     }
-    Tally houseTally = new Tally(new Account("AmericanExpress", "House Mortgage", "",),  -50);
+
+    Tally houseTally = new Tally(new Account("American Express", "", "",),  -50);
     tallyList.add(houseTally);
-    transactionList[202] = [Transaction(
-        DateTime(2010), "House Loan", "House Mortgage", "ryle3", -1000), Transaction(
-        DateTime(2011), "first year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2012), "second year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2013), "third year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2014), "fourth year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2015), "fifth year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2016), "sixth year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2017), "seventh year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2018), "eighth year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2019), "ninth year payment", "ryle3", "House Mortgage", 100), Transaction(
-        DateTime(2020), "tenth year payment", "ryle3", "House Mortgage", 50) ];
+    transactionList[houseTally.personID] = [Transaction(
+        DateTime(2010), "", "American Express", "ryle3", 1150), Transaction(
+        DateTime(2011), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2012), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2013), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2014), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2015), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2016), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2017), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2018), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2019), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2020), "", "American Express", "ryle3", -100), Transaction(
+        DateTime(2021), "", "American Express", "ryle3", -100) ];
     results.add(houseTally);
+
+    Tally investingTally = new Tally(new Account("Robin Hood", "", ""), -50);
+    tallyList.add(investingTally);
+    transactionList[investingTally.personID] = [Transaction(
+        DateTime(2021, 1, 20), "", "Robin Hood", "ryle3", -20), Transaction(
+        DateTime(2021, 2, 5), "", "Robin Hood", "ryle3", 100), Transaction(
+        DateTime(2021, 2, 7), "", "Robin Hood", "ryle3", -80), Transaction(
+        DateTime(2021, 3, 10), "", "Robin Hood", "ryle3", 20), Transaction(
+        DateTime(2021, 3, 11), "", "Robin Hood", "ryle3", -20), Transaction(
+        DateTime(2021, 4, 11), "", "Robin Hood", "ryle3", 30) ];
+    results.add(investingTally);
+
+    Tally jobTally = new Tally(new Account("Kyle Bateman", "", ""), 100);
+    tallyList.add(jobTally);
+    transactionList[jobTally.personID] = [Transaction(
+        DateTime(2020, 11, 20), "", "Kyle Bateman", "ryle3", 20), Transaction(
+        DateTime(2020, 12, 20), "", "Kyle Bateman", "ryle3", 20), Transaction(
+        DateTime(2021, 1, 20), "", "Kyle Bateman", "ryle3", 20), Transaction(
+        DateTime(2021, 2, 20), "", "Kyle Bateman", "ryle3", 20), Transaction(
+        DateTime(2021, 3, 20), "", "Kyle Bateman", "ryle3", 20) ];
+    results.add(jobTally);
+
+    Tally sideHustleTally = new Tally(new Account("Ryan's T-Shirts", "", ""), 50);
+    tallyList.add(sideHustleTally);
+    transactionList[sideHustleTally.personID] = [Transaction(
+        DateTime(2020, 11, 20), "", "Ryan's T-Shirts", "ryle3", -50), Transaction(
+        DateTime(2020, 12, 20), "", "Ryan's T-Shirts", "ryle3", 25), Transaction(
+        DateTime(2021, 1, 20), "", "Ryan's T-Shirts", "ryle3", 25), Transaction(
+        DateTime(2021, 2, 20), "", "Ryan's T-Shirts", "ryle3", 25), Transaction(
+        DateTime(2021, 3, 20), "", "Ryan's T-Shirts", "ryle3", 25) ];
+    results.add(sideHustleTally);
 
     return results;
   }

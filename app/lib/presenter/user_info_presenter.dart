@@ -8,7 +8,7 @@ class UserInfoPresenter {
   Account getAccountData() {
     dao.getAccountData();
     return new Account(
-        "TestUser", "Test", "User", "email@email.com", "123-123-1234");
+        "ryle3", "Ryan", "Leach", "ryle3@byu.edu", "916-617-0471");
   }
 
   void setAccountData(account) {

@@ -13,7 +13,7 @@ class Tally {
   Tally(friend, balance) {
     this.friend = friend;
     this.balance = balance;
-    this.personID = Random(12).nextInt(1000);
+    this.personID = Random().nextInt(1000);
   }
 
   static Tally parseTallyTicket(ticket) {
