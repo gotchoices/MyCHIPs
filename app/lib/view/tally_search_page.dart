@@ -106,7 +106,7 @@ class TallySearchPageState extends State<TallySearchPage> {
                 context,
                 MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        TransactionPage(t.friend)));
+                        TransactionPage(t.friend, true)));
           }
         });
   }

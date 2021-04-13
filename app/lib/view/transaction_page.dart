@@ -5,7 +5,7 @@ import 'package:flutter_app/objects/transaction.dart';
 import 'package:flutter_app/presenter/transaction_presenter.dart';
 import 'error_popup.dart';
 import 'main_drawer_view.dart';
-import 'success_popup.dart';
+import 'package:animated_check/animated_check.dart';
 
 const BOTH = 'BOTH';
 const PAY = 'PAY';
@@ -13,17 +13,29 @@ const REQUEST = 'REQUEST';
 
 class TransactionPage extends StatefulWidget {
   final Account transactionPartner;
-  TransactionPage(this.transactionPartner, {Key key})
+  final bool fromHome;
+  TransactionPage(this.transactionPartner, this.fromHome, {Key key})
       : super(key: key);
 
   @override
   TransactionPageState createState() => new TransactionPageState();
 }
 
-class TransactionPageState extends State<TransactionPage> {
+class TransactionPageState extends State<TransactionPage> with SingleTickerProviderStateMixin {
   TextEditingController amtController = TextEditingController();
   TextEditingController msgController = TextEditingController();
   Transaction curTransaction;
+  AnimationController _animationController;
+  Animation<double> _animation;
+  TransactionPresenter presenter = TransactionPresenter();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _animation = new Tween<double>(begin: 0, end: 1.5).animate(new CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCirc));
+  }
 
   @override
   void dispose() {
@@ -41,8 +53,10 @@ class TransactionPageState extends State<TransactionPage> {
                 leading: Builder(
                     builder: (BuildContext context) => IconButton(
                           icon: const Icon(Icons.clear_rounded),
-                          onPressed: () => Navigator.popUntil(
-                              context, (route) => route.isFirst),
+                          onPressed: () => Navigator.popUntil(context,
+                              widget.fromHome
+                                  ? ModalRoute.withName("home-page")
+                                  : ModalRoute.withName("tally-page")),
                         ))),
             body: buildPage(),
             drawer: MainDrawer());
@@ -91,7 +105,11 @@ class TransactionPageState extends State<TransactionPage> {
                     hintText: "Please enter a payment message",
                     hintStyle: TextStyle(color: Colors.grey, fontSize: 18)),
                 style: TextStyle(fontSize: 18))),
+        AnimatedCheck(
+          progress: _animation,
+          size: 200,)
       ]),
+
       Positioned(
         bottom: 10,
         width: (MediaQuery.of(context).size.width),
@@ -116,24 +134,30 @@ class TransactionPageState extends State<TransactionPage> {
               ))
         ]));
   }
+  void runCheckAnim() async{
+    _animationController.forward();
+    await Future.delayed(const Duration(seconds: 2), (){});
+    _animationController.reverse();
+    await Future.delayed(const Duration(seconds: 1), (){});
+    Navigator.popUntil(context,
+        widget.fromHome
+            ? ModalRoute.withName("home-page")
+            : ModalRoute.withName("tally-page"));
+  }
 
   Widget createButtons(context) {
-    var presenter = TransactionPresenter();
     return Container(
         child: Padding(
             padding: EdgeInsets.all(10),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               MaterialButton(
                 onPressed: () {
+                  unfocusFields();
                   Transaction t = Transaction(DateTime.now(), msgController.text, widget.transactionPartner.displayName, "curUser", amtController.text);
                   print(t.toString());
                   if (checkParameterFormat(t)) {
-                    if (presenter.requestPayment(t)) {
-                      Navigator.pop(context);
-                      succPop(context, "Payment sent successfully.");
-                    } else {
-                      errPop(context, "Payment failed, please try again.");
-                    }
+                    showDialog(context: context, barrierDismissible: false,
+                      builder: (BuildContext context) => confirmPayRequestDialog(false, double.parse(t.amount), t));
                   }
                 },
                 child: Text('REQUEST',
@@ -150,16 +174,11 @@ class TransactionPageState extends State<TransactionPage> {
               ),
               MaterialButton(
                 onPressed: () {
+                  unfocusFields();
                   Transaction t = Transaction(DateTime.now(), msgController.text, "curUser", widget.transactionPartner.displayName, amtController.text);
                   if (checkParameterFormat(t)) {
-                    if (presenter.sendPayment(t)) {
-                      //successful transaction
-                      Navigator.pop(context);
-                      succPop(context, 'Request sent successfully');
-                    } else {
-                      //something went wrong...
-                      errPop(context, 'Request failed, please try again.');
-                    }
+                    showDialog(context: context, barrierDismissible: false,
+                        builder: (BuildContext context) => confirmPayRequestDialog(true, double.parse(t.amount), t));
                   }
                 },
                 child: Text('PAY',
@@ -194,11 +213,61 @@ class TransactionPageState extends State<TransactionPage> {
     return true;
   }
 
+  void unfocusFields() {
+    FocusScope.of(context).unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+  }
+
+  void clearFields() {
+    amtController.clear();
+    msgController.clear();
+  }
+
   String convertDynamic(dynamic number) {
     try {
       return double.parse(number).toStringAsFixed(2);
     } catch (FormatException) {
       return null;
     }
+  }
+
+  Widget confirmPayRequestDialog(bool payment, double amt, Transaction t) {
+    //if payment, it's a payment. else, it's a request
+    String sendOrRequest = payment ? "send $amt to " + widget.transactionPartner.displayName : "request $amt from " + widget.transactionPartner.displayName;
+    return AlertDialog(
+      title: Text(payment ? "Paying " + widget.transactionPartner.displayName : "Requesting from " + widget.transactionPartner.displayName),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Image.asset("assets/thinking.png"),
+            Text("Are you sure you want to $sendOrRequest?"),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              unfocusFields();
+            }),
+        TextButton(
+            child: Text('Confirm'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              bool result;
+              unfocusFields();
+              if(payment) result = presenter.sendPayment(t);
+              else result = presenter.requestPayment(t);
+              if (result) {
+                clearFields();
+                unfocusFields();
+                runCheckAnim();
+              } else {
+                errPop(context, "Transaction failed, please try again.");
+              }
+            }),
+      ],
+    );
   }
 }
