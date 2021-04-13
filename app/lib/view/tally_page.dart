@@ -109,19 +109,22 @@ class TallyPageState extends State<TallyPage> {
 
   Widget buildHistoryList() {
     List<Transaction> transactionList = transactionMap[widget.tally.personID];
-    transactionList.sort();
-    if (transactionList.length == 0)
-      return Center(
-          child: Text(
-              "Click Pay or Request to begin a transaction history with this person",
-              style: TextStyle(fontSize: 25, fontStyle: FontStyle.italic)));
-    return ListView.builder(
-        itemCount: (transactionList.length * 2),
-        padding: const EdgeInsets.only(left: 16, right: 16),
-        itemBuilder: (context, item) {
-          if (item.isOdd) return Divider();
-          return buildRow(transactionList[item ~/ 2]);
-        });
+    if (transactionList != null) {
+      transactionList.sort();
+      if (transactionList.length == 0)
+        return Center(
+            child: Text(
+                "Click Pay or Request to begin a transaction history with this person",
+                style: TextStyle(fontSize: 25, fontStyle: FontStyle.italic)));
+      return ListView.builder(
+          itemCount: (transactionList.length * 2),
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          itemBuilder: (context, item) {
+            if (item.isOdd) return Divider();
+            return buildRow(transactionList[item ~/ 2]);
+          });
+    } else
+      return Container();
   }
 
   Widget buildRow(Transaction t) {

@@ -177,7 +177,6 @@ class ScannerState extends State<Scanner> {
             if (presenter.registerNewTally(ticket)) {
               UserTallies userTallies = UserTallies();
               userTallies.tallyList.add(tally);
-              userTallies.tallyList.add(tally);
               UserTransactions().transactionList[tally.personID] = [];
               //TODO: Comment this out when succPop works
               // succPop(context, "Tally with " + tally.friend + " successfully established.");
