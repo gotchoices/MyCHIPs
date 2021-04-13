@@ -14,6 +14,7 @@ class UserInfo {
     //gets the user's personal key
     new KeyStorage().readKeyValue().then((String value) {
         personalKey = value;
+        showContact = false;
     });
   }
 
@@ -23,6 +24,7 @@ class UserInfo {
   Map<String, double> dataMap;
   List<Color> colorList;
   Account account;
+  bool showContact;
   String personalKey;
 }
 

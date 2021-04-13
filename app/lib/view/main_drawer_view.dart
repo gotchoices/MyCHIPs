@@ -9,15 +9,6 @@ import 'create_tally_page.dart';
 import 'home_page.dart';
 
 class MainDrawer extends StatefulWidget {
-  // @override
-  // MainDrawerState createState() {
-  //   var presenter = new UserInfoPresenter();
-  //   var state = MainDrawerState();
-  //   state.setPresenter(presenter);
-
-  //   return state;
-  // }
-
   const MainDrawer({Key key}) : super(key: key);
 
   @override

@@ -14,7 +14,7 @@ class UserInfoPage extends StatefulWidget {
 }
 
 class UserInfoPageState extends State<UserInfoPage> {
-  bool showContact = false;
+  bool showContact;
   bool firstUpdate = true;
   var presenter = new UserInfoPresenter();
   UserInfo userInfo = UserInfo();
@@ -25,6 +25,7 @@ class UserInfoPageState extends State<UserInfoPage> {
   TextEditingController phoneController;
   @override
   Widget build(BuildContext context) {
+    showContact = UserInfo().showContact;
     return Scaffold(
       appBar: AppBar(title: Text("User Information",
       style: TextStyle(fontWeight: FontWeight.bold),)),
@@ -92,6 +93,7 @@ class UserInfoPageState extends State<UserInfoPage> {
                                       onChanged: (value) {
                                         setState(() {
                                           showContact = !showContact;
+                                          UserInfo().showContact = showContact;
                                         });
                                       }),
                                   Text("Display Contact Info Publicly?  "),
