@@ -62,12 +62,14 @@ class CreateTallyPageState extends State<CreateTallyPage> {
             Navigator.push(context, new MaterialPageRoute(
                builder: (BuildContext context) => new Scanner()));
           },
-          child: const Text("Scan QR Code", style: TextStyle(fontSize: 20)),
-          color: Colors.blue,
-          textColor: Colors.white,
+          child: const Text("Scan QR Code",
+              style:
+              TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          color: Colors.white,
+          textColor: Theme.of(context).primaryColor,
           elevation: 5,
           height: 50,
-          minWidth: maxButtonWidth
+          minWidth: (MediaQuery.of(context).size.width) / 1.75,
       ))
     );
   }

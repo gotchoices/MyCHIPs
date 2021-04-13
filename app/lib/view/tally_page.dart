@@ -1,17 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_app/objects/singletons.dart';
 import 'package:flutter_app/presenter/tally_page_presenter.dart';
 import '../objects/transaction.dart';
 import '../objects/tally.dart';
 import 'package:date_format/date_format.dart';
-import 'main_drawer_view.dart';
 import 'transaction_page.dart';
 import 'dart:math';
 
 class TallyPage extends StatefulWidget {
   final Tally tally;
   TallyPage(this.tally, {Key key}) : super(key: key);
+  final String chipSVG = 'assets/chip.svg';
 
   @override
   TallyPageState createState() => new TallyPageState();
@@ -31,8 +32,7 @@ class TallyPageState extends State<TallyPage> {
         appBar: AppBar(
           title: Text("Tally History"),
         ),
-        body: buildPage(),
-        drawer: MainDrawer());
+        body: buildPage());
   }
 
   Widget buildPage() {
@@ -75,10 +75,28 @@ class TallyPageState extends State<TallyPage> {
                 child: Text("Tally Balance:",  style: TextStyle(fontSize: 15, color: Color(0xffffffff), fontWeight: FontWeight.w600)),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 2, bottom: 10),
-                child: (widget.tally.balance > 0) ?
-                  Text("₵" + widget.tally.balance.toString(), style: TextStyle(fontSize: 30, color: Color(0xff53AB77), fontWeight: FontWeight.w500)) :
-                  Text(widget.tally.balance.toString().substring(0,1) + "₵" + widget.tally.balance.toString().substring(1), style: TextStyle(fontSize: 30, color: Color(0xffD54040), fontWeight: FontWeight.w500)),
+                padding: const EdgeInsets.only(top: 6, bottom: 10),
+                child:
+                (widget.tally.balance >= 0) ?
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(widget.chipSVG, height: 28, color: Color(0xff53AB77),),
+                        Text(widget.tally.balance.toString(), style
+                            : TextStyle(fontSize : 30, color
+                            : Color(0xff53AB77), fontWeight : FontWeight.w500)),
+                      ])
+                  : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(widget.tally.balance.toString().substring(0,1), style
+                          : TextStyle(fontSize : 30, color
+                          : Color(0xffD54040), fontWeight : FontWeight.w500)),
+                      SvgPicture.asset(widget.chipSVG, height: 28, color: Color(0xffD54040),),
+                      Text(widget.tally.balance.toString().substring(1), style
+                          : TextStyle(fontSize : 30, color
+                          : Color(0xffD54040), fontWeight : FontWeight.w500)),
+                    ]),
               ),
               buildButtons()
             ],
@@ -111,13 +129,27 @@ class TallyPageState extends State<TallyPage> {
       title: (t.amount < 0) ? Text("You paid " + widget.tally.friend.displayName, style: TextStyle(fontWeight: FontWeight.w600)) : Text(widget.tally.friend.displayName + " paid You", style: TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(formatDate(t.date, [M, ' ', d, ", ", yyyy]),
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-      trailing: (t.amount > 0) ?
-        Text("₵" + t.amount.toStringAsFixed(2), style: TextStyle(fontSize: 20, color: Color(0xff53AB77), fontWeight: FontWeight.w600)) :
-        Text(t.amount.toStringAsFixed(2).substring(0, 1) + "₵" + t.amount.toStringAsFixed(2).substring(1), style: TextStyle(fontSize: 20, color: Color(0xffD54040), fontWeight: FontWeight.w600)),
-
+        trailing: (t.amount >= 0) ?
+            Row(
+              mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(widget.chipSVG, height: 22, color: Color(0xff53AB77),),
+                  Text(t.amount.toStringAsFixed(2), style
+                      : TextStyle(fontSize : 20, color
+                      : Color(0xff53AB77), fontWeight : FontWeight.w600)),
+                ])
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("-", style
+                      : TextStyle(fontSize : 20, color
+                      : Color(0xffD54040), fontWeight : FontWeight.w600)),
+                  SvgPicture.asset(widget.chipSVG, height: 22, color: Color(0xffD54040),),
+                  Text(t.amount.toStringAsFixed(2).substring(1), style
+                      : TextStyle(fontSize : 20, color
+                      : Color(0xffD54040), fontWeight : FontWeight.w600)),
+                ])
     );
-
-  //  t.amount.toStringAsFixed(2),
   }
 
   Widget buildButtons() {

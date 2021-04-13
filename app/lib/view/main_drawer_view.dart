@@ -29,7 +29,7 @@ class MainDrawerState extends State<MainDrawer> {
         child: ListView(
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text(userInfo.account.displayName),
+              accountName: Text(userInfo.account.displayName, style: TextStyle(fontWeight: FontWeight.bold)),
               accountEmail: Text(userInfo.account.email),
               currentAccountPicture: GestureDetector(
                   onTap: () {
@@ -40,12 +40,12 @@ class MainDrawerState extends State<MainDrawer> {
                                 UserInfoPage(false)));
                   },
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://miro.medium.com/max/450/1*W35QUSvGpcLuxPo3SRTH4w.png"),
-                  )),
+                      child: new Text(userInfo.account.displayName.substring(0, 1), style: TextStyle(fontSize: 45, fontWeight: FontWeight.w700, color: Color(0xffffffff))),
+                      backgroundColor: Color(0xfff3a43e)),
+                ),
             ),
             ListTile(
-                title: Text("Home"),
+                title: Text("Home", style: TextStyle(fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.push(
                       context,
@@ -53,7 +53,7 @@ class MainDrawerState extends State<MainDrawer> {
                           builder: (BuildContext context) => HomePage()));
                 }),
             ListTile(
-                title: Text("My Tallies"),
+                title: Text("My Tallies", style: TextStyle(fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.push(
                       context,
@@ -61,7 +61,7 @@ class MainDrawerState extends State<MainDrawer> {
                           builder: (BuildContext context) => TallySearchPage(0)));
                 }),
             ListTile(
-                title: Text("Create a New Tally"),
+                title: Text("Create a New Tally", style: TextStyle(fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.push(
                       context,
@@ -69,7 +69,7 @@ class MainDrawerState extends State<MainDrawer> {
                           builder: (BuildContext context) => CreateTallyPage()));
                 }),
             ListTile(
-                title: Text("Pending Transactions"),
+                title: Text("Pending Transactions", style: TextStyle(fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.push(
                       context,
