@@ -213,6 +213,10 @@ class Client {
             SecurityContext wsContext = new SecurityContext();
             AsciiDecoder asciiBoi = new AsciiDecoder();
             wsContext.setTrustedCertificates(local + '/spa_ca.crt');
+            /*
+             TODO:
+              THIS IS THE FINAL SECTION, WHERE THE CONNECTION ULTIMATELY FAILS
+             */
             SecureSocket s = await SecureSocket.connect(this.host, this.port,
                 context: wsContext,
                 onBadCertificate: ((X509Certificate cert) => true));
