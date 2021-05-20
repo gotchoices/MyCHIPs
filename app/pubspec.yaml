@@ -35,6 +35,10 @@ dependencies:
 #  google_fonts: ^2.0.0
   flutter_svg: ^0.19.3
   currency_text_input_formatter: ^2.0.1
+  pointycastle: ^1.0.0-rc4
+  web_socket_channel: ^2.0.0
+  http: ^0.13.1
+  string_to_hex: ^0.2.1+30
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
