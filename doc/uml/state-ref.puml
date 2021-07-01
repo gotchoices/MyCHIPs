@@ -11,7 +11,7 @@ state "Lift Unknown" as none
 'term:  Stat: term, Req: N/A
 
 'State transition rules:
-none -[$peer]-> good: $trans($peer,Receive proposer Req:call,'Within time', 'Generate signature\nStore:good\nReply Act:good')
+none -[$peer]-> good: $trans($peer,Receive originator Req:call,'Within time', 'Generate signature\nStore:good\nReply Act:good')
 none -[$peer]-> timeout: $trans($peer,Receive request Req:call/query,'Time expired', 'Store:timeout\nReply Act:timeout')
 timeout -[$peer]-> timeout: $trans($peer,Receive request Req:N/A,'Already ruled expired', 'Reply Act:timeout')
 

@@ -1,8 +1,8 @@
 @startuml
 !include common.puml
 $title(Closing a Tally)
-actor "Proposer" as prop
-database "Proposer DB" as propDB
+actor "Originator" as prop
+database "Originator DB" as propDB
 database "Subject DB" as subjDB
 actor "Subject" as subj
 

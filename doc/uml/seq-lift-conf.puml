@@ -2,7 +2,7 @@
 !include common.puml
 $title(Lift Confirmation/Ratification)
 participant "Referee" as referee
-database "Proposer DB" as propDB
+database "Originator DB" as propDB
 collections "Intermediate nodes" as inter
 database "Terminus DB" as termDB
 
@@ -12,12 +12,12 @@ inter		->>	termDB:		Will you participate in a lift?
 note over termDB: The destination is a local user
 termDB		->>	propDB:		Terminus reached;\nauthenticate
 
-alt Proposer wants to cancel (or thinks the lift is expired)
+alt Originator wants to cancel (or thinks the lift is expired)
   propDB	->>	termDB:		Cancel lift
   termDB	->>	inter:		Cancel lift
   inter		->>	propDB:		Cancel lift
 
-else Proposer still wants to proceed with lift
+else Originator still wants to proceed with lift
   propDB	->>	referee:	May I commit this lift?
 
   alt Lift still within time

@@ -1,11 +1,9 @@
 ## MyCHIPs Protocol Description 1.0 (draft)
-March 2021
+July 2021
 
 ### TODO
-- Finish consensus state diagram
-- Show message class/object diagrams for each protocol
-- Expand state machines to handle retries
-- 
+- Show message class/object diagrams for each protocol?
+- Expand state machines to handle retries?
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.
@@ -22,13 +20,19 @@ And with the network visualizer, I could now actually see what a network might e
 As I went, I produced documents like those included here for
 [tallies](Tallies.md) and [lifts](Lifts.md)
 to help me make sense of what I needed to code.
-Those still serve as a helpful guide for the prototype implementation.
+Those still serve as a helpful reference for the prototype implementation.
 
-Next came the DSR study, which revealed some security/liveness flaws in the way I had implemented the protocol.
-The intermediate BYU results indicate that the addition of a referee will now allow a distributed lift that is acceptably live and secure.
+Next came the DSR study, which revealed some security/liveness flaws in the way I had designed and implemented the protocol.
+The intermediate BYU results (as of Summer 2021) indicate that the addition of the referee will now allow a distributed lift that is acceptably live and secure.
 
-This document is an attempt to more formally describe a refined protocol using UML sequence and state diagrams.
-Hopefully this will prepare the way for a further revision of the codebase to bring it into line with this improved protocol.
+Admittedly, the referee is a compromise from the original goal of a fully distributed system.
+But it is still highly decentralized, and its main role is so nodes can achieve consensus about when a pending lift should expire.
+Thankfully, the referee doesn't need to know anything about individual entities' balances, keys, or other sensitive data.
+So all other functions are still fully distributed.
+
+This document is an attempt to more formally describe a refined protocol with the help of UML sequence and state diagrams.
+The goal is to prepare the way for a further revision of the codebase to bring it into line with this improved protocol.
+Hopefully this will serve as a clear enough description that any eventual implementation can interoperate with any other.
 
 ### Network Assumptions
 MyCHIPs assumes a network of peer entities who become interconnected through voluntary credit relationships they establish with each other.
@@ -36,11 +40,11 @@ Such an entity could be an individual person or it could be a legal organization
 The term *user* is also used to be roughly synonymous with entity (with a possible bias toward human entities).
 
 Entities should quantify the degree to which they trust the peer entities they connect with.
-When that trust is greater than zero (i.e. credit terms are offered), one should be prepared to lose the amount of value quantified in the trust.
+When that trust is greater than zero (i.e. [credit terms](./Tallies.md#credit-terms) are offered), one should be prepared to lose the amount of value quantified in the trust.
 For example, if I extend you 10 CHIPs of credit, I must recognize the possibility that you may fail to uphold your promise.
 In that case, I may lose the promised value, or have to rely on collateral if such is a part of the particular credit agreement.
 
-Although this limited risk from trading parters is a necessary part of the system, people should be exposed to indirect risks.
+Although this limited risk from trading parters is a necessary part of the system, people should not be exposed to indirect risks.
 For example, if I (A) share a tally with you (B), and you also share a tally with a third entity (C), I don't want to have to rely on your trust of C.
 C may hurt you.  But I don't want C to be able to hurt me.
 
@@ -59,7 +63,7 @@ And these servers will most likely host more than one user.
 
 This introduces the notion of a *site* which typically represents a single database of users surrounded by a possible cluster of process and control-layer support servers.
 
-The term *node* will get used in a more generic way, possibly referring to an entity *or* a site, depending on the context.
+The term *node* will get used in a more generic way, possibly referring to an entity, a site, or a set of users (a <i>segment</i>) within a site, depending on the context.
 The term *server* may be used sometimes as roughly synonymous with *site.*
 
 ### Tally Use Cases
@@ -348,7 +352,7 @@ This use diagram shows five possible phases of the resulting lift:
 
 Here is the simplified example lift circuit again for reference.
 Remember, each node could represent a single user or a segment of users local to a particular site.
-We will consider node A as the lift proposer.
+We will consider node A as the lift originator.
 Node B will be considered the destination of the lift.
 
 <p align="center"><img src="Lifts-1.jpg" width="500" title="Visualizing a lift"></p>
@@ -383,11 +387,11 @@ Node A will propose the lift to node D because:
 #### Confirmation, Ratification, Commit
   As long as a suitable route exists, the lift proposal will eventually reach its intended destination, or <i>terminus node</i>.
   The terminus node will communicate a confirmation directly to the originator to indicate that the lift has successfully propagated through its intended circuit (or linear path) and is ready to commit.
-  The lift header contains a network address and port where the proposer can be reached for this purpose.
+  The lift header contains a network address and port where the originator can be reached for this purpose.
 
-  Once the proposer has obtained the confirmation, it can decide whether it wants to proceed to commit the lift.
+  Once the originator has obtained the confirmation, it can decide whether it wants to proceed to commit the lift.
   But it can only do so if the time, originally set forth in the lift proposal, has not yet expired (in the sole judgement of the referee).
-  So the proposer sends a message to the referee requesting permission to commit.
+  So the originator sends a message to the referee requesting permission to commit.
 
   Assuming permission/authorization is given by the referee, the requester now possesses a digital signature of the referee indicating that the lift is good and valid.
   It will proceed to transmit this information clockwise through the lift chain, starting with node B.
@@ -415,7 +419,7 @@ The originator shall respond similarly to any query with one of the following an
 - The lift has timed out, here's a signed timeout message from the referee;
 - I don't yet have an answer for this lift
 
-As long as connectivity can be maintained with their upstream neighbor, the proposer, or the referee, each node should be able to successfully complete the lift.
+As long as connectivity can be maintained with their upstream neighbor, the originator, or the referee, each node should be able to successfully complete the lift.
 If none of these can be reached, the lift commit will block indefinitely until connectivity can be restored.
 
 It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol suffers from potential safety and/or liveness issues.
@@ -441,7 +445,7 @@ The referee lift state diagram is as follows:
 [![state-ref](uml/state-ref.svg)](uml/state-ref.svg)
 
 ### Consensus Protocol (UNDER CONSTRUCTION)
-This is a sub-protocol by which peers at two ends of a common tally agree upon which order chits are entered onto their tallies.
+This is a sub-protocol by which the peers at each end of a common tally agree upon which order chits are entered onto their copies of the tally.
 Chit order is not particularly important from a theoretical standpoint.
 But in an actual implementation, it is very helpful.
 
@@ -458,7 +462,7 @@ For example, either party can unilaterally sign a chit that sends value to the o
 
 ![use-cons](uml/use-cons.svg)
 
-In the case of lift chits, validating signatures will normally propagate in the clockwise (downstream) direction.
+In the case of lift chits, validating signatures will normally propagate around the lift circuit in the clockwise (downstream) direction.
 That means the foil holder on any given tally will get the signature before the stock holder.
 As they attempt to reach consensus on chit order, the signature will naturally get shared.
 
@@ -473,12 +477,17 @@ It is the job of the stock to conform to that order.
 Both stock and foil have the duty to recognize, accept and store a duly signed and valid chit.
 
 The goal of the consenus protocol is then to:
-- get all valid chits linked into a hashed list; and
-- verify that the stock and foil both have an identical list of chits;
+- get all valid chits linked into a hash-chained list; and
+- verify that the stock and foil both have an identical list of valid chits.
 
-So consensus is achieved on chits.
+The consensus protocol is centered around chits.
 But it is really the tally (its two halves) that are (or are not) fully consensed at any given time.
 
-Now we can derive the following state diagram to describe the tally/chit consensus protocol from the perspective of a single site:
+Now we can derive the following state diagram to describe the tally/chit consensus protocol from the perspective of a single site.
+First, the states associated with the foil:
+
+[![state-cons](uml/state-conf.svg)](uml/state-conf.svg)
+
+And now, the states associated with the stock:
 
 [![state-cons](uml/state-cons.svg)](uml/state-cons.svg)

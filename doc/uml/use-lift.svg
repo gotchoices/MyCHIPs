@@ -1,27 +1,27 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="411px" preserveAspectRatio="none" style="width:601px;height:411px;" version="1.1" viewBox="0 0 601 411" width="601px" zoomAndPan="magnify"><defs><filter height="300%" id="f18rcfnkvi92" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="122" x="233" y="17.4023">Lift Use Cases</text><!--MD5=[4e01875a56aa21ce1aba72102ce81a73]
-entity proposer--><polygon fill="#FEFECE" filter="url(#f18rcfnkvi92)" points="16,229.6992,26,219.6992,118,219.6992,118,256.1875,108,266.1875,16,266.1875,16,229.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="108" x2="118" y1="229.6992" y2="219.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="16" x2="108" y1="229.6992" y2="229.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="108" x2="108" y1="229.6992" y2="266.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="62" x="31" y="253.2344">Proposer</text><!--MD5=[922065da74e071dc22a08de0d7e89904]
-entity referee--><polygon fill="#FEFECE" filter="url(#f18rcfnkvi92)" points="21,70.6992,31,60.6992,113,60.6992,113,97.1875,103,107.1875,21,107.1875,21,70.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="103" x2="113" y1="70.6992" y2="60.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="21" x2="103" y1="70.6992" y2="70.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="103" x2="103" y1="70.6992" y2="107.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="36" y="94.2344">Referee</text><!--MD5=[478e2fe18abb0122587343e00e5725e7]
-entity relayNodes--><polygon fill="#FEFECE" filter="url(#f18rcfnkvi92)" points="461,188.6992,471,178.6992,584,178.6992,584,215.1875,574,225.1875,461,225.1875,461,188.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="574" x2="584" y1="188.6992" y2="178.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="461" x2="574" y1="188.6992" y2="188.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="574" x2="574" y1="188.6992" y2="225.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="83" x="476" y="212.2344">Relay Nodes</text><!--MD5=[c1527d76f9f7823f6945ec431e06d552]
-entity destNode--><polygon fill="#FEFECE" filter="url(#f18rcfnkvi92)" points="463.5,269.6992,473.5,259.6992,581.5,259.6992,581.5,296.1875,571.5,306.1875,463.5,306.1875,463.5,269.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="571.5" x2="581.5" y1="269.6992" y2="259.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="463.5" x2="571.5" y1="269.6992" y2="269.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="571.5" x2="571.5" y1="269.6992" y2="306.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="78" x="478.5" y="293.2344">Destination</text><ellipse cx="289.477" cy="201.8946" fill="#E8E8EA" filter="url(#f18rcfnkvi92)" rx="111.477" ry="24.6954" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="283.477" y="197.3648">#1</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="175" x="201.977" y="208.3648">Propose a lift using a named referee</text><ellipse cx="289.5054" cy="360.8003" fill="#E8E8EA" filter="url(#f18rcfnkvi92)" rx="96.0054" ry="21.6011" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="283.5054" y="356.2705">#2</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="138" x="220.5054" y="367.2705">Confirm lift circuit completion</text><ellipse cx="289.7009" cy="120.6394" fill="#E8E8EA" filter="url(#f18rcfnkvi92)" rx="95.2009" ry="21.4402" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="283.7009" y="116.1096">#3</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="136" x="221.7009" y="127.1096">Ask the referee to ratify a lift</text><ellipse cx="289.6026" cy="282.7197" fill="#E8E8EA" filter="url(#f18rcfnkvi92)" rx="95.6026" ry="21.5205" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="283.6026" y="278.19">#4</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="137" x="221.1026" y="289.19">Transmit commit information</text><ellipse cx="289.5036" cy="45.7556" fill="#E8E8EA" filter="url(#f18rcfnkvi92)" rx="73.0036" ry="18.5563" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="283.5036" y="41.2258">#5</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="246.0036" y="52.2258">Query the referee</text><!--MD5=[99c1ededfce7224c19de0887cfced66d]
-link proposer to proposed--><path d="M118.03,233.3992 C143.32,228.6892 174.7,222.8592 203.62,217.4792 " fill="none" id="proposer-proposed" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[6673bfa7cab315d8c41f04b95a5bfe23]
-link proposed to relayNodes--><path d="M401.26,201.6992 C421.76,201.6992 442.45,201.6992 460.76,201.6992 " fill="none" id="proposed-relayNodes" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[d1d08f25d8b05a78b780fffd89039c37]
-link proposed to destNode--><path d="M349.69,222.4492 C384.58,234.6892 428.54,250.0992 463.27,262.2792 " fill="none" id="proposed-destNode" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[29dc155c373841d675b05a8b4576d427]
-link proposer to confirm--><path d="M95.51,265.8392 C116.93,282.9992 147.99,306.0292 178,321.6992 C194.41,330.2692 213.12,337.6692 230.41,343.6592 " fill="none" id="proposer-confirm" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[1a6f7c90d256cf8b2ba29d2b654e28bd]
-link confirm to destNode--><path d="M343.5,342.8092 C379.33,330.7092 426.64,314.7292 463.48,302.2892 " fill="none" id="confirm-destNode" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[dd9c59dd79d1e803b2d03ed7fa90f32c]
-link proposer to ratify--><path d="M93.99,219.4192 C115.35,201.2392 147.02,176.3392 178,159.6992 C194.22,150.9892 212.78,143.5592 230,137.5992 " fill="none" id="proposer-ratify" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[738e5390d1f258f4fe56aa7bf32c960a]
-link referee to ratify--><path d="M113.15,91.2792 C141.75,96.0792 179.46,102.3992 212.58,107.9592 " fill="none" id="referee-ratify" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[5d44f8f3a32b2b54a063762f8d7ed34b]
-link proposer to commit--><path d="M118.03,251.7792 C146.5,256.9392 182.68,263.4992 214.39,269.2592 " fill="none" id="proposer-commit" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[58a794c247004bf69ba2af5831ad18ef]
-link commit to relayNodes--><path d="M342.05,264.6192 C377.16,252.3092 423.77,235.9692 460.69,223.0192 " fill="none" id="commit-relayNodes" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[09374399667e2a4c6389811ce57c999d]
-link commit to destNode--><path d="M385.12,282.6992 C411.66,282.6992 439.72,282.6992 463.45,282.6992 " fill="none" id="commit-destNode" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[f1eea166cba4b2ae8dea51f2267157cb]
-link referee to query--><path d="M113.15,75.9192 C146.54,70.1592 192.34,62.2692 228.76,55.9992 " fill="none" id="referee-query" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[0e75bdac41e6d41d7590f4670e81cfd2]
-link query to relayNodes--><path d="M344.7,57.8592 C363.37,63.4492 383.88,71.2192 401,81.6992 C443.56,107.7392 482.44,151.6992 503.95,178.5692 " fill="none" id="query-relayNodes" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[ca162ed96209783736c75e5aef985409]
-link query to destNode--><path d="M352.24,55.3592 C369.76,60.6792 387.68,68.9192 401,81.6992 C456.11,134.5592 413.48,182.9192 461,242.6992 C466.01,249.0092 472.3,254.6592 478.92,259.5892 " fill="none" id="query-destNode" style="stroke:#000000;stroke-width:1.0;"/><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="155" x="216.5" y="403.0693">Mon Mar 15 15:22:22 MDT 2021</text><!--MD5=[4fdce069adf92a8953f6e5fd46e53f8f]
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="411px" preserveAspectRatio="none" style="width:610px;height:411px;" version="1.1" viewBox="0 0 610 411" width="610px" zoomAndPan="magnify"><defs><filter height="300%" id="fw01382zzig46" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="122" x="237.5" y="17.4023">Lift Use Cases</text><!--MD5=[b5bc85bee291a5298619702a1d301389]
+entity originator--><polygon fill="#FEFECE" filter="url(#fw01382zzig46)" points="16,229.6992,26,219.6992,127,219.6992,127,256.1875,117,266.1875,16,266.1875,16,229.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="117" x2="127" y1="229.6992" y2="219.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="16" x2="117" y1="229.6992" y2="229.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="117" x2="117" y1="229.6992" y2="266.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="71" x="31" y="253.2344">Originator</text><!--MD5=[922065da74e071dc22a08de0d7e89904]
+entity referee--><polygon fill="#FEFECE" filter="url(#fw01382zzig46)" points="25.5,70.6992,35.5,60.6992,117.5,60.6992,117.5,97.1875,107.5,107.1875,25.5,107.1875,25.5,70.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="107.5" x2="117.5" y1="70.6992" y2="60.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="25.5" x2="107.5" y1="70.6992" y2="70.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="107.5" x2="107.5" y1="70.6992" y2="107.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="40.5" y="94.2344">Referee</text><!--MD5=[478e2fe18abb0122587343e00e5725e7]
+entity relayNodes--><polygon fill="#FEFECE" filter="url(#fw01382zzig46)" points="470,188.6992,480,178.6992,593,178.6992,593,215.1875,583,225.1875,470,225.1875,470,188.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="583" x2="593" y1="188.6992" y2="178.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="470" x2="583" y1="188.6992" y2="188.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="583" x2="583" y1="188.6992" y2="225.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="83" x="485" y="212.2344">Relay Nodes</text><!--MD5=[c1527d76f9f7823f6945ec431e06d552]
+entity destNode--><polygon fill="#FEFECE" filter="url(#fw01382zzig46)" points="472.5,269.6992,482.5,259.6992,590.5,259.6992,590.5,296.1875,580.5,306.1875,472.5,306.1875,472.5,269.6992" style="stroke:#000000;stroke-width:1.5;"/><line style="stroke:#000000;stroke-width:1.5;" x1="580.5" x2="590.5" y1="269.6992" y2="259.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="472.5" x2="580.5" y1="269.6992" y2="269.6992"/><line style="stroke:#000000;stroke-width:1.5;" x1="580.5" x2="580.5" y1="269.6992" y2="306.1875"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="78" x="487.5" y="293.2344">Destination</text><ellipse cx="298.477" cy="201.8946" fill="#E8E8EA" filter="url(#fw01382zzig46)" rx="111.477" ry="24.6954" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="292.477" y="197.3648">#1</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="175" x="210.977" y="208.3648">Propose a lift using a named referee</text><ellipse cx="298.5054" cy="360.8003" fill="#E8E8EA" filter="url(#fw01382zzig46)" rx="96.0054" ry="21.6011" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="292.5054" y="356.2705">#2</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="138" x="229.5054" y="367.2705">Confirm lift circuit completion</text><ellipse cx="298.7009" cy="120.6394" fill="#E8E8EA" filter="url(#fw01382zzig46)" rx="95.2009" ry="21.4402" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="292.7009" y="116.1096">#3</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="136" x="230.7009" y="127.1096">Ask the referee to ratify a lift</text><ellipse cx="298.6026" cy="282.7197" fill="#E8E8EA" filter="url(#fw01382zzig46)" rx="95.6026" ry="21.5205" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="292.6026" y="278.19">#4</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="137" x="230.1026" y="289.19">Transmit commit information</text><ellipse cx="298.5036" cy="45.7556" fill="#E8E8EA" filter="url(#fw01382zzig46)" rx="73.0036" ry="18.5563" style="stroke:#202024;stroke-width:1.5;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="12" x="292.5036" y="41.2258">#5</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="255.0036" y="52.2258">Query the referee</text><!--MD5=[5136543933bd062c8faa03cd4672ef03]
+link originator to proposed--><path d="M127.25,232.7192 C152.75,228.0792 183.67,222.4392 212.13,217.2592 " fill="none" id="originator-proposed" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[6673bfa7cab315d8c41f04b95a5bfe23]
+link proposed to relayNodes--><path d="M410.26,201.6992 C430.76,201.6992 451.45,201.6992 469.76,201.6992 " fill="none" id="proposed-relayNodes" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[d1d08f25d8b05a78b780fffd89039c37]
+link proposed to destNode--><path d="M358.69,222.4492 C393.58,234.6892 437.54,250.0992 472.27,262.2792 " fill="none" id="proposed-destNode" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[99a33dc1b3a53f21f38271958555df8a]
+link originator to confirm--><path d="M101.28,265.7592 C123.66,282.8792 156.02,305.8992 187,321.6992 C203.58,330.1592 222.43,337.5492 239.8,343.5592 " fill="none" id="originator-confirm" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[1a6f7c90d256cf8b2ba29d2b654e28bd]
+link confirm to destNode--><path d="M352.5,342.8092 C388.33,330.7092 435.64,314.7292 472.48,302.2892 " fill="none" id="confirm-destNode" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[c05d3b33491ebd91837da00b3cd2f0a7]
+link originator to ratify--><path d="M99.72,219.4892 C122.03,201.3492 155.04,176.4692 187,159.6992 C203.48,151.0492 222.3,143.5992 239.68,137.5992 " fill="none" id="originator-ratify" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[738e5390d1f258f4fe56aa7bf32c960a]
+link referee to ratify--><path d="M117.76,91.1392 C147.41,96.0192 186.89,102.5092 221.3,108.1692 " fill="none" id="referee-ratify" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[8e782cac3bfb7890086a76107c96477b]
+link originator to commit--><path d="M127.25,252.4292 C156,257.5392 191.65,263.8792 222.89,269.4392 " fill="none" id="originator-commit" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[58a794c247004bf69ba2af5831ad18ef]
+link commit to relayNodes--><path d="M351.05,264.6192 C386.16,252.3092 432.77,235.9692 469.69,223.0192 " fill="none" id="commit-relayNodes" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[09374399667e2a4c6389811ce57c999d]
+link commit to destNode--><path d="M394.12,282.6992 C420.66,282.6992 448.72,282.6992 472.45,282.6992 " fill="none" id="commit-destNode" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[f1eea166cba4b2ae8dea51f2267157cb]
+link referee to query--><path d="M117.76,76.0592 C152.15,70.2492 199.79,62.1992 237.38,55.8492 " fill="none" id="referee-query" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[0e75bdac41e6d41d7590f4670e81cfd2]
+link query to relayNodes--><path d="M353.7,57.8592 C372.37,63.4492 392.88,71.2192 410,81.6992 C452.56,107.7392 491.44,151.6992 512.95,178.5692 " fill="none" id="query-relayNodes" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[ca162ed96209783736c75e5aef985409]
+link query to destNode--><path d="M361.24,55.3592 C378.76,60.6792 396.68,68.9192 410,81.6992 C465.11,134.5592 422.48,182.9192 470,242.6992 C475.01,249.0092 481.3,254.6592 487.92,259.5892 " fill="none" id="query-destNode" style="stroke:#000000;stroke-width:1.0;"/><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="145" x="226" y="403.0693">Thu Jul 01 15:54:08 MDT 2021</text><!--MD5=[cf9e1025011859b07506b1433fe7cef1]
 @startuml
 !include common.puml
 $title(Lift Use Cases)
 left to right direction
 
-node "Proposer" as proposer
+node "Originator" as originator
 node "Referee" as referee
 node "Relay Nodes" as relayNodes
 node "Destination" as destNode
@@ -32,17 +32,17 @@ usecase "#3\nAsk the referee to ratify a lift" as ratify
 usecase "#4\nTransmit commit information" as commit
 usecase "#5\nQuery the referee" as query
 
-proposer	- -	proposed
+originator	- -	proposed
 			proposed	- - relayNodes
 			proposed	- - destNode
 
-proposer	- -	confirm
+originator	- -	confirm
 			confirm		- - destNode
 
-proposer	- -	ratify
+originator	- -	ratify
 referee		- -	ratify
 
-proposer	- -	commit
+originator	- -	commit
 			commit		- - relayNodes
 			commit		- - destNode
 
@@ -240,10 +240,10 @@ skinparam note {
 
 
   title Lift Use Cases
-  footer Mon Mar 15 15:22:22 MDT 2021
+  footer Thu Jul 01 15:54:08 MDT 2021
 left to right direction
 
-node "Proposer" as proposer
+node "Originator" as originator
 node "Referee" as referee
 node "Relay Nodes" as relayNodes
 node "Destination" as destNode
@@ -254,17 +254,17 @@ usecase "#3\nAsk the referee to ratify a lift" as ratify
 usecase "#4\nTransmit commit information" as commit
 usecase "#5\nQuery the referee" as query
 
-proposer	- -	proposed
+originator	- -	proposed
 			proposed	- - relayNodes
 			proposed	- - destNode
 
-proposer	- -	confirm
+originator	- -	confirm
 			confirm		- - destNode
 
-proposer	- -	ratify
+originator	- -	ratify
 referee		- -	ratify
 
-proposer	- -	commit
+originator	- -	commit
 			commit		- - relayNodes
 			commit		- - destNode
 

@@ -2,7 +2,7 @@
 !include common.puml
 $title(Referee Queries)
 participant "Referee" as referee
-'database "Proposer DB" as propDB
+'database "Originator DB" as propDB
 collections "Any node" as any
 
 note over any:	Node suspects lift has expired

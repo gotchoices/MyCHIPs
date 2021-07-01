@@ -3,7 +3,7 @@
 $title(Lift Use Cases)
 left to right direction
 
-node "Proposer" as proposer
+node "Originator" as originator
 node "Referee" as referee
 node "Relay Nodes" as relayNodes
 node "Destination" as destNode
@@ -14,17 +14,17 @@ usecase "#3\nAsk the referee to ratify a lift" as ratify
 usecase "#4\nTransmit commit information" as commit
 usecase "#5\nQuery the referee" as query
 
-proposer	--	proposed
+originator	--	proposed
 			proposed	-- relayNodes
 			proposed	-- destNode
 
-proposer	--	confirm
+originator	--	confirm
 			confirm		-- destNode
 
-proposer	--	ratify
+originator	--	ratify
 referee		--	ratify
 
-proposer	--	commit
+originator	--	commit
 			commit		-- relayNodes
 			commit		-- destNode
 

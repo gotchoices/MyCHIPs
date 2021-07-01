@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="438px" preserveAspectRatio="none" style="width:893px;height:438px;" version="1.1" viewBox="0 0 893 438" width="893px" zoomAndPan="magnify"><defs><filter height="300%" id="f1jrg5lzs1ksyl" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="279" x="309.04" y="17.4023">Tally/Chit Consensus Foil States</text><!--MD5=[218b8c526e6091513b41961237313d9b]
+cluster foil--><rect fill="#E8E8EA" filter="url(#f1jrg5lzs1ksyl)" height="307" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="675" x="7" y="102.1992"/><rect fill="#FFFFFF" height="280" rx="12.5" ry="12.5" style="stroke:#FFFFFF;stroke-width:1.0;" width="669" x="10" y="126.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="7" x2="682" y1="123.1992" y2="123.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="13" x="338" y="114.6694">foil</text><g id="foil.cons"><rect fill="#E8E8EA" filter="url(#f1jrg5lzs1ksyl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="112" x="139" y="154.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="139" x2="251" y1="175.1992" y2="175.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="183" y="167.6694">cons</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="92" x="144" y="191.8008">Fully Consensed</text></g><g id="foil.newChit"><rect fill="#E8E8EA" filter="url(#f1jrg5lzs1ksyl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="59" x="165.5" y="335.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="165.5" x2="224.5" y1="356.1992" y2="356.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="39" x="175.5" y="348.6694">newChit</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="174.5" y="372.8008"/></g><g id="error"><rect fill="#E8E8EA" filter="url(#f1jrg5lzs1ksyl)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="108" x="706" y="335.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="706" x2="814" y1="356.1992" y2="356.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="748" y="348.6694">error</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="88" x="711" y="372.8008">Can't Consense</text></g><ellipse cx="195" cy="37.1992" fill="#44AAFF" filter="url(#f1jrg5lzs1ksyl)" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><!--MD5=[1aabe860b3035abf686adf8cb8d84d0c]
+link *start to cons--><path d="M195,47.3892 C195,67.6292 195,116.8092 195,148.7692 " fill="none" id="*start-to-cons" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="195,154.1292,199,145.1292,195,149.1292,191,145.1292,195,154.1292" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[d1a0a8b1bec6df8b6ba950f7e1727771]
+link cons to newChit--><path d="M138.84,194.1492 C110.88,204.2392 79.57,221.0192 63,248.1992 C49.81,269.8292 48.88,284.1692 63,305.1992 C84.53,337.2592 128.82,350.2992 160.15,355.5992 " fill="none" id="cons-to-newChit" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="165.45,356.4392,157.192,351.0722,160.5124,355.6521,155.9325,358.9724,165.45,356.4392" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="94" y="268.6694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="64" y="279.6694">User creates new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="86" x="64.5" y="290.6694">valid direct chit(s)</text><!--MD5=[d1a0a8b1bec6df8b6ba950f7e1727771]
+link cons to newChit--><path d="M193.67,204.4192 C193.03,217.3992 192.32,233.6692 192,248.1992 C191.44,273.5292 191.3,279.8792 192,305.1992 C192.22,313.1292 192.62,321.7092 193.06,329.6392 " fill="none" id="cons-to-newChit-1" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="193.37,335.0192,196.8485,325.8051,193.0839,330.0274,188.8616,326.2628,193.37,335.0192" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="205.5" y="268.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="193" y="279.6694">Site creates new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="69" x="199" y="290.6694">valid lift chit(s)</text><!--MD5=[a0399b42a222e0d8fec34cf3211d9b22]
+link newChit to cons--><path d="M224.78,348.7392 C244.02,340.2492 267.54,326.1992 279,305.1992 C291.14,282.9592 289.91,271.0592 279,248.1992 C274.01,237.7292 254.24,221.5092 235.14,207.5392 " fill="none" id="newChit-to-cons" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="230.82,204.4092,235.7424,212.9398,234.8624,207.3518,240.4504,206.4719,230.82,204.4092" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="323" y="257.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="126" x="288" y="268.6694">Detected new valid chit(s)</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="319.5" y="279.6694">/Add to chain</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="93" x="304.5" y="290.6694">Generate endHash</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="110" x="296" y="301.6694">Send to Stock Act:new</text><!--MD5=[46165f2ab95bc8f3c23b2625de2011b8]
+link foil to foil--><path d="M665,178.6392 C676.87,155.1992 700.08,155.3892 700.08,179.1992 C700.08,203.0092 676.87,203.1992 665,179.7592 " fill="none" id="foil-to-foil" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="665,179.7592,665.4974,189.5955,667.2589,184.2199,672.6345,185.9813,665,179.7592" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="780.08" y="165.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="174" x="706.08" y="176.6694">Receive request for update Act:new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="143" x="721.58" y="187.6694">/Send all chits since ackHash</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="111" x="737.58" y="198.6694">and also new endHash</text><!--MD5=[cf24994242104475f0193d1fd5e18075]
+link foil to error--><path d="M682.6842,311.4791 C694.8113,318.9655 706.1238,325.9492 716.15,332.1392 " fill="none" id="foil-to-error" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="720.85,335.0292,715.2936,326.8974,716.5956,332.4024,711.0907,333.7044,720.85,335.0292" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="726.5" y="268.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="145" x="667" y="279.6694">Receive error report Act:error</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="138" x="670.5" y="290.6694">/Notify my local user of error</text><!--MD5=[736ff45283c82902e1fd10bfe2036b0f]
+link cons to cons--><path d="M251.43,161.1992 C270.6,161.1092 286,167.1092 286,179.1992 C286,190.1592 273.35,196.1092 256.71,197.0592 " fill="none" id="cons-to-cons" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="251.43,197.1992,260.5298,200.9665,256.4283,197.0707,260.3242,192.9692,251.43,197.1992" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="355.5" y="154.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="147" x="295" y="165.6694">Foil receives new chit Act:new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="153" x="292" y="176.6694">[Agree with proposed endHash]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="337" y="187.6694">/Add to chain</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="102" x="317.5" y="198.6694">ackHash = newHash</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="136" x="300.5" y="209.6694">Acknowledge Stock Act:ack</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="145" x="376.04" y="429.8672">Thu Jul 01 17:05:22 MDT 2021</text><!--MD5=[a4f91172e5ba66f67338d6051f50f19e]
+@startuml
+!include common.puml
+
+$title(Tally/Chit Consensus Foil States)
+'cons: Fully Consensed
+error: Can't Consense
+
+state foil {
+  cons: Fully Consensed
+  newChit:
+}
+[*] - -> cons
+
+'State transition rules:
+cons -[$user]-> newChit: $trans($user, User creates new\nvalid direct chit(s),'')
+cons -[$db]-> newChit: $trans($db, Site creates new\nvalid lift chit(s),'')
+
+newChit -[$db]-> cons: $trans($db,Detected new valid chit(s),'', 'Add to chain\nGenerate endHash\nSend to Stock Act:new')
+
+foil -[$peer]-> foil: $trans($peer,Receive request for update Act:new,'', 'Send all chits since ackHash\nand also new endHash')
+foil -[$peer]-> error: $trans($peer,Receive error report Act:error,'', 'Notify my local user of error')
+
+cons -[$peer]-> cons: $trans($peer,Foil receives new chit Act:new,'Agree with proposed endHash', 'Add to chain\nackHash = newHash\nAcknowledge Stock Act:ack')
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+
+  title Tally/Chit Consensus Foil States
+  footer Thu Jul 01 17:05:22 MDT 2021
+error: Can't Consense
+
+state foil {
+  cons: Fully Consensed
+  newChit:
+}
+[*] - -> cons
+
+cons -[#green]-> newChit: <font color=green>User:\nUser creates new\nvalid direct chit(s)
+cons -[#red]-> newChit: <font color=red>DB Trigger:\nSite creates new\nvalid lift chit(s)
+
+newChit -[#red]-> cons: <font color=red>DB Trigger:\nDetected new valid chit(s)\n/Add to chain\nGenerate endHash\nSend to Stock Act:new
+
+foil -[#blue]-> foil: <font color=blue>Peer:\nReceive request for update Act:new\n/Send all chits since ackHash\nand also new endHash
+foil -[#blue]-> error: <font color=blue>Peer:\nReceive error report Act:error\n/Notify my local user of error
+
+cons -[#blue]-> cons: <font color=blue>Peer:\nFoil receives new chit Act:new\n[Agree with proposed endHash]\n/Add to chain\nackHash = newHash\nAcknowledge Stock Act:ack
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

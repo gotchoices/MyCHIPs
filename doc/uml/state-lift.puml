@@ -7,7 +7,7 @@ state "No Lift" as none
 
 'States are determined by a combination of values, as defined here:
 'init:  Stat: void, Req: init		'First implementation uses this.  Will try to avoid extra state in next version
-state proposer {
+state Originator {
 draft: Stat: void, Req: draft
 seek:  Stat: seek, Req: N/A
 term:  Stat: term, Req: N/A
@@ -47,15 +47,15 @@ none -[$peer]-> relay: $trans($peer,Receive Act:query,Route found for destinatio
 relay -[$db]-> pend: $trans($db,Detect relay,'', Forward lift Act: query)
 
 none -[$peer]-> local: $trans($peer,Receive Act:query,Destination found locally, 'Store lift Req: dest')
-local -[$db]-> pend: $trans($db,Detect relay,'', Reply to proposer Act: terminus)
+local -[$db]-> pend: $trans($db,Detect relay,'', Reply to originator Act: terminus)
 
 trying -[$peer]-> good: $trans($peer,'Receive signature\nvia consensus')
-pend -[$db]-> checkProp: $trans($db,Local timeout,'', Query Proposer)
+pend -[$db]-> checkProp: $trans($db,Local timeout,'', Query Originator)
 checkProp -[$db]-> checkRef: $trans($db,Local timeout,'', Query Referee)
 checkRef -[$db]-> pend: $trans($db,Local timeout,'', Keep trying forever)
 
-trying -[$peer]-> good: $trans($peer,'Receive signature from\nProposer or Referee','', 'Commit lift chits; Consense')
-trying -[$peer]-> void: $trans($peer,'Receive cancel from\nProposer or Referee','', 'Void lift record/chits')
-trying -[$peer]-> pend: $trans($peer,'Receive intime from\nProposer or Referee','', 'Void lift record/chits')
+trying -[$peer]-> good: $trans($peer,'Receive signature from\nOriginator or Referee','', 'Commit lift chits; Consense')
+trying -[$peer]-> void: $trans($peer,'Receive cancel from\nOriginator or Referee','', 'Void lift record/chits')
+trying -[$peer]-> pend: $trans($peer,'Receive intime from\nOriginator or Referee','', 'Void lift record/chits')
 
 @enduml

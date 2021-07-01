@@ -1,0 +1,25 @@
+@startuml
+!include common.puml
+
+$title(Tally/Chit Consensus Foil States)
+'cons: Fully Consensed
+error: Can't Consense
+
+state foil {
+  cons: Fully Consensed
+  newChit:
+}
+[*] --> cons
+
+'State transition rules:
+cons -[$user]-> newChit: $trans($user, User creates new\nvalid direct chit(s),'')
+cons -[$db]-> newChit: $trans($db, Site creates new\nvalid lift chit(s),'')
+
+newChit -[$db]-> cons: $trans($db,Detected new valid chit(s),'', 'Add to chain\nGenerate endHash\nSend to Stock Act:new')
+
+foil -[$peer]-> foil: $trans($peer,Receive request for update Act:new,'', 'Send all chits since ackHash\nand also new endHash')
+foil -[$peer]-> error: $trans($peer,Receive error report Act:error,'', 'Notify my local user of error')
+
+cons -[$peer]-> cons: $trans($peer,Foil receives new chit Act:new,'Agree with proposed endHash', 'Add to chain\nackHash = newHash\nAcknowledge Stock Act:ack')
+
+@enduml

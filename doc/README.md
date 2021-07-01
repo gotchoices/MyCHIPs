@@ -43,18 +43,27 @@ Also some older, possibly outdated information here:
 The figures included as .odg files can be opened in LibreOffice or a compatible 
 program and are referenced at times from the documentation files.
 
-The file [chipglass.svg](chipglass.svg) is an attempt at a logo for MyCHIPs 
+This file [chipglass.svg](chipglass.svg):
+<p align="center"><img src="chipglass.svg" width="300" title="Early prototype logo"></p>
+is an early attempt at a logo for MyCHIPs 
 that indicates its origin in the notion that 
 [time is money](http://gotchoices.org/mychips/whychips.html).
 
-The file [chip.svg](chip.svg) is a suggested
+The file [[chip.svg](chip.svg)](chip.svg):
+<p align="center"><img src="chip.svg" width="300" title="Typographical figure"></p>
+is a first take at a typographical
 “chip sign” analogous to the “dollar sign” to indicate units of CHIPs. 
 It can easily be hand written by making a “figure 8” with two vertical lines through.
 Alternately, one can write a “backwards 3” (or curly “E”) followed by a closely 
 placed “3” (to approximate an hourglass) and then add the two vertical lines.
 
+The file [[MyCHIPs-logo.ai](MyCHIPs-logo.ai)](MyCHIPs-logo.ai):
+<p align="center"><img src="MyCHIPs-logo.svg" width="800" title="Stylized logo and typographical figure"></p>
+contains a more stylized logo and monochrome typographical figure.
+
 The intent of this is to make a standard international symbol for a more
-objective measure of value based on the essence of human time, and independent 
+[objective measure](http://gotchoices.org/mychips/definition.html)
+of value based on the essence of human time, and independent 
 of the economic forces (such as supply and demand) that tend to change the 
 price of human work in various economies.  Admittedly, the MyCHIPs definition 
 of value is still not entirely objective.  However, it is much more objective 

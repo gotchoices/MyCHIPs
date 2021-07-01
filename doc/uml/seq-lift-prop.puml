@@ -3,7 +3,7 @@
 $title(Lift Proposal)
 actor "User" as user
 control "Lift Agent" as agent
-database "Proposer DB" as propDB
+database "Originator DB" as propDB
 database "Upstream DB" as upDB
 database "Next Upstream Node" as next
 

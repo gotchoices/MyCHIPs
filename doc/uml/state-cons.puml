@@ -1,54 +1,30 @@
 @startuml
 !include common.puml
 
-$title(Tally/Chit Consensus States (UNDER CONSTRUCTION))
+$title(Tally/Chit Consensus Stock States)
 [*] --> cons
-'States are determined by:
-'state "Lift Unknown" as none
-'draft: Stat: void, Req: draft
-'seek:  Stat: seek, Req: N/A
-'term:  Stat: term, Req: N/A
 cons: Fully Consensed
+error: Can't Consense
+pend: Pending Acknowledge
+request: Requested Update
 
-state stock {
-  stockValid: 
-  stockPend:
-  stockAccept:
-  stockRequest:
-}
-state foil {
-  foilValid:
-  foilPend:
-  foilAccept:
-  foilUpdate:
-}
+'state stock {
+'  stockPend:
+'  stockRequest:
+'}
 
 'State transition rules:
 cons -[$user]-> newChit: $trans($user, User creates new\nvalid direct chit(s),'')
 cons -[$db]-> newChit: $trans($db, Site creates new\nvalid lift chit(s),'')
 
-newChit -[$db]-> foilValid: $trans($db,Detected new valid chit(s),'I am Foil', 'Add to chain\nGenerate endHash\nSend to Stock peer Act:new')
-newChit -[$db]-> stockValid: $trans($db,Detected new valid chit(s),'I am Stock', 'Add to chain provisionally\nGenerate proposed endHash\nSend to Foil peer Act:prop')
+newChit -[$db]-> pend: $trans($db,Detected new valid chit(s),'', 'Add to chain provisionally\nGenerate proposed endHash: propHash\nSend to Foil peer Act:prop')
 
-cons -[$peer]-> stockAccept: $trans($peer,Receive new chit Act:new,'Can reconcile endHash', 'Conform to chain\nackHash = newHash')
-cons -[$peer]-> stockRequest: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash', 'Reply Act:request')
+cons -[$peer]-> cons: $trans($peer,Receive new chit Act:new,'Can reconcile endHash', 'Conform to chain\nackHash = newHash')
+cons -[$peer]-> request: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash', 'Reply Act:request')
 
-cons -[$peer]-> foilAccept: $trans($peer,Receive new chit Act:new,'Agree with proposed endHash', 'Add to chain\nackHash = newHash')
-cons -[$peer]-> foilRequest: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash', 'Reply Act:update')
+request -[$peer]-> cons: $trans($peer,Receive chits since ackHash Act:update,'Chain now reconciles with endHash', 'ackHash = endHash')
+request -[$peer]-> error: $trans($peer,Receive chits since ackHash Act:update,'Cannot reconcile with endHash', 'Send error report to peer and user')
 
-
-'validFoil -[$peer]-> pendFoil: $trans($peer,Receive new chit Act:new,'Agree with new endHash', 'Add to local chain\nackHash = newHash\nReply Act:ack')
-'validStock -[$peer]-> pendStock: $trans($peer,Receive new chit Act:new,'Agree with new endHash', 'Add to local chain\nackHash = newHash\nReply Act:ack')
-
-'xxxx
-
-'cons -[$db]-> prop: $trans($db,Detected new valid chit(s),'I am Stock', 'Generate proposed hash\nSend propHash to Foil peer Act:prop')
-'prop -[$peer]-> xyz: $trans($peer,Receive new chit Act:new,'Agree with new endHash', 'Add to local chain\nackHash = newHash\nReply Act:ack')
-'
-'none -[$peer]-> timeout: $trans($peer,Receive request Req:call/query,'Time expired', 'Store:timeout\nReply Act:timeout')
-'timeout -[$peer]-> timeout: $trans($peer,Receive request Req:N/A,'Already ruled expired', 'Reply Act:timeout')
-'
-'good -[$peer]-> good: $trans($peer,Receive peer Req:query,'Already signed', 'Reply Act:signed')
-'none -[$peer]-> none: $trans($peer,Receive peer Req:query,'Time not expired', 'Reply Act:pending')
+pend -[$peer]-> cons: $trans($peer,Receive ack from Foil Act:ack,'Agree with proposed endHash', 'Ratchet: ackHash = propHash')
 
 @enduml
