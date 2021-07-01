@@ -6,14 +6,18 @@ $title(Lift States)
 state "No Lift" as none
 
 'States are determined by a combination of values, as defined here:
-draft: Stat: void, Req: draft
 'init:  Stat: void, Req: init		'First implementation uses this.  Will try to avoid extra state in next version
+state proposer {
+draft: Stat: void, Req: draft
 seek:  Stat: seek, Req: N/A
 term:  Stat: term, Req: N/A
 call:  Stat: call, Req: N/A
+timeCheck:  Stat: seek, Req: N/A, Time
+}
+
 good:  Stat: good, Req: N/A
 
-state signable {
+state trying {
   pend:  Stat: pend, Req: N/A
   checkProp:  Stat: pend, Req: N/A, Time
   checkRef:  Stat: pend, Req: N/A, Time
@@ -21,10 +25,10 @@ state signable {
 void:  Stat: void, Req: N/A
 local:  Stat: void, Req: local
 relay:  Stat: void, Req: relay
-timeCheck:  Stat: seek, Req: N/A, Time
 
 'State transition rules:
-none -[$user]-> draft: $trans($user,User initiates lift Req:draft,'')
+none -[$user]-> draft: $trans($user,User initiates linear lift Req:draft,'')
+none -[$db]-> draft: $trans($db,Automaton initiates circular lift Req:draft,'')
 'draft -[$db]-> init: $trans($db,draft detected,'',Forward Upstream Act:query)
 draft -[$db]-> seek: $trans($db,draft detected,'',Send Upstream Act:query)
 
@@ -45,13 +49,13 @@ relay -[$db]-> pend: $trans($db,Detect relay,'', Forward lift Act: query)
 none -[$peer]-> local: $trans($peer,Receive Act:query,Destination found locally, 'Store lift Req: dest')
 local -[$db]-> pend: $trans($db,Detect relay,'', Reply to proposer Act: terminus)
 
-signable -[$peer]-> good: $trans($peer,'Receive signature\nvia consensus')
+trying -[$peer]-> good: $trans($peer,'Receive signature\nvia consensus')
 pend -[$db]-> checkProp: $trans($db,Local timeout,'', Query Proposer)
 checkProp -[$db]-> checkRef: $trans($db,Local timeout,'', Query Referee)
 checkRef -[$db]-> pend: $trans($db,Local timeout,'', Keep trying forever)
 
-signable -[$peer]-> good: $trans($peer,'Receive signature from\nProposer or Referee','', 'Commit lift chits; Consense')
-signable -[$peer]-> void: $trans($peer,'Receive cancel from\nProposer or Referee','', 'Void lift record/chits')
-signable -[$peer]-> pend: $trans($peer,'Receive intime from\nProposer or Referee','', 'Void lift record/chits')
+trying -[$peer]-> good: $trans($peer,'Receive signature from\nProposer or Referee','', 'Commit lift chits; Consense')
+trying -[$peer]-> void: $trans($peer,'Receive cancel from\nProposer or Referee','', 'Void lift record/chits')
+trying -[$peer]-> pend: $trans($peer,'Receive intime from\nProposer or Referee','', 'Void lift record/chits')
 
 @enduml
