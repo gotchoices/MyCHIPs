@@ -25,8 +25,8 @@ else Proposer still wants to proceed with lift
     note over propDB
       Lift is now irrevocably good and binding.
       The signature is a liability to any node
-      who doesn't deploy it if their upstream 
-      neighbor manages to deploy it.
+      who doesn't deploy it (because their 
+      upstream neighbor probably will).
     end note
     
     propDB	->>	termDB:		Commit; here's the signature

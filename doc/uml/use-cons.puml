@@ -1,0 +1,17 @@
+@startuml
+!include common.puml
+$title(Chit Consensus)
+left to right direction
+
+database "Stock Holder DB" as stock
+database "Foil Holder DB" as foil
+
+usecase "Foil adds valid chit\nSend checkpoint" as foilAdd
+usecase "Stock adds valid chit\nRequest checkpoint" as stockAdd
+
+stock	--	foilAdd
+		foilAdd		--	foil
+stock	--	stockAdd
+		stockAdd	--	foil
+
+@enduml

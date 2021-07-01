@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="560px" preserveAspectRatio="none" style="width:1027px;height:560px;" version="1.1" viewBox="0 0 1027 560" width="1027px" zoomAndPan="magnify"><defs><filter height="300%" id="f1y2hx1rrr9osr" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="463" x="275.5" y="17.4023">Tally/Chit Consensus States (UNDER CONSTRUCTION)</text><!--MD5=[86242a0c07b418c298bc63a1b4a81b9f]
+cluster stock--><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="96" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="449" x="7" y="435.1992"/><rect fill="#FFFFFF" height="69" rx="12.5" ry="12.5" style="stroke:#FFFFFF;stroke-width:1.0;" width="443" x="10" y="459.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="7" x2="456" y1="456.1992" y2="456.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="218" y="447.6694">stock</text><!--MD5=[218b8c526e6091513b41961237313d9b]
+cluster foil--><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="96" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="387" x="480" y="435.1992"/><rect fill="#FFFFFF" height="69" rx="12.5" ry="12.5" style="stroke:#FFFFFF;stroke-width:1.0;" width="381" x="483" y="459.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="480" x2="867" y1="456.1992" y2="456.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="13" x="667" y="447.6694">foil</text><g id="stock.stockValid"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="70" x="370" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="370" x2="440" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="380" y="478.6694">stockValid</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="379" y="502.8008"/></g><g id="stock.stockPend"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="72" x="263" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="263" x2="335" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="52" x="273" y="478.6694">stockPend</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="272" y="502.8008"/></g><g id="stock.stockAccept"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="81" x="23.5" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="23.5" x2="104.5" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="61" x="33.5" y="478.6694">stockAccept</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="32.5" y="502.8008"/></g><g id="stock.stockRequest"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="88" x="140" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="140" x2="228" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="68" x="150" y="478.6694">stockRequest</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="149" y="502.8008"/></g><g id="foil.foilValid"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="56" x="599" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="599" x2="655" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="36" x="609" y="478.6694">foilValid</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="608" y="502.8008"/></g><g id="foil.foilPend"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="58" x="690" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="690" x2="748" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="38" x="700" y="478.6694">foilPend</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="699" y="502.8008"/></g><g id="foil.foilAccept"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="67" x="783.5" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="783.5" x2="850.5" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="47" x="793.5" y="478.6694">foilAccept</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="792.5" y="502.8008"/></g><g id="foil.foilUpdate"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="68" x="496" y="465.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="496" x2="564" y1="486.1992" y2="486.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="48" x="506" y="478.6694">foilUpdate</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="0" x="505" y="502.8008"/></g><ellipse cx="530" cy="37.1992" fill="#44AAFF" filter="url(#f1y2hx1rrr9osr)" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><g id="cons"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="112" x="474" y="108.1992"/><line style="stroke:#202024;stroke-width:1.5;" x1="474" x2="586" y1="129.1992" y2="129.1992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="518" y="121.6694">cons</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="92" x="479" y="145.8008">Fully Consensed</text></g><g id="newChit"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="59" x="518.5" y="267.6992"/><line style="stroke:#202024;stroke-width:1.5;" x1="518.5" x2="577.5" y1="288.6992" y2="288.6992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="39" x="528.5" y="281.1694">newChit</text></g><g id="foilRequest"><rect fill="#E8E8EA" filter="url(#f1y2hx1rrr9osr)" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:1.5;" width="74" x="939" y="267.6992"/><line style="stroke:#202024;stroke-width:1.5;" x1="939" x2="1013" y1="288.6992" y2="288.6992"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="54" x="949" y="281.1694">foilRequest</text></g><!--MD5=[1aabe860b3035abf686adf8cb8d84d0c]
+link *start to cons--><path d="M530,47.2092 C530,59.8992 530,83.6092 530,102.7692 " fill="none" id="*start-to-cons" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="530,108.0392,534,99.0392,530,103.0392,526,99.0392,530,108.0392" style="stroke:#000000;stroke-width:1.0;"/><!--MD5=[d1a0a8b1bec6df8b6ba950f7e1727771]
+link cons to newChit--><path d="M488.29,158.3992 C478.14,166.4792 468.61,176.4792 463,188.1992 C454.18,206.6392 453.41,216.1392 463,234.1992 C473.7,254.3592 494.99,268.7492 513.58,278.0892 " fill="none" id="cons-to-newChit" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="518.24,280.3492,511.892,272.8191,513.7425,278.1647,508.3968,280.0151,518.24,280.3492" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="494" y="203.1694">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="464" y="214.1694">User creates new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="86" x="464.5" y="225.1694">valid direct chit(s)</text><!--MD5=[d1a0a8b1bec6df8b6ba950f7e1727771]
+link cons to newChit--><path d="M544.48,158.3492 C549.12,167.3892 553.66,177.9492 556,188.1992 C561.62,212.8192 558.69,241.4992 554.89,262.4092 " fill="none" id="cons-to-newChit-1" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="553.91,267.5592,559.5115,259.4584,554.8383,262.6462,551.6506,257.973,553.91,267.5592" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="572.5" y="203.1694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="81" x="560" y="214.1694">Site creates new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="69" x="566" y="225.1694">valid lift chit(s)</text><!--MD5=[a93d27a81f9c74092562bb6ea651eee6]
+link newChit to foilValid--><path d="M553.52,317.8892 C559.8,343.6192 571.14,385.1992 586,419.1992 C592.18,433.3392 600.58,448.1892 608.16,460.5592 " fill="none" id="newChit-to-foilValid" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="610.92,464.9992,609.5715,455.2431,608.2828,460.7512,602.7747,459.4626,610.92,464.9992" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="626.5" y="360.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="126" x="591.5" y="371.6694">Detected new valid chit(s)</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="47" x="631" y="382.6694">[I am Foil]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="623" y="393.6694">/Add to chain</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="93" x="608" y="404.6694">Generate endHash</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="135" x="587" y="415.6694">Send to Stock peer Act:new</text><!--MD5=[cc11f36f79cba05ab94dc4caee23c858]
+link newChit to stockValid--><path d="M518.24,301.9992 C481.65,312.8592 422.83,332.6892 410,351.1992 C387.86,383.1392 391.76,429.9692 397.59,460.0192 " fill="none" id="newChit-to-stockValid" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="398.62,465.0592,400.7341,455.4399,397.6174,460.1608,392.8966,457.0441,398.62,465.0592" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="454" y="360.6694">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="126" x="419" y="371.6694">Detected new valid chit(s)</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="58" x="453" y="382.6694">[I am Stock]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="126" x="419" y="393.6694">/Add to chain provisionally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="142" x="411" y="404.6694">Generate proposed endHash</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="126" x="419" y="415.6694">Send to Foil peer Act:prop</text><!--MD5=[1ef453bac7689b7e68b262bf3a15f63f]
+link cons to stockAccept--><path d="M473.96,142.0392 C398.71,155.1792 264.61,188.1192 179,264.1992 C118.09,318.3192 85.03,412.3492 71.47,459.8792 " fill="none" id="cons-to-stockAccept" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="70.07,464.8892,76.3619,457.3121,71.4266,460.0768,68.662,455.1415,70.07,464.8892" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="229.5" y="273.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="125" x="180" y="284.6694">Receive new chit Act:new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="120" x="182.5" y="295.6694">[Can reconcile endHash]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="86" x="199.5" y="306.6694">/Conform to chain</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="102" x="191.5" y="317.6694">ackHash = newHash</text><!--MD5=[14878d7b6bf0e3845d29c7b25bd08788]
+link cons to stockRequest--><path d="M490.78,158.2892 C476.94,167.2392 461.48,177.7592 448,188.1992 C340.61,271.3592 243.34,402.9392 203.32,460.5692 " fill="none" id="cons-to-stockRequest" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="200.31,464.9192,208.717,459.7887,203.1523,460.8057,202.1354,455.241,200.31,464.9192" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="418.5" y="279.1694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="125" x="369" y="290.1694">Receive new chit Act:new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="135" x="364" y="301.1694">[Cannot reconcile endHash]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="386.5" y="312.1694">/Reply Act:request</text><!--MD5=[ccc495668b86469b2f2adf8b8c64f6c3]
+link cons to foilAccept--><path d="M586.04,150.8492 C607.87,159.3892 631.92,171.5792 650,188.1992 C736.21,267.4792 788.3,401.7892 807.98,460.3992 " fill="none" id="cons-to-foilAccept" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="809.57,465.1692,810.5364,455.3679,807.9974,460.423,802.9424,457.884,809.57,465.1692" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="812.5" y="273.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="125" x="763" y="284.6694">Receive new chit Act:new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="153" x="749" y="295.6694">[Agree with proposed endHash]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="794" y="306.6694">/Add to chain</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="102" x="774.5" y="317.6694">ackHash = newHash</text><!--MD5=[d2254ee6a58430e8ef234d4c6bfaef6f]
+link cons to foilRequest--><path d="M586.13,142.3292 C636.55,150.6192 712.11,165.5092 775,188.1992 C832.48,208.9392 894.38,242.7192 934.07,266.0192 " fill="none" id="cons-to-foilRequest" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="938.79,268.8092,933.0793,260.785,934.4862,266.2641,929.0071,267.6711,938.79,268.8092" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="931.5" y="197.6694">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="125" x="882" y="208.6694">Receive new chit Act:new</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="135" x="877" y="219.6694">[Cannot reconcile endHash]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="86" x="901.5" y="230.6694">/Reply Act:update</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="145" x="434.5" y="551.8672">Thu Jul 01 13:43:33 MDT 2021</text><!--MD5=[71b65b7d792a9134393f3628269dea0a]
+@startuml
+!include common.puml
+
+$title(Tally/Chit Consensus States (UNDER CONSTRUCTION))
+[*] - -> cons
+'States are determined by:
+'state "Lift Unknown" as none
+'draft: Stat: void, Req: draft
+'seek:  Stat: seek, Req: N/A
+'term:  Stat: term, Req: N/A
+cons: Fully Consensed
+
+state stock {
+  stockValid: 
+  stockPend:
+  stockAccept:
+  stockRequest:
+}
+state foil {
+  foilValid:
+  foilPend:
+  foilAccept:
+  foilUpdate:
+}
+
+'State transition rules:
+cons -[$user]-> newChit: $trans($user, User creates new\nvalid direct chit(s),'')
+cons -[$db]-> newChit: $trans($db, Site creates new\nvalid lift chit(s),'')
+
+newChit -[$db]-> foilValid: $trans($db,Detected new valid chit(s),'I am Foil', 'Add to chain\nGenerate endHash\nSend to Stock peer Act:new')
+newChit -[$db]-> stockValid: $trans($db,Detected new valid chit(s),'I am Stock', 'Add to chain provisionally\nGenerate proposed endHash\nSend to Foil peer Act:prop')
+
+cons -[$peer]-> stockAccept: $trans($peer,Receive new chit Act:new,'Can reconcile endHash', 'Conform to chain\nackHash = newHash')
+cons -[$peer]-> stockRequest: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash', 'Reply Act:request')
+
+cons -[$peer]-> foilAccept: $trans($peer,Receive new chit Act:new,'Agree with proposed endHash', 'Add to chain\nackHash = newHash')
+cons -[$peer]-> foilRequest: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash', 'Reply Act:update')
+
+
+'validFoil -[$peer]-> pendFoil: $trans($peer,Receive new chit Act:new,'Agree with new endHash', 'Add to local chain\nackHash = newHash\nReply Act:ack')
+'validStock -[$peer]-> pendStock: $trans($peer,Receive new chit Act:new,'Agree with new endHash', 'Add to local chain\nackHash = newHash\nReply Act:ack')
+
+'xxxx
+
+'cons -[$db]-> prop: $trans($db,Detected new valid chit(s),'I am Stock', 'Generate proposed hash\nSend propHash to Foil peer Act:prop')
+'prop -[$peer]-> xyz: $trans($peer,Receive new chit Act:new,'Agree with new endHash', 'Add to local chain\nackHash = newHash\nReply Act:ack')
+'
+'none -[$peer]-> timeout: $trans($peer,Receive request Req:call/query,'Time expired', 'Store:timeout\nReply Act:timeout')
+'timeout -[$peer]-> timeout: $trans($peer,Receive request Req:N/A,'Already ruled expired', 'Reply Act:timeout')
+'
+'good -[$peer]-> good: $trans($peer,Receive peer Req:query,'Already signed', 'Reply Act:signed')
+'none -[$peer]-> none: $trans($peer,Receive peer Req:query,'Time not expired', 'Reply Act:pending')
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+
+  title Tally/Chit Consensus States (UNDER CONSTRUCTION)
+  footer Thu Jul 01 13:43:33 MDT 2021
+[*] - -> cons
+cons: Fully Consensed
+
+state stock {
+  stockValid: 
+  stockPend:
+  stockAccept:
+  stockRequest:
+}
+state foil {
+  foilValid:
+  foilPend:
+  foilAccept:
+  foilUpdate:
+}
+
+cons -[#green]-> newChit: <font color=green>User:\nUser creates new\nvalid direct chit(s)
+cons -[#red]-> newChit: <font color=red>DB Trigger:\nSite creates new\nvalid lift chit(s)
+
+newChit -[#red]-> foilValid: <font color=red>DB Trigger:\nDetected new valid chit(s)\n[I am Foil]\n/Add to chain\nGenerate endHash\nSend to Stock peer Act:new
+newChit -[#red]-> stockValid: <font color=red>DB Trigger:\nDetected new valid chit(s)\n[I am Stock]\n/Add to chain provisionally\nGenerate proposed endHash\nSend to Foil peer Act:prop
+
+cons -[#blue]-> stockAccept: <font color=blue>Peer:\nReceive new chit Act:new\n[Can reconcile endHash]\n/Conform to chain\nackHash = newHash
+cons -[#blue]-> stockRequest: <font color=blue>Peer:\nReceive new chit Act:new\n[Cannot reconcile endHash]\n/Reply Act:request
+
+cons -[#blue]-> foilAccept: <font color=blue>Peer:\nReceive new chit Act:new\n[Agree with proposed endHash]\n/Add to chain\nackHash = newHash
+cons -[#blue]-> foilRequest: <font color=blue>Peer:\nReceive new chit Act:new\n[Cannot reconcile endHash]\n/Reply Act:update
+
+
+
+
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 03:25:05 MST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

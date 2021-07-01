@@ -1,0 +1,42 @@
+@startuml
+!include common.puml
+$title(Chit Consensus Protocol)
+actor "Stock Holder" as vendor
+database "Stock DB" as stock
+database "Foil DB" as foil
+actor "Foil Holder" as client
+
+alt Stock originates/validates chit
+  stock		->>	stock:		Apply validating signature to chit
+  stock		->>	foil:		Transmit new valid Chit\nwith validating signature\nProposed endHash: propHash
+
+  alt Foil agrees with stock's proposed endhash
+    foil		->>	foil:		Ratchet forward\nackHash = propHash
+    foil		->>	stock:		Acknowledge propHash
+    stock		->>	stock:		Ratchet forward\nackHash = propHash
+    note over stock: DONE
+  end
+
+else Foil originates/validates chit
+  foil		->>	foil:		Apply validating signature to chit
+  foil		->>	stock:		Transmit new valid Chit\nwith validating signature\nAnd new endHash
+
+  alt Stock agrees with new endHash
+    stock		->>	stock:		Ratchet forward\nackHash = endHash
+    note over stock: DONE
+  end
+  
+  stock		->>	foil:		Please send chits since ackHash
+end
+
+foil		->>	stock:		Send chits since last ackHash\nand new endHash
+    
+alt All stock's chits under endHash are valid
+  stock		->>	stock:		Apply chits\nRatchet forward\nackHash = endHash
+else
+  stock		->>	vendor:		Report error to user
+  stock		->>	foil:		Report error
+  foil		->>	client:		Report error to user
+end
+
+@enduml

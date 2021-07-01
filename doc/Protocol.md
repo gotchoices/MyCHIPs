@@ -2,8 +2,9 @@
 March 2021
 
 ### TODO
+- Finish consensus state diagram
+- Show message class/object diagrams for each protocol
 - Expand state machines to handle retries
-- Refine/document chit consensus protocol
 - 
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
@@ -153,7 +154,7 @@ This involves the generation of an *invoice,* or request for payment:
 This diagram also covers the fourth use case, Pay Direct Invoice.
 This is what the Payor does once he receives the proposed chit (see the alt conditional block in the previous diagram).
 
-Note that the consensus algorithm has nothing to do with the validity of a chit.
+Note that the [consensus algorithm](#consensus-protocol) has nothing to do with the validity of a chit.
 If a chit is signed by the party pledging value (debtor), it is a valid chit.
 However, the parties do eventually need to agree about the *order* in which chits are entered into the tally.
 
@@ -172,14 +173,14 @@ But the software needs to facilitate the process by issuing/scanning QR codes co
 For example: “Hey, how much do I owe you for that gopher-bomb?“
 “Well, here's a QR code that will take you to an https endpoint that yields a JSON object containing just the information you are asking for!”
 
-The returned JSON would contain:
+The returned object would contain:
 - The address of the entity who will receive the payment (smoke-em-out@chippies.net),
 - The amount payable,
 - An optional listing and descriptions of items contributing to the total,
 - Optional hints about where to find this entity on the network.
 
-This sequence will be dealt with in more detail in the section below on [lifts](#linear-lift-payments).
-It can be generalized to the simpler case where an invoice is requested from a direct partner.
+This sequence will be dealt with in more detail in the section below on [lifts](#lift-protocol).
+It can be generalized to the simpler case above where an invoice is requested from a direct partner.
 
 Now we can derive the following state diagram to describe the direct chit protocol from the perspective of a single entity:
 
@@ -217,7 +218,7 @@ In order to perform these lifts, nodes must have some idea of where to send cred
 If there was a single, giant database of all the tallies in the world, this would not be such a difficult task.
 A central-planning algorithm could simply determine the most efficient lift pathway and create the required chits on all the applicable tallies in a single, consistent, atomic transaction.
 
-But MyCHIPs is purposely designed as a distributed, de-centralized system.
+But MyCHIPs is purposely designed as a <a href="https://blockchainengineer.com/centralized-vs-decentralized-vs-distributed-network/">fully distributed</a> system.
 The intent is, no single database will contain knowledge of the whole network.
 Ideally, databases will only contain information about the *local* entities they host and other *foreign* entities their local users are directly connected to by tallies.
 Even then, information about foreign entities will be kept as limited as possible.
@@ -270,7 +271,7 @@ A lift segment is defined as:
 - A foreign entity at the bottom of the chain.
 
 The *lift capacity* along a segment is computed by comparing the ability/desire of each entity in the chain to perform a lift.
-Individual entities define [trading variables](Lifts.md#trading_variables) that control how many credits they would like to maintain on any given tally.
+Individual entities define [trading variables](Tallies.md#trading-variables) that control how many credits they would like to maintain on any given tally.
 
 <p align="center"><img src="Lifts-5.jpg" width="400" title="Computing lift capacity"></p>
 
@@ -346,7 +347,7 @@ This use diagram shows five possible phases of the resulting lift:
 ![use-lift](uml/use-lift.svg)
 
 Here is the simplified example lift circuit again for reference.
-Remember, each node could represent a single user or a whole segment of users local to a single site.
+Remember, each node could represent a single user or a segment of users local to a particular site.
 We will consider node A as the lift proposer.
 Node B will be considered the destination of the lift.
 
@@ -356,36 +357,36 @@ For a linear lift, just imagine the tally between A and B does not (or need not)
 
 #### Proposal
 
-Proposals will travel counter-clockwise, against the normal flow of value (the arrows).
+Proposals will travel counter-clockwise, <b>against</b> the normal flow of value (the arrows).
 Node A will propose the lift to node D because:
-  - Node A contains a route record indicating that an external pathway exists leading from node D, upstream to node B; and
+  - Node A contains a route record indicating that an external pathway exists (or has existed) leading from node D, upstream and eventually to node B; and
     - it has capacity for a circular lift through an internal segment with D at the top and B at the bottom; or
     - it needs to transmit value from A to B (linear lift).
 
   The lift proposal is a conditional contract of the form:
-  "If I were to send a specified value to you on this tally, would you agree to send that same value along through another node you are connected to, with value eventually reaching my intended destination?"
-  - The proposal also contains a time, indicating how long the lift proposal will stay alive, before it will time out and will be considered "expired" (and therefore void).
+  "If I send a specified value to you on this tally, you agree to send that same value along through another node you are connected to, with that value eventually reaching my intended destination."
+  - The proposal contains a time, indicating how long the lift proposal will stay alive, before it will time out and will be considered "expired" (and therefore void).
   - It also contains the identity of a proposed referee whose job it is to declare when the lift time has expired (or certify its successful completion).
     The referee is typically a well known, reliable site that is reachable by any node on the network.
     Its identity consists of its
     - network address (domain name or IP number), and
     - (optional) network port
-  - It is each site's responsibility to decide what referees are worthy of trust, and to collect a public key for each referee it chooses to accept.
-  - If node D wants to participate in the lift, on its proposed terms, it indicates this by forwarding the proposal along to node C where the process repeats itself.
-  - This makes the lift binding upon D, subject only to receipt of an authorizing signature, generated within the specified timeout, as judged by the named referee.
-  - If/when C receives the validating signature, D's obligation to C becomes valid and provable, regardless of whether D cooperates and accepts the signature.
+  - It is each site's responsibility to decide for itself what referees are worthy of trust, and to collect a public key (out of band) for each referee it chooses to rely on.
+  - If node D wants to participate in the lift, on the proposed terms, it indicates this by forwarding the proposal along to node C where the process repeats itself.
+  - This action makes the lift binding upon D, subject only to receipt of an authorizing signature, generated within the specified timeout, as judged by the named referee.
+  - If/when C receives the validating signature (by any means), D's obligation to C becomes valid and provable, regardless of whether D cooperates further in the transaction.
     So every node has a natural incentive to cooperate in the second phase of the lift.
     If they don't, they will lose value to their upstream connection without recapturing it from downstream.
 
 ![seq-lift-prop](uml/seq-lift-prop.svg)
 
 #### Confirmation, Ratification, Commit
-  As long as a suitable route exists, the lift proposal will eventually reach its intended destination, or terminus node.
+  As long as a suitable route exists, the lift proposal will eventually reach its intended destination, or <i>terminus node</i>.
   The terminus node will communicate a confirmation directly to the originator to indicate that the lift has successfully propagated through its intended circuit (or linear path) and is ready to commit.
   The lift header contains a network address and port where the proposer can be reached for this purpose.
 
   Once the proposer has obtained the confirmation, it can decide whether it wants to proceed to commit the lift.
-  But it can only do so if the time, originally set forth in the lift proposal, has not yet expired (in the judgement of the referee).
+  But it can only do so if the time, originally set forth in the lift proposal, has not yet expired (in the sole judgement of the referee).
   So the proposer sends a message to the referee requesting permission to commit.
 
   Assuming permission/authorization is given by the referee, the requester now possesses a digital signature of the referee indicating that the lift is good and valid.
@@ -396,7 +397,7 @@ Node A will propose the lift to node D because:
 ![seq-lift-conf](uml/seq-lift-conf.svg)
 
 #### Referee Queries
-  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more valued ones in their place.
+  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more wanted ones in their place.
   But if part of the network had a problem part-way through the lift, some nodes might be left in an indeterminate state.
   They are committed to the lift, but they don't have the required signature to complete so they really don't know for sure if the lift should go through or not.
 
@@ -408,18 +409,24 @@ Node A will propose the lift to node D because:
 
 ![seq-lift-ref](uml/seq-lift-ref.svg)
 
-As long as connectivity can be maintained with either the proposer or the referee, each node should be able to complete the lift.
-If neither of these can be reached, the lift commit can block indefinitely.
+As a further optimization, it will provide a greater of load distribution if nodes suspecting a timeout will first try reaching out to the lift originator to validate a lift.
+The originator shall respond similarly to any query with one of the following answers:
+- The lift is good; here's the referee's signature;
+- The lift has timed out, here's a signed timeout message from the referee;
+- I don't yet have an answer for this lift
+
+As long as connectivity can be maintained with their upstream neighbor, the proposer, or the referee, each node should be able to successfully complete the lift.
+If none of these can be reached, the lift commit will block indefinitely until connectivity can be restored.
 
 It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol suffers from potential safety and/or liveness issues.
 So it is important that sites maintain a list of trustworthy referees and their public keys.
-To support this function, a site willing to serve as referee should also support the following auxiliary protocol:
+To support this function, a site willing to serve as referee must also support the following auxiliary protocol:
 
 ![seq-ref-aux](uml/seq-ref-aux.svg)
 
 In general practice, it is expected that each host site will execute a tally with referee sites they expect to honor.
 Such tallies can contain contractual language expressing the referee's willingness to conduct its function with fidelity and good faith.
-It also supports the possibility of assessing fees in exchange for referee services.
+This also supports the possibility of assessing fees in exchange for referee services where applicable.
 
 The Term of Service describes how long the referee commits to perform lifts.
 This will allow a service provider to discontinue service without breaking trust or losing reputation.
@@ -433,5 +440,45 @@ The referee lift state diagram is as follows:
 
 [![state-ref](uml/state-ref.svg)](uml/state-ref.svg)
 
-### Chit Consensus Protocol
-Under construction
+### Consensus Protocol (UNDER CONSTRUCTION)
+This is a sub-protocol by which peers at two ends of a common tally agree upon which order chits are entered onto their tallies.
+Chit order is not particularly important from a theoretical standpoint.
+But in an actual implementation, it is very helpful.
+
+Each chit contains a hash of its other contents.
+This hash is useful for detecting if anything in the chit has changed (something we don't want to happen).
+
+In addition, each chit contains a copy of the hash for the chit preceeding it on the tally.
+In this way, the hash of the latest chit can be compared with the same point in the chain on the other end of the tally.
+If the hashes are the same, we can rest assured that the stock and foil contain exactly the same chit information, at least up to that point.
+This is much more efficient than trying to compare every chit on the tally individually each time.
+
+Chits can originate from either end of the tally.
+For example, either party can unilaterally sign a chit that sends value to the other party.
+
+![use-cons](uml/use-cons.svg)
+
+In the case of lift chits, validating signatures will normally propagate in the clockwise (downstream) direction.
+That means the foil holder on any given tally will get the signature before the stock holder.
+As they attempt to reach consensus on chit order, the signature will naturally get shared.
+
+This diagram shows the sequence of events for the two basic use cases:
+
+![seq-cons](uml/seq-cons.svg)
+
+The consensus algorithm is pretty simple.
+Essentially, the foil is always right about how to order the chits.
+It is the job of the stock to conform to that order.
+
+Both stock and foil have the duty to recognize, accept and store a duly signed and valid chit.
+
+The goal of the consenus protocol is then to:
+- get all valid chits linked into a hashed list; and
+- verify that the stock and foil both have an identical list of chits;
+
+So consensus is achieved on chits.
+But it is really the tally (its two halves) that are (or are not) fully consensed at any given time.
+
+Now we can derive the following state diagram to describe the tally/chit consensus protocol from the perspective of a single site:
+
+[![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
