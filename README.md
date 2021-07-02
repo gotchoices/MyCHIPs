@@ -4,7 +4,7 @@ MyCHIPs is an open-source network protocol for implementing a novel kind of digi
 The CHIP Symbol: <img src="doc/chip.svg" alt="A CHIP" height="30"/>
 
 This is *not* a Bitcoin/blockchain derivative, but rather a whole new (and yet [very old](https://www.bbc.com/news/business-40189959)) approach that solves several notorious problems with public blockchain systems.
-Most notably, it is more fully decentralized and infinitely scalable.
+Most notably, it is more [fully distributed](https://blockchainengineer.com/centralized-vs-decentralized-vs-distributed-network/) and infinitely scalable.
 
 [![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/mychips/acdc.html "Click to see/run a decentralized private credit model")
 
@@ -42,10 +42,12 @@ Specifically, [Wyseman](http://github.com/gotchoices/wyseman) and
 
 While Wylib is not the solution for an eventual user interface, it has been what I needed for an administrative console during development.
 And it can suffice for a crude user SPA until a dedicated mobile app can be built.
+As of Spring 2021, the BYU Capstone project produced a prototype app authored in Flutter/Dart.
+Unfortunately the websocket interface is not yet finished so it does not yet talk to the MyCHIPs server.
 
-I have kept the source closed for some time while I tried to work out an algorithm for performing a distributed lift (the credit clearing function that makes the system work).
+I originally kept the source closed for some time while I tried to work out an algorithm for performing a distributed lift (the credit clearing function that makes the system work).
 It also took me a while to figure out a contract and licensing structure I felt would make the system robust and resilient to attack.
-I want MyCHIPs to be free for everyone to use, but only if they will use it in honest commerce and trade as it is intended.
+I want MyCHIPs to be free for everyone to use, but only if they will use it in good-faith commerce and trade as it is intended.
 
 ### Current Project Status:
 The _holy grail_ of MyCHIPs has been a network implementation of the lift protocol introduced in an intuitive way
@@ -56,12 +58,14 @@ As of March, 2020, the software is successfully discovering, computing and perfo
 I consider this as a "preliminary proof of concept" and so am ready to release this code subject to the attched [LICENSE](LICENSE).
 It will need a lot more work to become production ready, but maybe this provides enough of a testing platform that others will be more willing to help make that happen.
 
-To kick off the public release, I commissioned a study by [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
+To kick off the public release of the source code, I commissioned a study by [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
 As expected, they uncovered several issues that need improvement before the system can be expected to perform in a fault-tolerant way.
 Their work and results are summarized [here](test/analysis/dsr/phase-1/results.md).
 
 In response to that study, I created an [outline](doc/Safety.md) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
 Now there is work being done at [BYU](www.byu.edu) to both validate the original DSR results, and evaluate proposed solutions.
+Early results would indicate that the [improved protocol](doc/Protocol.md) is now reasonably safe and live.
+
 This represents the current state of the project.
 
 ### Milestones Completed so Far
@@ -86,6 +90,7 @@ This represents the current state of the project.
   - Parametric search tool
   - Support for actions/reports other control-layer functions
   - Support for editing/viewing tally contracts
+  - Prototype Flutter/Dart app
 - Simulations
   - Agent-based modeling simulation process (very basic)
   - Local simulation engine (single host)
@@ -99,7 +104,8 @@ This represents the current state of the project.
   - Can (currently manually) initiate circular and linear lifts through the network
   - Chit transactions are stored in hash-chain list
   - Consensus algorithm between stock and foil
-- Test algorithm (DSR Study)
+- Test original algorithm (DSR Study)
+- Improved algorithm
 
 If you are interested in participating, clone this repo and follow the instructions in the [Developer Instructions](doc/Development.md).
 You should be able to get a simulated network running and visualize credit lifts in the administrator console.

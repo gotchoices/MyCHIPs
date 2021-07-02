@@ -6,24 +6,23 @@ X- Why can't user UI connect to sim spa hosts?
 X- Set user host/port and peer port correctly on simulated hosts
 X- Can view/modify/render .puml diagrams
 X- Edit Tally, Lift documents, include diagrams
-- Make a sequence diagram for each use case
-- Port state diagrams to puml
-- Make chit consensus sequence/state diagrams
-- Make a master protocol document/folder to hold all diagrams
-- Include property descriptions used by spin models
+X- Make a sequence diagram for each use case
+X- Port state diagrams to puml
+X- Make chit consensus sequence/state diagrams
+X- Make a master protocol document/folder to hold all diagrams
 - 
-- Extend Wyseman to receive connections on TCP socket
+X- Extend Wyseman client side to communicate over websockets
+- Extend Wyseman to receive connections on TCP socket?
 - Make command-line user interface?
-- 
 - Integrate DSR patches into simulation folder?
 - 
 
 General roadmap:
 X- Public Proof-of-Concept release
-- Iterate on TLA+ modeling until protocol is sufficiently safe/live
+X- Iterate on TLA+ modeling until protocol is sufficiently safe/live
 - Integrate improved protocol into source code
 - Improve/expand agent model (see below)
-- Write more unit tests
+- Write unit tests to validate protocol state transitions
 - Implement basic contract handling (author, display, print, publish)
 - Make Wylib User SPA GUI useable (or jump to basic mobile app?)
 - Implement digital signatures for tallies, chits, contracts, lifts
