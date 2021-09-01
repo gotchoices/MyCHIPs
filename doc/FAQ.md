@@ -21,27 +21,30 @@ be more elegant or efficient.
 
 ### Can you build this system on top of (Etherium, holochain, other blockchain...)?
 
-Possibly.  Maybe somehow, but why?  Blockchain is a centralized data topology.
-Transactions are designed to go through a common, public store.  MyCHIPs is a 
-distributed data model.  There is no double-spending problem, no proof of Work
-or proof of Stake is required.  Even the need for verifiable public identies 
-has been largely eliminated.
+Possibly.  Maybe somehow, but why?
+
+Blockchain uses a de-centralized database topology.  But in many ways it is
+still quite centralized.  Transactions must all go through a single, common, 
+public store.  In contrast, MyCHIPs uses a fully distributed data model.
+There is no double-spending problem or even a need for a public ledger.
+So there is no need for Proof of Work or Proof of Stake.  Even the need for 
+verifiable public identities has been largely eliminated.
 
 The part of blockchain technology that _is_ applicable is the notion of chained
 hashes.  MyCHIPs does make use of them (chit-chains) but it is implemented 
-inside the database so there is not really a huge benefit in trying to smash 
+inside the database so there is not really a huge benefit in trying to coerce
 the algorithm onto another framework.
 
-The Holochain platform looks closest to possible, from what else I've reviewed
-out there.  But as de-centralized as it is, it still seems designed more for 
-information that needs a public view.  There is an aspect of MyCHIPs that
+Of existing technologies, the Holochain platform looks closest to possible.
+But even as de-centralized as it is, it still seems designed more for 
+information that requires a public view.  There is an aspect of MyCHIPs that
 could benefit from that (as well as digital identies).  For example, if you get
 disappointed by someone in a credit relationship, it could be helpful to 
 publish a critical review so others can avoid the same pitfall.  However, that
 is separate from the primary function of MyCHIPs--to transfer value through a
 web of locally interconnected peers.
 
-For those of you who insist that MyCHIPs be build "on top of something else":
+For those who insist that MyCHIPs be build "on top of something else":
 Sorry, I've tried.  But "from scratch" was the best way I could find to get the
 job done according to the critical principles.  It is difficult to model 
 relativity using Newtonian physics.  Time and space start to break down.  

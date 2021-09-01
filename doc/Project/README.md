@@ -1,7 +1,11 @@
 ## Project Descriptions
 
-This folder contains specifications for various possible projects which might
-be undertaken to support MyCHIPs.
+This folder contains specifications for several projects which would help in
+the development of MyCHIPs.  In order to understand the terminology contained
+herein, the reader is advised to read the 
+[MyCHIPs Papers](http://gotchoices/mychips/intro.html) to be familiar with the
+other sections of the [Documentation Folder](/doc/README.md) of this
+source distribution.
 
 - [Agent Model Simulator](Agent_Model.md)
 - [User Interface for Editing Contracts](Contract_UI.md)
