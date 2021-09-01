@@ -27,7 +27,7 @@ As of this writing, that has not been proven and there are still a number of unk
 - how many upstream (stock) and downstream (foil) tallies on each node are optimal for effective credit clearing?
 - how will real entities (people and companies) adapt to imbalances that fail to clear?
 - how many degrees of separation are likely to be necessary to reach an abitrary node
-  in a population of a given size when performing [linear lifts](/doc/Protocol#credit-lifts-explained).
+  in a population of a given size when performing [linear lifts](/doc/Protocol.md#credit-lifts-explained).
 
 The MyCHIPs source distribution includes a [simulation environment](/test/sim/README.dock) which can launch a
 predetermined number of instances of the server, each running in a Docker container.
@@ -56,7 +56,7 @@ Here are some examples of economic decisions people and companies might make, th
 -   Find a foil tally and pay some credits on it
 -   Agent establishes reasonable number of tallies with other users
 -   If I already have a tally with you, don't do another one
-- Set real and reasonable values for all [trading parameters](/doc/Lifts#trading-variables)
+- Set real and reasonable values for all [trading parameters](/doc/Lifts.md#trading-variables)
 - Establish some long-term collateralized tallies (mortgages) as a savings mechanism
 
 ## Milestones:
