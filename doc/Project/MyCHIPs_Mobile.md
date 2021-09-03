@@ -92,7 +92,7 @@ for all control and model functionality (other than private key management and
 storage).
 
 ## Tasks:
-As of Spring 2021, a [rudimentary app skeleton](app/README.md) has been created 
+As of Spring 2021, a [rudimentary app skeleton](/app/README.md) has been created 
 in flutter.
 The following are some task descriptions necessary to extend and mature it:
 
