@@ -1,60 +1,63 @@
 # MyCHIPs State Processing
-July 2020
+Sep 2021
 
 ## Project Background:
-The current MyCHIPs proof-of-concept release maintains state in a PostgreSQL
-database.  This database is surrounded by one or more NodeJS server processes
-which route traffic to/from administrators, users and peer systems.  This is 
-shown in this [LibreOffice figure.](/doc/Scaling.png).
+The MyCHIPs reference implementation release maintains state in a PostgreSQL database.
+This database is surrounded by [one or more NodeJS server processes](/doc/Protocol.md#sites-and-nodes).
+which route traffic to/from administrators, users and peer systems.
 
-The originally released code was crafted according to a set of proposed state 
-transitions documented [here](/doc/States.odg).  The protocol and state
-machines evolved through an iterative process while trying to understand and
-develop the process itself.  This is not ideal for the generation of clean
-and efficient code.
+The code as released in 2020 was crafted according to a set of proposed state 
+transitions documented [here](/doc/States.odg).
+This evolved through an iterative process while trying to understand and develop the agorithm.
+Now that the algorithm is better.
 
-Additionally, very little has been done in the way of unit testing.  Ideally
-unit tests would be created first and then the code would be produced to match
-a clearly crafted specification.  The algorithm was not initially understood 
-well enough to follow this design pattern.
+A few unit tests were completed for basic parts of the protocol.
+But most of the states do not have functional unit tests.
 
-A [study](/test/analysis/dsr/phase-1/results.md) was recently commissioned to
-study the proposed state flow--particularly as it relates to the distributed
+Soon after public release of the code, a [study](/test/analysis/dsr/phase-1/results.md) was commissioned to
+analyze the proposed state flow--particularly as it relates to the distributed
 lift protocol.  This study revealed several potential flaws in the protocol.
 
-There is a parallel [project](/doc/projects/Lift_Protocol.md) to refine the
-lift protocol to address the current flaws.  Subject to the results of that
-project, it will be necessary to upgrade the current state transitioni logic
-to implement the improved protococl specification.
+Since that time, the protocol has been extended and refined to address the exposed flaws.
+This improved protocol is documented [as version 1.0 here](/doc/Protocol.md).
+The security of distributed lifts using this improved protocol is the subject of [current study at BYU](/test/anlysis/byu).
+Preliminary results indicate that the security extensions provide for adequate safety and liveness for successful deployment of the network.
+
+Now that a viable distributed network protocol has been tested and articulated, it is possible to
+take a more disciplined top-down approach to engineering the state processing code to fully
+implement the improved protocol.
 
 ## Objectives:
 The goal of this project is to upgrade the current state control logic to
-implement the improved protocol specification.  Messages received from users
-and peers need to be interpreted, checked for form and content, and then sent
-to the PostgreSQL control/model core so that state transitions can occur with
-[ACID](https://en.wikipedia.org/wiki/ACID#:~:text=In%20computer%20science%2C%20ACID%20(atomicity,errors%2C%20power%20failures%2C%20etc.).
+implement the improved protocol specification.
 
-State machines exist for the generation and management of:
-- Tallies
-- Chits
-- Route discovery
-- Lift execution
+This will involve:
+- Designing/coding unit tests for each component of the state transition logic;
+- Updating the server code to implement the improved protocol;
+- Validating server function
+- Creating simulated tests for Byzantine failures and attacks;
+- Validating server safety and liveness amidst Byzantine failures and attacks.
 
-A suite of unit tests should be created to test each possible case of state
-transitions.  The production server should then be invoked against each test
-case and these tests should be integrated into the current source tree.
+State transition logic and protocol exists for:
+- Establishing Tallies
+- Sending/receiving Chits (paying money locally)
+- Route discovery (finding possible lift pathways)
+- Lift execution (resolving credit imbalances and/or sending money to remote users)
 
-## Outcomes:
-- Evaluate the form and function of the existing state transition logic
-- Plan/architect any code structure improvements
-- Model state transition diagrams in test logic
-- Write unit tests against state transition logic
-- Implement code improvements to state transition logic
+## Milestones:
+- Understand the current code structure
+- Can launch multiple instances of the server using the existing [simulation environment](/test/sim/README.simdock);
+- Evaluate the structure and function of the existing state transition logic;
+- Plan/architect any structural code improvements;
+- Understand the improved protocol;
+- Write unit tests against state transition logic;
+- Implement code improvements to state transition logic;
 - Evaluate against unit tests
 - Unit tests run under existing Node module structure (npm test)
 
 ## Technical Considerations:
 Current limited unit tests are implemented in mocha.
+Are there any other (better) testing platforms that should be considered?
 
 New unit tests may use mocha or some other framework, but should integrate
 properly with the existing tests.
