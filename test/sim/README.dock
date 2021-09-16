@@ -2,28 +2,28 @@ Containerized Simulation:				(Try 3)
 -------------------------------------------------------------------------------
 This is a re-implementation of the simnet script where, instead of running on
 separate virtual machines, all processes are launched as docker containers.  
-This seems to have much less memory overhead than the simnet implementation so 
-a single system can support the simulation of more sites.  However it is still 
+This has less memory overhead than the earlier simnet implementation so a 
+single system can support the simulation of more sites.  However it is still 
 quite CPU intensive so things can run slow if you are modeling lots of sites.
 
-Hopefully this docker-based simulation can be easily adapted to launch many
-containers in the cloud for a much larger-scale simulation.
+Hopefully this docker-based simulation can be enhanced and extended to launch 
+many containers in the cloud for a much larger-scale simulation.
 
 The simulation keeps run-time data in a subdirectory of this folder called
 'local.'  For example, all instances of the postgres database directory get
 created there.  Also, all MyCHIPs logfiles get created there.  This gives a
 single place for monitoring the status of a running simulation.
 
-Under simnet, multiple VMs were created and each VM represents a "site" and so 
-would typically have an instance of the postgres database, an SPA server, a 
-peer server, and an agent modeler.  The idea is, a site represents a single
-MyCHIPs service provider and its customers.
+Under the earlier simnet implementation, multiple VMs were created and each VM 
+represents a "site" and so would typically have an instance of the postgres 
+database, an SPA server, a peer server, and an agent modeler.  The idea is, a 
+site represents a single MyCHIPs service provider and its customers.
 
 In this docker-based version, each process is a separate container.  So the
 notion of a "site" is not quite as clear.  It is probably best to think of a 
-site as an "instance of postgres."  Then, there are other processes (SPA, peer 
-and agent) that are part of that logical site but run in their own containers.
-This is likely how a larger-scale service provider might operate anyway--with
+site as an "instance of postgres" plus a few other processes (SPA, peer and 
+agent) that are part of that logical site but run in their own containers.
+This may be how some larger-scale service providers might operate anyway--with
 different processes running on different servers, all a part of the same site.
 
 In addition to sites, there are two additional containers.  The mongo container
@@ -32,15 +32,15 @@ agents meet each other and exchange information outside the MyCHIPs network.
 It is not a part of the production software but is used only as part of the
 simulation.
 
-There is also a "devel" container which is a dummy Fedora filesystem primarily
+There is also a "devel" container which contains a Fedora machine primarily
 used for development tasks such as updating the database schema in between runs
-of the simulation (say, in the case where you have made programming changes).
-You can launch a shell on the devel container to examine the simulation network 
-from the perspective of a machine on that network.
+of the simulation (say, in the case where you have made schema programming 
+changes).  You can launch a shell on the devel container to examine the 
+simulation network from the perspective of a machine on that network.
 
 The devel container can also backup and restore all your databases to a named
-profile.  This allows you to save a certain state for later analysis or
-debugging.
+profile (see command examples below).  This allows you to save a certain state 
+for later analysis or debugging.
 
 To get started, run the following commands:
 
@@ -53,12 +53,19 @@ launch a number of sites, equivalent to running "simdock start sites" manually.
 This can take a while the first time you run because it has to initialize a 
 database for each site.
 
-This step includes opening a bunch of xterms (or the local logwin script) on 
-your screen to view the logfiles.  So if things don't work right (like your 
-screen is smaller than 1920 pixels, for example) now is a good time to check 
-out the configuration file: config.dock.
+This step includes opening a bunch of xterms (or the local logwin script for Mac)
+on your screen to view the logfiles.  NOTE: MacOS is discontinuing support of 
+tcl/tk (wish).  Version 10.15 (Catalina) is already showing instabilities that
+make logwin unstable.  If you are having a problem with logwin on Mac, it should
+help to install wish from [homebrew](https://brew.sh/) using:
 
-If you want to change things, make a similar file in the "local" subdirectory:
+  brew install tcl-tk
+
+If things still don't work right (like your screen is smaller than 1920 pixels, 
+for example) now is a good time to check out the configuration file: config.dock.
+
+If you want to change configuration items, make a similar file in the "local" 
+subdirectory:
 
   local/config.dock
   
@@ -98,7 +105,7 @@ mechanism) to resolve the hostnames we will use in the simulation.  Your
 browser will be connecting to a docker hostname which needs to resolve to 
 the local host where docker ports will get mapped.  But the hostname in the
 browser URL bar needs to match what is in the SSL certificates, so you will
-have to have hostnames in /etc/hosts that actually just resolve to your
+need to have hostnames in /etc/hosts that actually just resolve to your
 local IP.  For example:
 
   127.0.0.1	spa0 spa0.mychips.sim

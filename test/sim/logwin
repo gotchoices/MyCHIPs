@@ -107,7 +107,7 @@ bind Text <Control-w> {			;#Toggle wrapping mode
 #}
 
 set file [lindex $argv 0]
-set command [join $argv]
+if {[set command [join $argv]] == {}} {exit 1}
 #puts "cmd:$command"		;exit 1
 wm title . "$command"
 

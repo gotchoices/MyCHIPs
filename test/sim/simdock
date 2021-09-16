@@ -69,7 +69,7 @@ if [ "$logviewer" = "logwin" ]; then
   done			;#echo "TCLLIBPATH:$TCLLIBPATH"; exit 0
 fi
 
-#Encode command line arguments
+#Encode command line arguments so we can pass to a container without special escaping
 #-------------------------------------------------------------------------------
 function encode {
   local cargs=()
@@ -267,7 +267,7 @@ function start_devel {
   fi
 }
 
-#Start a specified site
+#Start a specified site (postgres, spa, peer, etc)
 #-------------------------------------------------------------------------------
 function start_site {
   local n="${1:-0}"; shift
@@ -316,13 +316,13 @@ function start_log {
     if [ -d $locdir/$mach -a ! -f $logfile ]; then touch $logfile; fi
   fi
 
-#echo "start_log n:$n mach:$mach geom:$geom cmd:$cmd"
   if [ "$logviewer" = logwin ]; then
     y=$(expr $y + 22)			#Mac kludge: why does wish place differently than xterm?
   fi
   local geom="+$(expr $x + \( $n \* $xoff \))+$(expr $y + \( $n \* $yoff \))"
+#echo "start_log n:$n mach:$mach geom:$geom cmd:$cmd"
   if [ "$logviewer" = logwin ]; then
-    wish logwin -geometry "$geom" -- $cmd 2>/dev/null &
+    wish logwin -geometry "$geom" -- $cmd &		#2>/dev/null (probably)
   
   elif [ "$logviewer" = xterm ] && which xterm >/dev/null; then
     xterm -T "$mach: $log" -geometry "$geom" -e /bin/bash -l -c "$cmd" &
