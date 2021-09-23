@@ -347,7 +347,7 @@ function stop_log {
   while read pn pid; do
     if [[ ! -z $pid && ( $n == $pn || $n = 'all' ) ]]; then
       echo "  Kill PID: $pn $pid"
-      pkill -P $pid
+      pkill -P $pid; kill $pid
     fi
   done <$pidfile
   if [[ $n = 'all' ]]; then rm -f $pidfile; fi

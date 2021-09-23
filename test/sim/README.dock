@@ -42,8 +42,9 @@ The devel container can also backup and restore all your databases to a named
 profile (see command examples below).  This allows you to save a certain state 
 for later analysis or debugging.
 
-To get started, run the following commands:
+To get started, run the following commands (from this directory):
 
+  export PATH="$(pwd)/../../node_modules/.bin:$PATH"
   export NODE_DEBUG=debug
   ./simdock startup
 
@@ -53,11 +54,12 @@ launch a number of sites, equivalent to running "simdock start sites" manually.
 This can take a while the first time you run because it has to initialize a 
 database for each site.
 
-This step includes opening a bunch of xterms (or the local logwin script for Mac)
-on your screen to view the logfiles.  NOTE: MacOS is discontinuing support of 
-tcl/tk (wish).  Version 10.15 (Catalina) is already showing instabilities that
-make logwin unstable.  If you are having a problem with logwin on Mac, it should
-help to install wish from [homebrew](https://brew.sh/) using:
+This step also includes opening a bunch of xterms (or the local logwin script 
+for Mac) on your screen to view the logfiles.  NOTE: MacOS is discontinuing 
+support of tcl/tk (wish).  Version 10.15 (Catalina) is already showing 
+instabilities that make logwin unstable.  If you are having a problem with 
+logwin on Mac, it should help to install wish from homebrew (https://brew.sh/)
+using (make sure new wish is also in your path):
 
   brew install tcl-tk
 
@@ -75,6 +77,7 @@ this folder.  Some good things to focus on include:
   agentwins, peerwins, spawins	#X,Y screen coordinates of logging xterms
   logoffset			#How xterms are tiled on the screen
   browser			#Only firefox/chrome tested for now
+  logwin			#If you want to use xterm instead of logwin
   newusers			#How many users to create on each site
   sites				#How many sites to launch on simulation runs
   userargs			#Additional command line switches to docker

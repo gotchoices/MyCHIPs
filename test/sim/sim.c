@@ -19,13 +19,20 @@ set -- "${pargs[@]}"				#Restore positional arguments ($1..)
 
 mydir="$(dirname $BASH_SOURCE)"		#Where this script is
 appdir="$(realpath "$mydir/../..")"
-devdir="$(realpath "$appdir/..")"
-#echo "mydir:$mydir appdir:$appdir devdir:$devdir" @:"$@"; #exit 0
+#echo "mydir:$mydir appdir:$appdir" @:"$@"; #exit 0
 
-nodebin="$devdir/node_modules/.bin"			#Location of node binaries
+if [[ -L "$appdir/../node_modules/.bin/wyseman" ]]; then	#Find location of node binaries
+  nbdir="$appdir/../node_modules/.bin"
+elif [[ -L "$appdir/node_modules/.bin/wyseman" ]]; then
+  nbdir="$appdir/node_modules/.bin"
+else
+  echo "Can't find path for development commands (run npm install?)"
+  exit 1
+fi
+
 IFS=: read -r -a patha <<< "$PATH"			#Put it in our path
-if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
-  export PATH="${PATH}:$nodebin"
+if [[ ! -z "$nbdir" && ! "${patha[@]}" =~ "$nbdir" ]]; then
+  export PATH="${PATH}:$nbdir"
 fi
 if [[ ! -z $SITE ]]; then			#SITE is our site number 0..N
   export MYCHIPS_USER_HOST="spa$SITE"
