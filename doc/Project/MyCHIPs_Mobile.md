@@ -24,7 +24,8 @@ value is stored and how it is transmitted.
 
 ## Objectives:
 The source tree includes an example of a 
-[visual balance sheet](/test/visbs/index.html).
+[visual balance sheet](https://rawcdn.githack.com/gotchoices/MyCHIPs/0fa1d6511d5f487d6928770e3cf3312bdc6d273e/test/visbs/index.html)
+([source code](/test/visbs/index.html)).
 The goal with this graph is to show a user an intuitive indication of their net
 wealth--a value that consists of the difference between their total assets and
 their total liabilities.
@@ -60,6 +61,9 @@ by generating QR codes on their screen and having the trading partner scan the
 QR code in their app.  QR codes can also be shared using email or text 
 messaging (out-of-MyCHIPs-band communication).  This functionality is 
 demonstrated in a rudientary way by the existing Wylib-based User Interface.
+
+Additional information about the User Interface is available in this
+[earlier document](/doc/Users.md).
 
 ## Strategy:
 - Choose a deployment framework:

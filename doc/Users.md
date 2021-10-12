@@ -33,7 +33,7 @@ could be understood with a glance and that would encourage people to behave in
 a way that is in their best financial interest.
 
 The "Visual Balance Sheet"
-[prototyped here](https://rawcdn.githack.com/gotchoices/MyCHIPs/0fa1d6511d5f487d6928770e3cf3312bdc6d273e/test/visbs/index.html))
+[prototyped here](https://rawcdn.githack.com/gotchoices/MyCHIPs/0fa1d6511d5f487d6928770e3cf3312bdc6d273e/test/visbs/index.html)
 is intended to quantify several important aspects of one's balance sheet into 
 a graphical object that is:
   - interesting to look at,
