@@ -62,8 +62,8 @@ QR code in their app.  QR codes can also be shared using email or text
 messaging (out-of-MyCHIPs-band communication).  This functionality is 
 demonstrated in a rudientary way by the existing Wylib-based User Interface.
 
-Additional information about the User Interface is available in this
-[earlier document](/doc/Users.md).
+Additional information about the User Interface is available in
+[this more detailed document](/doc/Users.md).
 
 ## Strategy:
 - Choose a deployment framework:

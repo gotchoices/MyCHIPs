@@ -20,7 +20,7 @@ in [this file.](/lib/peercomm.js).
 
 The strategy is to always present a pathway for messages to any other node on
 the network with which we may share a tally (credit relationship).  Although
-such connections may not always be open from a sock standpoint, they need to
+such connections may not always be open from a socket standpoint, they need to
 appear virtually open to the state machine logic.
 
 The current implementation will check to see if a socket connection is already
@@ -47,8 +47,39 @@ The current intention is to use an existing framework called
 [Noise Protocol](http://www.noiseprotocol.org/) which allows one to establish
 an encrypted communication channel using a fairly simple set of parameters.
 
-If a different method is used, it should be equal or superior to the 
-functionality that can be provided from Noise Protocol.
+## Tactics:
+Peer communications are described at a high level in the first two
+sections of [this document](/doc/Dialogs.md).
+
+From this we see that no site need contact any other site without prior
+knowledge of the site's public key.
+
+Under Noise Protocol (NP), we have the option of specifying static keys already
+known by some external means.
+This will offer a greater degree of privacy as even the opening message of the
+dialog will be encrypted.
+
+So for an initial connection for a new tally request, we will use the NP handshake 
+pattern IK.  This implies that the initiator knows the static key of the site it 
+will try to connect to and it will transmit its own static key in the opening dialog.
+Since handshakes starting with 'I' have reduced forward secrecy for opening messages,
+we will resist sending anything too private in the connection messages.
+
+For all other regular sub-protocol connections (excluding Referee queries) we will
+connect with the the handshake pattern KK.  This will rely on the remote site 
+having a record for the tally in question, which will contain the initiator's
+static key.
+
+Referee queries should use the pattern NK.  The initator knows the static key of
+the referee but the referee doesn't know (or care) about the initiator's key.
+Referee queries should also not really contain sensitive data as they are
+primarily focused on whether a particular lift timeout has elapsed or not.
+
+Use of these different patterns implies that a responder will have to adapt to
+different requests coming in with different handshake patterns.  If NP does not
+handle this automatically, we will have to put information in the payload
+section to explain what the connection request is for and what protocol is
+expected to be used.
 
 ## Outcomes:
 - Existing MyCHIPs code base can be operated over new code base with fully

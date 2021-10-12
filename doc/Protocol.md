@@ -444,7 +444,7 @@ The referee lift state diagram is as follows:
 
 [![state-ref](uml/state-ref.svg)](uml/state-ref.svg)
 
-### Consensus Protocol (UNDER CONSTRUCTION)
+### Consensus Protocol
 This is a sub-protocol by which the peers at each end of a common tally agree upon which order chits are entered onto their copies of the tally.
 Chit order is not particularly important from a theoretical standpoint.
 But in an actual implementation, it is very helpful.
