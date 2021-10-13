@@ -12,13 +12,13 @@ describe("Peer to peer communications test", function() {
   var server1, server2;
 
   before('Launch a server', function() {
-    server1 = new PeerComm(port1, null, function(serv, obj) {
+    server1 = new PeerComm({port:port1}, function(serv, obj) {
       server1.send(serv, obj)		//loop the message back
     })
   })
 
   it("Sends an object from one socket to another", function(done) {
-    server2 = new PeerComm(port2, null, function(serv, obj, sock) {
+    server2 = new PeerComm({port:port2}, function(serv, obj, sock) {
       assert.equal(obj.txt, msg1)	//Got the same message we sent
       done()
     })
