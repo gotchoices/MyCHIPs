@@ -20,8 +20,16 @@ cause some problems on some platforms, so rename it if necessary to "mychips."
 Now that the software is installed, you have 3 basic options to give it a try:
 - [Docker Test Instance](#docker-test-instance):
   This is probably the easiest option and should work on Linux, Mac or Windows.
-  For Windows, make sure docker [can mount your windows volumes](https://docs.docker.com/docker-for-windows/#shared-drives).
   It will also help if you are familiar with [Docker](http://docker.com).
+  For Windows users, here are some known issues to be aware of:
+  - Make sure docker [can mount your windows volumes](https://docs.docker.com/docker-for-windows/#shared-drives).
+  - The "npm run" command will make use of the unixy "pwd" command.
+    Powershell should handle this correctly for you but if you try to run the commands in the standard command prompt,
+    you will get some errors and so may have to execute the docker commands (found in package.json) manually.
+  - Git on windows may automatically map UNIX text file LF terminators to CR-LF.
+    This will alter certain scripts so the #!shebang command at the top doesn't work right.
+    This has been addressed with a .gitattributes file in mychips/bin but if it pops up somewhere else, 
+    [this](https://stackoverflow.com/questions/1019946/how-do-i-stop-git-from-adding-carriage-returns-when-cloneing-a-repo-onto-windows) will explain how to configure your git when you clone the repo to avoid this.
   
 - [Regular Linux Installation](#regular-linux-installation):
   You will need to install some dependencies and do a little configuraing of the environment.
@@ -46,7 +54,6 @@ Now that the software is installed, you have 3 basic options to give it a try:
 
 This is probably the best way to take MyCHIPs for simple testing and evalation.
 You will need docker and node/npm installed on your system.
-Windows users must enable shared drives as noted above.
 
 To launch a single server/database pair:
 ```
