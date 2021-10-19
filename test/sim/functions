@@ -25,5 +25,5 @@ checkContext() {			#Make sure we are in the correct docker context
 #  if current context != desired context then
 #    switch it
 #  fi
-
+   return 1
 }
