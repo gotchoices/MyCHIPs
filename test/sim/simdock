@@ -12,6 +12,7 @@
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
 source $mypath/config.dock
+checkContext						#Check docker context
 
 pargs=()						#Will hold positional arguments
 while [[ $# -gt 0 ]]; do				#Grab command line arguments

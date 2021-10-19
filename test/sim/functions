@@ -15,3 +15,15 @@ browserTab() {			#Open a specified page in the user's favorite browser
     $browser -new-tab $1
   fi
 }
+
+checkContext() {			#Make sure we are in the correct docker context
+
+#  if not context exists, then
+#    build it
+#  fi
+#  
+#  if current context != desired context then
+#    switch it
+#  fi
+
+}

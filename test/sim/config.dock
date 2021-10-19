@@ -1,6 +1,7 @@
 #Default configuration parameters for docker-based network simulations
 #Create a file local/config.dock and include assignments to override defaults
 
+context="default"		#Use default (local) docker context
 browser="firefox"		#User's preferred browser
 admin="admin"			#Username to connect to postgres
 dbname="mychips"		#Postgres database name
