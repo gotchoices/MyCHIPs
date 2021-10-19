@@ -42,7 +42,7 @@ fi
 
 export PATH=$PATH:"${mychips}/../node_modules/.bin"		#;echo "PATH:$PATH"
 
-#echo "sim.x Args:$@"; exit
+#echo "sim-x.sh Args:$@"; exit
 pargs=()
 while [[ $# -gt 0 ]]; do				#Decrypt command line arguments
 #  echo "arg:$1:"

@@ -160,7 +160,7 @@ function start_spa {
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
   	-e "NODE_DEBUG=$NODE_DEBUG" \
   	-e "MYCHIPS_DBHOST=$pgname" \
-  	-- ${mysim}sim.c spa; then
+  	-- ${mysim}sim-c.sh spa; then
     echo "Failed starting MyCHIPs SPA server"; return
   fi
 }
@@ -182,7 +182,7 @@ function start_peer {
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
   	-e "NODE_DEBUG=$NODE_DEBUG" \
   	-e "MYCHIPS_DBHOST=$pgname" \
-  	-- ${mysim}sim.c peer; then
+  	-- ${mysim}sim-c.sh peer; then
     echo "Failed starting MyCHIPs peer server"; return
   fi
 }
@@ -206,7 +206,7 @@ function start_agent {
   	-e "NODE_DEBUG=$NODE_DEBUG" \
   	-e "MYCHIPS_DBHOST=$pgname" \
   	-e "MYCHIPS_DDHOST=mongo" \
-  	-- ${mysim}sim.c agent $(encode -m $agentversion --peerServer $peername "$@"); then
+  	-- ${mysim}sim-c.sh agent $(encode -m $agentversion --peerServer $peername "$@"); then
     echo "Failed starting MyCHIPs Agent Modeler"; return
   fi
 }
@@ -357,7 +357,7 @@ function stop_logs {
   stop log all "$@"
 }
 
-#Call the simulation script function in sim.c from within the devel container
+#Call the simulation script function in sim-c.sh from within the devel container
 #-------------------------------------------------------------------------------
 function remote {
   local cmd="${1:-dbcheck}"; shift
@@ -365,7 +365,7 @@ function remote {
 
   cmdstrg="SITE=$SITE NODE_DEBUG=$NODE_DEBUG wsports=$wsports spaports=$spaports \
     newusers=$newusers admin=$admin dbname='$dbname' \
-    ${mysim}sim.c $cmd $(encode "$@")"
+    ${mysim}sim-c.sh $cmd $(encode "$@")"
 #echo "docker exec devel bash -c '$cmdstrg'"
   docker exec devel bash -c "$cmdstrg"
 }

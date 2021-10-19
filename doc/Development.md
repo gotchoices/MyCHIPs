@@ -23,16 +23,16 @@ Now that the software is installed, you have 3 basic options to give it a try:
   It will also help if you are familiar with [Docker](http://docker.com).
   For Windows users, here are some known issues to be aware of:
   - Make sure docker [can mount your windows volumes](https://docs.docker.com/docker-for-windows/#shared-drives).
-  - The "npm run" command will make use of the unixy "pwd" command.
-    Powershell should handle this correctly for you but if you try to run the commands in the standard command prompt,
-    you will get some errors and so may have to execute the docker commands (found in package.json) manually.
+  - The "npm run docker" command will make use of the unixy "pwd" command (see inside package.json scripts).
+    If you [configure npm to use bash](https://stackoverflow.com/questions/23243353/how-to-set-shell-for-npm-run-scripts-in-windows), this should work correctly.
+    Otherwise you may have to execute the docker-compose command manually with the (MYCHIPS_ROOT and MYCHIPS_DIR environment variables set correctly).
   - Git on windows may automatically map UNIX text file LF terminators to CR-LF.
     This will alter certain scripts so the #!shebang command at the top doesn't work right.
     This has been addressed with a .gitattributes file in mychips/bin but if it pops up somewhere else, 
     [this](https://stackoverflow.com/questions/1019946/how-do-i-stop-git-from-adding-carriage-returns-when-cloneing-a-repo-onto-windows) will explain how to configure your git when you clone the repo to avoid this.
   
 - [Regular Linux Installation](#regular-linux-installation):
-  You will need to install some dependencies and do a little configuraing of the environment.
+  You will need to install some dependencies and do a little configuration of the environment.
   But for a dedicated server, this is the way to go.
   This should work fine on a Linux VM or a regular installation on physical hardware.
 
@@ -52,7 +52,7 @@ Now that the software is installed, you have 3 basic options to give it a try:
 
 ### Docker Test Instance
 
-This is probably the best way to take MyCHIPs for simple testing and evalation.
+This is probably the best way to take MyCHIPs for simple testing and evaluation.
 You will need docker and node/npm installed on your system.
 
 To launch a single server/database pair:

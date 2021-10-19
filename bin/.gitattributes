@@ -1,2 +1,0 @@
-#Prevent windows from mapping scripts here to CR-LF
-* text eol=lf
