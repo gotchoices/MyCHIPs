@@ -405,7 +405,7 @@ function startup {
     version=${versions[i]}
     if ! docker image inspect $imagebase/$image >/dev/null 2>&1; then
 echo "Building docker image: $image $version"
-      docker image build -f docker-$image -t $imagebase/$image \
+      docker image build -f build/docker-$image -t $imagebase/$image \
         --build-arg version=${version} $mychips
     fi
     i=$(expr $i + 1)
