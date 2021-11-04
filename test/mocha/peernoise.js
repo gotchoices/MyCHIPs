@@ -2,11 +2,8 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
-//X- Test sending message to same peer (no sockets involved)
-//X- Test call to from pc.Address()
-//- Test connecting without ticket
-//- Test sending with encryption disabled
-//- Peercomm module can cache ID's of peers to avoid repeated queries of DB on reconnection
+//X- Test connecting without ticket
+//X- Peercomm module can cache ID's of peers to avoid repeated queries of DB on reconnection
 //- 
 
 const assert = require('assert');
@@ -37,14 +34,12 @@ var initiatorConfig = {
   address:	hostname,
   port:		initiatorPort,
   siteKey:	initiatorKey,
-  encrypt:	true,
 }
 var responderConfig = {
   log:		logR,
   address:	hostname,
   port:		responderPort,
   siteKey:	responderKey,
-  encrypt:	true,
 }
 var initiatorCB, responderCB
 //log.debug('Initiator key:', initiatorKey)
