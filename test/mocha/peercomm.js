@@ -8,7 +8,7 @@ const PeerComm = require("../../lib/peercomm")
 const serv1 = "localhost:" + port1
 var msg1 = "This is a test message."
 
-describe("Peer to peer communications test", function() {
+describe("Peer to peer raw communications test", function() {
   var server1, server2;
 
   before('Launch a server', function() {

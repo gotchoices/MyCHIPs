@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="730px" preserveAspectRatio="none" style="width:642px;height:730px;background:#FFFFFF;" version="1.1" viewBox="0 0 642 730" width="642px" zoomAndPan="magnify"><defs><filter height="300%" id="f1qo271y3zw62a" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="225" x="206.5" y="29.4023">NPF Connection Sequence</text><rect fill="#FFFFFF" filter="url(#f1qo271y3zw62a)" height="437.1523" style="stroke:#000000;stroke-width:2.0;" width="619" x="9" y="192.6875"/><rect fill="#FFFFFF" filter="url(#f1qo271y3zw62a)" height="67.3105" style="stroke:#000000;stroke-width:2.0;" width="458" x="22" y="216.998"/><rect fill="#FFFFFF" height="169.2656" style="stroke:none;stroke-width:1.0;" width="619" x="9" y="291.3086"/><rect fill="#FFFFFF" filter="url(#f1qo271y3zw62a)" height="115.3105" style="stroke:#000000;stroke-width:2.0;" width="599" x="19" y="338.2637"/><rect fill="#FFFFFF" height="169.2656" style="stroke:none;stroke-width:1.0;" width="619" x="9" y="460.5742"/><rect fill="#FFFFFF" filter="url(#f1qo271y3zw62a)" height="115.3105" style="stroke:#000000;stroke-width:2.0;" width="599" x="19" y="507.5293"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="62" x2="62" y1="102.6875" y2="646.8398"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="430" x2="430" y1="102.6875" y2="646.8398"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="54" x="32" y="99.7344">Initiator</text><path d="M44,50.1992 C44,40.1992 62,40.1992 62,40.1992 C62,40.1992 80,40.1992 80,50.1992 L80,76.1992 C80,86.1992 62,86.1992 62,86.1992 C62,86.1992 44,86.1992 44,76.1992 L44,50.1992 " fill="#FEFECE" filter="url(#f1qo271y3zw62a)" style="stroke:#000000;stroke-width:1.5;"/><path d="M44,50.1992 C44,60.1992 62,60.1992 62,60.1992 C62,60.1992 80,60.1992 80,50.1992 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="54" x="32" y="659.375">Initiator</text><path d="M44,672.3281 C44,662.3281 62,662.3281 62,662.3281 C62,662.3281 80,662.3281 80,672.3281 L80,698.3281 C80,708.3281 62,708.3281 62,708.3281 C62,708.3281 44,708.3281 44,698.3281 L44,672.3281 " fill="#FEFECE" filter="url(#f1qo271y3zw62a)" style="stroke:#000000;stroke-width:1.5;"/><path d="M44,672.3281 C44,682.3281 62,682.3281 62,682.3281 C62,682.3281 80,682.3281 80,672.3281 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="390" y="99.7344">Responder</text><path d="M412,50.1992 C412,40.1992 430,40.1992 430,40.1992 C430,40.1992 448,40.1992 448,50.1992 L448,76.1992 C448,86.1992 430,86.1992 430,86.1992 C430,86.1992 412,86.1992 412,76.1992 L412,50.1992 " fill="#FEFECE" filter="url(#f1qo271y3zw62a)" style="stroke:#000000;stroke-width:1.5;"/><path d="M412,50.1992 C412,60.1992 430,60.1992 430,60.1992 C430,60.1992 448,60.1992 448,50.1992 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="390" y="659.375">Responder</text><path d="M412,672.3281 C412,662.3281 430,662.3281 430,662.3281 C430,662.3281 448,662.3281 448,672.3281 L448,698.3281 C448,708.3281 430,708.3281 430,708.3281 C430,708.3281 412,708.3281 412,698.3281 L412,672.3281 " fill="#FEFECE" filter="url(#f1qo271y3zw62a)" style="stroke:#000000;stroke-width:1.5;"/><path d="M412,672.3281 C412,682.3281 430,682.3281 430,682.3281 C430,682.3281 448,682.3281 448,672.3281 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><path d="M29,117.6875 L29,138.6875 L462,138.6875 L462,127.6875 L452,117.6875 L29,117.6875 " fill="#E8E8EA" filter="url(#f1qo271y3zw62a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M452,117.6875 L452,127.6875 L462,127.6875 L452,117.6875 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="202" x="138" y="131.1577">Both nodes create listening server socket</text><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="104" y1="164.6875" y2="164.6875"/><line style="stroke:#000000;stroke-width:1.0;" x1="104" x2="104" y1="164.6875" y2="177.6875"/><line style="stroke:#000000;stroke-width:1.0;" x1="63" x2="104" y1="177.6875" y2="177.6875"/><line style="stroke:#000000;stroke-width:1.0;" x1="63" x2="73" y1="177.6875" y2="173.6875"/><line style="stroke:#000000;stroke-width:1.0;" x1="63" x2="73" y1="177.6875" y2="181.6875"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="143" x="69" y="160.1577">Get a packet to communicate</text><path d="M9,192.6875 L71,192.6875 L71,199.6875 L61,209.6875 L9,209.6875 L9,192.6875 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="437.1523" style="stroke:#000000;stroke-width:2.0;" width="619" x="9" y="192.6875"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="24" y="206.2559">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="186" x="86" y="205.3223">[We already have a channel open]</text><path d="M22,216.998 L96,216.998 L96,223.998 L86,233.998 L22,233.998 L22,216.998 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="67.3105" style="stroke:#000000;stroke-width:2.0;" width="458" x="22" y="216.998"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="29" x="37" y="230.5664">loop</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="171" x="111" y="229.6328">[As long as channel still open]</text><line style="stroke:#000000;stroke-width:1.0;" x1="428" x2="418" y1="251.3086" y2="247.3086"/><line style="stroke:#000000;stroke-width:1.0;" x1="428" x2="418" y1="251.3086" y2="255.3086"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="429" y1="251.3086" y2="251.3086"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="223" x="69" y="246.7788">Send/respond any upper level protocol packet</text><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="72" y1="276.3086" y2="272.3086"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="72" y1="276.3086" y2="280.3086"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="429" y1="276.3086" y2="276.3086"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="223" x="79" y="271.7788">Send/respond any upper level protocol packet</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="9" x2="628" y1="292.3086" y2="292.3086"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="149" x="14" y="302.9434">[Initiator has a tally ticket]</text><line style="stroke:#000000;stroke-width:1.0;" x1="428" x2="418" y1="323.2637" y2="319.2637"/><line style="stroke:#000000;stroke-width:1.0;" x1="428" x2="418" y1="323.2637" y2="327.2637"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="429" y1="323.2637" y2="323.2637"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="238" x="69" y="318.7339">Use IK; Give ID; Payload: ticket; Noise: e,es,s,ss</text><path d="M19,338.2637 L81,338.2637 L81,345.2637 L71,355.2637 L19,355.2637 L19,338.2637 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="115.3105" style="stroke:#000000;stroke-width:2.0;" width="599" x="19" y="338.2637"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="34" y="351.832">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="107" x="96" y="350.8984">[Ticket checks out]</text><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="72" y1="372.5742" y2="368.5742"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="72" y1="372.5742" y2="376.5742"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="429" y1="372.5742" y2="372.5742"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="189" x="79" y="368.0444">Payload: proposed tally; Noise: e,ee,se</text><path d="M29,385.5742 L29,406.5742 L462,406.5742 L462,395.5742 L452,385.5742 L29,385.5742 " fill="#E8E8EA" filter="url(#f1qo271y3zw62a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M452,385.5742 L452,395.5742 L462,395.5742 L452,385.5742 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="227" x="125.5" y="399.0444">Channel is open for further packets of any kind</text><line style="stroke:#000000;stroke-width:1.0;" x1="430" x2="472" y1="432.5742" y2="432.5742"/><line style="stroke:#000000;stroke-width:1.0;" x1="472" x2="472" y1="432.5742" y2="445.5742"/><line style="stroke:#000000;stroke-width:1.0;" x1="431" x2="472" y1="445.5742" y2="445.5742"/><line style="stroke:#000000;stroke-width:1.0;" x1="431" x2="441" y1="445.5742" y2="441.5742"/><line style="stroke:#000000;stroke-width:1.0;" x1="431" x2="441" y1="445.5742" y2="449.5742"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="169" x="437" y="428.0444">Close channel after timeout occurs</text><line style="stroke:#000000;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="9" x2="628" y1="461.5742" y2="461.5742"/><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="248" x="14" y="472.209">[Packet should relate to an established tally]</text><line style="stroke:#000000;stroke-width:1.0;" x1="428" x2="418" y1="492.5293" y2="488.5293"/><line style="stroke:#000000;stroke-width:1.0;" x1="428" x2="418" y1="492.5293" y2="496.5293"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="429" y1="492.5293" y2="492.5293"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="344" x="69" y="487.9995">Use N to give ID; Use KK; Payload: optional transaction; Noise: e,es,ss</text><path d="M19,507.5293 L81,507.5293 L81,514.5293 L71,524.5293 L19,524.5293 L19,507.5293 " fill="#EEEEEE" style="stroke:#000000;stroke-width:1.0;"/><rect fill="none" height="115.3105" style="stroke:#000000;stroke-width:2.0;" width="599" x="19" y="507.5293"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="17" x="34" y="521.0977">alt</text><text fill="#000000" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="128" x="96" y="520.1641">[Tally is current, open]</text><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="72" y1="541.8398" y2="537.8398"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="72" y1="541.8398" y2="545.8398"/><line style="stroke:#000000;stroke-width:1.0;" x1="62" x2="429" y1="541.8398" y2="541.8398"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="134" x="79" y="537.3101">Payload: null; Noise:e,ee,se</text><path d="M29,554.8398 L29,575.8398 L462,575.8398 L462,564.8398 L452,554.8398 L29,554.8398 " fill="#E8E8EA" filter="url(#f1qo271y3zw62a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M452,554.8398 L452,564.8398 L462,564.8398 L452,554.8398 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="227" x="125.5" y="568.3101">Channel is open for further packets of any kind</text><line style="stroke:#000000;stroke-width:1.0;" x1="430" x2="472" y1="601.8398" y2="601.8398"/><line style="stroke:#000000;stroke-width:1.0;" x1="472" x2="472" y1="601.8398" y2="614.8398"/><line style="stroke:#000000;stroke-width:1.0;" x1="431" x2="472" y1="614.8398" y2="614.8398"/><line style="stroke:#000000;stroke-width:1.0;" x1="431" x2="441" y1="614.8398" y2="610.8398"/><line style="stroke:#000000;stroke-width:1.0;" x1="431" x2="441" y1="614.8398" y2="618.8398"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="169" x="437" y="597.3101">Close channel after timeout occurs</text><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="149" x="244.5" y="721.9961">Sun Oct 24 14:07:12 MDT 2021</text><!--MD5=[980ce32953da4f17feb4d0236924b094]
+@startuml
+!include common.puml
+$title(NPF Connection Sequence)
+database "Initiator" as initiator
+database "Responder" as responder
+
+note over initiator, responder
+  Both nodes create listening server socket
+end note
+
+initiator ->>	initiator:	Get a packet to communicate
+
+alt We already have a channel open
+  loop As long as channel still open
+    initiator ->>	responder:	Send/respond any upper level protocol packet
+    responder ->>	initiator:	Send/respond any upper level protocol packet
+  end loop
+
+else Initiator has a tally ticket
+  initiator ->> responder:	Use IK; Give ID; Payload: ticket; Noise: e,es,s,ss
+  alt Ticket checks out
+    responder ->> initiator:	Payload: proposed tally; Noise: e,ee,se
+    note over initiator, responder
+      Channel is open for further packets of any kind
+    end note
+    responder ->> responder:	Close channel after timeout occurs
+  end
+
+else Packet should relate to an established tally
+  initiator ->> responder:	Use N to give ID; Use KK; Payload: optional transaction; Noise: e,es,ss
+  alt Tally is current, open
+    responder ->> initiator:	Payload: null; Noise:e,ee,se
+    note over initiator, responder
+      Channel is open for further packets of any kind
+    end note
+    responder ->> responder:	Close channel after timeout occurs
+  end
+
+end
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+  title NPF Connection Sequence
+  footer Sun Oct 24 14:07:12 MDT 2021
+database "Initiator" as initiator
+database "Responder" as responder
+
+note over initiator, responder
+  Both nodes create listening server socket
+end note
+
+initiator ->>	initiator:	Get a packet to communicate
+
+alt We already have a channel open
+  loop As long as channel still open
+    initiator ->>	responder:	Send/respond any upper level protocol packet
+    responder ->>	initiator:	Send/respond any upper level protocol packet
+  end loop
+
+else Initiator has a tally ticket
+  initiator ->> responder:	Use IK; Give ID; Payload: ticket; Noise: e,es,s,ss
+  alt Ticket checks out
+    responder ->> initiator:	Payload: proposed tally; Noise: e,ee,se
+    note over initiator, responder
+      Channel is open for further packets of any kind
+    end note
+    responder ->> responder:	Close channel after timeout occurs
+  end
+
+else Packet should relate to an established tally
+  initiator ->> responder:	Use N to give ID; Use KK; Payload: optional transaction; Noise: e,es,ss
+  alt Tally is current, open
+    responder ->> initiator:	Payload: null; Noise:e,ee,se
+    note over initiator, responder
+      Channel is open for further packets of any kind
+    end note
+    responder ->> responder:	Close channel after timeout occurs
+  end
+
+end
+
+@enduml
+
+PlantUML version 1.2021.10(Mon Aug 30 07:43:48 MDT 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

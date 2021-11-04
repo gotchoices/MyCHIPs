@@ -394,7 +394,7 @@ Like an invoice, this information must be passed out-of-band.
 The party who initiates the tally would create a draft tally on his own system and then issue a connection token to be used by the other party.
 In the case of a commercial account like a retailer or restaurant, for example:
 
-- The Vendor would display or transmit a ticket QR code, containing:
+- The Vendor would display or transmit a ticket QR code, containing (SOME INFORMATION HERE OBSOLETE):
   - The name or IP address of the system that hosts the recipient's CHIP account
   - A connection socket endpoint for the recipient's host system
   - A connection authorization token:
