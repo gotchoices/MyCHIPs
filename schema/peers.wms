@@ -2,9 +2,10 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- Split out peer fields from users table
-#- Can I have a 3-way writable multiview?
-#- View should tell if there are active tallies with this peer or not
+#X- Split out peer fields from users table
+#X- Can I have a 3-way writable multiview?
+#- Should limit to ent_types p and o -- not groups or roles?
+#- View can tell if there are active tallies with this peer or not?
 #- 
 require multiview.tcl base.tcl config.tcl
 
@@ -115,7 +116,7 @@ view mychips.peers_v_me {mychips.peers_v mychips.tallies base.user_id(text)} {se
     {peer	s {s i u} {d}}
 } -primary id
 
-# Return the stocket address of a peer
+# Return the socket address of a peer
 #----------------------------------------------------------------
 function mychips.peer_sock(text) {mychips.peers_v} {
   returns text stable language sql as $$

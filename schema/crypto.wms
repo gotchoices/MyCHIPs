@@ -8,7 +8,7 @@ module mychips
 #other pgcrypto {} {create extension "pgcrypto"} {drop extension if exists "pgcrypto"}
 other plpy {} {create extension "plpythonu"} {drop extension if exists "plpythonu"}
 
-# Test validation usign python
+# Test validation using python
 #----------------------------------------------------------------
 function {mychips.validate(dat text, sig text, pub text)} {plpy} {
   returns boolean language plpythonu immutable as $$
