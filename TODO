@@ -1,59 +1,110 @@
 TODO:
 
-Immediate:
-X- Integrate DSR phase-1 work into source tree
-X- Why can't user UI connect to sim spa hosts?
-X- Set user host/port and peer port correctly on simulated hosts
-X- Can view/modify/render .puml diagrams
-X- Edit Tally, Lift documents, include diagrams
-X- Make a sequence diagram for each use case
-X- Port state diagrams to puml
-X- Make chit consensus sequence/state diagrams
-X- Make a master protocol document/folder to hold all diagrams
-- 
-X- Extend Wyseman client side to communicate over websockets
-- Extend Wyseman to receive connections on TCP socket?
-- Make command-line user interface?
-- Integrate DSR patches into simulation folder?
-- 
-
 General roadmap:
 X- Public Proof-of-Concept release
 X- Iterate on TLA+ modeling until protocol is sufficiently safe/live
+X- Implement basic contract handling (author, display, print, publish)
 - Integrate improved protocol into source code
-- Improve/expand agent model (see below)
 - Write unit tests to validate protocol state transitions
-- Implement basic contract handling (author, display, print, publish)
-- Make Wylib User SPA GUI useable (or jump to basic mobile app?)
+- Improve/expand agent model (see below)
+- Make Flutter app usable with basic functionality
 - Implement digital signatures for tallies, chits, contracts, lifts
 - Implement encrypted peer-to-peer communications using noise protocol
 - Harden database schema, nothing accessible except user-based views/functions
 - Finish schema version control/upgrade mechanism in wyseman
 - Docker-based production server
-- Production rollout
-- Create more optimal User SPA GUI for mobile
+- *** Production rollout ***
+- Enhance flutter app features
 - Async email/text notifications
-- Native mobile user app
 - Tally confirmations
 - Standardized export/import of user accounts via Admin interface
 - Emergency lock-down mode
 - Backup/restore sharding among peers
 - Advanced Features:
 -   Implement writing a check:
--   User mobile clients can talk to each other in absense of internet or server connection
--   They exchange a check (paper or image)
--   The check is 'cashed' or recorded once the network comes back up
+-   User mobile clients can talk to each other in absence of internet or server connection
+-   They exchange a check (paper or QR image)
+-   The check is 'cashed' (hashed onto the tally) once the network comes back up
 - 
 
-General tasks by level of expertise required (redundant)
+Immediate Detailed Strategy:
+- Wylib client, JS client, Dart client can:
+-   Connect via ticket
+-   Reconnect based on shared keys
+-   Import/export compatible key files across platforms
+- Simulation can run with noise encryption enabled
+- Unencrypted mode still supported
+- Implement message framing for unencrypted mode
+- Implement loopback on local node for unencrypted mode
+- 
+- Cleaning/review pass on tally protocol
+-   Check/validate with protocol 1.0
+-   Build standardized message building/parsing engine?
+-   Clean, organize, struture SQL handler code
+-   Implement message retries
+-   Enhance mocha tests
+- 
+- Cleaning/review pass on chit protocol
+-   Check/validate with protocol 1.0
+-   Clean, organize, struture SQL handler code
+-   Implement message retries
+-   Implement chit consensus fully
+-   Implement full mocha test regimen
+- 
+- Mobile App
+-   Dart API can connect to wyseman on user ticket
+-   App can scan user ticket as a QR
+-   App can eat ticket contained in text message, email, other
+-   App can build/encrypt/store signing key
+-   Controller receives/stores users signing public key
+-   App/controller can build/negotiate/commit/sign user tally tickets
+-   App facilitates selection of tally parameters
+-   App/controller can browse/select/print tally contracts
+-   App/controller/model can send local chits
+-   App/controller/model can send local invoices
+-   App/controller can scan for linear (non-direct) lifts/payments
+-   App/controller can initiate for linear (non-direct) invoices/payments
+-   App/controller can display/modify trading parameters
+- 
+- Generate scheduler for initiating local lifts
+- *** Could now do a MyCHIPs.com rollout with local-only services ***
+- 
+- Cleaning/review pass on route protocol
+-   Check/validate with protocol 1.0
+-   Clean, organize, struture SQL handler code
+-   Implement message retries
+-   Implement full mocha test regimen
+- 
+- Code referee server module
+-   Does this use Postgres or something else (nosql?)
+-   DB commit to approved/expired needs to be atomic
+- 
+- Cleaning/review pass on lift protocol
+-   Check/validate with protocol 1.0
+-   Clean, organize, struture SQL handler code
+-   Implement message retries
+-   Implement full mocha test regimen
+- 
+- Mobile App
+-   Can query for a remote peer
+-   Controller initiates routing query for specified peer
+-   Can initiate linear lifts
+-   
+- Server:
+-   Generate scheduler for initiating distributed lifts
+-   
+- *** Could now do a rollout with distributed lifts ***
+-   
+
+Some general tasks by level of expertise required (redundant)
 - Low Level: (code validation)
 -   Write unit tests, which become part of the integrated test suite. 
--     Test existing state transition graphs for all conceivable combinations of state.
+-     Test state transition graphs for all conceivable combinations of state.
 -     Attempt to request multiple, conflicting state transitions at once.
--     Proper retry/recovery of records that get stranded in a transitional state
+-     Working retry/recovery of records that get stranded in a transitional state
 - Medium Level: (network simulation)
--   Implement peer communication channel based on "noise protocol" to replace current lib/peercomm.js module
--   Write a more advanced agent model that reasonably simulates the choices an actual human would make when interacting with the system.
+X-   Implement peer communication channel based on "noise protocol" to replace current lib/peercomm.js module
+C-   Write a more advanced agent model that reasonably simulates the choices an actual human would make when interacting with the system.
 -   Examples include:  (where each character is randomly determined for individual agents)
 -     Spending consumption costs at a regular rate
 -     Luxury spending when more money is available
@@ -67,71 +118,54 @@ General tasks by level of expertise required (redundant)
 -     Starting a credit certification aggregator (savings and loan)
 -     Starting a vendor aggregator (credit card company)
 - High Level: (architecture/design)
--   Close security holes found by DSR study (implement arbiter into protocol?)
--   Does the existing tally state transition chart accurately represent all necessary cases?
--   Does the existing chit state transition chart accurately represent all necessary cases?
--   Augment the chit state transition chart to model distributed lifts
--   Augment the chit state machine to implement distributed lifts
+X-   Close security holes found by DSR study (implement arbiter into protocol?)
+-   Implement improved lift protocol with referee nodes
+-   Implement chit consensus protocol fully
+-   Implement retries on all protocol levels
 -   Add key signing/validation regimen to tally process
 -   Add key signing/validation regimen to chit/lift process
 
-- Chit consensus:
--   Can tolerate network outages
--   Will re-synch chain no matter how many chits got added during outage
--   Need ack/nak added to chit protocol?
--   Ack/naks include chits and/or chain segments as applicable
-- Need to handle more than one lift per site with the same guid (when a lift passes through the same site more than once)
+- Tallies / Chit consensus:
+- Which parameters are signed in the tally, which can be changed later?
+- Implement what is documented in new protocol
+- Can tolerate network outages
+- Will re-synch chain no matter how many chits got added during outage
+- Need ack/nak added to chit protocol?
+- Ack/naks include chits and/or chain segments as applicable
+?- Need to handle more than one lift per site with the same guid (when a lift passes through the same site more than once)
 - Routes count how many successful lifts they have conveyed
 - Routes refresh their expiration upon last successful lift
-- Does it work to re-probe for an existing (expired, pending or railed) route?
+- Does it work to re-probe for an existing (expired, pending or failed) route?
 - Need a scheduler to do this occasionally (and particularly when necessary)
-- How to trigger a manual signature query if a lift times out?
-- Create function in server to call circular lift function on specified interval
-- 
-
-State Transition Refinements:
-- How to resolve order conflict if two chits are committed at once on the same tally?
--   Foil always relents and reorders?
-- How to determine if end of chain hash matches my peer (our tallies are in sync)
--   Try to acknowledge at end of chit transaction?
--   Or wait for next transaction?
-- Deleting chits properly resets sequence counter in mychips.tallies?
-- Prevent deleting a chit in the middle of a valid chain?
+- Create CRON-type schedule on server to call query/call lift functions on regular interval
+?- Deleting a chit properly resets sequence counter in mychips.tallies?
+?- Prevent deleting a chit in the middle of a valid chain
 - Test/validate retry mechanism (tallies,chits,routes,lifts)
 - Can I mark a chit as refused, some way other than text in the signature?
+?- Do we need a real state variable in chits?
 - Change to aborted state after max number of retries/time (peer.js)
 - 
 
 Server Refinements:
-- Should server launch with fewer default behaviors?
-- Test: can the server recover if the database goes down and back up?
 X- Show graphical view of all users connected via a set of specified SQL servers
-- Server listens for authenticated peer connections
-- Peers can connect and validate
-- Server initiates trade requests
-- 
-
-- Tallies/paths:
-- Which parameters are signed in the tally, which can be changed later?
-X- Consider all tally parameters when computing min/max on segment
-X- Generate min/max/cost in mychips.routes
-X- Compute min/max/cost in mychips.routes_v_lifts
-X- Allow user to generate path request to unknown user
-X- Can differentiate between user-generated path requests and auto-generated
-X- Stored procedure to check for needed retries (routes, tallies, chits)
+- Noise protocol fully integrated
+- Should server launch with fewer default behaviors?
+- Can launch in encrypted or plaintext (for simulations) mode
+- Test: can the server recover if the database goes down and back up?
+- Test SSL connection to postgres
 - 
 
 - Structured Documents:
+?- Generate a digest on publish
+?- Lock the document on publish
 - Build parameterized, local hyperlink from formal URL
 - Export defaults to reasonable filename
 - Contract json import works properly
 - Files in contract folder are Real strdoc json format
 - Bulk export action from dbp?
-- Generate a digest on publish
-- Lock the document on publish
 - When/how do people verify the hash?
 - Integrate document server with SPA server? (or have separate static folder)
-- 
+
 - Strdoc:
 - Can I edit/author documents now?
 - What if I import a document into strdoc and then try to update?  (Do an insert?)
@@ -144,7 +178,7 @@ X- Stored procedure to check for needed retries (routes, tallies, chits)
 - How to serve my documents in HTML-viewable form if .html suffix given to web server
 - Coded errors in wyseman.js get translated "badTuples" "badUpdate" etc
 
-- Reports/strdoc:
+- Reports:
 - Report windows fetch wm object/fields if/when needed from main (make strdoc work)
 - Report windows implement optional control/parameter menu at top
 - Strdoc and/or others put their menu next to the main control menu
@@ -160,18 +194,12 @@ X- Stored procedure to check for needed retries (routes, tallies, chits)
 - Can I easily load them into my own database to keep a local mirror copy?
 - I should have a copy of any contract referenced in any of my tallies (FK reference?)?
 - Make tallies actually reference contracts existing in the DB
-- 
-X- Wyseman DB connection with no schema info should wait/retry for DB to exist rather than failing
-X-   Can then get rid of "npm firstrun" in package.json and doc/Development
-X- Get wysegi working (where does it go)?
-X- Wyseman won't open dbe for chit view (no wmd?)
-- Test SSL connection to postgres
+
+
 - Where to best put:
-X-   Wysegi
 -   WyattERP Admin console
 -   WyattERP User (all available functions in tabs)
 -   Reports work in WyattERP
-X-   clientinfo ajax (wyclif)
 - 
 
 User Agent2 process:
@@ -215,35 +243,21 @@ X- Adjust all subordinate tables to point to the target field
 - Can run equally well from schema source build, or from compiled schema build
 - 
 
-Peer-to-peer:
-X- Socket connections should time out and close after an idle period
-X- Create state diagram for chits
-X- Implement chit state map that runs under standard state interpretor
-- Cache chit totals for each tally, on the fly
-- State diagram for lifts
-- Table for buy/sell preferences
-- Make command handler for peer server
-- Make ssl socket server for peer interface
-- Handle user command to issue stock ticket
-- User agent reads stock ticket, connects to peer
-- Can user stock ticket to establish stock tally with issuing peer
-- Can connect to multiple ID's over same peer server port
-- Separate SSL certificate for each peer connection
-- User initiated commands:
--   Initiate tally with (peer)
--   Send money to (peer)
--   Send invoice to (peer)
--   Set sell target of (issue)
--   Set buy target for (issue)
--   Get balance summary (date)
--   Get income/expense summary (start, end)
+User initiated commands:
+- Initiate tally with (peer)
+- Send money to (peer)
+- Send invoice to (peer)
+- Set sell target of (issue)
+- Set buy target for (issue)
+- Get balance summary (date)
+- Get income/expense summary (start, end)
 - 
 
-- User SPA:
--   Visual balance sheet
--   Can generate, configure keys
--   User can generate tickets for other peers
--   Can register/update buy/sell parameters
+User SPA:
+- Visual balance sheet
+- Can generate, configure keys
+- User can generate tickets for other peers
+- Can register/update buy/sell parameters
 - 
 
 - Admin SPA:
@@ -264,16 +278,17 @@ Wyseman:
 - Is there any use case for a user connecting via regular socket? (native app?)
 -   If so, socket connection needs to use connection tokens/keys just like websocket
 - Make database owned by mychips? (give admin read/write/delete but not create/drop)
+- Extend Wyseman to also accept connections on Noise socket?
 - 
 
-- Preferences:
--   App widget responsible for saving/restoring preference settings
--   Other modules can supply their own prefs defaults until better DB metadata arrives
--   Request wm Language object from app instead of direct from wyseman?
--   Request pr object from app instead of from prefs?
--   Make pdm option for fetching options from database via query (idx,title,help)
--   Make standard shortcut for language (there will be others too)
--   Can now select languages from prefs menu and app updates reactively
+Preferences:
+- App widget responsible for saving/restoring preference settings
+- Other modules can supply their own prefs defaults until better DB metadata arrives
+- Request wm Language object from app instead of direct from wyseman?
+- Request pr object from app instead of from prefs?
+- Make pdm option for fetching options from database via query (idx,title,help)
+- Make standard shortcut for language (there will be others too)
+- Can now select languages from prefs menu and app updates reactively
 - Make standard shortcut for exists, given DB table, column
 - 
 
