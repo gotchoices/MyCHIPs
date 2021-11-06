@@ -2,7 +2,7 @@
 
 ### Peer to Peer Tally Request
 Typically any first-time connection between two sites will be a request for a new tally.
-The only exception to this is if a site is also acting as a 
+A notable exception to this is if a site is also acting as a 
 [Referee](/doc/Protocol.md#referee-queries) in which case it will be
 expected to accept lift timeout queries from essentially anyone.
 

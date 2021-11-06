@@ -13,6 +13,12 @@ become more clear in the process of developing actual source code.  So the
 documents here are often more current and more specific to the way MyCHIPs has
 actually been implemented.
 
+Even so, the design is constantly evolving so even these documents get out of
+date from time to time.  If there is a date at the top, you can see how old it
+might be.  If there are no dates, it is probably older.  As the design stablizes,
+it would be helpful to get these documents updated and better organized into a
+single, more cohesive structure (volunteers?).
+
 ## Sections
 - [Running the Software](Development.md)
 - [System Topology](Network.md)

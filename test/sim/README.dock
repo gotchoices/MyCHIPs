@@ -151,15 +151,16 @@ to launch a single admin console (to site 2 in this case).
 
 Last setup step is to rebuild all the database objects from scratch.  The
 default MyCHIPs server will build a pre-compiled schema by default.  But we 
-would like the simulation to run from our source folder so if you want to tweak 
-the schema, you can see the effect of your changes.  Additionally, this will
-update the database with some helpful configuration settings, such as default 
-host names and ports.
+may want the simulation to run from our source folder so if you tweak the 
+schema, you will see the effect of the change in the simulation.  Additionally,
+this will update the database with some helpful configuration settings, such as 
+default host names and ports.
 
 This actually gets done automatically (if the schema has changed) with each 
 simulation run, but the first time, it can be a little more clear to run it 
 explicitly.  Keep in mind, this can also take a while when run for the first 
-time:
+time.  And in some instances it can fail on the first run so you may have to
+try it twice:
 
   ./simdock dbcheck all
 

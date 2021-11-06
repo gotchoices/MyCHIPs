@@ -1,5 +1,5 @@
 ## MyCHIPs Protocol Description 1.0 (draft)
-July 2021
+July 2021; Copyright MyCHIPs.org
 
 ### TODO
 - Show message class/object diagrams for each protocol?
