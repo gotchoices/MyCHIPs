@@ -284,7 +284,7 @@ manually set certain preferences themselves.  The instruction for changing
 these settings is digitally signed by the user, authorizing the system agent to 
 act in accordance with the settings.
 
-![Trading Variables](Lifts-5.jpg "Visualizing Trading Variables")
+![Trading Variables](figures/Lifts-5.jpg "Visualizing Trading Variables")
 
 Client's (Foil) Trading Variables:
   - **Lift Target** (Vendor -> Client):	Default: 0

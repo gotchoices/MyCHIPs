@@ -49,22 +49,22 @@ Also some older, possibly outdated information here:
 The figures included as .odg files can be opened in LibreOffice or a compatible 
 program and are referenced at times from the documentation files.
 
-This file [chipglass.svg](chipglass.svg):
-<p align="center"><img src="chipglass.svg" width="300" title="Early prototype logo"></p>
+This file [chipglass.svg](figures/chipglass.svg):
+<p align="center"><img src="figures/chipglass.svg" width="300" title="Early prototype logo"></p>
 is an early attempt at a logo for MyCHIPs 
 that indicates its origin in the notion that 
 [time is money](http://gotchoices.org/mychips/whychips.html).
 
-The file [[chip.svg](chip.svg)](chip.svg):
-<p align="center"><img src="chip.svg" width="300" title="Typographical figure"></p>
+The file [[chip.svg](figures/chip.svg)](figures/chip.svg):
+<p align="center"><img src="figures/chip.svg" width="300" title="Typographical figure"></p>
 is a first take at a typographical
 “chip sign” analogous to the “dollar sign” to indicate units of CHIPs. 
 It can easily be hand written by making a “figure 8” with two vertical lines through.
 Alternately, one can write a “backwards 3” (or curly “E”) followed by a closely 
 placed “3” (to approximate an hourglass) and then add the two vertical lines.
 
-The file [[MyCHIPs-logo.ai](MyCHIPs-logo.ai)](MyCHIPs-logo.ai):
-<p align="center"><img src="MyCHIPs-logo.svg" width="800" title="Stylized logo and typographical figure"></p>
+The file [[MyCHIPs-logo.ai](figures/MyCHIPs-logo.ai)](figures/MyCHIPs-logo.ai):
+<p align="center"><img src="figures/MyCHIPs-logo.svg" width="800" title="Stylized logo and typographical figure"></p>
 contains a more stylized logo and monochrome typographical figure.
 
 The intent of this is to make a standard international symbol for a more

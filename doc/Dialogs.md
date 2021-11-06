@@ -13,7 +13,7 @@ Connections associated with tally requests are conducted as follows:
   The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
   For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
 
-<p align="center"><img src="Lifts-6.jpg" width="300" title="Example Network"></p>
+<p align="center"><img src="figures/Lifts-6.jpg" width="300" title="Example Network"></p>
 
 - The ticket contains:
   - User A3's CID, the unique location identifier (```user_3@Site_A```) where to connect to do business with user A3;

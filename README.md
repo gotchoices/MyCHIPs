@@ -1,7 +1,7 @@
 # MyCHIPs
 MyCHIPs is an open-source network protocol for implementing a novel kind of digital money based on private credit and quantified in units of [CHIPs](http://gotchoices.org/mychips/definition.html):
 
-The CHIP Symbol: <img src="doc/chip.svg" alt="A CHIP" height="30"/>
+The CHIP Symbol: <img src="doc/figures/chip.svg" alt="A CHIP" height="30"/>
 
 This is *not* a Bitcoin/blockchain derivative, but rather a whole new (and yet [very old](https://www.bbc.com/news/business-40189959)) approach that solves several notorious problems with public blockchain systems.
 Most notably, it is more [fully distributed](https://blockchainengineer.com/centralized-vs-decentralized-vs-distributed-network/) and infinitely scalable.

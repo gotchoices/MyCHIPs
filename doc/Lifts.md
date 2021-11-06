@@ -6,7 +6,7 @@ For a better understanding of the lift algorithm, consider first reading
 
 As we discuss the alorithm, we will refer to the following figure:
 
-![A Simple Lift](Lifts-1.jpg "Visualizing a Lift With Four Participants")
+![A Simple Lift](figures/Lifts-1.jpg "Visualizing a Lift With Four Participants")
 
 This example considers four trading entities.  In this example, there are two people
 and two companies.  The arrows indicate the normal flow of credits, or credit
@@ -177,7 +177,7 @@ participate in a lift to relieve built up credits so they can keep going.
 
 But there is another kind of lift possible and it travels in a straight line.  
 
-![A Linear Lift](Lifts-2.jpg "A Lift to Transmit Value")
+![A Linear Lift](figures/Lifts-2.jpg "A Lift to Transmit Value")
 
 In this example, entity D meets entity A through some trading opportunity (like
 an online auction site, for example).  Due to the reputation of the site, D
@@ -250,7 +250,7 @@ parties along that pathway.
 
 For example, let us consider the following set of connected users:
 
-![A Distributed Lift](Lifts-3.jpg "A Lift That Occurs Across Multiple Databases")
+![A Distributed Lift](figures/Lifts-3.jpg "A Lift That Occurs Across Multiple Databases")
 
 We certainly know about our own users A, and B.  We also know some things about
 users C and D.  But we don't really know who C and D are connected to in the
@@ -374,7 +374,7 @@ Model Requirements (in general terms):
 Let us assume we have the following set of users hosted on four different systems:
 lux0, lux1, lux2, and lux3:
 
-![A Simple Lift](Lifts-4.jpg "Visualizing a Lift With Four Participants")
+![A Simple Lift](figures/Lifts-4.jpg "Visualizing a Lift With Four Participants")
 ```
 Native:                 (On david_meese's system: lux1)
   Route Entity:         p1004: kathleen_ramsey@lux0             route_ent
@@ -533,8 +533,8 @@ reasonable retries and know when to give up.
 ### Lift States
 It was originally assumed that the lift would be implemented in its own state 
 machine, just like the tally, chit, and route states shown in the accompanying 
-States.odg file.  Then it was noted that a lift really just consists of chits 
-so why not just extend the chit state diagram to implement lifts?
+figures/States.odg file.  Then it was noted that a lift really just consists of 
+chits so why not just extend the chit state diagram to implement lifts?
 
 Problem is, a lift is really a set of chits, all linked by a single uuid.  And
 all those chits that belong to the same system will need to act in a single, 
