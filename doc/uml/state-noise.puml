@@ -1,0 +1,31 @@
+@startuml
+!include common.puml
+
+$title(NPF Connection States)
+[*] --> none
+
+none:  No Peer Connection
+state killable {
+  ticket: Server awaits DB query
+  id: Server has peer identity
+  request: Server awaits key query
+  pending: Client awaits ack from server
+  open:  Open for transactions
+}
+
+'State transition rules:
+none -[$peer]-> ticket: $trans($peer,Receive client request I, Query Ticket)
+ticket -[$db]-> none: $trans(DB,Ticket not valid)
+ticket -[$db]-> open: $trans(DB,Ticket valid, Send Acknowledge)
+
+killable -up-> none: $trans(Timer,Timeout elapsed, Close connection)
+
+none -[$peer]-> id: $trans($peer,Receive client identity N)
+id -[$peer]-> request: $trans($peer,Receive client request K, Query for site key)
+request -[$db]-> open: $trans(Query, Noise decrypts OK and tally current, Send Acknowledge)
+request -[$db]-> none: $trans(DB, Noise fails or tally not valid/current)
+
+none --> pending: $trans($peer, I have sent a request for connection)
+pending -[$peer]-> open: $trans($peer, Received confirmation)
+
+@enduml

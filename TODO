@@ -1,5 +1,38 @@
 TODO:
 
+Immediate:
+X- Integrate DSR phase-1 work into source tree
+X- Why can't user UI connect to sim spa hosts?
+X- Set user host/port and peer port correctly on simulated hosts
+X- Can view/modify/render .puml diagrams
+X- Edit Tally, Lift documents, include diagrams
+X- Make a sequence diagram for each use case
+X- Port state diagrams to puml
+X- Make chit consensus sequence/state diagrams
+X- Make a master protocol document/folder to hold all diagrams
+- Noise branch:
+X-   Implement framing in old peercomm
+X-   Verify: simulation still runs OK
+X-   Merge noise branch
+- Back to master branch:
+-   Review documentation folder, organize more cohesively
+-   Topics addressed once and cross-linked
+-   Figures in a subfolder
+-   Design: what is a CID?
+-     User portion can be: username, hashed (obscured) username
+-     Address portion can be: domain[:port], IP[:port], originKey ...
+-     How to make a mychips URI - complete specification
+-   Modify mychips.js to select encrypted or raw modes
+-   Modify simulation to use raw mode by default
+-   Set encrypted as new default
+-   Simulation still runs OK (using default raw or encrypted)
+- 
+X- Extend Wyseman client side to communicate over websockets
+- Extend Wyseman to receive connections on TCP socket?
+- Make command-line user interface?
+- Integrate DSR patches into simulation folder?
+- 
+
 General roadmap:
 X- Public Proof-of-Concept release
 X- Iterate on TLA+ modeling until protocol is sufficiently safe/live

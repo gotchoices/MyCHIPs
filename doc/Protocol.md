@@ -1,5 +1,5 @@
 ## MyCHIPs Protocol Description 1.0 (draft)
-July 2021
+July 2021; Copyright MyCHIPs.org
 
 ### TODO
 - Show message class/object diagrams for each protocol?
@@ -66,10 +66,24 @@ This introduces the notion of a *site* which typically represents a single datab
 The term *node* will get used in a more generic way, possibly referring to an entity, a site, or a set of users (a <i>segment</i>) within a site, depending on the context.
 The term *server* may be used sometimes as roughly synonymous with *site.*
 
+### Protocol Layers
+This document is defining the **protocol** whereby nodes communicate with each other to:
+- Establish tallies (formalized trading relationships) between entities
+- Send value via direct Chits on a single tally
+- Discover potential lift pathways through the network
+- Execute distributed lifts across the network
+
+In addition, we will cover the following which might be considered as sub-protocols:
+- Gaining consensus between two entities sharing a tally as to the order of chits on the tally
+- Communicating with a Referee nominated to call time on a lift transaction
+
+At a lower level, sites will communicate with each other over an encrypted secure connection which uses
+[Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail in [this document](/doc/Dialogs.md).
+
 ### Tally Use Cases
 A tally is established when two parties decide to formalize a relationship of trust between them using the MyCHIPs protocol.
 
-![use-tally](uml/use-tally.svg)]
+![use-tally](uml/use-tally.svg)
 
 Here is some additional detail pertaining to these four use cases:
 - **Be My Vendor**:
