@@ -15,16 +15,23 @@ X-   Implement framing in old peercomm
 X-   Verify: simulation still runs OK
 X-   Merge noise branch
 - Back to master branch:
--   Review documentation folder, organize more cohesively
--   Topics addressed once and cross-linked
--   Figures in a subfolder
--   Design: what is a CID?
--     User portion can be: username, hashed (obscured) username
--     Address portion can be: domain[:port], IP[:port], originKey ...
--     How to make a mychips URI - complete specification
+X-   Review documentation folder, organize more cohesively
+X-   Topics addressed once and cross-linked
+X-   Figures in a subfolder
+X-   Design: what is a CID?
+X-     User portion can be: username, hashed (obscured) username
+X-     Address portion can be: domain[:port], IP[:port], originKey ...
+X-     How to make a mychips URI - complete specification
+-   Modify schema:
+-     Each user references a single proctor key
+-     Table for proctor keys: cache current portal information
+-     Launch server with specific proctor key and portal
+-     PeerNoise publishes our correct portal to peers
+-     Does simulation still work?
 -   Modify mychips.js to select encrypted or raw modes
--   Modify simulation to use raw mode by default
--   Set encrypted as new default
+-   PeerNoise module reports peers who connect from non-matching portals
+-   Modify simulation to invoke raw mode by default
+-   Set encrypted as new server default
 -   Simulation still runs OK (using default raw or encrypted)
 - 
 X- Extend Wyseman client side to communicate over websockets
