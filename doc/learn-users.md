@@ -24,7 +24,7 @@ might warrant.
 
 The result is, individuals could potentially join the MyCHIPs network in multiple
 different locations, each one with a different set of trading relationships.
-But in case they develop sufficient real-world reputation to earn a non-zero credit
+But unless they can develop sufficient real-world reputation to earn a non-zero credit
 limit, they will be very limited in the kind of damage they can inflict.
 
 ### Site Addresses

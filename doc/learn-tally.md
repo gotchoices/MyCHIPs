@@ -296,13 +296,13 @@ Client's (Foil) Trading Variables:
     here constitutes value savings by the Client in the currency of the 
     Vendor--something he must accept in payment or as part of a future drop.
 
-  - *Lift Limit*: (Foil bound)		Default: Debit Limit (dr_limit)
+  - **Lift Limit**: (Foil bound)		Default: Debit Limit (dr_limit)
     This can exceed the dr_limit setting in the tally to allow higher 
     indebtedness of Vendor to Client, occurring as the result of a lift.  No 
     lifts should be performed which would result in a balance more negative
     than this amount.
 
-  - *Lift Margin*: (Foil reward)	Default: 0
+  - **Lift Margin**: (Foil reward)	Default: 0
     This indicates Client's willingness to conducts lifts through this Foil.
 
     The number 0 is neutral, meaning zero cost.  A positive number
