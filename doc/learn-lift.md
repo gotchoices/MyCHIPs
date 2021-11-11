@@ -663,3 +663,6 @@ from below.  In this case, the destination is either A or B:
     - Circular or Linear, we treat it the same.  Compute the best local
       segment and pass the lift on to the best possible route anchored on
       that segment.
+
+<br>[Next - Network Topology](learn-network.md)
+<br>[Back to Index](README.md#contents)

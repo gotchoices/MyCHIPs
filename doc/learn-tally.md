@@ -33,7 +33,7 @@ balance and the foil to accrue a debit (positive) balance.  This makes the
 terms stock (Vendor) and foil (Client) potentially less clear in terms of who 
 becomes the creditor (Recipient) and who is the debtor (Issuer).  However, we will
 still use the terms Stock and Foil because it is helpful to differentiate the 
-two ends of the credit relationship when computing lifts and drops.
+two ends of the credit relationship when computing [lifts](learn-lift.md) and drops.
 
 If two parties truly have a completely bilateral trading arrangement, they
 might just assign Stock and Foil at random.  Or they may choose to establish
@@ -583,3 +583,6 @@ If a chit includes a hash and a chain index, it has been added to the local
 hash chain.  But it might not yet be verified.  If its index is less than or
 equal to the "verified" field of the tally, then it is verified and should be
 considered irrevocable.
+
+<br>[Next - The Credit Lift](learn-lift.md)
+<br>[Back to Index](README.md#contents)

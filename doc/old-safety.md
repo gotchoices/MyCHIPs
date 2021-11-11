@@ -3,7 +3,7 @@ Written July 2020
 
 ### Context (Fall 2021):
 This was written after the [DSR testing](/test/analysis/dsr), but before the
-[revised protocol](/doc/Protocol.md) was designed and documented.
+[revised protocol](learn-protocol.md) was designed and documented.
 The Transaction Manager mentioned below was boiled down to the concept of
 a Referee mentioned in the new protocol.
 This [appears to be](/test/analysis/byu) the minimal amount of centralization 

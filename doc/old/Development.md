@@ -220,7 +220,7 @@ URL into a browser to connect to the User (as opposed to admin) UI.
   reissue a connection token using the procedure above.  The admin user can issue
   connection tokens for other users using the admin GUI.
   
-#### URL Tickets:
+### URL Tickets:
   It is also possible using the -Q switch to make adminticket produce a URL which
   you can connect to directly, eliminating the need to import a key file into the
   UI as described above.  Something like:

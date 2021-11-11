@@ -184,3 +184,6 @@ Automated:
 Admin Initiated:
   - Add new user
   - Issue ticket inviting a user to connect/validate keys
+
+<br>[Next - Hacking](work-noise.md)
+<br>[Back to Index](README.md#contents)

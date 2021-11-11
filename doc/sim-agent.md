@@ -1,4 +1,20 @@
-## Objectives for User Agent Model:
+## Agent Model
+Most of this file was created before the agent model was coded and so primarily
+expresses design objectives.
+
+In conjunction with the various iterations of the simulation environments, several
+versions of the agent model have been coded, or are in process.  These versions
+are located in the lib directory and invoked from the test/sim/agent script.
+
+Versions 1 and 2 are very rudimentary and were coded and used to validate the 
+early lift algorithm.
+
+Version 3 is the subject of a BYU Capstone project (2021/2022) and will hopefully
+incorporate many more of the features outlined below.  The specific project 
+objectives are outlined [here](Project/Agent_Model.md).
+
+
+## Objectives for User Agent Model
 Jan 2019 (Some information may be outdated)
 
 This is not a part of the production MyCHIPs server, but rather a tool to aid
@@ -42,3 +58,6 @@ Lifts:
   - Request foil chits needed in trade
   - Output queries necessary to populate database of links/pathways
   - Respond to such queries
+
+<br>[Next - Learning About the Software](learn.md)
+<br>[Back to Index](README.md#contents)

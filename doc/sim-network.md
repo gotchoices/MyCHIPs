@@ -1,6 +1,6 @@
-Network Simulation:					(Try 2)
--------------------------------------------------------------------------------
-The network simulation is implemented by the simnet script to launch various 
+##Network Simulation
+
+The network simulation (try 2) is implemented by the test/sim/simnet script to launch various 
 MyCHIPs services on a number of different machines.  The goal is to simulate a
 small working MyCHIPs network environment so as to analyze/implement the lift
 algorithm.
@@ -44,7 +44,7 @@ simulation that are not important for other functions.  For example, you can
 create a bunch of virtual machines in the cloud that don't really do much
 except to run your simulations.
 
---- Configuration:
+### Configuration
 The config.net file in this folder controls how simulations will run.  It 
 includes a definition "remotes" which tells the hostnames or IP numbers of the 
 machines we will use as hosts for the simulation.  The assumption with remotes 
@@ -66,7 +66,7 @@ The configuration file is also able to read a local config file (config.local)
 if it is present.  Anything in config.local should override the defaults in 
 config.
 
---- Mongo Database:
+### Mongo Database
 The simulation uses a separate database to model the "real world" where users
 meet independent of the MyCHIPs network protocol.  For example, in the real
 world, two users would meet and exchange information via their devices to
@@ -77,32 +77,35 @@ machines.
 
 So you need to have a mongod running somewhere.  Also, it needs to be configured
 as a replica set master.  In mongod.conf, do:
-
+```
 :replication
   replSetName: rs0
-
+```
 or on the command line, include --replSet rs0.
 
 When first connecting to the database, you must issue the command:
-
+```
   rs.initiate()
-
---- Certificates:
+```
+###Certificates
 Each machine or virtual machine must have appropriate certificates.  For the
 simulation, these are drawn from the pki/local folder.  You can initialize a
 single machine with the command:
-
+```
   npm run init
-
+```
 That works for the machine you are running the command on, but you must also 
 generate (at least spa) certificates for all the other machines in your 
 simulation.  This can be done with something like:
-
+```
   npm run cert -- -t spa lux1.%		#Where 'lux1' is a hostname
-
+```
 Run this once for each machine in your simulation so the server for that
 machine will be able to find it's certificate.  
 
 Keep in mind, these servers are running with self-signed certificates.  You
 will have to import the spa-ca.crt certificate into your browser (and/or os)
 in order to access the admin console without a security warning.
+
+<br>[Next - Local Simulation](sim-local.md)
+<br>[Back to Index](README.md#contents)
