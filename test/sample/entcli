@@ -8,7 +8,9 @@
 //   entcli -a mychisp0 -c ../pki/local/spa-ca.crt						//Connect using an established key
 // -----------------------------------------------------------------------------
 // TODO:
-//- Adapt to use Wyseman library class
+//X- Adapt to use Wyseman library class
+//- Save vault file encrypted
+//- Can decrypt vault file
 //- 
 const Yargs = require('yargs')			//Command line processing
 const Readline = require('readline')		//Read/write command line
@@ -29,9 +31,8 @@ var argv = Yargs				//Process command line
   .alias('w', 'wsPort')		.default('wsPort',	54320)				//Websocket port
   .alias('u', 'user')		.default('user',	process.env.USER)		//Username to connect as
   .alias('v', 'vault')		.default('vault',	Path.join(Homedir, '.mychips_keys'))	//Where to store my connection key
-  .alias('s', 'secret')				//A cipher to encrypt the private key
+  .alias('s', 'secret')		.default('secret',	'my secret')			//A phrase to encrypt the private key
   .alias('c', 'caFile')				//Certificate Authority file
-  .alias('k', 'key')				//Persistent connection key
   .alias('t', 'ticket')				//One-time connection ticket
   .argv
 log.debug("argv:", argv)
@@ -58,7 +59,7 @@ if (argv.ticket) {					//Connecting via a one-time ticket
   }
 log.debug("Ticket credentials:", credential)
 
-} else if (Fs.existsSync(argv.vault)) {			//If we have a saved connection key from before
+} else if (Fs.existsSync(argv.vault)) {			//If we have a saved connection key
   let vaultText = Fs.readFileSync(argv.vault)
   let vaultObj
   if (vaultText) try {vaultObj = JSON.parse(vaultText)} catch(e) {	//Parse it to a JSON object
@@ -93,13 +94,17 @@ rl.setPrompt("> ")					//Set our prompt
 
 let wmClient = new Wm.Client(config)			//Instantiate our connection to the backend
 
+wmClient.on('password', () => {			//Call this when an encrypt/decrypt password is needed
+  return argv.secret
+})
+
 wmClient.on('key', cred => {				//Call this when a key generated
 log.debug("Writing connection key to vault:", argv.vault)
   Fs.writeFileSync(argv.vault, JSON.stringify(cred))	//Store my key for later use
 })
 
 wmClient.on('error', err => {				//Error handler
-  log.debug("Websocket connection error:", err.stack)
+  log.debug("Websocket connection error:", err.message)
 })
 
 wmClient.connect(credential, ws => {			//Start a connection
