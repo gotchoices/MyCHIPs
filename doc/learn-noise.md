@@ -16,10 +16,10 @@ Connections associated with tally requests are conducted as follows:
 <p align="center"><img src="figures/Lifts-6.jpg" width="300" title="Example Network"></p>
 
 - The ticket contains:
-  - User A3's CID, the unique location identifier (```user_3@Site_A```) where to connect to do business with user A3;
+  - User A3's CHIP address (CHAD), the unique location identifier (```user_3@Site_A```) where to connect to do business with user A3;
   - An expiring, one-time token, authorizing connection without any other key information
     - The token will internally specify that it is for establishing a new tally
-    - The token may optionally be limited to the specific CID of User B1
+    - The token may optionally be limited to the specific CHAD of User B1
   - The token expiration date;
   - The public key of the issuing (A) site;
 
@@ -29,8 +29,9 @@ Connections associated with tally requests are conducted as follows:
     - The connection token;
     - The public key of site B;
     - An object (certificate) containing contact information about User B1 including;
-      - CID
-      - Public Key
+      - CHIP ID
+      - Agent ID
+      - User's public Key
       - Name, address, email, other identifying data
 
   If site A can decrypt this message, and the token is still valid, it will:

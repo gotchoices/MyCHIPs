@@ -4,6 +4,8 @@ July 2021; Copyright MyCHIPs.org
 ### TODO
 - Show message class/object diagrams for each protocol?
 - Expand state machines to handle retries?
+- Update to protocol 1.0 features
+- Lift chits signed by referee now
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.

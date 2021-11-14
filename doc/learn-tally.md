@@ -1,9 +1,8 @@
 ## Tallies
 February 2020
 
-A tally is, at its essence, a contract between two parties.  By the tally, they 
-agree to "keep track" of a net amount owing between them, on mutually 
-acceptable terms.
+A tally is, at its essence, a contract between two parties.  Using the tally, the parties
+agree to "keep track" of a net amount owing between them, on mutually acceptable terms.
 
 The MyCHIPs digital tally is modeled after the historical
 [split tally,](https://www.bbc.com/news/business-40189959)
@@ -25,8 +24,7 @@ It might help to remember that C is near F and V is near S in the alphabet:
 
 Perhaps the biggest functional difference with a MyCHIPs tally is, unlike its
 wooden predecessor, it can easily be amended by adding new credits or debits.
-It is a living ledger, keeping constant track of what is owed by one party to
-another.
+It is a living ledger, keeping constant track of what is owed by one party to the other.
 
 As a consequence, it is also possible for the stock to accrue a credit (negative) 
 balance and the foil to accrue a debit (positive) balance.  This makes the 
@@ -80,7 +78,7 @@ Each setting includes:
   - Signature of the modifying party
 
 Tally data and chits must be duplicated exactly on the Stock and Foil.  
-However, the settings reside only with one side and are controlled by the owner of that half of the tally.
+However, certain settings may reside only with one side and are controlled by the owner of that half of the tally.
 They tell the site agent how to execute lifts on behalf of the owner.
 
 ### Credit Terms
@@ -388,36 +386,28 @@ If successful, a linear lift can be initiated to complete the payment.
   
 ### Establishing a Tally
 A MyCHIPs server will never accept a connection from anyone it doesn't already know about.
-So if two parties want to create a tally between them, one of the parties will have to issue a connection token to the other.
+So if two parties want to create a tally between them, one of the parties will have to issue a connection ticket to the other.
 Like an invoice, this information must be passed out-of-band.
 
-The party who initiates the tally would create a draft tally on his own system and then issue a connection token to be used by the other party.
+The party who initiates the tally would create a draft tally on his own system and then issue a connection ticket to be used by the other party.
 In the case of a commercial account like a retailer or restaurant, for example:
 
-- The Vendor would display or transmit a ticket QR code, containing (SOME INFORMATION HERE OBSOLETE):
-  - The name or IP address of the system that hosts the recipient's CHIP account
-  - A connection socket endpoint for the recipient's host system
-  - A connection authorization token:
+- The Vendor would display or transmit a ticket QR code, containing:
+  - Vendor's full CHIP Address:
+    - CHIP ID (username)
+    - Agent ID (Agent's public connection key)
+    - Connection host/IP
+    - Connection port
+  - A connection ticket:
+    - Contains an authorization token
     - May be configured to expire after a one-time use
     - May be configured for multiple use by multiple parties (printed decal)
-  - The Vendor's host's public key
-  - The vendor's MyCHIP ID
-  - The vendor's MyCHIP certificate (ChipCert), containing
-    - Vendor's public key
-    - Vendor's uniquely identifying information
-      - Name
-      - Address
-      - Email
-      - Town
-      - Province
-      - Country
-      - Jurisdiction
-      - Tax ID (at creditor's option)
+  - The vendor's signature public key
 
 - The customer scans the ticket using his app
-- The customer's host contacts the Vendor's host system at the specified port
+- The customer's host agent contacts the Vendor's host agent system at the specified port
   and presents the connection token.
-  The system must prove its authenticity via the public key it supplied in the ticket.
+  The system must prove its authenticity via the public agent key it supplied in the ticket.
 - The two systems exchange/update account information for the two users.
 - The Vendor's system will offer the draft tally (or a clone of it when the token is meant to handle multiple connections).
 - The user will be given the opportunity to accept/modify/reject the tally.
@@ -426,13 +416,60 @@ In the case of a commercial account like a retailer or restaurant, for example:
   Vendor's end would have to re-sign the tally (assuming they are willing to) before the tally becomes active.
 
 Once the tally is established, the customer can [set parameters](#trading-variables) on the tally to
-collect Vendor credits, if so desired.
+collect extra Vendor credits, if so desired.
 Once collected, those credits can be spent.
 
 If credit has been extended to the customer as part of the tally, the customer
 can begin to buy things using the tally as payment, within the specified credit terms.
 
+### Entity Certificates
+Part of the information encapsulated and digitally signed within a tally includes a
+CHIP certificate (CHIPCert).  The certificate has several purposes:
+  - To provide information about the entity that identifies him to the satisfaction
+    of the trading partner.  For example, some partners may require a certificate
+    containing a Tax ID number (like a Social Security Number in the US).  Less formal
+    relationships might only require a name and email address.  Fields are optional
+    but should be sufficient (in the judgement of the partner) to establish identify in
+    an unmistakable way.
+  - To provide sufficient information to the host system to uniquely identify the
+    entity.  MyCHIPs will primarily rely on the CHIP ID, Agent ID and peer
+    private key to determine a unique entity.  But the database should also contain
+    valid entity names and an email address.
+  - To identify how/where to contact the agent who acts officially on behalf of the
+    MyCHIPs user.
+    
+The CHIP certificate (CHIPCert), contains:
+  - CHIP ID
+  - Agent ID
+  - Signature public key
+  - Other identifying information
+    - Entity name	(company name or person's family name)
+    - Given name(s)	(individuals)
+    - Domain		(companies)
+    - Email		(individuals)
+    - Address		(optional)
+    - Country		(optional)
+    - National ID	(optional)
+
+At any given time, a given entity should ideally have a single one of:
+  - CHIP ID
+  - Agent ID
+  - Signature public key
+
+Otherwise, an agent site might not recognize it as the same entity and therefore
+might create a duplicate entity record.
+
+If changes need to be made to the CHIP ID or Agent ID, this should be authorized by a
+record signed by the peer's signature key.  If the signature key needs to be changed
+this should probably be done by disabling all old tallies (close request), creating new 
+tallies with the new signature key, and then moving remaining credits over from the old 
+tallies to the new tallies that include the new signature key.
+
+This way, trading partners will necessarily be involved in the process of moving to a
+new signature key.
+
 ### Pathways
+(Version 0 protocol)
 The admin tool includes a network visualization tool that shows all users local
 to the site, known foreign peers, and the tallies that interconnect them.  Each
 database will store both a stock and a foil that connect local users to each
@@ -449,10 +486,10 @@ The goal is to show the effect on each user's trading variables (see
 above) on the capacity "lading" of each segment of the network to carry lifts.
 
 Specifically, we boil the trading variables down to four lift parameters:
-- lift_target
-- lift_bound
-- lift_reward
-- lift_margin
+  - lift_target
+  - lift_bound
+  - lift_reward
+  - lift_margin
 
 The target, bound and reward are identical in meaning to the foil trading
 variables by the same name.  The margin, however is a result of the clutch
@@ -460,10 +497,10 @@ value from the corresponding stock.  The idea is, it represents the cost
 charged by the stock holder (usually 0) for doing a lift through this segment.
 
 There are also four corresponding values for drops (lifts in the opposite direction):
-- drop_target
-- drop_bound
-- drop_reward
-- drop_margin
+  - drop_target
+  - drop_bound
+  - drop_reward
+  - drop_margin
 
 The first three are a result of the corresponding stock trading variables.
 The drop margin comes from the foil clutch value (a cost asserted by the foil
@@ -491,6 +528,7 @@ During route discovery (see Lift document), these values are queried in order
 to determine lading capacity through pathways that span across multiple sites.
 
 ### Chit Chains
+(Version 0 protocol)
 One of the challenges of a distributed system is to keep different copies of 
 important data in sync across systems.  This is where parts of blockchain 
 technology will be helpful to us.
@@ -563,6 +601,7 @@ move your latest valid index number forward (but not back) to that number.
 See [this section](Lifts.md#lift-states) for more on treatment of chits that belong to a lift transaction.
 
 ### Chit States
+(Version 0 protocol)
 The state of a chit can be looked at from several different angles, depending 
 on what is needed.
 

@@ -10,7 +10,7 @@ X- Make a sequence diagram for each use case
 X- Port state diagrams to puml
 X- Make chit consensus sequence/state diagrams
 X- Make a master protocol document/folder to hold all diagrams
-- Noise branch:
+X- Noise branch:
 X-   Implement framing in old peercomm
 X-   Verify: simulation still runs OK
 X-   Merge noise branch
@@ -23,9 +23,12 @@ X-     User portion can be: username, hashed (obscured) username
 X-     Address portion can be: domain[:port], IP[:port], originKey ...
 X-     How to make a mychips URI - complete specification
 -   Modify schema:
--     Each user references a single proctor key
--     Table for proctor keys: cache current portal information
--     Launch server with specific proctor key and portal
+X-     Each user references a single agent key
+X-     Table for agent keys: cache current portal information
+-     Automatically build default agent key
+-     Default site agent key in parameter table?
+-     Launch server with specific (or default) agent key and portal
+-     How would admin normally assign agent keys to individual users?
 -     PeerNoise publishes our correct portal to peers
 -     Does simulation still work?
 -   Modify mychips.js to select encrypted or raw modes

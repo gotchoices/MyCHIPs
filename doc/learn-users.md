@@ -62,19 +62,18 @@ MyCHIPs includes two important objectives:
 MyCHIPs data is designed to work with or without DNS.  And user addresses are meant
 to be private unless and until the owner chooses to make them known.
 
-### CHIP Identifier
+### CHIP Addresses
 On the MyCHIPS network, entities (people and companies) are referred to by a
-CHIP Identifier (CID) which is normally a unique combination of a:
-- Username; and
-- Agent ID
+CHIP Identifier (CID) which can best be thought of as a unique username on their
+host system.  It is analogous to the first part of an email address--the part prior
+to the '@' symbol.
 
-The username can be any string that is uniquely recognized within the site hosting
-the user's account.  The agent ID (or just "agent") is a public key that will be
-used in verifying the authenticity of the data once a peer makes a connection to the
-user's account.
+In most cases, the CID will be combined with an agent ID (or just "agent") that
+represents the public key of a server process that handles business on behalf of
+the MyCHIPs user.
 
-The username and agent are typically separated by a colon (:) and might look
-something like this:
+Together, the CID and agent form a more complete MyCHIPs address that may be
+presented like this:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE
 ```
@@ -85,12 +84,12 @@ In this context, it simply means a software service that acts on behalf of one o
 users on a host site.
 
 ### Portals
-Notably, the CID is missing any kind of location information that might help us
+Notably, the CHIP address is missing any kind of location information that might help us
 find this user on the Internet.  That is by design to facilitate a greater degree of
 privacy and decentralization.
 
 But a MyCHIPs user will have to divulge location information of some kind--at least
-to his expected trading partners.  So there is more we can add to the CID to make
+to his expected trading partners.  So there is more we can add to the CHIP address to make
 it clear where other users can connect.
 
 This additional information consists of a regular host address and a port number,
@@ -99,7 +98,7 @@ also separated by a colon as in:
   mychips.org:57423
 ```
 We put these two pieces of information together, separated by an '@' symbol, to form 
-a more explicit CID as in:
+a more explicit address as in:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
@@ -111,8 +110,8 @@ This also provides the potential for adding additional parameters in an optional
 query string.  This might include things like a connection token, a peer name, or
 other applicable information.
 
-The CID (and other MyCHIPs message components) may optionally be encoded as a
-JSON structure.  For example, we might also see a CID presented as something like:
+The CHIP address (and other MyCHIPs message components) may optionally be encoded as a
+JSON structure.  For example, we might also see a CHIP address presented as something like:
 ```
   {
     user: suzie,
@@ -126,7 +125,7 @@ That is, an agent with a particular key value should be reachable on a single po
 And a portal address should serve one and only one agent.
 
 ### Obscured Usernames
-The CID convention also allows a username to be made more private by specifying it
+The CHIP address convention also allows a username to be made more private by specifying it
 as a hash that only the host site will recognize.  For example, a user might be
 asked to send money to an address such as:
 ```
@@ -157,7 +156,7 @@ some peer site along the way to recognize the username and domain address and
 already know the correct agent key and port number.
 
 This form also has the desirable side effect of allowing certain sites to correlate
-CID's directly with their users' email addresses.
+CHIP addresses directly with their users' email addresses.
 
 ### Site Addresses
 In some parts of the protocol, it may be helpful to specify the agent and portal

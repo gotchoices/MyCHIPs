@@ -8,7 +8,17 @@ If you plan to do any [programming](work-hacking.md) on any of the support libra
 find it helpful for this folder to be used **only for MyCHIPs.**
 Otherwise, you can put the source wherever you like.
 
-Clone the source code from the [github repository](github.com/gotchoices/mychips).
+The software depends on [Node.js](http://nodejs.org) of at least version 16.
+You can check your current version with:
+```
+  node -v
+```
+If you need to upgrade, a quick and easy way is:
+```
+  sudo npm install -g n
+  sudo n stable
+```
+Now clone the MyCHIPs source code from the [github repository](github.com/gotchoices/mychips).
 If the folder gets created as "MyCHIPs" (because you copied the github clone link) rather than 
 "mychips", it may cause some problems on some platforms, so consider renaming it to "mychips."
 ```
