@@ -5,12 +5,12 @@
 // -----------------------------------------------------------------------------
 // Usage examples:
 //   entcli -a mychips0 -c ../pki/local/spa-ca.crt -t ../test/local/admin.json -u admin		//Connect with a one-time token (must specify the username)
-//   entcli -a mychisp0 -c ../pki/local/spa-ca.crt						//Connect using an established key
+//   entcli -c ../pki/local/spa-ca.crt						//Using an established key
+//   entcli -v ../test/local/my-saved-key-file.json -s 'My secret passphrase'	//Using an encrypted key exported from another UI
 // -----------------------------------------------------------------------------
 // TODO:
-//X- Adapt to use Wyseman library class
-//- Save vault file encrypted
-//- Can decrypt vault file
+//X- Save vault file encrypted
+//X- Can decrypt vault file
 //- 
 const Yargs = require('yargs')			//Command line processing
 const Readline = require('readline')		//Read/write command line
@@ -36,22 +36,25 @@ var argv = Yargs				//Process command line
   .alias('t', 'ticket')				//One-time connection ticket
   .argv
 log.debug("argv:", argv)
-
-let { user, wsPort, address } = argv			//More convenient variable names
-let credential = {host:address, port: wsPort, user}	//Will be passed to connection builder
 config.httpPort = argv.httpPort
+
+let credential = {host:argv.address, port: argv.wsPort, user: argv.user}	//Will pass to connection builder
+  , text2json = function(text) {		//Parse text to a JSON object
+      let json = {}
+      if (text) try {json = JSON.parse(text)} catch(e) {
+        log.error("Parsing ticket JSON: ", text)
+      }
+      return json
+    }
 
 if (argv.ticket) {					//Connecting via a one-time ticket
   let tText = Fs.readFileSync(argv.ticket)		//Grab the ticket text
-  let obj
-  if (tText) try {obj = JSON.parse(tText)} catch(e) {	//Parse it to a JSON object
-    log.error("Parsing ticket JSON: ", tText)
-  }
+    , obj = text2json(tText)
   if (obj.ticket) {				//JSON does contain a ticket property
-    let t = obj.ticket				//Some credential properties come from the ticket
-    credential.token = t.token
-    credential.host = t.host
-    credential.port = t.port
+    let ticket = obj.ticket			//Some credential properties come from the ticket
+    credential.token = ticket.token
+    credential.host = ticket.host
+    credential.port = ticket.port
     if (!credential.user) log.error("Must provide a username on the command line")
     
   } else {
@@ -61,29 +64,16 @@ log.debug("Ticket credentials:", credential)
 
 } else if (Fs.existsSync(argv.vault)) {			//If we have a saved connection key
   let vaultText = Fs.readFileSync(argv.vault)
-  let vaultObj
-  if (vaultText) try {vaultObj = JSON.parse(vaultText)} catch(e) {	//Parse it to a JSON object
-    log.error("Parsing key JSON: ", vaultText)
-  }
-  if (vaultObj.login) {					//The vault contains a login object
-    let loginObj = vaultObj.login
-    credential.key = loginObj.key
-    credential.host = loginObj.host			//Get server address from vault
-    credential.port = loginObj.port			//Get websocket from vault
-    credential.user = loginObj.user			//Get username from vault
+  credential = text2json(vaultText)
 log.trace("Loaded credentials:", credential)
-  } else {
-    log.error("Could not import saved key:", vaultObj)
-  }
 
 } else {	//User didn't specify -t or -v
-  console.log("No connection token or key found!")
+  console.log("No connection token or key credentials found!")
   process.exit(1)
 }
 
-if (argv.caFile) {
+if (argv.caFile)
   config.ca = Fs.readFileSync(argv.caFile)		//Use a specified certificate authority file
-}
 
 var rl = Readline.createInterface({			//Initialize command line interface
   input: process.stdin,
@@ -170,7 +160,7 @@ log.debug("Arguments:", args)
       process.exit()
 
     default:
-      console.log("Unknown command: " + cmd)
+      if (cmd) console.log("Unknown command: " + cmd)
       rl.prompt()
   }
 }
