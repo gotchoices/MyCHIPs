@@ -1,0 +1,11 @@
+{
+  interval: 2000,
+  addclient: 0.1, # Try to add client 10% of the time
+  checksets: 0.5, # Try to adjust settings 50% of the time
+  addvendor: 0.4, #Try to add vendors 15% of the time (not yet implemented)
+  maxstocks: 2,
+  maxfoils: 3,
+  mintotpay: -10000, #Make payments if net worth greater than this
+  maxtopay: 0.1, #Pay up to 10% of my net worth
+  maxtarget: 100,
+}
