@@ -57,6 +57,7 @@
     "interactjs": "^1.10.11",
     "ip-address": "^8.1.0",
     "jquery": "^3.6.0",
+    "js-yaml": "^4.1.0",
     "json-stable-stringify": "^1.0.1",
     "mathjs": "^9.5.0",
     "noise-protocol": "^3.0.1",
