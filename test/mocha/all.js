@@ -9,6 +9,7 @@ require('./objectset.js')
 require('./peernoise.js')
 require('./impexp.js')
 require('./peer.js')
+require('./agent3.js')
 
 describe("At End", function() {
 

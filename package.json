@@ -19,6 +19,7 @@
   },
   "scripts": {
     "test": "mocha test/mocha/all.js",
+    "test-agent3": "mocha test/mocha/agent3.js",
     "dev-hot": "webpack-dev-server --mode development --hot --config build/webpack.config",
     "dev-build": "webpack --mode development --watch --progress --hide-modules --config build/webpack.config",
     "build": "webpack --mode production --config build/webpack.config",
