@@ -38,7 +38,7 @@ we prefer to use a logical domain name so that if we want to move a computer to 
 where the IP number is different, people can still address the information at the
 expected place without having to know to change the host address to the new location.
 
-Usins DNS, the owner of the resource can just re-point the old domain name to the new IP
+Using DNS, the owner of the resource can just re-point the old domain name to the new IP
 number and users will be able to access the same old information and the same old host
 address, even though the IP number is completely different.
 
