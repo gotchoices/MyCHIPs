@@ -1,11 +1,14 @@
-# Build a production mychips image copied from the local source tree
+# Build a production mychips image copied from the local source tree.
+# Currently loading node version 16
 
-FROM node:lts-alpine
+ARG version=16
+FROM node:${version}-alpine
 RUN apk update && apk upgrade && apk add bash bash-completion postgresql-client openssl
 
 WORKDIR /app
 COPY package*.json ./
 COPY . .
+
 RUN	rm -rf node_modules $(find . -name local -type d); \
 	npm install && npm update && npm audit fix
 

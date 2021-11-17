@@ -27,7 +27,7 @@ relationships (and possibly even different identities).
 But unless they can develop a sufficiently strong real-world reputation to earn a 
 non-zero credit limit, they will be very limited in the kind of damage they can inflict.
 
-### Site Addresses
+### Resource Addresses
 Our Internet experience makes us familiar with a model where digital resources are
 accessed using some kind of public address such as a [URI](https://en.wikipedia.org/wiki/URI).
 A host address is an important part of the URI which may also include a port number.
@@ -59,7 +59,7 @@ MyCHIPs includes two important objectives:
   There are currently a limited number of these authorities established in a reliable 
   way and you typically have to pay one of them to participate.
 
-MyCHIPs data is designed to work with or without DNS.  And user addresses are meant
+MyCHIPs is designed to work with or without DNS.  And user addresses are meant
 to be private unless and until the owner chooses to make them known.
 
 ### CHIP Addresses
@@ -92,26 +92,26 @@ But a MyCHIPs user will have to divulge location information of some kind--at le
 to his expected trading partners.  So there is more we can add to the CHIP address to make
 it clear where other users can connect.
 
-This additional information consists of a regular host address and a port number,
-also separated by a colon as in:
+This additional information consists of a regular host address and a port number.
+In web technology, this is often called an "origin" and it is rendered like this:
 ```
   mychips.org:57423
 ```
-We put these two pieces of information together, separated by an '@' symbol, to form 
-a more explicit address as in:
+We can put these two pieces of information together, separated by an '@' symbol, to 
+form a more explicit address as in:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
 We can form a fully qualified URI as in:
 ```
-  mychips://suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
+  chip://suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
 This also provides the potential for adding additional parameters in an optional
 query string.  This might include things like a connection token, a peer name, or
 other applicable information.
 
-The CHIP address (and other MyCHIPs message components) may optionally be encoded as a
-JSON structure.  For example, we might also see a CHIP address presented as something like:
+The CHIP address (and other MyCHIPs message components) may optionally be encoded as a JSON (or other) structure.
+For example, we might see a CHIP address presented as something like:
 ```
   {
     user: suzie,
@@ -124,8 +124,8 @@ Note: we expect a one-to-one relationship between an agent and its portal.
 That is, an agent with a particular key value should be reachable on a single portal. 
 And a portal address should serve one and only one agent.
 
-### Obscured Usernames
-The CHIP address convention also allows a username to be made more private by specifying it
+### Obscured CID
+The CHIP address convention also allows a CHIP ID to be made more private by specifying it
 as a hash that only the host site will recognize.  For example, a user might be
 asked to send money to an address such as:
 ```
@@ -138,7 +138,7 @@ The sender (and even the sender's host system) may have no way of knowing who th
 target user is or what system hosts his service.  Yet, they can still transact a
 payment to the correct destination.
 
-### Generic Addresses
+### Exposed Addresses
 In some cases it may be helpful to be more clear about the affiliation associated 
 with a CID.  For example, it might be specified like this:
 ```
@@ -158,7 +158,7 @@ already know the correct agent key and port number.
 This form also has the desirable side effect of allowing certain sites to correlate
 CHIP addresses directly with their users' email addresses.
 
-### Site Addresses
+### Explicit Agent Addresses
 In some parts of the protocol, it may be helpful to specify the agent and portal
 only (i.e. no particular user).  For example, a [lift](learn-lifts.md) initiator may 
 want to publish a portal where it can be contacted to obtain information about a 

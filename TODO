@@ -1,27 +1,9 @@
 TODO:
 
 Immediate:
-X- Integrate DSR phase-1 work into source tree
-X- Why can't user UI connect to sim spa hosts?
-X- Set user host/port and peer port correctly on simulated hosts
-X- Can view/modify/render .puml diagrams
-X- Edit Tally, Lift documents, include diagrams
-X- Make a sequence diagram for each use case
-X- Port state diagrams to puml
-X- Make chit consensus sequence/state diagrams
-X- Make a master protocol document/folder to hold all diagrams
-X- Noise branch:
-X-   Implement framing in old peercomm
-X-   Verify: simulation still runs OK
-X-   Merge noise branch
-- Back to master branch:
-X-   Review documentation folder, organize more cohesively
-X-   Topics addressed once and cross-linked
-X-   Figures in a subfolder
-X-   Design: what is a CID?
-X-     User portion can be: username, hashed (obscured) username
-X-     Address portion can be: domain[:port], IP[:port], originKey ...
-X-     How to make a mychips URI - complete specification
+X- npm docker works with node 16
+X- docker simulation runs with node 16
+- 
 -   Modify schema:
 X-     Each user references a single agent key
 X-     Table for agent keys: cache current portal information

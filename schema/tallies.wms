@@ -49,7 +49,7 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , comment	text
   , user_sig	text		
   , part_sig	text
-  , contract	jsonb		-- not null Fixme:add back in later?
+  , contract	jsonb		-- not null Fixme: add back in later?
 
   , stock_terms	jsonb					-- Terms client grants to vendor (stock)
   , dr_limit	bigint		not null default 0	-- A stock term
@@ -467,10 +467,10 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   group by 1;
 }
 
-# List of users with summarized data about their tallies
+# List of users with summarized data about their tallies (used primarily in simulation/visualization)
 #----------------------------------------------------------------
 view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
-    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_sock, u.ent_name, u.fir_name, u.ent_type
+    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_cagent, u.peer_sock, u.peer_chost, u.peer_cport, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
   , coalesce(s.units, 0)			as units
   , coalesce(s.stocks, 0)			as stocks

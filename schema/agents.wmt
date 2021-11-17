@@ -1,0 +1,11 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+tabtext mychips.agents	{Site Agents}		{Maintains the connection addresses of agent processes} [concat {
+    {agent		{Agent ID}		{Unique string identifying the agent service}}
+    {agent_key		{Agent Key}		{The connection public key decoded from the agent ID string}}
+    {agent_host		{Agent Host Address}	{The hostname or IP number where peers connect to this agent}}
+    {agent_port		{Agent Port}		{The port on which peers connect}}
+    {agent_ip		{Agent IP}		{The IP number from which this agent last connected}}
+} $glob::stampt] -messages {
+    {X {Y} {Z}}
+}

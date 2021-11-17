@@ -1,9 +1,8 @@
 # Build postgres image optimized for MyCHIPs
-#Useage: docker image build --build-arg version=12 ...
+#Usage: docker image build --build-arg version=12 ...
 #Fixme: ARG Doesn't work correctly in RUN context below?
 
 ARG version=11
-
 FROM postgres:${version}
 
 RUN apt-get update; \

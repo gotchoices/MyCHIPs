@@ -2,11 +2,10 @@
 #----------------------------------------------------------------
 tabtext mychips.peers	{CHIP Peers}		{CHIP trading entities who are known to this server.  Includes this server's users and their peers.} [concat {
     {peer_ent		{Peer Entity}		{A link to the entities base table}}
-    {peer_cid		{CHIPs ID}		{An ID string or name, unique to this user on its own CHIP service provider's system.  Similar to the name portion of an email address: <CHIP_ID>@<Provider_host_or_IP>}}
+    {peer_cid		{CHIP ID}		{An ID string or name, unique to this user on its own CHIP service provider's system.  Similar to the name portion of an email address: <CHIP_ID>@<Provider_host_or_IP>}}
     {peer_hid		{Hashed ID}		{An obscured version of the ID by which direct trading partners will refer to this user, when conversing with other more distant peers}}
-    {peer_pub		{Peer Public Key}	{The peer's public key, known to other trading partners}}
-    {peer_host		{Peer Host Address}	{The hostname or IP number where other CHIP servers can connect to do trades with this peer}}
-    {peer_port		{Peer Port}		{The port where other servers will connect}}
+    {peer_psig		{Peer Public Key}	{The peer's public key, known to other trading partners and used for signing transactions}}
+    {peer_agent		{Peer Agent}		{The peer's public key, known to other trading partners and used for signing transactions}}
     {peer_cmt		{Peer Comments}		{Administrative comments about this peer}}
 } $glob::stampt] -messages {
     {NAD		{No Peer Socket}	{You must specify both the peer host and port}}

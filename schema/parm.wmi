@@ -3,10 +3,12 @@
 #----------------------------------------------------------------
 user_host=mychips.org
 user_port=54320
+peer_agent=DEFAULT_AGENT
 peer_host=mychips.org
 peer_port=65430
 if [[ ! -z "$MYCHIPS_USER_HOST" ]]; then user_host="$MYCHIPS_USER_HOST"; fi
 if [[ ! -z "$MYCHIPS_USER_PORT" ]]; then user_port="$MYCHIPS_USER_PORT"; fi
+if [[ ! -z "$MYCHIPS_PEER_AGENT" ]]; then peer_agent="$MYCHIPS_PEER_AGENT"; fi
 if [[ ! -z "$MYCHIPS_PEER_HOST" ]]; then peer_host="$MYCHIPS_PEER_HOST"; fi
 if [[ ! -z "$MYCHIPS_PEER_PORT" ]]; then peer_port="$MYCHIPS_PEER_PORT"; fi
 
@@ -16,7 +18,8 @@ insert into base.parm (module, parm, type, v_int, v_text, cmt) values
   ('mychips', 'site_ent', 'text', null, 'r1', 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
  ,('mychips', 'user_host', 'text', null, '${user_host}', 'Default IP where mobile application connects.')
  ,('mychips', 'user_port', 'int', ${user_port}, null, 'Default port where mobile user application connects.')
- ,('mychips', 'peer_host', 'text', null, '${peer_host}', 'Default IP where peer servers connect.')
+ ,('mychips', 'peer_agent', 'text', null, '${peer_agent}', 'Default agent key where peer servers connect.')
+ ,('mychips', 'peer_host', 'text', null, '${peer_host}', 'Default network address where peer servers connect.')
  ,('mychips', 'peer_port', 'int', ${peer_port}, null, 'Default port where peer servers connect.')
 
  ,('peers', 'min_time', 'int', 5, null, 'Minimum number of minutes between retrying a message to a peer.')

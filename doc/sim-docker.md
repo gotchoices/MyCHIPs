@@ -7,7 +7,6 @@ an economy of CHIP traders.
 The simulations are helpful in creating data sets for analyzing the MyCHIPs
 protocol or for analyzing economic outcomes in the network.
 
-
 ##Containerized Simulation
 
 Simdock (try 3) is a re-implementation of the simnet (try 2) script where, instead of running on
@@ -54,7 +53,7 @@ The devel container can also backup and restore all your databases to a named
 profile (see command examples below).  This allows you to save a certain state 
 for later analysis or debugging.
 
-To get started, run the following commands (from this directory):
+To get started, run the following commands (from the test/sim directory):
 ```
   export PATH="$(pwd)/../../node_modules/.bin:$PATH"
   export NODE_DEBUG=debug

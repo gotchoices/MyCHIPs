@@ -36,9 +36,10 @@ if [[ ! -z "$nbdir" && ! "${patha[@]}" =~ "$nbdir" ]]; then
 fi
 if [[ ! -z $SITE ]]; then			#SITE is our site number 0..N
   export MYCHIPS_USER_HOST="spa$SITE"
-  export MYCHIPS_USER_PORT=$(expr $wsports + $SITE)
-  export MYCHIPS_PEER_HOST="peer$SITE"
   export MYCHIPS_DBHOST="pg$SITE"
+  export MYCHIPS_PEER_HOST="peer$SITE"		#values will be used by schema/parm.wmi
+  export MYCHIPS_PEER_AGENT="agent$SITE"
+  export MYCHIPS_USER_PORT=$(expr $wsports + $SITE)
 fi
 #echo "command:$command PATH:$PATH NODE_DEBUG:$NODE_DEBUG wsports:$wsports args:$@"
 

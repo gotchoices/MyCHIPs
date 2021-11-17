@@ -42,7 +42,9 @@ var responderConfig = {
   siteKey:	responderKey,
 }
 var initiatorCB, responderCB
-//log.debug('Initiator key:', initiatorKey)
+//let pK = initiatorKey.publicKey
+//  , pKb6 = Buffer.from(pK).toString('base64').replace(/=+$/,'').replace('+','-').replace('/','_')
+//log.debug('Initiator key:', pKb6)
 
 describe("Peer to peer noise protocol communications test 1", function() {
   var initiator, responder;

@@ -16,7 +16,7 @@ module mychips
 #  , t.token_seq
 #  , buildUrl()		as "url"
 #  , t.token
-#  , s.peer_pub
+#  , s.peer_psig
 #  , t.exp_date
 #  , json_build_object('url', buildUrl(), 'token', t.token, 'expires', t.exp_date) as "json"
 #

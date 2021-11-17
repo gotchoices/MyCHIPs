@@ -26,7 +26,8 @@ If the folder gets created as "MyCHIPs" (because you copied the github clone lin
   cd mychips
   npm install				#Install all dependencies
 ```
-Now that the software is installed, you have 3 basic options to give it a try:
+Now that the software is installed, you have 3 basic options to give it a try.
+Note: the docker methods will require docker engine >= 20.10.10.
 - [Docker Test Instance](use-docker.md):
   This is probably the easiest option and should work on Linux, Mac or Windows.
   It will help if you are already familiar with [Docker](http://docker.com).

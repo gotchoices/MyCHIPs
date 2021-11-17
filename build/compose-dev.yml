@@ -9,7 +9,7 @@ version: '3.7'
 
 services:
   mychips:
-    image: gotchoices/mychips
+    image: gotchoices/mychips:16
     command: bash -c "PATH=$${PATH}:${MYCHIPS_DEVDIR}/node_modules/.bin npm start"
     container_name: $MYCHIPS_HOST
     hostname: $MYCHIPS_HOST
@@ -34,7 +34,7 @@ services:
       - frontend
 
   postgres:
-    image: gotchoices/pg
+    image: gotchoices/pg:11
     build:
       context: $MYCHIPS_ROOT
       dockerfile: build/docker-pg

@@ -1,0 +1,67 @@
+#Data about mychips host agents
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+# Current design constraints:
+#- A single mychips.js instance holds a single agent key
+#- A single mychips.js instance answers on one and only one IP number
+#- If an agent record is created by writing agent fields to mychips.peers_v 
+# (which is possible), it is not possible to modify it again from that view.
+#TODO:
+#- We need a controlled way for an agent to change its network address securely
+#-   This probably should involve more than just proving possession of the agent private key
+#-   One comfortable with the change, agents_v can be updated directly.
+#- 
+module mychips
+
+namespace eval agents {
+    def agents_pk	{agent}
+
+    def agents_in	{agent agent_host agent_port agent_ip}
+    def agents_up	{agent_host agent_port agent_ip}
+    def agents_se	{agent agent_host agent_port agent_ip}
+}
+
+# Data we maintain about site agents (own own and others)
+#----------------------------------------------------------------
+table mychips.agents {mychips} {
+    agent	text		primary key
+  , agent_key	bytea
+  , agent_host	text
+  , agent_port	int	      , unique (agent_host, agent_port)
+  , agent_ip	inet
+    eval(s $glob::stamps)
+}
+
+# Before inserting a new record
+#----------------------------------------------------------------
+function mychips.agents_tf_biu() {mychips.agents} {
+  returns trigger language plpgsql security definer as $$
+    declare
+      doupdate boolean = (TG_OP = 'INSERT');
+    begin
+      if TG_OP = 'UPDATE' then
+        if new.agent != old.agent then doupdate = true; end if;
+      end if;
+      if doupdate then
+        begin new.agent_key = decode(replace(replace(new.agent,'-','+'), '_','/'), 'base64');
+        exception when others then end;		-- Ignore errors
+      end if;
+      return new;
+    end;
+$$;}
+trigger mychips_agents_tr_biu {} {
+    before insert or update on mychips.agents for each row execute procedure mychips.agents_tf_biu();
+}
+
+#Basic view
+#----------------------------------------------------------------
+view mychips.agents_v {mychips.agents} {
+    select eval(fld_list $agents::agents_se a)
+    , not agent_key isnull		as valid
+    
+    from	mychips.agents a;
+
+    eval(trigview::insert mychips.agents_v mychips.agents $agents::agents_in $agents::agents_pk $glob::stampin);
+    eval(trigview::update mychips.agents_v mychips.agents $agents::agents_up $agents::agents_pk $glob::stampup);
+    eval(rule_delete mychips.agents_v mychips.agents $agents::agents_pk);
+}

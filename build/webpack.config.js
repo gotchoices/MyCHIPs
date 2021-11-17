@@ -18,10 +18,11 @@ module.exports = {
   resolve: {
     alias: {
       vue: 'vue/dist/vue.js'
-    }
+    },
+//    mainFields: ['main', 'module']
   },
   plugins: [
-    new VueLoaderPlugin()
+    new VueLoaderPlugin(),
   ],
   performance: {
     maxAssetSize: 2000000,
@@ -32,7 +33,12 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
-        use: { loader: 'babel-loader' }
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
+        }
       },
       {
         test: /\.vue$/,

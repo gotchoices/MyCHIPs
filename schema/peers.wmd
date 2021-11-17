@@ -5,9 +5,7 @@ tabdef mychips.peers -focus ent_name -fields [concat {
     {peer_ent		ent	6	{0 20}		-hide 1 -sort 1 -write 0}
     {peer_cid		ent	20	{1 20 2}	-tem {^[\w\._:/]*$}}
     {peer_hid		ent	20	{3 20 w}	}
-    {peer_host		ent	20	{1 21}		}
-    {peer_port		ent	8	{2 21}		-just r}
-    {peer_pub		ent	20	{1 22 3}	-spf edw -write 0}
+    {peer_psig		ent	20	{1 22 3}	-spf edw -write 0}
     {peer_cmt		mle	{80 2}	{1 23 4}	}
 } $glob::stampd]
 

@@ -82,7 +82,7 @@ view json.tally {json mychips.tallies_v} {select
 #  , token_seq		as "seq"
 #  , url			as "url"
 #  , token		as "token"
-#  , peer_pub		as "public"
+#  , peer_psig		as "public"
 #  , exp_date		as "expires"
 #    from	mychips.tickets_v
 #} -primary {id seq}

@@ -52,6 +52,20 @@ function {mychips.j2h(input jsonb)} {plpy} {
     return hash.digest()
 $$;}
 
+# Encode to base64 variant RFC4648 S5
+#----------------------------------------------------------------
+function {mychips.ba2b64v(input bytea)} {} {
+  returns text language sql immutable as $$
+    select replace(replace(encode(input, 'base64'),'/','_'),'+','-');
+$$;}
+
+# Decode base64 variant RFC4648 S5
+#----------------------------------------------------------------
+function {mychips.b64v2ba(input text)} {} {
+  returns bytea language sql immutable as $$
+    select decode(replace(replace(input,'_','/'),'-','+'), 'base64')
+$$;}
+
 #Can't find good v8 support for Fedora
 #other plv8 {} {create extension "plv8"} {drop extension if exists "plv8"}
 

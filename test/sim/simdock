@@ -80,11 +80,28 @@ function encode {
   echo "${cargs[@]}"
 }
 
+#Create a full image name from the base tag
+#-------------------------------------------------------------------------------
+function fullimage {
+  local i=0; for image in ${images[@]}; do
+    image="${images[i]}"
+    version="${versions[i]}"
+    if [ "$image" = "$1" ]; then
+      if [ ! -b "$version" ]; then version=":${version}"; fi
+      echo "${imagebase}/${image}${version}"
+      return
+    fi
+    i=$(expr $i + 1)
+  done
+  echo "Bad image name: $1"
+  exit 1
+}
+
 #Launch a process in a docker container
 #-------------------------------------------------------------------------------
 function run {
-  local image="${1:-gotchoices/pg}"; shift		#Docker image to use
-  local cname="$(basename $image)"			#Default container name
+  local cname="${1:-pg}"; shift			#container name
+  local image="$(fullimage $cname)"
   local dargs=(); local args=()
   while [[ $# -gt 0 ]]; do
     case $1 in
@@ -104,7 +121,7 @@ function run {
   fi
   echo "Starting:$cname @$xport using: $image";	#return 1
 
-#  echo -e "docker container run -d --name $cname --hostname $cname --rm --network $netname --domainname $domname ${dargs[@]} $image ${args[@]}"
+#echo -e "docker container run -d --name $cname --hostname $cname --rm --network $netname --domainname $domname ${dargs[@]} $image ${args[@]}"
   docker container run -d --name $cname --hostname $cname --rm \
   	--network $netname --domainname $domname ${userargs[@]} \
   	${dargs[@]} $image ${args[@]}	#>/dev/null
@@ -132,7 +149,7 @@ function start_pg {
 
   local pgname="pg$n"
   local pgxport=$(expr 44000 + $n)
-  if ! run gotchoices/pg --name $pgname -p ${pgxport}:5432 -t \
+  if ! run pg --name $pgname -p ${pgxport}:5432 -t \
   	-e "PGDATA=/var/lib/postgresql/data/pgdata" \
   	-e "POSTGRES_HOST_AUTH_METHOD=trust" \
   	-v "${mypath}/dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh" \
@@ -154,7 +171,7 @@ function start_spa {
   local spaname="spa$n"
   local spaxport=$(expr $spaports + $n)
   local wsxport=$(expr $wsports + $n)
-  if ! run gotchoices/mychips --name $spaname -p ${wsxport}:54320 -p ${spaxport}:8000 \
+  if ! run mychips --name $spaname -p ${wsxport}:54320 -p ${spaxport}:8000 \
   	-v "$machtmp:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
@@ -176,7 +193,7 @@ function start_peer {
 
   local pgname="pg$n"
   local peername="peer$n"
-  if ! run gotchoices/mychips --name $peername \
+  if ! run mychips --name $peername \
   	-v "$machtmp:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
@@ -199,7 +216,7 @@ function start_agent {
   local pgname="pg$n"
   local peername="peer$n"
   local agentname="agent$n"
-  if ! run gotchoices/mychips --name $agentname \
+  if ! run mychips --name $agentname \
   	-v "$machtmp:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
@@ -247,7 +264,7 @@ function admin {
 #Launch a mongodb instance
 #-------------------------------------------------------------------------------
 function start_mongo {
-  if ! run gotchoices/mongo -p 27017:27017 \
+  if ! run mongo -p 27017:27017 \
   	-- --replSet $mongorepset \
      ; then
     echo "Failed starting mongo"; return
@@ -260,7 +277,7 @@ function start_mongo {
 #Launch an OS shell to perform database development tasks
 #-------------------------------------------------------------------------------
 function start_devel {
-  if ! run gotchoices/devel \
+  if ! run devel \
   	-v "$locdir/devel:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-- tail -f /dev/null; then
@@ -403,9 +420,11 @@ function startup {
   local i=0; for image in ${images[@]}; do
     image=${images[i]}
     version=${versions[i]}
-    if ! docker image inspect $imagebase/$image >/dev/null 2>&1; then
-echo "Building docker image: $image $version"
-      docker image build -f build/docker-$image -t $imagebase/$image \
+    fullname="$(fullimage $image)"
+#echo "Version check: $image $version"
+    if ! docker image inspect $fullname >/dev/null 2>&1; then
+echo "Building docker image: $fullname"
+      docker image build -f build/docker-$image -t $fullname \
         --build-arg version=${version} $mychips
     fi
     i=$(expr $i + 1)

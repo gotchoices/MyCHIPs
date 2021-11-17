@@ -19,6 +19,7 @@ namespace eval users {
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type]
+    def agents_se	{agent agent_key agent_host agent_port agent_ip}
 }
 
 # Data about users to facilitate their CHIP account
@@ -34,31 +35,25 @@ table mychips.users {base.ent mychips} {
     eval(s $glob::stamps)
 }
 
-# Quality check for new user records
-#----------------------------------------------------------------
-#function mychips.users_tf_bi() {mychips.users} {
-#  returns trigger language plpgsql security definer as $$
-#    begin
-#--        if new._last_tally is null then new._last_tally = 0; end if;	-- Use this, not default in table to avoid multiview trying to write this field
-#        return new;
-#    end;
-#$$;}
-#trigger mychips_users_tr_bi {} {
-#    before insert on mychips.users for each row execute procedure mychips.users_tf_bi();
-#}
-
 # Base view of users, linked to entity and peer tables
 #----------------------------------------------------------------
-view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user} {select 
+define cAgent {coalesce(pe.peer_agent, pp.pagent)}
+define cHost {coalesce(ag.agent_host, pp.phost)}
+define cPort {coalesce(ag.agent_port, pp.pport)}
+view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user mychips.agents} {select 
     eval(fld_list $users::ent_se	ee)
   , eval(fld_list $users::peers_se	pe)
   , eval(fld_list $users::users_se	ue)
+  , eval(fld_list $users::agents_se	ag)
   , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
-  , coalesce(pe.peer_host, pp.phost)						as peer_chost
-  , coalesce(pe.peer_port, pp.pport)						as peer_cport
-  , coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_sock
-  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost)			as peer_addr
-  , pe.peer_cid || '@' || coalesce(pe.peer_host, pp.phost) || ':' || coalesce(pe.peer_port, pp.pport)	as peer_endp
+  , ag.agent_host		as peer_host
+  , ag.agent_port		as peer_port
+  , cAgent()			as peer_cagent
+  , cHost()			as peer_chost
+  , cPort()			as peer_cport
+  , cHost() || ':' || cPort()	as peer_sock
+  , pe.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
+--  , pe.peer_cid || '@' || cHost() || ':' || cPort()			as peer_endp
   , greatest(ee.mod_date, pe.mod_date, ue.mod_date) as mod_date
   , jsonb_build_object(
       'id',		ee.id
@@ -75,6 +70,7 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
 
     from	base.ent_v	ee
     left join	mychips.peers	pe on pe.peer_ent = ee.id
+    left join	mychips.agents	ag on ag.agent = pe.peer_agent
     left join	mychips.users	ue on ue.user_ent = ee.id
     join	mychips.parm_v_user pp on true;
 
@@ -82,12 +78,12 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_in}	{$peers::peers_pk}}
         {mychips.users	{$users::users_v_in}	{$users::users_pk}}
-    " mychips.users_v_check)
+    " mychips.users_vf_post mychips.peers_vf_agent)
     eval(multiview::update mychips.users_v "
         {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
         {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
-    " mychips.users_v_check)
+    " mychips.users_vf_post)
     eval(multiview::delete mychips.users_v "
         {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
     ")
@@ -95,9 +91,22 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
     {user	{s} {i u} {d}}
 } -primary id
 
+# Pre-check for new user records
+#----------------------------------------------------------------
+#function {mychips.users_vf_pre(new mychips.users_v, old mychips.pusers_v, tgop text)} {mychips.users_v mychips.agents} {
+#  returns mychips.users_v language plpgsql security definer as $$
+#    begin
+#raise notice 'users_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
+#      if not exists (select agent from mychips.agents where agent = new.peer_agent) then
+#        insert into mychips.agents (agent, agent_host, agent_port) values (new.peer_agent, new.peer_host, new.peer_port);
+#      end if;
+#      return new;
+#    end;
+#$$;}
+
 # Quality check for new user records
 #----------------------------------------------------------------
-function {mychips.users_v_check(new mychips.users_v, old mychips.users_v, tgop text)} {mychips.users_v} {
+function {mychips.users_vf_post(new mychips.users_v, old mychips.users_v, tgop text)} {mychips.users_v} {
   returns mychips.users_v language plpgsql security definer as $$
     begin
 -- raise notice 'Users check: % % %', tgop, new.id, new.username;

@@ -268,20 +268,20 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , re.peer_chost	as route_host
   , re.peer_addr	as route_addr
   , re.peer_sock	as route_sock
-  , re.peer_endp	as route_endp
+--  , re.peer_endp	as route_endp
   , re.std_name		as route_name
 
   , de.peer_cid		as dest_cid		-- Destination entity
   , de.peer_addr	as dest_addr
   , de.peer_sock	as dest_sock
-  , de.peer_endp	as dest_endp
+--  , de.peer_endp	as dest_endp
   , de.std_name		as dest_name
 
   , te.peer_cid		as topu_cid		-- Top of local segment
   , te.peer_chost	as topu_host
   , te.peer_addr	as topu_addr
   , te.peer_sock	as topu_sock
-  , te.peer_endp	as topu_endp
+--  , te.peer_endp	as topu_endp
   , te.std_name		as topu_name
   , te.serv_id		as topu_serv
 
@@ -289,7 +289,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , be.peer_chost	as botu_host
   , be.peer_addr	as botu_addr
   , be.peer_sock	as botu_sock
-  , be.peer_endp	as botu_endp
+--  , be.peer_endp	as botu_endp
   , be.std_name		as botu_name
   , be.serv_id		as botu_serv
 
@@ -297,7 +297,7 @@ view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.ro
   , qe.peer_chost	as requ_host
   , qe.peer_addr	as requ_addr
   , qe.peer_sock	as requ_sock
-  , qe.peer_endp	as requ_endp
+--  , qe.peer_endp	as requ_endp
   , qe.std_name		as requ_name
   , not qe.user_ent isnull	as requ_user
 

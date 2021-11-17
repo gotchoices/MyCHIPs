@@ -26,8 +26,8 @@ userargs=()			#Additional arguments provided to 'docker run'
 spaports=48000			#Base range of https connections
 wsports=60000			#Base range of websocket connections
 
-images=( mongo pg mychips devel)	#Images to be built, if necessary
-versions=( 4.2.3 11 )			#Mongo, Postgres versions
+images=( mongo pg devel mychips)	#Images to be built, if necessary
+versions=( 4.2.3 11 35 16)		#Container versions
 
 confile="${MYCHIPS_SIM:-$mypath/local/config.dock}"
 #echo "Pwd:$(pwd) my:$mypath confile:$confile" >&2
