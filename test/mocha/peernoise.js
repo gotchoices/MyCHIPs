@@ -11,11 +11,11 @@ const Noise = require('noise-protocol')
 const { Address6 } = require('ip-address')
 const PeerNoise = require('../../lib/peernoise')
 const { Log } = require('../settings')
-const responderPort = 55551
-const initiatorPort = 55552
-const hostname = 'localhost'
+const initiatorPort = 55551
+const responderPort = 55552
 const initiatorAt = "localhost" + ':' + initiatorPort
 const responderAt = "localhost" + ':' + responderPort
+var hostname = 'localhost'
 var initiatorKey = Noise.keygen()
 var responderKey = Noise.keygen()
 var log = Log('testPeercomm')
@@ -30,21 +30,27 @@ var initiatorTicket = {		//Allows connection to responder
   key:		responderKey.publicKey,
 }
 var initiatorConfig = {
-  log:		logI,
-  address:	hostname,
-  port:		initiatorPort,
-  siteKey:	initiatorKey,
+  log:	logI,
+  host:	hostname,
+  port:	initiatorPort,
+  key:	initiatorKey,
 }
 var responderConfig = {
-  log:		logR,
-  address:	hostname,
-  port:		responderPort,
-  siteKey:	responderKey,
+  log:	logR,
+  host:	hostname,
+  port:	responderPort,
+  key:	responderKey,
 }
 var initiatorCB, responderCB
 //let pK = initiatorKey.publicKey
-//  , pKb6 = Buffer.from(pK).toString('base64').replace(/=+$/,'').replace('+','-').replace('/','_')
-//log.debug('Initiator key:', pKb6)
+//  , pKb6 = Buffer.from(pK).toString('base64url')
+//console.log('Initiator key:', pKb6)
+
+if (Boolean(process.env.PEERNOISE_RAW)) {	//Run tests with raw text on the wire
+  delete initiatorKey.secretKey
+  delete responderKey.secretKey
+log.debug("Running peernoise module test unencrypted:", initiatorKey)
+}
 
 describe("Peer to peer noise protocol communications test 1", function() {
   var initiator, responder;
@@ -74,7 +80,7 @@ logI.debug("Initiator got query request:", req, data)
   })
 
   it("Send a ticket-connect request from initiator to responder", function(done) {
-    responderCB = function(connection, obj) {	//when a message comes in
+    responderCB = function(connection, obj) {		//when a message comes in
       connection.send(obj)				//loop it back to the sender
     }
     initiatorCB = function(connection, obj) {

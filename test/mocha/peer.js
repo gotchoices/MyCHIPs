@@ -2,10 +2,9 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
-//- Sometimes this test doesn't terminate.  Why?
-//- 
-//- Create test for each pathway of the flow chart
-//- Check the state of the database after each stage
+//- Adjust to work with user agents
+//- Adapt to Version 1 protocol
+//- Test all modes/transitions on tally state diagrams
 //- Create similar testing for chit flowchart
 //- 
 

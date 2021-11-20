@@ -1,4 +1,4 @@
-## Peer to Peer Dialogs
+## Peer to Peer Connections
 
 ### Tally Request
 Typically any first-time connection between two sites will be a request for a new tally.
@@ -16,7 +16,7 @@ Connections associated with tally requests are conducted as follows:
 <p align="center"><img src="figures/Lifts-6.jpg" width="300" title="Example Network"></p>
 
 - The ticket contains:
-  - User A3's CHIP address (CHAD), the unique location identifier (```user_3@Site_A```) where to connect to do business with user A3;
+  - User A3's [CHIP address](learn-users.md#chip-addresses), indicating where to connect to do business with user A3;
   - An expiring, one-time token, authorizing connection without any other key information
     - The token will internally specify that it is for establishing a new tally
     - The token may optionally be limited to the specific CHAD of User B1
@@ -28,10 +28,9 @@ Connections associated with tally requests are conducted as follows:
   It sends a structure encrypted with the site A's public key, containing
     - The connection token;
     - The public key of site B;
-    - An object (certificate) containing contact information about User B1 including;
-      - CHIP ID
-      - Agent ID
-      - User's public Key
+    - An object (certificate) containing contact information about User B1 including its;
+      - CHIP Address
+      - Public Key
       - Name, address, email, other identifying data
 
   If site A can decrypt this message, and the token is still valid, it will:
@@ -123,6 +122,21 @@ The ticket and request states represent a server responding to a client connecti
 As a result, it is possible that two peers might initiate a connection to each other at about the same time.
 This could result in two channels getting opened up between the two hosts.
 While this is not optimal, it should not pose a problem as long as the communication module does not make any assumptions that it cannot happen.
+
+### Key Security
+Noise Protocol is based on the [Diffie Hellman protocol](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange).
+The implementation of Noise Protocol used by MyCHIPs is based on [libsodium](https://doc.libsodium.org/)
+which utilizes the [Curve25219](https://en.wikipedia.org/wiki/Curve25519) elliptical curve.
+
+We will not be using the
+[Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+in this instance as it appears to be limited to NIST approved curves which
+[seem](https://safecurves.cr.yp.to/) to be less secure than Curve25519.
+
+We will rely on the [security level of Curve52219](https://gist.github.com/atoponce/07d8d4c833873be2f68c34f9afc5a78a)
+and the 256 bit keys provided for by libsodium.
+This provides for a fairly short public key which will be welcome in producing managable URI's.
+If/when libsodium may determine that current computing speeds justify a longer key, that change should propagate into MyCHIPs.
 
 <br>[Next - Hacking](work-hacking.md)
 <br>[Back to Index](README.md#contents)

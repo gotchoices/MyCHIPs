@@ -61,3 +61,5 @@ competetent as we would like.  The upside: the tallies tell the story of
 exactly what happened, who won and who lost.  Perhaps with judicious crafting
 of the EULA, and adequate system logging, enough evidence can be produced to
 clearly identify the cheater.
+
+<br>[Back to Index](README.md#contents)

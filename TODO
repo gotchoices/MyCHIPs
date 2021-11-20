@@ -7,12 +7,17 @@ X- docker simulation runs with node 16
 -   Modify schema:
 X-     Each user references a single agent key
 X-     Table for agent keys: cache current portal information
--     Automatically build default agent key
--     Default site agent key in parameter table?
--     Launch server with specific (or default) agent key and portal
--     How would admin normally assign agent keys to individual users?
--     PeerNoise publishes our correct portal to peers
+X-     Automatically build default agent key
+X-     Launch server with specific (or default) agent key and portal
+-     Make mocha/peer.js work again
+-     How to lanch mychips with dummy agent key and encryption disabled
+-     Do I need local agent key in db parameter table (or only for peers)?
+-     Adjust/remove prior references to servID, peerPort, peerHost
+-     How would admin normally assign agent keys to individual users? (report?)
+-     PeerNoise publishes our correct portal/key to peers
+-     Simulation can run with or without encryption (selected in config.dock)
 -     Does simulation still work?
+-     
 -   Modify mychips.js to select encrypted or raw modes
 -   PeerNoise module reports peers who connect from non-matching portals
 -   Modify simulation to invoke raw mode by default

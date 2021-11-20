@@ -56,14 +56,28 @@ $$;}
 #----------------------------------------------------------------
 function {mychips.ba2b64v(input bytea)} {} {
   returns text language sql immutable as $$
-    select replace(replace(encode(input, 'base64'),'/','_'),'+','-');
+    select replace(
+      replace(
+        rtrim(				-- Strip padding
+          encode(input, 'base64'), '='
+        ), '/','_'
+      ), '+','-'
+    );
 $$;}
 
 # Decode base64 variant RFC4648 S5
 #----------------------------------------------------------------
 function {mychips.b64v2ba(input text)} {} {
   returns bytea language sql immutable as $$
-    select decode(replace(replace(input,'_','/'),'-','+'), 'base64')
+    select decode(
+      replace(
+        replace(
+          input, '_','/'	-- Map back to standard b64
+        ), '-','+'
+      ) || repeat(
+        '=', mod(4 - mod(char_length(input)::numeric, 4.0)::int, 4)	-- Pad to modulo 4 length
+      ), 'base64'
+    )
 $$;}
 
 #Can't find good v8 support for Fedora

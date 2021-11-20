@@ -185,5 +185,5 @@ Strangers can trade indirectly by rippling value through the network--but only
 if they are trustworthy enough to maintain their own local connections of 
 trust.
 
-<br>[Next - ZZZZ](learn-users.md)
+<br>[Next - Support Libraries](work-hacking.md)
 <br>[Back to Index](README.md#contents)

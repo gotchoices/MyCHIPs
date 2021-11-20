@@ -105,3 +105,6 @@ Summary of Objectives:
       - Malicious transactions can be discovered and documented.
       - All parties to a lift reach consensus about the commit/cancel.
       - If that fails, insured transactions are at least repaired.
+
+<br>[Next - FAQ Libraries](ref-faq.md)
+<br>[Back to Index](README.md#contents)

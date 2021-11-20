@@ -9,7 +9,7 @@
 #TODO:
 #- We need a controlled way for an agent to change its network address securely
 #-   This probably should involve more than just proving possession of the agent private key
-#-   One comfortable with the change, agents_v can be updated directly.
+#-   Once comfortable with the change, agents_v can be updated directly.
 #- 
 module mychips
 
@@ -34,7 +34,7 @@ table mychips.agents {mychips} {
 
 # Before inserting a new record
 #----------------------------------------------------------------
-function mychips.agents_tf_biu() {mychips.agents} {
+function mychips.agents_tf_biu() {mychips.agents mychips.b64v2ba(text)} {
   returns trigger language plpgsql security definer as $$
     declare
       doupdate boolean = (TG_OP = 'INSERT');
@@ -43,7 +43,7 @@ function mychips.agents_tf_biu() {mychips.agents} {
         if new.agent != old.agent then doupdate = true; end if;
       end if;
       if doupdate then
-        begin new.agent_key = decode(replace(replace(new.agent,'-','+'), '_','/'), 'base64');
+        begin new.agent_key = mychips.b64v2ba(new.agent);
         exception when others then end;		-- Ignore errors
       end if;
       return new;
