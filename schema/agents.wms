@@ -23,7 +23,7 @@ namespace eval agents {
 
 # Data we maintain about site agents (own own and others)
 #----------------------------------------------------------------
-table mychips.agents {mychips} {
+table mychips.agents {mychips base.ent} {
     agent	text		primary key
   , agent_key	bytea
   , agent_host	text
