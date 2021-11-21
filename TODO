@@ -1,33 +1,45 @@
 TODO:
 
 Immediate:
-X- npm docker works with node 16
-X- docker simulation runs with node 16
-- 
--   Modify schema:
-X-     Each user references a single agent key
-X-     Table for agent keys: cache current portal information
-X-     Automatically build default agent key
-X-     Launch server with specific (or default) agent key and portal
--     Make mocha/peer.js work again
--     How to lanch mychips with dummy agent key and encryption disabled
--     Do I need local agent key in db parameter table (or only for peers)?
--     Adjust/remove prior references to servID, peerPort, peerHost
--     How would admin normally assign agent keys to individual users? (report?)
--     PeerNoise publishes our correct portal/key to peers
--     Simulation can run with or without encryption (selected in config.dock)
--     Does simulation still work?
+X- Automatically build default agent key
+X- Launch server with specific (or default) agent key and portal
+X- How to lanch mychips with dummy agent key and encryption disabled
+X- PeerNoise publishes our correct portal/key to peers
+X- Modify mychips.js to select encrypted or raw modes (peerPortal)
+- Make mocha/peer.js work again
+- Do I need local agent key in db parameter table (or only for peers)?
+- Adjust/remove prior references to servID, peerPort, peerHost
+- PeerNoise module reports peers who connect from non-matching portals
+- Simulation can run with or without encryption (selected in config.dock)
+- Simulation runs raw mode by default
+- Merge with master
 -     
--   Modify mychips.js to select encrypted or raw modes
--   PeerNoise module reports peers who connect from non-matching portals
--   Modify simulation to invoke raw mode by default
--   Set encrypted as new server default
--   Simulation still runs OK (using default raw or encrypted)
+- Implement control/model for tally tickets/tokens
+- CLUI control actions:
+-  Generate tally ticket
+-  Process/respond to tally ticket
+-  
+- Align tally tests in mocha/peer.js with 1.0 protocol
+- Expand to cover all state transitions
+- Clean schema/state code associated with tally sub-protocol
+- Implement retries in state processing
+- Simulation still works?
 - 
-X- Extend Wyseman client side to communicate over websockets
-- Extend Wyseman to receive connections on TCP socket?
-- Make command-line user interface?
-- Integrate DSR patches into simulation folder?
+- Create mocha tests for chit state diagram
+- Align chit tests in mocha/peer.js with 1.0 protocol
+- Clean schema/state code associated with tally sub-protocol
+- Implement retries in state processing
+- Simulation still works?
+- 
+- Finish chit consensus algorithm
+- Mocha tests to simulate network disconnections, chit collisions
+- 
+- Implement local lift scheduler/scanner/processor
+- 
+- 
+- Mobile:
+-  Create dart Wyseman client module
+-  How to invoke it from flutter app (pull from node_modules)
 - 
 
 General roadmap:
@@ -293,7 +305,8 @@ User SPA:
 - Admin SPA:
 X- Optimize SVG user graph reactivity.  Only update what has changed.
 X- User can connect/initialize using ticket
-- Server listens on ticket port for specified timeout period
+- How to assign users to a particular agent key (specialized report)
+- Specify expiration for connection tickets
 - Enable user permission editor in admin app user tab
 - Can export user to JSON
 - Can export user to paper, w/ QR code
@@ -302,7 +315,7 @@ X- User can connect/initialize using ticket
 
 Wyseman:
 - Can apply incremental delta scripts to go from one release to another
-- Modify wyseman/lib/wyseman.js to also listen on regular unix socket for admin connections
+- Create noise-protocol API for user interfaces
 - Regular socket connection relies solely on an auth key (key file, not keys stored in DB user tables)
 - Use SNI extension for client to provide db config payload
 - Is there any use case for a user connecting via regular socket? (native app?)
