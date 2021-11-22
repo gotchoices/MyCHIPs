@@ -78,7 +78,7 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_in}	{$peers::peers_pk}}
         {mychips.users	{$users::users_v_in}	{$users::users_pk}}
-    " mychips.users_vf_post mychips.peers_vf_agent)
+    " mychips.users_vf_post mychips.users_vf_pre)
     eval(multiview::update mychips.users_v "
         {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
@@ -93,18 +93,18 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
 
 # Pre-check for new user records
 #----------------------------------------------------------------
-#function {mychips.users_vf_pre(new mychips.users_v, old mychips.pusers_v, tgop text)} {mychips.users_v mychips.agents} {
-#  returns mychips.users_v language plpgsql security definer as $$
-#    begin
-#raise notice 'users_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
-#      if not exists (select agent from mychips.agents where agent = new.peer_agent) then
-#        insert into mychips.agents (agent, agent_host, agent_port) values (new.peer_agent, new.peer_host, new.peer_port);
-#      end if;
-#      return new;
-#    end;
-#$$;}
+function {mychips.users_vf_pre(new mychips.users_v, old mychips.users_v, tgop text)} {mychips.users_v mychips.agents} {
+  returns mychips.users_v language plpgsql security definer as $$
+    begin
+--raise notice 'users_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
+      if not new.peer_agent isnull and not exists (select agent from mychips.agents where agent = new.peer_agent) then
+        insert into mychips.agents (agent, agent_host, agent_port) values (new.peer_agent, new.peer_host, new.peer_port);
+      end if;
+      return new;
+    end;
+$$;}
 
-# Quality check for new user records
+# Quality check for new/updated user records
 #----------------------------------------------------------------
 function {mychips.users_vf_post(new mychips.users_v, old mychips.users_v, tgop text)} {mychips.users_v} {
   returns mychips.users_v language plpgsql security definer as $$

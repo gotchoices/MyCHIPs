@@ -10,7 +10,7 @@ other plpy {} {create extension "plpythonu"} {drop extension if exists "plpython
 
 # Test validation using python
 #----------------------------------------------------------------
-function {mychips.validate(dat text, sig text, pub text)} {plpy} {
+function {mychips.validate(dat text, sig text, pub text)} {mychips plpy} {
   returns boolean language plpythonu immutable as $$
 #    plpy.notice('Validate:', dat, sig, pub)
     import rsa
@@ -24,7 +24,7 @@ $$;}
 
 # JSON serialization with sorted keys and no spaces (OBSOLETE)
 #----------------------------------------------------------------
-function {mychips.j2s(inp jsonb)} {plpy} {
+function {mychips.j2s(inp jsonb)} {mychips plpy} {
   returns text language plpythonu immutable as $$
     import json
     if isinstance(inp,str):		#JSON gets passed into python as a string
@@ -54,14 +54,14 @@ $$;}
 
 # Encode to base64 variant RFC4648 S5
 #----------------------------------------------------------------
-function {mychips.ba2b64v(input bytea)} {} {
+function {mychips.ba2b64v(input bytea)} {mychips} {
   returns text language sql immutable as $$
     select replace(replace(encode(input, 'base64'),'/','_'),'+','-');
 $$;}
 
 # Decode base64 variant RFC4648 S5
 #----------------------------------------------------------------
-function {mychips.b64v2ba(input text)} {} {
+function {mychips.b64v2ba(input text)} {mychips} {
   returns bytea language sql immutable as $$
     select decode(replace(replace(input,'_','/'),'-','+'), 'base64')
 $$;}

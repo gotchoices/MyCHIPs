@@ -77,11 +77,11 @@ view mychips.peers_v {mychips.peers base.ent_v mychips.parm_v_user mychips.agent
     eval(multiview::insert mychips.peers_v "
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_in}	{$peers::peers_pk}}
-    " {} mychips.peers_vf_agent)
+    " {} mychips.peers_vf_pre)
     eval(multiview::update mychips.peers_v "
         {base.ent	{$peers::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
-    " mychips.peers_vf_post)
+    ")
     eval(multiview::delete mychips.peers_v "
         {mychips.peers	{$peers::peers_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
     ")
@@ -89,31 +89,26 @@ view mychips.peers_v {mychips.peers base.ent_v mychips.parm_v_user mychips.agent
 
 # Pre-check agent info for new peer records
 #----------------------------------------------------------------
-function {mychips.peers_vf_agent(new mychips.peers_v, old mychips.peers_v, tgop text)} {mychips.peers_v mychips.agents} {
+function {mychips.peers_vf_pre(new mychips.peers_v, old mychips.peers_v, tgop text)} {mychips.peers_v mychips.agents} {
   returns mychips.peers_v language plpgsql security definer as $$
     begin
-raise notice 'peers_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
-      if not exists (select agent from mychips.agents where agent = new.peer_agent) then
+--raise notice 'peers_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
+      if not new.peer_agent isnull and not exists (select agent from mychips.agents where agent = new.peer_agent) then
         insert into mychips.agents (agent, agent_host, agent_port) values (new.peer_agent, new.peer_host, new.peer_port);
       end if;
       return new;
     end;
 $$;}
 
-# Quality check for new peer records
+# Quality check for new/update peer records
 #----------------------------------------------------------------
-function {mychips.peers_vf_post(new mychips.peers_v, old mychips.peers_v, tgop text)} {mychips.peers_v} {
-  returns mychips.peers_v language plpgsql security definer as $$
-    begin
-raise notice 'peers_v_post: % % %', new.peer_agent, new.peer_host, new.peer_port;
-new.peer_agent = null;
--- Fixme: how to insert/check host, port info now with agent table?
---      if (new.peer_host is null or new.peer_port is null) then	-- not null applicable to foreign peers, but not local users
---        raise exception '!mychips.peers.NAD %', new.peer_ent;
---      end if;
-      return new;
-    end;
-$$;}
+#function {mychips.peers_vf_post(new mychips.peers_v, old mychips.peers_v, tgop text)} {mychips.peers_v} {
+#  returns mychips.peers_v language plpgsql security definer as $$
+#    begin
+#raise notice 'peers_v_post: % % %', new.peer_agent, new.peer_host, new.peer_port;
+#      return new;
+#    end;
+#$$;}
 
 # View of peers with primary address and contact points
 #----------------------------------------------------------------
