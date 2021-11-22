@@ -10,11 +10,11 @@ var fs = require('fs')
 var log = Log('testImpexp')
 var { dbClient } = require("wyseman")
 const dbConfig = {
-  database: DatabaseName,
-  user: DBAdmin,
-  listen: "DummyChannel",		//Cause immediate connection to DB, rather than deferred
+  database:	DatabaseName,
+  user:		DBAdmin,
+  listen:	"DummyChannel",		//Cause immediate connection to DB, rather than deferred
   log,
-  schema: __dirname + "/../../lib/schema.sql"
+  schema:	__dirname + "/../../lib/schema.sql"
 }
 
 function dbAndCheck(sqlFile, db, done, check) {
