@@ -45,13 +45,15 @@ const fileList = ["org.json", "user1.json", "user2.json", "user3.json"].forEach(
 queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})
 
 queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where user_host is null", a:[Settings.MachineIP, Settings.UserPort]})
-queryList.push({q:"update mychips.peers set peer_host = $1, peer_port=$2 where peer_host is null", a:[Settings.MachineIP, Settings.PeerPort]})
 
-//For testing tallies:
-let q1 = "update mychips.users_v set serv_id=$1, peer_port=$2 where id = $3;"
-queryList.push({q:q1, a:['server0', 65430, 'p1000']})
-queryList.push({q:q1, a:['server1', 65431, 'p1001']})
-queryList.push({q:q1, a:['server2', 65432, 'p1002']})
+//Obsolete:
+//queryList.push({q:"update mychips.peers set peer_host = $1, peer_port=$2 where peer_host is null", a:[Settings.MachineIP, Settings.PeerPort]})
+
+//For testing tallies: (obsolete)
+//let q1 = "update mychips.users_v set serv_id=$1, peer_port=$2 where id = $3;"
+//queryList.push({q:q1, a:['server0', 65430, 'p1000']})
+//queryList.push({q:q1, a:['server1', 65431, 'p1001']})
+//queryList.push({q:q1, a:['server2', 65432, 'p1002']})
 
 queryList.forEach(elem=>{
   pending++

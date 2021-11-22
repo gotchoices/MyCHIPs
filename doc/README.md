@@ -23,6 +23,7 @@ author additional helpful information.
   - [Docker Test Instance](use-docker.md)
   - [Native Installation](use-native.md)
   - [Connecting the Admin UI](use-admin.md)
+  - [Testing the Server](use-test.md)
   - [System Certificates](use-pki.md)
   - [User Mobile Application](use-mobile.md)
     - [Visual Balance Sheet](use-mobile.md#visual-balance-sheet)
