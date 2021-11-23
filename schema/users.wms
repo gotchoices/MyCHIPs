@@ -83,7 +83,7 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
         {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
         {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
-    " mychips.users_vf_post)
+    " mychips.users_vf_post mychips.users_vf_pre)
     eval(multiview::delete mychips.users_v "
         {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
     ")
