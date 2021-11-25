@@ -609,7 +609,7 @@ Obsolete States?
 
 ### Chit Chains and Lifts
 For an understanding of how chits are stored in a hash-chained linked list, 
-please review [this section](Tallies.md#chit-chains).
+please review [this section](learn-tally.md#chit-chains).
 
 The lift and chit state machines are closely intertwined.  When a lift is
 completed, we will be entering a series of chits on a number of local tallies

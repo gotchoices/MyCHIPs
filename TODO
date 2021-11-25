@@ -6,12 +6,24 @@ X- Launch server with specific (or default) agent key and portal
 X- How to lanch mychips with dummy agent key and encryption disabled
 X- PeerNoise publishes our correct portal/key to peers
 X- Modify mychips.js to select encrypted or raw modes (peerPortal)
-- Multiviews:
+X- Multiviews:
 X-  Test peers_v insert, update, delete
 X-  Test users_v insert, update, delete
 X-  Test deleting user record if a peer record remains
 X-  Test deleting peer record if an ent record remains
 X-  Test updating, deleting agents_v
+- 
+- Agents:
+-  For peers, the agent is associated with tallies only--not peer records
+-  Store CHIP ID's and agents in the tally
+-  Store anything that can change in the tally (certificates, CID, agents)
+-  Users are assigned an agent key but only as default for new tally creation
+-  The CID in a peer record could change at any time.  It is for reference only.
+-  The peer CID in an established tally is authorative as that is the CID that should be used
+   in any transaction related to the tally.
+-  HID is in user record?  (not peer record)
+- 
+- Get tally establishment protocol working (or at least figured out)
 - 
 - Make mocha/peer.js work again
 - Do I need local agent key in db parameter table (or only for peers)?

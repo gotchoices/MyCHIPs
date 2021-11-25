@@ -13,14 +13,15 @@ genuine identity for each of the participants.  For example, what if someone
 enters the system with a false identity, creates a bunch of credit-based money,
 and then leaves without standing behind those credits?
 
-This problem is largely eliminated in MyCHIPs.  Only the people who connect
-directly with each other need to be concerned with the identity of their trading
-partners.  And users are encouraged to connect only with people and companies
-they already have some degree of implicit trust in.
+This problem is largely avoided with MyCHIPs.  Only those people who connect
+directly (share a [tally](learn-tally.md)) with each other need to be concerned with 
+the identity of their trading partners.  And users are encouraged to connect only 
+with people and companies they already have some degree of implicit trust in (such as 
+employers, regular customers and regular suppliers).
 
-Furthermore we will [quantify and limit](learn-tally#credit-terms) that trust in each
-of the trading relationships so no one needs to take any more risk than a particular
-relationship might warrant.
+Furthermore we will [quantify and limit](learn-tally#credit-terms) the trust each
+trading partner has with the other so no one needs to take any more risk than a 
+particular relationship might warrant.
 
 True, entities could potentially join the MyCHIPs network through multiple different 
 relationships (and possibly even different identities).
@@ -28,7 +29,7 @@ But unless they can develop a sufficiently strong real-world reputation to earn 
 non-zero credit limit, they will be very limited in the kind of damage they can inflict.
 
 ### Resource Addresses
-Our Internet experience makes us familiar with a model where digital resources are
+Our regular Internet experience makes us familiar with a model where digital resources are
 accessed using some kind of public address such as a [URI](https://en.wikipedia.org/wiki/URI).
 A host address is an important part of the URI which may also include a port number.
 Host addresses are typically specified as a domain name or possibly an IP number.
@@ -42,24 +43,25 @@ Using DNS, the owner of the resource can just re-point the old domain name to th
 number and users will be able to access the same old information and the same old host
 address, even though the IP number is completely different.
 
-This flexibility introduces a potential security problem.  When you connect to a given 
+But this flexibility introduces a potential security problem.  When you connect to a given 
 IP number, how can you know with certainty that the data you are accessing truly belongs to 
 the owner of the intended domain?  What if your local DNS server fools you into visiting
 an imposter IP number just so a phony site can harvest confidential information like your
 passwords or account numbers?
 
-MyCHIPs includes two important objectives:
+MyCHIPs emphasizes two important objectives:
 - First, we don't always want user information to be publicly available.
   A public-facing company might want as many people as possible connected with
-  a direct credit relationship.  But private users are more likely to want to say
+  a direct credit relationship.  But private users are more likely to want to stay
   that way--private.
 - Second, MyCHIPs is all about decentralization.  This is a conscious choice made to
-  optimize the freedom and independence of its users.  Under DNS, you have to rely on 
-  some authority to vouch for the authenticity of each digital resource you access.
+  optimize the freedom and independence of users.  Unfortunately, DNS, makes you rely on 
+  a centralized, hierarchical authority to vouch for the authenticity of each digital 
+  resource you access.
   There are currently a limited number of these authorities established in a reliable 
   way and you typically have to pay one of them to participate.
 
-MyCHIPs is designed to work with or without DNS.  And user addresses are meant
+MyCHIPs is designed to work with <i>or without</i> DNS.  And user addresses are meant
 to be private unless and until the owner chooses to make them known.
 
 ### CHIP Addresses
@@ -72,8 +74,7 @@ In most cases, the CID will be combined with an agent ID (or just "agent") that
 represents the public key of a server process that handles business on behalf of
 the MyCHIPs user.
 
-Together, the CID and agent form a more complete MyCHIPs address that may be
-presented like this:
+Together, the CID and agent form a basic MyCHIPs address normally presented like this:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE
 ```
@@ -85,20 +86,21 @@ users on a host site.
 
 ### Portals
 Notably, the CHIP address is missing any kind of location information that might help us
-find this user on the Internet.  That is by design to facilitate a greater degree of
-privacy and decentralization.
+find a physical address on the Internet for the user.  That is by design to facilitate a 
+greater degree of privacy and decentralization.
 
-But a MyCHIPs user will have to divulge location information of some kind--at least
-to his expected trading partners.  So there is more we can add to the CHIP address to make
-it clear where other users can connect.
+But a MyCHIPs user will have to divulge a physical address to his trading partners.
+So there is more we can add to the CHIP address to make it clear where other users can 
+connect.
 
-This additional information consists of a regular host address and a port number.
-In web technology, this is often called an "origin" and it is rendered like this:
+This additional information consists of a regular host address and a port number we will
+refer to as a portal.
+In web technology, this is sometimes called an "origin" and it is rendered like this:
 ```
   mychips.org:57423
 ```
 We can put these two pieces of information together, separated by an '@' symbol, to 
-form a more explicit address as in:
+form a more explicit address such as:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
@@ -110,7 +112,7 @@ This also provides the potential for adding additional parameters in an optional
 query string.  This might include things like a connection token, a peer name, or
 other applicable information.
 
-The CHIP address (and other MyCHIPs message components) may optionally be encoded as a JSON (or other) structure.
+The CHIP address (and other MyCHIPs message components) may optionally be encoded as a JSON (XML or other) structure.
 For example, we might see a CHIP address presented as something like:
 ```
   {
@@ -120,9 +122,9 @@ For example, we might see a CHIP address presented as something like:
     port: 57423
   }
 ```
-Note: we expect a one-to-one relationship between an agent and its portal.
+Note: we expect a one-to-one relationship between an agent and its portal at any given time.
 That is, an agent with a particular key value should be reachable on a single portal. 
-And a portal address should serve one and only one agent.
+And a portal address should serve only one agent.
 
 ### Obscured CID
 The CHIP address convention also allows a CHIP ID to be made more private by specifying it
@@ -144,7 +146,7 @@ with a CID.  For example, it might be specified like this:
 ```
   suzie@mychips.org
 ```
-Keep in mind that a system would likely have to rely on a 
+Keep in mind that such a system would likely have to rely on a 
 [certificate authority](https://en.wikipedia.org/wiki/Certificate_authority) to 
 securely contact mychips.org, somehow obtain a connection public key and portal, and 
 then carry out the connection.
@@ -175,10 +177,9 @@ As mentioned, the agent is identified by a public key.
 To create the Agent ID, we encode the public key according to a 
 [variant of base 64](https://datatracker.ietf.org/doc/html/rfc4648#section-5).
 
-A client can decode this public key and use it to validate a connection at the
-specified port.  This will ensure that the process answering on the other end of the
-port is really controlled by the private key associated with the specified agent
-public key.
+A client can decode this public key and use it to validate a connection at the specified
+port.  This will ensure that the process answering on the other end of the port is 
+really controlled by the private key associated with the specified agent public key.
 
 This provides several benefits:
 - The agent ID serves as a logical address of sorts, akin to a domain name, but which is

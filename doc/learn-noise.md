@@ -1,47 +1,12 @@
 ## Peer to Peer Connections
 
 ### Tally Request
-Typically any first-time connection between two sites will be a request for a new tally.
-A notable exception to this is if a site is also acting as a 
-[Referee](/doc/Protocol.md#referee-queries) in which case it will be
-expected to accept lift timeout queries from essentially anyone.
-
-Connections associated with tally requests are conducted as follows:
-
-- User A3 will request from his database a [tally ticket](/doc/Tallies.md#establishing-a-tally) granting access to his account.
-  This also authorizes a peer site to establish a connection, absent key information.
-  The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
-  For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
+A first-time connection between two peer sites will typically be associated with a request 
+for a new tally.
+Please refer to [this section](learn-tally.md#establishing-a-tally) for an example of
+establishing a tally.
 
 <p align="center"><img src="figures/Lifts-6.jpg" width="300" title="Example Network"></p>
-
-- The ticket contains:
-  - User A3's [CHIP address](learn-users.md#chip-addresses), indicating where to connect to do business with user A3;
-  - An expiring, one-time token, authorizing connection without any other key information
-    - The token will internally specify that it is for establishing a new tally
-    - The token may optionally be limited to the specific CHAD of User B1
-  - The token expiration date;
-  - The public key of the issuing (A) site;
-
-- Once in possession of the connection ticket,
-  Site B connects (on behalf of B1) to site A.
-  It sends a structure encrypted with the site A's public key, containing
-    - The connection token;
-    - The public key of site B;
-    - An object (certificate) containing contact information about User B1 including its;
-      - CHIP Address
-      - Public Key
-      - Name, address, email, other identifying data
-
-  If site A can decrypt this message, and the token is still valid, it will:
-    - Finalize opening of the connection;
-    - Consider the connection as the initial steps in the
-      [Tally Initiation Sub-protocol](/doc/Protocol.md#tally-protocol);
-    - Continue with key exchange and tally negotiation;
-
-  If the initiation message fails, site A should silently close the connection
-  and may opt to initiate defensive measures (such as firewall blocking) against
-  possible [DOS](https://en.wikipedia.org/wiki/Denial-of-service_attack).
 
 ### Subsequent Connection
   It is not generally allowable to accept a connection from a site unless the
@@ -57,7 +22,7 @@ Connections associated with tally requests are conducted as follows:
   
   Having met these criteria, any site may connect to any other site at any time.
   The connection should be allowed and the message read, which is expected to
-  belong to the standard set of [protocol messages](/doc/Protocol.md) and to
+  belong to the standard set of [protocol messages](learn-protocol.md) and to
   pertain to a valid tally between users on the sites.
   
   Once a connection is open, it may be used for any tally shared by the two sites.
@@ -78,7 +43,7 @@ Connections associated with tally requests are conducted as follows:
   socket connection.
     
 ### Noise Protocol Implementation
-The [MyCHIPs Protocol](/doc/Protocol.md) describes a set of high level messages that
+The [MyCHIPs Protocol](learn-protocol.md) describes a set of high level messages that
 get passed back and forth between nodes in order to negotiate tallies, chits and lifts.
 
 At a lower level, it is necessary for sites to connect to each other over a secure, encrypted channel.

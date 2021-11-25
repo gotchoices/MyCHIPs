@@ -20,7 +20,7 @@ In conjunction with the agent-model simulator, I could generate random data sets
 And with the network visualizer, I could now actually see what a network might evolve into and what type of scenarios the protocol would have to handle.
 
 As I went, I produced documents like those included here for
-[tallies](Tallies.md) and [lifts](Lifts.md)
+[tallies](learn-tally.md) and [lifts](learn-lift.md)
 to help me make sense of what I needed to code.
 Those still serve as a helpful reference for the prototype implementation.
 
@@ -42,7 +42,7 @@ Such an entity could be an individual person or it could be a legal organization
 The term *user* is also used to be roughly synonymous with entity (with a possible bias toward human entities).
 
 Entities should quantify the degree to which they trust the peer entities they connect with.
-When that trust is greater than zero (i.e. [credit terms](./Tallies.md#credit-terms) are offered), one should be prepared to lose the amount of value quantified in the trust.
+When that trust is greater than zero (i.e. [credit terms](learn-tally.md#credit-terms) are offered), one should be prepared to lose the amount of value quantified in the trust.
 For example, if I extend you 10 CHIPs of credit, I must recognize the possibility that you may fail to uphold your promise.
 In that case, I may lose the promised value, or have to rely on collateral if such is a part of the particular credit agreement.
 
@@ -51,7 +51,7 @@ For example, if I (A) share a tally with you (B), and you also share a tally wit
 C may hurt you.  But I don't want C to be able to hurt me.
 
 So the assumptions in a distributed network are that contracts and obligations exist only between two immediately connected peer entities.
-The instrument for documenting and enforcing that connection is the [Tally](./Tallies.md).
+The instrument for documenting and enforcing that connection is the [Tally](learn-tally.md).
 
 ### Sites and Nodes
 When reasoning about lifts and other MyCHIPs transactions, it is sometimes easiest to think of entities as individual, independent nodes
@@ -80,20 +80,20 @@ In addition, we will cover the following which might be considered as sub-protoc
 - Communicating with a Referee nominated to call time on a lift transaction
 
 At a lower level, sites will communicate with each other over an encrypted secure connection which uses
-[Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail in [this document](/doc/Dialogs.md).
+[Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail [here](/doc/learn-noise.md).
 
 ### Tally Use Cases
 A tally is established when two parties decide to formalize a relationship of trust between them using the MyCHIPs protocol.
 
 ![use-tally](uml/use-tally.svg)
 
-Here is some additional detail pertaining to these four use cases:
+These use-cases are explained as follows::
 - **Be My Vendor**:
   The User reaches out to a potential trading Partner and asks if he would like to establish a tally.
-  This must alway happen via some communication channel outside the MyCHIPs protocol.
+  This must always happen via some communication channel outside the MyCHIPs protocol.
   We will call this “out-of-band communication.”
   Examples include meeting in-person, email, teleconference or a traditional web connection.
-  In this case, the User is suggesting he hold the [Foil](Tallies.md#tally-parts) of the tally and the Partner will hold the [Stock](Tallies.md#tally-parts).
+  In this case, the User is suggesting he hold the [Foil](learn-tally.md#tally-parts) of the tally and the Partner will hold the [Stock](learn-tally.md#tally-parts).
   The partner is the vendor, or provider of services, so money (value) will normally flow from User to Partner.
   In the moment of exchange, the User will owe value to the Partner.
   In other words, the Partner will have lent money to the User.
@@ -102,18 +102,19 @@ Here is some additional detail pertaining to these four use cases:
 - **Transaction**:
   Once established, the tally will serve as a foundation for actual trades, or pledges of credit.
   It will maintain and track a total balance owed in one direction or another.
-  And it constitutes a digital signed contract indicating the [terms and conditions](Tallies.md#credit-terms) by which the two parties have agree to conduct their trades.
+  And it constitutes a digital signed contract indicating the [terms and conditions](learn-tally.md#credit-terms) by which the two parties have agree to conduct their trades.
   The tally balance is modified by entering individual atomic transactions called [chits](https://www.dictionary.com/browse/chit).
   These chits are also digitally signed and become a part of the tally.
 - **Request Close**:
   A tally must be completely voluntary on the part of both parties.
   However, once agreed to (signed), the entities are duty-bound to uphold its terms.
   So a tally can be closed at any time, but the obligated entity (debtor) must somehow bring the tally balance to zero.
-  This might involve a [credit lift](Lifts.md) or it could be done by giving product, services, or some other kind of money.
+  This might involve a [credit lift](learn-lift.md) or it could be done by giving product, services, or some other kind of money.
 
 ### Tally Protocol
 The steps to establish a tally are shown in the following sequence diagram.
 This covers the first two tally use cases, the only difference being which entity is designated as the stock holder and which is the foil holder.
+Tally initiation is also discussed in some detail [here](learn-tally.md#establishing-a-tally).
 
 ![seq-tally](uml/seq-tally.svg)
 
@@ -124,12 +125,12 @@ When one of the partners wishes to end the trading relationship, he can do so by
 If the creditor wants to close the tally and is willing to forfeit his balance owed, he can simply gift the balance back to the debtor.
 The tally, marked as "closing," will then close automatically.
 
+![seq-tally-close](uml/seq-tally-close.svg)
+
 If the creditor wants to retain what is owed to him, he will have to wait for the agreed upon payment terms to time out.
 In the normal course of time, payment should be made by the debtor by way of a lift, or some other consideration of product, services or some other kind of money.
 
 If the debtor wants to close the tally sooner, he will have to figure out how to provide value sufficient to zero the balance.
-
-![seq-tally-close](uml/seq-tally-close.svg)
 
 Now we can derive the following state diagram to describe the tally protocol from the perspective of a single entity:
 
@@ -142,12 +143,12 @@ There are two basic types of chits:
   This is a simple chit issued by one entity, to its direct trading partner.
   This type of chit only needs to be signed by the entity pledging value.
 - **Lift Chit**:
-  In this case, the chit is part of a larger [credit lift](Lifts.md).
+  In this case, the chit is part of a larger [credit lift](learn-lift.md).
   There will be a whole group of chits, all bound to the lift.
   A lift chit will to be signed by a *site* certificate, where the site is the system that hosts the MyCHIPs account for the particular user.
   Clearly, the idea of letting one's Chip Service Provider sign chits on one's behalf sounds potentially dangerous.
   So there are some limitations on lift chits:
-  - The net effect on an entity of a group (typically 2) of chits, belonging to a single lift, must be in accord with the [trading variables](Lifts.md#trading-variables) established and signed by that user.
+  - The net effect on an entity of a group (typically 2) of chits, belonging to a single lift, must be in accord with the [trading variables](learn-lifts.md#trading-variables) established and signed by that user.
   - In general, this means the chits sum to zero.
   - It could be non-zero if the trading variables specify a charge or allow a penalty.
 
@@ -291,7 +292,7 @@ A lift segment is defined as:
 - A foreign entity at the bottom of the chain.
 
 The *lift capacity* along a segment is computed by comparing the ability/desire of each entity in the chain to perform a lift.
-Individual entities define [trading variables](Tallies.md#trading-variables) that control how many credits they would like to maintain on any given tally.
+Individual entities define [trading variables](learn-tally.md#trading-variables) that control how many credits they would like to maintain on any given tally.
 
 <p align="center"><img src="figures/Lifts-5.jpg" width="400" title="Computing lift capacity"></p>
 

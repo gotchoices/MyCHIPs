@@ -1,5 +1,4 @@
 ## Tallies
-February 2020
 
 A tally is, at its essence, a contract between two parties.  Using the tally, the parties
 agree to "keep track" of a net amount owing between them, on mutually acceptable terms.
@@ -40,24 +39,22 @@ be able to perform lifts to keep the two tallies in equilibrium.
 
 A tally includes the following information:
   - Tally format version (1)
-  - Digital ID unique to the tally (guid)
+  - Digital ID unique to the tally ([UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier))
   - Date and time of the original agreement
-  - Vendor CHIP address
-  - Vendor Certificate (signed personal contact information)
-  - Vendor Credit Terms; debt Vendor->Client (normally 0)
+  - Vendor [CHIP address](learn-users.md#chip-addresses)
+  - Vendor [Certificate](learn-tally.md#entity-certificates)
+  - Vendor [Credit Terms](learn-tally.md#credit-terms); debt Vendor -> Client (normally 0)
   - Client CHIP address
-  - Client Certificate (signed personal contact information)
-  - Client Credit Terms; debt Client->Vendor (N=credit card, 0=debit card)
+  - Client Certificate
+  - Client Credit Terms; debt Client -> Vendor (N=credit card, 0=debit card)
   - Reference to one or more standard, published contracts clauses, which
     become the operable and binding terms of the indebtedness.
-  - Public key of the agent system who will execute lifts for Vendor
-  - Public key of the agent system who will execute lifts for Client
-  - Digital signature of Vendor, indicating binding acceptance
-  - Digital signature of Client, indicating binding acceptance
-  - A list of transactions, which total to the net indebtedness
-  - A list of unilateral (one party) settings to various lift parameters
+  - Digital signature of Vendor (indicates binding acceptance of the tally)
+  - Digital signature of Client
+  - A list of transactions (chits), that total to the net indebtedness
+  - A list of unilateral (one party) amendments to the lift
 
-Each atomic change to the amount owing is referred to as a 
+Each atomic change to the amount owing (transaction) is referred to as a 
 ["chit"](https://www.dictionary.com/browse/chit) and includes:
   - Transaction date and time
   - Transaction amount, in mCHIPs (1/1000th part of a CHIP)
@@ -65,21 +62,31 @@ Each atomic change to the amount owing is referred to as a
     - Unearned gift
     - Payment for products/services
     - Credit lift
-  - A reference number or string indicating:
-    - Invoice or order that contains more detail about what was purchased
-    - Lift UUID
+  - A reference number or string indicating an invoice or order that contains 
+    more detail about what was purchased
   - Additional comments
-  - Digital signature of issuer/grantor, making the money binding
-  - Digital signature of recipient, acknowledging receipt (needed?)
+  - For regular chits:
+    - Digital signature of issuer/grantor, making the money binding
+  - For lift chits:
+    - Lift UUID
+    - [Portal](learn-users.md#portals) where to reach lift originator
+    - URL of lift referee
+    - Public key of lift referee
+    - Digital signature of lift referee
 
-Each setting includes:
-  - Parameters of the tally to be updated/modified
+Amendments include:
+  - Amendment type
+    - Operating parameter (setting)
+    - Change of authority
+  - Property/parameter/setting of the tally to be updated/modified
   - Signature date
   - Signature of the modifying party
 
-Tally data and chits must be duplicated exactly on the Stock and Foil.  
-However, certain settings may reside only with one side and are controlled by the owner of that half of the tally.
-They tell the site agent how to execute lifts on behalf of the owner.
+Tally data and chits must be duplicated exactly on the Stock and Foil.
+The order of chits must also (eventually) agree on both sides of the tally.
+Authority amendments can be recorded in any order but should be recorded on both sides.
+Parameter settings only reside only on one side and are controlled by the owner of that 
+half of the tally.  They tell the site agent how to execute lifts on behalf of the owner.
 
 ### Credit Terms
 This portion of the tally is actually comprised of a series of variables, some 
@@ -345,75 +352,117 @@ Vendor's (Stock) Trading Variables:
     positive number (1 disables lifts altogether).  If he wants to get rid of
     the chips, he could consider entering a negative margin.
   
-### Invoicing
+### Invoicing Overview
 An invoice is a request for payment from one party to another.  When the 
 parties [share a tally](#establishing-a-tally), this is pretty straightforward:
 One party enters a draft chit on the tally and waits for the other party (who will be paying) to approve it.
 The parties can negotiate over it until it is agreeable.  
 Once signed by the remitter, it becomes a binding part of the tally.
+This process is more formally described [here](learn-protocol.md#direct-chit-protocol).
 
 If an invoice is to be sent to a party who does not share a direct tally, it is a little more complicated.
 The payment request must be sent independently, off the CHIP network (such as via mail, email, QR code, etc.).
-This is called an "out-of-band" communication and it is necessary because these parties don't really share any direct connection that can be trusted on-network.
+This is called an "out-of-band" communication and it is necessary because these parties don't really share 
+any direct connection that can be trusted on-network.
 
-The actual payment for will be accomplished by way of a linear lift.
-So the invoice should include:
-  - The name or IP address of the system that hosts the recipient's CHIP account
-  - A connection socket endpoint for the recipient's host system
-  - The ID (possibly hashed) of the user who will be receiving payment
-  - A list of routing hints (downstream host systems who may be well known)
+The actual payment will be accomplished by way of a [linear lift](learn-protocol.md#credit-lifts-explained).
+The invoice (issued from recipient to payor) should include:
+  - The recipient CHIP ID (possibly [obscured](learn-users.md#obscured-cid))
+  - Recipient agent key
+  - Recipient agent portal
+  - Transaction type
   - The amount due
   - A reference field (order or merchandise number, for example)
+  - Optional comments
+  - Optional list of routing hints: domains/IP/addresses of downstream host systems who may 
+    be well known and have a known, upstream path to recipient
 
-The payor system will attempt to generate a route to the recipient.
+The payor system will attempt to discover a route to the recipient.
 If successful, a linear lift can be initiated to complete the payment.
 
-### Normal Consumer Transaction (payment without a tally)
+### Consumer Transactions
+This is an example of a typical consumer payment where there is not a shared tally between 
+the payor and the recipient
+
 - The vendor displays a generic invoice QR code as described in the [Invoicing section](#invoicing).
   - This can be custom generated for the transaction; or
   - It can be generic (a printed decal with no amount or reference field)
 - The customer scans the invoice into his MyCHIPs app.
 - In the case of a custom generated invoice, the app will automatically
   determine a route to the payee if possible.  If multiple routes are 
-  discovered, the user will confirm the one he wants.
+  discovered, the user may confirm the one he wants.
 - If the invoice is generic, the app may prompt for a reference number (if
   the invoice was configured for such).  In the case of retail, for example,
-  the merchant would supply a short sequence of digits verbally to be entered.
+  the merchant could supply a short sequence of digits verbally to be entered.
   This will allow the merchant to trace this payment to the specific register,
   transaction, etc.  The transaction then proceeds.
+- The invoice itself might also contain a register or department number to avoid
+  the need for the user to enter anything.
 - The app initiates a linear lift to the recipient's system.  When the user
   signs the transaction, the lift is completed.
+- The receipient's system will recognize the transaction with the related
+  reference number and recognize the purchase as complete.
   
 ### Establishing a Tally
-A MyCHIPs server will never accept a connection from anyone it doesn't already know about.
-So if two parties want to create a tally between them, one of the parties will have to issue a connection ticket to the other.
+Version 1.0 of the tally protocol is described formally [here](learn-protocol.md#tally-protocol)).
+In addition to this higher-level negotiation of the tally record itself, peer sites need to 
+open a channel over which they can communicate securely which process is discussed 
+[here](learn-noise.md).  In the case of a first-time tally, these two levels are tightly coupled.
+
+A MyCHIPs server should not normally accept a connection from anyone it doesn't already know about.
+So if two parties want to create a tally between them, one of the parties will have to issue a tally ticket to the other.
 Like an invoice, this information must be passed out-of-band.
 
-The party who initiates the tally would create a draft tally on his own system and then issue a connection ticket to be used by the other party.
-In the case of a commercial account like a retailer or restaurant, for example:
+The process is conducted according to the following example.
 
-- The Vendor would display or transmit a ticket QR code, containing:
-  - Vendor's full CHIP Address:
-    - CHIP ID (username)
-    - Agent ID (Agent's public connection key)
-    - Connection host/IP
-    - Connection port
-  - A connection ticket:
-    - Contains an authorization token
-    - May be configured to expire after a one-time use
-    - May be configured for multiple use by multiple parties (printed decal)
-  - The vendor's signature public key
+- User A3 will request from his host system a [tally ticket](/doc/learn-tally.md#establishing-a-tally).
+  This authorizes a peer site to establish a connection, absent pre-shared key information.
+  The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
+  For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
 
+<p align="center"><img src="figures/Lifts-6.jpg" width="300" title="Example Network"></p>
+
+- The ticket contains:
+  - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
+    connect with Site A on behalf of user A3.
+  - User A3's public signing key.
+  - User A3's [CHIP Certificate](#entity-certificates)
+  - An expiring, one-time token, authorizing connection without any other key information.
+    The token will internally specify that it is for establishing a new tally;
+  - The token expiration date;
+
+- Once in possession of the connection ticket,
+  Site B connects (on behalf of B1) to site A.
+  It sends a structure encrypted with the site A's public agent key, containing
+    - The connection token;
+    - The public key of the site B agent;
+    - B1's CHIP Certificate
+
+  If site A can decrypt the message, and the token is still valid, it will:
+    - Finalize opening of the connection;
+    - Consider the connection as the initial step in the
+      [Tally Initiation Sub-protocol](learn-protocol.md#tally-protocol);
+    - Continue with key exchange and tally negotiation;
+
+  If the initiation message fails, site A should silently close the connection
+  and may opt to initiate defensive measures (such as firewall blocking) against
+  possible [DOS](https://en.wikipedia.org/wiki/Denial-of-service_attack).
+
+For a real-world example, let's consider the case of a commercial account like a retailer or restaurant:
+
+- The Vendor displays or transmits a ticket QR code, containing the connection ticket
 - The customer scans the ticket using his app
 - The customer's host agent contacts the Vendor's host agent system at the specified port
   and presents the connection token.
-  The system must prove its authenticity via the public agent key it supplied in the ticket.
-- The two systems exchange/update account information for the two users.
+  The vendor's system must prove its authenticity via the public agent key it supplied in the ticket.
+- The customer proves authenticity simply by possessing the token.
+- The customer system provides the [customer's certificate](#entity-certificates).
 - The Vendor's system will offer the draft tally (or a clone of it when the token is meant to handle multiple connections).
-- The user will be given the opportunity to accept/modify/reject the tally.
+- The customer will be given the opportunity to accept/modify/reject the tally.
 - If he accepts it, we are done.  The draft tally has already been signed with its preferred terms.
 - If he modifies it with a counteroffer, some human user (or authorized bot) on the 
   Vendor's end would have to re-sign the tally (assuming they are willing to) before the tally becomes active.
+  The vendor (or vendor system) would also have the option of re-counterign or refusing the modified tally.
 
 Once the tally is established, the customer can [set parameters](#trading-variables) on the tally to
 collect extra Vendor credits, if so desired.
@@ -424,52 +473,73 @@ can begin to buy things using the tally as payment, within the specified credit 
 
 ### Entity Certificates
 Part of the information encapsulated and digitally signed within a tally includes a
-CHIP certificate (CHIPCert).  The certificate has several purposes:
+CHIP certificate.  The certificate has several purposes:
   - To provide information about the entity that identifies him to the satisfaction
     of the trading partner.  For example, some partners may require a certificate
     containing a Tax ID number (like a Social Security Number in the US).  Less formal
     relationships might only require a name and email address.  Fields are optional
     but should be sufficient (in the judgement of the partner) to establish identify in
-    an unmistakable way.
-  - To provide sufficient information to the host system to uniquely identify the
-    entity.  MyCHIPs will primarily rely on the CHIP ID, Agent ID and peer
-    private key to determine a unique entity.  But the database should also contain
-    valid entity names and an email address.
+    an unmistakable and legally sufficient way.
   - To identify how/where to contact the agent who acts officially on behalf of the
     MyCHIPs user.
+  - To provide sufficient information to the host system to uniquely identify the
+    entity and create the approprate database record (or properly recognize that it
+    already exists).
+
+MyCHIPs will rely solely on the public signing key of a particular user to determine
+unique identity.  A system administrator who can properly validate authentic identity
+by outside means may choose to manually update a public signing key on an existing
+peer record.  This may be appropriate in situations where a user has lost his key and
+needs to re-establish use of his account.  But automated systems should probably just
+create a new record for any new, as-yet-unknown public key is encountered.
     
-The CHIP certificate (CHIPCert), contains:
+The CHIP certificate contains:
   - CHIP ID
   - Agent ID
-  - Signature public key
-  - Other identifying information
+  - Contact information
     - Entity name	(company name or person's family name)
-    - Given name(s)	(individuals)
-    - Domain		(companies)
-    - Email		(individuals)
+    - Email		(mandatory)
+    - Given name(s)	(individuals only)
+    - Domain		(optional)
     - Address		(optional)
     - Country		(optional)
     - National ID	(optional)
+    - Identify Object	(optional)
+      - Birth name
+      - Birth date
+      - Birth address
+  - Digital signature of above properties
+  - Signature public key
 
-At any given time, a given entity should ideally have a single one of:
+At any given time, a given entity should ideally have a single:
   - CHIP ID
   - Agent ID
   - Signature public key
 
-Otherwise, an agent site might not recognize it as the same entity and therefore
-might create a duplicate entity record.
+Any time a site receives a certificate for a user it already has record of, it should
+validate the authenticity of the certificate using the public key it already has on file.
+If the information is authentic by this measure, the site should update any contact
+information from the certificate.
 
-If changes need to be made to the CHIP ID or Agent ID, this should be authorized by a
-record signed by the peer's signature key.  If the signature key needs to be changed
-this should probably be done by disabling all old tallies (close request), creating new 
-tallies with the new signature key, and then moving remaining credits over from the old 
-tallies to the new tallies that include the new signature key.
+If the public keys don't match, it should probably just create a new user or alert
+a human to determine the correct course of action.
+  
+If changes need to be made to the CHIP ID or Agent ID, this can be done automatically if
+duly authorized by a record signed by the peer's signature key.
+
+If a user's signature key needs to be changed
+this should probably be done by:
+- disabling all old tallies with a close request by the partner holding a remaining 
+  good signing key;
+- creating new tallies with the new signature key, and then moving remaining credits over 
+  from the old tallies to the new tallies that include the new signature key.
 
 This way, trading partners will necessarily be involved in the process of moving to a
 new signature key.
 
 ### Pathways
-(Version 0 protocol)
+(version 0 protocol)
+
 The admin tool includes a network visualization tool that shows all users local
 to the site, known foreign peers, and the tallies that interconnect them.  Each
 database will store both a stock and a foil that connect local users to each
@@ -598,7 +668,7 @@ In general, if you get a chit that already agrees with what you have on the
 chain, send an Ack back.  If you get an Ack through a certain index number
 move your latest valid index number forward (but not back) to that number.
 
-See [this section](Lifts.md#lift-states) for more on treatment of chits that belong to a lift transaction.
+See [this section](learn-lift.md#lift-states) for more on treatment of chits that belong to a lift transaction.
 
 ### Chit States
 (Version 0 protocol)
