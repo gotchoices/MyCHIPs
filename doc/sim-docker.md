@@ -1,4 +1,4 @@
-##MyCHIPs Simulations
+## MyCHIPs Simulations
 The folder test/sim contains several different iterations of simulators.
 The main idea is to launch the production server program multiple numbers of times
 along with a number of bot processes that attempt to act like human beings might
@@ -8,7 +8,7 @@ The simulations are helpful in creating data sets for analyzing the MyCHIPs
 protocol or for analyzing economic outcomes in the network.
 
 
-##Containerized Simulation
+## Containerized Simulation
 
 Simdock (try 3) is a re-implementation of the simnet (try 2) script where, instead of running on
 separate virtual machines, all processes are launched as docker containers.
