@@ -1,6 +1,6 @@
 ## Public Key Infrastructure
 
-This folder contains recipes for creating self-signed certificates.
+The pki folder contains recipes for creating self-signed certificates.
 We will use such certificates in three separate instances:
   - To validate the connection between the MyCHIPs server and a client Single 
     Page Application (SPA) such as the admin console, user console, or a user 
@@ -10,9 +10,9 @@ We will use such certificates in three separate instances:
   - To validate the connection between peer MyCHIPs servers (not implemented).
 
 For a more detailed version of these instructions, generic to WyattERP, see:
- 
+```
   node_modules/wyclif/pki/README
-
+```
 and where generic naming is applicable, assume 'mychips' instead of 'wyclif' or 'wyatt.'
 
 ### SPA Certificates
@@ -56,3 +56,6 @@ certificate built by this method if you named it the same as your server name.
 If not, you may have to supply a command line switch or environment variable in
 order for the server to find it correctly.  See bin/mychips.js for switches and
 variable names.
+
+<br>[Next - System Administration](use-mobile.md)
+<br>[Back to Index](README.md#contents)

@@ -1,5 +1,5 @@
 ## MyCHIPs Protocol Description 1.0 (draft)
-July 2021
+July 2021; Copyright MyCHIPs.org
 
 ### TODO
 - Show message class/object diagrams for each protocol?
@@ -66,10 +66,24 @@ This introduces the notion of a *site* which typically represents a single datab
 The term *node* will get used in a more generic way, possibly referring to an entity, a site, or a set of users (a <i>segment</i>) within a site, depending on the context.
 The term *server* may be used sometimes as roughly synonymous with *site.*
 
+### Protocol Layers
+This document is defining the **protocol** whereby nodes communicate with each other to:
+- Establish tallies (formalized trading relationships) between entities
+- Send value via direct Chits on a single tally
+- Discover potential lift pathways through the network
+- Execute distributed lifts across the network
+
+In addition, we will cover the following which might be considered as sub-protocols:
+- Gaining consensus between two entities sharing a tally as to the order of chits on the tally
+- Communicating with a Referee nominated to call time on a lift transaction
+
+At a lower level, sites will communicate with each other over an encrypted secure connection which uses
+[Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail in [this document](/doc/Dialogs.md).
+
 ### Tally Use Cases
 A tally is established when two parties decide to formalize a relationship of trust between them using the MyCHIPs protocol.
 
-![use-tally](uml/use-tally.svg)]
+![use-tally](uml/use-tally.svg)
 
 Here is some additional detail pertaining to these four use cases:
 - **Be My Vendor**:
@@ -204,7 +218,7 @@ The [lift algorithm](http://gotchoices.org/mychips/acdc.html) is like a way to �
 It can be thought of as trading what you *have but don't need*, for what you *need but don't have*.
 This is sometimes called a “clearing function” as it “clears out” or “nets to zero” offsetting credits on each node it traverses.
 
-<p align="center"><img src="Lifts-1.jpg" width="500" title="Visualizing a lift with four participants"></p>
+<p align="center"><img src="figures/Lifts-1.jpg" width="500" title="Visualizing a lift with four participants"></p>
 
 This figure shows a circular loop of trading partners.
 The arrows show the normal flow of money, credit, or IOU's in a clock-wise direction.
@@ -216,7 +230,7 @@ The linear version of the credit lift performs a related function, allowing you 
 It can be thought of as paying with *what you have but don't want*, while the receiver gets *what he wants but does not yet have*.
 Participating entities along the way also get the benefit of a clearing function on their own tallies.
 
-<p align="center"><img src="Lifts-2.jpg" width="400" title="A lift to transmit value"></p>
+<p align="center"><img src="figures/Lifts-2.jpg" width="400" title="A lift to transmit value"></p>
 
 In order to perform these lifts, nodes must have some idea of where to send credits so they will arrive at their intended destination.
 If there was a single, giant database of all the tallies in the world, this would not be such a difficult task.
@@ -234,7 +248,7 @@ For the purposes of regular (circular) lifts, the goal is to find external route
 
 Knowing such external pathways, a site should be able to combine them with known, internal segments of entities to form a complete lift circuit.
 
-<p align="center"><img src="Lifts-3.jpg" width="400" title="A distributed lift"></p>
+<p align="center"><img src="figures/Lifts-3.jpg" width="400" title="A distributed lift"></p>
 
 For linear (payment) lifts, the process is similar.
 The goal is to find external pathways:
@@ -253,7 +267,7 @@ This is often associated with a tally of which we hold the foil.
 But it is also possible to have fewer CHIP credits than we want on a tally stock.
 A merchant or supplier is a good example of a partner you would normally find down-stream of you.
 
-<p align="center"><img src="Lifts-6.jpg" width="500" title="Sites contain multiple users"></p>
+<p align="center"><img src="figures/Lifts-6.jpg" width="500" title="Sites contain multiple users"></p>
 
 This figure shows a convenient way to visualize a lift pathway in a real implementation.
 A site database will contain multiple entities who are connected in a short, linear segment.
@@ -277,7 +291,7 @@ A lift segment is defined as:
 The *lift capacity* along a segment is computed by comparing the ability/desire of each entity in the chain to perform a lift.
 Individual entities define [trading variables](Tallies.md#trading-variables) that control how many credits they would like to maintain on any given tally.
 
-<p align="center"><img src="Lifts-5.jpg" width="400" title="Computing lift capacity"></p>
+<p align="center"><img src="figures/Lifts-5.jpg" width="400" title="Computing lift capacity"></p>
 
 The software compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
 
@@ -355,7 +369,7 @@ Remember, each node could represent a single user or a segment of users local to
 We will consider node A as the lift originator.
 Node B will be considered the destination of the lift.
 
-<p align="center"><img src="Lifts-1.jpg" width="500" title="Visualizing a lift"></p>
+<p align="center"><img src="figures/Lifts-1.jpg" width="500" title="Visualizing a lift"></p>
 
 For a linear lift, just imagine the tally between A and B does not (or need not) exist.
 

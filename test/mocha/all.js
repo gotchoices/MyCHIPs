@@ -5,9 +5,11 @@ const { DatabaseName, DBAdmin, MachineIP, Log } = require('../settings')
 const { exec } = require('child_process')
 
 require('./peercomm.js')
-
+require('./objectset.js')
+require('./peernoise.js')
 require('./impexp.js')
 require('./peer.js')
+require('./agent3.js')
 
 describe("At End", function() {
 

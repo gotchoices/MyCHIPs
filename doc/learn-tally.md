@@ -33,7 +33,7 @@ balance and the foil to accrue a debit (positive) balance.  This makes the
 terms stock (Vendor) and foil (Client) potentially less clear in terms of who 
 becomes the creditor (Recipient) and who is the debtor (Issuer).  However, we will
 still use the terms Stock and Foil because it is helpful to differentiate the 
-two ends of the credit relationship when computing lifts and drops.
+two ends of the credit relationship when computing [lifts](learn-lift.md) and drops.
 
 If two parties truly have a completely bilateral trading arrangement, they
 might just assign Stock and Foil at random.  Or they may choose to establish
@@ -284,7 +284,7 @@ manually set certain preferences themselves.  The instruction for changing
 these settings is digitally signed by the user, authorizing the system agent to 
 act in accordance with the settings.
 
-![Trading Variables](Lifts-5.jpg "Visualizing Trading Variables")
+![Trading Variables](figures/Lifts-5.jpg "Visualizing Trading Variables")
 
 Client's (Foil) Trading Variables:
   - **Lift Target** (Vendor -> Client):	Default: 0
@@ -296,13 +296,13 @@ Client's (Foil) Trading Variables:
     here constitutes value savings by the Client in the currency of the 
     Vendor--something he must accept in payment or as part of a future drop.
 
-  - *Lift Limit*: (Foil bound)		Default: Debit Limit (dr_limit)
+  - **Lift Limit**: (Foil bound)		Default: Debit Limit (dr_limit)
     This can exceed the dr_limit setting in the tally to allow higher 
     indebtedness of Vendor to Client, occurring as the result of a lift.  No 
     lifts should be performed which would result in a balance more negative
     than this amount.
 
-  - *Lift Margin*: (Foil reward)	Default: 0
+  - **Lift Margin**: (Foil reward)	Default: 0
     This indicates Client's willingness to conducts lifts through this Foil.
 
     The number 0 is neutral, meaning zero cost.  A positive number
@@ -394,7 +394,7 @@ Like an invoice, this information must be passed out-of-band.
 The party who initiates the tally would create a draft tally on his own system and then issue a connection token to be used by the other party.
 In the case of a commercial account like a retailer or restaurant, for example:
 
-- The Vendor would display or transmit a ticket QR code, containing:
+- The Vendor would display or transmit a ticket QR code, containing (SOME INFORMATION HERE OBSOLETE):
   - The name or IP address of the system that hosts the recipient's CHIP account
   - A connection socket endpoint for the recipient's host system
   - A connection authorization token:
@@ -583,3 +583,6 @@ If a chit includes a hash and a chain index, it has been added to the local
 hash chain.  But it might not yet be verified.  If its index is less than or
 equal to the "verified" field of the tally, then it is verified and should be
 considered irrevocable.
+
+<br>[Next - The Credit Lift](learn-lift.md)
+<br>[Back to Index](README.md#contents)

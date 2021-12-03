@@ -19,9 +19,7 @@
   },
   "scripts": {
     "test": "mocha test/mocha/all.js",
-    "test-peercomm": "mocha test/mocha/peercomm.js",
-    "test-impexp": "mocha test/mocha/impexp.js",
-    "test-peer": "mocha test/mocha/peer.js",
+    "test-agent3": "mocha test/mocha/agent3.js",
     "dev-hot": "webpack-dev-server --mode development --hot --config build/webpack.config",
     "dev-build": "webpack --mode development --watch --progress --hide-modules --config build/webpack.config",
     "build": "webpack --mode production --config build/webpack.config",
@@ -56,10 +54,14 @@
     "bitcoin"
   ],
   "dependencies": {
+    "frame-stream": "^2.1.0",
     "interactjs": "^1.10.11",
+    "ip-address": "^8.1.0",
     "jquery": "^3.6.0",
+    "js-yaml": "^4.1.0",
     "json-stable-stringify": "^1.0.1",
     "mathjs": "^9.5.0",
+    "noise-protocol": "^3.0.1",
     "pg-format": "^1.0.4",
     "qr-image": "^3.2.0",
     "string-hash": "^1.1.3",

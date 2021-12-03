@@ -17,6 +17,12 @@ conduct their credit dealings.
     
 The source language for these contracts is kept here.
 
+### doc
+Package documentation.  Also includes:
+  - doc/Notes: the author's originalhand sketches, notes and computations
+  - doc/Projects: specifications for potential coding projects to further
+    the system's development.
+
 ### lib
 Contains modules that are required by the MyCHIPs server.
 Functionality includes:

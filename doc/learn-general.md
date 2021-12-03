@@ -1,5 +1,6 @@
-## General Principles to Understand About How MyCHIPs Works
+## Learning MyCHIPs
 
+### A Complex Problem
 One of the first comments I often get after a code review is: "Wow, that is 
 pretty complicated!"  Yes, there are a lot of moving parts in the algorithm.
 But I think it is necessary for what we are trying to achieve.
@@ -158,7 +159,7 @@ This is where the MyCHIPs lift algorithm shines.  It allows us to:
 - Pass value through the network to entities with whom we do not share a direct 
   connection of trust.
 
-### Discipline
+### Maintaining Discipline
 As one works on this project, it can be difficult to maintain these principles
 and concepts firmly in mind, as necessary to achieve full decentralization.
 
@@ -183,3 +184,6 @@ partners can trade directly over these private and intimate connections.
 Strangers can trade indirectly by rippling value through the network--but only 
 if they are trustworthy enough to maintain their own local connections of 
 trust.
+
+<br>[Next - ZZZZ](learn-users.md)
+<br>[Back to Index](README.md#contents)
