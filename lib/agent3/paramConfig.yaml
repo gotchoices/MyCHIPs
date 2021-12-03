@@ -12,7 +12,7 @@ maxtopay: 0.1 #Pay up to 10% of my net worth
 maxtarget: 100
 
 # This stuff will come later...
-# agents:
+# agentTypes:
 #   - type: 'custom' 
 #     percentOfTotal: 0.6
 #     addclient: 0.1 # Try to add client 10% of the time
