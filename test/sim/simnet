@@ -61,7 +61,7 @@ done
 set -- "${pargs[@]}"					#Restore positional arguments
 
 #if  [ ${#dockapps[@]} -gt 0 ]; then			#If some nodes are containers
-#  source $mypath/sim.c
+#  source $mypath/sim-c.sh
 #fi
 
 mychips="$mypath"					#Get our bearings in the filesystem
@@ -99,11 +99,11 @@ for mach in "${remotes[@]}"; do			#Update each machine with mirror of latest sou
   if [ "$1" != "stop" ]; then
     rsync -ar --delete "$mychips" "$mychips"/../node_modules "$mychips"/../wylib "$mychips"/../wyselib "$mychips"/../wyseman "$mychips"/../wyclif "${user}@${mach}:${remsrc}"
   fi
-  ssh -f -Y ${user}@${mach} "NODE_DEBUG=$NODE_DEBUG TMPDIR=local SIMNET_INDEX="$machidx" ${remsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+  ssh -f -Y ${user}@${mach} "NODE_DEBUG=$NODE_DEBUG TMPDIR=local SIMNET_INDEX="$machidx" ${remsrc}/mychips/${mysim}sim-x.sh ${cargs[@]}"
   machidx=$(expr $machidx + 1)
 done
 
-for mach in "${locals[@]}"; do			#Call sim.x script on each local VM
-  ssh -f -Y ${USER}@${mach} "NODE_DEBUG=$NODE_DEBUG TMPDIR=local/$mach SIMNET_INDEX="$machidx" ${vmsrc}/mychips/${mysim}sim.x ${cargs[@]}"
+for mach in "${locals[@]}"; do			#Call sim-x.sh script on each local VM
+  ssh -f -Y ${USER}@${mach} "NODE_DEBUG=$NODE_DEBUG TMPDIR=local/$mach SIMNET_INDEX="$machidx" ${vmsrc}/mychips/${mysim}sim-x.sh ${cargs[@]}"
   machidx=$(expr $machidx + 1)
 done

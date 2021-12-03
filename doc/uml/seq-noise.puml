@@ -1,0 +1,41 @@
+@startuml
+!include common.puml
+$title(NPF Connection Sequence)
+database "Initiator" as initiator
+database "Responder" as responder
+
+note over initiator, responder
+  Both nodes create listening server socket
+end note
+
+initiator ->>	initiator:	Get a packet to communicate
+
+alt We already have a channel open
+  loop As long as channel still open
+    initiator ->>	responder:	Send/respond any upper level protocol packet
+    responder ->>	initiator:	Send/respond any upper level protocol packet
+  end loop
+
+else Initiator has a tally ticket
+  initiator ->> responder:	Use IK; Give ID; Payload: ticket; Noise: e,es,s,ss
+  alt Ticket checks out
+    responder ->> initiator:	Payload: proposed tally; Noise: e,ee,se
+    note over initiator, responder
+      Channel is open for further packets of any kind
+    end note
+    responder ->> responder:	Close channel after timeout occurs
+  end
+
+else Packet should relate to an established tally
+  initiator ->> responder:	Use N to give ID; Use KK; Payload: optional transaction; Noise: e,es,ss
+  alt Tally is current, open
+    responder ->> initiator:	Payload: null; Noise:e,ee,se
+    note over initiator, responder
+      Channel is open for further packets of any kind
+    end note
+    responder ->> responder:	Close channel after timeout occurs
+  end
+
+end
+
+@enduml

@@ -473,7 +473,7 @@ function {mychips.lift_circuit(top text, bot text)} {mychips.lifts_v mychips.rou
     end;
 $$;}
 
-# Attempt a linear distributed from a local user to a remote peer
+# Attempt a linear distributed lift from a local user to a remote peer
 #----------------------------------------------------------------
 function {mychips.lift_linear(frm text, tocid text, tohost text, units bigint)} {mychips.lifts_v mychips.routes_v_paths mychips.users_v} {
   returns bigint language plpgsql as $$

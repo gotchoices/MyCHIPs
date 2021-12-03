@@ -101,7 +101,7 @@ function {mychips.users_v_check(new mychips.users_v, old mychips.users_v, tgop t
   returns mychips.users_v language plpgsql security definer as $$
     begin
 -- raise notice 'Users check: % % %', tgop, new.id, new.username;
-      if (tgop = 'INSERT' and new.username is null) then
+      if (tgop = 'INSERT' and new.username is null) then	--Default username to = ID
         new.username = new.id;
         update base.ent set username = new.id where id = new.id;
       end if;

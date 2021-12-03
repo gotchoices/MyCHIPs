@@ -14,7 +14,7 @@ services:
     container_name: $MYCHIPS_HOST
     hostname: $MYCHIPS_HOST
     build:
-      context: ..
+      context: $MYCHIPS_ROOT
       dockerfile: build/docker-mychips
     environment:
       NODE_DEBUG: $MYCHIPS_DEBUG
@@ -36,7 +36,7 @@ services:
   postgres:
     image: gotchoices/pg
     build:
-      context: ..
+      context: $MYCHIPS_ROOT
       dockerfile: build/docker-pg
     container_name: $MYCHIPS_DBHOST
     hostname: $MYCHIPS_DBHOST

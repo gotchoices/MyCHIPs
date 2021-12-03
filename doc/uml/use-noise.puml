@@ -1,0 +1,22 @@
+@startuml
+!include common.puml
+$title(NPF Connection Use Cases)
+left to right direction
+
+node "Initiator" as initiator
+node "Responder" as responder
+
+usecase "I want to connect for the first time\nI have a connection ticket" as ticket
+usecase "I want to connect in regard to\nan already established tally" as tally
+usecase "We are already connected so\nhere is another message" as existing
+
+initiator	--	ticket
+			ticket		-- responder
+
+initiator	--	tally
+			tally		-- responder
+
+initiator	--	existing
+			existing	-- responder
+
+@enduml

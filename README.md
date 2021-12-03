@@ -1,7 +1,7 @@
 # MyCHIPs
 MyCHIPs is an open-source network protocol for implementing a novel kind of digital money based on private credit and quantified in units of [CHIPs](http://gotchoices.org/mychips/definition.html):
 
-The CHIP Symbol: <img src="doc/chip.svg" alt="A CHIP" height="30"/>
+The CHIP Symbol: <img src="doc/figures/chip.svg" alt="A CHIP" height="30"/>
 
 This is *not* a Bitcoin/blockchain derivative, but rather a whole new (and yet [very old](https://www.bbc.com/news/business-40189959)) approach that solves several notorious problems with public blockchain systems.
 Most notably, it is more [fully distributed](https://blockchainengineer.com/centralized-vs-decentralized-vs-distributed-network/) and infinitely scalable.
@@ -18,13 +18,11 @@ So it is a [better solution](http://gotchoices.org/mychips/bitcoin.html) when co
     - a measure of value.
 
 For introductory information on the algorithm, check out the [MyCHIPs Papers.](http://gotchoices.org/mychips/intro.html)
-For technical information about the implementation, you may want to start with
-[Tallies](doc/Tallies.md) and then
-[Lifts](doc/Lifts.md).
 
 ### Getting Started:
-General documentation is in [here](doc/README.md).
-To try out the software, follow the [Developer Instructions](doc/Development.md).
+General documentation is found [here](doc/README.md).
+
+To try out the software, jump in [here](doc/use-start.md).
 
 At the current development state, you can launch a configurable number of server processes, as well as a network simulator to create bot users that will begin trading with each other.
 There is also a rudimentary admin console that allows you to browse the database, generate user connection tokens, and peruse trading contracts.
@@ -62,9 +60,9 @@ To kick off the public release of the source code, I commissioned a study by [DS
 As expected, they uncovered several issues that need improvement before the system can be expected to perform in a fault-tolerant way.
 Their work and results are summarized [here](test/analysis/dsr/phase-1/results.md).
 
-In response to that study, I created an [outline](doc/Safety.md) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
+In response to that study, I created an [outline](doc/old-safety.md) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
 Now there is work being done at [BYU](www.byu.edu) to both validate the original DSR results, and evaluate proposed solutions.
-Early results would indicate that the [improved protocol](doc/Protocol.md) is now reasonably safe and live.
+Early results would indicate that the [improved protocol](doc/learn-protocol.md) is now reasonably safe and live.
 
 This represents the current state of the project.
 
@@ -107,11 +105,11 @@ This represents the current state of the project.
 - Test original algorithm (DSR Study)
 - Improved algorithm
 
-If you are interested in participating, clone this repo and follow the instructions in the [Developer Instructions](doc/Development.md).
-You should be able to get a simulated network running and visualize credit lifts in the administrator console.
-Then review the work and results in the DSR study and see if you can help us move the project forward to deployment.
+Want to help out?  Cclone this repo and follow the [instructions](sim-docker.md)
+to get a simulated network running and visualize credit lifts in the administrator console.
 
-There is a project roadmap in the [TODO file](TODO).
+There is a current project roadmap in the [TODO file](TODO).
+[Let us know](http://gotchoices.org/contact.html) how you would like to participate!
 
 ### Talent Needs:
 - Distributed asynchronous network consensus protocols (TLA+, SPIN)
@@ -126,9 +124,8 @@ There is a project roadmap in the [TODO file](TODO).
 - Economics
 - Contract law
 
-### Interesting Projects/Sites/Resources:
+### Other Interesting Projects/Resources:
 - [Offset Credit](http://offsetcredit.org)
-- [Ripple](http://ripple.com)
 - [Trustlines](http://trustlines.network)
 - [Open Credit Network](https://opencredit.network/)
 - [Credit Commons](http://www.creditcommons.net)
