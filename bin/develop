@@ -44,7 +44,7 @@ for m in wylib wyseman wyclif wyselib; do
   
   if [ ! -d $devdir/node_modules/$m ]; then
     echo "Will access $m from source: $devdir/$m"
-    ( cd $devdir && npm install $m )
+    ( cd $devdir && npm install $m/ )
   fi
   
 done
