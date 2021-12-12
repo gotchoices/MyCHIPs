@@ -1,19 +1,19 @@
 TODO:
 
 Immediate:
-X- Automatically build default agent key
-X- Launch server with specific (or default) agent key and portal
-X- How to lanch mychips with dummy agent key and encryption disabled
-X- PeerNoise publishes our correct portal/key to peers
-X- Modify mychips.js to select encrypted or raw modes (peerPortal)
-X- Multiviews:
-X-  Test peers_v insert, update, delete
-X-  Test users_v insert, update, delete
-X-  Test deleting user record if a peer record remains
 X-  Test deleting peer record if an ent record remains
 X-  Test updating, deleting agents_v
 - 
 - Agents:
+-  json.user, users for mychips-specific import/export
+-  Make json.userCert (or somewhere else) for a CHIPCert generator
+-  Align: JSON peer import/export view(s) _with_ CHIPCert
+-  
+-  Save CHIPCerts in tally with what gets signed
+-  Add last signed CHIPCert to peer record
+-  Is there anything getting signed in the tally that is in user/peer table? (cache it in tally)
+- 
+-  Change user_ to hold_ terminology in tallies_v, etc
 -  For peers, the agent is associated with tallies only--not peer records
 -  Store CHIP ID's and agents in the tally
 -  Store anything that can change in the tally (certificates, CID, agents)
@@ -22,6 +22,8 @@ X-  Test updating, deleting agents_v
 -  The peer CID in an established tally is authorative as that is the CID that should be used
    in any transaction related to the tally.
 -  HID is in user record?  (not peer record)
+- 
+- Change peer terminology in peernoise to remote/local?
 - 
 - Get tally establishment protocol working (or at least figured out)
 - 

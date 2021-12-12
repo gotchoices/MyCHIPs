@@ -10,15 +10,17 @@
 
 const assert = require('assert');
 const { DatabaseName, DBAdmin, MachineIP, Log } = require('../settings')
-var log = Log('test-peer', 'info', 'mychips-test')
+var log = Log('testPeer')
+var { dbClient } = require("wyseman")
 const PeerCont = require("../../lib/peer")
 const MessageBus = require('../bus')
-const Uport=43210
-const Pport0=65434
-const Pport1=65435
-const Host0 = "server0"
-const Host1 = "server1"
-var { dbClient } = require("wyseman")
+const Port0=65434
+const Port1=65435
+var host = 'localhost'
+var publicKey0 = Buffer.from('P'+Port0).toString('base64url')
+var publicKey1 = Buffer.from('Q'+Port1).toString('base64url')
+var agent0 = {host, port: Port0, key:{publicKey:publicKey0}}
+var agent1 = {host, port: Port1, key:{publicKey:publicKey1}}
 var interTest = {}			//Pass values from one test to another
 
 describe("Peer to peer tallies", function() {
@@ -40,20 +42,26 @@ describe("Peer to peer tallies", function() {
     }, ()=>{log.info("Main test DB connection 1 established"); done()})
   })
 
+  before('Delete extra test users', function(done) {
+    db0.query("delete from base.ent where ent_num > $1;", [1001] ,(err, res) => {done()})
+  })
+
   before('Launch two peer servers', function() {
-    server0 = new PeerCont({port:Pport0, servID:Host0}, {database: DatabaseName, user: DBAdmin, log})
-    server1 = new PeerCont({port:Pport1, servID:Host1}, {database: DatabaseName, user: DBAdmin, log})
+    server0 = new PeerCont(agent0, {database: DatabaseName, user: DBAdmin, log})	//Madison
+    server1 = new PeerCont(agent1, {database: DatabaseName, user: DBAdmin, log})	//Smith
   })
 
   it("Check for correct number of test users", function(done) {
+//log.debug("Key:", agent0.key.publicKey)
     const sql = `begin; \
-      update mychips.users set user_host = '${MachineIP}', user_port=${Uport} where user_host isnull; \
-      update mychips.users_v set peer_host = '${MachineIP}', peer_port=${Pport0}, serv_id='${Host0}' where peer_ent = 'p1000'; \
-      update mychips.users_v set peer_host = '${MachineIP}', peer_port=${Pport1}, serv_id='${Host1}' where peer_ent = 'p1001'; \
+      update mychips.users_v set peer_host = '${host}', peer_port=${Port0}, peer_agent='${publicKey0}' where peer_ent = 'p1000'; \
+      update mychips.users_v set peer_host = '${host}', peer_port=${Port1}, peer_agent='${publicKey1}' where peer_ent = 'p1001'; \
       select count(*) as count from mychips.users_v where ent_num >= 1000; commit;`
-    db0.query(sql, null, (err, res) => {if (err) done(err)
-      assert.equal(res.length, 6)
-      let row = res[4].rows[0]
+//log.debug("Sql:", sql)
+    db0.query(sql, (err, res) => {if (err) done(err)
+      assert.equal(res.length, 5)	//5: begin, update, update, select, commit
+//log.debug("Res:", res[3].rows[0])
+      let row = res[3].rows[0]
       log.info("Users:", row.count)
       assert.equal(row.count,2)
       done()
@@ -66,17 +74,18 @@ describe("Peer to peer tallies", function() {
       insert into mychips.tallies (tally_ent, tally_guid, partner, user_sig, contract, request) 
         values ('p1001', '18d44de5-837d-448f-8d96-9136372987cf','p1000','Adam signature', '{\"name\":\"mychips-0.99\"}'::jsonb, 'draft') returning status, tally_seq;
       commit;`
+//log.debug("Sql:", sql)
     db1.query(sql, null, (err, res) => { if (err) done(err)
-//console.log("RES:", res[2], "err:", err ? err.detail : null)
-      assert.equal(res.length, 4)
+//log.debug("RES:", res[2], "err:", err ? err.detail : null)
+      assert.equal(res.length, 4)		//begin, delete, insert, commit
       assert.equal(res[2].rows.length, 1)
       let row = res[2].rows[0]
-      interTest.seq = row.tally_seq
+      interTest.seq = row.tally_seq		//remember sequence for later
       log.info("1001 proposal done; status:", row.status, "seq:", row.tally_seq)
       assert.equal(row.status, 'void')
     })
 
-    bus0.register('p0', (data) => {
+    bus0.register('p0', (data) => {		//Listen for message from our database
       let msg = JSON.parse(data)
         , obj = msg.object
       log.info("Check foil:", obj.foil, obj)
@@ -87,7 +96,8 @@ describe("Peer to peer tallies", function() {
       done()
     })
   })
-
+//Debug:
+return
   it("User p1000 verifies the tally", function(done) {
     const sql = "select state from mychips.tallies_v where tally_ent = $1 order by tally_seq desc limit 1;"	//Fetch tally state
     db0.query(sql, ['p1000'], (err, res) => { if (err) done(err)

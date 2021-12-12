@@ -82,6 +82,7 @@ describe("View mychips.peers_v", function() {
       {pkey:'id', pkval: 'p1000', table:'mychips.peers_v',record:{peer_cid:'froopie'}},	//Modify a peer record
       {pkey:'id', pkval: 'p1000', table:'mychips.users_v',record:{user_port:5555}},	//Add a user record
       {pkey:'id', pkval: 'p1001', table:'mychips.users_v',record:{peer_cid:'poofie', user_host:'mychips.net'}},	//Add user and peer
+      {pkey:'id', pkval: 'p1001', table:'mychips.users_v',record:{peer_agent:'ZZYZX', peer_host:'mychips.org', peer_port:22332}},	//Add agent record
       {pkey:'agent', pkval: 'FACADE', table:'mychips.agents_v',record:{agent_host:'mychips.net', agent_port:7200}},
     ]
 

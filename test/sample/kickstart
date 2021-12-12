@@ -13,15 +13,16 @@ const { MachineIP, UserPort, PeerPort, DatabaseName, DBAdmin, Log } = Settings
 
 var database = process.env.MYCHIPSDB || 'mychips'
 var user = DBAdmin || process.env.MYCHIPSDBA || process.env.USER
-console.log("database:", database, "user:", user, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
+//console.log("database:", database, "user:", user, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
 
-var fs = require('fs')
+const Fs = require('fs')
+const Path = require('path')
 var log = Log('Kickstart')
 var { dbClient } = require("wyseman")
 const dbConfig = {
   database, user, log,
-  listen: "DummyChannel",		//Cause immediate connection to DB, rather than deferred
-  schema: __dirname + "/../../lib/schema.sql"
+  connect: true,
+  schema: Path.join(__dirname, '../../lib', 'schema.sql')
 }
 
 var pending = 0
@@ -30,11 +31,9 @@ var db = new dbClient(dbConfig)
 var queryList = []
 //queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[Settings.MachineIP]})
 
-const fileList = ["org.json", "user1.json", "user2.json", "user3.json"].forEach(file=>{
-  let fileData = fs.readFileSync(__dirname + '/' + file)
-    , jsonData = JSON.parse(fileData)
-  queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
-})
+var fileData = Fs.readFileSync(Path.join(__dirname, 'users.json'))
+var jsonData = JSON.parse(fileData)
+queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
 
 //For user agent model testing:
 //queryList.push({q:"select base.parmset('agent','interval',$1::int)", a:[1000]})

@@ -1,0 +1,53 @@
+{
+    "cid": "adam_smith",
+    "name": "Smith",
+    "type": "p",
+    "begin": "1970-01-31",
+    "first": "Adam",
+    "juris": "US",
+    "taxid": "234-456-7890",
+    "middle": null,
+    "prefer": null,
+    "address": [
+        {
+            "main": true,
+            "post": "23456-7890",
+            "spec": "2345 My Avenue",
+            "type": "ship",
+            "prior": false,
+            "state": "Mystate",
+            "locale": "Mycity",
+            "comment": "Test address"
+        },
+        {
+            "main": true,
+            "post": "23456-4567",
+            "spec": "PO Box 4567",
+            "type": "bill",
+            "prior": false,
+            "state": "Mystate",
+            "locale": "Mycity",
+            "comment": "Mailing address"
+        }
+    ],
+    "connect": [
+        {
+            "spec": "701-345-6789",
+            "media": "phone",
+            "prior": false,
+            "comment": "Home"
+        },
+        {
+            "spec": "701-456-7890",
+            "media": "cell",
+            "prior": false,
+            "comment": null
+        },
+        {
+            "spec": "adamsmith1@hotmail.com",
+            "media": "email",
+            "prior": false,
+            "comment": null
+        }
+    ]
+}
