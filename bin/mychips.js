@@ -83,7 +83,7 @@ var wyseman = new Wyseman({				//Launch SPA server and associated web socket
   user: argv.dbAdmin,
   connect: true,
   ssl: sslAdmin,
-  log, schema: __dirname + "/../lib/schema.sql"
+  log, schema: __dirname + "/../lib/schema.json"
 })
 
 if (Boolean(argv.agentKey)) {				//Create socket server for peer-to-peer communications

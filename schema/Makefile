@@ -27,6 +27,6 @@ sql:	objects text defs
 	wyseman init -s >../lib/schema-1.sql
 
 schema:	objects text defs
-	wyseman init -S ../lib/schema-1.sch
+	wyseman init -S ../lib/schema.json
 
 all: objects text defs init

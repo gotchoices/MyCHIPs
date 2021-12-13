@@ -38,7 +38,7 @@ $$;}
 
 # Serialize JSON in a deterministic way and hash it
 #----------------------------------------------------------------
-function {mychips.j2h(input jsonb)} {plpy} {
+function {mychips.j2h(input jsonb)} {mychips plpy} {
   returns bytea language plpythonu immutable as $$
     import json
     import hashlib
