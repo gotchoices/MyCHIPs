@@ -8,18 +8,34 @@
 module mychips
 schema json {}
 
-# View of users dedicated to JSON import
+# View of users for generating/accepting user certificates
 #----------------------------------------------------------------
-view json.user_cert {json mychips.users_v} {select
-    id		as "id"
-  , peer_cid	as "cid"
+view json.user_cert {mychips.users_v json.connect json.place} {select
+    peer_cid	as "cid"
   , peer_agent	as "agent"
   , ent_type	as "type"
   , peer_psig	as "public"
-  , jsonb_build_object('surname', ent_name, 'first', fir_name, 'middle', mid_name, 'prefer', pref_name) as "name"
-  , jsonb_build_object('country', country, 'id', tax_id) as "national"
-    from mychips.users_v where not user_ent is null with cascaded check option;
-} -primary {id}
+  , case when ent_type = 'o' then
+      to_jsonb(ent_name)
+    else
+      jsonb_strip_nulls(jsonb_build_object('surname', ent_name, 'first', fir_name, 'middle', mid_name, 'prefer', pref_name))
+    end		as "name"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (select media,address,comment from json.connect c where c.id = u.id and main order by seq) d) as "connect"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (select type,address,city,state,post,country,comment from json.place p where p.id = u.id and type != 'birth' and main order by seq) d) as "place"
+
+  , jsonb_strip_nulls(jsonb_build_object(
+      'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
+      'birth', jsonb_strip_nulls(jsonb_build_object(
+        'name', u.peer_named,
+        'date', u.born_date,
+        'place', (select jsonb_strip_nulls(to_jsonb(d)) from (select address,city,state,post,country,comment from json.place a where a.id = u.id and type = 'birth' and main limit 1) as d )
+      ))
+  )) as "identity"
+
+  , current_timestamp as "date"
+  
+    from mychips.users_v u where not user_ent is null with cascaded check option;
+} -primary {cid agent}
 
 # View of users dedicated to JSON import
 #----------------------------------------------------------------
@@ -32,22 +48,24 @@ view json.user {json mychips.users_v} {select
   , mid_name	as "middle"
   , pref_name	as "prefer"
   , born_date	as "begin"
+  , peer_named	as "named"
   , country	as "juris"
   , tax_id	as "taxid"
     from mychips.users_v where not user_ent is null with cascaded check option;
 } -primary {id}
 
-# View of addresses dedicated to JSON import
+# View of locations dedicated to JSON import
 #----------------------------------------------------------------
-view json.address {json base.addr_v} {select
+view json.place {json base.addr_v} {select
     addr_ent	as "id"
   , addr_seq	as "seq"
-  , addr_spec	as "spec"
+  , addr_spec	as "address"
   , addr_type	as "type"
   , addr_prim	as "main"
-  , city	as "locale"
+  , city	as "city"
   , state	as "state"
   , pcode	as "post"
+  , country	as "country"
   , addr_cmt	as "comment"
   , addr_inact	as "prior"
     from base.addr_v where not addr_ent is null with cascaded check option;
@@ -58,8 +76,9 @@ view json.address {json base.addr_v} {select
 view json.connect {json base.comm_v} {select
     comm_ent	as "id"
   , comm_seq	as "seq"
-  , comm_spec	as "spec"
+  , comm_spec	as "address"
   , comm_type	as "media"
+  , comm_prim	as "main"
   , comm_cmt	as "comment"
   , comm_inact	as "prior"
     from base.comm_v where not comm_ent is null with cascaded check option;
@@ -67,10 +86,10 @@ view json.connect {json base.comm_v} {select
 
 # Nested view of users dedicated to JSON export
 #----------------------------------------------------------------
-view json.users {json.user json.address json.connect} {select
+view json.users {json.user json.place json.connect} {select
   cid, name, type, first, middle, prefer, begin, juris, taxid
-  , (select array_agg(to_jsonb(d)) from (select spec,type,main,locale,state,post,comment,prior from json.address a where a.id = u.id order by seq) d) as address
-  , (select array_agg(to_jsonb(d)) from (select spec,media,comment,prior from json.connect c where c.id = u.id order by seq) d) as connect
+  , (select array_agg(to_jsonb(d)) from (select type,address,city,state,post,country,main,comment,prior from json.place p where p.id = u.id order by seq) d) as place
+  , (select array_agg(to_jsonb(d)) from (select media,address,main,comment,prior from json.connect c where c.id = u.id order by seq) d) as connect
     from json.user u;
 } -primary {id}
 
@@ -118,7 +137,7 @@ view json.contract {json mychips.contracts_v} {select
 
 # Import possibly nested JSON data structures
 #----------------------------------------------------------------
-function {json.import(data jsonb, target text default null, keys jsonb default null)} {json.user json.address json.connect json.tally} {
+function {json.import(data jsonb, target text default null, keys jsonb default null)} {json.user json.place json.connect json.tally} {
   returns record language plpgsql as $$
     declare
       tmpObject		jsonb;

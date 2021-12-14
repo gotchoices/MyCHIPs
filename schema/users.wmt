@@ -12,7 +12,7 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
     {user_cmt		{User Comments}		{Administrative comments about this user}}
     {serv_id		{Host ID}		{A unique code identifying the traffic server that processes peer traffic for this user}}
 } $glob::stampt] -messages {
-    {X {Y} {Z}}
+    {BRM {Birth Record Update} {Birth record can only be written once by the user}}
 }
 
 tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this server.} {

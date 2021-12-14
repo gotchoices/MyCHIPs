@@ -5,11 +5,11 @@ X-  Test deleting peer record if an ent record remains
 X-  Test updating, deleting agents_v
 - 
 - Agents:
--  json.user, users for mychips-specific import/export
--  Make json.userCert (or somewhere else) for a CHIPCert generator
--  Align: JSON peer import/export view(s) _with_ CHIPCert
--  
+X-  json.user, users for mychips-specific import/export
+X-  Make json.user_cert as a CHIPCert generator
+-  Can import a foreign user from a cert by writing to json.user_cert
 -  Save CHIPCerts in tally with what gets signed
+-  Add DB field to contain optional chip identity JSON
 -  Add last signed CHIPCert to peer record
 -  Is there anything getting signed in the tally that is in user/peer table? (cache it in tally)
 - 

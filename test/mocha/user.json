@@ -8,43 +8,43 @@
     "taxid": "234-456-7890",
     "middle": null,
     "prefer": null,
-    "address": [
+    "named": "Adam Smith",
+    "place: [
         {
             "main": true,
             "post": "23456-7890",
-            "spec": "2345 My Avenue",
-            "type": "ship",
+            "address": "2345 My Avenue",
+            "type": "birth",
             "prior": false,
             "state": "Mystate",
-            "locale": "Mycity",
-            "comment": "Test address"
+            "city": "Mycity",
         },
         {
             "main": true,
             "post": "23456-4567",
-            "spec": "PO Box 4567",
+            "address": "PO Box 4567",
             "type": "bill",
             "prior": false,
             "state": "Mystate",
-            "locale": "Mycity",
+            "city": "Mycity",
             "comment": "Mailing address"
         }
     ],
     "connect": [
         {
-            "spec": "701-345-6789",
+            "address": "701-345-6789",
             "media": "phone",
             "prior": false,
             "comment": "Home"
         },
         {
-            "spec": "701-456-7890",
+            "address": "701-456-7890",
             "media": "cell",
             "prior": false,
             "comment": null
         },
         {
-            "spec": "adamsmith1@hotmail.com",
+            "address": "adamsmith1@hotmail.com",
             "media": "email",
             "prior": false,
             "comment": null

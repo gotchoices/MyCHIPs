@@ -38,9 +38,9 @@ two tallies (with opposite stocks and foils) between them.  The system should
 be able to perform lifts to keep the two tallies in equilibrium.
 
 A tally includes the following information:
-  - Tally format version (1)
-  - Digital ID unique to the tally ([UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier))
-  - Date and time of the original agreement
+x  - Tally format version (1)
+x  - Digital ID unique to the tally ([UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier))
+x  - Date and time of the original agreement
   - Vendor [CHIP address](learn-users.md#chip-addresses)
   - Vendor [Certificate](learn-tally.md#entity-certificates)
   - Vendor [Credit Terms](learn-tally.md#credit-terms); debt Vendor -> Client (normally 0)
@@ -474,10 +474,10 @@ can begin to buy things using the tally as payment, within the specified credit 
 ### Entity Certificates
 Part of the information encapsulated and digitally signed within a tally includes a
 CHIP certificate.  The certificate has several purposes:
-  - To provide information about the entity that identifies him to the satisfaction
-    of the trading partner.  For example, some partners may require a certificate
+  - To provide information about the entity that identifies it to the satisfaction
+    of the other trading partner.  For example, some partners may require a certificate
     containing a Tax ID number (like a Social Security Number in the US).  Less formal
-    relationships might only require a name and email address.  Fields are optional
+    relationships might only require a name and email address.  Some fields are optional
     but should be sufficient (in the judgement of the partner) to establish identify in
     an unmistakable and legally sufficient way.
   - To identify how/where to contact the agent who acts officially on behalf of the
@@ -488,28 +488,49 @@ CHIP certificate.  The certificate has several purposes:
 
 MyCHIPs will rely solely on the public signing key of a particular user to determine
 unique identity.  A system administrator who can properly validate authentic identity
-by outside means may choose to manually update a public signing key on an existing
-peer record.  This may be appropriate in situations where a user has lost his key and
+by outside means may dare to manually update a public signing key on an existing
+peer record.  And this may be appropriate in situations where a user has lost his key and
 needs to re-establish use of his account.  But automated systems should probably just
-create a new record for any new, as-yet-unknown public key is encountered.
+create a new record for any new, as-yet-unknown public key that is encountered.
     
-The CHIP certificate contains:
-  - CHIP ID
-  - Agent ID
-  - Contact information
-    - Entity name	(company name or person's family name)
-    - Email		(mandatory)
-    - Given name(s)	(individuals only)
-    - Domain		(optional)
-    - Address		(optional)
-    - Country		(optional)
-    - National ID	(optional)
-    - Identify Object	(optional)
-      - Birth name
-      - Birth date
-      - Birth address
+The CHIP certificate contains (*mandatory):
+```
+  - *CHIP ID
+  - *Agent ID
+  - *Name                  {*name, given (* if individual)}
+  - *Contact               {*email, web, phone, mobile}
+  - Location               {address, city, state, code, country}
+  - Identity
+    - National             {country, id}
+    - Birth Information
+      - Name               {base, given}
+      - Date
+      - Location           {address, city, state, code, country}
+  - *Signature public key
   - Digital signature of above properties
-  - Signature public key
+```
+In JSON format, the certificate would look something like this
+(where properties shown as arrays can be a single object or an array):
+```
+CHIPCert: {
+  cid,
+  agent,
+  type,
+  name:        [{name, given, prefer, aka}],
+  connect:     [{spec, type, comment}],
+  place:       [{address, city, state, code, country, type, comment}],
+  identity:    {
+    state:     [{country, id}],
+    birth:     {
+      name:    [{name, type, comment}],
+      date,
+      place:   {address, city, state, code, country, type, comment},
+    },
+  public,
+  date,
+  signature,
+}
+```
 
 At any given time, a given entity should ideally have a single:
   - CHIP ID

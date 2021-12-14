@@ -9,49 +9,49 @@
         "taxid": "234-56-7890",
         "middle": null,
         "prefer": null,
-        "address": [
+        "place": [
             {
                 "main": true,
                 "post": "12345",
-                "spec": "2345 Corporate Way",
+                "address": "2345 Corporate Way",
                 "type": "ship",
                 "prior": false,
                 "state": "NY",
-                "locale": "Bigtown",
+                "city": "Bigtown",
                 "comment": "Headquarters"
             },
             {
                 "main": true,
                 "post": "12345-4567",
-                "spec": "PO Box 4567",
+                "address": "PO Box 4567",
                 "type": "bill",
                 "prior": false,
                 "state": "Ny",
-                "locale": "Bigtown",
+                "city": "Bigtown",
                 "comment": "Mailing address"
             }
         ],
         "connect": [
             {
-                "spec": "901-346-6789",
+                "address": "901-346-6789",
                 "media": "phone",
                 "prior": false,
                 "comment": "Main"
             },
             {
-                "spec": "800-555-5555",
+                "address": "800-555-5555",
                 "media": "phone",
                 "prior": false,
                 "comment": "Customer Service"
             },
             {
-                "spec": "info@ahoy.chip",
+                "address": "info@ahoy.chip",
                 "media": "email",
                 "prior": false,
                 "comment": null
             },
             {
-                "spec": "www.ahoy.chip",
+                "address": "www.ahoy.chip",
                 "media": "web",
                 "prior": false,
                 "comment": null
@@ -68,43 +68,42 @@
         "taxid": "234-456-7890",
         "middle": null,
         "prefer": null,
-        "address": [
+        "named": "Adam Smith",
+        "place": [
             {
                 "main": true,
                 "post": "23456-7890",
-                "spec": "2345 My Avenue",
-                "type": "ship",
-                "prior": false,
+                "address": "2345 My Avenue",
+                "type": "birth",
                 "state": "Mystate",
-                "locale": "Mycity",
-                "comment": "Test address"
+                "city": "Mycity",
             },
             {
                 "main": true,
                 "post": "23456-4567",
-                "spec": "PO Box 4567",
+                "address": "PO Box 4567",
                 "type": "bill",
                 "prior": false,
                 "state": "Mystate",
-                "locale": "Mycity",
+                "city": "Mycity",
                 "comment": "Mailing address"
             }
         ],
         "connect": [
             {
-                "spec": "701-345-6789",
+                "address": "701-345-6789",
                 "media": "phone",
                 "prior": false,
                 "comment": "Home"
             },
             {
-                "spec": "701-456-7890",
+                "address": "701-456-7890",
                 "media": "cell",
                 "prior": false,
                 "comment": null
             },
             {
-                "spec": "adamsmith1@hotmail.com",
+                "address": "adamsmith1@hotmail.com",
                 "media": "email",
                 "prior": false,
                 "comment": null
@@ -121,43 +120,43 @@
         "taxid": "345-67-8901",
         "middle": "Scott",
         "prefer": "Fran",
-        "address": [
+        "place": [
             {
                 "main": true,
                 "post": "45678-1234",
-                "spec": "4321 My Court",
+                "address": "4321 My Court",
                 "type": "ship",
                 "prior": false,
                 "state": "Mystate",
-                "locale": "Myberg",
+                "city": "Myberg",
                 "comment": "Summer home"
             },
             {
                 "main": true,
                 "post": "45678-2345",
-                "spec": "PO Box 4455",
+                "address": "PO Box 4455",
                 "type": "bill",
                 "prior": false,
                 "state": "Mystate",
-                "locale": "Myberg",
+                "city": "Myberg",
                 "comment": "Mailing address"
             }
         ],
         "connect": [
             {
-                "spec": "601-222-5678",
+                "address": "601-222-5678",
                 "media": "phone",
                 "prior": false,
                 "comment": "Home"
             },
             {
-                "spec": "601-222-3333",
+                "address": "601-222-3333",
                 "media": "cell",
                 "prior": false,
                 "comment": null
             },
             {
-                "spec": "franlee@compuserve.com",
+                "address": "franlee@compuserve.com",
                 "media": "email",
                 "prior": false,
                 "comment": null
@@ -174,43 +173,43 @@
         "taxid": "123-45-6789",
         "middle": null,
         "prefer": "Jim",
-        "address": [
+        "named": "Jimmy Madison",
+        "place": [
             {
                 "main": true,
                 "post": "12345-6789",
-                "spec": "1234 My Street",
-                "type": "ship",
-                "prior": false,
+                "address": "1234 My Street",
+                "type": "birth",
                 "state": "Mystate",
-                "locale": "Mytown",
+                "city": "Mytown",
                 "comment": "Birth place"
             },
             {
                 "main": true,
                 "post": "12345-3456",
-                "spec": "PO Box 3456",
+                "address": "PO Box 3456",
                 "type": "bill",
                 "prior": false,
                 "state": "Mystate",
-                "locale": "Mytown",
+                "city": "Mytown",
                 "comment": "Mailing address"
             }
         ],
         "connect": [
             {
-                "spec": "901-234-5678",
+                "address": "901-234-5678",
                 "media": "phone",
                 "prior": false,
                 "comment": "Home"
             },
             {
-                "spec": "901-345-6789",
+                "address": "901-345-6789",
                 "media": "cell",
                 "prior": false,
                 "comment": null
             },
             {
-                "spec": "davidmadison99@gmail.com",
+                "address": "davidmadison99@gmail.com",
                 "media": "email",
                 "prior": false,
                 "comment": null
