@@ -40,7 +40,7 @@ Specifically, [Wyseman](http://github.com/gotchoices/wyseman) and
 
 While Wylib is not the solution for an eventual user interface, it has been what I needed for an administrative console during development.
 And it can suffice for a crude user SPA until a dedicated mobile app can be built.
-As of Spring 2021, the BYU Capstone project produced a prototype app authored in Flutter/Dart.
+As of Spring 2021, the BYU Capstone project produced a [prototype app](app/README.md) authored in Flutter/Dart.
 Unfortunately the websocket interface is not yet finished so it does not yet talk to the MyCHIPs server.
 
 I originally kept the source closed for some time while I tried to work out an algorithm for performing a distributed lift (the credit clearing function that makes the system work).
@@ -105,7 +105,7 @@ This represents the current state of the project.
 - Test original algorithm (DSR Study)
 - Improved algorithm
 
-Want to help out?  Cclone this repo and follow the [instructions](sim-docker.md)
+Want to help out?  Clone this repo and follow the [instructions](sim-docker.md)
 to get a simulated network running and visualize credit lifts in the administrator console.
 
 There is a current project roadmap in the [TODO file](TODO).
