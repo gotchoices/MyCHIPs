@@ -1,8 +1,8 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //Run all tests in order
-const { DatabaseName, DBAdmin, MachineIP, Log } = require('../settings')
-const { exec } = require('child_process')
+const Child = require('child_process')
+const { Database, DBAdmin } = require('../settings')
 
 require('./objectset.js')
 require('./peernoise.js')
@@ -10,14 +10,11 @@ require('./peernoise.js')
 require('./peercomm.js')	//Deprecated
 
 require('./impexp.js')		//Will add users needed for peer test
-require('./peer.js')
+//require('./peer.js')
 
-require('./schema.js')		//Will empty users table
+require('./sch-multi.js')	//Will empty users table
+require('./sch-crypto.js')
 
-describe("At End", function() {
-
-  it('Drop database: ' + DatabaseName, function(done) {
-    exec('dropdb -U ' + DBAdmin + ' ' + DatabaseName)
-    done()
-  })
-});
+after('Delete test database', function(done) {
+  Child.exec(`dropdb -U ${DBAdmin} ${Database}`, done)
+})

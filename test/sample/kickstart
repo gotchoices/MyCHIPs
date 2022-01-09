@@ -8,11 +8,10 @@
 //- Build site key (old mc_admin function)?
 //- 
 
-const Settings = require('../settings')
-const { MachineIP, UserPort, PeerPort, DatabaseName, DBAdmin, Log } = Settings
+const { MachineIP, UserPort, PeerPort, DBAdmin, Log } = require('../settings')
 
 var database = process.env.MYCHIPSDB || 'mychips'
-var user = DBAdmin || process.env.MYCHIPSDBA || process.env.USER
+var user = DBAdmin || process.env.MYCHIPSDBA || DBAdmin || process.env.USER
 //console.log("database:", database, "user:", user, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
 
 const Fs = require('fs')
@@ -29,7 +28,7 @@ var pending = 0
 var db = new dbClient(dbConfig)
 
 var queryList = []
-//queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[Settings.MachineIP]})
+//queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[MachineIP]})
 
 var fileData = Fs.readFileSync(Path.join(__dirname, 'users.json'))
 var jsonData = JSON.parse(fileData)
@@ -43,10 +42,10 @@ queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
 //Set org.json entity as the site admin
 queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})
 
-queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where user_host is null", a:[Settings.MachineIP, Settings.UserPort]})
+queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where user_host is null", a:[MachineIP, UserPort]})
 
 //Obsolete:
-//queryList.push({q:"update mychips.peers set peer_host = $1, peer_port=$2 where peer_host is null", a:[Settings.MachineIP, Settings.PeerPort]})
+//queryList.push({q:"update mychips.peers set peer_host = $1, peer_port=$2 where peer_host is null", a:[MachineIP, PeerPort]})
 
 //For testing tallies: (obsolete)
 //let q1 = "update mychips.users_v set serv_id=$1, peer_port=$2 where id = $3;"

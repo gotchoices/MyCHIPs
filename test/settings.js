@@ -1,5 +1,7 @@
+const Path = require('path')
+
 module.exports={
-  DatabaseName: "mychipsTestDB",
+  Database: "mychipsTestDB",
   DatabaseHost: "localhost",
   DatabasePort: 5432,
   MachineIP: "192.168.56.10",
@@ -9,4 +11,5 @@ module.exports={
   AdminPort: 54320,
   PeerPort: 65430,
   Log: require(require.resolve('wyclif/lib/log.js')),
+  Schema: Path.join(__dirname, '..', 'lib', 'schema.json'),
 }

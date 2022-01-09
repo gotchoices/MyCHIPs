@@ -10,6 +10,7 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
         {off		{Offline}		{Account completely off line.  No trades possible.}}
     }}
     {user_cmt		{User Comments}		{Administrative comments about this user}}
+    {user_hid		{Hashed ID}		{An obscured version of the ID by which might be given out as a more anonymous destination for a transaction}}
     {serv_id		{Host ID}		{A unique code identifying the traffic server that processes peer traffic for this user}}
 } $glob::stampt] -messages {
     {BRM {Birth Record Update} {Birth record can only be written once by the user}}

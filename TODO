@@ -1,29 +1,28 @@
 TODO:
 
 Immediate:
-X-  Test deleting peer record if an ent record remains
-X-  Test updating, deleting agents_v
+- Change user.serv_id to user_agent
+- Get rid of peer_agent?  (Do we need this during tally negotiation?)
+- For peers, the agent is associated with tallies only--not peer records
+- Views draw agent address from tally where appropriate
+- User views show next cid@agent to use
+- Foreign peers views show no agent (only in the tally)
+- Simulations still run properly
+-  
+- Change user_ to hold_ terminology in tallies_v, etc
+- Store CHIP ID's and agents in the tally
+- Store anything else that can change in the tally (certificates, CID, agents)
+- Is there anything getting signed in the tally that is in user/peer table? (cache it in tally)
+- Users are assigned an agent key but only as default for new tally creation
+-  
+- Can import a foreign user from a cert by writing to json.user_cert
+- Save CHIPCerts in tally with what gets signed
+- Save last signed CHIPCert to peer record
+- Simulations still run properly
 - 
-- Agents:
-X-  json.user, users for mychips-specific import/export
-X-  Make json.user_cert as a CHIPCert generator
--  Can import a foreign user from a cert by writing to json.user_cert
--  Save CHIPCerts in tally with what gets signed
--  Add DB field to contain optional chip identity JSON
--  Add last signed CHIPCert to peer record
--  Is there anything getting signed in the tally that is in user/peer table? (cache it in tally)
-- 
--  Change user_ to hold_ terminology in tallies_v, etc
--  For peers, the agent is associated with tallies only--not peer records
--  Store CHIP ID's and agents in the tally
--  Store anything that can change in the tally (certificates, CID, agents)
--  Users are assigned an agent key but only as default for new tally creation
--  The CID in a peer record could change at any time.  It is for reference only.
--  The peer CID in an established tally is authorative as that is the CID that should be used
-   in any transaction related to the tally.
--  HID is in user record?  (not peer record)
-- 
+- HID is in user record?  (not peer record)
 - Change peer terminology in peernoise to remote/local?
+- Regression tests all working -- particularly peernoise.js
 - 
 - Get tally establishment protocol working (or at least figured out)
 - 
@@ -33,8 +32,9 @@ X-  Make json.user_cert as a CHIPCert generator
 - PeerNoise module reports peers who connect from non-matching portals
 - Simulation can run with or without encryption (selected in config.dock)
 - Simulation runs raw mode by default
-- Merge with master
--     
+- Merge noise fork back into master
+- 
+- 
 - Implement control/model for tally tickets/tokens
 - CLUI control actions:
 -  Generate tally ticket
@@ -67,17 +67,17 @@ General roadmap:
 X- Public Proof-of-Concept release
 X- Iterate on TLA+ modeling until protocol is sufficiently safe/live
 X- Implement basic contract handling (author, display, print, publish)
+X- Implement schema version control/upgrade mechanism in wyseman (in process)
+*- Implement encrypted peer-to-peer communications using noise protocol (in process)
 - Integrate improved protocol into source code
 - Write unit tests to validate protocol state transitions
-- Improve/expand agent model (see below)
 - Make Flutter app usable with basic functionality
 - Implement digital signatures for tallies, chits, contracts, lifts
-- Implement encrypted peer-to-peer communications using noise protocol
 - Harden database schema, nothing accessible except user-based views/functions
-- Finish schema version control/upgrade mechanism in wyseman
 - Docker-based production server
-- *** Production rollout ***
+- ***** Initial production rollout *****
 - Enhance flutter app features
+- Improve/expand agent modeling
 - Async email/text notifications
 - Tally confirmations
 - Standardized export/import of user accounts via Admin interface
@@ -335,14 +335,12 @@ X- User can connect/initialize using ticket
 -   
 
 Wyseman:
-- Can apply incremental delta scripts to go from one release to another
 - Create noise-protocol API for user interfaces
 - Regular socket connection relies solely on an auth key (key file, not keys stored in DB user tables)
 - Use SNI extension for client to provide db config payload
 - Is there any use case for a user connecting via regular socket? (native app?)
 -   If so, socket connection needs to use connection tokens/keys just like websocket
 - Make database owned by mychips? (give admin read/write/delete but not create/drop)
-- Extend Wyseman to also accept connections on Noise socket?
 - 
 
 Preferences:

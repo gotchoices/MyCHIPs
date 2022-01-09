@@ -76,7 +76,7 @@
                 "address": "2345 My Avenue",
                 "type": "birth",
                 "state": "Mystate",
-                "city": "Mycity",
+                "city": "Mycity"
             },
             {
                 "main": true,

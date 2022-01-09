@@ -9,7 +9,7 @@
     "middle": null,
     "prefer": null,
     "named": "Adam Smith",
-    "place: [
+    "place": [
         {
             "main": true,
             "post": "23456-7890",
@@ -17,7 +17,7 @@
             "type": "birth",
             "prior": false,
             "state": "Mystate",
-            "city": "Mycity",
+            "city": "Mycity"
         },
         {
             "main": true,

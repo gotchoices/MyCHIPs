@@ -4,19 +4,14 @@
 //TODO:
 //- 
 
-const assert = require("assert");
-const { DatabaseName, DBAdmin, Log } = require('../settings')
-const fs = require('fs')
+const Child = require('child_process')
 const Path = require('path')
+const assert = require("assert");
+const { Database, DBAdmin, Log, Schema } = require('../settings')
+const fs = require('fs')
 var log = Log('testImpexp')
 var { dbClient } = require("wyseman")
-const dbConfig = {
-  database:	DatabaseName,
-  user:		DBAdmin,
-  listen:	"DummyChannel",		//Cause immediate connection to DB, rather than deferred
-  log,
-  schema:	__dirname + "/../../lib/schema.sql"
-}
+const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
 
 function dbAndCheck(fileName, target, db, done, check) {
   fs.readFile(fileName, (err, fileData) => {
@@ -34,10 +29,12 @@ describe("JSON import/export", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
+  before('Delete test database', function(done) {
+    Child.exec(`dropdb -U ${DBAdmin} ${Database}`, done)
+  })
+
   before('Connect to (or create) test database', function(done) {
-    db = new dbClient(dbConfig, (chan, data) => {
-      log.trace("Notify from channel:", chan, "data:", data)
-    }, ()=>{log.trace("Connected"); done()})
+    db = new dbClient(dbConfig, (chan, data) => {}, done)
   })
 
   before('Delete all test users if there are any', function(done) {
@@ -70,9 +67,7 @@ describe("JSON import/export", function() {
     })
   })
 
-  after('Disconnect from test database', function(done) {
-//console.log("After:")
+  after('Disconnect from test database', function() {
     db.disconnect()
-    done()
   })
 });

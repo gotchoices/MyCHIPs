@@ -19,7 +19,7 @@ other lockdown {mychips} {
 
 namespace eval peers {
     def peers_pk	{peer_ent}
-    def peers_v_up	{peer_cid peer_hid peer_psig peer_cmt peer_named peer_agent}
+    def peers_v_up	{peer_cid peer_cert peer_psig peer_cmt peer_named peer_agent}
     def peers_v_in	[concat $peers_pk $peers_v_up]
     def peers_se	[concat $peers_v_in crt_by crt_date mod_by]
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name conn_pub]
@@ -33,9 +33,9 @@ namespace eval peers {
 table mychips.peers {base.ent mychips.agents} {
     peer_ent	text		primary key references base.ent on update cascade on delete cascade
   , peer_cid	text		not null, unique (peer_cid, peer_agent)
-  , peer_hid	text		
   , peer_agent	text	        references mychips.agents on update cascade on delete restrict
   , peer_psig	text		unique
+  , peer_cert	jsonb
   , peer_named	text
   , peer_cmt	text
     eval(s $glob::stamps)
@@ -148,24 +148,4 @@ $$;}
 #----------------------------------------------------------------
 trigger mychips_peers_tr_change {} {
     after insert or update or delete on mychips.peers for each statement execute procedure mychips.change_tf_notify('peers');
-}
-
-# Before insert/update
-#----------------------------------------------------------------
-function mychips.peers_tf_biu() {mychips.peers mychips.ba2b64v(bytea)} {
-  returns trigger language plpgsql security definer as $$
-    begin
-        if new.peer_hid isnull then
-          loop
-            select into new.peer_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
-            if not exists (select peer_ent from mychips.peers where peer_hid = new.peer_hid) then
-              exit;					-- Make sure it is unique
-            end if;
-          end loop;
-        end if;
-        return new;
-    end;
-$$;}
-trigger mychips_peers_tr_biu {} {
-    before update on mychips.peers for each row execute procedure mychips.peers_tf_biu();
 }

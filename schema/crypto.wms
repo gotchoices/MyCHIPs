@@ -56,13 +56,7 @@ $$;}
 #----------------------------------------------------------------
 function {mychips.ba2b64v(input bytea)} {mychips} {
   returns text language sql immutable as $$
-    select replace(
-      replace(
-        rtrim(				-- Strip padding
-          encode(input, 'base64'), '='
-        ), '/','_'
-      ), '+','-'
-    );
+    select translate(encode(input, 'base64'), E'/+=\n', '_-');
 $$;}
 
 # Decode base64 variant RFC4648 S5
@@ -70,11 +64,7 @@ $$;}
 function {mychips.b64v2ba(input text)} {mychips} {
   returns bytea language sql immutable as $$
     select decode(
-      replace(
-        replace(
-          input, '_','/'	-- Map back to standard b64
-        ), '-','+'
-      ) || repeat(
+      translate(input, '_-','/+') || repeat(
         '=', mod(4 - mod(char_length(input)::numeric, 4.0)::int, 4)	-- Pad to modulo 4 length
       ), 'base64'
     )

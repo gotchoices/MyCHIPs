@@ -11,7 +11,7 @@ module mychips
 
 namespace eval users {
     def users_pk	{user_ent}
-    def users_v_up	{user_host user_port user_stat user_cmt serv_id}
+    def users_v_up	{user_host user_port user_stat user_hid user_cmt serv_id}
     def users_v_in	[concat $users_pk $users_v_up]
     def users_se	[concat $users_v_in crt_by crt_date mod_by]
     def peers_se	$peers::peers_v_in
@@ -28,6 +28,7 @@ table mychips.users {base.ent mychips} {
   , user_host	text
   , user_port	int		
   , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
+  , user_hid	text		
   , user_cmt	varchar
   , serv_id	varchar
   , _last_tally	int		not null default 0
@@ -123,6 +124,26 @@ function {mychips.users_vf_post(new mychips.users_v, old mychips.users_v, tgop t
       return new;
     end;
 $$;}
+
+# Before insert/update
+#----------------------------------------------------------------
+function mychips.users_tf_biu() {mychips.users mychips.ba2b64v(bytea)} {
+  returns trigger language plpgsql security definer as $$
+    begin
+        if new.user_hid isnull then
+          loop
+            select into new.user_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
+            if not exists (select user_ent from mychips.users where user_hid = new.user_hid) then
+              exit;					-- Make sure it is unique
+            end if;
+          end loop;
+        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_users_tr_biu {} {
+    before update on mychips.users for each row execute procedure mychips.users_tf_biu();
+}
 
 # View of users with primary address and contact points
 #----------------------------------------------------------------
