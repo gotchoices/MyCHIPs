@@ -38,9 +38,9 @@ two tallies (with opposite stocks and foils) between them.  The system should
 be able to perform lifts to keep the two tallies in equilibrium.
 
 A tally includes the following information:
-x  - Tally format version (1)
-x  - Digital ID unique to the tally ([UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier))
-x  - Date and time of the original agreement
+  - Tally format version (1)
+  - Digital ID unique to the tally ([UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier))
+  - Date and time of the original agreement
   - Vendor [CHIP address](learn-users.md#chip-addresses)
   - Vendor [Certificate](learn-tally.md#entity-certificates)
   - Vendor [Credit Terms](learn-tally.md#credit-terms); debt Vendor -> Client (normally 0)
@@ -82,7 +82,7 @@ Amendments include:
   - Signature date
   - Signature of the modifying party
 
-Tally data and chits must be duplicated exactly on the Stock and Foil.
+Tally data and chits must be duplicated exactly on the Stock and Foil (i.e. the two copies of the tally held by the parties to the credit agreement).
 The order of chits must also (eventually) agree on both sides of the tally.
 Authority amendments can be recorded in any order but should be recorded on both sides.
 Parameter settings only reside only on one side and are controlled by the owner of that 
@@ -404,10 +404,11 @@ the payor and the recipient
   reference number and recognize the purchase as complete.
   
 ### Establishing a Tally
-Version 1.0 of the tally protocol is described formally [here](learn-protocol.md#tally-protocol)).
+Version 1.0 of the tally protocol is described formally [here](learn-protocol.md#tally-protocol).
 In addition to this higher-level negotiation of the tally record itself, peer sites need to 
-open a channel over which they can communicate securely which process is discussed 
-[here](learn-noise.md).  In the case of a first-time tally, these two levels are tightly coupled.
+open a channel over which they can communicate securely.
+That process is discussed [here](learn-noise.md).
+In the case of a first-time tally, these two levels are tightly coupled.
 
 A MyCHIPs server should not normally accept a connection from anyone it doesn't already know about.
 So if two parties want to create a tally between them, one of the parties will have to issue a tally ticket to the other.
@@ -420,7 +421,7 @@ The process is conducted according to the following example.
   The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
   For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
 
-<p align="center"><img src="figures/Lifts-6.jpg" width="300" title="Example Network"></p>
+<p align="center"><img src="figures/Lifts-6.jpg" width="400" title="Example Network"></p>
 
 - The ticket contains:
   - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
@@ -486,31 +487,24 @@ CHIP certificate.  The certificate has several purposes:
     entity and create the approprate database record (or properly recognize that it
     already exists).
 
-MyCHIPs will rely solely on the public signing key of a particular user to determine
+MyCHIPs will rely primarily on the public signing key of a particular user to determine
 unique identity.  A system administrator who can properly validate authentic identity
-by outside means may dare to manually update a public signing key on an existing
-peer record.  And this may be appropriate in situations where a user has lost his key and
+by outside means might be confident enough to manually update a public signing key on 
+an existing peer record.
+This may be appropriate in situations where a user has lost his key and
 needs to re-establish use of his account.  But automated systems should probably just
 create a new record for any new, as-yet-unknown public key that is encountered.
+
+In addition, sites must consider the combination of CID and agent to be unique to each entity.
     
-The CHIP certificate contains (*mandatory):
+The CHIP certificate contains:
 ```
-  - *CHIP ID
-  - *Agent ID
-  - *Name                  {*name, given (* if individual)}
-  - *Contact               {*email, web, phone, mobile}
-  - Location               {address, city, state, code, country}
-  - Identity
-    - National             {country, id}
-    - Birth Information
-      - Name               {base, given}
-      - Date
-      - Location           {address, city, state, code, country}
-  - *Signature public key
-  - Digital signature of above properties
+  - Personal or entity contact information
+  - Information for addressing the entity's CHIP account
+  - Information about the entity's identity
 ```
-In JSON format, the certificate would look something like this
-(where properties shown as arrays can be a single object or an array):
+In JSON format, the certificate would look like this
+(properties shown as arrays can be a single object or an array):
 ```
 CHIPCert: {
   cid,

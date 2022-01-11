@@ -8,35 +8,6 @@
 module mychips
 schema json {}
 
-# View of users for generating/accepting user certificates
-#----------------------------------------------------------------
-view json.user_cert {mychips.users_v json.connect json.place} {select
-    peer_cid	as "cid"
-  , peer_agent	as "agent"
-  , ent_type	as "type"
-  , peer_psig	as "public"
-  , case when ent_type = 'o' then
-      to_jsonb(ent_name)
-    else
-      jsonb_strip_nulls(jsonb_build_object('surname', ent_name, 'first', fir_name, 'middle', mid_name, 'prefer', pref_name))
-    end		as "name"
-  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (select media,address,comment from json.connect c where c.id = u.id and main order by seq) d) as "connect"
-  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (select type,address,city,state,post,country,comment from json.place p where p.id = u.id and type != 'birth' and main order by seq) d) as "place"
-
-  , jsonb_strip_nulls(jsonb_build_object(
-      'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
-      'birth', jsonb_strip_nulls(jsonb_build_object(
-        'name', u.peer_named,
-        'date', u.born_date,
-        'place', (select jsonb_strip_nulls(to_jsonb(d)) from (select address,city,state,post,country,comment from json.place a where a.id = u.id and type = 'birth' and main limit 1) as d )
-      ))
-  )) as "identity"
-
-  , current_timestamp as "date"
-  
-    from mychips.users_v u where not user_ent is null with cascaded check option;
-} -primary {cid agent}
-
 # View of users dedicated to JSON import
 #----------------------------------------------------------------
 view json.user {json mychips.users_v} {select
@@ -68,6 +39,7 @@ view json.place {json base.addr_v} {select
   , country	as "country"
   , addr_cmt	as "comment"
   , addr_inact	as "prior"
+  , addr_priv	as "private"
     from base.addr_v where not addr_ent is null with cascaded check option;
 } -primary {id seq}
 
@@ -81,7 +53,8 @@ view json.connect {json base.comm_v} {select
   , comm_prim	as "main"
   , comm_cmt	as "comment"
   , comm_inact	as "prior"
-    from base.comm_v where not comm_ent is null with cascaded check option;
+  , comm_priv	as "private"
+    from base.comm_v where not comm_ent isnull with cascaded check option;
 } -primary {id seq}
 
 # Nested view of users dedicated to JSON export
@@ -134,6 +107,99 @@ view json.contract {json mychips.contracts_v} {select
   , sections
     from	mychips.contracts_v
 } -primary {domain name version language}
+
+# View of users for generating/accepting user certificates
+#----------------------------------------------------------------
+view json.cert {mychips.users_v json.connect json.place} {select
+    peer_cid	as "cid"
+  , peer_agent	as "agent"
+  , ent_type	as "type"
+  , peer_psig	as "public"
+  , case when ent_type = 'o' then
+      to_jsonb(ent_name)
+    else
+      jsonb_strip_nulls(jsonb_build_object('surname', ent_name, 'first', fir_name, 'middle', mid_name, 'prefer', pref_name))
+    end		as "name"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
+      select media,address,comment from json.connect c
+        where c.id = u.id and not prior and not private and main order by seq
+    ) d) as "connect"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
+      select type,address,city,state,post,country,comment from json.place p
+        where not prior and not private and p.id = u.id and type != 'birth' and main order by seq
+    ) d) as "place"
+  , jsonb_strip_nulls(jsonb_build_object(
+      'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
+      'birth', jsonb_strip_nulls(jsonb_build_object(
+        'name', u.peer_named,
+        'date', u.born_date,
+        'place', (select jsonb_strip_nulls(to_jsonb(d)) from (
+          select address,city,state,post,country,comment from json.place a
+            where a.id = u.id and type = 'birth' and main limit 1
+        ) as d )
+      ))
+  )) as "identity"
+  , current_timestamp::timestamptz(3) as "date"
+  
+    from mychips.users_v u where not user_ent is null with cascaded check option;
+} -primary {cid agent}
+
+# Write certificate data to its various tables
+#----------------------------------------------------------------
+function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
+  returns trigger language plpgsql security definer as $$
+  declare
+    ent_name text = new.name;
+    fir_name text;
+    mid_name text;
+    pref_name text;
+    born_date date;
+    peer_named text;
+    tax_id text;
+    country text;
+    irec record;
+    ident jsonb = new.identity;
+    birth_place jsonb;
+    pkey jsonb;
+  begin
+--raise notice 'Cert:%', new;
+    if (new.type = 'p') then				--Personal names
+      ent_name = new.name->>'surname';
+      fir_name = new.name->>'first';
+      mid_name = new.name->>'middle';
+      pref_name = new.name->>'prefer';
+    end if;
+    if not ident isnull then				--Identity records
+      if not ident->'state' isnull then			--State ID
+        tax_id = ident->'state'->>'id';
+        country = ident->'state'->>'country';
+      end if;
+      if not ident->'birth' isnull then			--Birth ID
+        birth_place = ident->'birth'->'place';
+        born_date = (ident->'birth'->>'date')::date;
+        peer_named = ident->'birth'->>'name';		--Birth name
+      end if;
+    end if;
+    
+    insert into mychips.users_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_psig, peer_named)
+      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.cid, new.agent, new.public, peer_named)
+      returning id into irec;
+
+    pkey = to_jsonb(irec);
+--raise notice 'pkey:%', pkey;
+    perform json.import(to_jsonb(new.connect), 'connect', pkey);
+    perform json.import(to_jsonb(new.place), 'place', pkey);
+    if not birth_place isnull then
+      birth_place = jsonb_set(birth_place, '{type}', '"birth"');
+      perform json.import(birth_place, 'place', pkey);
+    end if;
+
+    return new;
+  end;
+$$;}
+trigger json_cert_tf_ii {} {
+    instead of insert on json.cert for each row execute procedure json.cert_tf_ii();
+}
 
 # Import possibly nested JSON data structures
 #----------------------------------------------------------------
