@@ -1,14 +1,10 @@
-// const DocClient = require('mongodb').MongoClient
-// const Os = require('os')
-
-const DocClient = require('mongodb').MongoClient
 import { MongoClient as DocClient } from 'mongodb'
 import Os from 'os'
 
-module.exports = class MongoManager {
+class MongoManager {
   private docConfig
-  private host
-  private logger
+  private host: string
+  private logger: WyclifLogger
   private dbConnection
 
   private mongoClient
@@ -168,3 +164,5 @@ module.exports = class MongoManager {
 
   updateAgents() {}
 }
+
+export default MongoManager

@@ -1,36 +1,106 @@
-const SQLManager = require('./agent3/sqlmanager')
-const MongoManager = require('./agent3/mongomanager')
-const Os = require('os')
-const DocClient = require('mongodb').MongoClient
+import SQLManager from './agent3/sqlmanager'
+import MongoManager from './agent3/mongomanager'
+import Os from 'os'
+import { MongoClient as DocClient } from 'mongodb'
+import { Log } from 'wyclif'
+import uuidv4 from 'uuid/v4'
+
 const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
-const { Log } = require('wyclif')
-const uuidv4 = require('uuid/v4')
+
 const userFields = ['id', 'std_name', 'peer_cid', 'serv_id']
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
 const peerSql = `insert into mychips.peers_v 
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 
-module.exports = class AgentCluster {
-  private argv
-  private host
-  private params
-  private myChipsDBManager
-  private worldDBManager
-  private logger
+/** Network config values passed in from simulation */
+interface NetworkConfig {
+  _: any[]
+  m: number
+  model: number
+  peerServer: string
+  s: string
+  'peer-server': string
+  runs: number
+  dbHost: string
+  H: string
+  'db-host': string
+  dbName: string
+  D: string
+  'db-name': string
+  dbAdmin: string
+  A: string
+  'db-admin': string
+  dbPort: number | undefined
+  P: number | undefined
+  'db-port': number | undefined
+  ddHost: string
+  h: string
+  'dd-host': string
+  ddName: string
+  d: string
+  'dd-name': string
+  ddAdmin: string
+  a: string
+  'dd-admin': string
+  ddPort: string
+  p: string
+  'dd-port': string
+  interval: number
+  i: number
+  $0: string
+}
 
-  private counter
-  private intervalTimer
-  private runs
+interface DBConfig {
+  host: string
+  database: string
+  user: string
+  port: string | undefined
+}
 
-  private currAgent
-  private agents
-  private remoteIdx //Use to make unique tag for each remote command
-  private remoteCBs //Store routines to call on completion
+interface AdjustableSimParams {
+  interval: number
+  addclient: number
+  checksets: number
+  addvendor: number
+  maxstocks: number
+  maxfoils: number
+  mintotpay: number
+  maxtopay: number
+  maxtarget: number
+}
 
-  constructor(myChipsDBConfig, worldDBConfig, argv) {
-    this.argv = argv
-    this.host = argv.peerServer || Os.hostname()
+class AgentCluster {
+  private networkConfig: NetworkConfig
+  private host: string
+
+  /** Contains the adjustable values of the simulation */
+  private params!: AdjustableSimParams
+  private myChipsDBManager!: SQLManager
+  private worldDBManager!: MongoManager
+  private logger: WyclifLogger
+
+  /** Counts number of iterations the simulation runs */
+  private counter!: number
+  // TODO: Not sure what this does
+  private intervalTimer!: NodeJS.Timer | null
+  /** Number of runs the sim is set to complete */
+  private runs!: number
+
+  private currAgent!: string | number | null
+  private agents!: any[]
+
+  /** Use to make unique tag for each remote command */
+  private remoteIdx!: number
+  private remoteCBs!: { [x: string]: any } //Store routines to call on completion
+
+  constructor(
+    myChipsDBConfig: DBConfig,
+    worldDBConfig: DBConfig,
+    networkConfig: NetworkConfig
+  ) {
+    this.networkConfig = networkConfig
+    this.host = networkConfig.peerServer || Os.hostname()
 
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
@@ -48,7 +118,7 @@ module.exports = class AgentCluster {
     this.run()
   }
 
-  configureDatabases(myChipsDBConfig, worldDBConfig) {
+  configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DBConfig) {
     // Configure SQLManager
     this.myChipsDBManager = new SQLManager(
       myChipsDBConfig,
@@ -59,12 +129,13 @@ module.exports = class AgentCluster {
     this.worldDBManager = new MongoManager(
       worldDBConfig,
       this.logger,
-      this.argv
+      this.networkConfig
     )
   }
 
   // calls run on all of the agents
   run() {
+    console.log('RUNNING AGENT MODEL * VERSION 3 *')
     this.agents = []
 
     this.remoteIdx = 0 //Use to make unique tag for each remote command
@@ -72,8 +143,8 @@ module.exports = class AgentCluster {
 
     this.currAgent = null //Keep track of which user we are processing
     this.counter = 0
-    if (this.argv.runs) {
-      this.runs = this.argv.runs
+    if (this.networkConfig.runs) {
+      this.runs = this.networkConfig.runs
     } //Max iterations
     this.myChipsDBManager.createConnection(
       this.params,
@@ -128,14 +199,14 @@ module.exports = class AgentCluster {
   // --- Functions passed as callbacks -------------------------------------------------------
   // Loads agents from the MyCHIPs Database
   loadInitialUsers() {
-    this.myChipsDBManager.queryUsers((e, r) => {
+    this.myChipsDBManager.queryUsers((e: any, r: any) => {
       this.eatAgents(e, r, true)
     }) //Load up initial set of users
   }
 
   // gets agents from SQL and puts hosted agent info into MongoDB
   notifyOfAgentsChange(msg) {
-    this.myChipsDBManager.queryLatestUsers(msg.time, (err, res) => {
+    this.myChipsDBManager.queryLatestUsers(msg.time, (err: any, res: any) => {
       this.eatAgents(err, res)
     })
   }
@@ -144,11 +215,11 @@ module.exports = class AgentCluster {
     this.params[target] = value
   }
 
-  notifyOfTallyChange(msg) {
+  notifyOfTallyChange(msg: any) {
     this.tallyState(msg)
   }
 
-  notifyTryTally(aData, queryResponseVal) {
+  notifyTryTally(aData: any, queryResponseVal: any) {
     this.tryTally(aData, queryResponseVal)
   }
 
@@ -287,17 +358,21 @@ module.exports = class AgentCluster {
   // TODO: move this over to the Agent code
   process(run) {
     //Iterate on a single agent
+    // @ts-ignore
     let aData = this.agents[this.currAgent], //Point to agent's data
       actSpace = Math.random(), //Randomize what action we will take
       startAgent = this.currAgent
     while (!aData.user_ent) {
+      // @ts-ignore
       if (++this.currAgent >= this.agents.length) this.currAgent = 0
       this.logger.trace(
         '  Skipping non-local partner:',
+        // @ts-ignore
         this.currAgent,
         startAgent
       )
       if (this.currAgent == startAgent) return //Avoid infinite loop if no users found
+      // @ts-ignore
       aData = this.agents[this.currAgent]
     }
     this.logger.verbose(
@@ -310,6 +385,7 @@ module.exports = class AgentCluster {
       aData.std_name,
       aData.peer_cid
     )
+    // @ts-ignore
     if (++this.currAgent >= this.agents.length) this.currAgent = 0 //Will go to next agent next time
 
     this.logger.debug(
@@ -411,7 +487,7 @@ module.exports = class AgentCluster {
   }
 
   // -----------------------------------------------------------------------------
-  tallyState(msg) {
+  tallyState(msg: any) {
     //Someone is asking an agent to act on a tally
     this.logger.debug('Peer Message:', msg)
 
@@ -481,7 +557,7 @@ module.exports = class AgentCluster {
     let sqls: string[] = [],
       i = 0
 
-    aData.targets.forEach((t) => {
+    aData.targets.forEach((t: any) => {
       let seq = aData.seqs[i],
         ent = aData.id,
         newTarg = Math.random() * this.params.maxtarget,
@@ -505,3 +581,5 @@ module.exports = class AgentCluster {
     })
   }
 }
+
+export = AgentCluster

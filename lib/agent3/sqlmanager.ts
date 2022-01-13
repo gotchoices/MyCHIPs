@@ -10,17 +10,17 @@ const peerSql = `insert into mychips.peers_v
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 
-module.exports = class SQLManager {
+class SQLManager {
   private channels = []
   private config
-  private logger
+  private logger: WyclifLogger
   private host
   private database
   private user
   private port
   private dbConnection
 
-  constructor(sqlConfig, logger) {
+  constructor(sqlConfig, logger, params) {
     this.logger = logger
 
     // Add fields to config
@@ -101,3 +101,5 @@ module.exports = class SQLManager {
     this.dbConnection.query(...args)
   }
 }
+
+export default SQLManager
