@@ -37,7 +37,8 @@
     "docker": "MYCHIPS_ROOT=$(pwd) MYCHIPS_DIR=$(basename $(pwd)) docker-compose -f $(pwd)/build/compose-dev.yml --env-file $(pwd)/build/config-dev.env up",
     "agent": "test/sim/agent -m 2",
     "builddb": "cd schema; make objects",
-    "preversion": "npm-run-all --parallel contract-hashes build-sql build && git add -A"
+    "preversion": "npm-run-all --parallel contract-hashes build-sql build && git add -A",
+    "tsc": "cd lib && ../node_modules/typescript/bin/tsc"
   },
   "repository": {
     "type": "git",
