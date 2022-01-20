@@ -1,16 +1,17 @@
 import SQLManager from './agent3/sqlmanager'
 import MongoManager from './agent3/mongomanager'
 import Os from 'os'
-import { MongoClient as DocClient } from 'mongodb'
+import { Document, MongoClient as DocClient } from 'mongodb'
 import { Log } from 'wyclif'
 import uuidv4 from 'uuid/v4'
+import { ActionDoc } from './@types/document'
 
 const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
 
 const userFields = ['id', 'std_name', 'peer_cid', 'serv_id']
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
-const peerSql = `insert into mychips.peers_v 
-	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
+const peerSql = `insert into mychips.peers_v
+	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port)
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 
 /** Network config values passed in from simulation */
@@ -50,14 +51,6 @@ interface NetworkConfig {
   i: number
   $0: string
 }
-
-interface DBConfig {
-  host: string
-  database: string
-  user: string
-  port: string | undefined
-}
-
 interface AdjustableSimParams {
   interval: number
   addclient: number
@@ -70,7 +63,11 @@ interface AdjustableSimParams {
   maxtarget: number
 }
 
-class AgentCluster {
+interface AgentClusterType {
+  checkPeer: CheckPeerFn
+}
+
+class AgentCluster implements AgentClusterType {
   private networkConfig: NetworkConfig
   private host: string
 
@@ -137,7 +134,6 @@ class AgentCluster {
   run() {
     console.log('RUNNING AGENT MODEL * VERSION 3 *')
     this.agents = []
-
     this.remoteIdx = 0 //Use to make unique tag for each remote command
     this.remoteCBs = {} //Store routines to call on completion
 
@@ -188,7 +184,6 @@ class AgentCluster {
       let fileContents = fs.readFileSync(__dirname + '/agent3/paramConfig.yaml')
       this.params = yaml.load(fileContents)
 
-      console.log(this.params)
       // TODO: Build agents using the AgentFactory
     } catch (e) {
       console.log(e)
@@ -224,12 +219,12 @@ class AgentCluster {
   }
 
   // TODO: Decouple from Mongo
-  notifyOfActionDone(doc) {
+  notifyOfActionDone(doc: ActionDoc) {
     //Remote action has completed
     this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
     if (this.remoteCBs[doc.tag]) {
       //If I can find a stored callback
-      this.remoteCBs[doc.tag]() //Call it
+      this.remoteCBs[doc.tag!]() //Call it
       delete this.remoteCBs[doc.tag] //And then forget about it
     }
   }
@@ -238,34 +233,47 @@ class AgentCluster {
 
   // Check to see if a peer is in our system, if not add them and then do cb
   // TODO: fix up variable naming
-  checkPeer(pData, cb) {
+  checkPeer(
+    peerData: AgentData,
+    onFinishCreatingUser: (agentData: AgentData) => void
+  ): void {
     //Make sure we have a peer in our system
-    let host,
-      port,
-      aData = this.agents.find((el) => el.peer_cid == pData.peer_cid)
-    if (pData.peer_sock) {
-      ;[host, port] = pData.peer_sock.split(':')
+    console.log('right before')
+    if (this.agents == undefined) return
+    console.log('this.agents: ', this.agents)
+    let host: string,
+      port: string,
+      agentData = this.agents.find((el) => el.peer_cid == peerData.peer_cid)
+    if (agentData === undefined) {
+      return
+    }
+    if (peerData.peer_sock) {
+      ;[host, port] = peerData.peer_sock.split(':')
     } //If default socket, use it for host,port
 
-    this.logger.debug('Checking if we have peer:', pData.peer_cid, !!aData)
-    if (aData) cb(aData, true)
-    else if (pData.host == this.host)
-      this.logger.error('Should have had local user:', pData.peer_cid)
+    this.logger.debug(
+      'Checking if we have peer:',
+      peerData.peer_cid,
+      !!agentData
+    )
+    if (agentData) onFinishCreatingUser(agentData)
+    else if (peerData.host == this.host)
+      this.logger.error('Should have had local user:', peerData.peer_cid)
     else
       this.myChipsDBManager.query(
         peerSql,
         [
-          pData.ent_name,
-          pData.fir_name,
-          pData.ent_type,
-          pData.born_date,
-          pData.peer_cid,
-          pData.peer_host || host,
-          pData.peer_port || port,
+          peerData.ent_name,
+          peerData.fir_name,
+          peerData.ent_type,
+          peerData.born_date,
+          peerData.peer_cid,
+          peerData.peer_host || host!,
+          peerData.peer_port || port!,
         ],
         (err, res) => {
           if (err) {
-            this.logger.error('Adding peer:', pData.peer_cid, err.stack)
+            this.logger.error('Adding peer:', peerData.peer_cid, err.stack)
             return
           }
           let newGuy = res.rows[0]
@@ -275,7 +283,7 @@ class AgentCluster {
             newGuy.peer_sock
           )
           this.agents.push(newGuy)
-          cb(newGuy)
+          onFinishCreatingUser(newGuy)
         }
       )
   }
@@ -300,7 +308,7 @@ class AgentCluster {
     }
     if (!this.worldDBManager.isDBClientConnected()) return //Document db connected/ready
     this.logger.trace('Loaded agents:', res.rows.length)
-    let haveEm: any[] = [] //Keep track of which ones we've processed
+    let processedAgents: PeerCID[] = [] //Keep track of which ones we've processed
 
     res.rows.forEach((row) => {
       //For each agent in sql
@@ -309,14 +317,14 @@ class AgentCluster {
       else this.agents.push(row) //Keep local copy
       if (row.user_ent) {
         //If this is one we host, update world db
-        haveEm.push(row.peer_cid)
+        processedAgents.push(row.peer_cid)
         row.random = Math.random()
 
         this.worldDBManager.updateOneAgent(row)
       }
     })
 
-    if (all) this.worldDBManager.deleteManyAgents(haveEm)
+    if (all) this.worldDBManager.deleteManyAgents(processedAgents)
 
     if (!this.currAgent && this.agents.length > 0) this.currAgent = 0 //Initialize loop to traverse agents
   }
@@ -447,13 +455,14 @@ class AgentCluster {
   }
 
   // TODO: --- Functions that need to be moved to Actions ---------------------------------------
-  tryTally(aData, pDoc) {
+  tryTally(agentData: AgentData, pDoc: any) {
     //Try to request tally from someone in the world
-    this.logger.debug('  Try tally:', aData.peer_cid, 'with', pDoc.peer_cid)
-    this.checkPeer(pDoc, (pData, hadEm) => {
+    this.logger.debug('  Try tally:', agentData.peer_cid, 'with', pDoc.peer_cid)
+    this.checkPeer(pDoc, (pData) => {
       let host = pDoc.peer_sock.split(':')[0]
-
-      this.remoteCall(host, 'createUser', aData, () => {
+      console.log('pDoc: ', pDoc)
+      console.log('host: ', host)
+      this.remoteCall(host, 'createUser', agentData, () => {
         //Insert this peer remotely
         let guid = uuidv4(),
           sig = 'Valid',
@@ -462,11 +471,11 @@ class AgentCluster {
             'insert into mychips.tallies_v (tally_ent, tally_guid, partner, user_sig, contract, request) values ($1, $2, $3, $4, $5, $6);',
           partner = 'test'
 
-        this.logger.debug('Tally request:', tallySql, aData.id, pData.id)
+        this.logger.debug('Tally request:', tallySql, agentData.id, pData.id)
 
         this.myChipsDBManager.query(
           tallySql,
-          [aData.id, guid, pData.id, sig, contract, 'draft'],
+          [agentData.id, guid, pData.id, sig, contract, 'draft'],
           (err, res) => {
             if (err) {
               this.logger.error('In query:', err.stack)
@@ -474,11 +483,11 @@ class AgentCluster {
             }
             this.logger.debug(
               '  Initial tally by:',
-              aData.std_name,
+              agentData.std_name,
               ' with partner:',
               pData.std_name
             )
-            aData.stocks++
+            agentData.stocks++
             //          pData.foils++
           }
         )
