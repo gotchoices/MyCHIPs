@@ -180,8 +180,8 @@ class AgentCluster implements AgentClusterType {
   // --- Functions passed as callbacks -------------------------------------------------------
   // Loads agents from the MyCHIPs Database
   loadInitialUsers() {
-    this.myChipsDBManager.queryUsers((e: any, r: any) => {
-      this.eatAgents(e, r, true)
+    this.myChipsDBManager.queryUsers((err: any, res: any) => {
+      this.eatAgents(err, res, true)
     }) //Load up initial set of users
   }
 

@@ -105,15 +105,15 @@ class SQLManager {
 
   getAgents() {}
 
-  queryUsers(callback: ()=>any) {
+  queryUsers(callback: (e: any, r: any)=>any) {
     this.query(userSql, callback)
   }
 
-  queryLatestUsers(time: string, callback: ()=>any) {
+  queryLatestUsers(time: string, callback: (err: any, res: any)=>any) {
     this.query(userSql + ' and latest >= $1', [time], callback)
   }
 
-  queryPeers(callback: ()=>any) {
+  queryPeers(callback: (err: any, res: any)=>any) {
     this.query(peerSql, callback)
   }
 
