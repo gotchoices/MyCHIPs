@@ -15,3 +15,4 @@ source distribution.
 - [Peer Communication Protocol](Peer_Communication.md)
 - [Schema Version Control](Schema_Versions.md)
 - [State Processing Refinements](State_Machine.md)
+- [Refining the CHIP Economic Model](CHIP_Definition.md)
