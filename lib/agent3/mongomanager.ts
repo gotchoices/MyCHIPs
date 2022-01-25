@@ -1,8 +1,10 @@
 import { MongoClient, Db, Collection, Document, ChangeStream } from 'mongodb'
 import Os from 'os'
 import { ActionDoc, PeerDoc } from '../@types/document'
+import UnifiedLogger from './unifiedLogger'
 
 class MongoManager {
+  private static singletonInstance: MongoManager
   private docConfig: DBConfig
   private host: string
   private logger: WyclifLogger
@@ -13,12 +15,21 @@ class MongoManager {
   private agentsCollection!: Collection<Document> //TODO: Change this
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
-  constructor(config: DBConfig, logger: WyclifLogger, argv) {
+  private constructor(config: DBConfig, argv) {
     this.docConfig = config
-    this.logger = logger
+    this.logger = UnifiedLogger.getInstance()
 
     // MongoDB host name
     this.host = argv.peerServer || Os.hostname()
+  }
+
+  /** Returns the singleton instance of the MongoManager */
+  public static getInstance(config: DBConfig, argv): MongoManager {
+    if (!MongoManager.singletonInstance) {
+      MongoManager.singletonInstance = new MongoManager(config, argv)
+    }
+
+    return MongoManager.singletonInstance
   }
 
   createConnection(

@@ -16,6 +16,19 @@ interface DBConfig {
   port: string | undefined
 }
 
+/** Adjustable parameters that determine how the simulation is run. Gathered from paramConfig.yaml */
+interface AdjustableSimParams {
+  interval: number
+  addclient: number
+  checksets: number
+  addvendor: number
+  maxstocks: number
+  maxfoils: number
+  mintotpay: number
+  maxtopay: number
+  maxtarget: number
+}
+
 /** Unique peer id */
 interface PeerCID {
   peer_cid: string

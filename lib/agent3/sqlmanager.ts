@@ -1,5 +1,6 @@
 // const { dbClient } = require('wyseman')
 import { dbClient } from 'wyseman'
+import UnifiedLogger from './unifiedLogger'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_sock, stocks, foils, partners, vendors, clients,
@@ -10,18 +11,27 @@ const peerSql = `insert into mychips.peers_v
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 
-class SQLManager {
-  private channels = []
-  private config
-  private logger: WyclifLogger
-  private host
-  private database
-  private user
-  private port
-  private dbConnection
+interface Config extends DBConfig {
+  log: WyclifLogger
+  listen: string[]
+}
 
-  constructor(sqlConfig, logger, params) {
-    this.logger = logger
+class SQLManager {
+  private static singletonInstance: SQLManager
+  private config: Config
+  private logger: WyclifLogger
+  private dbConnection: dbClient
+  private params: AdjustableSimParams
+  // These member variables are never used, but might be if we implement some of the other functions
+  // private channels: string[] = []
+  // private host: string 
+  // private database: string
+  // private user: string
+  // private port: string
+
+  private constructor(sqlConfig: DBConfig, params: AdjustableSimParams) {
+    this.logger = UnifiedLogger.getInstance()
+    this.params = params
 
     // Add fields to config
     this.config = Object.assign(
@@ -33,15 +43,25 @@ class SQLManager {
     )
   }
 
+  public static getInstance(
+    sqlConfig: DBConfig, 
+    params: AdjustableSimParams
+  ): SQLManager {
+    if (!SQLManager.singletonInstance) {
+      SQLManager.singletonInstance = new SQLManager(sqlConfig, params)
+    }
+
+    return SQLManager.singletonInstance
+  }
+
   createConnection(
-    params,
-    notifyOfAgentChange,
-    notifyOfParamsChange,
-    notifyOfTallyChange
+    notifyOfAgentChange: (msg: any) => void,
+    notifyOfParamsChange: (target: string, value: any) => void,
+    notifyOfTallyChange: (msg: any) => void
   ) {
     this.dbConnection = new dbClient(this.config, (channel, payload) => {
       //Initialize Database connection
-      let msg
+      let msg: any
       this.logger.trace('Agent DB async on:', channel, 'payload:', payload)
       if (payload)
         try {
@@ -52,7 +72,7 @@ class SQLManager {
       if (channel == 'parm_agent') {
         //Parameter updated
         this.logger.debug('Parameter', msg.target, '=', msg.value, msg)
-        if (msg.target in params && msg.value)
+        if (msg.target in this.params && msg.value)
           notifyOfParamsChange(msg.target, msg.value)
       } else if (channel == 'mychips_admin') {
         //Something in the user data has changed
@@ -85,19 +105,19 @@ class SQLManager {
 
   getAgents() {}
 
-  queryUsers(callback) {
+  queryUsers(callback: ()=>any) {
     this.query(userSql, callback)
   }
 
-  queryLatestUsers(time, callback) {
+  queryLatestUsers(time: string, callback: ()=>any) {
     this.query(userSql + ' and latest >= $1', [time], callback)
   }
 
-  queryPeers(callback) {
+  queryPeers(callback: ()=>any) {
     this.query(peerSql, callback)
   }
 
-  query(...args) {
+  query(...args: any[]) {
     this.dbConnection.query(...args)
   }
 }
