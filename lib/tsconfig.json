@@ -1,5 +1,6 @@
 {
   "include": ["./agent3/*.ts", "./agent3.ts", "./**/*.d.ts"],
+  "exclude": ["./agent3/actions.ts"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
