@@ -1,5 +1,4 @@
-'use strict'
-/*
+/* 
 All Action functions should follow this pattern! Treat it like an interface.
 const Action = (needed parameters) => {
   this.shouldProcess = () => {
@@ -16,56 +15,23 @@ const Action = (needed parameters) => {
   }
 }
 */
-Object.defineProperty(exports, '__esModule', { value: true })
+
 // Establishes a new Tally with a new agent found in the worldDB
-class MakeNewTally {
-  #agentData
-  #parameters
-  #worldDBManager
-  #myChipsDBManager
-  #checkForPeer
-  #remoteCall
-  #logger
+const MakeNewTally = function(agentData, parameters, worldDBFacade, myChipsDBFacade, checkForPeer, remoteCall, logger) {
 
-  constructor(
-    agentData,
-    parameters,
-    worldDBManager,
-    myChipsDBManager,
-    checkForPeer,
-    remoteCall,
-    logger
-  ) {
-    this.#agentData = agentData
-    this.#parameters = parameters
-    this.#worldDBManager = worldDBManager
-    this.#myChipsDBManager = myChipsDBManager
-    this.#checkForPeer = checkForPeer
-    this.#remoteCall = remoteCall
-    this.#logger = logger
-
-    this.tryTally = this.tryTally.bind(this)
+  this.shouldProcess = function() {
+    return agentData.stocks <= 0 ||                 // If the agent has no stocks   or
+      (agentData.stocks < parameters.maxstocks &&   // (if the agent doesn't have too many stocks and
+        Math.random() < parameters.addclient)       //  we randgomly choose to)
   }
 
-  shouldProcess() {
-    return (
-      this.#agentData.stocks <= 0 || // If the agent has no stocks   or
-      (this.#agentData.stocks < this.#parameters.maxstocks && // (if the agent doesn't have too many stocks and
-        Math.random() < this.#parameters.addclient)
-    ) //  we randgomly choose to)
-  }
-
-  process() {
+  this.process = function() {
     //FIXME: This stuff should be put in the MongoDB Facade!
-    this.#worldDBManager.findPeerAndUpdate(
-      this.#agentData,
-      this.#parameters,
-      this.tryTally
-    )
+    worldDBFacade.findPeerAndUpdate(agentData, parameters, tryTally);
 
     /* This is the method that the facade will call on MongoDB (SHOULD BE MOVED TO OTHER CLASS!)
     agentCollection.findOneAndUpdate(     // Look for a new trading partner
-      {   // Filter Options
+      {   // Filter Options 
         peer_cid: {
           $ne: agentData.peer_cid,				// Don't find myself
           $nin: agentData.partners				// or anyone I'm already connected to
@@ -99,22 +65,18 @@ class MakeNewTally {
   }
 
   // Try to request tally from someone in the world
-  tryTally(agentData, peerWorldData) {
-    this.#logger.debug(
-      '  Try tally:',
-      agentData.peer_cid,
-      'with',
-      peerWorldData.peer_cid
-    )
+  var tryTally = function(agentData, peerWorldData) {
 
-    this.#checkForPeer(peerWorldData, (peerHostData, hadEm) => {
+    logger.debug("  Try tally:", agentData.peer_cid, 'with', peerWorldData.peer_cid)
+
+    checkForPeer(peerWorldData, (peerHostData, hadEm) => {
       let host = peerHostData.peer_sock.split(':')[0]
-
-      this.#remoteCall(host, 'createUser', agentData, () => {
-        this.#logger.debug('Tally request:', agentData.id, peerHostData.id)
+      
+      remoteCall(host, 'createUser', agentData, () => {	//Insert this peer remotely    
+        logger.debug("Tally request:", tallySql, aData.id, peerHostData.id)
 
         // Adds a tally to the HostDB
-        this.#myChipsDBManager.addTally(agentData, peerHostData)
+        myChipsDBFacade.addTally(agentData, peerHostData)
 
         /* ---- This is what the facade will call on the SQLDB (SHOULD BE MOVED TO OTHER CLASS!)
         let guid = uuidv4()
@@ -134,51 +96,27 @@ class MakeNewTally {
   }
 }
 
+
 // Pays a Vendor some CHIPs
-class PayVendor {
-  #agentData
-  #parameters
-  #myChipsDBManager
-  #getAgentInfo
-  #logger
+const PayVendor = function(agentData, parameters, worldDBFacade, myChipsDBFacade, getAgentInfo, logger) {
 
-  constructor(agentData, parameters, myChipsDBManager, getAgentInfo, logger) {
-    this.#agentData = agentData
-    this.#parameters = parameters
-    this.#myChipsDBManager = myChipsDBManager
-    this.#getAgentInfo = getAgentInfo
-    this.#logger = logger
+  this.shouldProcess = function() {
+    return agentData.foils > 0 && agentData.units > parameters.mintopay
   }
 
-  shouldProcess() {
-    return (
-      this.#agentData.foils > 0 &&
-      this.#agentData.units > this.#parameters.mintopay
-    )
-  }
-
-  process() {
-    let vendorIdx = Math.floor(Math.random() * this.#agentData.foils)
-    let vendorId = this.#agentData.vendors[vendorIdx]
-    let vendorData = this.#getAgentInfo(vendorId)
+  this.process = function() {
+    let vendorIdx = Math.floor(Math.random() * agentData.foils)
+    let vendorId = agentData.vendors[vendorIdx]
+    let vendorData = getAgentInfo(vendorId)
 
     if (vendorData) {
-      this.#logger.debug(
-        '  I:',
-        this.#agentData.id,
-        '; Pay a vendor',
-        vendorIdx,
-        'of',
-        this.#agentData.vendors.length,
-        vendorId,
-        'NW:',
-        this.#agentData.units
-      )
+      logger.debug("  I:", aData.id, "; Pay a vendor", vendorIdx, 'of', aData.vendors.length, vendorId, "NW:", aData.units)
 
       // Ask the MyCHIPsDB to make the payment
-      this.#myChipsDBManager.payVendor(this.#agentData, vendorIdx, vendorData)
+      myChipsDBFacade.payVendor(agentData, vendorIdx, vendorData)
       // I think the AgentCluster is listening to the MyCHIPsDB, so when this change is made,
       // it detects the change and updates the WorldDB accordingly.
+
       /* This is what the SQLDB facade should implement (SHOULD BE MOVED TO OTHER CLASS!)
       let guid = uuidv4()
       , sig = "Valid"
@@ -201,9 +139,8 @@ class PayVendor {
 
 // ---------------- Add new Action Definitions here ------------------------ \\
 
-// Export the Actions
 export default {
   MakeNewTally,
-  PayVendor,
+  PayVendor
   // Add new actions here
 }
