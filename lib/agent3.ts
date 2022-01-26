@@ -1,10 +1,9 @@
 import SQLManager from './agent3/sqlmanager'
 import MongoManager from './agent3/mongomanager'
 import Os from 'os'
-import { Document, MongoClient as DocClient } from 'mongodb'
 import UnifiedLogger from './agent3/unifiedLogger'
-import uuidv4 from 'uuid/v4'
 import { ActionDoc } from './@types/document'
+import Agent from './agent3/agent'
 
 const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
 
@@ -13,44 +12,6 @@ const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
 const peerSql = `insert into mychips.peers_v
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port)
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
-
-/** Network config values passed in from simulation */
-interface NetworkConfig {
-  _: any[]
-  m: number
-  model: number
-  peerServer: string
-  s: string
-  'peer-server': string
-  runs: number
-  dbHost: string
-  H: string
-  'db-host': string
-  dbName: string
-  D: string
-  'db-name': string
-  dbAdmin: string
-  A: string
-  'db-admin': string
-  dbPort: number | undefined
-  P: number | undefined
-  'db-port': number | undefined
-  ddHost: string
-  h: string
-  'dd-host': string
-  ddName: string
-  d: string
-  'dd-name': string
-  ddAdmin: string
-  a: string
-  'dd-admin': string
-  ddPort: string
-  p: string
-  'dd-port': string
-  interval: number
-  i: number
-  $0: string
-}
 
 interface AgentClusterType {
   checkPeer: CheckPeerFn
@@ -66,12 +27,12 @@ class AgentCluster implements AgentClusterType {
   private worldDBManager!: MongoManager
   private logger: WyclifLogger
 
-  /** Counts number of iterations the simulation runs */
-  private counter!: number
-  // TODO: Not sure what this does
-  private intervalTimer!: NodeJS.Timer | null
   /** Number of runs the sim is set to complete */
   private runs!: number
+  /** Counts number of runs the simulation executes / tracks current run */
+  private runCounter!: number
+  // TODO: Not sure what this does
+  private intervalTimer!: NodeJS.Timer | null
 
   private currAgent!: string | number | null
   private agents!: any[]
@@ -101,7 +62,23 @@ class AgentCluster implements AgentClusterType {
     this.logger.info('Initializing agent model controller 3 on:', this.host)
     this.loadParamsConfig()
     this.configureDatabases(myChipsDBConfig, worldDBConfig)
-    this.run()
+    this.run(this.logger)
+  }
+  
+  // Loads parameters from the config file
+  loadParamsConfig() {
+    const fs = require('fs')
+    const yaml = require('js-yaml')
+
+    try {
+      let fileContents = fs.readFileSync(__dirname + '/agent3/paramConfig.yaml')
+      this.params = yaml.load(fileContents)
+
+      // TODO: Build agents using the AgentFactory
+    } catch (e) {
+      console.log(e)
+      this.logger.error(e)
+    }
   }
 
   configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DBConfig) {
@@ -118,17 +95,20 @@ class AgentCluster implements AgentClusterType {
   }
 
   // calls run on all of the agents
-  run() {
+  run(logger: UnifiedLogger) {
     console.log('RUNNING AGENT MODEL * VERSION 3 *')
+    //TODO fix the typing of UnifiedLogger v WyclifLogger
+    logger.info('RUNNING AGENT MODEL V3')
     this.agents = []
     this.remoteIdx = 0 //Use to make unique tag for each remote command
     this.remoteCBs = {} //Store routines to call on completion
 
     this.currAgent = null //Keep track of which user we are processing
-    this.counter = 0
+    this.runCounter = 0
     if (this.networkConfig.runs) {
       this.runs = this.networkConfig.runs
     } //Max iterations
+
     this.myChipsDBManager.createConnection(
       this.notifyOfAgentsChange,
       this.notifyOfParamsChange,
@@ -160,22 +140,6 @@ class AgentCluster implements AgentClusterType {
 
   // Replaces checkPeer() in agent2
   ensurePeerInSystem() {}
-
-  // Loads parameters from the config file
-  loadParamsConfig() {
-    const fs = require('fs')
-    const yaml = require('js-yaml')
-
-    try {
-      let fileContents = fs.readFileSync(__dirname + '/agent3/paramConfig.yaml')
-      this.params = yaml.load(fileContents)
-
-      // TODO: Build agents using the AgentFactory
-    } catch (e) {
-      console.log(e)
-      this.logger.error(e)
-    }
-  }
 
   // --- Functions passed as callbacks -------------------------------------------------------
   // Loads agents from the MyCHIPs Database
@@ -223,29 +187,39 @@ class AgentCluster implements AgentClusterType {
     peerData: AgentData,
     onFinishCreatingUser: (agentData: AgentData) => void
   ): void {
-    //Make sure we have a peer in our system
-    console.log('right before')
-    if (this.agents == undefined) return
-    console.log('this.agents: ', this.agents)
-    let host: string,
-      port: string,
-      agentData = this.agents.find((el) => el.peer_cid == peerData.peer_cid)
-    if (agentData === undefined) {
+    //Exit if there are no agents in our system
+    if (this.agents == undefined) {
+      this.logger.debug('There are no agents in the system')
       return
     }
-    if (peerData.peer_sock) {
-      ;[host, port] = peerData.peer_sock.split(':')
-    } //If default socket, use it for host,port
 
-    this.logger.debug(
-      'Checking if we have peer:',
-      peerData.peer_cid,
-      !!agentData
-    )
-    if (agentData) onFinishCreatingUser(agentData)
-    else if (peerData.host == this.host)
+    console.log('this.agents: ', this.agents) //TODO remove this
+    let host: string
+    let port: string
+    //Get data for the first matching peer in the system
+    let agentData = this.agents.find((agentElement) => agentElement.peer_cid == peerData.peer_cid)
+    
+    //Exit if no matching peer found
+    if (agentData === undefined) {
+      this.logger.debug('No match was found for peer ', peerData.peer_cid)
+      return
+    }
+
+    //If default socket, use it for host,port
+    if (peerData.peer_socket) {
+      this.logger.debug('Using ', peerData.peer_socket, ' as host port')
+      ;[host, port] = peerData.peer_socket.split(':')
+    }
+
+    this.logger.debug('Checking if we have peer:', peerData.peer_cid, !!agentData)
+    if (agentData) { //Is this if needed since we check on line 256?
+      this.logger.debug('Found match for peer', peerData.peer_cid, 'in system')
+      onFinishCreatingUser(agentData)
+    } 
+    else if (peerData.host == this.host) {
       this.logger.error('Should have had local user:', peerData.peer_cid)
-    else
+    }
+    else {
       this.myChipsDBManager.query(
         peerSql,
         [
@@ -266,17 +240,18 @@ class AgentCluster implements AgentClusterType {
           this.logger.debug(
             '  Inserting partner locally:',
             newGuy.std_name,
-            newGuy.peer_sock
+            newGuy.peer_socket
           )
           this.agents.push(newGuy)
           onFinishCreatingUser(newGuy)
         }
       )
+    }
   }
 
-  // -----------------------------------------------------------------------------
-
   // --- Helper Functions --------------------------------------------------------
+  
+  // -----------------------------------------------------------------------------
   // Executes a command on a foreign peer
   remoteCall(host, cmd, data, cb) {
     let tag = host + '.' + this.remoteIdx++ //Make unique message ID
@@ -285,22 +260,31 @@ class AgentCluster implements AgentClusterType {
     this.worldDBManager.insertAction(cmd, tag, host, data)
   }
 
-  // gets the agents from the SQLManager
+  // -----------------------------------------------------------------------------
+  // Gets the agents from the SQLManager
   eatAgents(err, res, all?) {
     //Freshly load agent data from database
     if (err) {
       this.logger.error('In query:', err.stack)
       return
     }
-    if (!this.worldDBManager.isDBClientConnected()) return //Document db connected/ready
+    if (!this.worldDBManager.isDBClientConnected()) {
+      //Document db connected/ready
+      return
+    } 
     this.logger.trace('Loaded agents:', res.rows.length)
     let processedAgents: PeerCID[] = [] //Keep track of which ones we've processed
 
     res.rows.forEach((row) => {
       //For each agent in sql
       let aIdx = this.agents.findIndex((el) => el.peer_cid == row.peer_cid)
-      if (aIdx >= 0) this.agents[aIdx] = row
-      else this.agents.push(row) //Keep local copy
+      if (aIdx >= 0) {
+        this.agents[aIdx] = row
+      }
+      else {
+        this.agents.push(row) //Keep local copy
+      }
+      
       if (row.user_ent) {
         //If this is one we host, update world db
         processedAgents.push(row.peer_cid)
@@ -310,14 +294,19 @@ class AgentCluster implements AgentClusterType {
       }
     })
 
-    if (all) this.worldDBManager.deleteManyAgents(processedAgents)
+    if (all) {
+      this.worldDBManager.deleteManyAgents(processedAgents)
+    }
 
-    if (!this.currAgent && this.agents.length > 0) this.currAgent = 0 //Initialize loop to traverse agents
+    if (!this.currAgent && this.agents.length > 0) {
+      //Initialize loop to traverse agents
+      this.currAgent = 0 
+    }
   }
 
   // -----------------------------------------------------------------------------
+  //Digest operating parameters from database
   eatParams(err, res) {
-    //Digest operating parameters from database
     this.logger.trace('eatParams')
     if (err) {
       this.logger.error('In query:', err.stack)
@@ -330,14 +319,17 @@ class AgentCluster implements AgentClusterType {
 
     if (this.intervalTimer) clearInterval(this.intervalTimer) //Restart interval timer
     this.intervalTimer = setInterval(() => {
-      if (this.currAgent != null && (!this.runs || this.counter < this.runs))
-        this.process(++this.counter)
+      if (this.currAgent != null && (!this.runs || this.runCounter < this.runs)) {
+        // this.process(++this.counter)
+        ++this.runCounter
+        this.agents.forEach(this.process)
+      }
     }, this.params.interval)
   }
 
   // -----------------------------------------------------------------------------
+  //Shut down this controller
   close() {
-    //Shut down this controller
     this.logger.debug('Shutting down agent handler')
     if (this.myChipsDBManager.isActiveQuery()) {
       //If there is a query in process
@@ -349,231 +341,31 @@ class AgentCluster implements AgentClusterType {
   }
 
   // -----------------------------------------------------------------------------
-  // TODO: move this over to the Agent code
-  process(run) {
+  process(agent: Agent) {
     //Iterate on a single agent
     // @ts-ignore
-    let aData = this.agents[this.currAgent], //Point to agent's data
-      actSpace = Math.random(), //Randomize what action we will take
-      startAgent = this.currAgent
-    while (!aData.user_ent) {
-      // @ts-ignore
-      if (++this.currAgent >= this.agents.length) this.currAgent = 0
-      this.logger.trace(
-        '  Skipping non-local partner:',
-        // @ts-ignore
-        this.currAgent,
-        startAgent
-      )
-      if (this.currAgent == startAgent) return //Avoid infinite loop if no users found
-      // @ts-ignore
-      aData = this.agents[this.currAgent]
-    }
     this.logger.verbose(
       'Handler',
-      run,
+      ++this.runCounter,
       this.currAgent,
       'of',
       this.agents.length,
-      aData.id,
-      aData.std_name,
-      aData.peer_cid
+      agent.id,
+      agent.std_name,
+      agent.peer_cid
     )
-    // @ts-ignore
-    if (++this.currAgent >= this.agents.length) this.currAgent = 0 //Will go to next agent next time
 
+    agent.takeAction()
+    
     this.logger.debug(
       '  stocks:',
-      aData.stocks,
+      agent.stocks,
       this.params.maxstocks,
       '  foils:',
       this.params.maxfoils,
-      'space:',
-      actSpace
+      'action taken:',
+      agent.lastActionTaken
     )
-    if (
-      aData.stocks <= 0 ||
-      (actSpace < this.params.addclient && aData.stocks < this.params.maxstocks)
-    ) {
-      //I don't have any, or enough clients (or jobs)
-      this.worldDBManager.findOneAndUpdate(
-        aData,
-        this.params.maxfoils,
-        this.notifyTryTally
-      )
-    } else if (
-      actSpace < this.params.checksets &&
-      aData.targets.some((el, ix) => {
-        return !parseInt(el) && aData.types[ix] == 'foil'
-      })
-    ) {
-      //Could do something more interesting with channel settings
-      this.logger.debug('  Set targets:', aData.targets)
-      this.chkSettings(aData)
-
-      //    } else if (aData.foils <= 0 || actSpace < this.params.addvendor) {			//I don't have any vendors, places to buy things
-      //      let vendors = this.agents.slice(0).sort((a,b)=>{return a.stocks - b.stocks})	//Sort potential vendors by how many vendors they have
-      //        , vdIdx = Math.floor(Math.random() * vendors.length / 4)			//Look in the first 25% of sort
-      //        , vData
-      //      for(vData = vendors[vdIdx]; vdIdx < vendors.length; vData = vendors[vdIdx++])
-      //        if (aData.id != vData.id && !aData.partners.includes(vData.id)) break		//Don't link to myself or the same person twice
-      //      this.logger.debug("  attempt to ask:", vData.std_name, "to be my vendor", vData.stocks, aData.foils, vdIdx)
-      //      if (vdIdx < vendors.length && vData.stocks < 2 && aData.foils < 4)
-      //        this.createTally(vData, aData)
-      //
-    } else if (aData.foils > 0 && aData.units > this.params.mintotpay) {
-      let vIdx = Math.floor(Math.random() * aData.foils),
-        vId = aData.vendors[vIdx],
-        vData = vId ? this.agents.find((el) => el.id == vId) : null
-      this.logger.debug(
-        '  I:',
-        aData.id,
-        '; Pay a vendor',
-        vIdx,
-        'of',
-        aData.vendors.length,
-        vId,
-        'NW:',
-        aData.units
-      )
-      if (vData) this.payVendor(aData, vIdx, vData)
-    }
-  }
-
-  // TODO: --- Functions that need to be moved to Actions ---------------------------------------
-  tryTally(agentData: AgentData, pDoc: any) {
-    //Try to request tally from someone in the world
-    this.logger.debug('  Try tally:', agentData.peer_cid, 'with', pDoc.peer_cid)
-    this.checkPeer(pDoc, (pData) => {
-      let host = pDoc.peer_sock.split(':')[0]
-      console.log('pDoc: ', pDoc)
-      console.log('host: ', host)
-      this.remoteCall(host, 'createUser', agentData, () => {
-        //Insert this peer remotely
-        let guid = uuidv4(),
-          sig = 'Valid',
-          contract = { name: 'mychips-0.99' },
-          tallySql =
-            'insert into mychips.tallies_v (tally_ent, tally_guid, partner, user_sig, contract, request) values ($1, $2, $3, $4, $5, $6);',
-          partner = 'test'
-
-        this.logger.debug('Tally request:', tallySql, agentData.id, pData.id)
-
-        this.myChipsDBManager.query(
-          tallySql,
-          [agentData.id, guid, pData.id, sig, contract, 'draft'],
-          (err, res) => {
-            if (err) {
-              this.logger.error('In query:', err.stack)
-              return
-            }
-            this.logger.debug(
-              '  Initial tally by:',
-              agentData.std_name,
-              ' with partner:',
-              pData.std_name
-            )
-            agentData.stocks++
-            //          pData.foils++
-          }
-        )
-      })
-    })
-  }
-
-  // -----------------------------------------------------------------------------
-  tallyState(msg: any) {
-    //Someone is asking an agent to act on a tally
-    this.logger.debug('Peer Message:', msg)
-
-    if (msg.state == 'peerProffer') {
-      //For now, we will just answer 'yes'
-      this.logger.verbose('  peerProffer:', msg.entity)
-      this.myChipsDBManager.query(
-        "update mychips.tallies_v set request = 'open' where tally_ent = $1 and tally_seq = $2",
-        [msg.entity, msg.sequence],
-        (e, r) => {
-          if (e) {
-            this.logger.error('In :', e.stack)
-            return
-          }
-          //        let row = r.rows && r.rows.length >= 1 ? r.rows[0] : null
-          //          , aData = this.agents.findIndex(el=>(el.peer_cid == row.peer_cid))
-          this.logger.verbose('  Tally affirmed:', msg.object)
-        }
-      )
-    }
-  }
-
-  // -----------------------------------------------------------------------------
-  payVendor(aData, vIdx, vData) {
-    let guid = uuidv4(),
-      sig = 'Valid',
-      max = Math.max(aData.units * this.params.maxtopay, 1000), //Pay 1 CHIP or % of net worth
-      units = Math.floor(Math.random() * max),
-      seq = aData.foil_seqs[vIdx], //Tally sequence
-      quid = 'Inv' + Math.floor(Math.random() * 1000),
-      req = 'userDraft',
-      sql =
-        "insert into mychips.chits_v (chit_ent,chit_seq,chit_guid,chit_type,signature,units,quidpro,request) values ($1,$2,$3,'tran',$4,$5,$6,$7)"
-
-    this.logger.verbose(
-      '  payVendor:',
-      aData.id,
-      '->',
-      vData.id,
-      'on:',
-      seq,
-      'Units:',
-      units
-    )
-    this.myChipsDBManager.query(
-      sql,
-      [aData.id, seq, guid, sig, units, quid, req],
-      (e, r) => {
-        if (e) {
-          this.logger.error('In payment:', e.stack)
-          return
-        }
-        this.logger.debug(
-          '  payment:',
-          aData.id,
-          aData.std_name,
-          'to:',
-          vData.id,
-          vData.std_name
-        )
-      }
-    )
-  }
-
-  // TODO: Determine if this function is needed with new paramConfig.yaml -----------------------
-  chkSettings(aData) {
-    let sqls: string[] = [],
-      i = 0
-
-    aData.targets.forEach((t: any) => {
-      let seq = aData.seqs[i],
-        ent = aData.id,
-        newTarg = Math.random() * this.params.maxtarget,
-        newBound = Math.random() * newTarg * 0.5 + newTarg,
-        reward = (Math.random() * 5) / 100 + 0.05
-      this.logger.trace('   seq:', seq, 'type:', aData.types[i])
-      if (aData.types[i] == 'foil') {
-        //For now, we will assert settings only on foil tallies
-        sqls.push(
-          `insert into mychips.tally_sets (tset_ent, tset_seq, target, bound, reward, signature) values ('${ent}', ${seq}, ${newTarg}, ${newBound}, ${reward}, 'Valid')`
-        )
-      }
-      i++
-    })
-    this.logger.debug('  Settings:', sqls.join(';'))
-    this.myChipsDBManager.query(sqls.join(';'), null, (e, r) => {
-      if (e) {
-        this.logger.error('In settings:', e.stack)
-        return
-      }
-    })
   }
 }
 

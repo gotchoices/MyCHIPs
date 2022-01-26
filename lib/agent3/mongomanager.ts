@@ -5,7 +5,7 @@ import UnifiedLogger from './unifiedLogger'
 
 class MongoManager {
   private static singletonInstance: MongoManager
-  private docConfig: DBConfig
+  private dbConfig: DBConfig
   private host: string
   private logger: WyclifLogger
   private dbConnection!: Db
@@ -15,8 +15,8 @@ class MongoManager {
   private agentsCollection!: Collection<Document> //TODO: Change this
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
-  private constructor(config: DBConfig, argv) {
-    this.docConfig = config
+  private constructor(dbConfig: DBConfig, argv) {
+    this.dbConfig = dbConfig
     this.logger = UnifiedLogger.getInstance()
 
     // MongoDB host name
@@ -24,9 +24,12 @@ class MongoManager {
   }
 
   /** Returns the singleton instance of the MongoManager */
-  public static getInstance(config: DBConfig, argv): MongoManager {
-    if (!MongoManager.singletonInstance) {
-      MongoManager.singletonInstance = new MongoManager(config, argv)
+  public static getInstance(dbConfig?: DBConfig, networkConfig?: NetworkConfig): MongoManager {
+    if (!MongoManager.singletonInstance && dbConfig && networkConfig) {
+      MongoManager.singletonInstance = new MongoManager(dbConfig, networkConfig)
+    }
+    else if (!MongoManager.singletonInstance && (!dbConfig || !networkConfig)) {
+      throw new Error('No mongo manager available and no creation parameters supplied')
     }
 
     return MongoManager.singletonInstance
@@ -38,7 +41,7 @@ class MongoManager {
     notifyOfActionDone,
     loadInitialUsers
   ) {
-    let url = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
+    let url = `mongodb://${this.dbConfig.host}:${this.dbConfig.port}/?replicaSet=rs0`
     this.logger.verbose('Mongo:', this.host, url)
     this.mongoClient = new MongoClient(url, options)
     this.mongoClient.connect((err, client) => {
@@ -52,7 +55,7 @@ class MongoManager {
         return
       }
 
-      this.dbConnection = client.db(this.docConfig.database)
+      this.dbConnection = client.db(this.dbConfig.database)
 
       this.actionsCollection = this.dbConnection.collection('actions')
       //      this.actionsCollectionStream = this.actionsCollection.watch([{$match: { host: null }}])

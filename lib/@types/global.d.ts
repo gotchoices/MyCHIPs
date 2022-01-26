@@ -54,7 +54,7 @@ interface AgentData {
   user_ent: string | null
   peer_cid: PeerCID
   /** Assigned peer socket (ex: 'peer2:65430') */
-  peer_sock: string
+  peer_socket: string
   stocks: number
   foils: number
   partners: string[]
@@ -74,6 +74,44 @@ interface AgentData {
   born_date?: string
   peer_host?: string
   peer_port?: string
+}
+
+/** Network config values passed in from simulation */
+interface NetworkConfig {
+  _: any[]
+  m: number
+  model: number
+  peerServer: string
+  s: string
+  'peer-server': string
+  runs: number
+  dbHost: string
+  H: string
+  'db-host': string
+  dbName: string
+  D: string
+  'db-name': string
+  dbAdmin: string
+  A: string
+  'db-admin': string
+  dbPort: number | undefined
+  P: number | undefined
+  'db-port': number | undefined
+  ddHost: string
+  h: string
+  'dd-host': string
+  ddName: string
+  d: string
+  'dd-name': string
+  ddAdmin: string
+  a: string
+  'dd-admin': string
+  ddPort: string
+  p: string
+  'dd-port': string
+  interval: number
+  i: number
+  $0: string
 }
 
 /* Function Types */

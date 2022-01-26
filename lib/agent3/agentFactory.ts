@@ -1,17 +1,17 @@
-const Agent = require("./agents").default;
+import Agent from './agent'
+import BaseAgent from './agents/BaseAgent'
 
-module.exports = {
-    createAgent(type) {
+class AgentFactory {
+    public static createAgent(agentType: string) {
         var agent;
 
-        if (type === "Consumer") {
-            agent = new Agent({type:"Consumer"});
+        if (agentType === "BaseAgent") {
+            agent = new BaseAgent();
         }
+        // Add more types here...
 
         return agent;
-    },
-
-    createCustomAgent(config) {
-        return new Agent(config);
     }
 }
+
+export default AgentFactory;

@@ -43,12 +43,12 @@ class SQLManager {
     )
   }
 
-  public static getInstance(
-    sqlConfig: DBConfig, 
-    params: AdjustableSimParams
-  ): SQLManager {
-    if (!SQLManager.singletonInstance) {
+  public static getInstance(sqlConfig?: DBConfig, params?: AdjustableSimParams): SQLManager {
+    if (!SQLManager.singletonInstance && sqlConfig && params) {
       SQLManager.singletonInstance = new SQLManager(sqlConfig, params)
+    }
+    else if (!SQLManager && (!sqlConfig || !params)) {
+      throw new Error('no singleton instance exists and no paramaters supplied for creation')
     }
 
     return SQLManager.singletonInstance
