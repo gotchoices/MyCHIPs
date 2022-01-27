@@ -120,12 +120,12 @@ class MongoManager {
     )
   }
 
-  updateOneAgent(row) {
-    row.host = this.host //Mark user as belonging to us
+  updateOneAgent(agent: AgentData) {
+    agent.host = this.host //Mark user as belonging to us
 
     this.agentsCollection.updateOne(
-      { peer_cid: row.peer_cid, host: row.host },
-      { $set: row },
+      { peer_cid: agent.peer_cid, host: agent.host },
+      { $set: agent },
       { upsert: true },
       (e, r) => {
         if (e) this.logger.error(e.message)

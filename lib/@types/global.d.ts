@@ -42,7 +42,7 @@ interface ActionData {
 }
 
 interface AgentData {
-  id: string
+  id: number
   /** last name, first name*/
   std_name: string
   /** entity name (last name) */

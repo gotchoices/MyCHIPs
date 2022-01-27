@@ -105,12 +105,26 @@ class SQLManager {
 
   getAgents() {}
 
-  queryUsers(callback: (e: any, r: any)=>any) {
-    this.query(userSql, callback)
+  queryUsers(callback: (agents: AgentData[], all: boolean)=>any) {
+    this.query(userSql, (err: any, res: any) => {
+      if (err) {
+        this.logger.error('In query:', err.stack)
+        return
+      }
+      this.logger.trace('Loaded agents:', res.rows.length)
+      callback(res.rows, true)
+    })
   }
 
-  queryLatestUsers(time: string, callback: (err: any, res: any)=>any) {
-    this.query(userSql + ' and latest >= $1', [time], callback)
+  queryLatestUsers(time: string, callback: (agents: AgentData[])=>any) {
+    this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
+      if (err) {
+        this.logger.error('In query:', err.stack)
+        return
+      }
+      this.logger.trace('Loaded agents:', res.rows.length)
+      callback(res.rows)
+    })
   }
 
   queryPeers(callback: (err: any, res: any)=>any) {

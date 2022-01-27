@@ -27,7 +27,7 @@ class BaseAgent implements Agent {
     //TODO for some reason this is not importing automatically from the global.d.ts
     logger: WyclifLogger;
 
-    constructor() {
+    constructor(agentData: AgentData, agentParams: AdjustableSimParams) {
         this.worldDBManager = MongoManager.getInstance();
         this.myChipsDBManager = SQLManager.getInstance();
         this.logger = UnifiedLogger.getInstance();
@@ -38,16 +38,17 @@ class BaseAgent implements Agent {
         this.actions.push(ActionFactory.createAction('PayVendor', this, null, null, null));
         this.actions.push(ActionFactory.createAction('TallyState', this, null, null, null));
 
-        //TODO set these with parameter values from the config
-        this.id = 0;
-        this.std_name = '';
-        this.peer_cid = '';
+        //TODO: finish applying this info from agent data and params
+        this.id = agentData.id;
+        this.std_name = agentData.std_name;
+        this.peer_cid = agentData.peer_cid;
         this.stocks = 0;
         this.foils = 0;
-        this.foil_seq = '';
+        this.foil_seq = agentData.foil_seqs;
         this.units = '';
-        this.maxToPay = 0;
-        this.maxTargets = 0;
+
+        this.maxToPay = agentParams.maxtopay;
+        this.maxTargets = agentParams.maxtarget;
         this.user_ent = true;
         this.lastActionTaken = '';
         this.targets = [];

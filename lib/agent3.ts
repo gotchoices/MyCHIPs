@@ -4,6 +4,7 @@ import Os from 'os'
 import UnifiedLogger from './agent3/unifiedLogger'
 import { ActionDoc } from './@types/document'
 import Agent from './agent3/agent'
+import AgentFactory from './agent3/agentFactory'
 
 const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
 
@@ -34,8 +35,8 @@ class AgentCluster implements AgentClusterType {
   // TODO: Not sure what this does
   private intervalTimer!: NodeJS.Timer | null
 
-  private currAgent!: string | number | null
-  private agents!: any[]
+  private allKnownAgents!: AgentData[]
+  private hostedAgents!: Agent[]
 
   /** Use to make unique tag for each remote command */
   private remoteIdx!: number
@@ -62,7 +63,7 @@ class AgentCluster implements AgentClusterType {
     this.logger.info('Initializing agent model controller 3 on:', this.host)
     this.loadParamsConfig()
     this.configureDatabases(myChipsDBConfig, worldDBConfig)
-    this.run(this.logger)
+    this.run()
   }
   
   // Loads parameters from the config file
@@ -73,8 +74,7 @@ class AgentCluster implements AgentClusterType {
     try {
       let fileContents = fs.readFileSync(__dirname + '/agent3/paramConfig.yaml')
       this.params = yaml.load(fileContents)
-
-      // TODO: Build agents using the AgentFactory
+      console.log(this.params)
     } catch (e) {
       console.log(e)
       this.logger.error(e)
@@ -95,15 +95,14 @@ class AgentCluster implements AgentClusterType {
   }
 
   // calls run on all of the agents
-  run(logger: UnifiedLogger) {
+  run() {
     console.log('RUNNING AGENT MODEL * VERSION 3 *')
-    //TODO fix the typing of UnifiedLogger v WyclifLogger
-    logger.info('RUNNING AGENT MODEL V3')
-    this.agents = []
+    this.logger.info('RUNNING AGENT MODEL V3')
+
+    this.allKnownAgents = []
     this.remoteIdx = 0 //Use to make unique tag for each remote command
     this.remoteCBs = {} //Store routines to call on completion
 
-    this.currAgent = null //Keep track of which user we are processing
     this.runCounter = 0
     if (this.networkConfig.runs) {
       this.runs = this.networkConfig.runs
@@ -127,15 +126,10 @@ class AgentCluster implements AgentClusterType {
       WorldDBOpts,
       this.checkPeer,
       this.notifyOfActionDone,
+      // loadInitialUsers is called once the connection is created asynchronously
       this.loadInitialUsers
     )
 
-    // TODO: Add Agent stuff here (something like this...)
-    // for (var i = 0; i < runs; i++) {
-    //   this.agents.forEach(agent => {
-    //     agent.process()
-    //   })
-    // }
   }
 
   // Replaces checkPeer() in agent2
@@ -144,16 +138,12 @@ class AgentCluster implements AgentClusterType {
   // --- Functions passed as callbacks -------------------------------------------------------
   // Loads agents from the MyCHIPs Database
   loadInitialUsers() {
-    this.myChipsDBManager.queryUsers((err: any, res: any) => {
-      this.eatAgents(err, res, true)
-    }) //Load up initial set of users
+    this.myChipsDBManager.queryUsers(this.eatAgents) //Load up initial set of users
   }
 
   // gets agents from SQL and puts hosted agent info into MongoDB
   notifyOfAgentsChange(msg) {
-    this.myChipsDBManager.queryLatestUsers(msg.time, (err: any, res: any) => {
-      this.eatAgents(err, res)
-    })
+    this.myChipsDBManager.queryLatestUsers(msg.time, this.eatAgents)
   }
 
   notifyOfParamsChange(target, value) {
@@ -188,16 +178,16 @@ class AgentCluster implements AgentClusterType {
     onFinishCreatingUser: (agentData: AgentData) => void
   ): void {
     //Exit if there are no agents in our system
-    if (this.agents == undefined) {
+    if (this.allKnownAgents == undefined) {
       this.logger.debug('There are no agents in the system')
       return
     }
 
-    console.log('this.agents: ', this.agents) //TODO remove this
+    console.log('this.agents: ', this.allKnownAgents) //TODO remove this
     let host: string
     let port: string
     //Get data for the first matching peer in the system
-    let agentData = this.agents.find((agentElement) => agentElement.peer_cid == peerData.peer_cid)
+    let agentData = this.allKnownAgents.find((agentElement) => agentElement.peer_cid == peerData.peer_cid)
     
     //Exit if no matching peer found
     if (agentData === undefined) {
@@ -242,7 +232,7 @@ class AgentCluster implements AgentClusterType {
             newGuy.std_name,
             newGuy.peer_socket
           )
-          this.agents.push(newGuy)
+          this.allKnownAgents.push(newGuy)
           onFinishCreatingUser(newGuy)
         }
       )
@@ -262,35 +252,31 @@ class AgentCluster implements AgentClusterType {
 
   // -----------------------------------------------------------------------------
   // Gets the agents from the SQLManager
-  eatAgents(err, res, all?) {
+  eatAgents(dbAgents: AgentData[], all?: boolean) {
     //Freshly load agent data from database
-    if (err) {
-      this.logger.error('In query:', err.stack)
-      return
-    }
     if (!this.worldDBManager.isDBClientConnected()) {
       //Document db connected/ready
       return
     } 
-    this.logger.trace('Loaded agents:', res.rows.length)
+    
     let processedAgents: PeerCID[] = [] //Keep track of which ones we've processed
 
-    res.rows.forEach((row) => {
+    dbAgents.forEach((dbAgent) => {
       //For each agent in sql
-      let aIdx = this.agents.findIndex((el) => el.peer_cid == row.peer_cid)
-      if (aIdx >= 0) {
-        this.agents[aIdx] = row
+      let localAgentIndex = this.allKnownAgents.findIndex((el) => el.peer_cid == dbAgent.peer_cid)
+      if (localAgentIndex >= 0) {
+        this.allKnownAgents[localAgentIndex] = dbAgent
       }
       else {
-        this.agents.push(row) //Keep local copy
+        this.allKnownAgents.push(dbAgent) //Keep local copy
       }
       
-      if (row.user_ent) {
+      if (dbAgent.user_ent) {
         //If this is one we host, update world db
-        processedAgents.push(row.peer_cid)
-        row.random = Math.random()
+        processedAgents.push(dbAgent.peer_cid)
+        dbAgent.random = Math.random()
 
-        this.worldDBManager.updateOneAgent(row)
+        this.worldDBManager.updateOneAgent(dbAgent)
       }
     })
 
@@ -298,10 +284,16 @@ class AgentCluster implements AgentClusterType {
       this.worldDBManager.deleteManyAgents(processedAgents)
     }
 
-    if (!this.currAgent && this.agents.length > 0) {
-      //Initialize loop to traverse agents
-      this.currAgent = 0 
-    }
+    // Ensure all agents hosted on this server have an Agent object
+    let localAgents = dbAgents.filter((val) => val.host == this.host)
+    //TODO Add logic to determine how many of each Agent Type to create
+    localAgents.forEach((agent) => {
+      let hostedIndex = this.hostedAgents.findIndex((el) => el.peer_cid == agent.peer_cid)
+      if (hostedIndex < 0) {
+        //TODO: replace `this.params` with params specific to the agent type (from paramConfig.yaml)
+        this.hostedAgents.push(AgentFactory.createAgent("BaseAgent", agent, this.params))
+      }
+    })
   }
 
   // -----------------------------------------------------------------------------
@@ -319,10 +311,10 @@ class AgentCluster implements AgentClusterType {
 
     if (this.intervalTimer) clearInterval(this.intervalTimer) //Restart interval timer
     this.intervalTimer = setInterval(() => {
-      if (this.currAgent != null && (!this.runs || this.runCounter < this.runs)) {
+      if (!this.runs || this.runCounter < this.runs) {
         // this.process(++this.counter)
         ++this.runCounter
-        this.agents.forEach(this.process)
+        this.hostedAgents.forEach(this.process)
       }
     }, this.params.interval)
   }
@@ -347,9 +339,6 @@ class AgentCluster implements AgentClusterType {
     this.logger.verbose(
       'Handler',
       ++this.runCounter,
-      this.currAgent,
-      'of',
-      this.agents.length,
       agent.id,
       agent.std_name,
       agent.peer_cid
