@@ -1,12 +1,10 @@
 import SQLManager from './agent3/sqlmanager'
 import MongoManager from './agent3/mongomanager'
 import Os from 'os'
-import { Document, MongoClient as DocClient } from 'mongodb'
+import { Document, MongoClient as DocClient, MongoClientOptions } from 'mongodb'
 import { Log } from 'wyclif'
 import uuidv4 from 'uuid/v4'
 import { ActionDoc } from './@types/document'
-
-const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
 
 const userFields = ['id', 'std_name', 'peer_cid', 'serv_id']
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
@@ -85,7 +83,7 @@ class AgentCluster implements AgentClusterType {
   private runs!: number
 
   private currAgent!: string | number | null
-  private agents!: any[]
+  private agents!: AgentData[]
 
   /** Use to make unique tag for each remote command */
   private remoteIdx!: number
@@ -158,7 +156,6 @@ class AgentCluster implements AgentClusterType {
     //    this.worldPop = 40					//Init to any reasonable value
 
     this.worldDBManager.createConnection(
-      WorldDBOpts,
       this.checkPeer,
       this.notifyOfActionDone,
       this.loadInitialUsers
@@ -214,12 +211,12 @@ class AgentCluster implements AgentClusterType {
     this.tallyState(msg)
   }
 
-  notifyTryTally(aData: any, queryResponseVal: any) {
-    this.tryTally(aData, queryResponseVal)
+  notifyTryTally(agentData: AgentData, queryResponseVal: any) {
+    this.tryTally(agentData, queryResponseVal)
   }
 
   // TODO: Decouple from Mongo
-  notifyOfActionDone(doc: ActionDoc) {
+  notifyOfActionDone(doc: ActionDoc): void {
     //Remote action has completed
     this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
     if (this.remoteCBs[doc.tag]) {
@@ -238,9 +235,7 @@ class AgentCluster implements AgentClusterType {
     onFinishCreatingUser: (agentData: AgentData) => void
   ): void {
     //Make sure we have a peer in our system
-    console.log('right before')
     if (this.agents == undefined) return
-    console.log('this.agents: ', this.agents)
     let host: string,
       port: string,
       agentData = this.agents.find((el) => el.peer_cid == peerData.peer_cid)
@@ -292,11 +287,11 @@ class AgentCluster implements AgentClusterType {
 
   // --- Helper Functions --------------------------------------------------------
   // Executes a command on a foreign peer
-  remoteCall(host, cmd, data, cb) {
-    let tag = host + '.' + this.remoteIdx++ //Make unique message ID
-    this.logger.debug('Remote calling:', cmd, 'to:', host)
+  remoteCall(host: string, command: string, data: AgentData, cb: () => void) {
+    let tag: string = host + '.' + this.remoteIdx++ //Make unique message ID
+    this.logger.debug('Remote calling:', command, 'to:', host)
     this.remoteCBs[tag] = cb //Remember what to call locally on completion
-    this.worldDBManager.insertAction(cmd, tag, host, data)
+    this.worldDBManager.insertAction(command, tag, host, data)
   }
 
   // gets the agents from the SQLManager
@@ -459,9 +454,7 @@ class AgentCluster implements AgentClusterType {
     //Try to request tally from someone in the world
     this.logger.debug('  Try tally:', agentData.peer_cid, 'with', pDoc.peer_cid)
     this.checkPeer(pDoc, (pData) => {
-      let host = pDoc.peer_sock.split(':')[0]
-      console.log('pDoc: ', pDoc)
-      console.log('host: ', host)
+      let host: string = pDoc.peer_sock.split(':')[0]
       this.remoteCall(host, 'createUser', agentData, () => {
         //Insert this peer remotely
         let guid = uuidv4(),

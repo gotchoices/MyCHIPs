@@ -1,4 +1,12 @@
-import { MongoClient, Db, Collection, Document, ChangeStream } from 'mongodb'
+import {
+  MongoClient,
+  Db,
+  Collection,
+  Document,
+  ChangeStream,
+  MongoClientOptions,
+  PushOperator,
+} from 'mongodb'
 import Os from 'os'
 import { ActionDoc, PeerDoc } from '../@types/document'
 
@@ -22,14 +30,13 @@ class MongoManager {
   }
 
   createConnection(
-    options,
     checkPeer: CheckPeerFn,
-    notifyOfActionDone,
-    loadInitialUsers
+    notifyOfActionDone: (doc: ActionDoc) => void,
+    loadInitialUsers: () => void
   ) {
-    let url = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
+    let url: string = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
     this.logger.verbose('Mongo:', this.host, url)
-    this.mongoClient = new MongoClient(url, options)
+    this.mongoClient = new MongoClient(url)
     this.mongoClient.connect((err, client) => {
       //Connect to mongodb
       if (err) {
@@ -95,18 +102,19 @@ class MongoManager {
     return this.mongoClient != null
   }
 
-  insertAction(cmd, tag, host, data) {
+  insertAction(command: string, tag: string, host: string, data: AgentData) {
     this.actionsCollection.insertOne(
-      { action: cmd, tag, host, from: this.host, data },
+      { action: command, tag, host, from: this.host, data },
       // @ts-ignore
       undefined,
-      (err, res) => {
-        if (err) this.logger.error('Sending remote command:', cmd, 'to:', host)
+      (err, _res) => {
+        if (err)
+          this.logger.error('Sending remote command:', command, 'to:', host)
       }
     )
   }
 
-  updateOneAgent(row) {
+  updateOneAgent(row: any) {
     row.host = this.host //Mark user as belonging to us
 
     this.agentsCollection.updateOne(
@@ -121,13 +129,13 @@ class MongoManager {
   }
 
   //TODO change name
-  findOneAndUpdate(aData, maxfoils, notifyTryTally) {
+  findOneAndUpdate(agentData: any, maxfoils: number, notifyTryTally) {
     this.agentsCollection.findOneAndUpdate(
       {
         //Look for a trading partner
         peer_cid: {
-          $ne: aData.peer_cid, //Don't find myself
-          $nin: aData.partners, //Or anyone I'm already connected to
+          $ne: agentData.peer_cid, //Don't find myself
+          $nin: agentData.partners, //Or anyone I'm already connected to
         },
         //        host: {$ne: this.host},			//Look only on other hosts
         foils: { $lte: maxfoils }, //Or those with not too many foils already
@@ -135,7 +143,7 @@ class MongoManager {
       {
         $set: { random: Math.random() }, //re-randomize this person
         $inc: { foils: 1 }, //And make it harder to get them again next time
-        $push: { partners: aData.peer_cid }, //Immediately add ourselves to the array to avoid double connecting
+        $push: { partners: agentData.peer_cid }, //Immediately add ourselves to the array to avoid double connecting
       },
       {
         //Sort by
@@ -151,7 +159,7 @@ class MongoManager {
             res?.value?.std_name,
             res?.value?.host
           )
-          notifyTryTally(aData, res.value)
+          notifyTryTally(agentData, res.value)
         } else {
           this.logger.verbose('  No client found in world DB')
         }
