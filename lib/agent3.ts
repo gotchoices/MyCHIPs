@@ -2,7 +2,7 @@ import SQLManager from './agent3/sqlmanager'
 import MongoManager from './agent3/mongomanager'
 import Os from 'os'
 import { Document, MongoClient as DocClient, MongoClientOptions } from 'mongodb'
-import { Log } from 'wyclif'
+import UnifiedLogger from './agent3/unifiedLogger'
 import uuidv4 from 'uuid/v4'
 import { ActionDoc } from './@types/document'
 
@@ -48,17 +48,6 @@ interface NetworkConfig {
   interval: number
   i: number
   $0: string
-}
-interface AdjustableSimParams {
-  interval: number
-  addclient: number
-  checksets: number
-  addvendor: number
-  maxstocks: number
-  maxfoils: number
-  mintotpay: number
-  maxtopay: number
-  maxtarget: number
 }
 
 interface AgentClusterType {
@@ -106,7 +95,7 @@ class AgentCluster implements AgentClusterType {
     this.notifyOfAgentsChange = this.notifyOfAgentsChange.bind(this)
 
     // Initialize agent logger
-    this.logger = Log('agent')
+    this.logger = UnifiedLogger.getInstance()
     this.logger.info('Initializing agent model controller 3 on:', this.host)
     this.loadParamsConfig()
     this.configureDatabases(myChipsDBConfig, worldDBConfig)
@@ -115,15 +104,10 @@ class AgentCluster implements AgentClusterType {
 
   configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DBConfig) {
     // Configure SQLManager
-    this.myChipsDBManager = new SQLManager(
-      myChipsDBConfig,
-      this.logger,
-      this.params
-    )
+    this.myChipsDBManager = SQLManager.getInstance(myChipsDBConfig, this.params)
     // Configure MongoManager
-    this.worldDBManager = new MongoManager(
+    this.worldDBManager = MongoManager.getInstance(
       worldDBConfig,
-      this.logger,
       this.networkConfig
     )
   }
@@ -141,7 +125,6 @@ class AgentCluster implements AgentClusterType {
       this.runs = this.networkConfig.runs
     } //Max iterations
     this.myChipsDBManager.createConnection(
-      this.params,
       this.notifyOfAgentsChange,
       this.notifyOfParamsChange,
       this.notifyOfTallyChange
@@ -191,8 +174,8 @@ class AgentCluster implements AgentClusterType {
   // --- Functions passed as callbacks -------------------------------------------------------
   // Loads agents from the MyCHIPs Database
   loadInitialUsers() {
-    this.myChipsDBManager.queryUsers((e: any, r: any) => {
-      this.eatAgents(e, r, true)
+    this.myChipsDBManager.queryUsers((err: any, res: any) => {
+      this.eatAgents(err, res, true)
     }) //Load up initial set of users
   }
 
