@@ -29,11 +29,6 @@ interface AdjustableSimParams {
   maxtarget: number
 }
 
-/** Unique peer id */
-interface PeerCID {
-  peer_cid: string
-}
-
 interface ActionData {
   action: string
   tag: string
@@ -52,7 +47,7 @@ interface AgentData {
   /** Entity type */
   ent_type: string
   user_ent: string | null
-  peer_cid: PeerCID
+  peer_cid: string
   /** Assigned peer socket (ex: 'peer2:65430') */
   peer_socket: string
   stocks: number
@@ -113,10 +108,3 @@ interface NetworkConfig {
   i: number
   $0: string
 }
-
-/* Function Types */
-
-type CheckPeerFn = (
-  peerData: AgentData,
-  cb: (agentData: AgentData) => void
-) => void

@@ -15,6 +15,8 @@ class MongoManager {
   private agentsCollection!: Collection<Document> //TODO: Change this
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
+  private callbackCache!: ForeignActionCallbackCache
+
   private constructor(dbConfig: DBConfig, argv) {
     this.dbConfig = dbConfig
     this.logger = UnifiedLogger.getInstance()
@@ -37,8 +39,7 @@ class MongoManager {
 
   createConnection(
     options,
-    checkPeer: CheckPeerFn,
-    notifyOfActionDone,
+    notifyOfNewAgentRequest,
     loadInitialUsers
   ) {
     let url = `mongodb://${this.dbConfig.host}:${this.dbConfig.port}/?replicaSet=rs0`
@@ -70,29 +71,24 @@ class MongoManager {
         const doc = change.fullDocument
         if (doc === undefined) return
         this.logger.debug('Got change:', doc.action, doc.host, doc.data)
+        // Check if Action Request is for us
+        //FIXME: Maybe there's some actions that all servers should listen to. 
+        // If so, we can change this
+        if (doc.host != this.host) return 
+
         if (doc.action == 'createUser') {
-          //Someone asking me to insert a peer into the DB
-          checkPeer(doc.data!, (agentData: AgentData) => {
-            this.logger.debug(
-              'Peer added/OK:',
-              agentData.peer_cid,
-              'notifying:',
-              doc.data?.host
-            )
-            this.actionsCollection.insertOne(
-              {
-                action: 'done',
-                tag: doc.tag,
-                host: doc.data?.host,
-                from: this.host,
-              },
-              () => {}
-            )
-          })
+          // Someone asking me to insert a peer into the DB
+          notifyOfNewAgentRequest(doc.data!, doc.tag, doc.from)
         } else if (doc.action == 'done') {
-          notifyOfActionDone(doc)
+          // Someone has told me that an action I requested is done
+          this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
+          this.callbackCache.getCallback(doc.tag)()
+          this.callbackCache.deleteCallback(doc.tag)
         }
-        this.actionsCollection.deleteOne({ _id: doc._id }) //Delete signaling record
+        // Add other types of Foreign Actions here
+
+        //Delete signaling record
+        this.actionsCollection.deleteOne({ _id: doc._id }) 
       })
 
       this.agentsCollection = this.dbConnection.collection('agents')
@@ -108,11 +104,9 @@ class MongoManager {
     return this.mongoClient != null
   }
 
-  insertAction(cmd, tag, host, data) {
+  insertAction(cmd, tag, host, data?) {
     this.actionsCollection.insertOne(
-      { action: cmd, tag, host, from: this.host, data },
-      // @ts-ignore
-      undefined,
+      { action: cmd, tag: tag, host: host, from: this.host, data },
       (err, res) => {
         if (err) this.logger.error('Sending remote command:', cmd, 'to:', host)
       }
@@ -172,7 +166,7 @@ class MongoManager {
     ) //findOneAndUpdate
   }
 
-  deleteManyAgents(processedAgents: PeerCID[]): void {
+  deleteManyAgents(processedAgents: string[]): void {
     this.agentsCollection.deleteMany(
       {
         //Delete any strays left in world db
@@ -185,8 +179,6 @@ class MongoManager {
       }
     )
   }
-
-  updateAgents() {}
 }
 
 export default MongoManager

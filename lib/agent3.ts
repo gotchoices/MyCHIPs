@@ -5,17 +5,14 @@ import UnifiedLogger from './agent3/unifiedLogger'
 import { ActionDoc } from './@types/document'
 import Agent from './agent3/agent'
 import AgentFactory from './agent3/agentFactory'
+import AgentsCache from './agent3/agentsCache'
 
 const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
 
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
 
 
-interface AgentClusterType {
-  checkForAgent: CheckPeerFn
-}
-
-class AgentCluster implements AgentClusterType {
+class AgentCluster {
   private networkConfig: NetworkConfig
   private host: string
 
@@ -32,7 +29,7 @@ class AgentCluster implements AgentClusterType {
   // TODO: Not sure what this does
   private intervalTimer!: NodeJS.Timer | null
 
-  private allKnownAgents!: AgentData[]
+  private agentCache!: AgentsCache
   private hostedAgents!: Agent[]
 
   /** Use to make unique tag for each remote command */
@@ -50,8 +47,7 @@ class AgentCluster implements AgentClusterType {
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
     this.notifyOfTallyChange = this.notifyOfTallyChange.bind(this)
-    this.checkForAgent = this.checkForAgent.bind(this)
-    this.notifyOfActionDone = this.notifyOfActionDone.bind(this)
+    this.notifyOfNewAgentRequest = this.notifyOfNewAgentRequest.bind(this)
     this.notifyOfAgentsChange = this.notifyOfAgentsChange.bind(this)
 
     // Initialize agent logger
@@ -95,7 +91,7 @@ class AgentCluster implements AgentClusterType {
     console.log('RUNNING AGENT MODEL * VERSION 3 *')
     this.logger.info('RUNNING AGENT MODEL V3')
 
-    this.allKnownAgents = []
+    this.agentCache = AgentsCache.getInstance()
     this.remoteIdx = 0 //Use to make unique tag for each remote command
     this.remoteCBs = {} //Store routines to call on completion
 
@@ -120,8 +116,7 @@ class AgentCluster implements AgentClusterType {
 
     this.worldDBManager.createConnection(
       WorldDBOpts,
-      this.checkForAgent,
-      this.notifyOfActionDone,
+      this.notifyOfNewAgentRequest,
       // loadInitialUsers is called once the connection is created asynchronously
       this.loadInitialUsers
     )
@@ -150,47 +145,12 @@ class AgentCluster implements AgentClusterType {
     this.tallyState(msg)
   }
 
-  // TODO: Decouple from Mongo
-  notifyOfActionDone(doc: ActionDoc) {
-    //Remote action has completed
-    this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
-    if (this.remoteCBs[doc.tag]) {
-      //If I can find a stored callback
-      this.remoteCBs[doc.tag!]() //Call it
-      delete this.remoteCBs[doc.tag] //And then forget about it
+  notifyOfNewAgentRequest(agentData: AgentData, tag: string, destinationHost: string) {
+    if (!this.agentCache.containsAgent(agentData)) {
+      this.myChipsDBManager.addAgent(agentData, (addedData) => {})
+      this.agentCache.addAgent(agentData)
     }
-  }
-
-  notifyOfAction() {}
-
-  // Check to see if a peer is in our system, if not add them and then do cb
-  checkForAgent(
-    targetAgent: AgentData,
-    onFinishCheckingAgent: (agentData: AgentData) => void
-  ): void {
-    //Exit if there are no agents in our system
-    if (this.allKnownAgents == undefined) {
-      this.logger.debug('There are no agents in the system')
-      return
-    }
-    //Get data for the first matching peer in the system
-    let foundAgentData = this.allKnownAgents.find((agentElement) => agentElement.peer_cid == targetAgent.peer_cid)
-
-    this.logger.debug('Checking if we have peer:', targetAgent.peer_cid, !!foundAgentData)
-    if (foundAgentData) { 
-      this.logger.debug('Found match for peer', targetAgent.peer_cid, 'in system')
-      onFinishCheckingAgent(foundAgentData)
-    } 
-    else if (targetAgent.host == this.host) {
-      this.logger.error('Should have had local user:', targetAgent.peer_cid)
-    }
-    else {
-      this.myChipsDBManager.addAgent(targetAgent, (newGuy: AgentData) => {
-          this.allKnownAgents.push(newGuy)
-          onFinishCheckingAgent(newGuy)
-        }
-      )
-    }
+    this.worldDBManager.insertAction("done", tag, destinationHost)
   }
 
   /** As far as I can tell, this method is called when this server is notified (through the peer
@@ -239,17 +199,11 @@ class AgentCluster implements AgentClusterType {
       return
     } 
     
-    let processedAgents: PeerCID[] = [] //Keep track of which ones we've processed
+    let processedAgents: string[] = [] //Keep track of which ones we've processed
 
     dbAgents.forEach((dbAgent) => {
       //For each agent in sql
-      let localAgentIndex = this.allKnownAgents.findIndex((el) => el.peer_cid == dbAgent.peer_cid)
-      if (localAgentIndex >= 0) {
-        this.allKnownAgents[localAgentIndex] = dbAgent
-      }
-      else {
-        this.allKnownAgents.push(dbAgent) //Keep local copy
-      }
+      this.agentCache.addAgent(dbAgent)
       
       if (dbAgent.user_ent) {
         //If this is one we host, update world db
