@@ -8,14 +8,11 @@ import AgentFactory from './agent3/agentFactory'
 
 const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
 
-const userFields = ['id', 'std_name', 'peer_cid', 'serv_id']
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
-const peerSql = `insert into mychips.peers_v
-	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port)
-	values ($1, $2, $3, $4, $5, $6, $7) returning *`
+
 
 interface AgentClusterType {
-  checkPeer: CheckPeerFn
+  checkForAgent: CheckPeerFn
 }
 
 class AgentCluster implements AgentClusterType {
@@ -52,9 +49,8 @@ class AgentCluster implements AgentClusterType {
 
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
-    this.notifyTryTally = this.notifyTryTally.bind(this)
     this.notifyOfTallyChange = this.notifyOfTallyChange.bind(this)
-    this.checkPeer = this.checkPeer.bind(this)
+    this.checkForAgent = this.checkForAgent.bind(this)
     this.notifyOfActionDone = this.notifyOfActionDone.bind(this)
     this.notifyOfAgentsChange = this.notifyOfAgentsChange.bind(this)
 
@@ -124,7 +120,7 @@ class AgentCluster implements AgentClusterType {
 
     this.worldDBManager.createConnection(
       WorldDBOpts,
-      this.checkPeer,
+      this.checkForAgent,
       this.notifyOfActionDone,
       // loadInitialUsers is called once the connection is created asynchronously
       this.loadInitialUsers
@@ -154,10 +150,6 @@ class AgentCluster implements AgentClusterType {
     this.tallyState(msg)
   }
 
-  notifyTryTally(aData: any, queryResponseVal: any) {
-    this.tryTally(aData, queryResponseVal)
-  }
-
   // TODO: Decouple from Mongo
   notifyOfActionDone(doc: ActionDoc) {
     //Remote action has completed
@@ -172,68 +164,56 @@ class AgentCluster implements AgentClusterType {
   notifyOfAction() {}
 
   // Check to see if a peer is in our system, if not add them and then do cb
-  // TODO: fix up variable naming
-  checkPeer(
-    peerData: AgentData,
-    onFinishCreatingUser: (agentData: AgentData) => void
+  checkForAgent(
+    targetAgent: AgentData,
+    onFinishCheckingAgent: (agentData: AgentData) => void
   ): void {
     //Exit if there are no agents in our system
     if (this.allKnownAgents == undefined) {
       this.logger.debug('There are no agents in the system')
       return
     }
-
-    console.log('this.agents: ', this.allKnownAgents) //TODO remove this
-    let host: string
-    let port: string
     //Get data for the first matching peer in the system
-    let agentData = this.allKnownAgents.find((agentElement) => agentElement.peer_cid == peerData.peer_cid)
-    
-    //Exit if no matching peer found
-    if (agentData === undefined) {
-      this.logger.debug('No match was found for peer ', peerData.peer_cid)
-      return
-    }
+    let foundAgentData = this.allKnownAgents.find((agentElement) => agentElement.peer_cid == targetAgent.peer_cid)
 
-    //If default socket, use it for host,port
-    if (peerData.peer_socket) {
-      this.logger.debug('Using ', peerData.peer_socket, ' as host port')
-      ;[host, port] = peerData.peer_socket.split(':')
-    }
-
-    this.logger.debug('Checking if we have peer:', peerData.peer_cid, !!agentData)
-    if (agentData) { //Is this if needed since we check on line 256?
-      this.logger.debug('Found match for peer', peerData.peer_cid, 'in system')
-      onFinishCreatingUser(agentData)
+    this.logger.debug('Checking if we have peer:', targetAgent.peer_cid, !!foundAgentData)
+    if (foundAgentData) { 
+      this.logger.debug('Found match for peer', targetAgent.peer_cid, 'in system')
+      onFinishCheckingAgent(foundAgentData)
     } 
-    else if (peerData.host == this.host) {
-      this.logger.error('Should have had local user:', peerData.peer_cid)
+    else if (targetAgent.host == this.host) {
+      this.logger.error('Should have had local user:', targetAgent.peer_cid)
     }
     else {
-      this.myChipsDBManager.query(
-        peerSql,
-        [
-          peerData.ent_name,
-          peerData.fir_name,
-          peerData.ent_type,
-          peerData.born_date,
-          peerData.peer_cid,
-          peerData.peer_host || host!,
-          peerData.peer_port || port!,
-        ],
-        (err, res) => {
-          if (err) {
-            this.logger.error('Adding peer:', peerData.peer_cid, err.stack)
-            return
-          }
-          let newGuy = res.rows[0]
-          this.logger.debug(
-            '  Inserting partner locally:',
-            newGuy.std_name,
-            newGuy.peer_socket
-          )
+      this.myChipsDBManager.addAgent(targetAgent, (newGuy: AgentData) => {
           this.allKnownAgents.push(newGuy)
-          onFinishCreatingUser(newGuy)
+          onFinishCheckingAgent(newGuy)
+        }
+      )
+    }
+  }
+
+  /** As far as I can tell, this method is called when this server is notified (through the peer
+   * and pg containers) that someone out there wants to make a tally. It looks like it doesn't 
+   * even check to see which agent is getting the request, it just accepts. */
+  //TODO: Set up way for an agent to accept a tally request for itself instead of the cluster
+  // doing the accept for it. Perhaps a new Action to accept a Tally
+  tallyState(message: any): void {
+    //Someone is asking an agent to act on a tally
+    this.logger.debug('Peer Message:', message)
+
+    if (message.state == 'peerProffer') {
+    //For now, we will just answer 'yes'
+      this.logger.verbose('  peerProffer:', message.entity)
+      this.myChipsDBManager.query(
+        "update mychips.tallies_v set request = 'open' where tally_ent = $1 and tally_seq = $2",
+        [message.entity, message.sequence],
+        (e, r) => {
+          if (e) {
+              this.logger.error('In :', e.stack)
+              return
+          }
+          this.logger.verbose('  Tally affirmed:', message.object)
         }
       )
     }

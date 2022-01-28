@@ -102,7 +102,6 @@ class MongoManager {
 
       loadInitialUsers()
     })
-    this.logger.info('Mongo Connection Created')
   }
 
   isDBClientConnected(): boolean {

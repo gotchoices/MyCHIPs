@@ -1,7 +1,7 @@
 import Action from "../action";
 import Agent from "../agent";
 
-class TallyState implements Action{
+class AcceptTally implements Action{
     agent: Agent;
     parameters: any;
     checkForPeer: any;
@@ -41,4 +41,4 @@ class TallyState implements Action{
     }
 }
 
-export default TallyState;
+export default AcceptTally;

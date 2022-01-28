@@ -87,6 +87,34 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
+  addAgent(agentData: AgentData, onFinish: (data: AgentData)=>void) {
+    this.dbConnection.query(
+      peerSql,
+      [
+        agentData.ent_name,
+        agentData.fir_name,
+        agentData.ent_type,
+        agentData.born_date,
+        agentData.peer_cid,
+        agentData.peer_host || agentData.peer_socket.split(':')[0]!,
+        agentData.peer_port || agentData.peer_socket.split(':')[1]!,
+      ],
+      (err, res) => {
+        if (err) {
+          this.logger.error('Adding peer:', agentData.peer_cid, err.stack)
+          return
+        }
+        let newGuy = res.rows[0]
+        this.logger.debug(
+          '  Inserting partner locally:',
+          newGuy.std_name,
+          newGuy.peer_socket
+        )
+        onFinish(newGuy)
+      }
+    )
+  }
+
   isActiveQuery() {
     return this.dbConnection.client.activeQuery != null
   }
