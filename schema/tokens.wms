@@ -2,72 +2,125 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- Is this module obsolete now? (in favor of base.login?)
-#- What allow codes do we need besides stock?
-#-   Stock allows someone to connect and obtain a tally stock (i.e. lend, or get our coupons)
-#-   Is foil a needed allow code?
 #- 
-
 require common.tcl glob.tcl ../trigview.tcl
-#return		;#Obsolete
 module mychips
 
 namespace eval tokens {
     def tokens_pk	{token_ent token_seq}
-    def tokens_v_up	{allows token token_cmt used exp_date}
-    def tokens_v_in	[concat $tokens_pk $tokens_v_up]
+    def tokens_v_up	{token reuse used expires}
+    def tokens_v_in	[concat $tokens_pk $tokens_v_up tally_seq]
     def tokens_se	[concat $tokens_v_in $glob::stampfn]
 }
 
 # Data about tokens to facilitate their CHIP account
 #----------------------------------------------------------------
-table mychips.tokens {mychips base.ent} {
+table mychips.tokens {mychips.tallies base.ent} {
     token_ent	text		references base.ent on update cascade on delete cascade
   , token_seq	int	      , primary key (token_ent, token_seq)
   , token	text		not null unique
-  , allows	text		not null default 'stock' constraint "!mychips.tokens.ITA" check (allows in ('stock','foil','user'))
-  , token_cmt	text		
-  , used	boolean		not null default false
-  , exp_date	timestamp(0)	default current_timestamp + '45 minutes'
+  , reuse	boolean		not null default false
+  , used	timestamp
+  , expires	timestamp(0)	default current_timestamp + '45 minutes'
+  , tally_seq	int           , foreign key (token_ent, tally_seq) references mychips.tallies on update cascade on delete cascade
     eval(s $glob::stamps)
 }
 
 # Generate unique sequence for new entry
 #----------------------------------------------------------------
-#function mychips.token_tf_seq() {mychips.tokens} {
-#  returns trigger security definer language plpgsql as $$
-#    begin
-#      if new.token_seq is null then
-#        select into new.token_seq coalesce(max(token_seq),0)+1 from mychips.tokens where token_ent = new.token_ent;
-#      end if;
-#      if new.token is null then				-- If no token specified
-#        loop
-#          select into new.token md5(random()::text);	-- Make a random one
-#          if not exists (select token from mychips.tokens where token = new.token) then
-#            exit;					-- Make sure it is unique
-#          end if;
-#        end loop;
-#      end if;
-#      update mychips.tokens set used = 't' where token_ent = new.token_ent and token_seq != new.token_seq and not used;		-- Only allow one active token per user at a time
-#      return new;
-#    end;
-#$$;}
-#trigger mychips_token_tr_seq {} {
-#    before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
-#}
+function mychips.token_tf_seq() {mychips.tokens} {
+  returns trigger security definer language plpgsql as $$
+    begin
+      if new.token_seq is null then
+        select into new.token_seq coalesce(max(token_seq),0)+1 from mychips.tokens where token_ent = new.token_ent;
+      end if;
+      if new.token is null then				-- If no token specified
+        loop
+          select into new.token md5(random()::text);	-- Make a random one
+          if not exists (select token from mychips.tokens where token = new.token) then
+            exit;					-- Make sure it is unique
+          end if;
+        end loop;
+      end if;
+      return new;
+    end;
+$$;}
+trigger mychips_token_tr_seq {} {
+    before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
+}
 
 #Basic view
 #----------------------------------------------------------------
-#view mychips.tokens_v {mychips.tokens mychips.users_v base.ent_v} {
-#    select eval(fld_list $tokens::tokens_se t)
-#      , u.peer_cid, u.user_inet, u.user_port, u.std_name
-#      , t.exp_date <= current_timestamp as "expired"
-#      , t.exp_date > current_timestamp and not used as "valid"
-#
-#    from	mychips.tokens	t
-#    join	mychips.users_v	u	on u.user_ent = t.token_ent
-#
-#    eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk $glob::stampin);
-#    eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);
-#    eval(rule_delete mychips.tokens_v mychips.tokens $tokens::tokens_pk);
-#}
+view mychips.tokens_v {mychips.tokens mychips.users_v json.cert} {select
+    eval(fld_list $tokens::tokens_se t)
+  , u.peer_cid, u.peer_agent, u.std_name
+  , t.expires <= current_timestamp as "expired"
+  , t.expires > current_timestamp and used is null as "valid"
+  , jsonb_build_object(
+       'cid', u.peer_cid
+     , 'agent', u.peer_agent
+     , 'host', u.peer_chost
+     , 'port', u.peer_cport
+    ) as "chip"
+      
+    from	mychips.tokens	t
+    join	mychips.users_v	u	on u.user_ent = t.token_ent
+}
+
+# Initiate connection based on tally ticket received by our user
+#----------------------------------------------------------------
+function {mychips.ticket_process(ticket jsonb, uname text = session_user)} {mychips.users_v json.cert} {
+  returns boolean language plpgsql as $$
+    declare
+      trec	record;
+    begin
+      if session_user != 'subst($mychips::adminuser)' then	-- admin can spoof a user (for testing)
+        uname = session_user;
+      end if;
+    
+      select into trec id, peer_agent from mychips.users_v where username = uname;	-- Get our user
+      if found and not trec.peer_agent isnull then
+        ticket = ticket				-- Build message for agent to act on
+          || '{"target":"tally","action":"ticket"}' 
+          || to_jsonb(t) from (			-- Include subject certificate into ticket
+               select to_jsonb(s) as cert from (
+                 select date,chip,type,name,public,connect,place,identity from json.cert where id = trec.id
+               ) s
+             ) t;
+--raise notice 'ticket: %', ticket;
+--raise notice 'Notify: mychips_agent_%', trec.peer_agent;
+        perform pg_notify('mychips_agent_' || trec.peer_agent, ticket::text);	-- Notify peer server for this user
+        return true;
+      end if;
+      return false;
+    end;
+$$;}
+
+# Determine if a token presented is valid, and mark it as used
+#----------------------------------------------------------------
+function {mychips.token_valid(tok text, cert jsonb)} {mychips.tokens_v} {
+  returns boolean language plpgsql as $$
+    declare
+      orec	record;
+--      trec	record;
+      prec	record;
+    begin
+      select into orec valid,token,reuse,token_ent,token_seq,tally_seq from mychips.tokens_v where token = tok;
+raise notice 'token check: %', tok;
+      if found and orec.valid then
+raise notice 'token valid: %', orec.reuse;
+        if orec.reuse then
+-- Create a new tally from the tally template
+-- How do we come up with a new UUID?
+--          insert into mychips.tallies (tally_ent) select x,y,z from mychips.tallies;
+          null;
+        else
+          update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
+          update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
+        end if;
+        return true;
+      end if;
+      return false;
+    end;
+$$;}
+

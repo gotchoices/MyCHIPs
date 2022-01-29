@@ -24,11 +24,11 @@ namespace eval agents {
 # Data we maintain about site agents (own own and others)
 #----------------------------------------------------------------
 table mychips.agents {mychips base.ent} {
-    agent	text		primary key
+    agent	text	primary key
   , agent_key	bytea
-  , agent_host	text
-  , agent_port	int	      , unique (agent_host, agent_port)
-  , agent_ip	inet
+  , agent_host	text	constraint "!mychips.tallies.CHR" not null
+  , agent_port	int	constraint "!mychips.tallies.CPR" not null
+  , agent_ip	inet  , constraint "!mychips.agents.AHP" unique (agent_host, agent_port)
     eval(s $glob::stamps)
 }
 
@@ -74,8 +74,12 @@ trigger mychips_agents_tr_del {} {
 #----------------------------------------------------------------
 view mychips.agents_v {mychips.agents} {
     select eval(fld_list $agents::agents_se a)
-    , agent_host || ':' || agent_port	as portal
-    , not agent_key isnull		as valid
+    , agent_host ||':'|| agent_port			as sock
+    , agent ||'@'|| agent_host ||':'|| agent_port	as atsock
+    , jsonb_build_object(
+      'agent', agent, 'host', agent_host, 'port', agent_port
+    )							as json
+    , not agent_key isnull				as valid
     
     from	mychips.agents a;
 

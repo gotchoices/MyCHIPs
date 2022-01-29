@@ -1,5 +1,4 @@
 {"cert": {
-  "cid": "tom_well",
   "date": "2022-01-11T09:39:06.443-07:00",
   "name": {
     "first": "Thomas",
@@ -7,7 +6,12 @@
     "prefer": "Tom"
   },
   "type": "p",
-  "agent": "Zzyzx",
+  "chip": {
+    "cid": "tom_well",
+    "agent": "Zzyzx",
+    "host": "mychips.org",
+    "port": 65430
+  },
   "place": [
     {
     "post": "00630-1930",
@@ -32,7 +36,7 @@
   "identity": {
     "birth": {
       "date": "1930-06-30",
-      "name": "Thomas Sew Well",
+      "name": "Thomas Sow Well",
       "place": {
         "city": "Gastonia",
         "post": "13245-1951",

@@ -2,7 +2,7 @@
 #----------------------------------------------------------------
 
 tabtext mychips.lifts	{Lifts}			{Contains a record for each group of chits in a segment, belonging to a lift transaction} {
-    {lift_guid		{Lift GUID}		{A globally unique identifier for this lift.  It will be the same id across all servers who participate in the same transaction.}}
+    {lift_uuid		{Lift GUID}		{A globally unique identifier for this lift.  It will be the same id across all servers who participate in the same transaction.}}
     {lift_seq		{Lift Sequence}		{A lift can cross a single database multiple times.  This will increment for each new lift record created as this happens.}}
     {request		{Request}		{The state transition algorithm for lifts responds to transition requests entered into this field.}}
     {status		{Status}		{The status field indicates what has been done and what needs to happen next, if anything}}
@@ -46,7 +46,7 @@ tabtext mychips.lifts_v {Lifts}			{Standard view containing an entry for each li
 }
 
 tabtext mychips.lift_tries {Chit Retries}	{Tracks how many times the lift state transition algorithm has tried to communicate a transition to a peer} {
-    {ltry_guid		{Lift GUID}		{The lift we are tracking retries for}}
+    {ltry_uuid		{Lift GUID}		{The lift we are tracking retries for}}
     {ltry_seq		{Sequence}		{The sequence number of the lift}}
     {last		{Last Try}		{The last time we tried}}
     {tries		{Tries}			{How many tries we are up to}}

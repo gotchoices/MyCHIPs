@@ -100,8 +100,8 @@ in this instance as it appears to be limited to NIST approved curves which
 
 We will rely on the [security level of Curve52219](https://gist.github.com/atoponce/07d8d4c833873be2f68c34f9afc5a78a)
 and the 256 bit keys provided for by libsodium.
-This provides for a fairly short public key which will be welcome in producing managable URI's.
+This provides for a fairly short public key which will be welcome in producing [managable URI's](learn-users.md#chip-addresses).
 If/when libsodium may determine that current computing speeds justify a longer key, that change should propagate into MyCHIPs.
 
-<br>[Next - Hacking](work-hacking.md)
+<br>[Next - State Protocol](learn-protocol.md)
 <br>[Back to Index](README.md#contents)

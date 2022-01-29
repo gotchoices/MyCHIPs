@@ -41,11 +41,11 @@ A tally includes the following information:
   - Tally format version (1)
   - Digital ID unique to the tally ([UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier))
   - Date and time of the original agreement
-  - Vendor [CHIP address](learn-users.md#chip-addresses)
   - Vendor [Certificate](learn-tally.md#entity-certificates)
+    - Vendor [CHIP address](learn-users.md#chip-addresses)
   - Vendor [Credit Terms](learn-tally.md#credit-terms); debt Vendor -> Client (normally 0)
-  - Client CHIP address
   - Client Certificate
+    - Client CHIP address
   - Client Credit Terms; debt Client -> Vendor (N=credit card, 0=debit card)
   - Reference to one or more standard, published contracts clauses, which
     become the operable and binding terms of the indebtedness.
@@ -163,21 +163,21 @@ conditions Vendor offers to Client.  In other words, the terms of Client's
 credit, or the terms by which Client may incur debt payable to Vendor.
 
 Credit Terms Tally Variables:
-  - **Maximum Balance**:
+  - **Maximum Balance** *(limit)*:
     This indicates the most the debtor can count on borrowing against products
     or services he obtains from the creditor.  It may be expressed as a single 
     number, or as an expression, which is a function of time.  Expressions may 
     be used to amortize a loan, or to cause principal to be paid down over 
     time.
     
-  - **Maximum Paydown**:
+  - **Maximum Paydown** *(mort)*:
     This represents the maximum amount the debtor can pay down principal in
     advance of otherwise prevailing requirements, and have his interest 
     calculations reduced accordingly.  This can be used to create a minimum 
     interest return for a lender, while still allowing the borrower to store 
     value in the loan balance.
 
-  - **Compound Interval**:
+  - **Compound Interval** *(period)*:
     The amount of time that passes before interest (or dividend, if you prefer) 
     is calculated and applied to a balance.  This may also define when payments 
     are due.  For example, if the application of such a charge raises a balance 
@@ -185,17 +185,17 @@ Credit Terms Tally Variables:
     correct this.  This value may be specified as a number, of days, weeks, 
     months, or years.
 
-  - **Grace Period**:
+  - **Grace Period** *(grace)*:
     New amounts of indebtedness will not accrue interest/dividend charges until 
     this amount of time has passed.
 
-  - **Rate**:
+  - **Rate** *(rate)*:
     An annualized rate expressed as a positive floating point number.  For 
     example, 0.05 means 5% per annum.  This number will be scaled to match the 
     Compound Interval in order to compute the interest/dividend charges to be 
     applied during that an interval.
 
-  - **Call Notice**:
+  - **Call Notice** *(call)*:
     The amount of notice required to be given by Vendor to Client in order to 
     call all principal and accrued charges due and payable (i.e. to cancel 
     further credit authorization).  If not present, the debtor has no 
@@ -206,52 +206,76 @@ Credit Terms Tally Variables:
     register an immediate call, with the number of notice days set to the term 
     of the amortization.
 
-  - **Minimum Payment**:
+  - **Minimum Payment** *(pay)*:
     An amount, or a formula for the smallest amount that may be paid at each
     Compound Interval.
 
-#### Some Credit Terms Examples
+#### Credit Terms Examples
+A party's credit terms are encoded in a JSON format to be incorporated into a
+tally.  Property values may be expressed as a formula that references certain 
+pre-defined variables or other properties.
+
 - Casual Peer to Peer, no interest, cancelation with notice:
-    - Maximum Balance: 100
-    - Call Notice: 30
+```
+{
+    limit: 100,
+    call: 30
+} ```
 
 - Customer (Client) to merchant (Vendor) (coupons):
-    - Maximum Balance: 0
+```
+{ limit: 0 } ```
 
 - Merchant (Vendor) to customer (Client), debit account:
-    - Maximum Balance: 0
+```
+{ limit: 0 } ```
 
 - Credit card requiring full payment every month:
-    - Maximum Balance: 200
-    - Minimum Payment: Bal
-    - Grace Period: 1 month
-    - Compound Interval: 1 month
-    - Rate: 0.10
+```
+{
+    limit: 200,
+    pay: "balance",
+    grace: "1 month",
+    period: "1 month",
+    rate: 0.10,
+} ```
 
 - Credit card requiring full payment over four months:
-    - Maximum Balance: 300
-    - Grace Period: 30
-    - Minimum Payment: Min(10, Bal / 4)
-    - Payment Interval: 30
-    - Rate: 0.10
+```
+{
+    limit: 300,
+    grace: 30,
+    pay: "min(10, balance / 4)",
+    period: 30,
+    rate: 0.10
+} ```
 
 - 20 year fully amortizing loan with fixed payment, limited early payoff:
-    - Maximum Balance: Amort(10000, 240)
-    - Minimum Payment: Int
-    - Maximum Paydown: 1000
-    - Payment Interval: month
-    - Rate: 0.06
-    - Call Notice: 20 year (register call upon closing)
+```
+{
+    limit: "amort(10000, 240)",
+    pay: "interest",
+    mort: 1000,
+    period: "month",
+    rate: 0.06,
+    call: "20 year"		//will register call upon closing
+} ```
 
 - Business line, pay weekly interest, can be called with 60 day notice:
-    - Maximum Balance: 10000
-    - Compound Interval: week
-    - Rate: 0.08
-    - Call Notice: 60
+```
+{
+    - limit: 10000,
+    - period: "week",
+    - rate: 0.08,
+    - call: 60
+} ```
 
 - 90 Day personal loan, fixed term, balloon payoff
-    - Rate: 0.12
-    - Call Notice: 90 day (register upon closing)
+```
+{
+    rate: 0.12,
+    call: "90 day"		//will register call upon closing
+} ```
 
 The credit terms explained above do not typically place hard limitations on the
 transactions users may manually initiate.  For example, a credit limit, does
@@ -408,7 +432,7 @@ Version 1.0 of the tally protocol is described formally [here](learn-protocol.md
 In addition to this higher-level negotiation of the tally record itself, peer sites need to 
 open a channel over which they can communicate securely.
 That process is discussed [here](learn-noise.md).
-In the case of a first-time tally, these two levels are tightly coupled.
+In the case of a first-time tally, these two levels are more tightly coupled.
 
 A MyCHIPs server should not normally accept a connection from anyone it doesn't already know about.
 So if two parties want to create a tally between them, one of the parties will have to issue a tally ticket to the other.
@@ -416,18 +440,22 @@ Like an invoice, this information must be passed out-of-band.
 
 The process is conducted according to the following example.
 
-- User A3 will request from his host system a [tally ticket](/doc/learn-tally.md#establishing-a-tally).
+- User A3 will build a suggested tally and then request from his host system a 
+  [ticket](/doc/learn-tally.md#establishing-a-tally) associated with that tally.
   This authorizes a peer site to establish a connection, absent pre-shared key information.
-  The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
+  It will also trigger site A to proffer the tally when the connection i smake.
+  
+- The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
   For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
 
 <p align="center"><img src="figures/Lifts-6.jpg" width="400" title="Example Network"></p>
 
 - The ticket contains:
-  - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
+  - User A3's [CHIP Certificate](#entity-certificates).  This contains:
+    - Contact and identity information about user A3
+    - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
     connect with Site A on behalf of user A3.
-  - User A3's public signing key.
-  - User A3's [CHIP Certificate](#entity-certificates)
+    - User A3's public signing key.
   - An expiring, one-time token, authorizing connection without any other key information.
     The token will internally specify that it is for establishing a new tally;
   - The token expiration date;
@@ -435,15 +463,16 @@ The process is conducted according to the following example.
 - Once in possession of the connection ticket,
   Site B connects (on behalf of B1) to site A.
   It sends a structure encrypted with the site A's public agent key, containing
-    - The connection token;
-    - The public key of the site B agent;
-    - B1's CHIP Certificate
+    - The connection ticket;
+      - B1's CHIP Certificate, added into the ticket;
+    - The public key of the site B agent (inherent in the NPF connection);
 
   If site A can decrypt the message, and the token is still valid, it will:
-    - Finalize opening of the connection;
+    - Finalize opening of the connection (including agent key exchange);
+    - Add peer B1 into its database, subject to [ conditions](#entity-certificates);
     - Consider the connection as the initial step in the
       [Tally Initiation Sub-protocol](learn-protocol.md#tally-protocol);
-    - Continue with key exchange and tally negotiation;
+    - Finalize any details of the tally and send it to site B for B1's approval;
 
   If the initiation message fails, site A should silently close the connection
   and may opt to initiate defensive measures (such as firewall blocking) against
@@ -451,12 +480,12 @@ The process is conducted according to the following example.
 
 For a real-world example, let's consider the case of a commercial account like a retailer or restaurant:
 
-- The Vendor displays or transmits a ticket QR code, containing the connection ticket
-- The customer scans the ticket using his app
+- The Vendor displays or transmits a ticket QR code, containing the connection ticket;
+- The customer scans the ticket using his app;
 - The customer's host agent contacts the Vendor's host agent system at the specified port
-  and presents the connection token.
-  The vendor's system must prove its authenticity via the public agent key it supplied in the ticket.
-- The customer proves authenticity simply by possessing the token.
+  and presents the connection token.;
+  The vendor's system must prove its authenticity via the public agent key it supplied in the ticket;
+- The customer proves authenticity simply by possessing the token;
 - The customer system provides the [customer's certificate](#entity-certificates).
 - The Vendor's system will offer the draft tally (or a clone of it when the token is meant to handle multiple connections).
 - The customer will be given the opportunity to accept/modify/reject the tally.
@@ -472,31 +501,114 @@ Once collected, those credits can be spent.
 If credit has been extended to the customer as part of the tally, the customer
 can begin to buy things using the tally as payment, within the specified credit terms.
 
-### Entity Certificates
+### Entity Certificates and Identities
 Part of the information encapsulated and digitally signed within a tally includes a
 CHIP certificate.  The certificate has several purposes:
   - To provide information about the entity that identifies it to the satisfaction
     of the other trading partner.  For example, some partners may require a certificate
-    containing a Tax ID number (like a Social Security Number in the US).  Less formal
+    containing a Tax ID number (like a US Social Security Number).  Less formal
     relationships might only require a name and email address.  Some fields are optional
-    but should be sufficient (in the judgement of the partner) to establish identify in
+    but should be sufficient (in the judgement of the partner) to establish identity in
     an unmistakable and legally sufficient way.
-  - To identify how/where to contact the agent who acts officially on behalf of the
+  - To identify how/where to contact the agent server acting officially on behalf of the
     MyCHIPs user.
   - To provide sufficient information to the host system to uniquely identify the
     entity and create the approprate database record (or properly recognize that it
     already exists).
 
-MyCHIPs will rely primarily on the public signing key of a particular user to determine
-unique identity.  A system administrator who can properly validate authentic identity
-by outside means might be confident enough to manually update a public signing key on 
-an existing peer record.
-This may be appropriate in situations where a user has lost his key and
-needs to re-establish use of his account.  But automated systems should probably just
-create a new record for any new, as-yet-unknown public key that is encountered.
+During a transaction involving a connection ticket, there is a point where the subject
+entity presents the ticket, along with its own certificate.  In the original design, 
+the intent was that the proffering system would decide whether it already has a valid 
+record for the peer or if it should add a new record.  This turns out to be one of the 
+trickiest parts of the protocol.
 
-In addition, sites must consider the combination of CID and agent to be unique to each entity.
-    
+There are 4 possible pieces of information in the database that should be unique to
+a particular entity:
+- CHIP ID and Agent [(suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE)](learn-users.md#chip-addresses)
+- Public signing key
+- Birth ID record (which could change in small ways and still represent the same person)
+- National tax ID (if provided)
+
+The agent part of the CHIP address uniquely points to a process server
+(address and port) that is responsible for properly managing the associated chip ID.
+We hope a service provider behind that agent process will reliably provide accurate 
+information about its users.  But we can't always be sure.
+What we ***will*** accept is that an incoming connection with an authorized token is 
+initiated by a peer our *local* user wants to connect with.
+
+It seems reasonable to disallow two peer records to have the same public signing key.
+If a user decides to have multiple trading accounts, he could likely create a separate
+key for each account.  It might be possible for a service provider to service a single 
+entity (with a single signing key) at more than one agent address.  But the reference 
+implementation will likely not allow this. Perhaps the strongest argument against a
+strict 1:1 relationship between CID and key is that a user may just lose his key and
+have to create a new one.  More on that later.
+
+A birth ID is optional.  If it *is* provided, it can be very helpful for humans to determine
+the identity of an individual.  But someone could provide essentially the same birth ID
+information (from a human-interpreted standpoint) to two different services and yet have
+the birth records differ enough that a computer would likely consider them different.
+So this one will be good for contract enforcement, but not so much for computer decisions.
+
+The national tax ID will be used for serious partners who need to know your identity in a
+very secure way.  It would certainly be nice to not have two different records in a system
+that have the same tax ID (i.e. Social Security number).  However, like the signing key,
+it is certainly possible for one person to have more than one CHIP account.  If an 
+implementation is going to insist on uniqueness here, it might have to support
+multiple CHIP ID's per entity.
+
+More than anything, perhaps these issues expose a flaw in the original database design.
+It assumed that host systems would maintain normalized entity records 
+(i.e. one per entity) for foreign peers who were connected by tallies to its own local 
+user entities.  That assumption may just not be possible without the need for periodic
+human intervention to sort out problematic edge cases such as:
+- A user modifying key information in his certificate and then reconnecting to a foreign 
+  system (perhaps to make a tally with another user there).
+- A user losing his key, regenerating a new one, and then trying to establish a new
+  tally with an existing peer.
+- A user changing his CID or agent server key.
+
+So as of Jan 2022, we will pursue the following design approach:
+- A user is responsible for building and maintaining his certificate data on his host site.
+- New tallies incorporate the certificates of both users, so the digital signatures will
+  attest to the certificate data as it existed when the tally was consummated.
+- Host systems should take reasonable steps to make sure they only have a single entity
+  record for their own local users (such as making a tax ID, or signing key unique)
+- But host systems will not attempt to store a normalized entity record for foreign peers
+  at all.  Rather, it will maintain a separate copy of the peer certificate for each
+  individual tally.
+- This approach seems bulky in some ways.  But it should allow a server to operate much
+  more autonomously.  The idea is:
+  - Users are responsible for the accuracy of their identifying data on their own host system.
+  - Users are responsible to review ID information of the peers they choose to execute tallies with.
+  - It is not the job of a host system to make any judgement about the accuracy of foreign peer data.
+  - If a foreign agent process can properly open an encrypted connection using its expected public 
+    keys, that is sufficient to validate the agent.
+  - If a foreign peer can properly sign activity on a tally using the key that originally signed 
+    the tally, that is sufficient to validate the transaction.
+- If a user loses his signing key:
+  - He should be able to regenerate one as needed without being hassled too much by his host system.
+  - He should be aware that he will lose the ability to transact on any existing tallies.
+  - He will have to talk existing partners into executing new tallies using the new key.
+  - And he will have to arrange with them to void out, or lift out any existing balances
+    and move them over to the new tally with the new key.
+- This approach introduces some potential challenges in the DB views used for calculating
+  lift pathways.  Hopefully there is sufficient data in the tally/certificate to maintain
+  the same views (just drawing their data from a different table).
+
+Now when a new tally connection is being considered, the system will consider:  
+- If the sending agent is also managed by our local system:
+  - If so, this should be a local user of ours as well;
+  - Mark the tally partner as a local user so we can build lift segments properly.
+- Otherwise, just store the certificate with the tally and don't make any attempt to
+  store any additional peer data.
+- The notable exception to this is, each server should not continue to rely on the physical
+  address of the agent server stored in the tally.  Rather, we should maintain a normalized
+  physical address of each known agent server, external to the tallies.  That way an agent
+  can change its physical address and we will adapt to the change easily, as long as it
+  continues to use the same key.
+  
+### The Entity Certificate
 The CHIP certificate contains:
 ```
   - Personal or entity contact information
@@ -551,6 +663,37 @@ this should probably be done by:
 
 This way, trading partners will necessarily be involved in the process of moving to a
 new signature key.
+
+### Tally Exchange Format
+A MyCHIPs server may store tallies, chits and other objects in any format that makes
+the most sense.  But when communicating with other compliant servers, it should send
+the tally in the following format, shown as JSON:
+```
+tally: {
+  version: 1,
+  uuid: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
+  date: <Begin date of contract>,
+  note: <Additional Comments>,
+  stock: {
+    cert: <[CHIP Certificate](#the-entity-certificate)>
+    terms: <[Credit Terms](#credit-terms-examples)>
+  }
+  foil: {
+    cert: <CHIP Certificate>
+    terms: <Credit Terms>
+  }
+  agree: {
+    domain: "mychips.org",
+    name: "standard"
+    version: 0.99
+  }
+  sign: {
+    foil: <Foil Holder Signature>,
+    stock: <Stock Holder Signature>>
+    digest: <Hash of the rest of the tally>
+  },
+}
+```
 
 ### Pathways
 (version 0 protocol)

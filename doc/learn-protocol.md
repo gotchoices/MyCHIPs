@@ -42,7 +42,7 @@ Such an entity could be an individual person or it could be a legal organization
 The term *user* is also used to be roughly synonymous with entity (with a possible bias toward human entities).
 
 Entities should quantify the degree to which they trust the peer entities they connect with.
-When that trust is greater than zero (i.e. [credit terms](learn-tally.md#credit-terms) are offered), one should be prepared to lose the amount of value quantified in the trust.
+When that trust is greater than zero (i.e. [credit terms](learn-tally.md#credit-terms) are offered), one should be prepared to possibly lose (or exert an effort to collect) the amount of value quantified in the trust.
 For example, if I extend you 10 CHIPs of credit, I must recognize the possibility that you may fail to uphold your promise.
 In that case, I may lose the promised value, or have to rely on collateral if such is a part of the particular credit agreement.
 
@@ -69,7 +69,7 @@ The term *node* will get used in a more generic way, possibly referring to an en
 The term *server* may be used sometimes as roughly synonymous with *site.*
 
 ### Protocol Layers
-This document is defining the **protocol** whereby nodes communicate with each other to:
+This document is defining the model state level **protocol** whereby nodes communicate with each other to:
 - Establish tallies (formalized trading relationships) between entities
 - Send value via direct Chits on a single tally
 - Discover potential lift pathways through the network
@@ -508,3 +508,6 @@ First, the states associated with the foil:
 And now, the states associated with the stock:
 
 [![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
+
+<br>[Next - Data Messages](learn-messages.md)
+<br>[Back to Index](README.md#contents)

@@ -6,12 +6,12 @@ tabdef mychips.tallies -fields [concat {
     {tally_seq		ent	4	{1 15}		-hide 1}
     {tally_type		ent	6	{0 1}		}
     {version		ent	40	{1 1}		}
-    {tally_guid		ent	40	{0 2}		}
+    {tally_uuid		ent	40	{0 2}		}
     {tally_date		ent	20	{1 2}		}
     {partner		ent	8	{2 2}		}
     {status		ent	10	{0 3}		}
     {request		ent	10	{1 3}		}
-    {user_sig		ent	20	{1 4 2}		}
+    {hold_sig		ent	20	{1 4 2}		}
     {part_sig		ent	20	{3 4 2}		}
     {comment		ent	40	{0 5 4}		}
     {contract		ent	20	{0 6 4}		}
@@ -25,7 +25,7 @@ tabdef mychips.tallies -fields [concat {
     {cr_limit		ent	12	{1 10}		}
     {units		ent	16	{2 10}		}
 } $glob::stampd] -display {
-  tally_ent tally_seq tally_type status partner tally_date tally_guid dr_limit cr_limit reward target
+  tally_ent tally_seq tally_type status partner tally_date tally_uuid dr_limit cr_limit reward target
 }
 
 # A view with some additional pseudo fields

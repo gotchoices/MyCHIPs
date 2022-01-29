@@ -20,15 +20,15 @@ require config.tcl trigview.tcl
 namespace eval chits {
     def chits_pk	{chit_ent chit_seq chit_idx}
     def chits_v_up	{request signature units quidpro memo}
-    def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_guid chit_type]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_guid chit_type $glob::stampfn chit_date chain_idx chain_prv lift_seq status digest]
+    def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_uuid chit_type]
+    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type $glob::stampfn chit_date chain_idx chain_prv lift_seq status digest]
 }
 
 table mychips.chits {mychips.tallies mychips.lifts} {
     chit_ent	text
   , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
-  , chit_guid	uuid		not null
+  , chit_uuid	uuid		not null
   , chit_type	text		not null default 'tran' constraint "!mychips.tallies.BCT" check(chit_type in ('lift','tran'))
   , chit_date	timestamptz	not null default current_timestamp
   , request	text	        constraint "mychips.tallies.BRQ" check (request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
@@ -40,11 +40,11 @@ table mychips.chits {mychips.tallies mychips.lifts} {
   , digest	bytea		
   , chain_prv	bytea
   , chain_idx	int	      , unique(chit_ent, chit_seq, chain_idx)
-  , lift_seq	int           , foreign key (chit_guid, lift_seq) references mychips.lifts (lift_guid, lift_seq) on update cascade on delete cascade
+  , lift_seq	int           , foreign key (chit_uuid, lift_seq) references mychips.lifts (lift_uuid, lift_seq) on update cascade on delete cascade
   , constraint "!mychips.tallies.BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
     eval(s $glob::stamps)
 }
-index {} mychips.chits chit_guid
+index {} mychips.chits chit_uuid
 index {} mychips.chits chit_type
 index {} mychips.chits chit_date
 index {} mychips.chits status
@@ -190,7 +190,7 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
   returns boolean language plpgsql security definer as $$
     declare
         act	text	= chit.request;
-        channel	text	= 'mychips_peer';
+        channel	text	= 'mychips_agent';
         jrec	jsonb;			-- Holds notify record
         trec	record;			-- Talley
         urec	record;			-- User
@@ -198,7 +198,7 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
     begin
         if act is null then return false; end if;	-- Redundant?
         
-        select into trec part_cid,user_cid,tally_guid,part_sock from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
+        select into trec part_cid,hold_cid,tally_uuid,part_sock from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
         select into urec serv_id from mychips.users_v where user_ent = chit.chit_ent;
         if not urec.serv_id is null then
             channel = channel || '_' || urec.serv_id;
@@ -210,9 +210,9 @@ function {mychips.chit_notify(chit mychips.chits)} {mychips.users_v mychips.chit
         jrec = jsonb_build_object(		--Fixme: get rid of what is redundant with {object} or otherwise not needed
           'target',	'chit',
           'peer',	trec.part_cid,
-          'user',	trec.user_cid,
+          'user',	trec.hold_cid,
           'entity',	chit.chit_ent,
-          'tally',	trec.tally_guid,
+          'tally',	trec.tally_uuid,
           'action',	act,
           'try',	rrec.tries,
           'last',	rrec.last,
@@ -287,7 +287,7 @@ function {mychips.chit_json(ch mychips.chits)} {mychips.chits} {
     select jsonb_build_object(
        'index',		ch.chain_idx,
        'prior',		ch.chain_prv,
-       'guid',		ch.chit_guid,
+       'uuid',		ch.chit_uuid,
        'type',		ch.chit_type,
        'date',		ch.chit_date,
        'units',		ch.units,
@@ -301,10 +301,10 @@ $$;}
 define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
 view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text) mychips.chit_json(mychips.chits) mychips.j2h(jsonb)} {select 
     eval(fld_list $chits::chits_se	ch)
-  , te.user_cid
+  , te.hold_cid
   , te.part_cid
   , te.tally_type
-  , te.tally_guid
+  , te.tally_uuid
   , case when isdebit() then 'debit' else 'credit' end		as effect
   , case when ch.status = 'good' then ch.units else 0 end	as units_g
   , case when ch.status = 'void' then 0 else ch.units end	as units_p
@@ -344,7 +344,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
     declare
         cid		text	= msg->>'user';
         obj		jsonb	= msg->'object';
-        guid		uuid	= obj->>'guid';
+        uuid		uuid	= obj->>'uuid';
         curState	text;
         qstrg		text;		-- Temporary string
         crec		record;		-- Holds chit record(s)
@@ -354,7 +354,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
         select into erec id, serv_id from mychips.users_v where peer_cid = cid;
         if not found then return null; end if;
 
-        select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = erec.id and chit_guid = guid;
+        select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = erec.id and chit_uuid = uuid;
         curState = crec.state;
 --raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.chit_ent, curState, recipe;
         if not found then
@@ -369,12 +369,12 @@ raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
         if recipe ? 'upsert' then
 raise notice '  upsert curState:% obj:%', curState, obj;
           if curState = 'null' then			-- Need to do insert
-            select into trec * from mychips.tallies where tally_ent = erec.id and tally_guid = (msg->>'tally')::uuid;
+            select into trec * from mychips.tallies where tally_ent = erec.id and tally_uuid = (msg->>'tally')::uuid;
             if not found then return null; end if;
             
-            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_guid,chit_type,chit_date,status,signature,units,quidpro,memo,chain_idx,chain_prv,digest) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_uuid,chit_type,chit_date,status,signature,units,quidpro,memo,chain_idx,chain_prv,digest) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
                      returning chit_ent, chit_seq, chit_idx, chain_idx, chain_prv, digest' into crec
-              using trec.tally_ent, trec.tally_seq, guid, obj->>'type', (obj->>'date')::timestamptz, recipe->'upsert'->>'status', obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea;
+              using trec.tally_ent, trec.tally_seq, uuid, obj->>'type', (obj->>'date')::timestamptz, recipe->'upsert'->>'status', obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea;
 --raise notice '  upsert post:% % %', trec.tally_type, obj->'index', crec;
           else						-- Chit already exists, do update
 
@@ -405,9 +405,9 @@ $$;}
 # Recursive view of chit chains to test integrity of each chain
 #----------------------------------------------------------------
 view mychips.chits_v_chains {mychips.chits_v mychips.tallies_v} {
-  with recursive chit_chain(ent, seq, digest, chain_idx, chain_prv, prev_ok, hash_ok, length, guids, cycle) as (
+  with recursive chit_chain(ent, seq, digest, chain_idx, chain_prv, prev_ok, hash_ok, length, uuids, cycle) as (
     select	t.tally_ent, t.tally_seq, t.digest, -1::int, null::bytea, true, 
-      t.digest_v = t.digest, 0::int, array[t.tally_guid], false
+      t.digest_v = t.digest, 0::int, array[t.tally_uuid], false
     from	mychips.tallies_v t
   union all
     select c.chit_ent					as ent
@@ -418,8 +418,8 @@ view mychips.chits_v_chains {mychips.chits_v mychips.tallies_v} {
       , cc.prev_ok and (c.chain_prv = cc.digest)	as prev_ok
       , cc.hash_ok and (c.digest_v = c.digest)		as hash_ok
       , cc.length + 1					as length
-      , cc.guids || c.chit_guid				as guids
-      , c.chit_guid = any(cc.guids)			as cycle
+      , cc.uuids || c.chit_uuid				as uuids
+      , c.chit_uuid = any(cc.uuids)			as cycle
     from	chit_chain	cc
     join	mychips.chits_v	c on c.chit_ent = cc.ent and c.chit_seq = cc.seq and c.chain_idx = cc.chain_idx + 1
   ) select
@@ -433,7 +433,7 @@ view mychips.chits_v_chains {mychips.chits_v mychips.tallies_v} {
   , ccc.prev_ok and ccc.hash_ok as ok
   , ccc.chain_idx = cm.max as last
   , ccc.length
-  , ccc.guids
+  , ccc.uuids
   from chit_chain ccc -- where ccc.length > 1
   join (select chit_ent,chit_seq,max(chain_idx) as max from mychips.chits group by 1,2) cm on cm.chit_ent = ccc.ent and cm.chit_seq = ccc.seq
 }

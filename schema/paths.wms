@@ -42,7 +42,7 @@
 namespace eval paths {
     def routes_pk	{route_ent dest_chid dest_host}
 #    def routes_v_up	{request comment cr_limit dr_limit}
-#    def routes_v_in	[concat tally_ent $tallies_v_up tally_guid tally_type version partner contract user_sig]
+#    def routes_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version partner contract hold_sig]
     def routes_se	[concat $routes_pk dest_ent topu_ent botu_ent requ_ent status lift_min lift_margin lift_max lift_reward drop_min drop_margin drop_max drop_reward step lift_count lift_date good_date]
 }
 
@@ -88,7 +88,7 @@ table mychips.route_tries {mychips.routes} {
 # Recursive view of tallies to show pathways native to our system
 #----------------------------------------------------------------
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
-  with recursive tally_path(first, last, length, path, guids, cycle, circuit, inside, corein, fora, forz,
+  with recursive tally_path(first, last, length, path, uuids, cycle, circuit, inside, corein, fora, forz,
       lift_min, lift_margin, lift_max, lift_reward,
       drop_min, drop_margin, drop_max, drop_reward
     ) as (
@@ -102,7 +102,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
       , t.stock_ent					as last
       , tp.length + 1					as length
       , tp.path || t.stock_ent				as path
-      , tp.guids || t.guid				as guids
+      , tp.uuids || t.uuid				as uuids
       , t.stock_ent = any(tp.path)			as cycle
       , tp.path[1] = t.stock_ent			as circuit
       , tp.inside and not t.stock_user isnull		as inside
@@ -132,7 +132,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
   ) select tpr.first, tpr.last
-    , tpr.length, tpr.path, tpr.guids
+    , tpr.length, tpr.path, tpr.uuids
     , tpr.circuit, tpr.inside, tpr.corein, tpr.fora, tpr.forz
     , tpr.lift_margin, tpr.lift_reward, tpr.drop_margin, tpr.drop_reward
     , greatest(tpr.lift_min, 0) as lift_min, greatest(tpr.lift_max, 0) as lift_max	-- Don't generate negative lift/drop allowances
@@ -154,7 +154,7 @@ view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
 #----------------------------------------------------------------
 view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes} {select
     tp.first, tp.last
-  , tp.length, tp.path, tp.guids
+  , tp.length, tp.path, tp.uuids
   , tp.segment, tp.corein, tp.fora, tp.forz
   , r.route_ent
   , r.dest_ent
@@ -354,7 +354,7 @@ function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.
         jrec	jsonb;
         orec	record;			-- Route
         rrec	record;			-- Retries
-        channel	text = 'mychips_peer';
+        channel	text = 'mychips_agent';
     begin
 
         if route.status = 'draft' or route.status = 'good' or route.status = 'none' then		-- Determine next action
@@ -429,7 +429,7 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
         curState	text;
         fwdcnt		int default 0;	-- Count how many queries forwarded
     begin
---raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', recipe, obj;
+raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', recipe, obj;
         select into from_r id, serv_id, peer_cid from mychips.users_v where peer_cid = obj->>'from' and peer_chost = obj->>'fat';	-- Look up the base entity
         if not found then return null; end if;
 

@@ -203,3 +203,29 @@ view mychips.comm_v_me {base.comm_v base.user_id(text)} {select
 } -grant {
     {user	s {s i u} {d}}
 } -primary id
+
+# Create a new login ticket for the specified user
+#----------------------------------------------------------------
+function {mychips.ticket_login(uid text)} {mychips base.token_v_ticket mychips.users base.parm_int(text,text) base.parm_text(text,text)} {
+  returns base.token_v_ticket language plpgsql as $$
+    declare
+      trec	record;
+      urec	record;
+      retval	jsonb;
+    begin
+      insert into base.token_v_ticket (token_ent, allows) values (uid, 'login') returning * into trec;
+      select into urec * from mychips.users where user_ent = uid;
+      trec.host = coalesce(urec.user_host, base.parm_text('mychips','user_host'), trec.host);
+      trec.port = coalesce(urec.user_port, base.parm_int('mychips','user_port'), trec.port);
+      return trec;
+    end;
+$$;}
+
+# Return a certificate for the specified user
+#----------------------------------------------------------------
+function {mychips.user_cert(uid text)} {json.cert} {
+  returns jsonb language sql as $$
+    select to_jsonb(s) as cert from (
+      select date,chip,type,name,public,connect,place,identity from json.cert where id = uid
+    ) s
+$$;}

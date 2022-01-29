@@ -116,9 +116,9 @@ The CHIP address (and other MyCHIPs message components) may optionally be encode
 For example, we might see a CHIP address presented as something like:
 ```
   {
-    user: suzie,
+    cid: suzie,
     agent: 6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE,
-    address: mychips.org,
+    host: mychips.org,
     port: 57423
   }
 ```

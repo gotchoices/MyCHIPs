@@ -4,7 +4,7 @@
 tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a record of credit transactions between two trading partners.} [concat {
     {tally_ent		{Tally Entity}		{The ID number of the entity or person this tally belongs to}}
     {tally_seq		{Tally Sequence}	{A unique number among all tallies owned by this entity}}
-    {tally_guid		{Tally GUID}		{A globally unique identifier for this tally}}
+    {tally_uuid		{Tally GUID}		{A globally unique identifier for this tally}}
     {tally_type		{Tally Type}		{Determines if this entity is typically the creditor (stock) or the debtor (foil) for this tally} {
         {stock		{Stock}			{The entity this tally belongs to is typically the creditor on transactions}}
         {foil		{Foil}			{The entity this tally belongs to is typically the debtor on transactions}}
@@ -25,7 +25,7 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
         {close		{Close}			{One party is requesting to discontinue further trading on this tally}}
     }}
     {comment		{Comment}		{Any notes the user might want to enter regarding this tally}}
-    {user_sig		{User Signed}		{The digital signature of the entity this tally belongs to}}
+    {hold_sig		{Holder Signed}		{The digital signature of the entity that owns/holds this tally}}
     {part_sig		{Partner Signed}	{The digital signature of the other party to this tally}}
     {contract		{Contract}		{The hash ID of the standard contract this tally is based upon.}}
     {stock_terms	{Stockee Terms}		{The credit terms by which the holder of the tally stock is governed}}
@@ -39,13 +39,27 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {units_c		{Cached Units}		{A cached copy of the total of all the chits on this tally, from the perspective of the tally's owner}}
     {chain_conf		{Chain Confirmed}	{The index of the last chit in the chain that has been confirmed with the partner peer}}
     {digest		{Digest Hash}		{A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.}}
-    {units_gc		{Units Good}		{}}
-    {units_pc		{Units Pending}		{}}
+    {units_gc		{Units Good}		{Net milliCHIPs committed on this tally}}
+    {units_pc		{Units Pending}		{Net milliCHIPs committed on this tally if/when current pending transactions have all settled}}
+    {_agent		{Peer Agent}		{Cached value of peer's agent used to ensure referential integrity}}
     {_last_chit		{Last Chit}		{Used internally to create new chit record index numbers}}
     {_last_tset		{Last Setting}		{Used internally to create new tally setting records}}
 } $glob::stampt] -messages {
     {LMG		{Invalid Lift Margin}	{The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.}}
     {DMG		{Invalid Drop Margin}	{The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.}}
+    {VER		{Bad Tally Version}	{Tally version must be 1 or greater}}
+    {NSP		{Same Partner ID}	{Tally partner must be a separate entity}}
+    {IVS		{Invalid Status}	{Tally status value is not valid}}
+    {IVR		{Invalid Request}	{Tally request value is not valid}}
+    {UCI		{User CHIP ID}		{An open tally must include a valid user CHIP ID}}
+    {PCI		{Partner CHIP ID}	{An open tally must include a valid partner CHIP ID}}
+    {UCM		{User Certificate}	{An open tally must contain a user certificate}}
+    {PCM		{Partner Certificate}	{An open tally must contain a partner certificate}}
+    {USM		{User Signature}	{An open tally must contain a user signature}}
+    {PSM		{Partner Signature}	{An open tally must contain a partner signature}}
+    {CNP		{Tally Contract}	{An open tally must reference a contract}}
+    {STR		{Illegal State Request}	{The requested state transition is not allowed}}
+    {STT		{Illegal State Change}	{The executed state transition is not allowed}}
 }
 
 tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.} {

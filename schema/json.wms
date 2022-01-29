@@ -2,8 +2,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- users_v.json should probably export nested addr/comm data too
-#- Can I keep id and fk's out of these views and still insert data as needed?
+#- Do we need to check for dups before importing cert (which may become obsolete anyway)?
 #- 
 module mychips
 schema json {}
@@ -70,10 +69,10 @@ view json.users {json.user json.place json.connect} {select
 #----------------------------------------------------------------
 view json.tally {json mychips.tallies_v} {select
     tally_ent		as "id"
-  , tally_guid		as "guid"
+  , tally_uuid		as "uuid"
   , version		as "version"
-  , case when tally_type = 'stock' then user_addr else part_addr end as "stock"
-  , case when tally_type = 'stock' then part_addr else user_addr end as "foil"
+  , case when tally_type = 'stock' then hold_addr else part_addr end as "stock"
+  , case when tally_type = 'stock' then part_addr else hold_addr end as "foil"
   , tally_date		as "created"
   , contract		as "contract"
 
@@ -110,39 +109,43 @@ view json.contract {json mychips.contracts_v} {select
 
 # View of users for generating/accepting user certificates
 #----------------------------------------------------------------
-view json.cert {mychips.users_v json.connect json.place} {select
-    peer_cid	as "cid"
-  , peer_agent	as "agent"
-  , ent_type	as "type"
-  , peer_psig	as "public"
-  , case when ent_type = 'o' then
-      to_jsonb(ent_name)
+view json.cert {mychips.users_v mychips.peers_v json.connect json.place mychips} {select p.id
+  , jsonb_build_object(
+       'cid', p.peer_cid
+     , 'agent', p.peer_agent
+     , 'host', p.peer_chost
+     , 'port', p.peer_cport
+    ) as "chip"
+  , p.ent_type	as "type"
+  , p.peer_psig	as "public"
+  , case when p.ent_type = 'o' then
+      to_jsonb(p.ent_name)
     else
-      jsonb_strip_nulls(jsonb_build_object('surname', ent_name, 'first', fir_name, 'middle', mid_name, 'prefer', pref_name))
+      jsonb_strip_nulls(jsonb_build_object('surname', p.ent_name, 'first', p.fir_name, 'middle', p.mid_name, 'prefer', p.pref_name))
     end		as "name"
   , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
       select media,address,comment from json.connect c
-        where c.id = u.id and not prior and not private and main order by seq
+        where c.id = p.id and not prior and not private and main order by seq
     ) d) as "connect"
   , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
-      select type,address,city,state,post,country,comment from json.place p
-        where not prior and not private and p.id = u.id and type != 'birth' and main order by seq
+      select type,address,city,state,post,country,comment from json.place pl
+        where not prior and not private and pl.id = p.id and type != 'birth' and main order by seq
     ) d) as "place"
   , jsonb_strip_nulls(jsonb_build_object(
       'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
       'birth', jsonb_strip_nulls(jsonb_build_object(
-        'name', u.peer_named,
-        'date', u.born_date,
+        'name', p.peer_named,
+        'date', p.born_date,
         'place', (select jsonb_strip_nulls(to_jsonb(d)) from (
           select address,city,state,post,country,comment from json.place a
-            where a.id = u.id and type = 'birth' and main limit 1
+            where a.id = p.id and type = 'birth' and main limit 1
         ) as d )
       ))
   )) as "identity"
   , current_timestamp::timestamptz(3) as "date"
   
-    from mychips.users_v u where not user_ent is null with cascaded check option;
-} -primary {cid agent}
+    from mychips.peers_v p where not peer_ent is null with cascaded check option;
+} -primary {id}
 
 # Write certificate data to its various tables
 #----------------------------------------------------------------
@@ -158,6 +161,7 @@ function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
     tax_id text;
     country text;
     irec record;
+    urec record;
     ident jsonb = new.identity;
     birth_place jsonb;
     pkey jsonb;
@@ -180,11 +184,25 @@ function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
         peer_named = ident->'birth'->>'name';		--Birth name
       end if;
     end if;
-    
-    insert into mychips.users_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_psig, peer_named)
-      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.cid, new.agent, new.public, peer_named)
-      returning id into irec;
 
+    select into urec * from mychips.users_v u where	--Do we already have this person
+      u.peer_psig = new.public or (u.peer_cid = new.chip->>'cid' and u.peer_agent = new.chip->>'agent');
+--    if not urec.user_ent isnull then			--This is one of our local users
+--      new.id = urec.id;					--So we can return the old record
+--      return new;					--Don't import anything
+--    end if;
+
+--    if urec.peer_cid = new.chip->>'cid'
+    insert into mychips.peers_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_host, peer_port, peer_psig, peer_named)
+      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chip->>'cid', new.chip->>'agent', new.chip->>'host', (new.chip->>'port')::int, new.public, peer_named)
+--        on conflict (base.ent.country, base.ent.tax_id) do update set
+--        on conflict (mychips.peers_v.country, mychips.peers_v.tax_id) do update set
+--        on conflict on constraint ent_country_tax_id do update set
+--        on conflict on constraint base.ent.ent_country_tax_id do update set
+--          ent_name = ent_name, fir_name = firname, mid_name = mid_name, pref_name = pref_name, peer_cid = new.chip->>'cid', peer_agent = new.chip->>'agent', peer_host = new.chip->>'host', peer_port = (new.chip->>'port')::int, peer.psig = new.public
+      returning id into irec;
+    new.id = irec.id;
+    
     pkey = to_jsonb(irec);
 --raise notice 'pkey:%', pkey;
     perform json.import(to_jsonb(new.connect), 'connect', pkey);
@@ -193,7 +211,6 @@ function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
       birth_place = jsonb_set(birth_place, '{type}', '"birth"');
       perform json.import(birth_place, 'place', pkey);
     end if;
-
     return new;
   end;
 $$;}
@@ -233,7 +250,10 @@ function {json.import(data jsonb, target text default null, keys jsonb default n
       end if;
 
       select array_to_string(pkey,',') into primKeyList from wm.table_data where td_sch = 'json' and td_tab = target;
-      if not found then return null; end if;			-- Skip any tables we don't know how to import
+      if not found or primKeyList isnull then	-- Skip any tables we don't know how to import
+--raise notice 'Skipping unknown JSON import table: %', target;
+        return null;
+      end if;
       
 --raise notice '  process:% data:%', target, data;
       for tmpKey in select jsonb_object_keys(keys) loop		-- For any primary key values passed in from above
@@ -242,7 +262,7 @@ function {json.import(data jsonb, target text default null, keys jsonb default n
       end loop;
 
       select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray, fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = target;
---raise notice '  fieldArray:% fieldList:%', fieldArray, fieldList;
+--raise notice '  fieldArray:% fieldList:% primKeyList:%', fieldArray, fieldList, primKeyList;
       cmd = 'insert into json.' || quote_ident(target) || ' (' || fieldList || ') select ' || fieldList || ' from jsonb_populate_record(NULL::json.' || quote_ident(target) || ', $1) returning ' || primKeyList;
 --raise notice '  cmd :% :%', cmd, data;
       execute cmd into newRecord using data;			-- Insert the record

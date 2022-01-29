@@ -77,7 +77,7 @@ tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathway
     {last		{Path End}		{Entity ID of the peer this pathway ends with}}
     {length		{Node Length}		{The number of unique peer nodes in this pathway}}
     {path		{Peer ID List}		{An array of the entity IDs in this pathway}}
-    {guids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
+    {uuids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
     {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
     {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a cost to the lift.  A number less than 1 indicates a discount.}}
     {min		{Minimum}		{The smallest number of units desired to be lifted by any entity found along the pathway}}

@@ -1,62 +1,54 @@
 TODO:
 
 Immediate:
-- Change user.serv_id to user_agent
-- Get rid of peer_agent?  (Do we need this during tally negotiation?)
-- For peers, the agent is associated with tallies only--not peer records
-- Views draw agent address from tally where appropriate
-- User views show next cid@agent to use
-- Foreign peers views show no agent (only in the tally)
-- Simulations still run properly
--  
-- Change user_ to hold_ terminology in tallies_v, etc
-- Store CHIP ID's and agents in the tally
-- Store anything else that can change in the tally (certificates, CID, agents)
-- Is there anything getting signed in the tally that is in user/peer table? (cache it in tally)
-- Users are assigned an agent key but only as default for new tally creation
--  
-X- Can import a foreign user from a cert by writing to json.user_cert
-- Save CHIPCerts in tally with what gets signed
-- Save last signed CHIPCert to peer record
-- Simulations still run properly
+- Noise fully merged with tally state processes
+-  Return to next regression test (tally.js); Tally originator:
+-    Generate tally ticket
+-    Process/respond to tally ticket
+-    adapt ticket packets to new message format (use object property)
+-    test first steps of tally exchange protocol
+-    clones or drafts tally (how to generate uuid?)
+-    imports or verifies inquiring user
+-  When draft tally comes back, enter draft tally
+-  Change peer terminology in peernoise to remote/local?
+-  Regression tests all working -- particularly peernoise.js
+-  Agents table keeps track of agents latest connection portal
+-  Align tally tests in mocha/peer.js with 1.0 protocol
 - 
-- HID is in user record?  (not peer record)
-- Change peer terminology in peernoise to remote/local?
-- Regression tests all working -- particularly peernoise.js
+- Other subsystems patched well enough to run in simulators
+-   Adapt chit to new message format
+-   Adapt route to new message format
+-   Adapt lifts to new message format
+-   Clean up users DB
+-     Can we totally get rid of peer table? (merge into user table)
+-     Adjust/remove prior references to servID, peerPort, peerHost
+-     Get rid of user.serv_id; Change to peer_agent or tally.part_agent during early phase
+-     User views show next cid@agent to use
+-   Does the simulator still run ok?
+-   Simulation can run with or without encryption (selected in config.dock)
+-   Simulation runs raw mode by default
 - 
-- Get tally establishment protocol working (or at least figured out)
+- Push release to master, merge with Capstone project
 - 
-- Make mocha/peer.js work again
-- Do I need local agent key in db parameter table (or only for peers)?
-- Adjust/remove prior references to servID, peerPort, peerHost
-- PeerNoise module reports peers who connect from non-matching portals
-- Simulation can run with or without encryption (selected in config.dock)
-- Simulation runs raw mode by default
-- Merge noise fork back into master
-- 
-- 
-- Implement control/model for tally tickets/tokens
-- CLUI control actions:
--  Generate tally ticket
--  Process/respond to tally ticket
--  
-- Align tally tests in mocha/peer.js with 1.0 protocol
-- Expand to cover all state transitions
-- Clean schema/state code associated with tally sub-protocol
-- Implement retries in state processing
-- Simulation still works?
-- 
+- Upgrade chits to new protocol
 - Create mocha tests for chit state diagram
 - Align chit tests in mocha/peer.js with 1.0 protocol
-- Clean schema/state code associated with tally sub-protocol
-- Implement retries in state processing
-- Simulation still works?
-- 
-- Finish chit consensus algorithm
-- Mocha tests to simulate network disconnections, chit collisions
-- 
+- Implement chit consensus
+-   Mocha tests to simulate network disconnections, chit collisions
+- Implement tally amendments
+-   Setting trading variables (holder)
+-   Changing cid/agent (partner)
+-   Relaxing terms, including credit limit (either)
+-   Request to close
+- Upgrade routes to new protocol
+- Local lift queries/procedures work
 - Implement local lift scheduler/scanner/processor
+- Server ready for single-site use?
 - 
+- Implement retries in state processing
+- Upgrade lifts to new protocol
+- Implement referee server in node server
+- Server ready for distributed use?
 - 
 - Mobile:
 -  Create dart Wyseman client module

@@ -34,7 +34,7 @@ table mychips.peers {base.ent mychips.agents} {
     peer_ent	text		primary key references base.ent on update cascade on delete cascade
   , peer_cid	text		not null, unique (peer_cid, peer_agent)
   , peer_agent	text	        references mychips.agents on update cascade on delete restrict
-  , peer_psig	text		unique
+  , peer_psig	text
   , peer_cert	jsonb
   , peer_named	text
   , peer_cmt	text
@@ -60,14 +60,14 @@ view mychips.peers_v {mychips.peers base.ent_v mychips.parm_v_user mychips.agent
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
   , eval(fld_list $peers::agents_se	ag)
-  , ag.agent_host		as peer_host
-  , ag.agent_port		as peer_port
-  , cAgent()			as peer_cagent
-  , cHost()			as peer_chost
-  , cPort()			as peer_cport
-  , cHost() || ':' || cPort()	as peer_sock
-  , pe.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
---  , pe.peer_cid || '@' || cHost() || ':' || cPort()			as peer_endp
+  , ag.agent_host			as peer_host
+  , ag.agent_port			as peer_port
+  , cAgent()				as peer_cagent
+  , cHost()				as peer_chost
+  , cPort()				as peer_cport
+  , cHost() || ':' || cPort()		as peer_sock
+  , pe.peer_cid ||':'|| cAgent()	as peer_addr
+  , pe.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_full
   , greatest(ee.mod_date, pe.mod_date) as mod_date
 
     from	base.ent_v	ee
