@@ -1,0 +1,14 @@
+#!/bin/bash
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+#Launch admin UI in a browser from a newly generated connection ticket
+
+browser="firefox"
+#mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
+
+source ../sim/functions
+
+url="$(../../bin/adminticket -Q)"
+#url="http://google.com"
+echo "url:$url"
+#browserTab $url

@@ -1,0 +1,171 @@
+#!/usr/bin/env node
+//A command-line client for testing/demonstrating how to connect to a MyCHIPs websocket
+//Not for production use!
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
+// Usage examples:
+//   entcli -a mychips0 -c ../pki/local/spa-ca.crt -t ../test/local/admin.json -u admin		//Connect with a one-time token (must specify the username)
+//   entcli -a mychisp0 -c ../pki/local/spa-ca.crt						//Connect using an established key
+// -----------------------------------------------------------------------------
+// TODO:
+//- Adapt to use Wyseman library class
+//- 
+const Yargs = require('yargs')			//Command line processing
+const Readline = require('readline')		//Read/write command line
+const Fs = require('fs')			//Filesystem
+const Os = require('os')
+const Homedir = Os.homedir()			//Where to store connection key
+const Path = require('path')
+const Wm = require('wyseman')			//Wyseman provides our client connection
+const { Log } = require('wyclif')		//For logging
+const dbInfo = ['mychips_user','wylib']		//Listen for these notifies from the DB
+
+var log = Log('entcli')				//Instantiate a logger
+var config = {dbInfo, log}			//Configuration options for connection
+
+var argv = Yargs				//Process command line
+  .alias('a', 'address')	.default('address',	'localhost')			//Hostname or IP address
+  .alias('p', 'httpPort')	.default('httpPort',	8000)				//http port we will use briefly for authentication handshake
+  .alias('w', 'wsPort')		.default('wsPort',	54320)				//Websocket port
+  .alias('u', 'user')		.default('user',	process.env.USER)		//Username to connect as
+  .alias('v', 'vault')		.default('vault',	Path.join(Homedir, '.mychips_keys'))	//Where to store my connection key
+  .alias('s', 'secret')				//A cipher to encrypt the private key
+  .alias('c', 'caFile')				//Certificate Authority file
+  .alias('k', 'key')				//Persistent connection key
+  .alias('t', 'ticket')				//One-time connection ticket
+  .argv
+log.debug("argv:", argv)
+
+let { user, wsPort, address } = argv			//More convenient variable names
+let credential = {host:address, port: wsPort, user}	//Will be passed to connection builder
+config.httpPort = argv.httpPort
+
+if (argv.ticket) {					//Connecting via a one-time ticket
+  let tText = Fs.readFileSync(argv.ticket)		//Grab the ticket text
+  let obj
+  if (tText) try {obj = JSON.parse(tText)} catch(e) {	//Parse it to a JSON object
+    log.error("Parsing ticket JSON: ", tText)
+  }
+  if (obj.ticket) {				//JSON does contain a ticket property
+    let t = obj.ticket				//Some credential properties come from the ticket
+    credential.token = t.token
+    credential.host = t.host
+    credential.port = t.port
+    if (!credential.user) log.error("Must provide a username on the command line")
+    
+  } else {
+    log.error("No ticket found in:", argv.ticket)
+  }
+log.debug("Ticket credentials:", credential)
+
+} else if (Fs.existsSync(argv.vault)) {			//If we have a saved connection key from before
+  let vaultText = Fs.readFileSync(argv.vault)
+  let vaultObj
+  if (vaultText) try {vaultObj = JSON.parse(vaultText)} catch(e) {	//Parse it to a JSON object
+    log.error("Parsing key JSON: ", vaultText)
+  }
+  if (vaultObj.login) {					//The vault contains a login object
+    let loginObj = vaultObj.login
+    credential.key = loginObj.key
+    credential.host = loginObj.host			//Get server address from vault
+    credential.port = loginObj.port			//Get websocket from vault
+    credential.user = loginObj.user			//Get username from vault
+log.trace("Loaded credentials:", credential)
+  } else {
+    log.error("Could not import saved key:", vaultObj)
+  }
+
+} else {	//User didn't specify -t or -v
+  console.log("No connection token or key found!")
+  process.exit(1)
+}
+
+if (argv.caFile) {
+  config.ca = Fs.readFileSync(argv.caFile)		//Use a specified certificate authority file
+}
+
+var rl = Readline.createInterface({			//Initialize command line interface
+  input: process.stdin,
+  output: process.stdout,
+  terminal: true
+})
+rl.setPrompt("> ")					//Set our prompt
+
+let wmClient = new Wm.Client(config)			//Instantiate our connection to the backend
+
+wmClient.on('key', cred => {				//Call this when a key generated
+log.debug("Writing connection key to vault:", argv.vault)
+  Fs.writeFileSync(argv.vault, JSON.stringify(cred))	//Store my key for later use
+})
+
+wmClient.on('error', err => {				//Error handler
+  log.debug("Websocket connection error:", err.stack)
+})
+
+wmClient.connect(credential, ws => {			//Start a connection
+
+  ws.on('message', msg => {				//We have an incoming message
+log.debug("Websocket message:", msg)
+    let obj; if (msg) try {obj = JSON.parse(msg)} catch(e) {	//Parse it to a JSON object
+      log.error("Parsing JSON from db: ", msg)
+    }
+    console.log(JSON.stringify(obj,null,2))
+    rl.prompt()
+  })
+
+  rl.on('line', line => {				//When the user inputs a line
+    log.debug("Got user line:", line)
+    handle(ws, line)					//Process it
+  })
+
+log.debug("Websocket open")
+  rl.prompt()						//Give initial prompt
+})
+
+//Process command line input
+//--------------------------------------------------------------------------------
+const handle = function(ws, line) {
+
+  let sendit = obj => {					//Send command object to the backend
+    ws.send(JSON.stringify(obj))
+  }
+
+  let args = line.match(/\\?.|^$/g).reduce((p, c) => {		//Parse command line into arguments
+    if(c === '"') {
+      p.quote ^= 1;
+    } else if(!p.quote && c === ' ') {
+      p.a.push('');
+    } else {
+      p.a[p.a.length-1] += c.replace(/\\(.)/,"$1");
+    }
+    return  p;
+  }, {a: ['']}).a
+log.debug("Arguments:", args)
+  let cmd = args.shift()				//First one is the command
+
+  switch (cmd) {
+    case 'list':
+      sendit({
+        id: 'list_cmd',					//Packet ID
+        action: 'select',				//Our command
+        view: 'mychips.users_v',
+        fields: ['id', 'std_name', 'peer_endp']
+      });						break;
+
+    case 'pay':
+      sendit({
+        id: 'pay_cmd',
+        action: 'select',
+        view: 'mychips.users_v',
+        table: 'mychips.users_pay',			//Example function--not yet implemented
+        params: args					//Table will become a function with these arguments
+      });						break;
+
+    case 'exit':
+      process.exit()
+
+    default:
+      console.log("Unknown command: " + cmd)
+      rl.prompt()
+  }
+}

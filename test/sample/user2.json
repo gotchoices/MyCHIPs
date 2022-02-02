@@ -1,0 +1,44 @@
+{"user": {
+  "cid": "adam_smith",
+  "type": "p",
+  "name": "Smith",
+  "first": "Adam",
+  "begin": "1970-Jan-31",
+  "juris": "US",
+  "taxid": "234-456-7890",
+  "address[]": [
+    {"address": {
+      "spec": "2345 My Avenue",
+      "main": "false",
+      "type": "ship",
+      "locale": "Mycity",
+      "state": "Mystate",
+      "post": "23456-7890",
+      "comment": "Test address"
+    }},
+    {"address": {
+      "spec": "PO Box 4567",
+      "main": "true",
+      "type": "bill",
+      "locale": "Mycity",
+      "state": "Mystate",
+      "post": "23456-4567",
+      "comment": "Mailing address"
+    }}
+  ],
+  "connect[]": [
+    {"connect": {
+      "spec": "701-345-6789",
+      "media": "phone",
+      "comment": "Home"
+    }},
+    {"connect": {
+      "spec": "701-456-7890",
+      "media": "cell"
+    }},
+    {"connect": {
+      "spec": "adamsmith1@hotmail.com",
+      "media": "email"
+    }}
+  ]
+}}

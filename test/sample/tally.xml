@@ -1,0 +1,26 @@
+<head>
+  <date>2017-01-01_11:55:13</date>
+  <foil>robert_jones_7756.chip</foil>
+  <stock>walmart.com</stock>
+</head>
+<money>
+  <crebit>
+    <date>
+      2017-01-02_09:25:34
+    </date>
+    <amount>
+      10.345678
+    </amount>
+    <type>
+      Order 
+    </type>
+    <ref>
+      5574-3578
+    </ref>
+  <crebit>
+</money>
+<valid>
+  <sign>
+    Encoded signature
+  </sign>
+</valid>

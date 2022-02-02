@@ -1,0 +1,46 @@
+{"user": {
+  "cid": "fran_lee",
+  "type": "p",
+  "name": "Lee",
+  "first": "Francis",
+  "middle": "Scott",
+  "prefer": "Fran",
+  "begin": "1968-May-31",
+  "juris": "US",
+  "taxid": "345-67-8901",
+  "address[]": [
+    {"address": {
+      "spec": "4321 My Court",
+      "main": "false",
+      "type": "ship",
+      "locale": "Myberg",
+      "state": "Mystate",
+      "post": "45678-1234",
+      "comment": "Summer home"
+    }},
+    {"address": {
+      "spec": "PO Box 4455",
+      "main": "true",
+      "type": "bill",
+      "locale": "Myberg",
+      "state": "Mystate",
+      "post": "45678-2345",
+      "comment": "Mailing address"
+    }}
+  ],
+  "connect[]": [
+    {"connect": {
+      "spec": "601-222-5678",
+      "media": "phone",
+      "comment": "Home"
+    }},
+    {"connect": {
+      "spec": "601-222-3333",
+      "media": "cell"
+    }},
+    {"connect": {
+      "spec": "franlee@compuserve.com",
+      "media": "email"
+    }}
+  ]
+}}

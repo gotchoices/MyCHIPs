@@ -1,0 +1,16 @@
+head: {
+  date: "2017-01-01_11:55:13",
+  foil: "robert_jones@mychips.com",
+  stock: "chips@walmart.com"
+},
+money: {
+  crebit: {
+    date: "2017-01-02_09:25:34",
+    amount: 10.345678,
+    type: Order,
+    ref: 5574-3578,
+  }
+},
+valid: {
+  sign: "Encoded signature",
+}
