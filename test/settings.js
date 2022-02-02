@@ -4,6 +4,7 @@ const assert = require('assert');
 const Bus = require('./bus')
 const Database = "mychipsTestDB"
 const DBAdmin = "admin"
+const uuidv5 = require('uuid/v5')
 
 module.exports={
   Database,
@@ -25,5 +26,10 @@ module.exports={
   },
   saveRest: function (tag, tab, func='save') {
     return Format('select wm.table_%s(%L,%L);', func, tab, tag)
-  }  
+  },
+  getRow: function (res,idx,exp=1) {
+    assert(res.rowCount, exp)
+    return res.rows[idx]
+  },
+  mkUuid: function(cid) {return uuidv5(cid, uuidv5(cid, uuidv5.DNS))}
 }

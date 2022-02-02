@@ -101,7 +101,7 @@ State transition messages are as follows:
   requesting that a connection be opened to the site containing the tally and asking
   that the actual tally draft be sent back.
   - **action**: ticket;
-  - **ticket**: a connection ticket containing:
+  - **ticket**: a connection ticket (i.e. not a tally yet!) containing:
     - token: connection code
     - cert: CHIP certificate of the subject peer who will receive the tally
 

@@ -67,21 +67,21 @@ to be private unless and until the owner chooses to make them known.
 ### CHIP Addresses
 On the MyCHIPS network, entities (people and companies) are referred to by a
 CHIP Identifier (CID) which can best be thought of as a unique username on their
-host system.  It is analogous to the first part of an email address--the part prior
+host system.  It s analogous to the first part of an email address--the part prior
 to the '@' symbol.
 
 In most cases, the CID will be combined with an agent ID (or just "agent") that
 represents the public key of a server process that handles business on behalf of
 the MyCHIPs user.
 
-Together, the CID and agent form a basic MyCHIPs address normally presented like this:
+Together, the CID and agent form a basic CHIP Address (CHAD) normally presented like this:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE
 ```
 Note: the term "agent" is used here in a different context than the 
 [agent-based model](sim-agent.md) that is used as part of the simulation environment
 for testing and evaluating MyCHIPs.
-In this context, it simply means a software service that acts on behalf of one or more
+In this context, it simply means a software service that acts *on behalf* of one or more
 users on a host site.
 
 ### Portals
@@ -89,7 +89,7 @@ Notably, the CHIP address is missing any kind of location information that might
 find a physical address on the Internet for the user.  That is by design to facilitate a 
 greater degree of privacy and decentralization.
 
-But a MyCHIPs user will have to divulge a physical address to his trading partners.
+But a MyCHIPs user *will* have to divulge a physical address to his trading partners.
 So there is more we can add to the CHIP address to make it clear where other users can 
 connect.
 
@@ -100,11 +100,11 @@ In web technology, this is sometimes called an "origin" and it is rendered like 
   mychips.org:57423
 ```
 We can put these two pieces of information together, separated by an '@' symbol, to 
-form a more explicit address such as:
+form a more explicit CHAD such as:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
-We can form a fully qualified URI as in:
+We can form a fully qualified CHAD URI as in:
 ```
   chip://suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```

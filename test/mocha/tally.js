@@ -1,11 +1,9 @@
-//Test tally initialization sequence; Run only after impexp done
+//Test tally initialization sequence; Run only after impexp, testusers
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB:
 // User1 <-> DB <-> Agent1 <-> Agent2 <-> DB <-> User2
 //TODO:
-//X- Create tally template
-//X- Attach token to it
 //- Give ticket info to other peer
 //- Have them connect via noise module using the ticket
 //- 
@@ -13,89 +11,60 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const assert = require('assert');
-const uuidv5 = require('uuid/v5')
-const Format = require('pg-format')
-const { Database, DBAdmin, MachineIP, Log } = require('../settings')
+const { dbConf, Log, Format, Bus, assert, saveRest, getRow, mkUuid } = require('../settings')
 var log = Log('testPeer')
 var { dbClient } = require("wyseman")
-const PeerCont = require("../../lib/peer")
-const MessageBus = require('../bus')
-const Port0=65434
-const Port1=65435
-var host = 'localhost'
-var publicKey0 = Buffer.from('P'+Port0).toString('base64url')
-var publicKey1 = Buffer.from('Q'+Port1).toString('base64url')
-var agent0 = {host, port: Port0, key:{publicKey:publicKey0}}
-var agent1 = {host, port: Port1, key:{publicKey:publicKey1}}
+const PeerCont = require("../../lib/peer2peer")
+const {host,user0,user1,cid0,cid1,Port0,Port1,aKey0,aKey1,aCon0,aCon1} = require('./testusers')
+var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
 var interTest = {}			//Pass values from one test to another
-var dbConf = function(listen) {Object.assign(this, {database: Database, user: DBAdmin, log, listen})}
 
-describe("Establish new tally", function() {
+describe("Establish new tally between two users", function() {
   var server0, server1
-  var bus0 = new MessageBus('bus0'), bus1 = new MessageBus('bus1')
+  var bus0 = new Bus('bus0'), bus1 = new Bus('bus1')
   var db0, db1
 
   before('Connection 0 to test database', function(done) {	//Emulate user p1000
-    db0 = new dbClient(new dbConf('mychips_user_p1000'), (chan, data) => {
-      log.info("Notify 0 from channel:", chan, "data:", data)
+    db0 = new dbClient(new dbConf(log,'mychips_user_p1000'), (chan, data) => {
+      log.trace("Notify 0 from channel:", chan, "data:", data)
       bus0.notify(data)
     }, ()=>{log.info("Main test DB connection 0 established"); done()})
   })
 
   before('Connection 1 to test database', function(done) {	//Emulate user p1001
-    db1 = new dbClient(new dbConf('mychips_user_p1001'), (chan, data) => {
-      log.info("Notify 1 from channel:", chan, "data:", data)
+    db1 = new dbClient(new dbConf(log,'mychips_user_p1001'), (chan, data) => {
+      log.trace("Notify 1 from channel:", chan, "data:", data)
       bus1.notify(data)
     }, ()=>{log.info("Main test DB connection 1 established"); done()})
   })
 
   before('Launch two peer servers', function(done) {
-    server0 = new PeerCont(agent0, new dbConf())	//Smith
-    server1 = new PeerCont(agent1, new dbConf())	//Madison
+    server0 = new PeerCont(aCon0, new dbConf())		//Smith
+    server1 = new PeerCont(aCon1, new dbConf())		//Madison
     done()
   })
 
-  it("Initialize test users", function(done) {
-//log.debug("Key:", agent0.key.publicKey)
-    let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L'
-      , f0 = Format(fields, host, Port0, publicKey0)
-      , f1 = Format(fields, host, Port1, publicKey1)
-      , sql = `begin;
-        delete from base.ent where ent_num > 1001;
+  it("Initialize DB", function(done) {
+    let sql = `begin;
         delete from mychips.tallies;
-        update mychips.users set _last_tally = 0;
-        update mychips.users_v set ${f0} where peer_ent = 'p1000';
-        update mychips.users_v set ${f1} where peer_ent = 'p1001';
-        select count(*) as count from mychips.users_v where ent_num >= 1000; commit;`
-log.debug("Sql:", sql)
-    db0.query(sql, (err, res) => {if (err) done(err)
-      assert.equal(res.length, 8)	//8: begin, del, del, upd, upd, upd, select, commit
-//log.debug("Res:", res[6].rows[0])
-      let row = res[6].rows[0]
-log.info("Users:", row.count)
-      assert.equal(row.count,2)
-      done()
-    })
+        update mychips.users set _last_tally = 0; commit`
+    db0.query(sql, (e) => {if (e) done(e); done()})
   })
 
-  it("p1000 builds proposed tally and token", function(done) {
-    let cid = 'p1000'
-      , uuidNS = uuidv5(cid, uuidv5.DNS)
-      , uuid = uuidv5(cid, uuidNS)
-      , contract = {name:"mychips", version:0.99}
+  it("User 0 proposer builds tally template and token", function(done) {
+    let cid = user0
+      , uuid = mkUuid(cid)
       , s1 = Format('insert into mychips.tallies (tally_ent, tally_uuid, contract) values(%L,%L,%L)', cid, uuid, contract)
       , sql = `with row as (${s1} returning tally_ent, tally_seq)
           insert into mychips.tokens (token_ent, tally_seq) select * from row returning *;
-          select * from mychips.tallies where tally_ent = '${cid}' order by tally_seq desc limit 1;
-          select chip,token,expires from mychips.tokens_v;`
+          select * from mychips.tallies_v where tally_ent = '${cid}' and tally_seq = 1;
+          select token,expires,chip from mychips.tokens_v;`
 //log.debug("Sql:", sql)
     db0.query(sql, (e, res) => {if (e) done(e)
 //log.debug("Res:", res)
       assert.equal(res.length, 3)
       assert.equal(res[0].rowCount, 1)
       let tok = res[0].rows[0]
-//log.debug("Tok:", tok)
       assert.equal(tok.token_ent, cid)
       assert.equal(tok.token_seq, 1)
       assert.equal(tok.tally_seq, 1)
@@ -105,18 +74,26 @@ log.info("Users:", row.count)
       assert.equal(tal.tally_uuid, uuid)
       assert.ok(!tal.partner)
       assert.equal(tal.status,'void')
-//log.debug("Ticket:", res[2].rows[0])
-      interTest = res[2].rows[0]
+      assert.equal(tal.tally_type,'stock')
+      assert.equal(tal.hold_cid,cid0)
+      assert.equal(tal.hold_agent,aKey0)
+      let ticket = res[2].rows[0]
+//log.debug("Ticket:", ticket)
+      interTest = ticket
       done()
     })
   })
 
-  it("p1001 asks his server to request the proposed tally", function(done) {
-    let sql = Format('select mychips.ticket_process(%L,%L)', interTest, 'p1001')
+/*
+  it("User 1 subject asks his server to request the proposed tally", function(done) {
+    let sql = Format('select mychips.ticket_process(%L,%L)', interTest, user1)
+      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 log.debug("Sql:", sql)
     db1.query(sql, null, (e, res) => { if (e) done(e)
-//log.debug("res:", res.rows[0]);
-      assert.equal(res.rowCount, 1)
+      let row = getRow(res, 0)
+log.debug("row:", row);
+      assert.ok(row.ticket_process)
+      _done()
     })
     bus1.register('p1', ({chan, data}) => {	//Listen for message from our database
       let msg = JSON.parse(data)
@@ -126,11 +103,10 @@ log.debug("bus:", chan, msg)
 log.debug("cert:", cert)
       assert.equal(cert.id, 'p1000')
       bus1.register('p1')
-      done()
+      _done()
     })
   })
 
-/*  
 xxxx
   it("User p1001 proposes a tally to user p1000", function(done) {
     const sql = `begin;

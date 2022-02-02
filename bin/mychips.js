@@ -87,7 +87,7 @@ var wyseman = new Wyseman({				//Launch SPA server and associated web socket
 })
 
 if (Boolean(argv.agentKey)) {				//Create socket server for peer-to-peer communications
-  const PeerCont = require('../lib/peer.js')		//Peer communications controller
+  const PeerCont = require('../lib/peer2peer.js')	//Peer communications controller
   var peerCont
     , openPeerCont = (host, port, key) => {
         peerCont = new PeerCont({host, port, key, poll: true}, {

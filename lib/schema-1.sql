@@ -4397,7 +4397,7 @@ create function mychips.token_valid(tok text, cert jsonb) returns boolean langua
       select into orec valid,token,reuse,token_ent,token_seq,tally_seq from mychips.tokens_v where token = tok;
 raise notice 'token check: %', tok;
       if found and orec.valid then
-raise notice 'token valid: %', orec.reuse;
+raise notice 'token valid; reuse:%', orec.reuse;
         if orec.reuse then
 
 

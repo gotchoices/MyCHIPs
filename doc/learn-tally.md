@@ -440,10 +440,9 @@ Like an invoice, this information must be passed out-of-band.
 
 The process is conducted according to the following example.
 
-- User A3 will build a suggested tally and then request from his host system a 
-  [ticket](/doc/learn-tally.md#establishing-a-tally) associated with that tally.
+- User A3 will build a suggested tally and then request from his host system a ticket associated with that tally.
   This authorizes a peer site to establish a connection, absent pre-shared key information.
-  It will also trigger site A to proffer the tally when the connection i smake.
+  It will also trigger site A to proffer the tally when the connection is made.
   
 - The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
   For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
@@ -451,28 +450,26 @@ The process is conducted according to the following example.
 <p align="center"><img src="figures/Lifts-6.jpg" width="400" title="Example Network"></p>
 
 - The ticket contains:
-  - User A3's [CHIP Certificate](#entity-certificates).  This contains:
-    - Contact and identity information about user A3
-    - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
+  - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
     connect with Site A on behalf of user A3.
-    - User A3's public signing key.
   - An expiring, one-time token, authorizing connection without any other key information.
     The token will internally specify that it is for establishing a new tally;
-  - The token expiration date;
+  - The token expiration date/time;
 
 - Once in possession of the connection ticket,
   Site B connects (on behalf of B1) to site A.
   It sends a structure encrypted with the site A's public agent key, containing
     - The connection ticket;
       - B1's CHIP Certificate, added into the ticket;
-    - The public key of the site B agent (inherent in the NPF connection);
+    - The public key of the site B agent (inherent in establishingn the NPF connection);
 
   If site A can decrypt the message, and the token is still valid, it will:
     - Finalize opening of the connection (including agent key exchange);
-    - Add peer B1 into its database, subject to [ conditions](#entity-certificates);
-    - Consider the connection as the initial step in the
-      [Tally Initiation Sub-protocol](learn-protocol.md#tally-protocol);
-    - Finalize any details of the tally and send it to site B for B1's approval;
+    - Build a tally as drafted in its own DB in association with the token;
+    - Add B1's certificate information into the tally;
+    - Present the drafted tally for signature by entity A3
+      (this signing step could be automated in certain larger-scale situations);
+    - Once signed, the draft tally will be transmitted to B1 for review, counter or acceptance;
 
   If the initiation message fails, site A should silently close the connection
   and may opt to initiate defensive measures (such as firewall blocking) against
@@ -483,15 +480,16 @@ For a real-world example, let's consider the case of a commercial account like a
 - The Vendor displays or transmits a ticket QR code, containing the connection ticket;
 - The customer scans the ticket using his app;
 - The customer's host agent contacts the Vendor's host agent system at the specified port
-  and presents the connection token.;
+  and presents the connection token;
   The vendor's system must prove its authenticity via the public agent key it supplied in the ticket;
 - The customer proves authenticity simply by possessing the token;
 - The customer system provides the [customer's certificate](#entity-certificates).
-- The Vendor's system will offer the draft tally (or a clone of it when the token is meant to handle multiple connections).
+- The vendor's system will complete the draft tally (or a clone of it when the token is meant to handle multiple connections).
+- The vendor system will send the tally to a human (or an authorized bot) for signing.
 - The customer will be given the opportunity to accept/modify/reject the tally.
 - If he accepts it, we are done.  The draft tally has already been signed with its preferred terms.
-- If he modifies it with a counteroffer, some human user (or authorized bot) on the 
-  Vendor's end would have to re-sign the tally (assuming they are willing to) before the tally becomes active.
+- If he modifies it with a counteroffer, some (probably human) user on the 
+  vendor's end would have to re-sign the tally (assuming they are willing to) before the tally becomes active.
   The vendor (or vendor system) would also have the option of re-counterign or refusing the modified tally.
 
 Once the tally is established, the customer can [set parameters](#trading-variables) on the tally to
@@ -512,13 +510,13 @@ CHIP certificate.  The certificate has several purposes:
     an unmistakable and legally sufficient way.
   - To identify how/where to contact the agent server acting officially on behalf of the
     MyCHIPs user.
-  - To provide sufficient information to the host system to uniquely identify the
+  - (OBSOLETE:) To provide sufficient information to the host system to uniquely identify the
     entity and create the approprate database record (or properly recognize that it
     already exists).
 
 During a transaction involving a connection ticket, there is a point where the subject
 entity presents the ticket, along with its own certificate.  In the original design, 
-the intent was that the proffering system would decide whether it already has a valid 
+the intent was that the proffering system would decide whether it already has a valid DB
 record for the peer or if it should add a new record.  This turns out to be one of the 
 trickiest parts of the protocol.
 
@@ -557,7 +555,7 @@ it is certainly possible for one person to have more than one CHIP account.  If 
 implementation is going to insist on uniqueness here, it might have to support
 multiple CHIP ID's per entity.
 
-More than anything, perhaps these issues expose a flaw in the original database design.
+More than anything, perhaps these issues expose a flaw in the original schema design.
 It assumed that host systems would maintain normalized entity records 
 (i.e. one per entity) for foreign peers who were connected by tallies to its own local 
 user entities.  That assumption may just not be possible without the need for periodic
@@ -574,7 +572,7 @@ So as of Jan 2022, we will pursue the following design approach:
   attest to the certificate data as it existed when the tally was consummated.
 - Host systems should take reasonable steps to make sure they only have a single entity
   record for their own local users (such as making a tax ID, or signing key unique)
-- But host systems will not attempt to store a normalized entity record for foreign peers
+- But a host system will not attempt to store a normalized entity record for foreign peers
   at all.  Rather, it will maintain a separate copy of the peer certificate for each
   individual tally.
 - This approach seems bulky in some ways.  But it should allow a server to operate much
@@ -589,8 +587,8 @@ So as of Jan 2022, we will pursue the following design approach:
 - If a user loses his signing key:
   - He should be able to regenerate one as needed without being hassled too much by his host system.
   - He should be aware that he will lose the ability to transact on any existing tallies.
-  - He will have to talk existing partners into executing new tallies using the new key.
-  - And he will have to arrange with them to void out, or lift out any existing balances
+  - He will have to talk existing partners into executing new tallies using the new key (and possibly a different agent/provider).
+  - And he will have to arrange with them to void out, or *lift out* any existing balances
     and move them over to the new tally with the new key.
 - This approach introduces some potential challenges in the DB views used for calculating
   lift pathways.  Hopefully there is sufficient data in the tally/certificate to maintain
@@ -675,8 +673,8 @@ tally: {
   date: <Begin date of contract>,
   note: <Additional Comments>,
   stock: {
-    cert: <[CHIP Certificate](#the-entity-certificate)>
-    terms: <[Credit Terms](#credit-terms-examples)>
+    cert: <CHIP Certificate>
+    terms: <Credit Terms>
   }
   foil: {
     cert: <CHIP Certificate>

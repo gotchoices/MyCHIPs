@@ -72,21 +72,21 @@ If this initial packet is forged or modified, subsequent packets will not succee
 
 To track this, packets will be prefixed with a single byte header as follows:
 - I: Initial connection request from initiator to responder containing a connection ticket.
-- N: One way transmission from initiator to responder, declaring initiator's site id (```address@port```).
+- N: One way transmission from initiator to responder, declaring initiator's CHIP address (```agent@address:port```).
 - K: Subsequent connection request (sent immediately after N packet) .
 - A: Noise acknowledge packet from responder to initiator, completes noise handshake.
 - T: Regular transmission packet over established, encrypted channel.
 
-Each connection should then in one of the following states:
+Each connection should then be in one of the following states:
 
 ![state-noise](uml/state-noise.svg)
 
-The pending state is represented by a peer who initiates contact with a currently disconnected server.
+The pending state is entered by a client who initiates contact with a currently disconnected server.
 The ticket and request states represent a server responding to a client connection request.
 
 As a result, it is possible that two peers might initiate a connection to each other at about the same time.
-This could result in two channels getting opened up between the two hosts.
-While this is not optimal, it should not pose a problem as long as the communication module does not make any assumptions that it cannot happen.
+This could result in two channels getting opened up between the same two hosts.
+While this is not optimal, it should not cause a problem as long as the communication module does not make any assumptions that it cannot happen.
 
 ### Key Security
 Noise Protocol is based on the [Diffie Hellman protocol](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange).

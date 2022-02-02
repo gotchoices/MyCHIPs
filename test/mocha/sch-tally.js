@@ -9,21 +9,18 @@
 //- Generates proper signals to user process
 //- 
 
-const { dbConf, Log, Format, Bus, assert, saveRest } = require('../settings')
+const { dbConf, Log, Format, Bus, assert, saveRest, getRow, mkUuid } = require('../settings')
 var log = Log('testSchTally')
 var { dbClient } = require("wyseman")
-const uuidv5 = require('uuid/v5')
-const { host, user0, user1, Port0, Port1, aKey0, aKey1, agent0, agent1 } = require('./testusers')
+const { host, user0, user1, Port0, Port1, aKey0, aKey1 } = require('./testusers')
 var userListen = 'mychips_user_' + user0
 var agentListen = 'mychips_agent_' + aKey0		//And his agent process
 var interTest = {}			//Pass values from one test to another
-var mkUuid = function(cid) {return uuidv5(cid, uuidv5(cid, uuidv5.DNS))}
 var contract = {domain:"mychips.org", name:"standard", version:0.99}
 var stateField = 'mychips.tally_state(status,request,hold_sig,part_sig,units_gc) as state'
 var save = (tag) => saveRest(tag, 'mychips.tallies')
 var rest = (tag) => saveRest(tag, 'mychips.tallies', 'rest')
 var uSql = (sets) => Format(`update mychips.tallies ${sets} where tally_ent = %L and tally_seq = %L returning *, ${stateField};`, user0, 1)
-var getRow = (res,idx,exp=1) => {assert(res.rowCount, exp); return res.rows[idx]}
 
 describe("Test tally state transitions", function() {
   var busU = new Bus('busU'), busA = new Bus('busA')
@@ -292,12 +289,8 @@ log.debug("Sql:", sql)
       done()
     })
   })
-
-
 /*
-xxxx
 */
-
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let it flush out before closing
       dbU.disconnect()

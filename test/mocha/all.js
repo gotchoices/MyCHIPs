@@ -10,9 +10,13 @@ require('./peernoise.js')
 require('./peercomm.js')	//Deprecated
 
 require('./impexp.js')		//Will add users needed for peer test
-//require('./peer.js')
+require('./testusers.js')	//Must run before sch-tally or tally
+require('./sch-tally.js')
+require('./tally.js')
 
-require('./sch-multi.js')	//Will empty users table
+//require('./peer.js')		//Old, needs rework
+
+//require('./sch-multi.js')	//Will empty users table
 require('./sch-crypto.js')
 
 after('Delete test database', function(done) {
