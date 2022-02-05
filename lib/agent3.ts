@@ -1,14 +1,12 @@
 import SQLManager from './agent3/sqlmanager'
 import MongoManager from './agent3/mongomanager'
 import Os from 'os'
+import { Document, MongoClient as DocClient, MongoClientOptions } from 'mongodb'
 import UnifiedLogger from './agent3/unifiedLogger'
 import { ActionDoc } from './@types/document'
 import Agent from './agent3/agent'
 import AgentFactory from './agent3/agentFactory'
 import AgentsCache from './agent3/agentsCache'
-
-const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
-
 
 class AgentCluster {
   private networkConfig: NetworkConfig
@@ -69,10 +67,7 @@ class AgentCluster {
 
   configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DBConfig) {
     // Configure SQLManager
-    this.myChipsDBManager = SQLManager.getInstance(
-      myChipsDBConfig,
-      this.params
-    )
+    this.myChipsDBManager = SQLManager.getInstance(myChipsDBConfig, this.params)
     // Configure MongoManager
     this.worldDBManager = MongoManager.getInstance(
       worldDBConfig,
@@ -103,7 +98,6 @@ class AgentCluster {
     this.myChipsDBManager.getParameters(this.eatParameters) //Load initial parameters
 
     this.worldDBManager.createConnection(
-      WorldDBOpts,
       this.notifyOfNewAgentRequest,
       // loadInitialUsers is called once the connection is created asynchronously
       this.loadInitialUsers

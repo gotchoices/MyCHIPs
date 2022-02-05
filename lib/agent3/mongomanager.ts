@@ -1,12 +1,20 @@
 import Agent from "./agent"
-import { MongoClient, Db, Collection, Document, ChangeStream } from 'mongodb'
+import {
+  MongoClient,
+  Db,
+  Collection,
+  Document,
+  ChangeStream,
+  MongoClientOptions,
+  PushOperator,
+} from 'mongodb'
 import Os from 'os'
 import { ActionDoc, PeerDoc } from '../@types/document'
 import UnifiedLogger from './unifiedLogger'
 
 class MongoManager {
   private static singletonInstance: MongoManager
-  private dbConfig: DBConfig
+  private docConfig: DBConfig
   private host: string
   private logger: WyclifLogger
   private dbConnection!: Db
@@ -21,7 +29,7 @@ class MongoManager {
   private foreignActionTagIndex!: number
 
   private constructor(dbConfig: DBConfig, argv) {
-    this.dbConfig = dbConfig
+    this.docConfig = dbConfig
     this.logger = UnifiedLogger.getInstance()
 
     // MongoDB host name
@@ -43,13 +51,12 @@ class MongoManager {
   }
 
   createConnection(
-    options,
-    notifyOfNewAgentRequest,
-    loadInitialUsers
+    notifyOfNewAgentRequest: (agentData: AgentData, tag: string, destHost: string) => void,
+    loadInitialUsers: () => void
   ) {
-    let url = `mongodb://${this.dbConfig.host}:${this.dbConfig.port}/?replicaSet=rs0`
+    let url: string = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
     this.logger.verbose('Mongo:', this.host, url)
-    this.mongoClient = new MongoClient(url, options)
+    this.mongoClient = new MongoClient(url)
     this.mongoClient.connect((err, client) => {
       //Connect to mongodb
       if (err) {
@@ -61,7 +68,7 @@ class MongoManager {
         return
       }
 
-      this.dbConnection = client.db(this.dbConfig.database)
+      this.dbConnection = client.db(this.docConfig.database)
 
       this.actionsCollection = this.dbConnection.collection('actions')
       //      this.actionsCollectionStream = this.actionsCollection.watch([{$match: { host: null }}])
@@ -109,12 +116,12 @@ class MongoManager {
     return this.mongoClient != null
   }
 
-  insertAction(cmd: string, tag: string = this.host + '.' + this.foreignActionTagIndex++, destinationHost: string, callback?) {
+  insertAction(command: string, tag: string = this.host + '.' + this.foreignActionTagIndex++, destinationHost: string, callback?) {
     this.actionsCollection.insertOne(
-      { action: cmd, tag: tag, host: destinationHost, from: this.host },
+      { action: command, tag: tag, host: destinationHost, from: this.host },
       (err, res) => {
-        if (err) this.logger.error('Sending remote command:', cmd, 'to:', destinationHost)
-        else this.logger.info('Sent remote action:', cmd, 'to:', destinationHost)
+        if (err) this.logger.error('Sending remote command:', command, 'to:', destinationHost)
+        else this.logger.info('Sent remote action:', command, 'to:', destinationHost)
       }
     )
     
@@ -147,6 +154,7 @@ class MongoManager {
       },
       {
         $set: { random: Math.random() }, //re-randomize this person
+        //TODO: convert to PushDocument type somehow
         $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
       },
       {
