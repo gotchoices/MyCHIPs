@@ -15,7 +15,9 @@ class MongoManager {
   private agentsCollection!: Collection<Document> //TODO: Change this
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
-  private callbackCache!: ForeignActionCallbackCache
+  /** A cache in which to store callbacks that need to run when actions sent to foreign servers are completed */
+  private foreignActionCallbackCache!: { [x: string]: (...args: any[])=> any }
+  private foreignActionTagIndex!: number
 
   private constructor(dbConfig: DBConfig, argv) {
     this.dbConfig = dbConfig
@@ -23,6 +25,8 @@ class MongoManager {
 
     // MongoDB host name
     this.host = argv.peerServer || Os.hostname()
+
+    this.foreignActionTagIndex = 0
   }
 
   /** Returns the singleton instance of the MongoManager */
@@ -82,8 +86,8 @@ class MongoManager {
         } else if (doc.action == 'done') {
           // Someone has told me that an action I requested is done
           this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
-          this.callbackCache.getCallback(doc.tag)()
-          this.callbackCache.deleteCallback(doc.tag)
+          this.foreignActionCallbackCache[doc.tag]()
+          delete this.foreignActionCallbackCache[doc.tag]
         }
         // Add other types of Foreign Actions here
 
@@ -104,13 +108,18 @@ class MongoManager {
     return this.mongoClient != null
   }
 
-  insertAction(cmd, tag, host, data?) {
+  insertAction(cmd: string, tag: string = this.host + '.' + this.foreignActionTagIndex++, destinationHost: string, callback?) {
     this.actionsCollection.insertOne(
-      { action: cmd, tag: tag, host: host, from: this.host, data },
+      { action: cmd, tag: tag, host: destinationHost, from: this.host },
       (err, res) => {
-        if (err) this.logger.error('Sending remote command:', cmd, 'to:', host)
+        if (err) this.logger.error('Sending remote command:', cmd, 'to:', destinationHost)
+        else this.logger.info('Sent remote action:', cmd, 'to:', destinationHost)
       }
     )
+    
+    if (callback) {
+      this.foreignActionCallbackCache[tag] = callback
+    }
   }
 
   updateOneAgent(agent: AgentData) {
@@ -127,22 +136,20 @@ class MongoManager {
     )
   }
 
-  //TODO change name
-  findOneAndUpdate(aData, maxfoils, notifyTryTally) {
+  findPeerAndUpdate(hostedAccountPeerCid: string, alreadyConnectedAccounts: string[]): any {
+    let result: any = undefined
     this.agentsCollection.findOneAndUpdate(
       {
         //Look for a trading partner
         peer_cid: {
-          $ne: aData.peer_cid, //Don't find myself
-          $nin: aData.partners, //Or anyone I'm already connected to
-        },
-        //        host: {$ne: this.host},			//Look only on other hosts
-        foils: { $lte: maxfoils }, //Or those with not too many foils already
+          $ne: hostedAccountPeerCid, //Don't find myself
+          $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
+        }
       },
       {
         $set: { random: Math.random() }, //re-randomize this person
         $inc: { foils: 1 }, //And make it harder to get them again next time
-        $push: { partners: aData.peer_cid }, //Immediately add ourselves to the array to avoid double connecting
+        $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
       },
       {
         //Sort by
@@ -152,18 +159,21 @@ class MongoManager {
         //Get result of query
         if (e) {
           this.logger.error(e.message)
+          throw "Error trying to find another peer"
         } else if (res?.ok) {
           this.logger.verbose(
             '  Best client:',
             res?.value?.std_name,
             res?.value?.host
           )
-          notifyTryTally(aData, res.value)
+          result = res.value
         } else {
           this.logger.verbose('  No client found in world DB')
         }
       }
-    ) //findOneAndUpdate
+    )
+
+    return result
   }
 
   deleteManyAgents(processedAgents: string[]): void {

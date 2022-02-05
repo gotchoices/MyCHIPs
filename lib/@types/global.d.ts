@@ -18,15 +18,32 @@ interface DBConfig {
 
 /** Adjustable parameters that determine how the simulation is run. Gathered from paramConfig.yaml */
 interface AdjustableSimParams {
+  /** The interval between rounds in the simulation (in milliseconds) */
   interval: number
-  addclient: number
-  checksets: number
-  addvendor: number
-  maxstocks: number
-  maxfoils: number
-  mintotpay: number
-  maxtopay: number
-  maxtarget: number
+  /** A list agent parameters */
+  agentTypes: AdjustableAgentParams[]
+}
+
+/** Adjustable parameters that determine how an agent should act. Gathered from paramConfig.yaml */
+interface AdjustableAgentParams {
+  /** The type of entity. The string should equal one of the implemented types of entities */
+  type: string
+  /** The percentage of total entities on this server that should be made this type */
+  percentOfTotal: number
+  /** A percentage defining how often this entity will try to add a new spending target (vendor or stock) */
+  newSpendingTargetOdds: number | undefined
+  /** A percentage defining how often this entity will try to add a new income source (client or foil) */
+  newIncomeSourceOdds: number | undefined
+  /** A percentage degining how often this entity will try to adjust its settings */
+  adjustSettingsOdds: number | undefined
+  /** The maximum number of spending targets (stocks) this entity will open */
+  maxSpendingTargets: number | undefined
+  /** The maximum number of income sources (foils) this entity will open */
+  maxIncomeSources: number | undefined
+  /** The minimum net worth the entity must have to be willing to spend money */
+  minWorthToSpend: number | undefined
+  /** A percentage defining the maximum amount this entity is willing to spend in one transaction */
+  maxToSpend: number | undefined
 }
 
 interface ActionData {
@@ -46,7 +63,7 @@ interface AgentData {
   fir_name: string
   /** Entity type */
   ent_type: string
-  user_ent: string | null
+  hosted_ent: boolean | null
   peer_cid: string
   /** Assigned peer socket (ex: 'peer2:65430') */
   peer_socket: string
@@ -62,13 +79,18 @@ interface AgentData {
   units: string
   types: string[]
   seqs: number[]
-  targets: string[]
   random?: number
   /** Name of hosting peer server (ex: 'peer0') */
   host?: string
   born_date?: string
   peer_host?: string
   peer_port?: string
+}
+
+/** Used when pulling data from SQL */
+interface ParamData {
+  name: string
+  value: any
 }
 
 /** Network config values passed in from simulation */

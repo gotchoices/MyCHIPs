@@ -2,6 +2,8 @@
 import { dbClient } from 'wyseman'
 import UnifiedLogger from './unifiedLogger'
 
+import uuidv4 from 'uuid/v4';
+
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_sock, stocks, foils, partners, vendors, clients,
 	vendor_cids, client_cids, stock_seqs, foil_seqs, units, types, seqs, targets
@@ -10,6 +12,8 @@ const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 const peerSql = `insert into mychips.peers_v 
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
+const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
+
 
 interface Config extends DBConfig {
   log: WyclifLogger
@@ -87,7 +91,7 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
-  addAgent(agentData: AgentData, onFinish: (data: AgentData)=>void) {
+  addAgent(agentData: AgentData) {
     this.dbConnection.query(
       peerSql,
       [
@@ -110,7 +114,31 @@ class SQLManager {
           newGuy.std_name,
           newGuy.peer_socket
         )
-        onFinish(newGuy)
+      }
+    )
+  }
+
+  addConnection(requestingAccountID: number, targetAccountID: number) {
+    let guid = uuidv4()
+    let sig = 'Valid'
+    let contract = { name: 'mychips-0.99' }
+
+    this.logger.debug('Tally request:', requestingAccountID, targetAccountID)
+
+    this.query(
+      'insert into mychips.tallies_v (tally_ent, tally_guid, partner, user_sig, contract, request) values ($1, $2, $3, $4, $5, $6);',
+      [requestingAccountID, guid, targetAccountID, sig, contract, 'draft'],
+      (err, res) => {
+        if (err) {
+          this.logger.error('In query:', err.stack)
+          return
+        }
+        this.logger.debug(
+          '  Initial tally by:',
+          requestingAccountID,
+          ' with partner:',
+          targetAccountID
+        )
       }
     )
   }
@@ -123,15 +151,15 @@ class SQLManager {
     this.dbConnection.disconnect()
   }
 
-  updateParameters() {}
-
-  updateAgents() {}
-
-  updateTally() {}
-
-  getParams() {}
-
-  getAgents() {}
+  getParameters(callback: (parameters: ParamData[]) => void) {
+    this.query(parmQuery, (err, res) => {
+      if (err) {
+        this.logger.error('In query:', err.stack)
+        return
+      }
+      callback(res.rows)
+    })
+  }
 
   queryUsers(callback: (agents: AgentData[], all: boolean)=>any) {
     this.query(userSql, (err: any, res: any) => {

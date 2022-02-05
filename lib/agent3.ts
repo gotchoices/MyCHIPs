@@ -9,8 +9,6 @@ import AgentsCache from './agent3/agentsCache'
 
 const WorldDBOpts = { useNewUrlParser: true, useUnifiedTopology: true }
 
-const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
-
 
 class AgentCluster {
   private networkConfig: NetworkConfig
@@ -26,15 +24,11 @@ class AgentCluster {
   private runs!: number
   /** Counts number of runs the simulation executes / tracks current run */
   private runCounter!: number
-  // TODO: Not sure what this does
+  /** Used to execute a run of the simulation each given interval */
   private intervalTimer!: NodeJS.Timer | null
 
   private agentCache!: AgentsCache
   private hostedAgents!: Agent[]
-
-  /** Use to make unique tag for each remote command */
-  private remoteIdx!: number
-  private remoteCBs!: { [x: string]: any } //Store routines to call on completion
 
   constructor(
     myChipsDBConfig: DBConfig,
@@ -92,8 +86,6 @@ class AgentCluster {
     this.logger.info('RUNNING AGENT MODEL V3')
 
     this.agentCache = AgentsCache.getInstance()
-    this.remoteIdx = 0 //Use to make unique tag for each remote command
-    this.remoteCBs = {} //Store routines to call on completion
 
     this.runCounter = 0
     if (this.networkConfig.runs) {
@@ -108,11 +100,7 @@ class AgentCluster {
 
     this.intervalTimer = null
     // TODO: determine if this is necessary with new paramConfig.yaml
-    this.myChipsDBManager.query(parmQuery, (e, r) => {
-      this.eatParams(e, r)
-    }) //Load initial parameters
-
-    //    this.worldPop = 40					//Init to any reasonable value
+    this.myChipsDBManager.getParameters(this.eatParameters) //Load initial parameters
 
     this.worldDBManager.createConnection(
       WorldDBOpts,
@@ -121,6 +109,18 @@ class AgentCluster {
       this.loadInitialUsers
     )
 
+    // Start simulation
+    if (this.intervalTimer) clearInterval(this.intervalTimer) // Restart interval timer
+    this.intervalTimer = setInterval(() => {
+        // If there is no limit on runs, or we're below the limit...
+        if (!this.runs || this.runCounter < this.runs) {
+          ++this.runCounter
+          this.hostedAgents.forEach(this.process)
+        }
+        else {
+          this.close()
+        }
+      }, this.params.interval)
   }
 
   // Replaces checkPeer() in agent2
@@ -137,7 +137,7 @@ class AgentCluster {
     this.myChipsDBManager.queryLatestUsers(msg.time, this.eatAgents)
   }
 
-  notifyOfParamsChange(target, value) {
+  notifyOfParamsChange(target: string, value: any) {
     this.params[target] = value
   }
 
@@ -147,7 +147,7 @@ class AgentCluster {
 
   notifyOfNewAgentRequest(agentData: AgentData, tag: string, destinationHost: string) {
     if (!this.agentCache.containsAgent(agentData)) {
-      this.myChipsDBManager.addAgent(agentData, (addedData) => {})
+      this.myChipsDBManager.addAgent(agentData)
       this.agentCache.addAgent(agentData)
     }
     this.worldDBManager.insertAction("done", tag, destinationHost)
@@ -180,15 +180,6 @@ class AgentCluster {
   }
 
   // --- Helper Functions --------------------------------------------------------
-  
-  // -----------------------------------------------------------------------------
-  // Executes a command on a foreign peer
-  remoteCall(host, cmd, data, cb) {
-    let tag = host + '.' + this.remoteIdx++ //Make unique message ID
-    this.logger.debug('Remote calling:', cmd, 'to:', host)
-    this.remoteCBs[tag] = cb //Remember what to call locally on completion
-    this.worldDBManager.insertAction(cmd, tag, host, data)
-  }
 
   // -----------------------------------------------------------------------------
   // Gets the agents from the SQLManager
@@ -205,7 +196,7 @@ class AgentCluster {
       //For each agent in sql
       this.agentCache.addAgent(dbAgent)
       
-      if (dbAgent.user_ent) {
+      if (dbAgent.hosted_ent) {
         //If this is one we host, update world db
         processedAgents.push(dbAgent.peer_cid)
         dbAgent.random = Math.random()
@@ -214,43 +205,37 @@ class AgentCluster {
       }
     })
 
+    // If loading all users (loading for the first time)
     if (all) {
       this.worldDBManager.deleteManyAgents(processedAgents)
     }
 
     // Ensure all agents hosted on this server have an Agent object
     let localAgents = dbAgents.filter((val) => val.host == this.host)
-    //TODO Add logic to determine how many of each Agent Type to create
-    localAgents.forEach((agent) => {
-      let hostedIndex = this.hostedAgents.findIndex((el) => el.peer_cid == agent.peer_cid)
-      if (hostedIndex < 0) {
-        //TODO: replace `this.params` with params specific to the agent type (from paramConfig.yaml)
-        this.hostedAgents.push(AgentFactory.createAgent("BaseAgent", agent, this.params))
+    let typesToMake: [string, AdjustableAgentParams?][] = []
+    this.params.agentTypes.forEach((agentType) => {
+      for (let i = 0; i < Math.round(agentType.percentOfTotal * localAgents.length); i++) {
+        typesToMake.push([agentType.type, agentType])
       }
     })
+
+    for (let i = 0; i < localAgents.length - typesToMake.length; i++) {
+      typesToMake.push(["default", undefined])
+    }
+
+    for (let i = 0; i < localAgents.length; i++) {
+      this.hostedAgents.push(AgentFactory.createAgent(typesToMake[i][0], localAgents[i], typesToMake[i][1]))
+    }
   }
 
   // -----------------------------------------------------------------------------
   //Digest operating parameters from database
-  eatParams(err, res) {
+  eatParameters(parameters: ParamData[]) {
     this.logger.trace('eatParams')
-    if (err) {
-      this.logger.error('In query:', err.stack)
-      return
-    }
-    res.rows.forEach((row) => {
-      let { param, value } = row
-      this.params[param] = value
+    parameters.forEach((parameter) => {
+      let { name, value } = parameter
+      this.params[name] = value
     })
-
-    if (this.intervalTimer) clearInterval(this.intervalTimer) //Restart interval timer
-    this.intervalTimer = setInterval(() => {
-      if (!this.runs || this.runCounter < this.runs) {
-        // this.process(++this.counter)
-        ++this.runCounter
-        this.hostedAgents.forEach(this.process)
-      }
-    }, this.params.interval)
   }
 
   // -----------------------------------------------------------------------------
@@ -272,7 +257,7 @@ class AgentCluster {
     // @ts-ignore
     this.logger.verbose(
       'Handler',
-      ++this.runCounter,
+      this.runCounter,
       agent.id,
       agent.std_name,
       agent.peer_cid
@@ -282,10 +267,8 @@ class AgentCluster {
     
     this.logger.debug(
       '  stocks:',
-      agent.stocks,
-      this.params.maxstocks,
+      agent.numSpendingTargets,
       '  foils:',
-      this.params.maxfoils,
       'action taken:',
       agent.lastActionTaken
     )

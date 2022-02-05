@@ -10,86 +10,72 @@ class BaseAgent implements Agent {
     id: number;
     std_name: string;
     peer_cid: any;
-    stocks: number;
-    foils: number;
+    numSpendingTargets: number;
+    numIncomeSources: number;
     foil_seq: any;
     units: any;
-    maxToPay: number;
-    maxTargets: number;
-    user_ent: boolean;
+    hosted_ent: boolean;
     actions: Action[];
     lastActionTaken: string;
-    targets: any[];
+    spendingTargets: AgentData[];
+    incomeSources: AgentData[];
     seqs: any[];
     types: any[];
+    
+    newIncomeSourceOdds: number 
+    adjustSettingsOdds: number 
+    newSpendingTargetOdds: number
+    maxSpendingTargets: number
+    maxIncomeSources: number
+    minWorthToSpend: number
+    maxToSpend: number;
+
     worldDBManager: MongoManager;
     myChipsDBManager: SQLManager;
-    //TODO for some reason this is not importing automatically from the global.d.ts
     logger: WyclifLogger;
 
-    constructor(agentData: AgentData, agentParams: AdjustableSimParams) {
+    constructor(agentData: AgentData, agentParams?: AdjustableAgentParams) {
         this.worldDBManager = MongoManager.getInstance();
         this.myChipsDBManager = SQLManager.getInstance();
         this.logger = UnifiedLogger.getInstance();
 
         //TODO these need to have actual parameters for the factory
         this.actions = [];
-        this.actions.push(ActionFactory.createAction('NewTally', this, null, null, null));
-        this.actions.push(ActionFactory.createAction('PayVendor', this, null, null, null));
-        this.actions.push(ActionFactory.createAction('TallyState', this, null, null, null));
+        this.actions.push(ActionFactory.createAction('NewSpendingSource', this));
+        this.actions.push(ActionFactory.createAction('PayVendor', this));
+        this.actions.push(ActionFactory.createAction('TallyState', this));
 
         //TODO: finish applying this info from agent data and params
         this.id = agentData.id;
         this.std_name = agentData.std_name;
         this.peer_cid = agentData.peer_cid;
-        this.stocks = 0;
-        this.foils = 0;
+        this.numSpendingTargets = 0;
+        this.numIncomeSources = 0;
         this.foil_seq = agentData.foil_seqs;
         this.units = '';
 
-        this.maxToPay = agentParams.maxtopay;
-        this.maxTargets = agentParams.maxtarget;
-        this.user_ent = true;
+        this.hosted_ent = true;
         this.lastActionTaken = '';
-        this.targets = [];
+        this.spendingTargets = [];
+        this.incomeSources = [];
         this.seqs = [];
         this.types = [];
 
+        this.newIncomeSourceOdds = agentParams?.newIncomeSourceOdds || 0.1
+        this.adjustSettingsOdds = agentParams?.adjustSettingsOdds || 0.5
+        this.newSpendingTargetOdds = agentParams?.newSpendingTargetOdds || 0.15 
+        this.maxSpendingTargets = agentParams?.maxSpendingTargets || 2
+        this.maxIncomeSources = agentParams?.maxIncomeSources || 3
+        this.minWorthToSpend = agentParams?.minWorthToSpend || -10000
+        this.maxToSpend = agentParams?.maxToSpend || 0.1
     }
     
     takeAction(): void {
-        //generate a random number between 1 and 100
-        let rand: number = Math.floor(Math.random() * 101);
-        
-        //do actions based on a switch here?
-        //We may need to create an enum that has all of the actions in it or something 
-    }
-    
-    //TODO this may need to be moved somewhere else.
-    checkSettings(): void {
-        let sqls: string[] = [],
-        i = 0
-        
-        this.targets.forEach((t: any) => {
-            let seq = this.seqs[i],
-            ent = this.id,
-            newTarg = Math.random() * this.maxTargets,
-            newBound = Math.random() * newTarg * 0.5 + newTarg,
-            reward = (Math.random() * 5) / 100 + 0.05
-            // this.logger.trace('   seq:', seq, 'type:', this.types[i])
-            if (this.types[i] == 'foil') {
-                //For now, we will assert settings only on foil tallies
-                sqls.push(`insert into mychips.tally_sets (tset_ent, tset_seq, target, bound, reward, signature) values ('${ent}', ${seq}, ${newTarg}, ${newBound}, ${reward}, 'Valid')`)
-            }
-        
-            i++
-        })
-            // this.logger.debug('  Settings:', sqls.join(';'))
-        this.myChipsDBManager.query(sqls.join(';'), null, (e, r) => {
-            if (e) {
-                // this.logger.error('In settings:', e.stack)
-                return
-            }
+        // For now, I'm just having the Agent perform all of its Actions. Since there's a percentage
+        // associated with each Action that determines how likely it is to actually happen, I think
+        // this is ok.
+        this.actions.forEach((action) => {
+            action.run()
         })
     }
 }

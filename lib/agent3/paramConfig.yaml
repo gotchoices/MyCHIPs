@@ -1,37 +1,27 @@
 # This is just an example of how the config might look. The schema should probably be put in a README
 
 interval: 2000
-# Just to get the refactored version working
-addclient: 0.1 # Try to add client 10% of the time
-checksets: 0.5 # Try to adjust settings 50% of the time
-addvendor: 0.15 # Try to add vendors 15% of the time (not yet implemented)
-maxstocks: 2
-maxfoils: 3
-mintotpay: -10000 #Make payments if net worth greater than this
-maxtopay: 0.1 #Pay up to 10% of my net worth
-maxtarget: 100
 
-# This stuff will come later...
-# agentTypes:
-#   - type: 'custom' 
-#     percentOfTotal: 0.6
-#     addclient: 0.1 # Try to add client 10% of the time
-#     checksets: 0.5 # Try to adjust settings 50% of the time
-#     addvendor: 0.15 # Try to add vendors 15% of the time (not yet implemented)
-#     maxstocks: 2
-#     maxfoils: 3
-#     mintotpay: -10000 #Make payments if net worth greater than this
-#     maxtopay: 0.1 #Pay up to 10% of my net worth
-#     maxtarget: 100
+agentTypes:
+  - type: 'default' 
+    percentOfTotal: 1.0
+    # newClientOdds: 0.1 # Try to add client 10% of the time
+    # adjustSettingsOdds: 0.5 # Try to adjust settings 50% of the time
+    # newVendorOdds: 0.15 # Try to add vendors 15% of the time (not yet implemented)
+    # maxStocks: 2
+    # maxFoils: 3
+    # minWorthToSpend: -10000 #Make payments if net worth greater than this
+    # maxToSpend: 0.1 #Pay up to 10% of my net worth
+    # maxtarget: 100 # I don't know what this does
 
-#   - type: 'consumer'
-#     percentOfTotal: 0.3
-#     # Any parameters for an agent that are not specified will be set to a default set by the type
+  # - type: 'consumer'
+  #   percentOfTotal: 0.3
+  #   # Any parameters for an agent that are not specified will be set to a default set by the type
 
-#   - type: 'large business'  
-#     percentOfToatl: 0.1
-#     addclient: 0.3
-#     addvendor: 0.3
-#     maxstocks: 10000
-#     maxfoils: 100
-#     # Any parameters for an agent that are not specified will be set to a default set by the type
+  # - type: 'large business'  
+  #   percentOfTotal: 0.1
+  #   addclient: 0.3
+  #   addvendor: 0.3
+  #   maxstocks: 10000
+  #   maxfoils: 100
+  #   # Any parameters for an agent that are not specified will be set to a default set by the type
