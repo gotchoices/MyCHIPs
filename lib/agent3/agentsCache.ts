@@ -28,12 +28,21 @@ class AgentsCache {
 
         this.logger.debug('Checking if we have peer:', targetAgent.peer_cid, !!foundAgentData)
         if (foundAgentData) { 
-        this.logger.debug('Found match for peer', targetAgent.peer_cid, 'in system')
-        return true
+            this.logger.debug('Found match for peer', targetAgent.peer_cid, 'in system')
+            return true
         } 
         else {
-        this.logger.debug('No match found for peer', targetAgent.peer_cid, '. Creating one now.')
-        return false
+            this.logger.debug('No match found for peer', targetAgent.peer_cid, '. Creating one now.')
+            return false
+        }
+    }
+
+    public getAgent(peer_cid: string): AgentData {
+        let foundAgent = this.agentCache[peer_cid]
+        if (foundAgent) {
+            return foundAgent
+        } else {
+            throw "No agent with given peer_cid is found"
         }
     }
 }

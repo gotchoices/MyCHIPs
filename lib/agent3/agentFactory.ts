@@ -1,16 +1,16 @@
 import Agent from './agent'
-import BaseAgent from './agents/BaseAgent'
+import BaseAgent from './agents/baseAgent'
 
 class AgentFactory {
-    public static createAgent(agentType: string, agentData: AgentData, parameters?: AdjustableAgentParams) {
+    public static createAgent(agentType: string, agentData: AgentData, host: string, parameters?: AdjustableAgentParams) {
         var agent;
 
         if (agentType === "BaseAgent" || agentType == "default") {
-            agent = new BaseAgent(agentData, parameters);
+            agent = new BaseAgent(agentData, host, parameters);
         }
         // Add more types here...
         else {
-            agent = new BaseAgent(agentData);
+            agent = new BaseAgent(agentData, host);
         }
 
         return agent;

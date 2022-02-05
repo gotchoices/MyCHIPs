@@ -1,3 +1,4 @@
+import Agent from "./agent"
 import { MongoClient, Db, Collection, Document, ChangeStream } from 'mongodb'
 import Os from 'os'
 import { ActionDoc, PeerDoc } from '../@types/document'
@@ -80,7 +81,7 @@ class MongoManager {
         // If so, we can change this
         if (doc.host != this.host) return 
 
-        if (doc.action == 'createUser') {
+        if (doc.action == 'createAccount') {
           // Someone asking me to insert a peer into the DB
           notifyOfNewAgentRequest(doc.data!, doc.tag, doc.from)
         } else if (doc.action == 'done') {
@@ -122,9 +123,7 @@ class MongoManager {
     }
   }
 
-  updateOneAgent(agent: AgentData) {
-    agent.host = this.host //Mark user as belonging to us
-
+  updateOneAgent(agent: Agent) {
     this.agentsCollection.updateOne(
       { peer_cid: agent.peer_cid, host: agent.host },
       { $set: agent },
@@ -148,7 +147,6 @@ class MongoManager {
       },
       {
         $set: { random: Math.random() }, //re-randomize this person
-        $inc: { foils: 1 }, //And make it harder to get them again next time
         $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
       },
       {
@@ -176,12 +174,12 @@ class MongoManager {
     return result
   }
 
-  deleteManyAgents(processedAgents: string[]): void {
+  deleteAllAgentsExcept(agentsToKeep: string[]): void {
     this.agentsCollection.deleteMany(
       {
         //Delete any strays left in world db
         host: this.host,
-        peer_cid: { $nin: processedAgents },
+        peer_cid: { $nin: agentsToKeep },
       },
       (e, r) => {
         if (e) this.logger.error(e.message)

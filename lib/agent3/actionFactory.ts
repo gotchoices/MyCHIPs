@@ -1,22 +1,18 @@
 import Agent from './agent'
-import AcceptTally from './actions/acceptTally'
-import PayVendor from './actions/payVendor'
+import SpendCHIPs from './actions/spendCHIPs'
 import Action from './action';
-import FindNewSpendingSource from './actions/findNewSpendingTarget';
+import FindNewSpendingTarget from './actions/findNewSpendingTarget';
 
 class ActionFactory {
     public static createAction(actionType: string, agent: Agent) {
         var action: Action;
     
         if (actionType === 'NewSpendingSource') {
-            action = new FindNewSpendingSource(agent)
+            action = new FindNewSpendingTarget(agent)
         }
-        // else if (actionType === 'PayVendor') {
-        //     action = new PayVendor()
-        // }
-        // else if (actionType === 'TallyState') {
-        //     action = new AcceptTally()
-        // }
+        else if (actionType === 'SpendCHIPs') {
+            action = new SpendCHIPs(agent)
+        }
         // Add more types here...
         else {
             throw "Invalid Action type given."

@@ -118,7 +118,7 @@ class SQLManager {
     )
   }
 
-  addConnection(requestingAccountID: number, targetAccountID: number) {
+  addConnectionRequest(requestingAccountID: number, targetAccountID: number) {
     let guid = uuidv4()
     let sig = 'Valid'
     let contract = { name: 'mychips-0.99' }
@@ -141,6 +141,42 @@ class SQLManager {
         )
       }
     )
+  }
+
+  updateConnectionRequest(entity, sequence, accepted: boolean) {
+    if (accepted) {
+      this.query(
+        "update mychips.tallies_v set request = 'open' where tally_ent = $1 and tally_seq = $2",
+        [entity, sequence],
+        (err, res) => {
+          if (err) {
+            this.logger.error('In:', err.stack)
+          }
+        }
+      )
+    }
+    else {
+      //TODO: figure out how to mark the tally as unaccepted (just delete it?)
+    }
+  }
+
+  addPayment(spenderId, receiverId, chipsToSpend: number, sequence: number) {
+    let quid = 'Inv' + Math.floor(Math.random() * 1000);
+
+    this.logger.verbose('  payVendor:', spenderId, '->', receiverId, 'on:', sequence, 'Units:', chipsToSpend);
+
+    this.query(
+      "insert into mychips.chits_v (chit_ent,chit_seq,chit_guid,chit_type,signature,units,quidpro,request) values ($1,$2,$3,'tran',$4,$5,$6,$7)",
+      [spenderId, sequence, uuidv4(), 'Valid', chipsToSpend, quid, 'userDraft'],
+      (e, r) => {
+        if (e) {
+            this.logger.error('In payment:', e.stack)
+            return
+        }
+        
+        this.logger.debug('  payment:', spenderId, 'to:', receiverId)
+      }
+    );
   }
 
   isActiveQuery() {

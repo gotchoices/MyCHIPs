@@ -10,15 +10,16 @@ class BaseAgent implements Agent {
     id: number;
     std_name: string;
     peer_cid: any;
+    host: string;
     numSpendingTargets: number;
     numIncomeSources: number;
-    foil_seq: any;
-    units: any;
+    foil_seq: number[];
+    netWorth: number;
     hosted_ent: boolean;
     actions: Action[];
     lastActionTaken: string;
-    spendingTargets: AgentData[];
-    incomeSources: AgentData[];
+    spendingTargets: string[];
+    incomeSources: string[];
     seqs: any[];
     types: any[];
     
@@ -34,7 +35,7 @@ class BaseAgent implements Agent {
     myChipsDBManager: SQLManager;
     logger: WyclifLogger;
 
-    constructor(agentData: AgentData, agentParams?: AdjustableAgentParams) {
+    constructor(agentData: AgentData, host: string, agentParams?: AdjustableAgentParams) {
         this.worldDBManager = MongoManager.getInstance();
         this.myChipsDBManager = SQLManager.getInstance();
         this.logger = UnifiedLogger.getInstance();
@@ -49,10 +50,11 @@ class BaseAgent implements Agent {
         this.id = agentData.id;
         this.std_name = agentData.std_name;
         this.peer_cid = agentData.peer_cid;
+        this.host = host
         this.numSpendingTargets = 0;
         this.numIncomeSources = 0;
         this.foil_seq = agentData.foil_seqs;
-        this.units = '';
+        this.netWorth = 0;
 
         this.hosted_ent = true;
         this.lastActionTaken = '';
@@ -77,6 +79,14 @@ class BaseAgent implements Agent {
         this.actions.forEach((action) => {
             action.run()
         })
+    }
+
+    acceptNewConnection(message: any) {
+        // I don't know how to tell the difference between types of connections (whether this account is the income source or spending target)
+        // As a default Account, we will always accept a connection
+        this.myChipsDBManager.updateConnectionRequest(message.entity, message.sequence, true)
+
+        // TODO: update data here (depends on what kind of connection it is though...)
     }
 }
 

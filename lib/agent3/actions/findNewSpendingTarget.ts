@@ -5,7 +5,7 @@ import MongoManager from "../mongomanager";
 import SQLManager from "../sqlmanager";
 import UnifiedLogger from "../unifiedLogger";
 
-class FindNewSpendingSource implements Action{
+class FindNewSpendingTarget implements Action{
     logger: WyclifLogger
     myChipsDBManager: SQLManager
     worldDBManager: MongoManager
@@ -37,14 +37,16 @@ class FindNewSpendingSource implements Action{
                 this.agentCache.addAgent(newPeer)
             }
             
-            // Send new connection request to the potential peer we found
+            // Request that the other server puts our data into their database
             let newPeerServer = newPeer.peer_socket.split(':')[0]
             this.worldDBManager.insertAction("createAccount", undefined, newPeerServer, () => {
-                this.myChipsDBManager.addConnection(this.agent.id, newPeer.id)
+                this.myChipsDBManager.addConnectionRequest(this.agent.id, newPeer.id)
+                // TODO: This stuff should only be done when the connection is accepted by the peer. Right now the peers always accept requests, so we can do it here. I'm not sure how we will get notified when the connection is accepted...
                 this.agent.numSpendingTargets++
+                this.worldDBManager.updateOneAgent(this.agent)
             })
         }
     }
 }
 
-export default FindNewSpendingSource;
+export default FindNewSpendingTarget;

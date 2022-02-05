@@ -7,21 +7,24 @@ interface Agent {
     std_name: string
     /** Globally unique ID */
     peer_cid: any 
+    /** ID of the hosting server */
+    host: string
     /** The number of spending targets (stocks) this entity holds */
     numSpendingTargets: number
     /** The number of income sources (foils) this entity holds */
     numIncomeSources: number
-    foil_seq: any
-    units: any
-    /** Indicated whether the entity is hosted on this server or not (will we be representing non hosted entities?) */
+    foil_seq: number[]
+    /** Net CHIPs owned by this account */
+    netWorth: number
+    /** Indicates whether the entity is hosted on this server or not (will we be representing non hosted entities?) */
     hosted_ent: boolean
     /** List of actions this entity can take */
     actions: Action[]
     lastActionTaken: string
-    /** Other entities I hold the stock for (I give them money) aka Vendors*/
-    spendingTargets: any[] 
-    /** Other entities I hold the foil for (they give me money) aka Clients */
-    incomeSources: any[]
+    /** Other entities' IDs I hold the stock for (I give them money) aka Vendors*/
+    spendingTargets: string[] 
+    /** Other entities' IDs I hold the foil for (they give me money) aka Clients */
+    incomeSources: string[]
     seqs: any[]
     types: any[] 
 
@@ -43,6 +46,9 @@ interface Agent {
     //take an action and update last action taken with class name
     //switch should take an action based on the number
     takeAction(): void
+
+    /** Accepts a connection request for this account */
+    acceptNewConnection(message: any): void
 
 }
 
