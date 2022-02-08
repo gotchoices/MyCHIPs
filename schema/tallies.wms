@@ -21,8 +21,8 @@ require config.tcl trigview.tcl
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment}
-    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version partner contract hold_sig hold_cert part_cert]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version partner hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit hold_cid hold_agent part_cid part_agent hold_sig part_sig $glob::stampfn]
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig hold_cert part_cert]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit hold_cid hold_agent part_cid part_agent hold_sig part_sig $glob::stampfn]
 
     def tally_sets_pk	{tset_ent tset_seq tset_idx}
     def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
@@ -62,9 +62,9 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
   , status	text		not null default 'draft'
   				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
-  , partner	text		references mychips.peers on update cascade on delete restrict
-  				constraint "!mychips.tallies.NSP" check (partner != tally_ent)
-  			      , unique(tally_ent, partner, tally_type, tally_uuid)
+  , part_ent	text		references mychips.peers on update cascade on delete restrict
+  				constraint "!mychips.tallies.NSP" check (part_ent != tally_ent)
+  			      , unique(tally_ent, part_ent, tally_type, tally_uuid)
   , units_gc	bigint		default 0 not null
   , units_pc	bigint		default 0 not null
   , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
@@ -193,7 +193,7 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
       end loop;
 
 -- Is our partner also a local user?
-      select into ta.partner user_ent from mychips.users_v where peer_cid = ta.part_cid and peer_agent = ta.part_agent;
+      select into ta.part_ent user_ent from mychips.users_v where peer_cid = ta.part_cid and peer_agent = ta.part_agent;
       return ta;
     end;
 $$;}
@@ -394,7 +394,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
   , pa.agent_key			as part_akey
   , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
   
-  , not te.partner is null						as inside
+  , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig,units_gc)	as state
   , mychips.tally_state(status,request,hold_sig,part_sig,units_gc) = any(array['peerProffer','close','draft']) as action
   , coalesce(uSign(tc.units),0)			as units
@@ -469,7 +469,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
     tally_ent
   , count(tally_seq)						as tallies
   , sum(units)							as units
-  , array_agg(partner)						as partners
+  , array_agg(part_ent)						as partners
   , array_agg(part_cid)						as part_cids
   , array_agg(tally_uuid)					as uuids
   , array_agg(tally_seq)					as seqs
@@ -489,8 +489,8 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 
   , count(nullif(tally_type, 'foil'))::int4			as stocks
   , count(nullif(tally_type, 'stock'))::int4			as foils
-  , array_agg(partner) filter (where tally_type = 'stock')	as clients
-  , array_agg(partner) filter (where tally_type = 'foil')	as vendors
+  , array_agg(part_ent) filter (where tally_type = 'stock')	as clients
+  , array_agg(part_ent) filter (where tally_type = 'foil')	as vendors
   , array_agg(part_cid) filter (where tally_type = 'stock')	as client_cids
   , array_agg(part_cid) filter (where tally_type = 'foil')	as vendor_cids
   , array_agg(tally_uuid) filter (where tally_type = 'stock')	as stock_uuids
@@ -550,8 +550,8 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
 #----------------------------------------------------------------
 view mychips.tallies_v_net {mychips.tallies} {select 
     coalesce(ts.tally_uuid,tf.tally_uuid)	as uuid
-  , coalesce(ts.tally_ent,tf.partner)		as stock_ent
-  , coalesce(tf.tally_ent,ts.partner)		as foil_ent
+  , coalesce(ts.tally_ent,tf.part_ent)		as stock_ent
+  , coalesce(tf.tally_ent,ts.part_ent)		as foil_ent
   , ts.tally_ent				as stock_user
   , tf.tally_ent				as foil_user
   
@@ -758,7 +758,7 @@ function {mychips.tally_find(ent text, part text, typ text)} {mychips.tallies} {
     declare
       trec record;
     begin
-      select into trec * from mychips.tallies where tally_ent = ent and status = 'open' and tally_type = typ and partner = part order by crt_date desc limit 1;
+      select into trec * from mychips.tallies where tally_ent = ent and status = 'open' and tally_type = typ and part_ent = part order by crt_date desc limit 1;
       return trec.tally_seq;
     end;
 $$;}

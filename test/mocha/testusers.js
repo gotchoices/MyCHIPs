@@ -40,8 +40,8 @@ describe("Establish test users", function() {
         delete from base.ent where ent_num > 1001;
         delete from mychips.tallies;
         update mychips.users set _last_tally = 0;
-        update mychips.users_v set ${f0} where peer_ent = 'p1000';
-        update mychips.users_v set ${f1} where peer_ent = 'p1001';
+        update mychips.users_v set ${f0} where peer_ent = '${user0}';
+        update mychips.users_v set ${f1} where peer_ent = '${user1}';
         select count(*) as count from mychips.users_v where ent_num >= 1000; commit;`
 log.debug("Sql:", sql)
     db.query(sql, (err, res) => {if (err) done(err)

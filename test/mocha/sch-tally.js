@@ -326,7 +326,7 @@ log.debug("Sql:", sql)
     setTimeout(()=>{		//Let it flush out before closing
       dbU.disconnect()
       dbA.disconnect()
+      done()
       }, 200)
-    done()
   })
 });		//Peer to peer tallies

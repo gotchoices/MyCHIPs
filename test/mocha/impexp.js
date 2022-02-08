@@ -30,7 +30,7 @@ describe("JSON contact import/export", function() {
   this.timeout(5000)		//May take a while to build database
 
   before('Delete test database', function(done) {
-    Child.exec(`dropdb -U ${DBAdmin} ${Database}`, done)
+    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`, done)
   })
 
   before('Connect to (or create) test database', function(done) {
@@ -111,3 +111,5 @@ log.debug("Cert:", cert)
     db.disconnect()
   })
 });
+
+module.exports = {dbAndCheck}

@@ -4,6 +4,7 @@
 const Child = require('child_process')
 const { Database, DBAdmin } = require('../settings')
 
+require('./sch-crypto.js')
 require('./objectset.js')
 require('./peernoise.js')
 
@@ -17,8 +18,7 @@ require('./tally.js')
 //require('./peer.js')		//Old, needs rework
 
 //require('./sch-multi.js')	//Will empty users table
-require('./sch-crypto.js')
 
 after('Delete test database', function(done) {
-  Child.exec(`dropdb -U ${DBAdmin} ${Database}`, done)
+  Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`, done)
 })

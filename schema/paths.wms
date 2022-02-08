@@ -42,7 +42,7 @@
 namespace eval paths {
     def routes_pk	{route_ent dest_chid dest_host}
 #    def routes_v_up	{request comment cr_limit dr_limit}
-#    def routes_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version partner contract hold_sig]
+#    def routes_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig]
     def routes_se	[concat $routes_pk dest_ent topu_ent botu_ent requ_ent status lift_min lift_margin lift_max lift_reward drop_min drop_margin drop_max drop_reward step lift_count lift_date good_date]
 }
 
