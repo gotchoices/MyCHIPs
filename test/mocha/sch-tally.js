@@ -12,9 +12,9 @@
 const { dbConf, Log, Format, Bus, assert, saveRest, getRow, mkUuid } = require('../settings')
 var log = Log('testSchTally')
 var { dbClient } = require("wyseman")
-const { host, user0, user1, Port0, Port1, aKey0, aKey1 } = require('./testusers')
+const { host, user0, user1, Port0, Port1, agent0, agent1, aKey0, aKey1 } = require('./testusers')
 var userListen = 'mychips_user_' + user0
-var agentListen = 'mychips_agent_' + aKey0		//And his agent process
+var agentListen = 'mychips_agent_' + agent0		//And his agent process
 var interTest = {}			//Pass values from one test to another
 var contract = {domain:"mychips.org", name:"standard", version:0.99}
 var stateField = 'mychips.tally_state(status,request,hold_sig,part_sig,units_gc) as state'
@@ -40,7 +40,7 @@ describe("Test tally state transitions", function() {
     }, ()=>{log.info("Test DB agent connection established"); done()})
   })
 
-  it("Build void tally record (<start> -> void)", function(done) {
+  it("Build draft tally record (<start> -> draft)", function(done) {
     let comment = 'Sample tally'
       , s = `insert into mychips.tallies (tally_ent, tally_uuid, contract, comment, part_cert)
 	    	values(%L,%L,%L,%L,mychips.user_cert(%L)) returning *, ${stateField};`
@@ -50,21 +50,21 @@ describe("Test tally state transitions", function() {
       let tal = getRow(res, 0)
       assert.equal(tal.version, 1)
       assert.equal(tal.tally_seq, 1)
-      assert.equal(tal.status,'void')
-      assert.equal(tal.state,'void')
+      assert.equal(tal.status,'draft')
+      assert.equal(tal.state,'draft')
       done()
     })
   })
 
-  it("Save void tally record for later testing", function(done) {
-    dbU.query(save('void'), (e) => {if (e) done(e); done()})
+  it("Save draft tally record for later testing", function(done) {
+    dbU.query(save('draft'), (e) => {if (e) done(e); done()})
   })
 
-  it("User request to promote tally to draft (void -> userDraft)", function(done) {
-    let sql = uSql(`set request = 'draft', hold_sig = 'Adam Signature'`)
+  it("User request to promote tally to offer (draft -> userDraft)", function(done) {
+    let sql = uSql(`set request = 'offer', hold_sig = 'Adam Signature'`)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
-//log.debug("Sql M:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res M:", res.rows[0]);
+//log.debug("Sql:", sql)
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
       assert.equal(row.state, 'userDraft')
       _done()
@@ -83,8 +83,8 @@ describe("Test tally state transitions", function() {
     })
   })
 
-  it("Agent transmits, confirms change to draft (userDraft -> userProffer)", function(done) {
-    let logic = {context: ['userDraft'], update: {status: 'draft'}}
+  it("Agent transmits, confirms change to offer (userDraft -> userProffer)", function(done) {
+    let logic = {context: ['userDraft'], update: {status: 'offer'}}
       , { cid, agent } = interTest.from
       , msg = {cid, agent, object: interTest.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
@@ -107,7 +107,7 @@ describe("Test tally state transitions", function() {
       , { cid, agent } = interTest.from
       , msg = {cid, agent, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
-//log.debug("Sql P:", sql)
+log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
       assert.equal(row.state, 'peerProffer')
@@ -116,12 +116,44 @@ describe("Test tally state transitions", function() {
   }
 
   it("Agent receives alternative draft (userProffer -> peerProffer)", function(done) {peerProfferGo(done)})
+  
+  it("User request to promote tally to offer (peerProffer -> userVoid)", function(done) {
+    let sql = uSql(`set request = 'void', hold_sig = null`)
+      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+//log.debug("Sql:", sql)
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
+      let row = getRow(res, 0)
+      assert.equal(row.state, 'userVoid')
+      _done()
+    })
+    busA.register('p0', (data) => {		//Listen for message to agent process
+      let msg = JSON.parse(data)		//;log.debug("A bus:", msg)
+//log.debug("sign:", msg.object.sign)
+      assert.equal(msg.target, 'tally')
+      assert.equal(msg.action, 'userVoid')
+      busA.register('p0')
+      _done()
+    })
+  })
+
+  it("Agent transmits, confirms change to void (userVoid -> void)", function(done) {
+    let logic = {context: ['userVoid'], update: {status: 'void'}}
+      , { cid, agent } = interTest.from
+      , msg = {cid, agent, object: interTest.object}
+      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+//log.debug("Sql:", sql)
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+      let row = getRow(res, 0)
+      assert.equal(row.state, 'void')
+      done()
+    })
+  })
 
   it("Delete tally", function(done) {
     let sql = `delete from mychips.tallies;`
     dbU.query(sql, (e, res) => {if (e) done(e); else done()})
   })
-  it("Agent receives signed draft (<ex nihilo> -> peerProffer)", function(done) {peerProfferGo(done)})
+  it("Agent receives signed offer (<ex nihilo> -> peerProffer)", function(done) {peerProfferGo(done)})
 
   it("Restore void tally", function(done) {
     dbU.query(rest('void'), (e) => {if (e) done(e); else done()})
@@ -141,7 +173,7 @@ describe("Test tally state transitions", function() {
       , { cid, agent } = interTest.from
       , msg = {cid, agent, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
-//log.debug("Sql Q:", sql)
+//log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
       assert.equal(row.state, 'void')
@@ -160,7 +192,7 @@ describe("Test tally state transitions", function() {
       , { cid, agent } = interTest.from
       , msg = {cid, agent, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
-log.debug("Sql R:", sql)
+//log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
       assert.equal(row.state, 'open')
@@ -173,10 +205,10 @@ log.debug("Sql R:", sql)
   })
 
   it("User modifies peer draft (peerProffer -> userDraft)", function(done) {
-    let sql = uSql(`set request = 'draft', hold_sig = 'Adam Signature', comment = 'A special condition'`)
+    let sql = uSql(`set request = 'offer', hold_sig = 'Adam Signature', comment = 'A special condition'`)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
-//log.debug("Sql M:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res M:", res.rows[0]);
+//log.debug("Sql:", sql)
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
 //log.debug("X:", row.request, row.status, row.hold_sig, row.part_sig)
       assert.equal(row.state, 'userDraft')
@@ -184,7 +216,6 @@ log.debug("Sql R:", sql)
     })
     busA.register('p0', (data) => {		//Listen for message to agent process
       let msg = JSON.parse(data)		//;log.debug("A bus:", msg)
-log.debug("Y:")
       assert.equal(msg.target, 'tally')
       assert.equal(msg.action, 'userDraft')
       busA.register('p0')
@@ -200,7 +231,7 @@ log.debug("Y:")
     let sql = uSql(`set request = 'open', hold_sig = 'Adam Signature', units_gc = 1`)	//Force chips cache to non-zero
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql M:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res M:", res.rows[0]);
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
       assert.equal(row.state, 'userAccept')
       _done()
@@ -236,7 +267,7 @@ log.debug("Y:")
     let sql = uSql(`set request = 'close'`)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql M:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res M:", res.rows[0]);
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
       assert.equal(row.state, 'userClose')
       _done()
@@ -250,7 +281,7 @@ log.debug("Y:")
     })
   })
 
-  it("Agent transmits, confirms change to closing (userClose -> closing)", function(done) {
+  it("Agent transmits, confirms change to close (userClose -> close)", function(done) {
     let logic = {context: ['userClose'], update: {status: 'close'}}
       , { cid, agent } = interTest.from
       , msg = {cid, agent, object: interTest.object}
@@ -258,7 +289,7 @@ log.debug("Y:")
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
-      assert.equal(row.state, 'closing')
+      assert.equal(row.state, 'close')
       done()
     })
   })
@@ -266,7 +297,7 @@ log.debug("Y:")
   it("Restore open tally", function(done) {
     dbU.query(rest('open'), (e) => {if (e) done(e); else done()})
   })
-  it("Peer requests tally close (open -> closing)", function(done) {
+  it("Peer requests tally close (open -> close)", function(done) {
     let object = {uuid: interTest.object.uuid}		//Minimal object
       , logic = {context: ['open'], update: {status: 'close'}}
       , { cid, agent } = interTest.from
@@ -275,14 +306,14 @@ log.debug("Y:")
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
-      assert.equal(row.state, 'closing')
+      assert.equal(row.state, 'close')
       done()
     })
   })
 
-  it("Simulate tally balance going to zero (closing -> closed)", function(done) {
+  it("Simulate tally balance going to zero (close -> closed)", function(done) {
     let sql = uSql(`set units_gc = 0`)
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)
       assert.equal(row.state, 'closed')

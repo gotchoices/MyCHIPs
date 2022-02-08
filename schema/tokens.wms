@@ -61,7 +61,7 @@ view mychips.tokens_v {mychips.tokens mychips.users_v json.cert} {select
      , 'agent', u.peer_agent
      , 'host', u.peer_chost
      , 'port', u.peer_cport
-    ) as "chip"
+    ) as "chad"
       
     from	mychips.tokens	t
     join	mychips.users_v	u	on u.user_ent = t.token_ent
@@ -82,13 +82,9 @@ function {mychips.ticket_process(ticket jsonb, uname text = session_user)} {mych
       if found and not trec.peer_agent isnull then
         ticket = ticket				-- Build message for agent to act on
           || '{"target":"tally","action":"ticket"}' 
-          || to_jsonb(t) from (			-- Include subject certificate into ticket
-               select to_jsonb(s) as cert from (
-                 select date,chip,type,name,public,connect,place,identity from json.cert where id = trec.id
-               ) s
-             ) t;
+          || jsonb_build_object('cert', mychips.user_cert(trec.id));
 --raise notice 'ticket: %', ticket;
---raise notice 'Notify: mychips_agent_%', trec.peer_agent;
+raise notice 'Notify: mychips_agent_%', trec.peer_agent;
         perform pg_notify('mychips_agent_' || trec.peer_agent, ticket::text);	-- Notify peer server for this user
         return true;
       end if;
@@ -98,29 +94,39 @@ $$;}
 
 # Determine if a token presented is valid, and mark it as used
 #----------------------------------------------------------------
-function {mychips.token_valid(tok text, cert jsonb)} {mychips.tokens_v} {
+function {mychips.token_valid(tok text, cert jsonb = null)} {mychips.tokens_v} {
   returns boolean language plpgsql as $$
     declare
       orec	record;
 --      trec	record;
       prec	record;
+--      msg	jsonb;
+--      recipe	jsonb;
     begin
       select into orec valid,token,reuse,token_ent,token_seq,tally_seq from mychips.tokens_v where token = tok;
-raise notice 'token check: %', tok;
-      if found and orec.valid then
-raise notice 'token valid; reuse:%', orec.reuse;
-        if orec.reuse then
+raise notice 'token check: % %', tok, not cert isnull;
+      if cert isnull then			-- Checking only
+        return found and orec.valid;
+      elsif not found or not orec.valid then
+        return false;
+      end if;
+
+--Debug:      
+--select into trec * from mychips.tallies where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
+--raise notice 'token reuse:% request:% status:%', orec.reuse, trec.request, trec.status;
+
+      if orec.reuse then
 -- Create a new tally from the tally template
 -- How do we come up with a new UUID?
 --          insert into mychips.tallies (tally_ent) select x,y,z from mychips.tallies;
-          null;
-        else
-          update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
-          update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
-        end if;
-        return true;
+        null;
+      else
+        update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
+--        perform mychips.tally_process('{}','"{update":{"status":"draft"}}');
+        update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
+        perform mychips.tally_notify_user(orec.token_ent, orec.tally_seq);
       end if;
-      return false;
+      return true;
     end;
 $$;}
 

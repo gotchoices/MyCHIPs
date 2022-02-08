@@ -2,50 +2,54 @@
 !include common.puml
 
 $title(Tally State Diagram)
-[*] --> void
-state "void" as void
+'state "void" as void
 
 'States are determined by a combination of values, as defined here:
-userVoid : Stat: draft, Req->void
-userAccept : Stat: draft, Req->open
-userDraft : Stat: void, Req->draft
-userClose : Stat: open, Req->close
-void : Stat->void, Req: null\n(or no tally)
-open : Stat->open, Req: null
-closing : Stat->close, Req: null
-peerProffer : Stat->draft, Req: null
+userVoid : Status: offer, Req->void
+userAccept : Status: offer, Req->open
+userDraft : Status: draft, Req->offer
+userClose : Status: open, Req->close
+state working {
+  draft : Status: draft, Req: null
+  draft : User: modify, sign, delete
+  void : Status: void, Req: null
+}
+open : Status: open, Req: null
+open : Have both signatures
+close : Status: close, Req: null
+peerProffer : Status: offer, Req: null
 peerProffer : Peer signature only
-userProffer : Stat->draft, Req: null
+peerProffer : User: accept, refuse, counter
+userProffer : Status: offer, Req: null
 userProffer : User signature only
-closed : Stat->closed, Req: null
+closed : Status: closed, Req: null
 closed : Balance is zero
-open : E: Add peer's signature
 
 'State transition rules:
-void -[$peer]-> peerProffer : $trans($peer,Proposes a Tally,valid signature,Notify user)
-note on link
-  [[../Tallies.md#establishing-a-tally{Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys} User-initiated]]
-endnote
-void -[$user]-> userDraft : $trans($user,New Tally Record,valid signature)
+[*] -[$user]-> draft : $trans($user,User or system\ndrafts new tally)
+[*] -[$peer]-> peerProffer : $trans($peer,Receive new proposed tally,valid signature,Notify user)
+working -[$user]-> userDraft : $trans($user,User signs tally,valid cert,Request offer)
 
-userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:userVoid)
+draft -[$peer]-> draft : $trans($peer,Ticketed\ntally request,Have peer cert, Notify user)
+userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:peerRefuse)
 
-peerProffer -[$user]-> userVoid : $trans($user,Request to void)
-peerProffer -[$user]-> userDraft : $trans($user,Modifies tally,valid signature)
-peerProffer -[$user]-> userAccept : $trans($user,Accepts tally,valid signature)
+peerProffer -[$user]-> userVoid : $trans($user,Refuses tally, '', Request void)
+peerProffer -[$user]-> userDraft : $trans($user,Modifies tally,valid signature, Request offer)
+peerProffer -[$user]-> userAccept : $trans($user,Accepts tally,valid signature, Request open)
 
-userAccept -[$db]-> open : $trans($db,req:open detected,'',Transmit act:userAccept)
+userAccept -[$db]-> open : $trans($db,req:open detected,'',Transmit act:peerAccept)
 
-userDraft -[$db]-> userProffer : $trans($db,Req:draft detected,,Transmit Act:peerProffer)
+userDraft -[$db]-> userProffer : $trans($db,Req:offer detected,,Transmit Act:peerProffer)
 
-userProffer -[$peer]-> open : $trans($peer,Accepted tally)
-userProffer -[$peer]-> void : $trans($peer,"Refused tally\nor timed out",Notify user)
-userProffer -[$peer]-> peerProffer : $trans($peer,Counter-offered,'',Notify user)
+userProffer -[$peer]-> open : $trans($peer, Receive peer acceptance)
+userProffer -[$peer]-> void : $trans($peer,"Refused tally",Notify user)
+userProffer -[$peer]-> peerProffer : $trans($peer,Receive modified tally,'',Notify user)
+void -[$peer]-> peerProffer : $trans($peer,Receive modified tally,'',Notify user)
 
-open -left[$user]-> userClose : $trans($user,Requests close)
-open -[$peer]-> closing : $trans($peer,Requests close)
-userClose -[$db]-> closing : $trans($db,Req:close detected,'',Transmit act:userClose)
-closing -left[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
+open -right[$user]-> userClose : $trans($user, Wants to close tally, '', Request close)
+open -[$peer]-> close : $trans($peer,Receive peer\nclose request)
+userClose -[$db]-> close : $trans($db,Req:close detected,'',Transmit act:peerClose)
+close -right[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
 
 'closed --> [*]
 

@@ -18,7 +18,7 @@ namespace eval users {
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type]
-    def agents_se	{agent agent_key agent_host agent_port agent_ip}
+    def agents_se	{agent_key agent_host agent_port agent_ip}
 }
 
 # Data about users to facilitate their CHIP account
@@ -226,6 +226,6 @@ $$;}
 function {mychips.user_cert(uid text)} {json.cert} {
   returns jsonb language sql as $$
     select to_jsonb(s) as cert from (
-      select date,chip,type,name,public,connect,place,identity from json.cert where id = uid
+      select date,chad,type,name,public,connect,place,identity from json.cert where id = uid
     ) s
 $$;}

@@ -115,7 +115,7 @@ view json.cert {mychips.users_v mychips.peers_v json.connect json.place mychips}
      , 'agent', p.peer_agent
      , 'host', p.peer_chost
      , 'port', p.peer_cport
-    ) as "chip"
+    ) as "chad"
   , p.ent_type	as "type"
   , p.peer_psig	as "public"
   , case when p.ent_type = 'o' then
@@ -186,20 +186,19 @@ function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
     end if;
 
     select into urec * from mychips.users_v u where	--Do we already have this person
-      u.peer_psig = new.public or (u.peer_cid = new.chip->>'cid' and u.peer_agent = new.chip->>'agent');
+      u.peer_psig = new.public or (u.peer_cid = new.chad->>'cid' and u.peer_agent = new.chad->>'agent');
 --    if not urec.user_ent isnull then			--This is one of our local users
 --      new.id = urec.id;					--So we can return the old record
 --      return new;					--Don't import anything
 --    end if;
 
---    if urec.peer_cid = new.chip->>'cid'
     insert into mychips.peers_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_host, peer_port, peer_psig, peer_named)
-      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chip->>'cid', new.chip->>'agent', new.chip->>'host', (new.chip->>'port')::int, new.public, peer_named)
+      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chad->>'cid', new.chad->>'agent', new.chad->>'host', (new.chad->>'port')::int, new.public, peer_named)
 --        on conflict (base.ent.country, base.ent.tax_id) do update set
 --        on conflict (mychips.peers_v.country, mychips.peers_v.tax_id) do update set
 --        on conflict on constraint ent_country_tax_id do update set
 --        on conflict on constraint base.ent.ent_country_tax_id do update set
---          ent_name = ent_name, fir_name = firname, mid_name = mid_name, pref_name = pref_name, peer_cid = new.chip->>'cid', peer_agent = new.chip->>'agent', peer_host = new.chip->>'host', peer_port = (new.chip->>'port')::int, peer.psig = new.public
+--          ent_name = ent_name, fir_name = firname, mid_name = mid_name, pref_name = pref_name, peer_cid = new.chad->>'cid', peer_agent = new.chad->>'agent', peer_host = new.chad->>'host', peer_port = (new.chad->>'port')::int, peer.psig = new.public
       returning id into irec;
     new.id = irec.id;
     

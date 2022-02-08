@@ -10,6 +10,9 @@
 //- Create similar testing for chit flowchart
 //- 
 
+This should become obsolete by tally.js but move the chit transactions
+into a new chit.js test suite.
+
 const assert = require('assert');
 const { Database, DBAdmin, MachineIP, Log } = require('../settings')
 var log = Log('testPeer')

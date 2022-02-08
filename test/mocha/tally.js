@@ -4,18 +4,17 @@
 // This simulates two users connected through a single DB:
 // User1 <-> DB <-> Agent1 <-> Agent2 <-> DB <-> User2
 //TODO:
-//- Give ticket info to other peer
-//- Have them connect via noise module using the ticket
-//- 
+//X- Give ticket info to other peer
+//X- Have them connect via noise module using the ticket
 //- Test for one-time connection, token no longer valid
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
 const { dbConf, Log, Format, Bus, assert, saveRest, getRow, mkUuid } = require('../settings')
-var log = Log('testPeer')
+var log = Log('testTally')
 var { dbClient } = require("wyseman")
 const PeerCont = require("../../lib/peer2peer")
-const {host,user0,user1,cid0,cid1,Port0,Port1,aKey0,aKey1,aCon0,aCon1} = require('./testusers')
+const {host,user0,user1,cid0,cid1,Port0,Port1,agent0,agent1,aCon0,aCon1} = require('./testusers')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
 var interTest = {}			//Pass values from one test to another
 
@@ -58,7 +57,7 @@ describe("Establish new tally between two users", function() {
       , sql = `with row as (${s1} returning tally_ent, tally_seq)
           insert into mychips.tokens (token_ent, tally_seq) select * from row returning *;
           select * from mychips.tallies_v where tally_ent = '${cid}' and tally_seq = 1;
-          select token,expires,chip from mychips.tokens_v;`
+          select token,expires,chad from mychips.tokens_v;`
 //log.debug("Sql:", sql)
     db0.query(sql, (e, res) => {if (e) done(e)
 //log.debug("Res:", res)
@@ -73,10 +72,10 @@ describe("Establish new tally between two users", function() {
 //log.debug("Talley:", tal)
       assert.equal(tal.tally_uuid, uuid)
       assert.ok(!tal.partner)
-      assert.equal(tal.status,'void')
+      assert.equal(tal.status,'draft')
       assert.equal(tal.tally_type,'stock')
       assert.equal(tal.hold_cid,cid0)
-      assert.equal(tal.hold_agent,aKey0)
+      assert.equal(tal.hold_agent,agent0)
       let ticket = res[2].rows[0]
 //log.debug("Ticket:", ticket)
       interTest = ticket
@@ -84,29 +83,84 @@ describe("Establish new tally between two users", function() {
     })
   })
 
-/*
   it("User 1 subject asks his server to request the proposed tally", function(done) {
     let sql = Format('select mychips.ticket_process(%L,%L)', interTest, user1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     db1.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)
-log.debug("row:", row);
+//log.debug("row:", row);
       assert.ok(row.ticket_process)
       _done()
     })
-    bus1.register('p1', ({chan, data}) => {	//Listen for message from our database
+    bus0.register('p0', (data) => {		//User 0 is prompted to sign the tally
       let msg = JSON.parse(data)
-log.debug("bus:", chan, msg)
-      assert.equal(chan, listen1[0])		//Proper listen tag came through
-      let cert = msg.cert
-log.debug("cert:", cert)
-      assert.equal(cert.id, 'p1000')
+//log.debug("msg:", msg)
+      assert.equal(msg.entity, 'p1000')
+      assert.equal(msg.state, 'draft')
+      let tally = msg.object
+        , stock = tally.stock
+        , foil = tally.foil
+//log.debug("tally:", tally, tally.stock.cert.chad)
+      assert.equal(stock.cert.chad.cid, cid0)
+      assert.equal(stock.cert.chad.agent, agent0)
+      assert.equal(foil.cert.chad.cid, cid1)
+      assert.equal(foil.cert.chad.agent, agent1)
+//log.debug("sign:", tally.sign)
+      assert.ok(!tally.sign.stock)
+      assert.ok(!tally.sign.foil)
+      bus0.register('p0')
+      _done()
+    })
+  })
+
+  it("User 0 originator approves, signs the proposed tally", function(done) {
+    let sql = "update mychips.tallies set request = $1, hold_sig = $2 where tally_ent = $3 and tally_seq = $4 returning request, status;"
+      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+//log.debug("Sql:", sql)
+    db0.query(sql, ['offer','Adam Signature',user0,1], (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)			//;log.debug("row:", row);
+      assert.equal(row.request, 'offer')
+      assert.equal(row.status, 'draft')
+      _done()
+    })
+    bus1.register('p1', (data) => {		//User 0 is sent the signed tally
+      let msg = JSON.parse(data)		//;log.debug("msg:", msg)
+      assert.equal(msg.entity, 'p1001')
+      assert.equal(msg.state, 'peerProffer')
+      let tally = msg.object
+        , stock = tally.stock
+        , foil = tally.foil
+//log.debug("tally:", tally, tally.stock.cert.chad)
+      assert.equal(stock.cert.chad.cid, cid0)
+      assert.equal(stock.cert.chad.agent, agent0)
+      assert.equal(foil.cert.chad.cid, cid1)
+      assert.equal(foil.cert.chad.agent, agent1)
+//log.debug("sign:", tally.sign)
+      assert.ok(!!tally.sign.stock)
+      assert.ok(!tally.sign.foil)
+      interTest = tally
       bus1.register('p1')
       _done()
     })
   })
 
+  it("User 0 originator's tally got promoted, correct state", function(done) {
+    let sql = "select * from mychips.tallies_v where tally_ent = $1 and tally_uuid = $2;"
+      , uuid = interTest.uuid
+//log.debug("Sql:", sql)
+    db0.query(sql, [user0, uuid], (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)			//;log.debug("row:", row);
+      assert.equal(row.tally_type, 'stock')
+      assert.equal(row.state, 'userProffer')
+      assert.equal(row.status, 'offer')
+      assert.ok(!!row.hold_sig)
+      assert.ok(!row.part_sig)
+      done()
+    })
+  })
+
+/*
 xxxx
   it("User p1001 proposes a tally to user p1000", function(done) {
     const sql = `begin;

@@ -764,19 +764,21 @@ create function mychips.state_updater(recipe jsonb, tab text, fields text[], qfl
 $$;
 create function mychips.tally_state(status text, request text, hold_sig text, part_sig text, total bigint) returns text immutable language plpgsql as $$
     begin return
-    case when status = 'void' and request is null		then 'void'
-         when status = 'void' and request = 'draft'		then 'userDraft'
-         when status = 'draft' and request is null then
-           case when hold_sig is not null and part_sig is null	then 'userProffer'
-                when part_sig is not null and hold_sig is null	then 'peerProffer'
-           else 'undefined' end
-         when status = 'draft' and request = 'void'		then 'userVoid'
-         when status = 'draft' and request = 'open'		then 'userAccept'
-         when status = 'open' and request is null		then 'open'
-         when status = 'open' and request = 'close'		then 'userClose'
-         when status = 'close' and request is null then
-             case when total = 0 then 'closed' else 'closing' end
-         else 'undefined' end;
+      case when request isnull then
+        case when status = 'offer' then
+          case when not hold_sig isnull and part_sig isnull then	'userProffer'
+               when not part_sig isnull and hold_sig isnull then	'peerProffer'
+          end
+             when status = 'close' and total = 0 then			'closed'
+             else status	-- void, draft, offer, open, close
+        end
+      else	-- pending request
+        case when request = 'offer' then				'userDraft'
+             when request = 'void' then					'userVoid'
+             when request = 'open' then					'userAccept'
+             when request = 'close' then				'userClose'
+        end
+      end;
     end;
 $$;
 create function mychips.validate(dat text, sig text, pub text) returns boolean language plpythonu immutable as $$
@@ -2414,9 +2416,9 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   , cr_limit	bigint		not null default 0	-- A foil term
 
 
-  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','open','close'))
-  , status	text		not null default 'void'
-  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','open','close'))
+  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
+  , status	text		not null default 'draft'
+  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
   , partner	text		references mychips.peers on update cascade on delete restrict
   				constraint "!mychips.tallies.NSP" check (partner != tally_ent)
   			      , unique(tally_ent, partner, tally_type, tally_uuid)
@@ -2441,7 +2443,7 @@ create view mychips.users_v as select
     ee.id, ee.ent_name, ee.ent_type, ee.ent_cmt, ee.fir_name, ee.mid_name, ee.pref_name, ee.title, ee.gender, ee.marital, ee.born_date, ee.username, ee.ent_inact, ee.country, ee.tax_id, ee.bank, ee.ent_num, ee.std_name, ee.frm_name, ee.giv_name, ee.cas_name, ee.age, ee.conn_pub
   , pe.peer_ent, pe.peer_cid, pe.peer_cert, pe.peer_psig, pe.peer_cmt, pe.peer_named, pe.peer_agent
   , ue.user_ent, ue.user_host, ue.user_port, ue.user_stat, ue.user_hid, ue.user_cmt, ue.serv_id, ue.crt_by, ue.crt_date, ue.mod_by
-  , ag.agent, ag.agent_key, ag.agent_host, ag.agent_port, ag.agent_ip
+  , ag.agent_key, ag.agent_host, ag.agent_port, ag.agent_ip
   , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
   , ag.agent_host		as peer_host
   , ag.agent_port		as peer_port
@@ -3025,7 +3027,7 @@ create view json.cert as select p.id
      , 'agent', p.peer_agent
      , 'host', p.peer_chost
      , 'port', p.peer_cport
-    ) as "chip"
+    ) as "chad"
   , p.ent_type	as "type"
   , p.peer_psig	as "public"
   , case when p.ent_type = 'o' then
@@ -3117,17 +3119,17 @@ create view mychips.tallies_v as select
   , te.hold_cid ||':'|| ua.atsock	as hold_full
   , ua.sock				as hold_sock
   , ua.agent_key			as hold_akey
-  , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chip
+  , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
 
   , te.part_cid ||':'|| pa.agent	as part_addr
   , te.part_cid ||':'|| pa.atsock	as part_full
   , pa.sock				as part_sock
   , pa.agent_key			as part_akey
-  , jsonb_build_object('cid', te.part_cid) || pa.json as part_chip
+  , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
   
   , not te.partner is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig,units_gc)	as state
-  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc) = any(array['peerProffer','closing']) as action
+  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc) = any(array['peerProffer','close','draft']) as action
   , coalesce(case when te.tally_type = 'stock' then tc.units else -tc.units end,0)			as units
   , case when te.tally_type = 'stock' then units_gc else -units_gc end				as units_gc
   , case when te.tally_type = 'stock' then units_pc else -units_pc end				as units_pc
@@ -3575,21 +3577,21 @@ create function mychips.tally_notify(tally mychips.tallies) returns boolean lang
         rrec	record;
         channel	text = 'mychips_agent';
     begin				-- Determine next action
-        if tally.status = 'void' and tally.request = 'draft' then
+        if tally.status in ('void','draft','offer') and tally.request = 'offer' then
             act = 'userDraft';
-        elsif tally.status = 'draft' and tally.request = 'void'  then
+        elsif tally.status = 'offer' and tally.request = 'void'  then
             act = 'userVoid';
-        elsif tally.status = 'draft' and tally.request = 'open'  then
+        elsif tally.status = 'offer' and tally.request = 'open'  then
             act = 'userAccept';
         elsif tally.status = 'open'  and tally.request = 'close' then
             act = 'userClose';
         end if;
-
+raise notice 'TN:% % % %', act, tally.tally_ent, tally.status, tally.request;
         if act is null then			-- Indeterminate state, clear request
             update mychips.tallies set request = null where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
             return false;
         end if;
-        select into trec hold_agent,hold_chip,part_chip,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
+        select into trec hold_agent,hold_chad,part_chad,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
         if not trec.hold_agent is null then
             channel = channel || '_' || trec.hold_agent;
         end if;
@@ -3605,18 +3607,40 @@ create function mychips.tally_notify(tally mychips.tallies) returns boolean lang
           'action',	act,
           'try',	rrec.tries,
           'last',	rrec.last,
-          'to',		trec.part_chip,
-          'from',	trec.hold_chip,
+          'to',		trec.part_chad,
+          'from',	trec.hold_chad,
           'object',	trec.json
         );
-
+raise notice 'Tally notice:% % %', channel, act, trec.json->'uuid';
         perform pg_notify(channel, jrec::text);
         return true;
     end;
 $$;
+create function mychips.tally_notify_user(ent text, seq int, oldstate text = 'open') returns record language plpgsql as $$
+    declare
+      trec	record;
+      jrec	jsonb;
+    begin
+      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
+      if trec.action or (trec.state = 'open' and oldState is distinct from trec.state) then	-- Also notify if changed to open status
+raise notice 'Tally user notify: mychips_user_% %', trec.tally_ent, trec.json->'uuid';
+        jrec = jsonb_build_object(
+          'target',	'tally',
+          'entity',	trec.tally_ent,
+          'sequence',	trec.tally_seq,
+          'state',	trec.state,
+          'object',	trec.json
+        );
+        perform pg_notify('mychips_user_' || trec.tally_ent, jrec::text);
+        perform pg_notify('mychips_user', jrec::text);
+      end if;
+      return trec;
+    end;
+$$;
 create function mychips.tally_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
     declare
-      cid	text = msg->>'cid';
+      cid	text = coalesce(msg->>'cid', msg->'to'->>'cid');
+      agent	text = coalesce(msg->>'agent', msg->'to'->>'agent');
       obj	jsonb = msg->'object';
       hold	jsonb = obj->'stock';
       part	jsonb = obj->'foil';
@@ -3630,13 +3654,13 @@ create function mychips.tally_process(msg jsonb, recipe jsonb) returns text lang
       tallyType text = 'stock';
       notType text = 'foil';
     begin
-
+raise notice 'Tally cid:% uuid:%', cid, uuid;
       select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = uuid;
         
 raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
       if not found then			-- No existing tally
         curState = 'null';
-        select into uid id from mychips.users_v where peer_cid = cid and peer_agent = msg->>'agent';
+        select into uid id from mychips.users_v where peer_cid = cid and peer_agent = agent;
         if not found then return null; end if;
       else
         curState = trec.state;
@@ -3650,24 +3674,26 @@ raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
       if recipe->>'upsert' then		-- If inserting/updating from object
 
 raise notice '  upsert obj:% curState:%', obj, curState;
-        if part->'cert'->'chip'->>'cid' = cid and part->'cert'->'chip'->>'cid' = cid then
+        if part->'cert'->'chad'->>'cid' = cid and part->'cert'->'chad'->>'agent' = agent then
           tallyType = 'foil';
           notType = 'stock';
-        elsif hold->'cert'->'chip'->>'cid' != cid or hold->'cert'->'chip'->>'cid' != cid then
+          hold	= obj->'foil';
+          part	= obj->'stock';
+        elsif hold->'cert'->'chad'->>'cid' != cid or hold->'cert'->'chad'->>'agent' != agent then
           return null;
         end if;
 
-
+raise notice '  tallyType:% notType:%', tallyType, notType;
         if curState = 'null' then			-- Will need to do insert
           execute 'insert into mychips.tallies (
             tally_ent,tally_uuid,tally_type,tally_date,version,contract,status,comment,
             hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert
           ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning tally_ent, tally_seq' into trec
-            using uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, obj->'agree', 'draft', obj->>'note', 
+            using uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, obj->'agree', 'offer', obj->>'note', 
               obj->'sign'->>tallyType, obj->'sign'->>notType, 
               hold->'terms', part->'terms', hold->'cert', part->'cert';
         else						-- Tally already exists, do an update
-          update mychips.tallies set request = null, status = 'draft', mod_date = current_timestamp, mod_by = session_user,
+          update mychips.tallies set request = null, status = 'offer', mod_date = current_timestamp, mod_by = session_user,
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',
             hold_sig = obj->'sign'->>tallyType, part_sig = obj->'sign'->>notType,
             hold_terms = hold->'terms', part_terms = part->'terms',
@@ -3678,33 +3704,21 @@ raise notice '  upsert obj:% curState:%', obj, curState;
       end if;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
-        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}');
+        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_cert, part_sig}');
 raise notice 'SQL:%', qstrg;
         execute qstrg || ' tally_ent = $1 and tally_seq = $2' using trec.tally_ent, trec.tally_seq;
         acted = true;
       end if;
 
-      if acted then
-
-        delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
-      else
+      if not acted then		-- Don't proceed if we didn't do anything
         return null;
-      end if;
+      end if; 
 
 
-      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
-      if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
+      delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
 
-        jrec = jsonb_build_object(
-          'target',		'tally',
-          'entity',		trec.tally_ent,
-          'sequence',	trec.tally_seq,
-          'state',		trec.state,
-          'object',		trec.json
-        );
-        perform pg_notify('mychips_user_' || trec.tally_ent, jrec::text);
-        perform pg_notify('mychips_user', jrec::text);
-      end if;
+
+      trec = mychips.tally_notify_user(trec.tally_ent, trec.tally_seq, curState);
       return trec.state;
     end;
 $$;
@@ -3753,13 +3767,9 @@ create function mychips.ticket_process(ticket jsonb, uname text = session_user) 
       if found and not trec.peer_agent isnull then
         ticket = ticket				-- Build message for agent to act on
           || '{"target":"tally","action":"ticket"}' 
-          || to_jsonb(t) from (			-- Include subject certificate into ticket
-               select to_jsonb(s) as cert from (
-                 select date,chip,type,name,public,connect,place,identity from json.cert where id = trec.id
-               ) s
-             ) t;
+          || jsonb_build_object('cert', mychips.user_cert(trec.id));
 
-
+raise notice 'Notify: mychips_agent_%', trec.peer_agent;
         perform pg_notify('mychips_agent_' || trec.peer_agent, ticket::text);
         return true;
       end if;
@@ -3776,14 +3786,14 @@ create view mychips.tokens_v as select
      , 'agent', u.peer_agent
      , 'host', u.peer_chost
      , 'port', u.peer_cport
-    ) as "chip"
+    ) as "chad"
       
     from	mychips.tokens	t
     join	mychips.users_v	u	on u.user_ent = t.token_ent;
 create trigger mychips_token_tr_seq before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
 create function mychips.user_cert(uid text) returns jsonb language sql as $$
     select to_jsonb(s) as cert from (
-      select date,chip,type,name,public,connect,place,identity from json.cert where id = uid
+      select date,chad,type,name,public,connect,place,identity from json.cert where id = uid
     ) s
 $$;
 select wm.create_role('mychips', '{"peer_2","user_2","contract_1","tally_2","chit_2","mychips_1"}'); select base.pop_role('mychips');
@@ -4338,10 +4348,10 @@ create function mychips.tallies_tf_notify() returns trigger language plpgsql sec
     declare
       notify	boolean default false;
     begin
-      if TG_OP = 'INSERT' then
+      if TG_OP = 'INSERT' and not new.request isnull then
         notify = true;
       else			-- This is an update
-        if new.request is not null and new.request is distinct from old.request then
+        if not new.request isnull and new.request is distinct from old.request then
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
@@ -4358,8 +4368,8 @@ create function mychips.tally_certs(ta mychips.tallies) returns mychips.tallies 
     declare
       hchip jsonb; pchip jsonb; c jsonb;
     begin
-      hchip = ta.hold_cert->'chip';
-      pchip = ta.part_cert->'chip';
+      hchip = ta.hold_cert->'chad';
+      pchip = ta.part_cert->'chad';
       ta.hold_cid   = hchip->>'cid';
       ta.hold_agent = hchip->>'agent';
       ta.part_cid   = pchip->>'cid';
@@ -4388,28 +4398,38 @@ create function mychips.tally_sets_v_insfunc() returns trigger language plpgsql 
     return new;
   end;
 $$;
-create function mychips.token_valid(tok text, cert jsonb) returns boolean language plpgsql as $$
+create function mychips.token_valid(tok text, cert jsonb = null) returns boolean language plpgsql as $$
     declare
       orec	record;
 
       prec	record;
+
+
     begin
       select into orec valid,token,reuse,token_ent,token_seq,tally_seq from mychips.tokens_v where token = tok;
-raise notice 'token check: %', tok;
-      if found and orec.valid then
-raise notice 'token valid; reuse:%', orec.reuse;
-        if orec.reuse then
-
-
-
-          null;
-        else
-          update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
-          update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
-        end if;
-        return true;
+raise notice 'token check: % %', tok, not cert isnull;
+      if cert isnull then			-- Checking only
+        return found and orec.valid;
+      elsif not found or not orec.valid then
+        return false;
       end if;
-      return false;
+
+
+
+
+
+      if orec.reuse then
+
+
+
+        null;
+      else
+        update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
+
+        update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
+        perform mychips.tally_notify_user(orec.token_ent, orec.tally_seq);
+      end if;
+      return true;
     end;
 $$;
 create view mychips.users_v_tallysum as select 
@@ -4485,15 +4505,14 @@ create function json.cert_tf_ii() returns trigger language plpgsql security defi
     end if;
 
     select into urec * from mychips.users_v u where	--Do we already have this person
-      u.peer_psig = new.public or (u.peer_cid = new.chip->>'cid' and u.peer_agent = new.chip->>'agent');
-
+      u.peer_psig = new.public or (u.peer_cid = new.chad->>'cid' and u.peer_agent = new.chad->>'agent');
 
 
 
 
 
     insert into mychips.peers_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_host, peer_port, peer_psig, peer_named)
-      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chip->>'cid', new.chip->>'agent', new.chip->>'host', (new.chip->>'port')::int, new.public, peer_named)
+      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chad->>'cid', new.chad->>'agent', new.chad->>'host', (new.chad->>'port')::int, new.public, peer_named)
 
 
 
@@ -4696,15 +4715,14 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
     begin
       if not new.request isnull then		-- check for legal state transition requests
         if not (
-          new.request = 'void' and old.status in ('void', 'draft') or
-          new.request = 'draft' and old.status in ('void', 'draft') or
-          new.request = 'open' and old.status = 'draft' or
+          new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
+          new.request = 'open' and old.status = 'offer' or
           new.request = 'close' and old.status = 'open'
         ) then raise exception '!mychips.tallies:ISR % %', old.status, new.request;
         end if;
-        if new.request = 'draft' then		-- Our user is re-drafting
+        if new.request = 'offer' then		-- Our user is re-drafting
           new.part_sig = null;
-          new.status = 'void';
+          new.status = 'draft';
         end if;
       end if;
       
@@ -4716,11 +4734,14 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
       end if;
 
       if new.status != old.status then			-- Check for valid state transitions
-        if new.status = 'open' and old.status = 'draft' then
+        if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));
-        elsif new.status in ('draft','void') and old.status in ('void','draft') then null;
-        elsif new.status = 'close' and old.status = 'open' then null;
-        else raise exception '!mychips.tallies:IST % %', old.status, new.status;
+        elsif new.status in ('draft','void','offer') and old.status in ('void','draft','offer') then
+          null;
+        elsif new.status = 'close' and old.status = 'open' then
+          null;
+        else
+          raise exception '!mychips.tallies:IST % %', old.status, new.status;
         end if;
       end if;
       return new;
@@ -7217,7 +7238,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','token_v_ticket','port','base','token_v_ticket','port','f','f'),
   ('base','token_v_ticket','token','base','token','token','f','f'),
   ('base','token_v_ticket','token_ent','base','token','token_ent','f','t'),
-  ('json','cert','chip','json','cert','chip','f','f'),
+  ('json','cert','chad','json','cert','chad','f','f'),
   ('json','cert','connect','json','cert','connect','f','f'),
   ('json','cert','date','json','cert','date','f','f'),
   ('json','cert','id','json','place','id','f','t'),
@@ -7910,7 +7931,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','hold_agent','mychips','tallies','hold_agent','f','f'),
   ('mychips','tallies_v','hold_akey','mychips','tallies_v','hold_akey','f','f'),
   ('mychips','tallies_v','hold_cert','mychips','tallies','hold_cert','f','f'),
-  ('mychips','tallies_v','hold_chip','mychips','tallies_v','hold_chip','f','f'),
+  ('mychips','tallies_v','hold_chad','mychips','tallies_v','hold_chad','f','f'),
   ('mychips','tallies_v','hold_cid','mychips','tallies','hold_cid','f','f'),
   ('mychips','tallies_v','hold_full','mychips','tallies_v','hold_full','f','f'),
   ('mychips','tallies_v','hold_sig','mychips','tallies','hold_sig','f','f'),
@@ -7925,7 +7946,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','part_agent','mychips','tallies','part_agent','f','f'),
   ('mychips','tallies_v','part_akey','mychips','tallies_v','part_akey','f','f'),
   ('mychips','tallies_v','part_cert','mychips','tallies','part_cert','f','f'),
-  ('mychips','tallies_v','part_chip','mychips','tallies_v','part_chip','f','f'),
+  ('mychips','tallies_v','part_chad','mychips','tallies_v','part_chad','f','f'),
   ('mychips','tallies_v','part_cid','mychips','tallies','part_cid','f','f'),
   ('mychips','tallies_v','part_full','mychips','tallies_v','part_full','f','f'),
   ('mychips','tallies_v','part_sig','mychips','tallies','part_sig','f','f'),
@@ -7983,7 +8004,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','hold_agent','mychips','tallies','hold_agent','f','f'),
   ('mychips','tallies_v_me','hold_akey','mychips','tallies_v','hold_akey','f','f'),
   ('mychips','tallies_v_me','hold_cert','mychips','tallies','hold_cert','f','f'),
-  ('mychips','tallies_v_me','hold_chip','mychips','tallies_v','hold_chip','f','f'),
+  ('mychips','tallies_v_me','hold_chad','mychips','tallies_v','hold_chad','f','f'),
   ('mychips','tallies_v_me','hold_cid','mychips','tallies','hold_cid','f','f'),
   ('mychips','tallies_v_me','hold_full','mychips','tallies_v','hold_full','f','f'),
   ('mychips','tallies_v_me','hold_sig','mychips','tallies','hold_sig','f','f'),
@@ -7998,7 +8019,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','part_agent','mychips','tallies','part_agent','f','f'),
   ('mychips','tallies_v_me','part_akey','mychips','tallies_v','part_akey','f','f'),
   ('mychips','tallies_v_me','part_cert','mychips','tallies','part_cert','f','f'),
-  ('mychips','tallies_v_me','part_chip','mychips','tallies_v','part_chip','f','f'),
+  ('mychips','tallies_v_me','part_chad','mychips','tallies_v','part_chad','f','f'),
   ('mychips','tallies_v_me','part_cid','mychips','tallies','part_cid','f','f'),
   ('mychips','tallies_v_me','part_full','mychips','tallies_v','part_full','f','f'),
   ('mychips','tallies_v_me','part_sig','mychips','tallies','part_sig','f','f'),
@@ -8123,7 +8144,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tokens','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','tokens','token_seq','mychips','tokens','token_seq','f','t'),
   ('mychips','tokens','used','mychips','tokens','used','f','f'),
-  ('mychips','tokens_v','chip','mychips','tokens_v','chip','f','f'),
+  ('mychips','tokens_v','chad','mychips','tokens_v','chad','f','f'),
   ('mychips','tokens_v','crt_by','mychips','tokens','crt_by','f','f'),
   ('mychips','tokens_v','crt_date','mychips','tokens','crt_date','f','f'),
   ('mychips','tokens_v','expired','mychips','tokens_v','expired','f','f'),
@@ -8153,7 +8174,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users','user_port','mychips','users','user_port','f','f'),
   ('mychips','users','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v','age','base','ent_v','age','f','f'),
-  ('mychips','users_v','agent','mychips','agents','agent','f','f'),
   ('mychips','users_v','agent_host','mychips','agents','agent_host','f','f'),
   ('mychips','users_v','agent_ip','mychips','agents','agent_ip','f','f'),
   ('mychips','users_v','agent_key','mychips','agents','agent_key','f','f'),
@@ -8208,7 +8228,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v','username','base','ent','username','f','f'),
   ('mychips','users_v_flat','age','base','ent_v','age','f','f'),
-  ('mychips','users_v_flat','agent','mychips','agents','agent','f','t'),
   ('mychips','users_v_flat','agent_host','mychips','agents','agent_host','f','f'),
   ('mychips','users_v_flat','agent_ip','mychips','agents','agent_ip','f','f'),
   ('mychips','users_v_flat','agent_key','mychips','agents','agent_key','f','f'),
@@ -8277,7 +8296,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_flat','username','base','ent','username','f','f'),
   ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
   ('mychips','users_v_me','age','base','ent_v','age','f','f'),
-  ('mychips','users_v_me','agent','mychips','agents','agent','f','f'),
   ('mychips','users_v_me','agent_host','mychips','agents','agent_host','f','f'),
   ('mychips','users_v_me','agent_ip','mychips','agents','agent_ip','f','f'),
   ('mychips','users_v_me','agent_key','mychips','agents','agent_key','f','f'),

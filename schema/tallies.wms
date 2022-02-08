@@ -59,9 +59,9 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , cr_limit	bigint		not null default 0	-- A foil term
 
 -- Values used internally to track state, required actions
-  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','open','close'))
-  , status	text		not null default 'void'
-  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','open','close'))
+  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
+  , status	text		not null default 'draft'
+  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
   , partner	text		references mychips.peers on update cascade on delete restrict
   				constraint "!mychips.tallies.NSP" check (partner != tally_ent)
   			      , unique(tally_ent, partner, tally_type, tally_uuid)
@@ -136,15 +136,14 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
     begin
       if not new.request isnull then		-- check for legal state transition requests
         if not (
-          new.request = 'void' and old.status in ('void', 'draft') or
-          new.request = 'draft' and old.status in ('void', 'draft') or
-          new.request = 'open' and old.status = 'draft' or
+          new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
+          new.request = 'open' and old.status = 'offer' or
           new.request = 'close' and old.status = 'open'
         ) then raise exception '!mychips.tallies:ISR % %', old.status, new.request;
         end if;
-        if new.request = 'draft' then		-- Our user is re-drafting
+        if new.request = 'offer' then		-- Our user is re-drafting
           new.part_sig = null;			-- Partner will have to re-sign
-          new.status = 'void';
+          new.status = 'draft';
         end if;
       end if;
       
@@ -156,11 +155,14 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
       end if;
 
       if new.status != old.status then			-- Check for valid state transitions
-        if new.status = 'open' and old.status = 'draft' then
+        if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));	-- Generate record digest
-        elsif new.status in ('draft','void') and old.status in ('void','draft') then null;
-        elsif new.status = 'close' and old.status = 'open' then null;
-        else raise exception '!mychips.tallies:IST % %', old.status, new.status;
+        elsif new.status in ('draft','void','offer') and old.status in ('void','draft','offer') then
+          null;
+        elsif new.status = 'close' and old.status = 'open' then
+          null;
+        else
+          raise exception '!mychips.tallies:IST % %', old.status, new.status;
         end if;
       end if;
       return new;
@@ -177,8 +179,8 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
     declare
       hchip jsonb; pchip jsonb; c jsonb;
     begin
-      hchip = ta.hold_cert->'chip';
-      pchip = ta.part_cert->'chip';
+      hchip = ta.hold_cert->'chad';
+      pchip = ta.part_cert->'chad';
       ta.hold_cid   = hchip->>'cid';		-- Cache commonly used properties
       ta.hold_agent = hchip->>'agent';
       ta.part_cid   = pchip->>'cid';
@@ -234,21 +236,21 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychip
         rrec	record;			-- Retries
         channel	text = 'mychips_agent';
     begin				-- Determine next action
-        if tally.status = 'void' and tally.request = 'draft' then
+        if tally.status in ('void','draft','offer') and tally.request = 'offer' then
             act = 'userDraft';
-        elsif tally.status = 'draft' and tally.request = 'void'  then
+        elsif tally.status = 'offer' and tally.request = 'void'  then
             act = 'userVoid';
-        elsif tally.status = 'draft' and tally.request = 'open'  then
+        elsif tally.status = 'offer' and tally.request = 'open'  then
             act = 'userAccept';
         elsif tally.status = 'open'  and tally.request = 'close' then
             act = 'userClose';
         end if;
--- raise notice 'TN:% % %', act, tally.tally_ent, tally.partner;
+raise notice 'TN:% % % %', act, tally.tally_ent, tally.status, tally.request;
         if act is null then			-- Indeterminate state, clear request
             update mychips.tallies set request = null where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
             return false;
         end if;
-        select into trec hold_agent,hold_chip,part_chip,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
+        select into trec hold_agent,hold_chad,part_chad,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
         if not trec.hold_agent is null then
             channel = channel || '_' || trec.hold_agent;
         end if;
@@ -257,18 +259,18 @@ function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychip
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
 -- raise notice 'Try:%-%', tally.tally_ent, tally.tally_seq;
--- raise notice 'Tn c:% t:% f:%', channel, trec.part_chip, trec.hold_chip;
+-- raise notice 'Tn c:% t:% f:%', channel, trec.part_chad, trec.hold_chad;
 
         jrec = jsonb_build_object(
           'target',	'tally',
           'action',	act,
           'try',	rrec.tries,
           'last',	rrec.last,
-          'to',		trec.part_chip,
-          'from',	trec.hold_chip,
+          'to',		trec.part_chad,
+          'from',	trec.hold_chad,
           'object',	trec.json
         );
--- raise notice 'Tally notice:% %', channel, jrec::text;
+raise notice 'Tally notice:% % %', channel, act, trec.json->'uuid';
         perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
         return true;
     end;
@@ -281,10 +283,10 @@ function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies) mych
     declare
       notify	boolean default false;
     begin
-      if TG_OP = 'INSERT' then
+      if TG_OP = 'INSERT' and not new.request isnull then
         notify = true;
       else			-- This is an update
-        if new.request is not null and new.request is distinct from old.request then
+        if not new.request isnull and new.request is distinct from old.request then
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
@@ -337,19 +339,21 @@ $$;}
 function {mychips.tally_state(status text, request text, hold_sig text, part_sig text, total bigint)} {mychips} {
   returns text immutable language plpgsql as $$
     begin return
-    case when status = 'void' and request is null		then 'void'
-         when status = 'void' and request = 'draft'		then 'userDraft'
-         when status = 'draft' and request is null then
-           case when hold_sig is not null and part_sig is null	then 'userProffer'
-                when part_sig is not null and hold_sig is null	then 'peerProffer'
-           else 'undefined' end
-         when status = 'draft' and request = 'void'		then 'userVoid'
-         when status = 'draft' and request = 'open'		then 'userAccept'
-         when status = 'open' and request is null		then 'open'
-         when status = 'open' and request = 'close'		then 'userClose'
-         when status = 'close' and request is null then
-             case when total = 0 then 'closed' else 'closing' end
-         else 'undefined' end;
+      case when request isnull then
+        case when status = 'offer' then
+          case when not hold_sig isnull and part_sig isnull then	'userProffer'
+               when not part_sig isnull and hold_sig isnull then	'peerProffer'
+          end
+             when status = 'close' and total = 0 then			'closed'
+             else status	-- void, draft, offer, open, close
+        end
+      else	-- pending request
+        case when request = 'offer' then				'userDraft'
+             when request = 'void' then					'userVoid'
+             when request = 'open' then					'userAccept'
+             when request = 'close' then				'userClose'
+        end
+      end;
     end;
 $$;}
 
@@ -358,11 +362,11 @@ $$;}
 #view mychips.tallies_v_cert {mychips.tallies} {select 
 #    te.tally_ent
 #  , te.tally_seq
-#  , uc.chip	as hold_chip
+#  , uc.chip	as hold_chad
 #  , uc.public	as hold_public
 #  , uh.cid	as hold_cid
 #  , uh.agent	as hold_agent
-#  , pc.chip	as part_chip
+#  , pc.chip	as part_chad
 #  , pc.public	as part_public
 #  , ph.cid	as part_cid
 #  , ph.agent	as part_agent
@@ -382,17 +386,17 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
   , te.hold_cid ||':'|| ua.atsock	as hold_full
   , ua.sock				as hold_sock
   , ua.agent_key			as hold_akey
-  , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chip
+  , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
 
   , te.part_cid ||':'|| pa.agent	as part_addr
   , te.part_cid ||':'|| pa.atsock	as part_full
   , pa.sock				as part_sock
   , pa.agent_key			as part_akey
-  , jsonb_build_object('cid', te.part_cid) || pa.json as part_chip
+  , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
   
   , not te.partner is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig,units_gc)	as state
-  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc) = any(array['peerProffer','closing']) as action
+  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc) = any(array['peerProffer','close','draft']) as action
   , coalesce(uSign(tc.units),0)			as units
   , uSign(units_gc)				as units_gc
   , uSign(units_pc)				as units_pc
@@ -589,10 +593,36 @@ $$;}
 
 # Process tally state transitions requested by the peer server process
 #----------------------------------------------------------------
+function {mychips.tally_notify_user(ent text, seq int, oldstate text = 'open')} {mychips.tallies_v} {
+  returns record language plpgsql as $$
+    declare
+      trec	record;
+      jrec	jsonb;
+    begin
+      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
+      if trec.action or (trec.state = 'open' and oldState is distinct from trec.state) then	-- Also notify if changed to open status
+raise notice 'Tally user notify: mychips_user_% %', trec.tally_ent, trec.json->'uuid';
+        jrec = jsonb_build_object(
+          'target',	'tally',
+          'entity',	trec.tally_ent,
+          'sequence',	trec.tally_seq,
+          'state',	trec.state,
+          'object',	trec.json
+        );
+        perform pg_notify('mychips_user_' || trec.tally_ent, jrec::text);
+        perform pg_notify('mychips_user', jrec::text);		-- Simulations use this
+      end if;
+      return trec;
+    end;
+$$;}
+
+# Process tally state transitions requested by the peer server process
+#----------------------------------------------------------------
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
   returns text language plpgsql as $$
     declare
-      cid	text = msg->>'cid';
+      cid	text = coalesce(msg->>'cid', msg->'to'->>'cid');
+      agent	text = coalesce(msg->>'agent', msg->'to'->>'agent');
       obj	jsonb = msg->'object';
       hold	jsonb = obj->'stock';	-- assume our guy is the stock holder
       part	jsonb = obj->'foil';
@@ -606,13 +636,13 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
       tallyType text = 'stock';
       notType text = 'foil';
     begin
---raise notice 'Tally obj:% cid:% uuid:%', obj, cid, uuid;
+raise notice 'Tally cid:% uuid:%', cid, uuid;
       select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = uuid;
         
 raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
       if not found then			-- No existing tally
         curState = 'null';			-- Special code for when the tally doesn't exist yet
-        select into uid id from mychips.users_v where peer_cid = cid and peer_agent = msg->>'agent';		-- Look up the entity on our own
+        select into uid id from mychips.users_v where peer_cid = cid and peer_agent = agent;		-- Look up the entity on our own
         if not found then return null; end if;
       else
         curState = trec.state;
@@ -626,24 +656,26 @@ raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
       if recipe->>'upsert' then		-- If inserting/updating from object
 
 raise notice '  upsert obj:% curState:%', obj, curState;
-        if part->'cert'->'chip'->>'cid' = cid and part->'cert'->'chip'->>'cid' = cid then
+        if part->'cert'->'chad'->>'cid' = cid and part->'cert'->'chad'->>'agent' = agent then
           tallyType = 'foil';			-- Our side really is the foil
           notType = 'stock';
-        elsif hold->'cert'->'chip'->>'cid' != cid or hold->'cert'->'chip'->>'cid' != cid then
+          hold	= obj->'foil';
+          part	= obj->'stock';
+        elsif hold->'cert'->'chad'->>'cid' != cid or hold->'cert'->'chad'->>'agent' != agent then
           return null;				-- Can't find our entity as stock or foil
         end if;
 
---raise notice '  tallyType:% notType:%', tallyType, notType;
+raise notice '  tallyType:% notType:%', tallyType, notType;
         if curState = 'null' then			-- Will need to do insert
           execute 'insert into mychips.tallies (
             tally_ent,tally_uuid,tally_type,tally_date,version,contract,status,comment,
             hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert
           ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning tally_ent, tally_seq' into trec
-            using uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, obj->'agree', 'draft', obj->>'note', 
+            using uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, obj->'agree', 'offer', obj->>'note', 
               obj->'sign'->>tallyType, obj->'sign'->>notType, 
               hold->'terms', part->'terms', hold->'cert', part->'cert';
         else						-- Tally already exists, do an update
-          update mychips.tallies set request = null, status = 'draft', mod_date = current_timestamp, mod_by = session_user,
+          update mychips.tallies set request = null, status = 'offer', mod_date = current_timestamp, mod_by = session_user,
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',
             hold_sig = obj->'sign'->>tallyType, part_sig = obj->'sign'->>notType,
             hold_terms = hold->'terms', part_terms = part->'terms',
@@ -654,33 +686,21 @@ raise notice '  upsert obj:% curState:%', obj, curState;
       end if;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
-        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}');
+        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_cert, part_sig}');
 raise notice 'SQL:%', qstrg;
         execute qstrg || ' tally_ent = $1 and tally_seq = $2' using trec.tally_ent, trec.tally_seq;
         acted = true;
       end if;
 
-      if acted then
+      if not acted then		-- Don't proceed if we didn't do anything
+        return null;
+      end if; 
+
 --raise notice 'Clear:%-%', trec.tally_ent, trec.tally_seq;
-        delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
-      else
-        return null;		-- Don't proceed if we didn't do anything
-      end if;
+      delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
 
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
-      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
-      if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
---raise notice '  tally notify for user channel mychips_user_% %', trec.tally_ent, trec.json;
-        jrec = jsonb_build_object(
-          'target',		'tally',
-          'entity',		trec.tally_ent,
-          'sequence',	trec.tally_seq,
-          'state',		trec.state,
-          'object',		trec.json
-        );
-        perform pg_notify('mychips_user_' || trec.tally_ent, jrec::text);
-        perform pg_notify('mychips_user', jrec::text);		-- Simulations use this
-      end if;
+      trec = mychips.tally_notify_user(trec.tally_ent, trec.tally_seq, curState);
       return trec.state;
     end;
 $$;}
