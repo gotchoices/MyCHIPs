@@ -1,33 +1,29 @@
 TODO:
 
 Immediate:
-- Noise integration:
--   User 1 accepts proffered offer -> open
--   User 1 rejects proffered offer -> void
--   User 1 counters proffered offer -> offer
--   User 0 rejects counter-proffered offer -> void
--   Add a chit, to make a non-zero balance
--   Test closing the tally
--   
+X- Noise integration:
+X- Regression tests up through tally all working
+X- Can run all tally tests on two separate DB's (one for each user)?
+- 
 -   Can request tally over known agent connection
 -   Can request tally over known, open agent connection
 -   When encryption not being used, does the token check still get called OK?
 -   Can clone ticket-tally (how to generate fresh/valid uuid?)
 -   
--  Regression tests up through tally all working
 -  Agents table keeps track of each agent's latest connection portal
 -  How does the system identify local agents vs/ peer agents?
 - 
-- Can run all tally tests on two separate DB's (one for each user)?
-- 
 - mychips.js;
 -  Can launch an agent server for each locally defined agent
--  Where/how to store
+-  Where/how to build/store agent private keys (pki folder?)
 -  
 - Upgrade chits to 1.0 protocol
 -   Make sch-chit.js to test each chit state
 -   Old mocha/peer.js becomes chit.js
 -   Test chit generation over noise/existing tally set
+-  
+- Design protocol for amendments (like a pre-signed chit?)
+-   Build subsystem for entering/communicating amendments
 - 
 - Other subsystems patched well enough to run in simulators
 -   Adapt route to new message format

@@ -227,7 +227,7 @@ trigger mychips_sets_tr_seq {} {
 
 # Notify the peer server process of user next-state requests, that need attention
 #----------------------------------------------------------------
-function {mychips.tally_notify(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
+function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
   returns boolean language plpgsql security definer as $$
     declare
         act	text;
@@ -278,7 +278,7 @@ $$;}
 
 # Generate notifications about updated tallies for listening peer servers
 #----------------------------------------------------------------
-function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies) mychips.route_circuit(text)} {
+function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies) mychips.route_circuit(text)} {
   returns trigger language plpgsql security definer as $$
     declare
       notify	boolean default false;
@@ -293,7 +293,7 @@ function mychips.tallies_tf_notify() {mychips.tally_notify(mychips.tallies) mych
           perform mychips.route_circuit(new.tally_ent);		-- New tally, let's query for route info
         end if;
       end if;
-      if notify then perform mychips.tally_notify(new); end if;
+      if notify then perform mychips.tally_notify_agent(new); end if;
       return new;
     end;
 $$;}
@@ -600,8 +600,8 @@ function {mychips.tally_notify_user(ent text, seq int, oldstate text = 'open')} 
       jrec	jsonb;
     begin
       select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
-      if trec.action or (trec.state = 'open' and oldState is distinct from trec.state) then	-- Also notify if changed to open status
-raise notice 'Tally user notify: mychips_user_% %', trec.tally_ent, trec.json->'uuid';
+      if trec.action or (oldState is distinct from trec.state) then	-- Also notify if changed state
+-- raise notice 'Tally user notify: mychips_user_% %', trec.tally_ent, trec.json->'uuid';
         jrec = jsonb_build_object(
           'target',	'tally',
           'entity',	trec.tally_ent,
@@ -621,12 +621,12 @@ $$;}
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
   returns text language plpgsql as $$
     declare
-      cid	text = coalesce(msg->>'cid', msg->'to'->>'cid');
-      agent	text = coalesce(msg->>'agent', msg->'to'->>'agent');
+      cid	text = msg->'to'->>'cid';
+      agent	text = msg->'to'->>'agent';
       obj	jsonb = msg->'object';
+      uuid	uuid = obj->>'uuid';
       hold	jsonb = obj->'stock';	-- assume our guy is the stock holder
       part	jsonb = obj->'foil';
-      uuid	uuid = obj->>'uuid';
       curState	text;
       qstrg	text;			-- Temporary string
       uid	text;			-- Our user/holder
@@ -636,7 +636,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
       tallyType text = 'stock';
       notType text = 'foil';
     begin
-raise notice 'Tally cid:% uuid:%', cid, uuid;
+--raise notice 'Tally cid:% uuid:%', cid, uuid;
       select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = uuid;
         
 raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
@@ -665,7 +665,7 @@ raise notice '  upsert obj:% curState:%', obj, curState;
           return null;				-- Can't find our entity as stock or foil
         end if;
 
-raise notice '  tallyType:% notType:%', tallyType, notType;
+--raise notice '  tallyType:% notType:%', tallyType, notType;
         if curState = 'null' then			-- Will need to do insert
           execute 'insert into mychips.tallies (
             tally_ent,tally_uuid,tally_type,tally_date,version,contract,status,comment,
@@ -687,7 +687,7 @@ raise notice '  tallyType:% notType:%', tallyType, notType;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
         qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_cert, part_sig}');
-raise notice 'SQL:%', qstrg;
+--raise notice 'SQL:%', qstrg;
         execute qstrg || ' tally_ent = $1 and tally_seq = $2' using trec.tally_ent, trec.tally_seq;
         acted = true;
       end if;
@@ -720,7 +720,7 @@ function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.
         for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
           join mychips.tally_tries tr on tr.ttry_ent = ta.tally_ent and tr.ttry_seq = ta.tally_seq
           where ta.request is not null and (current_timestamp - tr.last) >= min_time loop
-            perform mychips.tally_notify(trec);
+            perform mychips.tally_notify_agent(trec);
             didem = didem + 1;
         end loop;
 
