@@ -4,18 +4,15 @@ Immediate:
 X- Noise integration:
 X- Regression tests up through tally all working
 X- Can run all tally tests on two separate DB's (one for each user)?
-- 
--   Can request tally over known agent connection
--   Can request tally over known, open agent connection
--   When encryption not being used, does the token check still get called OK?
--   Can clone ticket-tally (how to generate fresh/valid uuid?)
+X- Can request tally over known, open agent connection
+X- Can clone ticket-tally (how to generate fresh/valid uuid?)
 -   
--  Agents table keeps track of each agent's latest connection portal
--  How does the system identify local agents vs/ peer agents?
 - 
 - mychips.js;
 -  Can launch an agent server for each locally defined agent
 -  Where/how to build/store agent private keys (pki folder?)
+-  Agents table keeps track of each agent's latest connection portal (in case it changes)
+-  How does the system identify local agents vs/ peer agents?
 -  
 - Upgrade chits to 1.0 protocol
 -   Make sch-chit.js to test each chit state

@@ -22,6 +22,14 @@ function {mychips.validate(dat text, sig text, pub text)} {mychips plpy} {
     return verified
 $$;}
 
+# Generate random UUID (use until PG13's gen_random_uuid() comes along)
+#----------------------------------------------------------------
+function {mychips.random_uuid()} {plpy} {
+  returns uuid language plpythonu as $$
+    import uuid
+    return uuid.uuid4()
+$$;}
+
 # JSON serialization with sorted keys and no spaces (OBSOLETE)
 #----------------------------------------------------------------
 function {mychips.j2s(inp jsonb)} {mychips plpy} {

@@ -115,7 +115,9 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
           if not found then new.tally_seq = 1; end if;
 -- select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent; -- Not safe for concurrent sessions
         end if;
---        new.status = 'void';		-- Local tallies come in as void, remotes come in as draft
+        if new.tally_uuid is null then
+          new.tally_uuid = mychips.random_uuid();
+        end if;
 
         new.hold_cert = mychips.user_cert(new.tally_ent);
         new = mychips.tally_certs(new);
@@ -667,13 +669,14 @@ raise notice '  upsert obj:% curState:%', obj, curState;
 
 --raise notice '  tallyType:% notType:%', tallyType, notType;
         if curState = 'null' then			-- Will need to do insert
-          execute 'insert into mychips.tallies (
+          insert into mychips.tallies (
             tally_ent,tally_uuid,tally_type,tally_date,version,contract,status,comment,
             hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert
-          ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning tally_ent, tally_seq' into trec
-            using uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, obj->'agree', 'offer', obj->>'note', 
-              obj->'sign'->>tallyType, obj->'sign'->>notType, 
-              hold->'terms', part->'terms', hold->'cert', part->'cert';
+          ) values (
+            uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, 
+            obj->'agree', 'offer', obj->>'note', obj->'sign'->>tallyType, obj->'sign'->>notType, 
+            hold->'terms', part->'terms', hold->'cert', part->'cert'
+          ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
           update mychips.tallies set request = null, status = 'offer', mod_date = current_timestamp, mod_by = session_user,
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',

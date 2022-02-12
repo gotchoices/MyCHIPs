@@ -9,18 +9,15 @@
 //- Generates proper signals to user process
 //- 
 
-const { dbConf, Log, Format, Bus, assert, saveRest, getRow, mkUuid } = require('../settings')
+const { dbConf, Log, Format, Bus, assert, getRow, mkUuid } = require('../settings')
 var log = Log('testSchTally')
 var { dbClient } = require("wyseman")
 const { host, user0, user1, Port0, Port1, agent0, agent1, aKey0, aKey1 } = require('./testusers')
 var userListen = 'mychips_user_' + user0
 var agentListen = 'mychips_agent_' + agent0		//And his agent process
-var interTest = {}			//Pass values from one test to another
 var contract = {domain:"mychips.org", name:"standard", version:0.99}
-var stateField = 'mychips.tally_state(status,request,hold_sig,part_sig,units_gc) as state'
-var uSql = (sets) => Format(`update mychips.tallies set ${sets} where tally_ent = %L and tally_seq = %L returning *, ${stateField};`, user0, 1)
-var save = (tag) => saveRest(tag, 'mychips.tallies')
-var rest = (tag) => saveRest(tag, 'mychips.tallies', 'rest')
+var {stateField, uSql, save, rest} = require('./def-tally')
+var interTest = {}			//Pass values from one test to another
 
 describe("Test tally state transitions", function() {
   var busU = new Bus('busU'), busA = new Bus('busA')
@@ -61,7 +58,7 @@ describe("Test tally state transitions", function() {
   })
 
   it("User request to promote tally to offer (draft -> userDraft)", function(done) {
-    let sql = uSql(`request = 'offer', hold_sig = 'Adam Signature'`)
+    let sql = uSql(`request = 'offer', hold_sig = 'Adam Signature'`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
@@ -118,7 +115,7 @@ log.debug("Sql:", sql)
   it("Agent receives alternative draft (userProffer -> peerProffer)", function(done) {peerProfferGo(done)})
   
   it("User request to promote tally to offer (peerProffer -> userVoid)", function(done) {
-    let sql = uSql(`request = 'void', hold_sig = null`)
+    let sql = uSql(`request = 'void', hold_sig = null`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
@@ -205,7 +202,7 @@ log.debug("Sql:", sql)
   })
 
   it("User modifies peer draft (peerProffer -> userDraft)", function(done) {
-    let sql = uSql(`request = 'offer', hold_sig = 'Adam Signature', comment = 'A special condition'`)
+    let sql = uSql(`request = 'offer', hold_sig = 'Adam Signature', comment = 'A special condition'`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
@@ -228,7 +225,7 @@ log.debug("Sql:", sql)
   })
 
   it("User request to accept draft (peerProffer -> userAccept)", function(done) {
-    let sql = uSql(`request = 'open', hold_sig = 'Adam Signature', units_gc = 1`)	//Force chips cache to non-zero
+    let sql = uSql(`request = 'open', hold_sig = 'Adam Signature', units_gc = 1`, user0, 1)	//Force chips cache to non-zero
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql M:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
@@ -264,7 +261,7 @@ log.debug("Sql:", sql)
   })
 
   it("User request to close tally (open -> userClose)", function(done) {
-    let sql = uSql(`request = 'close'`)
+    let sql = uSql(`request = 'close'`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql M:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
@@ -312,7 +309,7 @@ log.debug("Sql:", sql)
   })
 
   it("Simulate tally balance going to zero (close -> closed)", function(done) {
-    let sql = uSql(`units_gc = 0`)
+    let sql = uSql(`units_gc = 0`, user0, 1)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
       let row = getRow(res, 0)

@@ -1,8 +1,9 @@
 //Test tally initialization sequence; Run only after impexp, testusers
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-// This simulates two users connected through a single DB:
+// This simulates two users connected through a single DB or two different DBs:
 // User1 <-> DB <-> Agent1 <-> Agent2 <-> DB <-> User2
+// User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
 //X- Give ticket info to other peer
 //X- Have them connect via noise module using the ticket
@@ -10,24 +11,23 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const { dbConf, Log, Format, Bus, assert, saveRest, getRow, mkUuid } = require('../settings')
+const { dbConf, Log, Format, Bus, assert, getRow, mkUuid } = require('../settings')
 var log = Log('testTally')
 var { dbClient } = require("wyseman")
 const PeerCont = require("../../lib/peer2peer")
+const PeerNoise = require("../../lib/peernoise")
 const {host,user0,user1,cid0,cid1,Port0,Port1,agent0,agent1,aCon0,aCon1} = require('./testusers')
 const {user2,cid2,Port2,agent2,aCon2,db2Conf} = require('./user2')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
-var save = (tag) => saveRest(tag, 'mychips.tallies')
-var rest = (tag) => saveRest(tag, 'mychips.tallies', 'rest')
-var stateField = 'mychips.tally_state(status,request,hold_sig,part_sig,units_gc) as state'
-var uSql = (sets,...vals) => Format(`update mychips.tallies set ${sets} where tally_ent = %L and tally_seq = %s returning *, ${stateField};`, ...vals)
+var {stateField, uSql, save, rest} = require('./def-tally')
 var interTest = {}			//Pass values from one test to another
 
 //Establish tally between two users
-var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS, agentO, agentS, aConO, aConS}) {
+var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS, agentO, agentS, aConO, aConS, reuse, preopen}) {
   var serverO, serverS
   var busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
+  var seqO = reuse ? 2 : 1
 
   before('Connection 0 to test database', function(done) {	//Emulate originator user
     dbO = new dbClient(dbcO, (chan, data) => {
@@ -58,31 +58,41 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     dbS.query(sql, (e) => {if (e) done(e); _done()})
   })
 
+  if (preopen) it("Initiate a noise connection between agents", function(done) {
+    let pnO = serverO.peerNoise
+      , {cid, agent, host, port} = aConS
+      , msg = {to: {cid:cidS, agent:agentS, host:aConS.host, port:aConS.port}, text:'Hi!'}
+//log.debug('Presend:', cidS, agentS)
+    pnO.send(msg, ()=>{
+//log.debug('Success!', pnO.connections.size())
+      assert.equal(pnO.connections.size(), 1)	//one open connection
+      done()
+    }, ()=>{done('Failed to open noise connection')})
+  })
+
   it("Originator builds tally template and token", function(done) {
-    let cid = userO
-      , uuid = mkUuid(cid)
-      , s1 = Format('insert into mychips.tallies (tally_ent, tally_uuid, contract) values(%L,%L,%L)', cid, uuid, contract)
-      , sql = `with row as (${s1} returning tally_ent, tally_seq)
-          insert into mychips.tokens (token_ent, tally_seq) select * from row returning *;
-          select * from mychips.tallies_v where tally_ent = '${cid}' and tally_seq = 1;
+//    let uuid = mkUuid(cidO)
+    let s1 = Format('insert into mychips.tallies (tally_ent, contract) values(%L,%L)', userO, contract)
+      , sql = `with row as (${s1} returning tally_ent, tally_seq, ${reuse || 'false'})
+          insert into mychips.tokens (token_ent, tally_seq, reuse) select * from row returning *;
+          select * from mychips.tallies_v where tally_ent = '${userO}' and tally_seq = 1;
           select token,expires,chad from mychips.tokens_v;`
-//log.debug("Sql:", sql)
-    dbO.query(sql, (e, res) => {if (e) done(e)
-//log.debug("Res:", res)
+log.debug("Sql:", sql)
+    dbO.query(sql, (e, res) => {if (e) done(e)		//;log.debug("res:", res)
       assert.equal(res.length, 3)
       assert.equal(res[0].rowCount, 1)
       let tok = res[0].rows[0]
-      assert.equal(tok.token_ent, cid)
+      assert.equal(tok.token_ent, userO)
       assert.equal(tok.token_seq, 1)
       assert.equal(tok.tally_seq, 1)
       assert.equal(tok.token.length, 32)	//MD5
       let tal = res[1].rows[0]
 //log.debug("Talley:", tal)
-      assert.equal(tal.tally_uuid, uuid)
+      assert.ok(!!tal.tally_uuid)
       assert.ok(!tal.part_ent)
       assert.equal(tal.status,'draft')
       assert.equal(tal.tally_type,'stock')
-      assert.equal(tal.hold_cid,cid0)
+      assert.equal(tal.hold_cid,cidO)
       assert.equal(tal.hold_agent,agentO)
       let ticket = res[2].rows[0]
 //log.debug("Ticket:", ticket)
@@ -102,13 +112,14 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       _done()
     })
     busO.register('po', (msg) => {	//Originator is prompted to sign the tally
-//log.debug("msg:", msg)
+log.debug("msg:", msg)
       assert.equal(msg.entity, userO)
       assert.equal(msg.state, 'draft')
+      assert.equal(msg.sequence, seqO)
       let tally = msg.object
         , stock = tally.stock
         , foil = tally.foil
-//log.debug("tally:", tally, tally.stock.cert.chad)
+log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
       assert.equal(stock.cert.chad.cid, cidO)
       assert.equal(stock.cert.chad.agent, agentO)
       assert.equal(foil.cert.chad.cid, cidS)
@@ -122,9 +133,10 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   it("Originator approves, signs the proposed tally", function(done) {
-    let sql = uSql('request = %L, hold_sig = %L', 'offer', 'Originator Signature', userO, 1)
+    let uuid = mkUuid(cidO)			//Make a real UUID for this user/tally
+      , sql = uSql('tally_uuid = %L, request = %L, hold_sig = %L', uuid, 'offer', 'Originator Signature', userO, seqO)
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     dbO.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.request, 'offer')
@@ -259,7 +271,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   it("Simulate non-zero tally balance", function(done) {
     let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
-    dbO.query(uSql('units_gc = 1', userO, 1), (e, res) => { if (e) done(e); _done()})
+    dbO.query(uSql('units_gc = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
     dbS.query(uSql('units_gc = 1', userS, 1), (e, res) => { if (e) done(e); _done()})
   })
 
@@ -293,7 +305,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   it("Simulate tally balance going to zero (close -> closed)", function(done) {
     let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
-    dbO.query(uSql('units_gc = 0', userO, 1), (e, res) => { if (e) done(e)
+    dbO.query(uSql('units_gc = 0', userO, seqO), (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.state, 'closed')
       _done()
@@ -304,6 +316,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       _done()
     })
   })
+
 /*
 */
   after('Disconnect from test database', function(done) {
@@ -336,7 +349,18 @@ describe("Tally peer-to-peer testing", function() {
     dbcSO: new dbConf(),
     dbcSS: new db2Conf()
   }
+  let configR = {		//Reusable token across open channel
+    sites:2,
+    cidO:cid2, cidS:cid1, userO:user2, userS:user1, aConO:aCon2, aConS:aCon1, agentO:agent2, agentS:agent1,
+    dbcO: new db2Conf(log, 'mychips_user_p1002'), 
+    dbcS: new dbConf(log, 'mychips_user_p1001'),
+    dbcSO: new db2Conf(),
+    dbcSS: new dbConf(),
+    reuse: true,
+    preopen: true
+  }
 
   describe("Establish tally between two users on same site", function() {Suite1(configS)})
   describe("Establish tally between two users on different sites", function() {Suite1(configD)})
+  describe("Establish reusable tally over open connection", function() {Suite1(configR)})
 })

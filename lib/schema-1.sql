@@ -731,6 +731,10 @@ create function mychips.lift_state(status text, request text, expired boolean) r
         else status end
       end
 $$;
+create function mychips.random_uuid() returns uuid language plpythonu as $$
+    import uuid
+    return uuid.uuid4()
+$$;
 create function mychips.route_state(status text, expired boolean, trymax boolean) returns text stable language plpgsql as $$
     begin
       return case when status = 'draft'				then 'draft'
@@ -3685,13 +3689,14 @@ raise notice '  upsert obj:% curState:%', obj, curState;
 
 
         if curState = 'null' then			-- Will need to do insert
-          execute 'insert into mychips.tallies (
+          insert into mychips.tallies (
             tally_ent,tally_uuid,tally_type,tally_date,version,contract,status,comment,
             hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert
-          ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning tally_ent, tally_seq' into trec
-            using uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, obj->'agree', 'offer', obj->>'note', 
-              obj->'sign'->>tallyType, obj->'sign'->>notType, 
-              hold->'terms', part->'terms', hold->'cert', part->'cert';
+          ) values (
+            uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, 
+            obj->'agree', 'offer', obj->>'note', obj->'sign'->>tallyType, obj->'sign'->>notType, 
+            hold->'terms', part->'terms', hold->'cert', part->'cert'
+          ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
           update mychips.tallies set request = null, status = 'offer', mod_date = current_timestamp, mod_by = session_user,
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',
@@ -4401,31 +4406,25 @@ $$;
 create function mychips.token_valid(tok text, cert jsonb = null) returns boolean language plpgsql as $$
     declare
       orec	record;
-
-      prec	record;
-
-
+      trec	record;
     begin
       select into orec valid,token,reuse,token_ent,token_seq,tally_seq from mychips.tokens_v where token = tok;
-raise notice 'token check: % %', tok, not cert isnull;
+
       if cert isnull then			-- Checking only
         return found and orec.valid;
       elsif not found or not orec.valid then
         return false;
       end if;
 
-
-
-
-
-      if orec.reuse then
-
-
-
-        null;
-      else
+      if orec.reuse then	-- Create a new tally from the template
+        insert into mychips.tallies (
+          tally_ent, tally_uuid, tally_type, version, comment, contract, hold_cert, hold_terms, part_cert, status
+        ) select
+          tally_ent, mychips.random_uuid(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
+        from mychips.tallies returning tally_ent, tally_seq into trec;
+        perform mychips.tally_notify_user(trec.tally_ent, trec.tally_seq);
+      else			-- one-time token, use template AS our new tally, invalidate token
         update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
-
         update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
         perform mychips.tally_notify_user(orec.token_ent, orec.tally_seq);
       end if;
@@ -4758,7 +4757,9 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
           if not found then new.tally_seq = 1; end if;
 
         end if;
-
+        if new.tally_uuid is null then
+          new.tally_uuid = mychips.random_uuid();
+        end if;
 
         new.hold_cert = mychips.user_cert(new.tally_ent);
         new = mychips.tally_certs(new);

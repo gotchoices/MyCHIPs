@@ -98,31 +98,25 @@ function {mychips.token_valid(tok text, cert jsonb = null)} {mychips.tokens_v} {
   returns boolean language plpgsql as $$
     declare
       orec	record;
---      trec	record;
-      prec	record;
---      msg	jsonb;
---      recipe	jsonb;
+      trec	record;
     begin
       select into orec valid,token,reuse,token_ent,token_seq,tally_seq from mychips.tokens_v where token = tok;
-raise notice 'token check: % %', tok, not cert isnull;
+-- raise notice 'token check: % %', tok, not cert isnull;
       if cert isnull then			-- Checking only
         return found and orec.valid;
       elsif not found or not orec.valid then
         return false;
       end if;
 
---Debug:      
---select into trec * from mychips.tallies where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
---raise notice 'token reuse:% request:% status:%', orec.reuse, trec.request, trec.status;
-
-      if orec.reuse then
--- Create a new tally from the tally template
--- How do we come up with a new UUID?
---          insert into mychips.tallies (tally_ent) select x,y,z from mychips.tallies;
-        null;
-      else
+      if orec.reuse then	-- Create a new tally from the template
+        insert into mychips.tallies (
+          tally_ent, tally_uuid, tally_type, version, comment, contract, hold_cert, hold_terms, part_cert, status
+        ) select
+          tally_ent, mychips.random_uuid(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
+        from mychips.tallies returning tally_ent, tally_seq into trec;
+        perform mychips.tally_notify_user(trec.tally_ent, trec.tally_seq);
+      else			-- one-time token, use template AS our new tally, invalidate token
         update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
---        perform mychips.tally_process('{}','"{update":{"status":"draft"}}');
         update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
         perform mychips.tally_notify_user(orec.token_ent, orec.tally_seq);
       end if;
