@@ -41,6 +41,8 @@ class AgentCluster {
     this.notifyOfTallyChange = this.notifyOfTallyChange.bind(this)
     this.notifyOfNewAgentRequest = this.notifyOfNewAgentRequest.bind(this)
     this.notifyOfAgentsChange = this.notifyOfAgentsChange.bind(this)
+    this.eatAgents = this.eatAgents.bind(this)
+    this.eatParameters = this.eatParameters.bind(this)
 
     // Initialize agent logger
     this.logger = UnifiedLogger.getInstance()
