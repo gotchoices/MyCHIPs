@@ -1,4 +1,4 @@
-import Agent from "./agent"
+import Agent from './agent'
 import {
   MongoClient,
   Db,
@@ -25,7 +25,7 @@ class MongoManager {
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
   /** A cache in which to store callbacks that need to run when actions sent to foreign servers are completed */
-  private foreignActionCallbackCache!: { [x: string]: (...args: any[])=> any }
+  private foreignActionCallbackCache!: { [x: string]: (...args: any[]) => any }
   private foreignActionTagIndex!: number
 
   private constructor(dbConfig: DBConfig, argv) {
@@ -39,19 +39,30 @@ class MongoManager {
   }
 
   /** Returns the singleton instance of the MongoManager */
-  public static getInstance(dbConfig?: DBConfig, networkConfig?: NetworkConfig): MongoManager {
+  public static getInstance(
+    dbConfig?: DBConfig,
+    networkConfig?: NetworkConfig
+  ): MongoManager {
     if (!MongoManager.singletonInstance && dbConfig && networkConfig) {
       MongoManager.singletonInstance = new MongoManager(dbConfig, networkConfig)
-    }
-    else if (!MongoManager.singletonInstance && (!dbConfig || !networkConfig)) {
-      throw new Error('No mongo manager available and no creation parameters supplied')
+    } else if (
+      !MongoManager.singletonInstance &&
+      (!dbConfig || !networkConfig)
+    ) {
+      throw new Error(
+        'No mongo manager available and no creation parameters supplied'
+      )
     }
 
     return MongoManager.singletonInstance
   }
 
   createConnection(
-    notifyOfNewAgentRequest: (agentData: AgentData, tag: string, destHost: string) => void,
+    notifyOfNewAgentRequest: (
+      agentData: AgentData,
+      tag: string,
+      destHost: string
+    ) => void,
     loadInitialUsers: () => void
   ) {
     let url: string = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
@@ -84,9 +95,9 @@ class MongoManager {
         if (doc === undefined) return
         this.logger.debug('Got change:', doc.action, doc.host, doc.data)
         // Check if Action Request is for us
-        //FIXME: Maybe there's some actions that all servers should listen to. 
+        //FIXME: Maybe there's some actions that all servers should listen to.
         // If so, we can change this
-        if (doc.host != this.host) return 
+        if (doc.host != this.host) return
 
         if (doc.action == 'createAccount') {
           // Someone asking me to insert a peer into the DB
@@ -100,7 +111,7 @@ class MongoManager {
         // Add other types of Foreign Actions here
 
         //Delete signaling record
-        this.actionsCollection.deleteOne({ _id: doc._id }) 
+        this.actionsCollection.deleteOne({ _id: doc._id })
       })
 
       this.agentsCollection = this.dbConnection.collection('agents')
@@ -116,15 +127,32 @@ class MongoManager {
     return this.mongoClient != null
   }
 
-  insertAction(command: string, tag: string = this.host + '.' + this.foreignActionTagIndex++, destinationHost: string, callback?) {
+  insertAction(
+    command: string,
+    tag: string = this.host + '.' + this.foreignActionTagIndex++,
+    destinationHost: string,
+    callback?
+  ) {
     this.actionsCollection.insertOne(
       { action: command, tag: tag, host: destinationHost, from: this.host },
       (err, res) => {
-        if (err) this.logger.error('Sending remote command:', command, 'to:', destinationHost)
-        else this.logger.info('Sent remote action:', command, 'to:', destinationHost)
+        if (err)
+          this.logger.error(
+            'Sending remote command:',
+            command,
+            'to:',
+            destinationHost
+          )
+        else
+          this.logger.info(
+            'Sent remote action:',
+            command,
+            'to:',
+            destinationHost
+          )
       }
     )
-    
+
     if (callback) {
       this.foreignActionCallbackCache[tag] = callback
     }
@@ -142,7 +170,10 @@ class MongoManager {
     )
   }
 
-  findPeerAndUpdate(hostedAccountPeerCid: string, alreadyConnectedAccounts: string[]): any {
+  findPeerAndUpdate(
+    hostedAccountPeerCid: string | undefined,
+    alreadyConnectedAccounts: string[]
+  ): any {
     let result: any = undefined
     this.agentsCollection.findOneAndUpdate(
       {
@@ -150,11 +181,12 @@ class MongoManager {
         peer_cid: {
           $ne: hostedAccountPeerCid, //Don't find myself
           $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
-        }
+        },
       },
       {
         $set: { random: Math.random() }, //re-randomize this person
         //TODO: convert to PushDocument type somehow
+        // @ts-ignore
         $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
       },
       {
@@ -165,7 +197,7 @@ class MongoManager {
         //Get result of query
         if (e) {
           this.logger.error(e.message)
-          throw "Error trying to find another peer"
+          throw 'Error trying to find another peer'
         } else if (res?.ok) {
           this.logger.verbose(
             '  Best client:',
