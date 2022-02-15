@@ -54,7 +54,7 @@ Note: the docker methods will require docker engine >= 20.10.10.
   that runs on behalf of simulated users to create a data set of random CHIP trades.
 
   To run the simulation, install Docker on your machine and then get into 
-  the test/sim folder and follow the instructions [here](use-docker).
+  the test/sim folder and follow the instructions [here](sim-docker.md).
 
   The simulation environment was developed on MacOS but it should also be 
   possible (though not well tested) to run on a Linux host.
