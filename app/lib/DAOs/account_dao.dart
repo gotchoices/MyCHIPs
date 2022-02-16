@@ -1,4 +1,4 @@
-import 'package:flutter_app/objects/account.dart';
+import '../objects/account.dart';
 //import '../services.dart';
 
 class AccountDao {
@@ -6,7 +6,8 @@ class AccountDao {
     //connect to account
     // Account a = await Services.getUserData();
     // return a;
-    return new Account();
+    return Account("Test Person", "Test", "Person",
+        email: "test@person.com", phone: "555-555-5555");
   }
 
   void setAccountData(account) async {

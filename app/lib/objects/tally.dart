@@ -1,20 +1,16 @@
 import 'dart:math';
 
-import 'package:flutter_app/objects/account.dart';
+import '../objects/account.dart';
 
 import 'tally_generator.dart';
 
 class Tally {
-  Account friend;
-  var balance;
-  int personID;
-  String host;
-  String port;
-  Tally(friend, balance) {
-    this.friend = friend;
-    this.balance = balance;
-    this.personID = Random().nextInt(1000);
-  }
+  Account? friend;
+  num balance;
+  int personID = Random().nextInt(1000);
+  // String host;
+  // String port;
+  Tally(this.friend, this.balance);
 
   static Tally parseTallyTicket(ticket) {
     print(ticket.toString());
@@ -22,4 +18,3 @@ class Tally {
     return TallyGenerator.generateFakeTally();
   }
 }
-
