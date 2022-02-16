@@ -171,46 +171,53 @@ class MongoManager {
   }
 
   findPeerAndUpdate(
-    hostedAccountPeerCid: string | undefined,
+    hostedAccountPeerCid: string,
     alreadyConnectedAccounts: string[],
     callback: (peerData: AgentData | any) => void
   ) {
-    this.agentsCollection.findOneAndUpdate(
-      {
-        //Look for a trading partner
-        peer_cid: {
-          $ne: hostedAccountPeerCid, //Don't find myself
-          $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
-        },
+    const maxFoils = 5
+    const query = {
+      //Look for a trading partner
+      peer_cid: {
+        $ne: hostedAccountPeerCid, //Don't find myself
+        $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
       },
-      {
-        $set: { random: Math.random() }, //re-randomize this person
-        //TODO: convert to PushDocument type somehow
-        // @ts-ignore
-        $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
+      foils: { $lte: maxFoils }, //Or those with not too many foils already
+    }
+
+    const update = {
+      $set: { random: Math.random() }, //re-randomize this person
+      $inc: { foils: 1 }, //And make it harder to get them again next time
+      //TODO: convert to PushDocument type somehow
+      $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
+    }
+
+    const options = {
+      //Sort by
+      sort: { foils: 1, random: -1 },
+    }
+    // @ts-ignore
+    this.agentsCollection.findOneAndUpdate(query, update, options).then(
+      (res) => {
+        console.log('Find peer result:')
+        console.log(res)
+        console.log(res.value)
+        if (res.ok) {
+          this.logger.verbose(
+            '  Best peer:',
+            res?.value?.std_name,
+            res?.value?.host
+          )
+          callback(res.value)
+        } else {
+          this.logger.info('  No peer found:')
+          callback(null)
+        }
       },
-      {
-        //Sort by
-        sort: { foils: 1, random: -1 },
+      (err) => {
+        this.logger.error('  Error finding a peer:', err)
       }
-    ).then((res) => {
-      console.log("Find peer result:")
-      console.log(res)
-      console.log(res.value)
-      if (res.ok) {
-        this.logger.verbose(
-          '  Best peer:',
-          res?.value?.std_name,
-          res?.value?.host
-        )
-        callback(res.value)
-      } else {
-        this.logger.info('  No peer found:')
-        callback(null)
-      }
-    }, (err) => {
-      this.logger.error('  Error finding a peer:', err)
-    })
+    )
   }
 
   deleteAllAgentsExcept(agentsToKeep: string[]): void {
