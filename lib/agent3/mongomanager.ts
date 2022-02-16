@@ -170,12 +170,12 @@ class MongoManager {
     )
   }
 
-  async findPeerAndUpdate(
+  findPeerAndUpdate(
     hostedAccountPeerCid: string | undefined,
-    alreadyConnectedAccounts: string[]
+    alreadyConnectedAccounts: string[],
+    callback: (peerData: AgentData | any) => void
   ) {
-    let result: any = null
-    await this.agentsCollection.findOneAndUpdate(
+    this.agentsCollection.findOneAndUpdate(
       {
         //Look for a trading partner
         peer_cid: {
@@ -194,21 +194,23 @@ class MongoManager {
         sort: { foils: 1, random: -1 },
       }
     ).then((res) => {
+      console.log("Find peer result:")
+      console.log(res)
+      console.log(res.value)
       if (res.ok) {
         this.logger.verbose(
           '  Best peer:',
           res?.value?.std_name,
           res?.value?.host
         )
-        result = res.value 
+        callback(res.value)
       } else {
         this.logger.info('  No peer found:')
+        callback(null)
       }
     }, (err) => {
       this.logger.error('  Error finding a peer:', err)
     })
-
-    return result
   }
 
   deleteAllAgentsExcept(agentsToKeep: string[]): void {
