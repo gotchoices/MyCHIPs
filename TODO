@@ -1,27 +1,28 @@
 TODO:
 
 Immediate:
-X- Noise integration:
-X- Regression tests up through tally all working
-X- Can run all tally tests on two separate DB's (one for each user)?
-X- Can request tally over known, open agent connection
-X- Can clone ticket-tally (how to generate fresh/valid uuid?)
--   
-- 
-- mychips.js;
--  Can launch an agent server for each locally defined agent
--  Where/how to build/store agent private keys (pki folder?)
--  Agents table keeps track of each agent's latest connection portal (in case it changes)
--  How does the system identify local agents vs/ peer agents?
+X- Is mkUuid deterministic?  Should add some randomness
+X- Old mocha/peer.js becomes chit.js
 -  
 - Upgrade chits to 1.0 protocol
--   Make sch-chit.js to test each chit state
--   Old mocha/peer.js becomes chit.js
--   Test chit generation over noise/existing tally set
--  
-- Design protocol for amendments (like a pre-signed chit?)
--   Build subsystem for entering/communicating amendments
+X-  should _process commands return state only or a whole object record (compare tallies/chits)
+X-   Understand current schema/chits.wms
+X-   Understand current lib/chit.js
+X-   Which is authoritative/meaningful: chits.status or chits.state?
+X-   Reconcile new state diagrams with old state diagram and new sequence diagram
+X-   Adapt schema/chits.wms to adjusted spec
+X-   chit_process uses to->cid, to->agent, obj->uuid fields as with tally
+X-   Segregate fields of chit record as done in tallies.wms
+X-   Make sch-chit.js to test each chit state
 - 
+-   Test chit generation over noise/existing tally set
+-   mocha/chit.js working on typical state transitions
+-   Should upsert have insert/update fields or be a boolean? (How about in tallies.wms?)
+-   Adapt lib/chit.js to adjusted spec
+-   
+-   Go back and refactor tally states to be more like chits?
+-   Simpler state naming convention
+-   
 - Other subsystems patched well enough to run in simulators
 -   Adapt route to new message format
 -   Adapt lifts to new message format
@@ -36,9 +37,19 @@ X- Can clone ticket-tally (how to generate fresh/valid uuid?)
 - 
 - Push release to master, merge with Capstone project
 - 
-- Upgrade chits to new protocol
-- Create mocha tests for chit state diagram
-- Align chit tests in mocha/peer.js with 1.0 protocol
+- mychips.js;
+-  Can launch an agent server for each locally defined agent
+-  Where/how to build/store agent private keys (pki folder?)
+-  Agents table keeps track of each agent's latest connection portal (in case it changes)
+-  How does the system identify local agents vs/ peer agents?
+-  
+- Design protocol for amendments (like a pre-signed chit?)
+-   Build subsystem for entering/communicating amendments
+-   Tally close command becomes an amendment
+-   Is tally call any different from tally close (probably)?
+-   Can set local trading variables: limit, lift variables
+-   Can assert remote amendments: close, call
+- 
 - Implement chit consensus
 -   Mocha tests to simulate network disconnections, chit collisions
 - Implement tally amendments

@@ -16,14 +16,13 @@ var log = Log('testTally')
 var { dbClient } = require("wyseman")
 const PeerCont = require("../../lib/peer2peer")
 const PeerNoise = require("../../lib/peernoise")
-const {host,user0,user1,cid0,cid1,Port0,Port1,agent0,agent1,aCon0,aCon1} = require('./testusers')
-const {user2,cid2,Port2,agent2,aCon2,db2Conf} = require('./user2')
+const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
 var {stateField, uSql, save, rest} = require('./def-tally')
 var interTest = {}			//Pass values from one test to another
 
 //Establish tally between two users
-var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS, agentO, agentS, aConO, aConS, reuse, preopen}) {
+var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS, agentO, agentS, aConO, aConS, reuse, preopen, saveName}) {
   var serverO, serverS
   var busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
@@ -71,7 +70,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   it("Originator builds tally template and token", function(done) {
-//    let uuid = mkUuid(cidO)
+//    let uuid = mkUuid(cidO, agent0)
     let s1 = Format('insert into mychips.tallies (tally_ent, contract) values(%L,%L)', userO, contract)
       , sql = `with row as (${s1} returning tally_ent, tally_seq, ${reuse || 'false'})
           insert into mychips.tokens (token_ent, tally_seq, reuse) select * from row returning *;
@@ -133,7 +132,7 @@ log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
   })
 
   it("Originator approves, signs the proposed tally", function(done) {
-    let uuid = mkUuid(cidO)			//Make a real UUID for this user/tally
+    let uuid = mkUuid(cidO, agent0)			//Make a real UUID for this user/tally
       , sql = uSql('tally_uuid = %L, request = %L, hold_sig = %L', uuid, 'offer', 'Originator Signature', userO, seqO)
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 log.debug("Sql:", sql)
@@ -269,6 +268,12 @@ log.debug("Sql:", sql)
     })
   })
 
+  if (saveName) it("Save open tallies for later (chit) testing", function(done) {
+    let dc = sites; _done = () => {if (!--dc) done()}
+    dbO.query(save(saveName), (e) => {if (e) done(e); _done()})
+    if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
+  })
+
   it("Simulate non-zero tally balance", function(done) {
     let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
     dbO.query(uSql('units_gc = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
@@ -333,34 +338,34 @@ log.debug("Sql:", sql)
 // Main
 // ----------------------------------------------------------------------------
 describe("Tally peer-to-peer testing", function() {
-  let configS = {		//Two users on name host
-    sites:1,
+  let config1 = {		//Two users on name host
+    sites:1, saveName:'open1',
     cidO:cid0, cidS:cid1, userO:user0, userS:user1, aConO:aCon0, aConS:aCon1, agentO:agent0, agentS:agent1,
     dbcO: new dbConf(log, 'mychips_user_p1000'), 
     dbcS: new dbConf(log, 'mychips_user_p1001'),
     dbcSO: new dbConf(),
     dbcSS: new dbConf()
   }
-  let configD = {		//Two users on different hosts
-    sites:2,
+  let config2 = {		//Two users on different hosts
+    sites:2, saveName:'open2',
     cidO:cid0, cidS:cid2, userO:user0, userS:user2, aConO:aCon0, aConS:aCon2, agentO:agent0, agentS:agent2,
     dbcO: new dbConf(log, 'mychips_user_p1000'), 
-    dbcS: new db2Conf(log, 'mychips_user_p1002'),
+    dbcS: db2Conf(log, 'mychips_user_p1002'),
     dbcSO: new dbConf(),
-    dbcSS: new db2Conf()
+    dbcSS: db2Conf()
   }
-  let configR = {		//Reusable token across open channel
+  let config2r = {		//Reusable token across open channel
     sites:2,
     cidO:cid2, cidS:cid1, userO:user2, userS:user1, aConO:aCon2, aConS:aCon1, agentO:agent2, agentS:agent1,
-    dbcO: new db2Conf(log, 'mychips_user_p1002'), 
+    dbcO: db2Conf(log, 'mychips_user_p1002'), 
     dbcS: new dbConf(log, 'mychips_user_p1001'),
-    dbcSO: new db2Conf(),
+    dbcSO: db2Conf(),
     dbcSS: new dbConf(),
     reuse: true,
     preopen: true
   }
 
-  describe("Establish tally between two users on same site", function() {Suite1(configS)})
-  describe("Establish tally between two users on different sites", function() {Suite1(configD)})
-  describe("Establish reusable tally over open connection", function() {Suite1(configR)})
+  describe("Establish tally between two users on same site", function() {Suite1(config1)})
+  describe("Establish tally between two users on different sites", function() {Suite1(config2)})
+  describe("Establish reusable tally over open connection", function() {Suite1(config2r)})
 })

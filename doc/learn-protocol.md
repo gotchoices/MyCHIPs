@@ -1,11 +1,5 @@
-## MyCHIPs Protocol Description 1.0 (draft)
-July 2021; Copyright MyCHIPs.org
-
-### TODO
-- Show message class/object diagrams for each protocol?
-- Expand state machines to handle retries?
-- Update to protocol 1.0 features
-- Lift chits signed by referee now
+## MyCHIPs Protocol Description 1.1 (working draft)
+Feb 2022; Copyright MyCHIPs.org
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.
@@ -82,6 +76,20 @@ In addition, we will cover the following which might be considered as sub-protoc
 At a lower level, sites will communicate with each other over an encrypted secure connection which uses
 [Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail [here](/doc/learn-noise.md).
 
+### State Processing
+The protocol is implemented as a state transition model.  This is important because in a
+distributed network, nodes are apt to go offline from time to time and network connections may
+not always be reliable.
+
+End users will be running software on their mobile devices.
+Those devices will communicate with a user service control-layer process which will in turn communicated with the model inside the database.
+The database will communicate with a agent process which will communicate with other peer agent processes.
+
+If/when a message is lost in all of this, the system should:
+- Stay in a consistent state until the message gets through or is rightly abandoned;
+- Enforce the need to re-transmit the message as necessary;
+- Tolerate multiple messages getting through, or messages coming through late or at an unexpected time.
+
 ### Tally Use Cases
 A tally is established when two parties decide to formalize a relationship of trust between them using the MyCHIPs protocol.
 
@@ -137,26 +145,27 @@ Now we can derive the following state diagram to describe the tally protocol fro
 [![state-tally](uml/state-tally.svg)](uml/state-tally.svg)
 
 ### Chit Use Cases
-A chit constitutes a pledge of future value from one entity to the other.
+A chit constitutes a pledge of future value from one entity to another.
 There are two basic types of chits:
 - **Direct Chit**:
-  This is a simple chit issued by one entity, to its direct trading partner.
-  This type of chit only needs to be signed by the entity pledging value.
+  This is a simple promise issued by one entity, to its direct trading partner.
+  It only needs to be signed by the entity pledging value.
 - **Lift Chit**:
   In this case, the chit is part of a larger [credit lift](learn-lift.md).
   There will be a whole group of chits, all bound to the lift.
-  A lift chit will to be signed by a *site* certificate, where the site is the system that hosts the MyCHIPs account for the particular user.
-  Clearly, the idea of letting one's Chip Service Provider sign chits on one's behalf sounds potentially dangerous.
+  A lift chit will to be signed by a *site* or *referee* certificate, where the site is the system that hosts the MyCHIPs accounts for all the users in the (local) lift or the referee is a site that arbitrates timing for a distributed lift in which multiple sites participate.
+  Clearly, the idea of letting one's Chip Service Provider (or worse, some unknown referee site) sign chits on one's behalf sounds potentially dangerous.
   So there are some limitations on lift chits:
-  - The net effect on an entity of a group (typically 2) of chits, belonging to a single lift, must be in accord with the [trading variables](learn-lifts.md#trading-variables) established and signed by that user.
-  - In general, this means the chits sum to zero.
-  - It could be non-zero if the trading variables specify a charge or allow a penalty.
+  - The net effect on an entity of a group of (typically 2) chits, belonging to a single lift, must be in accord with the [trading variables](learn-lifts.md#trading-variables) established and signed by that user.
+  - Typically this means the chits sum to zero so the entity doesn't gain or lose value through the lift.
+  - But it could be non-zero if the trading variables specify a charge or allow a penalty for certain lifts.
+  - It is the responsibility of a user's host site software to see that lifts are conducted securely and according to these limitations.
 
 ![use-chit](uml/use-chit.svg)
 
-This diagram shows two sets of similar use cases.
-In the simpler case, we are negotiating a chip with a direct trading partner.
-In the more complex case, we are executing a linear lift that will transmit value through the network to a peer we are not directly connected to.
+This diagram depicts two sets of similar use cases.
+In the simpler case, an entity will negotiate a payment with a direct trading partner.
+In the more complex case, we will execute a linear lift that will transmit value through the network to a peer entity our user is not directly connected to.
 This lift will also involve one of our direct partners who will be the first link in a chain of entities the lift will flow through.
 
 ### Direct Chit Protocol
@@ -184,7 +193,7 @@ This *chit chain* can be thought of as a tiny blockchain, known only to the two 
 When the data is kept this way, it is very easy for the two partners to verify that they have identical information, just by comparing the hash they hold for the last consensed chit on the chain.
 
 The third use case (Request Direct Invoice) is one step before this.
-For example, say you recognize that a vendor has provided services to you and you want to send payment.
+For example, imagine a vendor has provided you services and you are ready to remit payment.
 You may not know the exact charge, but you want to initiate the process by Requesting a Direct Invoice.
 
 This is not strictly part of the MyCHIPs protocol.

@@ -5,35 +5,21 @@
 //- 
 const Path = require('path')
 const Child = require('child_process')
-const { Database, DBAdmin, Schema, Log, Format, Bus, assert } = require('../settings')
-var {dbAndCheck} = require('./impexp')
+const { Database, Database2, dbConf, DBAdmin, Schema, Log, Format, Bus, assert, importCheck } = require('../settings')
 var log = Log('user2')
 var { dbClient } = require("wyseman")
-const Port2=65436
-const user2 = 'p1002'
-const cid2 = 'fran_lee'
-const aKey2 = 'R' + Port2
-var db2Name = Database + '2'
+var { host, user2, uKey2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
 var schema = Schema
-var host = 'localhost'
-var agent2 = Buffer.from(aKey2).toString('base64url')
-var uKey2 = Buffer.from('Z'+user2).toString('base64url')
-var aCon2 = {host, port: Port2, keys:{publicKey:aKey2}}
-var dbConf = function(log, listen) {
-  Object.assign(this, {database: db2Name, user: DBAdmin, connect: true, log, listen, schema})
-}
-
-module.exports = {host, user2, Port2, agent2, aCon2, cid2, db2Name, db2Conf:dbConf}
 
 describe("Establish test user on separate DB", function() {
   var db
 
   before('Delete test database', function(done) {
-    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${db2Name}`, done)
+    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database2}`, done)
   })
 
   before('Connection to database', function(done) {
-    db = new dbClient(new dbConf(), () => {}, ()=>{done()})
+    db = new dbClient(db2Conf(), () => {}, ()=>{done()})
   })
 
   it("Create dummy users users for padding user IDs", function(done) {
@@ -41,20 +27,20 @@ describe("Establish test user on separate DB", function() {
       , f0 = Format(fields, 'A', 'a')
       , f1 = Format(fields, 'B', 'b')
       , sql = `begin; insert into mychips.users_v ${f0}; insert into mychips.users_v ${f1}; commit`
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     db.query(sql, (err, res) => {if (err) done(err); done()})
   })
 
   it("Import self-identifying user record", function(done) {
     let file = Path.join(__dirname, 'something.json')
-    dbAndCheck(file, null, db, done, function(res, row) {
+    importCheck(file, null, db, done, function(res, row) {
       assert.equal(row[0],user2); done()
     })
   })
 
   it("Initialize test user on db 2", function(done) {
     let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, peer_psig=%L'
-      , f1 = Format(fields, host, Port2, agent2, uKey2)
+      , f1 = Format(fields, host, port2, agent2, uKey2)
       , sql = `begin;
         delete from base.ent where ent_num > 1002;
         delete from mychips.tallies;

@@ -24,7 +24,11 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
     {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
     {memo		{Memo}			{Any other description or explanation for the transaction}}
 } $glob::stampt] -messages {
-    {X {Y} {Z}}
+    {BCT	{Bad Chit Type}		{Not a valid type for a tally chit}}
+    {GDS	{Signature Check}	{Chits in a good state must include a signature}}
+    {BST	{Bad Chit Request}	{Not a valid request for a chit state transition}}
+    {BLL	{Bad Lift Sequence}	{Only lift chits should include a lift sequence number}}
+    {CUU	{Chit Not Unique}	{Chit UUID must be unique to each tally}}
 }
 
 tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {

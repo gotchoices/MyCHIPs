@@ -692,6 +692,20 @@ tally: {
   },
 }
 ```
+A tally may contain any number of sequential chits.
+Chits are transmitted in the following format:
+```
+chit: {
+  tally: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
+  uuid: "2d5d4167-dcdf-5743-861c-e6ae1e62bbb8",
+  type: "tran",				//or "lift"
+  date: <creation date/time>,
+  units: 432123,			//milli-CHIPs
+  for: <External invoice number or other reference or comment>,
+  digest: <Hash of the rest of the chit>,
+  signed: <Pledgor's signature>
+}
+```
 
 ### Pathways
 (version 0 protocol)

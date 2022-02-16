@@ -17,6 +17,7 @@ require('./tally.js')
 
 //require('./peer.js')		//Old, needs rework
 
+//Re-enable after consolidating users_v, peers_v?
 //require('./sch-multi.js')	//Will empty users table
 
 after('Delete test database', function(done) {
