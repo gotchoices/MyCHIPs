@@ -43,8 +43,8 @@ class BaseAgent implements Agent {
         //TODO these need to have actual parameters for the factory
         this.actions = [];
         this.actions.push(ActionFactory.createAction('NewSpendingSource', this));
-        this.actions.push(ActionFactory.createAction('PayVendor', this));
-        this.actions.push(ActionFactory.createAction('TallyState', this));
+        // this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet 
+        this.actions.push(ActionFactory.createAction('SpendCHIPs', this));
 
         //TODO: finish applying this info from agent data and params
         this.id = agentData.id;

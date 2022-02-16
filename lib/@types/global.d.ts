@@ -63,6 +63,7 @@ interface AgentData {
   fir_name: string
   /** Entity type */
   ent_type: string
+  user_ent: string
   hosted_ent: boolean | null
   peer_cid: string
   /** Assigned peer socket (ex: 'peer2:65430') */

@@ -22,12 +22,14 @@ class FindNewSpendingTarget implements Action{
         this.agent = agent
     }
 
-    run(): void {        
+    async run() {        
         if (this.agent.numSpendingTargets <= 0 ||                 // If the agent has no stocks   or
             (this.agent.numSpendingTargets < this.agent.maxSpendingTargets &&   // (if the agent doesn't have too many stocks and
               Math.random() < this.agent.newSpendingTargetOdds))       //  we randgomly choose to))
         {
-            let newPeer: AgentData = this.worldDBManager.findPeerAndUpdate(this.agent.peer_cid, this.agent.spendingTargets)
+            let newPeer: AgentData = await this.worldDBManager.findPeerAndUpdate(this.agent.peer_cid, this.agent.spendingTargets)
+
+            console.log(newPeer)
 
             this.logger.debug(this.agent.peer_cid, "  attempting new spending source with", newPeer.peer_cid)
 

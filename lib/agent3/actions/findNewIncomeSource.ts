@@ -23,12 +23,12 @@ class FindNewIncomeSource implements Action {
   }
 
 
-  run(): void {
+  async run() {
     if (this.agent.numIncomeSources <= 0 || 
       (this.agent.numIncomeSources < this.agent.maxIncomeSources &&
         Math.random() < this.agent.newIncomeSourceOdds))
     {
-      let newPeer = this.worldDBManager.findPeerAndUpdate(this.agent.peer_cid, this.agent.incomeSources)
+      let newPeer = await this.worldDBManager.findPeerAndUpdate(this.agent.peer_cid, this.agent.incomeSources)
 
       this.logger.debug(this.agent.peer_cid, " attempting new income source with ", newPeer.peer_cid)
 

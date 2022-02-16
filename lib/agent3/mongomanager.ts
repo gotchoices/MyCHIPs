@@ -170,12 +170,12 @@ class MongoManager {
     )
   }
 
-  findPeerAndUpdate(
+  async findPeerAndUpdate(
     hostedAccountPeerCid: string | undefined,
     alreadyConnectedAccounts: string[]
-  ): any {
-    let result: any = undefined
-    this.agentsCollection.findOneAndUpdate(
+  ) {
+    let result: any = null
+    await this.agentsCollection.findOneAndUpdate(
       {
         //Look for a trading partner
         peer_cid: {
@@ -192,24 +192,21 @@ class MongoManager {
       {
         //Sort by
         sort: { foils: 1, random: -1 },
-      },
-      (e, res) => {
-        //Get result of query
-        if (e) {
-          this.logger.error(e.message)
-          throw 'Error trying to find another peer'
-        } else if (res?.ok) {
-          this.logger.verbose(
-            '  Best client:',
-            res?.value?.std_name,
-            res?.value?.host
-          )
-          result = res.value
-        } else {
-          this.logger.verbose('  No client found in world DB')
-        }
       }
-    )
+    ).then((res) => {
+      if (res.ok) {
+        this.logger.verbose(
+          '  Best peer:',
+          res?.value?.std_name,
+          res?.value?.host
+        )
+        result = res.value 
+      } else {
+        this.logger.info('  No peer found:')
+      }
+    }, (err) => {
+      this.logger.error('  Error finding a peer:', err)
+    })
 
     return result
   }

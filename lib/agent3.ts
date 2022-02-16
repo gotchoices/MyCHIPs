@@ -33,6 +33,7 @@ class AgentCluster {
     worldDBConfig: DBConfig,
     networkConfig: NetworkConfig
   ) {
+    console.log('STARTING AGENT MODEL * VERSION 3 *')
     this.networkConfig = networkConfig
     this.host = networkConfig.peerServer || Os.hostname()
 
@@ -43,10 +44,14 @@ class AgentCluster {
     this.notifyOfAgentsChange = this.notifyOfAgentsChange.bind(this)
     this.eatAgents = this.eatAgents.bind(this)
     this.eatParameters = this.eatParameters.bind(this)
+    this.process = this.process.bind(this)
 
     // Initialize agent logger
     this.logger = UnifiedLogger.getInstance()
-    this.logger.info('Initializing agent model controller 3 on:', this.host)
+    this.logger.info('Starting up Account Server v3 on:', this.host)
+
+    // Start setting things up
+    this.hostedAgents = []
     this.loadParamsConfig()
     this.configureDatabases(myChipsDBConfig, worldDBConfig)
     this.run()
@@ -57,6 +62,7 @@ class AgentCluster {
     const fs = require('fs')
     const yaml = require('js-yaml')
 
+    this.logger.debug("Loading parameters from config file")
     try {
       let fileContents = fs.readFileSync(__dirname + '/agent3/paramConfig.yaml')
       this.params = yaml.load(fileContents)
@@ -68,6 +74,7 @@ class AgentCluster {
   }
 
   configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DBConfig) {
+    this.logger.debug("Configuring the databases")
     // Configure SQLManager
     this.myChipsDBManager = SQLManager.getInstance(myChipsDBConfig, this.params)
     // Configure MongoManager
@@ -79,9 +86,6 @@ class AgentCluster {
 
   // calls run on all of the agents
   run() {
-    console.log('RUNNING AGENT MODEL * VERSION 3 *')
-    this.logger.info('RUNNING AGENT MODEL V3')
-
     this.agentCache = AgentsCache.getInstance()
 
     this.runCounter = 0
@@ -105,7 +109,13 @@ class AgentCluster {
       this.loadInitialUsers
     )
 
-    // Start simulation
+    //TODO: Right now we're in callback hell, despite our efforts to clean it up. I want to start
+    // using the async/await syntax to get rid of all of the callbacks.
+    // Because of this, the simulation doesn't start until eatAgents() finishes running for the 
+    // first time.
+  }
+
+  startSimulation() {
     if (this.intervalTimer) clearInterval(this.intervalTimer) // Restart interval timer
     this.intervalTimer = setInterval(() => {
         // If there is no limit on runs, or we're below the limit...
@@ -125,6 +135,7 @@ class AgentCluster {
   // --- Functions passed as callbacks -------------------------------------------------------
   // Loads agents from the MyCHIPs Database
   loadInitialUsers() {
+    this.logger.debug("Loading initial accounts")
     this.myChipsDBManager.queryUsers(this.eatAgents) //Load up initial set of users
   }
 
@@ -170,13 +181,16 @@ class AgentCluster {
       return
     } 
 
+    let localAgents: AgentData[] = []
     dbAgents.forEach((dbAgent) => {
-      //For each agent in sql
+      if (dbAgent.user_ent) {
+        dbAgent.hosted_ent = true
+        localAgents.push(dbAgent)
+      }
       this.agentCache.addAgent(dbAgent)
     })
 
     // Ensure all agents hosted on this server have an Agent object
-    let localAgents = dbAgents.filter((val) => val.host == this.host)
     let typesToMake: [string, AdjustableAgentParams?][] = []
     this.params.agentTypes.forEach((agentType) => {
       for (let i = 0; i < Math.round(agentType.percentOfTotal * localAgents.length); i++) {
@@ -199,6 +213,7 @@ class AgentCluster {
     // If loading all users (loading for the first time)
     if (all) {
       this.worldDBManager.deleteAllAgentsExcept(hostedAgentIds)
+      this.startSimulation()
     }
   }
 
