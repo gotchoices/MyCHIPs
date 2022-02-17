@@ -92,6 +92,7 @@ class SQLManager {
   }
 
   addAgent(agentData: AgentData) {
+    console.log("Adding", agentData.std_name, "to local DB...")
     this.dbConnection.query(
       peerSql,
       [
@@ -106,6 +107,7 @@ class SQLManager {
       (err, res) => {
         if (err) {
           this.logger.error('Adding peer:', agentData.peer_cid, err.stack)
+          console.log("Error adding", agentData.std_name, "to local DB:", err)
           return
         }
         let newGuy = res.rows[0]
@@ -114,6 +116,7 @@ class SQLManager {
           newGuy.std_name,
           newGuy.peer_socket
         )
+        console.log("Added", newGuy.std_name, "to local DB")
       }
     )
   }
