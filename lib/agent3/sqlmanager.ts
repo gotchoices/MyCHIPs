@@ -2,7 +2,7 @@
 import { dbClient } from 'wyseman'
 import UnifiedLogger from './unifiedLogger'
 
-import uuidv4 from 'uuid/v4';
+import uuidv4 from 'uuid/v4'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_sock, stocks, foils, partners, vendors, clients,
@@ -13,7 +13,6 @@ const peerSql = `insert into mychips.peers_v
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
-
 
 interface Config extends DBConfig {
   log: WyclifLogger
@@ -28,7 +27,7 @@ class SQLManager {
   private params: AdjustableSimParams
   // These member variables are never used, but might be if we implement some of the other functions
   // private channels: string[] = []
-  // private host: string 
+  // private host: string
   // private database: string
   // private user: string
   // private port: string
@@ -47,12 +46,16 @@ class SQLManager {
     )
   }
 
-  public static getInstance(sqlConfig?: DBConfig, params?: AdjustableSimParams): SQLManager {
+  public static getInstance(
+    sqlConfig?: DBConfig,
+    params?: AdjustableSimParams
+  ): SQLManager {
     if (!SQLManager.singletonInstance && sqlConfig && params) {
       SQLManager.singletonInstance = new SQLManager(sqlConfig, params)
-    }
-    else if (!SQLManager && (!sqlConfig || !params)) {
-      throw new Error('no singleton instance exists and no paramaters supplied for creation')
+    } else if (!SQLManager && (!sqlConfig || !params)) {
+      throw new Error(
+        'no singleton instance exists and no paramaters supplied for creation'
+      )
     }
 
     return SQLManager.singletonInstance
@@ -154,29 +157,37 @@ class SQLManager {
           }
         }
       )
-    }
-    else {
+    } else {
       //TODO: figure out how to mark the tally as unaccepted (just delete it?)
     }
   }
 
   addPayment(spenderId, receiverId, chipsToSpend: number, sequence: number) {
-    let quid = 'Inv' + Math.floor(Math.random() * 1000);
+    let quid = 'Inv' + Math.floor(Math.random() * 1000)
 
-    this.logger.verbose('  payVendor:', spenderId, '->', receiverId, 'on:', sequence, 'Units:', chipsToSpend);
+    this.logger.verbose(
+      '  payVendor:',
+      spenderId,
+      '->',
+      receiverId,
+      'on:',
+      sequence,
+      'Units:',
+      chipsToSpend
+    )
 
     this.query(
       "insert into mychips.chits_v (chit_ent,chit_seq,chit_guid,chit_type,signature,units,quidpro,request) values ($1,$2,$3,'tran',$4,$5,$6,$7)",
       [spenderId, sequence, uuidv4(), 'Valid', chipsToSpend, quid, 'userDraft'],
       (e, r) => {
         if (e) {
-            this.logger.error('In payment:', e.stack)
-            return
+          this.logger.error('In payment:', e.stack)
+          return
         }
-        
+
         this.logger.debug('  payment:', spenderId, 'to:', receiverId)
       }
-    );
+    )
   }
 
   isActiveQuery() {
@@ -196,8 +207,12 @@ class SQLManager {
       callback(res.rows)
     })
   }
-
-  queryUsers(callback: (agents: AgentData[], all: boolean)=>any) {
+  /**
+   * Executes database query to get all initial acounts
+   * @param callback: eatAgents - loads queried accounts into the worldDB
+   * */
+  // ! TODO Does this fetch from all peers?
+  queryUsers(callback: (agents: AgentData[], all: boolean) => any) {
     this.query(userSql, (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
@@ -208,7 +223,7 @@ class SQLManager {
     })
   }
 
-  queryLatestUsers(time: string, callback: (agents: AgentData[])=>any) {
+  queryLatestUsers(time: string, callback: (agents: AgentData[]) => any) {
     this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
@@ -219,7 +234,7 @@ class SQLManager {
     })
   }
 
-  queryPeers(callback: (err: any, res: any)=>any) {
+  queryPeers(callback: (err: any, res: any) => any) {
     this.query(peerSql, callback)
   }
 
