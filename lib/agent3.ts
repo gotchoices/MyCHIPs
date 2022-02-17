@@ -7,7 +7,16 @@ import { ActionDoc } from './@types/document'
 import Agent from './agent3/agent'
 import AgentFactory from './agent3/agentFactory'
 import AgentsCache from './agent3/agentsCache'
-
+/**
+ * @class AgentCluster
+ * Each 'agent' docker container runs an AgentCluster instance
+which is in charge of managing the simulation for that container 
+ * Each AgentCluster instance has exclusive access to its corresponding MyChips database and shared access to the World database. 
+ * The World database is the means by which the AgentClusters communicate
+ with eachother
+ * The AgentCluster only has to worry about qualifying and initiating 
+ credit lifts. The actual heavy lifting occurs automatically within the pg and peers databases once a lift is initated by having the AgentCluster insert accounts into the pg containers.
+ */
 class AgentCluster {
   private networkConfig: NetworkConfig
   private host: string
@@ -56,13 +65,13 @@ class AgentCluster {
     this.configureDatabases(myChipsDBConfig, worldDBConfig)
     this.run()
   }
-  
+
   // Loads parameters from the config file
   loadParamsConfig() {
     const fs = require('fs')
     const yaml = require('js-yaml')
 
-    this.logger.debug("Loading parameters from config file")
+    this.logger.debug('Loading parameters from config file')
     try {
       let fileContents = fs.readFileSync(__dirname + '/agent3/paramConfig.yaml')
       this.params = yaml.load(fileContents)
@@ -74,7 +83,7 @@ class AgentCluster {
   }
 
   configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DBConfig) {
-    this.logger.debug("Configuring the databases")
+    this.logger.debug('Configuring the databases')
     // Configure SQLManager
     this.myChipsDBManager = SQLManager.getInstance(myChipsDBConfig, this.params)
     // Configure MongoManager
@@ -111,31 +120,32 @@ class AgentCluster {
 
     //TODO: Right now we're in callback hell, despite our efforts to clean it up. I want to start
     // using the async/await syntax to get rid of all of the callbacks.
-    // Because of this, the simulation doesn't start until eatAgents() finishes running for the 
+    // Because of this, the simulation doesn't start until eatAgents() finishes running for the
     // first time.
   }
 
   startSimulation() {
     if (this.intervalTimer) clearInterval(this.intervalTimer) // Restart interval timer
     this.intervalTimer = setInterval(() => {
-        // If there is no limit on runs, or we're below the limit...
-        if (!this.runs || this.runCounter < this.runs) {
-          ++this.runCounter
-          this.hostedAgents.forEach(this.process)
-        }
-        else {
-          this.close()
-        }
-      }, this.params.interval)
+      // If there is no limit on runs, or we're below the limit...
+      if (!this.runs || this.runCounter < this.runs) {
+        ++this.runCounter
+        this.hostedAgents.forEach(this.process)
+      } else {
+        this.close()
+      }
+    }, this.params.interval)
   }
 
   // Replaces checkPeer() in agent2
   ensurePeerInSystem() {}
 
   // --- Functions passed as callbacks -------------------------------------------------------
-  // Loads agents from the MyCHIPs Database
+  /** Callback
+   * Loads agents from the MyCHIPs Database
+   */
   loadInitialUsers() {
-    this.logger.debug("Loading initial accounts")
+    this.logger.debug('Loading initial accounts')
     this.myChipsDBManager.queryUsers(this.eatAgents) //Load up initial set of users
   }
 
@@ -154,7 +164,7 @@ class AgentCluster {
     //Someone is asking an agent to act on a tally
     if (message.state == 'peerProffer') {
       this.logger.verbose('  peerProffer:', message.entity)
-      this.hostedAgents.forEach((agent)=>{
+      this.hostedAgents.forEach((agent) => {
         if (agent.id == message.entity) {
           agent.acceptNewConnection(message)
         }
@@ -162,24 +172,32 @@ class AgentCluster {
     }
   }
 
-  notifyOfNewAgentRequest(agentData: AgentData, tag: string, destinationHost: string) {
+  notifyOfNewAgentRequest(
+    agentData: AgentData,
+    tag: string,
+    destinationHost: string
+  ) {
     if (!this.agentCache.containsAgent(agentData)) {
       this.myChipsDBManager.addAgent(agentData)
       this.agentCache.addAgent(agentData)
     }
-    this.worldDBManager.insertAction("done", tag, destinationHost)
+    this.worldDBManager.insertAction('done', tag, destinationHost)
   }
 
   // --- Helper Functions --------------------------------------------------------
 
   // -----------------------------------------------------------------------------
-  // Gets the agents from the SQLManager
+  /** Callback
+   * Takes the agents from the MyChipsDBManager and loads them into the worldDB
+   *  @param dbAgents - array of agents fetched from MyChips Databases
+   * !TODO does this fetch from all databases?
+   * @param all - boolean that states whether dbAgents includes all accounts
+   */
   eatAgents(dbAgents: AgentData[], all?: boolean) {
-    //Freshly load agent data from database
+    // Make sure document db is connected and ready
     if (!this.worldDBManager.isDBClientConnected()) {
-      //Document db connected/ready
       return
-    } 
+    }
 
     let localAgents: AgentData[] = []
     dbAgents.forEach((dbAgent) => {
@@ -193,17 +211,26 @@ class AgentCluster {
     // Ensure all agents hosted on this server have an Agent object
     let typesToMake: [string, AdjustableAgentParams?][] = []
     this.params.agentTypes.forEach((agentType) => {
-      for (let i = 0; i < Math.round(agentType.percentOfTotal * localAgents.length); i++) {
+      for (
+        let i = 0;
+        i < Math.round(agentType.percentOfTotal * localAgents.length);
+        i++
+      ) {
         typesToMake.push([agentType.type, agentType])
       }
     })
 
     for (let i = 0; i < localAgents.length - typesToMake.length; i++) {
-      typesToMake.push(["default", undefined])
+      typesToMake.push(['default', undefined])
     }
     let hostedAgentIds: string[] = []
     for (let i = 0; i < localAgents.length; i++) {
-      let newAgent = AgentFactory.createAgent(typesToMake[i][0], localAgents[i], this.host, typesToMake[i][1])
+      let newAgent = AgentFactory.createAgent(
+        typesToMake[i][0],
+        localAgents[i],
+        this.host,
+        typesToMake[i][1]
+      )
       newAgent.random = Math.random()
       this.worldDBManager.updateOneAgent(newAgent)
       this.hostedAgents.push(newAgent)
@@ -253,7 +280,7 @@ class AgentCluster {
     )
 
     agent.takeAction()
-    
+
     this.logger.debug(
       '  stocks:',
       agent.numSpendingTargets,
