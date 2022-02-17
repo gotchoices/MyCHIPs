@@ -203,9 +203,10 @@ class AgentCluster {
     }
     let hostedAgentIds: string[] = []
     for (let i = 0; i < localAgents.length; i++) {
+      console.log("Agent Data:\n", localAgents[i])
       let newAgent = AgentFactory.createAgent(typesToMake[i][0], localAgents[i], this.host, typesToMake[i][1])
-      newAgent.random = Math.random()
-      this.worldDBManager.updateOneAgent(newAgent)
+      console.log("Agent Object:\n", newAgent)
+      this.worldDBManager.updateOneAgent(newAgent.getAgentData())
       this.hostedAgents.push(newAgent)
       hostedAgentIds.push(newAgent.peer_cid)
     }

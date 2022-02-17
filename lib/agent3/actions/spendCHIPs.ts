@@ -30,7 +30,7 @@ class SpendCHIPs implements Action {
             let peerToPayID = this.agent.spendingTargets[Math.floor(Math.random() * this.agent.numSpendingTargets)]
             let peerToPay = this.agentCache.getAgent(peerToPayID)
 
-            let sequence: number = this.agent.foil_seq[peerToPayID]
+            let sequence: number = this.agent.foil_seqs[peerToPayID]
 
             this.myChipsDBManager.addPayment(this.agent.id, peerToPay.id, chipsToSpend, sequence)
         }

@@ -9,18 +9,23 @@ import UnifiedLogger from '../unifiedLogger';
 class BaseAgent implements Agent {
     id: number;
     std_name: string;
+    ent_name: string;
+    first_name: string;
     peer_cid: any;
     host: string;
+    entity_type: string;
+    peer_socket: string;
+    random: number;
     numSpendingTargets: number;
     numIncomeSources: number;
-    foil_seq: number[];
+    foil_seqs: number[];
     netWorth: number;
     hosted_ent: boolean;
     actions: Action[];
     lastActionTaken: string;
     spendingTargets: string[];
     incomeSources: string[];
-    seqs: any[];
+    stock_seqs: any[];
     types: any[];
     
     newIncomeSourceOdds: number 
@@ -49,18 +54,24 @@ class BaseAgent implements Agent {
         //TODO: finish applying this info from agent data and params
         this.id = agentData.id;
         this.std_name = agentData.std_name;
+        this.ent_name = agentData.ent_name;
+        this.first_name = agentData.fir_name;
         this.peer_cid = agentData.peer_cid;
+        this.peer_socket = agentData.peer_socket;
         this.host = host
+        this.entity_type = "Default person"
+        this.random = Math.random()
+
         this.numSpendingTargets = 0;
         this.numIncomeSources = 0;
-        this.foil_seq = agentData.foil_seqs;
+        this.foil_seqs = agentData.foil_seqs || [];
+        this.stock_seqs = agentData.stock_seqs || [];
         this.netWorth = 0;
 
         this.hosted_ent = true;
         this.lastActionTaken = '';
         this.spendingTargets = [];
         this.incomeSources = [];
-        this.seqs = [];
         this.types = [];
 
         this.newIncomeSourceOdds = agentParams?.newIncomeSourceOdds || 0.1
@@ -87,6 +98,30 @@ class BaseAgent implements Agent {
         this.myChipsDBManager.updateConnectionRequest(message.entity, message.sequence, true)
 
         // TODO: update data here (depends on what kind of connection it is though...)
+    }
+
+    getAgentData(): AgentData {
+        return {
+            id: this.id,
+            std_name: this.std_name,
+            ent_name: this.ent_name,
+            fir_name: this.first_name,
+            ent_type: this.entity_type,
+            user_ent: "???",
+            peer_cid: this.peer_cid,
+            peer_socket: this.peer_socket,
+            stocks: this.numSpendingTargets,
+            foils: this.numIncomeSources,
+            partners: [...this.spendingTargets, ...this.incomeSources],
+            vendors: this.spendingTargets,
+            clients: this.incomeSources,
+            stock_seqs: this.stock_seqs,
+            foil_seqs: this.foil_seqs,
+            units: this.netWorth,
+            seqs: [...this.stock_seqs, ...this.foil_seqs],
+            random: this.random,
+            host: this.host
+        }
     }
 }
 

@@ -44,7 +44,7 @@ class FindNewSpendingTarget implements Action{
                     this.myChipsDBManager.addConnectionRequest(this.agent.id, newPeer.id)
                     // TODO: This stuff should only be done when the connection is accepted by the peer. Right now the peers always accept requests, so we can do it here. I'm not sure how we will get notified when the connection is accepted...
                     this.agent.numSpendingTargets++
-                    this.worldDBManager.updateOneAgent(this.agent)
+                    this.worldDBManager.updateOneAgent(this.agent.getAgentData())
                 })
             })
         }
