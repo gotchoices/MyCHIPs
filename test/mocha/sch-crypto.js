@@ -3,6 +3,8 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- Add test for mychips.j2h()
+//- Add test for mychips.validate()
+//- Can/should we use pgcrypto as opposed to python crypto?
 //- 
 const Fs = require('fs')
 const Child = require('child_process')

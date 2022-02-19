@@ -1,27 +1,15 @@
 TODO:
 
 Immediate:
-X- Is mkUuid deterministic?  Should add some randomness
-X- Old mocha/peer.js becomes chit.js
 -  
-- Upgrade chits to 1.0 protocol
-X-  should _process commands return state only or a whole object record (compare tallies/chits)
-X-   Understand current schema/chits.wms
-X-   Understand current lib/chit.js
-X-   Which is authoritative/meaningful: chits.status or chits.state?
-X-   Reconcile new state diagrams with old state diagram and new sequence diagram
-X-   Adapt schema/chits.wms to adjusted spec
-X-   chit_process uses to->cid, to->agent, obj->uuid fields as with tally
-X-   Segregate fields of chit record as done in tallies.wms
-X-   Make sch-chit.js to test each chit state
-- 
--   Test chit generation over noise/existing tally set
--   mocha/chit.js working on typical state transitions
--   Should upsert have insert/update fields or be a boolean? (How about in tallies.wms?)
--   Adapt lib/chit.js to adjusted spec
+-  
+- Commit
+- Should upsert have insert/update fields or be a boolean? (How about in tallies.wms?)
+- Change how chit units are stored (relative to stock/foil)?
 -   
--   Go back and refactor tally states to be more like chits?
--   Simpler state naming convention
+- Tallies:
+- Go back and refactor tally states to be more like chits
+- Simpler state naming convention
 -   
 - Other subsystems patched well enough to run in simulators
 -   Adapt route to new message format

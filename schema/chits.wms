@@ -2,21 +2,13 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#X- Tweak state diagram to include concept of a pending chit
-#X- Compute separate sums in tally for pending, good sums
-#X- Include field in tally for latest confirmed chit record
-#X- Routes/lifts should honor pending sums?
-#X- Constraint to include signature when in appropriate states
-#X- Is status column or chit_state now obsolete (or at least redundant)?
-#- Split out separate function for chits_notify_user()
+#- Split out separate function for chits_notify_user()?
 #- Can we record units' sign relative to our holder's interest (asset/liability)
 #- Update chain_conf field in mychips.tallies when checksum confirmed with other half
 #- Test for scenario in notes: Mar 28, 2020; skipped over chits from network discontinuity
 #- Failed lift chits get set to void
-#- Good status check includes validating actual digital signature
-#- Each hit needs the signature of the party sending value (depends on the sign of units)
-#- What to do if record gets into 'undefined' state? (mark as void?)
-#- Should _bu trigger include a call to chit_state to make sure status is consistent with state?
+#- Good status check includes validating actual digital signature (or done by agents)?
+#- Each chit needs the signature of the party sending value (depends on the sign of units)
 #- 
 module mychips
 require config.tcl trigview.tcl
@@ -223,7 +215,7 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
           'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
-raise notice 'Chit notice:% %', channel, jrec::text;
+raise notice 'Chit notice:% % %', channel, trec.part_chad->>'cid', chit.chit_uuid;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -367,25 +359,26 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
       crec	record;		-- Holds chit record(s)
       trec	record;		-- Holds associated tally
       erec	record;		-- Tally entity, we will ignore the one in msg
+      jrec	jsonb;
     begin
-raise notice 'chit cid:% msg:%', cid, msg;
-      select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
+--raise notice 'chit top cid:% msg:%', cid, obj->>'uuid';
+      select into trec tally_ent, tally_seq, tally_type, state from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
       if not found then return null; end if;
 
       select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;
       curState = crec.state;
-raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.chit_ent, curState, recipe;
+--raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.chit_ent, curState, recipe;
       if not found then
         curState = 'null';		-- Special code for when the specified chit doesn't exist yet
       end if;
 
       if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+--raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
         return curState;
       end if;
 
       if recipe ? 'upsert' then
-raise notice '  upsert curState:% obj:%', curState, obj;
+--raise notice '  upsert curState:% obj:%', curState, obj;
         if curState = 'null' then			-- Need to do insert
           insert into mychips.chits (
             chit_ent,chit_seq,chit_uuid,chit_type,chit_date,status,
@@ -396,7 +389,7 @@ raise notice '  upsert curState:% obj:%', curState, obj;
             obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', 
             (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea
           ) returning chit_ent, chit_seq, chit_idx, chain_idx, chain_prv, digest into crec;
---raise notice '  upsert post:% % %', trec.tally_type, obj->'index', crec;
+--raise notice '  post-insert:% % %', trec.tally_type, obj->'index', crec;
         else						-- Chit already exists, do update
           update mychips.chits set signature = obj->>'signed', units = (obj->>'units')::bigint,
             status = coalesce(recipe->'upsert'->>'status','pend'),
@@ -410,16 +403,25 @@ raise notice '  upsert curState:% obj:%', curState, obj;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
         qstrg = mychips.state_updater(recipe, 'mychips.chits', '{signature, status}');
-raise notice 'chit_process SQL:% % % %', qstrg, crec.chit_ent, crec.chit_seq, crec.chit_idx;
+--raise notice 'chit_process SQL:% % % %', qstrg, crec.chit_ent, crec.chit_seq, crec.chit_idx;
         execute qstrg || ' chit_ent = $1 and chit_seq = $2 and chit_idx = $3' using crec.chit_ent, crec.chit_seq, crec.chit_idx;
         delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
       end if;
 
-      select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
-      if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
---raise notice '  chit notify for user channel: mychips_user_%', crec.chit_ent;
-          perform pg_notify('mychips_user_' || crec.chit_ent, crec.json::text);
-          perform pg_notify('mychips_user', crec.json::text);		-- Simulations use this
+      select into crec chit_ent,chit_seq,chit_idx,chit_uuid,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+      if crec.action or (crec.state is distinct from curState) then	-- Also notify if changed state
+        jrec = jsonb_build_object(
+          'target',	'chit',
+          'entity',	crec.chit_ent,
+          'sequence',	crec.chit_seq,
+          'index',	crec.chit_idx,
+          'state',	crec.state,
+          'object',	crec.json
+        );
+--raise notice '  chit notify user: mychips_user_% % %', crec.chit_ent, crec.chit_uuid, jrec::text;
+        perform pg_notify('mychips_user_' || crec.chit_ent, jrec::text);
+--Fixme: Should this return the whole jrec?
+        perform pg_notify('mychips_user', crec.json::text);		-- Simulations use this
       end if;
       return crec.state;
 --      return crec.json;

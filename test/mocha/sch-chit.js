@@ -123,18 +123,18 @@ describe("Test chit state transitions", function() {
 
   it("User requests modified invoice chit (A.void -> A.draft.pend)", function(done) {
     let value = 12340
-      , sql = uSql(`request = 'pend', units = ` + value, user0, 1, 1)
+      , sql = uSql(`request = 'pend', units = ` + value, user0, interTest.chit.uuid)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			;log.debug("row:", row);
       assert.equal(row.state, 'A.void.pend')
       _done()
     })
-    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg);
+    busA.register('pa', (msg) => {		;log.debug("A msg:", msg);
       assert.equal(msg.target, 'chit')
       assert.equal(msg.action, 'pend')
-      let obj = msg.object			//;log.debug("A obj:", obj)
+      let obj = msg.object			;log.debug("A obj:", obj)
       assert.equal(obj.uuid, interTest.chit.uuid)
       assert.equal(obj.units, value)
       busA.register('pa')
@@ -234,7 +234,7 @@ describe("Test chit state transitions", function() {
   })
 
   it("User rejects invoice chit (L.pend -> L.pend.void)", function(done) {
-    let sql = uSql(`request = 'void'`, user0, 1, 4)
+    let sql = uSql(`request = 'void'`, user0, interTest.chit.uuid)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
@@ -281,7 +281,7 @@ describe("Test chit state transitions", function() {
   })
 
   it("User accepts invoice chit (L.pend -> L.pend.good)", function(done) {
-    let sql = uSql(`request = 'good', signature = '` + cid0 + ` signature'`, user0, 1, 4)	//4th chit so far
+    let sql = uSql(`request = 'good', signature = '` + cid0 + ` signature'`, user0, interTest.chit.uuid)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
@@ -305,7 +305,6 @@ describe("Test chit state transitions", function() {
       done()
     })
   })
-
 /*
 */
   after('Disconnect from test database', function(done) {

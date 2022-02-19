@@ -10,7 +10,7 @@ const stateField = `mychips.chit_state((
 
 module.exports = {
   stateField,
-  uSql: (sets,...vals) => Format(`update mychips.chits set ${sets} where chit_ent = %L and chit_seq = %s and chit_idx = %s returning *, ${stateField};`, ...vals),
+  uSql: (sets,...vals) => Format(`update mychips.chits set ${sets} where chit_ent = %L and chit_uuid = %L returning *, ${stateField};`, ...vals),
   save: (tag) => saveRest(tag, 'mychips.chits'),
   rest: (tag) => saveRest(tag, 'mychips.chits', 'rest'),
 }

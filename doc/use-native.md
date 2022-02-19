@@ -6,10 +6,14 @@ In a production environment, you may well be installing Postgres on a
 but getting that running correctly is beyond the scope of this document.
 So unless you know what you are doing, just put it on the same server for now.
 
+Most testing has been done on Fedora Linux (up through version 35).
+MyCHIPs should work on other Linux distributions, but you may have to adapt these
+instructions accordingly.
+
 As root:
 ```
   dnf install postgresql postgresql-server postgresql-devel \
-  	postgresql-pltcl postgresql-plpython postgresql-contrib
+  	postgresql-pltcl postgresql-plpython3 postgresql-contrib
   dnf install ruby rubygem-pg rubygem-tk	#If you plan to modify the schema
   su -l postgres -c initdb
   systemctl enable postgresql
@@ -20,9 +24,6 @@ Other known dependencies (hopefully installed on your system by default) include
 ```
   bash, openssl, nodejs, others?
 ```
-  Most testing has been done on Fedora Linux.  MyCHIPs should work on any flavor
-  of Linux, but you may have to manually install other dependencies on your own.
-
 Checkout MyCHIPs and install as [noted here](use-start.md#getting-started).
 After doing the "npm install" step do:
 ```

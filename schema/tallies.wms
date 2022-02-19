@@ -602,7 +602,7 @@ function {mychips.tally_notify_user(ent text, seq int, oldstate text = 'open')} 
       jrec	jsonb;
     begin
       select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
-      if trec.action or (oldState is distinct from trec.state) then	-- Also notify if changed state
+      if trec.action or (trec.state is distinct from oldState) then	-- Also notify if changed state
 -- raise notice 'Tally user notify: mychips_user_% %', trec.tally_ent, trec.json->'uuid';
         jrec = jsonb_build_object(
           'target',	'tally',

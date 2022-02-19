@@ -207,7 +207,7 @@ log.debug("Sql:", sql)
 
   it("Restore proffered tallies", function(done) {
     let dc = sites; _done = () => {if (!--dc) done()}
-    dbO.query(rest('proffer'), (e) => {if (e) done(e); else done()})
+    dbO.query(rest('proffer'), (e) => {if (e) done(e); else _done()})
     if (sites > 1) dbS.query(rest('proffer'), (e) => {if (e) done(e); _done()})
   })
 
@@ -239,7 +239,7 @@ log.debug("Sql:", sql)
 
   it("Restore proffered tallies", function(done) {
     let dc = sites; _done = () => {if (!--dc) done()}
-    dbO.query(rest('proffer'), (e) => {if (e) done(e); else done()})
+    dbO.query(rest('proffer'), (e) => {if (e) done(e); else _done()})
     if (sites > 1) dbS.query(rest('proffer'), (e) => {if (e) done(e); _done()})
   })
 

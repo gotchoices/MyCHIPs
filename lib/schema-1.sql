@@ -439,7 +439,7 @@ $$;
 create function norm_date(timestamptz) returns text immutable language sql as $$
     select to_char($1,'YYYY-Mon-DD HH24:MI:SS');
 $$;
-create extension "plpythonu";
+create extension "plpython3u";
 create extension "uuid-ossp";
 create function wm.column_names(oid,int4[]) returns varchar[] as $$
     declare
@@ -660,7 +660,7 @@ $$;
 create function mychips.contract_url(dom text, nam text, ver int, lan text, dig text) returns text immutable language sql as $$
     select dom || '/' || nam || '-' || ver::text || '-' || lan || case when dig is null then '' else '?' || dig end;
 $$;
-create function mychips.j2h(input jsonb) returns bytea language plpythonu immutable as $$
+create function mychips.j2h(input jsonb) returns bytea language plpython3u immutable as $$
     import json
     import hashlib
     if isinstance(input, str):		#JSON gets passed into python as a string
@@ -672,7 +672,7 @@ create function mychips.j2h(input jsonb) returns bytea language plpythonu immuta
     hash = hashlib.sha256(serial.encode('utf-8'))
     return hash.digest()
 $$;
-create function mychips.j2s(inp jsonb) returns text language plpythonu immutable as $$
+create function mychips.j2s(inp jsonb) returns text language plpython3u immutable as $$
     import json
     if isinstance(inp,str):		#JSON gets passed into python as a string
       obj = json.loads(inp)
@@ -714,7 +714,7 @@ create function mychips.lift_state(status text, request text, expired boolean) r
         else status end
       end
 $$;
-create function mychips.random_uuid() returns uuid language plpythonu as $$
+create function mychips.random_uuid() returns uuid language plpython3u as $$
     import uuid
     return uuid.uuid4()
 $$;
@@ -768,7 +768,7 @@ create function mychips.tally_state(status text, request text, hold_sig text, pa
       end;
     end;
 $$;
-create function mychips.validate(dat text, sig text, pub text) returns boolean language plpythonu immutable as $$
+create function mychips.validate(dat text, sig text, pub text) returns boolean language plpython3u immutable as $$
 #    plpy.notice('Validate:', dat, sig, pub)
     import rsa
 
@@ -3615,7 +3615,7 @@ create function mychips.tally_notify_user(ent text, seq int, oldstate text = 'op
       jrec	jsonb;
     begin
       select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
-      if trec.action or (oldState is distinct from trec.state) then	-- Also notify if changed state
+      if trec.action or (trec.state is distinct from oldState) then	-- Also notify if changed state
 
         jrec = jsonb_build_object(
           'target',	'tally',
@@ -3930,7 +3930,7 @@ create function mychips.chit_notify_agent(chit mychips.chits) returns boolean la
           'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
-raise notice 'Chit notice:% %', channel, jrec::text;
+raise notice 'Chit notice:% % %', channel, trec.part_chad->>'cid', chit.chit_uuid;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -3946,25 +3946,26 @@ create function mychips.chit_process(msg jsonb, recipe jsonb) returns text langu
       crec	record;
       trec	record;
       erec	record;
+      jrec	jsonb;
     begin
-raise notice 'chit cid:% msg:%', cid, msg;
-      select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
+
+      select into trec tally_ent, tally_seq, tally_type, state from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
       if not found then return null; end if;
 
       select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;
       curState = crec.state;
-raise notice 'Chit cid:% entity:% state:% recipe:%', cid, crec.chit_ent, curState, recipe;
+
       if not found then
         curState = 'null';
       end if;
 
       if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+
         return curState;
       end if;
 
       if recipe ? 'upsert' then
-raise notice '  upsert curState:% obj:%', curState, obj;
+
         if curState = 'null' then			-- Need to do insert
           insert into mychips.chits (
             chit_ent,chit_seq,chit_uuid,chit_type,chit_date,status,
@@ -3989,16 +3990,25 @@ raise notice '  upsert curState:% obj:%', curState, obj;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
         qstrg = mychips.state_updater(recipe, 'mychips.chits', '{signature, status}');
-raise notice 'chit_process SQL:% % % %', qstrg, crec.chit_ent, crec.chit_seq, crec.chit_idx;
+
         execute qstrg || ' chit_ent = $1 and chit_seq = $2 and chit_idx = $3' using crec.chit_ent, crec.chit_seq, crec.chit_idx;
         delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
       end if;
 
-      select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
-      if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
+      select into crec chit_ent,chit_seq,chit_idx,chit_uuid,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+      if crec.action or (crec.state is distinct from curState) then	-- Also notify if changed state
+        jrec = jsonb_build_object(
+          'target',	'chit',
+          'entity',	crec.chit_ent,
+          'sequence',	crec.chit_seq,
+          'index',	crec.chit_idx,
+          'state',	crec.state,
+          'object',	crec.json
+        );
 
-          perform pg_notify('mychips_user_' || crec.chit_ent, crec.json::text);
-          perform pg_notify('mychips_user', crec.json::text);
+        perform pg_notify('mychips_user_' || crec.chit_ent, jrec::text);
+
+        perform pg_notify('mychips_user', crec.json::text);
       end if;
       return crec.state;
 

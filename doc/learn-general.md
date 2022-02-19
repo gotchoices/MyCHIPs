@@ -62,8 +62,8 @@ future.
 In our ledger example above, it was easy to think about moving things (units)
 around.  We just need the notion of ownership (equity) of things (units).  And
 then we start making entries to keep track of who owns each unique thing.  As
-long as no one (in authority or not) manages to create (counterfeit) 
-unauthorized units, everything should work just fine.  But these problems of
+long as no one (in authority or not) manages to create unauthorized (counterfeit) 
+units, everything should work just fine.  But these problems of
 authority, and money supply have proven over the last century to be too big to
 handle--even for a large and powerful government.
 
@@ -120,13 +120,13 @@ tokens (monopoles) must emanate from a single algorithm.  In other words, there
 are a finite number of possible tokens, and they are all distinctly identifyable
 within a universe (coin type) of named money (Bitcoin, Litecoin, etc.).
 
-The database that holds the ledger is kept in a very distributed way.  And the
-authority to decide what transactions are entered is also distributed.  But 
-there is still only a single "correct" version of the ledger (excluding the
+The database that holds the ledger is kept in a pretty decentralized way.
+And the authority to decide what transactions are entered is also decentralized.
+But there is still only a single "correct" version of the ledger (excluding the
 notion of forks and new, different coins).  Everyone that keeps the ledger has
 to ultimately agree on the data to be considered valid.
 
-In other words, it is one ledger--just distributed in the way it is stored and
+In other words, it is one ledger--just decentralized in the way it is stored and
 composed.
 
 The remaining centralized nature of the blockchain is ultimately its achilles
@@ -138,12 +138,14 @@ mechanisms available to mitigate this problem.  But in the end, any single coin
 will face the problem of scaling.
 
 These problems really relate mostly to commodity money.  Once we make the jump
-to credit money, the opportunity for infinite scaling opens up wide.  With
-this comes the possibility for zero (or near zero) transaction costs.  But we
-have to understand what true decentralization really means.  How do you track
-transactions in multiple ledgers and still assure no one is cheating?
+to credit money, the opportunity for infinite scaling opens up wide.
+With this comes the possibility for zero (or near zero) transaction costs.
+But we have to understand what a fully decentralized 
+(or [fully distributed](https://medium.com/nakamo-to/whats-the-difference-between-decentralized-and-distributed-1b8de5e7f5a4))
+system would look like.
+How can you track transactions in millions of distributed ledgers and still assure no one is cheating?
 
-The answer comes in the nature of credit money as a dipole.  In the case of
+The answer lies in the nature of credit money as a dipole.  In the case of
 the money Bob gave Mary, only Bob's ledger and Mary's ledger need to keep track 
 of that transaction.  No one else's system need be encumbered with that data.  
 As long as Bob and Mary agree, that is enough.
@@ -154,17 +156,17 @@ advocates of monetary reform.
 
 This is where the MyCHIPs lift algorithm shines.  It allows us to:
 
-- Establish relationships with just a few other entities we trust;
+- Establish relationships with just a few other entities we already trust;
 - Secure those relationships with binding contracts;
 - Pass value through the network to entities with whom we do not share a direct 
   connection of trust.
 
 ### Maintaining Discipline
 As one works on this project, it can be difficult to maintain these principles
-and concepts firmly in mind, as necessary to achieve full decentralization.
+and concepts firmly in mind, as necessary to achieve a fully distributed system.
 
 For example, DNS itself has become a centralized system.  It started out quite
-distributed.  But as security became more important, it quickly became 
+decentralized.  But as security became more important, it quickly became 
 necessary to prevent people from spoofing a domain name.  So SSL and site
 certificates were introduced to make sure the website we connect to is really
 the one we intended.  This works pretty well as long as you trust the issuer of 
