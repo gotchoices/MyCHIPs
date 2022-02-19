@@ -108,9 +108,9 @@ These use-cases are explained as follows::
 - **Be My Client**:
   This is really identical in all respects to the previous case, except the User is suggesting he be the Vendor (the Stock holder) and the Partner will be the Client (the Foil holder).
 - **Transaction**:
-  Once established, the tally will serve as a foundation for actual trades, or pledges of credit.
-  It will maintain and track a total balance owed in one direction or another.
-  And it constitutes a digital signed contract indicating the [terms and conditions](learn-tally.md#credit-terms) by which the two parties have agree to conduct their trades.
+  Once established, the tally will serve as a foundation for payments (pledges of credit).
+  It will maintain and track a total balance owed in one direction or the other.
+  And it constitutes a signed digital contract indicating the [terms and conditions](learn-tally.md#credit-terms) by which the two parties have agreed to conduct their trades.
   The tally balance is modified by entering individual atomic transactions called [chits](https://www.dictionary.com/browse/chit).
   These chits are also digitally signed and become a part of the tally.
 - **Request Close**:

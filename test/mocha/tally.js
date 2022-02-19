@@ -5,8 +5,6 @@
 // User1 <-> DB <-> Agent1 <-> Agent2 <-> DB <-> User2
 // User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
-//X- Give ticket info to other peer
-//X- Have them connect via noise module using the ticket
 //- Test for one-time connection, token no longer valid
 //- Test for reusable token, tally is cloned, token still valid
 //- 
@@ -70,13 +68,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   it("Originator builds tally template and token", function(done) {
-//    let uuid = mkUuid(cidO, agent0)
     let s1 = Format('insert into mychips.tallies (tally_ent, contract) values(%L,%L)', userO, contract)
       , sql = `with row as (${s1} returning tally_ent, tally_seq, ${reuse || 'false'})
           insert into mychips.tokens (token_ent, tally_seq, reuse) select * from row returning *;
           select * from mychips.tallies_v where tally_ent = '${userO}' and tally_seq = 1;
           select token,expires,chad from mychips.tokens_v;`
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)		//;log.debug("res:", res)
       assert.equal(res.length, 3)
       assert.equal(res[0].rowCount, 1)
@@ -85,16 +82,14 @@ log.debug("Sql:", sql)
       assert.equal(tok.token_seq, 1)
       assert.equal(tok.tally_seq, 1)
       assert.equal(tok.token.length, 32)	//MD5
-      let tal = res[1].rows[0]
-//log.debug("Talley:", tal)
+      let tal = res[1].rows[0]			//;log.debug("Talley:", tal)
       assert.ok(!!tal.tally_uuid)
       assert.ok(!tal.part_ent)
       assert.equal(tal.status,'draft')
       assert.equal(tal.tally_type,'stock')
       assert.equal(tal.hold_cid,cidO)
       assert.equal(tal.hold_agent,agentO)
-      let ticket = res[2].rows[0]
-//log.debug("Ticket:", ticket)
+      let ticket = res[2].rows[0]		//;log.debug("Ticket:", ticket)
       interTest = ticket
       done()
     })
@@ -105,26 +100,22 @@ log.debug("Sql:", sql)
       , dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)
-//log.debug("row:", row);
+      let row = getRow(res, 0)		//;log.debug("row:", row);
       assert.ok(row.ticket_process)
       _done()
     })
-    busO.register('po', (msg) => {	//Originator is prompted to sign the tally
-log.debug("msg:", msg)
-      assert.equal(msg.entity, userO)
+    busO.register('po', (msg) => {	//;log.debug("msg:", msg)
+      assert.equal(msg.entity, userO)	//Originator is prompted to sign the tally
       assert.equal(msg.state, 'draft')
       assert.equal(msg.sequence, seqO)
-      let tally = msg.object
+      let tally = msg.object		///log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
         , stock = tally.stock
         , foil = tally.foil
-log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
       assert.equal(stock.cert.chad.cid, cidO)
       assert.equal(stock.cert.chad.agent, agentO)
       assert.equal(foil.cert.chad.cid, cidS)
       assert.equal(foil.cert.chad.agent, agentS)
-//log.debug("sign:", tally.sign)
-      assert.ok(!tally.sign.stock)
+      assert.ok(!tally.sign.stock)	//;log.debug("sign:", tally.sign)
       assert.ok(!tally.sign.foil)
       busO.register('po')
       _done()
@@ -135,37 +126,34 @@ log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
     let uuid = mkUuid(cidO, agent0)			//Make a real UUID for this user/tally
       , sql = uSql('tally_uuid = %L, request = %L, hold_sig = %L', uuid, 'offer', 'Originator Signature', userO, seqO)
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbO.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.request, 'offer')
       assert.equal(row.status, 'draft')
-      assert.equal(row.state, 'userDraft')
+      assert.equal(row.state, 'draft.offer')
       _done()
     })
     busS.register('ps', (msg) => {		//Subject is sent the proposed tally
-      assert.equal(msg.entity, userS)
-      assert.equal(msg.state, 'peerProffer')
-      let tally = msg.object
+      assert.equal(msg.entity, userS)		//;log.debug("S msg:", msg)
+      assert.equal(msg.state, 'P.offer')
+      let tally = msg.object			//;log.debug("S tally:", tally, tally.stock.cert.chad)
         , stock = tally.stock
         , foil = tally.foil
-//log.debug("tally:", tally, tally.stock.cert.chad)
       assert.equal(stock.cert.chad.cid, cidO)
       assert.equal(stock.cert.chad.agent, agentO)
       assert.equal(foil.cert.chad.cid, cidS)
       assert.equal(foil.cert.chad.agent, agentS)
-//log.debug("sign:", tally.sign)
-      assert.ok(!!tally.sign.stock)
+      assert.ok(!!tally.sign.stock)		//;log.debug("sign:", tally.sign)
       assert.ok(!tally.sign.foil)
-      assert.ok(!tally.part_ent)			//Haven't linked partner yet
+      assert.ok(!tally.part_ent)		//Haven't linked partner yet
       interTest = tally
       busS.register('ps')
       _done()
     })
-    busO.register('po', (msg) => {		//Originator is sent the close request
-//log.debug("msg:", msg, msg.object.sign)
-      assert.equal(msg.entity, userO)
-      assert.equal(msg.state, 'userProffer')
+    busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userO)		//Originator is sent the close request
+      assert.equal(msg.state, 'H.offer')
       assert.ok(!!msg.object.sign.stock)
       assert.ok(!msg.object.sign.foil)
       busO.register('po')
@@ -175,8 +163,8 @@ log.debug("Sql:", sql)
 
   it("Save proffered tallies for later testing", function(done) {
     let dc = sites; _done = () => {if (!--dc) done()}
-    dbO.query(save('proffer'), (e) => {if (e) done(e); _done()})
-    if (sites > 1) dbS.query(save('proffer'), (e) => {if (e) done(e); _done()})
+    dbO.query(save('Hoffer'), (e) => {if (e) done(e); _done()})
+    if (sites > 1) dbS.query(save('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
   it("Subject rejects the proposed tally", function(done) {
@@ -187,18 +175,17 @@ log.debug("Sql:", sql)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.request, 'void')
       assert.equal(row.status, 'offer')
-      assert.equal(row.state, 'userVoid')
+      assert.equal(row.state, 'P.offer.void')
       _done()
     })
-    busO.register('po', (msg) => {		//Originator is sent the rejection
-      assert.equal(msg.entity, userO)
+    busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userO)		//Originator is sent the rejection
       assert.equal(msg.state, 'void')
       busO.register('po')
       _done()
     })
-    busS.register('ps', (msg) => {		//Subject is notified of open
-//log.debug("msg:", msg, msg.object.sign)
-      assert.equal(msg.entity, userS)
+    busS.register('ps', (msg) => {		;log.debug("S msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userS)		//Subject is notified of open
       assert.equal(msg.state, 'void')
       busS.register('ps')
       _done()
@@ -207,8 +194,8 @@ log.debug("Sql:", sql)
 
   it("Restore proffered tallies", function(done) {
     let dc = sites; _done = () => {if (!--dc) done()}
-    dbO.query(rest('proffer'), (e) => {if (e) done(e); else _done()})
-    if (sites > 1) dbS.query(rest('proffer'), (e) => {if (e) done(e); _done()})
+    dbO.query(rest('Hoffer'), (e) => {if (e) done(e); else _done()})
+    if (sites > 1) dbS.query(rest('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
   it("Subject counters the proposed tally", function(done) {
@@ -219,19 +206,18 @@ log.debug("Sql:", sql)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.request, 'offer')
       assert.equal(row.status, 'draft')
-      assert.equal(row.state, 'userDraft')
+      assert.equal(row.state, 'draft.offer')
       _done()
     })
-    busO.register('po', (msg) => {		//Originator is sent the rejection
-      assert.equal(msg.entity, userO)
-      assert.equal(msg.state, 'peerProffer')
+    busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userO)		//Originator is sent the rejection
+      assert.equal(msg.state, 'P.offer')
       busO.register('po')
       _done()
     })
-    busS.register('ps', (msg) => {		//Subject is notified of open
-//log.debug("msg:", msg, msg.object.sign)
-      assert.equal(msg.entity, userS)
-      assert.equal(msg.state, 'userProffer')
+    busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userS)		//Subject is notified of open
+      assert.equal(msg.state, 'H.offer')
       busS.register('ps')
       _done()
     })
@@ -239,8 +225,8 @@ log.debug("Sql:", sql)
 
   it("Restore proffered tallies", function(done) {
     let dc = sites; _done = () => {if (!--dc) done()}
-    dbO.query(rest('proffer'), (e) => {if (e) done(e); else _done()})
-    if (sites > 1) dbS.query(rest('proffer'), (e) => {if (e) done(e); _done()})
+    dbO.query(rest('Hoffer'), (e) => {if (e) done(e); else _done()})
+    if (sites > 1) dbS.query(rest('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
   it("Subject accepts the proposed tally", function(done) {
@@ -251,7 +237,7 @@ log.debug("Sql:", sql)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.request, 'open')
       assert.equal(row.status, 'offer')
-      assert.equal(row.state, 'userAccept')
+      assert.equal(row.state, 'B.offer.open')
       _done()
     })
     busO.register('po', (msg) => {		//Originator is sent the acceptance
@@ -274,11 +260,11 @@ log.debug("Sql:", sql)
     if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
   })
 
-  it("Simulate non-zero tally balance", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
-    dbO.query(uSql('units_gc = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
-    dbS.query(uSql('units_gc = 1', userS, 1), (e, res) => { if (e) done(e); _done()})
-  })
+//  it("Simulate non-zero tally balance", function(done) {
+//    let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
+//    dbO.query(uSql('units_gc = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
+//    dbS.query(uSql('units_gc = 1', userS, 1), (e, res) => { if (e) done(e); _done()})
+//  })
 
   it("Subject requests to close the proposed tally", function(done) {
     let sql = uSql('request = %L', 'close', userS, 1)
@@ -288,7 +274,7 @@ log.debug("Sql:", sql)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.request, 'close')
       assert.equal(row.status, 'open')
-      assert.equal(row.state, 'userClose')
+      assert.equal(row.state, 'open.close')
       _done()
     })
     busO.register('po', (msg) => {		//Originator is sent the close request
@@ -308,19 +294,19 @@ log.debug("Sql:", sql)
     })
   })
 
-  it("Simulate tally balance going to zero (close -> closed)", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
-    dbO.query(uSql('units_gc = 0', userO, seqO), (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
-      assert.equal(row.state, 'closed')
-      _done()
-    })
-    dbS.query(uSql('units_gc = 0', userS, 1), (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
-      assert.equal(row.state, 'closed')
-      _done()
-    })
-  })
+//  it("Simulate tally balance going to zero (close -> closed)", function(done) {
+//    let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
+//    dbO.query(uSql('units_gc = 0', userO, seqO), (e, res) => { if (e) done(e)
+//      let row = getRow(res, 0)			//;log.debug("row:", row);
+//      assert.equal(row.state, 'closed')
+//      _done()
+//    })
+//    dbS.query(uSql('units_gc = 0', userS, 1), (e, res) => { if (e) done(e)
+//      let row = getRow(res, 0)			//;log.debug("row:", row);
+//      assert.equal(row.state, 'closed')
+//      _done()
+//    })
+//  })
 
 /*
 */

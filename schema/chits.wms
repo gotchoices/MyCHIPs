@@ -9,6 +9,7 @@
 #- Failed lift chits get set to void
 #- Good status check includes validating actual digital signature (or done by agents)?
 #- Each chit needs the signature of the party sending value (depends on the sign of units)
+#- Do we need strict state transition rules for status and request as in tallies.wms?
 #- 
 module mychips
 require config.tcl trigview.tcl
@@ -215,7 +216,7 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
           'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
-raise notice 'Chit notice:% % %', channel, trec.part_chad->>'cid', chit.chit_uuid;
+-- raise notice 'Chit notice:% % %', channel, trec.part_chad->>'cid', chit.chit_uuid;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -402,7 +403,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
       end if;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
-        qstrg = mychips.state_updater(recipe, 'mychips.chits', '{signature, status}');
+        qstrg = mychips.state_updater(recipe, 'mychips.chits', '{status, signature}');
 --raise notice 'chit_process SQL:% % % %', qstrg, crec.chit_ent, crec.chit_seq, crec.chit_idx;
         execute qstrg || ' chit_ent = $1 and chit_seq = $2 and chit_idx = $3' using crec.chit_ent, crec.chit_seq, crec.chit_idx;
         delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;

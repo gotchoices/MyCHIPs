@@ -2,14 +2,8 @@ TODO:
 
 Immediate:
 -  
--  
-- Commit
-- Should upsert have insert/update fields or be a boolean? (How about in tallies.wms?)
 - Change how chit units are stored (relative to stock/foil)?
--   
-- Tallies:
-- Go back and refactor tally states to be more like chits
-- Simpler state naming convention
+- Mocha test to find missing text definitions
 -   
 - Other subsystems patched well enough to run in simulators
 -   Adapt route to new message format

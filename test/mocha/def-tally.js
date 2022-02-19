@@ -1,7 +1,7 @@
 const Format = require('pg-format')
 const {saveRest} = require('../settings')
 
-const stateField = 'mychips.tally_state(status,request,hold_sig,part_sig,units_gc) as state'
+const stateField = 'mychips.tally_state(status,request,hold_sig,part_sig) as state'
 
 module.exports = {
   stateField,

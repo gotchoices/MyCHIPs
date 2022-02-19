@@ -2,52 +2,83 @@
 !include common.puml
 
 $title(Tally State Diagram)
-'state "void" as void
-
-'States are determined by a combination of values, as defined here:
-userVoid : Status: offer, Req->void
-userAccept : Status: offer, Req->open
-userDraft : Status: draft, Req->offer
-userClose : Status: open, Req->close
+state "P.offer.void" as userVoid
+state "B.offer.open" as userAccept
+state "draft.offer" as userDraft
+state "open.close" as userClose
 state working {
-  draft : Status: draft, Req: null
-  draft : User: modify, sign, delete
-  void : Status: void, Req: null
+  state "draft" as draft
+  state "void" as void
 }
-open : Status: open, Req: null
-open : Have both signatures
-close : Status: close, Req: null
+state liftable {
+  state "open" as open
+  state "close" as close
+}
+state "P.offer" as peerProffer
+state "H.offer" as userProffer
+state "close (zero balance)" as closed
+
+'State details
+userVoid : Status: offer, Req: void
+userVoid : Agent: Attention!
+
+userAccept : Status: offer, Req: open
+userAccept : Agent: Attention!
+
+userDraft : Status: draft, Req: offer
+userDraft : Must have user signature
+userDraft : Agent: Attention!
+
+userClose : Status: open, Req: close
+userClose : Agent: Attention!
+
+draft : Status: draft, Req: null
+draft : User: can modify, sign, delete
+
+void : Status: void, Req: null
+void : User: can modify
+
 peerProffer : Status: offer, Req: null
 peerProffer : Peer signature only
-peerProffer : User: accept, refuse, counter
+peerProffer : User: can accept, refuse, counter
+
 userProffer : Status: offer, Req: null
 userProffer : User signature only
+userProffer : User waits for peer
+
+open : Status: open, Req: null
+open : Must have both signatures
+open : User: can request close
+
+close : Status: close, Req: null
+close : Non-zero balance
+
 closed : Status: closed, Req: null
 closed : Balance is zero
 
 'State transition rules:
 [*] -[$user]-> draft : $trans($user,User or system\ndrafts new tally)
-[*] -[$peer]-> peerProffer : $trans($peer,Receive new proposed tally,valid signature,Notify user)
+[*] -[$peer]-> peerProffer : $trans($peer,Receive new proposed tally,valid signature,Act: offer\nNotify user)
 working -[$user]-> userDraft : $trans($user,User signs tally,valid cert,Request offer)
 
-draft -[$peer]-> draft : $trans($peer,Ticketed\ntally request,Have peer cert, Notify user)
-userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:peerRefuse)
+draft -[$peer]-> draft : $trans($peer,Ticketed tally request,Have peer cert, Act: ticket; Notify user)
+userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:void)
 
 peerProffer -[$user]-> userVoid : $trans($user,Refuses tally, '', Request void)
 peerProffer -[$user]-> userDraft : $trans($user,Modifies tally,valid signature, Request offer)
 peerProffer -[$user]-> userAccept : $trans($user,Accepts tally,valid signature, Request open)
 
-userAccept -[$db]-> open : $trans($db,req:open detected,'',Transmit act:peerAccept)
+userAccept -[$db]-> open : $trans($db,req:open detected,'',Transmit Act:open)
 
-userDraft -[$db]-> userProffer : $trans($db,Req:offer detected,,Transmit Act:peerProffer)
+userDraft -[$db]-> userProffer : $trans($db,Req:offer detected,,Transmit Act:offer)
 
-userProffer -[$peer]-> open : $trans($peer, Receive peer acceptance)
-userProffer -[$peer]-> void : $trans($peer,"Refused tally",Notify user)
-userProffer -[$peer]-> peerProffer : $trans($peer,Receive modified tally,'',Notify user)
-void -[$peer]-> peerProffer : $trans($peer,Receive modified tally,'',Notify user)
+userProffer -[$peer]-> open : $trans($peer, Receive peer acceptance, '', Act: open)
+userProffer -[$peer]-> void : $trans($peer,Receive peer refusal, '', Act: void; Notify user)
+userProffer -[$peer]-> peerProffer : $trans($peer,Receive modified tally, '', Act: offer; Notify user)
+void -[$peer]-> peerProffer : $trans($peer,Receive modified tally,'', Act: offer; Notify user)
 
 open -right[$user]-> userClose : $trans($user, Wants to close tally, '', Request close)
-open -[$peer]-> close : $trans($peer,Receive peer\nclose request)
+open -[$peer]-> close : $trans($peer,Receive peer\nclose request, '', Act: close)
 userClose -[$db]-> close : $trans($db,Req:close detected,'',Transmit act:peerClose)
 close -right[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
 

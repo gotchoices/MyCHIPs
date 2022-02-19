@@ -64,19 +64,19 @@ liftVoid : Type: lift\nStatus: void
 
 'State transition rules:
 [*] -right[$user]-> aDraftPend : $trans($user,Creates draft chit\nvalue --> self)
-[*] -left[$peer]-> lPend : $trans($peer,Receive invoice\nAct:pend,'',Notify user)
+[*] -left[$peer]-> lPend : $trans($peer,Receive invoice,'',Act:pend; Notify user)
 [*] -[$user]-> lPendGood : $trans($user,Creates signed chit\nvalue->partner)
-[*] -[$peer]-> aGood : $trans($user,Receive signed asset\nAct:good\nvalue->holder,Notify user)
+[*] -[$peer]-> aGood : $trans($peer,Receive asset chit\nvalue->holder, Valid signature, Act:good; Notify user)
 
 aDraftPend -[$db]-> aPend : $trans($db,Req:pend detected,'',Transmit invoice Act:pend)
 'aPend --> aDraftPend : $trans(Timeout,No reply from peer)
-aPend -[$peer]-> aVoid : $trans($peer,Receive refusal\nAct:void,'',Notify user)
-aVoid -[$user]-> aDraftPend : $trans($user,Modifies chit,'')
-aPend -[$peer]-> aGood : $trans($peer,Receive acceptance\nAct:good,'',Notify user)
+aPend -[$peer]-> aVoid : $trans($peer,Receive refusal,'',Act:void; Notify user)
+aVoid -[$user]-> aDraftPend : $trans($user,Modifies chit\nRequests draft,'')
+aPend -[$peer]-> aGood : $trans($peer,Receive acceptance,'',Act:good; Notify user)
 
 lPend -up[$user]-> lPendVoid : $trans($user, Requests to decline)
 lPendVoid -[$db]-> lVoid : $trans($db, Req:void detected, '', Transmit refusal Act:void)
-lVoid -[$peer]-> lPend : $trans($peer,Receive modified invoice\nAct:pend,'',Notify user)
+lVoid -[$peer]-> lPend : $trans($peer,Receive modified invoice,Valid signature,Act:pend; Notify user)
 
 lPend -[$user]-> lPendGood : $trans($user, Signs chit)
 lPendGood -[$db]-> lGood : $trans($db, Req:good detected,'', Transmit acceptance Act:good)

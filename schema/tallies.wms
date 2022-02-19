@@ -1,12 +1,12 @@
 #Schema for storing MyCHIPs tallies
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-#Note: Users bind themselves to a tally by signing the tally digest hash.  This hash
-#is produced by casting the jsonb form of the record to text and then bytea prior to
-#processing by the sha256 function.  If the json properties are not rendered in the
-#same order every time, we will have a problem.  At the moment, properties are ordered
-#by length first and then alphabetically.  If PostgreSQL ever changes this, we may
-#need our own dedicated casting function.
+# Note: Users bind themselves to a tally by signing the tally digest hash.  This hash
+# is produced by casting the jsonb form of the record to text and then bytea prior to
+# processing by the sha256 function.  If the json properties are not rendered in the
+# same order every time, we will have a problem.  At the moment, properties are ordered
+# by length first and then alphabetically.  If PostgreSQL ever changes this, we may
+# need our own dedicated casting function.
 #
 #TODO:
 #- Can create digest offline in JavaScript that matches tally_sets?
@@ -232,26 +232,12 @@ trigger mychips_sets_tr_seq {} {
 function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
   returns boolean language plpgsql security definer as $$
     declare
-        act	text;
         jrec	jsonb;			-- Notify payload
         trec	record;			-- Tally
         rrec	record;			-- Retries
         channel	text = 'mychips_agent';
     begin				-- Determine next action
-        if tally.status in ('void','draft','offer') and tally.request = 'offer' then
-            act = 'userDraft';
-        elsif tally.status = 'offer' and tally.request = 'void'  then
-            act = 'userVoid';
-        elsif tally.status = 'offer' and tally.request = 'open'  then
-            act = 'userAccept';
-        elsif tally.status = 'open'  and tally.request = 'close' then
-            act = 'userClose';
-        end if;
-raise notice 'TN:% % % %', act, tally.tally_ent, tally.status, tally.request;
-        if act is null then			-- Indeterminate state, clear request
-            update mychips.tallies set request = null where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
-            return false;
-        end if;
+--raise notice 'TN:% % %', tally.tally_ent, tally.status, tally.request;
         select into trec hold_agent,hold_chad,part_chad,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
         if not trec.hold_agent is null then
             channel = channel || '_' || trec.hold_agent;
@@ -262,17 +248,16 @@ raise notice 'TN:% % % %', act, tally.tally_ent, tally.status, tally.request;
             returning * into rrec;
 -- raise notice 'Try:%-%', tally.tally_ent, tally.tally_seq;
 -- raise notice 'Tn c:% t:% f:%', channel, trec.part_chad, trec.hold_chad;
-
         jrec = jsonb_build_object(
           'target',	'tally',
-          'action',	act,
+          'action',	tally.request,
           'try',	rrec.tries,
           'last',	rrec.last,
           'to',		trec.part_chad,
           'from',	trec.hold_chad,
           'object',	trec.json
         );
-raise notice 'Tally notice:% % %', channel, act, trec.json->'uuid';
+-- raise notice 'Tally notice:% % %', channel, tally.request, trec.json->'uuid';
         perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
         return true;
     end;
@@ -338,51 +323,23 @@ $$;}
 
 # Compute current state of a tally, based on its various fields
 #----------------------------------------------------------------
-function {mychips.tally_state(status text, request text, hold_sig text, part_sig text, total bigint)} {mychips} {
+function {mychips.tally_state(status text, request text, hold_sig text, part_sig text)} {mychips} {
   returns text immutable language plpgsql as $$
     begin return
-      case when request isnull then
-        case when status = 'offer' then
-          case when not hold_sig isnull and part_sig isnull then	'userProffer'
-               when not part_sig isnull and hold_sig isnull then	'peerProffer'
-          end
-             when status = 'close' and total = 0 then			'closed'
-             else status	-- void, draft, offer, open, close
-        end
-      else	-- pending request
-        case when request = 'offer' then				'userDraft'
-             when request = 'void' then					'userVoid'
-             when request = 'open' then					'userAccept'
-             when request = 'close' then				'userClose'
-        end
-      end;
+      case when status = 'offer' then
+             case when hold_sig isnull and not part_sig isnull then	'P.'
+                  when part_sig isnull and not hold_sig isnull then	'H.'
+                  else 'B.' end
+           else '' end ||
+      status ||
+      case when request isnull then '' else '.' || request end;
     end;
 $$;}
-
-# View expanding user/partner certificates
-#----------------------------------------------------------------
-#view mychips.tallies_v_cert {mychips.tallies} {select 
-#    te.tally_ent
-#  , te.tally_seq
-#  , uc.chip	as hold_chad
-#  , uc.public	as hold_public
-#  , uh.cid	as hold_cid
-#  , uh.agent	as hold_agent
-#  , pc.chip	as part_chad
-#  , pc.public	as part_public
-#  , ph.cid	as part_cid
-#  , ph.agent	as part_agent
-#    from	mychips.tallies	te
-#    join	jsonb_to_record(te.hold_cert::jsonb) as uc (chip jsonb, public text) on true
-#    join	jsonb_to_record(uc.chip) as uh (cid text, host text, port text, agent text) on true
-#    join	jsonb_to_record(te.part_cert::jsonb) as pc (chip jsonb, public text) on true
-#    join	jsonb_to_record(pc.chip) as ph (cid text, host text, port text, agent text) on true;
-#}
 
 # Base view of tallies
 #----------------------------------------------------------------
 define uSign {case when te.tally_type = 'stock' then %1 else -%1 end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.agents_v mychips.peers_v mychips.tally_state(text,text,text,text,bigint) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.agents_v mychips.peers_v mychips.tally_state(text,text,text,text) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , te.hold_cid ||':'|| ua.agent	as hold_addr
   , te.hold_cid ||':'|| ua.atsock	as hold_full
@@ -397,8 +354,9 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
   , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
   
   , not te.part_ent is null						as inside
-  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc)	as state
-  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc) = any(array['peerProffer','close','draft']) as action
+  , mychips.tally_state(status,request,hold_sig,part_sig)		as state
+  , te.status = 'open' or te.status = 'close' and units_gc != 0		as liftable
+  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','close','draft']) as action
   , coalesce(uSign(tc.units),0)			as units
   , uSign(units_gc)				as units_gc
   , uSign(units_pc)				as units_pc
@@ -641,7 +599,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 --raise notice 'Tally cid:% uuid:%', cid, uuid;
       select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = uuid;
         
-raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
+--raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
       if not found then			-- No existing tally
         curState = 'null';			-- Special code for when the tally doesn't exist yet
         select into uid id from mychips.users_v where peer_cid = cid and peer_agent = agent;		-- Look up the entity on our own
@@ -655,9 +613,8 @@ raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
         return curState;
       end if;
 
-      if recipe->>'upsert' then		-- If inserting/updating from object
-
-raise notice '  upsert obj:% curState:%', obj, curState;
+      if recipe ? 'upsert' then		-- If inserting/updating from object
+--raise notice '  upsert obj:% curState:%', obj, curState;
         if part->'cert'->'chad'->>'cid' = cid and part->'cert'->'chad'->>'agent' = agent then
           tallyType = 'foil';			-- Our side really is the foil
           notType = 'stock';
@@ -674,11 +631,13 @@ raise notice '  upsert obj:% curState:%', obj, curState;
             hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert
           ) values (
             uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, 
-            obj->'agree', 'offer', obj->>'note', obj->'sign'->>tallyType, obj->'sign'->>notType, 
+            obj->'agree', coalesce(recipe->'upsert'->>'status','offer'),
+            obj->>'note', obj->'sign'->>tallyType, obj->'sign'->>notType, 
             hold->'terms', part->'terms', hold->'cert', part->'cert'
           ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
-          update mychips.tallies set request = null, status = 'offer', mod_date = current_timestamp, mod_by = session_user,
+          update mychips.tallies set request = null, mod_date = current_timestamp, mod_by = session_user,
+            status = coalesce(recipe->'upsert'->>'status','offer'),
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',
             hold_sig = obj->'sign'->>tallyType, part_sig = obj->'sign'->>notType,
             hold_terms = hold->'terms', part_terms = part->'terms',
