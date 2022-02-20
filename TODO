@@ -2,20 +2,20 @@ TODO:
 
 Immediate:
 -  
-- Change how chit units are stored (relative to stock/foil)?
-- Mocha test to find missing text definitions
+X- Mocha test to find missing text definitions
 -   
 - Other subsystems patched well enough to run in simulators
--   Adapt route to new message format
--   Adapt lifts to new message format
--   Clean up users DB
--     Can we totally get rid of peer table? (merge into user table)
--     Adjust/remove prior references to servID, peerPort, peerHost
--     Get rid of user.serv_id; Change to peer_agent or tally.part_agent during early phase
--     User views show next cid@agent to use
--   Does the simulator still run ok?
--   Simulation can run with or without encryption (selected in config.dock)
--   Simulation runs raw mode by default
+-  Adapt route to new message format
+-  Adapt lifts to new message format
+-   Change how chit units are stored (relative to stock/foil)?
+-  Clean up users DB
+-   Can we totally get rid of peer table? (merge into user table)
+-   Adjust/remove prior references to servID, peerPort, peerHost
+-   Get rid of user.serv_id; Change to peer_agent or tally.part_agent during early phase
+-   User views show next cid@agent to use
+-  Does the simulator still run ok?
+-  Simulation can run with or without encryption (selected in config.dock)
+-  Simulation runs raw mode by default
 - 
 - Push release to master, merge with Capstone project
 - 

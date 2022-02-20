@@ -57,8 +57,8 @@ describe("Test chit state transitions", function() {
       , value = 123400
       , reason = 'A test'
       , request = 'pend'
-      , sql = Format(`insert into mychips.chits (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request)
-          values (%L, %s, %L, 'tran', %s, %L, %L) returning *, ${stateField}`, ent, seq, uuid, value, reason, request)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request)
+          values (%L, %s, %L, 'tran', %s, %L, %L) returning *`, ent, seq, uuid, value, reason, request)
 //log.debug("Sql:", sql)
     dbU.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Row:", row)
@@ -67,6 +67,11 @@ describe("Test chit state transitions", function() {
       assert.equal(row.units, value)
       assert.equal(row.status,'draft')
       assert.equal(row.request,'pend')
+      assert.equal(row.effect,'debit')
+      assert.equal(row.units_p, value)
+      assert.equal(row.units_g, 0)
+      assert.equal(row.tally_type, 'stock')
+      assert.equal(row.action, false)
       assert.equal(row.state,'A.draft.pend')
       done()
     })
@@ -125,13 +130,14 @@ describe("Test chit state transitions", function() {
     let value = 12340
       , sql = uSql(`request = 'pend', units = ` + value, user0, interTest.chit.uuid)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			;log.debug("row:", row);
-      assert.equal(row.state, 'A.void.pend')
+      let row = getRow(res, 0)			//;log.debug("row:", row);
+      assert.equal(row.state, 'A.draft.pend')
+      assert.equal(row.action, false)
       _done()
     })
-    busA.register('pa', (msg) => {		;log.debug("A msg:", msg);
+    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg);
       assert.equal(msg.target, 'chit')
       assert.equal(msg.action, 'pend')
       let obj = msg.object			;log.debug("A obj:", obj)
@@ -185,16 +191,20 @@ log.debug("Sql:", sql)
       , reason = 'Uninvoiced transfer'
       , request = 'good'
       , signature = cid0 + ' signature'
-      , sql = Format(`insert into mychips.chits (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, status, request, signature)
-          values (%L, %s, %L, 'tran', %s, %L, 'pend', %L, %L) returning *, ${stateField}`, ent, seq, uuid, value, reason, request, signature)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request, signature)
+          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, ent, seq, uuid, value, reason, request, signature)
 //log.debug("Sql:", sql)
     dbU.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("Row:", row)
+      let row = getRow(res, 0)			;log.debug("Row:", row)
       assert.equal(row.units, value)
       assert.equal(row.status,'pend')
       assert.equal(row.request,'good')
       assert.equal(row.state,'L.pend.good')
-      done()
+      assert.equal(row.effect,'credit')
+      assert.equal(row.units_p, value)
+      assert.equal(row.action, false)
+      assert.equal(row.units_g, 0)
+    done()
     })
     busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
       assert.equal(msg.target, 'chit')
@@ -240,10 +250,11 @@ log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.state, 'L.pend.void')
+      assert.equal(row.action, false)
       _done()
     })
     busA.register('pa', (msg) => {
-      assert.equal(msg.action, 'void')		;log.debug("A obj:", msg.object);
+      assert.equal(msg.action, 'void')		//;log.debug("A obj:", msg.object);
       interTest.uuid = msg.object.uuid		//Redirect future tests to this latest chit
       busA.register('pa')
       _done()
@@ -287,6 +298,7 @@ log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.state, 'L.pend.good')
+      assert.equal(row.action, false)
       _done()
     })
     busA.register('pa', (msg) => {
@@ -305,6 +317,7 @@ log.debug("Sql:", sql)
       done()
     })
   })
+
 /*
 */
   after('Disconnect from test database', function(done) {

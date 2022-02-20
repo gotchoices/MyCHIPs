@@ -3279,7 +3279,7 @@ create view mychips.chits_v as select
   , case when ch.status = 'void' then 0 else ch.units end	as units_p
 
   , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.status, ch.request)	as state
-  , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.status, ch.request) = any(array['peerInvoice','peerDecline']) as action
+  , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.status, ch.request) = any(array['L.pend']) as action
   , mychips.chit_json(ch, te.tally_uuid)			as json_core
   , mychips.chit_json(ch, te.tally_uuid) || jsonb_build_object(
       'digest',		ch.digest,
@@ -4054,7 +4054,7 @@ create function mychips.chits_v_insfunc() returns trigger language plpgsql secur
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.chits_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.chits (chit_ent,chit_seq,request,signature,units,quidpro,memo,chit_uuid,chit_type,crt_by,mod_by,crt_date,mod_date) values (new.chit_ent,new.chit_seq,'userDraft',trec.signature,trec.units,trec.quidpro,trec.memo,trec.chit_uuid,trec.chit_type,session_user,session_user,current_timestamp,current_timestamp) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
+    insert into mychips.chits (chit_ent,chit_seq,request,signature,units,quidpro,memo,chit_uuid,chit_type,crt_by,mod_by,crt_date,mod_date) values (new.chit_ent,new.chit_seq,trec.request,trec.signature,trec.units,trec.quidpro,trec.memo,trec.chit_uuid,trec.chit_type,session_user,session_user,current_timestamp,current_timestamp) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
     select into new * from mychips.chits_v where chit_ent = new.chit_ent and chit_seq = new.chit_seq and chit_idx = new.chit_idx;
     return new;
   end;
@@ -4515,6 +4515,20 @@ create function json.cert_tf_ii() returns trigger language plpgsql security defi
 $$;
 create function mychips.chits_tf_bu() returns trigger language plpgsql security definer as $$
     begin
+      if new.status != old.status then			-- Check for valid state transitions
+        if not (
+          new.status in ('draft','pend') and old.status in ('draft','pend') or
+          new.status = 'pend' and old.status = 'void' or
+          new.status in ('void','good') and old.status = 'pend'
+        ) then raise exception '!mychips.chits:IST % %', old.status, new.status;
+        end if;
+      end if;
+      if new.request = 'pend' then		-- User is drafting/re-drafting
+        new.status = 'draft';
+      elsif new.request = 'good' then		-- User is sending good pledge
+        new.status = 'pend';
+      end if;
+
       if new.status = 'good' and old.status != 'good' then
         return mychips.chit_goodcheck(new);
       end if;
@@ -4547,6 +4561,11 @@ create function mychips.chits_tf_seq() returns trigger language plpgsql security
 
         end if;
 
+      if new.request = 'pend' then		-- User is drafting
+        new.status = 'draft';
+      elsif new.request = 'good' then		-- User is sending good pledge
+        new.status = 'pend';
+      end if;
         if new.status = 'good' then		-- A received, signed chit can come in marked as good
           return mychips.chit_goodcheck(new);
         end if;
@@ -4790,6 +4809,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','ent_link','eng','Entity Links','Links to show how one entity (like an employee) is linked to another (like his company)'),
   ('base','ent_link_v','eng','Entity Links','A view showing links to show how one entity (like an employee) is linked to another (like his company), plus the derived names of the entities'),
   ('base','ent_v','eng','Entities','A view of Entities, which can be a person, a company or a group, plus additional derived fields'),
+  ('base','ent_v_pub','eng','Entities Public','A view of Entities from which ever user can access certain public information'),
   ('base','language','eng','Languages','Contains standard ISO data about international language codes'),
   ('base','parm','eng','System Parameters','Contains parameter settings of several types for configuring and controlling various modules across the database'),
   ('base','parm_audit','eng','Parameters Auditing','Table tracking changes to the parameters table'),
@@ -4962,11 +4982,9 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','ent','username','eng','Username','The login name for this person, if a user on this system'),
   ('base','ent_audit','a_action','eng','Action','The operation that produced the change (update, delete)'),
   ('base','ent_audit','a_by','eng','Altered By','The username of the user who made the change'),
-  ('base','ent_audit','a_column','eng','Column','The name of the column that was changed'),
   ('base','ent_audit','a_date','eng','Date/Time','Date and time of the change'),
-  ('base','ent_audit','a_reason','eng','Reason','The reason for the change'),
   ('base','ent_audit','a_seq','eng','Sequence','A sequential number unique to each alteration'),
-  ('base','ent_audit','a_value','eng','Value','The old value of the column before the change'),
+  ('base','ent_audit','a_values','eng','Values','JSON object containing the old values of the record before the change'),
   ('base','ent_audit','id','eng','Entity ID','The ID of the entity that was changed'),
   ('base','ent_link','crt_by','eng','Created By','The user who entered this record'),
   ('base','ent_link','crt_date','eng','Created','The date this record was created'),
@@ -5004,11 +5022,9 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','parm','v_text','eng','Text Value','The parameter value in the case when the type is a character string'),
   ('base','parm_audit','a_action','eng','Action','The operation that produced the change (update, delete)'),
   ('base','parm_audit','a_by','eng','Altered By','The username of the user who made the change'),
-  ('base','parm_audit','a_column','eng','Column','The name of the column that was changed'),
   ('base','parm_audit','a_date','eng','Date/Time','Date and time of the change'),
-  ('base','parm_audit','a_reason','eng','Reason','The reason for the change'),
   ('base','parm_audit','a_seq','eng','Sequence','A sequential number unique to each alteration'),
-  ('base','parm_audit','a_value','eng','Value','The old value of the column before the change'),
+  ('base','parm_audit','a_values','eng','Values','JSON object containing the old values of the record before the change'),
   ('base','parm_audit','module','eng','Module','The module name for the parameter that was changed'),
   ('base','parm_audit','parm','eng','Parameter','The parameter name that was changed'),
   ('base','parm_v','value','eng','Value','The value for the parameter setting, expressed as a string'),
@@ -5629,6 +5645,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chits','BST','eng','Bad Chit Request','Not a valid request for a chit state transition'),
   ('mychips','chits','CUU','eng','Chit Not Unique','Chit UUID must be unique to each tally'),
   ('mychips','chits','GDS','eng','Signature Check','Chits in a good state must include a signature'),
+  ('mychips','chits','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','contracts','BVN','eng','Bad Version Number','Version number for contracts should start with 1 and move progressively larger'),
   ('mychips','contracts','ILR','eng','Illegal Rows','A query expecting a single record returned zero or multiple rows'),
   ('mychips','contracts','PBC','eng','Publish Constraints','When publishing a document, one must specify the digest hash, the source location, and the content sections'),
@@ -5653,6 +5670,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','peers_v_me','tally','eng','Request Tally','Send a request to this peer to establish a tally'),
   ('mychips','tallies','CNP','eng','Tally Contract','An open tally must reference a contract'),
   ('mychips','tallies','DMG','eng','Invalid Drop Margin','The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.'),
+  ('mychips','tallies','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','tallies','IVR','eng','Invalid Request','Tally request value is not valid'),
   ('mychips','tallies','IVS','eng','Invalid Status','Tally status value is not valid'),
   ('mychips','tallies','LMG','eng','Invalid Lift Margin','The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.'),
@@ -5661,7 +5679,6 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','PCM','eng','Partner Certificate','An open tally must contain a partner certificate'),
   ('mychips','tallies','PSM','eng','Partner Signature','An open tally must contain a partner signature'),
   ('mychips','tallies','STR','eng','Illegal State Request','The requested state transition is not allowed'),
-  ('mychips','tallies','STT','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','tallies','UCI','eng','User CHIP ID','An open tally must include a valid user CHIP ID'),
   ('mychips','tallies','UCM','eng','User Certificate','An open tally must contain a user certificate'),
   ('mychips','tallies','USM','eng','User Signature','An open tally must contain a user signature'),

@@ -11,7 +11,7 @@ var log = Log('testChit')
 var { dbClient } = require("wyseman")
 const PeerCont = require("../../lib/peer2peer")
 var defTally = require('./def-tally')
-var {stateField, uSql, save, rest} = require('./def-chit')
+var {uSql, save, rest} = require('./def-chit')
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
 var interTest = {}			//Pass values from one test to another
 
@@ -73,7 +73,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , value = 1234500
       , reason = 'Consulting invoice'
       , request = 'pend'
-      , sql = Format(`insert into mychips.chits (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request)
           values (%L, %s, %L, 'tran', %s, %L, %L) returning *`, userO, seq, uuid, value, reason, request)
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
@@ -83,6 +83,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.request, request)
       assert.equal(row.quidpro, reason)
+      assert.equal(row.effect, 'debit')
+      assert.equal(row.units_p, value)
+      assert.equal(row.units_g, 0)
       assert.ok(!row.chain_prv)
       assert.ok(!row.chain_idx)
       _done()
@@ -152,7 +155,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     dbO.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.chit_uuid, uuid)
-      assert.equal(row.state, 'A.void.pend')
+      assert.equal(row.state, 'A.draft.pend')
       _done()
     })
     busS.register('ps', (msg) => {		//;log.debug("S user msg:", msg)
@@ -208,19 +211,19 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , reason = 'Partial refund'
       , request = 'good'
       , signed = cidO + ' signature'
-      , sql = Format(`insert into mychips.chits (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request, signature)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request, signature)
           values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, userO, seq, uuid, value, reason, request, signed)
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row);
       assert.equal(row.chit_ent, userO)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.request, request)
       assert.equal(row.quidpro, reason)
       _done()
     })
-    busS.register('ps', (msg) => {		;log.debug("S User msg:", msg.object.uuid)
+    busS.register('ps', (msg) => {		//;log.debug("S User msg:", msg.object.uuid)
       assert.equal(msg.state, 'A.good')
       let obj = msg.object
       assert.equal(obj.for, reason)
@@ -230,7 +233,7 @@ log.debug("Sql:", sql)
       busS.register('ps')
       _done()
     })
-    busO.register('po', (msg) => {		;log.debug("O User msg:", msg, msg.object.uuid)
+    busO.register('po', (msg) => {		//;log.debug("O User msg:", msg, msg.object.uuid)
       assert.equal(msg.state, 'L.good')
       busO.register('po')
       _done()
