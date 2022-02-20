@@ -18,6 +18,9 @@ require('./user2.js')		//Needed for testing on two DB's
 require('./tally.js')
 require('./chit.js')
 
+//Re-enable after schema settles and more documentation filled in
+//require('./schema.js')
+
 //Re-enable after consolidating users_v, peers_v?
 //require('./sch-multi.js')	//Will empty users table
 

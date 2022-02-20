@@ -17,7 +17,7 @@ var log = Log('testSchCrypto')
 var { dbClient } = require("wyseman")
 const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
 
-describe("View mychips.peers_v", function() {
+describe("Test cryptographic schema functions", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
