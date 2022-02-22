@@ -1,12 +1,12 @@
 // import { WyclifLogger } from '../../@types/global'
 import Action from '../action';
-import Agent from '../agent';
+import Account from '../account';
 import MongoManager from '../mongomanager';
 import SQLManager from '../sqlmanager';
 import ActionFactory from '../actionFactory';
 import UnifiedLogger from '../unifiedLogger';
 
-class BaseAgent implements Agent {
+class BaseAccount implements Account {
     id: number;
     std_name: string;
     ent_name: string;
@@ -40,7 +40,7 @@ class BaseAgent implements Agent {
     myChipsDBManager: SQLManager;
     logger: WyclifLogger;
 
-    constructor(agentData: AgentData, host: string, agentParams?: AdjustableAgentParams) {
+    constructor(accountData: AccountData, host: string, accountParams?: AdjustableAccountParams) {
         this.worldDBManager = MongoManager.getInstance();
         this.myChipsDBManager = SQLManager.getInstance();
         this.logger = UnifiedLogger.getInstance();
@@ -51,21 +51,21 @@ class BaseAgent implements Agent {
         // this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet 
         this.actions.push(ActionFactory.createAction('SpendCHIPs', this));
 
-        //TODO: finish applying this info from agent data and params
-        this.id = agentData.id;
-        this.std_name = agentData.std_name;
-        this.ent_name = agentData.ent_name;
-        this.first_name = agentData.fir_name;
-        this.peer_cid = agentData.peer_cid;
-        this.peer_socket = agentData.peer_socket;
+        //TODO: finish applying this info from account data and params
+        this.id = accountData.id;
+        this.std_name = accountData.std_name;
+        this.ent_name = accountData.ent_name;
+        this.first_name = accountData.fir_name;
+        this.peer_cid = accountData.peer_cid;
+        this.peer_socket = accountData.peer_socket;
         this.host = host
         this.entity_type = "Default person"
         this.random = Math.random()
 
         this.numSpendingTargets = 0;
         this.numIncomeSources = 0;
-        this.foil_seqs = agentData.foil_seqs || [];
-        this.stock_seqs = agentData.stock_seqs || [];
+        this.foil_seqs = accountData.foil_seqs || [];
+        this.stock_seqs = accountData.stock_seqs || [];
         this.netWorth = 0;
 
         this.hosted_ent = true;
@@ -74,17 +74,17 @@ class BaseAgent implements Agent {
         this.incomeSources = [];
         this.types = [];
 
-        this.newIncomeSourceOdds = agentParams?.newIncomeSourceOdds || 0.1
-        this.adjustSettingsOdds = agentParams?.adjustSettingsOdds || 0.5
-        this.newSpendingTargetOdds = agentParams?.newSpendingTargetOdds || 0.15 
-        this.maxSpendingTargets = agentParams?.maxSpendingTargets || 2
-        this.maxIncomeSources = agentParams?.maxIncomeSources || 3
-        this.minWorthToSpend = agentParams?.minWorthToSpend || -10000
-        this.maxToSpend = agentParams?.maxToSpend || 0.1
+        this.newIncomeSourceOdds = accountParams?.newIncomeSourceOdds || 0.1
+        this.adjustSettingsOdds = accountParams?.adjustSettingsOdds || 0.5
+        this.newSpendingTargetOdds = accountParams?.newSpendingTargetOdds || 0.15 
+        this.maxSpendingTargets = accountParams?.maxSpendingTargets || 2
+        this.maxIncomeSources = accountParams?.maxIncomeSources || 3
+        this.minWorthToSpend = accountParams?.minWorthToSpend || -10000
+        this.maxToSpend = accountParams?.maxToSpend || 0.1
     }
     
     takeAction(): void {
-        // For now, I'm just having the Agent perform all of its Actions. Since there's a percentage
+        // For now, I'm just having the Account perform all of its Actions. Since there's a percentage
         // associated with each Action that determines how likely it is to actually happen, I think
         // this is ok.
         this.actions.forEach((action) => {
@@ -100,7 +100,7 @@ class BaseAgent implements Agent {
         // TODO: update data here (depends on what kind of connection it is though...)
     }
 
-    getAgentData(): AgentData {
+    getAccountData(): AccountData {
         return {
             id: this.id,
             std_name: this.std_name,
@@ -125,4 +125,4 @@ class BaseAgent implements Agent {
     }
 }
 
-export default BaseAgent;
+export default BaseAccount;

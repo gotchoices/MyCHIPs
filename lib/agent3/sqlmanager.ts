@@ -59,14 +59,14 @@ class SQLManager {
   }
 
   createConnection(
-    notifyOfAgentChange: (msg: any) => void,
+    notifyOfAccountChange: (msg: any) => void,
     notifyOfParamsChange: (target: string, value: any) => void,
     notifyOfTallyChange: (msg: any) => void
   ) {
     this.dbConnection = new dbClient(this.config, (channel, payload) => {
       //Initialize Database connection
       let msg: any
-      this.logger.trace('Agent DB async on:', channel, 'payload:', payload)
+      this.logger.trace('Account DB async on:', channel, 'payload:', payload)
       if (payload)
         try {
           msg = JSON.parse(payload)
@@ -81,7 +81,7 @@ class SQLManager {
       } else if (channel == 'mychips_admin') {
         //Something in the user data has changed
         if (msg.target == 'peers' || msg.target == 'tallies') {
-          notifyOfAgentChange(msg)
+          notifyOfAccountChange(msg)
         }
       } else if (channel == 'mychips_user') {
         //Respond as a real user would to a request/event
@@ -91,21 +91,21 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
-  addAgent(agentData: AgentData) {
+  addAccount(accountData: AccountData) {
     this.dbConnection.query(
       peerSql,
       [
-        agentData.ent_name,
-        agentData.fir_name,
-        agentData.ent_type,
-        agentData.born_date,
-        agentData.peer_cid,
-        agentData.peer_host || agentData.peer_socket.split(':')[0]!,
-        agentData.peer_port || agentData.peer_socket.split(':')[1]!,
+        accountData.ent_name,
+        accountData.fir_name,
+        accountData.ent_type,
+        accountData.born_date,
+        accountData.peer_cid,
+        accountData.peer_host || accountData.peer_socket.split(':')[0]!,
+        accountData.peer_port || accountData.peer_socket.split(':')[1]!,
       ],
       (err, res) => {
         if (err) {
-          this.logger.error('Adding peer:', agentData.peer_cid, err.stack)
+          this.logger.error('Adding peer:', accountData.peer_cid, err.stack)
           return
         }
         let newGuy = res.rows[0]
@@ -197,24 +197,24 @@ class SQLManager {
     })
   }
 
-  queryUsers(callback: (agents: AgentData[], all: boolean)=>any) {
+  queryUsers(callback: (accounts: AccountData[], all: boolean)=>any) {
     this.query(userSql, (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
         return
       }
-      this.logger.trace('Loaded agents:', res.rows.length)
+      this.logger.trace('Loaded accounts:', res.rows.length)
       callback(res.rows, true)
     })
   }
 
-  queryLatestUsers(time: string, callback: (agents: AgentData[])=>any) {
+  queryLatestUsers(time: string, callback: (accounts: AccountData[])=>any) {
     this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
         return
       }
-      this.logger.trace('Loaded agents:', res.rows.length)
+      this.logger.trace('Loaded accounts:', res.rows.length)
       callback(res.rows)
     })
   }

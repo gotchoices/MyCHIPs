@@ -1,6 +1,6 @@
 import Action from "../action";
-import Agent from "../agent";
-import AgentsCache from "../agentsCache";
+import Account from "../account";
+import AccountCache from "../accountsCache";
 import MongoManager from "../mongomanager";
 import SQLManager from "../sqlmanager";
 import UnifiedLogger from "../unifiedLogger";
@@ -9,40 +9,40 @@ class FindNewIncomeSource implements Action {
   logger: WyclifLogger
   myChipsDBManager: SQLManager
   worldDBManager: MongoManager
-  agentCache: AgentsCache
+  accountCache: AccountCache
 
-  agent: Agent
+  account: Account
 
-  constructor(agent: Agent) {
+  constructor(account: Account) {
     this.logger = UnifiedLogger.getInstance()
     this.myChipsDBManager = SQLManager.getInstance()
     this.worldDBManager = MongoManager.getInstance()
-    this.agentCache = AgentsCache.getInstance()
+    this.accountCache = AccountCache.getInstance()
 
-    this.agent = agent
+    this.account = account
   }
 
 
   run() {
-    if (this.agent.numIncomeSources <= 0 || 
-      (this.agent.numIncomeSources < this.agent.maxIncomeSources &&
-        Math.random() < this.agent.newIncomeSourceOdds))
+    if (this.account.numIncomeSources <= 0 || 
+      (this.account.numIncomeSources < this.account.maxIncomeSources &&
+        Math.random() < this.account.newIncomeSourceOdds))
     {
-      this.worldDBManager.findPeerAndUpdate(this.agent.peer_cid, this.agent.incomeSources, (newPeer: AgentData) => {
+      this.worldDBManager.findPeerAndUpdate(this.account.peer_cid, this.account.incomeSources, (newPeer: AccountData) => {
 
-        this.logger.debug(this.agent.peer_cid, " attempting new income source with ", newPeer.peer_cid)
+        this.logger.debug(this.account.peer_cid, " attempting new income source with ", newPeer.peer_cid)
 
-        if (!this.agentCache.containsAgent(newPeer)) {
-          this.myChipsDBManager.addAgent(newPeer)
-          this.agentCache.addAgent(newPeer)
+        if (!this.accountCache.containsAccount(newPeer)) {
+          this.myChipsDBManager.addAccount(newPeer)
+          this.accountCache.addAccount(newPeer)
         }
 
         let newPeerServer = newPeer.peer_socket.split(':')[0]
         this.worldDBManager.insertAction("createAccount", undefined, newPeerServer, () => {
-          this.myChipsDBManager.addConnectionRequest(this.agent.id, newPeer.id)
+          this.myChipsDBManager.addConnectionRequest(this.account.id, newPeer.id)
           // TODO: This stuff should only be done when the connection is accepted by the peer. Right now the peers always accept requests, so we can do it here. I'm not sure how we will get notified when the connection is accepted...
-          this.agent.numIncomeSources++
-          this.worldDBManager.updateOneAgent(this.agent.getAgentData())
+          this.account.numIncomeSources++
+          this.worldDBManager.updateOneAccount(this.account.getAccountData())
         })
       })
     }

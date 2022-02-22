@@ -1,6 +1,6 @@
 import Action from "../action";
-import Agent from "../agent";
-import AgentsCache from "../agentsCache";
+import Account from "../account";
+import AccountCache from "../accountsCache";
 import MongoManager from "../mongomanager";
 import SQLManager from "../sqlmanager";
 import UnifiedLogger from "../unifiedLogger";
@@ -9,30 +9,30 @@ class SpendCHIPs implements Action {
     logger: WyclifLogger;
     myChipsDBManager: SQLManager;
     worldDBManager: MongoManager;
-    agentCache: AgentsCache;
+    accountCache: AccountCache;
 
-    agent: Agent;
+    account: Account;
     
-    constructor(agent: Agent) {
+    constructor(account: Account) {
         this.logger = UnifiedLogger.getInstance()
         this.myChipsDBManager = SQLManager.getInstance()
         this.worldDBManager = MongoManager.getInstance()
-        this.agentCache = AgentsCache.getInstance()
+        this.accountCache = AccountCache.getInstance()
 
-        this.agent = agent
+        this.account = account
     }
     
 
     run(): void {
-        if (this.agent.numSpendingTargets > 0 && this.agent.netWorth > this.agent.minWorthToSpend) {
-            let chipsToSpend = Math.floor(Math.random() * Math.max(this.agent.netWorth * this.agent.maxToSpend, 1000))
+        if (this.account.numSpendingTargets > 0 && this.account.netWorth > this.account.minWorthToSpend) {
+            let chipsToSpend = Math.floor(Math.random() * Math.max(this.account.netWorth * this.account.maxToSpend, 1000))
 
-            let peerToPayID = this.agent.spendingTargets[Math.floor(Math.random() * this.agent.numSpendingTargets)]
-            let peerToPay = this.agentCache.getAgent(peerToPayID)
+            let peerToPayID = this.account.spendingTargets[Math.floor(Math.random() * this.account.numSpendingTargets)]
+            let peerToPay = this.accountCache.getAccount(peerToPayID)
 
-            let sequence: number = this.agent.foil_seqs[peerToPayID]
+            let sequence: number = this.account.foil_seqs[peerToPayID]
 
-            this.myChipsDBManager.addPayment(this.agent.id, peerToPay.id, chipsToSpend, sequence)
+            this.myChipsDBManager.addPayment(this.account.id, peerToPay.id, chipsToSpend, sequence)
         }
     }
 

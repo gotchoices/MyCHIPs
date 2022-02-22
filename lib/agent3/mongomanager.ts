@@ -1,4 +1,4 @@
-import Agent from './agent'
+import Account from './account'
 import {
   MongoClient,
   Db,
@@ -21,7 +21,7 @@ class MongoManager {
 
   private mongoClient!: MongoClient
   private actionsCollection!: Collection<ActionDoc>
-  private agentsCollection!: Collection<Document> //TODO: Change this
+  private accountsCollection!: Collection<Document> //TODO: Change this
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
   /** A cache in which to store callbacks that need to run when actions sent to foreign servers are completed */
@@ -58,8 +58,8 @@ class MongoManager {
   }
 
   createConnection(
-    notifyOfNewAgentRequest: (
-      agentData: AgentData,
+    notifyOfNewAccountRequest: (
+      accountData: AccountData,
       tag: string,
       destHost: string
     ) => void,
@@ -105,7 +105,7 @@ class MongoManager {
 
         if (doc.action == 'createAccount') {
           // Someone asking me to insert a peer into the DB
-          notifyOfNewAgentRequest(doc.data!, doc.tag, doc.from)
+          notifyOfNewAccountRequest(doc.data!, doc.tag, doc.from)
         } else if (doc.action == 'done') {
           // Someone has told me that an action I requested is done
           this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
@@ -118,7 +118,7 @@ class MongoManager {
         this.actionsCollection.deleteOne({ _id: doc._id })
       })
 
-      this.agentsCollection = this.dbConnection.collection('agents')
+      this.accountsCollection = this.dbConnection.collection('accounts')
       //      this.docAg.createIndex({peer_cid: 1}, {unique: true})		//Should be multicolumn: cid, host
       //      this.docAg.countDocuments((e,r)=>{if (!e) this.worldPop = r})	//Actual people in doc DB
       this.logger.trace('Connected to doc DB')
@@ -162,24 +162,24 @@ class MongoManager {
     }
   }
 
-  updateOneAgent(agent: AgentData) {
-    console.log(agent)
-    this.agentsCollection.find({}).toArray((err, res) => {
-      console.log("All mongo agents:")
+  updateOneAccount(account: AccountData) {
+    console.log(account)
+    this.accountsCollection.find({}).toArray((err, res) => {
+      console.log("All mongo accounts:")
       console.log(res)
     })
-    this.agentsCollection.updateOne(
-      { peer_cid: agent.peer_cid, host: agent.host },
-      { $set: agent },
+    this.accountsCollection.updateOne(
+      { peer_cid: account.peer_cid, host: account.host },
+      { $set: account },
       { upsert: true },
       (e, r) => {
         if (e) {
           this.logger.error(e.message)
-          console.log("Error updating agent:", agent.std_name, e)
+          console.log("Error updating account:", account.std_name, e)
         }
         else {
-          this.logger.trace('Add/update agent:', r)
-          console.log("Agent", agent.std_name, "added to mongo!")
+          this.logger.trace('Add/update account:', r)
+          console.log("Account", account.std_name, "added to mongo!")
         }
       }
     )
@@ -189,7 +189,7 @@ class MongoManager {
   findPeerAndUpdate(
     hostedAccountPeerCid: string,
     alreadyConnectedAccounts: string[],
-    callback: (peerData: AgentData | any) => void
+    callback: (peerData: AccountData | any) => void
   ) {
     const maxFoils = 5
     const query = {
@@ -213,7 +213,7 @@ class MongoManager {
       sort: { foils: 1, random: -1 },
     }
     // @ts-ignore
-    this.agentsCollection.findOneAndUpdate(query, update, options).then(
+    this.accountsCollection.findOneAndUpdate(query, update, options).then(
       (res) => {
         console.log('Find peer result:')
         console.log(res)
@@ -236,16 +236,16 @@ class MongoManager {
     )
   }
 
-  deleteAllAgentsExcept(agentsToKeep: string[]): void {
-    this.agentsCollection.deleteMany(
+  deleteAllAccountsExcept(accountsToKeep: string[]): void {
+    this.accountsCollection.deleteMany(
       {
         //Delete any strays left in world db
         host: this.host,
-        peer_cid: { $nin: agentsToKeep },
+        peer_cid: { $nin: accountsToKeep },
       },
       (e, r) => {
         if (e) this.logger.error(e.message)
-        else this.logger.debug('Delete agents in world:', r)
+        else this.logger.debug('Delete accounts in world:', r)
       }
     )
   }

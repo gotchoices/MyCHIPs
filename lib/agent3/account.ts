@@ -1,6 +1,6 @@
 import Action from './action'
 
-interface Agent {
+interface Account {
     //TODO add typing to these and figure out what they all do
     id: number
     /** Name of the entity */
@@ -55,7 +55,7 @@ interface Agent {
     /** Accepts a connection request for this account */
     acceptNewConnection(message: any): void
 
-    getAgentData(): AgentData
+    getAccountData(): AccountData
 }
 
-export default Agent
+export default Account

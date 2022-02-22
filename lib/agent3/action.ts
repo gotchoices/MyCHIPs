@@ -1,5 +1,5 @@
-import Agent from "./agent";
-import AgentsCache from "./agentsCache";
+import Account from "./account";
+import AccountCache from "./accountsCache";
 import MongoManager from "./mongomanager";
 import SQLManager from "./sqlmanager";
 
@@ -7,7 +7,7 @@ interface Action {
     logger: WyclifLogger
     myChipsDBManager: SQLManager
     worldDBManager: MongoManager
-    agentCache: AgentsCache
+    accountCache: AccountCache
 
     run(): void
 }
