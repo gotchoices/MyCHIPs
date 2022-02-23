@@ -71,7 +71,7 @@ describe("JSON certificate import/export", function() {
   it("Import user certificate", function(done) {
     let file = Path.join(__dirname, 'cert.json')
     importCheck(file, null, db, done, function(res, row) {
-log.debug("Row:", row)
+//log.debug("Row:", row)
       assert.equal(row[0],'p1003')
       done()
     })
@@ -90,8 +90,16 @@ log.debug("Row:", row)
       delete cert.date		//Date won't be the same
       delete cert.id		//Auto-generated id in the DB
       let certStr = Stringify(cert)
-log.debug("Cert:", cert)
+//log.debug("Cert:", cert)
       assert.equal(certStr, fileStr)
+      done()
+    })
+  })
+
+  it("Import tally", function(done) {
+    let file = Path.join(__dirname, 'tally.json')
+    importCheck(file, 'tally', db, done, function(res, row) {
+      assert.equal(row[0],'p1000')
       done()
     })
   })

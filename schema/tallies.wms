@@ -21,7 +21,7 @@ require config.tcl trigview.tcl
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment}
-    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig hold_cert part_cert]
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig hold_cert part_cert hold_terms part_terms]
     def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit hold_cid hold_agent part_cid part_agent hold_sig part_sig $glob::stampfn]
 
     def tally_sets_pk	{tset_ent tset_seq tset_idx}
@@ -119,7 +119,9 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
           new.tally_uuid = mychips.random_uuid();
         end if;
 
-        new.hold_cert = mychips.user_cert(new.tally_ent);
+        if new.hold_cert is null then
+          new.hold_cert = mychips.user_cert(new.tally_ent);
+        end if;
         new = mychips.tally_certs(new);
         if new.status = 'open' then	-- Should only happen in simulations
           new.digest = mychips.j2h(mychips.tally_json(new));
@@ -179,16 +181,17 @@ trigger mychips_tallies_tr_bu {} {
 function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agents mychips.user_cert(text)} {
   returns mychips.tallies language plpgsql security definer as $$
     declare
-      hchip jsonb; pchip jsonb; c jsonb;
+      hchad jsonb; pchad jsonb; c jsonb;
     begin
-      hchip = ta.hold_cert->'chad';
-      pchip = ta.part_cert->'chad';
-      ta.hold_cid   = hchip->>'cid';		-- Cache commonly used properties
-      ta.hold_agent = hchip->>'agent';
-      ta.part_cid   = pchip->>'cid';
-      ta.part_agent = pchip->>'agent';
--- raise notice 'Tally check:% %', ta.hold_agent, ta.part_agent;
-      foreach c in array array[ hchip, pchip ] loop
+--raise notice 'tally check:% %', ta.hold_cert, ta.part_cert;
+      hchad = ta.hold_cert->'chad';
+      pchad = ta.part_cert->'chad';
+      ta.hold_cid   = hchad->>'cid';		-- Cache commonly used properties
+      ta.hold_agent = hchad->>'agent';
+      ta.part_cid   = pchad->>'cid';
+      ta.part_agent = pchad->>'agent';
+--raise notice 'Tally check:% %', ta.hold_agent, ta.part_agent;
+      foreach c in array array[ hchad, pchad ] loop
         if not c is null and not exists (select agent from mychips.agents where agent = c->>'agent') then
           insert into mychips.agents (agent, agent_host, agent_port) values (c->>'agent', c->>'host', (c->'port')::int);
         end if;
@@ -504,31 +507,6 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
     from	mychips.users_v u
     left join	mychips.tallies_v_sum s on s.tally_ent = u.peer_ent;
-}
-
-# View showing a single entry for each credit relationship (for lift algorithm, pathway views)
-#----------------------------------------------------------------
-view mychips.tallies_v_net {mychips.tallies} {select 
-    coalesce(ts.tally_uuid,tf.tally_uuid)	as uuid
-  , coalesce(ts.tally_ent,tf.part_ent)		as stock_ent
-  , coalesce(tf.tally_ent,ts.part_ent)		as foil_ent
-  , ts.tally_ent				as stock_user
-  , tf.tally_ent				as foil_user
-  
-  , tf.target							as lift_target
-  , coalesce(tf.reward,0)					as lift_reward
-  , coalesce(ts.clutch,0)					as lift_margin
-  , tf.units_pc - least(-tf.target, 0)				as lift_min
-  , tf.units_pc - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
-  
-  , ts.target							as drop_target
-  , coalesce(ts.reward,0)					as drop_reward
-  , coalesce(tf.clutch,0)					as drop_margin
-  , greatest(ts.target, 0) - ts.units_pc			as drop_min
-  , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_pc	as drop_max
-  
-  from			(select * from mychips.tallies where tally_type = 'stock') ts
-  full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_uuid = ts.tally_uuid
 }
 
 # General routine to build update query string

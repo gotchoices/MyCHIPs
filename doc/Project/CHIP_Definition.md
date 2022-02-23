@@ -40,7 +40,7 @@ Also, there may be many more people seeking employment in certain economies.
 Or there may be fewer opportunities for gainful employment.
 
 ## Objectives:
-The goal of this project is to define a unit of measure (the CHIP) whose value transends borders
+The goal of this project is to define a unit of measure (the CHIP) whose value transcends borders
 and cultures.
 It is a theoretical value based on one hour of standardized, normalized human labor.
 

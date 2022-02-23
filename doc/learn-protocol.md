@@ -247,10 +247,12 @@ Participating entities along the way also get the benefit of a clearing function
 In order to perform these lifts, nodes must have some idea of where to send credits so they will arrive at their intended destination.
 If there was a single, giant database of all the tallies in the world, this would not be such a difficult task.
 A central-planning algorithm could simply determine the most efficient lift pathway and create the required chits on all the applicable tallies in a single, consistent, atomic transaction.
+In fact, a single MyCHIP site with lots of users can do these kinds of "local lifts" where opportunities
+exist among their own user base.
 
 But MyCHIPs is purposely designed as a <a href="https://blockchainengineer.com/centralized-vs-decentralized-vs-distributed-network/">fully distributed</a> system.
 The intent is, no single database will contain knowledge of the whole network.
-Ideally, databases will only contain information about the *local* entities they host and other *foreign* entities their local users are directly connected to by tallies.
+Ideally, databases will only contain detailed information about the *local* entities they host and other *foreign* entities their local users are directly connected to by tallies.
 Even then, information about foreign entities will be kept as limited as possible.
 
 To accomplish this, each database will build a map of theoretical routes believed to exist somewhere in the outside network.
@@ -305,11 +307,12 @@ Individual entities define [trading variables](learn-tally.md#trading-variables)
 
 <p align="center"><img src="figures/Lifts-5.jpg" width="400" title="Computing lift capacity"></p>
 
-The software compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
+The lift algorithm compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
 
 ### Route Discovery Protocol
 Having identified local segments that have capacity for a potential lift,
-each site then needs a way to cooperate with peer sites to gather just enough information so it can reasonably initiate lift proposals where needed.
+each site then needs a way to cooperate with peer sites to gather just enough 
+information so it can reasonably initiate lifts or participate in others' lifts.
 
 Each site needs to know whether a potential external route exists where:
 - a lift can be initiated through the top of a local segment (A3); and
@@ -361,7 +364,7 @@ As mentioned, each site acts in two roles:
 - It may initiate route queries necessary for conducting trades for local users; and
 - It may receive queries from downstream and act upon them.
 
-This second role is explained by the following sequence diagram:
+This second role is shown in the following sequence diagram:
 
 ![Routing Relay](uml/seq-route.svg "Responding to route queries")
 

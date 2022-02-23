@@ -2,12 +2,23 @@ TODO:
 
 Immediate:
 -  
-X- Mocha test to find missing text definitions
+- Adapt route to new message format
+X-  Rename paths files to routes?
+X-  How to insert test data into routes tables
+X-  Or make small deterministic network of tallies?
+-   Redo tallies_v_net to allow both lifts and drops equally
+-   Can we adapt to not storing peers in peer table?
+-   Redo tallies_v_paths
+-   Write tests to check for:
+-     Proper paths, segments, circuits found
+-     Drop paths show up properly
+-     Trading variables aggregate properly
+-   Cleanup/organize routes table
+-   Write tests for route state transitions
+-   Does simulation still run (without actually doing lifts)?
 -   
-- Other subsystems patched well enough to run in simulators
--  Adapt route to new message format
--  Adapt lifts to new message format
--   Change how chit units are stored (relative to stock/foil)?
+-  Adapt lift subsystem to new message format
+-  Change how chit units are stored (relative to stock/foil)?
 -  Clean up users DB
 -   Can we totally get rid of peer table? (merge into user table)
 -   Adjust/remove prior references to servID, peerPort, peerHost

@@ -1,8 +1,12 @@
-#Canonical MyCHIPs JSON views of various tables and other JSON support
-#Copyright MyCHIPs.org; See license in root of this package
+# Canonical MyCHIPs JSON views of various tables and other JSON support
+# These JSON objects are meant primarily for importing/exporting data on a site or transporting
+# data to a new host site.  They are not to be confused with the standard exchange protocol 
+# formats.  For example, we view the tally as stock or foil from the perspective of our local 
+# user--not in the standard way it would get transmitted between peers.
+# Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- Do we need to check for dups before importing cert (which may become obsolete anyway)?
+#- Do we need to check for dups before importing cert
 #- 
 module mychips
 schema json {}
@@ -12,6 +16,7 @@ schema json {}
 view json.user {json mychips.users_v} {select
     id		as "id"
   , peer_cid	as "cid"
+  , peer_agent	as "agent"
   , ent_name	as "name"
   , ent_type	as "type"
   , fir_name	as "first"
@@ -59,7 +64,7 @@ view json.connect {json base.comm_v} {select
 # Nested view of users dedicated to JSON export
 #----------------------------------------------------------------
 view json.users {json.user json.place json.connect} {select
-  cid, name, type, first, middle, prefer, begin, juris, taxid
+  cid, agent, name, type, first, middle, prefer, begin, juris, taxid
   , (select array_agg(to_jsonb(d)) from (select type,address,city,state,post,country,main,comment,prior from json.place p where p.id = u.id order by seq) d) as place
   , (select array_agg(to_jsonb(d)) from (select media,address,main,comment,prior from json.connect c where c.id = u.id order by seq) d) as connect
     from json.user u;
@@ -68,15 +73,19 @@ view json.users {json.user json.place json.connect} {select
 # Standard view for tallies
 #----------------------------------------------------------------
 view json.tally {json mychips.tallies_v} {select
-    tally_ent		as "id"
-  , tally_uuid		as "uuid"
-  , version		as "version"
-  , case when tally_type = 'stock' then hold_addr else part_addr end as "stock"
-  , case when tally_type = 'stock' then part_addr else hold_addr end as "foil"
-  , tally_date		as "created"
-  , contract		as "contract"
-
-    from	mychips.tallies_v
+    te.tally_ent	as "id"
+  , te.tally_seq	as "seq"
+  , te.version		as "version"
+  , te.tally_uuid	as "uuid"
+  , te.tally_date	as "date"
+  , te.tally_type	as "type"
+  , te.comment		as "comment"
+  , te.contract		as "agree"
+  , te.hold_cert	as "holder"
+  , te.hold_terms	as "hterms"
+  , te.part_cert	as "partner"
+  , te.part_terms	as "pterms"
+    from mychips.tallies te
 } -primary {id seq}
 
 # Standard view for tickets
@@ -84,7 +93,7 @@ view json.tally {json mychips.tallies_v} {select
 #view json.ticket {json mychips.tickets_v} {select
 #    id			as "id"
 #  , token_seq		as "seq"
-#  , url			as "url"
+#  , url		as "url"
 #  , token		as "token"
 #  , peer_psig		as "public"
 #  , exp_date		as "expires"

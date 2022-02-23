@@ -7,7 +7,7 @@ all: scaling.svg \
 	use-route.svg seq-route.svg seq-route-man.svg seq-route-auto.svg state-route.svg \
 	use-lift.svg seq-lift-prop.svg seq-lift-conf.svg seq-lift-ref.svg state-lift.svg state-ref.svg seq-ref-aux.svg \
 	use-cons.svg seq-cons.svg state-conf.svg state-cons.svg \
-	use-noise.svg seq-noise.svg state-noise.svg
+	use-noise.svg seq-noise.svg state-noise.svg trade-seq.svg
 
 %.png: %.puml common.puml style.puml
 	${PUML} $<

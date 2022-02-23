@@ -1,0 +1,133 @@
+{
+    "id": "p1000",
+    "seq": 1,
+    "date": "2022-02-21T10:40:47.160206-07:00",
+    "uuid": "3a9f8c81-78bd-5113-ab11-2b2e3796ee77",
+    "type": "stock",
+    "agree": {
+        "name": "deluxe",
+        "domain": "mychips.org",
+        "version": 1
+    },
+    "holder": {
+        "chad": {
+            "cid": "adam_smith",
+            "host": "localhost",
+            "port": 65434,
+            "agent": "UDY1NDM0"
+        },
+        "date": "2022-02-21T10:40:47.16-07:00",
+        "name": {
+            "first": "Adam",
+            "surname": "Smith"
+        },
+        "type": "p",
+        "place": [
+            {
+                "city": "Mycity",
+                "post": "23456-4567",
+                "type": "bill",
+                "state": "Mystate",
+                "address": "PO Box 4567",
+                "comment": "Mailing address",
+                "country": "US"
+            }
+        ],
+        "public": "WHAxMDAw",
+        "connect": [
+            {
+                "media": "phone",
+                "address": "701-345-6789",
+                "comment": "Home"
+            },
+            {
+                "media": "cell",
+                "address": "701-456-7890"
+            },
+            {
+                "media": "email",
+                "address": "adamsmith1@hotmail.com"
+            }
+        ],
+        "identity": {
+            "birth": {
+                "date": "1970-01-31",
+                "name": "Adam Smith",
+                "place": {
+                    "city": "Mycity",
+                    "post": "23456-7890",
+                    "state": "Mystate",
+                    "address": "2345 My Avenue",
+                    "country": "US"
+                }
+            },
+            "state": {
+                "id": "234-456-7890",
+                "country": "US"
+            }
+        }
+    },
+    "hterms": null,
+    "pterms": null,
+    "comment": null,
+    "partner": {
+        "chad": {
+            "cid": "fran_lee",
+            "host": "localhost",
+            "port": 65436,
+            "agent": "UjY1NDM2"
+        },
+        "date": "2022-02-21T10:40:47.231-07:00",
+        "name": {
+            "first": "Francis",
+            "middle": "Scott",
+            "prefer": "Fran",
+            "surname": "Lee"
+        },
+        "type": "p",
+        "place": [
+            {
+                "post": "45678-1234",
+                "type": "ship",
+                "state": "Mystate",
+                "address": "4321 My Court",
+                "comment": "Summer home",
+                "country": "US"
+            },
+            {
+                "post": "45678-2345",
+                "type": "bill",
+                "state": "Mystate",
+                "address": "PO Box 4455",
+                "comment": "Mailing address",
+                "country": "US"
+            }
+        ],
+        "public": "WnAxMDAy",
+        "connect": [
+            {
+                "media": "phone",
+                "address": "601-222-5678",
+                "comment": "Home"
+            },
+            {
+                "media": "cell",
+                "address": "601-222-3333"
+            },
+            {
+                "media": "email",
+                "address": "franlee@compuserve.com"
+            }
+        ],
+        "identity": {
+            "birth": {
+                "date": "1968-05-31"
+            },
+            "state": {
+                "id": "345-67-8901",
+                "country": "US"
+            }
+        }
+    },
+    "version": 1
+}

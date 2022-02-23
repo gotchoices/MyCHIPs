@@ -26,7 +26,7 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
 } $glob::stampt] -messages {
     {BCT	{Bad Chit Type}		{Not a valid type for a tally chit}}
     {GDS	{Signature Check}	{Chits in a good state must include a signature}}
-    {BST	{Bad Chit Request}	{Not a valid request for a chit state transition}}
+    {BST	{Bad Chit Status}	{Not a valid value the status field}}
     {BLL	{Bad Lift Sequence}	{Only lift chits should include a lift sequence number}}
     {CUU	{Chit Not Unique}	{Chit UUID must be unique to each tally}}
     {IST	{Illegal State Change}	{The executed state transition is not allowed}}

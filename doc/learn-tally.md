@@ -90,65 +90,66 @@ half of the tally.  They tell the site agent how to execute lifts on behalf of t
 
 ### Credit Terms
 This portion of the tally is actually comprised of a series of variables, some 
-of which are optional.  The purpose is to have enough variables that virtually 
+of which are optional.  The purpose is to have enough variables that most
 any common type of credit arrangement can be reasonably represented by a proper 
 choice of values.
 
 To understand better what we are trying to model, we will first outline a few 
-examples of credit relationship:
+examples of credit relationships:
 
 - **Peer Accounts**:
-  This might represent two companies or two individuals who regularly do
+  This might involve two companies or individuals who regularly do
   business with each other.  There is probably a direction in which money 
   normally flows from Client to Vendor.  But there may also be occasions when 
   the normally-Client party does services for the normally-Vendor party.
   
   In such an arrangement either party should be able to choose how much he, as
-  a creditor, is willing to lend to the other.  But any resulting indebtedness 
-  should be solely by the choice of the party incurring the debt.
+  a creditor, is willing to carry as debt owed by the other.  But any resulting 
+  indebtedness should be solely by the choice of the party incurring the debt.
   
-  On the other end of debt is a receivable--an asset.  The amount of such 
+  The opposite of a debt is a receivable--an asset.  The amount of such 
   assets an entity may accumulate is really a function of his/her wealth and
-  productivity.  There is no inherent risk in accumulating too much.  The risk
-  is more likely in concentrating too much of that total value in any single 
+  productivity.  There is no particular risk in accumulating too much.  The risk
+  more likely comes from concentrating too much of that total value in any single 
   debtor--particularly one who may not be capable of redeeming it all.
   
 - **Merchants** (corporate Vendors):
   Clients of merchants may wish to accumulate value by collecting the credits 
   of the merchants where they like to shop.  This is one way of storing value,
-  or in common terms, saving money.  But it can also be viewed as a loan from 
-  the Client to the merchant, which can be redeemed upon demand any time the 
+  or in common terms, saving money. It can also be viewed as a loan from 
+  the Client to the merchant, which may be redeemed upon demand any time the 
   Client wants to buy something.
   
   One concern for the merchant is to not accumulate too much debt, in total.  
   He should not care so much about how many credits any one Client may choose 
-  to buy.  But he should not exceed the amount of debt he can reasonably redeem 
-  through product sales, or other exchanges.
+  to buy.  But he should not exceed the total amount of debt he can reasonably 
+  satisfy through product sales, or other exchanges.
   
 - **Secured Loans**:
   Consumers (Clients) and businesses (Vendors) alike can benefit from 
-  maintaining one or more collateralized loans.  You start by purchasing an 
+  maintaining one or more collateralized loans.  You might start by purchasing an 
   asset over time from a seller who would like to earn income by financing the 
   purchase.  As you have excess credits available from your income sources, you 
   lift those credits to the party financing the debt.  As you pay down the debt, 
   your equity in the asset increases.  Ideally, you could also advance value 
   back out of the loan if you need more money for some other purchase.  In this 
   way, the asset can form a store of value--perhaps more reliable than just 
-  holding the credits of your favorite vendors (who might go out of business).
+  holding the credits of your favorite vendors (who could possibly go out of 
+  business before you get around to redeeming the credits you're holding).
 
 - **Money Markets**:
-  Since money normally flows in a single, expected direction, there is a
-  natural demand for credit lifts to temporarily move that flow backward,
+  Since money normally flows in a single, expected direction, there is a natural 
+  demand for [credit lifts](learn-lift.md) to temporarily move that flow backward,
   resetting the potential for more purchasing power.  But such "win-win" lift 
   pathways may not always be available.  Some parties may lack sufficiently 
   strong or numerous pathways to complete all the lifts they need.  In this 
   case, they may need to provide further incentive to trading partners to 
   complete their lifts.
   
-  So in addition to quantifying the trades we "want" to do, we also need to be
-  able to quantify trades we are "willing" to do, for a price.  For example, we
+  So in addition to quantifying the trades we *want* to do, we also need to be
+  able to quantify trades we are *willing* to do, for a price.  For example, we
   might be willing to exceed normal risk limits for sufficiently high rewards.
-  We might even be willing to conduct extra traffic in the normal 'downhill'
+  We might even be willing to conduct extra traffic in the normal *downhill*
   direction if we can make a little profit doing so, and we think we can later
   lift ourselves back out of the resulting transaction, using our own set of 
   trading relationships.
@@ -166,9 +167,9 @@ Credit Terms Tally Variables:
   - **Maximum Balance** *(limit)*:
     This indicates the most the debtor can count on borrowing against products
     or services he obtains from the creditor.  It may be expressed as a single 
-    number, or as an expression, which is a function of time.  Expressions may 
-    be used to amortize a loan, or to cause principal to be paid down over 
-    time.
+    number, or as an expression, which is a function of time.  Time-based 
+    expressions may be used to amortize a loan, or to cause principal to be paid 
+    down over time.
     
   - **Maximum Paydown** *(mort)*:
     This represents the maximum amount the debtor can pay down principal in
@@ -196,7 +197,7 @@ Credit Terms Tally Variables:
     applied during that an interval.
 
   - **Call Notice** *(call)*:
-    The amount of notice required to be given by Vendor to Client in order to 
+    The amount of time required to be given by Vendor to Client in order to 
     call all principal and accrued charges due and payable (i.e. to cancel 
     further credit authorization).  If not present, the debtor has no 
     obligation to reduce principal any faster than is indicated by the Minimum 
@@ -282,41 +283,63 @@ transactions users may manually initiate.  For example, a credit limit, does
 not prevent one peer from unilaterally sending value (chits) to the other
 party, even if that would push a total past a credit limit.
 
-For example, even though I might only trust you with credit for \$100, that 
-wouldn't prevent you from writing a check to me for \$1000.  And I might well
-accept that extra large check.  I may just decline to give you product or
-services in exchange for it--at least until I had funged it into a form of
-value I was more comfortable with.
+For example, even though I might only trust you with credit for 
+<span>$</span>100, 
+that wouldn't prevent you from writing a check to me for
+<span>$</span>1000.
+And I might well accept that extra large check.
+I may just decline to give you product or services in exchange for it--at least 
+until I had funged it into a form of value I was more comfortable with.
 
 ### Trading Variables
 MyCHIPs credits are, by design, not transferrable.  This means, if someone owes 
-you value, you don't have the right to reassign that asset to a third party.  
+you value, you don't have the right to reassign that asset to a third party.
 This limitation is imposed to avoid the need for trust among unrelated parties
 and it also makes CHIPs less vulnerable to theft or loss.
-
 But it seems like a pretty serious limitation--especially on something we are 
-trying to use as money.  So in order to make *value* transmittable (effectively
-fungible), we need the 
-[credit lift algorithm](http://gotchoices.org/mychips/acdc.html)
-To facilitate lifts, each tally half (stock or foil) maintains a set of parameter 
-settings that define how lifts will take place.
+trying to use as money.
+
+Thankfully, the [credit lift algorithm](http://gotchoices.org/mychips/acdc.html)
+makes it possible to transmit *value*, if not the CHIP tokens themselves.
+This *effective fungibility* is enough to make CHIPs useful as money.
 
 [![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/figures/money_ac.svg "Click to see/run a decentralized private credit model")
 
-Lifts are largely executed autonomously (without direct user interaction).  So
-the system needs a defined set of rules to know how the user wants this done.
-In the absence of any more specific direction, the system could simply examine 
-any credit imbalances and lift them back to zero.  While this would technically 
-work, it doesn't give the user much flexibility in how and where he may choose 
-to accumulate value (i.e. save money).  So for better control, users can 
-manually set certain preferences themselves.  The instruction for changing 
-these settings is digitally signed by the user, authorizing the system agent to 
-act in accordance with the settings.
+Circular lifts are typically executed autonomously (without direct user interaction).
+So the system needs a defined set of rules to know how the user wants this done.
 
-![Trading Variables](figures/Lifts-5.jpg "Visualizing Trading Variables")
+In the absence of such direction, the system could just examine any credit 
+imbalances and lift them back to zero.  While this would technically work, it 
+doesn't give the user much flexibility in how and where he may choose 
+to accumulate value (i.e. save money).
+
+So for better control, each tally half (stock or foil) contains trading parameter 
+settings that control how lifts will take place.
+Uusers can manually adjust these values themselves.
+The instruction for making such changes will be digitally signed by the user, 
+authorizing the site to act in accordance with the new settings.
+
+<p align="center"><img src="figures/Lifts-5.jpg" width="400" title="Visualizing Trading Variables"></p>
+
+The figure above shows visually how certain trading parameters determine how lifts
+affect the tally balance.
+
+Lifts are a critical method for reducing tally balances.
+MyCHIPs also includes the notion of a *credit drop.*
+A drop is just a lift in reverse--a way of trading to increase a tally's balance.
+
+In general, the stock holder (Vendor) controls most of the drop parameters and the foil holder (Client) controls most of the lift parameters.
+The exception to this is that each party must allows lifts/drops without restriction to the extent they are the pledging party (IOU grantor) and a balance is outstanding.
+
+<p align="center"><img src="uml/trade-seq.svg" title="Visualizing Lifts and Drops"></p>
+
+After honoring that exception, parties to the tally can optionally charge a fee for lifts or drops.
+Or if they want, they can effectively *pay* a fee to facilitate lifts or drops.
+
+This is all managed with four basic trading variables controlled by each of the parties:
 
 Client's (Foil) Trading Variables:
-  - **Lift Target** (Vendor -> Client):	Default: 0
+  - **Lift Target** (target):	Default: 0
     The ideal amount of Vendor's credits Client wishes to accumulate.  A 
     negative tally balance is normally accomplished through credit lifts, as 
     this is in the opposite direction of normal credit flow.  This can exceed
@@ -325,13 +348,13 @@ Client's (Foil) Trading Variables:
     here constitutes value savings by the Client in the currency of the 
     Vendor--something he must accept in payment or as part of a future drop.
 
-  - **Lift Limit**: (Foil bound)		Default: Debit Limit (dr_limit)
+  - **Lift Limit**: (bound)	Default: Tally Debit Limit (dr_limit)
     This can exceed the dr_limit setting in the tally to allow higher 
     indebtedness of Vendor to Client, occurring as the result of a lift.  No 
     lifts should be performed which would result in a balance more negative
     than this amount.
 
-  - **Lift Margin**: (Foil reward)	Default: 0
+  - **Lift Margin**: (reward)	Default: 0
     This indicates Client's willingness to conducts lifts through this Foil.
 
     The number 0 is neutral, meaning zero cost.  A positive number
@@ -344,7 +367,7 @@ Client's (Foil) Trading Variables:
     balance is reduced to the Lift Target (default 0).  If a lift beyond that 
     point is requested, it may be subject to a cost (positive margin).
 
-  - **Drop Margin**: (Foil clutch)		Default: 0
+  - **Drop Margin**: (clutch)	Default: 0
     Specifies the Client's willingness to conduct drops through this Foil.
     If the user wants to retain the chips in the foil, he can enter a
     positive number (1 disables drops altogether).  If he wants to get rid of
@@ -352,25 +375,25 @@ Client's (Foil) Trading Variables:
     
 Vendor's (Stock) Trading Variables:
 
-  - **Drop Target** (Client -> Vendor):	Default: 0
+  - **Drop Target** (target):	Default: 0
     The ideal amount of Client's credits Vendor wishes to accumulate or 
     maintain.  This is like collecting your payroll checks without cashing them 
     for a while.
 
-  - **Drop Limit**: (Stock bound)	Default: Credit Limit (cr_limit)
+  - **Drop Limit**: (bound)	Default: Credit Limit (cr_limit)
     This can exceed the cr_limit setting in the tally to allow higher 
     indebtedness of Client to Vendor, occurring as a result of a drop. No drops 
     should be allowed resulting in a tally balance more positive of this 
     amount.
 
-  - **Drop Margin**: (Stock reward)	Default: 0
+  - **Drop Margin**: (reward)	Default: 0
     This indicates a willingness to conduct drops, or lifts in the opposite 
     direction of normal (downhill) through this Stock.  All drops must be
     allowed at par or better until the Drop Target (default 0) is reached.
     Drops requested beyond that point are subject to a cost at the specified 
     margin.
 
-  - **Lift Margin**: (Stock clutch)	Default 0
+  - **Lift Margin**: (clutch)	Default 0
     Specifies the Vendor's willingness to conduct lifts through this Stock.
     If the user wants to retain the chips in the stock, he can enter a
     positive number (1 disables lifts altogether).  If he wants to get rid of

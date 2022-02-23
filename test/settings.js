@@ -46,7 +46,10 @@ module.exports={
       let jsonData = JSON.parse(fileData)
       db.query("select json.import($1::jsonb, $2::text) as record;", [jsonData, target] ,(err, res) => {
         if (err) done(err)
-        check(res,res.rows[0].record.slice(1,-1).split(','))
+        assert.equal(res.rowCount, 1)
+        let row = res.rows[0]
+        assert.ok(row.record)
+        if (row.record) check(res,row.record.slice(1,-1).split(','))
       })
     })
   }
