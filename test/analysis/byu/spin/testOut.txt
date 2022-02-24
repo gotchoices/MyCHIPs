@@ -1,0 +1,51 @@
+pan: ltl formula p1
+
+(Spin Version 6.4.6 -- 2 December 2016)
+	+ Partial Order Reduction
+
+Full statespace search for:
+	never claim         	+ (p1)
+	assertion violations	+ (if within scope of claim)
+	acceptance   cycles 	+ (fairness enabled)
+	invalid end states	- (disabled by never claim)
+
+State-vector 204 byte, depth reached 519, errors: 0
+    28619 states, stored (104769 visited)
+   231733 states, matched
+   336502 transitions (= visited+matched)
+        4 atomic steps
+hash conflicts:       116 (resolved)
+
+Stats on memory usage (in Megabytes):
+    6.332	equivalent memory usage for states (stored*(State-vector + overhead))
+    5.838	actual memory usage for states (compression: 92.20%)
+         	state-vector as stored = 186 byte + 28 byte overhead
+  128.000	memory used for hash table (-w24)
+    0.534	memory used for DFS stack (-m10000)
+  134.016	total actual memory usage
+
+
+unreached in proctype originator
+	(0 of 77 states)
+unreached in proctype referee
+	(0 of 38 states)
+unreached in proctype relay
+	(0 of 97 states)
+unreached in init
+	(0 of 5 states)
+unreached in claim p1
+	_spin_nvr.tmp:25, state 22, "-end-"
+	(1 of 22 states)
+
+pan: elapsed time 0.19 seconds
+pan: rate 551415.79 states/second
+ltl fairPathExists: [] (! (<> (((state[2]==1)) || ((state[2]==2)))))
+ltl p1: [] (<> ((! (<> (((state[2]==1)) || ((state[2]==2))))) || (((((state[0]==1)) || ((state[0]==2))) && (((state[1]==1)) || ((state[1]==2)))) && (((state[2]==1)) || ((state[2]==2))))))
+ltl p2: [] (<> ((! (<> (((state[2]==1)) || ((state[2]==2))))) || (((state[0]==state[1])) && ((state[1]==state[2])))))
+ltl p3: [] (<> ((! (<> (((state[2]==1)) || ((state[2]==2))))) || ((((balanceSuccDelta[0]+balancePredDelta[0])>=0)) && (((balanceSuccDelta[1]+balancePredDelta[1])>=0)))))
+ltl p4: [] (<> ((! (<> (((state[2]==1)) || ((state[2]==2))))) || (((balanceSuccDelta[0]==balancePredDelta[1])) && ((balanceSuccDelta[1]==balancePredDelta[0])))))
+ltl test1: [] (<> (! ((((balanceSuccDelta[0]+balancePredDelta[0])>0)) || (((balanceSuccDelta[1]+balancePredDelta[1])>0)))))
+  the model contains 6 never claims: test1, p4, p3, p2, p1, fairPathExists
+  only one claim is used in a verification run
+  choose which one with ./pan -a -N name (defaults to -N fairPathExists)
+  or use e.g.: spin -search -ltl fairPathExists MealyMachineModel.pml
