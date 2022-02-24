@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../objects/account.dart';
+import '../managers/user/account.dart';
 import '../objects/singletons.dart';
 import '../presenter/user_info_presenter.dart';
 import 'main_drawer_view.dart';

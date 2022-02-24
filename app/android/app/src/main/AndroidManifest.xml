@@ -2,7 +2,9 @@
     package="org.gotchoices.mychips.mychips">
    <application
         android:label="mychips"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="true" 
+        android:fullBackupContent="@xml/backup_rules">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../objects/account.dart';
+import '../managers/user/account.dart';
 import '../objects/transaction.dart';
 import '../presenter/transaction_presenter.dart';
 import 'error_popup.dart';

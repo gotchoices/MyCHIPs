@@ -1,4 +1,4 @@
-import '../objects/account.dart';
+import '../managers/user/account.dart';
 //import '../services.dart';
 
 class AccountDao {

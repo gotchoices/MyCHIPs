@@ -1,6 +1,6 @@
 import 'package:faker/faker.dart';
 import '../objects/singletons.dart';
-import '../objects/account.dart';
+import '../managers/user/account.dart';
 import '../objects/transaction.dart';
 import '../objects/transaction_generator.dart';
 import 'dart:math';

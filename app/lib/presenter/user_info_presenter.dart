@@ -1,5 +1,5 @@
 import '../DAOs/account_dao.dart';
-import '../objects/account.dart';
+import '../managers/user/account.dart';
 import '../objects/singletons.dart';
 
 class UserInfoPresenter {

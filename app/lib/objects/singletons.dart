@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'dart:collection';
-import '../objects/account.dart';
+import '../managers/user/account.dart';
 import '../objects/key_storage.dart';
 import '../objects/tally.dart';
 import '../objects/transaction.dart';

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import '../objects/account.dart';
+import '../managers/user/account.dart';
 
 import 'tally_generator.dart';
 
