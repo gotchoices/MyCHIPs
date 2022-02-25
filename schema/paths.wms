@@ -4,7 +4,7 @@
 
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------
-view mychips.tallies_v_net {mychips.tallies} {select 
+view mychips.tallies_v_net_old {mychips.tallies} {select 
     coalesce(ts.tally_uuid,tf.tally_uuid)	as uuid
   , coalesce(ts.tally_ent,tf.part_ent)		as stock_ent
   , coalesce(tf.tally_ent,ts.part_ent)		as foil_ent
@@ -29,7 +29,7 @@ view mychips.tallies_v_net {mychips.tallies} {select
 
 # Recursive view of tallies to show pathways native to our system
 #----------------------------------------------------------------
-view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
+view mychips.tallies_v_paths_old {mychips.users_v mychips.tallies_v_net_old} {
   with recursive tally_path(first, last, length, path, uuids, cycle, circuit, inside, corein, fora, forz,
       lift_min, lift_margin, lift_max, lift_reward,
       drop_min, drop_margin, drop_max, drop_reward
@@ -71,7 +71,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
           least(tp.drop_max,t.drop_min) end			as drop_max
       , case when t.drop_min < tp.drop_min then t.drop_reward else tp.drop_reward end as drop_reward
 
-    from	mychips.tallies_v_net t
+    from	mychips.tallies_v_net_old t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
   ) select tpr.first, tpr.last
     , tpr.length, tpr.path, tpr.uuids
@@ -87,7 +87,111 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
 
 # Simplified view for discovering inside lifts
 #----------------------------------------------------------------
-view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
-  select * from mychips.tallies_v_paths where circuit order by 1 desc
+view mychips.tallies_v_lifts_old {mychips.tallies_v_paths} {
+  select * from mychips.tallies_v_paths_old where circuit order by 1 desc
 }
 
+# View showing a single entry for each credit relationship (for lift algorithm, pathway views)
+#----------------------------------------------------------------
+define netFields {tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr}
+view mychips.tallies_v_net {mychips.tallies_v} {with
+  t2 as (select netFields()
+    from mychips.tallies_v where liftable and not part_ent isnull
+  ),
+  t1 as (select netFields()
+    from mychips.tallies_v where liftable and part_ent isnull
+  )
+  select 			-- Internal tallies with both stock and foil
+    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.part_ent					as inp
+  , t.tally_ent					as out
+  , t.target, t.reward, t.bound
+  , coalesce(p.clutch,0)			as margin
+  , t.units_pc
+  , greatest(t.target - t.net_pc,0)		as min
+  , t.bound - t.net_pc				as max
+  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
+  , case when t.tally_type = 'foil' then -1 else 1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , false					as inv
+    from	t2 as t
+    join 	t2 as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
+    where t.net_pc < coalesce(t.bound,0)
+
+  union select 			-- Tallies with foreign peers
+    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.part_ent					as inp
+  , t.tally_ent					as out
+  , t.target, t.reward, t.bound
+  , 0						as margin
+  , t.units_pc
+  , greatest(t.target - t.net_pc,0)		as min
+  , t.bound - t.net_pc				as max
+  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
+  , case when t.tally_type = 'foil' then -1 else 1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , false					as inv
+    from	t1 as t
+    where t.net_pc < coalesce(t.bound,0)
+
+  union select 			-- Tallies with foreign peers and reverse consideration
+    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.tally_ent					as inp
+  , t.part_ent					as out
+  , 0 as target, 0 as reward, 0 as bound
+  , 0						as margin
+  , t.units_pc
+  , t.net_pc					as min
+  , t.net_pc					as max
+  , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
+  , case when t.tally_type = 'foil' then 1 else -1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , true					as inv
+    from	t1 as t
+    where t.net_pc > 0
+}
+
+# Recursive view of tallies to show pathways native to our system
+#----------------------------------------------------------------
+view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
+  with recursive tally_path (
+      inp, out, length, hath, uuids, signs, circuit, min, margin, max, reward
+    ) as (
+      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign], false,
+      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float
+    from	mychips.tallies_v_net ti
+  union all
+    select tp.inp					as inp
+      , t.out						as out
+      , tp.length + 1					as length
+      , tp.hath || t.out				as hath
+      , tp.uuids || t.uuid				as uuids
+      , tp.signs || t.sign				as signs
+      , coalesce(tp.inp = t.out, false)			as circuit
+
+      , least(t.min,tp.min)				as min
+      , tp.margin + t.margin * (1 - tp.margin)		as margin
+      , case when t.min < tp.min then
+          least(t.max, tp.min)
+        else
+          least(tp.max, t.min) end			as max
+      , case when t.min < tp.min then t.reward else tp.reward end as reward
+
+    from	mychips.tallies_v_net t
+    join	tally_path	tp on tp.out = t.inp
+    		and (t.out isnull or not t.out = any(tp.hath))
+  ) select tpr.inp, tpr.out
+    , tpr.length, tpr.hath, tpr.uuids, tpr.signs
+    , tpr.margin, tpr.reward, tpr.min, tpr.max, tpr.circuit
+    , tpr.inp || tpr.hath	as path
+    , tpr.length * tpr.min	as bang
+    , tpr.inp isnull		as fori
+    , tpr.out isnull		as foro
+  from tally_path tpr where tpr.length > 2
+} -primary {inp out length}
+
+# Simplified view for discovering inside lifts
+#----------------------------------------------------------------
+view mychips.tallies_v_lifts1 {mychips.tallies_v_paths1} {
+  select * from mychips.tallies_v_paths1 where circuit order by 1 desc
+}

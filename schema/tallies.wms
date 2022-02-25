@@ -22,7 +22,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig hold_cert part_cert hold_terms part_terms]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit hold_cid hold_agent part_cid part_agent hold_sig part_sig $glob::stampfn]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit units_pc units_gc hold_cid hold_agent part_cid part_agent hold_sig part_sig $glob::stampfn]
 
     def tally_sets_pk	{tset_ent tset_seq tset_idx}
     def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
@@ -49,10 +49,10 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , digest	bytea
 
 -- Values settable by the holder, cached version of latest tally_sets record
-  , target	bigint		not null default 0	-- Lift settings
+  , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
   , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
   , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
-  , bound	bigint		not null default 0
+  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
 
 --Fixme: need to rename to hold_limit, initialize from terms and then make settable (and eliminate the partner side column)
   , dr_limit	bigint		not null default 0	-- A stock term
@@ -358,11 +358,12 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state
-  , te.status = 'open' or te.status = 'close' and units_gc != 0		as liftable
   , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','close','draft']) as action
-  , coalesce(uSign(tc.units),0)			as units
-  , uSign(units_gc)				as units_gc
-  , uSign(units_pc)				as units_pc
+  , te.status = 'open' or (te.status = 'close' and units_pc != 0)	as liftable
+  , coalesce(tc.units, 0)			as units
+  , coalesce(uSign(tc.units),0)			as net
+  , uSign(te.units_gc)				as net_gc
+  , uSign(te.units_pc)				as net_pc
   , coalesce(tc.chits,0)			as chits
   , greatest(coalesce(tc.latest, te.mod_date), te.mod_date)	as latest
   , mychips.tally_json(te) as json_core
@@ -432,12 +433,14 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
     tally_ent
   , count(tally_seq)						as tallies
   , sum(units)							as units
+  , sum(net)							as net
   , array_agg(part_ent)						as partners
   , array_agg(part_cid)						as part_cids
   , array_agg(tally_uuid)					as uuids
   , array_agg(tally_seq)					as seqs
   , array_agg(tally_type)					as types
   , array_agg(state)						as states
+  , array_agg(net)						as nets
   , array_agg(units)						as unitss
   , array_agg(inside)						as insides
 
@@ -449,6 +452,8 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 
   , sum(units) filter (where tally_type = 'stock')		as stock_uni
   , sum(units) filter (where tally_type = 'foil')		as foil_uni
+  , sum(net) filter (where tally_type = 'stock')		as stock_net
+  , sum(net) filter (where tally_type = 'foil')			as foil_net
 
   , count(nullif(tally_type, 'foil'))::int4			as stocks
   , count(nullif(tally_type, 'stock'))::int4			as foils
@@ -462,6 +467,8 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
   , array_agg(units) filter (where tally_type = 'stock')	as stock_unis
   , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
+  , array_agg(net) filter (where tally_type = 'stock')		as stock_nets
+  , array_agg(net) filter (where tally_type = 'foil')		as foil_nets
 
   , max(latest)							as latest
   from (select * from mychips.tallies_v order by tally_ent,tally_seq) t
@@ -474,6 +481,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
     u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_cagent, u.peer_sock, u.peer_chost, u.peer_cport, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
   , coalesce(s.units, 0)			as units
+  , coalesce(s.net, 0)				as net
   , coalesce(s.stocks, 0)			as stocks
   , coalesce(s.foils, 0)			as foils
   , coalesce(s.stock_uni, 0.0)			as stock_uni
@@ -488,6 +496,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.types, '{}'::text[])		as types
   , coalesce(s.states, '{}'::text[])		as states
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
+  , coalesce(s.nets, '{}'::bigint[])		as nets
   , coalesce(s.insides, '{}'::boolean[])	as insides
 
   , coalesce(s.targets, '{}'::bigint[])		as targets

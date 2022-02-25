@@ -88,7 +88,7 @@ table mychips.route_tries {mychips.routes} {
 # View showing join of inside pathways and outside routes
 # to discover/analyze possible distributed lifts
 #----------------------------------------------------------------
-view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes} {select
+view mychips.routes_v_paths {mychips.tallies_v_paths_old mychips.routes} {select
     tp.first, tp.last
   , tp.length, tp.path, tp.uuids
   , tp.segment, tp.corein, tp.fora, tp.forz
@@ -137,7 +137,7 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes} {select
       least(r.drop_max,tp.drop_min) end				as drop_max
   , case when tp.drop_min < r.drop_min then tp.drop_reward else r.drop_reward end as drop_reward
   
-  from	mychips.tallies_v_paths	tp
+  from	mychips.tallies_v_paths_old	tp
   join	mychips.routes	r on r.route_ent = tp.first
   where tp.corein and tp.fora;
 }
@@ -367,7 +367,7 @@ raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', rec
 
         if recipe ? 'query' then			-- If there a query key in the recipe object
           if not dest_r.id isnull then			-- If destination is a locally known user
-            select into qrec first,lift_min,lift_max,lift_margin,lift_reward,drop_min,drop_max,drop_margin,drop_reward from mychips.tallies_v_paths where first = dest_r.id and last = requ_r.id and corein limit 1;
+            select into qrec first,lift_min,lift_max,lift_margin,lift_reward,drop_min,drop_max,drop_margin,drop_reward from mychips.tallies_v_paths_old where first = dest_r.id and last = requ_r.id and corein limit 1;
             if found then
               return 'affirm|' || jsonb_build_object(
                 'lmin',		qrec.lift_min,		'lmax',		qrec.lift_max,
@@ -379,7 +379,7 @@ raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', rec
           end if;
 --Fixme: check here for max step > local limit (base.parm) and bail if getting too deep
 
-          for qrec in select first,last,path from mychips.tallies_v_paths where last = from_r.id and fora loop	-- Find all upstream paths we might query further
+          for qrec in select first,last,path from mychips.tallies_v_paths_old where last = from_r.id and fora loop	-- Find all upstream paths we might query further
           
 -- What to do if we already have a conflicting route in the table:
 --raise notice 'Further first:% last:% path:% to:% top:% bot:% req:%', qrec.first, qrec.last, qrec.path, obj->>'to', qrec.path[2], from_r.id, requ_r.id;
@@ -448,12 +448,12 @@ $$;}
 
 # Check for possible new circular routes associated with a specified entity
 #----------------------------------------------------------------
-function {mychips.route_circuit(entity text)} {mychips.routes mychips.tallies_v_paths} {
+function {mychips.route_circuit(entity text)} {mychips.routes mychips.tallies_v_paths_old} {
   returns void language plpgsql as $$
     declare
       trec	record;
     begin
-      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and entity = any(path) and segment loop
+      for trec in select first,last,path from mychips.tallies_v_paths_old where length >= 3 and entity = any(path) and segment loop
 raise notice 'Route Circuit check: % % %', entity, trec.first, trec.last;
         insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, requ_ent) 
           values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], entity)
@@ -465,7 +465,7 @@ $$;}
 
 # Check for possible new linear routes from an entity to a specified destination peer
 #----------------------------------------------------------------
-function {mychips.route_linear(entity text, peer text, host text)} {mychips.routes mychips.tallies_v_paths} {
+function {mychips.route_linear(entity text, peer text, host text)} {mychips.routes mychips.tallies_v_paths_old} {
   returns void language plpgsql as $$
     declare
       trec	record;
@@ -473,7 +473,7 @@ function {mychips.route_linear(entity text, peer text, host text)} {mychips.rout
     begin
       select into locid id from mychips.peers_v where peer_cid = peer and peer_chost = host;	-- Is this peer known to our system?
       
-      for trec in select first,last,path from mychips.tallies_v_paths where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
+      for trec in select first,last,path from mychips.tallies_v_paths_old where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
 raise notice 'Route Linear check: % % %', entity, peer, trec.first;
         insert into mychips.routes (route_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent) 
           values (trec.first, peer, host, trec.path[2], entity, entity)

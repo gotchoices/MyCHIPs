@@ -3,19 +3,23 @@
 // -----------------------------------------------------------------------------
 // User <-> DB <-> Agent
 // This will build a network of tallies as follows:
-//                              __________________
-//                             v                  ^
+//                              ________(-)_______
+//                             ^                  v
 //  External_Up -> User_0 -> User_1 -> User_2 -> User_3 -> External_Down
 //                   ^____________________v
+//TODO:
+//- 
 const { dbConf, Log, Format, Bus, assert, getRow, mkUuid } = require('../settings')
 var log = Log('testSchRoute')
 var { dbClient } = require("wyseman")
+//const Serialize = require("json-stable-stringify")
 const { host, port0, port1, agent0, agent1, agent2 } = require('./def-users')
 //var userListen = 'mychips_user_' + user0
 //var agentListen = 'mychips_agent_' + agent0		//And his agent process
 //var {stateField, uSql, save, rest} = require('./def-tally')
 var interTest = {}			//Pass values from one test to another
-var tallySql = `insert into mychips.tallies (tally_ent, tally_uuid, tally_date, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status) values($1, $2, $3, $4, $5, $6, $7, $8, $9, 'open') returning *;`
+var tallySql = `insert into mychips.tallies (tally_ent, tally_uuid, tally_date, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
+var chitSql = `insert into mychips.chits (chit_ent, chit_seq, chit_uuid, units, signature, quidpro, status) select %L,%s,%L,%s,%L,%L,'good'`
 var agree = {domain:"mychips.org", name:"test", version:1}
 var users = 4
 
@@ -54,27 +58,34 @@ describe("Initialize route test data", function() {
   })
 
   it("Build local tallies", function(done) {
-    let dc = (users-1)*2; _done = () => {if (!--dc) done()}	//_done's to be done
+    let dc = users-1; _done = () => {if (!--dc) done()}	//_done's to be done
     interTest.ids = []
     for (let u = 1; u < users; u++) {
       let s = u, f = u-1
         , sCid = 'cid_' + s, fCid = 'cid_' + f
-        , uuid = mkUuid(sCid, agent1)
+        , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
         , date = new Date().toISOString()
         , sId = 'p' + (1000+s), fId = 'p' + (1000+f)
         , sCert = {chad:{cid:sCid, agent:agent1}}, fCert = {chad:{cid:fCid, agent:agent1}}
         , sSig = sCid + ' signature', fSig = fCid + ' signature'
-      db.query(tallySql, [sId, uuid, date, 'stock', agree, sCert, fCert, sSig, fSig], (e, res) => {if (e) done(e)
-        assert.equal(res.rowCount, 1)
-        _done()
-      })
-      db.query(tallySql, [fId, uuid, date, 'foil', agree, fCert, sCert, fSig, sSig], (e, res) => {if (e) done(e)
-        assert.equal(res.rowCount, 1)
+        , units = u * 2
+        , sql = `
+          with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
+               ${Format(chitSql, sId, 't.tally_seq', cuid, units, sSig, u)} from t returning *;
+          with t as (${Format(tallySql, fId, tuid, date, 'foil', agree, fCert, sCert, fSig, sSig)})
+               ${Format(chitSql, fId, 't.tally_seq', cuid, units, fSig, u)} from t returning *;`
+//log.debug('sql:', sql)
+      db.query(sql, (e, res) => {if (e) done(e)		//;log.debug('res:', res)
+        assert.equal(res.length, 2)
+        let [ res0, res1 ] = res			//;log.debug('r:', res0, res1)
+        assert.equal(res0.rowCount, 1)
+        assert.equal(res1.rowCount, 1)
+        let row0 = res0.rows[0], row1 = res1.rows[0]	//;log.debug('r:', row0, row1)
+        assert.equal(row0.chit_uuid, cuid)
+        assert.equal(row1.chit_uuid, cuid)
         _done()
       })
       interTest.ids[u] = {sId, fId, sCid, fCid, sCert, fCert, sSig, fSig}	//Save for future tests
-//      if (u == 1) interTest.top = 
-//      if (u == users-1) interTest.bot = {fId:sId, fCid:sCid, fCert:sCert, fSig:sSig}
     }
   })
 
@@ -82,12 +93,16 @@ describe("Initialize route test data", function() {
     let s= interTest.ids[1]
       , sId = s.fId, sCid = s.fCid, sCert = s.fCert, sSig = s.fSig
       , fCid = 'cid_U'
-      , uuid = mkUuid(sCid, agent1)
+      , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
       , date = new Date().toISOString()
       , fCert = {chad:{cid:fCid, agent:agent0}}
       , fSig = fCid + ' signature'
-    db.query(tallySql, [sId, uuid, date, 'stock', agree, sCert, fCert, sSig, fSig], (e, res) => {if (e) done(e)
-      assert.equal(res.rowCount, 1)
+      , units = users * 2
+      , sql = `with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
+          ${Format(chitSql, sId, 't.tally_seq', cuid, units, sSig, users)} from t returning *;`
+    db.query(sql, (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row);
+      assert.equal(row.chit_uuid, cuid)
       done()
     })
   })
@@ -96,34 +111,72 @@ describe("Initialize route test data", function() {
     let f= interTest.ids[users-1]
       , fId = f.sId, fCid = f.sCid, fCert = f.sCert, fSig = f.sSig
       , sCid = 'cid_D'
-      , uuid = mkUuid(sCid, agent2)
+      , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
       , date = new Date().toISOString()
       , sCert = {chad:{cid:sCid, agent:agent2}}
       , sSig = sCid + ' signature'
-    db.query(tallySql, [fId, uuid, date, 'foil', agree, fCert, sCert, fSig, sSig], (e, res) => {if (e) done(e)
-      assert.equal(res.rowCount, 1)
+      , units = users * 2 + 2
+      , sql = `with t as (${Format(tallySql, fId, tuid, date, 'foil', agree, fCert, sCert, fSig, sSig)})
+          ${Format(chitSql, fId, 't.tally_seq', cuid, units, fSig, users+1)} from t returning *;`
+    db.query(sql, (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row);
+      assert.equal(row.chit_uuid, cuid)
       done()
     })
   })
 
   it("Build loop-back tallies", function(done) {
-    let dc = 4; _done = () => {if (!--dc) done()}	//_done's to be done
-      , buildem = (sId, sCid, sCert, sSig, fId, fCid, fCert, fSig) => {
-         let uuid = mkUuid(sCid, agent0)
+    let dc = 2; _done = () => {if (!--dc) done()}	//_done's to be done
+      , buildem = (sId, sCid, sCert, sSig, fId, fCid, fCert, fSig, u, units) => {
+         let tuid = mkUuid(sCid, agent0), cuid = mkUuid(fCid, agent0)
            , date = new Date().toISOString()
-          db.query(tallySql, [sId, uuid, date, 'stock', agree, sCert, fCert, sSig, fSig], (e, res) => {if (e) done(e)
-            assert.equal(res.rowCount, 1)
-            _done()
-          })
-          db.query(tallySql, [fId, uuid, date, 'foil', agree, fCert, sCert, fSig, sSig], (e, res) => {if (e) done(e)
-            assert.equal(res.rowCount, 1)
+           , sql = `
+               with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
+                    ${Format(chitSql, sId, 't.tally_seq', cuid, units, sSig, u)} from t returning *;
+               with t as (${Format(tallySql, fId, tuid, date, 'foil', agree, fCert, sCert, fSig, sSig)})
+                    ${Format(chitSql, fId, 't.tally_seq', cuid, units, fSig, u)} from t returning *;`
+//log.debug('sql:', sql)
+          db.query(sql, (e, res) => {if (e) done(e)	//;log.debug('res:', res)
+            assert.equal(res.length, 2)
+            let [ res0, res1 ] = res			//;log.debug('r:', res0, res1)
+            assert.equal(res0.rowCount, 1)
+            assert.equal(res1.rowCount, 1)
+            let row0 = res0.rows[0], row1 = res1.rows[0]	//;log.debug('r:', row0, row1)
+            assert.equal(row0.chit_uuid, cuid)
+            assert.equal(row1.chit_uuid, cuid)
             _done()
           })
         }
-    let s = interTest.ids[1], f = interTest.ids[users-1]
-    buildem (s.sId, s.sCid, s.sCert, s.sSig, f.sId, f.sCid, f.sCert, f.sSig)
-    buildem (s.fId, s.fCid, s.fCert, s.fSig, f.fId, f.fCid, f.fCert, f.fSig)
+    let x = interTest.ids[1], y = interTest.ids[users-1]
+    buildem (y.sId, y.sCid, y.sCert, y.sSig, x.sId, x.sCid, x.sCert, x.sSig, users+2, -(users*2+4))
+    buildem (x.fId, x.fCid, x.fCert, x.fSig, y.fId, y.fCid, y.fCert, y.fSig, users+3, users*2+6)
   })
+
+  it("Check view tallies_v_net", function(done) {
+    let expect = [
+      {"inp":"p1002", "out":"p1003", "target":3, "bound":7, "units_pc":6,  "min":0,  "max":1,  "sign":1},
+      {"inp":"p1001", "out":"p1002", "target":3, "bound":7, "units_pc":4,  "min":0,  "max":3,  "sign":1},
+      {"inp":"p1000", "out":"p1001", "target":3, "bound":7, "units_pc":2,  "min":1,  "max":5,  "sign":1},
+      {"inp":"p1001", "out":"p1000", "target":3, "bound":7, "units_pc":2,  "min":5,  "max":9,  "sign":-1},
+      {"inp":"p1002", "out":"p1001", "target":3, "bound":7, "units_pc":4,  "min":7,  "max":11, "sign":-1},
+      {"inp":"p1000", "out":null,    "target":0, "bound":0, "units_pc":8,  "min":8,  "max":8,  "sign":-1},
+      {"inp":"p1003", "out":"p1002", "target":3, "bound":7, "units_pc":6,  "min":9,  "max":13, "sign":-1},
+      {"inp":null,    "out":"p1003", "target":3, "bound":7, "units_pc":10, "min":13, "max":17, "sign":-1},
+      {"inp":"p1001", "out":"p1003", "target":3, "bound":7, "units_pc":-12,"min":15, "max":19, "sign":1},
+      {"inp":"p1000", "out":"p1002", "target":3, "bound":7, "units_pc":14, "min":17, "max":21, "sign":-1}]
+      , sql = `update mychips.tallies set target = 3, bound = 7;
+               select json_agg(s) as json from (select inp,out,target,bound,units_pc,min,max,sign from mychips.tallies_v_net order by min,max,sign) s;`
+//log.debug("Sql:", sql)
+    db.query(sql, null, (e, res) => {if (e) done(e)
+      assert.equal(res.length, 2)
+      let res1 = res[1]					//;log.debug('res1:', res1)
+      assert.equal(res1.rowCount, 1)
+      let row = res1.rows[0]				//;log.debug('row:', JSON.stringify(row.json))
+      assert.deepStrictEqual(row.json, expect)
+      done()
+    })
+  })
+
 /*
 */
   after('Disconnect from test database', function(done) {

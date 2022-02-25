@@ -22,8 +22,8 @@ note over cbound: b <= zero
 / note over vlimit: zero <= l
 / note over vbound: zero <= b
 
-note over cbound, c #ffcccc: - Negative Tally balance\nClient owed by vendor (client <-- vendor)\nClient/Foil maintains variables
-/ note over x,vbound #ccccff: + Positive Tally balance\nClient owes vendor (client --> vendor)\nVendor/Stock maintains variables
+note over cbound, c #ffcccc: - Negative Tally balance\nClient owed by vendor (client <-- vendor)\nClient/Foil maintains these variables
+/ note over x,vbound #ccccff: + Positive Tally balance\nClient owes vendor (client --> vendor)\nVendor/Stock maintains these variables
 
 note over cbound,vbound: Normal Chit Transactions
 
