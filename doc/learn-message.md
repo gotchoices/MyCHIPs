@@ -50,7 +50,7 @@ accomplish the state change.  The value in the request field
 typically indicates the next value intended to be written into the object's status field.
 The database will detect the request and generate a notice to the agent process on the following channel:
 ```
-  mychips_agent_AGENT_PUBLIC_KEY
+  ma_AGENT_PUBLIC_KEY
 ```
 where AGENT_KEY_PUBLIC key indicates the agent address for the process responsible for
 traffic for the applicable user.  Usually the agent process will need to communicate something 

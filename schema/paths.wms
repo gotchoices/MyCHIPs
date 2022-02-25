@@ -87,7 +87,7 @@ view mychips.tallies_v_paths_old {mychips.users_v mychips.tallies_v_net_old} {
 
 # Simplified view for discovering inside lifts
 #----------------------------------------------------------------
-view mychips.tallies_v_lifts_old {mychips.tallies_v_paths} {
+view mychips.tallies_v_lifts_old {mychips.tallies_v_paths_old} {
   select * from mychips.tallies_v_paths_old where circuit order by 1 desc
 }
 
@@ -192,6 +192,6 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
 
 # Simplified view for discovering inside lifts
 #----------------------------------------------------------------
-view mychips.tallies_v_lifts1 {mychips.tallies_v_paths1} {
-  select * from mychips.tallies_v_paths1 where circuit order by 1 desc
+view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
+  select * from mychips.tallies_v_paths where circuit order by 1 desc
 }

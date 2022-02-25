@@ -157,7 +157,8 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v mychips.lift
     begin
         select into lrec route_cid,route_sock,topu_cid,topu_serv,topu_sock,route_user from mychips.lifts_v where lift_uuid = lift.lift_uuid and lift_seq = lift.lift_seq;
         if not lrec.topu_serv is null then
-            channel = channel || '_' || urec.serv_id;
+--Fixme: change to agent
+            channel = 'ma_' || urec.serv_id;
         end if;
 
         insert into mychips.lift_tries (ltry_uuid, ltry_seq) values (lift.lift_uuid, lift.lift_seq)
@@ -398,8 +399,8 @@ raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
 
 --Fixme: are there any notifies needed to the user (like when a lift completes)?
 --        if lrec.action or (lrec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
---raise notice '  lift notify for user channel: mychips_user_%', crec.lift_ent;
---            perform pg_notify('mychips_user_' || crec.lift_ent, crec.json::text);
+--raise notice '  lift notify for user channel: mu_%', crec.lift_ent;
+--            perform pg_notify('mu_' || crec.lift_ent, crec.json::text);
 --            perform pg_notify('mychips_user', crec.json::text);		-- Simulations use this
 --        end if;
 

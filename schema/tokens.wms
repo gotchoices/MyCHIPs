@@ -98,7 +98,7 @@ function {mychips.ticket_process(ticket jsonb, uname text = session_user)} {mych
           || jsonb_build_object('cert', mychips.user_cert(trec.id));
 --raise notice 'ticket: %', ticket;
 --raise notice 'Notify: mychips_agent_%', trec.peer_agent;
-        perform pg_notify('mychips_agent_' || trec.peer_agent, ticket::text);	-- Notify peer server for this user
+        perform pg_notify('ma_' || trec.peer_agent, ticket::text);	-- Notify peer server for this user
         return true;
       end if;
       return false;

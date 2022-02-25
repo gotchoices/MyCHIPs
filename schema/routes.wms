@@ -293,7 +293,8 @@ function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.
         if not found then return false; end if;				-- Find the full-view route record
 
         if not orec.topu_serv isnull then
-            channel = channel || '_' || orec.topu_serv;
+--Fixme: adapt to agent
+            channel = 'ma_' || orec.topu_serv;
         end if;
 
 --Fixme: How are retries supposed to work (especially on good/none)?

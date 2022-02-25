@@ -6,7 +6,7 @@ ARG version=13
 FROM postgres:${version}
 
 RUN apt-get update; \
-	apt-get install -y postgresql-plpython-13; \
+	apt-get install -y postgresql-plpython3-13; \
 	apt-get install -y postgresql-pltcl-13; \
 	apt-get install -y postgresql-contrib-13; \
 	apt-get install -y less iputils-ping; \
