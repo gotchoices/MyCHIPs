@@ -220,7 +220,7 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
     begin
         select into trec tally_uuid,hold_chad,hold_agent,part_chad from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
         if not trec.hold_agent is null then
-            channel = channel || '_' || trec.hold_agent;
+            channel = 'ma_' || trec.hold_agent;
         end if;
         insert into mychips.chit_tries (ctry_ent, ctry_seq, ctry_idx) values (chit.chit_ent, chit.chit_seq, chit.chit_idx)
           on conflict (ctry_ent,ctry_seq,ctry_idx) do update set tries = mychips.chit_tries.tries + 1, last = current_timestamp
@@ -439,7 +439,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
           'object',	crec.json
         );
 --raise notice '  chit notify user: mychips_user_% % %', crec.chit_ent, crec.chit_uuid, jrec::text;
-        perform pg_notify('mychips_user_' || crec.chit_ent, jrec::text);
+        perform pg_notify('mu_' || crec.chit_ent, jrec::text);
 --Fixme: Should this return the whole jrec?
         perform pg_notify('mychips_user', crec.json::text);		-- Simulations use this
       end if;
