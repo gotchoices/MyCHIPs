@@ -54,7 +54,7 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
   , cHost() || ':' || cPort()	as peer_sock
   , pe.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
 --  , pe.peer_cid || '@' || cHost() || ':' || cPort()			as peer_endp
-  , greatest(ee.mod_date, pe.mod_date, ue.mod_date) as mod_date
+  , greatest(ee.mod_date, pe.mod_date, ue.mod_date)			as mod_date
   , jsonb_build_object(
       'id',		ee.id
     , 'cid',		pe.peer_cid

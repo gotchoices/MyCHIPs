@@ -8,9 +8,9 @@ module mychips
 
 namespace eval tokens {
     def tokens_pk	{token_ent token_seq}
-    def tokens_v_up	{token reuse used expires}
-    def tokens_v_in	[concat $tokens_pk $tokens_v_up tally_seq]
-    def tokens_se	[concat $tokens_v_in $glob::stampfn]
+    def tokens_v_up	{reuse expires}
+    def tokens_v_in	[concat $tokens_pk $tokens_v_up tally_seq token]
+    def tokens_se	[concat $tokens_v_in used $glob::stampfn]
 }
 
 # Data about tokens to facilitate their CHIP account
@@ -65,6 +65,19 @@ view mychips.tokens_v {mychips.tokens mychips.users_v json.cert} {select
       
     from	mychips.tokens	t
     join	mychips.users_v	u	on u.user_ent = t.token_ent
+
+    eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk [concat $glob::stampin]);
+    eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);
+}
+
+# User-permissioned view
+#----------------------------------------------------------------
+view mychips.tokens_v_me {mychips.tokens_v base.user_id(text)} {select 
+    t.*
+    from	mychips.tokens_v t
+    where	t.token_ent = base.user_id(session_user)
+} -grant {
+    {tally	{s} {s i u} {d}}
 }
 
 # Initiate connection based on tally ticket received by our user

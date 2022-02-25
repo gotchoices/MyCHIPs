@@ -22,7 +22,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{request comment}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig hold_cert part_cert hold_terms part_terms]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit units_pc units_gc hold_cid hold_agent part_cid part_agent hold_sig part_sig $glob::stampfn]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit units_pc units_gc hold_cid hold_agent part_cid part_agent hold_sig part_sig hold_terms part_terms $glob::stampfn]
 
     def tally_sets_pk	{tset_ent tset_seq tset_idx}
     def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
@@ -106,6 +106,9 @@ table mychips.tally_tries {mychips.tallies} {
 function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tallies) mychips.user_cert(text) mychips.j2h(jsonb)} {
   returns trigger language plpgsql security definer as $$
     begin
+        if new.tally_ent is null then
+          new.tally_ent = base.user_id(session_user);
+        end if;
         if new.tally_seq is null then
           update mychips.users set _last_tally = greatest(
               coalesce(_last_tally, 0) + 1,
@@ -392,10 +395,8 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
     left join	(
       select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where status = 'good'
       group by 1,2
-    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
-    ;
+    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
 
--- Simulations use these.  Are they needed in production?
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
 }

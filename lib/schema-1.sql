@@ -3090,7 +3090,7 @@ create trigger mychips_peers_v_tr_ins instead of insert on mychips.peers_v for e
 create trigger mychips_peers_v_tr_upd instead of update on mychips.peers_v for each row execute procedure mychips.peers_v_updfunc();
 create trigger mychips_routes_tr_biu before insert or update on mychips.routes for each row execute procedure mychips.routes_tf_biu();
 create view mychips.tallies_v as select 
-    te.tally_ent, te.tally_seq, te.tally_type, te.tally_uuid, te.tally_date, te.version, te.part_ent, te.hold_cert, te.part_cert, te.request, te.comment, te.contract, te.target, te.reward, te.clutch, te.bound, te.status, te.digest, te.cr_limit, te.dr_limit, te.units_pc, te.units_gc, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sig, te.part_sig, te.crt_by, te.mod_by, te.crt_date, te.mod_date
+    te.tally_ent, te.tally_seq, te.tally_type, te.tally_uuid, te.tally_date, te.version, te.part_ent, te.hold_cert, te.part_cert, te.request, te.comment, te.contract, te.target, te.reward, te.clutch, te.bound, te.status, te.digest, te.cr_limit, te.dr_limit, te.units_pc, te.units_gc, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sig, te.part_sig, te.hold_terms, te.part_terms, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , te.hold_cid ||':'|| ua.agent	as hold_addr
   , te.hold_cid ||':'|| ua.atsock	as hold_full
   , ua.sock				as hold_sock
@@ -3139,9 +3139,7 @@ create view mychips.tallies_v as select
     left join	(
       select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where status = 'good'
       group by 1,2
-    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
-    ;
-
+    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
 
     ;
     ;
@@ -3768,7 +3766,7 @@ create function mychips.ticket_process(ticket jsonb, uname text = session_user) 
     end;
 $$;
 create view mychips.tokens_v as select
-    t.token_ent, t.token_seq, t.token, t.reuse, t.used, t.expires, t.tally_seq, t.crt_by, t.mod_by, t.crt_date, t.mod_date
+    t.token_ent, t.token_seq, t.reuse, t.expires, t.tally_seq, t.token, t.used, t.crt_by, t.mod_by, t.crt_date, t.mod_date
   , u.peer_cid, u.peer_agent, u.std_name
   , t.expires <= current_timestamp as "expired"
   , t.expires > current_timestamp and used is null as "valid"
@@ -3780,7 +3778,10 @@ create view mychips.tokens_v as select
     ) as "chad"
       
     from	mychips.tokens	t
-    join	mychips.users_v	u	on u.user_ent = t.token_ent;
+    join	mychips.users_v	u	on u.user_ent = t.token_ent
+
+    ;
+    ;
 create trigger mychips_token_tr_seq before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
 create function mychips.user_cert(uid text) returns jsonb language sql as $$
     select to_jsonb(s) as cert from (
@@ -4437,6 +4438,34 @@ create function mychips.tally_sets_v_insfunc() returns trigger language plpgsql 
     return new;
   end;
 $$;
+create function mychips.tokens_v_insfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
+  begin
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tokens_v';
+    execute 'select ' || str || ';' into trec using new;
+    insert into mychips.tokens (token_ent,token_seq,reuse,expires,tally_seq,token,crt_by,mod_by,crt_date,mod_date) values (new.token_ent,new.token_seq,trec.reuse,trec.expires,trec.tally_seq,trec.token,session_user,session_user,current_timestamp,current_timestamp) returning token_ent,token_seq into new.token_ent, new.token_seq;
+    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    return new;
+  end;
+$$;
+create view mychips.tokens_v_me as select 
+    t.*
+    from	mychips.tokens_v t
+    where	t.token_ent = base.user_id(session_user);
+grant select on table mychips.tokens_v_me to tally_1;
+grant select on table mychips.tokens_v_me to tally_2;
+grant insert on table mychips.tokens_v_me to tally_2;
+grant update on table mychips.tokens_v_me to tally_2;
+grant delete on table mychips.tokens_v_me to tally_3;
+create function mychips.tokens_v_updfunc() returns trigger language plpgsql security definer as $$
+  begin
+    update mychips.tokens set reuse = new.reuse,expires = new.expires,mod_by = session_user,mod_date = current_timestamp where token_ent = old.token_ent and token_seq = old.token_seq returning token_ent,token_seq into new.token_ent, new.token_seq;
+    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    return new;
+  end;
+$$;
 create function mychips.token_valid(tok text, cert jsonb = null) returns boolean language plpgsql as $$
     declare
       orec	record;
@@ -4842,6 +4871,9 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
 $$;
 create function mychips.tallies_tf_seq() returns trigger language plpgsql security definer as $$
     begin
+        if new.tally_ent is null then
+          new.tally_ent = base.user_id(session_user);
+        end if;
         if new.tally_seq is null then
           update mychips.users set _last_tally = greatest(
               coalesce(_last_tally, 0) + 1,
@@ -4868,6 +4900,8 @@ $$;
 create trigger mychips_tallies_tr_notice after insert or update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
 create view mychips.tallies_v_lifts_old as select * from mychips.tallies_v_paths_old where circuit order by 1 desc;
 create trigger mychips_tally_sets_v_tr_ins instead of insert on mychips.tally_sets_v for each row execute procedure mychips.tally_sets_v_insfunc();
+create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for each row execute procedure mychips.tokens_v_insfunc();
+create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
 create trigger json_cert_tf_ii instead of insert on json.cert for each row execute procedure json.cert_tf_ii();
 create trigger mychips_chits_tr_bu before update on mychips.chits for each row execute procedure mychips.chits_tf_bu();
 create trigger mychips_chits_tr_notice after insert or update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
@@ -8048,6 +8082,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','hold_full','mychips','tallies_v','hold_full','f','f'),
   ('mychips','tallies_v','hold_sig','mychips','tallies','hold_sig','f','f'),
   ('mychips','tallies_v','hold_sock','mychips','tallies_v','hold_sock','f','f'),
+  ('mychips','tallies_v','hold_terms','mychips','tallies','hold_terms','f','f'),
   ('mychips','tallies_v','inside','mychips','tallies_v','inside','f','f'),
   ('mychips','tallies_v','json','mychips','agents_v','json','f','f'),
   ('mychips','tallies_v','json_core','mychips','tallies_v','json_core','f','f'),
@@ -8068,6 +8103,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','part_full','mychips','tallies_v','part_full','f','f'),
   ('mychips','tallies_v','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies_v','part_sock','mychips','tallies_v','part_sock','f','f'),
+  ('mychips','tallies_v','part_terms','mychips','tallies','part_terms','f','f'),
   ('mychips','tallies_v','policy','mychips','tallies_v','policy','f','f'),
   ('mychips','tallies_v','request','mychips','tallies','request','f','f'),
   ('mychips','tallies_v','reward','mychips','tallies','reward','f','f'),
@@ -8125,6 +8161,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','hold_full','mychips','tallies_v','hold_full','f','f'),
   ('mychips','tallies_v_me','hold_sig','mychips','tallies','hold_sig','f','f'),
   ('mychips','tallies_v_me','hold_sock','mychips','tallies_v','hold_sock','f','f'),
+  ('mychips','tallies_v_me','hold_terms','mychips','tallies','hold_terms','f','f'),
   ('mychips','tallies_v_me','inside','mychips','tallies_v','inside','f','f'),
   ('mychips','tallies_v_me','json','mychips','agents_v','json','f','f'),
   ('mychips','tallies_v_me','json_core','mychips','tallies_v','json_core','f','f'),
@@ -8145,6 +8182,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','part_full','mychips','tallies_v','part_full','f','f'),
   ('mychips','tallies_v_me','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies_v_me','part_sock','mychips','tallies_v','part_sock','f','f'),
+  ('mychips','tallies_v_me','part_terms','mychips','tallies','part_terms','f','f'),
   ('mychips','tallies_v_me','policy','mychips','tallies_v','policy','f','f'),
   ('mychips','tallies_v_me','request','mychips','tallies','request','f','f'),
   ('mychips','tallies_v_me','reward','mychips','tallies','reward','f','f'),
@@ -8318,6 +8356,23 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tokens_v','token_seq','mychips','tokens','token_seq','f','t'),
   ('mychips','tokens_v','used','mychips','tokens','used','f','f'),
   ('mychips','tokens_v','valid','mychips','tokens_v','valid','f','f'),
+  ('mychips','tokens_v_me','chad','mychips','tokens_v','chad','f','f'),
+  ('mychips','tokens_v_me','crt_by','mychips','tokens','crt_by','f','f'),
+  ('mychips','tokens_v_me','crt_date','mychips','tokens','crt_date','f','f'),
+  ('mychips','tokens_v_me','expired','mychips','tokens_v','expired','f','f'),
+  ('mychips','tokens_v_me','expires','mychips','tokens','expires','f','f'),
+  ('mychips','tokens_v_me','mod_by','mychips','tokens','mod_by','f','f'),
+  ('mychips','tokens_v_me','mod_date','mychips','tokens','mod_date','f','f'),
+  ('mychips','tokens_v_me','peer_agent','mychips','peers','peer_agent','f','f'),
+  ('mychips','tokens_v_me','peer_cid','mychips','peers','peer_cid','f','f'),
+  ('mychips','tokens_v_me','reuse','mychips','tokens','reuse','f','f'),
+  ('mychips','tokens_v_me','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','tokens_v_me','tally_seq','mychips','tokens','tally_seq','f','f'),
+  ('mychips','tokens_v_me','token','mychips','tokens','token','f','f'),
+  ('mychips','tokens_v_me','token_ent','mychips','tokens','token_ent','f','t'),
+  ('mychips','tokens_v_me','token_seq','mychips','tokens','token_seq','f','t'),
+  ('mychips','tokens_v_me','used','mychips','tokens','used','f','f'),
+  ('mychips','tokens_v_me','valid','mychips','tokens_v','valid','f','f'),
   ('mychips','users','_last_tally','mychips','users','_last_tally','f','f'),
   ('mychips','users','crt_by','mychips','users','crt_by','f','f'),
   ('mychips','users','crt_date','mychips','users','crt_date','f','f'),
