@@ -11,7 +11,7 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     }}
     {tally_date		{Tally Date}		{The date and time this tally was initiated between the parties}}
     {version		{Version}		{A number indicating the format standard this tally adheres to}}
-    {partner		{Partner Entity}	{The entity id number of the other party to this tally}}
+    {part_ent		{Partner Entity}	{The entity id number of the other party to this tally}}
     {status		{Status}		{Current status of the tally record} {
         {void		{Void}			{The tally has been abandoned before being affirmed by both parties}}
         {draft		{Draft}			{The tally have bee suggested by one party but not yet accepted by the other party}}
@@ -59,7 +59,9 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {PSM		{Partner Signature}	{An open tally must contain a partner signature}}
     {CNP		{Tally Contract}	{An open tally must reference a contract}}
     {STR		{Illegal State Request}	{The requested state transition is not allowed}}
-    {STT		{Illegal State Change}	{The executed state transition is not allowed}}
+    {IST		{Illegal State Change}	{The executed state transition is not allowed}}
+    {TGT		{Illegal Lift Target}	{Lift target must be less than or equal to the maximum lift amount}}
+    {BND		{Illegal Lift Bound}	{Maximum lift boundary must be greater or equal to zero}}
 }
 
 tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.} {

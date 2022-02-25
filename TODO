@@ -1,38 +1,49 @@
 TODO:
 
 Immediate:
-- Noise fully merged with tally state processes
--  Return to next regression test (tally.js); Tally originator:
--    Generate tally ticket
--    Process/respond to tally ticket
--    adapt ticket packets to new message format (use object property)
--    test first steps of tally exchange protocol
--    clones or drafts tally (how to generate uuid?)
--    imports or verifies inquiring user
--  When draft tally comes back, enter draft tally
--  Change peer terminology in peernoise to remote/local?
--  Regression tests all working -- particularly peernoise.js
--  Agents table keeps track of agents latest connection portal
--  Align tally tests in mocha/peer.js with 1.0 protocol
-- 
-- Other subsystems patched well enough to run in simulators
--   Adapt chit to new message format
--   Adapt route to new message format
--   Adapt lifts to new message format
--   Clean up users DB
--     Can we totally get rid of peer table? (merge into user table)
--     Adjust/remove prior references to servID, peerPort, peerHost
--     Get rid of user.serv_id; Change to peer_agent or tally.part_agent during early phase
--     User views show next cid@agent to use
--   Does the simulator still run ok?
--   Simulation can run with or without encryption (selected in config.dock)
--   Simulation runs raw mode by default
+-  
+- Adapt route to new message format
+X-  Rename paths files to routes?
+X-  How to insert test data into routes tables
+X-  Or make small deterministic network of tallies?
+X-   Redo tallies_v_net to allow both lifts and drops equally
+X-   Redo tallies_v_paths
+X-   Can we adapt to not storing peers in peer table?
+-   Write tests to check for:
+-     Proper paths, segments, circuits found
+-     Drop paths show up properly
+-     Reward variable kicks in over correct range
+-     Trading variables (reward,clutch) aggregate properly
+-   Cleanup/organize routes table
+-   Write tests for route state transitions
+-   Does simulation still run (without actually doing lifts)?
+-   
+-  Adapt lift subsystem to new message format
+-  Change how chit units are stored (relative to stock/foil)?
+-  Clean up users DB
+-   Can we totally get rid of peer table? (merge into user table)
+-   Adjust/remove prior references to servID, peerPort, peerHost
+-   Get rid of user.serv_id; Change to peer_agent or tally.part_agent during early phase
+-   User views show next cid@agent to use
+-  Does the simulator still run ok?
+-  Simulation can run with or without encryption (selected in config.dock)
+-  Simulation runs raw mode by default
 - 
 - Push release to master, merge with Capstone project
 - 
-- Upgrade chits to new protocol
-- Create mocha tests for chit state diagram
-- Align chit tests in mocha/peer.js with 1.0 protocol
+- mychips.js;
+-  Can launch an agent server for each locally defined agent
+-  Where/how to build/store agent private keys (pki folder?)
+-  Agents table keeps track of each agent's latest connection portal (in case it changes)
+-  How does the system identify local agents vs/ peer agents?
+-  
+- Design protocol for amendments (like a pre-signed chit?)
+-   Build subsystem for entering/communicating amendments
+-   Tally close command becomes an amendment
+-   Is tally call any different from tally close (probably)?
+-   Can set local trading variables: limit, lift variables
+-   Can assert remote amendments: close, call
+- 
 - Implement chit consensus
 -   Mocha tests to simulate network disconnections, chit collisions
 - Implement tally amendments

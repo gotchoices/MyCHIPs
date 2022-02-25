@@ -9,28 +9,17 @@ const Fs = require('fs')
 const Path = require('path')
 const Stringify = require('json-stable-stringify')	//Predictable property order
 const assert = require("assert");
-const { Database, DBAdmin, Log, Schema } = require('../settings')
+const { Database, DBAdmin, Log, Schema, importCheck } = require('../settings')
 var log = Log('testImpexp')
 var { dbClient } = require("wyseman")
 const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
-
-function dbAndCheck(fileName, target, db, done, check) {
-  Fs.readFile(fileName, (err, fileData) => {if (err) done(err)
-    let jsonData = JSON.parse(fileData)
-    db.query("select json.import($1::jsonb, $2::text) as record;", [jsonData, target] ,(err, res) => {
-      if (err) done(err)
-log.debug("Result:", res.rows[0].record)
-      check(res,res.rows[0].record.slice(1,-1).split(','))
-    })
-  })
-}
 
 describe("JSON contact import/export", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
   before('Delete test database', function(done) {
-    Child.exec(`dropdb -U ${DBAdmin} ${Database}`, done)
+    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`, done)
   })
 
   before('Connect to (or create) test database', function(done) {
@@ -43,13 +32,13 @@ describe("JSON contact import/export", function() {
 
   it("Import known user record", function(done) {
     let file = Path.join(__dirname, 'user.json')
-    dbAndCheck(file, 'user', db, done, function(res, row) {
+    importCheck(file, 'user', db, done, function(res, row) {
       assert.equal(row[0],'p1000'); done()
     })
   })
   it("Import self-identifying user record", function(done) {
     let file = Path.join(__dirname, 'something.json')
-    dbAndCheck(file, null, db, done, function(res, row) {
+    importCheck(file, null, db, done, function(res, row) {
       assert.equal(row[0],'p1001'); done()
     })
   })
@@ -60,7 +49,7 @@ describe("JSON contact import/export", function() {
 
   it("Import multiple entities", function(done) {
     let file = Path.join(__dirname, 'users.json')
-    dbAndCheck(file, null, db, done, function(res, row) {
+    importCheck(file, null, db, done, function(res, row) {
 log.debug('res:', res, 'row:', row)
       assert.equal(row[0],'p1002'); 
       done()
@@ -81,8 +70,8 @@ describe("JSON certificate import/export", function() {
 
   it("Import user certificate", function(done) {
     let file = Path.join(__dirname, 'cert.json')
-    dbAndCheck(file, null, db, done, function(res, row) {
-log.debug("Row:", row)
+    importCheck(file, null, db, done, function(res, row) {
+//log.debug("Row:", row)
       assert.equal(row[0],'p1003')
       done()
     })
@@ -101,8 +90,16 @@ log.debug("Row:", row)
       delete cert.date		//Date won't be the same
       delete cert.id		//Auto-generated id in the DB
       let certStr = Stringify(cert)
-log.debug("Cert:", cert)
+//log.debug("Cert:", cert)
       assert.equal(certStr, fileStr)
+      done()
+    })
+  })
+
+  it("Import tally", function(done) {
+    let file = Path.join(__dirname, 'tally.json')
+    importCheck(file, 'tally', db, done, function(res, row) {
+      assert.equal(row[0],'p1000')
       done()
     })
   })

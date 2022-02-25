@@ -2,23 +2,29 @@
 // -----------------------------------------------------------------------------
 //Run all tests in order
 const Child = require('child_process')
-const { Database, DBAdmin } = require('../settings')
+const { Database, Database2, DBAdmin } = require('../settings')
 
+require('./sch-crypto.js')
 require('./objectset.js')
 require('./peernoise.js')
+//require('./peercomm.js')	//Deprecated
 
-require('./peercomm.js')	//Deprecated
-
-require('./impexp.js')		//Will add users needed for peer test
-require('./testusers.js')	//Must run before sch-tally or tally
+require('./impexp.js')		//Adds users needed for other tests
+require('./testusers.js')	//Run before sch-tally or tally
 require('./sch-tally.js')
+require('./sch-chit.js')
+
+require('./user2.js')		//Needed for testing on two DB's
 require('./tally.js')
+require('./chit.js')
 
-//require('./peer.js')		//Old, needs rework
+//Re-enable after schema settles and more documentation filled in
+//require('./schema.js')
 
+//Re-enable after consolidating users_v, peers_v?
 //require('./sch-multi.js')	//Will empty users table
-require('./sch-crypto.js')
 
-after('Delete test database', function(done) {
-  Child.exec(`dropdb -U ${DBAdmin} ${Database}`, done)
+after('Delete test database', function() {
+  Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`)
+  Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database2}`)
 })

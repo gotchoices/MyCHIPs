@@ -2,50 +2,85 @@
 !include common.puml
 
 $title(Tally State Diagram)
-[*] --> void
-state "void" as void
+state "P.offer.void" as pOfferVoid
+state "B.offer.open" as BOfferOpen
+state "draft.offer" as DraftOffer
+state "open.close" as OpenClose
+state working {
+  state "draft" as draft
+  state "void" as void
+}
+state liftable {
+  state "open" as open
+  state "close" as close
+}
+state "P.offer" as pOffer
+state "H.offer" as hOffer
+state "close (zero balance)" as closed
 
-'States are determined by a combination of values, as defined here:
-userVoid : Stat: draft, Req->void
-userAccept : Stat: draft, Req->open
-userDraft : Stat: void, Req->draft
-userClose : Stat: open, Req->close
-void : Stat->void, Req: null\n(or no tally)
-open : Stat->open, Req: null
-closing : Stat->close, Req: null
-peerProffer : Stat->draft, Req: null
-peerProffer : Peer signature only
-userProffer : Stat->draft, Req: null
-userProffer : User signature only
-closed : Stat->closed, Req: null
+'State details
+pOfferVoid : Status: offer, Req: void
+pOfferVoid : Agent: Attention!
+
+BOfferOpen : Status: offer, Req: open
+BOfferOpen : Agent: Attention!
+
+DraftOffer : Status: draft, Req: offer
+DraftOffer : Must have user signature
+DraftOffer : Agent: Attention!
+
+OpenClose : Status: open, Req: close
+OpenClose : Agent: Attention!
+
+draft : Status: draft, Req: null
+draft : User: can modify, sign, delete
+
+void : Status: void, Req: null
+void : User: can modify
+
+pOffer : Status: offer, Req: null
+pOffer : Peer signature only
+pOffer : User: can accept, refuse, counter
+
+hOffer : Status: offer, Req: null
+hOffer : User signature only
+hOffer : User waits for peer
+
+open : Status: open, Req: null
+open : Must have both signatures
+open : User: can request close
+
+close : Status: close, Req: null
+close : Non-zero balance
+
+closed : Status: closed, Req: null
 closed : Balance is zero
-open : E: Add peer's signature
 
 'State transition rules:
-void -[$peer]-> peerProffer : $trans($peer,Proposes a Tally,valid signature,Notify user)
-note on link
-  [[../Tallies.md#establishing-a-tally{Can't happen until our user uses a connection ticket to connect to the propser's system and exchange keys} User-initiated]]
-endnote
-void -[$user]-> userDraft : $trans($user,New Tally Record,valid signature)
+[*] -[$user]-> draft : $trans($user,User or system\ndrafts new tally)
+[*] -[$peer]-> pOffer : $trans($peer,Receive new proposed tally,valid signature,Act: offer\nNotify user)
+working -[$user]-> DraftOffer : $trans($user,User signs tally,valid cert,Request offer)
 
-userVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:userVoid)
+draft -[$peer]-> draft : $trans($peer,Ticketed tally request,Have peer cert, Act: ticket; Notify user)
+pOfferVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:void)
 
-peerProffer -[$user]-> userVoid : $trans($user,Request to void)
-peerProffer -[$user]-> userDraft : $trans($user,Modifies tally,valid signature)
-peerProffer -[$user]-> userAccept : $trans($user,Accepts tally,valid signature)
+pOffer -[$user]-> pOfferVoid : $trans($user,Refuses tally, '', Request void)
+pOffer -[$user]-> DraftOffer : $trans($user,Modifies tally,valid signature, Request offer)
+pOffer -[$user]-> BOfferOpen : $trans($user,Accepts tally,valid signature, Request open)
 
-userAccept -[$db]-> open : $trans($db,req:open detected,'',Transmit act:userAccept)
+BOfferOpen -[$db]-> open : $trans($db,req:open detected,'',Transmit Act:open)
 
-userDraft -[$db]-> userProffer : $trans($db,Req:draft detected,,Transmit Act:peerProffer)
+DraftOffer -[$db]-> hOffer : $trans($db,Req:offer detected,,Transmit Act:offer)
 
-userProffer -[$peer]-> open : $trans($peer,Accepted tally)
-userProffer -[$peer]-> void : $trans($peer,"Refused tally\nor timed out",Notify user)
-userProffer -[$peer]-> peerProffer : $trans($peer,Counter-offered,'',Notify user)
+hOffer -[$peer]-> open : $trans($peer, Receive peer acceptance, '', Act: open)
+hOffer -[$peer]-> void : $trans($peer,Receive peer refusal, '', Act: void; Notify user)
+hOffer -[$peer]-> pOffer : $trans($peer,Receive modified tally, '', Act: offer; Notify user)
+void -[$peer]-> pOffer : $trans($peer,Receive modified tally,'', Act: offer; Notify user)
 
-open -left[$user]-> userClose : $trans($user,Requests close)
-open -[$peer]-> closing : $trans($peer,Requests close)
-userClose -[$db]-> closing : $trans($db,Req:close detected,'',Transmit act:userClose)
-closing -left[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
+open -right[$user]-> OpenClose : $trans($user, Wants to close tally, '', Request close)
+open -[$peer]-> close : $trans($peer,Receive peer\nclose request, '', Act: close)
+OpenClose -[$db]-> close : $trans($db,Req:close detected,'',Transmit act:peerClose)
+close -right[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
 
 'closed --> [*]
 

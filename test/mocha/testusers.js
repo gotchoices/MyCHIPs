@@ -6,21 +6,7 @@
 const { dbConf, Log, Format, Bus, assert } = require('../settings')
 var log = Log('testUsers')
 var { dbClient } = require("wyseman")
-const Port0=65434
-const Port1=65435
-const user0 = 'p1000'
-const user1 = 'p1001'
-const cid0 = 'adam_smith'
-const cid1 = 'james_madison'
-var host = 'localhost'
-var aKey0 = Buffer.from('P'+Port0).toString('base64url')
-var aKey1 = Buffer.from('Q'+Port1).toString('base64url')
-var uKey0 = Buffer.from('X'+user0).toString('base64url')
-var uKey1 = Buffer.from('Y'+user1).toString('base64url')
-var aCon0 = {host, port: Port0, keys:{publicKey:aKey0}}
-var aCon1 = {host, port: Port1, keys:{publicKey:aKey1}}
-
-module.exports = {host, user0, user1, Port0, Port1, uKey0, uKey1, aKey0, aKey1, aCon0, aCon1, cid0, cid1}
+var { host, user0, user1, uKey0, uKey1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('./def-users')
 
 describe("Establish test users", function() {
   var db
@@ -32,14 +18,14 @@ describe("Establish test users", function() {
   it("Initialize test users", function(done) {
 //log.debug("Key:", agent0.key.publicKey)
     let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, peer_psig=%L'
-      , f0 = Format(fields, host, Port0, aKey0, uKey0)
-      , f1 = Format(fields, host, Port1, aKey1, uKey1)
+      , f0 = Format(fields, host, port0, agent0, uKey0)
+      , f1 = Format(fields, host, port1, agent1, uKey1)
       , sql = `begin;
         delete from base.ent where ent_num > 1001;
         delete from mychips.tallies;
         update mychips.users set _last_tally = 0;
-        update mychips.users_v set ${f0} where peer_ent = 'p1000';
-        update mychips.users_v set ${f1} where peer_ent = 'p1001';
+        update mychips.users_v set ${f0} where peer_ent = '${user0}';
+        update mychips.users_v set ${f1} where peer_ent = '${user1}';
         select count(*) as count from mychips.users_v where ent_num >= 1000; commit;`
 log.debug("Sql:", sql)
     db.query(sql, (err, res) => {if (err) done(err)

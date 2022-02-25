@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="685px" preserveAspectRatio="none" style="width:956px;height:685px;background:#FFFFFF;" version="1.1" viewBox="0 0 956 685" width="956px" zoomAndPan="magnify"><defs><filter height="300%" id="f1lubwjkx07n0a" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="133.5" x2="133.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="180.5" x2="180.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="221.5" x2="221.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="263.5" x2="263.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="326" x2="326" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="389.5" x2="389.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="522.5" x2="522.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="656.5" x2="656.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="719" x2="719" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="782.5" x2="782.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="823.5" x2="823.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="865.5" x2="865.5" y1="69.9766" y2="611.9766"/><line style="stroke:#44AAFF;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="915.5" x2="915.5" y1="69.9766" y2="611.9766"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="21" x="120" y="50.5352">Lift</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="108.5" y="67.0234">Bound</text><ellipse cx="133.5" cy="21" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="121.5" x2="145.5" y1="35" y2="35"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="21" x="120" y="624.5117">Lift</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="108.5" y="641">Bound</text><ellipse cx="133.5" cy="659.9531" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="121.5" x2="145.5" y1="673.9531" y2="673.9531"/><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="168.5" y="39.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="175.5" y="55.4468">a</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="168.5" y="610.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="175.5" y="626.4468">a</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="32" x="203" y="50.5352">Tally</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="33" x="202.5" y="67.0234">Limit</text><ellipse cx="222" cy="21" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="210" x2="234" y1="35" y2="35"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="32" x="203" y="624.5117">Tally</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="33" x="202.5" y="641">Limit</text><ellipse cx="222" cy="659.9531" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="210" x2="234" y1="673.9531" y2="673.9531"/><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="251.5" y="39.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="258.5" y="55.4468">b</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="251.5" y="610.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="258.5" y="626.4468">b</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="21" x="313" y="50.5352">Lift</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="301" y="67.0234">Target</text><ellipse cx="326.5" cy="21" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="314.5" x2="338.5" y1="35" y2="35"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="21" x="313" y="624.5117">Lift</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="301" y="641">Target</text><ellipse cx="326.5" cy="659.9531" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="314.5" x2="338.5" y1="673.9531" y2="673.9531"/><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="377.5" y="39.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="384.5" y="55.4468">c</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="377.5" y="610.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="384.5" y="626.4468">c</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="37" x="502.5" y="39.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="23" x="509.5" y="55.4468">Zero</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="37" x="502.5" y="610.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="23" x="509.5" y="626.4468">Zero</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="644.5" y="39.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="651.5" y="55.4468">x</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="644.5" y="610.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="651.5" y="626.4468">x</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="34" x="699.5" y="50.5352">Drop</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="694" y="67.0234">Target</text><ellipse cx="719.5" cy="21" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="707.5" x2="731.5" y1="35" y2="35"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="34" x="699.5" y="624.5117">Drop</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="694" y="641">Target</text><ellipse cx="719.5" cy="659.9531" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="707.5" x2="731.5" y1="673.9531" y2="673.9531"/><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="770.5" y="39.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="777.5" y="55.4468">y</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="770.5" y="610.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="777.5" y="626.4468">y</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="32" x="805" y="50.5352">Tally</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="33" x="804.5" y="67.0234">Limit</text><ellipse cx="824" cy="21" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="812" x2="836" y1="35" y2="35"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="32" x="805" y="624.5117">Tally</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="33" x="804.5" y="641">Limit</text><ellipse cx="824" cy="659.9531" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="812" x2="836" y1="673.9531" y2="673.9531"/><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="853.5" y="39.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="860.5" y="55.4468">z</text><rect fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" height="25" style="stroke:#202024;stroke-width:1.5;" width="20" x="853.5" y="610.9766"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="6" x="860.5" y="626.4468">z</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="34" x="895.5" y="50.5352">Drop</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="890.5" y="67.0234">Bound</text><ellipse cx="915.5" cy="21" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="903.5" x2="927.5" y1="35" y2="35"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="34" x="895.5" y="624.5117">Drop</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="890.5" y="641">Bound</text><ellipse cx="915.5" cy="659.9531" fill="#FEFECE" filter="url(#f1lubwjkx07n0a)" rx="12" ry="12" style="stroke:#A80036;stroke-width:2.0;"/><line style="stroke:#A80036;stroke-width:2.0;" x1="903.5" x2="927.5" y1="673.9531" y2="673.9531"/><path d="M98,84.9766 L98,105.9766 L165,105.9766 L165,94.9766 L155,84.9766 L98,84.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M155,84.9766 L155,94.9766 L165,94.9766 L155,84.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="46" x="104" y="98.4468">b &lt;= zero</text><path d="M188,84.9766 L188,105.9766 L251,105.9766 L251,94.9766 L241,84.9766 L188,84.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M241,84.9766 L241,94.9766 L251,94.9766 L241,84.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="42" x="194" y="98.4468">l &lt;= zero</text><path d="M268,84.9766 L268,105.9766 L380,105.9766 L380,94.9766 L370,84.9766 L268,84.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M370,84.9766 L370,94.9766 L380,94.9766 L370,84.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="91" x="274" y="98.4468">bound &lt;= t &lt;= zero</text><path d="M661,84.9766 L661,105.9766 L773,105.9766 L773,94.9766 L763,84.9766 L661,84.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M763,84.9766 L763,94.9766 L773,94.9766 L763,84.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="91" x="667" y="98.4468">zero &lt;= t &lt;= bound</text><path d="M790,84.9766 L790,105.9766 L853,105.9766 L853,94.9766 L843,84.9766 L790,84.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M843,84.9766 L843,94.9766 L853,94.9766 L843,84.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="42" x="796" y="98.4468">zero &lt;= l</text><path d="M880,84.9766 L880,105.9766 L947,105.9766 L947,94.9766 L937,84.9766 L880,84.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M937,84.9766 L937,94.9766 L947,94.9766 L937,84.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="46" x="886" y="98.4468">zero &lt;= b</text><path d="M117,119.9766 L117,162.9766 L405,162.9766 L405,129.9766 L395,119.9766 L117,119.9766 " fill="#FFCCCC" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M395,119.9766 L395,129.9766 L405,129.9766 L395,119.9766 " fill="#FFCCCC" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="117" x="155.5" y="133.4468">- Negative Tally balance</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="198" x="155.5" y="144.4468">Client owed by vendor (client &lt;-- vendor)</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="173" x="155.5" y="155.4468">Client/Foil maintains these variables</text><path d="M640,119.9766 L640,162.9766 L931,162.9766 L931,129.9766 L921,119.9766 L640,119.9766 " fill="#CCCCFF" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M921,119.9766 L921,129.9766 L931,129.9766 L921,119.9766 " fill="#CCCCFF" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="114" x="683" y="133.4468">+ Positive Tally balance</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="183" x="683" y="144.4468">Client owes vendor (client --&gt; vendor)</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="192" x="683" y="155.4468">Vendor/Stock maintains these variables</text><path d="M111,176.9766 L111,197.9766 L938,197.9766 L938,186.9766 L928,176.9766 L111,176.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M928,176.9766 L928,186.9766 L938,186.9766 L928,176.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="124" x="456" y="190.4468">Normal Chit Transactions</text><polygon fill="#000000" points="233,219.9766,223,223.9766,233,227.9766,229,223.9766" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="812,219.9766,822,223.9766,812,227.9766,816,223.9766" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="227" x2="818" y1="223.9766" y2="223.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="203" x="239" y="219.4468">Normal range for manual chit transactions</text><polygon fill="#000000" points="812,244.9766,822,248.9766,812,252.9766,816,248.9766" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="389.5" x2="818" y1="248.9766" y2="248.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="272" x="396.5" y="244.4468">Client payment pledge for services can go up to this limit</text><polygon fill="#000000" points="233,269.9766,223,273.9766,233,277.9766,229,273.9766" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="227" x2="655.5" y1="273.9766" y2="273.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="223" x="239" y="269.4468">Vendor refund/credit pledge can go to this limit</text><path d="M111,286.9766 L111,307.9766 L938,307.9766 L938,296.9766 L928,286.9766 L111,286.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M928,286.9766 L928,296.9766 L938,296.9766 L928,286.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="160" x="438" y="300.4468">Lifts (Decreases to tally balance)</text><polygon fill="#000000" points="400.5,329.9766,390.5,333.9766,400.5,337.9766,396.5,333.9766" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="394.5" x2="655.5" y1="333.9766" y2="333.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="48" x="406.5" y="329.4468">Typical lift</text><polygon fill="#000000" points="337.5,354.9766,327.5,358.9766,337.5,362.9766,333.5,358.9766" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="331.5" x2="914.5" y1="358.9766" y2="358.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="365" x="343.5" y="354.4468">Lift in this range must be honored by Client with no charge (= honoring IOU)</text><polygon fill="#FF0000" points="144.5,379.9766,134.5,383.9766,144.5,387.9766,140.5,383.9766" style="stroke:#FF0000;stroke-width:1.0;"/><line style="stroke:#FF0000;stroke-width:1.0;" x1="138.5" x2="325.5" y1="383.9766" y2="383.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="152" x="150.5" y="379.4468">Client may charge lift (+reward)</text><polygon fill="#008000" points="144.5,404.9766,134.5,408.9766,144.5,412.9766,140.5,408.9766" style="stroke:#008000;stroke-width:1.0;"/><line style="stroke:#008000;stroke-width:1.0;" x1="138.5" x2="914.5" y1="408.9766" y2="408.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="332" x="150.5" y="404.4468">Client may bump lift (-reward); This is a service to Vendor's interests</text><polygon fill="#EE82EE" points="144.5,429.9766,134.5,433.9766,144.5,437.9766,140.5,433.9766" style="stroke:#EE82EE;stroke-width:1.0;"/><line style="stroke:#EE82EE;stroke-width:1.0;" x1="138.5" x2="914.5" y1="433.9766" y2="433.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="490" x="150.5" y="429.4468">Vendor may charge or bump lift (+/- clutch); +clutch allows Vendor to retain holdings by restricting lifts</text><path d="M111,446.9766 L111,467.9766 L938,467.9766 L938,456.9766 L928,446.9766 L111,446.9766 " fill="#E8E8EA" filter="url(#f1lubwjkx07n0a)" style="stroke:#202024;stroke-width:1.0;"/><path d="M928,446.9766 L928,456.9766 L938,456.9766 L928,446.9766 " fill="#E8E8EA" style="stroke:#202024;stroke-width:1.0;"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="165" x="435.5" y="460.4468">Drops (Increases to tally balance)</text><polygon fill="#000000" points="644.5,489.9766,654.5,493.9766,644.5,497.9766,648.5,493.9766" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="389.5" x2="650.5" y1="493.9766" y2="493.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="60" x="396.5" y="489.4468">Typical drop</text><polygon fill="#000000" points="707.5,514.9766,717.5,518.9766,707.5,522.9766,711.5,518.9766" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="133.5" x2="713.5" y1="518.9766" y2="518.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="373" x="140.5" y="514.4468">Drop in this range must be honored by Vendor at no charge (= honoring IOU)</text><polygon fill="#FF0000" points="903.5,539.9766,913.5,543.9766,903.5,547.9766,907.5,543.9766" style="stroke:#FF0000;stroke-width:1.0;"/><line style="stroke:#FF0000;stroke-width:1.0;" x1="719.5" x2="909.5" y1="543.9766" y2="543.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="172" x="726.5" y="539.4468">Vendor may charge drop (+reward)</text><polygon fill="#008000" points="903.5,564.9766,913.5,568.9766,903.5,572.9766,907.5,568.9766" style="stroke:#008000;stroke-width:1.0;"/><line style="stroke:#008000;stroke-width:1.0;" x1="133.5" x2="909.5" y1="568.9766" y2="568.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="344" x="140.5" y="564.4468">Vendor may bump drop (-reward); This is a service to Client's interests</text><polygon fill="#EE82EE" points="903.5,589.9766,913.5,593.9766,903.5,597.9766,907.5,593.9766" style="stroke:#EE82EE;stroke-width:1.0;"/><line style="stroke:#EE82EE;stroke-width:1.0;" x1="133.5" x2="909.5" y1="593.9766" y2="593.9766"/><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="498" x="140.5" y="589.4468">Client may charge or bump drop (+/- clutch); +clutch allows Client to retain holdings by restricting drops</text><!--MD5=[575b5f3b38eec60026d346bbe24f783d]
+@startuml
+!include common.puml
+
+entity "Lift\nBound" as cbound
+participant a
+entity "Tally\nLimit" as climit
+participant b
+entity "Lift\nTarget" as ctarget
+participant c
+participant Zero as zero
+participant x
+entity "Drop\nTarget" as vtarget
+participant y
+entity "Tally\nLimit" as vlimit
+participant z
+entity "Drop\nBound" as vbound
+
+note over cbound: b <= zero
+/ note over climit: l <= zero
+/ note over ctarget: bound <= t <= zero
+/ note over vtarget: zero <= t <= bound
+/ note over vlimit: zero <= l
+/ note over vbound: zero <= b
+
+note over cbound, c #ffcccc: - Negative Tally balance\nClient owed by vendor (client <- - vendor)\nClient/Foil maintains these variables
+/ note over x,vbound #ccccff: + Positive Tally balance\nClient owes vendor (client - -> vendor)\nVendor/Stock maintains these variables
+
+note over cbound,vbound: Normal Chit Transactions
+
+climit <-> vlimit: Normal range for manual chit transactions
+c -> vlimit: Client payment pledge for services can go up to this limit
+x -> climit: Vendor refund/credit pledge can go to this limit
+
+note over cbound,vbound: Lifts (Decreases to tally balance)
+
+c <- x: Typical lift
+ctarget <- vbound: Lift in this range must be honored by Client with no charge (= honoring IOU)
+cbound <[#red]- ctarget: Client may charge lift (+reward)
+cbound <[#green]- vbound: Client may bump lift (-reward); This is a service to Vendor's interests
+cbound <[#violet]- vbound: Vendor may charge or bump lift (+/- clutch); +clutch allows Vendor to retain holdings by restricting lifts
+
+note over cbound,vbound: Drops (Increases to tally balance)
+
+c -> x: Typical drop
+cbound -> vtarget: Drop in this range must be honored by Vendor at no charge (= honoring IOU)
+vtarget -[#red]> vbound: Vendor may charge drop (+reward)
+cbound -[#green]> vbound: Vendor may bump drop (-reward); This is a service to Client's interests
+cbound -[#violet]> vbound: Client may charge or bump drop (+/- clutch); +clutch allows Client to retain holdings by restricting drops
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+
+entity "Lift\nBound" as cbound
+participant a
+entity "Tally\nLimit" as climit
+participant b
+entity "Lift\nTarget" as ctarget
+participant c
+participant Zero as zero
+participant x
+entity "Drop\nTarget" as vtarget
+participant y
+entity "Tally\nLimit" as vlimit
+participant z
+entity "Drop\nBound" as vbound
+
+note over cbound: b <= zero
+/ note over climit: l <= zero
+/ note over ctarget: bound <= t <= zero
+/ note over vtarget: zero <= t <= bound
+/ note over vlimit: zero <= l
+/ note over vbound: zero <= b
+
+note over cbound, c #ffcccc: - Negative Tally balance\nClient owed by vendor (client <- - vendor)\nClient/Foil maintains these variables
+/ note over x,vbound #ccccff: + Positive Tally balance\nClient owes vendor (client - -> vendor)\nVendor/Stock maintains these variables
+
+note over cbound,vbound: Normal Chit Transactions
+
+climit <-> vlimit: Normal range for manual chit transactions
+c -> vlimit: Client payment pledge for services can go up to this limit
+x -> climit: Vendor refund/credit pledge can go to this limit
+
+note over cbound,vbound: Lifts (Decreases to tally balance)
+
+c <- x: Typical lift
+ctarget <- vbound: Lift in this range must be honored by Client with no charge (= honoring IOU)
+cbound <[#red]- ctarget: Client may charge lift (+reward)
+cbound <[#green]- vbound: Client may bump lift (-reward); This is a service to Vendor's interests
+cbound <[#violet]- vbound: Vendor may charge or bump lift (+/- clutch); +clutch allows Vendor to retain holdings by restricting lifts
+
+note over cbound,vbound: Drops (Increases to tally balance)
+
+c -> x: Typical drop
+cbound -> vtarget: Drop in this range must be honored by Vendor at no charge (= honoring IOU)
+vtarget -[#red]> vbound: Vendor may charge drop (+reward)
+cbound -[#green]> vbound: Vendor may bump drop (-reward); This is a service to Client's interests
+cbound -[#violet]> vbound: Client may charge or bump drop (+/- clutch); +clutch allows Client to retain holdings by restricting drops
+
+@enduml
+
+PlantUML version 1.2022.1(Tue Feb 01 11:19:58 MST 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

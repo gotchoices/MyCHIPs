@@ -94,7 +94,7 @@ view mychips.peers_v {mychips.peers base.ent_v mychips.parm_v_user mychips.agent
 function {mychips.peers_vf_pre(new mychips.peers_v, old mychips.peers_v, tgop text)} {mychips.peers_v mychips.agents} {
   returns mychips.peers_v language plpgsql security definer as $$
     begin
-raise notice 'peers_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
+--raise notice 'peers_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
       if not new.peer_agent isnull and not exists (select agent from mychips.agents where agent = new.peer_agent) then
         insert into mychips.agents (agent, agent_host, agent_port) values (new.peer_agent, new.peer_host, new.peer_port);
       end if;
@@ -132,7 +132,7 @@ view mychips.peers_v_me {mychips.peers_v mychips.tallies base.user_id(text)} {se
   , t.count		as count
 
     from	mychips.peers_v		p
-    join	(select tally_ent, tally_seq, partner, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.partner = p.peer_ent
+    join	(select tally_ent, tally_seq, part_ent, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.part_ent = p.peer_ent
 } -grant {
     {peer	s {s i u} {d}}
 } -primary id

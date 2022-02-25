@@ -61,20 +61,23 @@ logI.debug("Initiator got query request:", req, data)
     }, null, e => done(e))
   })
 
-  it("Send from responder to initiator", function(done) {
+  it("Send from responder to initiator on existing connection", function(done) {
+    let dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
     initCB = function(connection, obj) {
       assert.equal(obj.text, message2)			//Got the same message we sent
-      done()
+      assert.equal(responder.connections.size(), 1)	//Should reuse existing connection
+      _done()
     }
-    responder.send({to: initCHAD, text: message2}, null, e=>done(e))
+    responder.send({to: initCHAD, text: message2}, ()=>_done(), e=>done(e))
   })
 
   it("Send from initiator to initiator", function(done) {
+    let dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
     initCB = function(connection, obj) {
       assert.equal(obj.text, message3)			//Got the same message we sent
-      done()
+      _done()
     }
-    initiator.send({to: initCHAD, text: message3}, null, e=>done(e))
+    initiator.send({to: initCHAD, text: message3}, ()=>_done(), e=>done(e))
   })
 
   it("Send to a bad address calls failure CB", function(done) {

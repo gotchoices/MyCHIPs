@@ -1,3 +1,4 @@
+const Fs = require('fs')
 const Path = require('path')
 const Format = require('pg-format')
 const assert = require('assert');
@@ -8,6 +9,7 @@ const uuidv5 = require('uuid/v5')
 
 module.exports={
   Database,
+  Database2: Database + '2',
   DBAdmin,
   DatabaseHost: "localhost",
   DatabasePort: 5432,
@@ -21,8 +23,8 @@ module.exports={
   Format,
   assert,
   Bus,
-  dbConf: function(log, listen) {
-    Object.assign(this, {database: Database, user: DBAdmin, connect: true, log, listen})
+  dbConf: function(log, listen, database = Database, schema) {
+    Object.assign(this, {database, user: DBAdmin, connect: true, log, listen, schema})
   },
   saveRest: function (tag, tab, func='save') {
     return Format('select wm.table_%s(%L,%L);', func, tab, tag)
@@ -31,5 +33,24 @@ module.exports={
     assert(res.rowCount, exp)
     return res.rows[idx]
   },
-  mkUuid: function(cid) {return uuidv5(cid, uuidv5(cid, uuidv5.DNS))}
+  mkUuid: function(cid, agent, mix = 'x') {
+    let chad = 'chip://' + cid + ':' + agent
+      , date = new Date().toISOString()
+      , uuid = uuidv5(date+mix, uuidv5(chad, uuidv5.URL))
+//    , uuid = uuidv5(cid, uuidv5.DNS)		//Deterministic
+//console.log('date/mix:', date, 'uuid:', uuid)
+    return uuid
+  },
+  importCheck: function(fileName, target, db, done, check) {
+    Fs.readFile(fileName, (err, fileData) => {if (err) done(err)
+      let jsonData = JSON.parse(fileData)
+      db.query("select json.import($1::jsonb, $2::text) as record;", [jsonData, target] ,(err, res) => {
+        if (err) done(err)
+        assert.equal(res.rowCount, 1)
+        let row = res.rows[0]
+        assert.ok(row.record)
+        if (row.record) check(res,row.record.slice(1,-1).split(','))
+      })
+    })
+  }
 }

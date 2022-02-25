@@ -439,7 +439,7 @@ $$;
 create function norm_date(timestamptz) returns text immutable language sql as $$
     select to_char($1,'YYYY-Mon-DD HH24:MI:SS');
 $$;
-create extension "plpythonu";
+create extension "plpython3u";
 create extension "uuid-ossp";
 create function wm.column_names(oid,int4[]) returns varchar[] as $$
     declare
@@ -651,33 +651,16 @@ create function mychips.change_tf_notify() returns trigger language plpgsql secu
       return null;
     end;
 $$;
-create function mychips.chit_state(isdebit boolean, request text, signature text) returns text immutable language plpgsql as $$
-    begin return
-      case when isdebit then
-        case when signature = 'void'		then 'peerDecline'
-           when request = 'userRequest'		then 'userRequest'
-           when request is null and signature is not null	then 'peerValid'
-           when request is null			then 'userInvoice'
-           else					     'undefined'	end
-      else	--is a credit
-        case when signature = 'void' then
-        case when request = 'userDecline'	then 'userDecline'
-             when request is null		then 'userVoid'
-             else				     'undefined'    end
-           when signature is null then
-        case when request is null		then 'peerInvoice'
-             else				     'undefined'    end
-           when request = 'userAgree'		then 'userAgree'
-           when request = 'userDraft'		then 'userDraft'
-           when request is null			then 'userValid'
-      else     					     'undefined'	end
-      end;
-    end;
+create function mychips.chit_state(isdebit boolean, status text, request text) returns text immutable language sql as $$
+    select
+      case when isdebit then 'A.' else 'L.' end ||
+      status ||
+      case when request isnull then '' else '.' || request end;
 $$;
 create function mychips.contract_url(dom text, nam text, ver int, lan text, dig text) returns text immutable language sql as $$
     select dom || '/' || nam || '-' || ver::text || '-' || lan || case when dig is null then '' else '?' || dig end;
 $$;
-create function mychips.j2h(input jsonb) returns bytea language plpythonu immutable as $$
+create function mychips.j2h(input jsonb) returns bytea language plpython3u immutable as $$
     import json
     import hashlib
     if isinstance(input, str):		#JSON gets passed into python as a string
@@ -689,7 +672,7 @@ create function mychips.j2h(input jsonb) returns bytea language plpythonu immuta
     hash = hashlib.sha256(serial.encode('utf-8'))
     return hash.digest()
 $$;
-create function mychips.j2s(inp jsonb) returns text language plpythonu immutable as $$
+create function mychips.j2s(inp jsonb) returns text language plpython3u immutable as $$
     import json
     if isinstance(inp,str):		#JSON gets passed into python as a string
       obj = json.loads(inp)
@@ -731,19 +714,14 @@ create function mychips.lift_state(status text, request text, expired boolean) r
         else status end
       end
 $$;
-create function mychips.route_state(status text, expired boolean, trymax boolean) returns text stable language plpgsql as $$
-    begin
-      return case when status = 'draft'				then 'draft'
-         when status = 'none'					then 'none'
-         when status = 'pend' then
-           case when expired and not trymax			then 'timeout'
-                when expired and trymax				then 'unknown'
-           else 'pend' end
-         when status = 'good' then
-           case when expired					then 'stale'
-           else 'good' end
-         when status = 'none'					then 'none'
-         else 'undefined' end;
+create function mychips.random_uuid() returns uuid language plpython3u as $$
+    import uuid
+    return uuid.uuid4()
+$$;
+create function mychips.route_state(status text, expired boolean) returns text stable language plpgsql as $$
+    begin return
+      status ||
+      case when status in ('pend','open') and expired then '.X' else '' end;
     end;
 $$;
 create function mychips.state_updater(recipe jsonb, tab text, fields text[], qflds text[] default null) returns text immutable language plpgsql as $$
@@ -762,24 +740,18 @@ create function mychips.state_updater(recipe jsonb, tab text, fields text[], qfl
       return 'update ' || tab || ' set ' || array_to_string(qflds,', ') || ' where ';
     end;
 $$;
-create function mychips.tally_state(status text, request text, hold_sig text, part_sig text, total bigint) returns text immutable language plpgsql as $$
+create function mychips.tally_state(status text, request text, hold_sig text, part_sig text) returns text immutable language plpgsql as $$
     begin return
-    case when status = 'void' and request is null		then 'void'
-         when status = 'void' and request = 'draft'		then 'userDraft'
-         when status = 'draft' and request is null then
-           case when hold_sig is not null and part_sig is null	then 'userProffer'
-                when part_sig is not null and hold_sig is null	then 'peerProffer'
-           else 'undefined' end
-         when status = 'draft' and request = 'void'		then 'userVoid'
-         when status = 'draft' and request = 'open'		then 'userAccept'
-         when status = 'open' and request is null		then 'open'
-         when status = 'open' and request = 'close'		then 'userClose'
-         when status = 'close' and request is null then
-             case when total = 0 then 'closed' else 'closing' end
-         else 'undefined' end;
+      case when status = 'offer' then
+             case when hold_sig isnull and not part_sig isnull then	'P.'
+                  when part_sig isnull and not hold_sig isnull then	'H.'
+                  else 'B.' end
+           else '' end ||
+      status ||
+      case when request isnull then '' else '.' || request end;
     end;
 $$;
-create function mychips.validate(dat text, sig text, pub text) returns boolean language plpythonu immutable as $$
+create function mychips.validate(dat text, sig text, pub text) returns boolean language plpython3u immutable as $$
 #    plpy.notice('Validate:', dat, sig, pub)
     import rsa
 
@@ -2369,7 +2341,7 @@ route_ent	text		not null references mychips.peers on update cascade on delete ca
   , topu_ent	text		not null references mychips.peers on update cascade on delete cascade
   , botu_ent	text		not null references mychips.peers on update cascade on delete cascade
   , requ_ent	text		not null references mychips.peers on update cascade on delete cascade
-  , status	text		not null default 'draft'
+  , status	text		not null default 'draft' constraint "!mychips.routes.BST" check(status in ('draft','pend','good','none'))
   , step	int		not null default 0
   , lift_min	bigint		default 0
   , lift_margin	float		not null default 0 constraint "!mychips.paths.LMG" check (lift_margin >= -1 and lift_margin <= 1)
@@ -2404,22 +2376,22 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   , digest	bytea
 
 
-  , target	bigint		not null default 0	-- Lift settings
+  , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
   , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
   , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
-  , bound	bigint		not null default 0
+  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
 
 
   , dr_limit	bigint		not null default 0	-- A stock term
   , cr_limit	bigint		not null default 0	-- A foil term
 
 
-  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','open','close'))
-  , status	text		not null default 'void'
-  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','open','close'))
-  , partner	text		references mychips.peers on update cascade on delete restrict
-  				constraint "!mychips.tallies.NSP" check (partner != tally_ent)
-  			      , unique(tally_ent, partner, tally_type, tally_uuid)
+  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
+  , status	text		not null default 'draft'
+  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
+  , part_ent	text		references mychips.peers on update cascade on delete restrict
+  				constraint "!mychips.tallies.NSP" check (part_ent != tally_ent)
+  			      , unique(tally_ent, part_ent, tally_type, tally_uuid)
   , units_gc	bigint		default 0 not null
   , units_pc	bigint		default 0 not null
   , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
@@ -2441,7 +2413,7 @@ create view mychips.users_v as select
     ee.id, ee.ent_name, ee.ent_type, ee.ent_cmt, ee.fir_name, ee.mid_name, ee.pref_name, ee.title, ee.gender, ee.marital, ee.born_date, ee.username, ee.ent_inact, ee.country, ee.tax_id, ee.bank, ee.ent_num, ee.std_name, ee.frm_name, ee.giv_name, ee.cas_name, ee.age, ee.conn_pub
   , pe.peer_ent, pe.peer_cid, pe.peer_cert, pe.peer_psig, pe.peer_cmt, pe.peer_named, pe.peer_agent
   , ue.user_ent, ue.user_host, ue.user_port, ue.user_stat, ue.user_hid, ue.user_cmt, ue.serv_id, ue.crt_by, ue.crt_date, ue.mod_by
-  , ag.agent, ag.agent_key, ag.agent_host, ag.agent_port, ag.agent_ip
+  , ag.agent_key, ag.agent_host, ag.agent_port, ag.agent_ip
   , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
   , ag.agent_host		as peer_host
   , ag.agent_port		as peer_port
@@ -2587,6 +2559,7 @@ create view json.place as select
 create view json.user as select
     id		as "id"
   , peer_cid	as "cid"
+  , peer_agent	as "agent"
   , ent_name	as "name"
   , ent_type	as "type"
   , fir_name	as "first"
@@ -2612,20 +2585,24 @@ create table mychips.chits (
 chit_ent	text
   , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
-  , chit_uuid	uuid		not null
-  , chit_type	text		not null default 'tran' constraint "!mychips.tallies.BCT" check(chit_type in ('lift','tran'))
+
+
+  , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
+  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran'))
   , chit_date	timestamptz	not null default current_timestamp
-  , request	text	        constraint "mychips.tallies.BRQ" check (request is null or request in ('userDraft','userRequest','userAgree','userDecline'))
-  , signature	text
   , units	bigint		not null
   , quidpro	text
   , memo	text
-  , status	text		not null default 'void' constraint "!mychips.tallies.BST" check(status in ('void','pend','good') and (status != 'good' or (request is null and not signature is null and signature != 'void')))
   , digest	bytea		
+  , signature	text		constraint "!mychips.chits.GDS" check(status != 'good' or (request isnull and not signature isnull))
+
+
+  , request	text	        constraint "mychips.chits.BRQ" check (request is null or request in ('pend','good','void'))
+  , status	text		not null default 'draft' constraint "!mychips.chits.BST" check(status in ('draft','pend','good','void'))
   , chain_prv	bytea
   , chain_idx	int	      , unique(chit_ent, chit_seq, chain_idx)
   , lift_seq	int           , foreign key (chit_uuid, lift_seq) references mychips.lifts (lift_uuid, lift_seq) on update cascade on delete cascade
-  , constraint "!mychips.tallies.BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
+  , constraint "!mychips.chits.BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
     
   , crt_date    timestamptz	not null default current_timestamp
   , mod_date    timestamptz	not null default current_timestamp
@@ -2675,7 +2652,7 @@ create view mychips.peers_v_flat as select
     left join	base.comm_v_flat	c on c.id = p.id;
 create function mychips.peers_vf_pre(new mychips.peers_v, old mychips.peers_v, tgop text) returns mychips.peers_v language plpgsql security definer as $$
     begin
-raise notice 'peers_v_pre: % % %', new.peer_agent, new.peer_host, new.peer_port;
+
       if not new.peer_agent isnull and not exists (select agent from mychips.agents where agent = new.peer_agent) then
         insert into mychips.agents (agent, agent_host, agent_port) values (new.peer_agent, new.peer_host, new.peer_port);
       end if;
@@ -2711,7 +2688,7 @@ create view mychips.peers_v_me as select
   , t.count		as count
 
     from	mychips.peers_v		p
-    join	(select tally_ent, tally_seq, partner, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.partner = p.peer_ent;
+    join	(select tally_ent, tally_seq, part_ent, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.part_ent = p.peer_ent;
 select wm.create_role('peer_1');
 grant select on table mychips.peers_v_me to peer_1;
 select wm.create_role('peer_2');
@@ -2771,12 +2748,12 @@ rtry_ent	text	      , primary key (rtry_ent, rtry_chid, rtry_host)
   , last	timestamptz	not null default current_timestamp
 );
 create trigger mychips_tallies_tr_change after insert or update or delete on mychips.tallies for each statement execute procedure mychips.change_tf_notify('tallies');
-create view mychips.tallies_v_net as select 
+create view mychips.tallies_v_net_old as select 
     coalesce(ts.tally_uuid,tf.tally_uuid)	as uuid
-  , coalesce(ts.tally_ent,tf.partner)		as stock_ent
-  , coalesce(tf.tally_ent,ts.partner)		as foil_ent
+  , coalesce(ts.tally_ent,tf.part_ent)		as stock_ent
+  , coalesce(tf.tally_ent,ts.part_ent)		as foil_ent
   , ts.tally_ent				as stock_user
-  , tf.tally_ent				as foil_user
+
   
   , tf.target							as lift_target
   , coalesce(tf.reward,0)					as lift_reward
@@ -2799,7 +2776,7 @@ create function mychips.tally_find(ent text, part text, typ text) returns int im
     declare
       trec record;
     begin
-      select into trec * from mychips.tallies where tally_ent = ent and status = 'open' and tally_type = typ and partner = part order by crt_date desc limit 1;
+      select into trec * from mychips.tallies where tally_ent = ent and status = 'open' and tally_type = typ and part_ent = part order by crt_date desc limit 1;
       return trec.tally_seq;
     end;
 $$;
@@ -3025,7 +3002,7 @@ create view json.cert as select p.id
      , 'agent', p.peer_agent
      , 'host', p.peer_chost
      , 'port', p.peer_cport
-    ) as "chip"
+    ) as "chad"
   , p.ent_type	as "type"
   , p.peer_psig	as "public"
   , case when p.ent_type = 'o' then
@@ -3056,20 +3033,21 @@ create view json.cert as select p.id
   
     from mychips.peers_v p where not peer_ent is null with cascaded check option;
 create view json.users as select
-  cid, name, type, first, middle, prefer, begin, juris, taxid
+  cid, agent, name, type, first, middle, prefer, begin, juris, taxid
   , (select array_agg(to_jsonb(d)) from (select type,address,city,state,post,country,main,comment,prior from json.place p where p.id = u.id order by seq) d) as place
   , (select array_agg(to_jsonb(d)) from (select media,address,main,comment,prior from json.connect c where c.id = u.id order by seq) d) as connect
     from json.user u;
-create function mychips.chit_json(ch mychips.chits) returns jsonb stable language sql as $$
+create function mychips.chit_json(ch mychips.chits, ta uuid) returns jsonb stable language sql as $$
     select jsonb_build_object(
-       'index',		ch.chain_idx,
-       'prior',		ch.chain_prv,
-       'uuid',		ch.chit_uuid,
+       'tally',		ta,
        'type',		ch.chit_type,
+       'uuid',		ch.chit_uuid,
        'date',		ch.chit_date,
        'units',		ch.units,
-       'for',		ch.quidpro,
-       'signed',	ch.signature
+       'for',		ch.quidpro
+
+
+
     )
 $$;
 create index mychips_chits_x_chit_date on mychips.chits (chit_date);
@@ -3112,25 +3090,27 @@ create trigger mychips_peers_v_tr_ins instead of insert on mychips.peers_v for e
 create trigger mychips_peers_v_tr_upd instead of update on mychips.peers_v for each row execute procedure mychips.peers_v_updfunc();
 create trigger mychips_routes_tr_biu before insert or update on mychips.routes for each row execute procedure mychips.routes_tf_biu();
 create view mychips.tallies_v as select 
-    te.tally_ent, te.tally_seq, te.tally_type, te.tally_uuid, te.tally_date, te.version, te.partner, te.hold_cert, te.part_cert, te.request, te.comment, te.contract, te.target, te.reward, te.clutch, te.bound, te.status, te.digest, te.cr_limit, te.dr_limit, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sig, te.part_sig, te.crt_by, te.mod_by, te.crt_date, te.mod_date
+    te.tally_ent, te.tally_seq, te.tally_type, te.tally_uuid, te.tally_date, te.version, te.part_ent, te.hold_cert, te.part_cert, te.request, te.comment, te.contract, te.target, te.reward, te.clutch, te.bound, te.status, te.digest, te.cr_limit, te.dr_limit, te.units_pc, te.units_gc, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sig, te.part_sig, te.hold_terms, te.part_terms, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , te.hold_cid ||':'|| ua.agent	as hold_addr
   , te.hold_cid ||':'|| ua.atsock	as hold_full
   , ua.sock				as hold_sock
   , ua.agent_key			as hold_akey
-  , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chip
+  , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
 
   , te.part_cid ||':'|| pa.agent	as part_addr
   , te.part_cid ||':'|| pa.atsock	as part_full
   , pa.sock				as part_sock
   , pa.agent_key			as part_akey
-  , jsonb_build_object('cid', te.part_cid) || pa.json as part_chip
+  , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
   
-  , not te.partner is null						as inside
-  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc)	as state
-  , mychips.tally_state(status,request,hold_sig,part_sig,units_gc) = any(array['peerProffer','closing']) as action
-  , coalesce(case when te.tally_type = 'stock' then tc.units else -tc.units end,0)			as units
-  , case when te.tally_type = 'stock' then units_gc else -units_gc end				as units_gc
-  , case when te.tally_type = 'stock' then units_pc else -units_pc end				as units_pc
+  , not te.part_ent is null						as inside
+  , mychips.tally_state(status,request,hold_sig,part_sig)		as state
+  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','close','draft']) as action
+  , te.status = 'open' or (te.status = 'close' and units_pc != 0)	as liftable
+  , coalesce(tc.units, 0)			as units
+  , coalesce(case when te.tally_type = 'stock' then tc.units else -tc.units end,0)			as net
+  , case when te.tally_type = 'stock' then te.units_gc else -te.units_gc end				as net_gc
+  , case when te.tally_type = 'stock' then te.units_pc else -te.units_pc end				as net_pc
   , coalesce(tc.chits,0)			as chits
   , greatest(coalesce(tc.latest, te.mod_date), te.mod_date)	as latest
   , mychips.tally_json(te) as json_core
@@ -3159,13 +3139,11 @@ create view mychips.tallies_v as select
     left join	(
       select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where status = 'good'
       group by 1,2
-    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq
-    ;
-
+    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
 
     ;
     ;
-create view mychips.tallies_v_paths as with recursive tally_path(first, last, length, path, uuids, cycle, circuit, inside, corein, fora, forz,
+create view mychips.tallies_v_paths_old as with recursive tally_path(first, last, length, path, uuids, cycle, circuit, inside, corein, fora, forz,
       lift_min, lift_margin, lift_max, lift_reward,
       drop_min, drop_margin, drop_max, drop_reward
     ) as (
@@ -3206,7 +3184,7 @@ create view mychips.tallies_v_paths as with recursive tally_path(first, last, le
           least(tp.drop_max,t.drop_min) end			as drop_max
       , case when t.drop_min < tp.drop_min then t.drop_reward else tp.drop_reward end as drop_reward
 
-    from	mychips.tallies_v_net t
+    from	mychips.tallies_v_net_old t
     join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
   ) select tpr.first, tpr.last
     , tpr.length, tpr.path, tpr.uuids
@@ -3229,7 +3207,7 @@ create function mychips.tally_notices() returns int language plpgsql as $$
         for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
           join mychips.tally_tries tr on tr.ttry_ent = ta.tally_ent and tr.ttry_seq = ta.tally_seq
           where ta.request is not null and (current_timestamp - tr.last) >= min_time loop
-            perform mychips.tally_notify(trec);
+            perform mychips.tally_notify_agent(trec);
             didem = didem + 1;
         end loop;
 
@@ -3272,15 +3250,19 @@ create trigger wylib_data_v_tr_del instead of delete on wylib.data_v for each ro
 create trigger wylib_data_v_tr_ins instead of insert on wylib.data_v for each row execute procedure wylib.data_v_tf_ins();
 create trigger wylib_data_v_tr_upd instead of update on wylib.data_v for each row execute procedure wylib.data_v_tf_upd();
 create view json.tally as select
-    tally_ent		as "id"
-  , tally_uuid		as "uuid"
-  , version		as "version"
-  , case when tally_type = 'stock' then hold_addr else part_addr end as "stock"
-  , case when tally_type = 'stock' then part_addr else hold_addr end as "foil"
-  , tally_date		as "created"
-  , contract		as "contract"
-
-    from	mychips.tallies_v;
+    te.tally_ent	as "id"
+  , te.tally_seq	as "seq"
+  , te.version		as "version"
+  , te.tally_uuid	as "uuid"
+  , te.tally_date	as "date"
+  , te.tally_type	as "type"
+  , te.comment		as "comment"
+  , te.contract		as "agree"
+  , te.hold_cert	as "holder"
+  , te.hold_terms	as "hterms"
+  , te.part_cert	as "partner"
+  , te.part_terms	as "pterms"
+    from mychips.tallies te;
 create view mychips.chits_v as select 
     ch.chit_ent, ch.chit_seq, ch.chit_idx, ch.request, ch.signature, ch.units, ch.quidpro, ch.memo, ch.chit_uuid, ch.chit_type, ch.crt_by, ch.mod_by, ch.crt_date, ch.mod_date, ch.chit_date, ch.chain_idx, ch.chain_prv, ch.lift_seq, ch.status, ch.digest
   , te.hold_cid
@@ -3291,14 +3273,15 @@ create view mychips.chits_v as select
   , case when ch.status = 'good' then ch.units else 0 end	as units_g
   , case when ch.status = 'void' then 0 else ch.units end	as units_p
 
-  , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.request, ch.signature)	as state
-  , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.request, ch.signature) = any(array['peerInvoice','peerDecline']) as action
-  , mychips.chit_json(ch)					as json_core
-  , mychips.chit_json(ch) || jsonb_build_object(
-      'digest',		ch.digest
+  , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.status, ch.request)	as state
+  , mychips.chit_state(te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0, ch.status, ch.request) = any(array['L.pend']) as action
+  , mychips.chit_json(ch, te.tally_uuid)			as json_core
+  , mychips.chit_json(ch, te.tally_uuid) || jsonb_build_object(
+      'digest',		ch.digest,
+      'signed',		ch.signature
     )								as json
-  , mychips.j2h(mychips.chit_json(ch)) as digest_v
-  , mychips.j2h(mychips.chit_json(ch)) = coalesce(ch.digest,'') as clean
+  , mychips.j2h(mychips.chit_json(ch, te.tally_uuid)) as digest_v
+  , mychips.j2h(mychips.chit_json(ch, te.tally_uuid)) = coalesce(ch.digest,'') as clean
 
     from	mychips.chits		ch
     join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq;
@@ -3312,45 +3295,6 @@ grant insert on table mychips.chits_v to chit_2;
 grant update on table mychips.chits_v to chit_2;
 select wm.create_role('chit_3');
 grant delete on table mychips.chits_v to chit_3;
-create function mychips.lift_cycle(maxNum int default 1) returns jsonb language plpgsql security definer as $$
-    declare
-      status	jsonb = '{"done": 0}';
-      prec	record;
-      orders	text default 'bang desc';
-      tstr	text;
-      tarr	text[];
-      oarr	text[];
-      lift_id	uuid;
-      min_units	int default base.parm('lifts','minimum',1);
-      ord_by	text default base.parm('lifts','order','bang desc'::text);
-      count	int default 0;
-      rows	int;
-    begin
-      if found then				-- Build a custom order-by clause
-        foreach tstr in array regexp_split_to_array(prec.value, ',') loop
-          oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
-
-          tarr = array_append(tarr, quote_ident(oarr[1]) || case when oarr[2] = 'desc' then ' desc' else '' end);
-        end loop;
-        orders = array_to_string(tarr, ', ');
-      end if;
-
-      while count < maxNum loop			-- Search for internal lifts
-        tstr = 'select first, length, lift_min, lift_max, lift_margin, path, uuids from mychips.tallies_v_paths where circuit and lift_margin <= 0 and lift_min >= $1 order by ' || orders || ' limit 1';
-
-        execute tstr into prec using min_units;
-        get diagnostics rows = ROW_COUNT;
-
-        if rows < 1 then exit; end if;
-
-        insert into mychips.lifts (inside,status,route_ent,circuit,path,tallies,units)
-          values (true,'good',prec.first,prec.first,prec.path,prec.uuids,prec.lift_min);
-          
-        count = count + 1;
-      end loop;
-    return jsonb_set(status, '{done}', count::text::jsonb);
-    end;
-$$;
 create trigger mychips_lifts_tr_bu before update on mychips.lifts for each row execute procedure mychips.lifts_tf_bu();
 create view mychips.lifts_v as select 
     lf.lift_uuid, lf.lift_seq, lf.route_ent, lf.circuit, lf.path, lf.tallies, lf.units, lf.request, lf.status, lf.signature, lf.socket, lf.public, lf.dest_chid, lf.dest_host, lf.req_date, lf.exp_date, lf.digest
@@ -3420,7 +3364,7 @@ create function mychips.route_circuit(entity text) returns void language plpgsql
     declare
       trec	record;
     begin
-      for trec in select first,last,path from mychips.tallies_v_paths where length >= 3 and entity = any(path) and segment loop
+      for trec in select first,last,path from mychips.tallies_v_paths_old where length >= 3 and entity = any(path) and segment loop
 raise notice 'Route Circuit check: % % %', entity, trec.first, trec.last;
         insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, requ_ent) 
           values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], entity)
@@ -3436,7 +3380,7 @@ create function mychips.route_linear(entity text, peer text, host text) returns 
     begin
       select into locid id from mychips.peers_v where peer_cid = peer and peer_chost = host;
       
-      for trec in select first,last,path from mychips.tallies_v_paths where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
+      for trec in select first,last,path from mychips.tallies_v_paths_old where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
 raise notice 'Route Linear check: % % %', entity, peer, trec.first;
         insert into mychips.routes (route_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent) 
           values (trec.first, peer, host, trec.path[2], entity, entity)
@@ -3494,7 +3438,7 @@ create view mychips.routes_v_paths as select
       least(r.drop_max,tp.drop_min) end				as drop_max
   , case when tp.drop_min < r.drop_min then tp.drop_reward else r.drop_reward end as drop_reward
   
-  from	mychips.tallies_v_paths	tp
+  from	mychips.tallies_v_paths_old	tp
   join	mychips.routes	r on r.route_ent = tp.first
   where tp.corein and tp.fora;
 create function mychips.tallies_v_insfunc() returns trigger language plpgsql security definer as $$
@@ -3504,12 +3448,11 @@ create function mychips.tallies_v_insfunc() returns trigger language plpgsql sec
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tallies_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.tallies (tally_ent,request,comment,tally_uuid,tally_type,version,partner,contract,hold_sig,hold_cert,part_cert,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,'draft',trec.comment,trec.tally_uuid,trec.tally_type,trec.version,trec.partner,trec.contract,trec.hold_sig,trec.hold_cert,trec.part_cert,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    insert into mychips.tallies (tally_ent,request,comment,tally_uuid,tally_type,version,part_ent,contract,hold_sig,hold_cert,part_cert,hold_terms,part_terms,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,'draft',trec.comment,trec.tally_uuid,trec.tally_type,trec.version,trec.part_ent,trec.contract,trec.hold_sig,trec.hold_cert,trec.part_cert,trec.hold_terms,trec.part_terms,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;
   end;
 $$;
-create view mychips.tallies_v_lifts as select * from mychips.tallies_v_paths where circuit order by 1 desc;
 create view mychips.tallies_v_me as select 
     t.*
     from	mychips.tallies_v t
@@ -3522,16 +3465,73 @@ grant insert on table mychips.tallies_v_me to tally_2;
 grant update on table mychips.tallies_v_me to tally_2;
 select wm.create_role('tally_3');
 grant delete on table mychips.tallies_v_me to tally_3;
+create view mychips.tallies_v_net as with
+  t2 as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
+    from mychips.tallies_v where liftable and not part_ent isnull
+  ),
+  t1 as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
+    from mychips.tallies_v where liftable and part_ent isnull
+  )
+  select 			-- Internal tallies with both stock and foil
+    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.part_ent					as inp
+  , t.tally_ent					as out
+  , t.target, t.reward, t.bound
+  , coalesce(p.clutch,0)			as margin
+  , t.units_pc
+  , greatest(t.target - t.net_pc,0)		as min
+  , t.bound - t.net_pc				as max
+  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
+  , case when t.tally_type = 'foil' then -1 else 1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , false					as inv
+    from	t2 as t
+    join 	t2 as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
+    where t.net_pc < coalesce(t.bound,0)
+
+  union select 			-- Tallies with foreign peers
+    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.part_ent					as inp
+  , t.tally_ent					as out
+  , t.target, t.reward, t.bound
+  , 0						as margin
+  , t.units_pc
+  , greatest(t.target - t.net_pc,0)		as min
+  , t.bound - t.net_pc				as max
+  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
+  , case when t.tally_type = 'foil' then -1 else 1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , false					as inv
+    from	t1 as t
+    where t.net_pc < coalesce(t.bound,0)
+
+  union select 			-- Tallies with foreign peers and reverse consideration
+    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.tally_ent					as inp
+  , t.part_ent					as out
+  , 0 as target, 0 as reward, 0 as bound
+  , 0						as margin
+  , t.units_pc
+  , t.net_pc					as min
+  , t.net_pc					as max
+  , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
+  , case when t.tally_type = 'foil' then 1 else -1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , true					as inv
+    from	t1 as t
+    where t.net_pc > 0;
 create view mychips.tallies_v_sum as select 
     tally_ent
   , count(tally_seq)						as tallies
   , sum(units)							as units
-  , array_agg(partner)						as partners
+  , sum(net)							as net
+  , array_agg(part_ent)						as partners
   , array_agg(part_cid)						as part_cids
   , array_agg(tally_uuid)					as uuids
   , array_agg(tally_seq)					as seqs
   , array_agg(tally_type)					as types
   , array_agg(state)						as states
+  , array_agg(net)						as nets
   , array_agg(units)						as unitss
   , array_agg(inside)						as insides
 
@@ -3543,11 +3543,13 @@ create view mychips.tallies_v_sum as select
 
   , sum(units) filter (where tally_type = 'stock')		as stock_uni
   , sum(units) filter (where tally_type = 'foil')		as foil_uni
+  , sum(net) filter (where tally_type = 'stock')		as stock_net
+  , sum(net) filter (where tally_type = 'foil')			as foil_net
 
   , count(nullif(tally_type, 'foil'))::int4			as stocks
   , count(nullif(tally_type, 'stock'))::int4			as foils
-  , array_agg(partner) filter (where tally_type = 'stock')	as clients
-  , array_agg(partner) filter (where tally_type = 'foil')	as vendors
+  , array_agg(part_ent) filter (where tally_type = 'stock')	as clients
+  , array_agg(part_ent) filter (where tally_type = 'foil')	as vendors
   , array_agg(part_cid) filter (where tally_type = 'stock')	as client_cids
   , array_agg(part_cid) filter (where tally_type = 'foil')	as vendor_cids
   , array_agg(tally_uuid) filter (where tally_type = 'stock')	as stock_uuids
@@ -3556,6 +3558,8 @@ create view mychips.tallies_v_sum as select
   , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
   , array_agg(units) filter (where tally_type = 'stock')	as stock_unis
   , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
+  , array_agg(net) filter (where tally_type = 'stock')		as stock_nets
+  , array_agg(net) filter (where tally_type = 'foil')		as foil_nets
 
   , max(latest)							as latest
   from (select * from mychips.tallies_v order by tally_ent,tally_seq) t
@@ -3567,29 +3571,15 @@ create function mychips.tallies_v_updfunc() returns trigger language plpgsql sec
     return new;
   end;
 $$;
-create function mychips.tally_notify(tally mychips.tallies) returns boolean language plpgsql security definer as $$
+create function mychips.tally_notify_agent(tally mychips.tallies) returns boolean language plpgsql security definer as $$
     declare
-        act	text;
         jrec	jsonb;
         trec	record;
         rrec	record;
         channel	text = 'mychips_agent';
     begin				-- Determine next action
-        if tally.status = 'void' and tally.request = 'draft' then
-            act = 'userDraft';
-        elsif tally.status = 'draft' and tally.request = 'void'  then
-            act = 'userVoid';
-        elsif tally.status = 'draft' and tally.request = 'open'  then
-            act = 'userAccept';
-        elsif tally.status = 'open'  and tally.request = 'close' then
-            act = 'userClose';
-        end if;
 
-        if act is null then			-- Indeterminate state, clear request
-            update mychips.tallies set request = null where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
-            return false;
-        end if;
-        select into trec hold_agent,hold_chip,part_chip,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
+        select into trec hold_agent,hold_chad,part_chad,json from mychips.tallies_v where tally_ent = tally.tally_ent and tally_seq = tally.tally_seq;
         if not trec.hold_agent is null then
             channel = channel || '_' || trec.hold_agent;
         end if;
@@ -3599,14 +3589,13 @@ create function mychips.tally_notify(tally mychips.tallies) returns boolean lang
             returning * into rrec;
 
 
-
         jrec = jsonb_build_object(
           'target',	'tally',
-          'action',	act,
+          'action',	tally.request,
           'try',	rrec.tries,
           'last',	rrec.last,
-          'to',		trec.part_chip,
-          'from',	trec.hold_chip,
+          'to',		trec.part_chad,
+          'from',	trec.hold_chad,
           'object',	trec.json
         );
 
@@ -3614,13 +3603,35 @@ create function mychips.tally_notify(tally mychips.tallies) returns boolean lang
         return true;
     end;
 $$;
+create function mychips.tally_notify_user(ent text, seq int, oldstate text = 'open') returns record language plpgsql as $$
+    declare
+      trec	record;
+      jrec	jsonb;
+    begin
+      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
+      if trec.action or (trec.state is distinct from oldState) then	-- Also notify if changed state
+
+        jrec = jsonb_build_object(
+          'target',	'tally',
+          'entity',	trec.tally_ent,
+          'sequence',	trec.tally_seq,
+          'state',	trec.state,
+          'object',	trec.json
+        );
+        perform pg_notify('mychips_user_' || trec.tally_ent, jrec::text);
+        perform pg_notify('mychips_user', jrec::text);
+      end if;
+      return trec;
+    end;
+$$;
 create function mychips.tally_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
     declare
-      cid	text = msg->>'cid';
+      cid	text = msg->'to'->>'cid';
+      agent	text = msg->'to'->>'agent';
       obj	jsonb = msg->'object';
+      uuid	uuid = obj->>'uuid';
       hold	jsonb = obj->'stock';
       part	jsonb = obj->'foil';
-      uuid	uuid = obj->>'uuid';
       curState	text;
       qstrg	text;
       uid	text;
@@ -3633,10 +3644,10 @@ create function mychips.tally_process(msg jsonb, recipe jsonb) returns text lang
 
       select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = uuid;
         
-raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
+
       if not found then			-- No existing tally
         curState = 'null';
-        select into uid id from mychips.users_v where peer_cid = cid and peer_agent = msg->>'agent';
+        select into uid id from mychips.users_v where peer_cid = cid and peer_agent = agent;
         if not found then return null; end if;
       else
         curState = trec.state;
@@ -3647,27 +3658,31 @@ raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
         return curState;
       end if;
 
-      if recipe->>'upsert' then		-- If inserting/updating from object
+      if recipe ? 'upsert' then		-- If inserting/updating from object
 
-raise notice '  upsert obj:% curState:%', obj, curState;
-        if part->'cert'->'chip'->>'cid' = cid and part->'cert'->'chip'->>'cid' = cid then
+        if part->'cert'->'chad'->>'cid' = cid and part->'cert'->'chad'->>'agent' = agent then
           tallyType = 'foil';
           notType = 'stock';
-        elsif hold->'cert'->'chip'->>'cid' != cid or hold->'cert'->'chip'->>'cid' != cid then
+          hold	= obj->'foil';
+          part	= obj->'stock';
+        elsif hold->'cert'->'chad'->>'cid' != cid or hold->'cert'->'chad'->>'agent' != agent then
           return null;
         end if;
 
 
         if curState = 'null' then			-- Will need to do insert
-          execute 'insert into mychips.tallies (
+          insert into mychips.tallies (
             tally_ent,tally_uuid,tally_type,tally_date,version,contract,status,comment,
             hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert
-          ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning tally_ent, tally_seq' into trec
-            using uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, obj->'agree', 'draft', obj->>'note', 
-              obj->'sign'->>tallyType, obj->'sign'->>notType, 
-              hold->'terms', part->'terms', hold->'cert', part->'cert';
+          ) values (
+            uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, 
+            obj->'agree', coalesce(recipe->'upsert'->>'status','offer'),
+            obj->>'note', obj->'sign'->>tallyType, obj->'sign'->>notType, 
+            hold->'terms', part->'terms', hold->'cert', part->'cert'
+          ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
-          update mychips.tallies set request = null, status = 'draft', mod_date = current_timestamp, mod_by = session_user,
+          update mychips.tallies set request = null, mod_date = current_timestamp, mod_by = session_user,
+            status = coalesce(recipe->'upsert'->>'status','offer'),
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',
             hold_sig = obj->'sign'->>tallyType, part_sig = obj->'sign'->>notType,
             hold_terms = hold->'terms', part_terms = part->'terms',
@@ -3678,33 +3693,21 @@ raise notice '  upsert obj:% curState:%', obj, curState;
       end if;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
-        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_sig}');
-raise notice 'SQL:%', qstrg;
+        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_cert, part_sig}');
+
         execute qstrg || ' tally_ent = $1 and tally_seq = $2' using trec.tally_ent, trec.tally_seq;
         acted = true;
       end if;
 
-      if acted then
-
-        delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
-      else
+      if not acted then		-- Don't proceed if we didn't do anything
         return null;
-      end if;
+      end if; 
 
 
-      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
-      if trec.action or (trec.state = 'open' and curState is distinct from 'open') then	-- Also notify if changed to open status
+      delete from mychips.tally_tries where ttry_ent = trec.tally_ent and ttry_seq = trec.tally_seq;
 
-        jrec = jsonb_build_object(
-          'target',		'tally',
-          'entity',		trec.tally_ent,
-          'sequence',	trec.tally_seq,
-          'state',		trec.state,
-          'object',		trec.json
-        );
-        perform pg_notify('mychips_user_' || trec.tally_ent, jrec::text);
-        perform pg_notify('mychips_user', jrec::text);
-      end if;
+
+      trec = mychips.tally_notify_user(trec.tally_ent, trec.tally_seq, curState);
       return trec.state;
     end;
 $$;
@@ -3753,11 +3756,7 @@ create function mychips.ticket_process(ticket jsonb, uname text = session_user) 
       if found and not trec.peer_agent isnull then
         ticket = ticket				-- Build message for agent to act on
           || '{"target":"tally","action":"ticket"}' 
-          || to_jsonb(t) from (			-- Include subject certificate into ticket
-               select to_jsonb(s) as cert from (
-                 select date,chip,type,name,public,connect,place,identity from json.cert where id = trec.id
-               ) s
-             ) t;
+          || jsonb_build_object('cert', mychips.user_cert(trec.id));
 
 
         perform pg_notify('mychips_agent_' || trec.peer_agent, ticket::text);
@@ -3767,7 +3766,7 @@ create function mychips.ticket_process(ticket jsonb, uname text = session_user) 
     end;
 $$;
 create view mychips.tokens_v as select
-    t.token_ent, t.token_seq, t.token, t.reuse, t.used, t.expires, t.tally_seq, t.crt_by, t.mod_by, t.crt_date, t.mod_date
+    t.token_ent, t.token_seq, t.reuse, t.expires, t.tally_seq, t.token, t.used, t.crt_by, t.mod_by, t.crt_date, t.mod_date
   , u.peer_cid, u.peer_agent, u.std_name
   , t.expires <= current_timestamp as "expired"
   , t.expires > current_timestamp and used is null as "valid"
@@ -3776,14 +3775,17 @@ create view mychips.tokens_v as select
      , 'agent', u.peer_agent
      , 'host', u.peer_chost
      , 'port', u.peer_cport
-    ) as "chip"
+    ) as "chad"
       
     from	mychips.tokens	t
-    join	mychips.users_v	u	on u.user_ent = t.token_ent;
+    join	mychips.users_v	u	on u.user_ent = t.token_ent
+
+    ;
+    ;
 create trigger mychips_token_tr_seq before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
 create function mychips.user_cert(uid text) returns jsonb language sql as $$
     select to_jsonb(s) as cert from (
-      select date,chip,type,name,public,connect,place,identity from json.cert where id = uid
+      select date,chad,type,name,public,connect,place,identity from json.cert where id = uid
     ) s
 $$;
 select wm.create_role('mychips', '{"peer_2","user_2","contract_1","tally_2","chit_2","mychips_1"}'); select base.pop_role('mychips');
@@ -3853,11 +3855,11 @@ create function mychips.chit_goodcheck(ch mychips.chits) returns mychips.chits l
       thisidx	int;
     begin
 
-      if ch.signature isnull then		-- Fixme: check actual signature validity here
+      if ch.signature isnull then		-- Fixme: check actual signature validity here?
         return null;
       end if;
 
-      select into trec tally_ent,tally_seq,tally_type,digest,chain_conf from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
+      select into trec tally_ent,tally_seq,tally_type,tally_uuid,digest,chain_conf from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
       if not found or trec.digest is null then		-- Can we find a valid tally to add this chit to?
         raise exception 'Attempted chit link to invalid tally: %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
         return null;
@@ -3875,12 +3877,12 @@ create function mychips.chit_goodcheck(ch mychips.chits) returns mychips.chits l
       if trec.tally_type = 'foil' then		-- Consensus algorithm for chit hash-chain:
         ch.chain_idx = thisidx;
         ch.chain_prv = prevhash;
-        ch.digest = mychips.j2h(mychips.chit_json(ch));
+        ch.digest = mychips.j2h(mychips.chit_json(ch, trec.tally_uuid));
 
       else					-- We hold a stock, which must conform to foil
         if ch.chain_idx isnull then		-- Stock has no specified index, append at end of chain
           ch.chain_idx = thisidx;
-          if ch.digest isnull then ch.digest = mychips.j2h(mychips.chit_json(ch)); end if;
+          if ch.digest isnull then ch.digest = mychips.j2h(mychips.chit_json(ch, trec.tally_uuid)); end if;
           if ch.chain_prv isnull then ch.chain_prv = prevhash; end if;
 
         elsif ch.chain_idx >= 1 and ch.chain_idx <= thisidx then	-- There are existing chits in our way; stock must conform
@@ -3902,36 +3904,28 @@ create function mychips.chit_goodcheck(ch mychips.chits) returns mychips.chits l
       return ch;
     end;
 $$;
-create function mychips.chit_notify(chit mychips.chits) returns boolean language plpgsql security definer as $$
+create function mychips.chit_notify_agent(chit mychips.chits) returns boolean language plpgsql security definer as $$
     declare
-        act	text	= chit.request;
         channel	text	= 'mychips_agent';
         jrec	jsonb;
         trec	record;
-        urec	record;
         rrec	record;
     begin
-        if act is null then return false; end if;
-        
-        select into trec part_cid,hold_cid,tally_uuid,part_sock from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
-        select into urec serv_id from mychips.users_v where user_ent = chit.chit_ent;
-        if not urec.serv_id is null then
-            channel = channel || '_' || urec.serv_id;
+        select into trec tally_uuid,hold_chad,hold_agent,part_chad from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
+        if not trec.hold_agent is null then
+            channel = channel || '_' || trec.hold_agent;
         end if;
         insert into mychips.chit_tries (ctry_ent, ctry_seq, ctry_idx) values (chit.chit_ent, chit.chit_seq, chit.chit_idx)
           on conflict (ctry_ent,ctry_seq,ctry_idx) do update set tries = mychips.chit_tries.tries + 1, last = current_timestamp
             returning * into rrec;
         
-        jrec = jsonb_build_object(		--Fixme: get rid of what is redundant with {object} or otherwise not needed
+        jrec = jsonb_build_object(
           'target',	'chit',
-          'peer',	trec.part_cid,
-          'user',	trec.hold_cid,
-          'entity',	chit.chit_ent,
-          'tally',	trec.tally_uuid,
-          'action',	act,
+          'action',	chit.request,
           'try',	rrec.tries,
           'last',	rrec.last,
-          'at',		trec.part_sock,
+          'to',		trec.part_chad,
+          'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
 
@@ -3941,63 +3935,81 @@ create function mychips.chit_notify(chit mychips.chits) returns boolean language
 $$;
 create function mychips.chit_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
     declare
-        cid		text	= msg->>'user';
-        obj		jsonb	= msg->'object';
-        uuid		uuid	= obj->>'uuid';
-        curState	text;
-        qstrg		text;
-        crec		record;
-        trec		record;
-        erec		record;
+      cid	text	= msg->'to'->>'cid';
+      agent	text	= msg->'to'->>'agent';
+      obj	jsonb	= msg->'object';
+      uuid	uuid	= obj->>'uuid';
+      curState	text;
+      qstrg	text;
+      crec	record;
+      trec	record;
+      erec	record;
+      jrec	jsonb;
     begin
-        select into erec id, serv_id from mychips.users_v where peer_cid = cid;
-        if not found then return null; end if;
 
-        select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = erec.id and chit_uuid = uuid;
-        curState = crec.state;
+      select into trec tally_ent, tally_seq, tally_type, state from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
+      if not found then return null; end if;
 
-        if not found then
-            curState = 'null';
-        end if;
+      select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;
+      curState = crec.state;
 
-        if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
-            return curState;
-        end if;
+      if not found then
+        curState = 'null';
+      end if;
 
-        if recipe ? 'upsert' then
-raise notice '  upsert curState:% obj:%', curState, obj;
-          if curState = 'null' then			-- Need to do insert
-            select into trec * from mychips.tallies where tally_ent = erec.id and tally_uuid = (msg->>'tally')::uuid;
-            if not found then return null; end if;
-            
-            execute 'insert into mychips.chits (chit_ent,chit_seq,chit_uuid,chit_type,chit_date,status,signature,units,quidpro,memo,chain_idx,chain_prv,digest) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
-                     returning chit_ent, chit_seq, chit_idx, chain_idx, chain_prv, digest' into crec
-              using trec.tally_ent, trec.tally_seq, uuid, obj->>'type', (obj->>'date')::timestamptz, recipe->'upsert'->>'status', obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea;
+      if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
 
-          else						-- Chit already exists, do update
+        return curState;
+      end if;
 
+      if recipe ? 'upsert' then
 
-            execute 'update mychips.chits set signature = $1, units = $2, status = $3, quidpro = $4, memo = $5, request = null, mod_date = current_timestamp, mod_by = session_user where chit_ent = $6 and chit_seq = $7 and chit_idx = $8'
-                using obj->>'signed', (obj->>'units')::bigint, recipe->'upsert'->>'status', obj->>'link', obj->>'memo', crec.chit_ent, crec.chit_seq, crec.chit_idx;
-            delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
-          end if;
-        end if;
+        if curState = 'null' then			-- Need to do insert
+          insert into mychips.chits (
+            chit_ent,chit_seq,chit_uuid,chit_type,chit_date,status,
+            signature,units,quidpro,memo,chain_idx,chain_prv,digest
+          ) values (
+            trec.tally_ent, trec.tally_seq, uuid, obj->>'type', (obj->>'date')::timestamptz,
+            coalesce(recipe->'upsert'->>'status','pend'),
+            obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', 
+            (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea
+          ) returning chit_ent, chit_seq, chit_idx, chain_idx, chain_prv, digest into crec;
 
-        if recipe ? 'update' then			-- There's an update key in the recipe
-          qstrg = mychips.state_updater(recipe, 'mychips.chits', '{signature, status}');
+        else						-- Chit already exists, do update
+          update mychips.chits set signature = obj->>'signed', units = (obj->>'units')::bigint,
+            status = coalesce(recipe->'upsert'->>'status','pend'),
+            quidpro = obj->>'for', memo = obj->>'memo', 
+            request = null, mod_date = current_timestamp, mod_by = session_user
+            where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
 
-          execute qstrg || ' chit_ent = $1 and chit_seq = $2 and chit_idx = $3' using crec.chit_ent, crec.chit_seq, crec.chit_idx;
           delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
         end if;
+      end if;
 
-        select into crec chit_ent,chit_seq,chit_idx,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
-        if crec.action or (crec.state = 'peerValid' and (curState is distinct from 'peerValid')) then	-- Also notify if changed to valid state
+      if recipe ? 'update' then			-- There's an update key in the recipe
+        qstrg = mychips.state_updater(recipe, 'mychips.chits', '{status, signature}');
 
-            perform pg_notify('mychips_user_' || crec.chit_ent, crec.json::text);
-            perform pg_notify('mychips_user', crec.json::text);
-        end if;
-        return crec.json;
+        execute qstrg || ' chit_ent = $1 and chit_seq = $2 and chit_idx = $3' using crec.chit_ent, crec.chit_seq, crec.chit_idx;
+        delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
+      end if;
+
+      select into crec chit_ent,chit_seq,chit_idx,chit_uuid,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+      if crec.action or (crec.state is distinct from curState) then	-- Also notify if changed state
+        jrec = jsonb_build_object(
+          'target',	'chit',
+          'entity',	crec.chit_ent,
+          'sequence',	crec.chit_seq,
+          'index',	crec.chit_idx,
+          'state',	crec.state,
+          'object',	crec.json
+        );
+
+        perform pg_notify('mychips_user_' || crec.chit_ent, jrec::text);
+
+        perform pg_notify('mychips_user', crec.json::text);
+      end if;
+      return crec.state;
+
     end;
 $$;
 create function mychips.chits_tf_cache() returns trigger language plpgsql security definer as $$
@@ -4011,10 +4023,14 @@ create function mychips.chits_tf_cache() returns trigger language plpgsql securi
 
 
 
-      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user, units_gc = coalesce(cs.sum_g,0), units_pc = coalesce(cs.sum_p,0) 
-      from (select chit_ent, chit_seq, sum(units_g) as sum_g, sum(units_p) as sum_p from mychips.chits_v group by 1,2) as cs
-      where cs.chit_ent = mychips.tallies.tally_ent and cs.chit_seq = mychips.tallies.tally_seq
-      and tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
+      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user, 
+        units_gc = coalesce(cs.sum_g,0), units_pc = coalesce(cs.sum_p,0) from (
+          select chit_ent, chit_seq, sum(units_g) as sum_g, sum(units_p) as sum_p from mychips.chits_v group by 1,2
+        ) as cs
+          where	cs.chit_ent = mychips.tallies.tally_ent
+          and	cs.chit_seq = mychips.tallies.tally_seq
+          and	tally_ent = trec.chit_ent
+          and	tally_seq = trec.chit_seq;
 
       return null;
     end;
@@ -4057,7 +4073,7 @@ create function mychips.chits_v_insfunc() returns trigger language plpgsql secur
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.chits_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.chits (chit_ent,chit_seq,request,signature,units,quidpro,memo,chit_uuid,chit_type,crt_by,mod_by,crt_date,mod_date) values (new.chit_ent,new.chit_seq,'userDraft',trec.signature,trec.units,trec.quidpro,trec.memo,trec.chit_uuid,trec.chit_type,session_user,session_user,current_timestamp,current_timestamp) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
+    insert into mychips.chits (chit_ent,chit_seq,request,signature,units,quidpro,memo,chit_uuid,chit_type,crt_by,mod_by,crt_date,mod_date) values (new.chit_ent,new.chit_seq,trec.request,trec.signature,trec.units,trec.quidpro,trec.memo,trec.chit_uuid,trec.chit_type,session_user,session_user,current_timestamp,current_timestamp) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
     select into new * from mychips.chits_v where chit_ent = new.chit_ent and chit_seq = new.chit_seq and chit_idx = new.chit_idx;
     return new;
   end;
@@ -4297,7 +4313,6 @@ create view mychips.routes_v as select
   , rt.last		as last
   , mychips.route_state(ro.status
     , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()	-- Expired
-    , coalesce(rt.tries,0) >= base.parm('routes','tries',4)				-- Max tries
   )			as state
   , jsonb_build_object(				-- Packet we will transmit upstream
        'from'	,	re.peer_cid				-- route start peer
@@ -4338,41 +4353,76 @@ create function mychips.tallies_tf_notify() returns trigger language plpgsql sec
     declare
       notify	boolean default false;
     begin
-      if TG_OP = 'INSERT' then
+      if TG_OP = 'INSERT' and not new.request isnull then
         notify = true;
       else			-- This is an update
-        if new.request is not null and new.request is distinct from old.request then
+        if not new.request isnull and new.request is distinct from old.request then
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
           perform mychips.route_circuit(new.tally_ent);
         end if;
       end if;
-      if notify then perform mychips.tally_notify(new); end if;
+      if notify then perform mychips.tally_notify_agent(new); end if;
       return new;
     end;
 $$;
+create view mychips.tallies_v_paths as with recursive tally_path (
+      inp, out, length, hath, uuids, signs, circuit, min, margin, max, reward
+    ) as (
+      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign], false,
+      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float
+    from	mychips.tallies_v_net ti
+  union all
+    select tp.inp					as inp
+      , t.out						as out
+      , tp.length + 1					as length
+      , tp.hath || t.out				as hath
+      , tp.uuids || t.uuid				as uuids
+      , tp.signs || t.sign				as signs
+      , coalesce(tp.inp = t.out, false)			as circuit
+
+      , least(t.min,tp.min)				as min
+      , tp.margin + t.margin * (1 - tp.margin)		as margin
+      , case when t.min < tp.min then
+          least(t.max, tp.min)
+        else
+          least(tp.max, t.min) end			as max
+      , case when t.min < tp.min then t.reward else tp.reward end as reward
+
+    from	mychips.tallies_v_net t
+    join	tally_path	tp on tp.out = t.inp
+    		and (t.out isnull or not t.out = any(tp.hath))
+  ) select tpr.inp, tpr.out
+    , tpr.length, tpr.hath, tpr.uuids, tpr.signs
+    , tpr.margin, tpr.reward, tpr.min, tpr.max, tpr.circuit
+    , tpr.inp || tpr.hath	as path
+    , tpr.length * tpr.min	as bang
+    , tpr.inp isnull		as fori
+    , tpr.out isnull		as foro
+  from tally_path tpr where tpr.length > 2;
 create trigger mychips_tallies_v_tr_ins instead of insert on mychips.tallies_v for each row execute procedure mychips.tallies_v_insfunc();
 create trigger mychips_tallies_v_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 create function mychips.tally_certs(ta mychips.tallies) returns mychips.tallies language plpgsql security definer as $$
     declare
-      hchip jsonb; pchip jsonb; c jsonb;
+      hchad jsonb; pchad jsonb; c jsonb;
     begin
-      hchip = ta.hold_cert->'chip';
-      pchip = ta.part_cert->'chip';
-      ta.hold_cid   = hchip->>'cid';
-      ta.hold_agent = hchip->>'agent';
-      ta.part_cid   = pchip->>'cid';
-      ta.part_agent = pchip->>'agent';
 
-      foreach c in array array[ hchip, pchip ] loop
+      hchad = ta.hold_cert->'chad';
+      pchad = ta.part_cert->'chad';
+      ta.hold_cid   = hchad->>'cid';
+      ta.hold_agent = hchad->>'agent';
+      ta.part_cid   = pchad->>'cid';
+      ta.part_agent = pchad->>'agent';
+
+      foreach c in array array[ hchad, pchad ] loop
         if not c is null and not exists (select agent from mychips.agents where agent = c->>'agent') then
           insert into mychips.agents (agent, agent_host, agent_port) values (c->>'agent', c->>'host', (c->'port')::int);
         end if;
       end loop;
 
 
-      select into ta.partner user_ent from mychips.users_v where peer_cid = ta.part_cid and peer_agent = ta.part_agent;
+      select into ta.part_ent user_ent from mychips.users_v where peer_cid = ta.part_cid and peer_agent = ta.part_agent;
       return ta;
     end;
 $$;
@@ -4388,34 +4438,67 @@ create function mychips.tally_sets_v_insfunc() returns trigger language plpgsql 
     return new;
   end;
 $$;
-create function mychips.token_valid(tok text, cert jsonb) returns boolean language plpgsql as $$
+create function mychips.tokens_v_insfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
+  begin
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tokens_v';
+    execute 'select ' || str || ';' into trec using new;
+    insert into mychips.tokens (token_ent,token_seq,reuse,expires,tally_seq,token,crt_by,mod_by,crt_date,mod_date) values (new.token_ent,new.token_seq,trec.reuse,trec.expires,trec.tally_seq,trec.token,session_user,session_user,current_timestamp,current_timestamp) returning token_ent,token_seq into new.token_ent, new.token_seq;
+    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    return new;
+  end;
+$$;
+create view mychips.tokens_v_me as select 
+    t.*
+    from	mychips.tokens_v t
+    where	t.token_ent = base.user_id(session_user);
+grant select on table mychips.tokens_v_me to tally_1;
+grant select on table mychips.tokens_v_me to tally_2;
+grant insert on table mychips.tokens_v_me to tally_2;
+grant update on table mychips.tokens_v_me to tally_2;
+grant delete on table mychips.tokens_v_me to tally_3;
+create function mychips.tokens_v_updfunc() returns trigger language plpgsql security definer as $$
+  begin
+    update mychips.tokens set reuse = new.reuse,expires = new.expires,mod_by = session_user,mod_date = current_timestamp where token_ent = old.token_ent and token_seq = old.token_seq returning token_ent,token_seq into new.token_ent, new.token_seq;
+    select into new * from mychips.tokens_v where token_ent = new.token_ent and token_seq = new.token_seq;
+    return new;
+  end;
+$$;
+create function mychips.token_valid(tok text, cert jsonb = null) returns boolean language plpgsql as $$
     declare
       orec	record;
-
-      prec	record;
+      trec	record;
     begin
       select into orec valid,token,reuse,token_ent,token_seq,tally_seq from mychips.tokens_v where token = tok;
-raise notice 'token check: %', tok;
-      if found and orec.valid then
-raise notice 'token valid; reuse:%', orec.reuse;
-        if orec.reuse then
 
-
-
-          null;
-        else
-          update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
-          update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
-        end if;
-        return true;
+      if cert isnull then			-- Checking only
+        return found and orec.valid;
+      elsif not found or not orec.valid then
+        return false;
       end if;
-      return false;
+
+      if orec.reuse then	-- Create a new tally from the template
+        insert into mychips.tallies (
+          tally_ent, tally_uuid, tally_type, version, comment, contract, hold_cert, hold_terms, part_cert, status
+        ) select
+          tally_ent, mychips.random_uuid(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
+        from mychips.tallies returning tally_ent, tally_seq into trec;
+        perform mychips.tally_notify_user(trec.tally_ent, trec.tally_seq);
+      else			-- one-time token, use template AS our new tally, invalidate token
+        update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
+        update mychips.tallies set part_cert = cert, status = 'draft' where tally_ent = orec.token_ent and tally_seq = orec.tally_seq;
+        perform mychips.tally_notify_user(orec.token_ent, orec.tally_seq);
+      end if;
+      return true;
     end;
 $$;
 create view mychips.users_v_tallysum as select 
     u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_cagent, u.peer_sock, u.peer_chost, u.peer_cport, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
   , coalesce(s.units, 0)			as units
+  , coalesce(s.net, 0)				as net
   , coalesce(s.stocks, 0)			as stocks
   , coalesce(s.foils, 0)			as foils
   , coalesce(s.stock_uni, 0.0)			as stock_uni
@@ -4430,6 +4513,7 @@ create view mychips.users_v_tallysum as select
   , coalesce(s.types, '{}'::text[])		as types
   , coalesce(s.states, '{}'::text[])		as states
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
+  , coalesce(s.nets, '{}'::bigint[])		as nets
   , coalesce(s.insides, '{}'::boolean[])	as insides
 
   , coalesce(s.targets, '{}'::bigint[])		as targets
@@ -4485,15 +4569,14 @@ create function json.cert_tf_ii() returns trigger language plpgsql security defi
     end if;
 
     select into urec * from mychips.users_v u where	--Do we already have this person
-      u.peer_psig = new.public or (u.peer_cid = new.chip->>'cid' and u.peer_agent = new.chip->>'agent');
-
+      u.peer_psig = new.public or (u.peer_cid = new.chad->>'cid' and u.peer_agent = new.chad->>'agent');
 
 
 
 
 
     insert into mychips.peers_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_host, peer_port, peer_psig, peer_named)
-      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chip->>'cid', new.chip->>'agent', new.chip->>'host', (new.chip->>'port')::int, new.public, peer_named)
+      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chad->>'cid', new.chad->>'agent', new.chad->>'host', (new.chad->>'port')::int, new.public, peer_named)
 
 
 
@@ -4515,6 +4598,20 @@ create function json.cert_tf_ii() returns trigger language plpgsql security defi
 $$;
 create function mychips.chits_tf_bu() returns trigger language plpgsql security definer as $$
     begin
+      if new.status != old.status then			-- Check for valid state transitions
+        if not (
+          new.status in ('draft','pend') and old.status in ('draft','pend') or
+          new.status = 'pend' and old.status = 'void' or
+          new.status in ('void','good') and old.status = 'pend'
+        ) then raise exception '!mychips.chits:IST % %', old.status, new.status;
+        end if;
+      end if;
+      if new.request = 'pend' then		-- User is drafting/re-drafting
+        new.status = 'draft';
+      elsif new.request = 'good' then		-- User is sending good pledge
+        new.status = 'pend';
+      end if;
+
       if new.status = 'good' and old.status != 'good' then
         return mychips.chit_goodcheck(new);
       end if;
@@ -4531,7 +4628,7 @@ create function mychips.chits_tf_notify() returns trigger language plpgsql secur
             dirty = true;
         end if;
 
-        if dirty then perform mychips.chit_notify(new); end if;
+        if dirty then perform mychips.chit_notify_agent(new); end if;
         return new;
     end;
 $$;
@@ -4547,6 +4644,11 @@ create function mychips.chits_tf_seq() returns trigger language plpgsql security
 
         end if;
 
+      if new.request = 'pend' then		-- User is drafting
+        new.status = 'draft';
+      elsif new.request = 'good' then		-- User is sending good pledge
+        new.status = 'pend';
+      end if;
         if new.status = 'good' then		-- A received, signed chit can come in marked as good
           return mychips.chit_goodcheck(new);
         end if;
@@ -4556,6 +4658,45 @@ $$;
 create trigger mychips_chits_tr_cache after insert or update or delete on mychips.chits for each row execute procedure mychips.chits_tf_cache();
 create trigger mychips_chits_v_tr_ins instead of insert on mychips.chits_v for each row execute procedure mychips.chits_v_insfunc();
 create trigger mychips_chits_v_tr_upd instead of update on mychips.chits_v for each row execute procedure mychips.chits_v_updfunc();
+create function mychips.lift_cycle(maxNum int default 1) returns jsonb language plpgsql security definer as $$
+    declare
+      status	jsonb = '{"done": 0}';
+      prec	record;
+      orders	text default 'bang desc';
+      tstr	text;
+      tarr	text[];
+      oarr	text[];
+      lift_id	uuid;
+      min_units	int default base.parm('lifts','minimum',1);
+      ord_by	text default base.parm('lifts','order','bang desc'::text);
+      count	int default 0;
+      rows	int;
+    begin
+      if found then				-- Build a custom order-by clause
+        foreach tstr in array regexp_split_to_array(prec.value, ',') loop
+          oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
+
+          tarr = array_append(tarr, quote_ident(oarr[1]) || case when oarr[2] = 'desc' then ' desc' else '' end);
+        end loop;
+        orders = array_to_string(tarr, ', ');
+      end if;
+
+      while count < maxNum loop			-- Search for internal lifts
+        tstr = 'select first, length, lift_min, lift_max, lift_margin, path, uuids from mychips.tallies_v_paths where circuit and lift_margin <= 0 and lift_min >= $1 order by ' || orders || ' limit 1';
+
+        execute tstr into prec using min_units;
+        get diagnostics rows = ROW_COUNT;
+
+        if rows < 1 then exit; end if;
+
+        insert into mychips.lifts (inside,status,route_ent,circuit,path,tallies,units)
+          values (true,'good',prec.first,prec.first,prec.path,prec.uuids,prec.lift_min);
+          
+        count = count + 1;
+      end loop;
+    return jsonb_set(status, '{done}', count::text::jsonb);
+    end;
+$$;
 create function mychips.route_notify(route mychips.routes) returns boolean language plpgsql security definer as $$
     declare
         act	text;
@@ -4625,7 +4766,7 @@ raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', rec
 
         if recipe ? 'query' then			-- If there a query key in the recipe object
           if not dest_r.id isnull then			-- If destination is a locally known user
-            select into qrec first,lift_min,lift_max,lift_margin,lift_reward,drop_min,drop_max,drop_margin,drop_reward from mychips.tallies_v_paths where first = dest_r.id and last = requ_r.id and corein limit 1;
+            select into qrec first,lift_min,lift_max,lift_margin,lift_reward,drop_min,drop_max,drop_margin,drop_reward from mychips.tallies_v_paths_old where first = dest_r.id and last = requ_r.id and corein limit 1;
             if found then
               return 'affirm|' || jsonb_build_object(
                 'lmin',		qrec.lift_min,		'lmax',		qrec.lift_max,
@@ -4637,7 +4778,7 @@ raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', rec
           end if;
 
 
-          for qrec in select first,last,path from mychips.tallies_v_paths where last = from_r.id and fora loop	-- Find all upstream paths we might query further
+          for qrec in select first,last,path from mychips.tallies_v_paths_old where last = from_r.id and fora loop	-- Find all upstream paths we might query further
           
 
 
@@ -4696,15 +4837,14 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
     begin
       if not new.request isnull then		-- check for legal state transition requests
         if not (
-          new.request = 'void' and old.status in ('void', 'draft') or
-          new.request = 'draft' and old.status in ('void', 'draft') or
-          new.request = 'open' and old.status = 'draft' or
+          new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
+          new.request = 'open' and old.status = 'offer' or
           new.request = 'close' and old.status = 'open'
         ) then raise exception '!mychips.tallies:ISR % %', old.status, new.request;
         end if;
-        if new.request = 'draft' then		-- Our user is re-drafting
+        if new.request = 'offer' then		-- Our user is re-drafting
           new.part_sig = null;
-          new.status = 'void';
+          new.status = 'draft';
         end if;
       end if;
       
@@ -4716,11 +4856,14 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
       end if;
 
       if new.status != old.status then			-- Check for valid state transitions
-        if new.status = 'open' and old.status = 'draft' then
+        if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));
-        elsif new.status in ('draft','void') and old.status in ('void','draft') then null;
-        elsif new.status = 'close' and old.status = 'open' then null;
-        else raise exception '!mychips.tallies:IST % %', old.status, new.status;
+        elsif new.status in ('draft','void','offer') and old.status in ('void','draft','offer') then
+          null;
+        elsif new.status = 'close' and old.status = 'open' then
+          null;
+        else
+          raise exception '!mychips.tallies:IST % %', old.status, new.status;
         end if;
       end if;
       return new;
@@ -4728,6 +4871,9 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
 $$;
 create function mychips.tallies_tf_seq() returns trigger language plpgsql security definer as $$
     begin
+        if new.tally_ent is null then
+          new.tally_ent = base.user_id(session_user);
+        end if;
         if new.tally_seq is null then
           update mychips.users set _last_tally = greatest(
               coalesce(_last_tally, 0) + 1,
@@ -4737,9 +4883,13 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
           if not found then new.tally_seq = 1; end if;
 
         end if;
+        if new.tally_uuid is null then
+          new.tally_uuid = mychips.random_uuid();
+        end if;
 
-
-        new.hold_cert = mychips.user_cert(new.tally_ent);
+        if new.hold_cert is null then
+          new.hold_cert = mychips.user_cert(new.tally_ent);
+        end if;
         new = mychips.tally_certs(new);
         if new.status = 'open' then	-- Should only happen in simulations
           new.digest = mychips.j2h(mychips.tally_json(new));
@@ -4748,7 +4898,10 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
     end;
 $$;
 create trigger mychips_tallies_tr_notice after insert or update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
+create view mychips.tallies_v_lifts_old as select * from mychips.tallies_v_paths_old where circuit order by 1 desc;
 create trigger mychips_tally_sets_v_tr_ins instead of insert on mychips.tally_sets_v for each row execute procedure mychips.tally_sets_v_insfunc();
+create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for each row execute procedure mychips.tokens_v_insfunc();
+create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
 create trigger json_cert_tf_ii instead of insert on json.cert for each row execute procedure json.cert_tf_ii();
 create trigger mychips_chits_tr_bu before update on mychips.chits for each row execute procedure mychips.chits_tf_bu();
 create trigger mychips_chits_tr_notice after insert or update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
@@ -4786,6 +4939,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','ent_link','eng','Entity Links','Links to show how one entity (like an employee) is linked to another (like his company)'),
   ('base','ent_link_v','eng','Entity Links','A view showing links to show how one entity (like an employee) is linked to another (like his company), plus the derived names of the entities'),
   ('base','ent_v','eng','Entities','A view of Entities, which can be a person, a company or a group, plus additional derived fields'),
+  ('base','ent_v_pub','eng','Entities Public','A view of Entities from which ever user can access certain public information'),
   ('base','language','eng','Languages','Contains standard ISO data about international language codes'),
   ('base','parm','eng','System Parameters','Contains parameter settings of several types for configuring and controlling various modules across the database'),
   ('base','parm_audit','eng','Parameters Auditing','Table tracking changes to the parameters table'),
@@ -4958,11 +5112,9 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','ent','username','eng','Username','The login name for this person, if a user on this system'),
   ('base','ent_audit','a_action','eng','Action','The operation that produced the change (update, delete)'),
   ('base','ent_audit','a_by','eng','Altered By','The username of the user who made the change'),
-  ('base','ent_audit','a_column','eng','Column','The name of the column that was changed'),
   ('base','ent_audit','a_date','eng','Date/Time','Date and time of the change'),
-  ('base','ent_audit','a_reason','eng','Reason','The reason for the change'),
   ('base','ent_audit','a_seq','eng','Sequence','A sequential number unique to each alteration'),
-  ('base','ent_audit','a_value','eng','Value','The old value of the column before the change'),
+  ('base','ent_audit','a_values','eng','Values','JSON object containing the old values of the record before the change'),
   ('base','ent_audit','id','eng','Entity ID','The ID of the entity that was changed'),
   ('base','ent_link','crt_by','eng','Created By','The user who entered this record'),
   ('base','ent_link','crt_date','eng','Created','The date this record was created'),
@@ -5000,11 +5152,9 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','parm','v_text','eng','Text Value','The parameter value in the case when the type is a character string'),
   ('base','parm_audit','a_action','eng','Action','The operation that produced the change (update, delete)'),
   ('base','parm_audit','a_by','eng','Altered By','The username of the user who made the change'),
-  ('base','parm_audit','a_column','eng','Column','The name of the column that was changed'),
   ('base','parm_audit','a_date','eng','Date/Time','Date and time of the change'),
-  ('base','parm_audit','a_reason','eng','Reason','The reason for the change'),
   ('base','parm_audit','a_seq','eng','Sequence','A sequential number unique to each alteration'),
-  ('base','parm_audit','a_value','eng','Value','The old value of the column before the change'),
+  ('base','parm_audit','a_values','eng','Values','JSON object containing the old values of the record before the change'),
   ('base','parm_audit','module','eng','Module','The module name for the parameter that was changed'),
   ('base','parm_audit','parm','eng','Parameter','The parameter name that was changed'),
   ('base','parm_v','value','eng','Value','The value for the parameter setting, expressed as a string'),
@@ -5237,8 +5387,8 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','hold_sig','eng','Holder Signed','The digital signature of the entity that owns/holds this tally'),
   ('mychips','tallies','mod_by','eng','Modified By','The user who last modified this record'),
   ('mychips','tallies','mod_date','eng','Modified','The date this record was last modified'),
+  ('mychips','tallies','part_ent','eng','Partner Entity','The entity id number of the other party to this tally'),
   ('mychips','tallies','part_sig','eng','Partner Signed','The digital signature of the other party to this tally'),
-  ('mychips','tallies','partner','eng','Partner Entity','The entity id number of the other party to this tally'),
   ('mychips','tallies','request','eng','Request','Requested next status for the tally'),
   ('mychips','tallies','reward','eng','Buy Margin','A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.'),
   ('mychips','tallies','status','eng','Status','Current status of the tally record'),
@@ -5620,7 +5770,12 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('base','priv','CLV','eng','Illegal Level','The privilege level must be null or a positive integer between 1 and 9'),
   ('base','priv_v','suspend','eng','Suspend User','Disable permissions for this user (not yet implemented)'),
   ('mychips','agents','AHP','eng','Unique Host/Port','Agent keys must be associated with a unique combination of host address and port'),
-  ('mychips','chits','X','eng','Y','Z'),
+  ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a tally chit'),
+  ('mychips','chits','BLL','eng','Bad Lift Sequence','Only lift chits should include a lift sequence number'),
+  ('mychips','chits','BST','eng','Bad Chit Status','Not a valid value the status field'),
+  ('mychips','chits','CUU','eng','Chit Not Unique','Chit UUID must be unique to each tally'),
+  ('mychips','chits','GDS','eng','Signature Check','Chits in a good state must include a signature'),
+  ('mychips','chits','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','contracts','BVN','eng','Bad Version Number','Version number for contracts should start with 1 and move progressively larger'),
   ('mychips','contracts','ILR','eng','Illegal Rows','A query expecting a single record returned zero or multiple rows'),
   ('mychips','contracts','PBC','eng','Publish Constraints','When publishing a document, one must specify the digest hash, the source location, and the content sections'),
@@ -5643,8 +5798,11 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
     '),
   ('mychips','peers_v_me','launch.title','eng','Peers','Peer Relationship Management'),
   ('mychips','peers_v_me','tally','eng','Request Tally','Send a request to this peer to establish a tally'),
+  ('mychips','routes','BST','eng','Bad Route Status','Not a valid status for the route status'),
+  ('mychips','tallies','BND','eng','Illegal Lift Bound','Maximum lift boundary must be greater or equal to zero'),
   ('mychips','tallies','CNP','eng','Tally Contract','An open tally must reference a contract'),
   ('mychips','tallies','DMG','eng','Invalid Drop Margin','The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.'),
+  ('mychips','tallies','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','tallies','IVR','eng','Invalid Request','Tally request value is not valid'),
   ('mychips','tallies','IVS','eng','Invalid Status','Tally status value is not valid'),
   ('mychips','tallies','LMG','eng','Invalid Lift Margin','The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.'),
@@ -5653,7 +5811,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','PCM','eng','Partner Certificate','An open tally must contain a partner certificate'),
   ('mychips','tallies','PSM','eng','Partner Signature','An open tally must contain a partner signature'),
   ('mychips','tallies','STR','eng','Illegal State Request','The requested state transition is not allowed'),
-  ('mychips','tallies','STT','eng','Illegal State Change','The executed state transition is not allowed'),
+  ('mychips','tallies','TGT','eng','Illegal Lift Target','Lift target must be less than or equal to the maximum lift amount'),
   ('mychips','tallies','UCI','eng','User CHIP ID','An open tally must include a valid user CHIP ID'),
   ('mychips','tallies','UCM','eng','User Certificate','An open tally must contain a user certificate'),
   ('mychips','tallies','USM','eng','User Signature','An open tally must contain a user signature'),
@@ -5891,8 +6049,8 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','routes','display','["route_ent","dest_ent","dest_chid","dest_host","status"]','t'),
   ('mychips','routes_v','display','["route_ent","route_addr","dest_ent","dest_addr","status"]','t'),
   ('mychips','routes_v_lifts','display','["route_ent","route_addr","dest_ent","dest_addr","status"]','t'),
-  ('mychips','tallies','display','["tally_ent","tally_seq","tally_type","status","partner","tally_date","tally_uuid","dr_limit","cr_limit","reward","target"]','t'),
-  ('mychips','tallies_v','display','["tally_ent","tally_seq","tally_type","status","partner","part_name","reward","dr_limit","cr_limit","target"]','t'),
+  ('mychips','tallies','display','["tally_ent","tally_seq","tally_type","status","part_ent","tally_date","tally_uuid","dr_limit","cr_limit","reward","target"]','t'),
+  ('mychips','tallies_v','display','["tally_ent","tally_seq","tally_type","status","part_ent","part_name","reward","dr_limit","cr_limit","target"]','t'),
   ('mychips','tallies_v_liftss','display','["bang","length","min","max","fora","forz","path"]','t'),
   ('mychips','tallies_v_me','actions','[
     {"name":"close","ask":"1"},
@@ -5904,7 +6062,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
       {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
     ]}
   ]','f'),
-  ('mychips','tallies_v_me','display','["tally_ent","tally_seq","tally_type","partner","part_name","dr_limit","cr_limit","total"]','t'),
+  ('mychips','tallies_v_me','display','["tally_ent","tally_seq","tally_type","part_ent","part_name","dr_limit","cr_limit","total"]','t'),
   ('mychips','tallies_v_me','launch','{
     "initial": 1,
     "import": "json.import"
@@ -6649,13 +6807,13 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies','mod_date','state','readonly'),
   ('mychips','tallies','mod_date','subframe','2 99'),
   ('mychips','tallies','mod_date','write','0'),
+  ('mychips','tallies','part_ent','display','5'),
+  ('mychips','tallies','part_ent','input','ent'),
+  ('mychips','tallies','part_ent','size','8'),
+  ('mychips','tallies','part_ent','subframe','2 2'),
   ('mychips','tallies','part_sig','input','ent'),
   ('mychips','tallies','part_sig','size','20'),
   ('mychips','tallies','part_sig','subframe','3 4 2'),
-  ('mychips','tallies','partner','display','5'),
-  ('mychips','tallies','partner','input','ent'),
-  ('mychips','tallies','partner','size','8'),
-  ('mychips','tallies','partner','subframe','2 2'),
   ('mychips','tallies','request','input','ent'),
   ('mychips','tallies','request','size','10'),
   ('mychips','tallies','request','subframe','1 3'),
@@ -6712,6 +6870,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies_v','part_cid','state','readonly'),
   ('mychips','tallies_v','part_cid','subframe','3 16'),
   ('mychips','tallies_v','part_cid','write','0'),
+  ('mychips','tallies_v','part_ent','display','5'),
   ('mychips','tallies_v','part_name','input','ent'),
   ('mychips','tallies_v','part_name','optional','1'),
   ('mychips','tallies_v','part_name','size','28'),
@@ -6724,7 +6883,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies_v','part_sock','state','readonly'),
   ('mychips','tallies_v','part_sock','subframe','3 16'),
   ('mychips','tallies_v','part_sock','write','0'),
-  ('mychips','tallies_v','partner','display','5'),
   ('mychips','tallies_v','reward','display','7'),
   ('mychips','tallies_v','status','display','4'),
   ('mychips','tallies_v','tally_ent','display','1'),
@@ -6751,7 +6909,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies_v','user_sock','write','0'),
   ('mychips','tallies_v_me','cr_limit','display','7'),
   ('mychips','tallies_v_me','dr_limit','display','6'),
-  ('mychips','tallies_v_me','partner','display','4'),
+  ('mychips','tallies_v_me','part_ent','display','4'),
   ('mychips','tallies_v_me','tally_ent','display','1'),
   ('mychips','tallies_v_me','tally_seq','display','2'),
   ('mychips','tallies_v_me','tally_type','display','3'),
@@ -6761,7 +6919,9 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies_v_paths','circuit','size','5'),
   ('mychips','tallies_v_paths','length','display','2'),
   ('mychips','tallies_v_paths','length','size','4'),
+  ('mychips','tallies_v_paths','max','display','4'),
   ('mychips','tallies_v_paths','max','size','10'),
+  ('mychips','tallies_v_paths','min','display','3'),
   ('mychips','tallies_v_paths','min','size','10'),
   ('mychips','tallies_v_paths','path','display','6'),
   ('mychips','tallies_v_paths','path','size','120'),
@@ -7217,7 +7377,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','token_v_ticket','port','base','token_v_ticket','port','f','f'),
   ('base','token_v_ticket','token','base','token','token','f','f'),
   ('base','token_v_ticket','token_ent','base','token','token_ent','f','t'),
-  ('json','cert','chip','json','cert','chip','f','f'),
+  ('json','cert','chad','json','cert','chad','f','f'),
   ('json','cert','connect','json','cert','connect','f','f'),
   ('json','cert','date','json','cert','date','f','f'),
   ('json','cert','id','json','place','id','f','t'),
@@ -7256,13 +7416,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('json','place','seq','json','place','seq','f','t'),
   ('json','place','state','base','addr','state','f','f'),
   ('json','place','type','json','place','type','f','f'),
-  ('json','tally','contract','mychips','tallies','contract','f','f'),
-  ('json','tally','created','json','tally','created','f','f'),
-  ('json','tally','foil','json','tally','foil','f','f'),
+  ('json','tally','agree','json','tally','agree','f','f'),
+  ('json','tally','comment','mychips','tallies','comment','f','f'),
+  ('json','tally','date','json','tally','date','f','f'),
+  ('json','tally','holder','json','tally','holder','f','f'),
+  ('json','tally','hterms','json','tally','hterms','f','f'),
   ('json','tally','id','json','tally','id','f','t'),
-  ('json','tally','stock','json','tally','stock','f','f'),
+  ('json','tally','partner','json','tally','partner','f','f'),
+  ('json','tally','pterms','json','tally','pterms','f','f'),
+  ('json','tally','seq','json','tally','seq','f','t'),
+  ('json','tally','type','json','tally','type','f','f'),
   ('json','tally','uuid','json','tally','uuid','f','f'),
   ('json','tally','version','mychips','tallies','version','f','f'),
+  ('json','user','agent','json','user','agent','f','f'),
   ('json','user','begin','json','user','begin','f','f'),
   ('json','user','cid','json','user','cid','f','f'),
   ('json','user','first','json','user','first','f','f'),
@@ -7274,6 +7440,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('json','user','prefer','json','user','prefer','f','f'),
   ('json','user','taxid','json','user','taxid','f','f'),
   ('json','user','type','json','user','type','f','f'),
+  ('json','users','agent','json','user','agent','f','f'),
   ('json','users','begin','json','user','begin','f','f'),
   ('json','users','cid','json','user','cid','f','f'),
   ('json','users','connect','json','users','connect','f','f'),
@@ -7728,19 +7895,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v','dest_host','mychips','routes','dest_host','f','t'),
   ('mychips','routes_v','dest_name','mychips','routes_v','dest_name','f','f'),
   ('mychips','routes_v','dest_sock','mychips','routes_v','dest_sock','f','f'),
-  ('mychips','routes_v','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
-  ('mychips','routes_v','drop_max','mychips','tallies_v_net','drop_max','f','f'),
-  ('mychips','routes_v','drop_min','mychips','tallies_v_net','drop_min','f','f'),
-  ('mychips','routes_v','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
+  ('mychips','routes_v','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','routes_v','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','routes_v','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','routes_v','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
   ('mychips','routes_v','expires','mychips','routes_v','expires','f','f'),
   ('mychips','routes_v','good_date','mychips','routes','good_date','f','f'),
-  ('mychips','routes_v','last','mychips','tallies_v_paths','last','f','f'),
+  ('mychips','routes_v','last','mychips','tallies_v_paths_old','last','f','f'),
   ('mychips','routes_v','lift_count','mychips','routes','lift_count','f','f'),
   ('mychips','routes_v','lift_date','mychips','routes','lift_date','f','f'),
-  ('mychips','routes_v','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
-  ('mychips','routes_v','lift_max','mychips','tallies_v_net','lift_max','f','f'),
-  ('mychips','routes_v','lift_min','mychips','tallies_v_net','lift_min','f','f'),
-  ('mychips','routes_v','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','routes_v','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','routes_v','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','routes_v','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','routes_v','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
   ('mychips','routes_v','native','mychips','routes_v','native','f','f'),
   ('mychips','routes_v','relay','mychips','routes_v','relay','f','f'),
   ('mychips','routes_v','requ_addr','mychips','routes_v','requ_addr','f','f'),
@@ -7770,26 +7937,26 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v','tries','mychips','route_tries','tries','f','f'),
   ('mychips','routes_v_lifts','botu_ent','mychips','routes','botu_ent','f','f'),
   ('mychips','routes_v_lifts','circuit','mychips','routes_v_paths','circuit','f','f'),
-  ('mychips','routes_v_lifts','corein','mychips','tallies_v_paths','corein','f','f'),
+  ('mychips','routes_v_lifts','corein','mychips','tallies_v_paths_old','corein','f','f'),
   ('mychips','routes_v_lifts','dest_chid','mychips','routes','dest_chid','f','t'),
   ('mychips','routes_v_lifts','dest_ent','mychips','routes','dest_ent','f','f'),
   ('mychips','routes_v_lifts','dest_host','mychips','routes','dest_host','f','t'),
-  ('mychips','routes_v_lifts','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
-  ('mychips','routes_v_lifts','drop_max','mychips','tallies_v_net','drop_max','f','f'),
-  ('mychips','routes_v_lifts','drop_min','mychips','tallies_v_net','drop_min','f','f'),
-  ('mychips','routes_v_lifts','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
-  ('mychips','routes_v_lifts','first','mychips','tallies_v_paths','first','f','f'),
-  ('mychips','routes_v_lifts','fora','mychips','tallies_v_paths','fora','f','f'),
-  ('mychips','routes_v_lifts','forz','mychips','tallies_v_paths','forz','f','f'),
-  ('mychips','routes_v_lifts','last','mychips','tallies_v_paths','last','f','f'),
-  ('mychips','routes_v_lifts','length','mychips','tallies_v_paths','length','f','f'),
+  ('mychips','routes_v_lifts','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','routes_v_lifts','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','routes_v_lifts','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','routes_v_lifts','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','routes_v_lifts','first','mychips','tallies_v_paths_old','first','f','f'),
+  ('mychips','routes_v_lifts','fora','mychips','tallies_v_paths_old','fora','f','f'),
+  ('mychips','routes_v_lifts','forz','mychips','tallies_v_paths_old','forz','f','f'),
+  ('mychips','routes_v_lifts','last','mychips','tallies_v_paths_old','last','f','f'),
+  ('mychips','routes_v_lifts','length','mychips','tallies_v_paths_old','length','f','f'),
   ('mychips','routes_v_lifts','lift_count','mychips','routes','lift_count','f','f'),
-  ('mychips','routes_v_lifts','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
-  ('mychips','routes_v_lifts','lift_max','mychips','tallies_v_net','lift_max','f','f'),
-  ('mychips','routes_v_lifts','lift_min','mychips','tallies_v_net','lift_min','f','f'),
-  ('mychips','routes_v_lifts','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','routes_v_lifts','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','routes_v_lifts','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','routes_v_lifts','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','routes_v_lifts','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
   ('mychips','routes_v_lifts','native','mychips','routes_v_paths','native','f','f'),
-  ('mychips','routes_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
+  ('mychips','routes_v_lifts','path','mychips','tallies_v_paths_old','path','f','f'),
   ('mychips','routes_v_lifts','path_drop_margin','mychips','routes_v_paths','path_drop_margin','f','f'),
   ('mychips','routes_v_lifts','path_drop_max','mychips','routes_v_paths','path_drop_max','f','f'),
   ('mychips','routes_v_lifts','path_drop_min','mychips','routes_v_paths','path_drop_min','f','f'),
@@ -7808,32 +7975,32 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_lifts','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
   ('mychips','routes_v_lifts','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
   ('mychips','routes_v_lifts','route_lift_reward','mychips','routes_v_paths','route_lift_reward','f','f'),
-  ('mychips','routes_v_lifts','segment','mychips','tallies_v_paths','segment','f','f'),
+  ('mychips','routes_v_lifts','segment','mychips','tallies_v_paths_old','segment','f','f'),
   ('mychips','routes_v_lifts','status','mychips','routes','status','f','f'),
   ('mychips','routes_v_lifts','topu_ent','mychips','routes','topu_ent','f','f'),
-  ('mychips','routes_v_lifts','uuids','mychips','tallies_v_paths','uuids','f','f'),
+  ('mychips','routes_v_lifts','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
   ('mychips','routes_v_paths','botu_ent','mychips','routes','botu_ent','f','f'),
   ('mychips','routes_v_paths','circuit','mychips','routes_v_paths','circuit','f','f'),
-  ('mychips','routes_v_paths','corein','mychips','tallies_v_paths','corein','f','f'),
+  ('mychips','routes_v_paths','corein','mychips','tallies_v_paths_old','corein','f','f'),
   ('mychips','routes_v_paths','dest_chid','mychips','routes','dest_chid','f','t'),
   ('mychips','routes_v_paths','dest_ent','mychips','routes','dest_ent','f','f'),
   ('mychips','routes_v_paths','dest_host','mychips','routes','dest_host','f','t'),
-  ('mychips','routes_v_paths','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
-  ('mychips','routes_v_paths','drop_max','mychips','tallies_v_net','drop_max','f','f'),
-  ('mychips','routes_v_paths','drop_min','mychips','tallies_v_net','drop_min','f','f'),
-  ('mychips','routes_v_paths','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
-  ('mychips','routes_v_paths','first','mychips','tallies_v_paths','first','f','f'),
-  ('mychips','routes_v_paths','fora','mychips','tallies_v_paths','fora','f','f'),
-  ('mychips','routes_v_paths','forz','mychips','tallies_v_paths','forz','f','f'),
-  ('mychips','routes_v_paths','last','mychips','tallies_v_paths','last','f','f'),
-  ('mychips','routes_v_paths','length','mychips','tallies_v_paths','length','f','f'),
+  ('mychips','routes_v_paths','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','routes_v_paths','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','routes_v_paths','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','routes_v_paths','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','routes_v_paths','first','mychips','tallies_v_paths_old','first','f','f'),
+  ('mychips','routes_v_paths','fora','mychips','tallies_v_paths_old','fora','f','f'),
+  ('mychips','routes_v_paths','forz','mychips','tallies_v_paths_old','forz','f','f'),
+  ('mychips','routes_v_paths','last','mychips','tallies_v_paths_old','last','f','f'),
+  ('mychips','routes_v_paths','length','mychips','tallies_v_paths_old','length','f','f'),
   ('mychips','routes_v_paths','lift_count','mychips','routes','lift_count','f','f'),
-  ('mychips','routes_v_paths','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
-  ('mychips','routes_v_paths','lift_max','mychips','tallies_v_net','lift_max','f','f'),
-  ('mychips','routes_v_paths','lift_min','mychips','tallies_v_net','lift_min','f','f'),
-  ('mychips','routes_v_paths','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','routes_v_paths','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','routes_v_paths','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','routes_v_paths','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','routes_v_paths','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
   ('mychips','routes_v_paths','native','mychips','routes_v_paths','native','f','f'),
-  ('mychips','routes_v_paths','path','mychips','tallies_v_paths','path','f','f'),
+  ('mychips','routes_v_paths','path','mychips','tallies_v_paths_old','path','f','f'),
   ('mychips','routes_v_paths','path_drop_margin','mychips','routes_v_paths','path_drop_margin','f','f'),
   ('mychips','routes_v_paths','path_drop_max','mychips','routes_v_paths','path_drop_max','f','f'),
   ('mychips','routes_v_paths','path_drop_min','mychips','routes_v_paths','path_drop_min','f','f'),
@@ -7852,10 +8019,10 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_paths','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
   ('mychips','routes_v_paths','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
   ('mychips','routes_v_paths','route_lift_reward','mychips','routes_v_paths','route_lift_reward','f','f'),
-  ('mychips','routes_v_paths','segment','mychips','tallies_v_paths','segment','f','f'),
+  ('mychips','routes_v_paths','segment','mychips','tallies_v_paths_old','segment','f','f'),
   ('mychips','routes_v_paths','status','mychips','routes','status','f','f'),
   ('mychips','routes_v_paths','topu_ent','mychips','routes','topu_ent','f','f'),
-  ('mychips','routes_v_paths','uuids','mychips','tallies_v_paths','uuids','f','f'),
+  ('mychips','routes_v_paths','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
   ('mychips','tallies','_last_chit','mychips','tallies','_last_chit','f','f'),
   ('mychips','tallies','_last_tset','mychips','tallies','_last_tset','f','f'),
   ('mychips','tallies','bound','mychips','tallies','bound','f','f'),
@@ -7878,9 +8045,9 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies','part_agent','mychips','tallies','part_agent','f','f'),
   ('mychips','tallies','part_cert','mychips','tallies','part_cert','f','f'),
   ('mychips','tallies','part_cid','mychips','tallies','part_cid','f','f'),
+  ('mychips','tallies','part_ent','mychips','tallies','part_ent','f','f'),
   ('mychips','tallies','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies','part_terms','mychips','tallies','part_terms','f','f'),
-  ('mychips','tallies','partner','mychips','tallies','partner','f','f'),
   ('mychips','tallies','request','mychips','tallies','request','f','f'),
   ('mychips','tallies','reward','mychips','tallies','reward','f','f'),
   ('mychips','tallies','status','mychips','tallies','status','f','f'),
@@ -7910,27 +8077,33 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','hold_agent','mychips','tallies','hold_agent','f','f'),
   ('mychips','tallies_v','hold_akey','mychips','tallies_v','hold_akey','f','f'),
   ('mychips','tallies_v','hold_cert','mychips','tallies','hold_cert','f','f'),
-  ('mychips','tallies_v','hold_chip','mychips','tallies_v','hold_chip','f','f'),
+  ('mychips','tallies_v','hold_chad','mychips','tallies_v','hold_chad','f','f'),
   ('mychips','tallies_v','hold_cid','mychips','tallies','hold_cid','f','f'),
   ('mychips','tallies_v','hold_full','mychips','tallies_v','hold_full','f','f'),
   ('mychips','tallies_v','hold_sig','mychips','tallies','hold_sig','f','f'),
   ('mychips','tallies_v','hold_sock','mychips','tallies_v','hold_sock','f','f'),
+  ('mychips','tallies_v','hold_terms','mychips','tallies','hold_terms','f','f'),
   ('mychips','tallies_v','inside','mychips','tallies_v','inside','f','f'),
   ('mychips','tallies_v','json','mychips','agents_v','json','f','f'),
   ('mychips','tallies_v','json_core','mychips','tallies_v','json_core','f','f'),
   ('mychips','tallies_v','latest','mychips','tallies_v','latest','f','f'),
+  ('mychips','tallies_v','liftable','mychips','tallies_v','liftable','f','f'),
   ('mychips','tallies_v','mod_by','mychips','tallies','mod_by','f','f'),
   ('mychips','tallies_v','mod_date','mychips','tallies','mod_date','f','f'),
+  ('mychips','tallies_v','net','mychips','tallies_v','net','f','f'),
+  ('mychips','tallies_v','net_gc','mychips','tallies_v','net_gc','f','f'),
+  ('mychips','tallies_v','net_pc','mychips','tallies_v','net_pc','f','f'),
   ('mychips','tallies_v','part_addr','mychips','tallies_v','part_addr','f','f'),
   ('mychips','tallies_v','part_agent','mychips','tallies','part_agent','f','f'),
   ('mychips','tallies_v','part_akey','mychips','tallies_v','part_akey','f','f'),
   ('mychips','tallies_v','part_cert','mychips','tallies','part_cert','f','f'),
-  ('mychips','tallies_v','part_chip','mychips','tallies_v','part_chip','f','f'),
+  ('mychips','tallies_v','part_chad','mychips','tallies_v','part_chad','f','f'),
   ('mychips','tallies_v','part_cid','mychips','tallies','part_cid','f','f'),
+  ('mychips','tallies_v','part_ent','mychips','tallies','part_ent','f','f'),
   ('mychips','tallies_v','part_full','mychips','tallies_v','part_full','f','f'),
   ('mychips','tallies_v','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies_v','part_sock','mychips','tallies_v','part_sock','f','f'),
-  ('mychips','tallies_v','partner','mychips','tallies','partner','f','f'),
+  ('mychips','tallies_v','part_terms','mychips','tallies','part_terms','f','f'),
   ('mychips','tallies_v','policy','mychips','tallies_v','policy','f','f'),
   ('mychips','tallies_v','request','mychips','tallies','request','f','f'),
   ('mychips','tallies_v','reward','mychips','tallies','reward','f','f'),
@@ -7946,26 +8119,26 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','units_gc','mychips','tallies','units_gc','f','f'),
   ('mychips','tallies_v','units_pc','mychips','tallies','units_pc','f','f'),
   ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
-  ('mychips','tallies_v_lifts','bang','mychips','tallies_v_paths','bang','f','f'),
-  ('mychips','tallies_v_lifts','circuit','mychips','tallies_v_paths','circuit','f','f'),
-  ('mychips','tallies_v_lifts','corein','mychips','tallies_v_paths','corein','f','f'),
-  ('mychips','tallies_v_lifts','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
-  ('mychips','tallies_v_lifts','drop_max','mychips','tallies_v_net','drop_max','f','f'),
-  ('mychips','tallies_v_lifts','drop_min','mychips','tallies_v_net','drop_min','f','f'),
-  ('mychips','tallies_v_lifts','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
-  ('mychips','tallies_v_lifts','first','mychips','tallies_v_paths','first','f','f'),
-  ('mychips','tallies_v_lifts','fora','mychips','tallies_v_paths','fora','f','f'),
-  ('mychips','tallies_v_lifts','forz','mychips','tallies_v_paths','forz','f','f'),
-  ('mychips','tallies_v_lifts','inside','mychips','tallies_v_paths','inside','f','f'),
-  ('mychips','tallies_v_lifts','last','mychips','tallies_v_paths','last','f','f'),
-  ('mychips','tallies_v_lifts','length','mychips','tallies_v_paths','length','f','f'),
-  ('mychips','tallies_v_lifts','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
-  ('mychips','tallies_v_lifts','lift_max','mychips','tallies_v_net','lift_max','f','f'),
-  ('mychips','tallies_v_lifts','lift_min','mychips','tallies_v_net','lift_min','f','f'),
-  ('mychips','tallies_v_lifts','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
-  ('mychips','tallies_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
-  ('mychips','tallies_v_lifts','segment','mychips','tallies_v_paths','segment','f','f'),
-  ('mychips','tallies_v_lifts','uuids','mychips','tallies_v_paths','uuids','f','f'),
+  ('mychips','tallies_v_lifts_old','bang','mychips','tallies_v_paths_old','bang','f','f'),
+  ('mychips','tallies_v_lifts_old','circuit','mychips','tallies_v_paths_old','circuit','f','f'),
+  ('mychips','tallies_v_lifts_old','corein','mychips','tallies_v_paths_old','corein','f','f'),
+  ('mychips','tallies_v_lifts_old','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','tallies_v_lifts_old','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','tallies_v_lifts_old','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','tallies_v_lifts_old','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','tallies_v_lifts_old','first','mychips','tallies_v_paths_old','first','f','f'),
+  ('mychips','tallies_v_lifts_old','fora','mychips','tallies_v_paths_old','fora','f','f'),
+  ('mychips','tallies_v_lifts_old','forz','mychips','tallies_v_paths_old','forz','f','f'),
+  ('mychips','tallies_v_lifts_old','inside','mychips','tallies_v_paths_old','inside','f','f'),
+  ('mychips','tallies_v_lifts_old','last','mychips','tallies_v_paths_old','last','f','f'),
+  ('mychips','tallies_v_lifts_old','length','mychips','tallies_v_paths_old','length','f','f'),
+  ('mychips','tallies_v_lifts_old','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','tallies_v_lifts_old','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','tallies_v_lifts_old','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','tallies_v_lifts_old','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
+  ('mychips','tallies_v_lifts_old','path','mychips','tallies_v_paths_old','path','f','f'),
+  ('mychips','tallies_v_lifts_old','segment','mychips','tallies_v_paths_old','segment','f','f'),
+  ('mychips','tallies_v_lifts_old','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
   ('mychips','tallies_v_me','action','mychips','tallies_v','action','f','f'),
   ('mychips','tallies_v_me','bound','mychips','tallies','bound','f','f'),
   ('mychips','tallies_v_me','chits','mychips','tallies_v','chits','f','f'),
@@ -7983,27 +8156,33 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','hold_agent','mychips','tallies','hold_agent','f','f'),
   ('mychips','tallies_v_me','hold_akey','mychips','tallies_v','hold_akey','f','f'),
   ('mychips','tallies_v_me','hold_cert','mychips','tallies','hold_cert','f','f'),
-  ('mychips','tallies_v_me','hold_chip','mychips','tallies_v','hold_chip','f','f'),
+  ('mychips','tallies_v_me','hold_chad','mychips','tallies_v','hold_chad','f','f'),
   ('mychips','tallies_v_me','hold_cid','mychips','tallies','hold_cid','f','f'),
   ('mychips','tallies_v_me','hold_full','mychips','tallies_v','hold_full','f','f'),
   ('mychips','tallies_v_me','hold_sig','mychips','tallies','hold_sig','f','f'),
   ('mychips','tallies_v_me','hold_sock','mychips','tallies_v','hold_sock','f','f'),
+  ('mychips','tallies_v_me','hold_terms','mychips','tallies','hold_terms','f','f'),
   ('mychips','tallies_v_me','inside','mychips','tallies_v','inside','f','f'),
   ('mychips','tallies_v_me','json','mychips','agents_v','json','f','f'),
   ('mychips','tallies_v_me','json_core','mychips','tallies_v','json_core','f','f'),
   ('mychips','tallies_v_me','latest','mychips','tallies_v','latest','f','f'),
+  ('mychips','tallies_v_me','liftable','mychips','tallies_v','liftable','f','f'),
   ('mychips','tallies_v_me','mod_by','mychips','tallies','mod_by','f','f'),
   ('mychips','tallies_v_me','mod_date','mychips','tallies','mod_date','f','f'),
+  ('mychips','tallies_v_me','net','mychips','tallies_v','net','f','f'),
+  ('mychips','tallies_v_me','net_gc','mychips','tallies_v','net_gc','f','f'),
+  ('mychips','tallies_v_me','net_pc','mychips','tallies_v','net_pc','f','f'),
   ('mychips','tallies_v_me','part_addr','mychips','tallies_v','part_addr','f','f'),
   ('mychips','tallies_v_me','part_agent','mychips','tallies','part_agent','f','f'),
   ('mychips','tallies_v_me','part_akey','mychips','tallies_v','part_akey','f','f'),
   ('mychips','tallies_v_me','part_cert','mychips','tallies','part_cert','f','f'),
-  ('mychips','tallies_v_me','part_chip','mychips','tallies_v','part_chip','f','f'),
+  ('mychips','tallies_v_me','part_chad','mychips','tallies_v','part_chad','f','f'),
   ('mychips','tallies_v_me','part_cid','mychips','tallies','part_cid','f','f'),
+  ('mychips','tallies_v_me','part_ent','mychips','tallies','part_ent','f','f'),
   ('mychips','tallies_v_me','part_full','mychips','tallies_v','part_full','f','f'),
   ('mychips','tallies_v_me','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies_v_me','part_sock','mychips','tallies_v','part_sock','f','f'),
-  ('mychips','tallies_v_me','partner','mychips','tallies','partner','f','f'),
+  ('mychips','tallies_v_me','part_terms','mychips','tallies','part_terms','f','f'),
   ('mychips','tallies_v_me','policy','mychips','tallies_v','policy','f','f'),
   ('mychips','tallies_v_me','request','mychips','tallies','request','f','f'),
   ('mychips','tallies_v_me','reward','mychips','tallies','reward','f','f'),
@@ -8019,45 +8198,78 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','units_gc','mychips','tallies','units_gc','f','f'),
   ('mychips','tallies_v_me','units_pc','mychips','tallies','units_pc','f','f'),
   ('mychips','tallies_v_me','version','mychips','tallies','version','f','f'),
-  ('mychips','tallies_v_net','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
-  ('mychips','tallies_v_net','drop_max','mychips','tallies_v_net','drop_max','f','f'),
-  ('mychips','tallies_v_net','drop_min','mychips','tallies_v_net','drop_min','f','f'),
-  ('mychips','tallies_v_net','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
-  ('mychips','tallies_v_net','drop_target','mychips','tallies_v_net','drop_target','f','f'),
-  ('mychips','tallies_v_net','foil_ent','mychips','tallies_v_net','foil_ent','f','f'),
-  ('mychips','tallies_v_net','foil_user','mychips','tallies_v_net','foil_user','f','f'),
-  ('mychips','tallies_v_net','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
-  ('mychips','tallies_v_net','lift_max','mychips','tallies_v_net','lift_max','f','f'),
-  ('mychips','tallies_v_net','lift_min','mychips','tallies_v_net','lift_min','f','f'),
-  ('mychips','tallies_v_net','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
-  ('mychips','tallies_v_net','lift_target','mychips','tallies_v_net','lift_target','f','f'),
-  ('mychips','tallies_v_net','stock_ent','mychips','tallies_v_net','stock_ent','f','f'),
-  ('mychips','tallies_v_net','stock_user','mychips','tallies_v_net','stock_user','f','f'),
+  ('mychips','tallies_v_net','bound','mychips','tallies','bound','f','f'),
+  ('mychips','tallies_v_net','inp','mychips','tallies_v_net','inp','f','f'),
+  ('mychips','tallies_v_net','inv','mychips','tallies_v_net','inv','f','f'),
+  ('mychips','tallies_v_net','margin','mychips','tallies_v_net','margin','f','f'),
+  ('mychips','tallies_v_net','max','mychips','tallies_v_net','max','f','f'),
+  ('mychips','tallies_v_net','min','mychips','tallies_v_net','min','f','f'),
+  ('mychips','tallies_v_net','out','mychips','tallies_v_net','out','f','f'),
+  ('mychips','tallies_v_net','part','mychips','tallies_v_net','part','f','f'),
+  ('mychips','tallies_v_net','part_ent','mychips','tallies','part_ent','f','f'),
+  ('mychips','tallies_v_net','reward','mychips','tallies','reward','f','f'),
+  ('mychips','tallies_v_net','sign','mychips','tallies_v_net','sign','f','f'),
+  ('mychips','tallies_v_net','tally_ent','mychips','tallies','tally_ent','f','t'),
+  ('mychips','tallies_v_net','tally_type','mychips','tallies','tally_type','f','f'),
+  ('mychips','tallies_v_net','target','mychips','tallies','target','f','f'),
+  ('mychips','tallies_v_net','type','mychips','tallies_v_net','type','f','f'),
+  ('mychips','tallies_v_net','units_pc','mychips','tallies','units_pc','f','f'),
   ('mychips','tallies_v_net','uuid','mychips','tallies_v_net','uuid','f','f'),
+  ('mychips','tallies_v_net_old','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','tallies_v_net_old','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','tallies_v_net_old','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','tallies_v_net_old','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','tallies_v_net_old','drop_target','mychips','tallies_v_net_old','drop_target','f','f'),
+  ('mychips','tallies_v_net_old','foil_ent','mychips','tallies_v_net_old','foil_ent','f','f'),
+  ('mychips','tallies_v_net_old','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','tallies_v_net_old','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','tallies_v_net_old','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','tallies_v_net_old','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
+  ('mychips','tallies_v_net_old','lift_target','mychips','tallies_v_net_old','lift_target','f','f'),
+  ('mychips','tallies_v_net_old','stock_ent','mychips','tallies_v_net_old','stock_ent','f','f'),
+  ('mychips','tallies_v_net_old','stock_user','mychips','tallies_v_net_old','stock_user','f','f'),
+  ('mychips','tallies_v_net_old','uuid','mychips','tallies_v_net_old','uuid','f','f'),
   ('mychips','tallies_v_paths','bang','mychips','tallies_v_paths','bang','f','f'),
   ('mychips','tallies_v_paths','circuit','mychips','tallies_v_paths','circuit','f','f'),
-  ('mychips','tallies_v_paths','corein','mychips','tallies_v_paths','corein','f','f'),
-  ('mychips','tallies_v_paths','drop_margin','mychips','tallies_v_net','drop_margin','f','f'),
-  ('mychips','tallies_v_paths','drop_max','mychips','tallies_v_net','drop_max','f','f'),
-  ('mychips','tallies_v_paths','drop_min','mychips','tallies_v_net','drop_min','f','f'),
-  ('mychips','tallies_v_paths','drop_reward','mychips','tallies_v_net','drop_reward','f','f'),
-  ('mychips','tallies_v_paths','first','mychips','tallies_v_paths','first','f','t'),
-  ('mychips','tallies_v_paths','fora','mychips','tallies_v_paths','fora','f','f'),
-  ('mychips','tallies_v_paths','forz','mychips','tallies_v_paths','forz','f','f'),
-  ('mychips','tallies_v_paths','inside','mychips','tallies_v_paths','inside','f','f'),
-  ('mychips','tallies_v_paths','last','mychips','tallies_v_paths','last','f','t'),
+  ('mychips','tallies_v_paths','fori','mychips','tallies_v_paths','fori','f','f'),
+  ('mychips','tallies_v_paths','foro','mychips','tallies_v_paths','foro','f','f'),
+  ('mychips','tallies_v_paths','hath','mychips','tallies_v_paths','hath','f','f'),
+  ('mychips','tallies_v_paths','inp','mychips','tallies_v_net','inp','f','t'),
   ('mychips','tallies_v_paths','length','mychips','tallies_v_paths','length','f','t'),
-  ('mychips','tallies_v_paths','lift_margin','mychips','tallies_v_net','lift_margin','f','f'),
-  ('mychips','tallies_v_paths','lift_max','mychips','tallies_v_net','lift_max','f','f'),
-  ('mychips','tallies_v_paths','lift_min','mychips','tallies_v_net','lift_min','f','f'),
-  ('mychips','tallies_v_paths','lift_reward','mychips','tallies_v_net','lift_reward','f','f'),
+  ('mychips','tallies_v_paths','margin','mychips','tallies_v_net','margin','f','f'),
+  ('mychips','tallies_v_paths','max','mychips','tallies_v_net','max','f','f'),
+  ('mychips','tallies_v_paths','min','mychips','tallies_v_net','min','f','f'),
+  ('mychips','tallies_v_paths','out','mychips','tallies_v_net','out','f','t'),
   ('mychips','tallies_v_paths','path','mychips','tallies_v_paths','path','f','f'),
-  ('mychips','tallies_v_paths','segment','mychips','tallies_v_paths','segment','f','f'),
+  ('mychips','tallies_v_paths','reward','mychips','tallies','reward','f','f'),
+  ('mychips','tallies_v_paths','signs','mychips','tallies_v_paths','signs','f','f'),
   ('mychips','tallies_v_paths','uuids','mychips','tallies_v_paths','uuids','f','f'),
+  ('mychips','tallies_v_paths_old','bang','mychips','tallies_v_paths_old','bang','f','f'),
+  ('mychips','tallies_v_paths_old','circuit','mychips','tallies_v_paths_old','circuit','f','f'),
+  ('mychips','tallies_v_paths_old','corein','mychips','tallies_v_paths_old','corein','f','f'),
+  ('mychips','tallies_v_paths_old','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','tallies_v_paths_old','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','tallies_v_paths_old','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','tallies_v_paths_old','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','tallies_v_paths_old','first','mychips','tallies_v_paths_old','first','f','t'),
+  ('mychips','tallies_v_paths_old','fora','mychips','tallies_v_paths_old','fora','f','f'),
+  ('mychips','tallies_v_paths_old','forz','mychips','tallies_v_paths_old','forz','f','f'),
+  ('mychips','tallies_v_paths_old','inside','mychips','tallies_v_paths_old','inside','f','f'),
+  ('mychips','tallies_v_paths_old','last','mychips','tallies_v_paths_old','last','f','t'),
+  ('mychips','tallies_v_paths_old','length','mychips','tallies_v_paths_old','length','f','t'),
+  ('mychips','tallies_v_paths_old','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','tallies_v_paths_old','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','tallies_v_paths_old','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','tallies_v_paths_old','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
+  ('mychips','tallies_v_paths_old','path','mychips','tallies_v_paths_old','path','f','f'),
+  ('mychips','tallies_v_paths_old','segment','mychips','tallies_v_paths_old','segment','f','f'),
+  ('mychips','tallies_v_paths_old','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
   ('mychips','tallies_v_sum','bounds','mychips','tallies_v_sum','bounds','f','f'),
   ('mychips','tallies_v_sum','client_cids','mychips','tallies_v_sum','client_cids','f','f'),
   ('mychips','tallies_v_sum','clients','mychips','tallies_v_sum','clients','f','f'),
   ('mychips','tallies_v_sum','clutchs','mychips','tallies_v_sum','clutchs','f','f'),
+  ('mychips','tallies_v_sum','foil_net','mychips','tallies_v_sum','foil_net','f','f'),
+  ('mychips','tallies_v_sum','foil_nets','mychips','tallies_v_sum','foil_nets','f','f'),
   ('mychips','tallies_v_sum','foil_seqs','mychips','tallies_v_sum','foil_seqs','f','f'),
   ('mychips','tallies_v_sum','foil_uni','mychips','tallies_v_sum','foil_uni','f','f'),
   ('mychips','tallies_v_sum','foil_unis','mychips','tallies_v_sum','foil_unis','f','f'),
@@ -8065,12 +8277,16 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_sum','foils','mychips','tallies_v_sum','foils','f','f'),
   ('mychips','tallies_v_sum','insides','mychips','tallies_v_sum','insides','f','f'),
   ('mychips','tallies_v_sum','latest','mychips','tallies_v','latest','f','f'),
+  ('mychips','tallies_v_sum','net','mychips','tallies_v','net','f','f'),
+  ('mychips','tallies_v_sum','nets','mychips','tallies_v_sum','nets','f','f'),
   ('mychips','tallies_v_sum','part_cids','mychips','tallies_v_sum','part_cids','f','f'),
   ('mychips','tallies_v_sum','partners','mychips','tallies_v_sum','partners','f','f'),
   ('mychips','tallies_v_sum','policies','mychips','tallies_v_sum','policies','f','f'),
   ('mychips','tallies_v_sum','rewards','mychips','tallies_v_sum','rewards','f','f'),
   ('mychips','tallies_v_sum','seqs','mychips','tallies_v_sum','seqs','f','f'),
   ('mychips','tallies_v_sum','states','mychips','tallies_v_sum','states','f','f'),
+  ('mychips','tallies_v_sum','stock_net','mychips','tallies_v_sum','stock_net','f','f'),
+  ('mychips','tallies_v_sum','stock_nets','mychips','tallies_v_sum','stock_nets','f','f'),
   ('mychips','tallies_v_sum','stock_seqs','mychips','tallies_v_sum','stock_seqs','f','f'),
   ('mychips','tallies_v_sum','stock_uni','mychips','tallies_v_sum','stock_uni','f','f'),
   ('mychips','tallies_v_sum','stock_unis','mychips','tallies_v_sum','stock_unis','f','f'),
@@ -8123,7 +8339,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tokens','token_ent','mychips','tokens','token_ent','f','t'),
   ('mychips','tokens','token_seq','mychips','tokens','token_seq','f','t'),
   ('mychips','tokens','used','mychips','tokens','used','f','f'),
-  ('mychips','tokens_v','chip','mychips','tokens_v','chip','f','f'),
+  ('mychips','tokens_v','chad','mychips','tokens_v','chad','f','f'),
   ('mychips','tokens_v','crt_by','mychips','tokens','crt_by','f','f'),
   ('mychips','tokens_v','crt_date','mychips','tokens','crt_date','f','f'),
   ('mychips','tokens_v','expired','mychips','tokens_v','expired','f','f'),
@@ -8140,6 +8356,23 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tokens_v','token_seq','mychips','tokens','token_seq','f','t'),
   ('mychips','tokens_v','used','mychips','tokens','used','f','f'),
   ('mychips','tokens_v','valid','mychips','tokens_v','valid','f','f'),
+  ('mychips','tokens_v_me','chad','mychips','tokens_v','chad','f','f'),
+  ('mychips','tokens_v_me','crt_by','mychips','tokens','crt_by','f','f'),
+  ('mychips','tokens_v_me','crt_date','mychips','tokens','crt_date','f','f'),
+  ('mychips','tokens_v_me','expired','mychips','tokens_v','expired','f','f'),
+  ('mychips','tokens_v_me','expires','mychips','tokens','expires','f','f'),
+  ('mychips','tokens_v_me','mod_by','mychips','tokens','mod_by','f','f'),
+  ('mychips','tokens_v_me','mod_date','mychips','tokens','mod_date','f','f'),
+  ('mychips','tokens_v_me','peer_agent','mychips','peers','peer_agent','f','f'),
+  ('mychips','tokens_v_me','peer_cid','mychips','peers','peer_cid','f','f'),
+  ('mychips','tokens_v_me','reuse','mychips','tokens','reuse','f','f'),
+  ('mychips','tokens_v_me','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','tokens_v_me','tally_seq','mychips','tokens','tally_seq','f','f'),
+  ('mychips','tokens_v_me','token','mychips','tokens','token','f','f'),
+  ('mychips','tokens_v_me','token_ent','mychips','tokens','token_ent','f','t'),
+  ('mychips','tokens_v_me','token_seq','mychips','tokens','token_seq','f','t'),
+  ('mychips','tokens_v_me','used','mychips','tokens','used','f','f'),
+  ('mychips','tokens_v_me','valid','mychips','tokens_v','valid','f','f'),
   ('mychips','users','_last_tally','mychips','users','_last_tally','f','f'),
   ('mychips','users','crt_by','mychips','users','crt_by','f','f'),
   ('mychips','users','crt_date','mychips','users','crt_date','f','f'),
@@ -8153,7 +8386,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users','user_port','mychips','users','user_port','f','f'),
   ('mychips','users','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v','age','base','ent_v','age','f','f'),
-  ('mychips','users_v','agent','mychips','agents','agent','f','f'),
   ('mychips','users_v','agent_host','mychips','agents','agent_host','f','f'),
   ('mychips','users_v','agent_ip','mychips','agents','agent_ip','f','f'),
   ('mychips','users_v','agent_key','mychips','agents','agent_key','f','f'),
@@ -8208,7 +8440,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v','username','base','ent','username','f','f'),
   ('mychips','users_v_flat','age','base','ent_v','age','f','f'),
-  ('mychips','users_v_flat','agent','mychips','agents','agent','f','t'),
   ('mychips','users_v_flat','agent_host','mychips','agents','agent_host','f','f'),
   ('mychips','users_v_flat','agent_ip','mychips','agents','agent_ip','f','f'),
   ('mychips','users_v_flat','agent_key','mychips','agents','agent_key','f','f'),
@@ -8277,7 +8508,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_flat','username','base','ent','username','f','f'),
   ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
   ('mychips','users_v_me','age','base','ent_v','age','f','f'),
-  ('mychips','users_v_me','agent','mychips','agents','agent','f','f'),
   ('mychips','users_v_me','agent_host','mychips','agents','agent_host','f','f'),
   ('mychips','users_v_me','agent_ip','mychips','agents','agent_ip','f','f'),
   ('mychips','users_v_me','agent_key','mychips','agents','agent_key','f','f'),
@@ -8346,6 +8576,8 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','id','base','ent','id','f','t'),
   ('mychips','users_v_tallysum','insides','mychips','tallies_v_sum','insides','f','f'),
   ('mychips','users_v_tallysum','latest','mychips','tallies_v','latest','f','f'),
+  ('mychips','users_v_tallysum','net','mychips','tallies_v','net','f','f'),
+  ('mychips','users_v_tallysum','nets','mychips','tallies_v_sum','nets','f','f'),
   ('mychips','users_v_tallysum','part_cids','mychips','tallies_v_sum','part_cids','f','f'),
   ('mychips','users_v_tallysum','partners','mychips','tallies_v_sum','partners','f','f'),
   ('mychips','users_v_tallysum','peer_cagent','mychips','users_v','peer_cagent','f','f'),

@@ -3,6 +3,8 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- Add test for mychips.j2h()
+//- Add test for mychips.validate()
+//- Can/should we use pgcrypto as opposed to python crypto?
 //- 
 const Fs = require('fs')
 const Child = require('child_process')
@@ -15,12 +17,12 @@ var log = Log('testSchCrypto')
 var { dbClient } = require("wyseman")
 const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
 
-describe("View mychips.peers_v", function() {
+describe("Test cryptographic schema functions", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
 //  before('Delete test database', function(done) {
-//    Child.exec(`dropdb -U ${DBAdmin} ${Database}`, done)
+//    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`, done)
 //  })
 
   before('Connect to (or create) test database', function(done) {
