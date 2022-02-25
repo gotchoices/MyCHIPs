@@ -34,7 +34,7 @@ services:
       - frontend
 
   postgres:
-    image: gotchoices/pg:11
+    image: gotchoices/pg:13
     build:
       context: $MYCHIPS_ROOT
       dockerfile: build/docker-pg
