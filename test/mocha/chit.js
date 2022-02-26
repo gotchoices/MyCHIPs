@@ -269,16 +269,16 @@ describe("Chit testing", function() {
   let config1 = {		//Two users on name host
     sites:1, saveName:'open1',
     cidO:cid0, cidS:cid1, userO:user0, userS:user1, aConO:aCon0, aConS:aCon1, agentO:agent0, agentS:agent1,
-    dbcO: new dbConf(log, 'mychips_user_p1000'), 
-    dbcS: new dbConf(log, 'mychips_user_p1001'),
+    dbcO: new dbConf(log, 'mu_p1000'), 
+    dbcS: new dbConf(log, 'mu_p1001'),
     dbcSO: new dbConf(),
     dbcSS: new dbConf()
   }
   let config2 = {		//Two users on different hosts
     sites:2, saveName:'open2',
     cidO:cid0, cidS:cid2, userO:user0, userS:user2, aConO:aCon0, aConS:aCon2, agentO:agent0, agentS:agent2,
-    dbcO: new dbConf(log, 'mychips_user_p1000'), 
-    dbcS: db2Conf(log, 'mychips_user_p1002'),
+    dbcO: new dbConf(log, 'mu_p1000'), 
+    dbcS: db2Conf(log, 'mu_p1002'),
     dbcSO: new dbConf(),
     dbcSS: db2Conf()
   }

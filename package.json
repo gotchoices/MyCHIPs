@@ -22,7 +22,7 @@
     "dev-hot": "webpack-dev-server --mode development --hot --config build/webpack.config",
     "dev-build": "webpack --mode development --watch --progress --config build/webpack.config",
     "build": "webpack --mode production --config build/webpack.config",
-    "build-sql": "cd schema; make sql",
+    "build-schema": "cd schema; make schema",
     "contract-hashes": "cd contract; ./hashes *.yaml",
     "profile": "webpack --config build/webpack.config --profile --json >/tmp/webpack-stats.json",
     "develop": "bin/develop",
@@ -33,10 +33,12 @@
     "cert": "wyclif-cert",
     "initcerts": "bin/localcerts spa",
     "adminticket": "bin/adminticket -o test/local/admin.json",
-    "docker": "MYCHIPS_ROOT=$(pwd) MYCHIPS_DIR=$(basename $(pwd)) docker-compose -f $(pwd)/build/compose-dev.yml --env-file $(pwd)/build/config-dev.env up",
+    "docker": "docker-compose -f build/compose-prod.yml --env-file build/config-prod.env up",
+    "docker-dev": "docker-compose -f build/compose-dev.yml --env-file build/config-dev.env up",
+    "docker-stop": "docker-compose -f build/compose-dev.yml down",
     "agent": "test/sim/agent -m 2",
     "builddb": "cd schema; make objects",
-    "preversion": "npm-run-all --parallel contract-hashes build-sql build && git add -A"
+    "preversion": "npm-run-all --parallel contract-hashes build-schema build && git add -A"
   },
   "repository": {
     "type": "git",
@@ -68,7 +70,7 @@
     "vue": "^2.6.14",
     "winston": "^3.3.3",
     "ws": "^7.5.5",
-    "wyclif": "^1.0.12",
+    "wyclif": "^1.0.14",
     "wylib": "^1.0.27",
     "wyselib": "^1.0.23",
     "wyseman": "^1.1.3",

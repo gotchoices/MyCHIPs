@@ -2,4 +2,3 @@ node_modules/
 .dockerignore
 app
 test/analysis
-doc
