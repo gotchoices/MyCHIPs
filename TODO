@@ -3,17 +3,11 @@ TODO:
 Immediate:
 -  
 - Adapt route to new message format
-X-  Rename paths files to routes?
-X-  How to insert test data into routes tables
-X-  Or make small deterministic network of tallies?
-X-   Redo tallies_v_net to allow both lifts and drops equally
-X-   Redo tallies_v_paths
-X-   Can we adapt to not storing peers in peer table?
--   Write tests to check for:
--     Proper paths, segments, circuits found
--     Drop paths show up properly
--     Reward variable kicks in over correct range
--     Trading variables (reward,clutch) aggregate properly
+X-   Write tests to check for:
+X-     Proper paths, segments, circuits found
+X-     Drop paths show up properly
+X-     Reward/clutch variable kicks in over correct range
+X-     Trading variables (reward,clutch) aggregate properly
 -   Cleanup/organize routes table
 -   Write tests for route state transitions
 -   Does simulation still run (without actually doing lifts)?

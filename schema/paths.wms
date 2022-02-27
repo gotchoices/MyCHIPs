@@ -106,7 +106,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , t.part_ent					as inp
   , t.tally_ent					as out
   , t.target, t.reward, t.bound
-  , coalesce(p.clutch,0)			as margin
+  , coalesce(p.clutch, 0)			as margin
   , t.units_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
@@ -155,39 +155,44 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
 #----------------------------------------------------------------
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
   with recursive tally_path (
-      inp, out, length, hath, uuids, signs, circuit, min, margin, max, reward
+      inp, out, length, ath, uuids, signs, min, margin, max, reward, circuit
     ) as (
-      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign], false,
-      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float
+      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign],
+             ti.min, ti.margin, ti.max, ti.reward, false
     from	mychips.tallies_v_net ti
   union all
     select tp.inp					as inp
       , t.out						as out
       , tp.length + 1					as length
-      , tp.hath || t.out				as hath
+      , tp.ath || t.out					as ath
       , tp.uuids || t.uuid				as uuids
       , tp.signs || t.sign				as signs
-      , coalesce(tp.inp = t.out, false)			as circuit
-
-      , least(t.min,tp.min)				as min
-      , tp.margin + t.margin * (1 - tp.margin)		as margin
-      , case when t.min < tp.min then
+      , least(t.min, tp.min)				as min
+      , tp.margin + t.margin * (1 - tp.margin)		as margin	-- Aggregated margin
+--      , least(t.max, tp.max)				as max	-- Might charge multiple rewards along segment
+      , case when t.min < tp.min then				-- Will charge only one reward in segment
           least(t.max, tp.min)
         else
-          least(tp.max, t.min) end			as max
-      , case when t.min < tp.min then t.reward else tp.reward end as reward
+          least(t.min, tp.max) end			as max
+      , case when t.min < tp.min then t.reward else tp.reward end as reward	-- Only one reward
+      , coalesce(tp.inp = t.out, false)			as circuit
 
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.out = t.inp
-    		and (t.out isnull or not t.out = any(tp.hath))
+    		and not t.uuid = any(tp.uuids)
+    		and (t.out isnull or not t.out = any(tp.ath))
   ) select tpr.inp, tpr.out
-    , tpr.length, tpr.hath, tpr.uuids, tpr.signs
-    , tpr.margin, tpr.reward, tpr.min, tpr.max, tpr.circuit
-    , tpr.inp || tpr.hath	as path
+    , tpr.length, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max, tpr.circuit
+    , tpr.margin::numeric(8,6)
+    , tpr.reward::numeric(8,6)
+    , tpr.inp || tpr.ath	as path
     , tpr.length * tpr.min	as bang
     , tpr.inp isnull		as fori
     , tpr.out isnull		as foro
-  from tally_path tpr where tpr.length > 2
+    , tpr.uuids[1]		as iuuid
+    , tpr.uuids[length-1]	as ouuid
+--    , tpr.ath[1:length-2]	as at
+  from tally_path tpr				-- where tpr.length > 2
 } -primary {inp out length}
 
 # Simplified view for discovering inside lifts

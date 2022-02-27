@@ -1,0 +1,102 @@
+[
+ {
+  "inp": "p1002",
+  "out": "p1003",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 6,
+  "min": 0,
+  "max": 1,
+  "sign": 1
+ },
+ {
+  "inp": "p1001",
+  "out": "p1002",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 4,
+  "min": 0,
+  "max": 3,
+  "sign": 1
+ },
+ {
+  "inp": "p1000",
+  "out": "p1001",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 2,
+  "min": 1,
+  "max": 5,
+  "sign": 1
+ },
+ {
+  "inp": "p1001",
+  "out": "p1000",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 2,
+  "min": 5,
+  "max": 9,
+  "sign": -1
+ },
+ {
+  "inp": "p1002",
+  "out": "p1001",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 4,
+  "min": 7,
+  "max": 11,
+  "sign": -1
+ },
+ {
+  "inp": "p1000",
+  "out": null,
+  "target": 0,
+  "bound": 0,
+  "units_pc": 8,
+  "min": 8,
+  "max": 8,
+  "sign": -1
+ },
+ {
+  "inp": "p1003",
+  "out": "p1002",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 6,
+  "min": 9,
+  "max": 13,
+  "sign": -1
+ },
+ {
+  "inp": null,
+  "out": "p1003",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 10,
+  "min": 13,
+  "max": 17,
+  "sign": -1
+ },
+ {
+  "inp": "p1001",
+  "out": "p1003",
+  "target": 3,
+  "bound": 7,
+  "units_pc": -12,
+  "min": 15,
+  "max": 19,
+  "sign": 1
+ },
+ {
+  "inp": "p1000",
+  "out": "p1002",
+  "target": 3,
+  "bound": 7,
+  "units_pc": 14,
+  "min": 17,
+  "max": 21,
+  "sign": -1
+ }
+]

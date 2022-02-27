@@ -9,11 +9,12 @@
 //                   ^____________________v
 //TODO:
 //- 
+const Fs = require('fs')
 const { dbConf, Log, Format, Bus, assert, getRow, mkUuid } = require('../settings')
 var log = Log('testSchRoute')
 var { dbClient } = require("wyseman")
 //const Serialize = require("json-stable-stringify")
-const { host, port0, port1, agent0, agent1, agent2 } = require('./def-users')
+const { host, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
 //var userListen = 'mu_' + user0
 //var agentListen = 'ma_' + agent0		//And his agent process
 //var {stateField, uSql, save, rest} = require('./def-tally')
@@ -66,7 +67,8 @@ describe("Initialize route test data", function() {
         , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
         , date = new Date().toISOString()
         , sId = 'p' + (1000+s), fId = 'p' + (1000+f)
-        , sCert = {chad:{cid:sCid, agent:agent1}}, fCert = {chad:{cid:fCid, agent:agent1}}
+        , sCert = {chad:{cid:sCid, agent:agent1, host, port:port1}}
+        , fCert = {chad:{cid:fCid, agent:agent1, host, port:port1}}
         , sSig = sCid + ' signature', fSig = fCid + ' signature'
         , units = u * 2
         , sql = `
@@ -95,7 +97,7 @@ describe("Initialize route test data", function() {
       , fCid = 'cid_U'
       , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
       , date = new Date().toISOString()
-      , fCert = {chad:{cid:fCid, agent:agent0}}
+      , fCert = {chad:{cid:fCid, agent:agent0, host, port:port0}}
       , fSig = fCid + ' signature'
       , units = users * 2
       , sql = `with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
@@ -113,7 +115,7 @@ describe("Initialize route test data", function() {
       , sCid = 'cid_D'
       , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
       , date = new Date().toISOString()
-      , sCert = {chad:{cid:sCid, agent:agent2}}
+      , sCert = {chad:{cid:sCid, agent:agent2, host, port:port2}}
       , sSig = sCid + ' signature'
       , units = users * 2 + 2
       , sql = `with t as (${Format(tallySql, fId, tuid, date, 'foil', agree, fCert, sCert, fSig, sSig)})
@@ -153,27 +155,46 @@ describe("Initialize route test data", function() {
   })
 
   it("Check view tallies_v_net", function(done) {
-    let expect = [
-      {"inp":"p1002", "out":"p1003", "target":3, "bound":7, "units_pc":6,  "min":0,  "max":1,  "sign":1},
-      {"inp":"p1001", "out":"p1002", "target":3, "bound":7, "units_pc":4,  "min":0,  "max":3,  "sign":1},
-      {"inp":"p1000", "out":"p1001", "target":3, "bound":7, "units_pc":2,  "min":1,  "max":5,  "sign":1},
-      {"inp":"p1001", "out":"p1000", "target":3, "bound":7, "units_pc":2,  "min":5,  "max":9,  "sign":-1},
-      {"inp":"p1002", "out":"p1001", "target":3, "bound":7, "units_pc":4,  "min":7,  "max":11, "sign":-1},
-      {"inp":"p1000", "out":null,    "target":0, "bound":0, "units_pc":8,  "min":8,  "max":8,  "sign":-1},
-      {"inp":"p1003", "out":"p1002", "target":3, "bound":7, "units_pc":6,  "min":9,  "max":13, "sign":-1},
-      {"inp":null,    "out":"p1003", "target":3, "bound":7, "units_pc":10, "min":13, "max":17, "sign":-1},
-      {"inp":"p1001", "out":"p1003", "target":3, "bound":7, "units_pc":-12,"min":15, "max":19, "sign":1},
-      {"inp":"p1000", "out":"p1002", "target":3, "bound":7, "units_pc":14, "min":17, "max":21, "sign":-1}]
+    let expFile = 'tallies_v_net.json'
       , sql = `update mychips.tallies set target = 3, bound = 7;
-               select json_agg(s) as json from (select inp,out,target,bound,units_pc,min,max,sign from mychips.tallies_v_net order by min,max,sign) s;`
+               select json_agg(s) as json from (select inp,out,target,bound,units_pc,min,max,sign
+               from mychips.tallies_v_net order by min,max,sign) s;`
 //log.debug("Sql:", sql)
     db.query(sql, null, (e, res) => {if (e) done(e)
       assert.equal(res.length, 2)
       let res1 = res[1]					//;log.debug('res1:', res1)
       assert.equal(res1.rowCount, 1)
       let row = res1.rows[0]				//;log.debug('row:', JSON.stringify(row.json))
-      assert.deepStrictEqual(row.json, expect)
-      done()
+//      Fs.writeFileSync(expFile+'.tmp', JSON.stringify(row.json,null,1))		//Save actual results
+      Fs.readFile(expFile, (e, fData) => {if (e) done(e)
+        let expObj = JSON.parse(fData)
+        assert.deepStrictEqual(row.json, expObj)
+        done()
+      })
+    })
+  })
+
+  it("Check view tallies_v_paths", function(done) {
+    let expFile = 'tallies_v_paths.json'
+      , sql = `
+        update mychips.tallies set reward = 0.02, clutch = 0.04 where tally_type = 'foil';
+        update mychips.tallies set reward = 0.04, clutch = 0.001 where tally_type = 'stock';
+        select json_agg(s) as json from (
+          select inp,out,length,circuit,min,max,bang,reward,margin,ath
+            from mychips.tallies_v_paths where length > 2 order by path) s;`
+//log.debug("Sql:", sql)
+    db.query(sql, null, (e, res) => {if (e) done(e)
+      assert.equal(res.length, 3)
+      let res2 = res[2]					//;log.debug('res1:', res1)
+      assert.equal(res2.rowCount, 1)
+      let row = res2.rows[0]				//;log.debug('row:', JSON.stringify(row.json))
+//      Fs.writeFileSync(expFile+'.tmp', JSON.stringify(row.json,null,1))		//Save actual results
+      Fs.readFile(expFile, (e, fData) => {if (e) done(e)
+        let expObj = JSON.parse(fData)
+//      assert.equal(Serialize(row.json), Serialize(expect))
+        assert.deepStrictEqual(row.json, expObj)
+        done()
+      })
     })
   })
 
