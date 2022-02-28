@@ -1,0 +1,528 @@
+[
+ {
+  "inp": "p1000",
+  "out": "p1002",
+  "length": 3,
+  "circuit": false,
+  "min": 0,
+  "max": 1,
+  "bang": 0,
+  "reward": 0.04,
+  "margin": 0.0784,
+  "ath": [
+   "p1001",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1003",
+  "length": 4,
+  "circuit": false,
+  "min": 0,
+  "max": 0,
+  "bang": 0,
+  "reward": 0.04,
+  "margin": 0.115264,
+  "ath": [
+   "p1001",
+   "p1002",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1003",
+  "length": 3,
+  "circuit": false,
+  "min": 1,
+  "max": 5,
+  "bang": 3,
+  "reward": 0.04,
+  "margin": 0.0784,
+  "ath": [
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1002",
+  "length": 4,
+  "circuit": false,
+  "min": 1,
+  "max": 5,
+  "bang": 4,
+  "reward": 0.04,
+  "margin": 0.079322,
+  "ath": [
+   "p1001",
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1001",
+  "length": 3,
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1000",
+  "length": 4,
+  "circuit": true,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": null,
+  "length": 5,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1003",
+  "length": 4,
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 28,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1003",
+  "length": 3,
+  "circuit": false,
+  "min": 0,
+  "max": 1,
+  "bang": 0,
+  "reward": 0.04,
+  "margin": 0.04096,
+  "ath": [
+   "p1002",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1002",
+  "length": 3,
+  "circuit": false,
+  "min": 5,
+  "max": 9,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1000",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1001",
+  "length": 4,
+  "circuit": true,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1000",
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1003",
+  "length": 5,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.042877,
+  "ath": [
+   "p1000",
+   "p1002",
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1003",
+  "length": 4,
+  "circuit": false,
+  "min": 0,
+  "max": 1,
+  "bang": 0,
+  "reward": 0.04,
+  "margin": 0.041919,
+  "ath": [
+   "p1000",
+   "p1002",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": null,
+  "length": 3,
+  "circuit": false,
+  "min": 5,
+  "max": 8,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.001,
+  "ath": [
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1003",
+  "length": 3,
+  "circuit": false,
+  "min": 0,
+  "max": 0,
+  "bang": 0,
+  "reward": 0.04,
+  "margin": 0.0784,
+  "ath": [
+   "p1002",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1002",
+  "length": 3,
+  "circuit": false,
+  "min": 9,
+  "max": 13,
+  "bang": 27,
+  "reward": 0.02,
+  "margin": 0.04096,
+  "ath": [
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1001",
+  "length": 4,
+  "circuit": true,
+  "min": 7,
+  "max": 9,
+  "bang": 28,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1000",
+  "length": 5,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.042877,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": null,
+  "length": 6,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 30,
+  "reward": 0.02,
+  "margin": 0.042877,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1000",
+  "length": 3,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1002",
+  "length": 4,
+  "circuit": true,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1001",
+   "p1000",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1003",
+  "length": 5,
+  "circuit": false,
+  "min": 0,
+  "max": 1,
+  "bang": 0,
+  "reward": 0.04,
+  "margin": 0.042877,
+  "ath": [
+   "p1001",
+   "p1000",
+   "p1002",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": null,
+  "length": 4,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1003",
+  "length": 3,
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.04096,
+  "ath": [
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1002",
+  "length": 4,
+  "circuit": true,
+  "min": 7,
+  "max": 9,
+  "bang": 28,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1001",
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": "p1001",
+  "length": 3,
+  "circuit": false,
+  "min": 7,
+  "max": 9,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": "p1000",
+  "length": 4,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": null,
+  "length": 5,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": "p1003",
+  "length": 4,
+  "circuit": true,
+  "min": 7,
+  "max": 9,
+  "bang": 28,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": null,
+  "out": "p1002",
+  "length": 3,
+  "circuit": false,
+  "min": 9,
+  "max": 13,
+  "bang": 27,
+  "reward": 0.02,
+  "margin": 0.001,
+  "ath": [
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": null,
+  "out": "p1001",
+  "length": 4,
+  "circuit": false,
+  "min": 7,
+  "max": 9,
+  "bang": 28,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": null,
+  "out": "p1000",
+  "length": 5,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": null,
+  "out": null,
+  "length": 6,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 30,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ }
+]

@@ -3481,7 +3481,7 @@ create view mychips.tallies_v_net as with
   , t.part_ent					as inp
   , t.tally_ent					as out
   , t.target, t.reward, t.bound
-  , coalesce(p.clutch,0)			as margin
+  , coalesce(p.clutch, 0)			as margin
   , t.units_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
@@ -4373,39 +4373,44 @@ create function mychips.tallies_tf_notify() returns trigger language plpgsql sec
     end;
 $$;
 create view mychips.tallies_v_paths as with recursive tally_path (
-      inp, out, length, hath, uuids, signs, circuit, min, margin, max, reward
+      inp, out, length, ath, uuids, signs, min, margin, max, reward, circuit
     ) as (
-      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign], false,
-      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float
+      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign],
+             ti.min, ti.margin, ti.max, ti.reward, false
     from	mychips.tallies_v_net ti
   union all
     select tp.inp					as inp
       , t.out						as out
       , tp.length + 1					as length
-      , tp.hath || t.out				as hath
+      , tp.ath || t.out					as ath
       , tp.uuids || t.uuid				as uuids
       , tp.signs || t.sign				as signs
-      , coalesce(tp.inp = t.out, false)			as circuit
+      , least(t.min, tp.min)				as min
+      , tp.margin + t.margin * (1 - tp.margin)		as margin	-- Aggregated margin
 
-      , least(t.min,tp.min)				as min
-      , tp.margin + t.margin * (1 - tp.margin)		as margin
-      , case when t.min < tp.min then
+      , case when t.min < tp.min then				-- Will charge only one reward in segment
           least(t.max, tp.min)
         else
-          least(tp.max, t.min) end			as max
-      , case when t.min < tp.min then t.reward else tp.reward end as reward
+          least(t.min, tp.max) end			as max
+      , case when t.min < tp.min then t.reward else tp.reward end as reward	-- Only one reward
+      , coalesce(tp.inp = t.out, false)			as circuit
 
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.out = t.inp
-    		and (t.out isnull or not t.out = any(tp.hath))
+    		and not t.uuid = any(tp.uuids)
+    		and (t.out isnull or not t.out = any(tp.ath))
   ) select tpr.inp, tpr.out
-    , tpr.length, tpr.hath, tpr.uuids, tpr.signs
-    , tpr.margin, tpr.reward, tpr.min, tpr.max, tpr.circuit
-    , tpr.inp || tpr.hath	as path
+    , tpr.length, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max, tpr.circuit
+    , tpr.margin::numeric(8,6)
+    , tpr.reward::numeric(8,6)
+    , tpr.inp || tpr.ath	as path
     , tpr.length * tpr.min	as bang
     , tpr.inp isnull		as fori
     , tpr.out isnull		as foro
-  from tally_path tpr where tpr.length > 2;
+    , tpr.uuids[1]		as iuuid
+    , tpr.uuids[length-1]	as ouuid
+
+  from tally_path tpr				-- where tpr.length > 2;
 create trigger mychips_tallies_v_tr_ins instead of insert on mychips.tallies_v for each row execute procedure mychips.tallies_v_insfunc();
 create trigger mychips_tallies_v_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 create function mychips.tally_certs(ta mychips.tallies) returns mychips.tallies language plpgsql security definer as $$
@@ -8125,17 +8130,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','units_gc','mychips','tallies','units_gc','f','f'),
   ('mychips','tallies_v','units_pc','mychips','tallies','units_pc','f','f'),
   ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
+  ('mychips','tallies_v_lifts','ath','mychips','tallies_v_paths','ath','f','f'),
   ('mychips','tallies_v_lifts','bang','mychips','tallies_v_paths','bang','f','f'),
   ('mychips','tallies_v_lifts','circuit','mychips','tallies_v_paths','circuit','f','f'),
   ('mychips','tallies_v_lifts','fori','mychips','tallies_v_paths','fori','f','f'),
   ('mychips','tallies_v_lifts','foro','mychips','tallies_v_paths','foro','f','f'),
-  ('mychips','tallies_v_lifts','hath','mychips','tallies_v_paths','hath','f','f'),
   ('mychips','tallies_v_lifts','inp','mychips','tallies_v_net','inp','f','f'),
+  ('mychips','tallies_v_lifts','iuuid','mychips','tallies_v_paths','iuuid','f','f'),
   ('mychips','tallies_v_lifts','length','mychips','tallies_v_paths','length','f','f'),
   ('mychips','tallies_v_lifts','margin','mychips','tallies_v_net','margin','f','f'),
   ('mychips','tallies_v_lifts','max','mychips','tallies_v_net','max','f','f'),
   ('mychips','tallies_v_lifts','min','mychips','tallies_v_net','min','f','f'),
   ('mychips','tallies_v_lifts','out','mychips','tallies_v_net','out','f','f'),
+  ('mychips','tallies_v_lifts','ouuid','mychips','tallies_v_paths','ouuid','f','f'),
   ('mychips','tallies_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
   ('mychips','tallies_v_lifts','reward','mychips','tallies','reward','f','f'),
   ('mychips','tallies_v_lifts','signs','mychips','tallies_v_paths','signs','f','f'),
@@ -8250,17 +8257,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_net_old','stock_ent','mychips','tallies_v_net_old','stock_ent','f','f'),
   ('mychips','tallies_v_net_old','stock_user','mychips','tallies_v_net_old','stock_user','f','f'),
   ('mychips','tallies_v_net_old','uuid','mychips','tallies_v_net_old','uuid','f','f'),
+  ('mychips','tallies_v_paths','ath','mychips','tallies_v_paths','ath','f','f'),
   ('mychips','tallies_v_paths','bang','mychips','tallies_v_paths','bang','f','f'),
   ('mychips','tallies_v_paths','circuit','mychips','tallies_v_paths','circuit','f','f'),
   ('mychips','tallies_v_paths','fori','mychips','tallies_v_paths','fori','f','f'),
   ('mychips','tallies_v_paths','foro','mychips','tallies_v_paths','foro','f','f'),
-  ('mychips','tallies_v_paths','hath','mychips','tallies_v_paths','hath','f','f'),
   ('mychips','tallies_v_paths','inp','mychips','tallies_v_net','inp','f','t'),
+  ('mychips','tallies_v_paths','iuuid','mychips','tallies_v_paths','iuuid','f','f'),
   ('mychips','tallies_v_paths','length','mychips','tallies_v_paths','length','f','t'),
   ('mychips','tallies_v_paths','margin','mychips','tallies_v_net','margin','f','f'),
   ('mychips','tallies_v_paths','max','mychips','tallies_v_net','max','f','f'),
   ('mychips','tallies_v_paths','min','mychips','tallies_v_net','min','f','f'),
   ('mychips','tallies_v_paths','out','mychips','tallies_v_net','out','f','t'),
+  ('mychips','tallies_v_paths','ouuid','mychips','tallies_v_paths','ouuid','f','f'),
   ('mychips','tallies_v_paths','path','mychips','tallies_v_paths','path','f','f'),
   ('mychips','tallies_v_paths','reward','mychips','tallies','reward','f','f'),
   ('mychips','tallies_v_paths','signs','mychips','tallies_v_paths','signs','f','f'),
