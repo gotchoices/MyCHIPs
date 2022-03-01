@@ -3,6 +3,8 @@
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
 #TODO:
+#- Update this to use node and to respect ../settings.js
+#- Use agent, not servID
 #- 
 
 DBHOST=${MYCHIPS_DBHOST}; if [ -z "$DBHOST" ]; then DBHOST="localhost"; fi

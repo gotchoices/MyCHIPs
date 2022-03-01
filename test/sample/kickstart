@@ -1,35 +1,34 @@
-#!/bin/env node
+#!/usr/bin/env node
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-//Initialize an empty database with sample testing data
+//Initialize an empty database with sample testing data.  If your database is not 
+//on localhost:5432, set the appropriate environment variables in ../settings.js
 //TODO:
-//X- Deprecate mc_admin
-//X- Can call database directly with json import data?
-//- Build site key (old mc_admin function)?
 //- 
-
-const { MachineIP, UserPort, PeerPort, DBAdmin, Log } = require('../settings')
-
-var database = process.env.MYCHIPSDB || 'mychips'
-var user = DBAdmin || process.env.MYCHIPSDBA || DBAdmin || process.env.USER
-//console.log("database:", database, "user:", user, "MachineIP:", MachineIP, "uport:", UserPort, "pport:", PeerPort)
-
 const Fs = require('fs')
 const Path = require('path')
+const { UserHost, UserPort, PeerHost, PeerPort, DBAdmin, DBHost, DBPort, Log } = require('../settings')
 var log = Log('Kickstart')
+var database = process.env.MYCHIPS_DBNAME || 'mychips'
+var agentKeyFile = process.env.MYCHIPS_AGENTKEY || Path.join(__dirname, '../../pki/local/default_agent')
+var user = DBAdmin || process.env.MYCHIPS_DBAdmin || DBAdmin || process.env.USER
+//console.log("database:", database, "user:", user, "UserHost:", UserHost, "uport:", UserPort, "pport:", PeerPort)
+
 var { dbClient } = require("wyseman")
 const dbConfig = {
   database, user, log,
+  host: DBHost,
+  port: DBPort,
   connect: true,
   schema: Path.join(__dirname, '../../lib', 'schema.sql')
 }
 
-var pending = 0
 var db = new dbClient(dbConfig)
 
 var queryList = []
-//queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[MachineIP]})
+//queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[UserHost]})
 
+//Insert some sample users
 var fileData = Fs.readFileSync(Path.join(__dirname, 'users.json'))
 var jsonData = JSON.parse(fileData)
 queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
@@ -39,23 +38,25 @@ queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
 //queryList.push({q:"select base.parmset('agent','addclient',$1::float)", a:[0.10]})
 //queryList.push({q:"select base.parmset('agent','addvendor',$1::float)", a:[0.20]})
 
-//Set org.json entity as the site admin
+//Set org.json entity as the site admin:
 queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})
 
-queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where user_host is null", a:[MachineIP, UserPort]})
+//Where users connect to the SPA server:
+queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where user_host is null", a:[UserHost, UserPort]})
 
-//Obsolete:
-//queryList.push({q:"update mychips.peers set peer_host = $1, peer_port=$2 where peer_host is null", a:[MachineIP, PeerPort]})
+//For testing tallies:
+var keyData = Fs.readFileSync(agentKeyFile)		//Get default agent key
+var agentKey = JSON.parse(keyData.toString())
+var agentPub = agentKey.key.x			//JWK has d (private), x (public) properties
+//console.log('kx:', jwkKey.x)
+let q = "update mychips.users_v set peer_agent=$1, peer_host=$2, peer_port=$3 where ent_num >= 1000;"
+queryList.push({q, a:[agentPub, PeerHost, PeerPort]})
 
-//For testing tallies: (obsolete)
-//let q1 = "update mychips.users_v set serv_id=$1, peer_port=$2 where id = $3;"
-//queryList.push({q:q1, a:['server0', 65430, 'p1000']})
-//queryList.push({q:q1, a:['server1', 65431, 'p1001']})
-//queryList.push({q:q1, a:['server2', 65432, 'p1002']})
-
-queryList.forEach(elem=>{
+var pending = 0
+queryList.forEach(elem=>{		//Run each of the SQL commands in sequence
   pending++
   let { q, a } = elem
+//console.log("Sql:", q, a)
   db.query(q, a, (err, res) => {
     if (err) console.log("Error:", err.message, "\n  query:", q)
 //console.log("res:", res)

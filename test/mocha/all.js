@@ -1,8 +1,7 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //Run all tests in order
-const Child = require('child_process')
-const { Database, Database2, DBAdmin } = require('../settings')
+const { DBName, DB2Name, DBAdmin, dropDB } = require('./common')
 
 require('./sch-crypto.js')
 require('./objectset.js')
@@ -24,7 +23,8 @@ require('./chit.js')
 //Re-enable after consolidating users_v, peers_v?
 //require('./sch-multi.js')	//Will empty users table
 
-after('Delete test database', function() {
-  Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`)
-  Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database2}`)
+after('Delete test database', function(done) {
+  let dc = 2; _done = () => {if (!--dc) done()}		//dc _done's to be done
+  dropDB(_done)
+  dropDB(_done, DB2Name)
 })

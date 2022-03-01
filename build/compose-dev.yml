@@ -52,6 +52,8 @@ services:
       - "./dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh"
 #      - "~/.inputrc:/root/.inputrc"
 #      - "~/.bashrc:/root/.bashrc"
+    ports:
+      - "${MYCHIPS_DBPORT:-5432}:5432"
     networks:
       - backend
 

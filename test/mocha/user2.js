@@ -4,19 +4,15 @@
 //TODO:
 //- 
 const Path = require('path')
-const Child = require('child_process')
-const { Database, Database2, dbConf, DBAdmin, Schema, Log, Format, Bus, assert, importCheck } = require('../settings')
+const { DB2Name, dbConf, DBAdmin, Schema, Log, Format, Bus, assert, importCheck, dropDB, dbClient } = require('./common')
 var log = Log('user2')
-var { dbClient } = require("wyseman")
 var { host, user2, uKey2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
 var schema = Schema
 
 describe("Establish test user on separate DB", function() {
   var db
 
-  before('Delete test database', function(done) {
-    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database2}`, done)
-  })
+  before('Delete test database', function(done) {dropDB(done, DB2Name)})
 
   before('Connection to database', function(done) {
     db = new dbClient(db2Conf(), () => {}, ()=>{done()})
@@ -27,7 +23,7 @@ describe("Establish test user on separate DB", function() {
       , f0 = Format(fields, 'A', 'a')
       , f1 = Format(fields, 'B', 'b')
       , sql = `begin; insert into mychips.users_v ${f0}; insert into mychips.users_v ${f1}; commit`
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     db.query(sql, (err, res) => {if (err) done(err); done()})
   })
 

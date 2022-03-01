@@ -4,23 +4,19 @@
 //TODO:
 //- 
 
-const Child = require('child_process')
 const Fs = require('fs')
 const Path = require('path')
 const Stringify = require('json-stable-stringify')	//Predictable property order
 const assert = require("assert");
-const { Database, DBAdmin, Log, Schema, importCheck } = require('../settings')
+const { DBName, DBAdmin, Log, Schema, importCheck, dropDB, dbClient } = require('./common')
 var log = Log('testImpexp')
-var { dbClient } = require("wyseman")
-const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
+const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("JSON contact import/export", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
-  before('Delete test database', function(done) {
-    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`, done)
-  })
+  before('Delete test database', function(done) {dropDB(done)})
 
   before('Connect to (or create) test database', function(done) {
     db = new dbClient(dbConfig, (chan, data) => {}, done)

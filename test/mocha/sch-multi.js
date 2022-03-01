@@ -3,20 +3,17 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const Child = require('child_process')
-const assert = require("assert");
-const { Database, DBAdmin, Log, Schema } = require('../settings')
+const { DBName, DBAdmin, Log, Schema, assert, dropDB, dbClient } = require('./common')
 var log = Log('testSchema')
-var { dbClient } = require("wyseman")
 const interTest = {}
-const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
+const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("View mychips.peers_v", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
   before('Delete test database', function(done) {
-    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`, done)
+    dropDB(done)
   })
 
   before('Connect to (or create) test database', function(done) {
