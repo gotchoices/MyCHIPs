@@ -72,12 +72,16 @@ class MongoManager {
       //Connect to mongodb
       if (err) {
         this.logger.error('in Doc DB connect:', err?.stack)
+        console.log("Error connecting to mongo:", err, err?.stack)
         return
       }
       if (client == undefined) {
         this.logger.error('Client undefined in Doc DB connect')
+        console.log("Mongo client is undefined!")
         return
       }
+
+      console.log("Connected to Mongo!")
 
       this.dbConnection = client.db(this.docConfig.database)
 
@@ -131,25 +135,30 @@ class MongoManager {
     command: string,
     tag: string = this.host + '.' + this.foreignActionTagIndex++,
     destinationHost: string,
-    callback?
+    callback?: () => void
   ) {
+    console.log("Attempting to add", command, "action to db...")
     this.actionsCollection.insertOne(
       { action: command, tag: tag, host: destinationHost, from: this.host },
       (err, res) => {
-        if (err)
+        if (err) {
           this.logger.error(
             'Sending remote command:',
             command,
             'to:',
             destinationHost
           )
-        else
+          console.log("Error adding action to db:", err)
+        }
+        else {
           this.logger.info(
             'Sent remote action:',
             command,
             'to:',
             destinationHost
           )
+          console.log("Added", command, "action to db!")
+        }
       }
     )
 
@@ -158,16 +167,23 @@ class MongoManager {
     }
   }
 
-  updateOneAgent(agent: Agent) {
+  updateOneAgent(agent: AgentData) {
     this.agentsCollection.updateOne(
       { peer_cid: agent.peer_cid, host: agent.host },
       { $set: agent },
       { upsert: true },
       (e, r) => {
-        if (e) this.logger.error(e.message)
-        else this.logger.trace('Add/update agent:', r)
+        if (e) {
+          this.logger.error(e.message)
+          console.log("Error updating agent:", agent.std_name, e)
+        }
+        else {
+          this.logger.trace('Add/update agent:', r)
+          console.log("Agent", agent.std_name, "updated in mongo!")
+        }
       }
     )
+
   }
 
   findPeerAndUpdate(
@@ -197,11 +213,9 @@ class MongoManager {
       sort: { foils: 1, random: -1 },
     }
     // @ts-ignore
-    this.agentsCollection.findOneAndUpdate(query, update, options).then(
+    this.agentsCollection.findOneAndUpdate(query, update, options)
+    .then(
       (res) => {
-        console.log('Find peer result:')
-        console.log(res)
-        console.log(res.value)
         if (res.ok) {
           this.logger.verbose(
             '  Best peer:',
@@ -217,7 +231,9 @@ class MongoManager {
       (err) => {
         this.logger.error('  Error finding a peer:', err)
       }
-    )
+    ).catch((reason) => {
+      this.logger.error(' No peer found:', reason)
+    })
   }
 
   deleteAllAgentsExcept(agentsToKeep: string[]): void {

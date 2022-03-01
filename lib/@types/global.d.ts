@@ -64,7 +64,7 @@ interface AgentData {
   /** Entity type */
   ent_type: string
   user_ent: string
-  hosted_ent: boolean | null
+  hosted_ent?: boolean | null
   peer_cid: string
   /** Assigned peer socket (ex: 'peer2:65430') */
   peer_socket: string
@@ -73,12 +73,10 @@ interface AgentData {
   partners: string[]
   vendors: string[]
   clients: string[]
-  vendor_cids: string[]
-  client_cids: string[]
   stock_seqs: number[]
   foil_seqs: number[]
-  units: string
-  types: string[]
+  units: number
+  types?: string[]
   seqs: number[]
   random?: number
   /** Name of hosting peer server (ex: 'peer0') */

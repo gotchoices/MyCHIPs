@@ -9,11 +9,15 @@ interface Agent {
     peer_cid: any 
     /** ID of the hosting server */
     host: string
+    /** The type of entity */
+    entity_type: string
+    peer_socket: string
     /** The number of spending targets (stocks) this entity holds */
     numSpendingTargets: number
+    stock_seqs: number[]
     /** The number of income sources (foils) this entity holds */
     numIncomeSources: number
-    foil_seq: number[]
+    foil_seqs: number[]
     /** Net CHIPs owned by this account */
     netWorth: number
     /** Indicates whether the entity is hosted on this server or not (will we be representing non hosted entities?) */
@@ -25,8 +29,9 @@ interface Agent {
     spendingTargets: string[] 
     /** Other entities' IDs I hold the foil for (they give me money) aka Clients */
     incomeSources: string[]
-    seqs: any[]
     types: any[] 
+    /** Used to randomly sort agents in the world DB */
+    random: number
 
     /** A percentage defining how often this entity will try to add a new spending target (vendor or stock) */
     newSpendingTargetOdds: number
@@ -50,6 +55,7 @@ interface Agent {
     /** Accepts a connection request for this account */
     acceptNewConnection(message: any): void
 
+    getAgentData(): AgentData
 }
 
 export default Agent

@@ -40,6 +40,7 @@
     "preversion": "npm-run-all --parallel contract-hashes build-sql build && git add -A",
     "tsc": "cd lib && ../node_modules/typescript/bin/tsc",
     "runsim": "./lib/agent3/runsim.sh",
+    "stopsim": "./test/sim/simdock stop sim",
     "killsim": "./test/sim/simdock shutdown"
   },
   "repository": {

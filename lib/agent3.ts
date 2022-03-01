@@ -231,8 +231,7 @@ class AgentCluster {
         this.host,
         typesToMake[i][1]
       )
-      newAgent.random = Math.random()
-      this.worldDBManager.updateOneAgent(newAgent)
+      this.worldDBManager.updateOneAgent(newAgent.getAgentData())
       this.hostedAgents.push(newAgent)
       hostedAgentIds.push(newAgent.peer_cid)
     }
