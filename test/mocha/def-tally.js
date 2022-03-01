@@ -1,5 +1,5 @@
 const Format = require('pg-format')
-const {saveRest} = require('../settings')
+const {saveRest} = require('./common')
 
 const stateField = 'mychips.tally_state(status,request,hold_sig,part_sig) as state'
 

@@ -7,22 +7,20 @@
 //- Can/should we use pgcrypto as opposed to python crypto?
 //- 
 const Fs = require('fs')
-const Child = require('child_process')
 const assert = require("assert");
-const { Database, DBAdmin, Log, Schema } = require('../settings')
+const { DBName, DBAdmin, Log, Schema, dbClient } = require('./common')
 const WordFile = '/usr/share/dict/words'
 const Words = 6
 const Cycles = 10
 var log = Log('testSchCrypto')
-var { dbClient } = require("wyseman")
-const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
+const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("Test cryptographic schema functions", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
 //  before('Delete test database', function(done) {
-//    Child.exec(`dropdb --if-exists -U ${DBAdmin} ${Database}`, done)
+//    dropDB(done)
 //  })
 
   before('Connect to (or create) test database', function(done) {

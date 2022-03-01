@@ -9,6 +9,11 @@ X-     Drop paths show up properly
 X-     Reward/clutch variable kicks in over correct range
 X-     Trading variables (reward,clutch) aggregate properly
 -   Cleanup/organize routes table
+-     standardize what "addr" and "chad" mean?
+-     use standard to:, from: properties
+-     why do we pass along requester information?  (maybe it is in from chad now)
+-     
+-     
 -   Write tests for route state transitions
 -   Does simulation still run (without actually doing lifts)?
 -   

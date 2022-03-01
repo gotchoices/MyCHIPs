@@ -4,10 +4,9 @@
 // TODO
 //- 
 const assert = require("assert");
-const { Database, DBAdmin, Log, Schema } = require('../settings')
+const { DBName, DBAdmin, Log, Schema, dbClient } = require('./common')
 var log = Log('testSchema')
-var { dbClient } = require("wyseman")
-const dbConfig = {database:Database, user:DBAdmin, connect:true, log, schema:Schema}
+const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 const SchemaList = "'mychips','json'"
 
 describe("General schema tests", function() {

@@ -10,7 +10,7 @@ const assert = require('assert');
 const Noise = require('noise-protocol')
 const { Address6 } = require('ip-address')
 const PeerNoise = require('../../lib/peernoise')
-const { Log } = require('../settings')
+const { Log } = require('./common')
 
 const initPort = 55551
 const respPort = 55552

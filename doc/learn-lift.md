@@ -76,14 +76,14 @@ all.  The main goal is to make sure we don't perform only part of the lift,
 leaving someone out so they end up giving credits away, but not getting the 
 ones they expect in return.
 
-Now the bad news:  In order to do this, we would have to have all our entities 
+Now the bad news:  In order to do this, we would need to have all our entities 
 in a single database.  That means our system would be very centralized and 
 unscalable--just what we are trying to avoid.
-Centralization is also prone to manipulation and corruption.  
+Centralization is also prone to manipulation and corruption.
 Scalability is a critical feature we need to surpass what alternative systems 
 such as blockchain have been unable to achieve.
 
-It would be nice to have an algorithm that will achieve an atomic result even 
+It would be nice to have an algorithm that can achieve an atomic result even 
 when all four of our users have their data in different databases on different 
 computers distributed around the Internet.  
 
@@ -97,7 +97,7 @@ may not know or be able to fully trust, it probably can't be done.
 
 So to get over this otherwise insurmountable hurdle, we are going to make a
 simple compromise:  Instead of making sure no one gets hurt during a lift, we
-will instead, be satisfied if we can make sure no *responsible* people get hurt.
+will instead, be satisfied if we can make sure no *responsible* parties get hurt.
 
 To do so, we will set up our transaction in several basic phases:
 
@@ -403,7 +403,7 @@ Relay 2:                (On tricia_mayo's system: lux3)
 
 ### Lift Costing
 Refer to the included [costing spreadsheet](Costing.ods).
-This shows how costs are propagated through a chain.  
+This shows how costs are propagated through a chain.
 At each node, the cost may be 0, a positive percentage, or a
 negative percentage.  A negative cost implies the node will be paying to
 participate in the lift.  A positive cost implies the node will be charging
@@ -415,10 +415,11 @@ prior nodes:
 ```
   NewRate = PriorRate + MyRate * (1 - PriorRate)
 ```
-Trading costs/rewards are computed according to the tally trading parameters
-discussed in the "Tallies" file in this folder.  Each user sets four trading
-values to indicate his appetite for collecting the credits associated with that
-tally.  The lift algorithm figures it out from there.
+Trading costs/rewards are computed according to the tally 
+[trading variables](learn-tally.md#trading-variables).
+Each user adjusts these values to indicate his appetite for collecting the 
+credits associated with that tally.
+The lift algorithm is supposed to figure it out from there.
 
 ### Lading Capacity
 Lading describes the capacity of a chain or a route to handle a lift of a given

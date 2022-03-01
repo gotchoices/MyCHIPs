@@ -1,5 +1,5 @@
 const Format = require('pg-format')
-const {saveRest} = require('../settings')
+const {saveRest} = require('./common')
 
 //Query state without having access to chits_v
 //const stateField = `mychips.chit_state((

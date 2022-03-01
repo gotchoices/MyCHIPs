@@ -9,9 +9,8 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const { dbConf, Log, Format, Bus, assert, getRow, mkUuid } = require('../settings')
+const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
 var log = Log('testTally')
-var { dbClient } = require("wyseman")
 const PeerCont = require("../../lib/peer2peer")
 const PeerNoise = require("../../lib/peernoise")
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')

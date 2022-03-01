@@ -2337,27 +2337,34 @@ create function mychips.route_life() returns interval language plpgsql stable as
     end;
 $$;
 create table mychips.routes (
-route_ent	text		not null references mychips.peers on update cascade on delete cascade
-  , dest_chid	text
-  , dest_host	text		--?? check ((dest_ent is not null and dest_host isnull) or (dest_ent isnull and dest_host is not null))
-  , dest_ent	text		references mychips.peers on update cascade on delete cascade
-  , topu_ent	text		not null references mychips.peers on update cascade on delete cascade
-  , botu_ent	text		not null references mychips.peers on update cascade on delete cascade
-  , requ_ent	text		not null references mychips.peers on update cascade on delete cascade
+inp_ent	text		-- Input tally owner
+  , inp_tally	int	      , foreign key (inp_ent, inp_tally) references mychips.tallies on update cascade on delete cascade
+  , dest_cid	text		--Fixme: check ((out_tal_ent is not null and out_tal_seq is not null) or (dest_cid is not null and dest_agent is not null))
+  , dest_agent	text	      , primary key (inp_ent, inp_tally, dest_cid, dest_agent)
+
+  , dest_ent	text		references mychips.users on update cascade on delete cascade
+  , requ_ent	text		not null references mychips.users on update cascade on delete cascade
   , status	text		not null default 'draft' constraint "!mychips.routes.BST" check(status in ('draft','pend','good','none'))
-  , step	int		not null default 0
-  , lift_min	bigint		default 0
-  , lift_margin	float		not null default 0 constraint "!mychips.paths.LMG" check (lift_margin >= -1 and lift_margin <= 1)
-  , lift_max	bigint		default 0
-  , lift_reward	float		not null default 0 constraint "!mychips.paths.LRW" check (lift_reward >= -1 and lift_reward <= 1)
-  , drop_min	bigint		default 0
-  , drop_margin	float		not null default 0 constraint "!mychips.paths.DMG" check (drop_margin >= -1 and drop_margin <= 1)
-  , drop_max	bigint		default 0
-  , drop_reward	float		not null default 0 constraint "!mychips.paths.DRW" check (drop_reward >= -1 and drop_reward <= 1)
-  , lift_count	int		not null default 0
+  , step	int		not null default 0 check (step >= 0)
+  , lift_count	int		not null default 0 check (step >= 0)
   , lift_date	timestamptz	not null default current_timestamp
   , good_date	timestamptz	not null default current_timestamp
-  , primary key(route_ent, dest_chid, dest_host)
+
+
+  , route_ent	text		-- not null references mychips.peers on update cascade on delete cascade
+  , dest_chid	text
+  , dest_host	text		--?? check ((dest_ent is not null and dest_host isnull) or (dest_ent isnull and dest_host is not null))
+  , topu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
+  , botu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
+  , lift_min	bigint		-- default 0
+  , lift_margin	float		-- not null default 0 constraint "!mychips.paths.LMG" check (lift_margin >= -1 and lift_margin <= 1)
+  , lift_max	bigint		-- default 0
+  , lift_reward	float		-- not null default 0 constraint "!mychips.paths.LRW" check (lift_reward >= -1 and lift_reward <= 1)
+  , drop_min	bigint		-- default 0
+  , drop_margin	float		-- not null default 0 constraint "!mychips.paths.DMG" check (drop_margin >= -1 and drop_margin <= 1)
+  , drop_max	bigint		-- default 0
+  , drop_reward	float		-- not null default 0 constraint "!mychips.paths.DRW" check (drop_reward >= -1 and drop_reward <= 1)
+
 );
 create table mychips.tallies (
 tally_ent	text		references mychips.users on update cascade on delete cascade
@@ -2733,20 +2740,24 @@ raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
 $$;
 create function mychips.routes_tf_biu() returns trigger language plpgsql security definer as $$
     begin
-        if new.dest_chid isnull then
-          select into new.dest_chid, new.dest_host peer_cid, peer_chost from mychips.peers_v where peer_ent = new.dest_ent;
+        if new.dest_cid isnull or new.dest_agent isnull then
+          select into new.dest_cid, new.dest_agent peer_cid, peer_agent from mychips.users_v where user_ent = new.dest_ent;
+        end if;
+        if new.requ_ent isnull then
+          new.requ_ent = coalesce(new.dest_ent, base.user_id(session_user));
         end if;
 
 
-        if new.topu_ent isnull then new.topu_ent = new.requ_ent; end if;
-        if new.botu_ent isnull then new.botu_ent = new.requ_ent; end if;
+
+
         return new;
     end;
 $$;
 create table mychips.route_tries (
-rtry_ent	text	      , primary key (rtry_ent, rtry_chid, rtry_host)
-  , rtry_chid	text
-  , rtry_host	text	      , foreign key (rtry_ent, rtry_chid, rtry_host) references mychips.routes on update cascade on delete cascade
+rtry_ent	text	      , primary key (rtry_ent, rtry_seq, rtry_cid, rtry_agent)
+  , rtry_seq	int
+  , rtry_cid	text
+  , rtry_agent	text	      , foreign key (rtry_ent, rtry_seq, rtry_cid, rtry_agent) references mychips.routes on update cascade on delete cascade
   , tries	int		not null default 1
   , last	timestamptz	not null default current_timestamp
 );
@@ -3371,22 +3382,6 @@ create function mychips.route_circuit(entity text) returns void language plpgsql
 raise notice 'Route Circuit check: % % %', entity, trec.first, trec.last;
         insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, requ_ent) 
           values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], entity)
-            on conflict (route_ent, dest_chid, dest_host)
-              do update set status = 'draft' where mychips.route_retry(excluded);
-      end loop;
-    end;
-$$;
-create function mychips.route_linear(entity text, peer text, host text) returns void language plpgsql as $$
-    declare
-      trec	record;
-      locid	text;
-    begin
-      select into locid id from mychips.peers_v where peer_cid = peer and peer_chost = host;
-      
-      for trec in select first,last,path from mychips.tallies_v_paths_old where length >= 2 and last = entity and first is distinct from locid and corein and fora loop
-raise notice 'Route Linear check: % % %', entity, peer, trec.first;
-        insert into mychips.routes (route_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent) 
-          values (trec.first, peer, host, trec.path[2], entity, entity)
             on conflict (route_ent, dest_chid, dest_host)
               do update set status = 'draft' where mychips.route_retry(excluded);
       end loop;
@@ -4273,19 +4268,25 @@ raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
     end;
 $$;
 create view mychips.routes_v as select 
-    ro.route_ent, ro.dest_chid, ro.dest_host, ro.dest_ent, ro.topu_ent, ro.botu_ent, ro.requ_ent, ro.status, ro.lift_min, ro.lift_margin, ro.lift_max, ro.lift_reward, ro.drop_min, ro.drop_margin, ro.drop_max, ro.drop_reward, ro.step, ro.lift_count, ro.lift_date, ro.good_date
-  , re.peer_cid		as route_cid		-- Route base entity
-  , re.peer_chost	as route_host
-  , re.peer_addr	as route_addr
-  , re.peer_sock	as route_sock
+    ro.inp_ent, ro.inp_tally, ro.dest_cid, ro.dest_agent, ro.requ_ent, ro.status, ro.lift_min, ro.lift_margin, ro.lift_max, ro.lift_reward, ro.drop_min, ro.drop_margin, ro.drop_max, ro.drop_reward, ro.step, ro.lift_count, ro.lift_date, ro.good_date
+  , ie.peer_cid		as inp_cid
+  , de.peer_agent	as inp_agent
+  , de.peer_addr	as inp_addr
+  , de.peer_sock	as inp_sock
 
-  , re.std_name		as route_name
 
-  , de.peer_cid		as dest_cid		-- Destination entity
-  , de.peer_addr	as dest_addr
-  , de.peer_sock	as dest_sock
+  , ta.part_cid		as route_cid		-- Route via this partner peer
+  , ta.part_agent	as route_agent
+  , ta.part_addr	as route_addr
+  , ta.part_sock	as route_sock
 
-  , de.std_name		as dest_name
+
+
+
+
+
+
+
 
   , te.peer_cid		as topu_cid		-- Top of local segment
   , te.peer_chost	as topu_host
@@ -4345,12 +4346,16 @@ create view mychips.routes_v as select
     )			as reverse
 
     from	mychips.routes		ro
-    join	mychips.peers_v		re on re.peer_ent = ro.route_ent	-- start of route
-    join	mychips.users_v		te on te.peer_ent = ro.topu_ent		-- top local user in chain
-    join	mychips.users_v		be on be.peer_ent = ro.botu_ent		-- bottom local user in chain
-    join	mychips.users_v		qe on qe.peer_ent = ro.requ_ent		-- requesting user or downstream foreign peer
+    join	mychips.users_v		ie on ie.user_ent = ro.inp_ent
+    join	mychips.tallies_v	ta on ta.tally_ent = ro.inp_ent and ta.tally_seq = ro.inp_tally
+
+
     left join	mychips.users_v		de on de.peer_ent = ro.dest_ent		-- destination
-    left join	mychips.route_tries	rt on rt.rtry_ent = ro.route_ent and rt.rtry_chid = ro.dest_chid and rtry_host = ro.dest_host
+    left join	mychips.peers_v		re on re.peer_ent = ro.route_ent	-- start of route
+    left join	mychips.users_v		te on te.peer_ent = ro.topu_ent		-- top local user in chain
+    left join	mychips.users_v		be on be.peer_ent = ro.botu_ent		-- bottom local user in chain
+    left join	mychips.users_v		qe on qe.peer_ent = ro.requ_ent		-- requesting user or downstream foreign peer
+    left join	mychips.route_tries	rt on rt.rtry_ent = ro.inp_ent and rt.rtry_seq = ro.inp_tally and rt.rtry_cid = ro.dest_cid and rtry_agent = ro.dest_agent
     left join	mychips.routes_v_paths	rp on rp.first = ro.route_ent and rp.dest_chid = ro.dest_chid and rp.dest_host = ro.dest_host and rp.last = ro.requ_ent and ro.status = 'good';
 create view mychips.routes_v_lifts as select * from mychips.routes_v_paths where native and forz and circuit order by 1 desc;
 create trigger mychips_sets_tr_seq before insert on mychips.tally_sets for each row execute procedure mychips.tally_sets_tf_seq();
@@ -4707,6 +4712,23 @@ create function mychips.lift_cycle(maxNum int default 1) returns jsonb language 
     return jsonb_set(status, '{done}', count::text::jsonb);
     end;
 $$;
+create function mychips.route_linear(entity text, cid text, agent text) returns void language plpgsql as $$
+    declare
+      trec	record;
+      locid	text;
+    begin
+      select into locid id from mychips.users where peer_cid = cid and peer_agent = agent;
+
+      for trec in select inp,out,path from mychips.tallies_v_paths where length > 2 and out = entity and inp is distinct from locid and fori loop
+raise notice 'Route Linear check: % % %', entity, peer, trec.inp;
+
+
+
+
+
+      end loop;
+    end;
+$$;
 create function mychips.route_notify(route mychips.routes) returns boolean language plpgsql security definer as $$
     declare
         act	text;
@@ -4716,34 +4738,34 @@ create function mychips.route_notify(route mychips.routes) returns boolean langu
         channel	text = 'mychips_agent';
     begin
 
-        if route.status = 'draft' or route.status = 'good' or route.status = 'none' then		-- Determine next action
+        if route.status in ('draft','good','none') then		-- Determine next action
             act = route.status;
         end if;
-
+raise notice 'RN:% % % % %', act, route.route_ent, route.dest_ent, route.dest_chid, route.dest_host;
         if act isnull then return false; end if;
 
-        select into orec route_ent,route_cid,route_addr,requ_sock,topu_sock,topu_serv,route_sock,dest_chid,dest_host,status,state,relay,reverse,step from mychips.routes_v where route_ent = route.route_ent and dest_chid = route.dest_chid;
+
+        select into orec inp_ent,inp_cid,inp_addr,requ_addr,inp_addr,inp_agent,dest_cid,route_addr,status,state,relay,reverse,step from mychips.routes_v where inp_ent = route.inp_ent and inp_tally = route.inp_tally and dest_cid = route.dest_cid and dest_agent = route.dest_agent;
         if not found then return false; end if;
 
-        if not orec.topu_serv isnull then
-
-            channel = 'ma_' || orec.topu_serv;
+        if not orec.inp_agent isnull then
+            channel = 'ma_' || orec.inp_agent;
         end if;
 
 
-        insert into mychips.route_tries (rtry_ent, rtry_chid, rtry_host) values (route.route_ent, route.dest_chid, route.dest_host)
-          on conflict (rtry_ent,rtry_chid,rtry_host) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
+        insert into mychips.route_tries (rtry_ent, rtry_seq, rtry_cid, rtry_agent) values (route.inp_ent, route.inp_tally, route.dest_cid, route.dest_agent)
+          on conflict (rtry_ent,rtry_seq,rtry_cid,rtry_agent) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
             returning * into rrec;
 
 
         jrec = jsonb_build_object('target', 'route'
           , 'action'	, act
-          , 'at'	, orec.route_sock
+          , 'at'	, orec.route_addr
           , 'try'	, rrec.tries
           , 'step'	, orec.step
           , 'last'	, rrec.last
-          , 'here'	, orec.topu_sock
-          , 'back'	, orec.requ_sock
+          , 'here'	, orec.inp_addr
+          , 'back'	, orec.requ_addr
           , 'object'	, orec.relay
           , 'reverse'	, orec.reverse
         );
@@ -4835,7 +4857,7 @@ raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', rec
 
           execute qstrg || ' route_ent = $1 and dest_chid = $2 and dest_host = $3' using route_r.route_ent, route_r.dest_chid, route_r.dest_host;
           if recipe->'update'->>'status' in ('good','none') then		-- Resolution found, delete retry counter
-            delete from mychips.route_tries where rtry_ent = route_r.route_ent and rtry_chid = route_r.dest_chid and rtry_host = route_r.dest_host;
+            delete from mychips.route_tries where rtry_ent = route_r.inp_ent and rtry_seq = route_r.inp_tally and rtry_cid = route_r.dest_cid and rtry_agent = route_r.dest_agent;
           end if;
         end if;
 
@@ -6758,12 +6780,9 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','routes','route_ent','display','1'),
   ('mychips','routes','route_ent','size','7'),
   ('mychips','routes','status','display','5'),
-  ('mychips','routes_v','dest_addr','display','4'),
   ('mychips','routes_v','dest_addr','size','30'),
-  ('mychips','routes_v','dest_ent','display','3'),
   ('mychips','routes_v','route_addr','display','2'),
   ('mychips','routes_v','route_addr','size','30'),
-  ('mychips','routes_v','route_ent','display','1'),
   ('mychips','routes_v','status','display','5'),
   ('mychips','routes_v_lifts','dest_ent','display','3'),
   ('mychips','routes_v_lifts','route_ent','display','1'),
@@ -7867,19 +7886,24 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','peers_v_me','title','base','ent','title','f','f'),
   ('mychips','peers_v_me','username','base','ent','username','f','f'),
   ('mychips','route_tries','last','mychips','route_tries','last','f','f'),
-  ('mychips','route_tries','rtry_chid','mychips','route_tries','rtry_chid','f','t'),
+  ('mychips','route_tries','rtry_agent','mychips','route_tries','rtry_agent','f','t'),
+  ('mychips','route_tries','rtry_cid','mychips','route_tries','rtry_cid','f','t'),
   ('mychips','route_tries','rtry_ent','mychips','route_tries','rtry_ent','f','t'),
-  ('mychips','route_tries','rtry_host','mychips','route_tries','rtry_host','f','t'),
+  ('mychips','route_tries','rtry_seq','mychips','route_tries','rtry_seq','f','t'),
   ('mychips','route_tries','tries','mychips','route_tries','tries','f','f'),
   ('mychips','routes','botu_ent','mychips','routes','botu_ent','f','f'),
-  ('mychips','routes','dest_chid','mychips','routes','dest_chid','f','t'),
+  ('mychips','routes','dest_agent','mychips','routes','dest_agent','f','t'),
+  ('mychips','routes','dest_chid','mychips','routes','dest_chid','f','f'),
+  ('mychips','routes','dest_cid','mychips','routes','dest_cid','f','t'),
   ('mychips','routes','dest_ent','mychips','routes','dest_ent','f','f'),
-  ('mychips','routes','dest_host','mychips','routes','dest_host','f','t'),
+  ('mychips','routes','dest_host','mychips','routes','dest_host','f','f'),
   ('mychips','routes','drop_margin','mychips','routes','drop_margin','f','f'),
   ('mychips','routes','drop_max','mychips','routes','drop_max','f','f'),
   ('mychips','routes','drop_min','mychips','routes','drop_min','f','f'),
   ('mychips','routes','drop_reward','mychips','routes','drop_reward','f','f'),
   ('mychips','routes','good_date','mychips','routes','good_date','f','f'),
+  ('mychips','routes','inp_ent','mychips','routes','inp_ent','f','t'),
+  ('mychips','routes','inp_tally','mychips','routes','inp_tally','f','t'),
   ('mychips','routes','lift_count','mychips','routes','lift_count','f','f'),
   ('mychips','routes','lift_date','mychips','routes','lift_date','f','f'),
   ('mychips','routes','lift_margin','mychips','routes','lift_margin','f','f'),
@@ -7887,31 +7911,31 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes','lift_min','mychips','routes','lift_min','f','f'),
   ('mychips','routes','lift_reward','mychips','routes','lift_reward','f','f'),
   ('mychips','routes','requ_ent','mychips','routes','requ_ent','f','f'),
-  ('mychips','routes','route_ent','mychips','routes','route_ent','f','t'),
+  ('mychips','routes','route_ent','mychips','routes','route_ent','f','f'),
   ('mychips','routes','status','mychips','routes','status','f','f'),
   ('mychips','routes','step','mychips','routes','step','f','f'),
   ('mychips','routes','topu_ent','mychips','routes','topu_ent','f','f'),
   ('mychips','routes_v','botu_addr','mychips','routes_v','botu_addr','f','f'),
   ('mychips','routes_v','botu_cid','mychips','routes_v','botu_cid','f','f'),
-  ('mychips','routes_v','botu_ent','mychips','routes','botu_ent','f','f'),
   ('mychips','routes_v','botu_host','mychips','routes_v','botu_host','f','f'),
   ('mychips','routes_v','botu_name','mychips','routes_v','botu_name','f','f'),
   ('mychips','routes_v','botu_serv','mychips','routes_v','botu_serv','f','f'),
   ('mychips','routes_v','botu_sock','mychips','routes_v','botu_sock','f','f'),
-  ('mychips','routes_v','dest_addr','mychips','routes_v','dest_addr','f','f'),
+  ('mychips','routes_v','dest_agent','mychips','routes','dest_agent','f','t'),
   ('mychips','routes_v','dest_chad','mychips','routes_v','dest_chad','f','f'),
-  ('mychips','routes_v','dest_chid','mychips','routes','dest_chid','f','t'),
-  ('mychips','routes_v','dest_cid','mychips','routes_v','dest_cid','f','f'),
-  ('mychips','routes_v','dest_ent','mychips','routes','dest_ent','f','f'),
-  ('mychips','routes_v','dest_host','mychips','routes','dest_host','f','t'),
-  ('mychips','routes_v','dest_name','mychips','routes_v','dest_name','f','f'),
-  ('mychips','routes_v','dest_sock','mychips','routes_v','dest_sock','f','f'),
+  ('mychips','routes_v','dest_cid','mychips','routes','dest_cid','f','t'),
   ('mychips','routes_v','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
   ('mychips','routes_v','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
   ('mychips','routes_v','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
   ('mychips','routes_v','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
   ('mychips','routes_v','expires','mychips','routes_v','expires','f','f'),
   ('mychips','routes_v','good_date','mychips','routes','good_date','f','f'),
+  ('mychips','routes_v','inp_addr','mychips','routes_v','inp_addr','f','f'),
+  ('mychips','routes_v','inp_agent','mychips','routes_v','inp_agent','f','f'),
+  ('mychips','routes_v','inp_cid','mychips','routes_v','inp_cid','f','f'),
+  ('mychips','routes_v','inp_ent','mychips','routes','inp_ent','f','t'),
+  ('mychips','routes_v','inp_sock','mychips','routes_v','inp_sock','f','f'),
+  ('mychips','routes_v','inp_tally','mychips','routes','inp_tally','f','t'),
   ('mychips','routes_v','last','mychips','tallies_v_paths_old','last','f','f'),
   ('mychips','routes_v','lift_count','mychips','routes','lift_count','f','f'),
   ('mychips','routes_v','lift_date','mychips','routes','lift_date','f','f'),
@@ -7930,17 +7954,14 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v','requ_user','mychips','routes_v','requ_user','f','f'),
   ('mychips','routes_v','reverse','mychips','routes_v','reverse','f','f'),
   ('mychips','routes_v','route_addr','mychips','routes_v','route_addr','f','f'),
+  ('mychips','routes_v','route_agent','mychips','routes_v','route_agent','f','f'),
   ('mychips','routes_v','route_cid','mychips','routes_v','route_cid','f','f'),
-  ('mychips','routes_v','route_ent','mychips','routes','route_ent','f','t'),
-  ('mychips','routes_v','route_host','mychips','routes_v','route_host','f','f'),
-  ('mychips','routes_v','route_name','mychips','routes_v','route_name','f','f'),
   ('mychips','routes_v','route_sock','mychips','routes_v','route_sock','f','f'),
   ('mychips','routes_v','state','mychips','routes_v','state','f','f'),
   ('mychips','routes_v','status','mychips','routes','status','f','f'),
   ('mychips','routes_v','step','mychips','routes','step','f','f'),
   ('mychips','routes_v','topu_addr','mychips','routes_v','topu_addr','f','f'),
   ('mychips','routes_v','topu_cid','mychips','routes_v','topu_cid','f','f'),
-  ('mychips','routes_v','topu_ent','mychips','routes','topu_ent','f','f'),
   ('mychips','routes_v','topu_host','mychips','routes_v','topu_host','f','f'),
   ('mychips','routes_v','topu_name','mychips','routes_v','topu_name','f','f'),
   ('mychips','routes_v','topu_serv','mychips','routes_v','topu_serv','f','f'),
@@ -7949,9 +7970,9 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_lifts','botu_ent','mychips','routes','botu_ent','f','f'),
   ('mychips','routes_v_lifts','circuit','mychips','routes_v_paths','circuit','f','f'),
   ('mychips','routes_v_lifts','corein','mychips','tallies_v_paths_old','corein','f','f'),
-  ('mychips','routes_v_lifts','dest_chid','mychips','routes','dest_chid','f','t'),
+  ('mychips','routes_v_lifts','dest_chid','mychips','routes','dest_chid','f','f'),
   ('mychips','routes_v_lifts','dest_ent','mychips','routes','dest_ent','f','f'),
-  ('mychips','routes_v_lifts','dest_host','mychips','routes','dest_host','f','t'),
+  ('mychips','routes_v_lifts','dest_host','mychips','routes','dest_host','f','f'),
   ('mychips','routes_v_lifts','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
   ('mychips','routes_v_lifts','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
   ('mychips','routes_v_lifts','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
@@ -7981,7 +8002,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_lifts','route_drop_max','mychips','routes_v_paths','route_drop_max','f','f'),
   ('mychips','routes_v_lifts','route_drop_min','mychips','routes_v_paths','route_drop_min','f','f'),
   ('mychips','routes_v_lifts','route_drop_reward','mychips','routes_v_paths','route_drop_reward','f','f'),
-  ('mychips','routes_v_lifts','route_ent','mychips','routes','route_ent','f','t'),
+  ('mychips','routes_v_lifts','route_ent','mychips','routes','route_ent','f','f'),
   ('mychips','routes_v_lifts','route_lift_margin','mychips','routes_v_paths','route_lift_margin','f','f'),
   ('mychips','routes_v_lifts','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
   ('mychips','routes_v_lifts','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
@@ -7993,9 +8014,9 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_paths','botu_ent','mychips','routes','botu_ent','f','f'),
   ('mychips','routes_v_paths','circuit','mychips','routes_v_paths','circuit','f','f'),
   ('mychips','routes_v_paths','corein','mychips','tallies_v_paths_old','corein','f','f'),
-  ('mychips','routes_v_paths','dest_chid','mychips','routes','dest_chid','f','t'),
+  ('mychips','routes_v_paths','dest_chid','mychips','routes','dest_chid','f','f'),
   ('mychips','routes_v_paths','dest_ent','mychips','routes','dest_ent','f','f'),
-  ('mychips','routes_v_paths','dest_host','mychips','routes','dest_host','f','t'),
+  ('mychips','routes_v_paths','dest_host','mychips','routes','dest_host','f','f'),
   ('mychips','routes_v_paths','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
   ('mychips','routes_v_paths','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
   ('mychips','routes_v_paths','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
@@ -8025,7 +8046,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_paths','route_drop_max','mychips','routes_v_paths','route_drop_max','f','f'),
   ('mychips','routes_v_paths','route_drop_min','mychips','routes_v_paths','route_drop_min','f','f'),
   ('mychips','routes_v_paths','route_drop_reward','mychips','routes_v_paths','route_drop_reward','f','f'),
-  ('mychips','routes_v_paths','route_ent','mychips','routes','route_ent','f','t'),
+  ('mychips','routes_v_paths','route_ent','mychips','routes','route_ent','f','f'),
   ('mychips','routes_v_paths','route_lift_margin','mychips','routes_v_paths','route_lift_margin','f','f'),
   ('mychips','routes_v_paths','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
   ('mychips','routes_v_paths','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
