@@ -1,0 +1,82 @@
+[
+ {
+  "edges": 4,
+  "pat": [
+   "p1000",
+   "p1002",
+   "p1001",
+   "p1000"
+  ],
+  "bot_cid": "cid_0",
+  "bot_agent": "UTY1NDM1",
+  "circuit": false
+ },
+ {
+  "edges": 1,
+  "pat": [
+   "p1000"
+  ],
+  "bot_cid": "cid_U",
+  "bot_agent": "UDY1NDM0",
+  "circuit": false
+ },
+ {
+  "edges": 2,
+  "pat": [
+   "p1001",
+   "p1000"
+  ],
+  "bot_cid": "cid_1",
+  "bot_agent": "UTY1NDM1",
+  "circuit": false
+ },
+ {
+  "edges": 5,
+  "pat": [
+   "p1001",
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000"
+  ],
+  "bot_cid": "cid_1",
+  "bot_agent": "UTY1NDM1",
+  "circuit": false
+ },
+ {
+  "edges": 3,
+  "pat": [
+   "p1002",
+   "p1001",
+   "p1000"
+  ],
+  "bot_cid": "cid_2",
+  "bot_agent": "UTY1NDM1",
+  "circuit": false
+ },
+ {
+  "edges": 4,
+  "pat": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000"
+  ],
+  "bot_cid": "cid_3",
+  "bot_agent": "UTY1NDM1",
+  "circuit": false
+ },
+ {
+  "edges": 5,
+  "pat": [
+   null,
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000"
+  ],
+  "bot_cid": "cid_D",
+  "bot_agent": "UjY1NDM2",
+  "circuit": true
+ }
+]

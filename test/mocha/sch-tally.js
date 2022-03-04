@@ -64,7 +64,7 @@ describe("Test tally state transitions", function() {
     let sql = uSql(`request = 'offer', hold_sig = '${cid0 + ' signature'}'`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'draft.offer')
       _done()
@@ -88,7 +88,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object: interTest.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'H.offer')
       done()
@@ -107,7 +107,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'P.offer')
       done()
@@ -120,7 +120,7 @@ log.debug("Object:", msg.object)
     let sql = uSql(`request = 'void', hold_sig = null`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'P.offer.void')
       _done()
@@ -140,7 +140,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object: interTest.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'void')
       done()
@@ -177,7 +177,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'void')
       done()
@@ -196,7 +196,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'open')
       done()
@@ -210,7 +210,7 @@ log.debug("Object:", msg.object)
     let sql = uSql(`request = 'offer', hold_sig = '${cid0 + ' signature'}', comment = 'A special condition'`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
 //log.debug("X:", row.request, row.status, row.hold_sig, row.part_sig)
       assert.equal(row.state, 'draft.offer')
@@ -232,7 +232,7 @@ log.debug("Object:", msg.object)
     let sql = uSql(`request = 'open', hold_sig = '${cid0 + ' signature'}'`, user0, 1)	//Force chips cache to non-zero
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql M:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'B.offer.open')
       _done()
@@ -251,7 +251,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object: interTest.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'open')
       done()
@@ -266,7 +266,7 @@ log.debug("Object:", msg.object)
     let sql = uSql(`request = 'close'`, user0, 1)
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql M:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'open.close')
       _done()
@@ -285,7 +285,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object: interTest.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'close')
       done()
@@ -302,7 +302,7 @@ log.debug("Object:", msg.object)
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0]);
+    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'close')
       done()
@@ -318,4 +318,4 @@ log.debug("Object:", msg.object)
       done()
       }, 200)
   })
-});		//Peer to peer tallies
+})		//Peer to peer tallies

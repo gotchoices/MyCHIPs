@@ -40,7 +40,7 @@ describe("Test chit state transitions", function() {
     let sql = `begin;
         delete from mychips.chits;
         update mychips.tallies set _last_chit = 0 where tally_ent = %L and status = 'open' returning tally_ent, tally_seq; commit`
-    dbA.query(Format(sql, user0), (e, res) => {if (e) done(e);
+    dbA.query(Format(sql, user0), (e, res) => {if (e) done(e)
       assert.equal(res[2].rowCount, 1)
       let row = res[2].rows[0]			//;log.debug('row O:', row)
       assert.equal(row.tally_ent, user0)
@@ -105,7 +105,7 @@ describe("Test chit state transitions", function() {
     let sql = interTest.pSql({context: ['A.draft.pend'], update: {status: 'pend'}})
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'A.pend')
       done()
     })
@@ -119,7 +119,7 @@ describe("Test chit state transitions", function() {
     let sql = interTest.pSql({context: ['A.pend'], update: {status: 'void'}})
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)				//;log.debug("row:", row);
+      let row = getRow(res, 0)				//;log.debug("row:", row)
       assert.equal(row.state, 'A.void')
       done()
     })
@@ -131,12 +131,12 @@ describe("Test chit state transitions", function() {
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'A.draft.pend')
       assert.equal(row.action, false)
       _done()
     })
-    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg);
+    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg)
       assert.equal(msg.target, 'chit')
       assert.equal(msg.action, 'pend')
       let obj = msg.object			;log.debug("A obj:", obj)
@@ -160,7 +160,7 @@ describe("Test chit state transitions", function() {
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)				//;log.debug("row:", row);
+      let row = getRow(res, 0)				//;log.debug("row:", row)
       assert.equal(row.state, 'A.good')
       done()
     })
@@ -176,7 +176,7 @@ describe("Test chit state transitions", function() {
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'A.good')
       done()
     })
@@ -231,7 +231,7 @@ describe("Test chit state transitions", function() {
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.pend')
       interTest.chit = object			//Now dealing with this chit
       done()
@@ -247,13 +247,13 @@ describe("Test chit state transitions", function() {
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.pend.void')
       assert.equal(row.action, false)
       _done()
     })
     busA.register('pa', (msg) => {
-      assert.equal(msg.action, 'void')		//;log.debug("A obj:", msg.object);
+      assert.equal(msg.action, 'void')		//;log.debug("A obj:", msg.object)
       interTest.uuid = msg.object.uuid		//Redirect future tests to this latest chit
       busA.register('pa')
       _done()
@@ -264,7 +264,7 @@ describe("Test chit state transitions", function() {
     let sql = interTest.pSql({context: ['L.pend.void'], update: {status: 'void'}}, interTest.uuid)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.void')
       done()
     })
@@ -280,7 +280,7 @@ describe("Test chit state transitions", function() {
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'A.good')
       done()
     })
@@ -295,13 +295,13 @@ describe("Test chit state transitions", function() {
       , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.pend.good')
       assert.equal(row.action, false)
       _done()
     })
     busA.register('pa', (msg) => {
-      assert.equal(msg.action, 'good')		//;log.debug("A obj:", msg.object);
+      assert.equal(msg.action, 'good')		//;log.debug("A obj:", msg.object)
       busA.register('pa')
       _done()
     })
@@ -311,7 +311,7 @@ describe("Test chit state transitions", function() {
     let sql = interTest.pSql({context: ['L.pend.good'], update: {status: 'good'}}, interTest.uuid)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.good')
       done()
     })
@@ -326,4 +326,4 @@ describe("Test chit state transitions", function() {
       done()
       }, 200)
   })
-});		//Peer to peer tallies
+})		//Peer to peer tallies

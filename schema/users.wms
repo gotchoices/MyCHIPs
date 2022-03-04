@@ -167,7 +167,7 @@ function base.addr_tf_birth() {base.addr} {
         return new;
       end if;
       if old.addr_type = 'birth' then
-        raise exception '!mychips.users.BRM %', old.addr_ent;
+        raise exception '!mychips.users:BRM %', old.addr_ent;
         return null;
       end if;
       return new;

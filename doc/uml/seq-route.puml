@@ -17,7 +17,7 @@ else Destination peer found locally
 
 else Destination peer not found locally
   loop On upstream peers with lift capacity
-    localDB	->>	upDB: Create draft route\nQuery upstream
+    localDB	->>	upDB: Create draft route(s)\nQuery upstream
   end
 end
 

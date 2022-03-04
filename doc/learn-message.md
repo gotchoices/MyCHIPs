@@ -149,43 +149,83 @@ Tally state transition messages are as follows:
     - token: connection code
     - cert: CHIP certificate of the subject peer who will receive the tally
 
-- *DB->Agent:* **Request Agent to Send a Draft Tally**;
+- *DB->Agent:* **Request Agent to Send a Tally**: ***action***: pend  
   The DB requests the agent to send the contained tally proposal to the requester or intended partner.
-  - **action**: userDraft
 
-- *Agent->Agent:* **Sending a Draft Tally Offer**;
+- *Agent->Agent:* **Sending a Tally Offer**: ***action***: offer  
   A peer agent is sending the contained tally intending to execute on the proposed terms.
-  - **action**: peerProffer
 
-- *DB->Agent:* **Request Agent to Refuse Tally**;
+- *DB->Agent:* **Request Agent to Refuse Tally**: ***action***: void  
   The DB requests the agent to tell the prospective partner of the tally "no thanks."
-  - **action**: userVoid
 
-- *Agent->Agent:* **Refusing a Draft Tally Offer**;
+- *Agent->Agent:* **Refusing a Tally Offer**: ***action***: void  
   A peer agent is indicating that the referenced tally has been refused by its user.
-  - **action**: peerRefuse
 
-- *DB->Agent:* **Request Agent to Accept Tally**;
+- *DB->Agent:* **Request Agent to Accept Tally**: ***action***: open  
   The DB requests the agent to tell the prospective partner of the contained, signed tally "I accept."
-  - **action**: userAccept
 
-- *Agent->Agent:* **Accepting a Draft Tally Offer**;
+- *Agent->Agent:* **Accepting a Draft Tally Offer**: ***action***: open  
   A peer agent is transmitting a tally that has been accepted and signed by its user.
-  - **action**: peerAccept
 
-- *DB->Agent:* **Request Agent to Notify of Tally Close Request**;
+- *DB->Agent:* **Request Agent to Notify of Tally Close Request**: ***action***: close  
   The DB requests the agent to tell the partner of the current tally that it has been marked by our user to be closed upon attaining a zero balance.
-  - **action**: userClose
 
-- *Agent->Agent:* **Marking a Tally for Closing**;
+- *Agent->Agent:* **Marking a Tally for Closing**: ***action***: close  
   A peer agent is indicating that the referenced tally has been marked for closure by its user.
-  - **action**: peerClose
 
 ### Chit Messages
+Property: **target**: chit
+
+The *object* property for the chit is defined as follows:
+  - **uuid**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier)(UUID) for this particular chit.
+  - **tally**: the UUID of the tally this chit belongs to.
+  - **date**: Date/time the chit was created
+  - **type: The value 'tran' (transaction) or 'lift' (linear or circular)
+  - **for**: A description of what the payment is for
+  - *units: The number of milli-CHIPs on this chit.
+            Positive means a payment from Client to Vendor (or a drop).
+            Negative means a payment from Vendor to Client (or a lift).
+  - **digest**: A string hash of the rest of the chit in a standard serialized format
+  - **digest**: A string hash of the rest of the chit in a standard serialized format
+  - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor
+
+Chit state transition messages are as follows:
+
 *Under Construction*
 
 ### Route Messages
+Property: **target**: route
+
+When a route query is being propagated upstream, the *object* property in the message is defined as follows:  
+  - **step**: Tracks how many hops away from the original inquiry this query has come (0 on first query).
+  - **find**: A CHIP address for the destination entity of this route.  Must minimally contain a cid and agent.  Host and port components may provide hints to intelligent algorithms about where to best find successful routes.
+  - **tally**: The UUID of the tally this route query is being sent over (and expected to be returned on.
+  
+When a route response is being propagated downstream, the *object* property is as follows:  
+*Under Construction*  
+```
+  , jsonb_build_object(         		-- Overlay for packet we will transmit back downstr
+       'from'   ,       be.peer_cid
+     , 'fat'    ,       be.peer_chost
+     , 'to'     ,       coalesce(de.peer_cid, ro.dest_chid)
+     , 'tat'    ,       coalesce(de.peer_host, ro.dest_host)
+     , 'by'     ,       qe.peer_cid
+     , 'bat'    ,       qe.peer_chost
+     , 'port'   ,       qe.peer_cport
+     , 'lading' ,       jsonb_build_object(
+          'lmin'   ,    rp.lift_min,    'lmax'   ,	rp.lift_max
+        , 'lmargin',    rp.lift_margin, 'lreward',	rp.lift_reward
+        , 'dmin'   ,    rp.drop_min,    'dmax'   ,	rp.drop_max
+        , 'dmargin',    rp.drop_margin, 'dreward',	rp.drop_reward
+       )
+    )
+```
+*Under Construction*  
+
+Route state transition messages are as follows:
+
 *Under Construction*
+  
 
 ### Lift Messages
 *Under Construction*

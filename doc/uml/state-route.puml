@@ -25,12 +25,12 @@ none: Stat: none, time: N/A
 timeout: Stat: pend, time: expired
 'unknown: Stat: pend, time: expired, tries: max
 liftUpdate: Lift success/failure will provide more up-to-date status
-tryable: My retry upstream query for new information from time to time
+tryable: May retry upstream query for new information from time to time
 tryable: Routes also subject to optional deletion after long expiration time
 
 'State transition rules:
-[*] -up[$peer]-> [*]: $trans($peer,Receive Act:query,'Route impossible',Reply Act: fail)
-[*] -up[$peer]-> [*]: $trans($peer,Receive Act:query,'Peer found locally',Reply Act: affirm)
+[*] -up[$peer]-> [*]: $trans($peer,Receive Act:query,'Route impossible',Reply Act: none)
+[*] -up[$peer]-> [*]: $trans($peer,Receive Act:query,'Peer found locally',Reply Act: good)
 
 [*] -[$user]-> draft: $trans($user,User initiates route,'',Create new route)
 [*] -[$peer]-> draft: $trans($peer,Receive Act:query,'Peer not found locally',Create draft route)
@@ -38,9 +38,10 @@ tryable: Routes also subject to optional deletion after long expiration time
 
 draft -[$db]-> pend: $trans($db,draft detected,'',Forward Upstream Act:query)
 
-pend -up[$peer]-> good: $trans($peer,Receive Act:affirm,'',Relay Downstream Act:affirm)
+pend -up[$peer]-> good: $trans($peer,Receive Act:good,Local request,Notify user)
+pend -up[$peer]-> good: $trans($peer,Receive Act:good,External Request,Relay Downstream Act:good)
 pend --> timeout: $trans(timer,Request times out,'')
-pend -[$peer]-> none: $trans($peer,Receive Act:fail,Relay Downstream Act:fail)
+pend -[$peer]-> none: $trans($peer,Receive Act:none,Relay Downstream Act:none)
 
 good --> stale: $trans(timer,Time runs out,'')
 liftUpdate --> good: $trans(db,Lift succeeds using this route,Refresh timestamp)

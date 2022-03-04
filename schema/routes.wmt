@@ -28,6 +28,8 @@ tabtext mychips.routes	{Foreign Routes}	{Information collected from foreign serv
     {step		{Step}			{How many steps we are along the way from where this route request was originated}}
 } -messages {
     {BST	{Bad Route Status}		{Not a valid status for the route status}}
+    {UNI	{Not Unique Route}		{Routes should have a unique combination of source and destination}}
+    {CRL	{Illegal Route Target}		{Routes should be only to users on other systems}}
 }
 
 tabtext mychips.routes_v	{Foreign Routes}	{A view showing foreign peers that can be reached by way of one of our known foreign peers} {

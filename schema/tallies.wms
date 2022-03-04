@@ -119,7 +119,7 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
 -- select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent; -- Not safe for concurrent sessions
         end if;
         if new.tally_uuid is null then
-          new.tally_uuid = mychips.random_uuid();
+          new.tally_uuid = uuid_generate_v4();
         end if;
 
         if new.hold_cert is null then

@@ -714,10 +714,6 @@ create function mychips.lift_state(status text, request text, expired boolean) r
         else status end
       end
 $$;
-create function mychips.random_uuid() returns uuid language plpython3u as $$
-    import uuid
-    return uuid.uuid4()
-$$;
 create function mychips.route_state(status text, expired boolean) returns text stable language plpgsql as $$
     begin return
       status ||
@@ -977,7 +973,7 @@ create view wm.column_lang as select
   , cd.nat_sch || '.' || cd.nat_tab		as nat
   , cd.nat_col
   , (select array_agg(to_jsonb(d)) from (select value, title, help from wm.value_text vt where vt.vt_sch = cd.nat_sch and vt.vt_tab = cd.nat_tab and vt.vt_col = cd.nat_col and vt.language = nt.language order by value) d) as values
-  , coalesce(ct.language, nt.language, 'en')	as language
+  , coalesce(ct.language, nt.language, 'eng')	as language
   , coalesce(ct.title, nt.title, cd.cdt_col)	as title
   , coalesce(ct.help, nt.help)			as help
   , cd.cdt_sch in ('pg_catalog','information_schema') as system
@@ -1026,7 +1022,7 @@ create view wm.column_pub as select
   , cd.nat_tab
   , cd.nat_sch || '.' || cd.nat_tab		as nat
   , cd.nat_col
-  , coalesce(vt.language, nt.language, 'en')	as language
+  , coalesce(vt.language, nt.language, 'eng')	as language
   , coalesce(vt.title, nt.title, cd.cdt_col)	as title
   , coalesce(vt.help, nt.help)			as help
   from		wm.column_data cd
@@ -1500,7 +1496,7 @@ create function base.addr_tf_birth() returns trigger language plpgsql security d
         return new;
       end if;
       if old.addr_type = 'birth' then
-        raise exception '!mychips.users.BRM %', old.addr_ent;
+        raise exception '!mychips.users:BRM %', old.addr_ent;
         return null;
       end if;
       return new;
@@ -2336,36 +2332,6 @@ create function mychips.route_life() returns interval language plpgsql stable as
       return base.parm('routes', 'life', '1 week'::text)::interval;
     end;
 $$;
-create table mychips.routes (
-inp_ent	text		-- Input tally owner
-  , inp_tally	int	      , foreign key (inp_ent, inp_tally) references mychips.tallies on update cascade on delete cascade
-  , dest_cid	text		--Fixme: check ((out_tal_ent is not null and out_tal_seq is not null) or (dest_cid is not null and dest_agent is not null))
-  , dest_agent	text	      , primary key (inp_ent, inp_tally, dest_cid, dest_agent)
-
-  , dest_ent	text		references mychips.users on update cascade on delete cascade
-  , requ_ent	text		not null references mychips.users on update cascade on delete cascade
-  , status	text		not null default 'draft' constraint "!mychips.routes.BST" check(status in ('draft','pend','good','none'))
-  , step	int		not null default 0 check (step >= 0)
-  , lift_count	int		not null default 0 check (step >= 0)
-  , lift_date	timestamptz	not null default current_timestamp
-  , good_date	timestamptz	not null default current_timestamp
-
-
-  , route_ent	text		-- not null references mychips.peers on update cascade on delete cascade
-  , dest_chid	text
-  , dest_host	text		--?? check ((dest_ent is not null and dest_host isnull) or (dest_ent isnull and dest_host is not null))
-  , topu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
-  , botu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
-  , lift_min	bigint		-- default 0
-  , lift_margin	float		-- not null default 0 constraint "!mychips.paths.LMG" check (lift_margin >= -1 and lift_margin <= 1)
-  , lift_max	bigint		-- default 0
-  , lift_reward	float		-- not null default 0 constraint "!mychips.paths.LRW" check (lift_reward >= -1 and lift_reward <= 1)
-  , drop_min	bigint		-- default 0
-  , drop_margin	float		-- not null default 0 constraint "!mychips.paths.DMG" check (drop_margin >= -1 and drop_margin <= 1)
-  , drop_max	bigint		-- default 0
-  , drop_reward	float		-- not null default 0 constraint "!mychips.paths.DRW" check (drop_reward >= -1 and drop_reward <= 1)
-
-);
 create table mychips.tallies (
 tally_ent	text		references mychips.users on update cascade on delete cascade
   , tally_seq	int	      , primary key (tally_ent, tally_seq)
@@ -2731,21 +2697,56 @@ create function mychips.peers_v_updfunc() returns trigger language plpgsql secur
     return new;
   end;
 $$;
-create function mychips.route_retry(new mychips.routes) returns boolean language plpgsql as $$
-    begin
-raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
+create table mychips.routes (
+rid		serial		primary key
+  , via_ent	text		not null	-- Owner of local tally that starts the external route
+  , via_tseq	int		not null
+  ,				foreign key (via_ent, via_tseq) references mychips.tallies on update cascade on delete cascade
+  , dst_cid	text		not null
+  , dst_agent	text		not null
+  , 				constraint "!mychips.routes.UNI" unique (via_ent, via_tseq, dst_cid, dst_agent)
+  , req_ent	text
+  , req_tseq	int	      , foreign key (req_ent, req_tseq) references mychips.tallies on update cascade on delete cascade
 
-    return false;
-    end;
-$$;
+  , status	text		not null default 'draft' constraint "!mychips.routes.BST" check(status in ('draft','pend','good','none'))
+  , step	int		not null default 0 check (step >= 0)
+  , lift_count	int		not null default 0 check (step >= 0)
+  , lift_date	timestamptz	not null default current_timestamp
+  , good_date	timestamptz	not null default current_timestamp
+
+  , min		bigint		not null default 0
+  , margin	float		not null default 0 constraint "!mychips.paths.LMG" check (margin >= -1 and margin <= 1)
+  , max		bigint		not null default 0
+  , reward	float		not null default 0 constraint "!mychips.paths.LRW" check (reward >= -1 and reward <= 1)
+  
+
+  , route_ent	text		-- not null references mychips.peers on update cascade on delete cascade
+  , dest_ent	text		references mychips.users on update cascade on delete cascade
+  , dest_chid	text
+  , dest_host	text		--?? check ((dest_ent is not null and dest_host isnull) or (dest_ent isnull and dest_host is not null))
+  , topu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
+  , botu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
+  , lift_min	bigint		-- default 0
+  , lift_margin	float		-- not null default 0 constraint "!mychips.paths.LMG" check (lift_margin >= -1 and lift_margin <= 1)
+  , lift_max	bigint		-- default 0
+  , lift_reward	float		-- not null default 0 constraint "!mychips.paths.LRW" check (lift_reward >= -1 and lift_reward <= 1)
+  , drop_min	bigint		-- default 0
+  , drop_margin	float		-- not null default 0 constraint "!mychips.paths.DMG" check (drop_margin >= -1 and drop_margin <= 1)
+  , drop_max	bigint		-- default 0
+  , drop_reward	float		-- not null default 0 constraint "!mychips.paths.DRW" check (drop_reward >= -1 and drop_reward <= 1)
+
+);
 create function mychips.routes_tf_biu() returns trigger language plpgsql security definer as $$
     begin
-        if new.dest_cid isnull or new.dest_agent isnull then
-          select into new.dest_cid, new.dest_agent peer_cid, peer_agent from mychips.users_v where user_ent = new.dest_ent;
+        if exists (select id from mychips.users_v where peer_cid = new.dst_cid and peer_agent = new.dst_agent) then
+          raise exception '!mychips.routes:CRL';
         end if;
-        if new.requ_ent isnull then
-          new.requ_ent = coalesce(new.dest_ent, base.user_id(session_user));
-        end if;
+
+
+
+
+
+
 
 
 
@@ -2753,14 +2754,6 @@ create function mychips.routes_tf_biu() returns trigger language plpgsql securit
         return new;
     end;
 $$;
-create table mychips.route_tries (
-rtry_ent	text	      , primary key (rtry_ent, rtry_seq, rtry_cid, rtry_agent)
-  , rtry_seq	int
-  , rtry_cid	text
-  , rtry_agent	text	      , foreign key (rtry_ent, rtry_seq, rtry_cid, rtry_agent) references mychips.routes on update cascade on delete cascade
-  , tries	int		not null default 1
-  , last	timestamptz	not null default current_timestamp
-);
 create trigger mychips_tallies_tr_change after insert or update or delete on mychips.tallies for each statement execute procedure mychips.change_tf_notify('tallies');
 create view mychips.tallies_v_net_old as select 
     coalesce(ts.tally_uuid,tf.tally_uuid)	as uuid
@@ -3102,7 +3095,19 @@ create function mychips.lifts_tf_bu() returns trigger language plpgsql security 
 $$;
 create trigger mychips_peers_v_tr_ins instead of insert on mychips.peers_v for each row execute procedure mychips.peers_v_insfunc();
 create trigger mychips_peers_v_tr_upd instead of update on mychips.peers_v for each row execute procedure mychips.peers_v_updfunc();
+create function mychips.route_retry(new mychips.routes) returns boolean language plpgsql as $$
+    begin
+
+
+    return false;
+    end;
+$$;
 create trigger mychips_routes_tr_biu before insert or update on mychips.routes for each row execute procedure mychips.routes_tf_biu();
+create table mychips.route_tries (
+rtry_rid	int		primary key references mychips.routes on update cascade on delete cascade
+  , tries	int		not null default 1
+  , last	timestamptz	not null default current_timestamp
+);
 create view mychips.tallies_v as select 
     te.tally_ent, te.tally_seq, te.tally_type, te.tally_uuid, te.tally_date, te.version, te.part_ent, te.hold_cert, te.part_cert, te.request, te.comment, te.contract, te.target, te.reward, te.clutch, te.bound, te.status, te.digest, te.cr_limit, te.dr_limit, te.units_pc, te.units_gc, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sig, te.part_sig, te.hold_terms, te.part_terms, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , te.hold_cid ||':'|| ua.agent	as hold_addr
@@ -3380,14 +3385,67 @@ create function mychips.route_circuit(entity text) returns void language plpgsql
     begin
       for trec in select first,last,path from mychips.tallies_v_paths_old where length >= 3 and entity = any(path) and segment loop
 raise notice 'Route Circuit check: % % %', entity, trec.first, trec.last;
-        insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, requ_ent) 
+        insert into mychips.routes (route_ent, dest_ent, topu_ent, botu_ent, req_ent) 
           values (trec.first, trec.last, trec.path[2], trec.path[array_upper(trec.path,1)-1], entity)
             on conflict (route_ent, dest_chid, dest_host)
               do update set status = 'draft' where mychips.route_retry(excluded);
       end loop;
     end;
 $$;
-create view mychips.routes_v_paths as select
+create view mychips.routes_v as select 
+    ro.rid, ro.status, ro.min, ro.max, ro.margin, ro.reward, ro.via_ent, ro.via_tseq, ro.dst_cid, ro.dst_agent, ro.req_ent, ro.req_tseq, ro.step, ro.lift_count, ro.lift_date, ro.good_date
+  , it.hold_cid		as via_cid
+  , it.hold_agent	as via_agent
+  , it.hold_chad	as via_chad
+  , it.tally_uuid	as via_tally
+
+  , it.part_cid		as route_cid		-- Route via this partner peer
+  , it.part_agent	as route_agent
+  , it.part_chad	as route_chad
+
+  , ro.req_tseq isnull	or qt.part_ent is not null as native	-- native: route request generated on this site
+  , qt.tally_uuid	as req_tally
+  , qt.hold_cid		as req_cid		-- Our user/owner of downstream request tally
+  , qt.hold_agent	as req_agent
+  , qt.hold_chad	as req_chad
+  , qt.part_cid		as rept_cid		-- Foreign partner request came through
+  , qt.part_agent	as rept_agent
+  , qt.part_chad	as rept_chad
+
+  , greatest(ro.good_date,ro.lift_date) + mychips.route_life()	as expires
+  , rt.tries		as tries
+  , rt.last		as last
+  , mychips.route_state(ro.status
+    , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()	-- Expired
+  )			as state
+  , jsonb_build_object(				-- For upstream query packet
+       'step',		ro.step
+     , 'tally',		it.tally_uuid
+     , 'find' ,	jsonb_build_object(
+         'cid', 	ro.dst_cid
+       , 'agent',	ro.dst_agent
+       )
+    )			as json
+
+
+
+
+
+
+
+
+
+
+    from	mychips.routes		ro
+    join	mychips.users_v		ie on ie.user_ent = ro.via_ent
+    join	mychips.tallies_v	it on it.tally_ent = ro.via_ent and it.tally_seq = ro.via_tseq
+    left join	mychips.tallies_v	qt on qt.tally_ent = ro.req_ent and qt.tally_seq = ro.req_tseq
+    left join	mychips.route_tries	rt on rt.rtry_rid = ro.rid
+
+
+    ;
+    ;
+create view mychips.routes_v_paths_old as select
     tp.first, tp.last
   , tp.length, tp.path, tp.uuids
   , tp.segment, tp.corein, tp.fora, tp.forz
@@ -3398,9 +3456,9 @@ create view mychips.routes_v_paths as select
   , r.status
   , r.topu_ent
   , r.botu_ent
-  , r.requ_ent
+  , r.req_ent
   , r.lift_count
-  , not r.requ_ent is null as native
+  , not r.req_ent is null as native
   , not r.dest_ent isnull and r.dest_ent = tp.last as circuit
   , tp.lift_min		as path_lift_min
   , tp.lift_margin	as path_lift_margin
@@ -3472,7 +3530,7 @@ create view mychips.tallies_v_net as with
     from mychips.tallies_v where liftable and part_ent isnull
   )
   select 			-- Internal tallies with both stock and foil
-    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.part_ent					as inp
   , t.tally_ent					as out
   , t.target, t.reward, t.bound
@@ -3489,7 +3547,7 @@ create view mychips.tallies_v_net as with
     where t.net_pc < coalesce(t.bound,0)
 
   union select 			-- Tallies with foreign peers
-    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.part_ent					as inp
   , t.tally_ent					as out
   , t.target, t.reward, t.bound
@@ -3505,7 +3563,7 @@ create view mychips.tallies_v_net as with
     where t.net_pc < coalesce(t.bound,0)
 
   union select 			-- Tallies with foreign peers and reverse consideration
-    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.tally_ent					as inp
   , t.part_ent					as out
   , 0 as target, 0 as reward, 0 as bound
@@ -3860,7 +3918,7 @@ create function mychips.chit_goodcheck(ch mychips.chits) returns mychips.chits l
 
       select into trec tally_ent,tally_seq,tally_type,tally_uuid,digest,chain_conf from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
       if not found or trec.digest is null then		-- Can we find a valid tally to add this chit to?
-        raise exception 'Attempted chit link to invalid tally: %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
+        raise exception '!mychips.chits:LIT %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
         return null;
       end if;
 
@@ -4098,7 +4156,7 @@ create function mychips.lift_circuit(top text, bot text) returns void language p
       rrec	record;
       botu_cid	text;
     begin
-      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths where first = top and dest_ent = bot and circuit and status = 'good' order by lift_margin limit 1;
+      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths_old where first = top and dest_ent = bot and circuit and status = 'good' order by lift_margin limit 1;
       if not found then return; end if;
       select into botu_cid peer_cid from mychips.users_v where id = rrec.botu_ent;
       
@@ -4111,7 +4169,7 @@ create function mychips.lift_linear(frm text, tocid text, tohost text, units big
       rrec	record;
 
     begin
-      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths where last = frm and dest_chid = tocid and dest_host = tohost and status = 'good' order by lift_margin limit 1;
+      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths_old where last = frm and dest_chid = tocid and dest_host = tohost and status = 'good' order by lift_margin limit 1;
       if not found then return null; end if;
 
       
@@ -4198,7 +4256,7 @@ raise notice 'Remote dest: :%@% units:% last:% botu:%', dchid, dhost, units, fro
             end if;
             
             if not found or dest_r.id isnull then	-- Didn't work out finding an internal path
-              select into qrec first,path,uuids from mychips.routes_v_paths
+              select into qrec first,path,uuids from mychips.routes_v_paths_old
                 where dest_chid = dchid and dest_host = dhost
                 and last = from_r.id 
                 and path[array_upper(path,1)-1] = user_r.id	-- was: botu_ent = user_r.id (wrong)
@@ -4267,97 +4325,209 @@ raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
         )::text;
     end;
 $$;
-create view mychips.routes_v as select 
-    ro.inp_ent, ro.inp_tally, ro.dest_cid, ro.dest_agent, ro.requ_ent, ro.status, ro.lift_min, ro.lift_margin, ro.lift_max, ro.lift_reward, ro.drop_min, ro.drop_margin, ro.drop_max, ro.drop_reward, ro.step, ro.lift_count, ro.lift_date, ro.good_date
-  , ie.peer_cid		as inp_cid
-  , de.peer_agent	as inp_agent
-  , de.peer_addr	as inp_addr
-  , de.peer_sock	as inp_sock
+create function mychips.route_notify(route mychips.routes) returns void language plpgsql security definer as $$
+    declare
+        jrec	jsonb;
+        orec	record;
+        prec	record;
+        rrec	record;
+        channel	text = 'mychips_agent';
+    begin
+        if route.status = 'pend' then			-- pend: no notification needed
+          return;				
+        end if;
 
 
-  , ta.part_cid		as route_cid		-- Route via this partner peer
-  , ta.part_agent	as route_agent
-  , ta.part_addr	as route_addr
-  , ta.part_sock	as route_sock
+        insert into mychips.route_tries (rtry_rid) values (route.rid)
+          on conflict (rtry_rid) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
+            returning * into rrec;
+
+        jrec = jsonb_build_object('target', 'route'
+          , 'action'	, route.status
+          , 'try'	, rrec.tries
+          , 'last'	, rrec.last
+        );
+
+raise notice 'Rd:% %:%', route.status, route.dst_cid, route.dst_agent;
+        select into orec via_chad,via_agent,route_chad,native,json,  min,max,margin,reward
+          from mychips.routes_v where rid = route.rid;
+
+        if route.status = 'draft' then			-- draft: request upstream query
+          if not orec.via_agent isnull then channel = 'ma_' || orec.via_agent; end if;
+          jrec = jrec || jsonb_build_object(
+              'to'	, orec.route_chad
+            , 'from'	, orec.via_chad
+            , 'object'	, orec.json
+          );
+
+        elsif route.status in ('good','none') then	-- good,none: notify someone
+raise notice 'Rs:% % %', route.rid, route.req_ent, route.req_tseq;
+
+          if (orec.native) then			-- Notify requesting user
+            jrec = jsonb_build_object('target','route'
+              , 'action',	route.status
+              , 'object', jsonb_build_object('route',	route.rid
+                , 'find',	jsonb_build_object('cid', route.dst_cid, 'agent', route.dst_agent)
+                , 'lading',	jsonb_build_object('min',orec.min,'max',orec.max,'margin',orec.margin,'reward',orec.reward)
+              )
+            );
+            perform pg_notify('mu_' || route.req_ent, jrec::text);
+            return;
+
+          else					-- Notify downstream site
+            select into prec req_ent,req_tally,req_agent,rept_cid,rept_agent,rept_chad,req_chad,
+              jsonb_build_object('min',min,'max',max,'margin',margin,'reward',reward) as lading
+            from mychips.routes_v_paths
+              where rid = route.rid and bot = req_ent and bot_tseq = req_tseq
+              order by margin, min desc, max desc limit 1;
+raise notice 'Rz:% % % %', prec.req_ent,prec.rept_cid, prec.rept_agent, prec.lading;
+
+            channel = 'ma_' || prec.req_agent;
+            jrec = jrec || jsonb_build_object(
+                'to'	, prec.rept_chad
+              , 'from'	, prec.req_chad
+              , 'object', jsonb_build_object(
+                  'tally', prec.req_tally
+                , 'lading', prec.lading
+              )
+            );
+          end if;
+        end if;
+
+raise notice 'Route notice:% %', channel, jrec::text;
+        perform pg_notify(channel, jrec::text);
+    end;
+$$;
+create function mychips.route_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
+    declare
+        to_chad		jsonb = msg->'to';
+        fr_chad		jsonb = msg->'from';
+        obj		jsonb = msg->'object';
+        find		jsonb = obj->'find';
+        currStep	int = coalesce((obj->'step')::int, 0);
+        dest		record;
+        route		record;
+        base		record;
+        path		record;
+        qstrg		text;
+        trec		record;
+        xrec		record;
+        curState	text;
+        havePath	boolean default false;
+        stopSearch	boolean default false;
+        fwdCnt		int default 0;
+    begin
+raise notice 'Route process msg: %; recipe: %', msg, recipe;
+
+        select into base tally_ent, tally_seq, tally_uuid, hold_cid, hold_agent, part_cid, part_agent from mychips.tallies_v where
 
 
+            tally_uuid = (obj->>'tally')::uuid and liftable;
+        if not found then return null; end if;
+raise notice ' tally: % % %', base.tally_ent, base.tally_seq, base.tally_uuid;
+
+        select into dest id, peer_cid, peer_chost from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';
+
+raise notice '  dest local: % %', dest.id, obj->>'find';
+        if recipe->'query' then			-- If there a query flag in the recipe object
+
+          if base.part_cid != fr_chad->>'cid' or base.part_agent != fr_chad->>'agent' or
+             base.hold_cid != to_chad->>'cid' or base.hold_agent != to_chad->>'agent' then
+               return null;
+          end if;
+
+          if not dest.id isnull then			-- If destination is a local user
+            select into path inp,out,min,max,margin,reward from mychips.tallies_v_paths		-- Do we have a path to him?
+              where inp = base.tally_ent and top = dest.id order by margin, min desc limit 1;
+            if found then havePath = true; end if;
+            
+            if not exists (select bot from mychips.tallies_v_paths
+              where inp = base.tally_ent and foro and not dest.id = any(ath)) then
+                stopSearch = true;
+            end if;
+          end if;
+          
+          if not stopSearch and currStep <= base.parm('routes', 'maxstep', 12) then	-- Keep looking for routes?
+
+            for trec in select top,tseq from mychips.tallies_v_paths	-- Find all upstream paths we might query further
+              where inp = base.tally_ent and foro limit base.parm('routes', 'maxquery', 100) loop
+
+              select into xrec rid,status,state,expires from mychips.routes_v where via_ent = trec.top and via_seq = trec.tseq		-- Does a route already exist?
+                and dst_cid = find->>'cid' and dst_agent = find->>'agent';
+              if found then						-- Found existing route
+                if xrec.expires < current_timestamp then		-- But its expired
+                  update mychips.routes set status = 'draft', step = currStep + 1;
+                  fwdCnt = fwdCnt + 1;
+                elsif status = 'good' then	-- Count existing good routes as part of the fan-out
+                  fwdCnt = fwdCnt + 1;
+                end if;
+                    
+              else
+                insert into mychips.routes (via_ent, dst_cid, dst_agent, req_ent, req_tseq, step)
+                  values (trec.top, find->>'cid', find->>'agent', currStep + 1);
+                fwdCnt = fwdCnt + 1;
+              end if;
+              if fwdCnt <  base.parm('routes', 'maxforward', 12) then exit; end if;
+            end loop;
+          end if;
+
+          if havePath then
+            return 'affirm|' || jsonb_build_object(
+              'min',	path.min,	'max',		path.max,
+              'margin',	path.margin,	'reward',	path.reward
+            )::text;
 
 
+          elsif fwdCnt > 0 then
+            return 'relay';
+          else
+            return 'fail';
+          end if;
+        end if;
 
+        if recipe ? 'update' then
+          select into route * from mychips.routes_v where via_cid = to_chad->>'cid' and via_tally = (obj->>'tally')::uuid;
+          curstate = coalesce(route.state,'null');
 
+raise notice ' state:% recipe:%', curState, recipe;
+          if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
+raise notice 'RZ:% C:%', jsonb_build_array(curState), recipe->'context';
+            return curState;
+          end if;
 
-
-
-  , te.peer_cid		as topu_cid		-- Top of local segment
-  , te.peer_chost	as topu_host
-  , te.peer_addr	as topu_addr
-  , te.peer_sock	as topu_sock
-
-  , te.std_name		as topu_name
-  , te.serv_id		as topu_serv
-
-  , be.peer_cid		as botu_cid		-- Bottom of local segment
-  , be.peer_chost	as botu_host
-  , be.peer_addr	as botu_addr
-  , be.peer_sock	as botu_sock
-
-  , be.std_name		as botu_name
-  , be.serv_id		as botu_serv
-
-  , qe.peer_cid		as requ_cid		-- Who requested this route
-  , qe.peer_chost	as requ_host
-  , qe.peer_addr	as requ_addr
-  , qe.peer_sock	as requ_sock
-
-  , qe.std_name		as requ_name
-  , not qe.user_ent isnull	as requ_user
-
-  , not qe.user_ent isnull			as native
-  , ro.dest_chid || '@' || ro.dest_host		as dest_chad
-  , greatest(ro.good_date,ro.lift_date) + mychips.route_life()		as expires
-  , rt.tries		as tries
-  , rt.last		as last
-  , mychips.route_state(ro.status
-    , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()	-- Expired
-  )			as state
-  , jsonb_build_object(				-- Packet we will transmit upstream
-       'from'	,	re.peer_cid				-- route start peer
-     , 'fat'	,	re.peer_chost				-- and his host
-     , 'to'	,	coalesce(de.peer_cid, ro.dest_chid)	-- route destination peer
-     , 'tat'	,	coalesce(de.peer_host, ro.dest_host)	-- destination host
-     , 'by'	,	te.peer_cid				-- requester
-     , 'bat'	,	te.peer_chost				-- and his host
-     , 'port'	,	te.peer_cport				-- and his port
-    )			as relay
-  , jsonb_build_object(				-- Overlay for packet we will transmit back downstream
-       'from'	,	be.peer_cid
-     , 'fat'	,	be.peer_chost
-     , 'to'	,	coalesce(de.peer_cid, ro.dest_chid)
-     , 'tat'	,	coalesce(de.peer_host, ro.dest_host)
-     , 'by'	,	qe.peer_cid
-     , 'bat'	,	qe.peer_chost
-     , 'port'	,	qe.peer_cport
-     , 'lading' ,	jsonb_build_object(
-          'lmin'   , 	rp.lift_min, 	'lmax'   , 	rp.lift_max
-        , 'lmargin',	rp.lift_margin, 'lreward',	rp.lift_reward
-        , 'dmin'   , 	rp.drop_min, 	'dmax'   , 	rp.drop_max
-        , 'dmargin',	rp.drop_margin, 'dreward',	rp.drop_reward
-       )
-    )			as reverse
-
-    from	mychips.routes		ro
-    join	mychips.users_v		ie on ie.user_ent = ro.inp_ent
-    join	mychips.tallies_v	ta on ta.tally_ent = ro.inp_ent and ta.tally_seq = ro.inp_tally
-
-
-    left join	mychips.users_v		de on de.peer_ent = ro.dest_ent		-- destination
-    left join	mychips.peers_v		re on re.peer_ent = ro.route_ent	-- start of route
-    left join	mychips.users_v		te on te.peer_ent = ro.topu_ent		-- top local user in chain
-    left join	mychips.users_v		be on be.peer_ent = ro.botu_ent		-- bottom local user in chain
-    left join	mychips.users_v		qe on qe.peer_ent = ro.requ_ent		-- requesting user or downstream foreign peer
-    left join	mychips.route_tries	rt on rt.rtry_ent = ro.inp_ent and rt.rtry_seq = ro.inp_tally and rt.rtry_cid = ro.dest_cid and rtry_agent = ro.dest_agent
-    left join	mychips.routes_v_paths	rp on rp.first = ro.route_ent and rp.dest_chid = ro.dest_chid and rp.dest_host = ro.dest_host and rp.last = ro.requ_ent and ro.status = 'good';
-create view mychips.routes_v_lifts as select * from mychips.routes_v_paths where native and forz and circuit order by 1 desc;
+          if not route.rid isnull then
+            qstrg = mychips.state_updater(recipe, 'mychips.routes_v', '{status, min, margin, max, reward}', '{"good_date = current_timestamp"}');
+raise notice 'SQL:%', qstrg;
+            execute qstrg || 'rid = $1 returning rid, state' into route using route.rid;
+            if recipe->'update'->>'status' in ('good','none') then	-- Resolution found, delete retry counter
+              delete from mychips.route_tries where rtry_rid = route.rid;
+            end if;
+          end if;
+          return route.state;
+        end if;
+      return null;
+    end;
+$$;
+create function mychips.routes_v_insfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
+  begin
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.routes_v';
+    execute 'select ' || str || ';' into trec using new;
+    insert into mychips.routes (status,min,max,margin,reward,via_ent,via_tseq,dst_cid,dst_agent,req_ent,req_tseq) values (trec.status,trec.min,trec.max,trec.margin,trec.reward,trec.via_ent,trec.via_tseq,trec.dst_cid,trec.dst_agent,trec.req_ent,trec.req_tseq) returning rid into new.rid;
+    select into new * from mychips.routes_v where rid = new.rid;
+    return new;
+  end;
+$$;
+create view mychips.routes_v_lifts_old as select * from mychips.routes_v_paths_old where native and forz and circuit order by 1 desc;
+create function mychips.routes_v_updfunc() returns trigger language plpgsql security definer as $$
+  begin
+    update mychips.routes set status = new.status,min = new.min,max = new.max,margin = new.margin,reward = new.reward where rid = old.rid returning rid into new.rid;
+    select into new * from mychips.routes_v where rid = new.rid;
+    return new;
+  end;
+$$;
 create trigger mychips_sets_tr_seq before insert on mychips.tally_sets for each row execute procedure mychips.tally_sets_tf_seq();
 create function mychips.tallies_tf_notify() returns trigger language plpgsql security definer as $$
     declare
@@ -4378,15 +4548,17 @@ create function mychips.tallies_tf_notify() returns trigger language plpgsql sec
     end;
 $$;
 create view mychips.tallies_v_paths as with recursive tally_path (
-      inp, out, length, ath, uuids, signs, min, margin, max, reward, circuit
+      inp, out, edges, ath, uuids, signs, min, margin, max, reward, 
+      top, topseq, bot, botseq, circuit
     ) as (
-      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign],
-             ti.min, ti.margin, ti.max, ti.reward, false
+      select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], array[ti.sign],
+             ti.min, ti.margin, ti.max, ti.reward, 
+             ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
     from	mychips.tallies_v_net ti
   union all
     select tp.inp					as inp
       , t.out						as out
-      , tp.length + 1					as length
+      , tp.edges + 1					as edges
       , tp.ath || t.out					as ath
       , tp.uuids || t.uuid				as uuids
       , tp.signs || t.sign				as signs
@@ -4397,7 +4569,12 @@ create view mychips.tallies_v_paths as with recursive tally_path (
           least(t.max, tp.min)
         else
           least(t.min, tp.max) end			as max
-      , case when t.min < tp.min then t.reward else tp.reward end as reward	-- Only one reward
+      , case when t.min < tp.min then t.reward
+        else tp.reward end				as reward	-- Only one reward
+      , t.tally_ent					as top
+      , t.tally_seq					as topseq
+      , tp.bot						as bot
+      , tp.botseq					as botseq
       , coalesce(tp.inp = t.out, false)			as circuit
 
     from	mychips.tallies_v_net t
@@ -4405,17 +4582,30 @@ create view mychips.tallies_v_paths as with recursive tally_path (
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
   ) select tpr.inp, tpr.out
-    , tpr.length, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max, tpr.circuit
+    , tpr.edges, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max
+    , tpr.top, tpr.topseq, tpr.bot, tpr.botseq, tpr.circuit
     , tpr.margin::numeric(8,6)
     , tpr.reward::numeric(8,6)
-    , tpr.inp || tpr.ath	as path
-    , tpr.length * tpr.min	as bang
-    , tpr.inp isnull		as fori
-    , tpr.out isnull		as foro
-    , tpr.uuids[1]		as iuuid
-    , tpr.uuids[length-1]	as ouuid
+    , tpr.edges + 1			as nodes
+    , tpr.edges * tpr.min		as bang
+    , tpr.inp isnull			as fori
+    , tpr.out isnull			as foro
+    , tpr.inp || tpr.ath		as path
+    , tpr.ath[1:edges-1]		as at
+    , tpr.inp || tpr.ath[1:edges-1]	as pat
 
-  from tally_path tpr				-- where tpr.length > 2;
+    , tt.tally_seq as top_tseq, tt.tally_uuid as top_uuid
+    , bt.tally_seq as bot_tseq, bt.tally_uuid as bot_uuid
+
+    , tt.hold_chad as out_chad, tt.hold_cid as out_cid, tt.hold_agent as out_agent
+    , bt.hold_chad as inp_chad, bt.hold_cid as inp_cid, bt.hold_agent as inp_agent
+
+    , case when out isnull then tt.part_cid else tt.hold_cid end as top_cid, case when out isnull then tt.part_agent else tt.hold_agent end as top_agent, case when out isnull then tt.part_chad else tt.hold_chad end as top_chad
+    , bt.part_cid     as bot_cid, bt.part_agent     as bot_agent, bt.part_chad     as bot_chad
+
+  from	tally_path tpr
+  join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.topseq
+  join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.botseq;
 create trigger mychips_tallies_v_tr_ins instead of insert on mychips.tallies_v for each row execute procedure mychips.tallies_v_insfunc();
 create trigger mychips_tallies_v_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 create function mychips.tally_certs(ta mychips.tallies) returns mychips.tallies language plpgsql security definer as $$
@@ -4498,7 +4688,7 @@ create function mychips.token_valid(tok text, cert jsonb = null) returns boolean
         insert into mychips.tallies (
           tally_ent, tally_uuid, tally_type, version, comment, contract, hold_cert, hold_terms, part_cert, status
         ) select
-          tally_ent, mychips.random_uuid(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
+          tally_ent, uuid_generate_v4(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
         from mychips.tallies returning tally_ent, tally_seq into trec;
         perform mychips.tally_notify_user(trec.tally_ent, trec.tally_seq);
       else			-- one-time token, use template AS our new tally, invalidate token
@@ -4729,143 +4919,50 @@ raise notice 'Route Linear check: % % %', entity, peer, trec.inp;
       end loop;
     end;
 $$;
-create function mychips.route_notify(route mychips.routes) returns boolean language plpgsql security definer as $$
+create function mychips.routes_tf_notify() returns trigger language plpgsql security definer as $$
     declare
-        act	text;
-        jrec	jsonb;
-        orec	record;
-        rrec	record;
-        channel	text = 'mychips_agent';
+        dirty	boolean default false;
     begin
-
-        if route.status in ('draft','good','none') then		-- Determine next action
-            act = route.status;
+        if TG_OP = 'INSERT' then
+            dirty = true;
+        elsif new.status != old.status then
+            dirty = true;
         end if;
-raise notice 'RN:% % % % %', act, route.route_ent, route.dest_ent, route.dest_chid, route.dest_host;
-        if act isnull then return false; end if;
-
-
-        select into orec inp_ent,inp_cid,inp_addr,requ_addr,inp_addr,inp_agent,dest_cid,route_addr,status,state,relay,reverse,step from mychips.routes_v where inp_ent = route.inp_ent and inp_tally = route.inp_tally and dest_cid = route.dest_cid and dest_agent = route.dest_agent;
-        if not found then return false; end if;
-
-        if not orec.inp_agent isnull then
-            channel = 'ma_' || orec.inp_agent;
-        end if;
-
-
-        insert into mychips.route_tries (rtry_ent, rtry_seq, rtry_cid, rtry_agent) values (route.inp_ent, route.inp_tally, route.dest_cid, route.dest_agent)
-          on conflict (rtry_ent,rtry_seq,rtry_cid,rtry_agent) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
-            returning * into rrec;
-
-
-        jrec = jsonb_build_object('target', 'route'
-          , 'action'	, act
-          , 'at'	, orec.route_addr
-          , 'try'	, rrec.tries
-          , 'step'	, orec.step
-          , 'last'	, rrec.last
-          , 'here'	, orec.inp_addr
-          , 'back'	, orec.requ_addr
-          , 'object'	, orec.relay
-          , 'reverse'	, orec.reverse
-        );
-
-        perform pg_notify(channel, jrec::text);
-        return true;
+        if dirty then perform mychips.route_notify(new); end if;
+        return new;
     end;
 $$;
-create function mychips.route_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
-    declare
-        obj		jsonb = msg->'object';
-        from_r		record;
-        requ_r		record;
-        dest_r		record;
-        route_r		record;
-        qrec		record;
-        trec		record;
-        qstrg		text;
-        curState	text;
-        fwdcnt		int default 0;
-    begin
-raise notice 'Route from: % %; recipe: % obj: %', obj->>'from', obj->>'fat', recipe, obj;
-        select into from_r id, serv_id, peer_cid from mychips.users_v where peer_cid = obj->>'from' and peer_chost = obj->>'fat';
-        if not found then return null; end if;
+create view mychips.routes_v_paths as select
+    tp.inp, tp.out, tp.top, tp.top_tseq, tp.bot, tp.bot_tseq
+  , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids
+  , tp.fori, tp.foro, tp.fori and tp.foro as segment
+  , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
+  , r.rid, r.via_ent, r.via_tseq, r.via_tally
+  , r.dst_cid, r.dst_agent
+  , r.req_ent, r.req_tseq, r.req_tally, r.req_cid, r.req_agent, r.req_chad
+  , r.rept_cid, r.rept_agent, r.rept_chad
+  , r.status
+  , r.lift_count
+  , r.native
+  , r.dst_cid = tp.bot_cid and r.dst_agent = tp.bot_agent as circuit
+  , tp.min	as path_min,	tp.margin::numeric(8,6)	as path_margin
+  , tp.max	as path_max,	tp.reward::numeric(8,6)	as path_reward
+  , r.min	as route_min,	r.margin::numeric(8,6)	as route_margin
+  , r.max	as route_max,	r.reward::numeric(8,6)	as route_reward
+  
+  , least(tp.min, r.min)				as min
+  , case when r.min < tp.min then
+        least(r.max, tp.min)
+      else
+        least(r.min, tp.max) end			as max
+  , (r.margin + tp.margin * (1-r.margin))::numeric(8,6)	as margin
+  , case when r.min < tp.min then r.reward
+      else tp.reward end::numeric(8,6)			as reward
 
-
-        select into requ_r id, peer_cid from mychips.users_v where peer_cid = obj->>'by' and peer_chost = obj->>'bat';
-        if not found then return null; end if;
-
-        select into dest_r id, user_ent, peer_cid, peer_chost from mychips.users_v where peer_cid = obj->>'to' and peer_chost = obj->>'tat';
-
-        if recipe ? 'query' then			-- If there a query key in the recipe object
-          if not dest_r.id isnull then			-- If destination is a locally known user
-            select into qrec first,lift_min,lift_max,lift_margin,lift_reward,drop_min,drop_max,drop_margin,drop_reward from mychips.tallies_v_paths_old where first = dest_r.id and last = requ_r.id and corein limit 1;
-            if found then
-              return 'affirm|' || jsonb_build_object(
-                'lmin',		qrec.lift_min,		'lmax',		qrec.lift_max,
-                'lmargin',	qrec.lift_margin,	'lreward',	qrec.lift_reward,
-                'dmin',		qrec.drop_min,		'dmax',		qrec.drop_max,
-                'dmargin',	qrec.drop_margin,	'dreward',	qrec.drop_reward
-              )::text;
-            end if;
-          end if;
-
-
-          for qrec in select first,last,path from mychips.tallies_v_paths_old where last = from_r.id and fora loop	-- Find all upstream paths we might query further
-          
-
-
-            select into trec route_ent,dest_chid,topu_ent,botu_ent,requ_ent,native from mychips.routes_v where route_ent = qrec.first and dest_chid = coalesce(dest_r.peer_cid,obj->>'to') and dest_host = coalesce(dest_r.peer_chost,obj->>'tat');
-            if found then
-
-              if trec.native then return 'fail'; end if;
-            end if;
-
-            execute 'insert into mychips.routes (route_ent, dest_ent, dest_chid, dest_host, topu_ent, botu_ent, requ_ent, step) values ($1,$2,$3,$4,$5,$6,$7,$8)
-                on conflict (route_ent,dest_chid,dest_host) do nothing'
-
-
-              using qrec.first, dest_r.id, coalesce(dest_r.peer_cid,obj->>'to'), coalesce(dest_r.peer_chost,obj->>'tat'),
-                    qrec.path[2], from_r.id, requ_r.id, coalesce((msg->'step')::int,1);
-            fwdcnt = fwdcnt + 1;
-          end loop;
-          if fwdcnt > 0 then
-            return 'relay';
-          else
-            return 'fail';
-          end if;
-        end if;
-
-
-        if dest_r.id isnull then		-- If destination unknown to this system, find route to update from separate chip id and host
-          select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_chid = obj->>'to' and dest_host = obj->>'tat';
-
-        else					-- Else search by local peer ID
-          select into route_r route_ent, dest_ent, dest_chid, dest_host, state from mychips.routes_v where route_ent = from_r.id and dest_ent = dest_r.id;
-
-        end if;
-        curstate = coalesce(route_r.state,'null');
-
-
-        if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-
-            return curState;
-        end if;
-
-        if not route_r.route_ent isnull and recipe ? 'update' then
-          qstrg = mychips.state_updater(recipe, 'mychips.routes', '{status, lift_min, lift_margin, lift_max, lift_reward, drop_min, drop_margin, drop_max, drop_reward}', '{"good_date = current_timestamp"}');
-
-          execute qstrg || ' route_ent = $1 and dest_chid = $2 and dest_host = $3' using route_r.route_ent, route_r.dest_chid, route_r.dest_host;
-          if recipe->'update'->>'status' in ('good','none') then		-- Resolution found, delete retry counter
-            delete from mychips.route_tries where rtry_ent = route_r.inp_ent and rtry_seq = route_r.inp_tally and rtry_cid = route_r.dest_cid and rtry_agent = route_r.dest_agent;
-          end if;
-        end if;
-
-        select into route_r route_ent,state from mychips.routes_v where route_ent = route_r.route_ent and dest_chid = route_r.dest_chid and dest_host = route_r.dest_host;
-
-        return route_r.state;
-    end;
-$$;
+  from	mychips.routes_v	r
+  join	mychips.tallies_v_paths	tp on tp.top = r.via_ent and tp.top_tseq = r.via_tseq and tp.foro;
+create trigger mychips_routes_v_tr_ins instead of insert on mychips.routes_v for each row execute procedure mychips.routes_v_insfunc();
+create trigger mychips_routes_v_tr_upd instead of update on mychips.routes_v for each row execute procedure mychips.routes_v_updfunc();
 create function mychips.tallies_tf_bu() returns trigger language plpgsql security definer as $$
     begin
       if not new.request isnull then		-- check for legal state transition requests
@@ -4917,7 +5014,7 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
 
         end if;
         if new.tally_uuid is null then
-          new.tally_uuid = mychips.random_uuid();
+          new.tally_uuid = uuid_generate_v4();
         end if;
 
         if new.hold_cert is null then
@@ -4939,22 +5036,9 @@ create trigger json_cert_tf_ii instead of insert on json.cert for each row execu
 create trigger mychips_chits_tr_bu before update on mychips.chits for each row execute procedure mychips.chits_tf_bu();
 create trigger mychips_chits_tr_notice after insert or update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
 create trigger mychips_chits_tr_seq before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
-create function mychips.routes_tf_notify() returns trigger language plpgsql security definer as $$
-    declare
-        dirty	boolean default false;
-    begin
-        if TG_OP = 'INSERT' then
-            dirty = true;
-        elsif new.status != old.status then
-            dirty = true;
-        end if;
-        if dirty then perform mychips.route_notify(new); end if;
-        return new;
-    end;
-$$;
+create trigger mychips_routes_tr_notice after insert or update on mychips.routes for each row execute procedure mychips.routes_tf_notify();
 create trigger mychips_tallies_tr_bu before update on mychips.tallies for each row execute procedure mychips.tallies_tf_bu();
 create trigger mychips_tallies_tr_seq before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
-create trigger mychips_routes_tr_notice after insert or update on mychips.routes for each row execute procedure mychips.routes_tf_notify();
 
 --Data Dictionary:
 insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
@@ -5809,6 +5893,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chits','CUU','eng','Chit Not Unique','Chit UUID must be unique to each tally'),
   ('mychips','chits','GDS','eng','Signature Check','Chits in a good state must include a signature'),
   ('mychips','chits','IST','eng','Illegal State Change','The executed state transition is not allowed'),
+  ('mychips','chits','LIT','eng','Link Invalid Tally','Attempted to link chit to invalid tally'),
   ('mychips','contracts','BVN','eng','Bad Version Number','Version number for contracts should start with 1 and move progressively larger'),
   ('mychips','contracts','ILR','eng','Illegal Rows','A query expecting a single record returned zero or multiple rows'),
   ('mychips','contracts','PBC','eng','Publish Constraints','When publishing a document, one must specify the digest hash, the source location, and the content sections'),
@@ -5832,6 +5917,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','peers_v_me','launch.title','eng','Peers','Peer Relationship Management'),
   ('mychips','peers_v_me','tally','eng','Request Tally','Send a request to this peer to establish a tally'),
   ('mychips','routes','BST','eng','Bad Route Status','Not a valid status for the route status'),
+  ('mychips','routes','CRL','eng','Illegal Route Target','Routes should be only to users on other systems'),
+  ('mychips','routes','UNI','eng','Not Unique Route','Routes should have a unique combination of source and destination'),
   ('mychips','tallies','BND','eng','Illegal Lift Bound','Maximum lift boundary must be greater or equal to zero'),
   ('mychips','tallies','CNP','eng','Tally Contract','An open tally must reference a contract'),
   ('mychips','tallies','DMG','eng','Invalid Drop Margin','The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.'),
@@ -6781,12 +6868,8 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','routes','route_ent','size','7'),
   ('mychips','routes','status','display','5'),
   ('mychips','routes_v','dest_addr','size','30'),
-  ('mychips','routes_v','route_addr','display','2'),
   ('mychips','routes_v','route_addr','size','30'),
   ('mychips','routes_v','status','display','5'),
-  ('mychips','routes_v_lifts','dest_ent','display','3'),
-  ('mychips','routes_v_lifts','route_ent','display','1'),
-  ('mychips','routes_v_lifts','status','display','5'),
   ('mychips','tallies','bound','input','ent'),
   ('mychips','tallies','bound','size','8'),
   ('mychips','tallies','bound','subframe','3 9'),
@@ -6947,7 +7030,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','tallies_v_paths','bang','size','10'),
   ('mychips','tallies_v_paths','circuit','display','5'),
   ('mychips','tallies_v_paths','circuit','size','5'),
-  ('mychips','tallies_v_paths','length','display','2'),
   ('mychips','tallies_v_paths','length','size','4'),
   ('mychips','tallies_v_paths','max','display','4'),
   ('mychips','tallies_v_paths','max','size','10'),
@@ -7886,175 +7968,213 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','peers_v_me','title','base','ent','title','f','f'),
   ('mychips','peers_v_me','username','base','ent','username','f','f'),
   ('mychips','route_tries','last','mychips','route_tries','last','f','f'),
-  ('mychips','route_tries','rtry_agent','mychips','route_tries','rtry_agent','f','t'),
-  ('mychips','route_tries','rtry_cid','mychips','route_tries','rtry_cid','f','t'),
-  ('mychips','route_tries','rtry_ent','mychips','route_tries','rtry_ent','f','t'),
-  ('mychips','route_tries','rtry_seq','mychips','route_tries','rtry_seq','f','t'),
+  ('mychips','route_tries','rtry_rid','mychips','route_tries','rtry_rid','f','t'),
   ('mychips','route_tries','tries','mychips','route_tries','tries','f','f'),
   ('mychips','routes','botu_ent','mychips','routes','botu_ent','f','f'),
-  ('mychips','routes','dest_agent','mychips','routes','dest_agent','f','t'),
   ('mychips','routes','dest_chid','mychips','routes','dest_chid','f','f'),
-  ('mychips','routes','dest_cid','mychips','routes','dest_cid','f','t'),
   ('mychips','routes','dest_ent','mychips','routes','dest_ent','f','f'),
   ('mychips','routes','dest_host','mychips','routes','dest_host','f','f'),
   ('mychips','routes','drop_margin','mychips','routes','drop_margin','f','f'),
   ('mychips','routes','drop_max','mychips','routes','drop_max','f','f'),
   ('mychips','routes','drop_min','mychips','routes','drop_min','f','f'),
   ('mychips','routes','drop_reward','mychips','routes','drop_reward','f','f'),
+  ('mychips','routes','dst_agent','mychips','routes','dst_agent','f','f'),
+  ('mychips','routes','dst_cid','mychips','routes','dst_cid','f','f'),
   ('mychips','routes','good_date','mychips','routes','good_date','f','f'),
-  ('mychips','routes','inp_ent','mychips','routes','inp_ent','f','t'),
-  ('mychips','routes','inp_tally','mychips','routes','inp_tally','f','t'),
   ('mychips','routes','lift_count','mychips','routes','lift_count','f','f'),
   ('mychips','routes','lift_date','mychips','routes','lift_date','f','f'),
   ('mychips','routes','lift_margin','mychips','routes','lift_margin','f','f'),
   ('mychips','routes','lift_max','mychips','routes','lift_max','f','f'),
   ('mychips','routes','lift_min','mychips','routes','lift_min','f','f'),
   ('mychips','routes','lift_reward','mychips','routes','lift_reward','f','f'),
-  ('mychips','routes','requ_ent','mychips','routes','requ_ent','f','f'),
+  ('mychips','routes','margin','mychips','routes','margin','f','f'),
+  ('mychips','routes','max','mychips','routes','max','f','f'),
+  ('mychips','routes','min','mychips','routes','min','f','f'),
+  ('mychips','routes','req_ent','mychips','routes','req_ent','f','f'),
+  ('mychips','routes','req_tseq','mychips','routes','req_tseq','f','f'),
+  ('mychips','routes','reward','mychips','routes','reward','f','f'),
+  ('mychips','routes','rid','mychips','routes','rid','f','t'),
   ('mychips','routes','route_ent','mychips','routes','route_ent','f','f'),
   ('mychips','routes','status','mychips','routes','status','f','f'),
   ('mychips','routes','step','mychips','routes','step','f','f'),
   ('mychips','routes','topu_ent','mychips','routes','topu_ent','f','f'),
-  ('mychips','routes_v','botu_addr','mychips','routes_v','botu_addr','f','f'),
-  ('mychips','routes_v','botu_cid','mychips','routes_v','botu_cid','f','f'),
-  ('mychips','routes_v','botu_host','mychips','routes_v','botu_host','f','f'),
-  ('mychips','routes_v','botu_name','mychips','routes_v','botu_name','f','f'),
-  ('mychips','routes_v','botu_serv','mychips','routes_v','botu_serv','f','f'),
-  ('mychips','routes_v','botu_sock','mychips','routes_v','botu_sock','f','f'),
-  ('mychips','routes_v','dest_agent','mychips','routes','dest_agent','f','t'),
-  ('mychips','routes_v','dest_chad','mychips','routes_v','dest_chad','f','f'),
-  ('mychips','routes_v','dest_cid','mychips','routes','dest_cid','f','t'),
-  ('mychips','routes_v','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
-  ('mychips','routes_v','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
-  ('mychips','routes_v','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
-  ('mychips','routes_v','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','routes','via_ent','mychips','routes','via_ent','f','f'),
+  ('mychips','routes','via_tseq','mychips','routes','via_tseq','f','f'),
+  ('mychips','routes_v','dst_agent','mychips','routes','dst_agent','f','f'),
+  ('mychips','routes_v','dst_cid','mychips','routes','dst_cid','f','f'),
   ('mychips','routes_v','expires','mychips','routes_v','expires','f','f'),
   ('mychips','routes_v','good_date','mychips','routes','good_date','f','f'),
-  ('mychips','routes_v','inp_addr','mychips','routes_v','inp_addr','f','f'),
-  ('mychips','routes_v','inp_agent','mychips','routes_v','inp_agent','f','f'),
-  ('mychips','routes_v','inp_cid','mychips','routes_v','inp_cid','f','f'),
-  ('mychips','routes_v','inp_ent','mychips','routes','inp_ent','f','t'),
-  ('mychips','routes_v','inp_sock','mychips','routes_v','inp_sock','f','f'),
-  ('mychips','routes_v','inp_tally','mychips','routes','inp_tally','f','t'),
-  ('mychips','routes_v','last','mychips','tallies_v_paths_old','last','f','f'),
+  ('mychips','routes_v','json','mychips','routes_v','json','f','f'),
+  ('mychips','routes_v','last','mychips','route_tries','last','f','f'),
   ('mychips','routes_v','lift_count','mychips','routes','lift_count','f','f'),
   ('mychips','routes_v','lift_date','mychips','routes','lift_date','f','f'),
-  ('mychips','routes_v','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
-  ('mychips','routes_v','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
-  ('mychips','routes_v','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
-  ('mychips','routes_v','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
+  ('mychips','routes_v','margin','mychips','routes','margin','f','f'),
+  ('mychips','routes_v','max','mychips','routes','max','f','f'),
+  ('mychips','routes_v','min','mychips','routes','min','f','f'),
   ('mychips','routes_v','native','mychips','routes_v','native','f','f'),
-  ('mychips','routes_v','relay','mychips','routes_v','relay','f','f'),
-  ('mychips','routes_v','requ_addr','mychips','routes_v','requ_addr','f','f'),
-  ('mychips','routes_v','requ_cid','mychips','routes_v','requ_cid','f','f'),
-  ('mychips','routes_v','requ_ent','mychips','routes','requ_ent','f','f'),
-  ('mychips','routes_v','requ_host','mychips','routes_v','requ_host','f','f'),
-  ('mychips','routes_v','requ_name','mychips','routes_v','requ_name','f','f'),
-  ('mychips','routes_v','requ_sock','mychips','routes_v','requ_sock','f','f'),
-  ('mychips','routes_v','requ_user','mychips','routes_v','requ_user','f','f'),
-  ('mychips','routes_v','reverse','mychips','routes_v','reverse','f','f'),
-  ('mychips','routes_v','route_addr','mychips','routes_v','route_addr','f','f'),
+  ('mychips','routes_v','rept_agent','mychips','routes_v','rept_agent','f','f'),
+  ('mychips','routes_v','rept_chad','mychips','routes_v','rept_chad','f','f'),
+  ('mychips','routes_v','rept_cid','mychips','routes_v','rept_cid','f','f'),
+  ('mychips','routes_v','req_agent','mychips','routes_v','req_agent','f','f'),
+  ('mychips','routes_v','req_chad','mychips','routes_v','req_chad','f','f'),
+  ('mychips','routes_v','req_cid','mychips','routes_v','req_cid','f','f'),
+  ('mychips','routes_v','req_ent','mychips','routes','req_ent','f','f'),
+  ('mychips','routes_v','req_tally','mychips','routes_v','req_tally','f','f'),
+  ('mychips','routes_v','req_tseq','mychips','routes','req_tseq','f','f'),
+  ('mychips','routes_v','reward','mychips','routes','reward','f','f'),
+  ('mychips','routes_v','rid','mychips','routes','rid','f','t'),
   ('mychips','routes_v','route_agent','mychips','routes_v','route_agent','f','f'),
+  ('mychips','routes_v','route_chad','mychips','routes_v','route_chad','f','f'),
   ('mychips','routes_v','route_cid','mychips','routes_v','route_cid','f','f'),
-  ('mychips','routes_v','route_sock','mychips','routes_v','route_sock','f','f'),
   ('mychips','routes_v','state','mychips','routes_v','state','f','f'),
   ('mychips','routes_v','status','mychips','routes','status','f','f'),
   ('mychips','routes_v','step','mychips','routes','step','f','f'),
-  ('mychips','routes_v','topu_addr','mychips','routes_v','topu_addr','f','f'),
-  ('mychips','routes_v','topu_cid','mychips','routes_v','topu_cid','f','f'),
-  ('mychips','routes_v','topu_host','mychips','routes_v','topu_host','f','f'),
-  ('mychips','routes_v','topu_name','mychips','routes_v','topu_name','f','f'),
-  ('mychips','routes_v','topu_serv','mychips','routes_v','topu_serv','f','f'),
-  ('mychips','routes_v','topu_sock','mychips','routes_v','topu_sock','f','f'),
   ('mychips','routes_v','tries','mychips','route_tries','tries','f','f'),
-  ('mychips','routes_v_lifts','botu_ent','mychips','routes','botu_ent','f','f'),
-  ('mychips','routes_v_lifts','circuit','mychips','routes_v_paths','circuit','f','f'),
-  ('mychips','routes_v_lifts','corein','mychips','tallies_v_paths_old','corein','f','f'),
-  ('mychips','routes_v_lifts','dest_chid','mychips','routes','dest_chid','f','f'),
-  ('mychips','routes_v_lifts','dest_ent','mychips','routes','dest_ent','f','f'),
-  ('mychips','routes_v_lifts','dest_host','mychips','routes','dest_host','f','f'),
-  ('mychips','routes_v_lifts','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
-  ('mychips','routes_v_lifts','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
-  ('mychips','routes_v_lifts','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
-  ('mychips','routes_v_lifts','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
-  ('mychips','routes_v_lifts','first','mychips','tallies_v_paths_old','first','f','f'),
-  ('mychips','routes_v_lifts','fora','mychips','tallies_v_paths_old','fora','f','f'),
-  ('mychips','routes_v_lifts','forz','mychips','tallies_v_paths_old','forz','f','f'),
-  ('mychips','routes_v_lifts','last','mychips','tallies_v_paths_old','last','f','f'),
-  ('mychips','routes_v_lifts','length','mychips','tallies_v_paths_old','length','f','f'),
-  ('mychips','routes_v_lifts','lift_count','mychips','routes','lift_count','f','f'),
-  ('mychips','routes_v_lifts','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
-  ('mychips','routes_v_lifts','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
-  ('mychips','routes_v_lifts','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
-  ('mychips','routes_v_lifts','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
-  ('mychips','routes_v_lifts','native','mychips','routes_v_paths','native','f','f'),
-  ('mychips','routes_v_lifts','path','mychips','tallies_v_paths_old','path','f','f'),
-  ('mychips','routes_v_lifts','path_drop_margin','mychips','routes_v_paths','path_drop_margin','f','f'),
-  ('mychips','routes_v_lifts','path_drop_max','mychips','routes_v_paths','path_drop_max','f','f'),
-  ('mychips','routes_v_lifts','path_drop_min','mychips','routes_v_paths','path_drop_min','f','f'),
-  ('mychips','routes_v_lifts','path_drop_reward','mychips','routes_v_paths','path_drop_reward','f','f'),
-  ('mychips','routes_v_lifts','path_lift_margin','mychips','routes_v_paths','path_lift_margin','f','f'),
-  ('mychips','routes_v_lifts','path_lift_max','mychips','routes_v_paths','path_lift_max','f','f'),
-  ('mychips','routes_v_lifts','path_lift_min','mychips','routes_v_paths','path_lift_min','f','f'),
-  ('mychips','routes_v_lifts','path_lift_reward','mychips','routes_v_paths','path_lift_reward','f','f'),
-  ('mychips','routes_v_lifts','requ_ent','mychips','routes','requ_ent','f','f'),
-  ('mychips','routes_v_lifts','route_drop_margin','mychips','routes_v_paths','route_drop_margin','f','f'),
-  ('mychips','routes_v_lifts','route_drop_max','mychips','routes_v_paths','route_drop_max','f','f'),
-  ('mychips','routes_v_lifts','route_drop_min','mychips','routes_v_paths','route_drop_min','f','f'),
-  ('mychips','routes_v_lifts','route_drop_reward','mychips','routes_v_paths','route_drop_reward','f','f'),
-  ('mychips','routes_v_lifts','route_ent','mychips','routes','route_ent','f','f'),
-  ('mychips','routes_v_lifts','route_lift_margin','mychips','routes_v_paths','route_lift_margin','f','f'),
-  ('mychips','routes_v_lifts','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
-  ('mychips','routes_v_lifts','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
-  ('mychips','routes_v_lifts','route_lift_reward','mychips','routes_v_paths','route_lift_reward','f','f'),
-  ('mychips','routes_v_lifts','segment','mychips','tallies_v_paths_old','segment','f','f'),
-  ('mychips','routes_v_lifts','status','mychips','routes','status','f','f'),
-  ('mychips','routes_v_lifts','topu_ent','mychips','routes','topu_ent','f','f'),
-  ('mychips','routes_v_lifts','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
-  ('mychips','routes_v_paths','botu_ent','mychips','routes','botu_ent','f','f'),
+  ('mychips','routes_v','via_agent','mychips','routes_v','via_agent','f','f'),
+  ('mychips','routes_v','via_chad','mychips','routes_v','via_chad','f','f'),
+  ('mychips','routes_v','via_cid','mychips','routes_v','via_cid','f','f'),
+  ('mychips','routes_v','via_ent','mychips','routes','via_ent','f','f'),
+  ('mychips','routes_v','via_tally','mychips','routes_v','via_tally','f','f'),
+  ('mychips','routes_v','via_tseq','mychips','routes','via_tseq','f','f'),
+  ('mychips','routes_v_lifts_old','botu_ent','mychips','routes','botu_ent','f','f'),
+  ('mychips','routes_v_lifts_old','circuit','mychips','routes_v_paths_old','circuit','f','f'),
+  ('mychips','routes_v_lifts_old','corein','mychips','tallies_v_paths_old','corein','f','f'),
+  ('mychips','routes_v_lifts_old','dest_chid','mychips','routes','dest_chid','f','f'),
+  ('mychips','routes_v_lifts_old','dest_ent','mychips','routes','dest_ent','f','f'),
+  ('mychips','routes_v_lifts_old','dest_host','mychips','routes','dest_host','f','f'),
+  ('mychips','routes_v_lifts_old','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','routes_v_lifts_old','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','routes_v_lifts_old','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','routes_v_lifts_old','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','routes_v_lifts_old','first','mychips','tallies_v_paths_old','first','f','f'),
+  ('mychips','routes_v_lifts_old','fora','mychips','tallies_v_paths_old','fora','f','f'),
+  ('mychips','routes_v_lifts_old','forz','mychips','tallies_v_paths_old','forz','f','f'),
+  ('mychips','routes_v_lifts_old','last','mychips','tallies_v_paths_old','last','f','f'),
+  ('mychips','routes_v_lifts_old','length','mychips','tallies_v_paths_old','length','f','f'),
+  ('mychips','routes_v_lifts_old','lift_count','mychips','routes','lift_count','f','f'),
+  ('mychips','routes_v_lifts_old','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','routes_v_lifts_old','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','routes_v_lifts_old','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','routes_v_lifts_old','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
+  ('mychips','routes_v_lifts_old','native','mychips','routes_v_paths_old','native','f','f'),
+  ('mychips','routes_v_lifts_old','path','mychips','tallies_v_paths_old','path','f','f'),
+  ('mychips','routes_v_lifts_old','path_drop_margin','mychips','routes_v_paths_old','path_drop_margin','f','f'),
+  ('mychips','routes_v_lifts_old','path_drop_max','mychips','routes_v_paths_old','path_drop_max','f','f'),
+  ('mychips','routes_v_lifts_old','path_drop_min','mychips','routes_v_paths_old','path_drop_min','f','f'),
+  ('mychips','routes_v_lifts_old','path_drop_reward','mychips','routes_v_paths_old','path_drop_reward','f','f'),
+  ('mychips','routes_v_lifts_old','path_lift_margin','mychips','routes_v_paths_old','path_lift_margin','f','f'),
+  ('mychips','routes_v_lifts_old','path_lift_max','mychips','routes_v_paths_old','path_lift_max','f','f'),
+  ('mychips','routes_v_lifts_old','path_lift_min','mychips','routes_v_paths_old','path_lift_min','f','f'),
+  ('mychips','routes_v_lifts_old','path_lift_reward','mychips','routes_v_paths_old','path_lift_reward','f','f'),
+  ('mychips','routes_v_lifts_old','req_ent','mychips','routes','req_ent','f','f'),
+  ('mychips','routes_v_lifts_old','route_drop_margin','mychips','routes_v_paths_old','route_drop_margin','f','f'),
+  ('mychips','routes_v_lifts_old','route_drop_max','mychips','routes_v_paths_old','route_drop_max','f','f'),
+  ('mychips','routes_v_lifts_old','route_drop_min','mychips','routes_v_paths_old','route_drop_min','f','f'),
+  ('mychips','routes_v_lifts_old','route_drop_reward','mychips','routes_v_paths_old','route_drop_reward','f','f'),
+  ('mychips','routes_v_lifts_old','route_ent','mychips','routes','route_ent','f','f'),
+  ('mychips','routes_v_lifts_old','route_lift_margin','mychips','routes_v_paths_old','route_lift_margin','f','f'),
+  ('mychips','routes_v_lifts_old','route_lift_max','mychips','routes_v_paths_old','route_lift_max','f','f'),
+  ('mychips','routes_v_lifts_old','route_lift_min','mychips','routes_v_paths_old','route_lift_min','f','f'),
+  ('mychips','routes_v_lifts_old','route_lift_reward','mychips','routes_v_paths_old','route_lift_reward','f','f'),
+  ('mychips','routes_v_lifts_old','segment','mychips','tallies_v_paths_old','segment','f','f'),
+  ('mychips','routes_v_lifts_old','status','mychips','routes','status','f','f'),
+  ('mychips','routes_v_lifts_old','topu_ent','mychips','routes','topu_ent','f','f'),
+  ('mychips','routes_v_lifts_old','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
+  ('mychips','routes_v_paths','at','mychips','tallies_v_paths','at','f','f'),
+  ('mychips','routes_v_paths','ath','mychips','tallies_v_paths','ath','f','f'),
+  ('mychips','routes_v_paths','bot','mychips','tallies_v_paths','bot','f','f'),
+  ('mychips','routes_v_paths','bot_agent','mychips','tallies_v_paths','bot_agent','f','f'),
+  ('mychips','routes_v_paths','bot_chad','mychips','tallies_v_paths','bot_chad','f','f'),
+  ('mychips','routes_v_paths','bot_cid','mychips','tallies_v_paths','bot_cid','f','f'),
+  ('mychips','routes_v_paths','bot_tseq','mychips','tallies_v_paths','bot_tseq','f','f'),
+  ('mychips','routes_v_paths','bot_uuid','mychips','tallies_v_paths','bot_uuid','f','f'),
   ('mychips','routes_v_paths','circuit','mychips','routes_v_paths','circuit','f','f'),
-  ('mychips','routes_v_paths','corein','mychips','tallies_v_paths_old','corein','f','f'),
-  ('mychips','routes_v_paths','dest_chid','mychips','routes','dest_chid','f','f'),
-  ('mychips','routes_v_paths','dest_ent','mychips','routes','dest_ent','f','f'),
-  ('mychips','routes_v_paths','dest_host','mychips','routes','dest_host','f','f'),
-  ('mychips','routes_v_paths','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
-  ('mychips','routes_v_paths','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
-  ('mychips','routes_v_paths','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
-  ('mychips','routes_v_paths','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
-  ('mychips','routes_v_paths','first','mychips','tallies_v_paths_old','first','f','f'),
-  ('mychips','routes_v_paths','fora','mychips','tallies_v_paths_old','fora','f','f'),
-  ('mychips','routes_v_paths','forz','mychips','tallies_v_paths_old','forz','f','f'),
-  ('mychips','routes_v_paths','last','mychips','tallies_v_paths_old','last','f','f'),
-  ('mychips','routes_v_paths','length','mychips','tallies_v_paths_old','length','f','f'),
+  ('mychips','routes_v_paths','dst_agent','mychips','routes','dst_agent','f','f'),
+  ('mychips','routes_v_paths','dst_cid','mychips','routes','dst_cid','f','f'),
+  ('mychips','routes_v_paths','edges','mychips','tallies_v_paths','edges','f','f'),
+  ('mychips','routes_v_paths','fori','mychips','tallies_v_paths','fori','f','f'),
+  ('mychips','routes_v_paths','foro','mychips','tallies_v_paths','foro','f','f'),
+  ('mychips','routes_v_paths','inp','mychips','tallies_v_net','inp','f','f'),
   ('mychips','routes_v_paths','lift_count','mychips','routes','lift_count','f','f'),
-  ('mychips','routes_v_paths','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
-  ('mychips','routes_v_paths','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
-  ('mychips','routes_v_paths','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
-  ('mychips','routes_v_paths','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
-  ('mychips','routes_v_paths','native','mychips','routes_v_paths','native','f','f'),
-  ('mychips','routes_v_paths','path','mychips','tallies_v_paths_old','path','f','f'),
-  ('mychips','routes_v_paths','path_drop_margin','mychips','routes_v_paths','path_drop_margin','f','f'),
-  ('mychips','routes_v_paths','path_drop_max','mychips','routes_v_paths','path_drop_max','f','f'),
-  ('mychips','routes_v_paths','path_drop_min','mychips','routes_v_paths','path_drop_min','f','f'),
-  ('mychips','routes_v_paths','path_drop_reward','mychips','routes_v_paths','path_drop_reward','f','f'),
-  ('mychips','routes_v_paths','path_lift_margin','mychips','routes_v_paths','path_lift_margin','f','f'),
-  ('mychips','routes_v_paths','path_lift_max','mychips','routes_v_paths','path_lift_max','f','f'),
-  ('mychips','routes_v_paths','path_lift_min','mychips','routes_v_paths','path_lift_min','f','f'),
-  ('mychips','routes_v_paths','path_lift_reward','mychips','routes_v_paths','path_lift_reward','f','f'),
-  ('mychips','routes_v_paths','requ_ent','mychips','routes','requ_ent','f','f'),
-  ('mychips','routes_v_paths','route_drop_margin','mychips','routes_v_paths','route_drop_margin','f','f'),
-  ('mychips','routes_v_paths','route_drop_max','mychips','routes_v_paths','route_drop_max','f','f'),
-  ('mychips','routes_v_paths','route_drop_min','mychips','routes_v_paths','route_drop_min','f','f'),
-  ('mychips','routes_v_paths','route_drop_reward','mychips','routes_v_paths','route_drop_reward','f','f'),
-  ('mychips','routes_v_paths','route_ent','mychips','routes','route_ent','f','f'),
-  ('mychips','routes_v_paths','route_lift_margin','mychips','routes_v_paths','route_lift_margin','f','f'),
-  ('mychips','routes_v_paths','route_lift_max','mychips','routes_v_paths','route_lift_max','f','f'),
-  ('mychips','routes_v_paths','route_lift_min','mychips','routes_v_paths','route_lift_min','f','f'),
-  ('mychips','routes_v_paths','route_lift_reward','mychips','routes_v_paths','route_lift_reward','f','f'),
-  ('mychips','routes_v_paths','segment','mychips','tallies_v_paths_old','segment','f','f'),
+  ('mychips','routes_v_paths','margin','mychips','tallies_v_net','margin','f','f'),
+  ('mychips','routes_v_paths','max','mychips','tallies_v_net','max','f','f'),
+  ('mychips','routes_v_paths','min','mychips','tallies_v_net','min','f','f'),
+  ('mychips','routes_v_paths','native','mychips','routes_v','native','f','f'),
+  ('mychips','routes_v_paths','nodes','mychips','tallies_v_paths','nodes','f','f'),
+  ('mychips','routes_v_paths','out','mychips','tallies_v_net','out','f','f'),
+  ('mychips','routes_v_paths','pat','mychips','tallies_v_paths','pat','f','f'),
+  ('mychips','routes_v_paths','path','mychips','tallies_v_paths','path','f','f'),
+  ('mychips','routes_v_paths','path_margin','mychips','routes_v_paths','path_margin','f','f'),
+  ('mychips','routes_v_paths','path_max','mychips','routes_v_paths','path_max','f','f'),
+  ('mychips','routes_v_paths','path_min','mychips','routes_v_paths','path_min','f','f'),
+  ('mychips','routes_v_paths','path_reward','mychips','routes_v_paths','path_reward','f','f'),
+  ('mychips','routes_v_paths','rept_agent','mychips','routes_v','rept_agent','f','f'),
+  ('mychips','routes_v_paths','rept_chad','mychips','routes_v','rept_chad','f','f'),
+  ('mychips','routes_v_paths','rept_cid','mychips','routes_v','rept_cid','f','f'),
+  ('mychips','routes_v_paths','req_agent','mychips','routes_v','req_agent','f','f'),
+  ('mychips','routes_v_paths','req_chad','mychips','routes_v','req_chad','f','f'),
+  ('mychips','routes_v_paths','req_cid','mychips','routes_v','req_cid','f','f'),
+  ('mychips','routes_v_paths','req_ent','mychips','routes','req_ent','f','f'),
+  ('mychips','routes_v_paths','req_tally','mychips','routes_v','req_tally','f','f'),
+  ('mychips','routes_v_paths','req_tseq','mychips','routes','req_tseq','f','f'),
+  ('mychips','routes_v_paths','reward','mychips','tallies','reward','f','f'),
+  ('mychips','routes_v_paths','rid','mychips','routes','rid','f','t'),
+  ('mychips','routes_v_paths','route_margin','mychips','routes_v_paths','route_margin','f','f'),
+  ('mychips','routes_v_paths','route_max','mychips','routes_v_paths','route_max','f','f'),
+  ('mychips','routes_v_paths','route_min','mychips','routes_v_paths','route_min','f','f'),
+  ('mychips','routes_v_paths','route_reward','mychips','routes_v_paths','route_reward','f','f'),
+  ('mychips','routes_v_paths','segment','mychips','routes_v_paths','segment','f','f'),
   ('mychips','routes_v_paths','status','mychips','routes','status','f','f'),
-  ('mychips','routes_v_paths','topu_ent','mychips','routes','topu_ent','f','f'),
-  ('mychips','routes_v_paths','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
+  ('mychips','routes_v_paths','top','mychips','tallies_v_paths','top','f','f'),
+  ('mychips','routes_v_paths','top_tseq','mychips','tallies_v_paths','top_tseq','f','f'),
+  ('mychips','routes_v_paths','uuids','mychips','tallies_v_paths','uuids','f','f'),
+  ('mychips','routes_v_paths','via_ent','mychips','routes','via_ent','f','f'),
+  ('mychips','routes_v_paths','via_tally','mychips','routes_v','via_tally','f','f'),
+  ('mychips','routes_v_paths','via_tseq','mychips','routes','via_tseq','f','f'),
+  ('mychips','routes_v_paths_old','botu_ent','mychips','routes','botu_ent','f','f'),
+  ('mychips','routes_v_paths_old','circuit','mychips','routes_v_paths_old','circuit','f','f'),
+  ('mychips','routes_v_paths_old','corein','mychips','tallies_v_paths_old','corein','f','f'),
+  ('mychips','routes_v_paths_old','dest_chid','mychips','routes','dest_chid','f','f'),
+  ('mychips','routes_v_paths_old','dest_ent','mychips','routes','dest_ent','f','f'),
+  ('mychips','routes_v_paths_old','dest_host','mychips','routes','dest_host','f','f'),
+  ('mychips','routes_v_paths_old','drop_margin','mychips','tallies_v_net_old','drop_margin','f','f'),
+  ('mychips','routes_v_paths_old','drop_max','mychips','tallies_v_net_old','drop_max','f','f'),
+  ('mychips','routes_v_paths_old','drop_min','mychips','tallies_v_net_old','drop_min','f','f'),
+  ('mychips','routes_v_paths_old','drop_reward','mychips','tallies_v_net_old','drop_reward','f','f'),
+  ('mychips','routes_v_paths_old','first','mychips','tallies_v_paths_old','first','f','f'),
+  ('mychips','routes_v_paths_old','fora','mychips','tallies_v_paths_old','fora','f','f'),
+  ('mychips','routes_v_paths_old','forz','mychips','tallies_v_paths_old','forz','f','f'),
+  ('mychips','routes_v_paths_old','last','mychips','tallies_v_paths_old','last','f','f'),
+  ('mychips','routes_v_paths_old','length','mychips','tallies_v_paths_old','length','f','f'),
+  ('mychips','routes_v_paths_old','lift_count','mychips','routes','lift_count','f','f'),
+  ('mychips','routes_v_paths_old','lift_margin','mychips','tallies_v_net_old','lift_margin','f','f'),
+  ('mychips','routes_v_paths_old','lift_max','mychips','tallies_v_net_old','lift_max','f','f'),
+  ('mychips','routes_v_paths_old','lift_min','mychips','tallies_v_net_old','lift_min','f','f'),
+  ('mychips','routes_v_paths_old','lift_reward','mychips','tallies_v_net_old','lift_reward','f','f'),
+  ('mychips','routes_v_paths_old','native','mychips','routes_v_paths_old','native','f','f'),
+  ('mychips','routes_v_paths_old','path','mychips','tallies_v_paths_old','path','f','f'),
+  ('mychips','routes_v_paths_old','path_drop_margin','mychips','routes_v_paths_old','path_drop_margin','f','f'),
+  ('mychips','routes_v_paths_old','path_drop_max','mychips','routes_v_paths_old','path_drop_max','f','f'),
+  ('mychips','routes_v_paths_old','path_drop_min','mychips','routes_v_paths_old','path_drop_min','f','f'),
+  ('mychips','routes_v_paths_old','path_drop_reward','mychips','routes_v_paths_old','path_drop_reward','f','f'),
+  ('mychips','routes_v_paths_old','path_lift_margin','mychips','routes_v_paths_old','path_lift_margin','f','f'),
+  ('mychips','routes_v_paths_old','path_lift_max','mychips','routes_v_paths_old','path_lift_max','f','f'),
+  ('mychips','routes_v_paths_old','path_lift_min','mychips','routes_v_paths_old','path_lift_min','f','f'),
+  ('mychips','routes_v_paths_old','path_lift_reward','mychips','routes_v_paths_old','path_lift_reward','f','f'),
+  ('mychips','routes_v_paths_old','req_ent','mychips','routes','req_ent','f','f'),
+  ('mychips','routes_v_paths_old','route_drop_margin','mychips','routes_v_paths_old','route_drop_margin','f','f'),
+  ('mychips','routes_v_paths_old','route_drop_max','mychips','routes_v_paths_old','route_drop_max','f','f'),
+  ('mychips','routes_v_paths_old','route_drop_min','mychips','routes_v_paths_old','route_drop_min','f','f'),
+  ('mychips','routes_v_paths_old','route_drop_reward','mychips','routes_v_paths_old','route_drop_reward','f','f'),
+  ('mychips','routes_v_paths_old','route_ent','mychips','routes','route_ent','f','f'),
+  ('mychips','routes_v_paths_old','route_lift_margin','mychips','routes_v_paths_old','route_lift_margin','f','f'),
+  ('mychips','routes_v_paths_old','route_lift_max','mychips','routes_v_paths_old','route_lift_max','f','f'),
+  ('mychips','routes_v_paths_old','route_lift_min','mychips','routes_v_paths_old','route_lift_min','f','f'),
+  ('mychips','routes_v_paths_old','route_lift_reward','mychips','routes_v_paths_old','route_lift_reward','f','f'),
+  ('mychips','routes_v_paths_old','segment','mychips','tallies_v_paths_old','segment','f','f'),
+  ('mychips','routes_v_paths_old','status','mychips','routes','status','f','f'),
+  ('mychips','routes_v_paths_old','topu_ent','mychips','routes','topu_ent','f','f'),
+  ('mychips','routes_v_paths_old','uuids','mychips','tallies_v_paths_old','uuids','f','f'),
   ('mychips','tallies','_last_chit','mychips','tallies','_last_chit','f','f'),
   ('mychips','tallies','_last_tset','mychips','tallies','_last_tset','f','f'),
   ('mychips','tallies','bound','mychips','tallies','bound','f','f'),
@@ -8151,22 +8271,43 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','units_gc','mychips','tallies','units_gc','f','f'),
   ('mychips','tallies_v','units_pc','mychips','tallies','units_pc','f','f'),
   ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
+  ('mychips','tallies_v_lifts','at','mychips','tallies_v_paths','at','f','f'),
   ('mychips','tallies_v_lifts','ath','mychips','tallies_v_paths','ath','f','f'),
   ('mychips','tallies_v_lifts','bang','mychips','tallies_v_paths','bang','f','f'),
+  ('mychips','tallies_v_lifts','bot','mychips','tallies_v_paths','bot','f','f'),
+  ('mychips','tallies_v_lifts','bot_agent','mychips','tallies_v_paths','bot_agent','f','f'),
+  ('mychips','tallies_v_lifts','bot_chad','mychips','tallies_v_paths','bot_chad','f','f'),
+  ('mychips','tallies_v_lifts','bot_cid','mychips','tallies_v_paths','bot_cid','f','f'),
+  ('mychips','tallies_v_lifts','bot_tseq','mychips','tallies_v_paths','bot_tseq','f','f'),
+  ('mychips','tallies_v_lifts','bot_uuid','mychips','tallies_v_paths','bot_uuid','f','f'),
+  ('mychips','tallies_v_lifts','botseq','mychips','tallies_v_paths','botseq','f','f'),
   ('mychips','tallies_v_lifts','circuit','mychips','tallies_v_paths','circuit','f','f'),
+  ('mychips','tallies_v_lifts','edges','mychips','tallies_v_paths','edges','f','f'),
   ('mychips','tallies_v_lifts','fori','mychips','tallies_v_paths','fori','f','f'),
   ('mychips','tallies_v_lifts','foro','mychips','tallies_v_paths','foro','f','f'),
   ('mychips','tallies_v_lifts','inp','mychips','tallies_v_net','inp','f','f'),
-  ('mychips','tallies_v_lifts','iuuid','mychips','tallies_v_paths','iuuid','f','f'),
-  ('mychips','tallies_v_lifts','length','mychips','tallies_v_paths','length','f','f'),
+  ('mychips','tallies_v_lifts','inp_agent','mychips','tallies_v_paths','inp_agent','f','f'),
+  ('mychips','tallies_v_lifts','inp_chad','mychips','tallies_v_paths','inp_chad','f','f'),
+  ('mychips','tallies_v_lifts','inp_cid','mychips','tallies_v_paths','inp_cid','f','f'),
   ('mychips','tallies_v_lifts','margin','mychips','tallies_v_net','margin','f','f'),
   ('mychips','tallies_v_lifts','max','mychips','tallies_v_net','max','f','f'),
   ('mychips','tallies_v_lifts','min','mychips','tallies_v_net','min','f','f'),
+  ('mychips','tallies_v_lifts','nodes','mychips','tallies_v_paths','nodes','f','f'),
   ('mychips','tallies_v_lifts','out','mychips','tallies_v_net','out','f','f'),
-  ('mychips','tallies_v_lifts','ouuid','mychips','tallies_v_paths','ouuid','f','f'),
+  ('mychips','tallies_v_lifts','out_agent','mychips','tallies_v_paths','out_agent','f','f'),
+  ('mychips','tallies_v_lifts','out_chad','mychips','tallies_v_paths','out_chad','f','f'),
+  ('mychips','tallies_v_lifts','out_cid','mychips','tallies_v_paths','out_cid','f','f'),
+  ('mychips','tallies_v_lifts','pat','mychips','tallies_v_paths','pat','f','f'),
   ('mychips','tallies_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
   ('mychips','tallies_v_lifts','reward','mychips','tallies','reward','f','f'),
   ('mychips','tallies_v_lifts','signs','mychips','tallies_v_paths','signs','f','f'),
+  ('mychips','tallies_v_lifts','top','mychips','tallies_v_paths','top','f','f'),
+  ('mychips','tallies_v_lifts','top_agent','mychips','tallies_v_paths','top_agent','f','f'),
+  ('mychips','tallies_v_lifts','top_chad','mychips','tallies_v_paths','top_chad','f','f'),
+  ('mychips','tallies_v_lifts','top_cid','mychips','tallies_v_paths','top_cid','f','f'),
+  ('mychips','tallies_v_lifts','top_tseq','mychips','tallies_v_paths','top_tseq','f','f'),
+  ('mychips','tallies_v_lifts','top_uuid','mychips','tallies_v_paths','top_uuid','f','f'),
+  ('mychips','tallies_v_lifts','topseq','mychips','tallies_v_paths','topseq','f','f'),
   ('mychips','tallies_v_lifts','uuids','mychips','tallies_v_paths','uuids','f','f'),
   ('mychips','tallies_v_lifts_old','bang','mychips','tallies_v_paths_old','bang','f','f'),
   ('mychips','tallies_v_lifts_old','circuit','mychips','tallies_v_paths_old','circuit','f','f'),
@@ -8259,6 +8400,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_net','reward','mychips','tallies','reward','f','f'),
   ('mychips','tallies_v_net','sign','mychips','tallies_v_net','sign','f','f'),
   ('mychips','tallies_v_net','tally_ent','mychips','tallies','tally_ent','f','t'),
+  ('mychips','tallies_v_net','tally_seq','mychips','tallies','tally_seq','f','t'),
   ('mychips','tallies_v_net','tally_type','mychips','tallies','tally_type','f','f'),
   ('mychips','tallies_v_net','target','mychips','tallies','target','f','f'),
   ('mychips','tallies_v_net','type','mychips','tallies_v_net','type','f','f'),
@@ -8278,22 +8420,43 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_net_old','stock_ent','mychips','tallies_v_net_old','stock_ent','f','f'),
   ('mychips','tallies_v_net_old','stock_user','mychips','tallies_v_net_old','stock_user','f','f'),
   ('mychips','tallies_v_net_old','uuid','mychips','tallies_v_net_old','uuid','f','f'),
+  ('mychips','tallies_v_paths','at','mychips','tallies_v_paths','at','f','f'),
   ('mychips','tallies_v_paths','ath','mychips','tallies_v_paths','ath','f','f'),
   ('mychips','tallies_v_paths','bang','mychips','tallies_v_paths','bang','f','f'),
+  ('mychips','tallies_v_paths','bot','mychips','tallies_v_paths','bot','f','f'),
+  ('mychips','tallies_v_paths','bot_agent','mychips','tallies_v_paths','bot_agent','f','f'),
+  ('mychips','tallies_v_paths','bot_chad','mychips','tallies_v_paths','bot_chad','f','f'),
+  ('mychips','tallies_v_paths','bot_cid','mychips','tallies_v_paths','bot_cid','f','f'),
+  ('mychips','tallies_v_paths','bot_tseq','mychips','tallies_v_paths','bot_tseq','f','f'),
+  ('mychips','tallies_v_paths','bot_uuid','mychips','tallies_v_paths','bot_uuid','f','f'),
+  ('mychips','tallies_v_paths','botseq','mychips','tallies_v_paths','botseq','f','f'),
   ('mychips','tallies_v_paths','circuit','mychips','tallies_v_paths','circuit','f','f'),
+  ('mychips','tallies_v_paths','edges','mychips','tallies_v_paths','edges','f','f'),
   ('mychips','tallies_v_paths','fori','mychips','tallies_v_paths','fori','f','f'),
   ('mychips','tallies_v_paths','foro','mychips','tallies_v_paths','foro','f','f'),
-  ('mychips','tallies_v_paths','inp','mychips','tallies_v_net','inp','f','t'),
-  ('mychips','tallies_v_paths','iuuid','mychips','tallies_v_paths','iuuid','f','f'),
-  ('mychips','tallies_v_paths','length','mychips','tallies_v_paths','length','f','t'),
+  ('mychips','tallies_v_paths','inp','mychips','tallies_v_net','inp','f','f'),
+  ('mychips','tallies_v_paths','inp_agent','mychips','tallies_v_paths','inp_agent','f','f'),
+  ('mychips','tallies_v_paths','inp_chad','mychips','tallies_v_paths','inp_chad','f','f'),
+  ('mychips','tallies_v_paths','inp_cid','mychips','tallies_v_paths','inp_cid','f','f'),
   ('mychips','tallies_v_paths','margin','mychips','tallies_v_net','margin','f','f'),
   ('mychips','tallies_v_paths','max','mychips','tallies_v_net','max','f','f'),
   ('mychips','tallies_v_paths','min','mychips','tallies_v_net','min','f','f'),
-  ('mychips','tallies_v_paths','out','mychips','tallies_v_net','out','f','t'),
-  ('mychips','tallies_v_paths','ouuid','mychips','tallies_v_paths','ouuid','f','f'),
-  ('mychips','tallies_v_paths','path','mychips','tallies_v_paths','path','f','f'),
+  ('mychips','tallies_v_paths','nodes','mychips','tallies_v_paths','nodes','f','f'),
+  ('mychips','tallies_v_paths','out','mychips','tallies_v_net','out','f','f'),
+  ('mychips','tallies_v_paths','out_agent','mychips','tallies_v_paths','out_agent','f','f'),
+  ('mychips','tallies_v_paths','out_chad','mychips','tallies_v_paths','out_chad','f','f'),
+  ('mychips','tallies_v_paths','out_cid','mychips','tallies_v_paths','out_cid','f','f'),
+  ('mychips','tallies_v_paths','pat','mychips','tallies_v_paths','pat','f','f'),
+  ('mychips','tallies_v_paths','path','mychips','tallies_v_paths','path','f','t'),
   ('mychips','tallies_v_paths','reward','mychips','tallies','reward','f','f'),
   ('mychips','tallies_v_paths','signs','mychips','tallies_v_paths','signs','f','f'),
+  ('mychips','tallies_v_paths','top','mychips','tallies_v_paths','top','f','f'),
+  ('mychips','tallies_v_paths','top_agent','mychips','tallies_v_paths','top_agent','f','f'),
+  ('mychips','tallies_v_paths','top_chad','mychips','tallies_v_paths','top_chad','f','f'),
+  ('mychips','tallies_v_paths','top_cid','mychips','tallies_v_paths','top_cid','f','f'),
+  ('mychips','tallies_v_paths','top_tseq','mychips','tallies_v_paths','top_tseq','f','f'),
+  ('mychips','tallies_v_paths','top_uuid','mychips','tallies_v_paths','top_uuid','f','f'),
+  ('mychips','tallies_v_paths','topseq','mychips','tallies_v_paths','topseq','f','f'),
   ('mychips','tallies_v_paths','uuids','mychips','tallies_v_paths','uuids','f','f'),
   ('mychips','tallies_v_paths_old','bang','mychips','tallies_v_paths_old','bang','f','f'),
   ('mychips','tallies_v_paths_old','circuit','mychips','tallies_v_paths_old','circuit','f','f'),

@@ -99,7 +99,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)		//;log.debug("row:", row);
+      let row = getRow(res, 0)		//;log.debug("row:", row)
       assert.ok(row.ticket_process)
       _done()
     })
@@ -127,7 +127,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (err, res) => { if (err) done(err)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'offer')
       assert.equal(row.status, 'draft')
       assert.equal(row.state, 'draft.offer')
@@ -171,7 +171,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'void')
       assert.equal(row.status, 'offer')
       assert.equal(row.state, 'P.offer.void')
@@ -202,7 +202,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'offer')
       assert.equal(row.status, 'draft')
       assert.equal(row.state, 'draft.offer')
@@ -233,7 +233,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'open')
       assert.equal(row.status, 'offer')
       assert.equal(row.state, 'B.offer.open')
@@ -270,7 +270,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'close')
       assert.equal(row.status, 'open')
       assert.equal(row.state, 'open.close')
@@ -296,12 +296,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 //  it("Simulate tally balance going to zero (close -> closed)", function(done) {
 //    let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //    dbO.query(uSql('units_gc = 0', userO, seqO), (e, res) => { if (e) done(e)
-//      let row = getRow(res, 0)			//;log.debug("row:", row);
+//      let row = getRow(res, 0)			//;log.debug("row:", row)
 //      assert.equal(row.state, 'closed')
 //      _done()
 //    })
 //    dbS.query(uSql('units_gc = 0', userS, 1), (e, res) => { if (e) done(e)
-//      let row = getRow(res, 0)			//;log.debug("row:", row);
+//      let row = getRow(res, 0)			//;log.debug("row:", row)
 //      assert.equal(row.state, 'closed')
 //      _done()
 //    })

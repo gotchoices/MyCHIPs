@@ -3,21 +3,22 @@ TODO:
 Immediate:
 -  
 - Adapt route to new message format
-X-   Write tests to check for:
-X-     Proper paths, segments, circuits found
-X-     Drop paths show up properly
-X-     Reward/clutch variable kicks in over correct range
-X-     Trading variables (reward,clutch) aggregate properly
--   Cleanup/organize routes table
--     standardize what "addr" and "chad" mean?
--     use standard to:, from: properties
--     why do we pass along requester information?  (maybe it is in from chad now)
--     
--     
--   Write tests for route state transitions
--   Does simulation still run (without actually doing lifts)?
+X- Cleanup/organize routes table
+X-   standardize what "addr" and "chad" mean?
+X-   use standard to:, from: properties
+X-   why do we pass along requester information?  (maybe it is in from chad now)
+-  Finish testing route state transitions that query upstream
+-    How to query for more upstream routes even if a local path exists?
+-    Cache base.parm values before looping
+-    Any old fields in mychips.routes we can delete (before going on to lifts)
+-  Basic tests/validation for lib/route.js
+- Does simulation still run (without actually doing lifts)?
+-   
+- Will regression tests run using docker postgres (TestDB2 crashes)
 -   
 -  Adapt lift subsystem to new message format
+-    Delete obsolete fields from routes table
+-    Delete obsolete views in paths_old.wms
 -  Change how chit units are stored (relative to stock/foil)?
 -  Clean up users DB
 -   Can we totally get rid of peer table? (merge into user table)

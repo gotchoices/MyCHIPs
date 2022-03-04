@@ -1,5 +1,5 @@
-## MyCHIPs Protocol Description 1.1 (working draft)
-Feb 2022; Copyright MyCHIPs.org
+## MyCHIPs Protocol Description 1.2 (working draft)
+Mar 2022; Copyright MyCHIPs.org
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.
@@ -287,17 +287,27 @@ This figure shows a convenient way to visualize a lift pathway in a real impleme
 A site database will contain multiple entities who are connected in a short, linear segment.
 Some of these are local, meaning their accounts are hosted by the site.
 For example, site B hosts users B1, B2 and B3.
+But a lift will probably be moving upstream through them, so we would describe the segment in the direction of the lift as [B3, B2, B1].
 
-Hopefully, each chain will also include two or more foreign users (hosted by some other site).
+Hopefully, each chain will begin and end with two or more foreign users (hosted by some other site).
 Otherwise, a distributed lift through the segment will not be possible.
-For example, the chain [B1, B2, B3] is also connected to an up-stream foreign peer A3 at its top end
+For example, the chain [B3, B2, B1] is also connected to an up-stream foreign peer A3 at its top end
 and a down-stream foreign peer C1 at its bottom.
 
 Site B knows about a complete segment [A3, B1, B2, B3, C1].
 But that is where site B's direct knowledge about the network ends.
 It will be reliant on site A, site B, and probably a bunch of other sites to execute a complete distributed lift.
 
-A lift segment is defined as:
+Note: As of Feb 2022, local path segments handle foreign peers differently.
+Older versions maintained an explicit entity ID (in the peer table) for remote peers and those ID's formed the top and bottom endpoints of segments.
+More recently, segments are only connected in the middle by local user ID's and the ends are characterized by no ID at all (a NULL).
+So the internal representation of the B segment would be: [NULL, B3, B2, B1, NULL].
+
+Sites typically will know nothing about the internal ID of users hosted on other sites.
+Information about the foreign peers at the end of a segment is derived from the partner certificate stored in the asociated tally.
+A CHIP address (cid:agent) is found there, but no local ID that can be used for linking segments.
+
+So a lift segment can be defined as:
 - One or more local entities connected in a linear chain; and
 - A foreign entity at the top of the chain; and
 - A foreign entity at the bottom of the chain.
@@ -309,46 +319,54 @@ Individual entities define [trading variables](learn-tally.md#trading-variables)
 
 The lift algorithm compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
 
+As of February, 2022 lifts have been generalized to include transactions that move upstream or downstrem (technically a *drop*).
+Previously segments were linked by joining tallies together stock-to-foil.
+So one could only consider a lift or a drop across the complete segment.
+
+Now tallies are linked together according to their capacity to flow (lift) value in either the upstream or downstream direction.
+A single tally might simultaneously be a candidate for a lift and a drop, as a member of different segments.
+This will allow much more flexibility for users in controlling their accumulated balances.
+
 ### Route Discovery Protocol
 Having identified local segments that have capacity for a potential lift,
 each site then needs a way to cooperate with peer sites to gather just enough 
 information so it can reasonably initiate lifts or participate in others' lifts.
 
 Each site needs to know whether a potential external route exists where:
-- a lift can be initiated through the top of a local segment (A3); and
-- that lift will return to us via the bottom of the segment (C1).
+- a lift can be initiated through the top of a local segment (B1->A3); and
+- for circular lifts: the lift will return to us via the bottom of the segment (C1->B3).
 
-Site B doesn't really need to know many details about the route--just whether one or more such paths exist.
+In our scenario, site B doesn't really need to know many details about the route--just whether one or more such paths exist.
 The route may pass through many other sites on its way back to C1.
 In fact, it may pass through some sites more than once, traversing multiple segments.
 
-Now that site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as a single *node* in the lift--almost as though it were a single entity.
+Once site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as a single *node* in the lift--almost as though it were a single entity.
 The lift will be committed (or canceled) in a single, atomic transaction on behalf of all the nodes belonging to the segment.
 
 Route discovery requests can be initiated in two ways:
 - Manually by a user/entity; or
-- By an autonomous process acting as *agent* on behalf of the entity (such as a [CRON](https://en.wikipedia.org/wiki/Cron) job.)
+- By an [autonomous process](https://en.wikipedia.org/wiki/Cron) acting as *agent* on behalf of the entity or the site.
 
 ![use-route](uml/use-route.svg)
 
 An entity would typically request a route because it intends to make a payment (linear lift) to some other entity.
-The payee entity's endpoint ID would typically be obtained by scanning a QR code.
-The User Interface would send that information (and any hints) to his host site.
-The server process can then commence the discovery process for suitable external routes to complete the intended lift.
+The payee entity's [CHIP address](learn-users.md#chip-addresses) might be obtained by scanning an invoice QR code or processing an object embedded in an email or text message.
+The payor's app would then send that information (along with any hints) to his host site.
+His agent server process can then commence the discovery process for suitable external routes to complete the intended lift.
 
-Note: for a linear lift, each end of the lift will involve a *half segment*.
-The payor node will consist of a local entity with zero or more other local entities upstream of it, and topped off by one foreign entity.
-For example: [B3, C1, C2].
-
-The payee node will consist of a local entity with zero or more other local entities downstream of it, and a single foreign entity at the bottom.
-For example: [A2, A3, B1].
-
+For a linear lift, each end of the lift may involve a *partial segment*.
+The payor segment may include zero or more other local entities upstream before the lift jumps to a foreign peer
+(for example: [C2, C1, (B3)]).
+The lift may pass through zero or more downstream local entities before reaching the payee
+(for example: [(B1), A3, A2]).
 Nodes along the way get the same experience whether the lift is circular or linear.
+
+Manual routing requests are handled as follows:
 
 ![Manual Routing](uml/seq-route-man.svg "Manual initiating a route search")
 
 As mentioned, an autonomous agent process is continually scanning for liftable balances along local segments.
-Upon discovering a segment with a capacity for a lift, the system will check its database for possible external routes that can be used to complete the circuit.
+Upon discovering a segment with a capacity for a lift, the system will check its database for possible external routes that might be used to complete the circuit.
 
 ![Automatic Routing](uml/seq-route-auto.svg "Automatic route scanning")
 
@@ -364,13 +382,25 @@ As mentioned, each site acts in two roles:
 - It may initiate route queries necessary for conducting trades for local users; and
 - It may receive queries from downstream and act upon them.
 
-This second role is shown in the following sequence diagram:
+The second role is shown in the following sequence diagram:
 
 ![Routing Relay](uml/seq-route.svg "Responding to route queries")
+
+A node responding to a query from downstream really has four possible outcomes:
+- The destination node is found on a segment connected to this incoming request;
+- There is no pathway possible because there are no upstream tallies with foreign peers;
+- One or more pathways are possible through existing, known routes;
+- Pathways may be possible but more upstream queries will be needed to find out.
 
 Now we can derive the following state diagram to describe the route discovery protocol from the perspective of a single site:
 
 [![state-route](uml/state-route.svg)](uml/state-route.svg)
+
+Routes may exist in a pending state for some time before a response comes back from upstream
+indicating whether to mark the route as good or bad.
+So each route should be uniquely identifiable.
+In addition to knowing the tally UUID the query came in on, a querying node should supply a route ID.
+This route ID will be returned with subsequent updates so the node knows which route to update.
 
 ### Lift Protocol
 Once a site has discovered one or more viable external routes, it can proceed to propose an actual lift.

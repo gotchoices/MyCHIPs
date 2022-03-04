@@ -1,0 +1,155 @@
+#Get rid of these after lifts subsystem updated to 1.1+ protocol
+
+# View showing a single entry for each credit relationship (for lift algorithm, pathway views)
+#----------------------------------------------------------------
+view mychips.tallies_v_net_old {mychips.tallies} {select 
+    coalesce(ts.tally_uuid,tf.tally_uuid)	as uuid
+  , coalesce(ts.tally_ent,tf.part_ent)		as stock_ent
+  , coalesce(tf.tally_ent,ts.part_ent)		as foil_ent
+  , ts.tally_ent				as stock_user
+--  , tf.tally_ent				as foil_user
+  
+  , tf.target							as lift_target
+  , coalesce(tf.reward,0)					as lift_reward
+  , coalesce(ts.clutch,0)					as lift_margin
+  , tf.units_pc - least(-tf.target, 0)				as lift_min
+  , tf.units_pc - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
+  
+  , ts.target							as drop_target
+  , coalesce(ts.reward,0)					as drop_reward
+  , coalesce(tf.clutch,0)					as drop_margin
+  , greatest(ts.target, 0) - ts.units_pc			as drop_min
+  , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_pc	as drop_max
+  
+  from			(select * from mychips.tallies where tally_type = 'stock') ts
+  full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_uuid = ts.tally_uuid
+}
+
+# Recursive view of tallies to show pathways native to our system
+#----------------------------------------------------------------
+view mychips.tallies_v_paths_old {mychips.users_v mychips.tallies_v_net_old} {
+  with recursive tally_path(first, last, length, path, uuids, cycle, circuit, inside, corein, fora, forz,
+      lift_min, lift_margin, lift_max, lift_reward,
+      drop_min, drop_margin, drop_max, drop_reward
+    ) as (
+    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull,
+      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float, 
+      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float
+    from	mychips.users_v p
+    where	not p.peer_ent isnull
+  union all
+    select tp.first					as first
+      , t.stock_ent					as last
+      , tp.length + 1					as length
+      , tp.path || t.stock_ent				as path
+      , tp.uuids || t.uuid				as uuids
+      , t.stock_ent = any(tp.path)			as cycle
+      , tp.path[1] = t.stock_ent			as circuit
+      , tp.inside and not t.stock_user isnull		as inside
+      , case when tp.length < 2 then not t.stock_user isnull
+        when tp.length = 2 then not tp.forz
+        else tp.corein and not tp.forz
+        end						as corein
+      , tp.fora						as fora
+      , t.stock_user isnull				as forz
+
+      , least(t.lift_min,tp.lift_min)				as lift_min
+      , tp.lift_margin + t.lift_margin * (1 - tp.lift_margin)	as lift_margin
+      , case when t.lift_min < tp.lift_min then
+          least(t.lift_max,tp.lift_min)
+        else
+          least(tp.lift_max,t.lift_min) end			as lift_max
+      , case when t.lift_min < tp.lift_min then t.lift_reward else tp.lift_reward end as lift_reward
+
+      , least(t.drop_min,tp.drop_min)				as drop_min
+      , tp.drop_margin + t.drop_margin * (1 - tp.drop_margin)	as drop_margin
+      , case when t.drop_min < tp.drop_min then
+          least(t.drop_max,tp.drop_min)
+        else
+          least(tp.drop_max,t.drop_min) end			as drop_max
+      , case when t.drop_min < tp.drop_min then t.drop_reward else tp.drop_reward end as drop_reward
+
+    from	mychips.tallies_v_net_old t
+    join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
+  ) select tpr.first, tpr.last
+    , tpr.length, tpr.path, tpr.uuids
+    , tpr.circuit, tpr.inside, tpr.corein, tpr.fora, tpr.forz
+    , tpr.lift_margin, tpr.lift_reward, tpr.drop_margin, tpr.drop_reward
+    , greatest(tpr.lift_min, 0) as lift_min, greatest(tpr.lift_max, 0) as lift_max	-- Don't generate negative lift/drop allowances
+    , greatest(tpr.drop_min, 0) as drop_min, greatest(tpr.drop_max, 0) as drop_max
+--    , tpr.lift_min, tpr.lift_max, tpr.drop_min, tpr.drop_max
+    , tpr.length * tpr.lift_min as bang
+    , corein and fora and forz as segment
+  from tally_path tpr where tpr.length > 1
+} -primary {last first length}
+
+# Simplified view for discovering inside lifts
+#----------------------------------------------------------------
+view mychips.tallies_v_lifts_old {mychips.tallies_v_paths_old} {
+  select * from mychips.tallies_v_paths_old where circuit order by 1 desc
+}
+
+# View showing join of inside pathways and outside routes
+# to discover/analyze possible distributed lifts
+#----------------------------------------------------------------
+view mychips.routes_v_paths_old {mychips.tallies_v_paths_old mychips.routes} {select
+    tp.first, tp.last
+  , tp.length, tp.path, tp.uuids
+  , tp.segment, tp.corein, tp.fora, tp.forz
+  , r.route_ent
+  , r.dest_ent
+  , r.dest_chid
+  , r.dest_host
+  , r.status
+  , r.topu_ent
+  , r.botu_ent
+  , r.req_ent
+  , r.lift_count
+  , not r.req_ent is null as native
+  , not r.dest_ent isnull and r.dest_ent = tp.last as circuit
+  , tp.lift_min		as path_lift_min
+  , tp.lift_margin	as path_lift_margin
+  , tp.lift_max		as path_lift_max
+  , tp.lift_reward	as path_lift_reward
+  , tp.drop_min		as path_drop_min
+  , tp.drop_margin	as path_drop_margin
+  , tp.drop_max		as path_drop_max
+  , tp.drop_reward	as path_drop_reward
+
+  , r.lift_min		as route_lift_min
+  , r.lift_margin	as route_lift_margin
+  , r.lift_max		as route_lift_max
+  , r.lift_reward	as route_lift_reward
+  , r.drop_min		as route_drop_min
+  , r.drop_margin	as route_drop_margin
+  , r.drop_max		as route_drop_max
+  , r.drop_reward	as route_drop_reward
+  
+  , least(tp.lift_min,r.lift_min)				as lift_min
+  , r.lift_margin + tp.lift_margin * (1 - r.lift_margin)	as lift_margin
+  , case when tp.lift_min < r.lift_min then
+      least(tp.lift_max,r.lift_min)
+    else
+      least(r.lift_max,tp.lift_min) end				as lift_max
+  , case when tp.lift_min < r.lift_min then tp.lift_reward else r.lift_reward end as lift_reward
+
+  , least(tp.drop_min,r.drop_min)				as drop_min
+  , r.drop_margin + tp.drop_margin * (1 - r.drop_margin)	as drop_margin
+  , case when tp.drop_min < r.drop_min then
+      least(tp.drop_max,r.drop_min)
+    else
+      least(r.drop_max,tp.drop_min) end				as drop_max
+  , case when tp.drop_min < r.drop_min then tp.drop_reward else r.drop_reward end as drop_reward
+  
+  from	mychips.tallies_v_paths_old	tp
+  join	mychips.routes	r on r.route_ent = tp.first
+  where tp.corein and tp.fora;
+}
+
+# View showing join of inside pathways and outside routes
+# to discover/analyze possible distributed lifts
+#----------------------------------------------------------------
+view mychips.routes_v_lifts_old {mychips.routes_v_paths_old} {
+  select * from mychips.routes_v_paths_old where native and forz and circuit order by 1 desc
+}
+

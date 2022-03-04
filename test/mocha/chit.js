@@ -50,14 +50,14 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
         delete from mychips.chits;
         update mychips.tallies set _last_chit = 0 where tally_ent = %L and status = 'open' returning tally_ent, tally_seq, tally_uuid; commit`
       , dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
-    dbO.query(Format(sql, userO), (e, res) => {if (e) done(e);
+    dbO.query(Format(sql, userO), (e, res) => {if (e) done(e)
       assert.equal(res[2].rowCount, 1)
       let row = res[2].rows[0]			//;log.debug('row O:', row)
       assert.equal(row.tally_ent, userO)
       interTest.talO = row
       _done()
     })
-    dbS.query(Format(sql, userS), (e, res) => {if (e) done(e);
+    dbS.query(Format(sql, userS), (e, res) => {if (e) done(e)
       assert(res[2].rowCount, 1)
       let row = res[2].rows[0]			//;log.debug('row S:', row)
       assert.equal(row.tally_ent, userS)
@@ -77,7 +77,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_ent, userO)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.request, request)
@@ -126,7 +126,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.state, 'L.pend.void')
       _done()
@@ -152,7 +152,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.state, 'A.draft.pend')
       _done()
@@ -184,7 +184,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbS.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.state, 'L.pend.good')
       _done()
@@ -215,7 +215,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_ent, userO)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.request, request)

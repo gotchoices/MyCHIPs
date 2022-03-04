@@ -344,7 +344,7 @@ raise notice 'Remote dest: :%@% units:% last:% botu:%', dchid, dhost, units, fro
             end if;
             
             if not found or dest_r.id isnull then	-- Didn't work out finding an internal path
-              select into qrec first,path,uuids from mychips.routes_v_paths
+              select into qrec first,path,uuids from mychips.routes_v_paths_old
                 where dest_chid = dchid and dest_host = dhost
                 and last = from_r.id 
                 and path[array_upper(path,1)-1] = user_r.id	-- was: botu_ent = user_r.id (wrong)
@@ -459,13 +459,13 @@ $$;}
 
 # Attempt a circular distributed lift along the specified segment
 #----------------------------------------------------------------
-function {mychips.lift_circuit(top text, bot text)} {mychips.lifts_v mychips.routes_v_paths mychips.users_v} {
+function {mychips.lift_circuit(top text, bot text)} {mychips.lifts_v mychips.routes_v_paths_old mychips.users_v} {
   returns void language plpgsql as $$
     declare
       rrec	record;
       botu_cid	text;
     begin
-      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths where first = top and dest_ent = bot and circuit and status = 'good' order by lift_margin limit 1;
+      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths_old where first = top and dest_ent = bot and circuit and status = 'good' order by lift_margin limit 1;
       if not found then return; end if;
       select into botu_cid peer_cid from mychips.users_v where id = rrec.botu_ent;
       
@@ -476,13 +476,13 @@ $$;}
 
 # Attempt a linear distributed lift from a local user to a remote peer
 #----------------------------------------------------------------
-function {mychips.lift_linear(frm text, tocid text, tohost text, units bigint)} {mychips.lifts_v mychips.routes_v_paths mychips.users_v} {
+function {mychips.lift_linear(frm text, tocid text, tohost text, units bigint)} {mychips.lifts_v mychips.routes_v_paths_old mychips.users_v} {
   returns bigint language plpgsql as $$
     declare
       rrec	record;
 --      botu_cid	text;
     begin
-      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths where last = frm and dest_chid = tocid and dest_host = tohost and status = 'good' order by lift_margin limit 1;
+      select into rrec first,botu_ent,path,uuids,dest_chid,dest_host,lift_min from mychips.routes_v_paths_old where last = frm and dest_chid = tocid and dest_host = tohost and status = 'good' order by lift_margin limit 1;
       if not found then return null; end if;
 --      select into botu_cid peer_cid from mychips.users_v where id = rrec.botu_ent;
       
