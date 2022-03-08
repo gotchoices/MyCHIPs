@@ -137,9 +137,6 @@ class AgentCluster {
     }, this.params.interval)
   }
 
-  // Replaces checkPeer() in agent2
-  ensurePeerInSystem() {}
-
   // --- Functions passed as callbacks -------------------------------------------------------
   /** Callback
    * Loads agents from the MyCHIPs Database

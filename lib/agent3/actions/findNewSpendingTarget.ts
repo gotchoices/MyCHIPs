@@ -32,7 +32,6 @@ class FindNewSpendingTarget implements Action{
 
 				this.logger.debug(this.agent.peer_cid, "  attempting new spending source with", newPeer.peer_cid)
 
-				console.log("hello?")
 				// Save new peer data locally
 				if (!this.agentCache.containsAgent(newPeer)) {
 					this.myChipsDBManager.addAgent(newPeer)

@@ -66,6 +66,7 @@ class SQLManager {
     notifyOfParamsChange: (target: string, value: any) => void,
     notifyOfTallyChange: (msg: any) => void
   ) {
+    console.log("Connecting to MyCHIPs DB...")
     this.dbConnection = new dbClient(this.config, (channel, payload) => {
       //Initialize Database connection
       let msg: any
@@ -91,6 +92,7 @@ class SQLManager {
         if (msg.target == 'tally') notifyOfTallyChange(msg)
       }
     })
+    console.log("MyCHIPs DB Connected!")
     this.logger.info('SQL Connection Created')
   }
 
@@ -210,12 +212,14 @@ class SQLManager {
       callback(res.rows)
     })
   }
+  
   /**
    * Executes database query to get all initial acounts
    * @param callback: eatAgents - loads queried accounts into the worldDB
    * */
   // ! TODO Does this fetch from all peers?
   queryUsers(callback: (agents: AgentData[], all: boolean) => any) {
+    console.log("Getting users from MyCHIPs DB")
     this.query(userSql, (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
