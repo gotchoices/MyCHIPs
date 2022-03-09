@@ -98,7 +98,7 @@ class SQLManager {
 
   addAgent(agentData: AgentData) {
     console.log("Adding", agentData.std_name, "to local DB...")
-    this.dbConnection.query(
+    this.query(
       peerSql,
       [
         agentData.ent_name,
@@ -106,8 +106,8 @@ class SQLManager {
         agentData.ent_type,
         agentData.born_date,
         agentData.peer_cid,
-        agentData.peer_host || agentData.peer_socket.split(':')[0]!,
-        agentData.peer_port || agentData.peer_socket.split(':')[1]!,
+        agentData.peer_host || agentData.peer_sock.split(':')[0]!,
+        agentData.peer_port || agentData.peer_sock.split(':')[1]!,
       ],
       (err, res) => {
         if (err) {
@@ -126,7 +126,7 @@ class SQLManager {
     )
   }
 
-  addConnectionRequest(requestingAccountID: number, targetAccountID: number) {
+  addConnectionRequest(requestingAccountID: string, targetAccountID: string) {
     let guid = uuidv4()
     let sig = 'Valid'
     let contract = { name: 'mychips-0.99' }
@@ -218,6 +218,7 @@ class SQLManager {
    * @param callback: eatAgents - loads queried accounts into the worldDB
    * */
   // ! TODO Does this fetch from all peers?
+  // ! ANSWER No, just from the matching pg database/container
   queryUsers(callback: (agents: AgentData[], all: boolean) => any) {
     console.log("Getting users from MyCHIPs DB")
     this.query(userSql, (err: any, res: any) => {

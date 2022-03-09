@@ -53,8 +53,9 @@ interface ActionData {
   from: string
 }
 
+/** Agent data using the names from the SQL */
 interface AgentData {
-  id: number
+  id: string
   /** last name, first name*/
   std_name: string
   /** entity name (last name) */
@@ -67,7 +68,7 @@ interface AgentData {
   hosted_ent?: boolean | null
   peer_cid: string
   /** Assigned peer socket (ex: 'peer2:65430') */
-  peer_socket: string
+  peer_sock: string
   stocks: number
   foils: number
   partners: string[]
@@ -81,7 +82,7 @@ interface AgentData {
   random?: number
   /** Name of hosting peer server (ex: 'peer0') */
   host?: string
-  born_date?: string
+  born_date: string
   peer_host?: string
   peer_port?: string
 }

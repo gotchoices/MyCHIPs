@@ -2,13 +2,15 @@ import Action from './action'
 
 interface Agent {
     //TODO add typing to these and figure out what they all do
-    id: number
+    id: string
     /** Name of the entity */
     std_name: string
     /** Globally unique ID */
     peer_cid: any 
     /** ID of the hosting server */
     host: string
+    /** Birthday of the user */
+    birthday: string
     /** The type of entity */
     entity_type: string
     peer_socket: string

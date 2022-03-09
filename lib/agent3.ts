@@ -45,6 +45,7 @@ class AgentCluster {
     console.log('STARTING AGENT MODEL * VERSION 3 *')
     this.networkConfig = networkConfig
     this.host = networkConfig.peerServer || Os.hostname()
+    console.log("SERVER:", this.host)
 
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
@@ -174,6 +175,8 @@ class AgentCluster {
     tag: string,
     destinationHost: string
   ) {
+    console.log("New Agent Request from", destinationHost, "with tag", tag)
+    console.log("Agent to add:\n", agentData)
     if (!this.agentCache.containsAgent(agentData)) {
       this.myChipsDBManager.addAgent(agentData)
       this.agentCache.addAgent(agentData)
@@ -195,9 +198,10 @@ class AgentCluster {
     if (!this.worldDBManager.isDBClientConnected()) {
       return
     }
-
+    console.log("\nAgents updated:", dbAgents.length)
     let localAgents: AgentData[] = []
     dbAgents.forEach((dbAgent) => {
+      // console.log(dbAgent)
       if (dbAgent.user_ent) {
         dbAgent.hosted_ent = true
         localAgents.push(dbAgent)
@@ -205,36 +209,35 @@ class AgentCluster {
       this.agentCache.addAgent(dbAgent)
     })
 
-    // Ensure all agents hosted on this server have an Agent object
-    let typesToMake: [string, AdjustableAgentParams?][] = []
-    this.params.agentTypes.forEach((agentType) => {
-      for (
-        let i = 0;
-        i < Math.round(agentType.percentOfTotal * localAgents.length);
-        i++
-      ) {
-        typesToMake.push([agentType.type, agentType])
-      }
-    })
-
-    for (let i = 0; i < localAgents.length - typesToMake.length; i++) {
-      typesToMake.push(['default', undefined])
-    }
-    let hostedAgentIds: string[] = []
-    for (let i = 0; i < localAgents.length; i++) {
-      let newAgent = AgentFactory.createAgent(
-        typesToMake[i][0],
-        localAgents[i],
-        this.host,
-        typesToMake[i][1]
-      )
-      this.worldDBManager.updateOneAgent(newAgent.getAgentData())
-      this.hostedAgents.push(newAgent)
-      hostedAgentIds.push(newAgent.peer_cid)
-    }
-
     // If loading all users (loading for the first time)
     if (all) {
+      console.log("Creating my agent objects!")
+      // Ensure all agents hosted on this server have an Agent object
+      let typesToMake: [string, AdjustableAgentParams?][] = []
+      this.params.agentTypes.forEach((agentType) => {
+        for (let i = 0;
+          i < Math.round(agentType.percentOfTotal * localAgents.length);
+          i++) {
+          typesToMake.push([agentType.type, agentType])
+        }
+      })
+
+      for (let i = 0; i < localAgents.length - typesToMake.length; i++) {
+        typesToMake.push(['default', undefined])
+      }
+      let hostedAgentIds: string[] = []
+      for (let i = 0; i < localAgents.length; i++) {
+        let newAgent = AgentFactory.createAgent(
+          typesToMake[i][0],
+          localAgents[i],
+          this.host,
+          typesToMake[i][1]
+        )
+        this.worldDBManager.updateOneAgent(newAgent.getAgentData())
+        this.hostedAgents.push(newAgent)
+        hostedAgentIds.push(newAgent.peer_cid)
+      }
+
       this.worldDBManager.deleteAllAgentsExcept(hostedAgentIds)
       this.startSimulation()
     }
@@ -274,6 +277,7 @@ class AgentCluster {
       agent.std_name,
       agent.peer_cid
     )
+    console.log("\n", agent.peer_cid, "is taking their turn")
 
     agent.takeAction()
 

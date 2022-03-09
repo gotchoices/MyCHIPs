@@ -36,6 +36,7 @@ class MongoManager {
     this.host = argv.peerServer || Os.hostname()
 
     this.foreignActionTagIndex = 0
+    this.foreignActionCallbackCache = {}
   }
 
   /** Returns the singleton instance of the MongoManager */
@@ -109,6 +110,8 @@ class MongoManager {
         } else if (doc.action == 'done') {
           // Someone has told me that an action I requested is done
           this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
+          console.log("Remote action done:", doc.tag, "target:", doc.from)
+          console.log("Callback cache:", this.foreignActionCallbackCache)
           this.foreignActionCallbackCache[doc.tag]()
           delete this.foreignActionCallbackCache[doc.tag]
         }
@@ -135,11 +138,14 @@ class MongoManager {
     command: string,
     tag: string = this.host + '.' + this.foreignActionTagIndex++,
     destinationHost: string,
+    data?: any,
     callback?: () => void
   ) {
-    console.log("Attempting to add", command, "action to db...")
+    console.log("Adding", command, "action to db...")
+    if (data) console.log("with data")
+    if (callback) console.log("and callback")
     this.actionsCollection.insertOne(
-      { action: command, tag: tag, host: destinationHost, from: this.host },
+      { action: command, tag: tag, host: destinationHost, from: this.host, data: data },
       (err, res) => {
         if (err) {
           this.logger.error(
@@ -157,17 +163,19 @@ class MongoManager {
             'to:',
             destinationHost
           )
-          console.log("Added", command, "action to db!")
+          console.log("Added", command, "action for", destinationHost)
         }
       }
     )
 
     if (callback) {
       this.foreignActionCallbackCache[tag] = callback
+      console.log("Callback cache:", this.foreignActionCallbackCache)
     }
   }
 
   updateOneAgent(agent: AgentData) {
+    // console.log("Putting into mongo:\n", agent)
     this.agentsCollection.updateOne(
       { peer_cid: agent.peer_cid, host: agent.host },
       { $set: agent },
@@ -232,7 +240,7 @@ class MongoManager {
         this.logger.error('  Error finding a peer:', err)
       }
     ).catch((reason) => {
-      this.logger.error(' No peer found:', reason)
+      this.logger.info(' No peer found:', reason)
     })
   }
 

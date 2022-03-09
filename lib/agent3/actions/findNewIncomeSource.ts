@@ -37,7 +37,7 @@ class FindNewIncomeSource implements Action {
           this.agentCache.addAgent(newPeer)
         }
 
-        let newPeerServer = newPeer.peer_socket.split(':')[0]
+        let newPeerServer = newPeer.peer_sock.split(':')[0]
         this.worldDBManager.insertAction("createAccount", undefined, newPeerServer, () => {
           this.myChipsDBManager.addConnectionRequest(this.agent.id, newPeer.id)
           // TODO: This stuff should only be done when the connection is accepted by the peer. Right now the peers always accept requests, so we can do it here. I'm not sure how we will get notified when the connection is accepted...
