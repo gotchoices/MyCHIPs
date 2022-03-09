@@ -20,12 +20,12 @@ interface DBConfig {
 interface AdjustableSimParams {
   /** The interval between rounds in the simulation (in milliseconds) */
   interval: number
-  /** A list agent parameters */
-  agentTypes: AdjustableAgentParams[]
+  /** A list account parameters */
+  accountTypes: AdjustableAccountParams[]
 }
 
-/** Adjustable parameters that determine how an agent should act. Gathered from paramConfig.yaml */
-interface AdjustableAgentParams {
+/** Adjustable parameters that determine how an account should act. Gathered from paramConfig.yaml */
+interface AdjustableAccountParams {
   /** The type of entity. The string should equal one of the implemented types of entities */
   type: string
   /** The percentage of total entities on this server that should be made this type */
@@ -53,8 +53,7 @@ interface ActionData {
   from: string
 }
 
-/** Agent data using the names from the SQL */
-interface AgentData {
+interface AccountData {
   id: string
   /** last name, first name*/
   std_name: string

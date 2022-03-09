@@ -62,7 +62,7 @@ class SQLManager {
   }
 
   createConnection(
-    notifyOfAgentChange: (msg: any) => void,
+    notifyOfAccountChange: (msg: any) => void,
     notifyOfParamsChange: (target: string, value: any) => void,
     notifyOfTallyChange: (msg: any) => void
   ) {
@@ -70,7 +70,7 @@ class SQLManager {
     this.dbConnection = new dbClient(this.config, (channel, payload) => {
       //Initialize Database connection
       let msg: any
-      this.logger.trace('Agent DB async on:', channel, 'payload:', payload)
+      this.logger.trace('Account DB async on:', channel, 'payload:', payload)
       if (payload)
         try {
           msg = JSON.parse(payload)
@@ -85,7 +85,7 @@ class SQLManager {
       } else if (channel == 'mychips_admin') {
         //Something in the user data has changed
         if (msg.target == 'peers' || msg.target == 'tallies') {
-          notifyOfAgentChange(msg)
+          notifyOfAccountChange(msg)
         }
       } else if (channel == 'mychips_user') {
         //Respond as a real user would to a request/event
@@ -96,23 +96,21 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
-  addAgent(agentData: AgentData) {
-    console.log("Adding", agentData.std_name, "to local DB...")
-    this.query(
+  addAccount(accountData: AccountData) {
+    this.dbConnection.query(
       peerSql,
       [
-        agentData.ent_name,
-        agentData.fir_name,
-        agentData.ent_type,
-        agentData.born_date,
-        agentData.peer_cid,
-        agentData.peer_host || agentData.peer_sock.split(':')[0]!,
-        agentData.peer_port || agentData.peer_sock.split(':')[1]!,
+        accountData.ent_name,
+        accountData.fir_name,
+        accountData.ent_type,
+        accountData.born_date,
+        accountData.peer_cid,
+        accountData.peer_host || accountData.peer_sock.split(':')[0]!,
+        accountData.peer_port || accountData.peer_sock.split(':')[1]!,
       ],
       (err, res) => {
         if (err) {
-          this.logger.error('Adding peer:', agentData.peer_cid, err.stack)
-          console.log("Error adding", agentData.std_name, "to local DB:", err)
+          this.logger.error('Adding peer:', accountData.peer_cid, err.stack)
           return
         }
         let newGuy = res.rows[0]
@@ -215,29 +213,29 @@ class SQLManager {
   
   /**
    * Executes database query to get all initial acounts
-   * @param callback: eatAgents - loads queried accounts into the worldDB
+   * @param callback: eatAccounts - loads queried accounts into the worldDB
    * */
   // ! TODO Does this fetch from all peers?
   // ! ANSWER No, just from the matching pg database/container
-  queryUsers(callback: (agents: AgentData[], all: boolean) => any) {
+  queryUsers(callback: (agents: AccountData[], all: boolean) => any) {
     console.log("Getting users from MyCHIPs DB")
     this.query(userSql, (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
         return
       }
-      this.logger.trace('Loaded agents:', res.rows.length)
+      this.logger.trace('Loaded accounts:', res.rows.length)
       callback(res.rows, true)
     })
   }
 
-  queryLatestUsers(time: string, callback: (agents: AgentData[]) => any) {
+  queryLatestUsers(time: string, callback: (accounts: AccountData[])=>any) {
     this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
         return
       }
-      this.logger.trace('Loaded agents:', res.rows.length)
+      this.logger.trace('Loaded accounts:', res.rows.length)
       callback(res.rows)
     })
   }
