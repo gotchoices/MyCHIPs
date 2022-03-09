@@ -25,7 +25,9 @@ class BaseAccount implements Account {
 	actions: Action[];
 	lastActionTaken: string;
 	spendingTargets: string[];
+	spendingTargetCids: string[];
 	incomeSources: string[];
+	incomeSourceCids: string[];
 	stock_seqs: any[];
 	types: any[];
 	
@@ -74,7 +76,9 @@ class BaseAccount implements Account {
 		this.hosted_ent = true;
 		this.lastActionTaken = '';
 		this.spendingTargets = [];
+		this.spendingTargetCids = [];
 		this.incomeSources = [];
+		this.incomeSourceCids = [];
 		this.types = [];
 
 		this.newIncomeSourceOdds = accountParams?.newIncomeSourceOdds || 0.1
@@ -111,7 +115,7 @@ class BaseAccount implements Account {
 			ent_name: this.ent_name,
 			fir_name: this.first_name,
 			ent_type: this.entity_type,
-			user_ent: this.id,    // Idk why these are equivalent, but they are in agent2...
+			user_ent: this.id,
 			peer_cid: this.peer_cid,
 			peer_sock: this.peer_socket,
 			born_date: this.birthday,
@@ -120,6 +124,8 @@ class BaseAccount implements Account {
 			partners: [...this.spendingTargets, ...this.incomeSources],
 			vendors: this.spendingTargets,
 			clients: this.incomeSources,
+			vendor_cids: this.spendingTargetCids,
+			client_cids: this.incomeSourceCids,
 			stock_seqs: this.stock_seqs,
 			foil_seqs: this.foil_seqs,
 			units: this.netWorth,

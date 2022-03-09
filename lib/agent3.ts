@@ -131,6 +131,7 @@ class AccountCluster {
       // If there is no limit on runs, or we're below the limit...
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
+        console.log("\n###RUN NUMBER", this.runCounter, "###")
         this.hostedAccounts.forEach(this.process)
       } else {
         this.close()

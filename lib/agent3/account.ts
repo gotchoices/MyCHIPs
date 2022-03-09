@@ -14,10 +14,10 @@ interface Account {
     /** The type of entity */
     entity_type: string
     peer_socket: string
-    /** The number of spending targets (stocks) this entity holds */
+    /** The number of spending targets (foils) this entity holds */
     numSpendingTargets: number
     stock_seqs: number[]
-    /** The number of income sources (foils) this entity holds */
+    /** The number of income sources (stocks) this entity holds */
     numIncomeSources: number
     foil_seqs: number[]
     /** Net CHIPs owned by this account */
@@ -27,10 +27,14 @@ interface Account {
     /** List of actions this entity can take */
     actions: Action[]
     lastActionTaken: string
-    /** Other entities' IDs I hold the stock for (I give them money) aka Vendors*/
+    /** Other entities' IDs I hold the foil for (I give them money) aka Vendors*/
     spendingTargets: string[] 
-    /** Other entities' IDs I hold the foil for (they give me money) aka Clients */
+    /** Other entities' CIDs I hold the foil for */
+    spendingTargetCids: string[]
+    /** Other entities' IDs I hold the stock for (they give me money) aka Clients */
     incomeSources: string[]
+    /** Other entities' CIDs I hold the stock for */
+    incomeSourceCids: string[]
     types: any[] 
     /** Used to randomly sort agents in the world DB */
     random: number

@@ -28,7 +28,7 @@ class FindNewSpendingTarget implements Action{
 				Math.random() < this.account.newSpendingTargetOdds))       //  we randgomly choose to))
 		{
 			console.log("\n", this.account.peer_cid, "is finding a new spending target!")
-			this.worldDBManager.findPeerAndUpdate(this.account.peer_cid, this.account.spendingTargets, (newPeer: AccountData) => {
+			this.worldDBManager.findPeerAndUpdate(this.account.peer_cid, this.account.spendingTargetCids, (newPeer: AccountData) => {
 				console.log(this.account.peer_cid, "wants to connect to", newPeer.peer_cid)
 				console.log("Peer:", newPeer.peer_cid, newPeer.id)
 
@@ -45,21 +45,24 @@ class FindNewSpendingTarget implements Action{
 				if (newPeerServer != this.account.host) {
 					// If it is, request that the other server gets our info
 					this.worldDBManager.insertAction("createAccount", undefined, newPeerServer, this.account.getAccountData(), () => {
-						this.addConnectionRequest(newPeer.id)
+						this.addConnection(newPeer.id, newPeer.peer_cid)
 					})
 				}
 				else {
 					// Otherwise, just made the connection request
-					this.addConnectionRequest(newPeer.id)
+					this.addConnection(newPeer.id, newPeer.peer_cid)
 				}
 			})
 		}
 	}
 
-	addConnectionRequest(peerID: string) {
-		console.log(this.account.std_name, "sending connection request to", peerID)
-		this.myChipsDBManager.addConnectionRequest(this.account.id, peerID)
+	addConnection(peer_id: string, peer_cid: string) {
+		console.log(this.account.std_name, "sending connection request to", peer_cid)
+		this.myChipsDBManager.addConnectionRequest(this.account.id, peer_id)
 		this.account.numSpendingTargets++
+		if (peer_cid !in this.account.spendingTargetCids) {
+			this.account.spendingTargetCids.push(peer_cid)
+		}
 		this.worldDBManager.updateOneAccount(this.account.getAccountData())
 	}
 }

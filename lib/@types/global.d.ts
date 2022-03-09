@@ -72,7 +72,9 @@ interface AccountData {
   foils: number
   partners: string[]
   vendors: string[]
+  vendor_cids?: string[]
   clients: string[]
+  client_cids?: string[]
   stock_seqs: number[]
   foil_seqs: number[]
   units: number
