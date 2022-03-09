@@ -205,6 +205,7 @@ class AccountCluster {
       if (dbAccount.user_ent) {
         dbAccount.hosted_ent = true
         localAccounts.push(dbAccount)
+        this.worldDBManager.updateOneAccount(dbAccount)
       }
       this.accountCache.addAccount(dbAccount)
     })

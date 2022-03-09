@@ -42,6 +42,7 @@ class AccountCache {
         if (foundAccount) {
             return foundAccount
         } else {
+            console.log("\n\nError in the Account Cache!:\n", this.accountCache)
             throw "No account with given peer_cid is found"
         }
     }
