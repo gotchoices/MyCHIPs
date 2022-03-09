@@ -54,7 +54,7 @@ interface ActionData {
 }
 
 interface AccountData {
-  id: number
+  id: string
   /** last name, first name*/
   std_name: string
   /** entity name (last name) */
@@ -67,7 +67,7 @@ interface AccountData {
   hosted_ent?: boolean | null
   peer_cid: string
   /** Assigned peer socket (ex: 'peer2:65430') */
-  peer_socket: string
+  peer_sock: string
   stocks: number
   foils: number
   partners: string[]
@@ -81,7 +81,7 @@ interface AccountData {
   random?: number
   /** Name of hosting peer server (ex: 'peer0') */
   host?: string
-  born_date?: string
+  born_date: string
   peer_host?: string
   peer_port?: string
 }

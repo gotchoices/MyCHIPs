@@ -11,6 +11,7 @@ class UnifiedLogger {
     if (!UnifiedLogger.instance) {
       UnifiedLogger.instance = Log('agent')
     }
+    UnifiedLogger.instance.info("Logger created")
     return UnifiedLogger.instance
   }
 }

@@ -7,12 +7,13 @@ import ActionFactory from '../actionFactory';
 import UnifiedLogger from '../unifiedLogger';
 
 class BaseAccount implements Account {
-    id: number;
+    id: string;
     std_name: string;
     ent_name: string;
     first_name: string;
     peer_cid: any;
     host: string;
+	birthday: string;
     entity_type: string;
     peer_socket: string;
     random: number;
@@ -36,20 +37,21 @@ class BaseAccount implements Account {
     minWorthToSpend: number
     maxToSpend: number;
 
-    worldDBManager: MongoManager;
-    myChipsDBManager: SQLManager;
-    logger: WyclifLogger;
+	worldDBManager: MongoManager;
+	myChipsDBManager: SQLManager;
+	logger: WyclifLogger;
 
     constructor(accountData: AccountData, host: string, accountParams?: AdjustableAccountParams) {
+		console.log("Creating account object for", accountData.std_name)
         this.worldDBManager = MongoManager.getInstance();
         this.myChipsDBManager = SQLManager.getInstance();
         this.logger = UnifiedLogger.getInstance();
 
-        //TODO these need to have actual parameters for the factory
-        this.actions = [];
-        this.actions.push(ActionFactory.createAction('NewSpendingSource', this));
-        // this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet 
-        this.actions.push(ActionFactory.createAction('SpendCHIPs', this));
+		//TODO these need to have actual parameters for the factory
+		this.actions = [];
+		this.actions.push(ActionFactory.createAction('NewSpendingSource', this));
+		// this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet 
+		this.actions.push(ActionFactory.createAction('SpendCHIPs', this));
 
         //TODO: finish applying this info from account data and params
         this.id = accountData.id;
@@ -57,9 +59,10 @@ class BaseAccount implements Account {
         this.ent_name = accountData.ent_name;
         this.first_name = accountData.fir_name;
         this.peer_cid = accountData.peer_cid;
-        this.peer_socket = accountData.peer_socket;
+        this.peer_socket = accountData.peer_sock;
         this.host = host
         this.entity_type = "Default person"
+		this.birthday = accountData.born_date || "yesterday"
         this.random = Math.random()
 
         this.numSpendingTargets = 0;
@@ -68,11 +71,11 @@ class BaseAccount implements Account {
         this.stock_seqs = accountData.stock_seqs || [];
         this.netWorth = 0;
 
-        this.hosted_ent = true;
-        this.lastActionTaken = '';
-        this.spendingTargets = [];
-        this.incomeSources = [];
-        this.types = [];
+		this.hosted_ent = true;
+		this.lastActionTaken = '';
+		this.spendingTargets = [];
+		this.incomeSources = [];
+		this.types = [];
 
         this.newIncomeSourceOdds = accountParams?.newIncomeSourceOdds || 0.1
         this.adjustSettingsOdds = accountParams?.adjustSettingsOdds || 0.5
@@ -92,13 +95,14 @@ class BaseAccount implements Account {
         })
     }
 
-    acceptNewConnection(message: any) {
-        // I don't know how to tell the difference between types of connections (whether this account is the income source or spending target)
-        // As a default Account, we will always accept a connection
-        this.myChipsDBManager.updateConnectionRequest(message.entity, message.sequence, true)
+	acceptNewConnection(message: any) {
+		// I don't know how to tell the difference between types of connections (whether this account is the income source or spending target)
+		// As a default Account, we will always accept a connection
+		console.log(this.peer_cid, "is accepting a connection request!")
+		this.myChipsDBManager.updateConnectionRequest(message.entity, message.sequence, true)
 
-        // TODO: update data here (depends on what kind of connection it is though...)
-    }
+		// TODO: update data here (depends on what kind of connection it is though...)
+	}
 
     getAccountData(): AccountData {
         return {
@@ -107,9 +111,10 @@ class BaseAccount implements Account {
             ent_name: this.ent_name,
             fir_name: this.first_name,
             ent_type: this.entity_type,
-            user_ent: "???",
+            user_ent: this.id,    // Idk why these are equivalent, but they are in agent2...
             peer_cid: this.peer_cid,
-            peer_socket: this.peer_socket,
+            peer_sock: this.peer_socket,
+			born_date: this.birthday,
             stocks: this.numSpendingTargets,
             foils: this.numIncomeSources,
             partners: [...this.spendingTargets, ...this.incomeSources],

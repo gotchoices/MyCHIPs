@@ -45,6 +45,7 @@ class AccountCluster {
     console.log('STARTING AGENT MODEL * VERSION 3 *')
     this.networkConfig = networkConfig
     this.host = networkConfig.peerServer || Os.hostname()
+    console.log("SERVER:", this.host)
 
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
@@ -137,9 +138,6 @@ class AccountCluster {
     }, this.params.interval)
   }
 
-  // Replaces checkPeer() in agent2
-  ensurePeerInSystem() {}
-
   // --- Functions passed as callbacks -------------------------------------------------------
   /** Callback
    * Loads accounts from the MyCHIPs Database
@@ -177,6 +175,8 @@ class AccountCluster {
     tag: string,
     destinationHost: string
   ) {
+    console.log("New Account Request from", destinationHost, "with tag", tag)
+    console.log("Account to add:\n", accountData)
     if (!this.accountCache.containsAccount(accountData)) {
       this.myChipsDBManager.addAccount(accountData)
       this.accountCache.addAccount(accountData)
@@ -199,6 +199,7 @@ class AccountCluster {
       return
     }
 
+    console.log("\nAccounts updated:", dbAccounts.length)
     let localAccounts: AccountData[] = []
     dbAccounts.forEach((dbAccount) => {
       if (dbAccount.user_ent) {
@@ -208,36 +209,35 @@ class AccountCluster {
       this.accountCache.addAccount(dbAccount)
     })
 
-    // Ensure all accounts hosted on this server have an Account object
-    let typesToMake: [string, AdjustableAccountParams?][] = []
-    this.params.accountTypes.forEach((accountType) => {
-      for (
-        let i = 0;
-        i < Math.round(accountType.percentOfTotal * localAccounts.length);
-        i++
-      ) {
-        typesToMake.push([accountType.type, accountType])
-      }
-    })
-
-    for (let i = 0; i < localAccounts.length - typesToMake.length; i++) {
-      typesToMake.push(['default', undefined])
-    }
-    let hostedAccountIds: string[] = []
-    for (let i = 0; i < localAccounts.length; i++) {
-      let newAccount = AccountFactory.createAccount(
-        typesToMake[i][0],
-        localAccounts[i],
-        this.host,
-        typesToMake[i][1]
-      )
-      this.worldDBManager.updateOneAccount(newAccount.getAccountData())
-      this.hostedAccounts.push(newAccount)
-      hostedAccountIds.push(newAccount.peer_cid)
-    }
-
     // If loading all users (loading for the first time)
     if (all) {
+      console.log("Creating my account objects!")
+      // Ensure all accounts hosted on this server have an Account object
+      let typesToMake: [string, AdjustableAccountParams?][] = []
+      this.params.accountTypes.forEach((accountType) => {
+        for (let i = 0;
+          i < Math.round(accountType.percentOfTotal * localAccounts.length);
+          i++) {
+          typesToMake.push([accountType.type, accountType])
+        }
+      })
+
+      for (let i = 0; i < localAccounts.length - typesToMake.length; i++) {
+        typesToMake.push(['default', undefined])
+      }
+      let hostedAccountIds: string[] = []
+      for (let i = 0; i < localAccounts.length; i++) {
+        let newAccount = AccountFactory.createAccount(
+          typesToMake[i][0],
+          localAccounts[i],
+          this.host,
+          typesToMake[i][1]
+        )
+        this.worldDBManager.updateOneAccount(newAccount.getAccountData())
+        this.hostedAccounts.push(newAccount)
+        hostedAccountIds.push(newAccount.peer_cid)
+      }
+
       this.worldDBManager.deleteAllAccountsExcept(hostedAccountIds)
       this.startSimulation()
     }
@@ -277,6 +277,7 @@ class AccountCluster {
       account.std_name,
       account.peer_cid
     )
+    console.log("\n", account.peer_cid, "is taking their turn")
 
     account.takeAction()
 

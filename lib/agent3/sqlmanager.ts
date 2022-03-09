@@ -2,7 +2,7 @@
 import { dbClient } from 'wyseman'
 import UnifiedLogger from './unifiedLogger'
 
-import uuidv4 from 'uuid/v4';
+import uuidv4 from 'uuid/v4'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_sock, stocks, foils, partners, vendors, clients,
@@ -13,7 +13,6 @@ const peerSql = `insert into mychips.peers_v
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
-
 
 interface Config extends DBConfig {
   log: WyclifLogger
@@ -28,7 +27,7 @@ class SQLManager {
   private params: AdjustableSimParams
   // These member variables are never used, but might be if we implement some of the other functions
   // private channels: string[] = []
-  // private host: string 
+  // private host: string
   // private database: string
   // private user: string
   // private port: string
@@ -47,12 +46,16 @@ class SQLManager {
     )
   }
 
-  public static getInstance(sqlConfig?: DBConfig, params?: AdjustableSimParams): SQLManager {
+  public static getInstance(
+    sqlConfig?: DBConfig,
+    params?: AdjustableSimParams
+  ): SQLManager {
     if (!SQLManager.singletonInstance && sqlConfig && params) {
       SQLManager.singletonInstance = new SQLManager(sqlConfig, params)
-    }
-    else if (!SQLManager && (!sqlConfig || !params)) {
-      throw new Error('no singleton instance exists and no paramaters supplied for creation')
+    } else if (!SQLManager && (!sqlConfig || !params)) {
+      throw new Error(
+        'no singleton instance exists and no paramaters supplied for creation'
+      )
     }
 
     return SQLManager.singletonInstance
@@ -63,6 +66,7 @@ class SQLManager {
     notifyOfParamsChange: (target: string, value: any) => void,
     notifyOfTallyChange: (msg: any) => void
   ) {
+    console.log("Connecting to MyCHIPs DB...")
     this.dbConnection = new dbClient(this.config, (channel, payload) => {
       //Initialize Database connection
       let msg: any
@@ -88,6 +92,7 @@ class SQLManager {
         if (msg.target == 'tally') notifyOfTallyChange(msg)
       }
     })
+    console.log("MyCHIPs DB Connected!")
     this.logger.info('SQL Connection Created')
   }
 
@@ -100,8 +105,8 @@ class SQLManager {
         accountData.ent_type,
         accountData.born_date,
         accountData.peer_cid,
-        accountData.peer_host || accountData.peer_socket.split(':')[0]!,
-        accountData.peer_port || accountData.peer_socket.split(':')[1]!,
+        accountData.peer_host || accountData.peer_sock.split(':')[0]!,
+        accountData.peer_port || accountData.peer_sock.split(':')[1]!,
       ],
       (err, res) => {
         if (err) {
@@ -114,11 +119,12 @@ class SQLManager {
           newGuy.std_name,
           newGuy.peer_socket
         )
+        console.log("Added", newGuy.std_name, "to local DB")
       }
     )
   }
 
-  addConnectionRequest(requestingAccountID: number, targetAccountID: number) {
+  addConnectionRequest(requestingAccountID: string, targetAccountID: string) {
     let guid = uuidv4()
     let sig = 'Valid'
     let contract = { name: 'mychips-0.99' }
@@ -154,29 +160,37 @@ class SQLManager {
           }
         }
       )
-    }
-    else {
+    } else {
       //TODO: figure out how to mark the tally as unaccepted (just delete it?)
     }
   }
 
   addPayment(spenderId, receiverId, chipsToSpend: number, sequence: number) {
-    let quid = 'Inv' + Math.floor(Math.random() * 1000);
+    let quid = 'Inv' + Math.floor(Math.random() * 1000)
 
-    this.logger.verbose('  payVendor:', spenderId, '->', receiverId, 'on:', sequence, 'Units:', chipsToSpend);
+    this.logger.verbose(
+      '  payVendor:',
+      spenderId,
+      '->',
+      receiverId,
+      'on:',
+      sequence,
+      'Units:',
+      chipsToSpend
+    )
 
     this.query(
       "insert into mychips.chits_v (chit_ent,chit_seq,chit_guid,chit_type,signature,units,quidpro,request) values ($1,$2,$3,'tran',$4,$5,$6,$7)",
       [spenderId, sequence, uuidv4(), 'Valid', chipsToSpend, quid, 'userDraft'],
       (e, r) => {
         if (e) {
-            this.logger.error('In payment:', e.stack)
-            return
+          this.logger.error('In payment:', e.stack)
+          return
         }
-        
+
         this.logger.debug('  payment:', spenderId, 'to:', receiverId)
       }
-    );
+    )
   }
 
   isActiveQuery() {
@@ -196,8 +210,15 @@ class SQLManager {
       callback(res.rows)
     })
   }
-
-  queryUsers(callback: (accounts: AccountData[], all: boolean)=>any) {
+  
+  /**
+   * Executes database query to get all initial acounts
+   * @param callback: eatAccounts - loads queried accounts into the worldDB
+   * */
+  // ! TODO Does this fetch from all peers?
+  // ! ANSWER No, just from the matching pg database/container
+  queryUsers(callback: (agents: AccountData[], all: boolean) => any) {
+    console.log("Getting users from MyCHIPs DB")
     this.query(userSql, (err: any, res: any) => {
       if (err) {
         this.logger.error('In query:', err.stack)
@@ -219,7 +240,7 @@ class SQLManager {
     })
   }
 
-  queryPeers(callback: (err: any, res: any)=>any) {
+  queryPeers(callback: (err: any, res: any) => any) {
     this.query(peerSql, callback)
   }
 

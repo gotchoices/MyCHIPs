@@ -36,6 +36,7 @@ class MongoManager {
     this.host = argv.peerServer || Os.hostname()
 
     this.foreignActionTagIndex = 0
+    this.foreignActionCallbackCache = {}
   }
 
   /** Returns the singleton instance of the MongoManager */
@@ -109,6 +110,8 @@ class MongoManager {
         } else if (doc.action == 'done') {
           // Someone has told me that an action I requested is done
           this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
+          console.log("Remote action done:", doc.tag, "target:", doc.from)
+          console.log("Callback cache:", this.foreignActionCallbackCache)
           this.foreignActionCallbackCache[doc.tag]()
           delete this.foreignActionCallbackCache[doc.tag]
         }
@@ -135,39 +138,44 @@ class MongoManager {
     command: string,
     tag: string = this.host + '.' + this.foreignActionTagIndex++,
     destinationHost: string,
-    callback?
+    data?: any,
+    callback?: () => void
   ) {
+    console.log("Adding", command, "action to db...")
+    if (data) console.log("with data")
+    if (callback) console.log("and callback")
     this.actionsCollection.insertOne(
-      { action: command, tag: tag, host: destinationHost, from: this.host },
+      { action: command, tag: tag, host: destinationHost, from: this.host, data: data },
       (err, res) => {
-        if (err)
+        if (err) {
           this.logger.error(
             'Sending remote command:',
             command,
             'to:',
             destinationHost
           )
-        else
+          console.log("Error adding action to db:", err)
+        }
+        else {
           this.logger.info(
             'Sent remote action:',
             command,
             'to:',
             destinationHost
           )
+          console.log("Added", command, "action for", destinationHost)
+        }
       }
     )
 
     if (callback) {
       this.foreignActionCallbackCache[tag] = callback
+      console.log("Callback cache:", this.foreignActionCallbackCache)
     }
   }
 
   updateOneAccount(account: AccountData) {
-    console.log(account)
-    this.accountsCollection.find({}).toArray((err, res) => {
-      console.log("All mongo accounts:")
-      console.log(res)
-    })
+    // console.log("Putting into mongo:\n", account)
     this.accountsCollection.updateOne(
       { peer_cid: account.peer_cid, host: account.host },
       { $set: account },
@@ -215,9 +223,6 @@ class MongoManager {
     // @ts-ignore
     this.accountsCollection.findOneAndUpdate(query, update, options).then(
       (res) => {
-        console.log('Find peer result:')
-        console.log(res)
-        console.log(res.value)
         if (res.ok) {
           this.logger.verbose(
             '  Best peer:',
@@ -233,7 +238,9 @@ class MongoManager {
       (err) => {
         this.logger.error('  Error finding a peer:', err)
       }
-    )
+    ).catch((reason) => {
+      this.logger.info(' No peer found:', reason)
+    })
   }
 
   deleteAllAccountsExcept(accountsToKeep: string[]): void {
