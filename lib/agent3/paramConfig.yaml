@@ -2,7 +2,7 @@
 
 interval: 2000
 
-agentTypes:
+accountTypes:
   - type: 'default' 
     percentOfTotal: 1.0
   #   newClientOdds: 0.1 # Try to add client 10% of the time
