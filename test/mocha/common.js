@@ -54,5 +54,27 @@ module.exports={
         if (row.record) check(res,row.record.slice(1,-1).split(','))
       })
     })
+  },
+  queryJson: function(fileBase, db, sql, done, rows = 1, write = false) {
+    let file = Path.join(__dirname, fileBase + '.json')
+      , row
+    db.query(sql, null, (e, res) => {if (e) done(e)
+      if (rows > 1) {
+        assert.equal(res.length, rows)
+        let resX = res[rows-1]			//;log.debug('resX:', resX)
+        assert.equal(resX.rowCount, 1)
+        row = resX.rows[0]			//;log.debug('row:', JSON.stringify(row.json))
+      } else {
+        assert(res.rowCount, 1)
+        row = res.rows[0]			//;log.debug("row:", row)
+      }
+      if (write)
+        Fs.writeFileSync(file + '.tmp', JSON.stringify(row.json,null,1))		//Save actual results
+      Fs.readFile(file, (e, fData) => {if (e) done(e)
+        let expObj = JSON.parse(fData)
+        assert.deepStrictEqual(row.json, expObj)
+        done()
+      })
+    })
   }
 }

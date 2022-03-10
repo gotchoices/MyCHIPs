@@ -20,9 +20,9 @@ require config.tcl trigview.tcl
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
-    def tallies_v_up	{request comment}
+    def tallies_v_up	{request comment target reward clutch bound}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig hold_cert part_cert hold_terms part_terms]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit units_pc units_gc hold_cid hold_agent part_cid part_agent hold_sig part_sig hold_terms part_terms $glob::stampfn]
+    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract status digest cr_limit dr_limit target reward clutch bound units_pc units_gc hold_cid hold_agent part_cid part_agent hold_sig part_sig hold_terms part_terms $glob::stampfn]
 
     def tally_sets_pk	{tset_ent tset_seq tset_idx}
     def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}

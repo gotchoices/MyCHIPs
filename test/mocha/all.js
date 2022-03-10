@@ -17,6 +17,9 @@ require('./user2.js')		//Needed for testing on two DB's
 require('./tally.js')
 require('./chit.js')
 
+require('./sch-path.js')
+require('./sch-route.js')
+
 //Re-enable after schema settles and more documentation filled in
 //require('./schema.js')
 

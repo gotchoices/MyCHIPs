@@ -4,12 +4,11 @@
 
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------
-define netFields {tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr}
 view mychips.tallies_v_net {mychips.tallies_v} {with
-  t2 as (select netFields()
+  t2 as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
     from mychips.tallies_v where liftable and not part_ent isnull
   ),
-  t1 as (select netFields()
+  t1 as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
     from mychips.tallies_v where liftable and part_ent isnull
   )
   select 			-- Internal tallies with both stock and foil
@@ -127,12 +126,6 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
   join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.botseq
 } -primary {path}
 
-# Simplified view for discovering inside lifts
-#----------------------------------------------------------------
-view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
-  select * from mychips.tallies_v_paths where circuit order by 1 desc
-}
-
 # View showing join of inside pathways and outside routes
 # to discover/analyze possible distributed lifts
 #----------------------------------------------------------------
@@ -140,11 +133,12 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
     tp.inp, tp.out, tp.top, tp.top_tseq, tp.bot, tp.bot_tseq
   , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids
   , tp.fori, tp.foro, tp.fori and tp.foro as segment
+  , tp.top_uuid, tp.top_cid, tp.top_agent, tp.top_chad
   , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
   , r.rid, r.via_ent, r.via_tseq, r.via_tally
   , r.dst_cid, r.dst_agent
   , r.req_ent, r.req_tseq, r.req_tally, r.req_cid, r.req_agent, r.req_chad
-  , r.rept_cid, r.rept_agent, r.rept_chad
+  , r.rpt_cid, r.rpt_agent, r.rpt_chad
   , r.status
   , r.lift_count
   , r.native
@@ -166,3 +160,24 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
   from	mychips.routes_v	r
   join	mychips.tallies_v_paths	tp on tp.top = r.via_ent and tp.top_tseq = r.via_tseq and tp.foro
 }
+
+# View of possible external routes compared to existing route records
+#----------------------------------------------------------------
+#view mychips.routes_v_query {mychips.routes_v_paths mychips.routes_v} {select
+#    tp.*
+#  , r.rid, r.via_ent, r.via_tseq, r.via_tally
+#  , r.dst_cid, r.dst_agent, r.status, r.expired
+#  , case
+#    when r.status = 'good' and not r.expired	then	0
+#    when r.status = 'pend' and not r.expired	then	1
+#    when r.status = 'good' and r.expired	then	2
+#    when r.status isnull			then	3
+#    when r.status = 'pend' and r.expired	then	4
+#    else						5
+#    end						as sorter
+#  , r.via_ent is not null			as exist
+#  
+#  from mychips.tallies_v_paths	tp
+#  left join mychips.routes_v	r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq
+#  where tp.foro
+#}

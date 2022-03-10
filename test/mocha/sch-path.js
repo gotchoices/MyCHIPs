@@ -8,8 +8,7 @@
 //                   ^____________________v
 //TODO:
 //- 
-const Fs = require('fs')
-const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('./common')
 var log = Log('testSchPath')
 //const Serialize = require("json-stable-stringify")
 const { host, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
@@ -151,47 +150,20 @@ describe("Initialize tally/path test data", function() {
   })
 
   it("Check view tallies_v_net", function(done) {
-    let expFile = 'tallies_v_net.json'
-      , sql = `update mychips.tallies set target = 3, bound = 7;
+    let sql = `update mychips.tallies set target = 3, bound = 7;
                select json_agg(s) as json from (select inp,out,target,bound,units_pc,min,max,sign
                from mychips.tallies_v_net order by min,max,sign) s;`
-//log.debug("Sql:", sql)
-    db.query(sql, null, (e, res) => {if (e) done(e)
-      assert.equal(res.length, 2)
-      let res1 = res[1]					//;log.debug('res1:', res1)
-      assert.equal(res1.rowCount, 1)
-      let row = res1.rows[0]				//;log.debug('row:', JSON.stringify(row.json))
-//      Fs.writeFileSync(expFile+'.tmp', JSON.stringify(row.json,null,1))		//Save actual results
-      Fs.readFile(expFile, (e, fData) => {if (e) done(e)
-        let expObj = JSON.parse(fData)
-        assert.deepStrictEqual(row.json, expObj)
-        done()
-      })
-    })
+    queryJson('tallies_v_net', db, sql, done, 2)
   })
 
   it("Check view tallies_v_paths", function(done) {
-    let expFile = 'tallies_v_paths.json'
-      , sql = `
+    let sql = `
         update mychips.tallies set reward = 0.02, clutch = 0.04 where tally_type = 'foil';
         update mychips.tallies set reward = 0.04, clutch = 0.001 where tally_type = 'stock';
         select json_agg(s) as json from (
           select inp,out,circuit,min,max,bang,reward,margin,ath
             from mychips.tallies_v_paths where edges > 1 order by path) s;`
-//log.debug("Sql:", sql)
-    db.query(sql, null, (e, res) => {if (e) done(e)
-      assert.equal(res.length, 3)
-      let res2 = res[2]					//;log.debug('res1:', res1)
-      assert.equal(res2.rowCount, 1)
-      let row = res2.rows[0]				//;log.debug('row:', JSON.stringify(row.json))
-//      Fs.writeFileSync(expFile+'.tmp', JSON.stringify(row.json,null,1))		//Save actual results
-      Fs.readFile(expFile, (e, fData) => {if (e) done(e)
-        let expObj = JSON.parse(fData)
-//      assert.equal(Serialize(row.json), Serialize(expect))
-        assert.deepStrictEqual(row.json, expObj)
-        done()
-      })
-    })
+    queryJson('tallies_v_paths', db, sql, done, 3)
   })
 
 /*

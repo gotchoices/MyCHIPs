@@ -714,6 +714,16 @@ create function mychips.lift_state(status text, request text, expired boolean) r
         else status end
       end
 $$;
+create function mychips.route_sorter(status text, expired boolean) returns int stable language plpgsql as $$
+    begin return case
+      when status = 'good' and not expired	then	0
+      when status = 'pend' and not expired	then	1
+      when status = 'good' and expired		then	2
+      when status isnull			then	3
+      when status = 'pend' and expired		then	4
+      else						5 end;
+    end;
+$$;
 create function mychips.route_state(status text, expired boolean) returns text stable language plpgsql as $$
     begin return
       status ||
@@ -2327,11 +2337,6 @@ create view mychips.peers_v as select
     
     create rule mychips_peers_v_delete_0 as on delete to mychips.peers_v do instead nothing;
     create rule mychips_peers_v_delete_1 as on delete to mychips.peers_v where (old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3) do instead delete from mychips.peers where peer_ent = old.peer_ent;
-create function mychips.route_life() returns interval language plpgsql stable as $$
-    begin
-      return base.parm('routes', 'life', '1 week'::text)::interval;
-    end;
-$$;
 create table mychips.tallies (
 tally_ent	text		references mychips.users on update cascade on delete cascade
   , tally_seq	int	      , primary key (tally_ent, tally_seq)
@@ -2723,7 +2728,7 @@ rid		serial		primary key
   , route_ent	text		-- not null references mychips.peers on update cascade on delete cascade
   , dest_ent	text		references mychips.users on update cascade on delete cascade
   , dest_chid	text
-  , dest_host	text		--?? check ((dest_ent is not null and dest_host isnull) or (dest_ent isnull and dest_host is not null))
+  , dest_host	text		--?? check ((not dest_ent is null and dest_host isnull) or (dest_ent isnull and dest_host is not null))
   , topu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
   , botu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
   , lift_min	bigint		-- default 0
@@ -2738,9 +2743,12 @@ rid		serial		primary key
 );
 create function mychips.routes_tf_biu() returns trigger language plpgsql security definer as $$
     begin
-        if exists (select id from mychips.users_v where peer_cid = new.dst_cid and peer_agent = new.dst_agent) then
-          raise exception '!mychips.routes:CRL';
-        end if;
+
+
+
+
+
+
 
 
 
@@ -3109,7 +3117,7 @@ rtry_rid	int		primary key references mychips.routes on update cascade on delete 
   , last	timestamptz	not null default current_timestamp
 );
 create view mychips.tallies_v as select 
-    te.tally_ent, te.tally_seq, te.tally_type, te.tally_uuid, te.tally_date, te.version, te.part_ent, te.hold_cert, te.part_cert, te.request, te.comment, te.contract, te.target, te.reward, te.clutch, te.bound, te.status, te.digest, te.cr_limit, te.dr_limit, te.units_pc, te.units_gc, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sig, te.part_sig, te.hold_terms, te.part_terms, te.crt_by, te.mod_by, te.crt_date, te.mod_date
+    te.tally_ent, te.tally_seq, te.tally_type, te.tally_uuid, te.tally_date, te.version, te.part_ent, te.hold_cert, te.part_cert, te.request, te.comment, te.contract, te.status, te.digest, te.cr_limit, te.dr_limit, te.target, te.reward, te.clutch, te.bound, te.units_pc, te.units_gc, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sig, te.part_sig, te.hold_terms, te.part_terms, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , te.hold_cid ||':'|| ua.agent	as hold_addr
   , te.hold_cid ||':'|| ua.atsock	as hold_full
   , ua.sock				as hold_sock
@@ -3403,21 +3411,21 @@ create view mychips.routes_v as select
   , it.part_agent	as route_agent
   , it.part_chad	as route_chad
 
-  , ro.req_tseq isnull	or qt.part_ent is not null as native	-- native: route request generated on this site
+  , ro.req_tseq isnull	or not qt.part_ent isnull as native	-- native: route request generated on this site
   , qt.tally_uuid	as req_tally
   , qt.hold_cid		as req_cid		-- Our user/owner of downstream request tally
   , qt.hold_agent	as req_agent
   , qt.hold_chad	as req_chad
-  , qt.part_cid		as rept_cid		-- Foreign partner request came through
-  , qt.part_agent	as rept_agent
-  , qt.part_chad	as rept_chad
+  , qt.part_cid		as rpt_cid		-- Foreign partner request came through
+  , qt.part_agent	as rpt_agent
+  , qt.part_chad	as rpt_chad
 
-  , greatest(ro.good_date,ro.lift_date) + mychips.route_life()	as expires
   , rt.tries		as tries
   , rt.last		as last
-  , mychips.route_state(ro.status
-    , current_timestamp > greatest(ro.good_date, ro.lift_date) + mychips.route_life()	-- Expired
-  )			as state
+  , greatest(ro.good_date, ro.lift_date) + pl.life		as expires
+  , current_timestamp > greatest(ro.good_date, ro.lift_date) + pl.life					as expired
+  , mychips.route_state(ro.status, current_timestamp > greatest(ro.good_date, ro.lift_date) + pl.life)	as state
+  , mychips.route_sorter(ro.status, current_timestamp > greatest(ro.good_date, ro.lift_date) + pl.life)	as sorter
   , jsonb_build_object(				-- For upstream query packet
        'step',		ro.step
      , 'tally',		it.tally_uuid
@@ -3441,6 +3449,8 @@ create view mychips.routes_v as select
     join	mychips.tallies_v	it on it.tally_ent = ro.via_ent and it.tally_seq = ro.via_tseq
     left join	mychips.tallies_v	qt on qt.tally_ent = ro.req_ent and qt.tally_seq = ro.req_tseq
     left join	mychips.route_tries	rt on rt.rtry_rid = ro.rid
+    join	(select coalesce(value, '1 hour')::interval as life
+                 from base.parm_v where module = 'routes' and parm = 'life') pl on true;
 
 
     ;
@@ -3504,7 +3514,7 @@ create function mychips.tallies_v_insfunc() returns trigger language plpgsql sec
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tallies_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.tallies (tally_ent,request,comment,tally_uuid,tally_type,version,part_ent,contract,hold_sig,hold_cert,part_cert,hold_terms,part_terms,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,'draft',trec.comment,trec.tally_uuid,trec.tally_type,trec.version,trec.part_ent,trec.contract,trec.hold_sig,trec.hold_cert,trec.part_cert,trec.hold_terms,trec.part_terms,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    insert into mychips.tallies (tally_ent,request,comment,target,reward,clutch,bound,tally_uuid,tally_type,version,part_ent,contract,hold_sig,hold_cert,part_cert,hold_terms,part_terms,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,'draft',trec.comment,trec.target,trec.reward,trec.clutch,trec.bound,trec.tally_uuid,trec.tally_type,trec.version,trec.part_ent,trec.contract,trec.hold_sig,trec.hold_cert,trec.part_cert,trec.hold_terms,trec.part_terms,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;
   end;
@@ -3623,7 +3633,7 @@ create view mychips.tallies_v_sum as select
   group by 1;
 create function mychips.tallies_v_updfunc() returns trigger language plpgsql security definer as $$
   begin
-    update mychips.tallies set request = new.request,comment = new.comment,mod_by = session_user,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    update mychips.tallies set request = new.request,comment = new.comment,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,mod_by = session_user,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;
   end;
@@ -4375,16 +4385,16 @@ raise notice 'Rs:% % %', route.rid, route.req_ent, route.req_tseq;
             return;
 
           else					-- Notify downstream site
-            select into prec req_ent,req_tally,req_agent,rept_cid,rept_agent,rept_chad,req_chad,
+            select into prec req_ent,req_tally,req_agent,rpt_cid,rpt_agent,rpt_chad,req_chad,
               jsonb_build_object('min',min,'max',max,'margin',margin,'reward',reward) as lading
             from mychips.routes_v_paths
               where rid = route.rid and bot = req_ent and bot_tseq = req_tseq
               order by margin, min desc, max desc limit 1;
-raise notice 'Rz:% % % %', prec.req_ent,prec.rept_cid, prec.rept_agent, prec.lading;
+raise notice 'Rz:% % % %', prec.req_ent,prec.rpt_cid, prec.rpt_agent, prec.lading;
 
             channel = 'ma_' || prec.req_agent;
             jrec = jrec || jsonb_build_object(
-                'to'	, prec.rept_chad
+                'to'	, prec.rpt_chad
               , 'from'	, prec.req_chad
               , 'object', jsonb_build_object(
                   'tally', prec.req_tally
@@ -4398,114 +4408,48 @@ raise notice 'Route notice:% %', channel, jrec::text;
         perform pg_notify(channel, jrec::text);
     end;
 $$;
-create function mychips.route_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
+create function mychips.routes_pop(base record, dest jsonb, currStep int, avoid text) returns jsonb language plpgsql security definer as $$
     declare
-        to_chad		jsonb = msg->'to';
-        fr_chad		jsonb = msg->'from';
-        obj		jsonb = msg->'object';
-        find		jsonb = obj->'find';
-        currStep	int = coalesce((obj->'step')::int, 0);
-        dest		record;
-        route		record;
-        base		record;
-        path		record;
-        qstrg		text;
-        trec		record;
-        xrec		record;
-        curState	text;
-        havePath	boolean default false;
-        stopSearch	boolean default false;
-        fwdCnt		int default 0;
+      lrec	record;
+      lading	jsonb;
+      forward	int = 0;
+      maxQuery	int = base.parm('routes', 'maxquery', 12);
     begin
-raise notice 'Route process msg: %; recipe: %', msg, recipe;
 
-        select into base tally_ent, tally_seq, tally_uuid, hold_cid, hold_agent, part_cid, part_agent from mychips.tallies_v where
-
-
-            tally_uuid = (obj->>'tally')::uuid and liftable;
-        if not found then return null; end if;
-raise notice ' tally: % % %', base.tally_ent, base.tally_seq, base.tally_uuid;
-
-        select into dest id, peer_cid, peer_chost from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';
-
-raise notice '  dest local: % %', dest.id, obj->>'find';
-        if recipe->'query' then			-- If there a query flag in the recipe object
-
-          if base.part_cid != fr_chad->>'cid' or base.part_agent != fr_chad->>'agent' or
-             base.hold_cid != to_chad->>'cid' or base.hold_agent != to_chad->>'agent' then
-               return null;
-          end if;
-
-          if not dest.id isnull then			-- If destination is a local user
-            select into path inp,out,min,max,margin,reward from mychips.tallies_v_paths		-- Do we have a path to him?
-              where inp = base.tally_ent and top = dest.id order by margin, min desc limit 1;
-            if found then havePath = true; end if;
-            
-            if not exists (select bot from mychips.tallies_v_paths
-              where inp = base.tally_ent and foro and not dest.id = any(ath)) then
-                stopSearch = true;
-            end if;
-          end if;
-          
-          if not stopSearch and currStep <= base.parm('routes', 'maxstep', 12) then	-- Keep looking for routes?
-
-            for trec in select top,tseq from mychips.tallies_v_paths	-- Find all upstream paths we might query further
-              where inp = base.tally_ent and foro limit base.parm('routes', 'maxquery', 100) loop
-
-              select into xrec rid,status,state,expires from mychips.routes_v where via_ent = trec.top and via_seq = trec.tseq		-- Does a route already exist?
-                and dst_cid = find->>'cid' and dst_agent = find->>'agent';
-              if found then						-- Found existing route
-                if xrec.expires < current_timestamp then		-- But its expired
-                  update mychips.routes set status = 'draft', step = currStep + 1;
-                  fwdCnt = fwdCnt + 1;
-                elsif status = 'good' then	-- Count existing good routes as part of the fan-out
-                  fwdCnt = fwdCnt + 1;
-                end if;
-                    
-              else
-                insert into mychips.routes (via_ent, dst_cid, dst_agent, req_ent, req_tseq, step)
-                  values (trec.top, find->>'cid', find->>'agent', currStep + 1);
-                fwdCnt = fwdCnt + 1;
-              end if;
-              if fwdCnt <  base.parm('routes', 'maxforward', 12) then exit; end if;
-            end loop;
-          end if;
-
-          if havePath then
-            return 'affirm|' || jsonb_build_object(
-              'min',	path.min,	'max',		path.max,
-              'margin',	path.margin,	'reward',	path.reward
-            )::text;
+      for lrec in select tp.bot,tp.bot_tseq,tp.top,tp.top_tseq,tp.at,
+               r.dst_cid,r.dst_agent,r.status,r.sorter,r.expired,r.min,r.max,r.margin,r.reward
+        from	(select bot,bot_tseq,top,top_tseq,fori,foro,at,
+                        dest->>'cid' as dst_cid, dest->>'agent' as dst_agent
+          from mychips.tallies_v_paths where bot = base.tally_ent and bot_tseq = base.tally_seq
+        ) tp
+        left join mychips.routes_v r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq		-- overlaid by those that do exist
+                                    and r.dst_cid = tp.dst_cid and r.dst_agent = tp.dst_agent
+        where	tp.fori and tp.foro and tp.foro
+        and	(avoid isnull or not (avoid = any(tp.at)))
+        order by r.sorter,r.rid,tp.top,tp.top_tseq limit maxQuery loop
 
 
-          elsif fwdCnt > 0 then
-            return 'relay';
-          else
-            return 'fail';
-          end if;
+        if (lrec.status isnull) then
+
+          insert into mychips.routes (via_ent, via_tseq, dst_cid, dst_agent, req_ent, req_tseq, step)
+            values (lrec.top, lrec.top_tseq, dest->>'cid', dest->>'agent', lrec.bot, lrec.bot_tseq, currStep + 1);
+          forward = forward + 1;
+
+        elsif (lrec.expired) then
+          update mychips.routes set status = 'draft', step = currStep + 1 where rid = lrec.rid;
+          forward = forward + 1;
+
+        elsif (lrec.status = 'good' and lading isnull) then
+          lading = jsonb_build_object(
+            'min', lrec.min, 'max', lrec.max,'margin', lrec.margin, 'reward', lrec.reward);
         end if;
+      end loop;
 
-        if recipe ? 'update' then
-          select into route * from mychips.routes_v where via_cid = to_chad->>'cid' and via_tally = (obj->>'tally')::uuid;
-          curstate = coalesce(route.state,'null');
-
-raise notice ' state:% recipe:%', curState, recipe;
-          if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-raise notice 'RZ:% C:%', jsonb_build_array(curState), recipe->'context';
-            return curState;
-          end if;
-
-          if not route.rid isnull then
-            qstrg = mychips.state_updater(recipe, 'mychips.routes_v', '{status, min, margin, max, reward}', '{"good_date = current_timestamp"}');
-raise notice 'SQL:%', qstrg;
-            execute qstrg || 'rid = $1 returning rid, state' into route using route.rid;
-            if recipe->'update'->>'status' in ('good','none') then	-- Resolution found, delete retry counter
-              delete from mychips.route_tries where rtry_rid = route.rid;
-            end if;
-          end if;
-          return route.state;
-        end if;
-      return null;
+      return jsonb_build_object(
+        'action',	case when forward > 0 then 'relay' else 'none' end,
+        'forward',	forward,
+        'lading',	lading
+      );
     end;
 $$;
 create function mychips.routes_v_insfunc() returns trigger language plpgsql security definer as $$
@@ -4919,6 +4863,98 @@ raise notice 'Route Linear check: % % %', entity, peer, trec.inp;
       end loop;
     end;
 $$;
+create function mychips.route_process(msg jsonb, recipe jsonb) returns jsonb language plpgsql as $$
+    declare
+        to_chad		jsonb = msg->'to';
+        fr_chad		jsonb = msg->'from';
+        obj		jsonb = msg->'object';
+        find		jsonb = obj->'find';
+        retObj		jsonb;
+        currStep	int = coalesce((obj->'step')::int, 0);
+        maxStep		int;
+        dest		record;
+        route		record;
+        base		record;
+        path		record;
+        qstrg		text;
+        xrec		record;
+        curState	text;
+    begin
+raise notice 'Route process msg: %; recipe: %', msg, recipe;
+
+        select into base tally_ent, tally_seq, tally_uuid, hold_cid, hold_agent, part_cid, part_agent
+          from mychips.tallies_v where
+            tally_uuid = (obj->>'tally')::uuid and liftable;
+        if not found then return null; end if;
+raise notice ' tally: % % %', base.tally_ent, base.tally_seq, base.tally_uuid;
+
+        if base.part_cid != fr_chad->>'cid' or base.part_agent != fr_chad->>'agent' or
+           base.hold_cid != to_chad->>'cid' or base.hold_agent != to_chad->>'agent' then
+             return null;
+        end if;
+
+        select into dest id, peer_cid, peer_chost from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';
+raise notice '  dest local: % %', dest.id, obj->>'find';
+
+        if recipe->'query' then			-- If there a query flag in the recipe object
+          maxStep = base.parm('routes', 'maxstep', 20);
+
+          if not dest.id isnull then			-- If destination is a local user
+            select into path inp,out,min,max,margin,reward from mychips.tallies_v_paths		-- Do we have a direct path to him?
+              where bot = base.tally_ent and bot_tseq = base.tally_seq and top = dest.id
+                order by margin, min desc limit 1;
+raise notice '  Lfound: % %', found, currStep;
+
+            if found or  currStep <= maxStep then	-- See if there are any indirect, external routes we should also search
+              retObj = mychips.routes_pop(base, find, currStep, dest.id);
+            end if;
+
+          elsif currStep <= maxStep then -- destination is not a local user, but we will to search for him
+
+            select into path inp,out,min,max,margin,reward from mychips.tallies_v_paths		-- Do we have a direct path to him?
+              where bot = base.tally_ent and bot_tseq = base.tally_seq
+                and top_cid = find->>'cid' and top_agent = find->>'agent'
+                order by margin, min desc limit 1;
+raise notice '  Ffound: % %', found, currStep;
+
+            retObj = mychips.routes_pop(base, find, currStep, null::text);
+          end if;
+
+raise notice '  ready: %-% %-%', path, path isnull, retObj, retObj isnull;
+          if not path isnull then
+            retObj = retObj || jsonb_build_object(
+              'action',	'good',
+              'lading',	jsonb_build_object(
+                  'min',	path.min,	'max',		path.max,
+                  'margin',	path.margin,	'reward',	path.reward
+              ));
+          end if;
+          return retObj;
+        end if;
+
+        if recipe ? 'update' then
+          select into route * from mychips.routes_v where via_cid = to_chad->>'cid' and via_tally = (obj->>'tally')::uuid;
+          curstate = coalesce(route.state,'null');
+
+raise notice ' state:% recipe:%', curState, recipe;
+          if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
+raise notice 'RZ:% C:%', jsonb_build_array(curState), recipe->'context';
+            return to_jsonb(curState);
+          end if;
+
+          if not route.rid isnull then
+            qstrg = mychips.state_updater(recipe, 'mychips.routes_v', '{status, min, margin, max, reward}', '{"good_date = current_timestamp"}');
+raise notice 'SQL:%', qstrg;
+            execute qstrg || 'rid = $1 returning rid, state' into route using route.rid;
+            if recipe->'update'->>'status' in ('good','none') then	-- Resolution found, delete retry counter
+              delete from mychips.route_tries where rtry_rid = route.rid;
+            end if;
+          end if;
+          return to_jsonb(route.state);
+        end if;
+      return null;
+    end;
+$$;
 create function mychips.routes_tf_notify() returns trigger language plpgsql security definer as $$
     declare
         dirty	boolean default false;
@@ -4936,11 +4972,12 @@ create view mychips.routes_v_paths as select
     tp.inp, tp.out, tp.top, tp.top_tseq, tp.bot, tp.bot_tseq
   , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids
   , tp.fori, tp.foro, tp.fori and tp.foro as segment
+  , tp.top_uuid, tp.top_cid, tp.top_agent, tp.top_chad
   , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
   , r.rid, r.via_ent, r.via_tseq, r.via_tally
   , r.dst_cid, r.dst_agent
   , r.req_ent, r.req_tseq, r.req_tally, r.req_cid, r.req_agent, r.req_chad
-  , r.rept_cid, r.rept_agent, r.rept_chad
+  , r.rpt_cid, r.rpt_agent, r.rpt_chad
   , r.status
   , r.lift_count
   , r.native
@@ -5028,7 +5065,6 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
     end;
 $$;
 create trigger mychips_tallies_tr_notice after insert or update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
-create view mychips.tallies_v_lifts as select * from mychips.tallies_v_paths where circuit order by 1 desc;
 create trigger mychips_tally_sets_v_tr_ins instead of insert on mychips.tally_sets_v for each row execute procedure mychips.tally_sets_v_insfunc();
 create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for each row execute procedure mychips.tokens_v_insfunc();
 create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
@@ -8002,6 +8038,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes','via_tseq','mychips','routes','via_tseq','f','f'),
   ('mychips','routes_v','dst_agent','mychips','routes','dst_agent','f','f'),
   ('mychips','routes_v','dst_cid','mychips','routes','dst_cid','f','f'),
+  ('mychips','routes_v','expired','mychips','routes_v','expired','f','f'),
   ('mychips','routes_v','expires','mychips','routes_v','expires','f','f'),
   ('mychips','routes_v','good_date','mychips','routes','good_date','f','f'),
   ('mychips','routes_v','json','mychips','routes_v','json','f','f'),
@@ -8012,9 +8049,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v','max','mychips','routes','max','f','f'),
   ('mychips','routes_v','min','mychips','routes','min','f','f'),
   ('mychips','routes_v','native','mychips','routes_v','native','f','f'),
-  ('mychips','routes_v','rept_agent','mychips','routes_v','rept_agent','f','f'),
-  ('mychips','routes_v','rept_chad','mychips','routes_v','rept_chad','f','f'),
-  ('mychips','routes_v','rept_cid','mychips','routes_v','rept_cid','f','f'),
   ('mychips','routes_v','req_agent','mychips','routes_v','req_agent','f','f'),
   ('mychips','routes_v','req_chad','mychips','routes_v','req_chad','f','f'),
   ('mychips','routes_v','req_cid','mychips','routes_v','req_cid','f','f'),
@@ -8026,6 +8060,10 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v','route_agent','mychips','routes_v','route_agent','f','f'),
   ('mychips','routes_v','route_chad','mychips','routes_v','route_chad','f','f'),
   ('mychips','routes_v','route_cid','mychips','routes_v','route_cid','f','f'),
+  ('mychips','routes_v','rpt_agent','mychips','routes_v','rpt_agent','f','f'),
+  ('mychips','routes_v','rpt_chad','mychips','routes_v','rpt_chad','f','f'),
+  ('mychips','routes_v','rpt_cid','mychips','routes_v','rpt_cid','f','f'),
+  ('mychips','routes_v','sorter','mychips','routes_v','sorter','f','f'),
   ('mychips','routes_v','state','mychips','routes_v','state','f','f'),
   ('mychips','routes_v','status','mychips','routes','status','f','f'),
   ('mychips','routes_v','step','mychips','routes','step','f','f'),
@@ -8108,9 +8146,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_paths','path_max','mychips','routes_v_paths','path_max','f','f'),
   ('mychips','routes_v_paths','path_min','mychips','routes_v_paths','path_min','f','f'),
   ('mychips','routes_v_paths','path_reward','mychips','routes_v_paths','path_reward','f','f'),
-  ('mychips','routes_v_paths','rept_agent','mychips','routes_v','rept_agent','f','f'),
-  ('mychips','routes_v_paths','rept_chad','mychips','routes_v','rept_chad','f','f'),
-  ('mychips','routes_v_paths','rept_cid','mychips','routes_v','rept_cid','f','f'),
   ('mychips','routes_v_paths','req_agent','mychips','routes_v','req_agent','f','f'),
   ('mychips','routes_v_paths','req_chad','mychips','routes_v','req_chad','f','f'),
   ('mychips','routes_v_paths','req_cid','mychips','routes_v','req_cid','f','f'),
@@ -8123,10 +8158,17 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_paths','route_max','mychips','routes_v_paths','route_max','f','f'),
   ('mychips','routes_v_paths','route_min','mychips','routes_v_paths','route_min','f','f'),
   ('mychips','routes_v_paths','route_reward','mychips','routes_v_paths','route_reward','f','f'),
+  ('mychips','routes_v_paths','rpt_agent','mychips','routes_v','rpt_agent','f','f'),
+  ('mychips','routes_v_paths','rpt_chad','mychips','routes_v','rpt_chad','f','f'),
+  ('mychips','routes_v_paths','rpt_cid','mychips','routes_v','rpt_cid','f','f'),
   ('mychips','routes_v_paths','segment','mychips','routes_v_paths','segment','f','f'),
   ('mychips','routes_v_paths','status','mychips','routes','status','f','f'),
   ('mychips','routes_v_paths','top','mychips','tallies_v_paths','top','f','f'),
+  ('mychips','routes_v_paths','top_agent','mychips','tallies_v_paths','top_agent','f','f'),
+  ('mychips','routes_v_paths','top_chad','mychips','tallies_v_paths','top_chad','f','f'),
+  ('mychips','routes_v_paths','top_cid','mychips','tallies_v_paths','top_cid','f','f'),
   ('mychips','routes_v_paths','top_tseq','mychips','tallies_v_paths','top_tseq','f','f'),
+  ('mychips','routes_v_paths','top_uuid','mychips','tallies_v_paths','top_uuid','f','f'),
   ('mychips','routes_v_paths','uuids','mychips','tallies_v_paths','uuids','f','f'),
   ('mychips','routes_v_paths','via_ent','mychips','routes','via_ent','f','f'),
   ('mychips','routes_v_paths','via_tally','mychips','routes_v','via_tally','f','f'),
@@ -8271,44 +8313,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','units_gc','mychips','tallies','units_gc','f','f'),
   ('mychips','tallies_v','units_pc','mychips','tallies','units_pc','f','f'),
   ('mychips','tallies_v','version','mychips','tallies','version','f','f'),
-  ('mychips','tallies_v_lifts','at','mychips','tallies_v_paths','at','f','f'),
-  ('mychips','tallies_v_lifts','ath','mychips','tallies_v_paths','ath','f','f'),
-  ('mychips','tallies_v_lifts','bang','mychips','tallies_v_paths','bang','f','f'),
-  ('mychips','tallies_v_lifts','bot','mychips','tallies_v_paths','bot','f','f'),
-  ('mychips','tallies_v_lifts','bot_agent','mychips','tallies_v_paths','bot_agent','f','f'),
-  ('mychips','tallies_v_lifts','bot_chad','mychips','tallies_v_paths','bot_chad','f','f'),
-  ('mychips','tallies_v_lifts','bot_cid','mychips','tallies_v_paths','bot_cid','f','f'),
-  ('mychips','tallies_v_lifts','bot_tseq','mychips','tallies_v_paths','bot_tseq','f','f'),
-  ('mychips','tallies_v_lifts','bot_uuid','mychips','tallies_v_paths','bot_uuid','f','f'),
-  ('mychips','tallies_v_lifts','botseq','mychips','tallies_v_paths','botseq','f','f'),
-  ('mychips','tallies_v_lifts','circuit','mychips','tallies_v_paths','circuit','f','f'),
-  ('mychips','tallies_v_lifts','edges','mychips','tallies_v_paths','edges','f','f'),
-  ('mychips','tallies_v_lifts','fori','mychips','tallies_v_paths','fori','f','f'),
-  ('mychips','tallies_v_lifts','foro','mychips','tallies_v_paths','foro','f','f'),
-  ('mychips','tallies_v_lifts','inp','mychips','tallies_v_net','inp','f','f'),
-  ('mychips','tallies_v_lifts','inp_agent','mychips','tallies_v_paths','inp_agent','f','f'),
-  ('mychips','tallies_v_lifts','inp_chad','mychips','tallies_v_paths','inp_chad','f','f'),
-  ('mychips','tallies_v_lifts','inp_cid','mychips','tallies_v_paths','inp_cid','f','f'),
-  ('mychips','tallies_v_lifts','margin','mychips','tallies_v_net','margin','f','f'),
-  ('mychips','tallies_v_lifts','max','mychips','tallies_v_net','max','f','f'),
-  ('mychips','tallies_v_lifts','min','mychips','tallies_v_net','min','f','f'),
-  ('mychips','tallies_v_lifts','nodes','mychips','tallies_v_paths','nodes','f','f'),
-  ('mychips','tallies_v_lifts','out','mychips','tallies_v_net','out','f','f'),
-  ('mychips','tallies_v_lifts','out_agent','mychips','tallies_v_paths','out_agent','f','f'),
-  ('mychips','tallies_v_lifts','out_chad','mychips','tallies_v_paths','out_chad','f','f'),
-  ('mychips','tallies_v_lifts','out_cid','mychips','tallies_v_paths','out_cid','f','f'),
-  ('mychips','tallies_v_lifts','pat','mychips','tallies_v_paths','pat','f','f'),
-  ('mychips','tallies_v_lifts','path','mychips','tallies_v_paths','path','f','f'),
-  ('mychips','tallies_v_lifts','reward','mychips','tallies','reward','f','f'),
-  ('mychips','tallies_v_lifts','signs','mychips','tallies_v_paths','signs','f','f'),
-  ('mychips','tallies_v_lifts','top','mychips','tallies_v_paths','top','f','f'),
-  ('mychips','tallies_v_lifts','top_agent','mychips','tallies_v_paths','top_agent','f','f'),
-  ('mychips','tallies_v_lifts','top_chad','mychips','tallies_v_paths','top_chad','f','f'),
-  ('mychips','tallies_v_lifts','top_cid','mychips','tallies_v_paths','top_cid','f','f'),
-  ('mychips','tallies_v_lifts','top_tseq','mychips','tallies_v_paths','top_tseq','f','f'),
-  ('mychips','tallies_v_lifts','top_uuid','mychips','tallies_v_paths','top_uuid','f','f'),
-  ('mychips','tallies_v_lifts','topseq','mychips','tallies_v_paths','topseq','f','f'),
-  ('mychips','tallies_v_lifts','uuids','mychips','tallies_v_paths','uuids','f','f'),
   ('mychips','tallies_v_lifts_old','bang','mychips','tallies_v_paths_old','bang','f','f'),
   ('mychips','tallies_v_lifts_old','circuit','mychips','tallies_v_paths_old','circuit','f','f'),
   ('mychips','tallies_v_lifts_old','corein','mychips','tallies_v_paths_old','corein','f','f'),
