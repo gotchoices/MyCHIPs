@@ -63,7 +63,7 @@ class BaseAccount implements Account {
 		this.peer_cid = accountData.peer_cid;
 		this.peer_socket = accountData.peer_sock;
 		this.host = host
-		this.entity_type = "Default person"
+		this.entity_type = accountData.ent_type || "p"
 		this.birthday = accountData.born_date || "yesterday"
 		this.random = Math.random()
 
@@ -119,8 +119,8 @@ class BaseAccount implements Account {
 			peer_cid: this.peer_cid,
 			peer_sock: this.peer_socket,
 			born_date: this.birthday,
-			stocks: this.numSpendingTargets,
-			foils: this.numIncomeSources,
+			stocks: this.numIncomeSources,
+			foils: this.numSpendingTargets,
 			partners: [...this.spendingTargets, ...this.incomeSources],
 			vendors: this.spendingTargets,
 			clients: this.incomeSources,

@@ -111,7 +111,6 @@ class MongoManager {
           // Someone has told me that an action I requested is done
           this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
           console.log("Remote action done:", doc.tag, "target:", doc.from)
-          console.log("Callback cache:", this.foreignActionCallbackCache)
           this.foreignActionCallbackCache[doc.tag]()
           delete this.foreignActionCallbackCache[doc.tag]
         }
@@ -170,7 +169,6 @@ class MongoManager {
 
     if (callback) {
       this.foreignActionCallbackCache[tag] = callback
-      console.log("Callback cache:", this.foreignActionCallbackCache)
     }
   }
 

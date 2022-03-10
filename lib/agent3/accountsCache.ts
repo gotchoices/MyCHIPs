@@ -37,7 +37,7 @@ class AccountCache {
         }
     }
 
-    public getAccount(peer_cid: string): AccountData {
+    public getAccountByCID(peer_cid: string): AccountData {
         let foundAccount = this.accountCache[peer_cid]
         if (foundAccount) {
             return foundAccount

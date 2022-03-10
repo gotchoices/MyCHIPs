@@ -102,6 +102,7 @@ class AccountCluster {
     if (this.networkConfig.runs) {
       this.runs = this.networkConfig.runs
     } //Max iterations
+    console.log("### RUNNING", this.runs, "ROUNDS ###")
 
     this.myChipsDBManager.createConnection(
       this.notifyOfAccountsChange,
@@ -177,9 +178,9 @@ class AccountCluster {
     destinationHost: string
   ) {
     console.log("New Account Request from", destinationHost, "with tag", tag)
-    console.log("Account to add:\n", accountData)
+    console.log("Account to add:\n", accountData.peer_cid)
     if (!this.accountCache.containsAccount(accountData)) {
-      this.myChipsDBManager.addAccount(accountData)
+      this.myChipsDBManager.addPeerAccount(accountData)
       this.accountCache.addAccount(accountData)
     }
     this.worldDBManager.insertAction('done', tag, destinationHost)

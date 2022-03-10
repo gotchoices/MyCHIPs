@@ -33,7 +33,7 @@ class FindNewIncomeSource implements Action {
         this.logger.debug(this.account.peer_cid, " attempting new income source with ", newPeer.peer_cid)
 
         if (!this.accountCache.containsAccount(newPeer)) {
-          this.myChipsDBManager.addAccount(newPeer)
+          this.myChipsDBManager.addPeerAccount(newPeer)
           this.accountCache.addAccount(newPeer)
         }
 

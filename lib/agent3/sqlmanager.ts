@@ -96,7 +96,8 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
-  addAccount(accountData: AccountData) {
+  addPeerAccount(accountData: AccountData) {
+    console.log("Adding", accountData.peer_cid, "to local DB")
     this.dbConnection.query(
       peerSql,
       [
@@ -119,7 +120,7 @@ class SQLManager {
           newGuy.std_name,
           newGuy.peer_socket
         )
-        console.log("Added", newGuy.std_name, "to local DB")
+        console.log("Added", newGuy.peer_cid, "to local DB")
       }
     )
   }
@@ -130,13 +131,16 @@ class SQLManager {
     let contract = { name: 'mychips-0.99' }
 
     this.logger.debug('Tally request:', requestingAccountID, targetAccountID)
+    console.log("Making a connection/tally between", requestingAccountID, "and", targetAccountID)
 
     this.query(
       'insert into mychips.tallies_v (tally_ent, tally_guid, partner, user_sig, contract, request) values ($1, $2, $3, $4, $5, $6);',
       [requestingAccountID, guid, targetAccountID, sig, contract, 'draft'],
       (err, res) => {
         if (err) {
-          this.logger.error('In query:', err.stack)
+          this.logger.error('Inserting a tally:', err.stack)
+          console.log("Error while making tally between", requestingAccountID, "and", targetAccountID)
+          console.log(err)
           return
         }
         this.logger.debug(
@@ -156,7 +160,7 @@ class SQLManager {
         [entity, sequence],
         (err, res) => {
           if (err) {
-            this.logger.error('In:', err.stack)
+            this.logger.error('Updating a Tally:', err.stack)
           }
         }
       )
@@ -185,6 +189,7 @@ class SQLManager {
       (e, r) => {
         if (e) {
           this.logger.error('In payment:', e.stack)
+          console.log("Error when", spenderId, "tried to pay", receiverId, chipsToSpend, "chips")
           return
         }
 
@@ -204,7 +209,7 @@ class SQLManager {
   getParameters(callback: (parameters: ParamData[]) => void) {
     this.query(parmQuery, (err, res) => {
       if (err) {
-        this.logger.error('In query:', err.stack)
+        this.logger.error('Getting parameters:', err.stack)
         return
       }
       callback(res.rows)
@@ -221,7 +226,7 @@ class SQLManager {
     console.log("Getting users from MyCHIPs DB")
     this.query(userSql, (err: any, res: any) => {
       if (err) {
-        this.logger.error('In query:', err.stack)
+        this.logger.error('Getting Users:', err.stack)
         return
       }
       this.logger.trace('Loaded accounts:', res.rows.length)
@@ -232,7 +237,7 @@ class SQLManager {
   queryLatestUsers(time: string, callback: (accounts: AccountData[])=>any) {
     this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
       if (err) {
-        this.logger.error('In query:', err.stack)
+        this.logger.error('Getting latest Users:', err.stack)
         return
       }
       this.logger.trace('Loaded accounts:', res.rows.length)
