@@ -41,6 +41,8 @@ class SpendCHIPs implements Action {
 
 			let sequence: number = this.account.foil_seqs[peerIndex]
 
+			console.log("\tFoil sequence:", sequence)
+
 			this.myChipsDBManager.addPayment(this.account.id, peerToPayID, chipsToSpend, sequence)
 		}
 	}

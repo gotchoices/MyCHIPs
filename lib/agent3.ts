@@ -244,6 +244,16 @@ class AccountCluster {
       this.worldDBManager.deleteAllAccountsExcept(hostedAccountIds)
       this.startSimulation()
     }
+    else {
+      console.log("Updating my local accounts")
+      localAccounts.forEach((accountData) => {
+        this.hostedAccounts.forEach((hostedAccount) => {
+          if (hostedAccount.peer_cid == accountData.peer_cid) {
+            hostedAccount.updateAccountData(accountData)
+          }
+        })
+      })
+    }
   }
 
   // -----------------------------------------------------------------------------

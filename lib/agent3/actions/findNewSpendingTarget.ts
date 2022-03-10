@@ -10,7 +10,6 @@ class FindNewSpendingTarget implements Action{
 	myChipsDBManager: SQLManager
 	worldDBManager: MongoManager
 	accountCache: AccountCache
-
 	account: Account
 	
 	constructor(account: Account) {
@@ -30,34 +29,48 @@ class FindNewSpendingTarget implements Action{
 			console.log("\n", this.account.peer_cid, "is finding a new spending target!")
 			this.worldDBManager.findPeerAndUpdate(this.account.peer_cid, this.account.spendingTargetCids, (newPeer: AccountData) => {
 				console.log(this.account.peer_cid, "wants to connect to", newPeer.peer_cid)
-				console.log("Peer:", newPeer.peer_cid, newPeer.id, "on", newPeer.peer_sock.split(':')[0])
+				console.log("Peer from mongo:", newPeer.peer_cid, newPeer.id, "on", newPeer.peer_sock.split(':')[0])
 
 				this.logger.debug(this.account.peer_cid, "  attempting new spending source with", newPeer.peer_cid)
 
-				// Save new peer data locally
+				// TODO: Clean this up...
 				if (!this.accountCache.containsAccount(newPeer)) {
-					this.myChipsDBManager.addPeerAccount(newPeer)
-					this.accountCache.addAccount(newPeer)
-				}
-				
-				// See if the peer is on a different server
-				let newPeerServer = newPeer.peer_sock.split(':')[0]
-				if (newPeerServer != this.account.host) {
-					// If it is, request that the other server gets our info
-					this.worldDBManager.insertAction("createAccount", undefined, newPeerServer, this.account.getAccountData(), () => {
-						this.addConnection(newPeer.id, newPeer.peer_cid)
+					this.myChipsDBManager.addPeerAccount(newPeer, (newLocalPeer) => {
+						console.log("Peer", newLocalPeer.peer_cid, "now has id:", newLocalPeer.id)
+						// See if the peer is on a different server
+						let newPeerServer = newLocalPeer.peer_sock.split(':')[0]
+						if (newPeerServer != this.account.host) {
+							// If it is, request that the other server gets our info
+							this.worldDBManager.insertAction("createAccount", undefined, newPeerServer, this.account.getAccountData(), () => {
+								this.addConnection(newLocalPeer.id, newLocalPeer.peer_cid)
+							})
+						}
+						else {
+							// Otherwise, just made the connection request
+							this.addConnection(newLocalPeer.id, newLocalPeer.peer_cid)
+						}
 					})
 				}
 				else {
-					// Otherwise, just made the connection request
-					this.addConnection(newPeer.id, newPeer.peer_cid)
+					newPeer = this.accountCache.getAccountByCID(newPeer.peer_cid)
+					let newPeerServer = newPeer.peer_sock.split(':')[0]
+					if (newPeerServer != this.account.host) {
+						// If it is, request that the other server gets our info
+						this.worldDBManager.insertAction("createAccount", undefined, newPeerServer, this.account.getAccountData(), () => {
+							this.addConnection(newPeer.id, newPeer.peer_cid)
+						})
+					}
+					else {
+						// Otherwise, just made the connection request
+						this.addConnection(newPeer.id, newPeer.peer_cid)
+					}
 				}
 			})
 		}
 	}
 
 	addConnection(peer_id: string, peer_cid: string) {
-		console.log(this.account.peer_cid, "sending connection request to", peer_cid)
+		console.log(this.account.peer_cid, "(", this.account.id, ") sending connection request to", peer_cid, "(", peer_id, ")")
 		this.myChipsDBManager.addConnectionRequest(this.account.id, peer_id)
 		this.account.numSpendingTargets++
 		if (!this.account.spendingTargetCids.includes(peer_cid)) {

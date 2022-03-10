@@ -96,7 +96,7 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
-  addPeerAccount(accountData: AccountData) {
+  addPeerAccount(accountData: AccountData, callback?: (newGuy: AccountData)=>void) {
     console.log("Adding", accountData.peer_cid, "to local DB")
     this.dbConnection.query(
       peerSql,
@@ -121,6 +121,7 @@ class SQLManager {
           newGuy.peer_socket
         )
         console.log("Added", newGuy.peer_cid, "to local DB")
+        if (callback) callback(newGuy)
       }
     )
   }

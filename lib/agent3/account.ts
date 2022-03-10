@@ -61,6 +61,8 @@ interface Account {
     /** Accepts a connection request for this account */
     acceptNewConnection(message: any): void
 
+    updateAccountData(data: AccountData): void
+
     getAccountData(): AccountData
 }
 

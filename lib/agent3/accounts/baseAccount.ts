@@ -55,7 +55,6 @@ class BaseAccount implements Account {
 		// this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet 
 		this.actions.push(ActionFactory.createAction('SpendCHIPs', this));
 
-		//TODO: finish applying this info from account data and params
 		this.id = accountData.id;
 		this.std_name = accountData.std_name;
 		this.ent_name = accountData.ent_name;
@@ -107,6 +106,33 @@ class BaseAccount implements Account {
 
 		// TODO: update data here (depends on what kind of connection it is though...)
 	}
+
+	updateAccountData(accountData: AccountData): void {
+		console.log(this.peer_cid, "is getting updated info")
+		this.id = accountData.id;
+		this.std_name = accountData.std_name;
+		this.ent_name = accountData.ent_name;
+		this.first_name = accountData.fir_name;
+		this.peer_cid = accountData.peer_cid;
+		this.peer_socket = accountData.peer_sock;
+		this.entity_type = accountData.ent_type || "p"
+		this.birthday = accountData.born_date || "yesterday"
+		this.random = Math.random()
+
+		this.numSpendingTargets = accountData.stocks;
+		this.numIncomeSources = accountData.foils;
+		this.foil_seqs = accountData.foil_seqs;
+		this.stock_seqs = accountData.stock_seqs;
+		this.netWorth = accountData.units;
+
+		this.hosted_ent = true;
+		this.spendingTargets = accountData.vendors;
+		this.spendingTargetCids = accountData.vendor_cids || [];
+		this.incomeSources = accountData.clients;
+		this.incomeSourceCids = accountData.client_cids || [];
+		this.types = accountData.types || [];
+	}
+
 
 	getAccountData(): AccountData {
 		return {
