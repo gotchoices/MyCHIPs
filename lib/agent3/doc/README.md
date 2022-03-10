@@ -19,3 +19,15 @@ The Agent 3 simulation extends the basic structure Agent 2 was built on and adds
 ## Structure Overview
 
 \*Details on low-level implementation are provided in code as Javadoc comments
+
+Here is a basic description of the flow of data through the simulation:
+
+1.
+
+### Agent 3 Class UML Diagram
+
+![Agent 3 Class UML](../doc/class-UML.png)
+
+### Simulation Sequence UML
+
+![Sequence UML](../doc/sequence-UML.png)
