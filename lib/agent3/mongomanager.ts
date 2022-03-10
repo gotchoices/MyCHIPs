@@ -1,3 +1,4 @@
+import Account from './account'
 import {
   MongoClient,
   Db,
@@ -20,29 +21,49 @@ class MongoManager {
 
   private mongoClient!: MongoClient
   private actionsCollection!: Collection<ActionDoc>
-  private agentsCollection!: Collection<Document> //TODO: Change this
+  private accountsCollection!: Collection<Document> //TODO: Change this
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
-  private constructor(config: DBConfig, argv) {
-    this.docConfig = config
+  /** A cache in which to store callbacks that need to run when actions sent to foreign servers are completed */
+  private foreignActionCallbackCache!: { [x: string]: (...args: any[]) => any }
+  private foreignActionTagIndex!: number
+
+  private constructor(dbConfig: DBConfig, argv) {
+    this.docConfig = dbConfig
     this.logger = UnifiedLogger.getInstance()
 
     // MongoDB host name
     this.host = argv.peerServer || Os.hostname()
+
+    this.foreignActionTagIndex = 0
+    this.foreignActionCallbackCache = {}
   }
 
   /** Returns the singleton instance of the MongoManager */
-  public static getInstance(config: DBConfig, argv): MongoManager {
-    if (!MongoManager.singletonInstance) {
-      MongoManager.singletonInstance = new MongoManager(config, argv)
+  public static getInstance(
+    dbConfig?: DBConfig,
+    networkConfig?: NetworkConfig
+  ): MongoManager {
+    if (!MongoManager.singletonInstance && dbConfig && networkConfig) {
+      MongoManager.singletonInstance = new MongoManager(dbConfig, networkConfig)
+    } else if (
+      !MongoManager.singletonInstance &&
+      (!dbConfig || !networkConfig)
+    ) {
+      throw new Error(
+        'No mongo manager available and no creation parameters supplied'
+      )
     }
 
     return MongoManager.singletonInstance
   }
 
   createConnection(
-    checkPeer: CheckPeerFn,
-    notifyOfActionDone: (doc: ActionDoc) => void,
+    notifyOfNewAccountRequest: (
+      accountData: AccountData,
+      tag: string,
+      destHost: string
+    ) => void,
     loadInitialUsers: () => void
   ) {
     let url: string = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
@@ -52,12 +73,16 @@ class MongoManager {
       //Connect to mongodb
       if (err) {
         this.logger.error('in Doc DB connect:', err?.stack)
+        console.log("Error connecting to mongo:", err, err?.stack)
         return
       }
       if (client == undefined) {
         this.logger.error('Client undefined in Doc DB connect')
+        console.log("Mongo client is undefined!")
         return
       }
+
+      console.log("Connected to Mongo!")
 
       this.dbConnection = client.db(this.docConfig.database)
 
@@ -74,125 +99,161 @@ class MongoManager {
         const doc = change.fullDocument
         if (doc === undefined) return
         this.logger.debug('Got change:', doc.action, doc.host, doc.data)
-        if (doc.action == 'createUser') {
-          //Someone asking me to insert a peer into the DB
-          checkPeer(doc.data!, (agentData: AgentData) => {
-            this.logger.debug(
-              'Peer added/OK:',
-              agentData.peer_cid,
-              'notifying:',
-              doc.data?.host
-            )
-            this.actionsCollection.insertOne(
-              {
-                action: 'done',
-                tag: doc.tag,
-                host: doc.data?.host,
-                from: this.host,
-              },
-              () => {}
-            )
-          })
+        // Check if Action Request is for us
+        //FIXME: Maybe there's some actions that all servers should listen to.
+        // If so, we can change this
+        if (doc.host != this.host) return
+
+        if (doc.action == 'createAccount') {
+          // Someone asking me to insert a peer into the DB
+          notifyOfNewAccountRequest(doc.data!, doc.tag, doc.from)
         } else if (doc.action == 'done') {
-          notifyOfActionDone(doc)
+          // Someone has told me that an action I requested is done
+          this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
+          console.log("Remote action done:", doc.tag, "target:", doc.from)
+          this.foreignActionCallbackCache[doc.tag]()
+          delete this.foreignActionCallbackCache[doc.tag]
         }
-        this.actionsCollection.deleteOne({ _id: doc._id }) //Delete signaling record
+        // Add other types of Foreign Actions here
+
+        //Delete signaling record
+        this.actionsCollection.deleteOne({ _id: doc._id })
       })
 
-      this.agentsCollection = this.dbConnection.collection('agents')
+      this.accountsCollection = this.dbConnection.collection('accounts')
       //      this.docAg.createIndex({peer_cid: 1}, {unique: true})		//Should be multicolumn: cid, host
       //      this.docAg.countDocuments((e,r)=>{if (!e) this.worldPop = r})	//Actual people in doc DB
       this.logger.trace('Connected to doc DB')
 
       loadInitialUsers()
     })
-    this.logger.info('Mongo Connection Created')
   }
 
   isDBClientConnected(): boolean {
     return this.mongoClient != null
   }
 
-  insertAction(command: string, tag: string, host: string, data: AgentData) {
+  insertAction(
+    command: string,
+    tag: string = this.host + '.' + this.foreignActionTagIndex++,
+    destinationHost: string,
+    data?: any,
+    callback?: () => void
+  ) {
+    console.log("Adding", command, "action to db...")
+    if (data) console.log("with data")
+    if (callback) console.log("and callback")
     this.actionsCollection.insertOne(
-      { action: command, tag, host, from: this.host, data },
-      // @ts-ignore
-      undefined,
-      (err, _res) => {
-        if (err)
-          this.logger.error('Sending remote command:', command, 'to:', host)
+      { action: command, tag: tag, host: destinationHost, from: this.host, data: data },
+      (err, res) => {
+        if (err) {
+          this.logger.error(
+            'Sending remote command:',
+            command,
+            'to:',
+            destinationHost
+          )
+          console.log("Error adding action to db:", err)
+        }
+        else {
+          this.logger.info(
+            'Sent remote action:',
+            command,
+            'to:',
+            destinationHost
+          )
+          console.log("Added", command, "action for", destinationHost)
+        }
       }
     )
+
+    if (callback) {
+      this.foreignActionCallbackCache[tag] = callback
+    }
   }
 
-  updateOneAgent(row: any) {
-    row.host = this.host //Mark user as belonging to us
-
-    this.agentsCollection.updateOne(
-      { peer_cid: row.peer_cid, host: row.host },
-      { $set: row },
+  updateOneAccount(account: AccountData) {
+    // console.log("Putting into mongo:\n", account)
+    this.accountsCollection.updateOne(
+      { peer_cid: account.peer_cid, host: account.host },
+      { $set: account },
       { upsert: true },
       (e, r) => {
-        if (e) this.logger.error(e.message)
-        else this.logger.trace('Add/update agent:', r)
-      }
-    )
-  }
-
-  //TODO change name
-  findOneAndUpdate(agentData: any, maxfoils: number, notifyTryTally) {
-    this.agentsCollection.findOneAndUpdate(
-      {
-        //Look for a trading partner
-        peer_cid: {
-          $ne: agentData.peer_cid, //Don't find myself
-          $nin: agentData.partners, //Or anyone I'm already connected to
-        },
-        //        host: {$ne: this.host},			//Look only on other hosts
-        foils: { $lte: maxfoils }, //Or those with not too many foils already
-      },
-      {
-        $set: { random: Math.random() }, //re-randomize this person
-        $inc: { foils: 1 }, //And make it harder to get them again next time
-        $push: { partners: agentData.peer_cid }, //Immediately add ourselves to the array to avoid double connecting
-      },
-      {
-        //Sort by
-        sort: { foils: 1, random: -1 },
-      },
-      (e, res) => {
-        //Get result of query
         if (e) {
           this.logger.error(e.message)
-        } else if (res?.ok) {
+          console.log("Error updating account:", account.std_name, e)
+        }
+        else {
+          this.logger.trace('Add/update account:', r)
+          console.log("Account", account.std_name, "added to mongo!")
+        }
+      }
+    )
+
+  }
+
+  findPeerAndUpdate(
+    hostedAccountPeerCid: string,
+    alreadyConnectedAccounts: string[],
+    callback: (peerData: AccountData | any) => void
+  ) {
+    const maxFoils = 5
+    const query = {
+      //Look for a trading partner
+      peer_cid: {
+        $ne: hostedAccountPeerCid, //Don't find myself
+        $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
+      },
+      foils: { $lte: maxFoils }, //Or those with not too many foils already
+    }
+
+    const update = {
+      $set: { random: Math.random() }, //re-randomize this person
+      $inc: { foils: 1 }, //And make it harder to get them again next time
+      //TODO: convert to PushDocument type somehow
+      $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
+    }
+
+    const options = {
+      //Sort by
+      sort: { foils: 1, random: -1 },
+    }
+    // @ts-ignore
+    this.accountsCollection.findOneAndUpdate(query, update, options).then(
+      (res) => {
+        if (res.ok) {
           this.logger.verbose(
-            '  Best client:',
+            '  Best peer:',
             res?.value?.std_name,
             res?.value?.host
           )
-          notifyTryTally(agentData, res.value)
+          callback(res.value)
         } else {
-          this.logger.verbose('  No client found in world DB')
+          this.logger.info('  No peer found:')
+          callback(null)
         }
+      },
+      (err) => {
+        this.logger.error('  Error finding a peer:', err)
       }
-    ) //findOneAndUpdate
+    ).catch((reason) => {
+      this.logger.info(' No peer found:', reason)
+    })
   }
 
-  deleteManyAgents(processedAgents: PeerCID[]): void {
-    this.agentsCollection.deleteMany(
+  deleteAllAccountsExcept(accountsToKeep: string[]): void {
+    this.accountsCollection.deleteMany(
       {
         //Delete any strays left in world db
         host: this.host,
-        peer_cid: { $nin: processedAgents },
+        peer_cid: { $nin: accountsToKeep },
       },
       (e, r) => {
         if (e) this.logger.error(e.message)
-        else this.logger.debug('Delete agents in world:', r)
+        else this.logger.debug('Delete accounts in world:', r)
       }
     )
   }
-
-  updateAgents() {}
 }
 
 export default MongoManager
