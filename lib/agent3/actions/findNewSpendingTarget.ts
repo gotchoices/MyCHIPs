@@ -21,6 +21,14 @@ class FindNewSpendingTarget implements Action{
 		this.account = account
 	}
 
+	// 1. Find peer in world DB (mongo)
+	// 2. Do we have the peer's info already downloaded?
+	//	a. If yes, look up the peer's ID in our cache
+	//	b. If not, add peer to our MyCHIPs DB (PG)
+	//		This gives the peer a new ID on our server (different than their ID on their server)
+	// 3. If they are on a different server, ask them to download our info to their server
+	// 4. When our info is on the peer's server...
+	// 4. Use the peer's ID (not peer_cid) to make a connection (tally) request
 	run() {        
 		if (this.account.numSpendingTargets <= 0 ||                 // If the account has no stocks   or
 			(this.account.numSpendingTargets < this.account.maxSpendingTargets &&   // (if the account doesn't have too many stocks and
@@ -34,6 +42,7 @@ class FindNewSpendingTarget implements Action{
 				this.logger.debug(this.account.peer_cid, "  attempting new spending source with", newPeer.peer_cid)
 
 				// TODO: Clean this up...
+				// If not in our local cache, give them a new id for our local server
 				if (!this.accountCache.containsAccount(newPeer)) {
 					this.myChipsDBManager.addPeerAccount(newPeer, (newLocalPeer) => {
 						console.log("Peer", newLocalPeer.peer_cid, "now has id:", newLocalPeer.id)
@@ -51,7 +60,7 @@ class FindNewSpendingTarget implements Action{
 						}
 					})
 				}
-				else {
+				else { 
 					newPeer = this.accountCache.getAccountByCID(newPeer.peer_cid)
 					let newPeerServer = newPeer.peer_sock.split(':')[0]
 					if (newPeerServer != this.account.host) {
@@ -72,6 +81,7 @@ class FindNewSpendingTarget implements Action{
 	addConnection(peer_id: string, peer_cid: string) {
 		console.log(this.account.peer_cid, "(", this.account.id, ") sending connection request to", peer_cid, "(", peer_id, ")")
 		this.myChipsDBManager.addConnectionRequest(this.account.id, peer_id)
+		//TODO make this depend on being accepted
 		this.account.numSpendingTargets++
 		if (!this.account.spendingTargetCids.includes(peer_cid)) {
 			console.log(this.account.peer_cid, "is adding", peer_cid, "to their lists")

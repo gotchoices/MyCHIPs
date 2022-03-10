@@ -112,7 +112,7 @@ class AccountCluster {
 
     this.intervalTimer = null
     // TODO: determine if this is necessary with new paramConfig.yaml
-    this.myChipsDBManager.getParameters(this.eatParameters) //Load initial parameters
+    this.myChipsDBManager.getParameters(this.eatParameters)
 
     this.worldDBManager.createConnection(
       this.notifyOfNewAccountRequest,
@@ -190,9 +190,9 @@ class AccountCluster {
 
   // -----------------------------------------------------------------------------
   /** Callback
-   * Takes the accounts from the MyChipsDBManager and loads them into the worldDB
+   * Takes the accounts from the MyChipsDBManager and loads them into the worldDB. Called whenever there is a change in the users table (postgres)
    *  @param dbAccounts - array of accounts fetched from MyChips Databases
-   * !TODO does this fetch from all databases?
+   * * First time it's run dbAccounts (which contains postgres data) only has local data, on subsequence it has both local and world data, so it filters and only updates worldDB with local accounts
    * @param all - boolean that states whether dbAccounts includes all accounts
    */
   eatAccounts(dbAccounts: AccountData[], all?: boolean) {
@@ -201,14 +201,17 @@ class AccountCluster {
       return
     }
 
+    // Filter out the accounts that are on our local server
     console.log("\nAccounts updated:", dbAccounts.length)
     let localAccounts: AccountData[] = []
     dbAccounts.forEach((dbAccount) => {
       if (dbAccount.user_ent) {
+        // Publish account data to world DB only for local accounts
         dbAccount.hosted_ent = true
         localAccounts.push(dbAccount)
         this.worldDBManager.updateOneAccount(dbAccount)
       }
+      // Put data for all accounts into our cache
       this.accountCache.addAccount(dbAccount)
     })
 
