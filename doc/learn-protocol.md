@@ -319,28 +319,32 @@ Individual entities define [trading variables](learn-tally.md#trading-variables)
 
 The lift algorithm compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
 
-As of February, 2022 lifts have been generalized to include transactions that move upstream or downstrem (technically a *drop*).
+As of February, 2022 lifts have been generalized to include transactions that move upstream *or downstream* (technically a *drop*).
 Previously segments were linked by joining tallies together stock-to-foil.
 So one could only consider a lift or a drop across the complete segment.
 
-Now tallies are linked together according to their capacity to flow (lift) value in either the upstream or downstream direction.
-A single tally might simultaneously be a candidate for a lift and a drop, as a member of different segments.
+Now tallies are linked together according to their capacity to flow (lift) value in either the stock-to-foil or foil-to-stock direction.
+In fact, a single tally might simultaneously be a candidate for a lift and a drop, as a member of different segments.
 This will allow much more flexibility for users in controlling their accumulated balances.
 
+So as the terms *upstream* and *downstream* are used in relation to a lift,
+*upstream* simply means in the direction we want the lift value to flow and *downstream* means the opposite.
+
 ### Route Discovery Protocol
-Having identified local segments that have capacity for a potential lift,
-each site then needs a way to cooperate with peer sites to gather just enough 
+Having identified *local* segments that have capacity for a potential lift,
+each site then needs a way to cooperate with *foreign* peer sites to gather just enough 
 information so it can reasonably initiate lifts or participate in others' lifts.
 
-Each site needs to know whether a potential external route exists where:
-- a lift can be initiated through the top of a local segment (B1->A3); and
-- for circular lifts: the lift will return to us via the bottom of the segment (C1->B3).
+Each site needs to know whether a potential external route might exist where:
+- a lift can be initiated through the top of a given local segment (B1->A3); and
+- for circular lifts: the lift will return to us via the bottom of the segment (C1->B3); or
+- for linear lifts: the lift will arrive at the desired destination entity (Xn);
 
 In our scenario, site B doesn't really need to know many details about the route--just whether one or more such paths exist.
 The route may pass through many other sites on its way back to C1.
 In fact, it may pass through some sites more than once, traversing multiple segments.
 
-Once site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as a single *node* in the lift--almost as though it were a single entity.
+Once site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as an integral *node* in the lift--almost as though it were a single entity.
 The lift will be committed (or canceled) in a single, atomic transaction on behalf of all the nodes belonging to the segment.
 
 Route discovery requests can be initiated in two ways:
@@ -351,35 +355,37 @@ Route discovery requests can be initiated in two ways:
 
 An entity would typically request a route because it intends to make a payment (linear lift) to some other entity.
 The payee entity's [CHIP address](learn-users.md#chip-addresses) might be obtained by scanning an invoice QR code or processing an object embedded in an email or text message.
-The payor's app would then send that information (along with any hints) to his host site.
-His agent server process can then commence the discovery process for suitable external routes to complete the intended lift.
+The payor's app would then send that information to his host site.
+His agent server process can then commence the discovery process for possible external routes to complete the intended lift.
 
 For a linear lift, each end of the lift may involve a *partial segment*.
 The payor segment may include zero or more other local entities upstream before the lift jumps to a foreign peer
 (for example: [C2, C1, (B3)]).
 The lift may pass through zero or more downstream local entities before reaching the payee
 (for example: [(B1), A3, A2]).
-Nodes along the way get the same experience whether the lift is circular or linear.
+Nodes along the way (relays) get the same experience whether the lift is circular or linear.
 
 Manual routing requests are handled as follows:
 
-![Manual Routing](uml/seq-route-man.svg "Manual initiating a route search")
+![Manual Routing](uml/seq-route-man.svg "Manually initiating a route search")
 
-As mentioned, an autonomous agent process is continually scanning for liftable balances along local segments.
-Upon discovering a segment with a capacity for a lift, the system will check its database for possible external routes that might be used to complete the circuit.
+As mentioned, an autonomous agent process is periodically scanning for liftable balances along local segments.
+Upon discovering a segment with a capacity for a lift, the system will check its database for external routes that might be used to complete the circuit.
 
 ![Automatic Routing](uml/seq-route-auto.svg "Automatic route scanning")
 
-If a suitable route is not yet known, the agent will commence a search.
-This is done by creating a draft route record in the local database and then propagating the query upstream.
+If a suitable route is not yet known, the agent will commence a search by creating one or more 
+draft route records in the local database.
+This causes the associated agent processes to propagate the query to their associated upstream partners.
 
-If previous successful searches have been conducted, but are too old to be reliable, a new search should be initiated to freshen the route in the database.
-This is done by resetting the local record to draft state and again propagating a query upstream.
+If previous successful searches have already been conducted but are too old to be reliable,
+the routes may be updated simply by resetting them to draft status again and the process will repeat.
 
 If previous searches have been inconclusive, the agent should similarly retry after a reasonable amount of time has passed.
+The database maintains a sorting algorithm internally to determine when to retry old routes and when to try creating new ones.
 
 As mentioned, each site acts in two roles:
-- It may initiate route queries necessary for conducting trades for local users; and
+- It may initiate upstream route queries necessary for conducting trades for local users; and
 - It may receive queries from downstream and act upon them.
 
 The second role is shown in the following sequence diagram:

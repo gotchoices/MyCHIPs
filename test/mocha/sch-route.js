@@ -14,6 +14,9 @@ var agentListen = 'ma_' + agent1		//And his agent process
 var {save, rest} = require('./def-route')
 var queryLogic = {context: ['null','none','pend.X','good.X'], query: true}
 var interTest = {}			//Pass values from one test to another
+var routeSql = `select json_agg(s) as json from (
+    select rid,via_ent,via_tseq,dst_cid,dst_agent,status,step,mychips.route_sorter(status,expired) as sorter
+    from mychips.routes_v order by rid) s;`
 
 describe("Test route state transitions", function() {
   var busU = new Bus('busU'), busA = new Bus('busA')
@@ -68,7 +71,6 @@ describe("Test route state transitions", function() {
   })
 
   it("Check view mychips.routes_v_paths", function(done) {
-//    let expFile = 'routes_v_paths.json'
     let sql = `select json_agg(s) as json from (
           select edges,pat,bot_cid,bot_agent,circuit from mychips.routes_v_paths order by path) s;`
     queryJson('routes_v_paths', dbA, sql, done)
@@ -77,9 +79,10 @@ describe("Test route state transitions", function() {
   it("Agent transmits query, confirms change to pend (draft -> pend)", function(done) {
 //log.debug("MSG:", interTest.m0)
     let logic = {context: ['draft'], update: {status: 'pend'}}
-      , { cid, agent } = interTest.m0.from
-      , msg = {to: {cid, agent}, object: interTest.m0.object}
+      , {to, from, object} = interTest.m0
+      , msg = {to:from, from:to, object}
       , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
+    interTest.m1 = msg
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)				//;log.debug("row:", row)
@@ -94,8 +97,7 @@ describe("Test route state transitions", function() {
 
   it("Agent receives message of successful route (pend -> good)", function(done) {
     let logic = {context: ['pend'], update: {status: 'good'}}
-      , { cid, agent } = interTest.m0.from
-      , msg = {to: {cid, agent}, object: interTest.m0.object}
+      , msg = interTest.m1
       , sql0 = `update mychips.routes set min = 4, max = 9, margin = 0.001, reward = 0.015;`
       , sql1 = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
       , dc = 2; _done = () => {if (!--dc) done()}
@@ -125,8 +127,7 @@ describe("Test route state transitions", function() {
 
   it("Agent receives message of successful local/native route (pend -> good)", function(done) {
     let logic = {context: ['pend'], update: {status: 'good'}}
-      , { cid, agent } = interTest.m0.from
-      , msg = {to: {cid, agent}, object: interTest.m0.object}
+      , msg = interTest.m1
       , sql0 = `update mychips.routes set req_tseq = null;`
       , sql1 = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
       , dc = 2; _done = () => {if (!--dc) done()}
@@ -147,37 +148,34 @@ describe("Test route state transitions", function() {
     })
   })
 
-  it("Save good route record for later testing", function(done) {
-    dbA.query(save('good'), (e) => {if (e) done(e); done()})
-  })
-
-  it("Restore original pend route record", function(done) {
-    dbA.query(rest('pend'), (e) => {if (e) done(e); done()})
-  })
-
-  it("Agent receives message of failed route (pend -> none)", function(done) {
-    let logic = {context: ['pend'], update: {status: 'none'}}
-      , { cid, agent } = interTest.m0.from
-      , msg = {to: {cid, agent}, object: interTest.m0.object}
-      , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
-      , dc = 2; _done = () => {if (!--dc) done()}
+//No downstream relays of 'none' anymore
+//  it("Save good route record for later testing", function(done) {
+//    dbA.query(save('good'), (e) => {if (e) done(e); done()})
+//  })
+//  it("Restore original pend route record", function(done) {
+//    dbA.query(rest('pend'), (e) => {if (e) done(e); done()})
+//  })
+//  it("Agent receives message of failed route (pend -> none)", function(done) {
+//    let logic = {context: ['pend'], update: {status: 'none'}}
+//      , msg = interTest.m1
+//      , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
+//      , dc = 2; _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'none')
-      _done()
-    })
-    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
-      assert.equal(msg.target, 'route')
-      assert.equal(msg.action, 'none')
-      busA.register('pa')
-      _done()
-    })
-  })
-
-  it("Restore good route record", function(done) {
-    dbA.query(rest('good'), (e) => {if (e) done(e); done()})
-  })
+//    dbA.query(sql, null, (e, res) => {if (e) done(e)
+//      let row = getRow(res, 0)
+//      assert.equal(row.state, 'none')
+//      _done()
+//    })
+//    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
+//      assert.equal(msg.target, 'route')
+//      assert.equal(msg.action, 'none')
+//      busA.register('pa')
+//      _done()
+//    })
+//  })
+//  it("Restore good route record", function(done) {
+//    dbA.query(rest('good'), (e) => {if (e) done(e); done()})
+//  })
 
   it("Add two more possible external up-routes", function(done) {
      let units = 10, stat = 'open', sig = 'Valid'
@@ -235,9 +233,7 @@ describe("Test route state transitions", function() {
   })
 
   it("Should produce one more draft route record", function(done) {
-    let sql = `select json_agg(s) as json from (
-          select rid,via_ent,via_tseq,dst_cid,dst_agent,status,sorter from mychips.routes_v order by rid) s;`
-    queryJson('routes_v1', dbA, sql, done)
+    queryJson('routes_v1', dbA, routeSql, done)
   })
 
   it("Agent receives query for tally-connected foreign user", function(done) {
@@ -256,16 +252,14 @@ describe("Test route state transitions", function() {
       let row = getRow(res, 0)			//;log.debug("A row:", row)
           , state = row.state			//;log.debug("A state:", state)
       assert.equal(state.action, 'good')	//;log.debug("A lading:", state.lading)
-      assert.equal(state.forward, 3)
+      assert.equal(state.forward, 2)		//new queries sent along
       assert.deepStrictEqual(state.lading, {"max":7,"min":5,"margin":0.002997,"reward":0.02})
       done()
     })
   })
 
   it("Should produce three more draft route records", function(done) {
-    let sql = `select json_agg(s) as json from (
-          select rid,via_ent,via_tseq,dst_cid,dst_agent,status,sorter from mychips.routes_v order by rid) s;`
-    queryJson('routes_v2', dbA, sql, done)
+    queryJson('routes_v2', dbA, routeSql, done)
   })
 
   it("Agent receives query for unknown but queriable user", function(done) {
@@ -279,21 +273,16 @@ describe("Test route state transitions", function() {
           }
         }
       , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, queryLogic)
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("A row:", row)
-          , state = row.state			;log.debug("A state:", state)
-      assert.equal(state.action, 'relay')	;log.debug("A lading:", state.lading)
+          , state = row.state			//;log.debug("A state:", state)
+      assert.equal(state.action, 'relay')	//;log.debug("A lading:", state.lading)
       assert.equal(state.forward, 3)
       assert.ok(!state.lading)
       done()
     })
   })
-
-//  it("Clear route table", function(done) {
-//    dbA.query('delete from mychips.routes', null, (e, res) => {done(e)})
-//  })
-
 /*
 */
   after('Disconnect from test database', function(done) {

@@ -155,7 +155,7 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v mychips.lift
         lrec		record;			-- Lift view record
         rrec		record;			-- Retries
     begin
-        select into lrec route_cid,route_sock,topu_cid,topu_serv,topu_sock,route_user from mychips.lifts_v where lift_uuid = lift.lift_uuid and lift_seq = lift.lift_seq;
+        select into lrec vip_cid,vip_sock,topu_cid,topu_serv,topu_sock,route_user from mychips.lifts_v where lift_uuid = lift.lift_uuid and lift_seq = lift.lift_seq;
         if not lrec.topu_serv is null then
 --Fixme: change to agent
             channel = 'ma_' || urec.serv_id;
@@ -170,8 +170,8 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v mychips.lift
           'action',	act,
           'try',	rrec.tries,
           'last',	rrec.last,
-          'user',	lrec.route_cid,
-          'at',		lrec.route_sock,
+          'user',	lrec.vip_cid,
+          'at',		lrec.vip_sock,
           'from',	lrec.topu_cid,
           'fat',	lrec.topu_sock,
           'local',	lrec.route_user,
@@ -251,14 +251,10 @@ view mychips.lifts_v {mychips.lifts mychips.tallies_v mychips.lift_state(text,te
   , mychips.j2h(mychips.lift_json(lf)) as digest_v
   , mychips.j2h(mychips.lift_json(lf)) = coalesce(lf.digest,'') as clean
   
-  , re.peer_cid		as route_cid		-- Top of segment peer
-  , re.peer_chost	as route_host
---  , re.peer_addr	as route_addr
-  , re.peer_sock	as route_sock
---  , re.peer_endp	as route_endp
---  , re.std_name	as route_name
---  , re.serv_id	as route_serv
-  , not re.user_ent isnull as route_user
+  , re.peer_cid		as vip_cid		-- Top of segment peer
+  , re.peer_chost	as vip_host
+  , re.peer_sock	as vip_sock
+  , not re.user_ent isnull as vip_user
 
   , te.peer_ent		as topu_ent		-- Top user of local segment
   , te.peer_cid		as topu_cid

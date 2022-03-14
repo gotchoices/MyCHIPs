@@ -151,7 +151,7 @@ describe("Initialize tally/path test data", function() {
 
   it("Check view tallies_v_net", function(done) {
     let sql = `update mychips.tallies set target = 3, bound = 7;
-               select json_agg(s) as json from (select inp,out,target,bound,units_pc,min,max,sign
+               select json_agg(s) as json from (select inp,out,target,bound,units_pc,net_pc,min,max,sign
                from mychips.tallies_v_net order by min,max,sign) s;`
     queryJson('tallies_v_net', db, sql, done, 2)
   })
@@ -165,7 +165,6 @@ describe("Initialize tally/path test data", function() {
             from mychips.tallies_v_paths where edges > 1 order by path) s;`
     queryJson('tallies_v_paths', db, sql, done, 3)
   })
-
 /*
 */
   after('Disconnect from test database', function(done) {

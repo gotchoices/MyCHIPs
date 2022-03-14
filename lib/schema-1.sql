@@ -4358,7 +4358,7 @@ create function mychips.route_notify(route mychips.routes) returns void language
           , 'last'	, rrec.last
         );
 
-raise notice 'Rd:% %:%', route.status, route.dst_cid, route.dst_agent;
+
         select into orec via_chad,via_agent,route_chad,native,json,  min,max,margin,reward
           from mychips.routes_v where rid = route.rid;
 
@@ -4371,7 +4371,7 @@ raise notice 'Rd:% %:%', route.status, route.dst_cid, route.dst_agent;
           );
 
         elsif route.status in ('good','none') then	-- good,none: notify someone
-raise notice 'Rs:% % %', route.rid, route.req_ent, route.req_tseq;
+
 
           if (orec.native) then			-- Notify requesting user
             jrec = jsonb_build_object('target','route'
@@ -4390,7 +4390,7 @@ raise notice 'Rs:% % %', route.rid, route.req_ent, route.req_tseq;
             from mychips.routes_v_paths
               where rid = route.rid and bot = req_ent and bot_tseq = req_tseq
               order by margin, min desc, max desc limit 1;
-raise notice 'Rz:% % % %', prec.req_ent,prec.rpt_cid, prec.rpt_agent, prec.lading;
+
 
             channel = 'ma_' || prec.req_agent;
             jrec = jrec || jsonb_build_object(
@@ -4886,8 +4886,10 @@ raise notice 'Route process msg: %; recipe: %', msg, recipe;
           from mychips.tallies_v where
             tally_uuid = (obj->>'tally')::uuid and liftable;
         if not found then return null; end if;
-raise notice ' tally: % % %', base.tally_ent, base.tally_seq, base.tally_uuid;
 
+raise notice ' tally: % % %', base.tally_ent, base.tally_seq, base.tally_uuid;
+raise notice ' F: %:% %:%', base.part_cid, base.part_agent,fr_chad->>'cid',fr_chad->>'agent';
+raise notice ' T: %:% %:%', base.hold_cid, base.hold_agent,to_chad->>'cid',to_chad->>'agent';
         if base.part_cid != fr_chad->>'cid' or base.part_agent != fr_chad->>'agent' or
            base.hold_cid != to_chad->>'cid' or base.hold_agent != to_chad->>'agent' then
              return null;

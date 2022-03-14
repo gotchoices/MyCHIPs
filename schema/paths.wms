@@ -17,7 +17,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , t.tally_ent					as out
   , t.target, t.reward, t.bound
   , coalesce(p.clutch, 0)			as margin
-  , t.units_pc
+  , t.units_pc, t.net_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
@@ -26,7 +26,6 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , false					as inv
     from	t2 as t
     join 	t2 as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
-    where t.net_pc < coalesce(t.bound,0)
 
   union select 			-- Tallies with foreign peers
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
@@ -34,7 +33,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , t.tally_ent					as out
   , t.target, t.reward, t.bound
   , 0						as margin
-  , t.units_pc
+  , t.units_pc, t.net_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
@@ -42,7 +41,6 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , false					as inv
     from	t1 as t
-    where t.net_pc < coalesce(t.bound,0)
 
   union select 			-- Tallies with foreign peers and reverse consideration
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
@@ -50,7 +48,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , t.part_ent					as out
   , 0 as target, 0 as reward, 0 as bound
   , 0						as margin
-  , t.units_pc
+  , t.units_pc, -t.net_pc as net_pc
   , t.net_pc					as min
   , t.net_pc					as max
   , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
@@ -58,7 +56,6 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , true					as inv
     from	t1 as t
-    where t.net_pc > 0
 }
 
 # Recursive view of tallies to show pathways local to our system
@@ -73,6 +70,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
              ti.min, ti.margin, ti.max, ti.reward, 
              ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
     from	mychips.tallies_v_net ti
+    where	ti.net_pc < ti.bound
   union all
     select tp.inp					as inp
       , t.out						as out
@@ -99,6 +97,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
+    where	t.net_pc < t.bound		-- only paths with present capacity
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max
     , tpr.top, tpr.topseq, tpr.bot, tpr.botseq, tpr.circuit
@@ -108,6 +107,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     , tpr.edges * tpr.min		as bang
     , tpr.inp isnull			as fori
     , tpr.out isnull			as foro
+    , tpr.inp isnull and tpr.out isnull	as segment
     , tpr.inp || tpr.ath		as path
     , tpr.ath[1:edges-1]		as at
     , tpr.inp || tpr.ath[1:edges-1]	as pat
@@ -132,7 +132,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
 view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
     tp.inp, tp.out, tp.top, tp.top_tseq, tp.bot, tp.bot_tseq
   , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids
-  , tp.fori, tp.foro, tp.fori and tp.foro as segment
+  , tp.fori, tp.foro, tp.segment
   , tp.top_uuid, tp.top_cid, tp.top_agent, tp.top_chad
   , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
   , r.rid, r.via_ent, r.via_tseq, r.via_tally
@@ -161,23 +161,3 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
   join	mychips.tallies_v_paths	tp on tp.top = r.via_ent and tp.top_tseq = r.via_tseq and tp.foro
 }
 
-# View of possible external routes compared to existing route records
-#----------------------------------------------------------------
-#view mychips.routes_v_query {mychips.routes_v_paths mychips.routes_v} {select
-#    tp.*
-#  , r.rid, r.via_ent, r.via_tseq, r.via_tally
-#  , r.dst_cid, r.dst_agent, r.status, r.expired
-#  , case
-#    when r.status = 'good' and not r.expired	then	0
-#    when r.status = 'pend' and not r.expired	then	1
-#    when r.status = 'good' and r.expired	then	2
-#    when r.status isnull			then	3
-#    when r.status = 'pend' and r.expired	then	4
-#    else						5
-#    end						as sorter
-#  , r.via_ent is not null			as exist
-#  
-#  from mychips.tallies_v_paths	tp
-#  left join mychips.routes_v	r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq
-#  where tp.foro
-#}

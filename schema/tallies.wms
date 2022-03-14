@@ -271,7 +271,7 @@ $$;}
 
 # Generate notifications about updated tallies for listening peer servers
 #----------------------------------------------------------------
-function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies) mychips.route_circuit(text)} {
+function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies) mychips.route_circuit(text,int)} {
   returns trigger language plpgsql security definer as $$
     declare
       notify	boolean default false;
@@ -283,7 +283,7 @@ function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
-          perform mychips.route_circuit(new.tally_ent);		-- New tally, let's query for route info
+          perform mychips.route_circuit(new.tally_ent, new.tally_seq);		-- New tally; query for applicable route circuit info
         end if;
       end if;
       if notify then perform mychips.tally_notify_agent(new); end if;
@@ -348,16 +348,16 @@ define uSign {case when te.tally_type = 'stock' then %1 else -%1 end}
 view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.agents_v mychips.peers_v mychips.tally_state(text,text,text,text) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , te.hold_cid ||':'|| ua.agent	as hold_addr
-  , te.hold_cid ||':'|| ua.atsock	as hold_full
-  , ua.sock				as hold_sock
-  , ua.agent_key			as hold_akey
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
+--  , te.hold_cid ||':'|| ua.atsock	as hold_full
+--  , ua.sock				as hold_sock
+--  , ua.agent_key			as hold_akey
 
   , te.part_cid ||':'|| pa.agent	as part_addr
-  , te.part_cid ||':'|| pa.atsock	as part_full
-  , pa.sock				as part_sock
-  , pa.agent_key			as part_akey
   , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
+--  , te.part_cid ||':'|| pa.atsock	as part_full
+--  , pa.sock				as part_sock
+--  , pa.agent_key			as part_akey
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state

@@ -11,37 +11,43 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     }}
     {tally_date		{Tally Date}		{The date and time this tally was initiated between the parties}}
     {version		{Version}		{A number indicating the format standard this tally adheres to}}
-    {part_ent		{Partner Entity}	{The entity id number of the other party to this tally}}
-    {status		{Status}		{Current status of the tally record} {
-        {void		{Void}			{The tally has been abandoned before being affirmed by both parties}}
-        {draft		{Draft}			{The tally have bee suggested by one party but not yet accepted by the other party}}
-        {open		{Open}			{The tally is affirmed by both parties and can be used for trading chits}}
-        {close		{Close}			{No further trading can occur on this tally}}
-    }}
+    {comment		{Comment}		{Any notes the user might want to enter regarding this tally}}
+    {contract		{Contract}		{The hash ID of the standard contract this tally is based upon.}}
+    {hold_cert		{Holder Certificate}	{The JSON structure of identifying data for the entity that owns/holds this tally}}
+    {part_cert		{Partner Certificate}	{The JSON structure of identifying data for the other party to this tally}}
+    {hold_sig		{Holder Signed}		{The digital signature of the entity that owns/holds this tally}}
+    {part_sig		{Partner Signed}	{The digital signature of the other party to this tally}}
+    {stock_terms	{Stockee Terms}		{The credit terms by which the holder of the tally stock is governed}}
+    {foil_terms		{Foilee Terms}		{The credit terms by which the holder of the tally foil is governed}}
+    {digest		{Digest Hash}		{A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.}}
+
+    {target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value may be subject to margin costs.}}
+    {reward		{Buy Margin}		{A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.}}
+    {clutch		{Sell Margin}		{A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.}}
+    {bound		{Trade Limit}		{The maximum amount of value the stock/foil owner is willing to accumulate on this tally}}
+    {dr_limit		{Debit Limit}		{The maximum amount the Vendor (Stock) is granted to borrow from the Client (Foil) in exchange for goods and services}}
+    {cr_limit		{Credit Limit}		{The maximum amount the Client (Foil) is granted to borrow from the Vendor (Stock) in exchange for goods and services}}
+
     {request		{Request}		{Requested next status for the tally} {
         {void		{Void}			{One party has requested to negotiation before the tally has been opened}}
         {draft		{Draft}			{One party is suggesting terms for a tally}}
         {open		{Open}			{One party is requesting to open the tally according to the specified terms}}
         {close		{Close}			{One party is requesting to discontinue further trading on this tally}}
     }}
-    {comment		{Comment}		{Any notes the user might want to enter regarding this tally}}
-    {hold_sig		{Holder Signed}		{The digital signature of the entity that owns/holds this tally}}
-    {part_sig		{Partner Signed}	{The digital signature of the other party to this tally}}
-    {contract		{Contract}		{The hash ID of the standard contract this tally is based upon.}}
-    {stock_terms	{Stockee Terms}		{The credit terms by which the holder of the tally stock is governed}}
-    {foil_terms		{Foilee Terms}		{The credit terms by which the holder of the tally foil is governed}}
-    {dr_limit		{Debit Limit}		{The maximum amount the Vendor (Stock) is granted to borrow from the Client (Foil) in exchange for goods and services}}
-    {cr_limit		{Credit Limit}		{The maximum amount the Client (Foil) is granted to borrow from the Vendor (Stock) in exchange for goods and services}}
-    {target		{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value may be subject to margin costs.}}
-    {reward		{Buy Margin}		{A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.}}
-    {clutch		{Sell Margin}		{A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.}}
-    {bound		{Trade Limit}		{The maximum amount of value the stock/foil owner is willing to accumulate on this tally}}
-    {units_c		{Cached Units}		{A cached copy of the total of all the chits on this tally, from the perspective of the tally's owner}}
+    {status		{Status}		{Current status of the tally record} {
+        {void		{Void}			{The tally has been abandoned before being affirmed by both parties}}
+        {draft		{Draft}			{The tally have bee suggested by one party but not yet accepted by the other party}}
+        {open		{Open}			{The tally is affirmed by both parties and can be used for trading chits}}
+        {close		{Close}			{No further trading can occur on this tally}}
+    }}
+    {part_ent		{Partner Entity}	{The entity id number of the other party to this tally}}
+    {units_gc		{Units Good}		{Net milliCHIPs committed on this tally (cached copy)}}
+    {units_pc		{Units Pending}		{Net milliCHIPs committed on this tally if/when current pending transactions have all settled (cached copy)}}
+    {hold_cid		{Holder CHIP ID}	{Cached value of holder's CHIP identity from the holder certificate}}
+    {part_cid		{Partner CHIP ID}	{Cached value of partner's CHIP identify from the holder certificate}}
+    {hold_agent		{Holder Agent}		{Cached value of holder's agent from the holder certificate}}
+    {part_agent		{Partner Agent}		{Cached value of partner's agent from the holder certificate}}
     {chain_conf		{Chain Confirmed}	{The index of the last chit in the chain that has been confirmed with the partner peer}}
-    {digest		{Digest Hash}		{A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.}}
-    {units_gc		{Units Good}		{Net milliCHIPs committed on this tally}}
-    {units_pc		{Units Pending}		{Net milliCHIPs committed on this tally if/when current pending transactions have all settled}}
-    {_agent		{Peer Agent}		{Cached value of peer's agent used to ensure referential integrity}}
     {_last_chit		{Last Chit}		{Used internally to create new chit record index numbers}}
     {_last_tset		{Last Setting}		{Used internally to create new tally setting records}}
 } $glob::stampt] -messages {
@@ -65,25 +71,25 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
 }
 
 tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.} {
+    {hold_addr		{Holder Address}	{The CHIP address (cid:agent) of the owner of the tally}}
+    {hold_chid		{Holder CHIP Address}	{Full JSON CHIP address of the entity that owns this part of the tally}}
+    {part_addr		{Partner Address}	{The CHIP address (cid:agent) of the partner on this tally}}
+    {part_chid		{Partner CHIP Address}	{Full JSON CHIP address of the partner entity on the other end of the tally}}
+
+    {inside		{Inside}		{The partner entity is also hosted by the same system as the tally owner}}
     {state		{State}			{A computed value indicating the state of progress as the tally goes through its lifecycle}}
     {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
-    {user_name		{User Name}		{The name of this tally's owner}}
-    {part_name		{Partner Name}		{The name of the tally partner}}
-    {user_addr		{User Address}		{The CHIP address of the owner of the tally}}
-    {part_addr		{Partner Address}	{The CHIP address of the tally partner}}
-    {inside		{Inside}		{The partner entity is also hosted by the same system as the tally owner}}
+    {liftable		{Liftable}		{Indicates if the tally is eligible to participate in lifts}}
+    {net		{Signed Units}		{Total milliCHIP value on the tally, as summed from current chits}}
+    {net_gc		{Signed Good Units}	{Total milliCHIP value of committed chits}}
+    {net_pc		{Signed Pending}	{Total milliSHIP value of committed and pending chits}}
     {chits		{Chits}			{The total number of chit transactions recorded on the tally}}
     {latest		{Last Chit}		{The date of the latest chit on the tally}}
-    {user_serv		{User Server}		{The server ID, if any, for the owner of this tally}}
     {json_core		{JSON Core}		{A JSON representation of the parts of the tally that will be digitally hashed and signed}}
     {json		{JSON}			{A JSON representation of the tally, including the digital hash}}
     {digest_v		{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
     {clean		{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the tally has not been tampered with.}}
     {policy		{Policy}		{A JSON record of the standard lift and drop parameters}}
-    {user_cid		{User CHIP ID}		{CHIP name of the entity that owns this part of the tally}}
-    {user_sock		{User Socket}		{Socket address of the entity that owns this part of the tally}}
-    {part_cid		{Partner CHIP ID}	{CHIP name of the partner entity on the other end of the tally}}
-    {part_sock		{Partner Socket}	{Socket address of the partner entity on the other end of the tally}}
 }
 
 tabtext mychips.tallies_v_me {My Tallies}	{View containing all the tallies owned by the current user.} {

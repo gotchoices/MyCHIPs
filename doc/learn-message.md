@@ -65,11 +65,14 @@ In this way, commands will only be considered valid if the object is still in th
 (context) at the instant they are interpreted.
 
 ### State Codes
-Moving to protocol >= 1.0 we will experiment with migrating to a format for object state
-encoded as follows:
-```
-  type.status.request
-```
+Previous to 2022, the states of subsystem objects (tallies, chits, routes, lifts) were
+rather arbitrarily named.
+Moving to protocol >= 1.0 they will utilize a state format encoded as follows:
+
+  - type.status.request (tallies, chits)
+  - status.freshness (routes)
+  - ? (lifts) **not yet implemented**
+
 where "status" indicates the current status of the object record.
 The state may start with a "type" which is simply there to differentiate states that may
 be distinct, but share a common status.
@@ -180,52 +183,67 @@ The *object* property for the chit is defined as follows:
   - **uuid**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier)(UUID) for this particular chit.
   - **tally**: the UUID of the tally this chit belongs to.
   - **date**: Date/time the chit was created
-  - **type: The value 'tran' (transaction) or 'lift' (linear or circular)
+  - **type**: The value 'tran' (transaction) or 'lift' (linear or circular)
   - **for**: A description of what the payment is for
-  - *units: The number of milli-CHIPs on this chit.
-            Positive means a payment from Client to Vendor (or a drop).
-            Negative means a payment from Vendor to Client (or a lift).
+  - **units**: The number of milli-CHIPs on this chit.  Positive means a payment from Client to Vendor (or a drop).  Negative means a payment from Vendor to Client (or a lift).
   - **digest**: A string hash of the rest of the chit in a standard serialized format
   - **digest**: A string hash of the rest of the chit in a standard serialized format
   - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor
 
 Chit state transition messages are as follows:
 
-*Under Construction*
+- *DB->Agent:* **Request Agent to Invoice**: ***action***: pend
+  The DB requests the agent to send the payment request to the indicated peer.
+
+- *DB->Agent:* **Request Agent to Cancel**: ***action***: void
+  The DB requests the agent to notify the peer that the referenced payment is refused.
+
+- *DB->Agent:* **Request Agent**: ***action***: good
+  The DB requests the agent to notify the peer that the referenced payment is approved.
+
+- *Agent->Agent:* **Request Payment**: ***action***: pend
+  A peer is requesting payment from our user on the indicated tally.
+
+- *Agent->Agent:* **Refuse Payment**: ***action***: void
+  A peer is refusing payment to our user on the indicated tally.
+
+- *Agent->Agent:* **Approve Payment**: ***action***: good
+  A peer is confirming/approving payment to our user on the indicated tally.
 
 ### Route Messages
 Property: **target**: route
 
-When a route query is being propagated upstream, the *object* property in the message is defined as follows:  
-  - **step**: Tracks how many hops away from the original inquiry this query has come (0 on first query).
+The object property always contains:
   - **find**: A CHIP address for the destination entity of this route.  Must minimally contain a cid and agent.  Host and port components may provide hints to intelligent algorithms about where to best find successful routes.
   - **tally**: The UUID of the tally this route query is being sent over (and expected to be returned on.
+
+When a route query is being sent upstream, the *object* property also includes:
+  - **step**: Tracks how many hops away from the original inquiry this query has come (0 on first query).
   
-When a route response is being propagated downstream, the *object* property is as follows:  
-*Under Construction*  
-```
-  , jsonb_build_object(         		-- Overlay for packet we will transmit back downstr
-       'from'   ,       be.peer_cid
-     , 'fat'    ,       be.peer_chost
-     , 'to'     ,       coalesce(de.peer_cid, ro.dest_chid)
-     , 'tat'    ,       coalesce(de.peer_host, ro.dest_host)
-     , 'by'     ,       qe.peer_cid
-     , 'bat'    ,       qe.peer_chost
-     , 'port'   ,       qe.peer_cport
-     , 'lading' ,       jsonb_build_object(
-          'lmin'   ,    rp.lift_min,    'lmax'   ,	rp.lift_max
-        , 'lmargin',    rp.lift_margin, 'lreward',	rp.lift_reward
-        , 'dmin'   ,    rp.drop_min,    'dmax'   ,	rp.drop_max
-        , 'dmargin',    rp.drop_margin, 'dreward',	rp.drop_reward
-       )
-    )
-```
-*Under Construction*  
+When a route response is being propagated downstream, the *object* property also includes:
+  - **lading**: Expresses the approximate capacity/cost of the route for carrying lift value.
+    - **min**: The amount of value that can be transmitted without incurring extra cost
+    - **max**: The greatest amount of value that can be transmitted under any cost scenario
+    - **margin**: The base cost applied to a lift of any value
+    - **reward**: An extra cost applied to any lift amount above min (and below max)
 
 Route state transition messages are as follows:
+- *DB->Agent:* **Request Agent to Query**: ***action***: draft
+  The DB requests the agent to send the route request upstream to the indicated partner.
 
-*Under Construction*
-  
+- *DB->Agent:* **Notification of Good**: ***action***: good
+  A relay route has just been marked good locally.
+  The DB requests the agent to send the good status downstream to the partner who requested it.
+
+- *Agent->Agent:* **Route Query**: ***action***: query
+  A downstream peer agent is asking us for possible routes to a designated destination entity.
+
+- *Agent->Agent:* **Route Failed**: ***action***: none
+  An upstream peer is indicating that no possible further upstream route is possible for the applicable query.
+
+- *Agent->Agent:* **Route Succeeded**: ***action***: good
+  An upstream peer is indicating that one or more routes are possible to the requested destination.
+  A lading record is returned indicating a good (or best) approximation of what lift capacity will be available if requested.
 
 ### Lift Messages
 *Under Construction*

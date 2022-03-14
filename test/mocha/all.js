@@ -19,8 +19,13 @@ require('./chit.js')
 
 require('./sch-path.js')
 require('./sch-route.js')
+require('./route.js')
 
-//Re-enable after schema settles and more documentation filled in
+//Yet to implement:
+//require('./sch-tally.js')
+//require('./tally.js')
+
+//Re-enable after schema settles and more text fields are filled in
 //require('./schema.js')
 
 //Re-enable after consolidating users_v, peers_v?

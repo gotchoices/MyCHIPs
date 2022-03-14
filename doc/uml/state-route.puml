@@ -41,7 +41,9 @@ draft -[$db]-> pend: $trans($db,draft detected,'',Forward Upstream Act:query)
 pend -up[$peer]-> good: $trans($peer,Receive Act:good,Local request,Notify user)
 pend -up[$peer]-> good: $trans($peer,Receive Act:good,External Request,Relay Downstream Act:good)
 pend --> timeout: $trans(timer,Request times out,'')
-pend -[$peer]-> none: $trans($peer,Receive Act:none,Relay Downstream Act:none)
+
+'pend -[$peer]-> none: $trans($peer,Receive Act:none,Relay Downstream Act:none)
+pend -[$peer]-> none: $trans($peer,Receive Act:none,No further relay)
 
 good --> stale: $trans(timer,Time runs out,'')
 liftUpdate --> good: $trans(db,Lift succeeds using this route,Refresh timestamp)

@@ -1,16 +1,19 @@
 TODO:
 
 Immediate:
--  
-- Adapt route to new message format
-X- Cleanup/organize routes table
-X-   standardize what "addr" and "chad" mean?
-X-   use standard to:, from: properties
-X-   why do we pass along requester information?  (maybe it is in from chad now)
-X-  Finish testing route state transitions that query upstream
-X-    How to get routes_v_query to show need/availability for new route?
--  Basic tests/validation for lib/route.js
-- Does simulation still run (without actually doing lifts)?
+X- Document database tables/views/columns (json, tally, chit, route for now)
+X- Get rid of unused route _biu trigger?
+X- Does route_sorter really work for state 3 (no route yet, status = null)?
+X- Clean up lib/route.js, integrate all documentation
+X-   Protocol doc consistent with implementation
+X-   Route message document updated/current
+X- Minimize DB notice logging
+- Commit
+- 
+- Make simulation run again (without actually doing lifts)
+-   
+- Make local lift routine work again
+-   
 -   
 - Will regression tests run using docker postgres (TestDB2 crashes)
 -   
