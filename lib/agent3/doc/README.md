@@ -2,7 +2,7 @@
 
 The Agent 3 simulation extends the basic structure Agent 2 was built on and adds key features that result in more realistic spending patterns.
 
-### Primary Goals
+## Primary Goals
 
 - Improve code readability for future developers (Completed)
   - Update variable names
@@ -16,81 +16,90 @@ The Agent 3 simulation extends the basic structure Agent 2 was built on and adds
   - Actions (such as purchase a house, buy a car, or get a paycheck) can be configured with their frequency depending on the account type
 - Perform credit lifts when criteria is met
 
+## Running the Simulation
+To run the simulation you need to run `npm install` and then follow the [setup instructions](/doc/use-docker.md)
+
+## Development 
+<ins>* Do not edit any Agent 3 JavaScript files directly *</ins>
+
+The Agent 3 Model of the simulation was developed using TypeScript to allow for clear data typing, therefore any changed `*.ts` files must be transpiled before execution. The overall work flow should look something like this:
+1) Edit `*.ts` files.
+2) Run `npm tsc` before running the simulation.
+3) Run `./simdock startup`, `./simdock tickets`, and then  `./simdock start --runs=50` as outlined [here](/doc/use-docker.md)
+
+\*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence.
 ## Structure Overview
 
-\*Details on low-level implementation are provided in code as Javadoc comments
+The MyCHIPs project and Agent 3 code have a lot of moving pieces that come together to make the simulation work. Along with Kyle's well-written and thorough documentation, we wanted to provide a sort of summary of the pieces at play that are crucial for the Agent 3 model.
+
+Details on low-level implementation are provided in the code as Javadoc comments, and this README contains high-level explanations that will help you see how the different pieces fit together. We encourage you to add clear documentation as you develop to mantain continuity during the development process. 
 
 Here is a basic description of the flow of data through the simulation:
 
-1.
+1. `simdock.sh` takes care of setting up the environment required by the simulation.
+   - Starts the local SQL databases (one container per site) and world database (MongoDB)
+   - Creates and inserts users into the local SQL databases
+   - Runs `sim.c` which starts the simulation by creating one 'agent' docker container per site, each running an AgentCluster process (the entrypoint is `agent3.ts`)
 
-### Agent 3 Class UML Diagram
+2. Each 'agent' (by running AgentCluster) loads the config file parameters, connects to their respective local SQL databases, and connects to the shared Mongo 'World' database. 
+3. Accounts stored in local SQL databases are loaded into their respective sites' AccountCache, and are loaded into the shared WorldDB. 
+4. 'agents' iterate through their local accounts, performing allowed actions, (such as purchase item, take out a loan, sell a good, etc...). For example, let's say Dave initiates a 'purchase item' action. To do so, he needs to find a new spending target. His account goes through these steps:
+   1. Find peer in world DB (Mongo)
 
-![Agent 3 Class UML](../doc/class-UML.png)
+   2. Do we have the peer's info already downloaded?
+      1. If yes, look up the peer's ID in our cache
+      2. If not, add peer to our MyCHIPs DB (PG)
+			This gives the peer a new ID on our server (different than their ID on their server)
+	. If they are on a different server, ask them to download our info to their server
+   3. Once our info is on the peer's server...
+	 4. Use the peer's ID (not peer_cid) to make a connection (tally) request with SQLManager
+
+6. Once the peers and SQLManager approve the connection, then the peers perform the tally behind the scenes of the simulation.
+
+7. Listeners to the SQL databases' peers or tallies will notify the 'agent' container of new change, and the 'agent' reacts accordingly
+
 
 ### Simulation Sequence UML
 
 ![Sequence UML](../doc/sequence-UML.png)
+### Agent 3 Class UML Diagram
 
+![Agent 3 Class UML](../doc/class-UML.png)
 
-Notes 
-Simdock (We haven't changed anything)
-- startup starts the databases
-- start_agent - starts up docker container,
-  - usercheck checks to see if it has enough local users (by checking the user_ent field that is unique to local accounts) and then generates accounts using randUser to populate postgres database with accounts,
-  - One of each container per site
-- runs sim-c which starts AgentCluster
-- To query, use './simdock q <int-for-server-num> <sql-query>
-  - Example ./test/sim/simdock q 0 "select id, peer_cid from mychips.peers_v"
+## Debugging Tools
 
-baseAccounts.ts getAccount() is a good key 
-
-- Action collection (world DB) is a shared queue where servers can tell eachother to do stuff. No relation to our actions class
-
+- To query SQL databases, use `./simdock q <int-for-server-num> "<sql-query>"`
+  - *Example: `./test/sim/simdock q 0 "select id, peer_cid from mychips.peers_v"`
+- SQL DB field name mappings can be found in the `baseAccounts.ts` getAccount() method
+  
 - Relevant PostGres Schemas
   - Users
   - Tally
   - Chit (like a check) (payment of X chips)
 
-- Listeners: 
-  - any parameter updates (not currently used)
-  - peers or tallies to notify of new change (to do the change)
+## Gotchas
+- The Actions collection in the World DB is a shared queue where servers can tell eachother perform actions. No relation to our actions class.
+- Currently a user's peer_cid is different on different servers, although Kyle has plans to change this.
 
-- Performing a tally
-  - Connections between peer servers are managed with SQLManager. Once the peers and SQLManager approve the connection, then the peers perform the tally behind the scenes.
 
-Proof of Contract
+## Glossary
+CHIP - A unit of digital credit in the MyCHIPs system
+
+Chit - A payment of X amount of CHIPs. Can be thought of it similar to writing a check.
+
+Tallies
 - Tally is a contract between two accounts that consists of a stock and foil
   - \*Multiple transactions result in an increase in stock/foil amount, rather than an increase in the amount of tallies.
-  - Stock -> income source -> someones (client) paying you (vendor)
-  - Foil -> spending target -> person (vendor) you (client) are paying
+  - 
+Stock - an income source 
+- someone (client) is paying you (vendor)
 
-  	p0
-		peer_cid: server id
-		   a:      p1000
-		   b:      p1001
-		   c:      p1002
-		   e: p1003
-
-	p1
-		d: p1000
-		e: p1001
-		f: p1002
-
-    find new spending target
-
-  // 1. Find peer in world DB (mongo)
-	// 2. Do we have the peer's info already downloaded?
-	//	a. If yes, look up the peer's ID in our cache
-	//	b. If not, add peer to our MyCHIPs DB (PG)
-	//		This gives the peer a new ID on our server (different than their ID on their server)
-	// 3. If they are on a different server, ask them to download our info to their server
-	// 4. When our info is on the peer's server...
-	// 4. Use the peer's ID (not peer_cid) to make a connection (tally) request
+Foil - a spending target
+- person (vendor) you (client) are paying
 
 Process of making a payment
 - Account (you) finds a vendor (walmart) to sell you something
-- Asynchronously heck for peer inside worldDB (right now it's random)
+- Asynchronously check for peer inside worldDB (right now it's random)
   - Find someone that isn't ourselves that we aren't connected to
 - If failed, try again
 - If success, check if person exists in our cache, add then add them if not. (TODO: See if we need a way to update this info or not)
@@ -99,7 +108,6 @@ Process of making a payment
 
 TODO: 
 - Change SQL schema to allow ent_type to have more that one VARCHAR
-- Quick explanation of how typescript works and run tsc
 - Move usergeneration from ./simdock start sim to Agent Cluster setup code
 - Add environment variables to runsim.sh
 - Use async/await and promises instead of callback hell

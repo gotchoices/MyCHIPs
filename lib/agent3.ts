@@ -15,7 +15,8 @@ which is in charge of managing the simulation for that container
  * The World database is the means by which the AccountClusters communicate
  with eachother
  * The AccountCluster only has to worry about qualifying and initiating 
- credit lifts. The actual heavy lifting occurs automatically within the pg and peers databases once a lift is initated by having the AccountCluster insert accounts into the pg containers.
+ credit lifts. The actual heavy lifting occurs automatically within the pg and peers databases once a lift is initated by having the AccountCluster insert accounts into the pg containers. 
+ // TODO: ^ this is not true 
  */
 class AccountCluster {
   private networkConfig: NetworkConfig
@@ -126,7 +127,7 @@ class AccountCluster {
     // first time.
   }
 
-  startSimulation() {
+  startSimulationRound() {
     if (this.intervalTimer) clearInterval(this.intervalTimer) // Restart interval timer
     this.intervalTimer = setInterval(() => {
       // If there is no limit on runs, or we're below the limit...
@@ -245,7 +246,7 @@ class AccountCluster {
       }
 
       this.worldDBManager.deleteAllAccountsExcept(hostedAccountIds)
-      this.startSimulation()
+      this.startSimulationRound()
     }
     else {
       console.log("Updating my local accounts")
