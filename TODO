@@ -1,65 +1,62 @@
 TODO:
 
 Immediate:
-X- Document database tables/views/columns (json, tally, chit, route for now)
-X- Get rid of unused route _biu trigger?
-X- Does route_sorter really work for state 3 (no route yet, status = null)?
-X- Clean up lib/route.js, integrate all documentation
-X-   Protocol doc consistent with implementation
-X-   Route message document updated/current
-X- Minimize DB notice logging
-- Commit
-- 
 - Make simulation run again (without actually doing lifts)
+X-   Get randuser to work as node program
+X-   Get kickstart to assign agent from default_agent
+X-   Rename agent processes/files to abmodel
+X-   Make model1 work again
+X-   Network visualizer works again (for modeler1)
+-   Make model2 work again
+-   Network visualizer works again (for modeler2)
+-   Mocha test for model2
+-   Rename agent terminology -> modeler in test/sim
+-   Does simdock still work?
+-   Retire older simulator environments?
 -   
-- Make local lift routine work again
--   
--   
-- Will regression tests run using docker postgres (TestDB2 crashes)
--   
--  Adapt lift subsystem to new message format
--  Delete obsolete fields from routes table
--  Delete obsolete views in paths_old.wms
-- 
--  Change how chit units are stored (relative to stock/foil)?
--  Clean up users DB
+- Lift subsystem:
+-   Make local lift routine work again
+-   Adapt lift subsystem to new message format
+-   Delete obsolete fields from routes table
+-   Delete obsolete views in paths_old.wms
+- Clean ups:
+-   Can change how chit units are stored (relative to stock/foil)?
 -   Can we totally get rid of peer table? (merge into user table)
 -   Adjust/remove prior references to servID, peerPort, peerHost
--   Get rid of user.serv_id; Change to peer_agent or tally.part_agent during early phase
--   User views show next cid@agent to use
--  Does the simulator still run ok?
--  Simulation can run with or without encryption (selected in config.dock)
--  Simulation runs raw mode by default
+- Does the simulator still run ok?
+-   Simulation can run with or without encryption (selected in config.dock)
+-   Simulation runs raw mode by default
 - 
 - Push release to master, merge with Capstone project
+-   
+- Will regression tests run using docker postgres (TestDB2 crashes)
 - 
-- mychips.js;
--  Can launch an agent server for each locally defined agent
--  Where/how to build/store agent private keys (pki folder?)
--  Agents table keeps track of each agent's latest connection portal (in case it changes)
--  How does the system identify local agents vs/ peer agents?
+- Server process: mychips.js
+-   Can launch an agent server for each locally defined agent
+-   Where/how to build/store agent private keys (pki folder?)
+-   Agents table keeps track of each agent's latest connection portal (in case it changes)
+-   How does the system identify local agents vs/ peer agents?
+-   Implement local lift scheduler/scanner/processor
 -  
 - Design protocol for amendments (like a pre-signed chit?)
 -   Build subsystem for entering/communicating amendments
+-   Setting trading variables (holder)
+-   Changing cid/agent (partner)
+-   Relaxing terms, including credit limit (either)
 -   Tally close command becomes an amendment
 -   Is tally call any different from tally close (probably)?
 -   Can set local trading variables: limit, lift variables
 -   Can assert remote amendments: close, call
 - 
-- Implement chit consensus
+- Chit consensus
+-   Implement signatures/checking on tallies/chits
+-   Implement protocol subsystem
 -   Mocha tests to simulate network disconnections, chit collisions
-- Implement tally amendments
--   Setting trading variables (holder)
--   Changing cid/agent (partner)
--   Relaxing terms, including credit limit (either)
--   Request to close
-- Upgrade routes to new protocol
-- Local lift queries/procedures work
-- Implement local lift scheduler/scanner/processor
+-
 - Server ready for single-site use?
 - 
 - Implement retries in state processing
-- Upgrade lifts to new protocol
+- Upgrade distributed lifts fully to new protocol
 - Implement referee server in node server
 - Server ready for distributed use?
 - 
@@ -72,11 +69,11 @@ General roadmap:
 X- Public Proof-of-Concept release
 X- Iterate on TLA+ modeling until protocol is sufficiently safe/live
 X- Implement basic contract handling (author, display, print, publish)
-X- Implement schema version control/upgrade mechanism in wyseman (in process)
-*- Implement encrypted peer-to-peer communications using noise protocol (in process)
-- Integrate improved protocol into source code
-- Write unit tests to validate protocol state transitions
-- Make Flutter app usable with basic functionality
+X- Implement schema version control/upgrade mechanism in wyseman
+X- Implement encrypted peer-to-peer communications using noise protocol
+*- Integrate improved protocol into source code (in process)
+*- Write unit tests to validate protocol state transitions (in process)
+*- Make Flutter app usable with basic functionality (in process)
 - Implement digital signatures for tallies, chits, contracts, lifts
 - Harden database schema, nothing accessible except user-based views/functions
 - Docker-based production server
@@ -89,38 +86,30 @@ X- Implement schema version control/upgrade mechanism in wyseman (in process)
 - Emergency lock-down mode
 - Backup/restore sharding among peers
 - Advanced Features:
--   Implement writing a check:
--   User mobile clients can talk to each other in absence of internet or server connection
--   They exchange a check (paper or QR image)
+-   Implement paper and QR checks that work while networks are down
 -   The check is 'cashed' (hashed onto the tally) once the network comes back up
+-   Mobile clients can provide temporary connectivity between their servers
+-   Chit chains can fully reconcile even if no Internet between servers
 - 
 
 Immediate Detailed Strategy:
 - Wylib client, JS client, Dart client can:
--   Connect via ticket
--   Reconnect based on shared keys
--   Import/export compatible key files across platforms
+X-   Connect via ticket
+X-   Reconnect based on shared keys
+*-   Import/export compatible key files across platforms
 - Simulation can run with noise encryption enabled
 - Unencrypted mode still supported
-- Implement message framing for unencrypted mode
-- Implement loopback on local node for unencrypted mode
+X- Implement message framing for unencrypted mode
+X- Implement loopback on local node for unencrypted mode
 - 
 - Cleaning/review pass on tally protocol
--   Check/validate with protocol 1.0
--   Build standardized message building/parsing engine?
--   Clean, organize, struture SQL handler code
+*-   Check/validate with protocol 1.0
+*-   Clean, organize, struture SQL handler code
+*-   Enhance mocha tests
 -   Implement message retries
--   Enhance mocha tests
-- 
-- Cleaning/review pass on chit protocol
--   Check/validate with protocol 1.0
--   Clean, organize, struture SQL handler code
--   Implement message retries
--   Implement chit consensus fully
--   Implement full mocha test regimen
 - 
 - Mobile App
--   Dart API can connect to wyseman on user ticket
+X-   Dart API can connect to wyseman on user ticket
 -   App can scan user ticket as a QR
 -   App can eat ticket contained in text message, email, other
 -   App can build/encrypt/store signing key
@@ -136,12 +125,6 @@ Immediate Detailed Strategy:
 - 
 - Generate scheduler for initiating local lifts
 - *** Could now do a MyCHIPs.com rollout with local-only services ***
-- 
-- Cleaning/review pass on route protocol
--   Check/validate with protocol 1.0
--   Clean, organize, struture SQL handler code
--   Implement message retries
--   Implement full mocha test regimen
 - 
 - Code referee server module
 -   Does this use Postgres or something else (nosql?)
@@ -166,8 +149,8 @@ Immediate Detailed Strategy:
 
 Some general tasks by level of expertise required (redundant)
 - Low Level: (code validation)
--   Write unit tests, which become part of the integrated test suite. 
--     Test state transition graphs for all conceivable combinations of state.
+*-   Write unit tests, which become part of the integrated test suite. 
+*-     Test state transition graphs for all conceivable combinations of state.
 -     Attempt to request multiple, conflicting state transitions at once.
 -     Working retry/recovery of records that get stranded in a transitional state
 - Medium Level: (network simulation)

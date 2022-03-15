@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-//Standalone agent-based simulation model
+//Standalone agent-based simulation modeler
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 const Path = require('path')
@@ -10,7 +10,7 @@ var argv = require('yargs')
   .alias('H','dbHost')     .default('dbHost',     process.env.MYCHIPS_DBHOST)	//SQL Database
   .alias('D','dbName')     .default('dbName',     process.env.MYCHIPS_DBNAME || 'mychips')
   .alias('A','dbAdmin')    .default('dbAdmin',    process.env.MYCHIPS_DBADMIN || 'admin')
-  .alias('P','dbPort')     .default('dbPort',     process.env.MYCHIPS_DBADMIN)
+  .alias('P','dbPort')     .default('dbPort',     process.env.MYCHIPS_DBPORT)
   .alias('h','ddHost')     .default('ddHost',     process.env.MYCHIPS_DDHOST || 'localhost')	//Document Database
   .alias('d','ddName')     .default('ddName',     process.env.MYCHIPS_DDNAME || 'mychips')
   .alias('a','ddAdmin')    .default('ddAdmin',    process.env.MYCHIPS_DDADMIN || 'admin')
@@ -20,10 +20,10 @@ var argv = require('yargs')
   .alias('s','peerServer')
   .argv
 
-const moduleFile = '../../lib/agent' + argv.model + '.js'
-const AgentCont = require(moduleFile)		//Model controller
+const moduleFile = '../../lib/modeler' + argv.model + '.js'
+const ModelCont = require(moduleFile)		//Model controller
 
-var agent = new AgentCont({
+var mod = new ModelCont({
   host: argv.dbHost,
   database:argv.dbName,
   user: argv.dbAdmin, 

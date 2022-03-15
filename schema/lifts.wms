@@ -427,7 +427,7 @@ function {mychips.lift_cycle(maxNum int default 1)} {mychips.tallies_v_paths bas
       count	int default 0;
       rows	int;
     begin
-      if found then				-- Build a custom order-by clause
+      if found then		-- Build a custom order-by clause from parm:lifts.order
         foreach tstr in array regexp_split_to_array(prec.value, ',') loop
           oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
 --raise notice 'LC1 tstr:% el0:%', tstr, oarr[1];
@@ -437,7 +437,9 @@ function {mychips.lift_cycle(maxNum int default 1)} {mychips.tallies_v_paths bas
       end if;
 
       while count < maxNum loop			-- Search for internal lifts
-        tstr = 'select first, length, lift_min, lift_max, lift_margin, path, uuids from mychips.tallies_v_paths where circuit and lift_margin <= 0 and lift_min >= $1 order by ' || orders || ' limit 1';
+        tstr = 'select first, length, lift_min, lift_max, lift_margin, path, uuids
+                from mychips.tallies_v_paths where circuit and lift_margin <= 0 and 
+                lift_min >= $1 order by ' || orders || ' limit 1';
 --raise notice 'LC2 min:% max:% ord:% sql:%', min_units, maxNum, orders, tstr;
         execute tstr into prec using min_units;			-- Look for the highest priority lift to execute
         get diagnostics rows = ROW_COUNT;

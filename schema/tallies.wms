@@ -700,15 +700,3 @@ trigger mychips_tallies_tr_change {} {
 #trigger mychips_chits_tr_change {} {	--Redundant?
 #    after insert or update or delete on mychips.chits for each statement execute procedure mychips.change_tf_notify('chits');
 #}
-
-# Find an open tally meeting certain criteria, returning the sequence number (currently used only in agent1 model)
-#----------------------------------------------------------------
-function {mychips.tally_find(ent text, part text, typ text)} {mychips.tallies} {
-  returns int immutable language plpgsql as $$
-    declare
-      trec record;
-    begin
-      select into trec * from mychips.tallies where tally_ent = ent and status = 'open' and tally_type = typ and part_ent = part order by crt_date desc limit 1;
-      return trec.tally_seq;
-    end;
-$$;}

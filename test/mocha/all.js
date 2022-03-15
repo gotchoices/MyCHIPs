@@ -25,6 +25,8 @@ require('./route.js')
 //require('./sch-tally.js')
 //require('./tally.js')
 
+require('./modeler1.js')
+
 //Re-enable after schema settles and more text fields are filled in
 //require('./schema.js')
 

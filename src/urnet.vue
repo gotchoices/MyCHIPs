@@ -83,14 +83,14 @@ export default {
 
     updateLink(i, idx, cid, dat) {
       let node = this.state.nodes[cid]					//Get node's state object
-        , guid = dat.guids[i]
+        , uuid = dat.uuids[i]
         , isFoil = (dat.types[i] == 'foil')
         , amount = dat.unitss[i] / CHIPmult
         , link = dat.part_cids[i]		//Which other node this link is pointing to
         , inside = dat.insides[i]		//Native or foreign user
         , noDraw = (isFoil && inside)
         , reverse = (isFoil && !inside)
-        , nodeLink = node.links.find(lk => (lk.index == guid))	//Do we already have a definition for this link?
+        , nodeLink = node.links.find(lk => (lk.index == uuid))	//Do we already have a definition for this link?
         , xOffset = node.width / 2
         , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
         , hubColor = amount == 0 ? '#f0f0f0' : (amount < 0 ? '#F0B0B0' : '#B0B0F0')
@@ -100,7 +100,7 @@ export default {
         , center = {x:xOffset, y:yOffset}
 
       if (!nodeLink) {				//Create new data structure for link, hubs
-        nodeLink = {index:guid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null, bias:null}
+        nodeLink = {index:uuid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null, bias:null}
         node.links.push(nodeLink)
       }
 //console.log("  link:", link, node, 'idx:', idx, cid, amount, yOffset, nodeLink)
@@ -117,7 +117,7 @@ export default {
 
     updateNodes(dTime) {
       let where = [['peer_ent', 'notnull']]
-        , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'units', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'states', 'guids', 'part_cids', 'insides']
+        , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'units', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'states', 'uuids', 'part_cids', 'insides']
         , spec = {view: 'mychips.users_v_tallysum', fields, where, order: 1}
       updatePending = true
       if (dTime) where.push(['latest', '>=', dTime])
