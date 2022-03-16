@@ -1,0 +1,117 @@
+
+@inproceedings{Fischer,
+author = {Fischer, Michael J. and Lynch, Nancy A. and Paterson, Michael S.},
+title = {Impossibility of Distributed Consensus with One Faulty Process},
+year = {1983},
+isbn = {0897910974},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/588058.588060},
+doi = {10.1145/588058.588060},
+abstract = {The consensus problem involves an asynchronous system of processes, some of which may be unreliable. The problem is for the reliable processes to agree on a binary value. We show that every protocol for this problem has the possibility of nontermination, even with only one faulty process. By way of contrast, solutions are known for the synchronous case, the "Byzantine Generals" problem.},
+booktitle = {Proceedings of the 2nd ACM SIGACT-SIGMOD Symposium on Principles of Database Systems},
+pages = {1–7},
+numpages = {7},
+location = {Atlanta, Georgia},
+series = {PODS '83}
+}
+@inproceedings{SmartContracts,
+author = {Bhargavan, Karthikeyan and Delignat-Lavaud, Antoine and Fournet, C\'{e}dric and Gollamudi, Anitha and Gonthier, Georges and Kobeissi, Nadim and Kulatova, Natalia and Rastogi, Aseem and Sibut-Pinote, Thomas and Swamy, Nikhil and Zanella-B\'{e}guelin, Santiago},
+title = {Formal Verification of Smart Contracts: Short Paper},
+year = {2016},
+isbn = {9781450345743},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2993600.2993611},
+doi = {10.1145/2993600.2993611},
+abstract = {Ethereum is a framework for cryptocurrencies which uses blockchain technology to provide an open global computing platform, called the Ethereum Virtual Machine (EVM). EVM executes bytecode on a simple stack machine. Programmers do not usually write EVM code; instead, they can program in a JavaScript-like language, called Solidity, that compiles to bytecode. Since the main purpose of EVM is to execute smart contracts that manage and transfer digital assets (called Ether), security is of paramount importance. However, writing secure smart contracts can be extremely difficult: due to the openness of Ethereum, both programs and pseudonymous users can call into the public methods of other programs, leading to potentially dangerous compositions of trusted and untrusted code. This risk was recently illustrated by an attack on TheDAO contract that exploited subtle details of the EVM semantics to transfer roughly $50M worth of Ether into the control of an attacker.In this paper, we outline a framework to analyze and verify both the runtime safety and the functional correctness of Ethereum contracts by translation to F*, a functional programming language aimed at program verification.},
+booktitle = {Proceedings of the 2016 ACM Workshop on Programming Languages and Analysis for Security},
+pages = {91–96},
+numpages = {6},
+keywords = {smart contracts, formal verification, ethereum, EVM, solidity},
+location = {Vienna, Austria},
+series = {PLAS '16}
+}
+
+@article{StateMachine,
+author = {Schneider, Fred B.},
+title = {Implementing Fault-Tolerant Services Using the State Machine Approach: A Tutorial},
+year = {1990},
+issue_date = {Dec. 1990},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {22},
+number = {4},
+issn = {0360-0300},
+url = {https://doi.org/10.1145/98163.98167},
+doi = {10.1145/98163.98167},
+abstract = {The state machine approach is a general method for implementing fault-tolerant services in distributed systems. This paper reviews the approach and describes protocols for two different failure models—Byzantine and fail stop. Systems reconfiguration techniques for removing faulty components and integrating repaired components are also discussed.},
+journal = {ACM Comput. Surv.},
+month = dec,
+pages = {299–319},
+numpages = {21}
+}
+
+@InProceedings{Lamport,
+author="Lamport, Leslie",
+editor="Peleg, David",
+title="Byzantizing Paxos by Refinement",
+booktitle="Distributed Computing",
+year="2011",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="211--224",
+abstract="We derive a {\$}3f{\backslash}!+{\backslash}!1{\$}process Byzantine Paxos consensus algorithm by Byzantizing a variant of the ordinary Paxos algorithm---that is, by having {\$}2f{\backslash}!+{\backslash}!1{\$}nonfaulty processes emulate the ordinary Paxos algorithm despite the presence of f malicious processes. We have written a formal, machine-checked proof that the Byzantized algorithm implements the ordinary Paxos consensus algorithm under a suitable refinement mapping.",
+isbn="978-3-642-24100-0"
+}
+
+@article{Delzanno_2014,
+   title={Model Checking Paxos in Spin},
+   volume={161},
+   ISSN={2075-2180},
+   url={http://dx.doi.org/10.4204/EPTCS.161.13},
+   DOI={10.4204/eptcs.161.13},
+   journal={Electronic Proceedings in Theoretical Computer Science},
+   publisher={Open Publishing Association},
+   author={Delzanno, Giorgio and Tatarek, Michele and Traverso, Riccardo},
+   year={2014},
+   month={Aug},
+   pages={131–146}
+}
+
+@inproceedings{Konnov,
+author = {Konnov, Igor and Veith, Helmut and Widder, Josef},
+year = {2012},
+month = {07},
+pages = {},
+title = {Who is afraid of Model Checking Distributed Algorithms?}
+}
+
+@article{bitcoin,
+author = {Nakamoto, Satoshi},
+year = {2009},
+month = {03},
+pages = {},
+title = {Bitcoin: A Peer-to-Peer Electronic Cash System},
+journal = {Cryptography Mailing list at https://metzdowd.com}
+}
+
+@article{bateman_myCHIPs, url={http://gotchoices.org/mychips/intro.html}, journal={MyCHIPs Digital Money at \url{http://gotchoices.org/mychips/intro.html} },
+ author={Bateman, Kyle},
+ year={2020},
+ } 
+ 
+@article{bateman_state_machines, url={https://github.com/gotchoices/MyCHIPs/blob/master/doc/Protocol.md}, journal={MyCHIPs Digital Money at \url{https://github.com/gotchoices/MyCHIPs/blob/master/doc/Protocol.md} },
+ author={Bateman, Kyle},
+ year={2020},
+ } 
+ 
+@book{dill_trace_theory,
+  title={Trace theory for automatic hierarchical verification of speed-independent circuits},
+  author={Dill, David L},
+  volume={24},
+  year={1989},
+  publisher={MIT press Cambridge, MA}
+}
+
+@INPROCEEDINGS{ben_DC,  author={Ogles, Benjamin and Aldous, Peter and Mercer, Eric},  booktitle={2019 Formal Methods in Computer Aided Design (FMCAD)},   title={Proving Data Race Freedom in Task Parallel Programs Using a Weaker Partial Order},   year={2019},  volume={},  number={},  pages={55-63},  doi={10.23919/FMCAD.2019.8894270}}

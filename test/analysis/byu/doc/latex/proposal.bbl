@@ -1,0 +1,71 @@
+\begin{thebibliography}{10}
+
+\bibitem{bateman_myCHIPs}
+Kyle Bateman.
+\newblock {\em MyCHIPs Digital Money at
+  \url{http://gotchoices.org/mychips/intro.html}}, 2020.
+
+\bibitem{dill_trace_theory}
+David~L Dill.
+\newblock {\em Trace theory for automatic hierarchical verification of
+  speed-independent circuits}, volume~24.
+\newblock MIT press Cambridge, MA, 1989.
+
+\bibitem{bateman_state_machines}
+Kyle Bateman.
+\newblock {\em MyCHIPs Digital Money at
+  \url{https://github.com/gotchoices/MyCHIPs/blob/master/doc/Protocol.md}},
+  2020.
+
+\bibitem{bitcoin}
+Satoshi Nakamoto.
+\newblock Bitcoin: A peer-to-peer electronic cash system.
+\newblock {\em Cryptography Mailing list at https://metzdowd.com}, 03 2009.
+
+\bibitem{ben_DC}
+Benjamin Ogles, Peter Aldous, and Eric Mercer.
+\newblock Proving data race freedom in task parallel programs using a weaker
+  partial order.
+\newblock In {\em 2019 Formal Methods in Computer Aided Design (FMCAD)}, pages
+  55--63, 2019.
+
+\bibitem{SmartContracts}
+Karthikeyan Bhargavan, Antoine Delignat-Lavaud, C\'{e}dric Fournet, Anitha
+  Gollamudi, Georges Gonthier, Nadim Kobeissi, Natalia Kulatova, Aseem Rastogi,
+  Thomas Sibut-Pinote, Nikhil Swamy, and Santiago Zanella-B\'{e}guelin.
+\newblock Formal verification of smart contracts: Short paper.
+\newblock In {\em Proceedings of the 2016 ACM Workshop on Programming Languages
+  and Analysis for Security}, PLAS '16, page 91–96, New York, NY, USA, 2016.
+  Association for Computing Machinery.
+
+\bibitem{Fischer}
+Michael~J. Fischer, Nancy~A. Lynch, and Michael~S. Paterson.
+\newblock Impossibility of distributed consensus with one faulty process.
+\newblock In {\em Proceedings of the 2nd ACM SIGACT-SIGMOD Symposium on
+  Principles of Database Systems}, PODS '83, page 1–7, New York, NY, USA,
+  1983. Association for Computing Machinery.
+
+\bibitem{StateMachine}
+Fred~B. Schneider.
+\newblock Implementing fault-tolerant services using the state machine
+  approach: A tutorial.
+\newblock {\em ACM Comput. Surv.}, 22(4):299–319, December 1990.
+
+\bibitem{Lamport}
+Leslie Lamport.
+\newblock Byzantizing paxos by refinement.
+\newblock In David Peleg, editor, {\em Distributed Computing}, pages 211--224,
+  Berlin, Heidelberg, 2011. Springer Berlin Heidelberg.
+
+\bibitem{Delzanno_2014}
+Giorgio Delzanno, Michele Tatarek, and Riccardo Traverso.
+\newblock Model checking paxos in spin.
+\newblock {\em Electronic Proceedings in Theoretical Computer Science},
+  161:131–146, Aug 2014.
+
+\bibitem{Konnov}
+Igor Konnov, Helmut Veith, and Josef Widder.
+\newblock Who is afraid of model checking distributed algorithms?
+\newblock 07 2012.
+
+\end{thebibliography}
