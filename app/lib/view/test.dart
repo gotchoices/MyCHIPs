@@ -1,62 +1,63 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mychips/managers/connection/connection_manager.dart';
-import 'package:mychips/managers/connection/credentials.dart';
+import 'package:mychips/managers/connection/ticket.dart';
 import 'package:mychips/managers/host/host_manager.dart';
 
-class MyChipsTestPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: "Connect Test",
-      home: MyChipsTestWidget(),
-    );
-  }
-}
+import '../managers/host/host_config.dart';
 
-class MyChipsTestWidget extends StatefulWidget {
-  const MyChipsTestWidget({Key? key}) : super(key: key);
+class MyChipsTestPage extends StatefulWidget {
+  const MyChipsTestPage({Key? key}) : super(key: key);
 
   @override
   createState() => MyChipsTestState();
 }
 
-class MyChipsTestState extends State<MyChipsTestWidget> {
-  final _tokenInputController = TextEditingController();
-  final _userInputController = TextEditingController();
+class MyChipsTestState extends State<MyChipsTestPage> {
+  final _ticketInputController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
-    _tokenInputController.dispose();
-    _userInputController.dispose();
+    _ticketInputController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        home: Column(
-          children: [
-            StreamBuilder(
-                stream: HostManager().configStream,
-                builder: (context, snapshot) {
-                  return Text(snapshot.hasData ? '${snapshot.data}' : '');
-                }),
-            Text("Has key: ${ConnectionManager().hasKey}"),
-            TextFormField(enabled: !ConnectionManager().hasKey, controller: _userInputController),
-            TextFormField(enabled: !ConnectionManager().hasKey, controller: _tokenInputController),
-            TextButton(
-                child: const Text('Connect'),
-                onPressed: (!ConnectionManager().connectionStream.hasValue &&
-                        (ConnectionManager().hasKey || _tokenInputController.text != ""))
-                    ? () async {
-                        if (!ConnectionManager().hasKey) {
-                          ConnectionManager().credentials =
-                              Credentials(_userInputController.text, _tokenInputController.text);
-                        }
-                        await ConnectionManager().connection;
-                        // TODO: do something with the socket
-                      }
-                    : null)
-          ],
-        ),
+        home: Scaffold(
+            appBar: AppBar(title: Text("Test Connection")),
+            body: Form(
+                key: _formKey,
+                child: Column(children: [
+                  StreamBuilder(
+                      stream: HostManager().configStream,
+                      builder: (context, snapshot) {
+                        final config = snapshot.data as HostConfig?;
+                        return Text(snapshot.hasData ? '${config?.host}:${config?.port}' : '');
+                      }),
+                  Text("Has key: ${ConnectionManager().hasKey}"),
+                  TextFormField(
+                      enabled: !ConnectionManager().hasKey,
+                      controller: _ticketInputController,
+                      decoration:
+                          const InputDecoration(border: OutlineInputBorder(), hintText: "Ticket")),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: ElevatedButton(
+                          child: const Text('Connect'),
+                          onPressed: () async {
+                            if (!ConnectionManager().connectionStream.hasValue &&
+                                (ConnectionManager().hasKey || _ticketInputController.text != "")) {
+                              if (!ConnectionManager().hasKey) {
+                                ConnectionManager().ticket =
+                                    Ticket.fromJson(jsonDecode(_ticketInputController.text));
+                              }
+                              await ConnectionManager().connection;
+                              // TODO: do something with the socket
+                            }
+                          })),
+                ]))),
       );
 }

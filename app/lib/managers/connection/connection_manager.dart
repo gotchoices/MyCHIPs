@@ -9,7 +9,7 @@ import 'package:mychips/managers/host/host_config.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'connection.dart';
-import 'credentials.dart';
+import 'ticket.dart';
 import 'key.dart';
 
 class ConnectionManager {
@@ -35,11 +35,11 @@ class ConnectionManager {
   final _connectionSubject = BehaviorSubject<Connection?>();
   get connectionStream => _connectionSubject.stream;
 
-  late Credentials? credentials;
+  late Ticket? ticket;
   late Key? _key;
   get hasKey => _key != null;
 
-  get canConnect => credentials != null || _key != null;
+  get canConnect => ticket != null || _key != null;
 
   get connection async {
     if (!_connectionSubject.hasValue || _connectionSubject.value == null) {
@@ -62,7 +62,7 @@ class ConnectionManager {
     Connection connection;
     final localKey = _key;
     if (localKey == null) {
-      connection = await _connectWithCredentials(credentials!);
+      connection = await _connectWithTicket(ticket!);
       await _storeKey(connection.key);
       _key = connection.key;
     } else {
@@ -73,15 +73,14 @@ class ConnectionManager {
     return connection;
   }
 
-  Future<Connection> _connectWithCredentials(Credentials credentials) async {
+  Future<Connection> _connectWithTicket(Ticket ticket) async {
     final keyPair = await RsaPssPrivateKey.generateKey(2048, pe, Hash.sha256);
     final exPub = await keyPair.publicKey.exportJsonWebKey();
     final exPriv = await keyPair.privateKey.exportJsonWebKey();
     final privateKey = const JsonEncoder().convert(exPriv);
 
-    return Connection(
-        await _openChannel({'token': credentials.token, 'pub': exPub}, credentials.user, {}),
-        Key(_configStream.value.host, _configStream.value.port, credentials.user, privateKey));
+    return Connection(await _openChannel({'token': ticket.token, 'pub': exPub}, ticket.user, {}),
+        Key(_configStream.value.host, _configStream.value.port, ticket.user, privateKey));
   }
 
   Future<Connection> _connectWithKey(Key key) async {

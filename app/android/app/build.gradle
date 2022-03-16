@@ -48,6 +48,14 @@ android {
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        externalNativeBuild {
+            cmake {
+                arguments "-DCMAKE_VERBOSE_MAKEFILE=1"
+            }
+            ndkBuild {
+                arguments "V=1"
+            }
+        }
     }
 
     buildTypes {
