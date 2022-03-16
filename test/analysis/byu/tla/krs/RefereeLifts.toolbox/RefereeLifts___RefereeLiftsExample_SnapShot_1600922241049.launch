@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.lamport.tla.toolbox.tool.tlc.modelCheck">
+    <stringAttribute key="TLCCmdLineParameters" value=""/>
+    <intAttribute key="collectCoverage" value="1"/>
+    <stringAttribute key="configurationName" value="RefereeLiftsExample_SnapShot_1600922241049"/>
+    <booleanAttribute key="deferLiveness" value="false"/>
+    <intAttribute key="dfidDepth" value="1000"/>
+    <booleanAttribute key="dfidMode" value="false"/>
+    <intAttribute key="distributedFPSetCount" value="0"/>
+    <stringAttribute key="distributedNetworkInterface" value="10.88.28.129"/>
+    <intAttribute key="distributedNodesCount" value="1"/>
+    <stringAttribute key="distributedTLC" value="off"/>
+    <stringAttribute key="distributedTLCVMArgs" value="-Xmx8192m"/>
+    <intAttribute key="fpBits" value="1"/>
+    <intAttribute key="fpIndex" value="0"/>
+    <booleanAttribute key="fpIndexRandom" value="true"/>
+    <intAttribute key="maxHeapSize" value="50"/>
+    <intAttribute key="maxSetSize" value="1000000"/>
+    <booleanAttribute key="mcMode" value="false"/>
+    <stringAttribute key="modelBehaviorInit" value=""/>
+    <stringAttribute key="modelBehaviorNext" value=""/>
+    <stringAttribute key="modelBehaviorSpec" value="Spec"/>
+    <intAttribute key="modelBehaviorSpecType" value="1"/>
+    <stringAttribute key="modelBehaviorVars" value="messages, lifts, _stateNum, linearLiftsRemaining, paymentsRemaining, tallies, nextGuid"/>
+    <stringAttribute key="modelComments" value=""/>
+    <booleanAttribute key="modelCorrectnessCheckDeadlock" value="false"/>
+    <listAttribute key="modelCorrectnessInvariants">
+        <listEntry value="1PartnersBalancesAreSymmetrical"/>
+        <listEntry value="1ProjectedAndAvailableBalancesAreEqualWhenNoLiftsInProgress"/>
+        <listEntry value="1FoilBalancesAreNotPositive"/>
+        <listEntry value="1StockBalancesAreNotNegative"/>
+        <listEntry value="1UsersChitsOfGoodLiftsAreSymmetrical"/>
+        <listEntry value="1AvailableMoneySumIsZero"/>
+        <listEntry value="1ProjectedMoneySumIsZero"/>
+        <listEntry value="0NotInteresting"/>
+    </listAttribute>
+    <listAttribute key="modelCorrectnessProperties">
+        <listEntry value="1Termination"/>
+    </listAttribute>
+    <intAttribute key="modelEditorOpenTabs" value="14"/>
+    <stringAttribute key="modelExpressionEval" value=""/>
+    <stringAttribute key="modelParameterActionConstraint" value=""/>
+    <listAttribute key="modelParameterConstants">
+        <listEntry value="Links;;{&lt;&lt;A, B&gt;&gt;, &lt;&lt;B, C&gt;&gt;, &lt;&lt;C, A&gt;&gt;, &lt;&lt;B, D&gt;&gt;};0;0"/>
+        <listEntry value="Users;;{A, B, C, D};1;0"/>
+        <listEntry value="Cycles;;{&lt;&lt;A, B, C&gt;&gt;};0;0"/>
+        <listEntry value="Polylines;;{&lt;&lt;A, B, D&gt;&gt;};0;0"/>
+        <listEntry value="PaymentsCount;;8;0;0"/>
+        <listEntry value="PaymentsRange;;1..3;0;0"/>
+        <listEntry value="LinearLiftsCount;;4;0;0"/>
+        <listEntry value="NewStateLimit;;100;0;0"/>
+        <listEntry value="GLOBAL_REF;;&quot;TRUSTED_REF_1&quot;;0;0"/>
+    </listAttribute>
+    <stringAttribute key="modelParameterContraint" value=""/>
+    <listAttribute key="modelParameterDefinitions"/>
+    <stringAttribute key="modelParameterModelValues" value="{}"/>
+    <stringAttribute key="modelParameterNewDefinitions" value=""/>
+    <intAttribute key="modelVersion" value="20191005"/>
+    <intAttribute key="numberOfWorkers" value="4"/>
+    <booleanAttribute key="recover" value="false"/>
+    <stringAttribute key="result.mail.address" value=""/>
+    <intAttribute key="simuAril" value="-1"/>
+    <intAttribute key="simuDepth" value="1000"/>
+    <intAttribute key="simuSeed" value="-1"/>
+    <stringAttribute key="specName" value="RefereeLifts"/>
+    <stringAttribute key="tlcResourcesProfile" value="local custom"/>
+    <listAttribute key="traceExploreExpressions">
+        <listEntry value="1FoilsProjectedBalances"/>
+        <listEntry value="1StocksProjectedBalances"/>
+        <listEntry value="1FoilAvailableBalances"/>
+        <listEntry value="1StocksAvailableBalances"/>
+    </listAttribute>
+    <stringAttribute key="view" value=""/>
+    <booleanAttribute key="visualizeStateGraph" value="false"/>
+</launchConfiguration>

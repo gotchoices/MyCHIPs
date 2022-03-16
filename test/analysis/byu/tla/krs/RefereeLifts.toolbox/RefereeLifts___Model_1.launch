@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.lamport.tla.toolbox.tool.tlc.modelCheck">
+    <stringAttribute key="configurationName" value="Model_1"/>
+    <intAttribute key="distributedFPSetCount" value="0"/>
+    <stringAttribute key="distributedNetworkInterface" value="172.16.236.66"/>
+    <intAttribute key="distributedNodesCount" value="1"/>
+    <stringAttribute key="distributedTLC" value="off"/>
+    <intAttribute key="maxHeapSize" value="25"/>
+    <stringAttribute key="modelBehaviorInit" value=""/>
+    <stringAttribute key="modelBehaviorNext" value=""/>
+    <stringAttribute key="modelBehaviorSpec" value="Spec"/>
+    <intAttribute key="modelBehaviorSpecType" value="1"/>
+    <stringAttribute key="modelBehaviorVars" value="messages, lifts, _stateNum, linearLiftsRemaining, paymentsRemaining, tallies, nextGuid"/>
+    <stringAttribute key="modelComments" value=""/>
+    <booleanAttribute key="modelCorrectnessCheckDeadlock" value="true"/>
+    <listAttribute key="modelCorrectnessInvariants">
+        <listEntry value="1PartnersBalancesAreSymmetrical"/>
+    </listAttribute>
+    <listAttribute key="modelCorrectnessProperties">
+        <listEntry value="0Termination"/>
+    </listAttribute>
+    <listAttribute key="modelParameterConstants">
+        <listEntry value="Polylines;;;0;0"/>
+        <listEntry value="NewStateLimit;;;0;0"/>
+        <listEntry value="GLOBAL_REF;;;0;0"/>
+        <listEntry value="PaymentsCount;;;0;0"/>
+        <listEntry value="MaliciousBehaviorFactor;;;0;0"/>
+        <listEntry value="Links;;;0;0"/>
+        <listEntry value="PaymentsRange;;;0;0"/>
+        <listEntry value="Cycles;;;0;0"/>
+        <listEntry value="LinearLiftsCount;;;0;0"/>
+        <listEntry value="Users;;;0;0"/>
+    </listAttribute>
+    <intAttribute key="modelVersion" value="20191005"/>
+    <intAttribute key="numberOfWorkers" value="2"/>
+    <stringAttribute key="result.mail.address" value=""/>
+    <stringAttribute key="specName" value="RefereeLifts"/>
+    <stringAttribute key="tlcResourcesProfile" value="local custom"/>
+</launchConfiguration>
