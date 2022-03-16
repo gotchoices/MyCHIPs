@@ -63,25 +63,26 @@ table mychips.chit_tries {mychips.chits} {
 function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.chits)} {
   returns trigger language plpgsql security definer as $$
     begin
-        if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
-          update mychips.tallies set _last_chit = greatest(
-              coalesce(_last_chit,0) + 1,
-              (select coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq)
-            ) where tally_ent = new.chit_ent and tally_seq = new.chit_seq
-              returning _last_chit into new.chit_idx;
-          if not found then new.chit_idx = 1; end if;
+      if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
+        update mychips.tallies set _last_chit = greatest(
+            coalesce(_last_chit,0) + 1,
+            (select coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq)
+          ) where tally_ent = new.chit_ent and tally_seq = new.chit_seq
+            returning _last_chit into new.chit_idx;
+        if not found then new.chit_idx = 1; end if;
 -- select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq; -- Not safe for concurrent sessions
-        end if;
+      end if;
 
       if new.request = 'pend' then		-- User is drafting
         new.status = 'draft';
       elsif new.request = 'good' then		-- User is sending good pledge
         new.status = 'pend';
       end if;
-        if new.status = 'good' then		-- A received, signed chit can come in marked as good
-          return mychips.chit_goodcheck(new);
-        end if;
-        return new;
+--raise notice 'Chit pre:%', new;
+      if new.status = 'good' then		-- A received, signed chit can come in marked as good
+        return mychips.chit_goodcheck(new);
+      end if;
+      return new;
     end;
 $$;}
 trigger mychips_chits_tr_seq {} {
@@ -235,7 +236,7 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
           'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
--- raise notice 'Chit notice:% % %', channel, trec.part_chad->>'cid', chit.chit_uuid;
+--raise notice 'Chit notice:% R:% O:% P:% C:% U:%', channel, chit.request, chit.chit_ent, trec.part_chad->>'cid', chit.chit_uuid, chit.units;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -248,9 +249,9 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
     declare
         dirty	boolean default false;
     begin
-        if TG_OP = 'INSERT' then
+        if TG_OP = 'INSERT' and not new.request isnull then
             dirty = true;
-        elsif new.request is not null and new.request is distinct from old.request then
+        elsif (not new.request isnull) and (new.request is distinct from old.request) then
             dirty = true;
         end if;
 --raise notice 'Chit update: %', dirty;
@@ -264,33 +265,6 @@ trigger mychips_chits_tr_notice {} {
 
 # Compute current state of this chit
 #----------------------------------------------------------------
-#function {mychips.chit_state(isdebit boolean, request text, signature text)} {mychips} {
-#  returns text immutable language plpgsql as $$
-#    begin return
-#      case when isdebit then
-#        case when signature = 'void'		then 'peerDecline'
-#           when request = 'userRequest'		then 'userRequest'
-#           when request is null and signature is not null	then 'peerValid'
-#           when request is null			then 'userInvoice'
-#           else					     'undefined'	end
-#      else	--is a credit
-#        case when signature = 'void' then
-#        case when request = 'userDecline'	then 'userDecline'
-#             when request is null		then 'userVoid'
-#             else				     'undefined'    end
-#           when signature is null then
-#        case when request is null		then 'peerInvoice'
-#             else				     'undefined'    end
-#           when request = 'userAgree'		then 'userAgree'
-#           when request = 'userDraft'		then 'userDraft'
-#           when request is null			then 'userValid'
-#      else     					     'undefined'	end
-#      end;
-#    end;
-#$$;}
-
-# Compute current state of this chit
-#----------------------------------------------------------------
 function {mychips.chit_state(isdebit boolean, status text, request text)} {mychips} {
   returns text immutable language sql as $$
     select
@@ -298,13 +272,6 @@ function {mychips.chit_state(isdebit boolean, status text, request text)} {mychi
       status ||
       case when request isnull then '' else '.' || request end;
 $$;}
-
-# Indicates if the chit is finalized
-#----------------------------------------------------------------
-#function {mychips.chit_open(request text, signature text)} {mychips.chits} {
-#  returns boolean immutable language sql as $$
-#      select request is null and not signature is null and signature != 'void'
-#$$;}
 
 # Compute standard json output for a chit
 #----------------------------------------------------------------

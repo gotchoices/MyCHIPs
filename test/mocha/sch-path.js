@@ -37,7 +37,7 @@ describe("Initialize tally/path test data", function() {
   })
 
   it("Build users: " + users, function(done) {
-    let dc = users; _done = () => {if (!--dc) done()}	//_done's to be done
+    let dc = users, _done = () => {if (!--dc) done()}	//_done's to be done
     for (let u = 0; u < users; u++) {
       let cid = cidN(u)
         , name = "User " + u
@@ -54,7 +54,7 @@ describe("Initialize tally/path test data", function() {
   })
 
   it("Build local tallies", function(done) {
-    let dc = users-1; _done = () => {if (!--dc) done()}	//_done's to be done
+    let dc = users-1, _done = () => {if (!--dc) done()}
     interTest.ids = []
     for (let u = 1; u < users; u++) {
       let s = u, f = u-1
@@ -123,7 +123,7 @@ describe("Initialize tally/path test data", function() {
   })
 
   it("Build loop-back tallies", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//_done's to be done
+    let dc = 2, _done = () => {if (!--dc) done()}
       , buildem = (sId, sCid, sCert, sSig, fId, fCid, fCert, fSig, u, units) => {
          let tuid = mkUuid(sCid, agent0), cuid = mkUuid(fCid, agent0)
            , date = new Date().toISOString()

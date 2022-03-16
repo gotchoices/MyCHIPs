@@ -49,7 +49,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     let sql = `begin;
         delete from mychips.tallies;
         update mychips.users set _last_tally = 0; commit`
-      , dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
     dbO.query(sql, (e) => {if (e) done(e); _done()})
     dbS.query(sql, (e) => {if (e) done(e); _done()})
   })
@@ -96,7 +96,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   it("Subject asks his server to request the proposed tally", function(done) {
     let sql = Format('select mychips.ticket_process(%L,%L)', interTest, userS)
-      , dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbS.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)		//;log.debug("row:", row)
@@ -116,7 +116,6 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(foil.cert.chad.agent, agentS)
       assert.ok(!tally.sign.stock)	//;log.debug("sign:", tally.sign)
       assert.ok(!tally.sign.foil)
-      busO.register('po')
       _done()
     })
   })
@@ -124,7 +123,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   it("Originator approves, signs the proposed tally", function(done) {
     let uuid = mkUuid(cidO, agent0)			//Make a real UUID for this user/tally
       , sql = uSql('tally_uuid = %L, request = %L, hold_sig = %L', uuid, 'offer', 'Originator Signature', userO, seqO)
-      , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbO.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -147,7 +146,6 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.ok(!tally.sign.foil)
       assert.ok(!tally.part_ent)		//Haven't linked partner yet
       interTest = tally
-      busS.register('ps')
       _done()
     })
     busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
@@ -155,20 +153,19 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(msg.state, 'H.offer')
       assert.ok(!!msg.object.sign.stock)
       assert.ok(!msg.object.sign.foil)
-      busO.register('po')
       _done()
     })
   })
 
   it("Save proffered tallies for later testing", function(done) {
-    let dc = sites; _done = () => {if (!--dc) done()}
+    let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(save('Hoffer'), (e) => {if (e) done(e); _done()})
     if (sites > 1) dbS.query(save('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
   it("Subject rejects the proposed tally", function(done) {
     let sql = uSql('request = %L, hold_sig = %L', 'void', null, userS, 1)
-      , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -180,26 +177,24 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
       assert.equal(msg.entity, userO)		//Originator is sent the rejection
       assert.equal(msg.state, 'void')
-      busO.register('po')
       _done()
     })
     busS.register('ps', (msg) => {		;log.debug("S msg:", msg, msg.object.sign)
       assert.equal(msg.entity, userS)		//Subject is notified of open
       assert.equal(msg.state, 'void')
-      busS.register('ps')
       _done()
     })
   })
 
   it("Restore proffered tallies", function(done) {
-    let dc = sites; _done = () => {if (!--dc) done()}
+    let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(rest('Hoffer'), (e) => {if (e) done(e); else _done()})
     if (sites > 1) dbS.query(rest('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
   it("Subject counters the proposed tally", function(done) {
     let sql = uSql('request = %L, hold_sig = %L', 'offer', 'Subject Signature', userS, 1)
-      , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -211,26 +206,24 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
       assert.equal(msg.entity, userO)		//Originator is sent the rejection
       assert.equal(msg.state, 'P.offer')
-      busO.register('po')
       _done()
     })
     busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
       assert.equal(msg.entity, userS)		//Subject is notified of open
       assert.equal(msg.state, 'H.offer')
-      busS.register('ps')
       _done()
     })
   })
 
   it("Restore proffered tallies", function(done) {
-    let dc = sites; _done = () => {if (!--dc) done()}
+    let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(rest('Hoffer'), (e) => {if (e) done(e); else _done()})
     if (sites > 1) dbS.query(rest('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
   it("Subject accepts the proposed tally", function(done) {
     let sql = uSql('request = %L, hold_sig = %L', 'open', 'Subject Signature', userS, 1)
-      , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -242,32 +235,30 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     busO.register('po', (msg) => {		//Originator is sent the acceptance
       assert.equal(msg.entity, userO)
       assert.equal(msg.state, 'open')
-      busO.register('po')
       _done()
     })
     busS.register('ps', (msg) => {		//Subject is notified of open
       assert.equal(msg.entity, userS)
       assert.equal(msg.state, 'open')
-      busS.register('ps')
       _done()
     })
   })
 
   if (saveName) it("Save open tallies for later (chit) testing", function(done) {
-    let dc = sites; _done = () => {if (!--dc) done()}
+    let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(save(saveName), (e) => {if (e) done(e); _done()})
     if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
   })
 
 //  it("Simulate non-zero tally balance", function(done) {
-//    let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
+//    let dc = 2, _done = () => {if (!--dc) done()}
 //    dbO.query(uSql('units_gc = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
 //    dbS.query(uSql('units_gc = 1', userS, 1), (e, res) => { if (e) done(e); _done()})
 //  })
 
   it("Subject requests to close the proposed tally", function(done) {
     let sql = uSql('request = %L', 'close', userS, 1)
-      , dc = 3; _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -279,7 +270,6 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     busO.register('po', (msg) => {		//Originator is sent the close request
       assert.equal(msg.entity, userO)
       assert.equal(msg.state, 'close')
-      busS.register('po')
       _done()
     })
     busS.register('ps', (msg) => {		//Subject is notified of open
@@ -288,13 +278,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(msg.state, 'close')
       assert.ok(!!msg.object.sign.stock)
       assert.ok(!!msg.object.sign.foil)
-      busS.register('ps')
       _done()
     })
   })
 
 //  it("Simulate tally balance going to zero (close -> closed)", function(done) {
-//    let dc = 2; _done = () => {if (!--dc) done()}	//dc _done's to be done
+//    let dc = 2, _done = () => {if (!--dc) done()}
 //    dbO.query(uSql('units_gc = 0', userO, seqO), (e, res) => { if (e) done(e)
 //      let row = getRow(res, 0)			//;log.debug("row:", row)
 //      assert.equal(row.state, 'closed')

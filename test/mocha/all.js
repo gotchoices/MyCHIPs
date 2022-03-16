@@ -10,6 +10,8 @@ require('./peernoise.js')
 
 require('./impexp.js')		//Adds users needed for other tests
 require('./testusers.js')	//Run before sch-tally or tally
+require('./modeler1.js')
+
 require('./sch-tally.js')
 require('./sch-chit.js')
 
@@ -25,8 +27,6 @@ require('./route.js')
 //require('./sch-tally.js')
 //require('./tally.js')
 
-require('./modeler1.js')
-
 //Re-enable after schema settles and more text fields are filled in
 //require('./schema.js')
 
@@ -34,7 +34,7 @@ require('./modeler1.js')
 //require('./sch-multi.js')	//Will empty users table
 
 after('Delete test database', function(done) {
-  let dc = 2; _done = () => {if (!--dc) done()}		//dc _done's to be done
+  let dc = 2, _done = () => {if (!--dc) done()}		//dc _done's to be done
   dropDB(_done)
   dropDB(_done, DB2Name)
 })

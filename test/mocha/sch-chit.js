@@ -56,6 +56,7 @@ describe("Test chit state transitions", function() {
       , value = 123400
       , reason = 'A test'
       , request = 'pend'
+      , dc = 2, _done = () => {if (!--dc) done()}
       , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request)
           values (%L, %s, %L, 'tran', %s, %L, %L) returning *`, ent, seq, uuid, value, reason, request)
 //log.debug("Sql:", sql)
@@ -72,7 +73,7 @@ describe("Test chit state transitions", function() {
       assert.equal(row.tally_type, 'stock')
       assert.equal(row.action, false)
       assert.equal(row.state,'A.draft.pend')
-      done()
+      _done()
     })
     busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
       assert.equal(msg.target, 'chit')
@@ -85,7 +86,6 @@ describe("Test chit state transitions", function() {
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
       assert.ok(!obj.signed)
-      busA.register('pa')
       interTest.chit = obj			//Save original chit object
       interTest.from = msg.from			//And info about our user
       _done()
@@ -128,7 +128,7 @@ describe("Test chit state transitions", function() {
   it("User requests modified invoice chit (A.void -> A.draft.pend)", function(done) {
     let value = 12340
       , sql = uSql(`request = 'pend', units = ` + value, user0, interTest.chit.uuid)
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -139,10 +139,9 @@ describe("Test chit state transitions", function() {
     busA.register('pa', (msg) => {		//;log.debug("A msg:", msg)
       assert.equal(msg.target, 'chit')
       assert.equal(msg.action, 'pend')
-      let obj = msg.object			;log.debug("A obj:", obj)
+      let obj = msg.object			//;log.debug("A obj:", obj)
       assert.equal(obj.uuid, interTest.chit.uuid)
       assert.equal(obj.units, value)
-      busA.register('pa')
       _done()
     })
   })
@@ -174,9 +173,9 @@ describe("Test chit state transitions", function() {
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row)
+      let row = getRow(res, 0)			;log.debug("A row:", row)
       assert.equal(row.state, 'A.good')
       done()
     })
@@ -190,6 +189,7 @@ describe("Test chit state transitions", function() {
       , reason = 'Uninvoiced transfer'
       , request = 'good'
       , signature = cid0 + ' signature'
+      , dc = 2, _done = () => {if (!--dc) done()}
       , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request, signature)
           values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, ent, seq, uuid, value, reason, request, signature)
 //log.debug("Sql:", sql)
@@ -203,7 +203,7 @@ describe("Test chit state transitions", function() {
       assert.equal(row.units_p, value)
       assert.equal(row.action, false)
       assert.equal(row.units_g, 0)
-    done()
+      _done()
     })
     busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
       assert.equal(msg.target, 'chit')
@@ -216,7 +216,6 @@ describe("Test chit state transitions", function() {
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
       assert.equal(obj.signed, signature)
-      busA.register('pa')
       _done()
     })
   })
@@ -229,9 +228,9 @@ describe("Test chit state transitions", function() {
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row)
+      let row = getRow(res, 0)			;log.debug("row:", row)
       assert.equal(row.state, 'L.pend')
       interTest.chit = object			//Now dealing with this chit
       done()
@@ -244,7 +243,7 @@ describe("Test chit state transitions", function() {
 
   it("User rejects invoice chit (L.pend -> L.pend.void)", function(done) {
     let sql = uSql(`request = 'void'`, user0, interTest.chit.uuid)
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -255,7 +254,6 @@ describe("Test chit state transitions", function() {
     busA.register('pa', (msg) => {
       assert.equal(msg.action, 'void')		//;log.debug("A obj:", msg.object)
       interTest.uuid = msg.object.uuid		//Redirect future tests to this latest chit
-      busA.register('pa')
       _done()
     })
   })
@@ -292,7 +290,7 @@ describe("Test chit state transitions", function() {
 
   it("User accepts invoice chit (L.pend -> L.pend.good)", function(done) {
     let sql = uSql(`request = 'good', signature = '` + cid0 + ` signature'`, user0, interTest.chit.uuid)
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
@@ -302,7 +300,6 @@ describe("Test chit state transitions", function() {
     })
     busA.register('pa', (msg) => {
       assert.equal(msg.action, 'good')		//;log.debug("A obj:", msg.object)
-      busA.register('pa')
       _done()
     })
   })
@@ -316,7 +313,6 @@ describe("Test chit state transitions", function() {
       done()
     })
   })
-
 /*
 */
   after('Disconnect from test database', function(done) {

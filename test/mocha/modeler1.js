@@ -34,7 +34,7 @@ describe("Test Agent-based modeler 1", function() {
 
   it("Confirm some tallys/chits created", function(done) {
     let sql = 'select count(*) as tallies, count(chits) as chits from mychips.tallies_v'
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     db.query(sql, null, (e, res) => { if (e) done(e)	;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.ok(row.tallies > 0)

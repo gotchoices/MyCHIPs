@@ -62,7 +62,7 @@ logI.debug("Initiator got query request:", req, data)
   })
 
   it("Send from responder to initiator on existing connection", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+    let dc = 2, _done = () => {if (!--dc) done()}	//2 _done's to be done
     initCB = function(connection, obj) {
       assert.equal(obj.text, message2)			//Got the same message we sent
       assert.equal(responder.connections.size(), 1)	//Should reuse existing connection
@@ -72,7 +72,7 @@ logI.debug("Initiator got query request:", req, data)
   })
 
   it("Send from initiator to initiator", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+    let dc = 2, _done = () => {if (!--dc) done()}
     initCB = function(connection, obj) {
       assert.equal(obj.text, message3)			//Got the same message we sent
       _done()

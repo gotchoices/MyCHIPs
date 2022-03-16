@@ -62,7 +62,7 @@ describe("Test tally state transitions", function() {
 
   it("User request to promote tally to offer (draft -> draft.offer)", function(done) {
     let sql = uSql(`request = 'offer', hold_sig = '${cid0 + ' signature'}'`, user0, 1)
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
@@ -77,7 +77,6 @@ describe("Test tally state transitions", function() {
       assert.ok(!!obj.uuid)			//A tally attached
       interTest = msg				//Save original tally object
 log.debug("Object:", msg.object)
-      busA.register('pa')
       _done()
     })
   })
@@ -118,7 +117,7 @@ log.debug("Object:", msg.object)
   
   it("User request to promote tally to offer (P.offer -> P.offer.void)", function(done) {
     let sql = uSql(`request = 'void', hold_sig = null`, user0, 1)
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
@@ -129,7 +128,6 @@ log.debug("Object:", msg.object)
 //log.debug("sign:", msg.object.sign)
       assert.equal(msg.target, 'tally')
       assert.equal(msg.action, 'void')
-      busA.register('pa')
       _done()
     })
   })
@@ -208,7 +206,7 @@ log.debug("Object:", msg.object)
   })
   it("User modifies peer draft (P.offer -> draft.offer)", function(done) {
     let sql = uSql(`request = 'offer', hold_sig = '${cid0 + ' signature'}', comment = 'A special condition'`, user0, 1)
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
@@ -219,7 +217,6 @@ log.debug("Object:", msg.object)
     busA.register('pa', (msg) => {		//Listen for message to agent process
       assert.equal(msg.target, 'tally')
       assert.equal(msg.action, 'offer')
-      busA.register('pa')
       _done()
     })
   })
@@ -230,7 +227,7 @@ log.debug("Object:", msg.object)
 
   it("User request to accept draft (P.offer -> B.offer.open)", function(done) {
     let sql = uSql(`request = 'open', hold_sig = '${cid0 + ' signature'}'`, user0, 1)	//Force chips cache to non-zero
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql M:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
@@ -240,7 +237,6 @@ log.debug("Object:", msg.object)
     busA.register('pa', (msg) => {		//Listen for message to agent process
       assert.equal(msg.target, 'tally')
       assert.equal(msg.action, 'open')
-      busA.register('pa')
       _done()
     })
   })
@@ -264,7 +260,7 @@ log.debug("Object:", msg.object)
 
   it("User request to close tally (open -> open.close)", function(done) {
     let sql = uSql(`request = 'close'`, user0, 1)
-      , dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql M:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
@@ -274,7 +270,6 @@ log.debug("Object:", msg.object)
     busA.register('pa', (msg) => {		//Listen for message to agent process
       assert.equal(msg.target, 'tally')
       assert.equal(msg.action, 'close')
-      busA.register('pa')
       _done()
     })
   })

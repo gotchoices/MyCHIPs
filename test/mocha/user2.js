@@ -15,6 +15,7 @@ describe("Establish test user on separate DB", function() {
   before('Delete test database', function(done) {dropDB(done, DB2Name)})
 
   before('Connection to database', function(done) {
+    this.timeout(10000)		//May take a while to build database
     db = new dbClient(db2Conf(), () => {}, ()=>{done()})
   })
 

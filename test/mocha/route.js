@@ -59,7 +59,7 @@ describe("Initialize DB2 tally/path test data", function() {
         {name:'User U', cid:cidu, agent:agent0, port:port0, host},
         {name:'User X', cid:cidx, agent:agent0, port:port0, host},
         {name:'User B', cid:cidb, agent:agent0, port:port0, host}]
-      , dc = dat.length; _done = () => {if (!--dc) done()}	//_done's to be done
+      , dc = dat.length, _done = () => {if (!--dc) done()}	//_done's to be done
       , count = 0
     dat.forEach(d => {
       let { name, cid, agent, host, port} = d
@@ -95,7 +95,7 @@ describe("Initialize DB2 tally/path test data", function() {
         {id:user2, type:'foil',  uuid:uuidX, hCert:certX, pCert:certB},
         {id:user3, type:'stock', uuid:uuidX, hCert:certB, pCert:certX},
         {id:user3, type:'foil',  uuid:uuidB, hCert:certB, pCert:cert2}]
-      , dc = dat.length; _done = () => {if (!--dc) done()}	//_done's to be done
+      , dc = dat.length, _done = () => {if (!--dc) done()}
     dat.forEach(d => {
       let { id, type, uuid, hCert, pCert, hSig, pSig } = d
         , sql = Format(tallySql, id, type, uuid, agree, hCert, pCert, sig, sig)
@@ -156,7 +156,7 @@ describe("Peer-to-peer route testing", function() {
         insert into mychips.routes_v (via_ent, via_tseq, dst_cid, dst_agent, req_ent, req_tseq)
           select t.ent, t.seq, $1, $2, t.ent, null from t returning *;`
       , parms = [cidu, agent0]
-      , dc = 2; _done = () => {if (!--dc) done()}	//_done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql, 'parms', parms)
     dbR.query(sql, parms, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
       let row = getRow(res, 0)
@@ -172,7 +172,6 @@ describe("Peer-to-peer route testing", function() {
       let obj = msg.object			//;log.debug("R obj:", obj, "F:", obj.find)
       assert.equal(obj.find.cid, cidu)
       assert.equal(obj.find.agent, agent0)
-      busR.register('pr')
       _done()
     })
   })
@@ -203,7 +202,7 @@ describe("Peer-to-peer route testing", function() {
         insert into mychips.routes_v (via_ent, via_tseq, dst_cid, dst_agent, req_ent, req_tseq)
           select t.ent, t.seq, $1, $2, t.ent, null from t returning *;`
       , parms = [cidx, agent0]
-      , dc = 2; _done = () => {if (!--dc) done()}	//_done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql, 'parms', parms)
     dbR.query(sql, parms, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
       let row = getRow(res, 0)
@@ -219,7 +218,6 @@ describe("Peer-to-peer route testing", function() {
       let obj = msg.object			//;log.debug("R obj:", obj, "F:", obj.find)
       assert.equal(obj.find.cid, cidx)
       assert.equal(obj.find.agent, agent0)
-      busR.register('pr')
       _done()
     })
   })

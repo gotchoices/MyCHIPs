@@ -14,11 +14,11 @@ const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schem
 
 describe("JSON contact import/export", function() {
   var db
-  this.timeout(5000)		//May take a while to build database
 
   before('Delete test database', function(done) {dropDB(done)})
 
   before('Connect to (or create) test database', function(done) {
+    this.timeout(10000)		//May take a while to build database
     db = new dbClient(dbConfig, (chan, data) => {}, done)
   })
 

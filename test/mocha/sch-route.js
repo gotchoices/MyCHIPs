@@ -1,4 +1,4 @@
-//Test route schema at a basic level; run after sch-paths
+//Test route schema at a basic level; run after sch-path
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // User <-> DB <-> Agent
@@ -8,7 +8,7 @@ const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } 
 var log = Log('testSchRoute')
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
 const { cidu, cidd, cidN } = require('./def-path')
-var cid1 = cidN(1), cid2 = cidN(2), cid3 = cidN(3)
+var cid1 = cidN(1), cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3), cida = cidN('A'), cidb = cidN('B'), cidx = cidN('X')
 var userListen = 'mu_' + user3
 var agentListen = 'ma_' + agent1		//And his agent process
 var {save, rest} = require('./def-route')
@@ -42,7 +42,7 @@ describe("Test route state transitions", function() {
           dst as (select tally_ent as ent, tally_seq as seq, part_cid as cid, part_agent as agent from mychips.tallies where tally_type = 'foil' and part_ent isnull)
         insert into mychips.routes_v (via_ent, via_tseq, dst_cid, dst_agent, req_ent, req_tseq)
           select inp.ent, inp.seq, dst.cid, dst.agent, dst.ent, dst.seq from inp,dst returning *;`
-      , dc = 2; _done = () => {if (!--dc) done()}	//_done's to be done
+      , dc = 2, _done = () => {if (!--dc) done()}	//_done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("Q res:", res.rows[0])
       let row = getRow(res, 0)
@@ -55,7 +55,7 @@ describe("Test route state transitions", function() {
       assert.ok(!row.native)			//Simulate query from downstream
       _done()
     })
-    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
       interTest.m0 = msg			//Save original route message
       assert.equal(msg.target, 'route')
       assert.equal(msg.action, 'draft')
@@ -65,7 +65,6 @@ describe("Test route state transitions", function() {
       assert.equal(obj.find.agent, agent2)
       assert.equal(obj.step, 0)
       assert.equal(obj.tally.length, 36)
-      busA.register('pa')
       _done()
     })
   })
@@ -100,7 +99,7 @@ describe("Test route state transitions", function() {
       , msg = interTest.m1
       , sql0 = `update mychips.routes set min = 4, max = 9, margin = 0.001, reward = 0.015;`
       , sql1 = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
-      , dc = 2; _done = () => {if (!--dc) done()}
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql0 + sql1)
     dbA.query(sql0 + sql1, null, (e, res) => {if (e) done(e)
       assert.equal(res.length, 2)
@@ -108,7 +107,7 @@ describe("Test route state transitions", function() {
       assert.equal(row.state, 'good')
       _done()
     })
-    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
       assert.equal(msg.target, 'route')
       assert.equal(msg.action, 'good')
       assert.deepStrictEqual(msg.from, {cid:cid3, agent:agent1, host, port:port1})
@@ -116,7 +115,6 @@ describe("Test route state transitions", function() {
       let obj = msg.object			//;log.debug("A obj:", obj, "L:", obj.lading)
       assert.deepStrictEqual(obj.lading, {min:4,max:5,margin:0.003994,reward:0.015000})
       assert.equal(obj.tally.length, 36)
-      busA.register('pa')
       _done()
     })
   })
@@ -130,7 +128,7 @@ describe("Test route state transitions", function() {
       , msg = interTest.m1
       , sql0 = `update mychips.routes set req_tseq = null;`
       , sql1 = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
-      , dc = 2; _done = () => {if (!--dc) done()}
+      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql0 + sql1)
     dbA.query(sql0 + sql1, null, (e, res) => {if (e) done(e)
       assert.equal(res.length, 2)
@@ -143,7 +141,6 @@ describe("Test route state transitions", function() {
       assert.equal(msg.action, 'good')
       let obj = msg.object			//;log.debug("U obj:", obj, "F:", obj.find)
       assert.deepStrictEqual(obj.find, {cid:cidd, agent:agent2})
-      busU.register('pu')
       _done()
     })
   })
@@ -159,7 +156,7 @@ describe("Test route state transitions", function() {
 //    let logic = {context: ['pend'], update: {status: 'none'}}
 //      , msg = interTest.m1
 //      , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
-//      , dc = 2; _done = () => {if (!--dc) done()}
+//      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
 //    dbA.query(sql, null, (e, res) => {if (e) done(e)
 //      let row = getRow(res, 0)
@@ -169,7 +166,6 @@ describe("Test route state transitions", function() {
 //    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
 //      assert.equal(msg.target, 'route')
 //      assert.equal(msg.action, 'none')
-//      busA.register('pa')
 //      _done()
 //    })
 //  })
@@ -220,6 +216,7 @@ describe("Test route state transitions", function() {
             find: {cid:cid1, agent:agent1}
           }
         }
+      , dc = 2, _done = () => {if (!--dc) done()}
       , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, queryLogic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
@@ -228,7 +225,17 @@ describe("Test route state transitions", function() {
       assert.equal(state.action, 'good')	//;log.debug("A lading:", state.lading)
       assert.equal(state.forward, 1)
       assert.deepStrictEqual(state.lading, {"max":9,"min":7,"margin":0.001999,"reward":0.02})
-      done()
+      _done()
+    })
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
+      assert.equal(msg.target, 'route')
+      assert.equal(msg.action, 'draft')
+      assert.deepStrictEqual(msg.from, {cid:cid2, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.to,   {cid:cidb, agent:agent0, host, port:port0})
+      let obj = msg.object			//;log.debug("A obj:", obj, "L:", obj.lading)
+      assert.equal(obj.step, step)
+      assert.equal(obj.tally.length, 36)
+      _done()
     })
   })
 
@@ -246,6 +253,7 @@ describe("Test route state transitions", function() {
             find: {cid:cidu, agent:agent0}
           }
         }
+      , dc = 3, _done = () => {if (!--dc) done()}
       , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, queryLogic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
@@ -254,7 +262,22 @@ describe("Test route state transitions", function() {
       assert.equal(state.action, 'good')	//;log.debug("A lading:", state.lading)
       assert.equal(state.forward, 2)		//new queries sent along
       assert.deepStrictEqual(state.lading, {"max":7,"min":5,"margin":0.002997,"reward":0.02})
-      done()
+      _done()
+    })
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
+      assert.equal(msg.target, 'route')
+      assert.equal(msg.action, 'draft')
+
+      if (msg.from.cid == cid2) {		//Should get called twice
+        assert.deepStrictEqual(msg.to,   {cid:cidb, agent:agent0, host, port:port0})
+      } else {
+        assert.deepStrictEqual(msg.from, {cid:cid0, agent:agent1, host, port:port1})
+        assert.deepStrictEqual(msg.to,   {cid:cida, agent:agent0, host, port:port0})
+      }
+      let obj = msg.object			//;log.debug("A obj:", obj, "L:", obj.lading)
+      assert.equal(obj.step, step)
+      assert.equal(obj.tally.length, 36)
+      _done()
     })
   })
 
@@ -263,7 +286,7 @@ describe("Test route state transitions", function() {
   })
 
   it("Agent receives query for unknown but queriable user", function(done) {
-    let step = 2, cidx = 'cid_X'
+    let step = 2
       , tally = interTest.t0.tally_uuid
       , msg = {target: 'route', action: 'query',
           to: {cid:cid3, agent:agent1},
@@ -272,6 +295,7 @@ describe("Test route state transitions", function() {
             find: {cid:cidx, agent:agent0}
           }
         }
+      , dc = 4, _done = () => {if (!--dc) done()}
       , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, queryLogic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
@@ -280,7 +304,24 @@ describe("Test route state transitions", function() {
       assert.equal(state.action, 'relay')	//;log.debug("A lading:", state.lading)
       assert.equal(state.forward, 3)
       assert.ok(!state.lading)
-      done()
+      _done()
+    })
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
+      assert.equal(msg.target, 'route')
+      assert.equal(msg.action, 'draft')
+
+      if (msg.to.cid == cida) {		//Should get called three times
+        assert.deepStrictEqual(msg.from, {cid:cid0, agent:agent1, host, port:port1})
+      } else if (msg.to.cid == cidb) {
+        assert.deepStrictEqual(msg.from, {cid:cid2, agent:agent1, host, port:port1})
+      } else {
+        assert.deepStrictEqual(msg.to,   {cid:cidu, agent:agent0, host, port:port0})
+        assert.deepStrictEqual(msg.from, {cid:cid0, agent:agent1, host, port:port1})
+      }
+      let obj = msg.object			//;log.debug("A obj:", obj, "L:", obj.lading)
+      assert.equal(obj.step, step)
+      assert.equal(obj.tally.length, 36)
+      _done()
     })
   })
 /*
