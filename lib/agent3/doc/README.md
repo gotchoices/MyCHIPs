@@ -7,7 +7,7 @@ The Agent 3 simulation extends the basic structure Agent 2 was built on and adds
 - Improve code readability for future developers (Completed)
   - Update variable names
   - Implement classes that adhere to the Single Responsibility Principle
-  - Convert JavaScript to TypeScript
+  - Convert JavaScript to TypeScript (Object Oriented programming allows for more extendibility)
 - Collect data from simulation that can later be analyzed
   - Add analytics table to WorldDB that records both server and world information
   - Export to single file
@@ -17,7 +17,7 @@ The Agent 3 simulation extends the basic structure Agent 2 was built on and adds
 - Perform credit lifts when criteria is met
 
 ## Running the Simulation
-To run the simulation you need to run `npm install` and then follow the [setup instructions](/doc/use-docker.md)
+To run the simulation you need to run `npm install` and then follow the [setup instructions](/doc/sim-docker.md). Specific instructions for Agent 3 are at the bottom.
 
 ## Development 
 <ins>* Do not edit any Agent 3 JavaScript files directly *</ins>
@@ -25,7 +25,7 @@ To run the simulation you need to run `npm install` and then follow the [setup i
 The Agent 3 Model of the simulation was developed using TypeScript to allow for clear data typing, therefore any changed `*.ts` files must be transpiled before execution. The overall work flow should look something like this:
 1) Edit `*.ts` files.
 2) Run `npm tsc` before running the simulation.
-3) Run `./simdock startup`, `./simdock tickets`, and then  `./simdock start --runs=50` as outlined [here](/doc/use-docker.md)
+3) Run `./simdock startup`, `./simdock tickets`, and then  `./simdock start sim --runs=50` as outlined [here](/doc/sim-docker.md)
 
 \*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence.
 ## Structure Overview
@@ -39,9 +39,9 @@ Here is a basic description of the flow of data through the simulation:
 1. `simdock.sh` takes care of setting up the environment required by the simulation.
    - Starts the local SQL databases (one container per site) and world database (MongoDB)
    - Creates and inserts users into the local SQL databases
-   - Runs `sim.c` which starts the simulation by creating one 'agent' docker container per site, each running an AgentCluster process (the entrypoint is `agent3.ts`)
+   - Runs `sim-c.sh` which starts the simulation by creating one 'agent' docker container per site, each running an AgentCluster process (the entrypoint is `test/sim/agent` which instantiates the main class in `agent3.ts`)
 
-2. Each 'agent' (by running AgentCluster) loads the config file parameters, connects to their respective local SQL databases, and connects to the shared Mongo 'World' database. 
+2. Each 'agent' (by running AccountCluster) loads the config file parameters, connects to their respective local SQL databases, and connects to the shared Mongo 'World' database. 
 3. Accounts stored in local SQL databases are loaded into their respective sites' AccountCache, and are loaded into the shared WorldDB. 
 4. 'agents' iterate through their local accounts, performing allowed actions, (such as purchase item, take out a loan, sell a good, etc...). For example, let's say Dave initiates a 'purchase item' action. To do so, he needs to find a new spending target. His account goes through these steps:
    1. Find peer in world DB (Mongo)
@@ -79,7 +79,7 @@ Here is a basic description of the flow of data through the simulation:
 
 ## Gotchas
 - The Actions collection in the World DB is a shared queue where servers can tell eachother perform actions. No relation to our actions class.
-- Currently a user's peer_cid is different on different servers, although Kyle has plans to change this.
+- Currently a user's id is unique only on their host server, while the peer_cid is unique to the world. This means two users with different peer_cids could have the same id on a server when one is downloaded as a peer. Kyle is working to make peer_cids the only identification needed and remove the need to download a user as a peer.
 
 
 ## Glossary
