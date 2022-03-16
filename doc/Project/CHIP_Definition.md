@@ -88,7 +88,7 @@ It is fairly straightforward to construct a table of
 [commodities futures prices](https://www.agweb.com/markets/futures) as follows:
 
 | Commodity | Unit | USD | Euro | Other |
-|----|----|----|----|----|----|
+| :--- | :--- | ---: | ---: | ---: |
 | Corn | Bushel | 7 | 7.70 | a |
 | Wheat | Bushel | 10 | 11 | b |
 | Hogs | Pound | 1 | 1.1 | c |
@@ -110,7 +110,7 @@ But this table will serve as a starting point before going on to the exercise of
 Next question is, could we add labor to the table?
 
 | Commodity | Unit | USD | Euro | Other |
-|----|----|----|----|----|----|
+| :--- | :--- | ---: | ---: | ---: |
 | Corn | Bushel | 7 | 7.70 | a |
 | Wheat | Bushel | 10 | 11 | b |
 | Hogs | Pound | 1 | 1.1 | c |
@@ -131,7 +131,7 @@ Next question is, why are commodities bound to rows and currencies bound to colu
 For example, couldn't we price all our commodities in terms of wheat as follows:
 
 | Commodity | Unit | USD | Euro | Wheat |
-|----|----|----|----|----|----|
+| :--- | :--- | ---: | ---: | ---: |
 | Corn | Bushel | 7 | 7.70 | 0.7 |
 | Wheat | Bushel | 10 | 11 | 1 |
 | Hogs | Pound | 1 | 1.1 | 0.1 |
@@ -142,7 +142,7 @@ Likewise, there's no reason we couldn't put currencies on their own row, and mov
 Labor CHIPs to a column:
 
 | Commodity | Unit | USD | Euro | Wheat | CHIP |
-|----|----|----|----|----|----|
+| :--- | :--- | ---: | ---: | ---: | ---: |
 | Corn | Bushel | 7 | 7.70 | 0.7 | 0.7 |
 | Wheat | Bushel | 10 | 11 | 1 | 1 |
 | Hogs | Pound | 1 | 1.1 | 0.1 | 0.1 |
