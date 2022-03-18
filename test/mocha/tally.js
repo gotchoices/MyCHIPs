@@ -9,8 +9,8 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
-var log = Log('testTally')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+var log = testLog(__filename)
 const PeerCont = require("../../lib/peer2peer")
 const PeerNoise = require("../../lib/peernoise")
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
@@ -67,7 +67,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   it("Originator builds tally template and token", function(done) {
-    let s1 = Format('insert into mychips.tallies (tally_ent, contract) values(%L,%L)', userO, contract)
+    let s1 = Format('insert into mychips.tallies_v (tally_ent, contract) values(%L,%L)', userO, contract)
       , sql = `with row as (${s1} returning tally_ent, tally_seq, ${reuse || 'false'})
           insert into mychips.tokens (token_ent, tally_seq, reuse) select * from row returning *;
           select * from mychips.tallies_v where tally_ent = '${userO}' and tally_seq = 1;

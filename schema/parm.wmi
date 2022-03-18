@@ -6,11 +6,11 @@ user_port=54320
 peer_agent=UNASSIGNED		#Key word triggers setting of real agent key on first run
 peer_host=mychips.org
 peer_port=65430
-if [[ ! -z "$MYCHIPS_USER_HOST" ]]; then user_host="$MYCHIPS_USER_HOST"; fi
-if [[ ! -z "$MYCHIPS_USER_PORT" ]]; then user_port="$MYCHIPS_USER_PORT"; fi
-if [[ ! -z "$MYCHIPS_PEER_AGENT" ]]; then peer_agent="$MYCHIPS_PEER_AGENT"; fi
-if [[ ! -z "$MYCHIPS_PEER_HOST" ]]; then peer_host="$MYCHIPS_PEER_HOST"; fi
-if [[ ! -z "$MYCHIPS_PEER_PORT" ]]; then peer_port="$MYCHIPS_PEER_PORT"; fi
+if [[ ! -z "$MYCHIPS_SPAHOST" ]]; then user_host="$MYCHIPS_SPAHOST"; fi
+if [[ ! -z "$MYCHIPS_WSPORT" ]]; then user_port="$MYCHIPS_WSPORT"; fi
+if [[ ! -z "$MYCHIPS_AGENT" ]]; then peer_agent="$MYCHIPS_AGENT"; fi
+if [[ ! -z "$MYCHIPS_AGHOST" ]]; then peer_host="$MYCHIPS_AGHOST"; fi
+if [[ ! -z "$MYCHIPS_AGPORT" ]]; then peer_port="$MYCHIPS_AGPORT"; fi
 
 #Default parameters for connection port
 cat <<EOF

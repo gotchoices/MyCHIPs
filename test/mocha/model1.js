@@ -3,11 +3,11 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { dbClient, dbConf, Log, Format, assert, getRow } = require('./common')
+const { dbClient, dbConf, testLog, Format, assert, getRow } = require('./common')
 const { host, agent0, port0 } = require('./def-users')
-const ModelCont = require('../../lib/modeler1')
+const ModelCont = require('../../lib/model1')
 var ahoy = 'o500'		//Give him agent@host:port info
-var log = Log('testModeler1')
+var log = testLog(__filename)
 
 describe("Test Agent-based modeler 1", function() {
   var db, modeler
@@ -35,7 +35,7 @@ describe("Test Agent-based modeler 1", function() {
   it("Confirm some tallys/chits created", function(done) {
     let sql = 'select count(*) as tallies, count(chits) as chits from mychips.tallies_v'
 //log.debug("Sql:", sql)
-    db.query(sql, null, (e, res) => { if (e) done(e)	;log.debug("res:", res.rows[0])
+    db.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.ok(row.tallies > 0)
       assert.ok(row.chits > 0)

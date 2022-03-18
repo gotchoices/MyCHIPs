@@ -6,8 +6,8 @@
 // User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
 //- 
-const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
-var log = Log('testChit')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+var log = testLog(__filename)
 const PeerCont = require("../../lib/peer2peer")
 var defTally = require('./def-tally')
 var {uSql, save, rest} = require('./def-chit')

@@ -84,7 +84,7 @@ proc answer {} {
 scrollbar .ys -orient v -command {.win yview}
 color::text .win -yscroll {.ys set} -font $font -wrap word
 pack .ys -side right -fill y
-pack .win
+pack .win -fill both -expand y
 focus .win	;#Seems to need to take focus once or '-state disabled' above makes it so we never can get focus from mouse
 
 bind Text <Command-KeyPress-k> {	;#Clear command compatible with iTerm

@@ -17,6 +17,11 @@ module.exports={
   dbConf: function(log, listen, database = DBName, schema) {
     Object.assign(this, {database, user: DBAdmin, connect: true, log, listen, schema})
   },
+  testLog: function(fname) {
+    let base = Path.parse(fname).name
+      , logName = fname ? 'test-' + base : 'combined.log'
+    return Log(logName)
+  },
   dropDB: function(done, dbName = DBName) {
     let config = {database:'template1', user: DBAdmin, connect: true}
       , sql = Format('drop database if exists "%s";', dbName)

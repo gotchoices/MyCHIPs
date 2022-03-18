@@ -10,7 +10,7 @@ require('./peernoise.js')
 
 require('./impexp.js')		//Adds users needed for other tests
 require('./testusers.js')	//Run before sch-tally or tally
-require('./modeler1.js')
+require('./model1.js')
 
 require('./sch-tally.js')
 require('./sch-chit.js')

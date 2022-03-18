@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const {DBName, DBAdmin, DBHost, DBPort, DefAgent} = require('../settings')
+const {DBName, DBAdmin, DBHost, DBPort, PeerAgent, PeerHost, PeerPort} = require('../settings')
 const Http = require('http')
 const Format = require('pg-format')
 const { dbClient } = require("wyseman")
@@ -22,16 +22,24 @@ var maxSecs = new Date(maxDate).getTime()
 var diffSecs = maxSecs - minSecs
 
 var opts = require('yargs')
-  .alias('H','dbHost')     .default('dbHost',     DBHost)
-  .alias('D','dbName')     .default('dbName',     DBName)
-  .alias('A','dbAdmin')    .default('dbAdmin',    DBAdmin)
-  .alias('P','dbPort')     .default('dbPort',     DBPort)
-  .alias('n','number')     .default('number',1)
-  .alias('a','agent')      .default('agent', DefAgent)
+  .alias('H','dbHost')  .default('dbHost', DBHost)
+  .alias('D','dbName')  .default('dbName', DBName)
+  .alias('U','dbAdmin') .default('dbAdmin', DBAdmin)
+  .alias('P','dbPort')  .default('dbPort', DBPort)
+  .alias('a','agent')   .default('agent',  PeerAgent)
+  .alias('h','host')    .default('host',   PeerHost)
+  .alias('p','port')    .default('port',   PeerPort)
+  .alias('n','number')  .default('number', 1)
   .argv
 
-//console.log('DBName:', DBName, 'agent:', opts.agent)
-var db = new dbClient({database: DBName, user: DBAdmin, connect:true})
+//console.log('DB:', opts.dbName, opts.dbHost, opts.dbAdmin, 'agent:', opts.agent)
+var db = new dbClient({
+  host:		opts.dbHost, 
+  database:	opts.dbName, 
+  user:		opts.dbAdmin, 
+  port:		opts.dbPort,
+  connect:	true
+})
 
 var counter = opts.number
 for (let i = 0; i < opts.number; i++) {		//Loop n times
@@ -48,9 +56,9 @@ for (let i = 0; i < opts.number; i++) {		//Loop n times
         , randSecs = minSecs + (Math.random() * diffSecs)	//Make a random birthday
         , bday = new Date(randSecs).toISOString().slice(0,10)
         , sqlTpt = `insert into mychips.users_v (
-            ent_name, fir_name, ent_type, born_date, peer_cid, peer_agent
-          ) values (%L, %L, 'p', %L, %L, %L);`
-        , sql = Format(sqlTpt, last, first, bday, cid, opts.agent)
+            ent_name, fir_name, ent_type, born_date, peer_cid, peer_agent, peer_host, peer_port
+          ) values (%L, %L, 'p', %L, %L, %L, %L, %s);`
+        , sql = Format(sqlTpt, last, first, bday, cid, opts.agent, opts.host, opts.port)
 //console.log("sql:", sql)
       db.query(sql, (e, res) => {
         if (e) console.error("Error:", e)

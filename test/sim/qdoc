@@ -1,7 +1,8 @@
 #!/bin/bash
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
-#Query the mongo database, agents collection
+#Query the mongo database, entities collection
+#Doesn't work with docker simulation unless you have a network path to the docker host
 
 this="$(basename ${BASH_SOURCE})"
 mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
@@ -16,4 +17,4 @@ if [[ $query == "clear" ]]; then
   query='deleteMany({}); db.getCollection("actions").deleteMany({})'
 fi
 
-ssh $dochost "mongo --eval 'db.getCollection(\"agents\").${query}' $dbname"
+ssh $dochost "mongo --eval 'db.getCollection(\"entities\").${query}' $dbname"

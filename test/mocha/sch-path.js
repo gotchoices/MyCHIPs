@@ -8,8 +8,8 @@
 //                   ^____________________v
 //TODO:
 //- 
-const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('./common')
-var log = Log('testSchPath')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('./common')
+var log = testLog(__filename)
 //const Serialize = require("json-stable-stringify")
 const { host, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
 const { cidu, cidd, cidN } = require('./def-path')

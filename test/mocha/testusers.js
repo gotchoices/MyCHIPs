@@ -3,8 +3,8 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { dbConf, Log, Format, Bus, assert, dbClient } = require('./common')
-var log = Log('testUsers')
+const { dbConf, testLog, Format, Bus, assert, dbClient } = require('./common')
+var log = testLog(__filename)
 var { host, user0, user1, uKey0, uKey1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('./def-users')
 
 describe("Establish test users", function() {

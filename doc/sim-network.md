@@ -5,6 +5,9 @@ MyCHIPs services on a number of different machines on your local network.
 The goal is to simulate a small working MyCHIPs network environment so as to analyze/implement
 the lift algorithm.
 
+This system is not currently maintained and would likely require some effort to make it work
+with the current revision server.
+
 Each machine can run:
   - A single postgreSQL instance
   - A single SPA/clif server (currently disabled)

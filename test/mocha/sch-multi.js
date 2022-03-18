@@ -3,8 +3,8 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { DBName, DBAdmin, Log, Schema, assert, dropDB, dbClient } = require('./common')
-var log = Log('testSchema')
+const { DBName, DBAdmin, testLog, Schema, assert, dropDB, dbClient } = require('./common')
+var log = testLog(__filename)
 const interTest = {}
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 

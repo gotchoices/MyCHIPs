@@ -1,32 +1,33 @@
 #Process schema files
 #Sources resolve to definitions in ./Wyseman.conf
-WMPATH = $(shell wyseman-info path)
+WMPATH = $(shell npm exec wyseman-info path)
 ifeq ("$(WMPATH)","")
   WMPATH = ../node_modules/wyseman
 endif
+WM=npm exec wyseman --
 
 objects:
-	wyseman objects
+	${WM} objects
 
 text:
-	wyseman text
+	${WM} text
 
 defs:
-	wyseman defs
+	${WM} defs
 
 init:
-	wyseman init
+	${WM} init
 
 parm:
-	wyseman --no-make init
+	${WM} --no-make init
 
 run:
-	wyseman ${WMPATH}/lib/run_time.wms
+	${WM} ${WMPATH}/lib/run_time.wms
 
 sql:	objects text defs
-	wyseman init -s >../lib/schema-1.sql
+	${WM} init -s >../lib/schema-1.sql
 
 schema:	objects text defs
-	wyseman init -S ../lib/schema.json
+	${WM} init -S ../lib/schema.json
 
 all: objects text defs init

@@ -1,18 +1,13 @@
 TODO:
 
 Immediate:
-- Make simulation run again (without actually doing lifts)
-X-   Get randuser to work as node program
-X-   Get kickstart to assign agent from default_agent
-X-   Rename agent processes/files to abmodel
-X-   Make model1 work again
-X-   Network visualizer works again (for modeler1)
--   Make model2 work again
--   Network visualizer works again (for modeler2)
--   Mocha test for model2
--   Rename agent terminology -> modeler in test/sim
--   Does simdock still work?
--   Retire older simulator environments?
+-  Simulator works with agent changes so far
+X-   Basic functionality
+-   Are routes being generated (and/or queried for)?
+-   Network visualizer works again (for model2)
+-   Mocha test for model2? (probably not right away)
+-   Shell command to test-run docker simulator--just to see if any error messages pop out
+-  Can peer containers run with spa services disabled?
 -   
 - Lift subsystem:
 -   Make local lift routine work again

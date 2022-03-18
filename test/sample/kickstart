@@ -33,9 +33,9 @@ var jsonData = JSON.parse(fileData)
 queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
 
 //For user agent-based model testing:
-queryList.push({q:"select base.parmset('modeler', 'interval',$1::int)", a:[1000]})
-queryList.push({q:"select base.parmset('modeler', 'addclient',$1::float)", a:[0.10]})
-queryList.push({q:"select base.parmset('modeler', 'addvendor',$1::float)", a:[0.20]})
+queryList.push({q:"select base.parmset('model', 'interval',$1::int)", a:[1000]})
+queryList.push({q:"select base.parmset('model', 'addclient',$1::float)", a:[0.10]})
+queryList.push({q:"select base.parmset('model', 'addvendor',$1::float)", a:[0.20]})
 
 //Set org.json entity as the site admin:
 queryList.push({q:"select base.parmset('mychips','site_ent',$1::int)", a:[100]})

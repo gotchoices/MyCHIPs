@@ -1,0 +1,21 @@
+#Make new set of chits on top of existing tallies
+#for i in 0 1 2 3 ; do ( ./simdock dbcheck $i & ) ; done
+if [ ! -z "$1" ]; then
+  runs=$1
+else
+  runs = 10
+fi
+
+./simdock stop models
+./simdock stop logs model
+./simdock stop logs peer
+./simdock start logs peer -x 600
+./simdock start logs model
+
+./simdock q all "delete from mychips.chits"
+  
+./simdock stop logs chit
+./simdock start logs chit -x 1120 -y 320
+
+./simdock wait model
+./simdock start models --runs=$runs

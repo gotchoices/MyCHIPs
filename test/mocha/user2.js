@@ -4,8 +4,8 @@
 //TODO:
 //- 
 const Path = require('path')
-const { DB2Name, dbConf, DBAdmin, Schema, Log, Format, Bus, assert, importCheck, dropDB, dbClient } = require('./common')
-var log = Log('user2')
+const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient } = require('./common')
+var log = testLog(__filename)
 var { host, user2, uKey2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
 var schema = Schema
 

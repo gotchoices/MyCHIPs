@@ -4,7 +4,9 @@
 # -----------------------------------------------------------------------------
 # Usage: agents
 #        agents check -d
+#        agents new
 #        agents list
+#        agents rm <agentpub>
 mydir="$(dirname $BASH_SOURCE)"				#Where this script is
 appdir="$(realpath "$mydir/..")"
 keydir="$appdir/pki/local"

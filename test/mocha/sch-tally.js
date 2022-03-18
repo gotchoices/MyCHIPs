@@ -4,8 +4,8 @@
 // User <-> DB <-> Agent
 //TODO:
 //- 
-const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
-var log = Log('testSchTally')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+var log = testLog(__filename)
 const { host, cid0, cid1, user0, user1, agent0, agent1, aKey0, aKey1 } = require('./def-users')
 var userListen = 'mu_' + user0
 var agentListen = 'ma_' + agent0		//And his agent process
@@ -41,7 +41,7 @@ describe("Test tally state transitions", function() {
   it("Build draft tally record (<start> -> draft)", function(done) {
     let comment = 'Sample tally'
       , uuid = mkUuid(cid0, agent0)
-      , s = `insert into mychips.tallies (tally_ent, tally_uuid, contract, comment, part_cert)
+      , s = `insert into mychips.tallies_v (tally_ent, tally_uuid, contract, comment, part_cert)
 	    	values(%L,%L,%L,%L,mychips.user_cert(%L)) returning *, ${stateField};`
       , sql = Format(s, user0, uuid, contract, comment, user1)
 //log.debug("Sql:", sql)

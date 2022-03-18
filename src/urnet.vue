@@ -55,12 +55,11 @@ export default {
   methods: {
     peer(dat) {				//Generate SVG code for a user/peer node
 //console.log("User", dat.id, dat.peer_cid, this.unitss[dat.peer_cid])
-      let { id, std_name, peer_cid, peer_sock, user_ent } = dat
+      let { id, std_name, peer_cid, peer_agent, user_ent } = dat
         , fColor = (dat.units < 0 ? '#ff0000' : '#0000ff')
         , sumLine = user_ent ? `${dat.stock_uni/CHIPmult} - ${-dat.foil_uni/CHIPmult} = <tspan stroke="${fColor}" fill="${fColor}">${(dat.units/CHIPmult)}</tspan>` : ''
         , yOff = this.fontSize + 3
-        , host = peer_sock.split('.')[0]
-        , cidLine = `${peer_cid}@${host}`
+        , cidLine = `${peer_cid}:${peer_agent}`
         , text = `
         <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
           ${id}:${std_name}
@@ -117,7 +116,7 @@ export default {
 
     updateNodes(dTime) {
       let where = [['peer_ent', 'notnull']]
-        , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'units', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'states', 'uuids', 'part_cids', 'insides']
+        , fields = ['id', 'std_name', 'peer_cid', 'peer_agent', 'user_ent', 'units', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'states', 'uuids', 'part_cids', 'insides']
         , spec = {view: 'mychips.users_v_tallysum', fields, where, order: 1}
       updatePending = true
       if (dTime) where.push(['latest', '>=', dTime])

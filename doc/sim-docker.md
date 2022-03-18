@@ -14,8 +14,8 @@ separate virtual machines, all processes are launched as docker containers.
 Most functionality is wrapped inside the test/sim/simdock script.
 
 Simdock has less memory overhead than the earlier simnet implementation so a 
-single system can support the simulation of more sites.  However it is still 
-quite CPU intensive so things can run slow if you are modeling lots of sites.
+single system can simulate more sites.  Still, it is
+quite CPU intensive so things can run slow if you are modeling a larger network.
 
 Hopefully this docker-based simulation can be enhanced and extended to launch 
 many containers in the cloud for a much larger-scale simulation.
@@ -25,7 +25,7 @@ The simulation keeps run-time data in a subdirectory of this folder called
 created there.  Also, all MyCHIPs logfiles get created there.  This gives a
 single place for monitoring the status of a running simulation.
 
-Under the earlier simnet implementation, multiple VMs were created and each VM 
+Under the earlier simnet system, multiple VMs were created where each VM 
 represents a "site" and so would typically have an instance of the postgres 
 database, an SPA server, a peer server, and an agent modeler.  The idea is, a 
 site represents a single MyCHIPs service provider and its customers.
@@ -33,17 +33,17 @@ site represents a single MyCHIPs service provider and its customers.
 In this docker-based version, each process is a separate container.  So the
 notion of a "site" is not quite as clear.  It is probably best to think of a 
 site as an "instance of postgres" plus a few other processes (SPA, peer and 
-agent) that are part of that logical site but run in their own containers.
+modeler) that are part of that logical site but run in their own containers.
 This may be how some larger-scale service providers might operate anyway--with
 different processes running on different servers, all a part of the same site.
 
 In addition to sites, there are two additional containers.  The mongo container
 is just as in the simnet case: a database to represent the "real world" where
-agents meet each other and exchange information outside the MyCHIPs network.
+entities meet each other and exchange information outside the MyCHIPs network.
 It is not a part of the production software but is used only as part of the
 simulation.
 
-There is also a "devel" container which contains a Fedora machine primarily
+There is also a "devel" container which contains a Fedora Linux instance primarily
 used for development tasks such as updating the database schema in between runs
 of the simulation (say, in the case where you have made schema programming 
 changes).  You can launch a shell on the devel container to examine the 
@@ -59,7 +59,7 @@ To get started, run the following commands (from the test/sim directory):
   export NODE_DEBUG=debug
   ./simdock startup
 ```
-This should fetch and build the necessary docker images (which can take quite a 
+This should fetch and build the necessary docker images (which can take a
 long time).  Next, it will launch the mongo and devel containers.  It will then 
 launch a number of sites, equivalent to running "simdock start sites" manually.  
 This can take a while the first time you run because it has to initialize a 
@@ -67,10 +67,11 @@ database for each site.
 
 This step also includes opening a bunch of xterms (or the local logwin script 
 for Mac) on your screen to view the logfiles.  NOTE: MacOS is discontinuing 
-support of tcl/tk (wish).  Version 10.15 (Catalina) is already showing 
-instabilities that make logwin unstable.  If you are having a problem with 
-logwin on Mac, it should help to install wish from homebrew (https://brew.sh/)
-using (make sure new wish is also in your path):
+support of tcl/tk (wish) so even if you have it, it may be unstable.
+If you are having a problem with 
+logwin on Mac, try installing wish from [homebrew](https://brew.sh/).
+
+Also make sure your new wish is in your path:
 ```
   brew install tcl-tk
 ```
@@ -78,11 +79,11 @@ If things still don't work right (like your screen is smaller than 1920 pixels,
 for example) now is a good time to check out the configuration file: config.dock.
 
 If you want to change configuration items, make a similar file in the "local" 
-subdirectory:
+subdirectory (example of this in sim/sample):
 ```
   local/config.dock
 ```
-and put in there whatever settings you want to modify from the config.dock in
+and include whatever settings you want to modify from the config.dock in
 this folder.  Some good things to focus on include:
 ```
   agentwins, peerwins, spawins #X,Y screen coordinates of logging xterms
@@ -113,6 +114,17 @@ You should have N xterms on your screen showing the logs of the running SPA
 servers.  There should be another set showing the postgres logs.  Make sure 
 those servers get initialized and launched all the way before launching the 
 UI's as noted below.
+
+Note: If you have done this before under a prior release of MyCHIPs and the
+postgres containers won't launch, you may have stored data under sim/local from
+a prior version of the database or MyCHIPs schema.  If you don't have any
+important test cases in there, you can safely remove the pgdata folder with all
+its contents.  For example:
+```
+  rm -r local/ds0/pgdata
+```
+Now try restarting the simulation and see if the containers can rebuild the
+databases from scratch (takes a while).
 
 Next, you will need to put some aliases in your /etc/hosts (or other DNS
 mechanism) to resolve the hostnames we will use in the simulation.  Your
@@ -153,28 +165,13 @@ Once you get all that sorted out, rerun the "simdock tickets" command and see
 that the admin console is successfully connecting to each of the running SPA
 servers.
 
-Note that, as with most plural (like "tickets") commands in simdock, you can 
+Note that, as with most plural commands (like "tickets") in simdock, you can 
 also do:
 ```
   ./simdock ticket 2
 ```
 to launch a single admin console (to site 2 in this case).
 
-Last setup step is to rebuild all the database objects from scratch.  The
-default MyCHIPs server will build a pre-compiled schema by default.  But we 
-may want the simulation to run from our source folder so if you tweak the 
-schema, you will see the effect of the change in the simulation.  Additionally,
-this will update the database with some helpful configuration settings, such as 
-default host names and ports.
-
-This actually gets done automatically (if the schema has changed) with each 
-simulation run, but the first time, it can be a little more clear to run it 
-explicitly.  Keep in mind, this can also take a while when run for the first 
-time.  And in some instances it can fail on the first run so you may have to
-try it twice:
-```
-  ./simdock dbcheck all
-```
 Finally, it's time to start the simulation.  Run this:
 ```
   ./simdock start sim --runs=50
@@ -210,7 +207,29 @@ Keep in mind, if you launched the simulation with sites set to 6 and then
 changed the configuration to 4 before doing the shutdown command, not all your 
 containers will get killed.  You may have to do that manually.
 
-###Command Examples
+### Schema Hacking
+If you plan to be working on the SQL schema and the simulator, you will need
+to set things up to rebuild the schema in each DB container on each simulation
+run.  In sim/local/config.dock, include:
+```
+  checkschema=true
+```
+Now each time you run the simulation, the system will check for changes in the
+schema definition files and may attempt an incremental rebuild of the schema.
+This way, you can make a change and then re-run the simulation to view the 
+effect of the change.
+
+If you want to do this manually (not part of a simulation run), you can do
+the following:
+```
+  ./simdock dbcheck all
+```
+
+### Scripting
+It also comes in handy to make small scripts to run scenarios with the simulator.
+There are a few examples of this in the sim/sample folder.
+
+### Command Examples
 ```
   export NODE_DEBUG=debug
   ./simdock startup               #Run mongo/development/PG/SPA containers
@@ -234,14 +253,14 @@ containers will get killed.  You may have to do that manually.
   
   ./simdock start peer all        #Start all peer servers
   ./simdock start peers           #Ditto
-  ./simdock start agents --runs=10    #Run agents to do 10 iterations
-  ./simdock stop agents           #Stop all agents
+  ./simdock start models --runs=10    #Run agent-models to do 10 iterations
+  ./simdock stop models           #Stop all models
 
   ./simdock start mongo           #Start mongodb (public database)
   ./simdock stop mongo            #Stop mongodb
 
   ./simdock dbcheck 0 -f          #Rebuild the database even if the schema doesn't appear to have changed since last build
-  ./simdock backup all profile1   #Backup all DB's to a folder called profile1 (stop spas,peers,agents first)
+  ./simdock backup all profile1   #Backup all DB's to a folder called profile1 (stop spas,peers,models first)
   ./simdock dropdb all            #Drop all databases (run this prior to a restore)
   ./simdock restore all profile1  #Restore all DB's from a folder called profile1
 ```
