@@ -5,10 +5,10 @@
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------
 view mychips.tallies_v_net {mychips.tallies_v} {with
-  t2 as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
+  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
     from mychips.tallies_v where liftable and not part_ent isnull
   ),
-  t1 as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
+  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
     from mychips.tallies_v where liftable and part_ent isnull
   )
   select 			-- Internal tallies with both stock and foil
@@ -24,8 +24,8 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , false					as inv
-    from	t2 as t
-    join 	t2 as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
+    from	t_loc as t
+    join 	t_loc as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
 
   union select 			-- Tallies with foreign peers
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
@@ -40,7 +40,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , false					as inv
-    from	t1 as t
+    from	t_for as t
 
   union select 			-- Tallies with foreign peers and reverse consideration
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
@@ -55,16 +55,16 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , case when t.tally_type = 'foil' then 1 else -1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , true					as inv
-    from	t1 as t
+    from	t_for as t
 }
 
 # Recursive view of tallies to show pathways local to our system
 #----------------------------------------------------------------
-define tif {case when %3 isnull then %1.part_%2 else %1.hold_%2 end}
+define xif {case when %3 isnull then %1.part_%2 else %1.hold_%2 end}
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
   with recursive tally_path (
       inp, out, edges, ath, uuids, signs, min, margin, max, reward, 
-      top, topseq, bot, botseq, circuit
+      top, top_tseq, bot, bot_tseq, circuit
     ) as (
       select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], array[ti.sign],
              ti.min, ti.margin, ti.max, ti.reward, 
@@ -88,9 +88,9 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
       , case when t.min < tp.min then t.reward
         else tp.reward end				as reward	-- Only one reward
       , t.tally_ent					as top
-      , t.tally_seq					as topseq
+      , t.tally_seq					as top_tseq
       , tp.bot						as bot
-      , tp.botseq					as botseq
+      , tp.bot_tseq					as bot_tseq
       , coalesce(tp.inp = t.out, false)			as circuit
 
     from	mychips.tallies_v_net t
@@ -100,7 +100,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     where	t.net_pc < t.bound		-- only paths with present capacity
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max
-    , tpr.top, tpr.topseq, tpr.bot, tpr.botseq, tpr.circuit
+    , tpr.top, tpr.bot, tpr.circuit
     , tpr.margin::numeric(8,6)
     , tpr.reward::numeric(8,6)
     , tpr.edges + 1			as nodes
@@ -115,15 +115,15 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     , tt.tally_seq as top_tseq, tt.tally_uuid as top_uuid
     , bt.tally_seq as bot_tseq, bt.tally_uuid as bot_uuid
 
-    , tt.hold_chad as out_chad, tt.hold_cid as out_cid, tt.hold_agent as out_agent
-    , bt.hold_chad as inp_chad, bt.hold_cid as inp_cid, bt.hold_agent as inp_agent
+    , tt.hold_cid as top_cid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
+    , bt.hold_cid as bot_cid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
 
-    , tif(tt,cid,out) as top_cid, tif(tt,agent,out) as top_agent, tif(tt,chad,out) as top_chad
-    , bt.part_cid     as bot_cid, bt.part_agent     as bot_agent, bt.part_chad     as bot_chad
+    , xif(tt,cid,out) as out_cid, xif(tt,agent,out) as out_agent, xif(tt,chad,out) as out_chad
+    , xif(bt,cid,inp) as inp_cid, xif(bt,agent,inp) as inp_agent, xif(bt,chad,inp) as inp_chad
 
   from	tally_path tpr
-  join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.topseq
-  join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.botseq
+  join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
+  join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq
 } -primary {path}
 
 # View showing join of inside pathways and outside routes
@@ -135,6 +135,8 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
   , tp.fori, tp.foro, tp.segment
   , tp.top_uuid, tp.top_cid, tp.top_agent, tp.top_chad
   , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
+  , tp.out_cid, tp.out_agent, tp.out_chad
+  , tp.inp_cid, tp.inp_agent, tp.inp_chad
   , r.rid, r.via_ent, r.via_tseq, r.via_tally
   , r.dst_cid, r.dst_agent
   , r.req_ent, r.req_tseq, r.req_tally, r.req_cid, r.req_agent, r.req_chad
@@ -142,7 +144,7 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
   , r.status
   , r.lift_count
   , r.native
-  , r.dst_cid = tp.bot_cid and r.dst_agent = tp.bot_agent as circuit
+  , r.dst_cid = tp.inp_cid and r.dst_agent = tp.inp_agent as circuit
   , tp.min	as path_min,	tp.margin::numeric(8,6)	as path_margin
   , tp.max	as path_max,	tp.reward::numeric(8,6)	as path_reward
   , r.min	as route_min,	r.margin::numeric(8,6)	as route_margin
@@ -161,3 +163,19 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
   join	mychips.tallies_v_paths	tp on tp.top = r.via_ent and tp.top_tseq = r.via_tseq and tp.foro
 }
 
+# View of possible external routes compared to existing route records
+#----------------------------------------------------------------
+view mychips.routes_v_query {mychips.routes_v_paths mychips.routes_v mychips.route_sorter(text,boolean)} {
+  select tp.*
+  , r.rid, r.via_ent, r.via_tseq, r.via_tally
+  , r.dst_cid, r.dst_agent, r.status, r.expired
+  , mychips.route_sorter(r.status, r.expired)	as sorter
+  , r.via_ent is not null			as exist
+  , tp.inp_cid 					as find_cid
+  , tp.inp_agent				as find_agent
+  
+  from mychips.tallies_v_paths	tp
+  left join mychips.routes_v	r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq and
+                                     r.dst_cid = tp.inp_cid and r.dst_agent = tp.inp_agent
+  where tp.segment
+}

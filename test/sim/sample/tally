@@ -1,4 +1,9 @@
 #Rerun the simulation from zero tallies
+if [ ! -z "$1" ]; then
+  runs=$1
+else
+  runs = 10
+fi
 
 ./simdock stop models
 ./simdock stop logs model
@@ -13,6 +18,5 @@
 
 ./simdock init
 ./simdock wait model peer
-#./simdock wait model
 ./simdock start peers
-./simdock start models --runs=50
+./simdock start models --runs=$runs

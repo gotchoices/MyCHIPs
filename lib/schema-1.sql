@@ -4374,7 +4374,7 @@ create function mychips.routes_pop(base record, dest jsonb, currStep int, avoid 
         )
         select mychips.route_sorter(r.status,r.expired) as sorter,
             tp.bot, tp.bot_tseq, tp.top, tp.top_tseq, tp.top_cid, tp.top_agent, tp.fori, tp.foro, tp.at,
-            r.status, r.dst_cid,r.dst_agent,	r.min,r.max,r.margin,r.reward
+            r.status, r.dst_cid,r. dst_agent,	r.min,r.max,r.margin,r.reward, r.expired
         from tp					-- overlaid by those that already  exist
         left join mychips.routes_v r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq
                                     and r.dst_cid = tp.dst_cid and r.dst_agent = tp.dst_agent

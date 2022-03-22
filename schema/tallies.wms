@@ -129,6 +129,7 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
         if new.status = 'open' then	-- Should only happen in simulations
           new.digest = mychips.j2h(mychips.tally_json(new));
         end if;
+        new.bound = greatest(new.target, new.bound);
         return new;
     end;
 $$;}
@@ -172,6 +173,7 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
           raise exception '!mychips.tallies:IST % %', old.status, new.status;
         end if;
       end if;
+      new.bound = greatest(new.target, new.bound);
       return new;
     end;
 $$;}
@@ -283,7 +285,9 @@ function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
-          perform mychips.route_circuit(new.tally_ent, new.tally_seq);		-- New tally; query for applicable route circuit info
+          if base.parm_boolean('routes', 'autoquery') then
+            perform mychips.route_circuit(new.tally_ent, new.tally_seq);		-- New tally; query for applicable route circuit info
+          end if;
         end if;
       end if;
       if notify then perform mychips.tally_notify_agent(new); end if;
@@ -644,7 +648,7 @@ function {mychips.tally_notify_user(ent text, seq int, oldstate text = 'open')} 
     begin
       select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
       if trec.action or (trec.state is distinct from oldState) then	-- Also notify if changed state
-raise notice 'Tally user notify: mu_% %', trec.tally_ent, trec.json->'uuid';
+--raise notice 'Tally user notify: mu_% %', trec.tally_ent, trec.json->'uuid';
         jrec = jsonb_build_object(
           'target',	'tally',
           'entity',	trec.tally_ent,

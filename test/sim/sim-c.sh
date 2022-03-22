@@ -81,7 +81,13 @@ case $command in
       make objects
       date >$lastfile
     fi
-#    make parm		#Don't need this now; randuser sets agent,host,port explicitly for each user
+    ;;
+
+  parms)		#Re-initialize parameter table
+    if ! cd schema; then
+      echo "Can't find db schema directory" >&2; exit 1
+    fi
+    make parm
     ;;
 
   usercheck)

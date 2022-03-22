@@ -1,4 +1,9 @@
 #Rerun the simulation from where it is, for more cycles
+if [ ! -z "$1" ]; then
+  runs=$1
+else
+  runs = 10
+fi
 
 ./simdock stop models
 ./simdock stop logs model
@@ -11,4 +16,4 @@
 #./simdock start logs route -x 730 -y 160
 
 ./simdock wait model
-./simdock start models --runs=2
+./simdock start models --runs=$runs

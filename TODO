@@ -1,34 +1,37 @@
 TODO:
 
 Immediate:
--  Simulator works with agent changes so far
-X-   Basic functionality
--   Are routes being generated (and/or queried for)?
--   Network visualizer works again (for model2)
--   Mocha test for model2? (probably not right away)
--   Shell command to test-run docker simulator--just to see if any error messages pop out
--  Can peer containers run with spa services disabled?
--   
+- Simulator works with agent changes so far:
+X-   Are routes being generated (and/or queried for)?
+-   Network visualizer works OK for model2
+- 
+X- Function to generate all needed routes for whole database
+-   Some routes get stuck in draft mode (when)
+- How/when will periodic route stimulator work
+- 
 - Lift subsystem:
 -   Make local lift routine work again
--   Adapt lift subsystem to new message format
--   Delete obsolete fields from routes table
--   Delete obsolete views in paths_old.wms
-- Clean ups:
--   Can change how chit units are stored (relative to stock/foil)?
--   Can we totally get rid of peer table? (merge into user table)
--   Adjust/remove prior references to servID, peerPort, peerHost
+-   Adapt lift subsystem to new message format (full refactoring not necessary)
 - Does the simulator still run ok?
--   Simulation can run with or without encryption (selected in config.dock)
--   Simulation runs raw mode by default
 - 
 - Push release to master, merge with Capstone project
 -   
-- Will regression tests run using docker postgres (TestDB2 crashes)
+- Cleanups:
+-   Delete obsolete fields from routes table
+-   Delete obsolete views in paths_old.wms
+-   Mocha test for model2? (probably not right away)
+-   Shell command to test-run docker simulator--just to see if any error messages pop out
+-   Can peer containers run with spa services disabled?
+-   Can change how chit units are stored (relative to stock/foil)?
+-   Can we totally get rid of peer table? (merge into user table)
+-   Adjust/remove prior references to servID, peerPort, peerHost
+-   Better network visualizer
+-     small visual balance sheet for each user
+-     Use gravity package for constant updating/stability
 - 
 - Server process: mychips.js
--   Can launch an agent server for each locally defined agent
--   Where/how to build/store agent private keys (pki folder?)
+X-   Can launch an agent server for each locally defined agent
+X-   Where/how to build/store agent private keys (pki folder?)
 -   Agents table keeps track of each agent's latest connection portal (in case it changes)
 -   How does the system identify local agents vs/ peer agents?
 -   Implement local lift scheduler/scanner/processor

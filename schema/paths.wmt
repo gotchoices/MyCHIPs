@@ -1,19 +1,51 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+tabtext mychips.tallies_v_net	{Tally Lift Edges}	{A view showing a single link between entities hypothetially eligible for a lift} {
+    {uuid	{Tally UUID}		{Unique Id of the tally associated with this link}}
+    {inp	{Input Node ID}		{The local ID (or null if foreign peer) of the node who will give value in the lift}}
+    {out	{Output Node ID}	{The local ID (or null if foreign peer) of the node who will receive value in the lift}}
+    {min	{Minimum Lift}		{Minimum number of units possible to lift on this link without reward cost applicable}}
+    {max	{Maximum Lift}		{Maximum number of units possible to lift on this link with possible costs applicable}}
+    {margin	{Lift Margin}		{The fee ratio we can expect to move any lift transaction along this link}}
+    {type	{Tally Type}		{Type (stock or foil) of the tally for this link}}
+    {sign	{Link Sign}		{Whether will accrue positive or negative on this tally (based on stock or foil)}}
+    {part	{Partner ID}		{Local ID (or null if foreign peer) of the partner entity}}
+    {inv	{Inverted}		{True if the link is a tally with a foreign peer and it is being considered for a drop (reverse lift)}}
+}
+
 tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathways between local entities, based on the tallies they have in place} {
-    {first		{Path Start}		{Entity ID of the peer this pathway starts with}}
-    {last		{Path End}		{Entity ID of the peer this pathway ends with}}
-    {length		{Node Length}		{The number of unique peer nodes in this pathway}}
-    {path		{Peer ID List}		{An array of the entity IDs in this pathway}}
-    {uuids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
-    {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
-    {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a cost to the lift.  A number less than 1 indicates a discount.}}
-    {min		{Minimum}		{The smallest number of units desired to be lifted by any entity found along the pathway}}
-    {max		{Maximum}		{The largest number of units desired to be lifted by any entity found along the pathway}}
+    {uuids		{Tally ID List}		{An array of the tally identifiers in this pathway}}
+    {signs		{Tally Sign List}	{An array of the signs (+/- = lift/drop) in this pathway}}
     {bang		{Lift Benefit}		{The product of the pathway length, and the minimum liftable units.  This gives an idea of the relative benefit of conducting a lift along this pathway.}}
-    {inside		{Inside Lift}		{All entities in the lift path are users on the local system}}
-    {fora		{First Foreign}		{The first node in the path is a user on the local system}}
-    {forz		{Last Foreign}		{The last node in the path is a user on the local system}}
-    {corein		{Core Inside}		{All nodes, not considering the first and last, are local users on the system}}
+    {path		{User ID List}		{An array of the user IDs in this pathway}}
+    {ath		{User IDs -First}	{An array of the user IDs in this pathway not including the input node}}
+    {pat		{User ID -Last}		{An array of the user IDs in this pathway not including the output node}}
+    {at			{User ID Internal}	{An array of the user IDs in this pathway not including the input or output node}}
+    {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
+    {edges		{Node Length}		{The number of peer nodes in this pathway}}
+    {nodes		{Edge Length}		{The number of links between nodes in this pathway}}
+    {inp		{Path Start ID}		{Entity ID of the user (or null if a foreign peer) this lift pathway starts with}}
+    {out		{Path End ID}		{Entity ID of the user (or null if a foriegn peer) this lift pathway ends with}}
+    {fori		{Input Foreign}		{True if the first node in the path is not a user on the local system}}
+    {foro		{Output Foreign}	{True if the last node in the path is not a user on the local system}}
+    {bot		{Bottom User ID}	{ID of the local user who owns the tally that is the beginning (input) link of the pathway}}
+    {top		{Top User ID}		{ID of the local user who owns the tally that is the ending (output) link of the pathway}}
+    {inp_cid		{Path Input CID}	{CHIP ID of the entity this lift pathway starts with}}
+    {inp_agent		{Path Input Agent}	{CHIP Agent address of the entity this lift pathway starts with}}
+    {inp_chad		{Path Input CHAD}	{Full CHIP address of the entity this lift pathway starts with}}
+    {out_cid		{Path Output CID}	{CHIP ID of the entity this lift pathway ends with}}
+    {out_agent		{Path Output Agent}	{CHIP Agent address of the entity this lift pathway ends with}}
+    {out_chad		{Path Output CHAD}	{Full CHIP address of the entity this lift pathway ends with}}
+    {bot_cid		{Bottom User CID}	{CHIP ID of the local user who owns the tally this lift pathway starts with}}
+    {bot_agent		{Bottom User Agent}	{CHIP Agent address of the local user who owns the tally this lift pathway starts with}}
+    {bot_chad		{Bottom User CHAD}	{Full CHIP address of the local user who owns the tally this lift pathway starts with}}
+    {top_cid		{Top User CID}		{CHIP ID of the local user who owns the tally this lift pathway ends with}}
+    {top_agent		{Top User Agent}	{CHIP Agent address of the local user who owns the tally this lift pathway ends with}}
+    {top_chad		{Top User CHAD}		{Full CHIP address of the local user who owns the tally this lift pathway ends with}}
+    {bot_uuid		{Bottom Tally ID}	{The identifier of the tally at the beginning (input) of this pathway}}
+    {top_uuid		{Top Tally ID}		{The identifier of the tally at the end (output) of this pathway}}
+    {bot_tseq		{Bottom Tally Seq}	{The sequence number of the tally at the beginning (input) of this pathway}}
+    {top_tseq		{Top Tally Seq}		{The sequence number of the tally at the end (output) of this pathway}}
+    {segment		{Lift Segment}		{The input and output nodes in the pathway are both foreign entities}}
 }
 

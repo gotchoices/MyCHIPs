@@ -7,8 +7,8 @@
    "p1001",
    "p1000"
   ],
-  "bot_cid": "cid_0",
-  "bot_agent": "UTY1NDM1",
+  "inp_cid": "cid_2",
+  "inp_agent": "UTY1NDM1",
   "circuit": false
  },
  {
@@ -16,8 +16,8 @@
   "pat": [
    "p1000"
   ],
-  "bot_cid": "cid_U",
-  "bot_agent": "UDY1NDM0",
+  "inp_cid": "cid_0",
+  "inp_agent": "UTY1NDM1",
   "circuit": false
  },
  {
@@ -26,8 +26,8 @@
    "p1001",
    "p1000"
   ],
-  "bot_cid": "cid_1",
-  "bot_agent": "UTY1NDM1",
+  "inp_cid": "cid_0",
+  "inp_agent": "UTY1NDM1",
   "circuit": false
  },
  {
@@ -39,8 +39,8 @@
    "p1001",
    "p1000"
   ],
-  "bot_cid": "cid_1",
-  "bot_agent": "UTY1NDM1",
+  "inp_cid": "cid_3",
+  "inp_agent": "UTY1NDM1",
   "circuit": false
  },
  {
@@ -50,8 +50,8 @@
    "p1001",
    "p1000"
   ],
-  "bot_cid": "cid_2",
-  "bot_agent": "UTY1NDM1",
+  "inp_cid": "cid_1",
+  "inp_agent": "UTY1NDM1",
   "circuit": false
  },
  {
@@ -62,8 +62,8 @@
    "p1001",
    "p1000"
   ],
-  "bot_cid": "cid_3",
-  "bot_agent": "UTY1NDM1",
+  "inp_cid": "cid_2",
+  "inp_agent": "UTY1NDM1",
   "circuit": false
  },
  {
@@ -75,8 +75,8 @@
    "p1001",
    "p1000"
   ],
-  "bot_cid": "cid_D",
-  "bot_agent": "UjY1NDM2",
+  "inp_cid": "cid_D",
+  "inp_agent": "UjY1NDM2",
   "circuit": true
  }
 ]
