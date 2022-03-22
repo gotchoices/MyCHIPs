@@ -9,7 +9,7 @@ interface WyclifLogger {
   trace(...args: any[]): void
 }
 
-interface DBConfig {
+export interface DBConfig {
   host: string
   database: string
   user: string

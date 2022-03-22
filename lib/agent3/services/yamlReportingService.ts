@@ -1,10 +1,10 @@
 import Account from "../account";
 import Lift from "../models/Lift";
 import Server from "../models/Server";
-import ReportingServiceInterface from "./reportingServiceInterface";
+import AnalyticsServiceInterface from "./analyticsServiceInterface";
 import YAML from 'yaml'
 
-class YamlReportingService implements ReportingServiceInterface{
+class YamlReportingService implements AnalyticsServiceInterface{
     private static singletonInstance: YamlReportingService
     private lifts: Lift[]
     private servers: Server[]

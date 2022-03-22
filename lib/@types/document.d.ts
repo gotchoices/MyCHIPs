@@ -8,3 +8,7 @@ export interface ActionDoc extends ActionData {
   _id?: ObjectId
   data?: AccountData
 }
+
+export interface AnalyticsDoc extends Document {
+  _id?: ObjectId
+}
