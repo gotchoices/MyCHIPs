@@ -439,6 +439,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , count(tally_seq)						as tallies
   , sum(units)							as units
   , sum(net)							as net
+  , array_agg(part_ent)						as part_ents
   , array_agg(part_cid)						as part_cids
   , array_agg(part_agent)					as part_agents
   , array_agg(tally_uuid)					as uuids
@@ -496,6 +497,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.clients, '{}'::text[])		as clients
   , coalesce(s.vendors, '{}'::text[])		as vendors
   
+  , coalesce(s.part_ents, '{}'::text[])		as part_ents
   , coalesce(s.part_cids, '{}'::text[])		as part_cids
   , coalesce(s.part_agents, '{}'::text[])	as part_agents
   , coalesce(s.uuids, '{}'::uuid[])		as uuids

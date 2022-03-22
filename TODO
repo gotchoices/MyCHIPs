@@ -1,13 +1,13 @@
 TODO:
 
 Immediate:
-- Simulator works with agent changes so far:
+X- Simulator works with agent changes so far:
 X-   Are routes being generated (and/or queried for)?
--   Network visualizer works OK for model2
+X-   Network visualizer works OK for model2
 - 
 X- Function to generate all needed routes for whole database
 -   Some routes get stuck in draft mode (when)
-- How/when will periodic route stimulator work
+X- How/when will periodic route stimulator work
 - 
 - Lift subsystem:
 -   Make local lift routine work again
