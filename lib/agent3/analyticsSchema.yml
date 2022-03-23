@@ -1,0 +1,37 @@
+{
+  "Analytics": {
+    "numRuns": {
+      "expected": "", # CLI input argument
+      "actual": {   # Tracked in each AgentCluster and eventually output to mongoDB
+        "peer1": 0,
+        "peer2": 1,
+        #...
+      }
+    },
+    "lifts": [ # From Lifts collection in mongoDB
+      {
+        "liftId": "",
+        "totalAccounts": "",
+        "success": ""
+      }
+    ],
+    "Servers": [
+      {
+        "accounts": [ # Tracked in each AgentCluster and eventually output to Accounts collection in mongoDB
+          {
+            "satisfied": "",
+            "numLifts": "",
+            "numTimesBalanced": "",
+            "numTransactions": "",
+            "numConnections": ""
+          }
+        ],
+        "balance": { # Tracked in each AgentCluster and eventually output to Accounts collection in mongoDB
+          "peer1": 0,
+          "peer2": 1,
+          #...
+        }
+      }
+    ]
+  }
+}

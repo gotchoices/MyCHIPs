@@ -1,15 +1,15 @@
-import Account from "./account";
-import AccountCache from "./accountsCache";
-import MongoManager from "./mongomanager";
-import SQLManager from "./sqlmanager";
+import Account from './account'
+import AccountCache from './accountsCache'
+import MongoManager from './mongoWorldManager'
+import SQLManager from './sqlmanager'
 
 interface Action {
-    logger: WyclifLogger
-    myChipsDBManager: SQLManager
-    worldDBManager: MongoManager
-    accountCache: AccountCache
+  logger: WyclifLogger
+  myChipsDBManager: SQLManager
+  worldDBManager: MongoManager
+  accountCache: AccountCache
 
-    run(): void
+  run(): void
 }
 
 export default Action
