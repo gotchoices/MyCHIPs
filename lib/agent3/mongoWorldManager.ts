@@ -279,7 +279,7 @@ class MongoManager implements WorldManagerInterface {
   }
 
   analyticsAddServer(server: Server) {
-    this.analyticsLiftCollection.insertOne(server)
+    this.analyticsServerCollection.insertOne(server)
   }
 }
 

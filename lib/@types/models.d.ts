@@ -7,7 +7,8 @@ export interface Lift {
 }
 
 export interface Server {
-  id: number
+  id: string
   balance: number
   accounts: Account[]
+  actualRuns: number // Actual number of simulation runs executed by this server
 }

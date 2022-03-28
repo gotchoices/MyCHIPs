@@ -7,6 +7,7 @@ import { ActionDoc } from './@types/document'
 import Account from './agent3/account'
 import AccountFactory from './agent3/accountFactory'
 import AccountCache from './agent3/accountsCache'
+import { Server } from './@types/models'
 /**
  * @class AccountCluster
  * Each 'agent' docker container runs an AccountCluster instance
@@ -135,9 +136,23 @@ class AccountCluster {
         console.log('\n###RUN NUMBER', this.runCounter, '###')
         this.hostedAccounts.forEach(this.process)
       } else {
+        this.recordFinalAnalytics()
+        console.log(
+          `END OF SIM ************* ${this.host} with ${this.runCounter} runs`
+        )
         this.close()
       }
     }, this.params.interval)
+  }
+
+  recordFinalAnalytics() {
+    const currServer: Server = {
+      id: this.host,
+      balance: 0,
+      accounts: [],
+      actualRuns: this.runCounter, // Actual number of simulation runs executed by this server
+    }
+    this.worldDBManager.analyticsAddServer(currServer)
   }
 
   // --- Functions passed as callbacks -------------------------------------------------------
