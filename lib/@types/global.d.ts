@@ -68,17 +68,29 @@ interface AccountData {
   peer_cid: string
   /** Assigned peer socket (ex: 'peer2:65430') */
   peer_sock: string
+  /** The number of stocks (income sources) that this account holds */
   stocks: number
+  /** The number of foils (spending targets) that this account holds */
   foils: number
+  /** List of account IDs that this account is connected to (combines the vendors and clients arrays) */
   partners: string[]
+  /** List of account IDs that this account holds a foil for (I pay them money) */
   vendors: string[]
+  /** List of account peer_cids that this account holds a foil for */
   vendor_cids?: string[]
+  /** List of account IDs that this account holds a stock for (they pay me money) */
   clients: string[]
+  /** List of account peer_cids that this account holds a stock for */
   client_cids?: string[]
+  /** List of sequence numbers that correspond to chits/payments on stock tallies */
   stock_seqs: number[]
+  /** List of sequence numbers that correspond to chits/payments on foil tallies */
   foil_seqs: number[]
+  /** The net worth of this account */
   units: number
+  /** An array of strings ('stock' and 'tally') that indicates what kind of tally corresponds to the index */
   types?: string[]
+  /** List of sequence numbers that correspond to chits/payments on tallies (combines the stock_seqs and foil_seqs arrays) */
   seqs: number[]
   random?: number
   /** Name of hosting peer server (ex: 'peer0') */

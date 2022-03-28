@@ -16,7 +16,8 @@ which is in charge of managing the simulation for that container
  * The World database is the means by which the AccountClusters communicate
  with eachother
  * The AccountCluster only has to worry about qualifying and initiating 
- credit lifts. The actual heavy lifting occurs automatically within the pg and peers databases once a lift is initated by having the AccountCluster insert accounts into the pg containers.
+ credit lifts. The actual heavy lifting occurs automatically within the pg and peers databases once a lift is initated by having the AccountCluster insert accounts into the pg containers. 
+ // TODO: ^ this is not true 
  */
 class AccountCluster {
   private networkConfig: NetworkConfig
@@ -113,7 +114,7 @@ class AccountCluster {
 
     this.intervalTimer = null
     // TODO: determine if this is necessary with new paramConfig.yaml
-    this.myChipsDBManager.getParameters(this.eatParameters) //Load initial parameters
+    this.myChipsDBManager.getParameters(this.eatParameters)
 
     this.worldDBManager.createConnection(
       this.notifyOfNewAccountRequest,
@@ -127,7 +128,7 @@ class AccountCluster {
     // first time.
   }
 
-  startSimulation() {
+  startSimulationRound() {
     if (this.intervalTimer) clearInterval(this.intervalTimer) // Restart interval timer
     this.intervalTimer = setInterval(() => {
       // If there is no limit on runs, or we're below the limit...
@@ -205,9 +206,9 @@ class AccountCluster {
 
   // -----------------------------------------------------------------------------
   /** Callback
-   * Takes the accounts from the MyChipsDBManager and loads them into the worldDB
+   * Takes the accounts from the MyChipsDBManager and loads them into the worldDB. Called whenever there is a change in the users table (postgres)
    *  @param dbAccounts - array of accounts fetched from MyChips Databases
-   * !TODO does this fetch from all databases?
+   * * First time it's run dbAccounts (which contains postgres data) only has local data, on subsequence it has both local and world data, so it filters and only updates worldDB with local accounts
    * @param all - boolean that states whether dbAccounts includes all accounts
    */
   eatAccounts(dbAccounts: AccountData[], all?: boolean) {
@@ -216,14 +217,17 @@ class AccountCluster {
       return
     }
 
+    // Filter out the accounts that are on our local server
     console.log('\nAccounts updated:', dbAccounts.length)
     let localAccounts: AccountData[] = []
     dbAccounts.forEach((dbAccount) => {
       if (dbAccount.user_ent) {
+        // Publish account data to world DB only for local accounts
         dbAccount.hosted_ent = true
         localAccounts.push(dbAccount)
         this.worldDBManager.updateOneAccount(dbAccount)
       }
+      // Put data for all accounts into our cache
       this.accountCache.addAccount(dbAccount)
     })
 
@@ -259,7 +263,7 @@ class AccountCluster {
       }
 
       this.worldDBManager.deleteAllAccountsExcept(hostedAccountIds)
-      this.startSimulation()
+      this.startSimulationRound()
     } else {
       console.log('Updating my local accounts')
       localAccounts.forEach((accountData) => {
