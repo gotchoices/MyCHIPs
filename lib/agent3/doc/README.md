@@ -31,7 +31,7 @@ The Agent 3 Model of the simulation was developed using TypeScript to allow for 
 2. Run `npm tsc` before running the simulation.
 3. Run `./simdock startup`, `./simdock tickets`, and then `./simdock start sim --runs=50` as outlined [here](/doc/sim-docker.md)
 
-\*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence.
+\*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence. Since the simulation is run asynchronously, the script should be run from the command line. We've seen some issues with using VS Code's NPM SCRIPTS runner.
 
 ## Structure Overview
 
