@@ -146,16 +146,6 @@ class AccountCluster {
     }, this.params.interval)
   }
 
-  recordFinalAnalytics() {
-    const currServer: Server = {
-      id: this.host,
-      balance: 0,
-      accounts: [],
-      actualRuns: this.runCounter, // Actual number of simulation runs executed by this server
-    }
-    this.worldDBManager.analyticsAddServer(currServer)
-  }
-
   // --- Functions passed as callbacks -------------------------------------------------------
   /** Callback
    * Loads accounts from the MyCHIPs Database
@@ -321,6 +311,16 @@ class AccountCluster {
       'action taken:',
       account.lastActionTaken
     )
+  }
+
+  recordFinalAnalytics() {
+    const currServer: Server = {
+      id: this.host,
+      balance: 0,
+      accounts: this.hostedAccounts,
+      actualRuns: this.runCounter, // Actual number of simulation runs executed by this server
+    }
+    this.worldDBManager.analyticsAddServer(currServer)
   }
 }
 

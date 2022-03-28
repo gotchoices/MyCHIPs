@@ -279,6 +279,8 @@ class MongoManager implements WorldManagerInterface {
   }
 
   analyticsAddServer(server: Server) {
+    console.log('Adding final analytics')
+    console.log('server collection', this.analyticsServerCollection)
     this.analyticsServerCollection.insertOne(server)
   }
 }
