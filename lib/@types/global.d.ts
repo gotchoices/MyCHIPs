@@ -30,20 +30,28 @@ interface AdjustableAccountParams {
   type: string
   /** The percentage of total entities on this server that should be made this type */
   percentOfTotal: number
-  /** A percentage defining how often this entity will try to add a new spending target (vendor or stock) */
+  /** A percentage defining how often this entity will try to add a new spending target (vendor or foil) */
   newSpendingTargetOdds: number | undefined
-  /** A percentage defining how often this entity will try to add a new income source (client or foil) */
+  /** A percentage defining how often this entity will try to add a new income source (client or stock) */
   newIncomeSourceOdds: number | undefined
   /** A percentage degining how often this entity will try to adjust its settings */
   adjustSettingsOdds: number | undefined
-  /** The maximum number of spending targets (stocks) this entity will open */
+  /** The maximum number of spending targets (foils) this entity will open */
   maxSpendingTargets: number | undefined
-  /** The maximum number of income sources (foils) this entity will open */
+  /** The minimum number of spending targets (foils) this account will need to be satisfied*/
+  desiredSpendingTargets: number
+  /** The maximum number of income sources (stocks) this entity will open */
   maxIncomeSources: number | undefined
+  /** The minimum number of income sources (stocks) this account will need to be satisfied */
+  desiredIncomeSources: number
   /** The minimum net worth the entity must have to be willing to spend money */
   minWorthToSpend: number | undefined
   /** A percentage defining the maximum amount this entity is willing to spend in one transaction */
   maxToSpend: number | undefined
+  /** If the absolute value on any one connection (in or out) is greater than this, the account will ask for a lift */
+  diffForLift: number | undefined
+  /** If the net worth is less than this number, the account will not be satisfied */
+  minForSatisfaction: number
 }
 
 interface ActionData {
