@@ -20,6 +20,8 @@ interface DBConfig {
 interface AdjustableSimParams {
   /** The interval between rounds in the simulation (in milliseconds) */
   interval: number
+  /** The number of rounds between automatic lift checks */
+  liftInterval: number
   /** A list account parameters */
   accountTypes: AdjustableAccountParams[]
 }

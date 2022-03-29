@@ -59,6 +59,7 @@ class BaseAccount implements Account {
 		this.actions.push(ActionFactory.createAction('NewSpendingSource', this));
 		// this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet 
 		this.actions.push(ActionFactory.createAction('SpendCHIPs', this));
+		this.actions.push(ActionFactory.createAction("AskForLift", this));
 
 		this.id = accountData.id;
 		this.std_name = accountData.std_name;
