@@ -134,7 +134,15 @@ class AccountCluster {
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
         console.log("\n###RUN NUMBER", this.runCounter, "###")
+
+        // Process each hosted account this round
         this.hostedAccounts.forEach(this.process)
+
+        // If this round falls in the right interval, run some lifts automatically
+        if (this.runCounter % this.params.liftInterval == 0) {
+          this.myChipsDBManager.performAutoLifts()
+        }
+
       } else {
         this.close()
       }

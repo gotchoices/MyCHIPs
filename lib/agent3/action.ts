@@ -5,9 +5,10 @@ import SQLManager from "./sqlmanager";
 
 interface Action {
     logger: WyclifLogger
-    myChipsDBManager: SQLManager
-    worldDBManager: MongoManager
-    accountCache: AccountCache
+    // I don't think all of these things are necessary for every action
+    // myChipsDBManager: SQLManager
+    // worldDBManager: MongoManager
+    // accountCache: AccountCache
 
     run(): void
 }
