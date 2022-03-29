@@ -36,7 +36,7 @@ log.debug("Sql:", sql)
       done()
     })
   })
-
+/* */
   after('Disconnect from test database', function(done) {
     db.disconnect()
     done()

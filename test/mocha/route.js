@@ -1,4 +1,4 @@
-//Test route communications (lib/route.js); Run only after sch-route
+//Test route communications (lib/route.js); Run only after sch-route user2
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB or two different DBs:
@@ -19,6 +19,7 @@ var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
 var userListenR = 'mu_' + user0
 var tallySql = `insert into mychips.tallies (tally_ent, tally_type, tally_uuid, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
 var agree = {domain:"mychips.org", name:"test", version:1}
+var {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
 var routeSql = `select json_agg(s) as json from (
     select rid,via_ent,via_tseq,dst_cid,dst_agent,status,step,mychips.route_sorter(status,expired) as sorter
@@ -76,7 +77,7 @@ describe("Initialize DB2 tally/path test data", function() {
     })
   })
 
-  it("Build remote test tallies", function(done) {
+  it("Build remote test tallies", function(done) {	//log.debug("lT uuids:", interTest.lTallies)
      let uuidU = interTest.lTallies[cidu]
        , uuidD = interTest.lTallies[cidd]
        , uuidB = interTest.lTallies[cidb]
@@ -109,8 +110,7 @@ describe("Initialize DB2 tally/path test data", function() {
     })
   })
 
-/*
-*/
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let it flush out before closing
       dbR.disconnect()
@@ -192,7 +192,7 @@ describe("Peer-to-peer route testing", function() {
 
   it("Clear Remote DB routes, setup tally capacity", function(done) {
     let sql = `delete from mychips.routes;
-               update mychips.tallies set units_pc = 2, units_gc = 2;`
+               update mychips.tallies set units_pc = 2, units_c = 2;`
     dbR.query(sql, (e) => {done(e)})
   })
 
@@ -220,6 +220,10 @@ describe("Peer-to-peer route testing", function() {
       assert.equal(obj.find.agent, agent0)
       _done()
     })
+  })
+
+  it("Save good route record to X for lift testing", function(done) {
+    dbL.query(save('goodX'), (e) => {if (e) done(e); done()})
   })
 /*
 */

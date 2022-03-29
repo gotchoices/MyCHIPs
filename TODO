@@ -1,22 +1,38 @@
 TODO:
 
 Immediate:
-X- Simulator works with agent changes so far:
-X-   Are routes being generated (and/or queried for)?
-X-   Network visualizer works OK for model2
-- 
-X- Function to generate all needed routes for whole database
--   Some routes get stuck in draft mode (when)
-X- How/when will periodic route stimulator work
-- 
 - Lift subsystem:
--   Make local lift routine work again
--   Adapt lift subsystem to new message format (full refactoring not necessary)
-- Does the simulator still run ok?
+X-  Define lift record/message structure; what is signed, what is not?
+X-  Add step parameter to lift (no)
+X-  Includes standard to/from properties
+X-  Clean up lift state diagram
+X-   Create mocha/sch-lift.js
+X-     How to identify the lift on dbProcess?
+X-       Prep update can query for uuid, type=org
+X-       How to discern prep update from status, signature updates?
+X-    Make chitcheck work again
+X-   Test known state transitions
+-     
+-  Make local lift routine work again
+-    Test internal one-site lift
+-    Can use local lifts with model1 simulator
+X-   Draft lift generates upstream promise
+X-   Received promise that has no good route
+X-   Received promise with good route is forwarded
+-   
+- Distributed lift integration tests:
+-   Create basic mocha/lift.js (can do with 3 mock sites, maybe 2?)
+-   Can model enough with two nodes to test lift message handlers?
+-   Terminus message generates signature, and return signed message
+-   Distributed lifts work with model2/model3
 - 
 - Push release to master, merge with Capstone project
 -   
 - Cleanups:
+-  Should all xxx_process functions return text or JSON (routes need JSON)?
+-   Why do some routes get stuck in draft mode?
+-  Should the "tally" property of a route message be in the message but not the object (since it should change at each hop)?
+-    Ditto for "step" property of a route message
 -   Delete obsolete fields from routes table
 -   Delete obsolete views in paths_old.wms
 -   Mocha test for model2? (probably not right away)
@@ -28,6 +44,7 @@ X- How/when will periodic route stimulator work
 -   Better network visualizer
 -     small visual balance sheet for each user
 -     Use gravity package for constant updating/stability
+-   Get rid of unused fields in users_v_tallysum (only used by simulator, network visualizer)
 - 
 - Server process: mychips.js
 X-   Can launch an agent server for each locally defined agent

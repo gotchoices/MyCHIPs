@@ -252,8 +252,8 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
 //  it("Simulate non-zero tally balance", function(done) {
 //    let dc = 2, _done = () => {if (!--dc) done()}
-//    dbO.query(uSql('units_gc = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
-//    dbS.query(uSql('units_gc = 1', userS, 1), (e, res) => { if (e) done(e); _done()})
+//    dbO.query(uSql('units_c = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
+//    dbS.query(uSql('units_c = 1', userS, 1), (e, res) => { if (e) done(e); _done()})
 //  })
 
   it("Subject requests to close the proposed tally", function(done) {
@@ -284,20 +284,19 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
 //  it("Simulate tally balance going to zero (close -> closed)", function(done) {
 //    let dc = 2, _done = () => {if (!--dc) done()}
-//    dbO.query(uSql('units_gc = 0', userO, seqO), (e, res) => { if (e) done(e)
+//    dbO.query(uSql('units_c = 0', userO, seqO), (e, res) => { if (e) done(e)
 //      let row = getRow(res, 0)			//;log.debug("row:", row)
 //      assert.equal(row.state, 'closed')
 //      _done()
 //    })
-//    dbS.query(uSql('units_gc = 0', userS, 1), (e, res) => { if (e) done(e)
+//    dbS.query(uSql('units_c = 0', userS, 1), (e, res) => { if (e) done(e)
 //      let row = getRow(res, 0)			//;log.debug("row:", row)
 //      assert.equal(row.state, 'closed')
 //      _done()
 //    })
 //  })
 
-/*
-*/
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let everything flush out before closing
       dbO.disconnect()

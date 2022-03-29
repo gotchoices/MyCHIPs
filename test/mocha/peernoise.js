@@ -114,8 +114,8 @@ logR.debug('RespCB:', connection, obj)
       })
     }, 25)
   })
-/*
-*/
+
+/* */
   after('Clean up peer objects', function() {
     initiator.close()
     responder.close()

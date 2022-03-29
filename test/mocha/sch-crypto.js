@@ -60,7 +60,7 @@ log.debug('Decoded:', decoded)
       })
     }
   })
-
+/* */
   after('Disconnect from test database', function() {
     db.disconnect()
   })

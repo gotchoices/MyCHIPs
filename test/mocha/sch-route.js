@@ -145,33 +145,9 @@ describe("Test route state transitions", function() {
     })
   })
 
-//No downstream relays of 'none' anymore
-//  it("Save good route record for later testing", function(done) {
-//    dbA.query(save('good'), (e) => {if (e) done(e); done()})
-//  })
-//  it("Restore original pend route record", function(done) {
-//    dbA.query(rest('pend'), (e) => {if (e) done(e); done()})
-//  })
-//  it("Agent receives message of failed route (pend -> none)", function(done) {
-//    let logic = {context: ['pend'], update: {status: 'none'}}
-//      , msg = interTest.m1
-//      , sql = Format(`select mychips.route_process(%L,%L) as state;`, msg, logic)
-//      , dc = 2, _done = () => {if (!--dc) done()}
-//log.debug("Sql:", sql)
-//    dbA.query(sql, null, (e, res) => {if (e) done(e)
-//      let row = getRow(res, 0)
-//      assert.equal(row.state, 'none')
-//      _done()
-//    })
-//    busA.register('pa', (msg) => {		//;log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
-//      assert.equal(msg.target, 'route')
-//      assert.equal(msg.action, 'none')
-//      _done()
-//    })
-//  })
-//  it("Restore good route record", function(done) {
-//    dbA.query(rest('good'), (e) => {if (e) done(e); done()})
-//  })
+  it("Save good route record to D for lift testing", function(done) {
+    dbA.query(save('goodD'), (e) => {if (e) done(e); done()})
+  })
 
   it("Add two more possible external up-routes", function(done) {
      let units = 10, stat = 'open', sig = 'Valid'
@@ -324,8 +300,7 @@ describe("Test route state transitions", function() {
       _done()
     })
   })
-/*
-*/
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let it flush out before closing
       dbU.disconnect()

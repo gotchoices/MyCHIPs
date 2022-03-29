@@ -415,7 +415,7 @@ This use diagram shows five possible phases of the resulting lift:
 
 ![use-lift](uml/use-lift.svg)
 
-Here is the simplified example lift circuit again for reference.
+Let's consider the simplified example lift circuit again.
 Remember, each node could represent a single user or a segment of users local to a particular site.
 We will consider node A as the lift originator.
 Node B will be considered the destination of the lift.
@@ -426,21 +426,25 @@ For a linear lift, just imagine the tally between A and B does not (or need not)
 
 #### Proposal
 
-Proposals will travel counter-clockwise, <b>against</b> the normal flow of value (the arrows).
-Node A will propose the lift to node D because:
+Proposals will travel counter-clockwise, <b>against</b> the normal flow of payments (the arrows).
+Node A proposes the lift to node D because:
   - Node A contains a route record indicating that an external pathway exists (or has existed) leading from node D, upstream and eventually to node B; and
-    - it has capacity for a circular lift through an internal segment with D at the top and B at the bottom; or
+    - it has capacity for a circular lift through an internal segment with D at the top (output) and B at the bottom (input); or
     - it needs to transmit value from A to B (linear lift).
 
   The lift proposal is a conditional contract of the form:
-  "If I send a specified value to you on this tally, you agree to send that same value along through another node you are connected to, with that value eventually reaching my intended destination."
-  - The proposal contains a time, indicating how long the lift proposal will stay alive, before it will time out and will be considered "expired" (and therefore void).
+  "If I send a specified value to you on this tally, you agree to send that same value along through another node you are connected to, with that value eventually reaching the intended destination."
+  - The proposal contains a time, indicating how long the lift proposal will *stay alive*.  After that, it will time out and will be considered "expired" (and therefore void).
   - It also contains the identity of a proposed referee whose job it is to declare when the lift time has expired (or certify its successful completion).
     The referee is typically a well known, reliable site that is reachable by any node on the network.
-    Its identity consists of its
-    - network address (domain name or IP number), and
-    - (optional) network port
-  - It is each site's responsibility to decide for itself what referees are worthy of trust, and to collect a public key (out of band) for each referee it chooses to rely on.
+    This identity record includes:
+    - Connection protocol (https, chip, other)
+    - Network connection address/port information
+  - It is each site's responsibility to decide for itself what referees are worthy of trust.
+    - For https protocol, a site should have already collected (out of band) a public key for each referee it intendes to rely on.
+    - For chip protol, the connection information is a standard [CHIP address](learn-users.md#chip-addresses) for which the public key is inherently known.
+      The local site should probably already share a tally with the referee site.
+      This binds the parties to the responsible behavior they expect from each other.
   - If node D wants to participate in the lift, on the proposed terms, it indicates this by forwarding the proposal along to node C where the process repeats itself.
   - This action makes the lift binding upon D, subject only to receipt of an authorizing signature, generated within the specified timeout, as judged by the named referee.
   - If/when C receives the validating signature (by any means), D's obligation to C becomes valid and provable, regardless of whether D cooperates further in the transaction.
@@ -458,36 +462,44 @@ Node A will propose the lift to node D because:
   But it can only do so if the time, originally set forth in the lift proposal, has not yet expired (in the sole judgement of the referee).
   So the originator sends a message to the referee requesting permission to commit.
 
-  Assuming permission/authorization is given by the referee, the requester now possesses a digital signature of the referee indicating that the lift is good and valid.
-  It will proceed to transmit this information clockwise through the lift chain, starting with node B.
-  Node B will forward the signature to C, and so forth until all the nodes in the circuit have received the signature.
-  Each node can make the lift chits binding by affixing this signature to the chit record.
-
+  Depending solely on the time elapsed, the referee will answer either with an 
+  approval (good) or disapproval (void) message which
+  bear's the referee's digital signature.  The originator should now proceed to transmit
+  this record clockwise through the lift chain, starting with node B.
+  Node B will forward the signature to C, and so forth until all the nodes in the circuit have received 
+  the signature (whether good or void).
+  
+  Affixing a *good* signature will make make the applicable lift chits binding.
+  
 ![seq-lift-conf](uml/seq-lift-conf.svg)
 
 #### Referee Queries
-  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more wanted ones in their place.
+  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more wanted ones in their place
+  (or they all know the lift is expired and the chits can now be ignored).
   But if part of the network had a problem part-way through the lift, some nodes might be left in an indeterminate state.
   They are committed to the lift, but they don't have the required signature to complete so they really don't know for sure if the lift should go through or not.
 
   Participating nodes can consult their local clock and get a pretty good idea of when the lift should have timed out.
   If this time is exceeded, they can reach out to the referee node to ask the status of the lift.
   The referee will:
-  - respond with a "timed out" message; or
-  - provide the authorization signature.
+  - answer that time is still running--no answer yet; or
+  - respond with a signed "void" message; or
+  - provide the "good" authorization signature.
 
 ![seq-lift-ref](uml/seq-lift-ref.svg)
 
-As a further optimization, it will provide a greater of load distribution if nodes suspecting a timeout will first try reaching out to the lift originator to validate a lift.
-The originator shall respond similarly to any query with one of the following answers:
-- The lift is good; here's the referee's signature;
-- The lift has timed out, here's a signed timeout message from the referee;
-- I don't yet have an answer for this lift
+Participating nodes can provide a greater degree of load distribution if, upon discovering a local timeout, they will take the following steps in order:
+- See if any other segments exist on our same database that are part of the same lift (same uuid but different sequence) and already have the signature;
+- Send a chit consensus check to the upstream peer to see if the signature has been received there;
+- Wait an amount of time *after* expected timeout that is proportional to how much time was left on the lift promise (before expiration) when you received it.
+  This should generally cause the terminus node (or a node closer to that end of the chain) to act first.
+- Request status directly from the originator (if query address has been supplied), who can answer in like fashion to the referee;
+- Request status from the referee directly;
 
-As long as connectivity can be maintained with their upstream neighbor, the originator, or the referee, each node should be able to successfully complete the lift.
-If none of these can be reached, the lift commit will block indefinitely until connectivity can be restored.
+As long as connectivity can be maintained with a connected neighbor, the originator, or the referee, each node should be able to successfully complete the lift.
+If none of these can be reached, the lift commit/reject will block indefinitely until connectivity can be restored to someone with the signature.
 
-It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol suffers from potential safety and/or liveness issues.
+It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol is more vulnerable to potential safety and/or liveness issues.
 So it is important that sites maintain a list of trustworthy referees and their public keys.
 To support this function, a site willing to serve as referee must also support the following auxiliary protocol:
 
@@ -497,11 +509,11 @@ In general practice, it is expected that each host site will execute a tally wit
 Such tallies can contain contractual language expressing the referee's willingness to conduct its function with fidelity and good faith.
 This also supports the possibility of assessing fees in exchange for referee services where applicable.
 
-The Term of Service describes how long the referee commits to perform lifts.
+The Term of Service describes how long the referee promises to perform lifts.
 This will allow a service provider to discontinue service without breaking trust or losing reputation.
 
 #### Lift States
-Now we can derive the following state diagram to describe the lift protocol from the perspective of a single site:
+We can now derive the following state diagram to describe the lift protocol from the perspective of a single node or segment:
 
 [![state-lift](uml/state-lift.svg)](uml/state-lift.svg)
 

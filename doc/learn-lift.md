@@ -1,7 +1,11 @@
 ## Lift Logic
-February 2020
 
-For a better understanding of the lift algorithm, consider first reading
+Note:  
+This section was originally written in February 2020, prior ot the development 
+of the [1.0 protocol](learn-protocol.md).  The information here is helpful and 
+informative, but may not be entirely consistent with the newer protocol.
+
+For a higher level understanding of the lift algorithm, consider first reading
 [this article](http://gotchoices.org/mychips/acdc.html).
 
 As we discuss the alorithm, we will refer to the following figure:
@@ -31,23 +35,23 @@ the entity (B) receiving payment.
 If the signs of the transaction didn't make sense to you, consider reading
 [this article](http://gotchoices.org/book/account.html).
 
-Keep in mind, these debits and credits themselves do not actually flow 
+Keep in mind, these debits and credits themselves do not actually *flow*
 all the way around the circle.  For example, if A gives an IOU to B, that 
-particular IOU will never flow along to C.  Since this is a private credit 
+*specific* IOU does not flow along to C.  Since MyCHIPs is a *private credit*
 model, it means just that.  Your credit is private.  It is just between you 
-and the entity you do business with directly--not some other entity you don't 
-know or trust.
+and the entity you do business with directly--not some other entity you 
+might not know or trust.
 
 However, the goal is to make these credits fungible, or in our case, 
-*effectively fungible.*  That means we can't literally substitute one entity's 
-credits for another, but through the lift algorithm, we will accomplish 
+*effectively fungible.*  So although we can't literally substitute one entity's 
+credits for another, the lift algorithm will allow us to accomplish
 something that is arguably even better:
 
 > You can *make* payment using the type of credits you *have* and your 
 seller will *receive* payment in the type of credits he *wants.*
 
-After a sufficient volume of buying, each entity will have accumulated some
-amount of asset value in IOU's from the entity upstream from him.  As you can 
+After a sufficient volume of selling, each entity will have accumulated some
+amount of asset value in IOU's from the entity just upstream.  As you can 
 imagine, this can only go on so long.  For example, if B gets too many IOU's 
 from A, eventually he won't want any more.  He has reached his maximum "trust 
 level," or "credit limit."
@@ -56,7 +60,7 @@ What B really needs are some IOUs from C where B buys his stuff.  The lift
 function will allow B to give up some of his A credits in exchange for some C 
 credits, just as he needs to complete his purchases.
 
-But in order to accomplish this, we need to find a complete circuit.  This
+But in order to accomplish this, we need to find a complete *circuit.*  This
 is where entity D comes in so handy.  If we can, all at once, send a fixed 
 number of credits around the circuit in the upstream direction (against the 
 direction of the arrows), everyone's excessive buildup of IOU's can be 
@@ -64,31 +68,33 @@ relieved a little bit without costing anyone anything.
 
 Everyone around the circuit will benefit from this transaction because they
 will all give up credits they don't need in exchange for credits they do need.
-However, we will have to do this in a way that no one gets hurt--particularly
+However, we will need a way to do this so no one gets hurt--particularly
 if someone in the circle tries to cheat.
 
 One way to accomplish this is to use a transactional database model.  The idea
-is to queue up all four of our credit exchanges belonging to a single lift and
-make them part of an atomic database transaction.  This means the database will 
-attempt all four transfers, but if any one of them fails, the other three will roll 
-back too. So the lift will either work in its entirety, or it will not work at 
-all.  The main goal is to make sure we don't perform only part of the lift, 
+is to queue up all four credit exchanges belonging to a single lift and
+make them part of an [atomic database transaction](https://en.wikipedia.org/wiki/Atomicity_(database_systems)).
+This means the database will attempt all four transfers, but if any one of 
+them fails, the other three will be canceled.
+So the lift will either work in its entirety, or it will not work at all.
+The main goal is to make sure we don't perform only part of the lift, 
 leaving someone out so they end up giving credits away, but not getting the 
 ones they expect in return.
 
 Now the bad news:  In order to do this, we would need to have all our entities 
 in a single database.  That means our system would be very centralized and 
-unscalable--just what we are trying to avoid.
-Centralization is also prone to manipulation and corruption.
-Scalability is a critical feature we need to surpass what alternative systems 
-such as blockchain have been unable to achieve.
+unscalable--just what we are trying to avoid with MyCHIPs.
+
+Centralization is prone to manipulation and corruption.
+It is also not scalable--the critical feature we need to surpass what 
+other alternative systems (like blockchain) have been unable to achieve.
 
 It would be nice to have an algorithm that can achieve an atomic result even 
 when all four of our users have their data in different databases on different 
 computers distributed around the Internet.  
 
-And now, the bad news:
-It [isn't possible.](https://en.wikipedia.org/wiki/Two_Generals%27_Problem)
+And now, some more bad news:
+That [isn't possible.](https://en.wikipedia.org/wiki/Two_Generals%27_Problem)
 
 It turns out this is a pretty old problem.  It is hard enough to get a group
 of updates to operate as a single transaction inside a single database.  But
@@ -97,30 +103,31 @@ may not know or be able to fully trust, it probably can't be done.
 
 So to get over this otherwise insurmountable hurdle, we are going to make a
 simple compromise:  Instead of making sure no one gets hurt during a lift, we
-will instead, be satisfied if we can make sure no *responsible* parties get hurt.
+will instead, be satisfied if we can make sure no *responsible* party gets hurt.
 
 To do so, we will set up our transaction in several basic phases:
 
 In the first phase, we will discover circuits, or routes in the network which 
 might be capable of supporting a lift.
 
-In the next phase, we will initiate a proposed lift around that circuit.  Each
-peer who is willing to participate on the suggested terms will give a 
+In the next phase, we will initiate a proposed lift around that circuit.
+Each peer who is willing to participate on the suggested terms will give a 
 conditional commitment.  This commitment is structured as a digital contract
 which, when properly signed, becomes a binding CHIP credit.  In other words,
-it is money to the recipient and debt to the issuer.  It just needs a final
-signature to become valid.
+it is money (value) to the recipient and debt to the issuer.  It just needs 
+a certain digital signature to become valid.
 
 In the final phase, we want to lock down each conditional credit and make it
 real, valid and binding.  This is where the two generals dilemma would hurt us
 if we were dependent on a fully transactional commit.  It would be possible for
-someone to conditionally commit in the prior phase, but then fail to cooperate
+someone to conditionally commit in the first phase, but then fail to cooperate
 in the final commitment phase.
 
-However, because everyone already posesses conditional credits, lacking only
+However, because everyone already posesses conditional credits lacking only
 the proper digital signature, all we really need is a way to get that signature
-out to everyone and they will have their money.  Any deadbeat who drops off the
-network between these two phases will simply miss out.  He has already given
+out to everyone and they will have their promised money.
+Any *deadbeat* who drops off the network between these two phases will simply miss out.
+He has already given
 his conditional approval in the previous phase, so his immediate peer can prove
 he is part of the lift and owes the value.  It is only the deadbeat himself who
 is lacking the final credits he needs to be made whole.
@@ -141,7 +148,7 @@ up to no good or at least, unreliable.  No further traffic can be performed by
 this entity--at least through the peers he has just disappointed.
 
 So the challenge in implementing the distributed lift function is this:  During
-the conditional commit phase, the peers need to negotiate a chain of signatures
+the conditional commit phase, the peers need to negotiate a chain of commitments
 around the circuit which the lift originator can fully validate, proving that
 each pair of peers along the route has agreed to the transaction, pending the
 signature of the initiator himself.  Then, the initiator can form this final
@@ -169,8 +176,8 @@ authorizing signature (or be told that it has been rolled back and can be
 ignored).
 
 ### Linear Lifts
-The lift algorithm described above is performed in a complete circle.  It's
-function is to relieve credit surpluses and deficits around a full circuit of 
+The lift algorithm described above is performed in a complete circle.  Its
+function is to balance credit surpluses and deficits around a full circuit of 
 trading entities.  So the assumption is, a bunch of people have already been 
 trading using existing private credit relationships, and they want to 
 participate in a lift to relieve built up credits so they can keep going.
@@ -202,7 +209,10 @@ In nearly every other way, this is identical to a circular lift.  But the
 special case does need to be accommodated.  In fact, it may well turn out to be
 the more prevalent form of lift.
 
-### Lift Algorithm (Fixme: This Section is OBSOLETE)
+### Lift Algorithm
+The following sections are no longer fully accurate as of the introduction of the
+of the [1.0 protocol](learn-protocol.md#lift-protocol).
+
 If lifts were to be discovered and executed in real time, the process would be
 something like the following:
 

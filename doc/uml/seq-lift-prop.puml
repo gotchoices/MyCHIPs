@@ -7,23 +7,23 @@ database "Originator DB" as propDB
 database "Upstream DB" as upDB
 database "Next Upstream Node" as next
 
-alt User initiates linear lift
+alt User initiates lift, linear
   user		->>	propDB:		Request payment to named peer
 
-else Autonomous agent initiates circular lift
+else Autonomous agent initiates lift, circuit
   agent		->>	propDB:		Request clearing lift\nthrough named\ndestination peer
 end
 
-propDB		->>	upDB:		Will you participate in a lift?
+propDB		->>	upDB:		Will you participate in this lift?
 
 alt Destination found locally
   note over upDB: This case shown in a later diagram
   
-else A route can be found to the named destination
-  upDB		->>	next:		Propagate lift via chosen route
+else A possible route can be found to the named destination
+  upDB		->>	next:		Create/store draft chits\npropagate lift via chosen route
 
 else No route found
-  upDB		-->	propDB:		Reply: lift failed with no route
+  upDB		-->	upDB:		Ignore, don't store; downstreamers will\nhave to wait for lift timeout
 
 end
   

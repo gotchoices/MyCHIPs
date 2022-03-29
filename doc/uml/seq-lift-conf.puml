@@ -6,40 +6,31 @@ database "Originator DB" as propDB
 collections "Intermediate nodes" as inter
 database "Terminus DB" as termDB
 
-propDB		->>	inter:		Will you participate in a lift?
-inter		->>	termDB:		Will you participate in a lift?
+propDB		->>	inter:		Will you participate in this lift?
+inter		->>	termDB:		Will you participate in this lift?
 
 note over termDB: The destination is a local user
 termDB		->>	propDB:		Terminus reached;\nauthenticate
 
-alt Originator wants to cancel (or thinks the lift is expired)
-  propDB	->>	termDB:		Cancel lift
-  termDB	->>	inter:		Cancel lift
-  inter		->>	propDB:		Cancel lift
-
-else Originator still wants to proceed with lift
-  propDB	->>	referee:	May I commit this lift?
-
-  alt Lift still within time
-    referee	->>	propDB:		OK, here's my signature
-    note over propDB
-      Lift is now irrevocably good and binding.
-      The signature is a liability to any node
-      who doesn't deploy it (because their 
-      upstream neighbor probably will).
-    end note
-    
-    propDB	->>	termDB:		Commit; here's the signature
-    termDB	->>	inter:		Commit; here's the signature
-    inter	->>	propDB:		Commit; here's the signature
-
-  else Lift judged to have expired
-    referee	->>	propDB:		Sorry, lift expired
-    propDB	->>	termDB:		Cancel lift
-    termDB	->>	inter:		Cancel lift
-    inter	->>	propDB:		Cancel lift
-  end
-
+alt Originator wants to cancel the lift
+  propDB	->>	propDB:		Wait until lift has expired
+  propDB	->>	referee:	Has lift expired?\nGet void signature
 end
-  
+
+propDB	->>	referee:	Request to commit this lift\nGet good/void signature
+
+referee	->>	propDB:		Here's my signature\n(whether good or void)
+
+note over propDB
+  Lift is now irrevocably good and binding
+  or void and safely ignorable.  A good
+  signature is a liability to any node
+  who doesn't deploy it (because their 
+   upstream neighbor probably will).
+end note
+    
+propDB	->>	termDB:		Here's the signature; consense
+termDB	->>	inter:		Here's the signature; consense
+inter	->>	propDB:		Here's the signature; consense
+
 @enduml

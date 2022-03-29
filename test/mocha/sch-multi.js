@@ -143,7 +143,7 @@ describe("View mychips.peers_v", function() {
       }})
     })
   })
-
+/* */
   after('Disconnect from test database', function(done) {
     db.disconnect()
     done()

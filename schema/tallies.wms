@@ -11,7 +11,7 @@
 #TODO:
 #- Can create digest offline in JavaScript that matches tally_sets?
 #- Can validate tally_sets record against supplied signature, mark cache field as valid
-#- dr_limit, cr_limit become a part of terms setting
+#- dr_limit, cr_limit become a part of terms setting?
 #- Add constraints to assure things like contract and signatures are valid?
 #- Harden views; Can only update unsigned, working tally
 #- 
@@ -22,7 +22,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{comment target reward clutch bound part_sig hold_sig request cr_limit dr_limit}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_cert part_cert hold_terms part_terms]
-    def tallies_se	[concat $tallies_v_in tally_seq status digest units_pc units_gc tally_date hold_cid hold_agent part_cid part_agent $glob::stampfn]
+    def tallies_se	[concat $tallies_v_in tally_seq status digest units_pc units_c tally_date hold_cid hold_agent part_cid part_agent $glob::stampfn]
 
     def tally_sets_pk	{tset_ent tset_seq tset_idx}
     def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
@@ -64,8 +64,8 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
   , part_ent	text		references mychips.peers on update cascade on delete restrict
   				constraint "!mychips.tallies.NSP" check (part_ent != tally_ent)
-  			      , unique(tally_ent, part_ent, tally_type, tally_uuid)
-  , units_gc	bigint		default 0 not null
+  			      , constraint "!mychips.tallies.TNU" unique(tally_type, tally_uuid)
+  , units_c	bigint		default 0 not null
   , units_pc	bigint		default 0 not null
   , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
   , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
@@ -348,31 +348,40 @@ $$;}
 
 # Base view of tallies
 #----------------------------------------------------------------
-define uSign {case when te.tally_type = 'stock' then %1 else -%1 end}
+define uSign {case when te.tally_type = 'stock' then (%1) else -(%1) end}
 view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.agents_v mychips.peers_v mychips.tally_state(text,text,text,text) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
     eval(fld_list $tallies::tallies_se	te)
-  , te.hold_cid ||':'|| ua.agent	as hold_addr
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
+  , ua.agent_host			as hold_host
+  , ua.agent_port			as hold_port
+--  , te.hold_cid ||':'|| ua.agent	as hold_addr
 --  , te.hold_cid ||':'|| ua.atsock	as hold_full
---  , ua.sock				as hold_sock
---  , ua.agent_key			as hold_akey
 
   , te.part_cid ||':'|| pa.agent	as part_addr
   , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
+  , pa.agent_host			as part_host
+  , pa.agent_port			as part_port
 --  , te.part_cid ||':'|| pa.atsock	as part_full
---  , pa.sock				as part_sock
---  , pa.agent_key			as part_akey
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state
   , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','close','draft']) as action
   , te.status = 'open' or (te.status = 'close' and units_pc != 0)	as liftable
-  , coalesce(tc.units, 0)			as units
-  , coalesce(uSign(tc.units),0)			as net
-  , uSign(te.units_gc)				as net_gc
-  , uSign(te.units_pc)				as net_pc
-  , coalesce(tc.chits,0)			as chits
-  , greatest(coalesce(tc.latest, te.mod_date), te.mod_date)	as latest
+
+  , coalesce(cg.units,0)				as units
+  , coalesce(cg.units,0) + coalesce(ce.units,0)		as units_p
+
+  , coalesce(cg.chits,0)				as chits
+  , coalesce(cg.chits,0)+coalesce(ce.chits,0)		as chits_p
+
+  , coalesce(uSign(cg.units), 0)				as net
+  , coalesce(uSign(cg.units,0))+coalesce(uSign(ce.units),0)	as net_p
+  
+  , uSign(te.units_c)					as net_c
+  , uSign(te.units_pc)					as net_pc
+
+  , greatest(coalesce(cg.latest, te.mod_date), te.mod_date)	as latest
+  
   , mychips.tally_json(te) as json_core
   , mychips.tally_json(te) || jsonb_build_object(
       'sign',		json_build_object(
@@ -391,15 +400,16 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
     )		as policy
 
     from	mychips.tallies	te
---    join	mychips.users_v	ue on ue.user_ent = te.tally_ent
---    join	jsonb_to_record(te.part_cert::jsonb) as pc (chip jsonb, public text) on true
---    join	jsonb_to_record(pc.chip) as ph (cid text, host text, port text, agent text) on true
     left join	mychips.agents_v ua on ua.agent = te.hold_agent
     left join	mychips.agents_v pa on pa.agent = te.part_agent
-    left join	(
-      select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where status = 'good'
-      group by 1,2
-    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
+    left join	(select chit_ent, chit_seq,
+         sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest
+         from mychips.chits where status = 'good' group by 1,2
+       ) cg on cg.chit_ent = te.tally_ent and cg.chit_seq = te.tally_seq
+    left join	(select chit_ent, chit_seq,
+         sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest
+         from mychips.chits where status = 'pend' group by 1,2
+       ) ce on ce.chit_ent = te.tally_ent and ce.chit_seq = te.tally_seq;
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);

@@ -50,7 +50,7 @@ describe("Peer to peer raw communications test", function() {
     }
     server1.send(serv1, {txt: msg1})	//Send a test message
   })
-
+/* */
   after('Clean up servers', function() {
     server1.close()
     server2.close()

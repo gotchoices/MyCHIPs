@@ -54,7 +54,7 @@ describe("Establish test user on separate DB", function() {
       done()
     })
   })
-
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{
       db.disconnect()

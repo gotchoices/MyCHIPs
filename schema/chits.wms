@@ -131,10 +131,10 @@ function mychips.chits_tf_cache() {mychips mychips.chits_v} {
 
 -- Not sure which if one of these approaches is more efficient:
 --      select into crec sum(units_g) as units_g, sum(units_p) as units_p from mychips.chits_v where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq;
---      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user, units_gc = coalesce(crec.units_g,0), units_pc = coalesce(crec.units_p,0) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
+--      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user, units_c = coalesce(crec.units_g,0), units_pc = coalesce(crec.units_p,0) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
 -- Or:
       update mychips.tallies set 	-- mod_date = current_timestamp, mod_by = session_user, 
-        units_gc = coalesce(cs.sum_g,0), units_pc = coalesce(cs.sum_p,0) from (
+        units_c = coalesce(cs.sum_g,0), units_pc = coalesce(cs.sum_p,0) from (
           select sum(units_g) as sum_g, sum(units_p) as sum_p
           from mychips.chits_v where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq
         ) as cs

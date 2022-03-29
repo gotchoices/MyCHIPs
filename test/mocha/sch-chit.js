@@ -313,8 +313,7 @@ log.debug("Sql:", sql)
       done()
     })
   })
-/*
-*/
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let it flush out before closing
       dbU.disconnect()

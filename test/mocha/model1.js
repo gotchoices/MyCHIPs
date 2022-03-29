@@ -43,8 +43,7 @@ describe("Test Agent-based modeler 1", function() {
     })
   })
 
-/*
-*/
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{
       db.disconnect()

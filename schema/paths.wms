@@ -63,10 +63,11 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
 define xif {case when %3 isnull then %1.part_%2 else %1.hold_%2 end}
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
   with recursive tally_path (
-      inp, out, edges, ath, uuids, signs, min, margin, max, reward, 
+      inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
       top, top_tseq, bot, bot_tseq, circuit
     ) as (
-      select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], array[ti.sign],
+      select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], 
+             array[ti.tally_ent], array[ti.tally_seq], array[ti.sign],
              ti.min, ti.margin, ti.max, ti.reward, 
              ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
     from	mychips.tallies_v_net ti
@@ -77,6 +78,8 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
       , tp.edges + 1					as edges
       , tp.ath || t.out					as ath
       , tp.uuids || t.uuid				as uuids
+      , tp.ents || t.tally_ent				as ents
+      , tp.seqs || t.tally_seq				as seqs
       , tp.signs || t.sign				as signs
       , least(t.min, tp.min)				as min
       , tp.margin + t.margin * (1 - tp.margin)		as margin	-- Aggregated margin
@@ -99,7 +102,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     		and (t.out isnull or not t.out = any(tp.ath))
     where	t.net_pc < t.bound		-- only paths with present capacity
   ) select tpr.inp, tpr.out
-    , tpr.edges, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max
+    , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
     , tpr.top, tpr.bot, tpr.circuit
     , tpr.margin::numeric(8,6)
     , tpr.reward::numeric(8,6)
@@ -131,8 +134,8 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
 #----------------------------------------------------------------
 view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
     tp.inp, tp.out, tp.top, tp.top_tseq, tp.bot, tp.bot_tseq
-  , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids
-  , tp.fori, tp.foro, tp.segment
+  , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids, tp.ents, tp.seqs
+  , tp.fori, tp.foro, tp.segment, tp.bang
   , tp.top_uuid, tp.top_cid, tp.top_agent, tp.top_chad
   , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
   , tp.out_cid, tp.out_agent, tp.out_chad

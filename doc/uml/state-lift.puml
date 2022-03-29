@@ -2,60 +2,68 @@
 !include common.puml
 
 $title(Lift States)
-[*] --> none
-state "No Lift" as none
-
-'States are determined by a combination of values, as defined here:
-'init:  Stat: void, Req: init		'First implementation uses this.  Will try to avoid extra state in next version
-state Originator {
-draft: Stat: void, Req: draft
-seek:  Stat: seek, Req: N/A
-term:  Stat: term, Req: N/A
-call:  Stat: call, Req: N/A
-timeCheck:  Stat: seek, Req: N/A, Time
+state "draft.init" as draftInit
+state "init.seek" as initSeek
+state "draft.relay" as draftRelay
+state "draft.found" as draftFound
+state signable {
+  state origin {
+    state seek
+    state "seek.check" as seekCheck
+    state "seek.call" as seekCall
+  }
+  state call
+  state "call.call" as callCall
+  state relay {
+    state pend
+    state "pend.check" as pendCheck
+  }
 }
 
-good:  Stat: good, Req: N/A
-
-state trying {
-  pend:  Stat: pend, Req: N/A
-  checkProp:  Stat: pend, Req: N/A, Time
-  checkRef:  Stat: pend, Req: N/A, Time
-}
-void:  Stat: void, Req: N/A
-local:  Stat: void, Req: local
-relay:  Stat: void, Req: relay
+draftInit: Status: draft, Request: init
+initSeek: Status: init, Request: seek
+draftFound:  Status: draft, Request: found
+draftRelay:  Status: draft, Request: relay
+seek:  Status: seek, Request: null
+seekCheck:  Status: seek, Request: check
+seekCall:  Status: seek, Request: call
+call:  Status: call, Request: null
+callCall:  Status: call, Request: call
+good:  Status: good, Request: null
+pend:  Status: pend, Request: null
+void:  Status: void, Request: null
+pendCheck:  Status: pend, Request: check
+origin: Should not get affirmed but might get voided
+relay: Any non-originating node
 
 'State transition rules:
-none -[$user]-> draft: $trans($user,User initiates linear lift Req:draft,'')
-none -[$db]-> draft: $trans($db,Automaton initiates circular lift Req:draft,'')
-'draft -[$db]-> init: $trans($db,draft detected,'',Forward Upstream Act:query)
-draft -[$db]-> seek: $trans($db,draft detected,'',Send Upstream Act:query)
+[*] -right[$user]-> draftInit: $trans($user,User initiates linear lift\nRequest:init,'')
+[*] -right-> draftInit: $trans(Agent,Automaton initiates circular lift\nRequest:init,'')
+draftInit -[$db]-> initSeek: $trans($db, init detected, '', Agent prepares Lift Object\nEncodes destination\nRequest:seek)
+initSeek -[$db]-> seek: $trans($db, seek detected,'',Send Upstream\nAction:promise\nAgent starts timer)
 
-seek -[$peer]-> void: $trans($peer,Receive Act:fail,'','Lift failed; Notify referee, user')
-seek -[$db]-> timeCheck: $trans($db,Local timeout,'', Lift expired?; Request status from referee)
-timeCheck -[$peer]-> void: $trans($peer,Receive referee Act:timeout,'', 'Mark lift as expired')
-timeCheck -[$peer]-> seek: $trans($peer,Receive referee Act:intime,'', 'Lift not yet expired')
-seek -[$peer]-> term: $trans($peer,'Receive confirm from\ndestination Act:terminus','', 'Circuit good, freshen route')
-term -[$db]-> call: $trans($db,Detect loopback,Lift still desirable, Request commit from referee)
-term -[$db]-> call: $trans($db,Detect loopback,Change of mind, Notify referee of abort)
-call -[$peer]-> good: $trans($peer,'Receive referee\nsignature Act:signed','', Commit lift chits; Consense)
-call -[$peer]-> void: $trans($peer,Receive referee Act:timeout,'', 'Too late\nabandon lift\nMay try again with longer timeout')
+seek -[$peer]-> seekCall: $trans($peer,'Receive confirm from\ndestination Action:terminus','', 'Circuit good, freshen route')
+seekCall -[$db]-> seek: $trans($db,Detect call, Change of mind, want to abort;\nwill await timeout)
+seekCall -[$db]-> call: $trans($db,Detect call, Want to proceed, Query referee\nRequest: commit\nAgent sets timer)
+call --> callCall: $trans(Agent, Local timeout, Still in call?, Request: call)
+callCall -[$db]-> call: $trans($db,Detect call, Still calling, Query referee;\nAction: commit\nAgent sets timer)
 
-none -[$peer]-> none: $trans($peer,Receive Act:query,Destination not found, Reply Act: failed)
-none -[$peer]-> relay: $trans($peer,Receive Act:query,Route found for destination, 'Store lift Req:relay; Forward Act: query')
-relay -[$db]-> pend: $trans($db,Detect relay,'', Forward lift Act: query)
+seek --> seekCheck: $trans(Agent,Local timeout,Lift expired?, Request: check)
+seekCheck -[$db]-> seek: $trans($db,Detect check, Still seeking, Query referee;\nAction: check\nAgent starts timer)
 
-none -[$peer]-> local: $trans($peer,Receive Act:query,Destination found locally, 'Store lift Req: dest')
-local -[$db]-> pend: $trans($db,Detect relay,'', Reply to originator Act: terminus)
+[*] -left[$peer]-> [*]: $trans($peer,Receive Action:promise, Destination not found, Give no reply)
+[*] -[$peer]-> draftRelay: $trans($peer,Receive Action:promise,Route found for destination, 'Store lift Request:relay;\nForward Action: promise\nAgent sets timer')
+[*] -[$peer]-> draftFound: $trans($peer,Receive Action:promise,Destination found locally, 'Store lift Request: terminus\nAgent sets timer')
 
-trying -[$peer]-> good: $trans($peer,'Receive signature\nvia consensus')
-pend -[$db]-> checkProp: $trans($db,Local timeout,'', Query Originator)
-checkProp -[$db]-> checkRef: $trans($db,Local timeout,'', Query Referee)
-checkRef -[$db]-> pend: $trans($db,Local timeout,'', Keep trying forever)
+draftRelay -[$db]-> pend: $trans($db,Detect relay,'', Forward lift\nAction: promise)
+draftFound -[$db]-> pend: $trans($db,Detect found,'', Reply to originator\nAction: terminus)
 
-trying -[$peer]-> good: $trans($peer,'Receive signature from\nOriginator or Referee','', 'Commit lift chits; Consense')
-trying -[$peer]-> void: $trans($peer,'Receive cancel from\nOriginator or Referee','', 'Void lift record/chits')
-trying -[$peer]-> pend: $trans($peer,'Receive intime from\nOriginator or Referee','', 'Void lift record/chits')
+pend --> pendCheck: $trans(Agent, Local timeout, Still pending, Request: check)
+pendCheck -[$db]-> pend: $trans($db, Detect check, Still pending, 'Query partner,\noriginator, referee\nin sequence\nAction: check')
+
+[*] --> good: $trans(Agent, Call to local lift function, Lift completes, Commit lift chits; Consense)
+
+signable -up[$peer]-> good: $trans($peer,Receive referee signature, Verified Valid, Commit lift chits; Consense)
+signable -[$peer]-> void: $trans($peer,Receive referee signature, Verified Void, Mark lift as void)
 
 @enduml

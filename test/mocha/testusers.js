@@ -36,7 +36,7 @@ log.info("Users:", row.count)
       done()
     })
   })
-
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{
       db.disconnect()

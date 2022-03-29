@@ -1,0 +1,45 @@
+@startuml
+!include common.puml
+
+'node siteA as "Site A/C" {
+  node agent0 as "Agent 0" {
+    node userU as "User U\np1001"
+    node userB as "User B\np1003"
+    node userX as "User X\np1002"
+    component userA as "User A\n(not present)"
+  }
+'}
+
+'node siteB as "Site B" {
+  node agent1 as "Agent 1" {
+    node user0 as "User 0\np1000"
+    node user1 as "User 1\np1001"
+    node user2 as "User 2\np1002"
+    node user3 as "User 3\np1003"
+  }
+'}
+
+'node siteC as "Site C/A" {
+  node agent2 as "Agent 2" {
+    node userD as "User D\np1000"
+  }
+'}
+
+userU -d-> user0
+user0 -d-> user1
+user1 -d-> user2
+user2 -d-> user3
+user3 -d-> userD
+
+user2 --> user0
+user1 --> user3
+
+user0 .u.> userA
+userB -d-> user2
+userX -r-> userB
+userD --> userX
+
+'userU -[hidden]-> userB
+'userU -[hidden]-> userA
+
+@enduml

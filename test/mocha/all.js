@@ -23,9 +23,10 @@ require('./sch-path.js')
 require('./sch-route.js')
 require('./route.js')
 
+require('./sch-lift.js')
+
 //Yet to implement:
-//require('./sch-tally.js')
-//require('./tally.js')
+//require('./lift.js')
 
 //Re-enable after schema settles and more text fields are filled in
 //require('./schema.js')

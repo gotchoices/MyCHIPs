@@ -53,7 +53,7 @@ describe("Initialize tally/path test data", function() {
     }
   })
 
-  it("Build local tallies", function(done) {
+  it(`Build local tallies between ${users} users`, function(done) {
     let dc = users-1, _done = () => {if (!--dc) done()}
     interTest.ids = []
     for (let u = 1; u < users; u++) {
@@ -86,7 +86,7 @@ describe("Initialize tally/path test data", function() {
     }
   })
 
-  it("Build up-stream tally", function(done) {
+  it("Build up-stream foreign tally", function(done) {
     let s= interTest.ids[1]
       , sId = s.fId, sCid = s.fCid, sCert = s.fCert, sSig = s.fSig
       , fCid = cidu
@@ -104,7 +104,7 @@ describe("Initialize tally/path test data", function() {
     })
   })
 
-  it("Build down-stream tally", function(done) {
+  it("Build down-stream foreign tally", function(done) {
     let f= interTest.ids[users-1]
       , fId = f.sId, fCid = f.sCid, fCert = f.sCert, fSig = f.sSig
       , sCid = cidd
@@ -122,7 +122,7 @@ describe("Initialize tally/path test data", function() {
     })
   })
 
-  it("Build loop-back tallies", function(done) {
+  it("Build loop-back internal tallies", function(done) {
     let dc = 2, _done = () => {if (!--dc) done()}
       , buildem = (sId, sCid, sCert, sSig, fId, fCid, fCert, fSig, u, units) => {
          let tuid = mkUuid(sCid, agent0), cuid = mkUuid(fCid, agent0)
@@ -165,8 +165,7 @@ describe("Initialize tally/path test data", function() {
             from mychips.tallies_v_paths where edges > 1 order by path) s;`
     queryJson('tallies_v_paths', db, sql, done, 3)
   })
-/*
-*/
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{db.disconnect(); done()}, 200)
   })

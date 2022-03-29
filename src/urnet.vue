@@ -56,7 +56,7 @@ export default {
 //console.log("User", dat.id, dat.peer_cid, this.unitss[dat.peer_cid])
       let { id, std_name, peer_cid, peer_agent } = dat
         , fColor = (dat.net < 0 ? '#ff0000' : '#0000ff')
-        , sumLine = `${dat.stock_uni/CHIPmult} - ${-dat.foil_uni/CHIPmult} = <tspan stroke="${fColor}" fill="${fColor}">${(dat.net/CHIPmult)}</tspan>`
+        , sumLine = `${dat.stock_uni/CHIPmult} + ${-dat.foil_uni/CHIPmult} = <tspan stroke="${fColor}" fill="${fColor}">${(dat.net/CHIPmult)}</tspan>`
         , yOff = this.fontSize + 3
         , cidLine = `${peer_cid}:${peer_agent}`
         , text = `
