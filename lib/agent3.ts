@@ -137,6 +137,7 @@ class AccountCluster {
         console.log('\n###RUN NUMBER', this.runCounter, '###')
         this.hostedAccounts.forEach(this.process)
       } else {
+        // TODO: Add setTimeout() or otherwise handle asynchronous
         this.recordFinalAnalytics()
         console.log(
           `END OF SIM ************* ${this.host} with ${this.runCounter} runs`
@@ -317,7 +318,7 @@ class AccountCluster {
     const currServer: Server = {
       id: this.host,
       balance: 0,
-      accounts: this.hostedAccounts,
+      accounts: this.hostedAccounts.map((account) => account.getAccountData()),
       actualRuns: this.runCounter, // Actual number of simulation runs executed by this server
     }
     this.worldDBManager.analyticsAddServer(currServer)
