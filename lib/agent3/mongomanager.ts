@@ -223,6 +223,7 @@ class MongoManager {
       //Sort by
       sort: { foils: 1, random: -1 },
     }
+
     this.accountsCollection
       // @ts-ignore
       .findOneAndUpdate(query, update, options)
