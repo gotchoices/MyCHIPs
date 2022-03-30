@@ -33,6 +33,10 @@ The Agent 3 Model of the simulation was developed using TypeScript to allow for 
 
 \*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence. Since the simulation is run asynchronously, the script should be run from the command line. We've seen some issues with using VS Code's NPM SCRIPTS runner.
 
+## Prettier & ESLint
+
+This project uses esLint and Prettier to format and check the simulation TypeScript files for syntax errors. Make sure to set up your IDE to use these tools (preferably Prettier formats on each save). To format everything at once, run `npx prettier --write .`. Before committing, make sure to run npm tsc to apply style changes to JS files as well.
+
 ## Structure Overview
 
 The MyCHIPs project and Agent 3 code have a lot of moving pieces that come together to make the simulation work. Along with Kyle's well-written and thorough documentation, we wanted to provide a sort of summary of the pieces at play that are crucial for the Agent 3 model.
