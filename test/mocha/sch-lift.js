@@ -1,4 +1,4 @@
-//Test route schema at a basic level; run after sch-route, route
+//Test lift schema at a basic level; run after sch-route, route
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // Agent <-> DB <-> Agent
@@ -32,6 +32,14 @@ describe("Test lift state transitions", function() {
 
   it("Restore good route record to D from sch-route test", function(done) {
     dbA.query(rest('goodD'), (e) => {if (e) done(e); done()})
+  })
+
+  it("Delete existing lifts/chits, set simulated lading", function(done) {
+    let sql = `delete from mychips.chits where chit_type = 'lift';
+               delete from mychips.lifts;
+               update mychips.tallies set units_pc = 5, units_c = 5 where units_pc = 0;`
+//log.debug("Sql:", sql)
+    dbA.query(sql, null, (e, res) => {done(e)})
   })
 
   it("Configure existing good route in DB", function(done) {
@@ -312,7 +320,7 @@ describe("Test lift state transitions", function() {
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     interTest.relay = msg
-    dbA.query(sql, null, (e, res) => {if (e) done(e)	;log.debug("Q res:", res.rows[0])
+    dbA.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("Q res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'seek.call')
       _done()

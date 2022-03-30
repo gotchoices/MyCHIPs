@@ -21,6 +21,7 @@ tabtext mychips.lifts	{Lifts}			{Contains a record for each group of chits in a 
     {referee		{Referee}		{The JSON CHIP Address of the site who will decide when the lift has expired}}
     {signature		{Signature}		{Digital signature of the lift originator indicating that the transaction is binding.}}
 } -messages {
+    {CIF		{Chit Failure}		{An operation failed to create chits correctly for a lift}}
     {MDA		{Missing Agent}		{A destination CHIP address was given without specifying an agent address}}
     {IVR		{Invalid Request}	{At attempt was made to set a lift request to an unallowed value}}
     {IVS		{Invalid Status}	{At attempt was made to set a lift status to an unallowed value}}

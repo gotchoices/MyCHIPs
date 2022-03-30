@@ -34,7 +34,9 @@ table mychips.chits {mychips.tallies mychips.lifts} {
   , quidpro	text
   , memo	text
   , digest	bytea		
-  , signature	text		constraint "!mychips.chits.GDS" check(status != 'good' or (request isnull and not signature isnull))
+  , signature	text		constraint "!mychips.chits.GDS" check(status != 'good' or 
+                                  (request isnull and not signature isnull) or 
+                                  (request isnull and chit_type = 'lift'))
 
 -- Values used internally to track state, required actions
   , request	text	        constraint "mychips.chits.BRQ" check (request is null or request in ('pend','good','void'))
@@ -158,8 +160,8 @@ function {mychips.chit_goodcheck(ch mychips.chits)} {mychips.chit_json(mychips.c
       thisidx	int;
     begin
 
-      if ch.signature isnull then		-- Fixme: check actual signature validity here?
-        return null;
+      if ch.chit_type != 'lift' and ch.signature isnull then	-- Fixme: check actual signature validity here?
+        raise exception '!mychips.chits:MIS %-%', ch.chit_ent, ch.chit_seq;
       end if;
 
       select into trec tally_ent,tally_seq,tally_type,tally_uuid,digest,chain_conf from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
