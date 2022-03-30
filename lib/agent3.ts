@@ -46,7 +46,7 @@ class AccountCluster {
     console.log('STARTING AGENT MODEL * VERSION 3 *')
     this.networkConfig = networkConfig
     this.host = networkConfig.peerServer || Os.hostname()
-    console.log("SERVER:", this.host)
+    console.log('SERVER:', this.host)
 
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
@@ -103,7 +103,7 @@ class AccountCluster {
     if (this.networkConfig.runs) {
       this.runs = this.networkConfig.runs
     } //Max iterations
-    console.log("### RUNNING", this.runs, "ROUNDS ###")
+    console.log('### RUNNING', this.runs, 'ROUNDS ###')
 
     this.myChipsDBManager.createConnection(
       this.notifyOfAccountsChange,
@@ -133,7 +133,7 @@ class AccountCluster {
       // If there is no limit on runs, or we're below the limit...
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
-        console.log("\n###RUN NUMBER", this.runCounter, "###")
+        console.log('\n###RUN NUMBER', this.runCounter, '###')
 
         // Process each hosted account this round
         this.hostedAccounts.forEach(this.process)
@@ -142,7 +142,6 @@ class AccountCluster {
         if (this.runCounter % this.params.liftInterval == 0) {
           this.myChipsDBManager.performAutoLifts()
         }
-
       } else {
         this.close()
       }
@@ -186,8 +185,8 @@ class AccountCluster {
     tag: string,
     destinationHost: string
   ) {
-    console.log("New Account Request from", destinationHost, "with tag", tag)
-    console.log("Account to add:\n", accountData.peer_cid)
+    console.log('New Account Request from', destinationHost, 'with tag', tag)
+    console.log('Account to add:\n', accountData.peer_cid)
     if (!this.accountCache.containsAccount(accountData)) {
       this.myChipsDBManager.addPeerAccount(accountData)
       this.accountCache.addAccount(accountData)
@@ -211,7 +210,7 @@ class AccountCluster {
     }
 
     // Filter out the accounts that are on our local server
-    console.log("\nAccounts updated:", dbAccounts.length)
+    console.log('\nAccounts updated:', dbAccounts.length)
     let localAccounts: AccountData[] = []
     dbAccounts.forEach((dbAccount) => {
       if (dbAccount.user_ent) {
@@ -226,13 +225,15 @@ class AccountCluster {
 
     // If loading all users (loading for the first time)
     if (all) {
-      console.log("Creating my account objects!")
+      console.log('Creating my account objects!')
       // Ensure all accounts hosted on this server have an Account object
       let typesToMake: [string, AdjustableAccountParams?][] = []
       this.params.accountTypes.forEach((accountType) => {
-        for (let i = 0;
+        for (
+          let i = 0;
           i < Math.round(accountType.percentOfTotal * localAccounts.length);
-          i++) {
+          i++
+        ) {
           typesToMake.push([accountType.type, accountType])
         }
       })
@@ -255,9 +256,8 @@ class AccountCluster {
 
       this.worldDBManager.deleteAllAccountsExcept(hostedAccountIds)
       this.startSimulationRound()
-    }
-    else {
-      console.log("Updating my local accounts")
+    } else {
+      console.log('Updating my local accounts')
       localAccounts.forEach((accountData) => {
         this.hostedAccounts.forEach((hostedAccount) => {
           if (hostedAccount.peer_cid == accountData.peer_cid) {
@@ -302,7 +302,7 @@ class AccountCluster {
       account.std_name,
       account.peer_cid
     )
-    console.log("\n", account.peer_cid, "is taking their turn")
+    console.log('\n', account.peer_cid, 'is taking their turn')
 
     account.takeAction()
 

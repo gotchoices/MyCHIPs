@@ -10,7 +10,9 @@ class UnifiedLogger {
   public static getInstance(): WyclifLogger {
     if (!UnifiedLogger.instance) {
       UnifiedLogger.instance = Log('agent')
-      UnifiedLogger.instance.info("\n\nLogger created!\nRunning new Simulation\n")
+      UnifiedLogger.instance.info(
+        '\n\nLogger created!\nRunning new Simulation\n'
+      )
     }
     return UnifiedLogger.instance
   }
