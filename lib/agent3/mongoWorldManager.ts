@@ -233,7 +233,7 @@ class MongoManager implements WorldManagerInterface {
       //Sort by
       sort: { foils: 1, random: -1 },
     }
-    // @ts-ignore
+
     this.accountsCollection
       //@ts-ignore
       .findOneAndUpdate(query, update, options)
