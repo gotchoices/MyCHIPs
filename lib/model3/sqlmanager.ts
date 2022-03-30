@@ -2,7 +2,7 @@
 import { dbClient } from 'wyseman'
 import UnifiedLogger from './unifiedLogger'
 
-import uuidv4 from 'uuid/v4'
+import { v4 as uuidv4 } from 'uuid'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_sock, stocks, foils, partners, vendors, clients,

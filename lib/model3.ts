@@ -1,12 +1,12 @@
-import SQLManager from './agent3/sqlmanager'
-import MongoManager from './agent3/mongoWorldManager'
+import SQLManager from './model3/sqlmanager'
+import MongoManager from './model3/mongoWorldManager'
 import Os from 'os'
 import { Document, MongoClient as DocClient, MongoClientOptions } from 'mongodb'
-import UnifiedLogger from './agent3/unifiedLogger'
+import UnifiedLogger from './model3/unifiedLogger'
 import { ActionDoc } from './@types/document'
-import Account from './agent3/account'
-import AccountFactory from './agent3/accountFactory'
-import AccountCache from './agent3/accountsCache'
+import Account from './model3/account'
+import AccountFactory from './model3/accountFactory'
+import AccountCache from './model3/accountsCache'
 import { Server } from './@types/models'
 /**
  * @class AccountCluster

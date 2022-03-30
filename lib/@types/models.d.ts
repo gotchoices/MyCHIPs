@@ -1,4 +1,4 @@
-import Account from '../../agent3/account'
+import Account from '../../model3/account'
 
 export interface Lift {
   liftId: number
