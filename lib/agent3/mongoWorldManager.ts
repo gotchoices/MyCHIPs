@@ -1,21 +1,8 @@
-import Account from './account'
-import {
-  MongoClient,
-  Db,
-  Collection,
-  Document,
-  ChangeStream,
-  MongoClientOptions,
-  PushOperator,
-} from 'mongodb'
+import { MongoClient, Db, Collection, Document, ChangeStream } from 'mongodb'
 import Os from 'os'
-import { ActionDoc, PeerDoc } from '../@types/document'
+import { ActionDoc } from '../@types/document'
 import UnifiedLogger from './unifiedLogger'
 import { Lift, Server } from '../@types/models'
-import {
-  addMockFunctionsToSchema,
-  addResolveFunctionsToSchema,
-} from 'apollo-server'
 import WorldManagerInterface from './worldManagerInterface'
 
 class MongoManager implements WorldManagerInterface {
