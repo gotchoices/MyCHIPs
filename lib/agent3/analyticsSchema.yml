@@ -1,0 +1,22 @@
+{ 'Analytics': {
+      'expectedSimulationRuns': 2, # CLI input argument
+      'lifts': [{ 'liftId': '', 'totalAccounts': '', 'success': '' }], # From Lifts collection in mongoDB
+      'Servers': [
+          'peer0': {
+              'accounts': # Tracked in each AgentCluster and eventually output to Accounts collection in mongoDB
+                [
+                  {
+                    'satisfied': '',
+                    'numLifts': '',
+                    'numTimesBalanced': '',
+                    'numTransactions': '',
+                    'numConnections': '',
+                  },
+                ],
+              'finalBalance': 0, # Tracked in each AgentCluster and eventually output to Accounts collection in mongoDB
+              'actualRuns': 50, # Actual number of simulation runs executed by this server. Tracked in each AgentCluster and eventually output to mongoDB
+            },
+          # "peer1": {...}
+          #...
+        ],
+    } }
