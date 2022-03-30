@@ -25,7 +25,9 @@ class MongoManager {
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
   /** A cache in which to store callbacks that need to run when actions sent to foreign servers are completed */
-  private foreignActionCallbackCache!: { [x: string]: (...args: any[]) => any }
+  private foreignActionCallbackCache!: {
+    [x: string]: (...args: any[]) => any
+  }
   private foreignActionTagIndex!: number
 
   private constructor(dbConfig: DBConfig, argv) {
