@@ -1,3 +1,4 @@
+npx prettier --write . 
 npm run tsc
 cd ./test/sim/
 ./simdock startup
