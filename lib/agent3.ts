@@ -1,5 +1,5 @@
 import SQLManager from './agent3/sqlmanager'
-import MongoManager from './agent3/mongomanager'
+import MongoManager from './agent3/mongoWorldManager'
 import Os from 'os'
 import { Document, MongoClient as DocClient, MongoClientOptions } from 'mongodb'
 import UnifiedLogger from './agent3/unifiedLogger'
@@ -7,6 +7,7 @@ import { ActionDoc } from './@types/document'
 import Account from './agent3/account'
 import AccountFactory from './agent3/accountFactory'
 import AccountCache from './agent3/accountsCache'
+import { Server } from './@types/models'
 /**
  * @class AccountCluster
  * Each 'agent' docker container runs an AccountCluster instance
@@ -134,15 +135,13 @@ class AccountCluster {
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
         console.log('\n###RUN NUMBER', this.runCounter, '###')
-
-        // Process each hosted account this round
         this.hostedAccounts.forEach(this.process)
-
-        // If this round falls in the right interval, run some lifts automatically
-        if (this.runCounter % this.params.liftInterval == 0) {
-          this.myChipsDBManager.performAutoLifts()
-        }
       } else {
+        // TODO: Add setTimeout() or otherwise handle asynchronous
+        this.recordFinalAnalytics()
+        console.log(
+          `END OF SIM ************* ${this.host} with ${this.runCounter} runs`
+        )
         this.close()
       }
     }, this.params.interval)
@@ -313,6 +312,16 @@ class AccountCluster {
       'action taken:',
       account.lastActionTaken
     )
+  }
+
+  recordFinalAnalytics() {
+    const currServer: Server = {
+      id: this.host,
+      balance: 0,
+      accounts: this.hostedAccounts.map((account) => account.getAccountData()),
+      actualRuns: this.runCounter, // Actual number of simulation runs executed by this server
+    }
+    this.worldDBManager.analyticsAddServer(currServer)
   }
 }
 

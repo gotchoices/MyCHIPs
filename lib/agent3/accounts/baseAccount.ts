@@ -1,7 +1,7 @@
 // import { WyclifLogger } from '../../@types/global'
 import Action from '../action'
 import Account from '../account'
-import MongoManager from '../mongomanager'
+import MongoManager from '../mongoWorldManager'
 import SQLManager from '../sqlmanager'
 import ActionFactory from '../actionFactory'
 import UnifiedLogger from '../unifiedLogger'
@@ -30,19 +30,14 @@ class BaseAccount implements Account {
   incomeSourceCids: string[]
   stock_seqs: any[]
   types: any[]
-  satisfied: boolean
 
   newIncomeSourceOdds: number
   adjustSettingsOdds: number
   newSpendingTargetOdds: number
   maxSpendingTargets: number
-  desiredSpendingTargets: number
   maxIncomeSources: number
-  desiredIncomeSources: number
   minWorthToSpend: number
   maxToSpend: number
-  diffForLift: number
-  minForSatisfaction: number
 
   worldDBManager: MongoManager
   myChipsDBManager: SQLManager
@@ -63,7 +58,6 @@ class BaseAccount implements Account {
     this.actions.push(ActionFactory.createAction('NewSpendingSource', this))
     // this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet
     this.actions.push(ActionFactory.createAction('SpendCHIPs', this))
-    this.actions.push(ActionFactory.createAction('AskForLift', this))
 
     this.id = accountData.id
     this.std_name = accountData.std_name
@@ -81,7 +75,6 @@ class BaseAccount implements Account {
     this.foil_seqs = accountData.foil_seqs || []
     this.stock_seqs = accountData.stock_seqs || []
     this.netWorth = 0
-    this.satisfied = false
 
     this.hosted_ent = true
     this.lastActionTaken = ''
@@ -95,13 +88,9 @@ class BaseAccount implements Account {
     this.adjustSettingsOdds = accountParams?.adjustSettingsOdds || 0.5
     this.newSpendingTargetOdds = accountParams?.newSpendingTargetOdds || 0.15
     this.maxSpendingTargets = accountParams?.maxSpendingTargets || 2
-    this.desiredSpendingTargets = accountParams?.desiredSpendingTargets || 2
     this.maxIncomeSources = accountParams?.maxIncomeSources || 3
-    this.desiredIncomeSources = accountParams?.desiredIncomeSources || 1
     this.minWorthToSpend = accountParams?.minWorthToSpend || -10000
     this.maxToSpend = accountParams?.maxToSpend || 0.1
-    this.diffForLift = accountParams?.diffForLift || 30
-    this.minForSatisfaction = accountParams?.minForSatisfaction || 5
   }
 
   takeAction(): void {
@@ -111,8 +100,6 @@ class BaseAccount implements Account {
     this.actions.forEach((action) => {
       action.run()
     })
-
-    this.calculateSatisfaction()
   }
 
   acceptNewConnection(message: any) {
@@ -126,16 +113,6 @@ class BaseAccount implements Account {
     )
 
     // TODO: update data here (depends on what kind of connection it is though...)
-  }
-
-  calculateSatisfaction(): void {
-    if (
-      this.numSpendingTargets >= this.desiredSpendingTargets &&
-      this.numIncomeSources >= this.desiredIncomeSources &&
-      this.netWorth >= this.minForSatisfaction
-    ) {
-      this.satisfied = true
-    } else this.satisfied = false
   }
 
   updateAccountData(accountData: AccountData): void {

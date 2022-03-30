@@ -1,8 +1,6 @@
-# This is just an example of how the config might look. 
-# The schema is described in lib/@types/global.d.ts in the AdjustableSimParams and AdjustableAccountParams interfaces
+# This is just an example of how the config might look. The schema should probably be put in a README
 
-interval: 12000   # made this longer to make it easier to watch
-liftInterval: 5
+interval: 2000
 
 accountTypes:
   - type: 'default' 

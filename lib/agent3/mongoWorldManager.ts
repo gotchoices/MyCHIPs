@@ -11,8 +11,14 @@ import {
 import Os from 'os'
 import { ActionDoc, PeerDoc } from '../@types/document'
 import UnifiedLogger from './unifiedLogger'
+import { Lift, Server } from '../@types/models'
+import {
+  addMockFunctionsToSchema,
+  addResolveFunctionsToSchema,
+} from 'apollo-server'
+import WorldManagerInterface from './worldManagerInterface'
 
-class MongoManager {
+class MongoManager implements WorldManagerInterface {
   private static singletonInstance: MongoManager
   private docConfig: DBConfig
   private host: string
@@ -22,12 +28,12 @@ class MongoManager {
   private mongoClient!: MongoClient
   private actionsCollection!: Collection<ActionDoc>
   private accountsCollection!: Collection<Document> //TODO: Change this
+  private analyticsLiftCollection!: Collection<Document>
+  private analyticsServerCollection!: Collection<Document>
   private actionsCollectionStream!: ChangeStream<ActionDoc>
 
   /** A cache in which to store callbacks that need to run when actions sent to foreign servers are completed */
-  private foreignActionCallbackCache!: {
-    [x: string]: (...args: any[]) => any
-  }
+  private foreignActionCallbackCache!: { [x: string]: (...args: any[]) => any }
   private foreignActionTagIndex!: number
 
   private constructor(dbConfig: DBConfig, argv) {
@@ -75,16 +81,17 @@ class MongoManager {
       //Connect to mongodb
       if (err) {
         this.logger.error('in Doc DB connect:', err?.stack)
+        //TODO remove console.logs
         console.log('Error connecting to mongo:', err, err?.stack)
         return
-      }
-      if (client == undefined) {
+      } else if (client == undefined) {
         this.logger.error('Client undefined in Doc DB connect')
         console.log('Mongo client is undefined!')
         return
+      } else {
+        this.logger.info('Connected to mongo simulation database')
+        console.log('Connected to Mongo!')
       }
-
-      console.log('Connected to Mongo!')
 
       this.dbConnection = client.db(this.docConfig.database)
 
@@ -123,9 +130,12 @@ class MongoManager {
       })
 
       this.accountsCollection = this.dbConnection.collection('accounts')
+
+      this.analyticsLiftCollection = this.dbConnection.collection('lifts')
+      this.analyticsServerCollection = this.dbConnection.collection('servers')
       //      this.docAg.createIndex({peer_cid: 1}, {unique: true})		//Should be multicolumn: cid, host
       //      this.docAg.countDocuments((e,r)=>{if (!e) this.worldPop = r})	//Actual people in doc DB
-      this.logger.trace('Connected to doc DB')
+      this.logger.trace('Connected to mongo simulation DB')
 
       loadInitialUsers()
     })
@@ -225,7 +235,7 @@ class MongoManager {
     }
 
     this.accountsCollection
-      // @ts-ignore
+      //@ts-ignore
       .findOneAndUpdate(query, update, options)
       .then(
         (res) => {
@@ -262,6 +272,14 @@ class MongoManager {
         else this.logger.debug('Delete accounts in world:', r)
       }
     )
+  }
+
+  analyticsAddLift(lift: Lift) {
+    this.analyticsLiftCollection.insertOne(lift)
+  }
+
+  analyticsAddServer(server: Server) {
+    this.analyticsServerCollection.insertOne(server)
   }
 }
 

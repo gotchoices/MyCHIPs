@@ -1,11 +1,10 @@
 import Action from '../action'
 import Account from '../account'
 import AccountCache from '../accountsCache'
-import MongoManager from '../mongomanager'
+import MongoManager from '../mongoWorldManager'
 import SQLManager from '../sqlmanager'
 import UnifiedLogger from '../unifiedLogger'
 
-//TODO: Debug! This class isn't working. Use FindNewSpendingTarget as a template to get this one working
 class FindNewIncomeSource implements Action {
   logger: WyclifLogger
   myChipsDBManager: SQLManager

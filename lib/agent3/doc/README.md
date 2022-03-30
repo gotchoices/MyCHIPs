@@ -31,7 +31,11 @@ The Agent 3 Model of the simulation was developed using TypeScript to allow for 
 2. Run `npm tsc` before running the simulation.
 3. Run `./simdock startup`, `./simdock tickets`, and then `./simdock start sim --runs=50` as outlined [here](/doc/sim-docker.md)
 
-\*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence.
+\*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence. Since the simulation is run asynchronously, the script should be run from the command line. We've seen some issues with using VS Code's NPM SCRIPTS runner.
+
+## Prettier & ESLint
+
+This project uses esLint and Prettier to format and check the simulation TypeScript files for syntax errors. Make sure to set up your IDE to use these tools (preferably Prettier formats on each save). To format everything at once, run `npx prettier --write .`. Before committing, make sure to run npm tsc to apply style changes to JS files as well.
 
 ## Structure Overview
 

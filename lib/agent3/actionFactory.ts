@@ -3,7 +3,6 @@ import SpendCHIPs from './actions/spendCHIPs'
 import Action from './action'
 import FindNewSpendingTarget from './actions/findNewSpendingTarget'
 import FindNewIncomeSource from './actions/findNewIncomeSource'
-import AskForLift from './actions/askForLift'
 
 class ActionFactory {
   public static createAction(actionType: string, account: Account) {
@@ -15,8 +14,6 @@ class ActionFactory {
       action = new FindNewIncomeSource(account)
     } else if (actionType === 'SpendCHIPs') {
       action = new SpendCHIPs(account)
-    } else if (actionType === 'AskForLift') {
-      action = new AskForLift(account)
     }
     // Add more types here...
     else {
