@@ -66,7 +66,7 @@ class SQLManager {
     notifyOfParamsChange: (target: string, value: any) => void,
     notifyOfTallyChange: (msg: any) => void
   ) {
-    console.log("Connecting to MyCHIPs DB...")
+    console.log('Connecting to MyCHIPs DB...')
     this.dbConnection = new dbClient(this.config, (channel, payload) => {
       //Initialize Database connection
       let msg: any
@@ -92,12 +92,15 @@ class SQLManager {
         if (msg.target == 'tally') notifyOfTallyChange(msg)
       }
     })
-    console.log("MyCHIPs DB Connected!")
+    console.log('MyCHIPs DB Connected!')
     this.logger.info('SQL Connection Created')
   }
 
-  addPeerAccount(accountData: AccountData, callback?: (newGuy: AccountData)=>void) {
-    console.log("Adding", accountData.peer_cid, "to local DB")
+  addPeerAccount(
+    accountData: AccountData,
+    callback?: (newGuy: AccountData) => void
+  ) {
+    console.log('Adding', accountData.peer_cid, 'to local DB')
     this.dbConnection.query(
       peerSql,
       [
@@ -120,7 +123,7 @@ class SQLManager {
           newGuy.std_name,
           newGuy.peer_socket
         )
-        console.log("Added", newGuy.peer_cid, "to local DB")
+        console.log('Added', newGuy.peer_cid, 'to local DB')
         if (callback) callback(newGuy)
       }
     )
@@ -132,7 +135,12 @@ class SQLManager {
     let contract = { name: 'mychips-0.99' }
 
     this.logger.debug('Tally request:', requestingAccountID, targetAccountID)
-    console.log("Making a connection/tally between", requestingAccountID, "and", targetAccountID)
+    console.log(
+      'Making a connection/tally between',
+      requestingAccountID,
+      'and',
+      targetAccountID
+    )
 
     this.query(
       'insert into mychips.tallies_v (tally_ent, tally_guid, partner, user_sig, contract, request) values ($1, $2, $3, $4, $5, $6);',
@@ -140,7 +148,12 @@ class SQLManager {
       (err, res) => {
         if (err) {
           this.logger.error('Inserting a tally:', err.stack)
-          console.log("Error while making tally between", requestingAccountID, "and", targetAccountID)
+          console.log(
+            'Error while making tally between',
+            requestingAccountID,
+            'and',
+            targetAccountID
+          )
           console.log(err)
           return
         }
@@ -190,7 +203,14 @@ class SQLManager {
       (e, r) => {
         if (e) {
           this.logger.error('In payment:', e.stack)
-          console.log("Error when", spenderId, "tried to pay", receiverId, chipsToSpend, "chips")
+          console.log(
+            'Error when',
+            spenderId,
+            'tried to pay',
+            receiverId,
+            chipsToSpend,
+            'chips'
+          )
           return
         }
 
@@ -216,7 +236,7 @@ class SQLManager {
       callback(res.rows)
     })
   }
-  
+
   /**
    * Executes database query to get all initial acounts
    * @param callback: eatAccounts - loads queried accounts into the worldDB
@@ -224,7 +244,7 @@ class SQLManager {
   // ! TODO Does this fetch from all peers?
   // ! ANSWER No, just from the matching pg database/container
   queryUsers(callback: (agents: AccountData[], all: boolean) => any) {
-    console.log("Getting users from MyCHIPs DB")
+    console.log('Getting users from MyCHIPs DB')
     this.query(userSql, (err: any, res: any) => {
       if (err) {
         this.logger.error('Getting Users:', err.stack)
@@ -235,7 +255,7 @@ class SQLManager {
     })
   }
 
-  queryLatestUsers(time: string, callback: (accounts: AccountData[])=>any) {
+  queryLatestUsers(time: string, callback: (accounts: AccountData[]) => any) {
     this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
       if (err) {
         this.logger.error('Getting latest Users:', err.stack)
@@ -253,18 +273,14 @@ class SQLManager {
   /** Starts a lift starting from a given peer. I don't know what it means to have a bottom or end peer though... */
   requestLift(start_peer_cid: string, end_peer_cid?: string): void {
     this.dbConnection.query(
-      "select mychips.lift_circuit($1, $2)",
-      [
-        start_peer_cid,
-        end_peer_cid
-      ],
+      'select mychips.lift_circuit($1, $2)',
+      [start_peer_cid, end_peer_cid],
       (err, result) => {
         if (err) {
           this.logger.error("Can't start a lift:", err)
-          console.log("Error when starting a lift!", err)
-        }
-        else {
-          console.log("We did a lift!\n", result)
+          console.log('Error when starting a lift!', err)
+        } else {
+          console.log('We did a lift!\n', result)
         }
       }
     )
@@ -272,14 +288,13 @@ class SQLManager {
 
   /** Searches for lifts on this server and performs them */
   performAutoLifts(): void {
-    console.log("Running automatic lifts!\n")
-    this.dbConnection.query("select mychips.lift_cycle(100)", (err, result) => {
+    console.log('Running automatic lifts!\n')
+    this.dbConnection.query('select mychips.lift_cycle(100)', (err, result) => {
       if (err) {
-        this.logger.error("Automatic lifts:", err)
-        console.log("Error when doing auto lifts!", err)
-      }
-      else {
-        console.log("Results from auto lifts:\n", result)
+        this.logger.error('Automatic lifts:', err)
+        console.log('Error when doing auto lifts!', err)
+      } else {
+        console.log('Results from auto lifts:\n', result)
       }
     })
   }

@@ -73,16 +73,16 @@ class MongoManager {
       //Connect to mongodb
       if (err) {
         this.logger.error('in Doc DB connect:', err?.stack)
-        console.log("Error connecting to mongo:", err, err?.stack)
+        console.log('Error connecting to mongo:', err, err?.stack)
         return
       }
       if (client == undefined) {
         this.logger.error('Client undefined in Doc DB connect')
-        console.log("Mongo client is undefined!")
+        console.log('Mongo client is undefined!')
         return
       }
 
-      console.log("Connected to Mongo!")
+      console.log('Connected to Mongo!')
 
       this.dbConnection = client.db(this.docConfig.database)
 
@@ -110,7 +110,7 @@ class MongoManager {
         } else if (doc.action == 'done') {
           // Someone has told me that an action I requested is done
           this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
-          console.log("Remote action done:", doc.tag, "target:", doc.from)
+          console.log('Remote action done:', doc.tag, 'target:', doc.from)
           this.foreignActionCallbackCache[doc.tag]()
           delete this.foreignActionCallbackCache[doc.tag]
         }
@@ -140,11 +140,17 @@ class MongoManager {
     data?: any,
     callback?: () => void
   ) {
-    console.log("Adding", command, "action to db...")
-    if (data) console.log("with data")
-    if (callback) console.log("and callback")
+    console.log('Adding', command, 'action to db...')
+    if (data) console.log('with data')
+    if (callback) console.log('and callback')
     this.actionsCollection.insertOne(
-      { action: command, tag: tag, host: destinationHost, from: this.host, data: data },
+      {
+        action: command,
+        tag: tag,
+        host: destinationHost,
+        from: this.host,
+        data: data,
+      },
       (err, res) => {
         if (err) {
           this.logger.error(
@@ -153,16 +159,15 @@ class MongoManager {
             'to:',
             destinationHost
           )
-          console.log("Error adding action to db:", err)
-        }
-        else {
+          console.log('Error adding action to db:', err)
+        } else {
           this.logger.info(
             'Sent remote action:',
             command,
             'to:',
             destinationHost
           )
-          console.log("Added", command, "action for", destinationHost)
+          console.log('Added', command, 'action for', destinationHost)
         }
       }
     )
@@ -181,15 +186,13 @@ class MongoManager {
       (e, r) => {
         if (e) {
           this.logger.error(e.message)
-          console.log("Error updating account:", account.std_name, e)
-        }
-        else {
+          console.log('Error updating account:', account.std_name, e)
+        } else {
           this.logger.trace('Add/update account:', r)
-          console.log("Account", account.std_name, "added to mongo!")
+          console.log('Account', account.std_name, 'added to mongo!')
         }
       }
     )
-
   }
 
   findPeerAndUpdate(
@@ -218,27 +221,31 @@ class MongoManager {
       //Sort by
       sort: { foils: 1, random: -1 },
     }
-    // @ts-ignore
-    this.accountsCollection.findOneAndUpdate(query, update, options).then(
-      (res) => {
-        if (res.ok) {
-          this.logger.verbose(
-            '  Best peer:',
-            res?.value?.std_name,
-            res?.value?.host
-          )
-          callback(res.value)
-        } else {
-          this.logger.info('  No peer found:')
-          callback(null)
+
+    this.accountsCollection
+      // @ts-ignore
+      .findOneAndUpdate(query, update, options)
+      .then(
+        (res) => {
+          if (res.ok) {
+            this.logger.verbose(
+              '  Best peer:',
+              res?.value?.std_name,
+              res?.value?.host
+            )
+            callback(res.value)
+          } else {
+            this.logger.info('  No peer found:')
+            callback(null)
+          }
+        },
+        (err) => {
+          this.logger.error('  Error finding a peer:', err)
         }
-      },
-      (err) => {
-        this.logger.error('  Error finding a peer:', err)
-      }
-    ).catch((reason) => {
-      this.logger.info(' No peer found:', reason)
-    })
+      )
+      .catch((reason) => {
+        this.logger.info(' No peer found:', reason)
+      })
   }
 
   deleteAllAccountsExcept(accountsToKeep: string[]): void {
