@@ -5,10 +5,10 @@ import UnifiedLogger from './unifiedLogger'
 import { v4 as uuidv4 } from 'uuid'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
-	peer_cid, peer_sock, stocks, foils, partners, vendors, clients,
-	vendor_cids, client_cids, stock_seqs, foil_seqs, units, types, seqs, targets
+	peer_cid, peer_agent, peer_host, peer_port, mychips.user_cert(id) as cert, stocks, foils, part_cids, vendors, clients,
+	vendor_cids, vendor_agents, client_cids, stock_seqs, foil_seqs, units, types, seqs, targets
 	from mychips.users_v_tallysum
-	where not peer_ent isnull`
+	where not user_ent isnull`
 const peerSql = `insert into mychips.peers_v 
 	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
 	values ($1, $2, $3, $4, $5, $6, $7) returning *`
@@ -40,7 +40,7 @@ class SQLManager {
     this.config = Object.assign(
       {
         log: this.logger,
-        listen: ['parm_agent', 'mychips_admin', 'mychips_user'],
+        listen: ['parm_model', 'mychips_admin', 'mychips_user'],
       },
       sqlConfig
     )
@@ -77,7 +77,7 @@ class SQLManager {
         } catch (e) {
           this.logger.error('Parsing json payload: ' + payload)
         }
-      if (channel == 'parm_agent') {
+      if (channel == 'parm_model') {
         //Parameter updated
         this.logger.debug('Parameter', msg.target, '=', msg.value, msg)
         if (msg.target in this.params && msg.value)
@@ -88,8 +88,11 @@ class SQLManager {
           notifyOfAccountChange(msg)
         }
       } else if (channel == 'mychips_user') {
-        //Respond as a real user would to a request/event
-        if (msg.target == 'tally') notifyOfTallyChange(msg)
+        //Another account is contacting us
+        if (msg.target == 'tally') {
+          //Someone wants to make a tally with one of our accounts
+          notifyOfTallyChange(msg)
+        }
       }
     })
     console.log('MyCHIPs DB Connected!')
@@ -129,22 +132,38 @@ class SQLManager {
     )
   }
 
-  addConnectionRequest(requestingAccountID: string, targetAccountID: string) {
-    let guid = uuidv4()
+  addConnectionRequest(
+    requestingAccountID: string,
+    requestingAccountCertificate: certificate,
+    targetAccountCertificate: certificate
+  ) {
+    let uuid = uuidv4()
     let sig = 'Valid'
     let contract = { name: 'mychips-0.99' }
 
-    this.logger.debug('Tally request:', requestingAccountID, targetAccountID)
+    this.logger.debug(
+      'Tally request:',
+      requestingAccountID,
+      targetAccountCertificate
+    )
     console.log(
       'Making a connection/tally between',
       requestingAccountID,
       'and',
-      targetAccountID
+      targetAccountCertificate
     )
 
     this.query(
-      'insert into mychips.tallies_v (tally_ent, tally_guid, partner, user_sig, contract, request) values ($1, $2, $3, $4, $5, $6);',
-      [requestingAccountID, guid, targetAccountID, sig, contract, 'draft'],
+      'insert into mychips.tallies_v (tally_ent, tally_uuid, contract, request, hold_cert, part_cert, hold_sig) values ($1, $2, $3, $4, $5, $6, $7);',
+      [
+        requestingAccountID,
+        uuid,
+        contract,
+        'offer',
+        requestingAccountCertificate,
+        targetAccountCertificate,
+        sig,
+      ],
       (err, res) => {
         if (err) {
           this.logger.error('Inserting a tally:', err.stack)
@@ -152,7 +171,7 @@ class SQLManager {
             'Error while making tally between',
             requestingAccountID,
             'and',
-            targetAccountID
+            targetAccountCertificate
           )
           console.log(err)
           return
@@ -161,7 +180,7 @@ class SQLManager {
           '  Initial tally by:',
           requestingAccountID,
           ' with partner:',
-          targetAccountID
+          targetAccountCertificate
         )
       }
     )
@@ -243,7 +262,7 @@ class SQLManager {
    * */
   // ! TODO Does this fetch from all peers?
   // ! ANSWER No, just from the matching pg database/container
-  queryUsers(callback: (agents: AccountData[], all: boolean) => any) {
+  queryAccounts(callback: (agents: AccountData[], first: boolean) => any) {
     console.log('Getting users from MyCHIPs DB')
     this.query(userSql, (err: any, res: any) => {
       if (err) {

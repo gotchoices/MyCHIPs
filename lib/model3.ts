@@ -10,7 +10,7 @@ import AccountCache from './model3/accountsCache'
 import { Server } from './@types/models'
 /**
  * @class AccountCluster
- * Each 'agent' docker container runs an AccountCluster instance
+ * Each 'model' docker container runs an AccountCluster instance
 which is in charge of managing the simulation for that container 
  * Each AccountCluster instance has exclusive access to its corresponding MyChips database and shared access to the World database. 
  * The World database is the means by which the AccountClusters communicate
@@ -22,6 +22,7 @@ which is in charge of managing the simulation for that container
 class AccountCluster {
   private networkConfig: NetworkConfig
   private host: string
+  private agent: string
 
   /** Contains the adjustable values of the simulation */
   private params!: AdjustableSimParams
@@ -44,10 +45,12 @@ class AccountCluster {
     worldDBConfig: DBConfig,
     networkConfig: NetworkConfig
   ) {
-    console.log('STARTING AGENT MODEL * VERSION 3 *')
+    console.log('STARTING MODEL * VERSION 3 *')
     this.networkConfig = networkConfig
-    this.host = networkConfig.peerServer || Os.hostname()
+    this.host = Os.hostname()
+    this.agent = networkConfig.agent
     console.log('SERVER:', this.host)
+    console.log('AGENT:', this.agent)
 
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
@@ -76,7 +79,7 @@ class AccountCluster {
 
     this.logger.debug('Loading parameters from config file')
     try {
-      let fileContents = fs.readFileSync(__dirname + '/agent3/paramConfig.yaml')
+      let fileContents = fs.readFileSync(__dirname + '/model3/paramConfig.yaml')
       this.params = yaml.load(fileContents)
       console.log(this.params)
     } catch (e) {
@@ -153,7 +156,7 @@ class AccountCluster {
    */
   loadInitialUsers() {
     this.logger.debug('Loading initial accounts')
-    this.myChipsDBManager.queryUsers(this.eatAccounts) //Load up initial set of users
+    this.myChipsDBManager.queryAccounts(this.eatAccounts) //Load up initial set of users
   }
 
   // gets accounts from SQL and puts hosted account info into MongoDB
@@ -200,51 +203,48 @@ class AccountCluster {
    * Takes the accounts from the MyChipsDBManager and loads them into the worldDB. Called whenever there is a change in the users table (postgres)
    *  @param dbAccounts - array of accounts fetched from MyChips Databases
    * * First time it's run dbAccounts (which contains postgres data) only has local data, on subsequence it has both local and world data, so it filters and only updates worldDB with local accounts
-   * @param all - boolean that states whether dbAccounts includes all accounts
+   * @param first - boolean that states whether this is the first time being run
    */
-  eatAccounts(dbAccounts: AccountData[], all?: boolean) {
+  eatAccounts(dbAccounts: AccountData[], first?: boolean) {
     // Make sure document db is connected and ready
     if (!this.worldDBManager.isDBClientConnected()) {
       return
     }
 
-    // Filter out the accounts that are on our local server
     console.log('\nAccounts updated:', dbAccounts.length)
-    let localAccounts: AccountData[] = []
+
+    // All accounts getting loaded are local now
     dbAccounts.forEach((dbAccount) => {
-      if (dbAccount.user_ent) {
-        // Publish account data to world DB only for local accounts
-        dbAccount.hosted_ent = true
-        localAccounts.push(dbAccount)
-        this.worldDBManager.updateOneAccount(dbAccount)
-      }
+      dbAccount.hosted_ent = true
+      dbAccount.agent = this.agent
+
       // Put data for all accounts into our cache
       this.accountCache.addAccount(dbAccount)
     })
 
     // If loading all users (loading for the first time)
-    if (all) {
+    if (first) {
       console.log('Creating my account objects!')
       // Ensure all accounts hosted on this server have an Account object
       let typesToMake: [string, AdjustableAccountParams?][] = []
       this.params.accountTypes.forEach((accountType) => {
         for (
           let i = 0;
-          i < Math.round(accountType.percentOfTotal * localAccounts.length);
+          i < Math.round(accountType.percentOfTotal * dbAccounts.length);
           i++
         ) {
           typesToMake.push([accountType.type, accountType])
         }
       })
 
-      for (let i = 0; i < localAccounts.length - typesToMake.length; i++) {
+      for (let i = 0; i < dbAccounts.length - typesToMake.length; i++) {
         typesToMake.push(['default', undefined])
       }
       let hostedAccountIds: string[] = []
-      for (let i = 0; i < localAccounts.length; i++) {
+      for (let i = 0; i < dbAccounts.length; i++) {
         let newAccount = AccountFactory.createAccount(
           typesToMake[i][0],
-          localAccounts[i],
+          dbAccounts[i],
           this.host,
           typesToMake[i][1]
         )
@@ -253,14 +253,15 @@ class AccountCluster {
         hostedAccountIds.push(newAccount.peer_cid)
       }
 
-      this.worldDBManager.deleteAllAccountsExcept(hostedAccountIds)
+      // Start the simulation! It starts here because it can't start until the accounts are loaded and that happens here in a callback to an async method.
       this.startSimulationRound()
     } else {
       console.log('Updating my local accounts')
-      localAccounts.forEach((accountData) => {
+      dbAccounts.forEach((accountData) => {
         this.hostedAccounts.forEach((hostedAccount) => {
           if (hostedAccount.peer_cid == accountData.peer_cid) {
             hostedAccount.updateAccountData(accountData)
+            this.worldDBManager.updateOneAccount(hostedAccount.getAccountData())
           }
         })
       })

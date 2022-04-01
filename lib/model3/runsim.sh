@@ -5,5 +5,5 @@ export PATH="$(pwd)/../../node_modules/.bin:$PATH"
 export NODE_DEBUG=debug
 ./simdock startup
 sleep 30
-./simdock ticket 0
-./simdock start sim --runs=50
+# ./simdock ticket 0 # breaks on the new version
+./simdock start sim --runs=10

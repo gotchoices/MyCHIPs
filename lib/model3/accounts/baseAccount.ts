@@ -12,6 +12,8 @@ class BaseAccount implements Account {
   ent_name: string
   first_name: string
   peer_cid: any
+  agent: string
+  certificate: certificate
   host: string
   birthday: string
   entity_type: string
@@ -65,6 +67,8 @@ class BaseAccount implements Account {
     this.first_name = accountData.fir_name
     this.peer_cid = accountData.peer_cid
     this.peer_socket = accountData.peer_sock
+    this.agent = accountData.agent
+    this.certificate = accountData.cert
     this.host = host
     this.entity_type = accountData.ent_type || 'p'
     this.birthday = accountData.born_date || 'yesterday'
@@ -150,6 +154,8 @@ class BaseAccount implements Account {
       ent_type: this.entity_type,
       user_ent: this.id,
       peer_cid: this.peer_cid,
+      agent: this.agent,
+      cert: this.certificate,
       peer_sock: this.peer_socket,
       born_date: this.birthday,
       stocks: this.numIncomeSources,

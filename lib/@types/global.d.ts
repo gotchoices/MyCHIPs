@@ -66,6 +66,8 @@ interface AccountData {
   user_ent: string
   hosted_ent?: boolean | null
   peer_cid: string
+  agent: string
+  cert: certificate
   /** Assigned peer socket (ex: 'peer2:65430') */
   peer_sock: string
   /** The number of stocks (income sources) that this account holds */
@@ -100,6 +102,32 @@ interface AccountData {
   peer_port?: string
 }
 
+interface certificate {
+  chad: {
+    cid: string
+    host: string
+    port: number
+    agent: string
+  }
+  data: string
+  name: {
+    first: string
+    surname: string
+  }
+  type: string
+  place: string | undefined
+  public: string | undefined
+  connect: string | undefined
+  indentity: {
+    birth: {
+      date: string
+    }
+    state: {
+      country: string
+    }
+  }
+}
+
 /** Used when pulling data from SQL */
 interface ParamData {
   name: string
@@ -111,9 +139,9 @@ interface NetworkConfig {
   _: any[]
   m: number
   model: number
-  peerServer: string
-  s: string
-  'peer-server': string
+  // peerServer: string
+  // s: string
+  // 'peer-server': string
   runs: number
   dbHost: string
   H: string
@@ -121,9 +149,12 @@ interface NetworkConfig {
   dbName: string
   D: string
   'db-name': string
-  dbAdmin: string
-  A: string
-  'db-admin': string
+  // dbAdmin: string
+  // A: string
+  // 'db-admin': string
+  dbUser: string
+  U: string
+  'db-user': string
   dbPort: number | undefined
   P: number | undefined
   'db-port': number | undefined
@@ -133,7 +164,11 @@ interface NetworkConfig {
   ddName: string
   d: string
   'dd-name': string
-  ddAdmin: string
+  // ddAdmin: string
+  ddUser: string
+  u: string
+  'dd-user': string
+  agent: string
   a: string
   'dd-admin': string
   ddPort: string

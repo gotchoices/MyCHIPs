@@ -9,6 +9,10 @@ interface Account {
   peer_cid: any
   /** ID of the hosting server */
   host: string
+  /** Something new that helps uniquely identify an account */
+  agent: string
+  /** Something new that helps uniquely identify an account */
+  certificate: certificate
   /** Birthday of the user */
   birthday: string
   /** The type of entity */

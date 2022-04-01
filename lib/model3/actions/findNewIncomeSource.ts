@@ -51,7 +51,8 @@ class FindNewIncomeSource implements Action {
             () => {
               this.myChipsDBManager.addConnectionRequest(
                 this.account.id,
-                newPeer.id
+                this.account.certificate,
+                newPeer.cert
               )
               // TODO: This stuff should only be done when the connection is accepted by the peer. Right now the peers always accept requests, so we can do it here. I'm not sure how we will get notified when the connection is accepted...
               this.account.numIncomeSources++
