@@ -11,37 +11,49 @@ interface Account {
   host: string
   /** Something new that helps uniquely identify an account */
   agent: string
+  /** The port this agent can be found on */
+  port: number
   /** Something new that helps uniquely identify an account */
   certificate: certificate
-  /** Birthday of the user */
-  birthday: string
   /** The type of entity */
   entity_type: string
-  peer_socket: string
-  /** The number of spending targets (foils) this entity holds */
-  numSpendingTargets: number
-  stock_seqs: number[]
-  /** The number of income sources (stocks) this entity holds */
-  numIncomeSources: number
-  foil_seqs: number[]
-  /** Net CHIPs owned by this account */
-  netWorth: number
-  /** Indicates whether the entity is hosted on this server or not (will we be representing non hosted entities?) */
-  hosted_ent: boolean
   /** List of actions this entity can take */
   actions: Action[]
-  lastActionTaken: string
+  /** Used to randomly sort agents in the world DB */
+  random: number
+
+  /** The number of spending targets (foils) this entity holds */
+  numSpendingTargets: number
   /** Other entities' IDs I hold the foil for (I give them money) aka Vendors*/
   spendingTargets: string[]
   /** Other entities' CIDs I hold the foil for */
   spendingTargetCids: string[]
+  /** Sequence numbers for foils */
+  foilSequenceNums: number[]
+  /** List of agents for our spending targets */
+  spendingTargetAgents: string[]
+
+  /** The number of income sources (stocks) this entity holds */
+  numIncomeSources: number
   /** Other entities' IDs I hold the stock for (they give me money) aka Clients */
   incomeSources: string[]
   /** Other entities' CIDs I hold the stock for */
   incomeSourceCids: string[]
-  types: any[]
-  /** Used to randomly sort agents in the world DB */
-  random: number
+  /** Sequence numbers for stocks */
+  stockSequenceNums: number[]
+  /** List of agents for our income sources */
+  incomeSourceAgents: string[]
+
+  /** Other entities' CIDs I have tallies with */
+  partnerCids: string[]
+  /** The types of each of my tallies ('stock' or 'foil') */
+  tallyTypes: string[]
+  /** Sequence numbers for all my tallies */
+  sequenceNums: number[]
+  /** Targets??? for my tallies */
+  targets: string[]
+  /** Net CHIPs owned by this account */
+  netWorth: number
 
   /** A percentage defining how often this entity will try to add a new spending target (vendor or stock) */
   newSpendingTargetOdds: number

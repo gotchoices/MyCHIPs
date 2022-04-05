@@ -1,14 +1,7 @@
 import { Server, Lift } from '../@types/models'
 
 interface WorldManagerInterface {
-  createConnection(
-    notifyOfNewAccountRequest: (
-      accountData: AccountData,
-      tag: string,
-      destHost: string
-    ) => void,
-    loadInitialUsers: () => void
-  ): void
+  createConnection(loadInitialUsers: () => void): void
 
   isDBClientConnected(): boolean
 

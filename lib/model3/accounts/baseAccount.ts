@@ -15,23 +15,28 @@ class BaseAccount implements Account {
   agent: string
   certificate: certificate
   host: string
-  birthday: string
+  port: number
   entity_type: string
-  peer_socket: string
   random: number
-  numSpendingTargets: number
-  numIncomeSources: number
-  foil_seqs: number[]
-  netWorth: number
-  hosted_ent: boolean
   actions: Action[]
-  lastActionTaken: string
+
+  numSpendingTargets: number
   spendingTargets: string[]
   spendingTargetCids: string[]
+  foilSequenceNums: number[]
+  spendingTargetAgents: string[]
+
+  numIncomeSources: number
   incomeSources: string[]
   incomeSourceCids: string[]
-  stock_seqs: any[]
-  types: any[]
+  stockSequenceNums: any[]
+  incomeSourceAgents: string[]
+
+  partnerCids: string[]
+  targets: string[]
+  sequenceNums: number[]
+  tallyTypes: any[]
+  netWorth: number
 
   newIncomeSourceOdds: number
   adjustSettingsOdds: number
@@ -66,27 +71,30 @@ class BaseAccount implements Account {
     this.ent_name = accountData.ent_name
     this.first_name = accountData.fir_name
     this.peer_cid = accountData.peer_cid
-    this.peer_socket = accountData.peer_sock
-    this.agent = accountData.agent
+    this.agent = accountData.peer_agent
     this.certificate = accountData.cert
-    this.host = host
+    this.host = accountData.peer_host || host
+    this.port = accountData.peer_port
     this.entity_type = accountData.ent_type || 'p'
-    this.birthday = accountData.born_date || 'yesterday'
     this.random = Math.random()
 
-    this.numSpendingTargets = 0
-    this.numIncomeSources = 0
-    this.foil_seqs = accountData.foil_seqs || []
-    this.stock_seqs = accountData.stock_seqs || []
-    this.netWorth = 0
+    this.numSpendingTargets = accountData.foils || 0
+    this.foilSequenceNums = accountData.foil_seqs || []
+    this.spendingTargets = accountData.vendors || []
+    this.spendingTargetCids = accountData.vendor_cids || []
+    this.spendingTargetAgents = accountData.vendor_agents || []
 
-    this.hosted_ent = true
-    this.lastActionTaken = ''
-    this.spendingTargets = []
-    this.spendingTargetCids = []
-    this.incomeSources = []
-    this.incomeSourceCids = []
-    this.types = []
+    this.numIncomeSources = accountData.stocks || 0
+    this.stockSequenceNums = accountData.stock_seqs || []
+    this.incomeSources = accountData.clients || []
+    this.incomeSourceCids = accountData.client_cids || []
+    this.incomeSourceAgents = accountData.client_agents || []
+
+    this.partnerCids = accountData.part_cids || []
+    this.targets = accountData.targets || []
+    this.sequenceNums = accountData.seqs || []
+    this.tallyTypes = accountData.types || []
+    this.netWorth = +accountData.units || 0
 
     this.newIncomeSourceOdds = accountParams?.newIncomeSourceOdds || 0.1
     this.adjustSettingsOdds = accountParams?.adjustSettingsOdds || 0.5
@@ -126,23 +134,30 @@ class BaseAccount implements Account {
     this.ent_name = accountData.ent_name
     this.first_name = accountData.fir_name
     this.peer_cid = accountData.peer_cid
-    this.peer_socket = accountData.peer_sock
-    this.entity_type = accountData.ent_type || 'p'
-    this.birthday = accountData.born_date || 'yesterday'
+    this.agent = accountData.peer_agent
+    this.certificate = accountData.cert
+    this.host = accountData.peer_host
+    this.port = accountData.peer_port
+    this.entity_type = accountData.ent_type
     this.random = Math.random()
 
-    this.numSpendingTargets = accountData.stocks
-    this.numIncomeSources = accountData.foils
-    this.foil_seqs = accountData.foil_seqs
-    this.stock_seqs = accountData.stock_seqs
-    this.netWorth = accountData.units
-
-    this.hosted_ent = true
+    this.numSpendingTargets = accountData.foils
     this.spendingTargets = accountData.vendors
     this.spendingTargetCids = accountData.vendor_cids || []
+    this.foilSequenceNums = accountData.foil_seqs
+    this.spendingTargetAgents = accountData.vendor_agents || []
+
+    this.numIncomeSources = accountData.stocks
     this.incomeSources = accountData.clients
     this.incomeSourceCids = accountData.client_cids || []
-    this.types = accountData.types || []
+    this.stockSequenceNums = accountData.stock_seqs
+    this.incomeSourceAgents = accountData.client_agents || []
+
+    this.partnerCids = accountData.part_cids
+    this.targets = accountData.targets || []
+    this.sequenceNums = accountData.seqs
+    this.tallyTypes = accountData.types || []
+    this.netWorth = +accountData.units
   }
 
   getAccountData(): AccountData {
@@ -154,23 +169,29 @@ class BaseAccount implements Account {
       ent_type: this.entity_type,
       user_ent: this.id,
       peer_cid: this.peer_cid,
-      agent: this.agent,
+      peer_host: this.host,
+      peer_agent: this.agent,
+      peer_port: this.port,
       cert: this.certificate,
-      peer_sock: this.peer_socket,
-      born_date: this.birthday,
-      stocks: this.numIncomeSources,
-      foils: this.numSpendingTargets,
-      partners: [...this.spendingTargets, ...this.incomeSources],
-      vendors: this.spendingTargets,
-      clients: this.incomeSources,
-      vendor_cids: this.spendingTargetCids,
-      client_cids: this.incomeSourceCids,
-      stock_seqs: this.stock_seqs,
-      foil_seqs: this.foil_seqs,
-      units: this.netWorth,
-      seqs: [...this.stock_seqs, ...this.foil_seqs],
       random: this.random,
-      host: this.host,
+
+      stocks: this.numIncomeSources,
+      clients: this.incomeSources,
+      client_cids: this.incomeSourceCids,
+      stock_seqs: this.stockSequenceNums,
+      client_agents: this.incomeSourceAgents,
+
+      foils: this.numSpendingTargets,
+      vendors: this.spendingTargets,
+      vendor_cids: this.spendingTargetCids,
+      foil_seqs: this.foilSequenceNums,
+      vendor_agents: this.spendingTargetAgents,
+
+      part_cids: this.partnerCids,
+      targets: this.targets,
+      types: this.tallyTypes,
+      units: this.netWorth,
+      seqs: this.sequenceNums,
     }
   }
 }

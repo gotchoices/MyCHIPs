@@ -9,9 +9,6 @@ const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	vendor_cids, vendor_agents, client_cids, stock_seqs, foil_seqs, units, types, seqs, targets
 	from mychips.users_v_tallysum
 	where not user_ent isnull`
-const peerSql = `insert into mychips.peers_v 
-	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
-	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
 
 interface Config extends DBConfig {
@@ -31,6 +28,8 @@ class SQLManager {
   // private database: string
   // private user: string
   // private port: string
+  /** Used to make sure that users are only loaded once */
+  private loadingUsers: boolean = false
 
   private constructor(sqlConfig: DBConfig, params: AdjustableSimParams) {
     this.logger = UnifiedLogger.getInstance()
@@ -99,39 +98,6 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
-  addPeerAccount(
-    accountData: AccountData,
-    callback?: (newGuy: AccountData) => void
-  ) {
-    console.log('Adding', accountData.peer_cid, 'to local DB')
-    this.dbConnection.query(
-      peerSql,
-      [
-        accountData.ent_name,
-        accountData.fir_name,
-        accountData.ent_type,
-        accountData.born_date,
-        accountData.peer_cid,
-        accountData.peer_host || accountData.peer_sock.split(':')[0]!,
-        accountData.peer_port || accountData.peer_sock.split(':')[1]!,
-      ],
-      (err, res) => {
-        if (err) {
-          this.logger.error('Adding peer:', accountData.peer_cid, err.stack)
-          return
-        }
-        let newGuy = res.rows[0]
-        this.logger.debug(
-          '  Inserting partner locally:',
-          newGuy.std_name,
-          newGuy.peer_socket
-        )
-        console.log('Added', newGuy.peer_cid, 'to local DB')
-        if (callback) callback(newGuy)
-      }
-    )
-  }
-
   addConnectionRequest(
     requestingAccountID: string,
     requestingAccountCertificate: certificate,
@@ -148,9 +114,9 @@ class SQLManager {
     )
     console.log(
       'Making a connection/tally between',
-      requestingAccountID,
+      requestingAccountCertificate.chad.cid,
       'and',
-      targetAccountCertificate
+      targetAccountCertificate.chad.cid
     )
 
     this.query(
@@ -275,18 +241,25 @@ class SQLManager {
   }
 
   queryLatestUsers(time: string, callback: (accounts: AccountData[]) => any) {
-    this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
-      if (err) {
-        this.logger.error('Getting latest Users:', err.stack)
-        return
-      }
-      this.logger.trace('Loaded accounts:', res.rows.length)
-      callback(res.rows)
-    })
-  }
-
-  queryPeers(callback: (err: any, res: any) => any) {
-    this.query(peerSql, callback)
+    // Only load users once at time
+    if (!this.loadingUsers) {
+      this.loadingUsers = true
+      this.query(
+        userSql + ' and latest >= $1',
+        [time],
+        (err: any, res: any) => {
+          this.loadingUsers = false
+          if (err) {
+            this.logger.error('Getting latest Users:', err.stack)
+            return
+          }
+          this.logger.trace('Loaded accounts:', res.rows.length)
+          callback(res.rows)
+        }
+      )
+    } else {
+      console.log("Tried to query users when I'm already doing that!")
+    }
   }
 
   query(...args: any[]) {

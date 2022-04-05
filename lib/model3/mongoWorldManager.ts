@@ -1,6 +1,5 @@
-import { MongoClient, Db, Collection, Document, ChangeStream } from 'mongodb'
+import { MongoClient, Db, Collection, Document } from 'mongodb'
 import Os from 'os'
-import { ActionDoc } from '../@types/document'
 import UnifiedLogger from './unifiedLogger'
 import { Lift, Server } from '../@types/models'
 import WorldManagerInterface from './worldManagerInterface'
@@ -13,11 +12,9 @@ class MongoManager implements WorldManagerInterface {
   private dbConnection!: Db
 
   private mongoClient!: MongoClient
-  private actionsCollection!: Collection<ActionDoc>
   private accountsCollection!: Collection<Document> //TODO: Change this
   private analyticsLiftCollection!: Collection<Document>
   private analyticsServerCollection!: Collection<Document>
-  private actionsCollectionStream!: ChangeStream<ActionDoc>
 
   /** A cache in which to store callbacks that need to run when actions sent to foreign servers are completed */
   private foreignActionCallbackCache!: { [x: string]: (...args: any[]) => any }
@@ -53,14 +50,7 @@ class MongoManager implements WorldManagerInterface {
     return MongoManager.singletonInstance
   }
 
-  createConnection(
-    notifyOfNewAccountRequest: (
-      accountData: AccountData,
-      tag: string,
-      destHost: string
-    ) => void,
-    loadInitialUsers: () => void
-  ) {
+  createConnection(loadInitialUsers: () => void) {
     let url: string = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
     this.logger.verbose('Mongo:', this.host, url)
     this.mongoClient = new MongoClient(url)
@@ -82,40 +72,6 @@ class MongoManager implements WorldManagerInterface {
 
       this.dbConnection = client.db(this.docConfig.database)
 
-      this.actionsCollection = this.dbConnection.collection('actions')
-      //      this.actionsCollectionStream = this.actionsCollection.watch([{$match: { host: null }}])
-      this.actionsCollectionStream = this.actionsCollection.watch([
-        { $match: { 'fullDocument.host': this.host } },
-      ]) //Receive async updates for this host
-      this.actionsCollectionStream.on('error', (error) => {
-        this.logger.error("Couldn't watch mongo:", this.host, error)
-      })
-      this.actionsCollectionStream.on('change', (change) => {
-        //Handle async notices from doc DB
-        const doc = change.fullDocument
-        if (doc === undefined) return
-        this.logger.debug('Got change:', doc.action, doc.host, doc.data)
-        // Check if Action Request is for us
-        //FIXME: Maybe there's some actions that all servers should listen to.
-        // If so, we can change this
-        if (doc.host != this.host) return
-
-        if (doc.action == 'createAccount') {
-          // Someone asking me to insert a peer into the DB
-          notifyOfNewAccountRequest(doc.data!, doc.tag, doc.from)
-        } else if (doc.action == 'done') {
-          // Someone has told me that an action I requested is done
-          this.logger.debug('Remote call done:', doc.tag, 'from:', doc.from)
-          console.log('Remote action done:', doc.tag, 'target:', doc.from)
-          this.foreignActionCallbackCache[doc.tag]()
-          delete this.foreignActionCallbackCache[doc.tag]
-        }
-        // Add other types of Foreign Actions here
-
-        //Delete signaling record
-        this.actionsCollection.deleteOne({ _id: doc._id })
-      })
-
       this.accountsCollection = this.dbConnection.collection('accounts')
 
       this.analyticsLiftCollection = this.dbConnection.collection('lifts')
@@ -132,54 +88,10 @@ class MongoManager implements WorldManagerInterface {
     return this.mongoClient != null
   }
 
-  insertAction(
-    command: string,
-    tag: string = this.host + '.' + this.foreignActionTagIndex++,
-    destinationHost: string,
-    data?: any,
-    callback?: () => void
-  ) {
-    console.log('Adding', command, 'action to db...')
-    if (data) console.log('with data')
-    if (callback) console.log('and callback')
-    this.actionsCollection.insertOne(
-      {
-        action: command,
-        tag: tag,
-        host: destinationHost,
-        from: this.host,
-        data: data,
-      },
-      (err, res) => {
-        if (err) {
-          this.logger.error(
-            'Sending remote command:',
-            command,
-            'to:',
-            destinationHost
-          )
-          console.log('Error adding action to db:', err)
-        } else {
-          this.logger.info(
-            'Sent remote action:',
-            command,
-            'to:',
-            destinationHost
-          )
-          console.log('Added', command, 'action for', destinationHost)
-        }
-      }
-    )
-
-    if (callback) {
-      this.foreignActionCallbackCache[tag] = callback
-    }
-  }
-
   updateOneAccount(account: AccountData) {
     // console.log("Putting into mongo:\n", account)
     this.accountsCollection.updateOne(
-      { peer_cid: account.peer_cid, host: account.host },
+      { peer_cid: account.peer_cid, host: account.peer_host },
       { $set: account },
       { upsert: true },
       (e, r) => {
@@ -188,7 +100,7 @@ class MongoManager implements WorldManagerInterface {
           console.log('Error updating account:', account.std_name, e)
         } else {
           this.logger.trace('Add/update account:', r)
-          console.log('Account', account.std_name, 'added to mongo!')
+          console.log(account.peer_cid, 'added to mongo!')
         }
       }
     )

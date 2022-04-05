@@ -1,6 +1,5 @@
 import Action from '../action'
 import Account from '../account'
-import AccountCache from '../accountsCache'
 import MongoManager from '../mongoWorldManager'
 import SQLManager from '../sqlmanager'
 import UnifiedLogger from '../unifiedLogger'
@@ -9,7 +8,6 @@ class SpendCHIPs implements Action {
   logger: WyclifLogger
   myChipsDBManager: SQLManager
   worldDBManager: MongoManager
-  accountCache: AccountCache
 
   account: Account
 
@@ -17,7 +15,6 @@ class SpendCHIPs implements Action {
     this.logger = UnifiedLogger.getInstance()
     this.myChipsDBManager = SQLManager.getInstance()
     this.worldDBManager = MongoManager.getInstance()
-    this.accountCache = AccountCache.getInstance()
 
     this.account = account
   }
@@ -46,7 +43,7 @@ class SpendCHIPs implements Action {
       console.log('\tAccount to pay:', peerToPayCID)
       console.log('\tAmount to pay:', chipsToSpend)
 
-      let sequence: number = this.account.foil_seqs[peerIndex]
+      let sequence: number = this.account.foilSequenceNums[peerIndex]
 
       console.log('\tFoil sequence:', sequence)
 

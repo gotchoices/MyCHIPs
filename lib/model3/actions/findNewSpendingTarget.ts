@@ -1,6 +1,5 @@
 import Action from '../action'
 import Account from '../account'
-import AccountCache from '../accountsCache'
 import MongoManager from '../mongoWorldManager'
 import SQLManager from '../sqlmanager'
 import UnifiedLogger from '../unifiedLogger'
@@ -9,14 +8,12 @@ class FindNewSpendingTarget implements Action {
   logger: WyclifLogger
   myChipsDBManager: SQLManager
   worldDBManager: MongoManager
-  accountCache: AccountCache
   account: Account
 
   constructor(account: Account) {
     this.logger = UnifiedLogger.getInstance()
     this.myChipsDBManager = SQLManager.getInstance()
     this.worldDBManager = MongoManager.getInstance()
-    this.accountCache = AccountCache.getInstance()
     this.account = account
   }
 
@@ -36,18 +33,14 @@ class FindNewSpendingTarget implements Action {
     ) {
       //  we randomly choose to))
       console.log(
-        `\n${this.account.peer_cid} is finding a new spending target!`
+        `\t${this.account.peer_cid} is finding a new spending target!`
       )
       this.worldDBManager.findPeerAndUpdate(
         this.account.peer_cid,
         this.account.spendingTargetCids,
         (newPeer: AccountData) => {
           console.log(
-            `${this.account.peer_cid} wants to connect to ${newPeer.peer_cid}`
-          )
-          console.log(
-            `Peer from mongo: ${newPeer.peer_cid} ${newPeer.id} on 
-            ${newPeer.host}`
+            `${this.account.peer_cid} wants to connect to ${newPeer.peer_cid} on ${newPeer.peer_host}`
           )
 
           this.logger.debug(
