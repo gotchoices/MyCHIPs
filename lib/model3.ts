@@ -133,11 +133,11 @@ class AccountCluster {
         this.hostedAccounts.forEach(this.process)
       } else {
         // TODO: Add setTimeout() or otherwise handle asynchronous
-        this.recordFinalAnalytics()
         console.log(
           `END OF SIM ************* ${this.host} with ${this.runCounter} runs`
         )
         this.close()
+        this.recordFinalAnalytics()
       }
     }, this.params.interval)
   }
@@ -153,7 +153,7 @@ class AccountCluster {
 
   // gets accounts from SQL, updates local info, and puts hosted account info into MongoDB
   notifyOfAccountsChange(message) {
-    console.log('Change in the accounts:\n', message)
+    // console.log('Change in the accounts:\n', message)
     this.myChipsDBManager.queryLatestUsers(message.time, this.eatAccounts)
   }
 
@@ -163,10 +163,10 @@ class AccountCluster {
 
   notifyOfTallyChange(message: any) {
     this.logger.debug('Peer Message:', message)
-    console.log('Change in a tally:', message)
+    // console.log('Change in a tally:', message)
     //Someone is asking an account to act on a tally
-    if (message.state == 'peerProffer') {
-      this.logger.verbose('  peerProffer:', message.entity)
+    if (message.state == 'H.offer') {
+      this.logger.verbose('Tally offer:', message.entity)
       this.hostedAccounts.forEach((account) => {
         if (account.id == message.entity) {
           account.acceptNewConnection(message)

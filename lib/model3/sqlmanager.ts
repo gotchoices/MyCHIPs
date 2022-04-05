@@ -154,13 +154,21 @@ class SQLManager {
 
   updateConnectionRequest(entity, sequence, accepted: boolean) {
     if (accepted) {
+      let target = 1
       this.query(
-        "update mychips.tallies_v set request = 'open' where tally_ent = $1 and tally_seq = $2",
-        [entity, sequence],
+        "update mychips.tallies_v set request = 'open', hold_sig = $3, target = $4 where tally_ent = $1 and tally_seq = $2 returning state;",
+        [entity, sequence, 'Accepted', target],
         (err, res) => {
           if (err) {
             this.logger.error('Updating a Tally:', err.stack)
           }
+          let row = res.rows && res.rows.length >= 1 ? res.rows[0] : null
+          this.logger.verbose(
+            'Tally accepted:',
+            row.tally_ent,
+            row.tally_seq,
+            row.state
+          )
         }
       )
     } else {
@@ -183,8 +191,8 @@ class SQLManager {
     )
 
     this.query(
-      "insert into mychips.chits_v (chit_ent,chit_seq,chit_guid,chit_type,signature,units,quidpro,request) values ($1,$2,$3,'tran',$4,$5,$6,$7)",
-      [spenderId, sequence, uuidv4(), 'Valid', chipsToSpend, quid, 'userDraft'],
+      'insert into mychips.chits_v (chit_ent,chit_seq,chit_uuid,signature,units,quidpro,request) values ($1,$2,$3,$4,$5,$6,$7)',
+      [spenderId, sequence, uuidv4(), 'Signed', chipsToSpend, quid, 'good'],
       (e, r) => {
         if (e) {
           this.logger.error('In payment:', e.stack)
@@ -212,6 +220,10 @@ class SQLManager {
     this.dbConnection.disconnect()
   }
 
+  /**
+   * Gets parameters from the MyCHIPS DB. May not be needed with new paramConfig.yaml
+   * @param callback Function to call once the query is finished
+   */
   getParameters(callback: (parameters: ParamData[]) => void) {
     this.query(parmQuery, (err, res) => {
       if (err) {

@@ -119,13 +119,15 @@ class MongoManager implements WorldManagerInterface {
         $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
       },
       foils: { $lte: maxFoils }, //Or those with not too many foils already
+      pendingPartners: {
+        $ne: hostedAccountPeerCid, //Or anyone I have a pending connection with
+      },
     }
 
     const update = {
       $set: { random: Math.random() }, //re-randomize this person
       $inc: { foils: 1 }, //And make it harder to get them again next time
-      //TODO: convert to PushDocument type somehow
-      $push: { partners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
+      $push: { pendingPartners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
     }
 
     const options = {
