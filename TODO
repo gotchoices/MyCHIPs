@@ -1,15 +1,16 @@
 TODO:
 
 Immediate:
-X- Make local lift routine work again
-X-   Test internal one-site lift
-X-   Make mocha test for local lift
--   
 - Distributed lift integration tests:
--   Create basic mocha/lift.js (can do with 3 mock sites, maybe 2?)
--   Can model enough with two nodes to test lift message handlers?
--   Terminus message generates signature, and return signed message
--   Distributed lifts work with model2/model3
+X-   Create basic mocha/lift.js (can do with 3 mock sites, maybe 2?)
+X-   Can model enough with two nodes to test lift message handlers?
+X-  Originator interprets terminus message, propagates success back through loop
+X-  Terminus gets good message, updates lift, propagates message back
+X- Lift chits aren't getting marked as good
+X-  Simulate node passing along promise (relay state)
+-  Distributed lifts work with model2/model3
+-  How do lifts fail?
+-  How do lift records get marked to void? (implement agent timeouts?)
 - 
 - Push release to master, merge with Capstone project
 -   
@@ -17,6 +18,9 @@ X-   Make mocha test for local lift
 X-   Delete obsolete fields from routes table
 X-   Delete obsolete views in paths_old.wms
 X-   Adjust/remove prior references to servID, peerPort, peerHost
+-  How to better assess lading on lift push through foreign tally (we don't know their target/bound)
+-   Merge our null with route lading correctly
+-   Chit or route protocol could always update us with the latest tally setting on the other side
 -  Should all xxx_process functions return text or JSON (routes need JSON)?
 -   Why do some routes get stuck in draft mode?
 -  Should the "tally" property of a route message be in the message, not the object (since it should change at each hop)?

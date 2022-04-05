@@ -25,9 +25,7 @@ require('./route.js')
 
 require('./sch-lift.js')
 require('./lift-in.js')
-
-//Yet to implement:
-//require('./lift.js')
+require('./lift.js')
 
 //Re-enable after schema settles and more text fields are filled in
 //require('./schema.js')

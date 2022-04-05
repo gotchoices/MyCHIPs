@@ -1,4 +1,4 @@
-//Test lift schema at a basic level; run after sch-route, route
+//Test lift schema at a basic level; run after sch-route
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // Agent <-> DB <-> Agent
@@ -37,12 +37,14 @@ describe("Test lift state transitions", function() {
   it("Delete existing lifts/chits, set simulated lading", function(done) {
     let sql = `delete from mychips.chits where chit_type = 'lift';
                delete from mychips.lifts;
-               update mychips.tallies set units_pc = 5, units_c = 5 where units_pc = 0;`
+               update mychips.tallies set clutch = 0.04;
+               update mychips.tallies set target = 2 where tally_type = 'stock' and units_pc != 0;
+               update mychips.tallies set target = 5 where tally_type = 'foil';`
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {done(e)})
   })
 
-  it("Configure existing good route in DB", function(done) {
+it("Configure existing good route in DB", function(done) {
     let min = 4
       , smallest = 2
       , sql = `update mychips.routes set min = ${min} where status = 'good' 
@@ -88,8 +90,8 @@ describe("Test lift state transitions", function() {
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'init')
       assert.equal(msg.sequence, 0)
-      assert.deepStrictEqual(msg.to, {cid:cidu, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.from, {cid:cid0, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cid:cidu, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cid:cid0, agent:agent1, host, port:port1})
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.ok(!obj.org)
       assert.ok(!obj.ref)
@@ -114,10 +116,10 @@ describe("Test lift state transitions", function() {
     let logic = {context: ['draft.init'], update: null}
       , {action, object, init, sequence} = interTest.init
       , {ref, org, find, circuit} = init
-      , lift_uuid = mkUuid(org.from.cid, org.from.agent, 'lift')
+      , lift_uuid = mkUuid(org.plan.cid, org.plan.agent, 'lift')
       , msg = {sequence, object}
-    org.from.pay = !circuit			//Payment or clearing lift
-    org.from = Buffer.from(JSON.stringify(org.from)).toString('base64url')	//Fake encryption
+    org.plan.pay = !circuit			//Payment or clearing lift
+    org.plan = Buffer.from(JSON.stringify(org.plan)).toString('base64url')	//Fake encryption
     logic.update = {status: 'init', request: 'seek', lift_uuid, referee:ref, origin:org, find}
     let sql = Format(`select mychips.lift_process(%L,%L) as state;`, msg, logic)
       , dc = 2, _done = () => {if (!--dc) done()}
@@ -127,12 +129,12 @@ describe("Test lift state transitions", function() {
       assert.equal(row.state, 'init.seek')
       _done()
     })
-    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, 'T:', msg.to, 'F:', msg.from)
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, 'OC:', msg.outc, 'Tc:', msg.topc)
       interTest.seek = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'seek')
-      assert.deepStrictEqual(msg.to, {cid:cidu, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.from, {cid:cid0, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cid:cidu, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cid:cid0, agent:agent1, host, port:port1})
       assert.ok(!msg.init)
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.deepStrictEqual(obj.org, org)
@@ -174,7 +176,7 @@ describe("Test lift state transitions", function() {
       assert.equal(row.state, 'seek.check')
       _done()
     })
-    busA.register('pa', (msg) => {	//log.debug("A msg:", msg, 'T:', msg.to, 'F:', msg.from)
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg)
 //      interTest.check = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'check')
@@ -195,19 +197,17 @@ describe("Test lift state transitions", function() {
   })
 
   it("Restore good route record to X from sch-route test", function(done) {
-    dbA.query(rest('goodX'), (e) => {if (e) done(e); done()})
+    dbA.query(rest('goodX'), (e) => {done(e)})
   })
 
   it("Agent receives promise for known foreign destination (<start> -> draft.relay)", function(done) {
-    let logic = {query: true}			//;log.debug("seek:", interTest.seek)
-      , tally = interTest.init.bottom		//;log.debug("bottom:", tally)	//tally: 3->D
-      , to = {cid:cid3, agent:agent1, host, port:port1}
-      , from = {cid:cidd, agent:agent2, host, port:port2}
+    let logic = {query: true}			//;log.debug("init:", interTest.init)
+      , tally = interTest.init.bott		//;log.debug("bottom:", tally)	//tally: 3->D
       , find = {cid:cidx, agent:agent0}
-      , lift = mkUuid(from.cid, from.agent, 'lift')
+      , lift = mkUuid(cidd, agent2, 'lift')
       , {org, ref, date, life, units} = interTest.seek.object
       , object = {org, ref, date, find, life, lift, units}
-      , msg = {to, from, tally, object}
+      , msg = {tally, object}
       , sql = Format(`select mychips.lift_process(%L,%L) as state;`, msg, logic)
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
@@ -217,22 +217,21 @@ describe("Test lift state transitions", function() {
       assert.equal(row.state, 'draft.relay')
       _done()
     })
-    busA.register('pa', (msg) => {	//log.debug("A msg:", msg, 'T:', msg.to, 'F:', msg.from)
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, 'IC:', msg.inpc, 'Tc:', msg.botc)
 //      interTest.check = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'relay')
-      assert.deepStrictEqual(msg.to, {cid:cidb, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.from, {cid:cid2, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cid:cidb, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cid:cid2, agent:agent1, host, port:port1})
       _done()
     })
   })
 
   it("Agent receives promise for connected foreign destination (<start> -> draft.relay)", function(done) {
-    let logic = {query: true}			//;log.debug("seek:", interTest.seek)
+    let logic = {query: true}			//;log.debug("relay:", interTest.relay)
       , find = {cid:cidu, agent:agent0}
       , msg = interTest.relay			//From previous test
-      , from = msg.from
-      , lift = mkUuid(from.cid, from.agent, 'lift')
+      , lift = mkUuid(cidd, agent2, 'lift')
       , units = 1
     msg.object = Object.assign(msg.object, {find, lift, units})
     let sql = Format(`select mychips.lift_process(%L,%L) as state;`, msg, logic)
@@ -243,12 +242,12 @@ describe("Test lift state transitions", function() {
       assert.equal(row.state, 'draft.relay')
       _done()
     })
-    busA.register('pa', (msg) => {	//log.debug("A msg:", msg, 'T:', msg.to, 'F:', msg.from)
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, 'IC:', msg.inpc, 'Tc:', msg.botc)
       interTest.forcon = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'relay')
-      assert.deepStrictEqual(msg.to, {cid:cidu, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.from, {cid:cid0, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cid:cidu, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cid:cid0, agent:agent1, host, port:port1})
       _done()
     })
   })
@@ -269,8 +268,7 @@ describe("Test lift state transitions", function() {
     let logic = {query: true}
       , find = {cid:cid3, agent:agent1}
       , msg = interTest.relay			//From previous test
-      , from = msg.from
-      , lift = mkUuid(from.cid, from.agent, 'lift')
+      , lift = mkUuid(cidd, agent2, 'lift')
       , units = 3
     msg.object = Object.assign(msg.object, {find, lift, units})
     let sql = Format(`select mychips.lift_process(%L,%L) as state;`, msg, logic)
@@ -281,12 +279,12 @@ describe("Test lift state transitions", function() {
       assert.equal(row.state, 'draft.found')
       _done()
     })
-    busA.register('pa', (msg) => {	//log.debug("A msg:", msg, 'T:', msg.to, 'F:', msg.from)
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, 'IC:', msg.inpc, 'Tc:', msg.botc)
       interTest.forloc = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'found')
-      assert.deepStrictEqual(msg.to, {cid:cidd, agent:agent2, host, port:port2})
-      assert.deepStrictEqual(msg.from, {cid:cid3, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.inpc, {cid:cidd, agent:agent2, host, port:port2})
+      assert.deepStrictEqual(msg.botc, {cid:cid3, agent:agent1, host, port:port1})
       _done()
     })
   })
@@ -305,17 +303,13 @@ describe("Test lift state transitions", function() {
 
   it("Agent receives terminus confirmation (seek -> seek.call)", function(done) {
     let logic = {context: ['seek'], update: {request: 'call'}}	//;log.debug("Seek:", interTest.seek)
-      , seek = interTest.seek				//;log.debug("T:", seek.to, "F:", seek.from, "O:", seek.object)
-      , sobj = seek.object				//;log.debug("Org:", sobj.org, "Fnd:", sobj.find, "R:", sobj.ref)
-      , ofstr = Buffer.from(sobj.org.from,'base64url').toString()
-      , ofrom = JSON.parse(ofstr)			//;log.debug('org.from:', ofrom)
-      , to = {cid:ofrom.cid, agent:ofrom.agent, host, port:port1}
-      , from = {cid:sobj.find.cid, agent:sobj.find.agent, host, port:port2}
+      , seek = interTest.seek				//;log.debug("O:", seek.object)
+      , sobj = seek.object				//;log.debug("Org:", sobj.org, "Find:", sobj.find, "Ref:", sobj.ref)
       , lift = sobj.lift
-      , tally = seek.bottom				//;log.debug("Base:", tally)
+      , tally = seek.bott				//;log.debug("Base:", tally)
       , {org, ref, date, life, units, find} = sobj
       , object = {org, ref, date, find, life, lift, units}
-      , msg = {to, from, tally, object}
+      , msg = {tally, object}
       , sql = Format(`select mychips.lift_process(%L,%L) as state;`, msg, logic)
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
@@ -325,8 +319,7 @@ describe("Test lift state transitions", function() {
       assert.equal(row.state, 'seek.call')
       _done()
     })
-    busA.register('pa', (msg) => {	//log.debug("A msg:", msg, 'T:', msg.to, 'F:', msg.from)
-//      interTest.check = msg
+    busA.register('pa', (msg) => {		//log.debug("A msg:", msg, 'IC:', msg.inpc, 'Tc:', msg.botc)
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'call')
       _done()

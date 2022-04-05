@@ -36,8 +36,8 @@ describe("Test internal lift generation", function() {
   })
 
   it("Query resulting chits", function(done) {
-    let units = -7
-      , chits = 6
+    let units = -9		//Whatever is available in lift path
+      , chits = 6		//Known path has 3 tallies, stock & foil
       , sql = `select count(*) as chits from
                mychips.chits where units = ${units} and status = 'good' and chit_type = 'lift'`
 //log.debug("Sql:", sql)

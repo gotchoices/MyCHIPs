@@ -1,7 +1,7 @@
 //Test local pathway schema at a basic level; run after impexp
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-// This will build a network of tallies as follows:
+// This will build a network of tallies as follows: (see doc/uml/test-paths.svg)
 //                              ________(-)_______
 //                             ^                  v
 //  External_Up -> User_0 -> User_1 -> User_2 -> User_3 -> External_Down
@@ -151,8 +151,8 @@ describe("Initialize tally/path test data", function() {
 
   it("Check view tallies_v_net", function(done) {
     let sql = `update mychips.tallies set target = 3, bound = 7;
-               select json_agg(s) as json from (select inp,out,target,bound,units_pc,net_pc,min,max,sign
-               from mychips.tallies_v_net order by min,max,sign) s;`
+               select json_agg(s) as json from (select tally_ent,tally_seq,tally_type,inv,inp,out,target,bound,units_pc,net_pc,min,max,sign
+               from mychips.tallies_v_net order by 1,2,3,4) s;`
     queryJson('tallies_v_net', db, sql, done, 2)
   })
 
@@ -162,9 +162,10 @@ describe("Initialize tally/path test data", function() {
         update mychips.tallies set reward = 0.04, clutch = 0.001 where tally_type = 'stock';
         select json_agg(s) as json from (
           select inp,out,circuit,min,max,bang,reward,margin,ath
-            from mychips.tallies_v_paths where edges > 1 order by path) s;`
+            from mychips.tallies_v_paths where min > 0 and edges > 1 order by path) s;`
     queryJson('tallies_v_paths', db, sql, done, 3)
   })
+
 /* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{db.disconnect(); done()}, 200)

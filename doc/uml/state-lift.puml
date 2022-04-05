@@ -6,6 +6,7 @@ state "draft.init" as draftInit
 state "init.seek" as initSeek
 state "draft.relay" as draftRelay
 state "draft.found" as draftFound
+state "found.term" as foundTerm
 state signable {
   state origin {
     state seek
@@ -23,6 +24,7 @@ state signable {
 draftInit: Status: draft, Request: init
 initSeek: Status: init, Request: seek
 draftFound:  Status: draft, Request: found
+foundTerm:  Status: found, Request: term
 draftRelay:  Status: draft, Request: relay
 seek:  Status: seek, Request: null
 seekCheck:  Status: seek, Request: check
@@ -37,26 +39,27 @@ origin: Should not get affirmed but might get voided
 relay: Any non-originating node
 
 'State transition rules:
-[*] -right[$user]-> draftInit: $trans($user,User initiates linear lift\nRequest:init,'')
-[*] -right-> draftInit: $trans(Agent,Automaton initiates circular lift\nRequest:init,'')
+[*] -[$user]-> draftInit: $trans($user,User initiates linear lift\nRequest:init,'')
+[*] --> draftInit: $trans(Agent,Automaton initiates circular lift\nRequest:init,'')
 draftInit -[$db]-> initSeek: $trans($db, init detected, '', Agent prepares Lift Object\nEncodes destination\nRequest:seek)
 initSeek -[$db]-> seek: $trans($db, seek detected,'',Send Upstream\nAction:promise\nAgent starts timer)
 
 seek -[$peer]-> seekCall: $trans($peer,'Receive confirm from\ndestination Action:terminus','', 'Circuit good, freshen route')
 seekCall -[$db]-> seek: $trans($db,Detect call, Change of mind, want to abort;\nwill await timeout)
 seekCall -[$db]-> call: $trans($db,Detect call, Want to proceed, Query referee\nRequest: commit\nAgent sets timer)
-call --> callCall: $trans(Agent, Local timeout, Still in call?, Request: call)
-callCall -[$db]-> call: $trans($db,Detect call, Still calling, Query referee;\nAction: commit\nAgent sets timer)
+call -right-> callCall: $trans(Agent, Local timeout, Still in call?, Request: call)
+callCall -left[$db]-> call: $trans($db,Detect call, Still calling, Query referee;\nAction: commit\nAgent sets timer)
 
 seek --> seekCheck: $trans(Agent,Local timeout,Lift expired?, Request: check)
 seekCheck -[$db]-> seek: $trans($db,Detect check, Still seeking, Query referee;\nAction: check\nAgent starts timer)
 
-[*] -left[$peer]-> [*]: $trans($peer,Receive Action:promise, Destination not found, Give no reply)
+[*] -[$peer]-> [*]: $trans($peer,Receive Action:promise, Destination not found, Give no reply)
 [*] -[$peer]-> draftRelay: $trans($peer,Receive Action:promise,Route found for destination, 'Store lift Request:relay;\nForward Action: promise\nAgent sets timer')
 [*] -[$peer]-> draftFound: $trans($peer,Receive Action:promise,Destination found locally, 'Store lift Request: terminus\nAgent sets timer')
 
+draftFound -[$db]-> foundTerm: $trans($db,Detect found,'', Build draft lift\nNotify correct agent\nAction: found)
+foundTerm -[$db]-> pend: $trans($db,Detect terminus,'', Reply to originator\nBuild chits\nAction: terminus)
 draftRelay -[$db]-> pend: $trans($db,Detect relay,'', Forward lift\nAction: promise)
-draftFound -[$db]-> pend: $trans($db,Detect found,'', Reply to originator\nAction: terminus)
 
 pend --> pendCheck: $trans(Agent, Local timeout, Still pending, Request: check)
 pendCheck -[$db]-> pend: $trans($db, Detect check, Still pending, 'Query partner,\noriginator, referee\nin sequence\nAction: check')

@@ -37,7 +37,7 @@ module.exports={
     return Format('select wm.table_%s(%L,%L);', func, tab, tag)
   },
   getRow: function (res,idx,exp=1) {
-    assert(res.rowCount, exp)
+    assert.equal(res.rowCount, exp)
     return res.rows[idx]
   },
   mkUuid: function(cid, agent, mix = 'x') {
