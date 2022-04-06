@@ -1,14 +1,14 @@
 //Test route communications (lib/route.js); Run only after sch-route user2
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-// This simulates two users connected through a single DB or two different DBs:
+// This simulates two (nearly/three) systems
 //   <-> DB1 <-> Agent1 <-> Agent(0,2) <-> DB2 <->
 //
-// Will build test tallies in DB2 as follows:
-// 
-//    Ex-cid_3:agent1 -> u0-cid_D:agent2
-//                       u1-cid_U:agent0 -> Ex-cid_0:agent1
-//    u2-cid_X:agent0 -> u3-cid_B:agent0 -> Ex-cid_2:agent1
+// Will build test tallies in DB2 as follows; see: doc/uml/test-paths.svg
+//    Ex-cid_3:agent1 -> u0-cid_D:agent2  >------------------\
+//                       u1-cid_U:agent0 -> Ex-cid_0:agent1   |
+//    u2-cid_X:agent0 -> u3-cid_B:agent0 -> Ex-cid_2:agent1   |
+//           ^-----------------------------------------------/
 //
 const PeerCont = require("../../lib/peer2peer")
 const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, queryJson } = require('./common')
@@ -50,6 +50,7 @@ describe("Initialize DB2 tally/path test data", function() {
         delete from mychips.tallies;
         delete from base.ent where ent_num >= 100;
         update mychips.users set _last_tally = 0;
+        alter sequence mychips.routes_rid_seq restart with 1;
         delete from mychips.routes; commit;`
     dbR.query(sql, (e) => {if (e) done(e); done()})
   })
@@ -81,7 +82,8 @@ describe("Initialize DB2 tally/path test data", function() {
      let uuidU = interTest.lTallies[cidu]
        , uuidD = interTest.lTallies[cidd]
        , uuidB = interTest.lTallies[cidb]
-       , uuidX = mkUuid(cidx, agent0)
+       , uuid1 = mkUuid(cidx, agent0)
+       , uuid2 = mkUuid(cidd, agent2)
        , cert0 = {chad:{cid:cid0, agent:agent1, host, port:port1}}
        , cert2 = {chad:{cid:cid2, agent:agent1, host, port:port1}}
        , cert3 = {chad:{cid:cid3, agent:agent1, host, port:port1}}
@@ -93,8 +95,10 @@ describe("Initialize DB2 tally/path test data", function() {
      let dat = [
         {id:user0, type:'stock', uuid:uuidD, hCert:certD, pCert:cert3},
         {id:user1, type:'foil',  uuid:uuidU, hCert:certU, pCert:cert0},
-        {id:user2, type:'foil',  uuid:uuidX, hCert:certX, pCert:certB},
-        {id:user3, type:'stock', uuid:uuidX, hCert:certB, pCert:certX},
+        {id:user2, type:'foil',  uuid:uuid1, hCert:certX, pCert:certB},
+        {id:user3, type:'stock', uuid:uuid1, hCert:certB, pCert:certX},
+        {id:user0, type:'foil',  uuid:uuid2, hCert:certD, pCert:certX},
+        {id:user2, type:'stock', uuid:uuid2, hCert:certX, pCert:certD},
         {id:user3, type:'foil',  uuid:uuidB, hCert:certB, pCert:cert2}]
       , dc = dat.length, _done = () => {if (!--dc) done()}
     dat.forEach(d => {
@@ -192,7 +196,7 @@ describe("Peer-to-peer route testing", function() {
 
   it("Clear Remote DB routes, setup tally capacity", function(done) {
     let sql = `delete from mychips.routes;
-               update mychips.tallies set units_pc = 2, units_c = 2;`
+               update mychips.tallies set target = 2 where tally_type = 'foil';`
     dbR.query(sql, (e) => {done(e)})
   })
 
@@ -225,8 +229,8 @@ describe("Peer-to-peer route testing", function() {
   it("Save good route record to X for lift testing", function(done) {
     dbL.query(save('goodX'), (e) => {if (e) done(e); done()})
   })
-/*
-*/
+
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let everything flush out before closing
       dbL.disconnect()

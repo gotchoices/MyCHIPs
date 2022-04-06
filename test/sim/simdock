@@ -222,14 +222,15 @@ function start_model {
 #-------------------------------------------------------------------------------
 function ticket {
   local n="${1:-0}"				#Instance number: 0..N
-#echo "ticket mach:$mach"
+#echo "ticket mach:$mach DBHOST:$MYCHIPS_DBHOST"
   local spaname="spa$n"
+  local pgname="pg$n"
   local spaxport=$(expr $spaports + $n)
   local wsxport=$(expr $wsports + $n)
   local hostname="${spaname}.${domname}"
 
   docker exec -it $spaname bash -c \
-    "bin/adminticket -S $spaxport -P $wsxport -H $hostname -Q |tee /var/tmp/mychips/ticket.url"
+    "bin/adminticket -S $spaxport -P $wsxport -H $hostname -h $pgname -Q |tee /var/tmp/mychips/ticket.url"
   admin $n
 }
 function tickets {
