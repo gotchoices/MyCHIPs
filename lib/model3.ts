@@ -124,13 +124,17 @@ class AccountCluster {
   }
 
   startSimulationRound() {
+    // let accountID = 0
     if (this.intervalTimer) clearInterval(this.intervalTimer) // Restart interval timer
     this.intervalTimer = setInterval(() => {
       // If there is no limit on runs, or we're below the limit...
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
         console.log('\n###RUN NUMBER', this.runCounter, '###')
+        // console.log('ACCOUNT:', this.hostedAccounts[accountID].peer_cid)
         this.hostedAccounts.forEach(this.process)
+        // this.process(this.hostedAccounts[accountID])
+        // accountID = (accountID + 1) % this.hostedAccounts.length
       } else {
         // TODO: Add setTimeout() or otherwise handle asynchronous
         console.log(
@@ -165,7 +169,7 @@ class AccountCluster {
     this.logger.debug('Peer Message:', message)
     // console.log('Change in a tally:', message)
     //Someone is asking an account to act on a tally
-    if (message.state == 'H.offer') {
+    if (message.state == 'P.offer') {
       this.logger.verbose('Tally offer:', message.entity)
       this.hostedAccounts.forEach((account) => {
         if (account.id == message.entity) {
@@ -231,17 +235,18 @@ class AccountCluster {
         this.hostedAccounts.forEach((hostedAccount) => {
           if (hostedAccount.peer_cid == accountData.peer_cid) {
             console.log(
-              `\n${accountData.peer_cid}:\nkey:\t\t\t\told:\t\t\t\tnew:`
+              `\n${accountData.peer_cid}`
+              // :\nkey:\t\t\t\told:\t\t\t\tnew:`
             )
-            Object.keys(accountData).forEach((key) => {
-              let oldVal = hostedAccount.getAccountData()[key]
-              let newVal = accountData[key]
-              if (Array.isArray(newVal)) {
-                console.log(`${key}:\t\t[${oldVal}],\t\t[${newVal}]`)
-              } else {
-                console.log(`${key}:\t\t${oldVal},\t\t${newVal}`)
-              }
-            })
+            // Object.keys(accountData).forEach((key) => {
+            //   let oldVal = hostedAccount.getAccountData()[key]
+            //   let newVal = accountData[key]
+            //   if (Array.isArray(newVal)) {
+            //     console.log(`${key}:\t\t[${oldVal}],\t\t[${newVal}]`)
+            //   } else {
+            //     console.log(`${key}:\t\t${oldVal},\t\t${newVal}`)
+            //   }
+            // })
             hostedAccount.updateAccountData(accountData)
             this.worldDBManager.updateOneAccount(hostedAccount.getAccountData())
           }

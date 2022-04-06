@@ -1,6 +1,6 @@
 # This is just an example of how the config might look. The schema should probably be put in a README
 
-interval: 2000
+interval: 3000
 
 accountTypes:
   - type: 'default' 

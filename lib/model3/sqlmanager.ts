@@ -120,7 +120,7 @@ class SQLManager {
     )
 
     this.query(
-      'insert into mychips.tallies_v (tally_ent, tally_uuid, contract, request, hold_cert, part_cert, hold_sig) values ($1, $2, $3, $4, $5, $6, $7);',
+      'insert into mychips.tallies_v (tally_ent, tally_uuid, contract, request, hold_cert, part_cert, hold_sig, tally_type) values ($1, $2, $3, $4, $5, $6, $7, $8);',
       [
         requestingAccountID,
         uuid,
@@ -129,19 +129,28 @@ class SQLManager {
         requestingAccountCertificate,
         targetAccountCertificate,
         sig,
+        'foil',
       ],
       (err, res) => {
         if (err) {
           this.logger.error('Inserting a tally:', err.stack)
           console.log(
             'Error while making tally between',
-            requestingAccountID,
+            requestingAccountCertificate.chad.cid,
             'and',
-            targetAccountCertificate
+            targetAccountCertificate.chad.cid
           )
           console.log(err)
           return
         }
+        console.log(
+          'Tally offered between',
+          requestingAccountCertificate.chad.cid,
+          'and',
+          targetAccountCertificate.chad.cid,
+          ':',
+          uuid
+        )
         this.logger.debug(
           '  Initial tally by:',
           requestingAccountID,
@@ -161,7 +170,9 @@ class SQLManager {
         (err, res) => {
           if (err) {
             this.logger.error('Updating a Tally:', err.stack)
+            console.log('Error trying to accept tally for', entity, sequence)
           }
+          console.log(entity, 'accepted tally #', sequence)
           let row = res.rows && res.rows.length >= 1 ? res.rows[0] : null
           this.logger.verbose(
             'Tally accepted:',
@@ -206,7 +217,7 @@ class SQLManager {
           )
           return
         }
-
+        console.log(spenderId, 'paying', receiverId, chipsToSpend, 'CHIPS')
         this.logger.debug('  payment:', spenderId, 'to:', receiverId)
       }
     )
@@ -254,8 +265,8 @@ class SQLManager {
 
   queryLatestUsers(time: string, callback: (accounts: AccountData[]) => any) {
     // Only load users once at time
-    if (!this.loadingUsers) {
-      this.loadingUsers = true
+    // if (!this.loadingUsers) {
+    //   this.loadingUsers = true
       this.query(
         userSql + ' and latest >= $1',
         [time],
@@ -269,9 +280,9 @@ class SQLManager {
           callback(res.rows)
         }
       )
-    } else {
-      console.log("Tried to query users when I'm already doing that!")
-    }
+    // } else {
+    //   console.log("Tried to query users when I'm already doing that!")
+    // }
   }
 
   query(...args: any[]) {
