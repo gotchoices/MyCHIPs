@@ -19,6 +19,7 @@ class BaseAccount implements Account {
   entity_type: string
   random: number
   actions: Action[]
+  satisfied: boolean
 
   numSpendingTargets: number
   spendingTargets: string[]
@@ -42,9 +43,13 @@ class BaseAccount implements Account {
   adjustSettingsOdds: number
   newSpendingTargetOdds: number
   maxSpendingTargets: number
+  desiredSpendingTargets: number
   maxIncomeSources: number
+  desiredIncomeSources: number
   minWorthToSpend: number
   maxToSpend: number
+  diffForLift: number
+  minForSatisfaction: number
 
   worldDBManager: MongoManager
   myChipsDBManager: SQLManager
@@ -65,6 +70,7 @@ class BaseAccount implements Account {
     this.actions.push(ActionFactory.createAction('NewSpendingSource', this))
     // this.actions.push(ActionFactory.createAction('NewIncomeSource', this)); // Not correctly implemented yet
     this.actions.push(ActionFactory.createAction('SpendCHIPs', this))
+    this.actions.push(ActionFactory.createAction('AskForLift', this))
 
     this.id = accountData.id
     this.std_name = accountData.std_name
@@ -77,6 +83,7 @@ class BaseAccount implements Account {
     this.port = accountData.peer_port
     this.entity_type = accountData.ent_type || 'p'
     this.random = Math.random()
+    this.satisfied = false
 
     this.numSpendingTargets = accountData.foils || 0
     this.foilSequenceNums = accountData.foil_seqs || []
@@ -100,9 +107,13 @@ class BaseAccount implements Account {
     this.adjustSettingsOdds = accountParams?.adjustSettingsOdds || 0.5
     this.newSpendingTargetOdds = accountParams?.newSpendingTargetOdds || 0.15
     this.maxSpendingTargets = accountParams?.maxSpendingTargets || 2
+    this.desiredSpendingTargets = accountParams?.desiredSpendingTargets || 2
     this.maxIncomeSources = accountParams?.maxIncomeSources || 3
+    this.desiredIncomeSources = accountParams?.desiredIncomeSources || 1
     this.minWorthToSpend = accountParams?.minWorthToSpend || -10000
     this.maxToSpend = accountParams?.maxToSpend || 0.1
+    this.diffForLift = accountParams?.diffForLift || 30
+    this.minForSatisfaction = accountParams?.minForSatisfaction || 5
   }
 
   takeAction(): void {
@@ -112,6 +123,8 @@ class BaseAccount implements Account {
     this.actions.forEach((action) => {
       action.run()
     })
+
+    this.calculateSatisfaction()
   }
 
   acceptNewConnection(message: any) {
@@ -125,6 +138,16 @@ class BaseAccount implements Account {
     )
 
     // TODO: update data here (depends on what kind of connection it is though...)
+  }
+
+  calculateSatisfaction(): void {
+    if (
+      this.numSpendingTargets >= this.desiredSpendingTargets &&
+      this.numIncomeSources >= this.desiredIncomeSources &&
+      this.netWorth >= this.minForSatisfaction
+    ) {
+      this.satisfied = true
+    } else this.satisfied = false
   }
 
   updateAccountData(accountData: AccountData): void {

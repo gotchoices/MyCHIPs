@@ -124,17 +124,20 @@ class AccountCluster {
   }
 
   startSimulationRound() {
-    // let accountID = 0
     if (this.intervalTimer) clearInterval(this.intervalTimer) // Restart interval timer
     this.intervalTimer = setInterval(() => {
       // If there is no limit on runs, or we're below the limit...
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
         console.log('\n###RUN NUMBER', this.runCounter, '###')
-        // console.log('ACCOUNT:', this.hostedAccounts[accountID].peer_cid)
+
+        // Process each hosted account this round
         this.hostedAccounts.forEach(this.process)
-        // this.process(this.hostedAccounts[accountID])
-        // accountID = (accountID + 1) % this.hostedAccounts.length
+
+        // If this round falls in the right interval, run some lifts automatically
+        if (this.runCounter % this.params.liftInterval == 0) {
+          this.myChipsDBManager.performAutoLifts()
+        }
       } else {
         // TODO: Add setTimeout() or otherwise handle asynchronous
         console.log(

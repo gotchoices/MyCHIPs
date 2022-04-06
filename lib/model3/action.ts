@@ -3,8 +3,9 @@ import SQLManager from './sqlmanager'
 
 interface Action {
   logger: WyclifLogger
-  myChipsDBManager: SQLManager
-  worldDBManager: MongoManager
+  // I don't think these are necessary for every action
+  // myChipsDBManager: SQLManager
+  // worldDBManager: MongoManager
 
   run(): void
 }

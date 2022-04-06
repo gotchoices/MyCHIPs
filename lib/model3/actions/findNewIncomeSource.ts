@@ -4,6 +4,7 @@ import MongoManager from '../mongoWorldManager'
 import SQLManager from '../sqlmanager'
 import UnifiedLogger from '../unifiedLogger'
 
+//TODO: This class is borken! Fix it using FindNewSpendingTarget as a template.
 class FindNewIncomeSource implements Action {
   logger: WyclifLogger
   myChipsDBManager: SQLManager

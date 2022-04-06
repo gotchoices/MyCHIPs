@@ -21,6 +21,8 @@ interface Account {
   actions: Action[]
   /** Used to randomly sort agents in the world DB */
   random: number
+  /** Describes whether the account is satisfied with its situation */
+  satisfied: boolean
 
   /** The number of spending targets (foils) this entity holds */
   numSpendingTargets: number
@@ -61,14 +63,22 @@ interface Account {
   newIncomeSourceOdds: number
   /** A percentage degining how often this entity will try to adjust its settings */
   adjustSettingsOdds: number
-  /** The maximum number of spending targets (stocks) this entity will open */
+  /** The maximum number of spending targets (foils) this entity will open */
   maxSpendingTargets: number
-  /** The maximum number of income sources (foils) this entity will open */
+  /** The minimum number of spending targets (foils) this account will need to be satisfied*/
+  desiredSpendingTargets: number
+  /** The maximum number of income sources (stocks) this entity will open */
   maxIncomeSources: number
+  /** The minimum number of income sources (stocks) this account will need to be satisfied */
+  desiredIncomeSources: number
   /** The minimum net worth the entity must have to be willing to spend money */
   minWorthToSpend: number
   /** A percentage defining the maximum amount this entity is willing to spend in one transaction */
   maxToSpend: number
+  /** If the absolute value on any one connection (in or out) is greater than this, the account will ask for a lift */
+  diffForLift: number
+  /** If the net worth is less than this number, the account will not be satisfied */
+  minForSatisfaction: number
 
   //take an action and update last action taken with class name
   //switch should take an action based on the number
@@ -80,6 +90,8 @@ interface Account {
   updateAccountData(data: AccountData): void
 
   getAccountData(): AccountData
+
+  calculateSatisfaction(): void
 }
 
 export default Account
