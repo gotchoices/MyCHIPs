@@ -137,6 +137,16 @@ interface certificate {
   }
 }
 
+interface AccountAnalytics {
+  name: string
+  peer_cid: string
+  id: string
+  stocks: number
+  foils: number
+  netWorth: number
+  satisfied: boolean
+}
+
 /** Used when pulling data from SQL */
 interface ParamData {
   name: string

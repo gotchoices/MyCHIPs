@@ -308,7 +308,9 @@ class AccountCluster {
     const currServer: Server = {
       id: this.host,
       balance: 0,
-      accounts: this.hostedAccounts.map((account) => account.getAccountData()),
+      accounts: this.hostedAccounts.map((account) =>
+        account.getAccountAnalytics()
+      ),
       actualRuns: this.runCounter, // Actual number of simulation runs executed by this server
     }
     this.worldDBManager.analyticsAddServer(currServer)

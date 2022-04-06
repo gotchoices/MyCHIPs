@@ -217,6 +217,18 @@ class BaseAccount implements Account {
       seqs: this.sequenceNums,
     }
   }
+
+  getAccountAnalytics(): AccountAnalytics {
+    return {
+      name: this.std_name,
+      peer_cid: this.peer_cid,
+      id: this.id,
+      stocks: this.numIncomeSources,
+      foils: this.numSpendingTargets,
+      netWorth: this.netWorth,
+      satisfied: this.satisfied,
+    }
+  }
 }
 
 export default BaseAccount

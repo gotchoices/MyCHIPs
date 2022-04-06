@@ -92,6 +92,8 @@ interface Account {
   getAccountData(): AccountData
 
   calculateSatisfaction(): void
+
+  getAccountAnalytics(): AccountAnalytics
 }
 
 export default Account
