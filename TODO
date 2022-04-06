@@ -1,50 +1,37 @@
 TODO:
 
 Immediate:
-- Lift subsystem:
-X-  Define lift record/message structure; what is signed, what is not?
-X-  Add step parameter to lift (no)
-X-  Includes standard to/from properties
-X-  Clean up lift state diagram
-X-   Create mocha/sch-lift.js
-X-     How to identify the lift on dbProcess?
-X-       Prep update can query for uuid, type=org
-X-       How to discern prep update from status, signature updates?
-X-    Make chitcheck work again
-X-   Test known state transitions
--     
--  Make local lift routine work again
--    Test internal one-site lift
--    Can use local lifts with model1 simulator
-X-   Draft lift generates upstream promise
-X-   Received promise that has no good route
-X-   Received promise with good route is forwarded
--   
-- Distributed lift integration tests:
--   Create basic mocha/lift.js (can do with 3 mock sites, maybe 2?)
--   Can model enough with two nodes to test lift message handlers?
--   Terminus message generates signature, and return signed message
--   Distributed lifts work with model2/model3
-- 
 - Push release to master, merge with Capstone project
 -   
+- Distributed lifts (interim, pre-1.0 functionality):
+-  Distributed lifts work with model2/model3?
+-  Do some lifts fail (when they should) in the simulation?
+-  How do lift records get marked to void? (implement agent timeouts?)
+- 
 - Cleanups:
+-  How to better assess lading on lift push through foreign tally (we don't know their target/bound)
+-   Merge local null min with route lading correctly
+-   Chit, tally or route protocol could update us with the latest trading vars from the other side?
 -  Should all xxx_process functions return text or JSON (routes need JSON)?
--   Why do some routes get stuck in draft mode?
--  Should the "tally" property of a route message be in the message but not the object (since it should change at each hop)?
--    Ditto for "step" property of a route message
--   Delete obsolete fields from routes table
--   Delete obsolete views in paths_old.wms
--   Mocha test for model2? (probably not right away)
--   Shell command to test-run docker simulator--just to see if any error messages pop out
--   Can peer containers run with spa services disabled?
--   Can change how chit units are stored (relative to stock/foil)?
--   Can we totally get rid of peer table? (merge into user table)
--   Adjust/remove prior references to servID, peerPort, peerHost
--   Better network visualizer
--     small visual balance sheet for each user
--     Use gravity package for constant updating/stability
--   Get rid of unused fields in users_v_tallysum (only used by simulator, network visualizer)
+-  Why do some routes get stuck in draft mode?
+-  Should the "tally" property of a route message be in the message, not the object (since it should change at each hop)?
+-  Ditto for "step" property of a route message
+-  Mocha test for model2? (probably not right away)
+-  Command to test-run docker simulator--just to see if any error messages pop out?
+-  Can peer containers run with spa services disabled?
+-  Can/should we change chit units to be stored internally with sign relative to stock/foil?
+-  Can we totally get rid of peer table? (merge into user table)
+-  Better network visualizer
+-    Small visual balance sheet for each user
+-    Use gravity package for constant updating/stability
+-    Get rid of unused fields in users_v_tallysum (only used by simulator, network visualizer)?
+- 
+- Linear lifts:
+-   Create draft lift record and retrieve digest
+-   Sign the digest and write to DB
+-   Trigger detects the new record
+-     If we have an internal path to the destination, pay with local lift (simple)
+-     Else, if we have a possible route, queue up as a distributed lift.
 - 
 - Server process: mychips.js
 X-   Can launch an agent server for each locally defined agent
@@ -65,15 +52,16 @@ X-   Where/how to build/store agent private keys (pki folder?)
 - 
 - Chit consensus
 -   Implement signatures/checking on tallies/chits
--   Implement protocol subsystem
+-   Implement consensus protocol subsystem
 -   Mocha tests to simulate network disconnections, chit collisions
 -
-- Server ready for single-site use?
+- Server now ready for single-site use?
 - 
-- Implement retries in state processing
-- Upgrade distributed lifts fully to new protocol
+- Implement retries in state processing (tally, chit, route)
+- Upgrade distributed lift subsystem fully to protocol 1.0
+- Lifts detected bad by agent timeouts
 - Implement referee server in node server
-- Server ready for distributed use?
+- Server now ready for distributed use?
 - 
 - Mobile:
 -  Create dart Wyseman client module

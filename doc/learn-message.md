@@ -253,10 +253,24 @@ Route state transition messages are as follows:
 ### Lift Messages
 Property: **target**: lift
 
-A lift message also contains the following as applicable:
-
-***Under Construction***
+Any lift message may contain the following as applicable:
   - **tally**: The UUID of the tally this lift is being sent over (and where signature validation is expected to be returned).
+
+Lift messages between a local DB and its agents may contain as applicable:
+  - **sequence**: The sequence number (0..n) of the lift intended to be affected by this operation.
+  - **outc**: CHIP Address of the output (foreign peer) of the local lift segment.
+  - **topc**: CHIP Address of the owner of the top tally in the local lift segment.
+  - **topt**: The ID of the top (output) tally in the local lift segment.
+  - **inpc**: CHIP Address of the input (foreign peer) of the local lift segment.
+  - **botc**: CHIP Address of the owner of the bottom tally in the local lift segment.
+  - **bott**: The ID of the bottom (input) tally in the local lift segment.
+
+For the special case of the **init** action (on the lift originating site), the message will contain:
+  - **init**:
+    - **find**: Destination CHIP Address to be included in the outgoing packet.
+    - **org**: Suggested **org** (origin) property for the outgoing packet object.
+    - **ref**: Suggested **ref** (referee) property for the outgoing packet object.
+    - **circuit**: Boolean indicating if this is a circular (as opposed to linear) lift.
 
 The *object* property includes the following properties:
   - **lift**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier)(UUID) for this particular lift.
@@ -271,7 +285,7 @@ The *object* property includes the following properties:
     - **agent**: Encoded agent public key (required)
     - **host**: Hostname or IP number (optional to allow signature queries from relays)
     - **port**: Port to connect on (ditto)
-    - **from**: Encrypted object from the originator for destination's eyes only
+    - **plan**: Encrypted object from the originator for destination's eyes only
       - **cid**: Originator CHIP address to send final promise to (or from whom linar lift is payment).
       - **agent**: Agent address of originator CID (default to org.agent)
       - **pay**: True if this lift is a linear payment (otherwise, it is a circular, clearing function)

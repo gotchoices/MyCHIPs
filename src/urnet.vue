@@ -247,7 +247,7 @@ console.log("Update nodes:", dTime, this.state.nodes, data.length, data)
     
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
 //      let dTime = updatePending || dat.oper == 'DELETE' ? null : dat.time	//Only query late changing entries
-console.log("URnet async:", dat, dat.oper, dTime)
+console.log("URnet async:", dat, dat.oper)
 
       if (dat.target == 'peers' || dat.target == 'tallies')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)

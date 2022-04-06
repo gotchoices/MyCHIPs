@@ -31,6 +31,7 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
     {CUU	{Chit Not Unique}	{Chit UUID must be unique to each tally}}
     {IST	{Illegal State Change}	{The executed state transition is not allowed}}
     {LIT	{Link Invalid Tally}	{Attempted to link chit to invalid tally}}
+    {MIS	{Bad Chit Signature}	{A chit marked to be good has no signature}}
 }
 
 tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
