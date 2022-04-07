@@ -136,7 +136,8 @@ class AccountCluster {
 
         // If this round falls in the right interval, run some lifts automatically
         if (this.runCounter % this.params.liftInterval == 0) {
-          this.myChipsDBManager.performAutoLifts()
+          let liftData = this.myChipsDBManager.performAutoLifts()
+          if (liftData) this.worldDBManager.analyticsAddLift(liftData)
         }
       } else {
         // TODO: Add setTimeout() or otherwise handle asynchronous

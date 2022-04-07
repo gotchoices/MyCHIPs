@@ -147,6 +147,21 @@ interface AccountAnalytics {
   satisfied: boolean
 }
 
+interface LiftAnalytics {
+  server: string
+  numLifts: string
+  lifts: LiftData[]
+}
+
+interface LiftData {
+  seq: string
+  request: string
+  status: string
+  units: string
+  path: string
+  circular: string
+}
+
 /** Used when pulling data from SQL */
 interface ParamData {
   name: string

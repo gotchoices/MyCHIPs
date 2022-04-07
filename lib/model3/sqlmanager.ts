@@ -3,6 +3,7 @@ import { dbClient } from 'wyseman'
 import UnifiedLogger from './unifiedLogger'
 
 import { v4 as uuidv4 } from 'uuid'
+import { Lift } from '../@types/models'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_agent, peer_host, peer_port, mychips.user_cert(id) as cert, stocks, foils, part_cids, vendors, clients,
@@ -298,7 +299,7 @@ class SQLManager {
   }
 
   /** Searches for lifts on this server and performs them */
-  performAutoLifts(): void {
+  performAutoLifts(): Lift | void {
     console.log('Running automatic lifts!\n')
     this.dbConnection.query('select mychips.lift_cycle(100)', (err, result) => {
       if (err) {
@@ -306,8 +307,24 @@ class SQLManager {
         console.log('Error when doing auto lifts!', err)
       } else {
         console.log('Results from auto lifts:\n', result)
+        return result.row[0]
       }
     })
+  }
+
+  /** Maybe this can run at the end */
+  getLiftData(): LiftAnalytics | void {
+    this.dbConnection.query(
+      'select lift_guid,lift_seq,request,status,units,circular,path,dest_chid,dest_host,signature from mychips.lifts_v',
+      (err, res) => {
+        if (err) {
+          console.log('Error while getting lift analytics')
+          return null
+        } else {
+          return res
+        }
+      }
+    )
   }
 
   query(...args: any[]) {
