@@ -24,11 +24,11 @@ The Model 3 simulation extends the basic structure Model 2 was built on and adds
 
 - Add extendable action classes to simulation (these are the actions that accounts will take while the simulation runs)
   - Future developers/interested parties can create actions that accounts will take during the simulation
-    -find clients
-    -sell merchandise
-    -get paycheck
-    -give loan
-    -etc
+    - find clients
+    - sell merchandise
+    - get paycheck
+    - give loan
+    - etc
   - Actions can be added to various accounts
   - The frequency of occurence for each action is determined by the account class they are assigned to
 
@@ -36,43 +36,59 @@ The Model 3 simulation extends the basic structure Model 2 was built on and adds
 
 ## Running the Simulation
 
-To run the simulation you need to run `npm install` and then follow the [setup instructions](/doc/sim-docker.md). Specific instructions for Model 3 are at the bottom.
+To run the simulation you need to follow these steps:
+1) Run `npm install` 
+2) Export environment variables*
+3) Follow steps 4-5 under Developement (below)
+    
+\*For an in-depth explanation, please see the [setup instructions](/doc/sim-docker.md).
 
+### Analytics
+
+One of the primary goals of the simulation is to gather analytical data to prove the viability of MyCHIPs in the real world. The simulation exports data to MongoDB throughout execution, but the data must be exported after the simulation is complete. We have created a script that exports the MongoDB data to a local folder in JSON files. 
+
+Run `npm run getAnalytics` after the simulation ends but before running `./simdock shutdown` to export simulation analytics to the `test/sim/local/analytics` directory. (See step 4 under Developement below)
 ## Development
 
 <ins>_ Do not edit Model 3 JavaScript files directly _</ins>
 
-The simulation Model 3 was developed using TypeScript to allow clear data typing, extendable classes, and inheritance. Changes must be made to the `*.ts` files. Any changed `*.ts` files must be transpiled before execution. The overall work flow should look something like this:
+The simulation Model 3 was developed using TypeScript to allow clear data typing, extendable classes, and inheritance. Changes must be made to the `*.ts` files. Any changed `*.ts` files must be transpiled before execution. 
+
+The easiest way to run steps 2-3 is by running the npm script `npm run runsim` (\*see note below). The overall work flow should look something like this:
 
 1. Edit `*.ts` files.
 2. Run `npm tsc` before running the simulation.
-3. Run `./simdock startup`, `./simdock tickets`, and then `./simdock start sim --runs=50` as outlined [here](/doc/sim-docker.md)
+3. Run `./simdock startup`, `./simdock tickets`, and then `./simdock start sim --runs=50` as outlined [here](/doc/sim-docker.md).
+4. (Optional) Run `npm run getAnalytics` after the simulation ends but before running `./simdock shutdown` to export simulation analytics to the `test/sim/local/analytics` directory.
+5. Run `./simdock shutdown` to end the simulation (this stops all simulation docker containers)
 
-\*Instead of running these four commands individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence. This can be done with the command `npm run runsim`. Since the simulation is run asynchronously, the script should be run from the command line. We've seen some issues with using VS Code's NPM SCRIPTS runner.
 
+\*Instead of running steps 2-3 individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence. This can be done with the command `npm run runsim`. Since the simulation is run asynchronously, the script should be run from the command line. We've seen some issues with using VS Code's NPM SCRIPTS runner.
 ## Creating Accounts/Actions
 
-To add new accounts implement "account.ts" and place the new account class file in the "/accounts" directory. Typescript will enforce implementation of class methods.
+To add new accounts, implement "account.ts" and place the new account class file in the "/accounts" directory. Typescript will enforce implementation of class methods.
 
-` import Account from '../account'
+``` 
+import Account from '../account'
 
-  class NewAccountType implements Account { ...
-`
-To add new actions implement "actions.ts" and place the new account class file in the "/actions" directory. Typescript will enforce implementation of class methods.
+class NewAccountType implements Account { ...
+```
+The process to add new actions follows the same pattern: implement "actions.ts" and place the new account class file in the "/actions" directory. Typescript will enforce implementation of class methods.
 
-` import Actions from '../actions'
+```
+import Actions from '../actions'
 
-  class NewAction implements Action { ...
-
+class NewAction implements Action { ...
+```
 TODO: add some text here to describe how to add actions to accounts...
 
 ## Prettier & ESLint
 
-This project uses esLint and Prettier to format and check the simulation TypeScript files for syntax errors. Make sure to set up your IDE to use these tools (preferably Prettier formats on each save). To format everything at once, run `npx prettier --write .`. Before committing, make sure to run npm tsc to apply style changes to JS files as well.
+This project uses esLint and Prettier to format and check the simulation TypeScript files for syntax errors. Make sure to set up your IDE to use these tools (preferably Prettier formats on each save). To format everything at once, run `npx prettier --write .` . Before committing, make sure to run `npm tsc` to apply style changes to JS files as well.
 
 ## Structure Overview
 
-The MyCHIPs project and Model 3 code have a lot of moving pieces that come together to make the simulation work. Along with Kyle's well-written and thorough documentation, we wanted to provide a sort of summary of the pieces at play that are crucial for the simulaltion Model 3.
+The MyCHIPs project and Model 3 code have a lot of moving pieces that come together to make the simulation work. Along with Kyle's well-written and thorough documentation, we wanted to provide a sort of summary of the pieces at play that are crucial for the simulation Model 3.
 
 Details on low-level implementation are provided in the code as Javadoc comments, and this README contains high-level explanations that will help you see how the different pieces fit together. We encourage you to add clear documentation as you develop to mantain continuity during the development process.
 
@@ -122,6 +138,7 @@ Here is a basic description of the flow of data through the simulation:
 
 ## Gotchas
 
+- Before running the simulation for the first time, make sure you ran `npm install` and exported the correct environment variables as indicated in the [setup instructions](/doc/sim-docker.md)
 - The Actions collection in the World DB is a shared queue where servers can tell eachother perform actions. No relation to our actions class.
 - Currently a user's id is unique only on their host server, while the peer_cid is unique to the world. This means two users with different peer_cids could have the same id on a server when one is downloaded as a peer. Kyle is working to make peer_cids the only identification needed and remove the need to download a user as a peer.
 
@@ -130,6 +147,8 @@ Here is a basic description of the flow of data through the simulation:
 CHIP - A unit of digital credit in the MyCHIPs system
 
 Chit - A payment of X amount of CHIPs. Can be thought of similar to writing a check.
+
+Chad - A chad is the current way of identifying an account. When an account is trying to create a tally, it finds a random chad and makes a tally request to the account associated with that chad.
 
 Tallies
 
@@ -158,6 +177,5 @@ Process of making a payment
 
 - Change SQL schema to allow ent_type to have more that one VARCHAR
 - Move usergeneration from ./simdock start sim to Agent Cluster setup code so the simulation model can manage account creation.
-- Add environment variables to runsim.sh
 - Use async/await and promises instead of callback hell
 - Add criteria for credit lifts to the config file to test various lift scenarios
