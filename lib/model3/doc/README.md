@@ -91,6 +91,7 @@ Here is a basic description of the flow of data through the simulation:
 
 - The Actions collection in the World DB is a shared queue where servers can tell eachother perform actions. No relation to our actions class.
 - Currently a user's id is unique only on their host server, while the peer_cid is unique to the world. This means two users with different peer_cids could have the same id on a server when one is downloaded as a peer. Kyle is working to make peer_cids the only identification needed and remove the need to download a user as a peer.
+- If you modify the config before you run killsim, the command will not work correctly. Make sure you only make changes to config.dock after you kill a simulation. (For example, if you change from 10 sites to 4, then run killsim it will only destroy containers and data for the first 4 servers, but will leave all of the others)
 
 ## Glossary
 
@@ -125,3 +126,7 @@ TODO:
 - Move usergeneration from ./simdock start sim to Agent Cluster setup code
 - Add environment variables to runsim.sh
 - Use async/await and promises instead of callback hell
+- Create a version of simdock for large scale simulations that does not open terminals or browser windows
+- Get performance data for large scale simulations and discover limitations on memory and disk space.
+- Figure out why the touch command can't create files and make sure they are deleted in killsim
+- Simulation memory can work sporadically with asynchronous calls in large simulations. We need to look into synchronous container creation.
