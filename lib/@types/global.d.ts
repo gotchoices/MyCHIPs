@@ -20,6 +20,8 @@ interface DBConfig {
 interface AdjustableSimParams {
   /** The interval between rounds in the simulation (in milliseconds) */
   interval: number
+  /** The number of rounds between automatic lift checks */
+  liftInterval: number
   /** A list account parameters */
   accountTypes: AdjustableAccountParams[]
 }
@@ -30,20 +32,28 @@ interface AdjustableAccountParams {
   type: string
   /** The percentage of total entities on this server that should be made this type */
   percentOfTotal: number
-  /** A percentage defining how often this entity will try to add a new spending target (vendor or stock) */
+  /** A percentage defining how often this entity will try to add a new spending target (vendor or foil) */
   newSpendingTargetOdds: number | undefined
-  /** A percentage defining how often this entity will try to add a new income source (client or foil) */
+  /** A percentage defining how often this entity will try to add a new income source (client or stock) */
   newIncomeSourceOdds: number | undefined
   /** A percentage degining how often this entity will try to adjust its settings */
   adjustSettingsOdds: number | undefined
-  /** The maximum number of spending targets (stocks) this entity will open */
+  /** The maximum number of spending targets (foils) this entity will open */
   maxSpendingTargets: number | undefined
-  /** The maximum number of income sources (foils) this entity will open */
+  /** The minimum number of spending targets (foils) this account will need to be satisfied*/
+  desiredSpendingTargets: number
+  /** The maximum number of income sources (stocks) this entity will open */
   maxIncomeSources: number | undefined
+  /** The minimum number of income sources (stocks) this account will need to be satisfied */
+  desiredIncomeSources: number
   /** The minimum net worth the entity must have to be willing to spend money */
   minWorthToSpend: number | undefined
   /** A percentage defining the maximum amount this entity is willing to spend in one transaction */
   maxToSpend: number | undefined
+  /** If the absolute value on any one connection (in or out) is greater than this, the account will ask for a lift */
+  diffForLift: number | undefined
+  /** If the net worth is less than this number, the account will not be satisfied */
+  minForSatisfaction: number
 }
 
 interface ActionData {
@@ -64,42 +74,41 @@ interface AccountData {
   /** Entity type */
   ent_type: string
   user_ent: string
-  hosted_ent?: boolean | null
   peer_cid: string
-  agent: string
+  peer_agent: string
+  peer_host: string
+  peer_port: number
   cert: certificate
-  /** Assigned peer socket (ex: 'peer2:65430') */
-  peer_sock: string
   /** The number of stocks (income sources) that this account holds */
   stocks: number
   /** The number of foils (spending targets) that this account holds */
   foils: number
   /** List of account IDs that this account is connected to (combines the vendors and clients arrays) */
-  partners: string[]
+  part_cids: string[]
   /** List of account IDs that this account holds a foil for (I pay them money) */
   vendors: string[]
   /** List of account peer_cids that this account holds a foil for */
   vendor_cids?: string[]
+  /** List of account agents that this account holds a foil for */
+  vendor_agents?: string[]
   /** List of account IDs that this account holds a stock for (they pay me money) */
   clients: string[]
   /** List of account peer_cids that this account holds a stock for */
   client_cids?: string[]
+  /** List of account agents that this account holds a foil for */
+  client_agents?: string[]
   /** List of sequence numbers that correspond to chits/payments on stock tallies */
   stock_seqs: number[]
   /** List of sequence numbers that correspond to chits/payments on foil tallies */
   foil_seqs: number[]
   /** The net worth of this account */
-  units: number
+  units: number | string
   /** An array of strings ('stock' and 'tally') that indicates what kind of tally corresponds to the index */
   types?: string[]
   /** List of sequence numbers that correspond to chits/payments on tallies (combines the stock_seqs and foil_seqs arrays) */
   seqs: number[]
+  targets?: string[]
   random?: number
-  /** Name of hosting peer server (ex: 'peer0') */
-  host?: string
-  born_date: string
-  peer_host?: string
-  peer_port?: string
 }
 
 interface certificate {
@@ -126,6 +135,31 @@ interface certificate {
       country: string
     }
   }
+}
+
+interface AccountAnalytics {
+  name: string
+  peer_cid: string
+  id: string
+  stocks: number
+  foils: number
+  netWorth: number
+  satisfied: boolean
+}
+
+interface LiftAnalytics {
+  server: string
+  numLifts: string
+  lifts: LiftData[]
+}
+
+interface LiftData {
+  seq: string
+  request: string
+  status: string
+  units: string
+  path: string
+  circular: string
 }
 
 /** Used when pulling data from SQL */

@@ -9,7 +9,8 @@ protocol or for analyzing economic outcomes in the network.
 
 ## Containerized Simulation
 
-Simdock (try 3) is a re-implementation of the simnet (try 2) script where, instead of running on
+Simdock (third iteration) is a re-implementation of the simnet (second iteration)
+script where, instead of running on
 separate virtual machines, all processes are launched as docker containers.
 Most functionality is wrapped inside the test/sim/simdock script.
 
@@ -187,6 +188,15 @@ also do:
 ```
 
 to launch a single admin console (to site 2 in this case).
+
+The most useful view in the admin console is found in the *Network* tab where you
+can see a visual representation of the users on each site.  Unfortunately, we
+haven't created any yet, so do that now:
+```
+./simdock usercheck all
+```
+You should see some users populate into the window, depending on how many each
+site is configured to install.
 
 Finally, it's time to start the simulation.  Run this:
 ```

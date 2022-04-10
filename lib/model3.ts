@@ -1,12 +1,9 @@
 import SQLManager from './model3/sqlmanager'
 import MongoManager from './model3/mongoWorldManager'
 import Os from 'os'
-import { Document, MongoClient as DocClient, MongoClientOptions } from 'mongodb'
 import UnifiedLogger from './model3/unifiedLogger'
-import { ActionDoc } from './@types/document'
 import Account from './model3/account'
 import AccountFactory from './model3/accountFactory'
-import AccountCache from './model3/accountsCache'
 import { Server } from './@types/models'
 /**
  * @class AccountCluster
@@ -37,7 +34,6 @@ class AccountCluster {
   /** Used to execute a run of the simulation each given interval */
   private intervalTimer!: NodeJS.Timer | null
 
-  private accountCache!: AccountCache
   private hostedAccounts!: Account[]
 
   constructor(
@@ -55,7 +51,6 @@ class AccountCluster {
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
     this.notifyOfTallyChange = this.notifyOfTallyChange.bind(this)
-    this.notifyOfNewAccountRequest = this.notifyOfNewAccountRequest.bind(this)
     this.notifyOfAccountsChange = this.notifyOfAccountsChange.bind(this)
     this.eatAccounts = this.eatAccounts.bind(this)
     this.eatParameters = this.eatParameters.bind(this)
@@ -101,8 +96,6 @@ class AccountCluster {
 
   // calls run on all of the accounts
   run() {
-    this.accountCache = AccountCache.getInstance()
-
     this.runCounter = 0
     if (this.networkConfig.runs) {
       this.runs = this.networkConfig.runs
@@ -120,12 +113,11 @@ class AccountCluster {
     this.myChipsDBManager.getParameters(this.eatParameters)
 
     this.worldDBManager.createConnection(
-      this.notifyOfNewAccountRequest,
       // loadInitialUsers is called once the connection is created asynchronously
       this.loadInitialUsers
     )
 
-    //TODO: Right now we're in callback hell, despite our efforts to clean it up. I want to start
+    //TODO: Right now we're in callback heck, despite our efforts to clean it up. I want to start
     // using the async/await syntax to get rid of all of the callbacks.
     // Because of this, the simulation doesn't start until eatAccounts() finishes running for the
     // first time.
@@ -138,14 +130,22 @@ class AccountCluster {
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
         console.log('\n###RUN NUMBER', this.runCounter, '###')
+
+        // Process each hosted account this round
         this.hostedAccounts.forEach(this.process)
+
+        // If this round falls in the right interval, run some lifts automatically
+        if (this.runCounter % this.params.liftInterval == 0) {
+          let liftData = this.myChipsDBManager.performAutoLifts()
+          if (liftData) this.worldDBManager.analyticsAddLift(liftData)
+        }
       } else {
         // TODO: Add setTimeout() or otherwise handle asynchronous
-        this.recordFinalAnalytics()
         console.log(
           `END OF SIM ************* ${this.host} with ${this.runCounter} runs`
         )
         this.close()
+        this.recordFinalAnalytics()
       }
     }, this.params.interval)
   }
@@ -159,9 +159,10 @@ class AccountCluster {
     this.myChipsDBManager.queryAccounts(this.eatAccounts) //Load up initial set of users
   }
 
-  // gets accounts from SQL and puts hosted account info into MongoDB
-  notifyOfAccountsChange(msg) {
-    this.myChipsDBManager.queryLatestUsers(msg.time, this.eatAccounts)
+  // gets accounts from SQL, updates local info, and puts hosted account info into MongoDB
+  notifyOfAccountsChange(message) {
+    // console.log('Change in the accounts:\n', message)
+    this.myChipsDBManager.queryLatestUsers(message.time, this.eatAccounts)
   }
 
   notifyOfParamsChange(target: string, value: any) {
@@ -170,30 +171,16 @@ class AccountCluster {
 
   notifyOfTallyChange(message: any) {
     this.logger.debug('Peer Message:', message)
-
+    // console.log('Change in a tally:', message)
     //Someone is asking an account to act on a tally
-    if (message.state == 'peerProffer') {
-      this.logger.verbose('  peerProffer:', message.entity)
+    if (message.state == 'P.offer') {
+      this.logger.verbose('Tally offer:', message.entity)
       this.hostedAccounts.forEach((account) => {
         if (account.id == message.entity) {
           account.acceptNewConnection(message)
         }
       })
     }
-  }
-
-  notifyOfNewAccountRequest(
-    accountData: AccountData,
-    tag: string,
-    destinationHost: string
-  ) {
-    console.log('New Account Request from', destinationHost, 'with tag', tag)
-    console.log('Account to add:\n', accountData.peer_cid)
-    if (!this.accountCache.containsAccount(accountData)) {
-      this.myChipsDBManager.addPeerAccount(accountData)
-      this.accountCache.addAccount(accountData)
-    }
-    this.worldDBManager.insertAction('done', tag, destinationHost)
   }
 
   // --- Helper Functions --------------------------------------------------------
@@ -212,15 +199,6 @@ class AccountCluster {
     }
 
     console.log('\nAccounts updated:', dbAccounts.length)
-
-    // All accounts getting loaded are local now
-    dbAccounts.forEach((dbAccount) => {
-      dbAccount.hosted_ent = true
-      dbAccount.agent = this.agent
-
-      // Put data for all accounts into our cache
-      this.accountCache.addAccount(dbAccount)
-    })
 
     // If loading all users (loading for the first time)
     if (first) {
@@ -260,6 +238,19 @@ class AccountCluster {
       dbAccounts.forEach((accountData) => {
         this.hostedAccounts.forEach((hostedAccount) => {
           if (hostedAccount.peer_cid == accountData.peer_cid) {
+            console.log(
+              `\n${accountData.peer_cid}`
+              // :\nkey:\t\t\t\told:\t\t\t\tnew:`
+            )
+            // Object.keys(accountData).forEach((key) => {
+            //   let oldVal = hostedAccount.getAccountData()[key]
+            //   let newVal = accountData[key]
+            //   if (Array.isArray(newVal)) {
+            //     console.log(`${key}:\t\t[${oldVal}],\t\t[${newVal}]`)
+            //   } else {
+            //     console.log(`${key}:\t\t${oldVal},\t\t${newVal}`)
+            //   }
+            // })
             hostedAccount.updateAccountData(accountData)
             this.worldDBManager.updateOneAccount(hostedAccount.getAccountData())
           }
@@ -302,16 +293,15 @@ class AccountCluster {
       account.std_name,
       account.peer_cid
     )
-    console.log('\n', account.peer_cid, 'is taking their turn')
+    console.log(account.peer_cid, 'is taking their turn')
 
     account.takeAction()
 
     this.logger.debug(
       '  stocks:',
-      account.numSpendingTargets,
+      account.numIncomeSources,
       '  foils:',
-      'action taken:',
-      account.lastActionTaken
+      account.numSpendingTargets
     )
   }
 
@@ -319,7 +309,9 @@ class AccountCluster {
     const currServer: Server = {
       id: this.host,
       balance: 0,
-      accounts: this.hostedAccounts.map((account) => account.getAccountData()),
+      accounts: this.hostedAccounts.map((account) =>
+        account.getAccountAnalytics()
+      ),
       actualRuns: this.runCounter, // Actual number of simulation runs executed by this server
     }
     this.worldDBManager.analyticsAddServer(currServer)

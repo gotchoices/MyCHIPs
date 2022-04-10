@@ -47,25 +47,8 @@ table mychips.routes {mychips.peers mychips.tallies} {
   , margin	float		not null default 0 constraint "!mychips.paths.LMG" check (margin >= -1 and margin <= 1)
   , max		bigint		not null default 0
   , reward	float		not null default 0 constraint "!mychips.paths.LRW" check (reward >= -1 and reward <= 1)
-  
--- Obsolete fields (remove/rename after lifts reworked)
-  , route_ent	text		-- not null references mychips.peers on update cascade on delete cascade
-  , dest_ent	text		references mychips.users on update cascade on delete cascade
-  , dest_chid	text
-  , dest_host	text		--?? check ((not dest_ent is null and dest_host isnull) or (dest_ent isnull and dest_host is not null))
-  , topu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
-  , botu_ent	text		-- not null references mychips.peers on update cascade on delete cascade
-  , lift_min	bigint		-- default 0
-  , lift_margin	float		-- not null default 0 constraint "!mychips.paths.LMG" check (lift_margin >= -1 and lift_margin <= 1)
-  , lift_max	bigint		-- default 0
-  , lift_reward	float		-- not null default 0 constraint "!mychips.paths.LRW" check (lift_reward >= -1 and lift_reward <= 1)
-  , drop_min	bigint		-- default 0
-  , drop_margin	float		-- not null default 0 constraint "!mychips.paths.DMG" check (drop_margin >= -1 and drop_margin <= 1)
-  , drop_max	bigint		-- default 0
-  , drop_reward	float		-- not null default 0 constraint "!mychips.paths.DRW" check (drop_reward >= -1 and drop_reward <= 1)
---  , primary key(route_ent, dest_chid, dest_host)
 }
-#index {} mychips.routes used_date
+#index {} mychips.routes good_date
 
 table mychips.route_tries {mychips.routes} {
     rtry_rid	int		primary key references mychips.routes on update cascade on delete cascade

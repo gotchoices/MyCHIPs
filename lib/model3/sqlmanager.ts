@@ -3,15 +3,13 @@ import { dbClient } from 'wyseman'
 import UnifiedLogger from './unifiedLogger'
 
 import { v4 as uuidv4 } from 'uuid'
+import { Lift } from '../@types/models'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_agent, peer_host, peer_port, mychips.user_cert(id) as cert, stocks, foils, part_cids, vendors, clients,
 	vendor_cids, vendor_agents, client_cids, stock_seqs, foil_seqs, units, types, seqs, targets
 	from mychips.users_v_tallysum
 	where not user_ent isnull`
-const peerSql = `insert into mychips.peers_v 
-	(ent_name, fir_name, ent_type, born_date, peer_cid, peer_host, peer_port) 
-	values ($1, $2, $3, $4, $5, $6, $7) returning *`
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
 
 interface Config extends DBConfig {
@@ -31,6 +29,8 @@ class SQLManager {
   // private database: string
   // private user: string
   // private port: string
+  /** Used to make sure that users are only loaded once */
+  private loadingUsers: boolean = false
 
   private constructor(sqlConfig: DBConfig, params: AdjustableSimParams) {
     this.logger = UnifiedLogger.getInstance()
@@ -99,39 +99,6 @@ class SQLManager {
     this.logger.info('SQL Connection Created')
   }
 
-  addPeerAccount(
-    accountData: AccountData,
-    callback?: (newGuy: AccountData) => void
-  ) {
-    console.log('Adding', accountData.peer_cid, 'to local DB')
-    this.dbConnection.query(
-      peerSql,
-      [
-        accountData.ent_name,
-        accountData.fir_name,
-        accountData.ent_type,
-        accountData.born_date,
-        accountData.peer_cid,
-        accountData.peer_host || accountData.peer_sock.split(':')[0]!,
-        accountData.peer_port || accountData.peer_sock.split(':')[1]!,
-      ],
-      (err, res) => {
-        if (err) {
-          this.logger.error('Adding peer:', accountData.peer_cid, err.stack)
-          return
-        }
-        let newGuy = res.rows[0]
-        this.logger.debug(
-          '  Inserting partner locally:',
-          newGuy.std_name,
-          newGuy.peer_socket
-        )
-        console.log('Added', newGuy.peer_cid, 'to local DB')
-        if (callback) callback(newGuy)
-      }
-    )
-  }
-
   addConnectionRequest(
     requestingAccountID: string,
     requestingAccountCertificate: certificate,
@@ -148,13 +115,13 @@ class SQLManager {
     )
     console.log(
       'Making a connection/tally between',
-      requestingAccountID,
+      requestingAccountCertificate.chad.cid,
       'and',
-      targetAccountCertificate
+      targetAccountCertificate.chad.cid
     )
 
     this.query(
-      'insert into mychips.tallies_v (tally_ent, tally_uuid, contract, request, hold_cert, part_cert, hold_sig) values ($1, $2, $3, $4, $5, $6, $7);',
+      'insert into mychips.tallies_v (tally_ent, tally_uuid, contract, request, hold_cert, part_cert, hold_sig, tally_type) values ($1, $2, $3, $4, $5, $6, $7, $8);',
       [
         requestingAccountID,
         uuid,
@@ -163,19 +130,28 @@ class SQLManager {
         requestingAccountCertificate,
         targetAccountCertificate,
         sig,
+        'foil',
       ],
       (err, res) => {
         if (err) {
           this.logger.error('Inserting a tally:', err.stack)
           console.log(
             'Error while making tally between',
-            requestingAccountID,
+            requestingAccountCertificate.chad.cid,
             'and',
-            targetAccountCertificate
+            targetAccountCertificate.chad.cid
           )
           console.log(err)
           return
         }
+        console.log(
+          'Tally offered between',
+          requestingAccountCertificate.chad.cid,
+          'and',
+          targetAccountCertificate.chad.cid,
+          ':',
+          uuid
+        )
         this.logger.debug(
           '  Initial tally by:',
           requestingAccountID,
@@ -188,13 +164,23 @@ class SQLManager {
 
   updateConnectionRequest(entity, sequence, accepted: boolean) {
     if (accepted) {
+      let target = 1
       this.query(
-        "update mychips.tallies_v set request = 'open' where tally_ent = $1 and tally_seq = $2",
-        [entity, sequence],
+        "update mychips.tallies_v set request = 'open', hold_sig = $3, target = $4 where tally_ent = $1 and tally_seq = $2 returning state;",
+        [entity, sequence, 'Accepted', target],
         (err, res) => {
           if (err) {
             this.logger.error('Updating a Tally:', err.stack)
+            console.log('Error trying to accept tally for', entity, sequence)
           }
+          console.log(entity, 'accepted tally #', sequence)
+          let row = res.rows && res.rows.length >= 1 ? res.rows[0] : null
+          this.logger.verbose(
+            'Tally accepted:',
+            row.tally_ent,
+            row.tally_seq,
+            row.state
+          )
         }
       )
     } else {
@@ -217,8 +203,8 @@ class SQLManager {
     )
 
     this.query(
-      "insert into mychips.chits_v (chit_ent,chit_seq,chit_guid,chit_type,signature,units,quidpro,request) values ($1,$2,$3,'tran',$4,$5,$6,$7)",
-      [spenderId, sequence, uuidv4(), 'Valid', chipsToSpend, quid, 'userDraft'],
+      'insert into mychips.chits_v (chit_ent,chit_seq,chit_uuid,signature,units,quidpro,request) values ($1,$2,$3,$4,$5,$6,$7)',
+      [spenderId, sequence, uuidv4(), 'Signed', chipsToSpend, quid, 'good'],
       (e, r) => {
         if (e) {
           this.logger.error('In payment:', e.stack)
@@ -232,7 +218,7 @@ class SQLManager {
           )
           return
         }
-
+        console.log(spenderId, 'paying', receiverId, chipsToSpend, 'CHIPS')
         this.logger.debug('  payment:', spenderId, 'to:', receiverId)
       }
     )
@@ -246,6 +232,10 @@ class SQLManager {
     this.dbConnection.disconnect()
   }
 
+  /**
+   * Gets parameters from the MyCHIPS DB. May not be needed with new paramConfig.yaml
+   * @param callback Function to call once the query is finished
+   */
   getParameters(callback: (parameters: ParamData[]) => void) {
     this.query(parmQuery, (err, res) => {
       if (err) {
@@ -275,7 +265,11 @@ class SQLManager {
   }
 
   queryLatestUsers(time: string, callback: (accounts: AccountData[]) => any) {
+    // Only load users once at time
+    // if (!this.loadingUsers) {
+    //   this.loadingUsers = true
     this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
+      this.loadingUsers = false
       if (err) {
         this.logger.error('Getting latest Users:', err.stack)
         return
@@ -283,10 +277,54 @@ class SQLManager {
       this.logger.trace('Loaded accounts:', res.rows.length)
       callback(res.rows)
     })
+    // } else {
+    //   console.log("Tried to query users when I'm already doing that!")
+    // }
   }
 
-  queryPeers(callback: (err: any, res: any) => any) {
-    this.query(peerSql, callback)
+  /** Starts a lift starting from a given peer. I don't know what it means to have a bottom or end peer though... */
+  requestLift(start_peer_cid: string, end_peer_cid?: string): void {
+    this.dbConnection.query(
+      'select mychips.lift_circuit($1, $2)',
+      [start_peer_cid, end_peer_cid],
+      (err, result) => {
+        if (err) {
+          this.logger.error("Can't start a lift:", err)
+          console.log('Error when starting a lift!', err)
+        } else {
+          console.log('We did a lift!\n', result)
+        }
+      }
+    )
+  }
+
+  /** Searches for lifts on this server and performs them */
+  performAutoLifts(): Lift | void {
+    console.log('Running automatic lifts!\n')
+    this.dbConnection.query('select mychips.lift_cycle(100)', (err, result) => {
+      if (err) {
+        this.logger.error('Automatic lifts:', err)
+        console.log('Error when doing auto lifts!', err)
+      } else {
+        console.log('Results from auto lifts:\n', result)
+        return result.row[0]
+      }
+    })
+  }
+
+  /** Maybe this can run at the end */
+  getLiftData(): LiftAnalytics | void {
+    this.dbConnection.query(
+      'select lift_guid,lift_seq,request,status,units,circular,path,dest_chid,dest_host,signature from mychips.lifts_v',
+      (err, res) => {
+        if (err) {
+          console.log('Error while getting lift analytics')
+          return null
+        } else {
+          return res
+        }
+      }
+    )
   }
 
   query(...args: any[]) {
