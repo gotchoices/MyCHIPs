@@ -7,4 +7,4 @@ export NODE_DEBUG=debug
 ./simdock startup
 sleep 30
 ./simdock tickets
-./simdock start sim --runs=10 
+./simdock start sim --runs=50 

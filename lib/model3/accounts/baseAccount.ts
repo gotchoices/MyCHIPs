@@ -219,6 +219,7 @@ class BaseAccount implements Account {
   }
 
   getAccountAnalytics(): AccountAnalytics {
+    this.calculateSatisfaction()
     return {
       name: this.std_name,
       peer_cid: this.peer_cid,
