@@ -115,8 +115,7 @@ Here is a basic description of the flow of data through the simulation:
    - Runs `sim-c.sh` which starts the simulation by creating one 'model' docker container per site, each running an AccountCluster process (the entrypoint is `test/sim/account` which instantiates the main class in `model3.ts`)
 
 2. Each 'account' (by running AccountCluster) loads the config file parameters, connects to their respective local SQL databases, and connects to the shared Mongo 'World' database.
-3. Accounts stored in local SQL databases are loaded into their respective sites' AccountCache, and are loaded into the shared WorldDB.
-4. 'accounts' iterate through their local accounts, performing allowed actions, (such as purchase item, take out a loan, sell a good, etc...). For example, let's say Dave initiates a 'purchase item' action. To do so, he needs to find a new spending target. His account goes through these steps:
+3. 'accounts' iterate through their local accounts, performing allowed actions, (such as purchase item, take out a loan, sell a good, etc...). For example, let's say Dave initiates a 'purchase item' action. To do so, he needs to find a new spending target. His account goes through these steps:
 
    1. Find peer in world DB (Mongo)
 
@@ -128,9 +127,9 @@ Here is a basic description of the flow of data through the simulation:
    3. Once our info is on the peer's server...
    4. Use the peer's ID (not peer_cid) to make a connection (tally) request with SQLManager
 
-5. Once the peers and SQLManager approve the connection, then the peers perform the tally behind the scenes of the simulation.
+4. Once the peers and SQLManager approve the connection, then the peers perform the tally behind the scenes of the simulation.
 
-6. Listeners to the SQL databases' peers or tallies will notify the 'agent' container of new change, and the 'agent' reacts accordingly
+5. Listeners to the SQL databases' peers or tallies will notify the 'agent' container of new change, and the 'agent' reacts accordingly
 
 ### Simulation Sequence UML
 
