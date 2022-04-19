@@ -36,6 +36,8 @@ The Model 3 simulation extends the basic structure Model 2 was built on and adds
 
 ## Running the Simulation
 
+<ins>_ Make sure test/sim/local/config.dock has `modversion=3` to run Model 3 _</ins>
+
 To run the simulation you need to follow these steps:
 1) Run `npm install` 
 2) Export environment variables*
