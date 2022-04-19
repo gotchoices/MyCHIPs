@@ -3,8 +3,13 @@
 #----------------------------------------------------------------
 #TODO:
 #X- What should users_v delete trigger to with peer table (nothing)?
-#- Make CID unique for all local users (trigger?)
-#- 
+#- Make CID:agent unique for all local users
+#- Consolidate user/peer tables (since protocol 1.0 updates)
+#- Standardize view columns:
+#-   peer_chad: JSON full CHIP address
+#-   peer_addr: cid:agent
+#-   peer_full: cid:agent@host:port		Is this needed/useful anywhere?
+#-   Deprecate? peer_cagent, peer_chost, peer_cport, peer_sock
 require multiview.tcl base.tcl config.tcl
 
 module mychips

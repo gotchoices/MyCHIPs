@@ -1,0 +1,398 @@
+//Admin interface; User Relationship Network Graph
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
+// TODO:
+//X- Implement visbs.vue as body of svgnode
+//X- Each user is a visual balance balance real-time pie-chart
+//X- Use constant update d3 or similar to place nodes on chart
+//X- Arrows are separate objects--not belonging directly to nodes
+//- Fetch language info from data dictionary
+//- Create view that's better/more-efficient than users_v_tallysum?
+//- Record last-modified date for each node, only update what has changed
+//- 
+//Immediate:
+//- Update edge ends on first paint
+//- Auto-generate aim points on connectors (optionally)
+//- After d3 gravity working, can we remove some of the properties of user/peer? (width,height)
+//- Maybe d3/gravity algo should not be in wylib at all (but rather the client app)
+//- 
+//X- Render foreign peer body
+//X-   Provides connector hub coordinates and vector
+//-   Has a color to match pie chart slice
+//-   Shows tally sum
+//- 
+//- Local User body
+//-   Place tally sum over pie section (only if big enough)
+//-   Place sums for assets, liabilities, net-total
+//-   Place CHIP Address near body
+//-   Hover shows full name and user ID
+//-   
+//- Optimize/clean code to create user body
+//- Optimize/clean code to create peer body
+//- Only call body generation code if something has changed since last query (latest)
+//- 
+//- Convert svgraph2 to use d3-force
+//X-   Supply node array to simulation
+//X-   Capture tick event (only useful for debugging)
+//X-   Update translation x,y in tick handler (done automatically)
+//-   Graph bottom border expands to fit view window
+//-   D3 exists only in Wylib--invoked/included from there, not in MyCHIPs dir
+//- 
+//- Forces:
+//-   Peers sink or float depending on asset/liability
+//-   Peers like to be vertically aligned with associated user pie segment
+//-   Internal tallies push neighbor up/down based on asset/liability
+//-   Connectors apply attractive force
+//-   Nodes repulse each other
+//-   Nodes restricted to graph borders
+//- 
+//- 
+//- 
+
+<template>
+  <div>
+    <div class="header">User Relation Network Graph:</div>
+    <wylib-svgraph2 :state="state" :node="node" :edge="edge" ref="svg" @refresh="refresh" @reset="reset">
+      <template v-slot:def>
+        <radialGradient id="radGrad">
+          <stop offset="0%" style="stop-color:#FFF; stop-opacity:0.75"/>
+          <stop offset="1000%" style="stop-color:#000; stop-opacity:0.0"/>
+        </radialGradient>
+      </template>
+    </wylib-svgraph2>
+  </div>
+</template>
+
+<script>
+import Wylib from 'wylib'
+const D3 = require('d3')
+const Bias = 10				//Amount to nudge nodes based on which end of the tally they are on
+
+const CHIPmult = 1000
+//var updatePending = false
+
+const gapAngle = 0.005			//Gap between slices
+const startAngle = Math.PI/2		//Start/end on East axis
+const endAngle = Math.PI/2*5
+
+const neutral = '#DDD'			//Halfway between asset and liability
+const maxNwColor  = "hsl(230,50%,40%)"	//Positive, assets
+const minNwColor  = "hsl(350,50%,40%)"	//Negative, liabilities
+const maxChipP = "hsl(200,100%,30%)"	//Darkest positive CHIP
+const minChipP = "hsl(200,100%,70%)"	//Lightest positive CHIP
+const maxChipN = "hsl(10,100%,30%)"	//Darkest negative CHIP
+const minChipN = "hsl(10,100%,70%)"	//Lightest negative CHIP
+
+export default {
+  name: 'app-urnet2',
+  components: {'wylib-svgraph2': Wylib.SvGraph2},
+  props: {
+    state:	{type: Object, default: ()=>({})},
+  },
+  inject: ['top'],			//Where to send modal messages
+  data() { return {
+    fontSize:	16,
+    hubWidth:	100,
+    hubHeight:	20,
+    tallies:	{},
+    stateTpt:	{nodes:{}, edges:{}},
+    gen:	{},
+    ringData: [
+       {tag: 'nw', rad: 30, title: 'Net Worth'}
+     , {tag: 'al', rad: 20, title: 'Assets & Liabilities'}
+     , {tag: 'ch', rad: 30, title: 'CHIP Tallies'}
+    ]
+  }},
+  computed: {
+//    totals: function() {
+//console.log("Totals:", Object.keys(this.tallies).length)
+//      let tots = {}
+//      Object.keys(this.tallies).forEach(key=>{
+//        let debits = 0, credits = 0
+//        this.tallies[key].stock.forEach(st=>{debits += st})
+//        this.tallies[key].foil.forEach(fo=>{credits += fo})
+//        tots[key] = {debits, credits}
+//      })
+//      return tots
+//    },
+  },
+  methods: {
+    randPoint() {return {
+      x: Math.random() * this.state.maxX * 0.9,
+      y: Math.random() * this.state.maxX * 0.9
+    }},
+
+    node(state, cmd) {					//Custom service routine
+//console.log("Node query", cmd, state)
+      return {}
+    },
+
+    edge(state, cmd, nodeCenter) {			//Custom service routine
+      let {source, target, uuid} = state			//Parts of querying edge
+        , tally = this.tallies[uuid]
+        , sNode = this.state.nodes[source]
+        , tNode = this.state.nodes[target]
+console.log("Edge query", cmd, uuid, tally, sNode, tNode)
+      if (cmd == 'source')
+        return sNode.local ? tally.hub : sNode.ends
+      if (cmd == 'target')
+        return tNode.local ? tally.hub : tNode.ends
+    },
+
+    user(tag, userRec) {			//Generate control object for a user node
+console.log("User", tag, userRec.peer_cid, userRec.tallies)
+      let { id, std_name, peer_cid, peer_agent, tallies } = userRec
+        , shades = {				//Separate gradient for positive/negative
+          true: D3.quantize(this.gen.posChColor, Math.max(2, userRec.assets)),	//positive
+          false: D3.quantize(this.gen.negChColor, Math.max(2, userRec.liabs))	//negative
+          }
+        , paths = []
+        , radius
+        , i = 0
+        , fColor = (userRec.net < 0 ? '#ff0000' : '#0000ff')
+        , sumLine = `${userRec.asset/CHIPmult} + ${-userRec.liab/CHIPmult} = <tspan stroke="${fColor}" fill="${fColor}">${(userRec.net/CHIPmult)}</tspan>`
+        , yOff = this.fontSize + 3
+        , cidLine = `${peer_cid}:${peer_agent}`
+        , text = `
+        <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
+          ${id}:${std_name}
+          <tspan x="4" y="${yOff * 2}">${cidLine}</tspan>
+          <tspan x="4" y="${yOff * 3}">${sumLine}</tspan>
+        </text>`
+
+      userRec.tallies.forEach(tal => {		//Set color shade for each tally
+        let idx = tal.net >= 0 ? userRec.tallies.length - (++i) : i++
+        tal.color = shades[tal.net >= 0][idx]
+        this.tallies[tal.uuid] = tal			//tally lookup table by uuid
+      })
+
+      for (let i = 0; i < this.ringData.length; i++) {	//Generate pie ring/sections
+        let ring = this.ringData[i]
+          , { tag, pathGen, oRad } = ring
+          , arcs
+        if (tag == 'nw') {
+          let color = userRec.net >= 0 ? this.gen.posNwColor(userRec.net / userRec.asset) : this.gen.negNwColor(userRec.net / userRec.liab)
+            , items = [{net:userRec.net, color}]
+          arcs = this.gen.pieGen(items)			//Generate net-worth circle
+        } else if (tag == 'al') {
+          let items = [{net:userRec.liab, color:'red'}, {net:userRec.asset, color:'blue'}]
+          arcs = this.gen.pieGen(items)			//Generate assets/liabilities ring
+        } else if (tag == 'ch') {
+          arcs = this.gen.pieGen(userRec.tallies)	//Generate outer CHIP ring
+          radius = oRad					//Remember outer radius
+        }
+        arcs.forEach(arc => {
+          let d = arc.data
+            , color = d.color
+            , pathData = pathGen(arc)
+          d.cent = pathGen.centroid(arc)		//Save centroid for later
+          d.hub = {					//Connection point
+            a: (arc.startAngle + arc.endAngle - Math.PI) / 2,
+            r: radius
+          }
+//console.log("A", i, tag, arc)
+          d.arc = arc					//Access to arc from tally object
+          paths.push(`<path d="${pathData}" fill="${color}"/>`)
+        })
+      }
+      let width = radius * 2				//Fixme: Still need all these?
+        , height = width
+//        , ends = [{x:width/2, y:0}, {x:width, y:height*0.5}, {x:width/2, y:height}, {x:0, y:height*0.5}]
+        , body = `
+        <g stroke="black" stroke-width="0.5">
+          ${paths.join('\n')}
+          <circle r="${radius}" fill="url(#radGrad)"/>
+          ${text}
+        </g>`
+//console.log("User body:", body, width, height)
+      return {body, width, height, radius, local:true}
+    },
+
+    peer(part) {				//Generate SVG code for a peer node
+      let [ cid, agent ] = part.split(':')
+        , bColor = "#d0e4d0"
+        , xOff = this.fontSize / 2
+        , yOff = this.fontSize + 3
+        , text = `
+        <text x="${xOff}" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
+          ${cid}:
+          <tspan x="${xOff}" y="${yOff * 2}">${agent}</tspan>
+        </text>`
+        , max = Math.max(cid.length + 2, agent.length + 6)	//take tspan into account
+        , width = max * this.fontSize * 0.5
+        , height = this.fontSize * 3
+        , radius = width / 2
+        , body = `
+        <g stroke="black" stroke-width="1">
+          <rect rx="${yOff}" ry="${yOff}" width="${width}" height="${height}" fill="${bColor}"/>
+          <rect rx="${yOff}" ry="${yOff}" width="${width}" height="${height}" fill="url(#radGrad)"/>
+          ${text}
+        </g>`
+        , ends = [{x:width/2, y:0}, {x:width, y:height*0.5}, {x:width/2, y:height}, {x:0, y:height*0.5}]
+//console.log("Peer ends", ends)
+      return {body, ends, width, height, radius, local:false}
+    },
+
+//    updateLink(i, idx, cid, dat) {
+//      let node = this.state.nodes[cid]				//Get node's state object
+//        , uuid = dat.uuids[i]
+//        , isFoil = (dat.types[i] == 'foil')
+//        , amount = dat.nets[i] / CHIPmult
+//        , link = dat.part_cids[i]		//Which other node this link is pointing to
+//        , linkAgent = dat.part_agents[i]
+//        , linkEntity = dat.part_ents[i]
+//        , inside = dat.insides[i]		//Native or foreign user
+//        , noDraw = (isFoil && inside)
+//        , reverse = (isFoil && !inside)
+//        , nodeLink = node.links.find(lk => (lk.index == uuid))	//Do we already have a definition for this link?
+//        , xOffset = node.width / 2
+//        , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
+//        , hubColor = amount == 0 ? '#f0f0f0' : (amount < 0 ? '#F0B0B0' : '#B0B0F0')
+//        , color = dat.states[i] == 'open' ? 'blue' : 'orange'
+//        , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
+//        , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
+//        , center = {x:xOffset, y:yOffset}
+//        , forCid
+//
+////Kludgey instantiation of foreign peer copied from updateNodes:
+//      if (!linkEntity) {				//Tally links to a foreign peer
+//        let bodyObj = this.peer(dat, i)			//Build its SVG shape
+//          , radius = bodyObj.width / 2			//Radius for use in repel forces
+//        forCid = link
+//        if (forCid in this.state.nodes) {		//If we already have this node on the graph
+//          Object.assign(this.state.nodes[forCid], bodyObj, {radius})	//Repaint the body
+////console.log("Pn Dat:", forCid, this.state.nodes[forCid])
+//        } else {						//Else put it somewhere random on the graph
+//          let x = Math.random() * this.state.maxX * 0.9
+//            , y = Math.random() * this.state.maxY * 0.9
+//          this.$set(this.state.nodes, forCid, Object.assign(bodyObj, {tag:forCid, x, y, radius, links:[]}))
+////console.log("PN Dat:", forCid, x, y)
+//        }
+//      }
+//
+//      if (!nodeLink) {				//Create new data structure for link, hubs
+//        nodeLink = {index:uuid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null, bias:null}
+//        node.links.push(nodeLink)
+//      }
+////console.log("  link:", link, node, 'idx:', idx, cid, amount, yOffset, nodeLink)
+//      Object.assign(nodeLink, {ends, center, color, link, noDraw, reverse, found:true, bias: ()=>{
+////console.log("User bias:", cid, isFoil, isFoil?-Bias:Bias)
+//        return {x:0, y: isFoil ? -Bias : Bias}
+//      }, hub: ()=>{
+//        return `<g transform="translate(${center.x}, ${center.y})">
+//          <ellipse rx="${hubXRad}" ry="${hubYRad}" stroke="black" stroke-width="1" fill="${hubColor}"/>
+//          <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${amount}</text>
+//        </g>`
+//      }})
+//      return forCid
+//    },
+
+    updateNodes() {
+      let where = [['user_ent', 'notnull']]		//Fixme: simplify/trim query values
+        , fields = ['id', 'std_name', 'peer_cid', 'peer_agent', 'asset', 'assets', 'liab', 'liabs', 'net', 'latest', 'tallies']
+        , spec = {view: 'mychips.users_v_tallies', fields, where, order: 1}
+
+      Wylib.Wyseman.request('urnet.peer.'+this._uid, 'select', spec, (data,err) => {
+        let nodes = this.state.nodes
+          , nodeStray = Object.assign({}, nodes)	//Track any nodes on our graph but no longer in the DB
+          , edgeStray = Object.assign({}, this.state.edges)
+          , needLinks = {}
+console.log("Update nodes:", nodes, data.length, data)
+        for (let d of data) {					//For each user node
+          let tag = d.peer_cid + ':' + d.peer_agent
+            , bodyObj = this.user(tag, d)			//Build user shape and qualities
+
+//console.log("check:", tag,  nodes)
+          if (tag in nodes) {				//If we already have this node on the graph
+            Object.assign(nodes[tag], bodyObj)		//Repaint the body
+            delete nodeStray[tag]			//Note we processed this node
+          } else {					//Make it from scratch with random placement
+            this.$set(nodes, tag, Object.assign(bodyObj, {tag}, this.randPoint()))
+          }
+//console.log("Node:", nodes[tag])
+
+          for (let tal of d.tallies) {			//Now go through this node's tallies
+            let pTag = tal.part
+
+            if (!tal.inside) {					//Partner is a foreign peer
+              let bodyObj = this.peer(tal.part)
+              pTag = (tal.part + '~' + tal.ent + '-' + tal.seq)
+              if (pTag in nodes) {
+                Object.assign(nodes[pTag], bodyObj)		//Repaint the body
+                 delete nodeStray[pTag]				//Note we processed this node
+              } else {
+                this.$set(nodes, pTag, Object.assign(bodyObj, {tag:pTag}, this.randPoint()))
+              }
+            }
+            if (!(tal.uuid in this.state.edges)) {
+              let source = tal.type == 'foil' ? tag : pTag
+                , target = tal.type == 'foil' ? pTag : tag
+              , edge = {source, target, uuid:tal.uuid}
+//console.log("New edge:", tal, edge)
+              this.$set(this.state.edges, tal.uuid, edge)
+            }
+            delete edgeStray[tal.uuid]
+            }	//Tallies
+          }	//Nodes
+
+        Object.keys(nodeStray).forEach(tag => {		//Delete anything on the SVG, not now in nodes
+          this.$delete(this.state.nodes, tag)
+        })
+        Object.keys(edgeStray).forEach(tag => {		//Delete anything on the SVG, not now in nodes
+          this.$delete(this.state.edges, tag)
+        })
+      })	//WM request
+    },		//updateNodes
+
+    refresh() {			//Readjust to any new nodes
+      this.updateNodes()
+    },
+
+    reset() {			//Start over with random placement
+      this.state.nodes = {}
+      this.state.edges = {}
+//      this.updateNodes()
+//      this.updateNodes()
+//      this.$nextTick(()=>{
+//        this.$refs.svg.$emit('bump')
+//      })
+    },
+  },
+
+  beforeMount: function() {
+    Wylib.Common.stateCheck(this)
+//console.log("URNet2 beforeMount:", this.state)    
+    for (let i = 0, lastRad = 0; i < this.ringData.length; i++) {
+      let ring = this.ringData[i]
+//console.log("ring:", i, ring)
+      ring.iRad = lastRad
+      lastRad = ring.oRad = lastRad + ring.rad
+      ring.pathGen = D3.arc()			//Generates pie-chart sections
+        .cornerRadius(3).innerRadius(ring.iRad).outerRadius(ring.oRad)
+    }
+    this.gen.pieGen = D3.pie()			//Generate pie-chart angles
+      .startAngle(startAngle).endAngle(endAngle).padAngle(gapAngle)
+      .sort(null)				//Already sorted
+      .value(d => Math.abs(d.net))
+    this.gen.posNwColor = D3.interpolate(neutral, maxNwColor)
+    this.gen.negNwColor = D3.interpolate(neutral, minNwColor)
+    this.gen.posChColor = D3.interpolate(maxChipP, minChipP)		//Backwards to accommodate reverse index
+    this.gen.negChColor = D3.interpolate(maxChipN, minChipN)
+    
+    Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
+console.log("URnet async:", dat, dat.oper)
+
+      if (dat.target == 'peers' || dat.target == 'tallies')
+        this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
+
+      if (dat.oper == 'DELETE' || dat.oper == 'INSERT')
+        this.$refs.svg.$emit('change')		//Automatic bump each time something changes
+    })
+  },
+
+  mounted: function() {
+    this.state.edges = {}		//Always rebuild edges (with valid term callbacks)
+    this.updateNodes()
+  }
+}
+</script>

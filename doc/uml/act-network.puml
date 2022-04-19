@@ -1,0 +1,30 @@
+@startuml
+'Flow chart for admin network visualizer: src/urnet.vue
+!include common.puml
+
+start
+
+:Receive result array\n of users/tallies;
+
+while (For each user\nand tally-set) is (more users)
+  if (user/tallies\nchanged?) then (yes)
+
+    while (For each of\nuser's tallies) is (more tallies)
+      if (foreign partner?) then (yes)
+        :Build foreign node body\n(if not already exists);
+      elseif (partner (local)\nalready on graph?) then (no)
+        :Do nothing\n(wait to process\nlocal partner);
+      else (yes)
+      endif
+      :Build pie slice shade/parameters;
+      :Build edge record\npush to edges array;
+    endwhile (tallies done)
+    
+    :Build user node body;
+    :Add/update to graph:\n  user\n  peer\n  edges;
+
+  endif
+endwhile (users done)
+
+stop
+@enduml

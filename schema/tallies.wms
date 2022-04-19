@@ -380,7 +380,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
   , uSign(te.units_c)					as net_c
   , uSign(te.units_pc)					as net_pc
 
-  , greatest(coalesce(cg.latest, te.mod_date), te.mod_date)	as latest
+  , greatest(cg.latest, te.mod_date)			as latest
   
   , mychips.tally_json(te) as json_core
   , mychips.tally_json(te) || jsonb_build_object(
@@ -440,103 +440,6 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
     where	t.tally_ent = base.user_id(session_user)
 } -grant {
     {tally	{s} {s i u} {d}}
-}
-
-# Summarize data about open tallies
-#----------------------------------------------------------------
-view mychips.tallies_v_sum {mychips.tallies_v} {select 
-    tally_ent
-  , count(tally_seq)						as tallies
-  , sum(units)							as units
-  , sum(net)							as net
-  , array_agg(part_ent)						as part_ents
-  , array_agg(part_cid)						as part_cids
-  , array_agg(part_agent)					as part_agents
-  , array_agg(tally_uuid)					as uuids
-  , array_agg(tally_seq)					as seqs
-  , array_agg(tally_type)					as types
-  , array_agg(state)						as states
-  , array_agg(net)						as nets
-  , array_agg(units)						as unitss
-  , array_agg(inside)						as insides
-
-  , array_agg(target)						as targets
-  , array_agg(reward)						as rewards
-  , array_agg(bound)						as bounds
-  , array_agg(clutch)						as clutchs
-  , array_agg(policy)						as policies
-
-  , sum(units) filter (where tally_type = 'stock')		as stock_uni
-  , sum(units) filter (where tally_type = 'foil')		as foil_uni
-  , sum(net) filter (where tally_type = 'stock')		as stock_net
-  , sum(net) filter (where tally_type = 'foil')			as foil_net
-
-  , count(nullif(tally_type, 'foil'))::int4			as stocks
-  , count(nullif(tally_type, 'stock'))::int4			as foils
-  , array_agg(part_ent) filter (where tally_type = 'stock')	as clients
-  , array_agg(part_ent) filter (where tally_type = 'foil')	as vendors
-  , array_agg(part_cid) filter (where tally_type = 'stock')	as client_cids
-  , array_agg(part_agent) filter (where tally_type = 'stock')	as client_agents
-  , array_agg(part_cid) filter (where tally_type = 'foil')	as vendor_cids
-  , array_agg(part_agent) filter (where tally_type = 'foil')	as vendor_agents
-  , array_agg(tally_uuid) filter (where tally_type = 'stock')	as stock_uuids
-  , array_agg(tally_uuid) filter (where tally_type = 'foil')	as foil_uuids
-  , array_agg(tally_seq) filter (where tally_type = 'stock')	as stock_seqs
-  , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
-  , array_agg(units) filter (where tally_type = 'stock')	as stock_unis
-  , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
-  , array_agg(net) filter (where tally_type = 'stock')		as stock_nets
-  , array_agg(net) filter (where tally_type = 'foil')		as foil_nets
-
-  , max(latest)							as latest
-  from (select * from mychips.tallies_v order by tally_ent,tally_seq) t
-  group by 1;
-}
-
-# List of users with summarized data about their tallies (used primarily in simulation/visualization)
-#----------------------------------------------------------------
-view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
-    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
-  , coalesce(s.tallies, 0)			as tallies
-  , coalesce(s.units, 0)			as units
-  , coalesce(s.net, 0)				as net
-  , coalesce(s.stocks, 0)			as stocks
-  , coalesce(s.foils, 0)			as foils
-  , coalesce(s.stock_uni, 0.0)			as stock_uni
-  , coalesce(s.foil_uni, 0.0)			as foil_uni
-  , coalesce(s.clients, '{}'::text[])		as clients
-  , coalesce(s.vendors, '{}'::text[])		as vendors
-  
-  , coalesce(s.part_ents, '{}'::text[])		as part_ents
-  , coalesce(s.part_cids, '{}'::text[])		as part_cids
-  , coalesce(s.part_agents, '{}'::text[])	as part_agents
-  , coalesce(s.uuids, '{}'::uuid[])		as uuids
-  , coalesce(s.seqs, '{}'::int[])		as seqs
-  , coalesce(s.types, '{}'::text[])		as types
-  , coalesce(s.states, '{}'::text[])		as states
-  , coalesce(s.unitss, '{}'::bigint[])		as unitss
-  , coalesce(s.nets, '{}'::bigint[])		as nets
-  , coalesce(s.insides, '{}'::boolean[])	as insides
-
-  , coalesce(s.targets, '{}'::bigint[])		as targets
-  , coalesce(s.rewards, '{}'::float[])		as rewards
-  , coalesce(s.bounds, '{}'::bigint[])		as bounds
-  , coalesce(s.clutchs, '{}'::float[])		as clutchs
-  , coalesce(s.policies, '{}'::jsonb[])		as policies
-  
-  , coalesce(s.client_cids, '{}'::text[])	as client_cids
-  , coalesce(s.client_agents, '{}'::text[])	as client_agents
-  , coalesce(s.vendor_cids, '{}'::text[])	as vendor_cids
-  , coalesce(s.vendor_agents, '{}'::text[])	as vendor_agents
-  , coalesce(s.stock_uuids, '{}'::uuid[])	as stock_uuids
-  , coalesce(s.foil_uuids, '{}'::uuid[])	as foil_uuids
-  , coalesce(s.stock_seqs, '{}'::int[])		as stock_seqs
-  , coalesce(s.foil_seqs, '{}'::int[])		as foil_seqs
-  , coalesce(s.stock_unis, '{}'::bigint[])	as stock_unis
-  , coalesce(s.foil_unis, '{}'::bigint[])	as foil_unis
-  , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
-    from	mychips.users_v u
-    left join	mychips.tallies_v_sum s on s.tally_ent = u.peer_ent;
 }
 
 # General routine to build update query string
