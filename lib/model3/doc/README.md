@@ -102,7 +102,7 @@ This project uses esLint and Prettier to format and check the simulation TypeScr
 
 ## Structure Overview
 
-The MyCHIPs project and Model 3 code have a lot of moving pieces that come together to make the simulation work. Along with Kyle's well-written and thorough documentation, we wanted to provide a sort of summary of the pieces at play that are crucial for the simulation Model 3.
+The MyCHIPs project and Model 3 code have a lot of moving pieces that come together to make the simulation work. We wanted to provide a sort of summary of the pieces at play that are crucial for the simulation Model 3.
 
 Details on low-level implementation are provided in the code as Javadoc comments, and this README contains high-level explanations that will help you see how the different pieces fit together. We encourage you to add clear documentation as you develop to mantain continuity during the development process.
 
