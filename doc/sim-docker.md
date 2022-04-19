@@ -18,12 +18,12 @@ Simdock has less memory overhead than the earlier simnet implementation so a
 single system can simulate more sites.  Still, it is
 quite CPU intensive so things can run slow if you are modeling a larger network.
 
-Hopefully this docker-based simulation can be enhanced and extended to launch 
+Hopefully this docker-based simulation can be enhanced and extended to launch
 many containers in the cloud for a much larger-scale simulation.
 
 The simulation keeps run-time data in a subdirectory of this folder called
-'local.'  For example, all instances of the postgres database directory get
-created there.  Also, all MyCHIPs logfiles get created there.  This gives a
+'local.' For example, all instances of the postgres database directory get
+created there. Also, all MyCHIPs logfiles get created there. This gives a
 single place for monitoring the status of a running simulation.
 
 Under the earlier simnet system, multiple VMs were created where each VM 
@@ -38,7 +38,7 @@ modeler) that are part of that logical site but run in their own containers.
 This may be how some larger-scale service providers might operate anyway--with
 different processes running on different servers, all a part of the same site.
 
-In addition to sites, there are two additional containers.  The mongo container
+In addition to sites, there are two additional containers. The mongo container
 is just as in the simnet case: a database to represent the "real world" where
 entities meet each other and exchange information outside the MyCHIPs network.
 It is not a part of the production software but is used only as part of the
@@ -46,12 +46,12 @@ simulation.
 
 There is also a "devel" container which contains a Fedora Linux instance primarily
 used for development tasks such as updating the database schema in between runs
-of the simulation (say, in the case where you have made schema programming 
-changes).  You can launch a shell on the devel container to examine the 
+of the simulation (say, in the case where you have made schema programming
+changes). You can launch a shell on the devel container to examine the
 simulation network from the perspective of a machine on that network.
 
 The devel container can also backup and restore all your databases to a named
-profile (see command examples below).  This allows you to save a certain state 
+profile (see command examples below). This allows you to save a certain state
 for later analysis or debugging.
 
 To get started, run the following commands (from the test/sim directory):
@@ -63,7 +63,7 @@ To get started, run the following commands (from the test/sim directory):
 This should fetch and build the necessary docker images (which can take a
 long time).  Next, it will launch the mongo and devel containers.  It will then 
 launch a number of sites, equivalent to running "simdock start sites" manually.  
-This can take a while the first time you run because it has to initialize a 
+This can take a while the first time you run because it has to initialize a
 database for each site.
 
 This step also includes opening a bunch of xterms (or the local logwin script 
@@ -76,7 +76,8 @@ Also make sure your new wish is in your path:
 ```
   brew install tcl-tk
 ```
-If things still don't work right (like your screen is smaller than 1920 pixels, 
+
+If things still don't work right (like your screen is smaller than 1920 pixels,
 for example) now is a good time to check out the configuration file: config.dock.
 
 If you want to change configuration items, make a similar file in the "local" 
@@ -98,22 +99,29 @@ this folder.  Some good things to focus on include:
                                container's bash run your preferred settings:
   userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )	#Custom bashrc, key mappings
 ```
+
 If you have made changes, shut things down using:
+
 ```
   ./simdock shutdown
 ```
+
 And then start it back up again with:
+
 ```
   ./simdock startup
 ```
+
 You can check your running containers with:
+
 ```
   docker ps
 ```
+
 You should see a mongo, a devel, and N instances of postgres and the SPA server.
 You should have N xterms on your screen showing the logs of the running SPA
-servers.  There should be another set showing the postgres logs.  Make sure 
-those servers get initialized and launched all the way before launching the 
+servers. There should be another set showing the postgres logs. Make sure
+those servers get initialized and launched all the way before launching the
 UI's as noted below.
 
 Note: If you have done this before under a prior release of MyCHIPs and the
@@ -128,34 +136,40 @@ Now try restarting the simulation and see if the containers can rebuild the
 databases from scratch (takes a while).
 
 Next, you will need to put some aliases in your /etc/hosts (or other DNS
-mechanism) to resolve the hostnames we will use in the simulation.  Your
-browser will be connecting to a docker hostname which needs to resolve to 
-the local host where docker ports will get mapped.  But the hostname in the
+mechanism) to resolve the hostnames we will use in the simulation. Your
+browser will be connecting to a docker hostname which needs to resolve to
+the local host where docker ports will get mapped. But the hostname in the
 browser URL bar needs to match what is in the SSL certificates, so you will
 need to have hostnames in /etc/hosts that actually just resolve to your
-local IP.  For example:
+local IP. For example:
+
 ```
   127.0.0.1	spa0 spa0.mychips.sim
   127.0.0.1	spa1 spa1.mychips.sim
   127.0.0.1	spa2 spa2.mychips.sim
   127.0.0.1	spa3 spa3.mychips.sim
 ```
+
 OK, now make sure you have a browser (firefox,chrome) window running and do:
+
 ```
   ./simdock tickets
 ```
+
 This should generate connection tickets for each of the running SPA servers
 and launch a browser tab for the admin console of each, using the applicable
-ticket.  At this point, you may well get a security warning because you are
-connecting via https to a node with a self-signed CA.  Look for a CA
+ticket. At this point, you may well get a security warning because you are
+connecting via https to a node with a self-signed CA. Look for a CA
 certificate in:
+
 ```
   test/sim/local/pki/spa-ca.crt
 ```
-and install it in your browser (and/or OS).  
+
+and install it in your browser (and/or OS).
 
 On MAC and Windows, you should be able to double click on the file to install
-the certificate.  You will then have to find and adjust the setting to trust
+the certificate. You will then have to find and adjust the setting to trust
 all certificates signed by this authority.
 
 Note: Firefox requires you to set the value security.enterprise_roots.enabled
@@ -168,9 +182,11 @@ servers.
 
 Note that, as with most plural commands (like "tickets") in simdock, you can 
 also do:
+
 ```
   ./simdock ticket 2
 ```
+
 to launch a single admin console (to site 2 in this case).
 
 The most useful view in the admin console is found in the *Network* tab where you
@@ -186,36 +202,41 @@ Finally, it's time to start the simulation.  Run this:
 ```
   ./simdock start sim --runs=50
 ```
+
 This should launch two more sets of logging windows on your screen (hopefully
-your local/config.dock settings are working OK).  It will also launch two more
-container processes for each site, a peer server and an agent modeler.  The
+your local/config.dock settings are working OK). It will also launch two more
+container processes for each site, a peer server and an agent modeler. The
 peer server is the production MyCHIPs server that handles traffic from other
-servers on the network.  The agent modeler attempts to simulate what humans
+servers on the network. The agent modeler attempts to simulate what humans
 might do when interacting on a MyCHIPs network (trading CHIPs in transactions).
 This command tells the agent modeler to run 50 iterations of its simulation.
 
 If your admin consoles are connected, you can select the Network tab to see
-tally connections being formed in the simulated network.  There is an "Arrange"
-function in the graph menu near the upper right that will help arrange the 
+tally connections being formed in the simulated network. There is an "Arrange"
+function in the graph menu near the upper right that will help arrange the
 nodes on the screen.
 
 To kill the simulation, do:
+
 ```
   ./simdock stop sim
 ```
-This will issue shutdown commands to the applicable containers.  However it
-will take some time for them all to shut down.  The script exits quickly, but 
-you will see a confirmation some seconds later in the terminal as each container 
-actually shuts down.  You can run a "docker ps" to make sure they are gone before 
+
+This will issue shutdown commands to the applicable containers. However it
+will take some time for them all to shut down. The script exits quickly, but
+you will see a confirmation some seconds later in the terminal as each container
+actually shuts down. You can run a "docker ps" to make sure they are gone before
 re-launching.
 
 Finally, this command should kill any/all containers related to the simulation:
+
 ```
   ./simdock shutdown
 ```
-Keep in mind, if you launched the simulation with sites set to 6 and then 
-changed the configuration to 4 before doing the shutdown command, not all your 
-containers will get killed.  You may have to do that manually.
+
+Keep in mind, if you launched the simulation with sites set to 6 and then
+changed the configuration to 4 before doing the shutdown command, not all your
+containers will get killed. You may have to do that manually.
 
 ### Schema Hacking
 If you plan to be working on the SQL schema and the simulator, you will need
@@ -250,7 +271,7 @@ There are a few examples of this in the sim/sample folder.
   ./simdock shutdown              #Stop everything
 
   ./simdock init                  #Reset users/peers/tallies to start values
-  
+
   ./simdock start pg 0            #Start the first postgres
   ./simdock start pg all          #Start all postgres containers
   ./simdock start spa all         #Start all SPA servers
@@ -260,7 +281,7 @@ There are a few examples of this in the sim/sample folder.
   ./simdock stop pg0              #Ditto (but only works for stop, not start)
   ./simdock stop pg all           #Stop all postgres containers
   ./simdock stop pg 2-4
-  
+
   ./simdock start peer all        #Start all peer servers
   ./simdock start peers           #Ditto
   ./simdock start models --runs=10    #Run agent-models to do 10 iterations
@@ -274,6 +295,23 @@ There are a few examples of this in the sim/sample folder.
   ./simdock dropdb all            #Drop all databases (run this prior to a restore)
   ./simdock restore all profile1  #Restore all DB's from a folder called profile1
 ```
+
+## Development on Agent 3 with Typescript
+
+The Agent 3 simulation model is developed with TypeScript. Therefore, if any changes are made to the TypeScript files (\*.ts), then they must be transpiled to JavaScript before the simluation can run using Agent Model 3.
+
+1. Edit \*.ts files
+2. Run the TypeScript transpiler CLI by using the following script:
+
+   ```
+   npm run tsc
+   ```
+
+3. Make sure to set V3 agent model in test/sim/local/config.dock
+   ```
+   agentversion=3
+   ```
+4. Follow steps above to run simulation
 
 <br>[Next - Network Simulation](sim-network.md)
 <br>[Back to Index](README.md#contents)
