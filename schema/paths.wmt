@@ -1,98 +1,51 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-tabtext mychips.routes	{Foreign Routes}	{Information collected from foreign servers about foreign peers that can be reached by way of one of our known foreign peers} {
-    {route_ent		{Route Entity}		{The local ID of a foreign entity whose host system knows of a pathway that leads to another foreign peer, known or unknown to our system}}
-    {dest_chid		{Destination CHIP ID}	{A regular destination CHIP address or an obscured ID unique to the unknown foreign peer and recognized by the peer's host system}}
-    {dest_host		{Destination Host}	{The hostname or IP address of the system that hosts this peer's account, in the case there is no local record for the foreign peer}}
-    {dest_ent		{Destination Entity}	{The local ID, if one exists, of the foreign entity this pathway leads to}}
-    {topu_ent		{Top User}		{The local ID of the user on our system who shares a tally with the foreign peer who is the beginning of this route}}
-    {botu_ent		{Bottom user}		{The local ID of the user on our system who was requested from downstream as the beginning of the route}}
-    {requ_ent		{Requester}		{The local ID of the entity through whom the request originated, and whose connection socket we will use to return query answers if a downstream response is required}}
-    {status		{Status} 		{Indicates whether this route is useable or if not, what progress is being made to discover such a route} {
-        {draft		{Draft}			{The route has been hypothesized but no current requests have yet been made}}
-        {pend		{Pending}		{A request has been made upstream to discover this route}}
-        {good		{Good}			{The upstream peer server has answered that this route is possible}}
-        {none		{None}			{The upstream peer server has answered that this route is not possible}}
-    }}
-    {lift_count		{Use Count}		{A counter that is incremented each time this path is used in a lift}}
-    {lift_date		{Last Used}		{The date/time this path was last used in a lift}}
-    {good_date		{Date Found}		{The date/time this path was last marked as good by an upstream foreign server}}
-    {lift_min		{Lift Minimum}		{The most we can expect to lift along this route without pushing foils past their target setting}}
-    {lift_max		{Lift Maximum}		{The most we can expect to lift along this route, which might incur an extra transaction fee}}
-    {lift_margin	{Lift Margin}		{The fee ratio we can expect to move any lift transaction along this route}}
-    {lift_reward	{Lift Reward}		{An additional fee ratio we can expect to move lifts beyong the Lift Minimum amount}}
-    {drop_min		{Drop Minimum}		{The most we can expect to drop along this route without pushing stocks past their target setting}}
-    {drop_max		{Drop Maximum}		{The most we can expect to drop along this route, which might incur an extra transaction fee}}
-    {drop_margin	{Drop Margin}		{The fee ratio we can expect to move any reverse lift transaction along this route}}
-    {drop_reward	{Drop Reward}		{An additional fee ratio we can expect to move reverse lifts beyong the Drop Minimum amount}}
-    {step		{Step}			{How many steps we are along the way from where this route request was originated}}
-}
-
-tabtext mychips.routes_v	{Foreign Routes}	{A view showing foreign peers that can be reached by way of one of our known foreign peers} {
-    {route_cid		{Route CHIP ID}		{CHIP name of the route base entity}}
-    {route_addr		{Route Address}		{CHIP address of the route base entity}}
-    {route_sock		{Route Socket}		{Socket address of the route base entity}}
-    {route_endp		{Route Endpoint}	{Full endpoint address of the route base entity}}
-    {route_name		{Route Name}		{Regular name of the route base entity}}
-
-    {dest_cid		{Destination CHIP ID}	{CHIP name of the route destination entity}}
-    {dest_addr		{Destination Address}	{CHIP address of the route destination entity}}
-    {dest_sock		{Destination Socket}	{Socket address of the route destination entity}}
-    {dest_endp		{Destination Endpoint}	{Full endpoint address of the route destination entity}}
-    {dest_name		{Destination Name}	{Regular name of the route destination entity}}
-    {dest_chad		{Destination}		{The CHIP address of the destination of this route, regardless of whether it is a local or foreign entity}}
-
-    {topu_cid		{Top CHIP ID}		{CHIP name of the top user entity}}
-    {topu_addr		{Top Address}		{CHIP address of the top user entity}}
-    {topu_sock		{Top Socket}		{Socket address of the top user entity}}
-    {topu_endp		{Top Endpoint}		{Full endpoint address of the top user entity}}
-    {topu_name		{Top Name}		{Regular name of the top user entity}}
-    {topu_serv		{Top Server}		{Server host for the top user entity}}
-
-    {botu_cid		{Bottom CHIP ID}	{CHIP name of the bottom user entity}}
-    {botu_addr		{Bottom Address}	{CHIP address of the bottom user entity}}
-    {botu_sock		{Bottom Socket}		{Socket address of the bottom user entity}}
-    {botu_endp		{Bottom Endpoint}	{Full endpoint address of the bottom user entity}}
-    {botu_name		{Bottom Name}		{Regular name of the bottom user entity}}
-    {botu_serv		{Bottom Server}		{Server host for the bottom user entity}}
-
-    {requ_cid		{Requester CHIP ID}	{CHIP name of the route request entity}}
-    {requ_addr		{Requester Address}	{CHIP address of the route request entity}}
-    {requ_sock		{Requester Socket}	{Socket address of the route request entity}}
-    {requ_endp		{Requester Endpoint}	{Full endpoint address of the route request entity}}
-    {requ_name		{Requester Name}	{Regular name of the route request entity}}
-    {requ_user		{User Requested}	{The requesting entity is a local user}}
-
-    {native		{Native}		{The requesting entity is a local user}}
-    {expires		{Expires}		{When this route will be considered uncertain}}
-    {tries		{Tries}			{How many times has this route request tried without connecting to the intended peer}}
-    {last		{Last Try}		{When was the last retry done}}
-    {state		{State}			{Indicates how/whether this route might be useable}}
-    {relay		{Relay Data}		{JSON data to transmit as upstream packet}}
-    {reverse		{Reverse Data}		{JSON data to transmit as downstream packet}}
+tabtext mychips.tallies_v_net	{Tally Lift Edges}	{A view showing a single link between entities hypothetially eligible for a lift} {
+    {uuid	{Tally UUID}		{Unique Id of the tally associated with this link}}
+    {inp	{Input Node ID}		{The local ID (or null if foreign peer) of the node who will give value in the lift}}
+    {out	{Output Node ID}	{The local ID (or null if foreign peer) of the node who will receive value in the lift}}
+    {min	{Minimum Lift}		{Minimum number of units possible to lift on this link without reward cost applicable}}
+    {max	{Maximum Lift}		{Maximum number of units possible to lift on this link with possible costs applicable}}
+    {margin	{Lift Margin}		{The fee ratio we can expect to move any lift transaction along this link}}
+    {type	{Tally Type}		{Type (stock or foil) of the tally for this link}}
+    {sign	{Link Sign}		{Whether will accrue positive or negative on this tally (based on stock or foil)}}
+    {part	{Partner ID}		{Local ID (or null if foreign peer) of the partner entity}}
+    {inv	{Inverted}		{True if the link is a tally with a foreign peer and it is being considered for a drop (reverse lift)}}
 }
 
 tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathways between local entities, based on the tallies they have in place} {
-    {first		{Path Start}		{Entity ID of the peer this pathway starts with}}
-    {last		{Path End}		{Entity ID of the peer this pathway ends with}}
-    {length		{Node Length}		{The number of unique peer nodes in this pathway}}
-    {path		{Peer ID List}		{An array of the entity IDs in this pathway}}
-    {guids		{Tally ID List}		{An array of the tally GUIDs in this pathway}}
-    {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
-    {cost		{Cost Ratio}		{The cost to conduct a lift through this pathway.  A number greater than 1 indicates a cost to the lift.  A number less than 1 indicates a discount.}}
-    {min		{Minimum}		{The smallest number of units desired to be lifted by any entity found along the pathway}}
-    {max		{Maximum}		{The largest number of units desired to be lifted by any entity found along the pathway}}
+    {uuids		{Tally ID List}		{An array of the tally identifiers in this pathway}}
+    {signs		{Tally Sign List}	{An array of the signs (+/- = lift/drop) in this pathway}}
     {bang		{Lift Benefit}		{The product of the pathway length, and the minimum liftable units.  This gives an idea of the relative benefit of conducting a lift along this pathway.}}
-    {inside		{Inside Lift}		{All entities in the lift path are users on the local system}}
-    {fora		{First Foreign}		{The first node in the path is a user on the local system}}
-    {forz		{Last Foreign}		{The last node in the path is a user on the local system}}
-    {corein		{Core Inside}		{All nodes, not considering the first and last, are local users on the system}}
+    {path		{User ID List}		{An array of the user IDs in this pathway}}
+    {ath		{User IDs -First}	{An array of the user IDs in this pathway not including the input node}}
+    {pat		{User ID -Last}		{An array of the user IDs in this pathway not including the output node}}
+    {at			{User ID Internal}	{An array of the user IDs in this pathway not including the input or output node}}
+    {circuit		{Circuit}		{A flag indicating that the pathway forms a loop from end to end}}
+    {edges		{Node Length}		{The number of peer nodes in this pathway}}
+    {nodes		{Edge Length}		{The number of links between nodes in this pathway}}
+    {inp		{Path Start ID}		{Entity ID of the user (or null if a foreign peer) this lift pathway starts with}}
+    {out		{Path End ID}		{Entity ID of the user (or null if a foriegn peer) this lift pathway ends with}}
+    {fori		{Input Foreign}		{True if the first node in the path is not a user on the local system}}
+    {foro		{Output Foreign}	{True if the last node in the path is not a user on the local system}}
+    {bot		{Bottom User ID}	{ID of the local user who owns the tally that is the beginning (input) link of the pathway}}
+    {top		{Top User ID}		{ID of the local user who owns the tally that is the ending (output) link of the pathway}}
+    {inp_cid		{Path Input CID}	{CHIP ID of the entity this lift pathway starts with}}
+    {inp_agent		{Path Input Agent}	{CHIP Agent address of the entity this lift pathway starts with}}
+    {inp_chad		{Path Input CHAD}	{Full CHIP address of the entity this lift pathway starts with}}
+    {out_cid		{Path Output CID}	{CHIP ID of the entity this lift pathway ends with}}
+    {out_agent		{Path Output Agent}	{CHIP Agent address of the entity this lift pathway ends with}}
+    {out_chad		{Path Output CHAD}	{Full CHIP address of the entity this lift pathway ends with}}
+    {bot_cid		{Bottom User CID}	{CHIP ID of the local user who owns the tally this lift pathway starts with}}
+    {bot_agent		{Bottom User Agent}	{CHIP Agent address of the local user who owns the tally this lift pathway starts with}}
+    {bot_chad		{Bottom User CHAD}	{Full CHIP address of the local user who owns the tally this lift pathway starts with}}
+    {top_cid		{Top User CID}		{CHIP ID of the local user who owns the tally this lift pathway ends with}}
+    {top_agent		{Top User Agent}	{CHIP Agent address of the local user who owns the tally this lift pathway ends with}}
+    {top_chad		{Top User CHAD}		{Full CHIP address of the local user who owns the tally this lift pathway ends with}}
+    {bot_uuid		{Bottom Tally ID}	{The identifier of the tally at the beginning (input) of this pathway}}
+    {top_uuid		{Top Tally ID}		{The identifier of the tally at the end (output) of this pathway}}
+    {bot_tseq		{Bottom Tally Seq}	{The sequence number of the tally at the beginning (input) of this pathway}}
+    {top_tseq		{Top Tally Seq}		{The sequence number of the tally at the end (output) of this pathway}}
+    {segment		{Lift Segment}		{The input and output nodes in the pathway are both foreign entities}}
 }
 
-tabtext mychips.route_tries {Route Retries}	{Tracks how many times the route state transition algorithm has tried to communicate a transition to a peer} {
-    {rtry_chid		{Retry CHIP ID}		{The route destination CHIP ID we are tracking retries for}}
-    {rtry_ent		{Retry Entity}		{The route destination entity we are tracking retries for}}
-    {rtry_host		{Retry Host}		{The route destination hostname we are tracking retries for}}
-    {last		{Last Try}		{The last time we tried}}
-    {tries		{Tries}			{How many tries we are up to}}
-}

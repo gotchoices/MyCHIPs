@@ -1,83 +1,118 @@
 TODO:
 
 Immediate:
-X- npm docker works with node 16
-X- docker simulation runs with node 16
+- Push release to master, merge with Capstone project
+-   
+- Distributed lifts (interim, pre-1.0 functionality):
+-  Distributed lifts work with model2/model3?
+-  Do some lifts fail (when they should) in the simulation?
+-  How do lift records get marked to void? (implement agent timeouts?)
 - 
--   Modify schema:
-X-     Each user references a single agent key
-X-     Table for agent keys: cache current portal information
--     Automatically build default agent key
--     Default site agent key in parameter table?
--     Launch server with specific (or default) agent key and portal
--     How would admin normally assign agent keys to individual users?
--     PeerNoise publishes our correct portal to peers
--     Does simulation still work?
--   Modify mychips.js to select encrypted or raw modes
--   PeerNoise module reports peers who connect from non-matching portals
--   Modify simulation to invoke raw mode by default
--   Set encrypted as new server default
--   Simulation still runs OK (using default raw or encrypted)
+- Cleanups:
+-  How to better assess lading on lift push through foreign tally (we don't know their target/bound)
+-   Merge local null min with route lading correctly
+-   Chit, tally or route protocol could update us with the latest trading vars from the other side?
+-  Should all xxx_process functions return text or JSON (routes need JSON)?
+-  Why do some routes get stuck in draft mode?
+-  Should the "tally" property of a route message be in the message, not the object (since it should change at each hop)?
+-  Ditto for "step" property of a route message
+-  Mocha test for model2? (probably not right away)
+-  Command to test-run docker simulator--just to see if any error messages pop out?
+-  Can peer containers run with spa services disabled?
+-  Can/should we change chit units to be stored internally with sign relative to stock/foil?
+-  Can we totally get rid of peer table? (merge into user table)
+-  Better network visualizer
+-    Small visual balance sheet for each user
+-    Use gravity package for constant updating/stability
+-    Get rid of unused fields in users_v_tallysum (only used by simulator, network visualizer)?
 - 
-X- Extend Wyseman client side to communicate over websockets
-- Extend Wyseman to receive connections on TCP socket?
-- Make command-line user interface?
-- Integrate DSR patches into simulation folder?
+- Linear lifts:
+-   Create draft lift record and retrieve digest
+-   Sign the digest and write to DB
+-   Trigger detects the new record
+-     If we have an internal path to the destination, pay with local lift (simple)
+-     Else, if we have a possible route, queue up as a distributed lift.
+- 
+- Server process: mychips.js
+X-   Can launch an agent server for each locally defined agent
+X-   Where/how to build/store agent private keys (pki folder?)
+-   Agents table keeps track of each agent's latest connection portal (in case it changes)
+-   How does the system identify local agents vs/ peer agents?
+-   Implement local lift scheduler/scanner/processor
+-  
+- Design protocol for amendments (like a pre-signed chit?)
+-   Build subsystem for entering/communicating amendments
+-   Setting trading variables (holder)
+-   Changing cid/agent (partner)
+-   Relaxing terms, including credit limit (either)
+-   Tally close command becomes an amendment
+-   Is tally call any different from tally close (probably)?
+-   Can set local trading variables: limit, lift variables
+-   Can assert remote amendments: close, call
+- 
+- Chit consensus
+-   Implement signatures/checking on tallies/chits
+-   Implement consensus protocol subsystem
+-   Mocha tests to simulate network disconnections, chit collisions
+-
+- Server now ready for single-site use?
+- 
+- Implement retries in state processing (tally, chit, route)
+- Upgrade distributed lift subsystem fully to protocol 1.0
+- Lifts detected bad by agent timeouts
+- Implement referee server in node server
+- Server now ready for distributed use?
+- 
+- Mobile:
+-  Create dart Wyseman client module
+-  How to invoke it from flutter app (pull from node_modules)
 - 
 
 General roadmap:
 X- Public Proof-of-Concept release
 X- Iterate on TLA+ modeling until protocol is sufficiently safe/live
 X- Implement basic contract handling (author, display, print, publish)
-- Integrate improved protocol into source code
-- Write unit tests to validate protocol state transitions
-- Improve/expand agent model (see below)
-- Make Flutter app usable with basic functionality
+X- Implement schema version control/upgrade mechanism in wyseman
+X- Implement encrypted peer-to-peer communications using noise protocol
+*- Integrate improved protocol into source code (in process)
+*- Write unit tests to validate protocol state transitions (in process)
+*- Make Flutter app usable with basic functionality (in process)
 - Implement digital signatures for tallies, chits, contracts, lifts
-- Implement encrypted peer-to-peer communications using noise protocol
 - Harden database schema, nothing accessible except user-based views/functions
-- Finish schema version control/upgrade mechanism in wyseman
 - Docker-based production server
-- *** Production rollout ***
+- ***** Initial production rollout *****
 - Enhance flutter app features
+- Improve/expand agent modeling
 - Async email/text notifications
 - Tally confirmations
 - Standardized export/import of user accounts via Admin interface
 - Emergency lock-down mode
 - Backup/restore sharding among peers
 - Advanced Features:
--   Implement writing a check:
--   User mobile clients can talk to each other in absence of internet or server connection
--   They exchange a check (paper or QR image)
+-   Implement paper and QR checks that work while networks are down
 -   The check is 'cashed' (hashed onto the tally) once the network comes back up
+-   Mobile clients can provide temporary connectivity between their servers
+-   Chit chains can fully reconcile even if no Internet between servers
 - 
 
 Immediate Detailed Strategy:
 - Wylib client, JS client, Dart client can:
--   Connect via ticket
--   Reconnect based on shared keys
--   Import/export compatible key files across platforms
+X-   Connect via ticket
+X-   Reconnect based on shared keys
+*-   Import/export compatible key files across platforms
 - Simulation can run with noise encryption enabled
 - Unencrypted mode still supported
-- Implement message framing for unencrypted mode
-- Implement loopback on local node for unencrypted mode
+X- Implement message framing for unencrypted mode
+X- Implement loopback on local node for unencrypted mode
 - 
 - Cleaning/review pass on tally protocol
--   Check/validate with protocol 1.0
--   Build standardized message building/parsing engine?
--   Clean, organize, struture SQL handler code
+*-   Check/validate with protocol 1.0
+*-   Clean, organize, struture SQL handler code
+*-   Enhance mocha tests
 -   Implement message retries
--   Enhance mocha tests
-- 
-- Cleaning/review pass on chit protocol
--   Check/validate with protocol 1.0
--   Clean, organize, struture SQL handler code
--   Implement message retries
--   Implement chit consensus fully
--   Implement full mocha test regimen
 - 
 - Mobile App
--   Dart API can connect to wyseman on user ticket
+X-   Dart API can connect to wyseman on user ticket
 -   App can scan user ticket as a QR
 -   App can eat ticket contained in text message, email, other
 -   App can build/encrypt/store signing key
@@ -93,12 +128,6 @@ Immediate Detailed Strategy:
 - 
 - Generate scheduler for initiating local lifts
 - *** Could now do a MyCHIPs.com rollout with local-only services ***
-- 
-- Cleaning/review pass on route protocol
--   Check/validate with protocol 1.0
--   Clean, organize, struture SQL handler code
--   Implement message retries
--   Implement full mocha test regimen
 - 
 - Code referee server module
 -   Does this use Postgres or something else (nosql?)
@@ -123,8 +152,8 @@ Immediate Detailed Strategy:
 
 Some general tasks by level of expertise required (redundant)
 - Low Level: (code validation)
--   Write unit tests, which become part of the integrated test suite. 
--     Test state transition graphs for all conceivable combinations of state.
+*-   Write unit tests, which become part of the integrated test suite. 
+*-     Test state transition graphs for all conceivable combinations of state.
 -     Attempt to request multiple, conflicting state transitions at once.
 -     Working retry/recovery of records that get stranded in a transitional state
 - Medium Level: (network simulation)
@@ -288,7 +317,8 @@ User SPA:
 - Admin SPA:
 X- Optimize SVG user graph reactivity.  Only update what has changed.
 X- User can connect/initialize using ticket
-- Server listens on ticket port for specified timeout period
+- How to assign users to a particular agent key (specialized report)
+- Specify expiration for connection tickets
 - Enable user permission editor in admin app user tab
 - Can export user to JSON
 - Can export user to paper, w/ QR code
@@ -296,14 +326,12 @@ X- User can connect/initialize using ticket
 -   
 
 Wyseman:
-- Can apply incremental delta scripts to go from one release to another
-- Modify wyseman/lib/wyseman.js to also listen on regular unix socket for admin connections
+- Create noise-protocol API for user interfaces
 - Regular socket connection relies solely on an auth key (key file, not keys stored in DB user tables)
 - Use SNI extension for client to provide db config payload
 - Is there any use case for a user connecting via regular socket? (native app?)
 -   If so, socket connection needs to use connection tokens/keys just like websocket
 - Make database owned by mychips? (give admin read/write/delete but not create/drop)
-- Extend Wyseman to also accept connections on Noise socket?
 - 
 
 Preferences:

@@ -2,40 +2,90 @@
 !include common.puml
 
 $title(Direct Chit States)
-[*] --> void
-state "void (or No Chit)" as void
+state "L.pend.good" as lPendGood
+state "L.pend" as lPend
+state "L.pend.void" as lPendVoid
+state "L.void" as lVoid
+state "A.draft.pend" as aDraftPend
+state "A.pend" as aPend
+state "A.void" as aVoid
+state "Lift.pend" as liftPend
+state "Lift.void" as liftVoid
+state good {
+  state "L.good" as lGood
+  state "A.good" as aGood
+  state "Lift.good" as liftGood
+}
 
-'States are determined by a combination of values, as defined here:
-userRequest: Stat: void, Req=>userRequest
-peerInvoice: Stat: void, Req=null
-peerInvoice : E: Store/update chit
-userInvoice: Stat->pend, Req=null
-peerDecline : Stat:->void, Req=null
-peerDecline : E: Update chit
-valid : Commence consensus algorithm
-valid : E: Update chit
+'State details:
+lPend: Liability: Open invoice from peer
+lPend: Status: pend, Req: null
+lPend: User: Attention!
+
+lPendVoid: Liability: User has refused
+lPendVoid: Status: pend, Req: void
+lPendVoid: Agent: Attention!
+
+lVoid: Liability: Peer has been notified
+lVoid: Status: void, Req: null
+
+lPendGood: Liability: User has agreed/signed
+lPendGood: Status: pend, Req: good
+lPendGood: Agent: Attention!
+
+lGood : Liability: Peer has been notified
+lGood : Status: good, Req: null
+
+aDraftPend: Asset: User invoicing a peer
+aDraftPend: Status: draft, Req: pend
+aDraftPend: Agent: Attention!
+
+aPend: Asset: Peer has been invoiced
+aPend: Status: pend, Req: null
+aPend: User: Notice, waiting for peer
+
+aVoid : Asset: Peer has refused
+aVoid : Status: void, Req: null
+aVoid : User: Notice
+
+aGood : Asset: Peer has agreed/signed
+aGood : Status: good, Req: null
+aGood : User: Notice
+
+good : Status: good
+good : Commence consensus algorithm
 linked : Chit linked into hash chain
 
+liftPend : Type: lift\nStatus: pend
+liftGood : Type: lift\nStatus: good
+liftGood : User: Notice
+liftVoid : Type: lift\nStatus: void
+'liftLink : Type: lift\nStatus: good
+
 'State transition rules:
-void -[$user]-> userRequest : $trans($user,Creates draft chit\nvalue --> self)
-void -[$peer]-> peerInvoice : $trans($peer,Receive Act:peerInvoice,'',Notify user)
+[*] -right[$user]-> aDraftPend : $trans($user,Creates draft chit\nvalue --> self)
+[*] -left[$peer]-> lPend : $trans($peer,Receive invoice,'',Act:pend; Notify user)
+[*] -[$user]-> lPendGood : $trans($user,Creates signed chit\nvalue->partner)
+[*] -[$peer]-> aGood : $trans($peer,Receive asset chit\nvalue->holder, Valid signature, Act:good; Notify user)
 
-userRequest -[$db]-> userInvoice : $trans($db,Req:userRequest detected,'',Transmit chit Act:peerInvoice)
-userInvoice --> userRequest : $trans(Timeout,No reply from peer)
-userInvoice -[$peer]-> peerDecline : $trans($peer,Receive Act:peerDecline,'',Notify user)
-peerDecline -[$user]-> userRequest : $trans($user,Modifies chit,'')
-userInvoice -[$peer]-> valid : $trans($peer,Receive Act:peerValid,'',Notify user)
+aDraftPend -[$db]-> aPend : $trans($db,Req:pend detected,'',Transmit invoice Act:pend)
+'aPend --> aDraftPend : $trans(Timeout,No reply from peer)
+aPend -[$peer]-> aVoid : $trans($peer,Receive refusal,'',Act:void; Notify user)
+aVoid -[$user]-> aDraftPend : $trans($user,Modifies chit\nRequests draft,'')
+aPend -[$peer]-> aGood : $trans($peer,Receive acceptance,'',Act:good; Notify user)
 
-peerInvoice -[$user]-> userDecline : $trans($user, Requests to decline)
-userDecline -[$db]-> userVoid : $trans($db, Req:userDecline detected, '', Transmit chit Act:peerDecline)
-userVoid -[$peer]-> peerInvoice : $trans($peer,Requests payment,'',Notify user)
+lPend -up[$user]-> lPendVoid : $trans($user, Requests to decline)
+lPendVoid -[$db]-> lVoid : $trans($db, Req:void detected, '', Transmit refusal Act:void)
+lVoid -[$peer]-> lPend : $trans($peer,Receive modified invoice,Valid signature,Act:pend; Notify user)
 
-peerInvoice -[$user]-> userAgree : $trans($user, Signs chit)
-userAgree -[$db]-> valid : $trans($db, Req:userAgree detected,'', Transmit chit Act:peerValid)
+lPend -[$user]-> lPendGood : $trans($user, Signs chit)
+lPendGood -[$db]-> lGood : $trans($db, Req:good detected,'', Transmit acceptance Act:good)
 
-void -[$user]-> userDraft : $trans($user,Creates signed chit\nvalue --> partner)
-userDraft -[$db]-> valid : $trans($db, Req:userDraft detected,'', Transmit chit Act:peerValid)
+good --> linked : [When consensus reached]
 
-valid --> linked : [When consensus reached]
+[*] -right-> liftPend : System proposes\nor agrees to lift
+liftPend -right-> liftVoid : Lift fails
+liftPend --> liftGood : Lift committed
+'liftGood --> liftLink : Lift chit linked
 
 @enduml

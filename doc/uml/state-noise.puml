@@ -6,8 +6,8 @@ $title(NPF Connection States)
 
 none:  No Peer Connection
 state killable {
-  ticket: Server awaits DB query
-  id: Server has peer identity
+  ticket: Server awaits ticket query
+  id: Server has peer's claimed identity
   request: Server awaits key query
   pending: Client awaits ack from server
   open:  Open for transactions
@@ -16,16 +16,16 @@ state killable {
 'State transition rules:
 none -[$peer]-> ticket: $trans($peer,Receive client request I, Query Ticket)
 ticket -[$db]-> none: $trans(DB,Ticket not valid)
-ticket -[$db]-> open: $trans(DB,Ticket valid, Send Acknowledge)
+ticket -[$db]-> open: $trans(DB,Ticket valid, Send acknowledge A)
 
 killable -up-> none: $trans(Timer,Timeout elapsed, Close connection)
 
 none -[$peer]-> id: $trans($peer,Receive client identity N)
 id -[$peer]-> request: $trans($peer,Receive client request K, Query for site key)
-request -[$db]-> open: $trans(Query, Noise decrypts OK and tally current, Send Acknowledge)
+request -[$db]-> open: $trans(Query, Noise decrypts OK and tally current, Send acknowledge A)
 request -[$db]-> none: $trans(DB, Noise fails or tally not valid/current)
 
-none --> pending: $trans($peer, I have sent a request for connection)
-pending -[$peer]-> open: $trans($peer, Received confirmation)
+none --> pending: $trans($peer, I have sent a request for\nconnection I)
+pending -[$peer]-> open: $trans($peer, Received acknowledge A)
 
 @enduml

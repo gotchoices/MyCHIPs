@@ -4,65 +4,103 @@
 //TODO:
 //- 
 
+const Fs = require('fs')
+const Path = require('path')
+const Stringify = require('json-stable-stringify')	//Predictable property order
 const assert = require("assert");
-const { DatabaseName, DBAdmin, Log } = require('../settings')
-var fs = require('fs')
-var log = Log('testImpexp')
-var { dbClient } = require("wyseman")
-const dbConfig = {
-  database: DatabaseName,
-  user: DBAdmin,
-  listen: "DummyChannel",		//Cause immediate connection to DB, rather than deferred
-  log,
-  schema: __dirname + "/../../lib/schema.sql"
-}
+const { DBName, DBAdmin, testLog, Schema, importCheck, dropDB, dbClient } = require('./common')
+var log = testLog(__filename)
+const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
-function dbAndCheck(sqlFile, db, done, check) {
-  fs.readFile(sqlFile, (err, fileData) => {
-    if (err) done(err)
-    var jsonData = JSON.parse(fileData)
-    db.query("select json.import($1::jsonb) as record;", [jsonData] ,(err, res) => {
-      if (err) done(err)
-      log.debug("Result:", res.rows[0].record)
-      check(res,res.rows[0].record.slice(1,-1).split(','))
-    })
-  })
-}
-
-describe("JSON import/export", function() {
+describe("JSON contact import/export", function() {
   var db
-  this.timeout(5000)		//May take a while to build database
+
+  before('Delete test database', function(done) {dropDB(done)})
 
   before('Connect to (or create) test database', function(done) {
-    db = new dbClient(dbConfig, (chan, data) => {
-      log.trace("Notify from channel:", chan, "data:", data)
-    }, ()=>{log.trace("Connected"); done()})
+    this.timeout(10000)		//May take a while to build database
+    db = new dbClient(dbConfig, (chan, data) => {}, done)
   })
 
   before('Delete all test users if there are any', function(done) {
     db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
   })
 
-  it("Import Chips test organization", function(done) {
-    dbAndCheck(__dirname + "/../sample/org.json", db, done, function(res, row) {
-      assert.equal(row[0],'o500'); done()
-    })
-  })
-
-  it("Import user 1", function(done) {
-    dbAndCheck(__dirname + "/../sample/user1.json", db, done, function(res, row) {
+  it("Import known user record", function(done) {
+    let file = Path.join(__dirname, 'user.json')
+    importCheck(file, 'user', db, done, function(res, row) {
       assert.equal(row[0],'p1000'); done()
     })
   })
-  it("Import user 2", function(done) {
-    dbAndCheck(__dirname + "/../sample/user2.json", db, done, function(res, row) {
+  it("Import self-identifying user record", function(done) {
+    let file = Path.join(__dirname, 'something.json')
+    importCheck(file, null, db, done, function(res, row) {
       assert.equal(row[0],'p1001'); done()
     })
   })
 
-  after('Disconnect from test database', function(done) {
-console.log("After:")
+  it('Delete test users again', function(done) {
+    db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
+  })
+
+  it("Import multiple entities", function(done) {
+    let file = Path.join(__dirname, 'users.json')
+    importCheck(file, null, db, done, function(res, row) {
+log.debug('res:', res, 'row:', row)
+      assert.equal(row[0],'p1002'); 
+      done()
+    })
+  })
+
+  after('Disconnect from test database', function() {
     db.disconnect()
-    done()
+  })
+});
+
+describe("JSON certificate import/export", function() {
+  var db
+
+  before('Connect to (or create) test database', function(done) {
+    db = new dbClient(dbConfig, (chan, data) => {}, done)
+  })
+
+  it("Import user certificate", function(done) {
+    let file = Path.join(__dirname, 'cert.json')
+    importCheck(file, null, db, done, function(res, row) {
+//log.debug("Row:", row)
+      assert.equal(row[0],'p1003')
+      done()
+    })
+  })
+
+  it("Export certificate and compare to original", function(done) {
+    let file = Path.join(__dirname, 'cert.json')
+      , fileData = Fs.readFileSync(file)
+      , fileObj = JSON.parse(fileData).cert
+    delete fileObj.date
+    let fileStr = Stringify(fileObj)
+      , sql = "select to_json(s) as cert from (select * from json.cert where id = $1) s"
+    db.query(sql, ['p1003'] ,(err, res) => {if (err) done(err)
+      assert.equal(res.rowCount, 1)
+      let cert = res.rows[0].cert
+      delete cert.date		//Date won't be the same
+      delete cert.id		//Auto-generated id in the DB
+      let certStr = Stringify(cert)
+//log.debug("Cert:", cert)
+      assert.equal(certStr, fileStr)
+      done()
+    })
+  })
+
+  it("Import tally", function(done) {
+    let file = Path.join(__dirname, 'tally.json')
+    importCheck(file, 'tally', db, done, function(res, row) {
+      assert.equal(row[0],'p1000')
+      done()
+    })
+  })
+/* */
+  after('Disconnect from test database', function() {
+    db.disconnect()
   })
 });

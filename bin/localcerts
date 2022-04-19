@@ -62,12 +62,15 @@ for type in ${pargs[*]}; do
   case $type in
     spa)
       npm run cert --silent -- -t spa "${host}.%";;
+
     data)
       npm run cert --silent -- -t data "${host}.%";
       npm run cert --silent -- -t data admin;
       npm run cert --silent -- -t data users;;
-    peer)
-      npm run cert --silent -- -t peer "${host}.%";;
+
+#Peers will use Noise/agents now
+#    peer)
+#      npm run cert --silent -- -t peer "${host}.%";;
     *)
       echo "Unknown certificate type: $type";
       exit 1;;

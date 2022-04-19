@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+//Constantly observe (tail) a log file of one of the mocha tests.
+//Easy enough on Linux to also just do: tail -f /tmp/wyatt/test-testname.
+//But can be harder to find the log files on MacOS or Windows.
+//Usage:
+//   watch tally
+//   watch sch-chit
+//
+const Os = require('os')
+const Path = require('path')
+const Tail = require('tail').Tail
+const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+var logDir = Log.getPath()
+var opts = require('yargs')
+  .alias('x','xyz') .default('xyz', 'abc')
+  .argv
+var argv = opts._
+
+console.log("Log files in:", logDir)		///console.log("Platform:", Os.platform())
+console.log("argv:", argv)
+
+if (argv.length >= 1) {
+  let logFile = 'test-' + argv[0]		//Must agree with what is in common.js
+    , logFull = Path.join(logDir, logFile)
+    , tail = new Tail(logFull)
+
+  console.log("Watching::", logFull)
+  tail.on('line', function(data) {
+    console.log(data)
+  })
+  
+  tail.on('error', function(data) {
+    console.error('Error:', data)
+  })
+}

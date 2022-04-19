@@ -1,5 +1,4 @@
 ## Tallies
-February 2020
 
 A tally is, at its essence, a contract between two parties.  Using the tally, the parties
 agree to "keep track" of a net amount owing between them, on mutually acceptable terms.
@@ -40,24 +39,22 @@ be able to perform lifts to keep the two tallies in equilibrium.
 
 A tally includes the following information:
   - Tally format version (1)
-  - Digital ID unique to the tally (guid)
+  - Digital ID unique to the tally ([UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier))
   - Date and time of the original agreement
-  - Vendor CHIP address
-  - Vendor Certificate (signed personal contact information)
-  - Vendor Credit Terms; debt Vendor->Client (normally 0)
-  - Client CHIP address
-  - Client Certificate (signed personal contact information)
-  - Client Credit Terms; debt Client->Vendor (N=credit card, 0=debit card)
+  - Vendor [Certificate](learn-tally.md#entity-certificates)
+    - Vendor [CHIP address](learn-users.md#chip-addresses)
+  - Vendor [Credit Terms](learn-tally.md#credit-terms); debt Vendor -> Client (normally 0)
+  - Client Certificate
+    - Client CHIP address
+  - Client Credit Terms; debt Client -> Vendor (N=credit card, 0=debit card)
   - Reference to one or more standard, published contracts clauses, which
     become the operable and binding terms of the indebtedness.
-  - Public key of the agent system who will execute lifts for Vendor
-  - Public key of the agent system who will execute lifts for Client
-  - Digital signature of Vendor, indicating binding acceptance
-  - Digital signature of Client, indicating binding acceptance
-  - A list of transactions, which total to the net indebtedness
-  - A list of unilateral (one party) settings to various lift parameters
+  - Digital signature of Vendor (indicates binding acceptance of the tally)
+  - Digital signature of Client
+  - A list of transactions (chits), that total to the net indebtedness
+  - A list of unilateral (one party) amendments to the lift
 
-Each atomic change to the amount owing is referred to as a 
+Each atomic change to the amount owing (transaction) is referred to as a 
 ["chit"](https://www.dictionary.com/browse/chit) and includes:
   - Transaction date and time
   - Transaction amount, in mCHIPs (1/1000th part of a CHIP)
@@ -65,83 +62,94 @@ Each atomic change to the amount owing is referred to as a
     - Unearned gift
     - Payment for products/services
     - Credit lift
-  - A reference number or string indicating:
-    - Invoice or order that contains more detail about what was purchased
-    - Lift UUID
+  - A reference number or string indicating an invoice or order that contains 
+    more detail about what was purchased
   - Additional comments
-  - Digital signature of issuer/grantor, making the money binding
-  - Digital signature of recipient, acknowledging receipt (needed?)
+  - For regular chits:
+    - Digital signature of issuer/grantor, making the money binding
+  - For lift chits:
+    - Lift UUID
+    - [Portal](learn-users.md#portals) where to reach lift originator
+    - URL of lift referee
+    - Public key of lift referee
+    - Digital signature of lift referee
 
-Each setting includes:
-  - Parameters of the tally to be updated/modified
+Amendments include:
+  - Amendment type
+    - Operating parameter (setting)
+    - Change of authority
+  - Property/parameter/setting of the tally to be updated/modified
   - Signature date
   - Signature of the modifying party
 
-Tally data and chits must be duplicated exactly on the Stock and Foil.  
-However, certain settings may reside only with one side and are controlled by the owner of that half of the tally.
-They tell the site agent how to execute lifts on behalf of the owner.
+Tally data and chits must be duplicated exactly on the Stock and Foil (i.e. the two copies of the tally held by the parties to the credit agreement).
+The order of chits must also (eventually) agree on both sides of the tally.
+Authority amendments can be recorded in any order but should be recorded on both sides.
+Parameter settings only reside only on one side and are controlled by the owner of that 
+half of the tally.  They tell the site agent how to execute lifts on behalf of the owner.
 
 ### Credit Terms
 This portion of the tally is actually comprised of a series of variables, some 
-of which are optional.  The purpose is to have enough variables that virtually 
+of which are optional.  The purpose is to have enough variables that most
 any common type of credit arrangement can be reasonably represented by a proper 
 choice of values.
 
 To understand better what we are trying to model, we will first outline a few 
-examples of credit relationship:
+examples of credit relationships:
 
 - **Peer Accounts**:
-  This might represent two companies or two individuals who regularly do
+  This might involve two companies or individuals who regularly do
   business with each other.  There is probably a direction in which money 
   normally flows from Client to Vendor.  But there may also be occasions when 
   the normally-Client party does services for the normally-Vendor party.
   
   In such an arrangement either party should be able to choose how much he, as
-  a creditor, is willing to lend to the other.  But any resulting indebtedness 
-  should be solely by the choice of the party incurring the debt.
+  a creditor, is willing to carry as debt owed by the other.  But any resulting 
+  indebtedness should be solely by the choice of the party incurring the debt.
   
-  On the other end of debt is a receivable--an asset.  The amount of such 
+  The opposite of a debt is a receivable--an asset.  The amount of such 
   assets an entity may accumulate is really a function of his/her wealth and
-  productivity.  There is no inherent risk in accumulating too much.  The risk
-  is more likely in concentrating too much of that total value in any single 
+  productivity.  There is no particular risk in accumulating too much.  The risk
+  more likely comes from concentrating too much of that total value in any single 
   debtor--particularly one who may not be capable of redeeming it all.
   
 - **Merchants** (corporate Vendors):
   Clients of merchants may wish to accumulate value by collecting the credits 
   of the merchants where they like to shop.  This is one way of storing value,
-  or in common terms, saving money.  But it can also be viewed as a loan from 
-  the Client to the merchant, which can be redeemed upon demand any time the 
+  or in common terms, saving money. It can also be viewed as a loan from 
+  the Client to the merchant, which may be redeemed upon demand any time the 
   Client wants to buy something.
   
   One concern for the merchant is to not accumulate too much debt, in total.  
   He should not care so much about how many credits any one Client may choose 
-  to buy.  But he should not exceed the amount of debt he can reasonably redeem 
-  through product sales, or other exchanges.
+  to buy.  But he should not exceed the total amount of debt he can reasonably 
+  satisfy through product sales, or other exchanges.
   
 - **Secured Loans**:
   Consumers (Clients) and businesses (Vendors) alike can benefit from 
-  maintaining one or more collateralized loans.  You start by purchasing an 
+  maintaining one or more collateralized loans.  You might start by purchasing an 
   asset over time from a seller who would like to earn income by financing the 
   purchase.  As you have excess credits available from your income sources, you 
   lift those credits to the party financing the debt.  As you pay down the debt, 
   your equity in the asset increases.  Ideally, you could also advance value 
   back out of the loan if you need more money for some other purchase.  In this 
   way, the asset can form a store of value--perhaps more reliable than just 
-  holding the credits of your favorite vendors (who might go out of business).
+  holding the credits of your favorite vendors (who could possibly go out of 
+  business before you get around to redeeming the credits you're holding).
 
 - **Money Markets**:
-  Since money normally flows in a single, expected direction, there is a
-  natural demand for credit lifts to temporarily move that flow backward,
+  Since money normally flows in a single, expected direction, there is a natural 
+  demand for [credit lifts](learn-lift.md) to temporarily move that flow backward,
   resetting the potential for more purchasing power.  But such "win-win" lift 
   pathways may not always be available.  Some parties may lack sufficiently 
   strong or numerous pathways to complete all the lifts they need.  In this 
   case, they may need to provide further incentive to trading partners to 
   complete their lifts.
   
-  So in addition to quantifying the trades we "want" to do, we also need to be
-  able to quantify trades we are "willing" to do, for a price.  For example, we
+  So in addition to quantifying the trades we *want* to do, we also need to be
+  able to quantify trades we are *willing* to do, for a price.  For example, we
   might be willing to exceed normal risk limits for sufficiently high rewards.
-  We might even be willing to conduct extra traffic in the normal 'downhill'
+  We might even be willing to conduct extra traffic in the normal *downhill*
   direction if we can make a little profit doing so, and we think we can later
   lift ourselves back out of the resulting transaction, using our own set of 
   trading relationships.
@@ -156,21 +164,21 @@ conditions Vendor offers to Client.  In other words, the terms of Client's
 credit, or the terms by which Client may incur debt payable to Vendor.
 
 Credit Terms Tally Variables:
-  - **Maximum Balance**:
+  - **Maximum Balance** *(limit)*:
     This indicates the most the debtor can count on borrowing against products
     or services he obtains from the creditor.  It may be expressed as a single 
-    number, or as an expression, which is a function of time.  Expressions may 
-    be used to amortize a loan, or to cause principal to be paid down over 
-    time.
+    number, or as an expression, which is a function of time.  Time-based 
+    expressions may be used to amortize a loan, or to cause principal to be paid 
+    down over time.
     
-  - **Maximum Paydown**:
+  - **Maximum Paydown** *(mort)*:
     This represents the maximum amount the debtor can pay down principal in
     advance of otherwise prevailing requirements, and have his interest 
     calculations reduced accordingly.  This can be used to create a minimum 
     interest return for a lender, while still allowing the borrower to store 
     value in the loan balance.
 
-  - **Compound Interval**:
+  - **Compound Interval** *(period)*:
     The amount of time that passes before interest (or dividend, if you prefer) 
     is calculated and applied to a balance.  This may also define when payments 
     are due.  For example, if the application of such a charge raises a balance 
@@ -178,18 +186,18 @@ Credit Terms Tally Variables:
     correct this.  This value may be specified as a number, of days, weeks, 
     months, or years.
 
-  - **Grace Period**:
+  - **Grace Period** *(grace)*:
     New amounts of indebtedness will not accrue interest/dividend charges until 
     this amount of time has passed.
 
-  - **Rate**:
+  - **Rate** *(rate)*:
     An annualized rate expressed as a positive floating point number.  For 
     example, 0.05 means 5% per annum.  This number will be scaled to match the 
     Compound Interval in order to compute the interest/dividend charges to be 
     applied during that an interval.
 
-  - **Call Notice**:
-    The amount of notice required to be given by Vendor to Client in order to 
+  - **Call Notice** *(call)*:
+    The amount of time required to be given by Vendor to Client in order to 
     call all principal and accrued charges due and payable (i.e. to cancel 
     further credit authorization).  If not present, the debtor has no 
     obligation to reduce principal any faster than is indicated by the Minimum 
@@ -199,93 +207,139 @@ Credit Terms Tally Variables:
     register an immediate call, with the number of notice days set to the term 
     of the amortization.
 
-  - **Minimum Payment**:
+  - **Minimum Payment** *(pay)*:
     An amount, or a formula for the smallest amount that may be paid at each
     Compound Interval.
 
-#### Some Credit Terms Examples
+#### Credit Terms Examples
+A party's credit terms are encoded in a JSON format to be incorporated into a
+tally.  Property values may be expressed as a formula that references certain 
+pre-defined variables or other properties.
+
 - Casual Peer to Peer, no interest, cancelation with notice:
-    - Maximum Balance: 100
-    - Call Notice: 30
+```
+{
+    limit: 100,
+    call: 30
+} ```
 
 - Customer (Client) to merchant (Vendor) (coupons):
-    - Maximum Balance: 0
+```
+{ limit: 0 } ```
 
 - Merchant (Vendor) to customer (Client), debit account:
-    - Maximum Balance: 0
+```
+{ limit: 0 } ```
 
 - Credit card requiring full payment every month:
-    - Maximum Balance: 200
-    - Minimum Payment: Bal
-    - Grace Period: 1 month
-    - Compound Interval: 1 month
-    - Rate: 0.10
+```
+{
+    limit: 200,
+    pay: "balance",
+    grace: "1 month",
+    period: "1 month",
+    rate: 0.10,
+} ```
 
 - Credit card requiring full payment over four months:
-    - Maximum Balance: 300
-    - Grace Period: 30
-    - Minimum Payment: Min(10, Bal / 4)
-    - Payment Interval: 30
-    - Rate: 0.10
+```
+{
+    limit: 300,
+    grace: 30,
+    pay: "min(10, balance / 4)",
+    period: 30,
+    rate: 0.10
+} ```
 
 - 20 year fully amortizing loan with fixed payment, limited early payoff:
-    - Maximum Balance: Amort(10000, 240)
-    - Minimum Payment: Int
-    - Maximum Paydown: 1000
-    - Payment Interval: month
-    - Rate: 0.06
-    - Call Notice: 20 year (register call upon closing)
+```
+{
+    limit: "amort(10000, 240)",
+    pay: "interest",
+    mort: 1000,
+    period: "month",
+    rate: 0.06,
+    call: "20 year"		//will register call upon closing
+} ```
 
 - Business line, pay weekly interest, can be called with 60 day notice:
-    - Maximum Balance: 10000
-    - Compound Interval: week
-    - Rate: 0.08
-    - Call Notice: 60
+```
+{
+    - limit: 10000,
+    - period: "week",
+    - rate: 0.08,
+    - call: 60
+} ```
 
 - 90 Day personal loan, fixed term, balloon payoff
-    - Rate: 0.12
-    - Call Notice: 90 day (register upon closing)
+```
+{
+    rate: 0.12,
+    call: "90 day"		//will register call upon closing
+} ```
 
 The credit terms explained above do not typically place hard limitations on the
 transactions users may manually initiate.  For example, a credit limit, does
 not prevent one peer from unilaterally sending value (chits) to the other
 party, even if that would push a total past a credit limit.
 
-For example, even though I might only trust you with credit for \$100, that 
-wouldn't prevent you from writing a check to me for \$1000.  And I might well
-accept that extra large check.  I may just decline to give you product or
-services in exchange for it--at least until I had funged it into a form of
-value I was more comfortable with.
+For example, even though I might only trust you with credit for 
+<span>$</span>100, 
+that wouldn't prevent you from writing a check to me for
+<span>$</span>1000.
+And I might well accept that extra large check.
+I may just decline to give you product or services in exchange for it--at least 
+until I had funged it into a form of value I was more comfortable with.
 
 ### Trading Variables
 MyCHIPs credits are, by design, not transferrable.  This means, if someone owes 
-you value, you don't have the right to reassign that asset to a third party.  
+you value, you don't have the right to reassign that asset to a third party.
 This limitation is imposed to avoid the need for trust among unrelated parties
 and it also makes CHIPs less vulnerable to theft or loss.
-
 But it seems like a pretty serious limitation--especially on something we are 
-trying to use as money.  So in order to make *value* transmittable (effectively
-fungible), we need the 
-[credit lift algorithm](http://gotchoices.org/mychips/acdc.html)
-To facilitate lifts, each tally half (stock or foil) maintains a set of parameter 
-settings that define how lifts will take place.
+trying to use as money.
+
+Thankfully, the [credit lift algorithm](http://gotchoices.org/mychips/acdc.html)
+makes it possible to transmit *value*, if not the CHIP tokens themselves.
+This *effective fungibility* is enough to make CHIPs useful as money.
 
 [![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/figures/money_ac.svg "Click to see/run a decentralized private credit model")
 
-Lifts are largely executed autonomously (without direct user interaction).  So
-the system needs a defined set of rules to know how the user wants this done.
-In the absence of any more specific direction, the system could simply examine 
-any credit imbalances and lift them back to zero.  While this would technically 
-work, it doesn't give the user much flexibility in how and where he may choose 
-to accumulate value (i.e. save money).  So for better control, users can 
-manually set certain preferences themselves.  The instruction for changing 
-these settings is digitally signed by the user, authorizing the system agent to 
-act in accordance with the settings.
+Circular lifts are typically executed autonomously (without direct user interaction).
+So the system needs a defined set of rules to know how the user wants this done.
 
-![Trading Variables](figures/Lifts-5.jpg "Visualizing Trading Variables")
+In the absence of such direction, the system could just examine any credit 
+imbalances and lift them back to zero.  While this would technically work, it 
+doesn't give the user much flexibility in how and where he may choose 
+to accumulate value (i.e. save money).
+
+So for better control, each tally half (stock or foil) contains trading parameter 
+settings that control how lifts will take place.
+Uusers can manually adjust these values themselves.
+The instruction for making such changes will be digitally signed by the user, 
+authorizing the site to act in accordance with the new settings.
+
+<p align="center"><img src="figures/Lifts-5.jpg" width="400" title="Visualizing Trading Variables"></p>
+
+The figure above shows visually how certain trading parameters determine how lifts
+affect the tally balance.
+
+Lifts are a critical method for reducing tally balances.
+MyCHIPs also includes the notion of a *credit drop.*
+A drop is just a lift in reverse--a way of trading to increase a tally's balance.
+
+In general, the stock holder (Vendor) controls most of the drop parameters and the foil holder (Client) controls most of the lift parameters.
+The exception to this is that each party must allows lifts/drops without restriction to the extent they are the pledging party (IOU grantor) and a balance is outstanding.
+
+<p align="center"><img src="uml/trade-seq.svg" title="Visualizing Lifts and Drops"></p>
+
+After honoring that exception, parties to the tally can optionally charge a fee for lifts or drops.
+Or if they want, they can effectively *pay* a fee to facilitate lifts or drops.
+
+This is all managed with four basic trading variables controlled by each of the parties:
 
 Client's (Foil) Trading Variables:
-  - **Lift Target** (Vendor -> Client):	Default: 0
+  - **Lift Target** (target):	Default: 0
     The ideal amount of Vendor's credits Client wishes to accumulate.  A 
     negative tally balance is normally accomplished through credit lifts, as 
     this is in the opposite direction of normal credit flow.  This can exceed
@@ -294,13 +348,13 @@ Client's (Foil) Trading Variables:
     here constitutes value savings by the Client in the currency of the 
     Vendor--something he must accept in payment or as part of a future drop.
 
-  - **Lift Limit**: (Foil bound)		Default: Debit Limit (dr_limit)
+  - **Lift Limit**: (bound)	Default: Tally Debit Limit (dr_limit)
     This can exceed the dr_limit setting in the tally to allow higher 
     indebtedness of Vendor to Client, occurring as the result of a lift.  No 
     lifts should be performed which would result in a balance more negative
     than this amount.
 
-  - **Lift Margin**: (Foil reward)	Default: 0
+  - **Lift Margin**: (reward)	Default: 0
     This indicates Client's willingness to conducts lifts through this Foil.
 
     The number 0 is neutral, meaning zero cost.  A positive number
@@ -313,7 +367,7 @@ Client's (Foil) Trading Variables:
     balance is reduced to the Lift Target (default 0).  If a lift beyond that 
     point is requested, it may be subject to a cost (positive margin).
 
-  - **Drop Margin**: (Foil clutch)		Default: 0
+  - **Drop Margin**: (clutch)	Default: 0
     Specifies the Client's willingness to conduct drops through this Foil.
     If the user wants to retain the chips in the foil, he can enter a
     positive number (1 disables drops altogether).  If he wants to get rid of
@@ -321,99 +375,145 @@ Client's (Foil) Trading Variables:
     
 Vendor's (Stock) Trading Variables:
 
-  - **Drop Target** (Client -> Vendor):	Default: 0
+  - **Drop Target** (target):	Default: 0
     The ideal amount of Client's credits Vendor wishes to accumulate or 
     maintain.  This is like collecting your payroll checks without cashing them 
     for a while.
 
-  - **Drop Limit**: (Stock bound)	Default: Credit Limit (cr_limit)
+  - **Drop Limit**: (bound)	Default: Credit Limit (cr_limit)
     This can exceed the cr_limit setting in the tally to allow higher 
     indebtedness of Client to Vendor, occurring as a result of a drop. No drops 
     should be allowed resulting in a tally balance more positive of this 
     amount.
 
-  - **Drop Margin**: (Stock reward)	Default: 0
+  - **Drop Margin**: (reward)	Default: 0
     This indicates a willingness to conduct drops, or lifts in the opposite 
     direction of normal (downhill) through this Stock.  All drops must be
     allowed at par or better until the Drop Target (default 0) is reached.
     Drops requested beyond that point are subject to a cost at the specified 
     margin.
 
-  - **Lift Margin**: (Stock clutch)	Default 0
+  - **Lift Margin**: (clutch)	Default 0
     Specifies the Vendor's willingness to conduct lifts through this Stock.
     If the user wants to retain the chips in the stock, he can enter a
     positive number (1 disables lifts altogether).  If he wants to get rid of
     the chips, he could consider entering a negative margin.
   
-### Invoicing
+### Invoicing Overview
 An invoice is a request for payment from one party to another.  When the 
 parties [share a tally](#establishing-a-tally), this is pretty straightforward:
 One party enters a draft chit on the tally and waits for the other party (who will be paying) to approve it.
 The parties can negotiate over it until it is agreeable.  
 Once signed by the remitter, it becomes a binding part of the tally.
+This process is more formally described [here](learn-protocol.md#direct-chit-protocol).
 
 If an invoice is to be sent to a party who does not share a direct tally, it is a little more complicated.
 The payment request must be sent independently, off the CHIP network (such as via mail, email, QR code, etc.).
-This is called an "out-of-band" communication and it is necessary because these parties don't really share any direct connection that can be trusted on-network.
+This is called an "out-of-band" communication and it is necessary because these parties don't really share 
+any direct connection that can be trusted on-network.
 
-The actual payment for will be accomplished by way of a linear lift.
-So the invoice should include:
-  - The name or IP address of the system that hosts the recipient's CHIP account
-  - A connection socket endpoint for the recipient's host system
-  - The ID (possibly hashed) of the user who will be receiving payment
-  - A list of routing hints (downstream host systems who may be well known)
+The actual payment will be accomplished by way of a [linear lift](learn-protocol.md#credit-lifts-explained).
+The invoice (issued from recipient to payor) should include:
+  - The recipient CHIP ID (possibly [obscured](learn-users.md#obscured-cid))
+  - Recipient agent key
+  - Recipient agent portal
+  - Transaction type
   - The amount due
   - A reference field (order or merchandise number, for example)
+  - Optional comments
+  - Optional list of routing hints: domains/IP/addresses of downstream host systems who may 
+    be well known and have a known, upstream path to recipient
 
-The payor system will attempt to generate a route to the recipient.
+The payor system will attempt to discover a route to the recipient.
 If successful, a linear lift can be initiated to complete the payment.
 
-### Normal Consumer Transaction (payment without a tally)
+### Consumer Transactions
+This is an example of a typical consumer payment where there is not a shared tally between 
+the payor and the recipient
+
 - The vendor displays a generic invoice QR code as described in the [Invoicing section](#invoicing).
   - This can be custom generated for the transaction; or
   - It can be generic (a printed decal with no amount or reference field)
 - The customer scans the invoice into his MyCHIPs app.
 - In the case of a custom generated invoice, the app will automatically
   determine a route to the payee if possible.  If multiple routes are 
-  discovered, the user will confirm the one he wants.
+  discovered, the user may confirm the one he wants.
 - If the invoice is generic, the app may prompt for a reference number (if
   the invoice was configured for such).  In the case of retail, for example,
-  the merchant would supply a short sequence of digits verbally to be entered.
+  the merchant could supply a short sequence of digits verbally to be entered.
   This will allow the merchant to trace this payment to the specific register,
   transaction, etc.  The transaction then proceeds.
+- The invoice itself might also contain a register or department number to avoid
+  the need for the user to enter anything.
 - The app initiates a linear lift to the recipient's system.  When the user
   signs the transaction, the lift is completed.
+- The receipient's system will recognize the transaction with the related
+  reference number and recognize the purchase as complete.
   
 ### Establishing a Tally
-A MyCHIPs server will never accept a connection from anyone it doesn't already know about.
-So if two parties want to create a tally between them, one of the parties will have to issue a connection ticket to the other.
+Version 1.0 of the tally protocol is described formally [here](learn-protocol.md#tally-protocol).
+In addition to this higher-level negotiation of the tally record itself, peer sites need to 
+open a channel over which they can communicate securely.
+That process is discussed [here](learn-noise.md).
+In the case of a first-time tally, these two levels are more tightly coupled.
+
+A MyCHIPs server should not normally accept a connection from anyone it doesn't already know about.
+So if two parties want to create a tally between them, one of the parties will have to issue a tally ticket to the other.
 Like an invoice, this information must be passed out-of-band.
 
-The party who initiates the tally would create a draft tally on his own system and then issue a connection ticket to be used by the other party.
-In the case of a commercial account like a retailer or restaurant, for example:
+The process is conducted according to the following example.
 
-- The Vendor would display or transmit a ticket QR code, containing:
-  - Vendor's full CHIP Address:
-    - CHIP ID (username)
-    - Agent ID (Agent's public connection key)
-    - Connection host/IP
-    - Connection port
-  - A connection ticket:
-    - Contains an authorization token
-    - May be configured to expire after a one-time use
-    - May be configured for multiple use by multiple parties (printed decal)
-  - The vendor's signature public key
+- User A3 will build a suggested tally and then request from his host system a ticket associated with that tally.
+  This authorizes a peer site to establish a connection, absent pre-shared key information.
+  It will also trigger site A to proffer the tally when the connection is made.
+  
+- The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
+  For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
 
-- The customer scans the ticket using his app
+<p align="center"><img src="figures/Lifts-6.jpg" width="400" title="Example Network"></p>
+
+- The ticket contains:
+  - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
+    connect with Site A on behalf of user A3.
+  - An expiring, one-time token, authorizing connection without any other key information.
+    The token will internally specify that it is for establishing a new tally;
+  - The token expiration date/time;
+
+- Once in possession of the connection ticket,
+  Site B connects (on behalf of B1) to site A.
+  It sends a structure encrypted with the site A's public agent key, containing
+    - The connection ticket;
+      - B1's CHIP Certificate, added into the ticket;
+    - The public key of the site B agent (inherent in establishingn the NPF connection);
+
+  If site A can decrypt the message, and the token is still valid, it will:
+    - Finalize opening of the connection (including agent key exchange);
+    - Build a tally as drafted in its own DB in association with the token;
+    - Add B1's certificate information into the tally;
+    - Present the drafted tally for signature by entity A3
+      (this signing step could be automated in certain larger-scale situations);
+    - Once signed, the draft tally will be transmitted to B1 for review, counter or acceptance;
+
+  If the initiation message fails, site A should silently close the connection
+  and may opt to initiate defensive measures (such as firewall blocking) against
+  possible [DOS](https://en.wikipedia.org/wiki/Denial-of-service_attack).
+
+For a real-world example, let's consider the case of a commercial account like a retailer or restaurant:
+
+- The Vendor displays or transmits a ticket QR code, containing the connection ticket;
+- The customer scans the ticket using his app;
 - The customer's host agent contacts the Vendor's host agent system at the specified port
-  and presents the connection token.
-  The system must prove its authenticity via the public agent key it supplied in the ticket.
-- The two systems exchange/update account information for the two users.
-- The Vendor's system will offer the draft tally (or a clone of it when the token is meant to handle multiple connections).
-- The user will be given the opportunity to accept/modify/reject the tally.
+  and presents the connection token;
+  The vendor's system must prove its authenticity via the public agent key it supplied in the ticket;
+- The customer proves authenticity simply by possessing the token;
+- The customer system provides the [customer's certificate](#entity-certificates).
+- The vendor's system will complete the draft tally (or a clone of it when the token is meant to handle multiple connections).
+- The vendor system will send the tally to a human (or an authorized bot) for signing.
+- The customer will be given the opportunity to accept/modify/reject the tally.
 - If he accepts it, we are done.  The draft tally has already been signed with its preferred terms.
-- If he modifies it with a counteroffer, some human user (or authorized bot) on the 
-  Vendor's end would have to re-sign the tally (assuming they are willing to) before the tally becomes active.
+- If he modifies it with a counteroffer, some (probably human) user on the 
+  vendor's end would have to re-sign the tally (assuming they are willing to) before the tally becomes active.
+  The vendor (or vendor system) would also have the option of re-counterign or refusing the modified tally.
 
 Once the tally is established, the customer can [set parameters](#trading-variables) on the tally to
 collect extra Vendor credits, if so desired.
@@ -422,54 +522,217 @@ Once collected, those credits can be spent.
 If credit has been extended to the customer as part of the tally, the customer
 can begin to buy things using the tally as payment, within the specified credit terms.
 
-### Entity Certificates
+### Entity Certificates and Identities
 Part of the information encapsulated and digitally signed within a tally includes a
-CHIP certificate (CHIPCert).  The certificate has several purposes:
-  - To provide information about the entity that identifies him to the satisfaction
-    of the trading partner.  For example, some partners may require a certificate
-    containing a Tax ID number (like a Social Security Number in the US).  Less formal
-    relationships might only require a name and email address.  Fields are optional
-    but should be sufficient (in the judgement of the partner) to establish identify in
-    an unmistakable way.
-  - To provide sufficient information to the host system to uniquely identify the
-    entity.  MyCHIPs will primarily rely on the CHIP ID, Agent ID and peer
-    private key to determine a unique entity.  But the database should also contain
-    valid entity names and an email address.
-  - To identify how/where to contact the agent who acts officially on behalf of the
+CHIP certificate.  The certificate has several purposes:
+  - To provide information about the entity that identifies it to the satisfaction
+    of the other trading partner.  For example, some partners may require a certificate
+    containing a Tax ID number (like a US Social Security Number).  Less formal
+    relationships might only require a name and email address.  Some fields are optional
+    but should be sufficient (in the judgement of the partner) to establish identity in
+    an unmistakable and legally sufficient way.
+  - To identify how/where to contact the agent server acting officially on behalf of the
     MyCHIPs user.
-    
-The CHIP certificate (CHIPCert), contains:
+  - (OBSOLETE:) To provide sufficient information to the host system to uniquely identify the
+    entity and create the approprate database record (or properly recognize that it
+    already exists).
+
+During a transaction involving a connection ticket, there is a point where the subject
+entity presents the ticket, along with its own certificate.  In the original design, 
+the intent was that the proffering system would decide whether it already has a valid DB
+record for the peer or if it should add a new record.  This turns out to be one of the 
+trickiest parts of the protocol.
+
+There are 4 possible pieces of information in the database that should be unique to
+a particular entity:
+- CHIP ID and Agent [(suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE)](learn-users.md#chip-addresses)
+- Public signing key
+- Birth ID record (which could change in small ways and still represent the same person)
+- National tax ID (if provided)
+
+The agent part of the CHIP address uniquely points to a process server
+(address and port) that is responsible for properly managing the associated chip ID.
+We hope a service provider behind that agent process will reliably provide accurate 
+information about its users.  But we can't always be sure.
+What we ***will*** accept is that an incoming connection with an authorized token is 
+initiated by a peer our *local* user wants to connect with.
+
+It seems reasonable to disallow two peer records to have the same public signing key.
+If a user decides to have multiple trading accounts, he could likely create a separate
+key for each account.  It might be possible for a service provider to service a single 
+entity (with a single signing key) at more than one agent address.  But the reference 
+implementation will likely not allow this. Perhaps the strongest argument against a
+strict 1:1 relationship between CID and key is that a user may just lose his key and
+have to create a new one.  More on that later.
+
+A birth ID is optional.  If it *is* provided, it can be very helpful for humans to determine
+the identity of an individual.  But someone could provide essentially the same birth ID
+information (from a human-interpreted standpoint) to two different services and yet have
+the birth records differ enough that a computer would likely consider them different.
+So this one will be good for contract enforcement, but not so much for computer decisions.
+
+The national tax ID will be used for serious partners who need to know your identity in a
+very secure way.  It would certainly be nice to not have two different records in a system
+that have the same tax ID (i.e. Social Security number).  However, like the signing key,
+it is certainly possible for one person to have more than one CHIP account.  If an 
+implementation is going to insist on uniqueness here, it might have to support
+multiple CHIP ID's per entity.
+
+More than anything, perhaps these issues expose a flaw in the original schema design.
+It assumed that host systems would maintain normalized entity records 
+(i.e. one per entity) for foreign peers who were connected by tallies to its own local 
+user entities.  That assumption may just not be possible without the need for periodic
+human intervention to sort out problematic edge cases such as:
+- A user modifying key information in his certificate and then reconnecting to a foreign 
+  system (perhaps to make a tally with another user there).
+- A user losing his key, regenerating a new one, and then trying to establish a new
+  tally with an existing peer.
+- A user changing his CID or agent server key.
+
+So as of Jan 2022, we will pursue the following design approach:
+- A user is responsible for building and maintaining his certificate data on his host site.
+- New tallies incorporate the certificates of both users, so the digital signatures will
+  attest to the certificate data as it existed when the tally was consummated.
+- Host systems should take reasonable steps to make sure they only have a single entity
+  record for their own local users (such as making a tax ID, or signing key unique)
+- But a host system will not attempt to store a normalized entity record for foreign peers
+  at all.  Rather, it will maintain a separate copy of the peer certificate for each
+  individual tally.
+- This approach seems bulky in some ways.  But it should allow a server to operate much
+  more autonomously.  The idea is:
+  - Users are responsible for the accuracy of their identifying data on their own host system.
+  - Users are responsible to review ID information of the peers they choose to execute tallies with.
+  - It is not the job of a host system to make any judgement about the accuracy of foreign peer data.
+  - If a foreign agent process can properly open an encrypted connection using its expected public 
+    keys, that is sufficient to validate the agent.
+  - If a foreign peer can properly sign activity on a tally using the key that originally signed 
+    the tally, that is sufficient to validate the transaction.
+- If a user loses his signing key:
+  - He should be able to regenerate one as needed without being hassled too much by his host system.
+  - He should be aware that he will lose the ability to transact on any existing tallies.
+  - He will have to talk existing partners into executing new tallies using the new key (and possibly a different agent/provider).
+  - And he will have to arrange with them to void out, or *lift out* any existing balances
+    and move them over to the new tally with the new key.
+- This approach introduces some potential challenges in the DB views used for calculating
+  lift pathways.  Hopefully there is sufficient data in the tally/certificate to maintain
+  the same views (just drawing their data from a different table).
+
+Now when a new tally connection is being considered, the system will consider:  
+- If the sending agent is also managed by our local system:
+  - If so, this should be a local user of ours as well;
+  - Mark the tally partner as a local user so we can build lift segments properly.
+- Otherwise, just store the certificate with the tally and don't make any attempt to
+  store any additional peer data.
+- The notable exception to this is, each server should not continue to rely on the physical
+  address of the agent server stored in the tally.  Rather, we should maintain a normalized
+  physical address of each known agent server, external to the tallies.  That way an agent
+  can change its physical address and we will adapt to the change easily, as long as it
+  continues to use the same key.
+  
+### The Entity Certificate
+The CHIP certificate contains:
+```
+  - Personal or entity contact information
+  - Information for addressing the entity's CHIP account
+  - Information about the entity's identity
+```
+In JSON format, the certificate would look like this
+(properties shown as arrays can be a single object or an array):
+```
+CHIPCert: {
+  cid,
+  agent,
+  type,
+  name:        [{name, given, prefer, aka}],
+  connect:     [{spec, type, comment}],
+  place:       [{address, city, state, code, country, type, comment}],
+  identity:    {
+    state:     [{country, id}],
+    birth:     {
+      name:    [{name, type, comment}],
+      date,
+      place:   {address, city, state, code, country, type, comment},
+    },
+  public,
+  date,
+  signature,
+}
+```
+
+At any given time, a given entity should ideally have a single:
   - CHIP ID
   - Agent ID
   - Signature public key
-  - Other identifying information
-    - Entity name	(company name or person's family name)
-    - Given name(s)	(individuals)
-    - Domain		(companies)
-    - Email		(individuals)
-    - Address		(optional)
-    - Country		(optional)
-    - National ID	(optional)
 
-At any given time, a given entity should ideally have a single one of:
-  - CHIP ID
-  - Agent ID
-  - Signature public key
+Any time a site receives a certificate for a user it already has record of, it should
+validate the authenticity of the certificate using the public key it already has on file.
+If the information is authentic by this measure, the site should update any contact
+information from the certificate.
 
-Otherwise, an agent site might not recognize it as the same entity and therefore
-might create a duplicate entity record.
+If the public keys don't match, it should probably just create a new user or alert
+a human to determine the correct course of action.
+  
+If changes need to be made to the CHIP ID or Agent ID, this can be done automatically if
+duly authorized by a record signed by the peer's signature key.
 
-If changes need to be made to the CHIP ID or Agent ID, this should be authorized by a
-record signed by the peer's signature key.  If the signature key needs to be changed
-this should probably be done by disabling all old tallies (close request), creating new 
-tallies with the new signature key, and then moving remaining credits over from the old 
-tallies to the new tallies that include the new signature key.
+If a user's signature key needs to be changed
+this should probably be done by:
+- disabling all old tallies with a close request by the partner holding a remaining 
+  good signing key;
+- creating new tallies with the new signature key, and then moving remaining credits over 
+  from the old tallies to the new tallies that include the new signature key.
 
 This way, trading partners will necessarily be involved in the process of moving to a
 new signature key.
 
+### Tally Exchange Format
+A MyCHIPs server may store tallies, chits and other objects in any format that makes
+the most sense.  But when communicating with other compliant servers, it should send
+the tally in the following format, shown as JSON:
+```
+tally: {
+  version: 1,
+  uuid: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
+  date: <Begin date of contract>,
+  note: <Additional Comments>,
+  stock: {
+    cert: <CHIP Certificate>
+    terms: <Credit Terms>
+  }
+  foil: {
+    cert: <CHIP Certificate>
+    terms: <Credit Terms>
+  }
+  agree: {
+    domain: "mychips.org",
+    name: "standard"
+    version: 0.99
+  }
+  sign: {
+    foil: <Foil Holder Signature>,
+    stock: <Stock Holder Signature>>
+    digest: <Hash of the rest of the tally>
+  },
+}
+```
+A tally may contain any number of sequential chits.
+Chits are transmitted in the following format:
+```
+chit: {
+  tally: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
+  uuid: "2d5d4167-dcdf-5743-861c-e6ae1e62bbb8",
+  type: "tran",				//or "lift"
+  date: <creation date/time>,
+  units: 432123,			//milli-CHIPs
+  for: <External invoice number or other reference or comment>,
+  digest: <Hash of the rest of the chit>,
+  signed: <Pledgor's signature>
+}
+```
+
 ### Pathways
-(Version 0 protocol)
+(version 0 protocol)
+
 The admin tool includes a network visualization tool that shows all users local
 to the site, known foreign peers, and the tallies that interconnect them.  Each
 database will store both a stock and a foil that connect local users to each
@@ -598,7 +861,7 @@ In general, if you get a chit that already agrees with what you have on the
 chain, send an Ack back.  If you get an Ack through a certain index number
 move your latest valid index number forward (but not back) to that number.
 
-See [this section](Lifts.md#lift-states) for more on treatment of chits that belong to a lift transaction.
+See [this section](learn-lift.md#lift-states) for more on treatment of chits that belong to a lift transaction.
 
 ### Chit States
 (Version 0 protocol)

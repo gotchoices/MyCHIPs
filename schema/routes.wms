@@ -1,0 +1,490 @@
+#Analyze pathways through the network of tallies
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- Get rid of obsolete fields in mychips.routes and all subordinate objects
+#- 
+#- Old:
+#- When a lift completes, mark associated route as good/freshened
+#- When a lift fails, mark associated route as bad? (or at least time it out and retry route query)
+#- Test/debug route query retries?  (or should we ignore unanswered queries?)
+#- Only process lifts that have a cost factor 1 or better
+#- Ignoring tallies that are not in good status?
+#- 
+#- Make indexed, materialized cache of tallies_v_paths that is incrementally updated via triggers
+#- 
+
+module mychips
+namespace eval routes {
+    def routes_pk	{rid}
+    def routes_v_up	{status min max margin reward}
+    def routes_v_in	[concat $routes_v_up via_ent via_tseq dst_cid dst_agent req_ent req_tseq]
+    def routes_se	[concat $routes_pk $routes_v_in step lift_count lift_date good_date]
+    def routes_maxquery	12
+    def routes_maxstep	20
+}
+
+# Stores info about external pathways discovered from foreign servers
+#----------------------------------------------------------------
+table mychips.routes {mychips.peers mychips.tallies} {
+    rid		serial		primary key
+  , via_ent	text		not null	-- Owner of local tally that starts the external route
+  , via_tseq	int		not null
+  ,				foreign key (via_ent, via_tseq) references mychips.tallies on update cascade on delete cascade
+  , dst_cid	text		not null
+  , dst_agent	text		not null
+  , 				constraint "!mychips.routes.UNI" unique (via_ent, via_tseq, dst_cid, dst_agent)
+  , req_ent	text
+  , req_tseq	int	      , foreign key (req_ent, req_tseq) references mychips.tallies on update cascade on delete cascade
+
+  , status	text		not null default 'draft' constraint "!mychips.routes.BST" check(status in ('draft','pend','good','none'))
+  , step	int		not null default 0 check (step >= 0)
+  , lift_count	int		not null default 0 check (step >= 0)
+  , lift_date	timestamptz	not null default current_timestamp
+  , good_date	timestamptz	not null default current_timestamp
+
+  , min		bigint		not null default 0
+  , margin	float		not null default 0 constraint "!mychips.paths.LMG" check (margin >= -1 and margin <= 1)
+  , max		bigint		not null default 0
+  , reward	float		not null default 0 constraint "!mychips.paths.LRW" check (reward >= -1 and reward <= 1)
+}
+#index {} mychips.routes good_date
+
+table mychips.route_tries {mychips.routes} {
+    rtry_rid	int		primary key references mychips.routes on update cascade on delete cascade
+  , tries	int		not null default 1
+  , last	timestamptz	not null default current_timestamp
+}
+
+# Consistency check for new/updated routes
+#----------------------------------------------------------------
+#function mychips.routes_tf_biu() {mychips.users_v} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#-- Any reason we can't have external routes to our own users?
+#--        if exists (select id from mychips.users_v where peer_cid = new.dst_cid and peer_agent = new.dst_agent) then
+#--          raise exception '!mychips.routes:CRL';
+#--        end if;
+#
+#        return new;
+#    end;
+#$$;}
+#trigger mychips_routes_tr_biu {} {
+#    before insert or update on mychips.routes for each row execute procedure mychips.routes_tf_biu();
+#}
+
+# Compute current state of a route, based on its various fields
+#----------------------------------------------------------------
+function {mychips.route_state(status text, expired boolean)} {mychips} {
+  returns text stable language plpgsql as $$
+    begin return
+      status ||
+      case when status in ('pend','open') and expired then '.X' else '' end;
+    end;
+$$;}
+
+# Compute a route's need to be refreshed/replaced
+#----------------------------------------------------------------
+function {mychips.route_sorter(status text, expired boolean)} {mychips} {
+  returns int stable language plpgsql as $$
+    begin return case
+      when status = 'good' and not expired	then	0
+      when status = 'pend' and not expired	then	1
+      when status = 'good' and expired		then	2
+      when status isnull			then	3
+      when status = 'pend' and expired		then	4
+      else						5 end;
+    end;
+$$;}
+
+# Base view of pathway routes
+#----------------------------------------------------------------
+define expTime {greatest(ro.good_date, ro.lift_date) + pl.life}
+view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.tallies_v mychips.route_state(text,boolean) base.parm_v} {select 
+    eval(fld_list $routes::routes_se	ro)
+  , it.hold_cid		as via_cid
+  , it.hold_agent	as via_agent
+  , it.hold_chad	as via_chad
+  , it.tally_uuid	as via_tally
+  , it.part_cid		as vip_cid		-- Route via this partner peer
+  , it.part_agent	as vip_agent
+  , it.part_chad	as vip_chad
+
+  , qt.hold_cid		as req_cid		-- Our user/owner of downstream request tally
+  , qt.hold_agent	as req_agent
+  , qt.hold_chad	as req_chad
+  , qt.tally_uuid	as req_tally
+  , qt.part_cid		as rpt_cid		-- Foreign partner request came through
+  , qt.part_agent	as rpt_agent
+  , qt.part_chad	as rpt_chad
+
+  , jsonb_build_object('cid', ro.dst_cid, 'agent', ro.dst_agent)	as dst_chad
+  , ro.req_tseq isnull or not qt.part_ent isnull			as native
+  , rt.tries		as tries
+  , rt.last		as last
+  , expTime()		as expires
+  , current_timestamp > expTime()					as expired
+  , mychips.route_state(ro.status, current_timestamp > expTime())	as state
+--  , mychips.route_sorter(ro.status, current_timestamp > expTime())	as sorter
+  , jsonb_build_object(
+      'min'   ,	ro.min,		'max'   , ro.max
+    , 'margin',	ro.margin,	'reward', ro.reward
+   )									as lading
+  , jsonb_build_object(				-- For upstream query packet
+       'step',		ro.step
+     , 'tally',		it.tally_uuid
+     , 'find' ,	jsonb_build_object(
+         'cid', 	ro.dst_cid
+       , 'agent',	ro.dst_agent
+       )
+    )			as json
+
+    from	mychips.routes		ro
+    join	mychips.users_v		ie on ie.user_ent = ro.via_ent
+    join	mychips.tallies_v	it on it.tally_ent = ro.via_ent and it.tally_seq = ro.via_tseq
+    left join	mychips.tallies_v	qt on qt.tally_ent = ro.req_ent and qt.tally_seq = ro.req_tseq
+    left join	mychips.route_tries	rt on rt.rtry_rid = ro.rid
+    join	(select coalesce(value, '1 hour')::interval as life
+                 from base.parm_v where module = 'routes' and parm = 'life') pl on true;
+
+    eval(trigview::insert mychips.routes_v mychips.routes $routes::routes_v_in $routes::routes_pk);
+    eval(trigview::update mychips.routes_v mychips.routes $routes::routes_v_up $routes::routes_pk);
+}
+
+# Notify the peer server process of route state changes, and next state request, that needs attention in the database
+#----------------------------------------------------------------
+function {mychips.route_notify(route mychips.routes)} {mychips.routes_v mychips.route_tries} {
+  returns void language plpgsql security definer as $$
+    declare
+        jrec	jsonb;
+        orec	record;			-- Route
+        prec	record;			-- Route/path
+        rrec	record;			-- Retries
+        channel	text = 'mychips_agent';
+    begin
+        if route.status = 'pend' then			-- pend: no notification needed
+          return;				
+        end if;
+
+--Fixme: How are retries supposed to work (especially on good/none)?
+        insert into mychips.route_tries (rtry_rid) values (route.rid)
+          on conflict (rtry_rid) do update set tries = mychips.route_tries.tries + 1, last = current_timestamp
+            returning * into rrec;
+
+        jrec = jsonb_build_object('target', 'route'
+          , 'action'	, route.status
+          , 'try'	, rrec.tries
+          , 'last'	, rrec.last
+        );
+
+--raise notice 'Rd:% %:%', route.status, route.dst_cid, route.dst_agent;
+        select into orec via_chad, via_agent, vip_chad, native, step, json,
+          req_ent, req_chad, req_agent, req_tally, rpt_chad, dst_chad, lading
+            from mychips.routes_v where rid = route.rid;
+
+        if route.status = 'draft' then			-- draft: request upstream query
+          if not orec.via_agent isnull then channel = 'ma_' || orec.via_agent; end if;
+          jrec = jrec || jsonb_build_object(
+              'to'	, orec.vip_chad
+            , 'from'	, orec.via_chad
+            , 'object'	, orec.json
+          );
+
+        elsif route.status in ('good','none') then	-- good,none: notify someone
+--raise notice 'Rs:% %-% % % %', route.rid, route.req_ent, route.req_tseq, orec.native, route.status, jrec;
+
+          if (orec.native) then				-- Notify requesting local user
+            jrec = jsonb_build_object('target','route'
+              , 'action',	route.status
+              , 'object', jsonb_build_object('route',	route.rid
+                , 'find',	orec.dst_chad
+                , 'lading',	case when route.status = 'good' then orec.lading else null end
+              )
+            );
+--raise notice 'Rss:%', jrec;
+            perform pg_notify('mu_' || route.req_ent, jrec::text);
+            return;
+
+          elsif route.status = 'good' then		-- Notify downstream site (only of good's)
+
+-- Possible that the path/route is no longer liftable and this query may produce no result
+-- It could also produce multiple results if there are multiple internal pathways with the same endpoints
+            select into prec rid, jsonb_build_object('min',min,'max',max,'margin',margin,'reward',reward) as lading
+              from	mychips.routes_v_paths
+              where	rid = route.rid and bot = req_ent and bot_tseq = req_tseq
+              order by	margin, min desc, max desc limit 1;		--Report only on the cheapest, biggest lading
+--raise notice 'Rz:% % %', orec.req_ent, orec.rpt_chad, orec.lading;
+
+            channel = 'ma_' || orec.req_agent;
+            jrec = jrec || jsonb_build_object(
+                'to'	,	orec.rpt_chad
+              , 'from'	,	orec.req_chad
+              , 'object',  jsonb_build_object(
+                  'tally',	orec.req_tally
+                , 'lading',	coalesce(prec.lading, orec.lading)	-- Full path lading if available
+              )
+            );
+          end if;	-- If native
+        end if;		-- good, none
+
+--raise notice 'Route notice:% %', channel, jrec::text;
+        perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
+    end;
+$$;}
+
+# Generate notifications about updated routes for listening peer servers
+#----------------------------------------------------------------
+function mychips.routes_tf_notify() {mychips.route_notify(mychips.routes)} {
+  returns trigger language plpgsql security definer as $$
+    declare
+        dirty	boolean default false;
+    begin
+        if TG_OP = 'INSERT' then
+            dirty = true;
+        elsif new.status != old.status then
+            dirty = true;
+        end if;
+        if dirty then perform mychips.route_notify(new); end if;
+        return new;
+    end;
+$$;}
+trigger mychips_routes_tr_notice {} {
+    after insert or update on mychips.routes for each row execute procedure mychips.routes_tf_notify();
+}
+
+# Populate route table with new (or refreshed) routes relevant to a specified destination
+# Call with a record from mychips.routes_v_query or similar construction
+#----------------------------------------------------------------
+function {mychips.route_pop(qrec record, currStep int = 0)} {mychips.routes_v} {
+  returns jsonb language plpgsql security definer as $$
+    declare
+      lading	jsonb;
+      forward	int = 0;
+    begin
+--raise notice '  pop top: % step:%', qrec, currStep;
+      if (qrec.status isnull) then
+--raise notice '  pop new: %-% -> %:%', qrec.top, qrec.top_tseq, qrec.dst_cid, qrec.dst_agent;
+        insert into mychips.routes (via_ent, via_tseq, dst_cid, dst_agent, step, req_ent, req_tseq)
+          values (qrec.top, qrec.top_tseq, qrec.find_cid, qrec.find_agent, currStep, qrec.bot, 
+            case when currStep <= 0 then null else qrec.bot_tseq end		-- Native or externally requested query
+          );
+        forward = 1;
+
+      elsif (qrec.expired) then
+        update mychips.routes set status = 'draft', step = currStep where rid = qrec.rid;
+        forward = 1;
+
+      elsif (qrec.status = 'good' and lading isnull) then
+        lading = jsonb_build_object(
+          'min', qrec.min, 'max', qrec.max,'margin', qrec.margin, 'reward', qrec.reward);
+      end if;
+
+      return jsonb_build_object(
+        'forward',	forward,
+        'lading',	lading
+      );
+    end;
+$$;}
+
+# Search for a specific destination cid:agent and populate routes if needed
+#----------------------------------------------------------------
+function {mychips.routes_find(base record, dest jsonb, currStep int, avoid text)} {mychips.routes_v mychips.route_sorter(text,boolean) mychips.route_pop(record,int)} {
+  returns jsonb language plpgsql security definer as $$
+    declare
+      lrec	record;
+      jtmp	jsonb;
+      lading	jsonb;
+      forward	int = 0;
+      maxQuery	int = base.parm('routes', 'maxquery', expr($routes::routes_maxquery));
+    begin
+--raise notice '  find top: % % step:% avoid!%', base, dest, currStep, avoid;
+      for lrec in		-- Hypothetical paths to destination
+        with tp as (		-- Like routes_v_query but for destination that may not be in the DB
+          select bot, bot_tseq, top, top_tseq, out_cid, out_agent, fori, foro, at,
+            dest->>'cid' as find_cid, dest->>'agent' as find_agent	-- may (or not) already exist
+          from mychips.tallies_v_paths where bot = base.tally_ent and bot_tseq = base.tally_seq
+        )
+        select mychips.route_sorter(r.status,r.expired) as sorter,		-- process here to properly handle null records
+            tp.bot, tp.bot_tseq, tp.top, tp.top_tseq, tp.foro, tp.at,
+            tp.out_cid, tp.out_agent, tp.fori, tp.find_cid, tp.find_agent,
+            r.status, r.dst_cid, r.dst_agent,	r.min,r.max,r.margin,r.reward, r.expired
+        from tp					-- overlaid by those that already  exist
+        left join mychips.routes_v r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq
+                                    and r.dst_cid = tp.find_cid and r.dst_agent = tp.find_agent
+        where	tp.fori and tp.foro and tp.foro
+        and	(avoid isnull or not (avoid = any(tp.at)))			-- If we've already found a local path
+        and	not (tp.out_cid = tp.find_cid and tp.out_agent = tp.find_agent)	-- If we're already connected to this peer directly
+        order by 1,r.rid,tp.top,tp.top_tseq limit maxQuery loop
+        
+        jtmp = mychips.route_pop(lrec, currStep);
+        forward = forward + (jtmp->'forward')::int;
+        lading = coalesce(jtmp->'lading', lading);
+      end loop;
+
+      return jsonb_build_object(
+        'action',	case when forward > 0 then 'relay' else 'none' end,
+        'forward',	forward,
+        'lading',	lading
+      );
+    end;
+$$;}
+
+# Process route state transitions requested by the peer server process
+#----------------------------------------------------------------
+function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mychips.users_v mychips.tallies_v mychips.routes_find(record,jsonb,int,text)} {
+  returns jsonb language plpgsql as $$
+    declare
+        to_chad		jsonb = msg->'to';
+        fr_chad		jsonb = msg->'from';
+        obj		jsonb = msg->'object';
+        find		jsonb = obj->'find';
+        retObj		jsonb;
+        currStep	int = coalesce((obj->'step')::int, 0);
+        maxStep		int;
+        dest		record;		-- Searching for this user (may exist on our system)
+        route		record;		-- Holds route record(s)
+        base		record;		-- Tally the query came in on
+        path		record;		-- Found local path record
+        qstrg		text;		-- Temporary string
+        xrec		record;		-- Temporary record
+        curState	text;
+    begin
+--raise notice 'Route process msg: %; recipe: %', msg, recipe;
+
+        select into base tally_ent, tally_seq, tally_uuid, hold_cid, hold_agent, part_cid, part_agent
+          from mychips.tallies_v where
+            tally_uuid = (obj->>'tally')::uuid and liftable;
+        if not found then return null; end if;		-- Can we find the tally this came in on
+
+--raise notice ' tally: % % %', base.tally_ent, base.tally_seq, base.tally_uuid;
+--raise notice ' F: %:% %:%', base.part_cid, base.part_agent,fr_chad->>'cid',fr_chad->>'agent';
+--raise notice ' T: %:% %:%', base.hold_cid, base.hold_agent,to_chad->>'cid',to_chad->>'agent';
+        if base.part_cid   is distinct from fr_chad->>'cid'   or 
+           base.part_agent is distinct from fr_chad->>'agent' or
+           base.hold_cid   is distinct from to_chad->>'cid'   or 
+           base.hold_agent is distinct from to_chad->>'agent' then
+--raise notice ' X!';
+             return null;		-- Query message to/from must match our known tally
+        end if;			-- Verifies query is coming from up/down-stream on this tally
+
+        select into dest id, peer_cid, peer_chost from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';	-- Do we have the destination entity locally?
+--raise notice '  dest local: % %', dest.id, obj->>'find';
+
+        if recipe->'query' then			-- If there a query flag in the recipe object
+          maxStep = base.parm('routes', 'maxstep', expr($routes::routes_maxstep));
+
+          if not dest.id isnull then			-- Is the destination a local user?
+            select into path inp,out,min,max,margin,reward from mychips.tallies_v_paths		-- Do we have a direct path to him?
+              where bot = base.tally_ent and bot_tseq = base.tally_seq and top = dest.id
+                order by margin, min desc limit 1;		-- Try to pick one with good capacity
+--raise notice '  Loc found: % %', found, currStep;
+
+            if found or  currStep <= maxStep then	-- See if there are any indirect, external routes we should also search
+              retObj = mychips.routes_find(base, find, currStep, dest.id);
+            end if;	-- currStep <
+
+          elsif currStep <= maxStep then -- destination is not local but we will to search for it
+
+            select into path inp,out,min,max,margin,reward from mychips.tallies_v_paths		-- Do we have a direct path to him?
+              where bot = base.tally_ent and bot_tseq = base.tally_seq
+                and out_cid = find->>'cid' and out_agent = find->>'agent'
+                order by margin, min desc limit 1;		-- Try to pick one with good capacity
+--raise notice '  For found: % %', found, currStep;
+
+            retObj = mychips.routes_find(base, find, currStep, null::text);
+          end if;	-- destination local/not
+
+--raise notice '  ready: %-% %-%', path, path isnull, retObj, retObj isnull;
+          if not path isnull then
+            retObj = retObj || jsonb_build_object(
+              'action',	'good',
+              'lading',	jsonb_build_object(
+                  'min',	path.min,	'max',		path.max,
+                  'margin',	path.margin,	'reward',	path.reward
+              ));
+          end if;
+          return retObj;
+        end if;		-- recipe->'query'
+
+        if recipe ? 'update' then
+          select into route * from mychips.routes_v where via_cid = to_chad->>'cid' and via_tally = (obj->>'tally')::uuid;
+          curstate = coalesce(route.state,'null');		-- If the route doesn't exist yet
+
+--raise notice ' state:% recipe:%', curState, recipe;
+          if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
+raise notice 'RZ:% C:%', jsonb_build_array(curState), recipe->'context';
+            return to_jsonb(curState);
+          end if;
+
+          if not route.rid isnull then
+            qstrg = mychips.state_updater(recipe, 'mychips.routes_v', '{status, min, margin, max, reward}', '{"good_date = current_timestamp"}');
+--raise notice 'SQL:%', qstrg;
+            execute qstrg || 'rid = $1 returning rid, state' into route using route.rid;
+            if recipe->'update'->>'status' in ('good','none') then	-- Resolution found, delete retry counter
+              delete from mychips.route_tries where rtry_rid = route.rid;
+            end if;
+          end if;
+          return to_jsonb(route.state);
+        end if;		-- recipe ? 'update'
+      return null;
+    end;
+$$;}
+
+# Check to see if it is time to retry this route check
+#----------------------------------------------------------------
+function {mychips.route_retry(new mychips.routes)} {mychips.routes} {
+  returns boolean language plpgsql as $$
+    begin
+--raise notice 'Route Retry: % %', new.route_ent, new.dest_ent;
+--Fixme: How/when do we decide to mark an old record to retry?
+    return false;
+    end;
+$$;}
+
+# Check for possible new circular routes associated with a specified entity/tally
+#----------------------------------------------------------------
+function {mychips.route_circuit(ent text default null, seq int default null)} {mychips.routes mychips.tallies_v_paths mychips.routes_find(record,jsonb,int,text)} {
+  returns jsonb language plpgsql as $$
+    declare
+      trec	record;
+      dest	jsonb;
+      results	jsonb = '[]';
+    begin
+--raise notice 'Route Circuit: %-%', ent, seq;
+      if ent isnull then			-- Generate all possible routes
+        for trec in select bot, bot_tseq, top, top_tseq,
+            out_cid, out_agent, find_cid, find_agent,
+            status, dst_cid, dst_agent,	min,max,margin,reward, expired, sorter
+          from mychips.routes_v_query order by sorter loop
+            results = results || mychips.route_pop(trec);
+        end loop;
+
+      else					-- Generate routes for a user or tally
+        for trec in select distinct bot as tally_ent, bot_tseq as tally_seq,
+                inp_cid, inp_chad, top, top_tseq
+          from	mychips.tallies_v_paths
+          where	top = ent and (seq isnull or top_tseq = seq) and fori loop
+--raise notice '  check: % %-%', trec.inp_cid, trec.tally_ent, trec.tally_seq;
+            results = results || mychips.routes_find(trec, trec.inp_chad, 0, null);
+        end loop;
+      end if;
+      return results;
+    end;
+$$;}
+
+# Check for possible new linear routes from an entity to a specified destination peer
+#----------------------------------------------------------------
+function {mychips.route_linear(ent text, dest jsonb)} {mychips.routes mychips.tallies_v_net mychips.routes_find(record,jsonb,int,text)} {
+  returns jsonb language plpgsql as $$
+    declare
+      trec	record;
+      results	jsonb = '[]';
+    begin
+      for trec in select distinct inp as tally_ent, bot_tseq as tally_seq
+        from	mychips.tallies_v_net where inp = ent loop
+raise notice 'Route Linear check: %:%', trec.inp, dest;
+             results = results || mychips.routes_find(trec, dest, 0, null);
+      end loop;
+      return results;
+    end;
+$$;}

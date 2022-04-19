@@ -18,7 +18,7 @@ alt Terms agreeable
  payDB	->>	recDB:		Store and transmit to peer
  recDB	->>	rec:		Store and notify user
 
-loop until consensus
+loop until consensed
  payDB	<->	recDB:		Consensus acks/naks
 end loop
 

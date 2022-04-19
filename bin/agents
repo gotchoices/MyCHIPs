@@ -1,0 +1,78 @@
+#!/bin/bash
+# Manage agent keys
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+# Usage: agents
+#        agents check -d
+#        agents new
+#        agents list
+#        agents rm <agentpub>
+mydir="$(dirname $BASH_SOURCE)"				#Where this script is
+appdir="$(realpath "$mydir/..")"
+keydir="$appdir/pki/local"
+bindir="$appdir/bin"
+default="false"
+default_name="default_agent"
+ext="agk"						#Key extension
+pargs=()						#Positional arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -k|--keydir) keydir=($2); shift;;			#Where to build keys
+    -d|--default) default=true;;
+    --) shift; pargs+=("$@"); shift $#;;		#Done with switches
+    *) pargs+=("$1");;
+  esac
+  shift
+done
+set -- "${pargs[@]}"					#Restore positional arguments
+#echo "pwd:$(pwd) appdir:$appdir host:$host port:$port keydir:$keydir $*"; exit 0
+command="$1"; shift
+if [ -z "$command" ]; then
+  command="list"
+fi
+
+if [ ! -d $keydir ] || ! cd $keydir; then
+  echo "Error: Can't access key directory: $keydir" >&2; exit 1
+fi
+
+case $command in
+    rm|remove|delete)			#Delete a key file
+      file="$1"
+      if [ $(expr match "$file" ".*\.${ext}") -le 0 ]; then
+        file="$(ls $1*.$ext 2>/dev/null)"
+      fi
+      num="$(ls $1*.$ext 2>/dev/null |wc -l)"
+#echo "1:$1 file:$file num:$num"
+      if [ "$num" -gt 1 ]; then
+        echo "Error: more than one key matched: $1"; exit 1
+      elif [ "$num" -eq 1 -a -f "$file" ]; then
+       rm -f -v "$file"
+      else
+        echo "Error: Can't find key file: $1"
+      fi;;
+
+    list|ls)				#Show currently existing key files
+      ls *.$ext 2>/dev/null |cat;;
+
+    new|add)				#Create a new key file
+      pub=$($bindir/agentkey .)
+      num=$(ls *.$ext 2>/dev/null |wc -l)
+      if "$default" || [ "$num" -le 1 ] ; then
+        rm -rf ${default_name}
+        ln -s ${pub}.${ext} ${default_name}	#Make this key our default key
+      fi
+      echo "New pub: $pub";;
+
+    check)
+      num=$(ls *.$ext 2>/dev/null |wc -l)	#How many keys currently
+#echo "num: $num"
+      if [ "$num" -le 0 ]; then			#If none
+        pub=$($bindir/agentkey .)		#Make one as our default
+        rm -rf ${default_name}
+        ln -s ${pub}.${ext} ${default_name}
+      fi;;
+
+    *)
+      echo "Unknown command: $command";
+      exit 1;;
+esac

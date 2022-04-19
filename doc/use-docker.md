@@ -3,25 +3,27 @@
 This is probably the quickest way to launch MyCHIPs for simple testing and evaluation.
 You will need docker and node/npm installed on your system.
 
-To launch a single server/database pair:
+To launch a single server/database pair in development mode:
 ```
-  npm run docker
+  npm run docker-dev
 ```
-This will take a while on first run as it builds several images.  It will be 
+This will take a while on first run as it has to build images.  It should be 
 faster on subsequent runs.  Once containers are launched, it will run until you 
-interrupt it with a CTRL-C.
-
-The server is configured from the file build/config-dev.env.  By making
-multiple such configuration files, you should be able to launch multiple
-instances of the server pair.  Keep in mind, the hostname you choose for the 
+interrupt it with a CTRL-C.  You can also use this to stop and remove the
+containers:
+```
+  npm run docker-stop
+```
+The server is configured from the files build/config-dev.env and
+build/compose-dev.yaml.  Keep in mind, the hostname you choose for the 
 MyCHIPs server will have to resolve to your system.  For testing, you can solve 
 this with a line in /etc/hosts (or C:\Windows\System32\drivers\etc\hosts.)
 ```
   127.0.0.1	mychips0
 ```
-This hostname is what we will be entering into the browser URL bar to get the 
-admin app.  It is also what will be built into the SSL certificates so
-everything has to use the same hostname for the browser to be happy over https.
+We will use this hostname in the browser URL bar to run the admin web app.
+This is also what will get built into the SSL certificates so everything has to 
+use the same hostname for the browser to be happy over https.
 
 Once the server pair is running, we would like to connect to it using the admin UI.
 But the backend will not allow this without an authorized connection token.
@@ -75,6 +77,31 @@ one of those users to open an editing pane.  Execute the Actions menu item
 in the editing pane to generate a connection ticket for that user.  This
 displays a QR code by default, but there are also links there to copy/paste a 
 URL into a browser to connect to the User (as opposed to admin) UI.
+
+### Development Docker Caveats
+In order to allow development work, the compose-dev.yaml file totally
+ignores the static copy of the mychips app built into the image
+(in the /app directory).
+Instead it mounts a live copy of the host systems mychips filesystem on the container.
+
+Specifically, it mounts whatever directory you have *mychips installed in*
+on /usr/local/devel.  This implies that anything else you have installed in the same
+folder is also accessible to the container.  This is so you can install the
+WyattERP suite parallel to mychips (rather than running out of node_modules).
+This allows you to work on those packages and have the changes seen immediately i
+your running container.
+
+See [this section](work-hacking.md) for more on how to do this.
+
+### Production Docker Container
+There is also a build profile for running a production docker instance that
+can be launched as follows:
+```
+  npm run docker
+```
+This is not currently well tested and it does not have specific provisions yet
+for maintaining local keys, certificates, log files, etc.  Hopefully that will become
+better sorted out in the future.
 
 <br>[Next - Native Installation](use-native.md)
 <br>[Back to Index](README.md#contents)

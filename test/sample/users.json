@@ -1,0 +1,219 @@
+{"user": [
+    {
+        "cid": "ahoy.chip",
+        "name": "Ahoy Chips",
+        "type": "o",
+        "begin": "2017-01-01",
+        "first": null,
+        "juris": "US",
+        "taxid": "234-56-7890",
+        "middle": null,
+        "prefer": null,
+        "place": [
+            {
+                "main": true,
+                "post": "12345",
+                "address": "2345 Corporate Way",
+                "type": "ship",
+                "prior": false,
+                "state": "NY",
+                "city": "Bigtown",
+                "comment": "Headquarters"
+            },
+            {
+                "main": true,
+                "post": "12345-4567",
+                "address": "PO Box 4567",
+                "type": "bill",
+                "prior": false,
+                "state": "Ny",
+                "city": "Bigtown",
+                "comment": "Mailing address"
+            }
+        ],
+        "connect": [
+            {
+                "address": "901-346-6789",
+                "media": "phone",
+                "prior": false,
+                "comment": "Main"
+            },
+            {
+                "address": "800-555-5555",
+                "media": "phone",
+                "prior": false,
+                "comment": "Customer Service"
+            },
+            {
+                "address": "info@ahoy.chip",
+                "media": "email",
+                "prior": false,
+                "comment": null
+            },
+            {
+                "address": "www.ahoy.chip",
+                "media": "web",
+                "prior": false,
+                "comment": null
+            }
+        ]
+    },
+    {
+        "cid": "adam_smith",
+        "name": "Smith",
+        "type": "p",
+        "begin": "1970-01-31",
+        "first": "Adam",
+        "juris": "US",
+        "taxid": "234-456-7890",
+        "middle": null,
+        "prefer": null,
+        "named": "Adam Smith",
+        "place": [
+            {
+                "main": true,
+                "post": "23456-7890",
+                "address": "2345 My Avenue",
+                "type": "birth",
+                "state": "Mystate",
+                "city": "Mycity"
+            },
+            {
+                "main": true,
+                "post": "23456-4567",
+                "address": "PO Box 4567",
+                "type": "bill",
+                "prior": false,
+                "state": "Mystate",
+                "city": "Mycity",
+                "comment": "Mailing address"
+            }
+        ],
+        "connect": [
+            {
+                "address": "701-345-6789",
+                "media": "phone",
+                "prior": false,
+                "comment": "Home"
+            },
+            {
+                "address": "701-456-7890",
+                "media": "cell",
+                "prior": false,
+                "comment": null
+            },
+            {
+                "address": "adamsmith1@hotmail.com",
+                "media": "email",
+                "prior": false,
+                "comment": null
+            }
+        ]
+    },
+    {
+        "cid": "fran_lee",
+        "name": "Lee",
+        "type": "p",
+        "begin": "1968-05-31",
+        "first": "Francis",
+        "juris": "US",
+        "taxid": "345-67-8901",
+        "middle": "Scott",
+        "prefer": "Fran",
+        "place": [
+            {
+                "main": true,
+                "post": "45678-1234",
+                "address": "4321 My Court",
+                "type": "ship",
+                "prior": false,
+                "state": "Mystate",
+                "city": "Myberg",
+                "comment": "Summer home"
+            },
+            {
+                "main": true,
+                "post": "45678-2345",
+                "address": "PO Box 4455",
+                "type": "bill",
+                "prior": false,
+                "state": "Mystate",
+                "city": "Myberg",
+                "comment": "Mailing address"
+            }
+        ],
+        "connect": [
+            {
+                "address": "601-222-5678",
+                "media": "phone",
+                "prior": false,
+                "comment": "Home"
+            },
+            {
+                "address": "601-222-3333",
+                "media": "cell",
+                "prior": false,
+                "comment": null
+            },
+            {
+                "address": "franlee@compuserve.com",
+                "media": "email",
+                "prior": false,
+                "comment": null
+            }
+        ]
+    },
+    {
+        "cid": "james_madison",
+        "name": "Madison",
+        "type": "p",
+        "begin": "1970-01-31",
+        "first": "James",
+        "juris": "US",
+        "taxid": "123-45-6789",
+        "middle": null,
+        "prefer": "Jim",
+        "named": "Jimmy Madison",
+        "place": [
+            {
+                "main": true,
+                "post": "12345-6789",
+                "address": "1234 My Street",
+                "type": "birth",
+                "state": "Mystate",
+                "city": "Mytown",
+                "comment": "Birth place"
+            },
+            {
+                "main": true,
+                "post": "12345-3456",
+                "address": "PO Box 3456",
+                "type": "bill",
+                "prior": false,
+                "state": "Mystate",
+                "city": "Mytown",
+                "comment": "Mailing address"
+            }
+        ],
+        "connect": [
+            {
+                "address": "901-234-5678",
+                "media": "phone",
+                "prior": false,
+                "comment": "Home"
+            },
+            {
+                "address": "901-345-6789",
+                "media": "cell",
+                "prior": false,
+                "comment": null
+            },
+            {
+                "address": "davidmadison99@gmail.com",
+                "media": "email",
+                "prior": false,
+                "comment": null
+            }
+        ]
+    }
+]}

@@ -1,12 +1,37 @@
+//Common default settings for mocha tests and sample utilities
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
+// Local modifications can be made here but in general, try to instead use the
+// environment variables shown for each setting.
+const E = process.env
+const Fs = require('fs')
+const Path = require('path')
+
+var defAgent, peerHost, peerPort		//Will be derived from any default agent key found
+var defAgentFile = E.MYCHIPS_AGFILE ||
+    Path.join(__dirname, '../pki/local', 'default_agent')
+
+if (Fs.existsSync(defAgentFile)) {		//If there is a default agent file built
+  let agentText = Fs.readFileSync(defAgentFile)
+    , agent = JSON.parse(agentText)
+    , key = agent ? agent.key : {}
+//console.log('agent:', agent)
+  defAgent = key.x				//Draw this information from there
+  peerHost = agent.host
+  peerPort = agent.port
+}
+
 module.exports={
-  DatabaseName: "mychipsTestDB",
-  DatabaseHost: "localhost",
-  DatabasePort: 5432,
-  MachineIP: "192.168.56.10",
-  DBAdmin: "admin",
-  AdminID: "r1",
-  UserPort: 54320,
-  AdminPort: 54320,
-  PeerPort: 65430,
-  Log: require(require.resolve('wyclif/lib/log.js')),
+  DBHost:	E.MYCHIPS_DBHOST	|| "localhost",		//Database host
+  DBPort:	E.MYCHIPS_DBPORT	|| 5432,		//Database port address
+  DBAdmin:	E.MYCHIPS_DBADMIN	|| "admin",		//Aministrator username for
+  DBName:	E.MYCHIPS_DBNAME	|| 'mychips',		//Database name
+  AdminID:	E.MYCHIPS_ADMIN_ID	|| "r1",		//Internal admin ID
+  UserHost:	E.MYCHIPS_WSHOST	|| "192.168.56.10",	//User SPA host address
+  UserPort:	E.MYCHIPS_WSPORT	|| 54320,		//User SPA port
+  AdminPort:	E.MYCHIPS_WSPORT	|| 54320,		//Admin SPA port
+  PeerHost:	E.MYCHIPS_AGHOST	|| peerHost || "localhost",	//P2P host
+  PeerPort:	E.MYCHIPS_AGPORT	|| peerPort || 65430,	//P2P port
+  PeerAgent:	E.MYCHIPS_AGENT		|| defAgent,		//P2P agent address
+  Log: require(require.resolve('wyclif/lib/log.js'))
 }

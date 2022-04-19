@@ -1,0 +1,50 @@
+@startuml
+!include common.puml
+
+entity "Lift\nBound" as cbound
+participant a
+entity "Tally\nLimit" as climit
+participant b
+entity "Lift\nTarget" as ctarget
+participant c
+participant Zero as zero
+participant x
+entity "Drop\nTarget" as vtarget
+participant y
+entity "Tally\nLimit" as vlimit
+participant z
+entity "Drop\nBound" as vbound
+
+note over cbound: b <= zero
+/ note over climit: l <= zero
+/ note over ctarget: bound <= t <= zero
+/ note over vtarget: zero <= t <= bound
+/ note over vlimit: zero <= l
+/ note over vbound: zero <= b
+
+note over cbound, c #ffcccc: - Negative Tally balance\nClient owed by vendor (client <-- vendor)\nClient/Foil maintains these variables
+/ note over x,vbound #ccccff: + Positive Tally balance\nClient owes vendor (client --> vendor)\nVendor/Stock maintains these variables
+
+note over cbound,vbound: Normal Chit Transactions
+
+climit <-> vlimit: Normal range for manual chit transactions
+c -> vlimit: Client payment pledge for services can go up to this limit
+x -> climit: Vendor refund/credit pledge can go to this limit
+
+note over cbound,vbound: Lifts (Decreases to tally balance)
+
+c <- x: Typical lift
+ctarget <- vbound: Lift in this range must be honored by Client with no charge (= honoring IOU)
+cbound <[#red]- ctarget: Client may charge lift (+reward)
+cbound <[#green]- vbound: Client may bump lift (-reward); This is a service to Vendor's interests
+cbound <[#violet]- vbound: Vendor may charge or bump lift (+/- clutch); +clutch allows Vendor to retain holdings by restricting lifts
+
+note over cbound,vbound: Drops (Increases to tally balance)
+
+c -> x: Typical drop
+cbound -> vtarget: Drop in this range must be honored by Vendor at no charge (= honoring IOU)
+vtarget -[#red]> vbound: Vendor may charge drop (+reward)
+cbound -[#green]> vbound: Vendor may bump drop (-reward); This is a service to Client's interests
+cbound -[#violet]> vbound: Client may charge or bump drop (+/- clutch); +clutch allows Client to retain holdings by restricting drops
+
+@enduml

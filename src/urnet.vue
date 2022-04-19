@@ -2,13 +2,12 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
-//X- Update tally totals when chits added, removed
-//X- Update tallies when added, removed
-//X- updateNodes() can't handle a deleted node, can only add them
-//X- When we get a notice from the database, only load those nodes, tallies that have changed
-//X- Make totals reactive, auto update when sums come in
-//X- Tallies disappear if I delete them
-//X- Hubs collapse down if I remove a tally under the stack
+//- Works OK with new peer-less schema
+//- 
+//- Future:
+//- Each user is a visual balance balance real-time pie-chart
+//- Use constant update d3 or similar to place nodes on chart
+//- Arrows are separate objects--not belonging directly to nodes
 //- 
 
 <template>
@@ -53,14 +52,13 @@ export default {
     },
   },
   methods: {
-    peer(dat) {				//Generate SVG code for a user/peer node
+    user(dat) {				//Generate SVG code for a user node
 //console.log("User", dat.id, dat.peer_cid, this.unitss[dat.peer_cid])
-      let { id, std_name, peer_cid, peer_sock, user_ent } = dat
-        , fColor = (dat.units < 0 ? '#ff0000' : '#0000ff')
-        , sumLine = user_ent ? `${dat.stock_uni/CHIPmult} - ${-dat.foil_uni/CHIPmult} = <tspan stroke="${fColor}" fill="${fColor}">${(dat.units/CHIPmult)}</tspan>` : ''
+      let { id, std_name, peer_cid, peer_agent } = dat
+        , fColor = (dat.net < 0 ? '#ff0000' : '#0000ff')
+        , sumLine = `${dat.stock_uni/CHIPmult} + ${-dat.foil_uni/CHIPmult} = <tspan stroke="${fColor}" fill="${fColor}">${(dat.net/CHIPmult)}</tspan>`
         , yOff = this.fontSize + 3
-        , host = peer_sock.split('.')[0]
-        , cidLine = `${peer_cid}@${host}`
+        , cidLine = `${peer_cid}:${peer_agent}`
         , text = `
         <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
           ${id}:${std_name}
@@ -70,7 +68,7 @@ export default {
         , max = Math.max(cidLine.length + 2, std_name.length + 6, sumLine.length-48)	//take tspan into account
         , width = max * this.fontSize * 0.55
         , height = this.fontSize * 3.8
-        , bColor = user_ent ? "#d0d0e4" : "#d0e4d0"
+        , bColor = "#d0d0e4"
         , body = `
         <g stroke="black" stroke-width="1">
           <rect rx="4" ry="4" width="${width}" height="${height}" fill="${bColor}"/>
@@ -81,16 +79,48 @@ export default {
       return {body, ends, width, height}
     },
 
+    peer(dat, i) {				//Generate SVG code for a peer node
+//console.log("Peer", dat, i, dat.part_cids[i])
+      let cid = dat.part_cids[i]
+        , agent = dat.part_agents[i]
+        , bColor = "#d0e4d0"
+        , yOff = this.fontSize + 3
+        , cidLine = `${cid}:${agent}`
+        , text = `
+        <text x="4" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
+          ${cid}:
+          <tspan x="4" y="${yOff * 2}">${agent}</tspan>
+        </text>`
+        , max = Math.max(cid.length + 2, agent.length + 6)	//take tspan into account
+        , width = max * this.fontSize * 0.55
+        , height = this.fontSize * 2.8
+        , body = `
+        <g stroke="black" stroke-width="1">
+          <rect rx="4" ry="4" width="${width}" height="${height}" fill="${bColor}"/>
+          ${text}
+        </g>`
+//        , body = `
+//        <g stroke="black" stroke-width="1">
+//          <ellipse cx="${width/2}" cy="${height/2}" rx="${width/2}" ry="${height/2}" stroke="black" stroke-width="1" fill="${bColor}"/>
+//          ${text}
+//        </g>`
+        , ends = [{x:width/2, y:0}, {x:width, y:height*0.5}, {x:width/2, y:height}, {x:0, y:height*0.5}]
+//console.log("Peer ends", ends)
+      return {body, ends, width, height}
+    },
+
     updateLink(i, idx, cid, dat) {
-      let node = this.state.nodes[cid]					//Get node's state object
-        , guid = dat.guids[i]
+      let node = this.state.nodes[cid]				//Get node's state object
+        , uuid = dat.uuids[i]
         , isFoil = (dat.types[i] == 'foil')
-        , amount = dat.unitss[i] / CHIPmult
+        , amount = dat.nets[i] / CHIPmult
         , link = dat.part_cids[i]		//Which other node this link is pointing to
+        , linkAgent = dat.part_agents[i]
+        , linkEntity = dat.part_ents[i]
         , inside = dat.insides[i]		//Native or foreign user
         , noDraw = (isFoil && inside)
         , reverse = (isFoil && !inside)
-        , nodeLink = node.links.find(lk => (lk.index == guid))	//Do we already have a definition for this link?
+        , nodeLink = node.links.find(lk => (lk.index == uuid))	//Do we already have a definition for this link?
         , xOffset = node.width / 2
         , yOffset = isFoil ? node.height + (this.hubHeight * (idx + 0.5)) : -this.hubHeight * (idx + 0.5)	//Stack it on top (stocks) or on bottom (foils)
         , hubColor = amount == 0 ? '#f0f0f0' : (amount < 0 ? '#F0B0B0' : '#B0B0F0')
@@ -98,9 +128,26 @@ export default {
         , hubYRad = this.hubHeight/2, hubXRad = this.hubWidth/2
         , ends = [{x:xOffset-hubXRad, y:yOffset}, {x:xOffset+hubXRad, y:yOffset}]
         , center = {x:xOffset, y:yOffset}
+        , forCid
+
+//Kludgey instantiation of foreign peer copied from updateNodes:
+      if (!linkEntity) {				//Tally links to a foreign peer
+        let bodyObj = this.peer(dat, i)			//Build its SVG shape
+          , radius = bodyObj.width / 2			//Radius for use in repel forces
+        forCid = link
+        if (forCid in this.state.nodes) {		//If we already have this node on the graph
+          Object.assign(this.state.nodes[forCid], bodyObj, {radius})	//Repaint the body
+//console.log("Pn Dat:", forCid, this.state.nodes[forCid])
+        } else {						//Else put it somewhere random on the graph
+          let x = Math.random() * this.state.maxX * 0.9
+            , y = Math.random() * this.state.maxY * 0.9
+          this.$set(this.state.nodes, forCid, Object.assign(bodyObj, {tag:forCid, x, y, radius, links:[]}))
+//console.log("PN Dat:", forCid, x, y)
+        }
+      }
 
       if (!nodeLink) {				//Create new data structure for link, hubs
-        nodeLink = {index:guid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null, bias:null}
+        nodeLink = {index:uuid, link, ends, color, center, noDraw:null, reverse:null, found:true, hub:null, bias:null}
         node.links.push(nodeLink)
       }
 //console.log("  link:", link, node, 'idx:', idx, cid, amount, yOffset, nodeLink)
@@ -113,11 +160,12 @@ export default {
           <text y="${hubYRad/2}" text-anchor="middle" style="font:normal ${this.fontSize}px sans-serif;">${amount}</text>
         </g>`
       }})
+      return forCid
     },
 
     updateNodes(dTime) {
-      let where = [['peer_ent', 'notnull']]
-        , fields = ['id', 'std_name', 'peer_cid', 'peer_sock', 'user_ent', 'units', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'states', 'guids', 'part_cids', 'insides']
+      let where = [['user_ent', 'notnull']]
+        , fields = ['id', 'std_name', 'peer_cid', 'peer_agent', 'user_ent', 'units', 'net', 'stock_uni', 'foil_uni', 'tallies', 'types', 'unitss', 'nets', 'states', 'uuids', 'part_ents', 'part_cids', 'part_agents', 'insides']
         , spec = {view: 'mychips.users_v_tallysum', fields, where, order: 1}
       updatePending = true
       if (dTime) where.push(['latest', '>=', dTime])
@@ -127,11 +175,12 @@ export default {
         updatePending = false
         let notFound = Object.assign({}, this.state.nodes)	//Track any nodes on our graph but no longer returned in the query
           , needLinks = {}
-//console.log("Update nodes:", dTime, this.state.nodes, data.length, data)
-        for (let d of data) {					//For each node
-          let bodyObj = this.peer(d)				//Build its SVG shape
+console.log("Update nodes:", dTime, this.state.nodes, data.length, data)
+        for (let d of data) {					//For each user node
+          let bodyObj = this.user(d)				//Build its SVG shape
             , radius = bodyObj.width / 2			//Radius for use in repel forces
             , cid = d.peer_cid
+
           if (cid in this.state.nodes) {			//If we already have this node on the graph
             Object.assign(this.state.nodes[cid], bodyObj, {radius})	//Repaint the body
 //console.log("n Dat:", cid, this.state.nodes[cid])
@@ -143,9 +192,11 @@ export default {
           }
 //console.log("Dat:", d)
           let stocks = 0, foils = 0
-          for (let i = 0; i < d.tallies; i++) {			//Now go through this node's tallies
+          for (let i = 0; i < d.tallies; i++) {		//Now go through this node's tallies
             let idx = (d.types[i] == 'stock') ? stocks++ : foils++
-            this.updateLink(i, idx, cid, d)
+              , forCid = this.updateLink(i, idx, cid, d)
+//console.log("forCid:", forCid)
+            if (forCid) delete notFound[forCid]
             if (!d.insides[i]) {			//Foreign peers don't have tallies, we need to link them in
               let pcid = d.part_cids[i]
                 , pnode = this.state.nodes[pcid]
@@ -196,7 +247,7 @@ export default {
     
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
 //      let dTime = updatePending || dat.oper == 'DELETE' ? null : dat.time	//Only query late changing entries
-//console.log("URnet async:", dat, dat.oper == 'DELETE', updatePending, dTime)
+console.log("URnet async:", dat, dat.oper)
 
       if (dat.target == 'peers' || dat.target == 'tallies')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)

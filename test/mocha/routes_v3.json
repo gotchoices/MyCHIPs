@@ -1,0 +1,12 @@
+[
+ {
+  "rid": 2,
+  "via_ent": "p1000",
+  "via_tseq": 1,
+  "dst_cid": "cid_U",
+  "dst_agent": "UDY1NDM0",
+  "status": "good",
+  "step": 0,
+  "sorter": 0
+ }
+]

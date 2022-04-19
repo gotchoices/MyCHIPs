@@ -1,0 +1,53 @@
+{"cert": {
+  "date": "2022-01-11T09:39:06.443-07:00",
+  "name": {
+    "first": "Thomas",
+    "surname": "Well",
+    "prefer": "Tom"
+  },
+  "type": "p",
+  "chad": {
+    "cid": "tom_well",
+    "agent": "Zzyzx",
+    "host": "mychips.org",
+    "port": 65430
+  },
+  "place": [
+    {
+    "post": "00630-1930",
+      "type": "mail",
+      "city": "Jackson",
+      "state": "MS",
+      "address": "630 Cornell Way",
+      "country": "US"
+     }
+  ],
+  "public": "KEY_HERE",
+  "connect": [
+    {
+      "media": "phone",
+      "address": "888-123-7777"
+    },
+    {
+      "media": "email",
+      "address": "soul@mychips.org"
+    }
+  ],
+  "identity": {
+    "birth": {
+      "date": "1930-06-30",
+      "name": "Thomas Sow Well",
+      "place": {
+        "city": "Gastonia",
+        "post": "13245-1951",
+        "state": "NC",
+        "address": "91 Hoover",
+        "country": "US"
+      }
+    },
+    "state": {
+      "id": "987-0-465-06073-3",
+      "country": "US"
+    }
+  }
+}}

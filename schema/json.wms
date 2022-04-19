@@ -1,9 +1,12 @@
-#Canonical MyCHIPs JSON views of various tables and other JSON support
-#Copyright MyCHIPs.org; See license in root of this package
+# Canonical MyCHIPs JSON views of various tables and other JSON support
+# These JSON objects are meant primarily for importing/exporting data on a site or transporting
+# data to a new host site.  They are not to be confused with the standard exchange protocol 
+# formats.  For example, we view the tally as stock or foil from the perspective of our local 
+# user--not in the standard way it would get transmitted between peers.
+# Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- users_v.json should probably export nested addr/comm data too
-#- Can I keep id and fk's out of these views and still insert data as needed?
+#- Do we need to check for dups before importing cert
 #- 
 module mychips
 schema json {}
@@ -13,30 +16,34 @@ schema json {}
 view json.user {json mychips.users_v} {select
     id		as "id"
   , peer_cid	as "cid"
+  , peer_agent	as "agent"
   , ent_name	as "name"
   , ent_type	as "type"
   , fir_name	as "first"
   , mid_name	as "middle"
   , pref_name	as "prefer"
   , born_date	as "begin"
+  , peer_named	as "named"
   , country	as "juris"
   , tax_id	as "taxid"
     from mychips.users_v where not user_ent is null with cascaded check option;
 } -primary {id}
 
-# View of addresses dedicated to JSON import
+# View of locations dedicated to JSON import
 #----------------------------------------------------------------
-view json.address {json base.addr_v} {select
+view json.place {json base.addr_v} {select
     addr_ent	as "id"
   , addr_seq	as "seq"
-  , addr_spec	as "spec"
+  , addr_spec	as "address"
   , addr_type	as "type"
   , addr_prim	as "main"
-  , city	as "locale"
+  , city	as "city"
   , state	as "state"
   , pcode	as "post"
+  , country	as "country"
   , addr_cmt	as "comment"
   , addr_inact	as "prior"
+  , addr_priv	as "private"
     from base.addr_v where not addr_ent is null with cascaded check option;
 } -primary {id seq}
 
@@ -45,34 +52,40 @@ view json.address {json base.addr_v} {select
 view json.connect {json base.comm_v} {select
     comm_ent	as "id"
   , comm_seq	as "seq"
-  , comm_spec	as "spec"
+  , comm_spec	as "address"
   , comm_type	as "media"
+  , comm_prim	as "main"
   , comm_cmt	as "comment"
   , comm_inact	as "prior"
-    from base.comm_v where not comm_ent is null with cascaded check option;
+  , comm_priv	as "private"
+    from base.comm_v where not comm_ent isnull with cascaded check option;
 } -primary {id seq}
 
 # Nested view of users dedicated to JSON export
 #----------------------------------------------------------------
-view json.users {json.user json.address json.connect} {select
-  cid, name, type, first, middle, prefer, begin, juris, taxid
-  , (select array_agg(to_jsonb(d)) from (select spec,type,main,locale,state,post,comment,prior from json.address a where a.id = id order by seq) d) as addresses
-  , (select array_agg(to_jsonb(d)) from (select spec,media,comment,prior from json.connect c where c.id = id order by seq) d) as connects
-    from json.user;
+view json.users {json.user json.place json.connect} {select
+  cid, agent, name, type, first, middle, prefer, begin, juris, taxid
+  , (select array_agg(to_jsonb(d)) from (select type,address,city,state,post,country,main,comment,prior from json.place p where p.id = u.id order by seq) d) as place
+  , (select array_agg(to_jsonb(d)) from (select media,address,main,comment,prior from json.connect c where c.id = u.id order by seq) d) as connect
+    from json.user u;
 } -primary {id}
 
 # Standard view for tallies
 #----------------------------------------------------------------
 view json.tally {json mychips.tallies_v} {select
-    tally_ent		as "id"
-  , tally_guid		as "guid"
-  , version		as "version"
-  , case when tally_type = 'stock' then user_addr else part_addr end as "stock"
-  , case when tally_type = 'stock' then part_addr else user_addr end as "foil"
-  , tally_date		as "created"
-  , contract		as "contract"
-
-    from	mychips.tallies_v
+    te.tally_ent	as "id"
+  , te.tally_seq	as "seq"
+  , te.version		as "version"
+  , te.tally_uuid	as "uuid"
+  , te.tally_date	as "date"
+  , te.tally_type	as "type"
+  , te.comment		as "comment"
+  , te.contract		as "agree"
+  , te.hold_cert	as "holder"
+  , te.hold_terms	as "hterms"
+  , te.part_cert	as "partner"
+  , te.part_terms	as "pterms"
+    from mychips.tallies te
 } -primary {id seq}
 
 # Standard view for tickets
@@ -80,7 +93,7 @@ view json.tally {json mychips.tallies_v} {select
 #view json.ticket {json mychips.tickets_v} {select
 #    id			as "id"
 #  , token_seq		as "seq"
-#  , url			as "url"
+#  , url		as "url"
 #  , token		as "token"
 #  , peer_psig		as "public"
 #  , exp_date		as "expires"
@@ -103,9 +116,119 @@ view json.contract {json mychips.contracts_v} {select
     from	mychips.contracts_v
 } -primary {domain name version language}
 
+# View of users for generating/accepting user certificates
+#----------------------------------------------------------------
+view json.cert {mychips.users_v mychips.peers_v json.connect json.place mychips} {select p.id
+  , jsonb_build_object(
+       'cid', p.peer_cid
+     , 'agent', p.peer_agent
+     , 'host', p.peer_chost
+     , 'port', p.peer_cport
+    ) as "chad"
+  , p.ent_type	as "type"
+  , p.peer_psig	as "public"
+  , case when p.ent_type = 'o' then
+      to_jsonb(p.ent_name)
+    else
+      jsonb_strip_nulls(jsonb_build_object('surname', p.ent_name, 'first', p.fir_name, 'middle', p.mid_name, 'prefer', p.pref_name))
+    end		as "name"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
+      select media,address,comment from json.connect c
+        where c.id = p.id and not prior and not private and main order by seq
+    ) d) as "connect"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
+      select type,address,city,state,post,country,comment from json.place pl
+        where not prior and not private and pl.id = p.id and type != 'birth' and main order by seq
+    ) d) as "place"
+  , jsonb_strip_nulls(jsonb_build_object(
+      'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
+      'birth', jsonb_strip_nulls(jsonb_build_object(
+        'name', p.peer_named,
+        'date', p.born_date,
+        'place', (select jsonb_strip_nulls(to_jsonb(d)) from (
+          select address,city,state,post,country,comment from json.place a
+            where a.id = p.id and type = 'birth' and main limit 1
+        ) as d )
+      ))
+  )) as "identity"
+  , current_timestamp::timestamptz(3) as "date"
+  
+    from mychips.peers_v p where not peer_ent is null with cascaded check option;
+} -primary {id}
+
+# Write certificate data to its various tables
+#----------------------------------------------------------------
+function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
+  returns trigger language plpgsql security definer as $$
+  declare
+    ent_name text = new.name;
+    fir_name text;
+    mid_name text;
+    pref_name text;
+    born_date date;
+    peer_named text;
+    tax_id text;
+    country text;
+    irec record;
+    urec record;
+    ident jsonb = new.identity;
+    birth_place jsonb;
+    pkey jsonb;
+  begin
+--raise notice 'Cert:%', new;
+    if (new.type = 'p') then				--Personal names
+      ent_name = new.name->>'surname';
+      fir_name = new.name->>'first';
+      mid_name = new.name->>'middle';
+      pref_name = new.name->>'prefer';
+    end if;
+    if not ident isnull then				--Identity records
+      if not ident->'state' isnull then			--State ID
+        tax_id = ident->'state'->>'id';
+        country = ident->'state'->>'country';
+      end if;
+      if not ident->'birth' isnull then			--Birth ID
+        birth_place = ident->'birth'->'place';
+        born_date = (ident->'birth'->>'date')::date;
+        peer_named = ident->'birth'->>'name';		--Birth name
+      end if;
+    end if;
+
+    select into urec * from mychips.users_v u where	--Do we already have this person
+      u.peer_psig = new.public or (u.peer_cid = new.chad->>'cid' and u.peer_agent = new.chad->>'agent');
+--    if not urec.user_ent isnull then			--This is one of our local users
+--      new.id = urec.id;					--So we can return the old record
+--      return new;					--Don't import anything
+--    end if;
+
+    insert into mychips.peers_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_host, peer_port, peer_psig, peer_named)
+      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chad->>'cid', new.chad->>'agent', new.chad->>'host', (new.chad->>'port')::int, new.public, peer_named)
+--        on conflict (base.ent.country, base.ent.tax_id) do update set
+--        on conflict (mychips.peers_v.country, mychips.peers_v.tax_id) do update set
+--        on conflict on constraint ent_country_tax_id do update set
+--        on conflict on constraint base.ent.ent_country_tax_id do update set
+--          ent_name = ent_name, fir_name = firname, mid_name = mid_name, pref_name = pref_name, peer_cid = new.chad->>'cid', peer_agent = new.chad->>'agent', peer_host = new.chad->>'host', peer_port = (new.chad->>'port')::int, peer.psig = new.public
+      returning id into irec;
+    new.id = irec.id;
+    
+    pkey = to_jsonb(irec);
+--raise notice 'pkey:%', pkey;
+    perform json.import(to_jsonb(new.connect), 'connect', pkey);
+    perform json.import(to_jsonb(new.place), 'place', pkey);
+    if not birth_place isnull then
+      birth_place = jsonb_set(birth_place, '{type}', '"birth"');
+      perform json.import(birth_place, 'place', pkey);
+    end if;
+    return new;
+  end;
+$$;}
+trigger json_cert_tf_ii {} {
+    instead of insert on json.cert for each row execute procedure json.cert_tf_ii();
+}
+
 # Import possibly nested JSON data structures
 #----------------------------------------------------------------
-function {json.import(data jsonb, keys jsonb default null)} {json.user json.address json.connect json.tally} {
+function {json.import(data jsonb, target text default null, keys jsonb default null)} {json.user json.place json.connect json.tally} {
   returns record language plpgsql as $$
     declare
       tmpObject		jsonb;
@@ -117,43 +240,47 @@ function {json.import(data jsonb, keys jsonb default null)} {json.user json.addr
       cmd		text;
       tmpKey		text;
     begin
---raise notice 'Import data:%', data;
-      if jsonb_typeof(data) = 'array' then
-        for tmpObject in select jsonb_array_elements(data) loop		-- Recursively call for each array element
-          newRecord = json.import(tmpObject, keys);
-        end loop;
-        return newRecord;
-      elsif jsonb_typeof(data) != 'object' then
-          return null;
-      end if;
-
-      for tableName in select jsonb_object_keys(data) loop		-- For each record in toplevel object (normally just one)
-        tmpObject = data->tableName;					-- Value of user, address, contact, etc
-raise notice '  process:% data:%', tableName, data->tableName;
-
-        for tmpKey in select jsonb_object_keys(keys) loop		-- For any primary key values passed in from above
-          tmpObject = jsonb_set(tmpObject, array[tmpkey], keys->tmpkey);	-- Assign them into our record
---raise notice '  setting key:%=% obj:%', tmpkey, keys->tmpkey, tmpObject;
-        end loop;
-
-        select array_to_string(pkey,',') into primKeyList from wm.table_data where td_sch = 'json' and td_tab = tableName;
-        if not found then
-          continue;							-- Skip any keys we don't know how to import
-        end if;
-        select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray, fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = tableName;
---raise notice '  fieldArray:% fieldList:%', fieldArray, fieldList;
-        cmd = 'insert into json.' || quote_ident(tableName) || ' (' || fieldList || ') select ' || fieldList || ' from jsonb_populate_record(NULL::json.' || quote_ident(tableName) || ', $1) returning ' || primKeyList;
---raise notice '  cmd :% :%', cmd, tmpObject;
-        execute cmd into newRecord using tmpObject;			-- Insert the record
-
---raise notice '  New PK:%', to_jsonb(newRecord);
-        for tmpKey in select jsonb_object_keys(tmpObject) loop		-- Find any nested sub-objects that need to be inserted
-          if not (tmpKey = any(fieldArray)) then
---raise notice '  ++Sub :%', tmpKey;
-            perform json.import(tmpObject->tmpKey, to_jsonb(newRecord));	-- Recursive call
-          end if;
+--raise notice 'Import:% data:%', target, data;
+      if target isnull then						-- better be able to figure out target from key(s)
+        for tableName in select jsonb_object_keys(data) loop		-- For each record in toplevel object
+          tmpObject = data->tableName;					-- Recursively call for each property
+          return json.import(tmpObject, tablename, keys);
         end loop;
       
+      elsif jsonb_typeof(data) = 'array' then
+        for tmpObject in select jsonb_array_elements(data) loop		-- Recursively call for each array element
+          newRecord = json.import(tmpObject, target, keys);
+        end loop;
+        return newRecord;
+        
+      elsif jsonb_typeof(data) != 'object' then				-- Better be left with a single object
+        return null;
+      end if;
+
+      select array_to_string(pkey,',') into primKeyList from wm.table_data where td_sch = 'json' and td_tab = target;
+      if not found or primKeyList isnull then	-- Skip any tables we don't know how to import
+--raise notice 'Skipping unknown JSON import table: %', target;
+        return null;
+      end if;
+      
+--raise notice '  process:% data:%', target, data;
+      for tmpKey in select jsonb_object_keys(keys) loop		-- For any primary key values passed in from above
+        data = jsonb_set(data, array[tmpkey], keys->tmpkey);	-- Assign them into our record
+--raise notice '  setting key:%=% obj:%', tmpkey, keys->tmpkey, data;
+      end loop;
+
+      select array_agg(cdt_col), string_agg(quote_ident(cdt_col),',') into fieldArray, fieldList from wm.column_data where cdt_sch = 'json' and cdt_tab = target;
+--raise notice '  fieldArray:% fieldList:% primKeyList:%', fieldArray, fieldList, primKeyList;
+      cmd = 'insert into json.' || quote_ident(target) || ' (' || fieldList || ') select ' || fieldList || ' from jsonb_populate_record(NULL::json.' || quote_ident(target) || ', $1) returning ' || primKeyList;
+--raise notice '  cmd :% :%', cmd, data;
+      execute cmd into newRecord using data;			-- Insert the record
+
+--raise notice '  New PK:%', to_jsonb(newRecord);
+      for tmpKey in select jsonb_object_keys(data) loop		-- Find any nested sub-objects that need to be inserted
+        if not (tmpKey = any(fieldArray)) then
+--raise notice '  ++Sub :%', tmpKey;
+          perform json.import(data->tmpKey, tmpKey, to_jsonb(newRecord));	-- Recursive call
+        end if;
       end loop;
       
 --raise notice '  newRecord:%', newRecord;

@@ -2,7 +2,11 @@
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
 #Run multiple servers on a single machine to simulate a small MyCHIPs network
-size="80x64"						#X-window size
+#Linux/x11 only
+#TODO:
+#- Change obsolete --servID to use new --agent form of server identity
+#- 
+size="80x24"						#X-window size
 gx=20; gy=320; offx=500; offy=0;			#Window geometry placement offsets
 
 #path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..";	#echo "path:$path"
@@ -14,7 +18,7 @@ while [[ $path != / ]]; do				#Find first bin dir above me
   path="$(readlink -f "$path"/..)"
 done
 
-basecmd="NODE_DEBUG=debug $path/bin/mychips.js --no-spaPort --no-adminPort --no-userPort --no-clifPort"
+basecmd="NODE_DEBUG=debug $path/bin/mychips.js --no-spaPort --no-adminPort --no-userPort --no-clifPort --docs 0"
 baseport=65430						#Peer port for first server
 nextServer=0						#Keep track of how many servers launched
 serversPIDs=()						#And remember their PIDs

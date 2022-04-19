@@ -5,7 +5,7 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
     {chit_ent		{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
     {chit_seq		{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
     {chit_idx		{Chit Index}		{A unique identifier within the tally, identifying this chit}}
-    {chit_guid		{Chit GUID}		{A globally unique identifier for this transaction}}
+    {chit_uuid		{Chit GUID}		{A globally unique identifier for this transaction}}
     {chit_type		{Chit Type}		{The type of transaction represented by this flow of credit} {
         {gift		{Gift}			{The credit is given without any consideration.  Most compliance contracts would deem this unenforceable.}}
         {lift		{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity}}
@@ -24,7 +24,14 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
     {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
     {memo		{Memo}			{Any other description or explanation for the transaction}}
 } $glob::stampt] -messages {
-    {X {Y} {Z}}
+    {BCT	{Bad Chit Type}		{Not a valid type for a tally chit}}
+    {GDS	{Signature Check}	{Chits in a good state must include a signature}}
+    {BST	{Bad Chit Status}	{Not a valid value the status field}}
+    {BLL	{Bad Lift Sequence}	{Only lift chits should include a lift sequence number}}
+    {CUU	{Chit Not Unique}	{Chit UUID must be unique to each tally}}
+    {IST	{Illegal State Change}	{The executed state transition is not allowed}}
+    {LIT	{Link Invalid Tally}	{Attempted to link chit to invalid tally}}
+    {MIS	{Bad Chit Signature}	{A chit marked to be good has no signature}}
 }
 
 tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
@@ -36,7 +43,7 @@ tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each ch
     {json_core		{JSON Core}		{A JSON representation of the parts of the chit transaction that will be digitally hashed and signed}}
     {json		{JSON}			{A JSON representation of the chit transaction, including the digital hash}}
     {part_cid		{Partner CID}		{CHIP identifier for the partner to the tally this chit belongs to}}
-    {user_cid		{USER CID}		{CHIP identifier for the user/owner of the tally this chit belongs to}}
+    {hold_cid		{Holder CID}		{CHIP identifier for the holder/user of the tally this chit belongs to}}
     {units_g		{Good Units}		{The units on this chit which can be considered good and final}}
     {units_p		{Pending Units}		{The units on this chit which can be considered only as pending, or not final}}
     {digest_v		{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
@@ -45,7 +52,7 @@ tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each ch
 
 tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user} {
     {part_cid		{Partner CID}		{CHIP identifier for the partner to the tally this chit belongs to}}
-    {user_cid		{USER CID}		{CHIP identifier for the user/owner of the tally this chit belongs to}}
+    {hold_cid		{Hold CID}		{CHIP identifier for the holder/user of the tally this chit belongs to}}
 }
 
 tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {
@@ -59,7 +66,7 @@ tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-li
     {ok			{Chain Valid}		{True if all hashes are correctly computed up through this record}}
     {last		{End of Chain}		{True if this is the last record in the chain}}
     {length		{Length}		{Indicates how many chits are part of the chain}}
-    {guids		{GUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
+    {uuids		{GUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
 }
 
 tabtext mychips.chit_tries {Chit Retries}	{Tracks how many times the chit state transition algorithm has tried to communicate a transition to a peer} {

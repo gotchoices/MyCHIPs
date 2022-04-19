@@ -15,9 +15,9 @@ module mychips
 namespace eval contracts {
     def contracts_pk	{domain name version language}
 
-    def contracts_in	[concat $contracts_pk title text tag digest sections published]
-    def contracts_up	$contracts_in
-    def contracts_se	[concat $contracts_in $glob::stampfn]
+    def contracts_v_in	[concat $contracts_pk title text tag digest sections published]
+    def contracts_v_up	$contracts_v_in
+    def contracts_se	[concat $contracts_v_in $glob::stampfn]
 }
 
 table mychips.contracts {mychips base.language base.ent} {
@@ -73,8 +73,8 @@ view mychips.contracts_v {mychips.contracts mychips.contract_json(mychips.contra
   
     from	mychips.contracts c;
 
-    eval(trigview::insert mychips.contracts_v mychips.contracts $contracts::contracts_in $contracts::contracts_pk $glob::stampin);
-    eval(trigview::update mychips.contracts_v mychips.contracts $contracts::contracts_up $contracts::contracts_pk $glob::stampup);
+    eval(trigview::insert mychips.contracts_v mychips.contracts $contracts::contracts_v_in $contracts::contracts_pk $glob::stampin);
+    eval(trigview::update mychips.contracts_v mychips.contracts $contracts::contracts_v_up $contracts::contracts_pk $glob::stampup);
     eval(rule_delete mychips.contracts_v mychips.contracts $contracts::contracts_pk);
 } -grant {
     {contract	{s} {s i u} {d}}

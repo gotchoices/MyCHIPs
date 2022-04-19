@@ -1,11 +1,5 @@
-## MyCHIPs Protocol Description 1.0 (draft)
-July 2021; Copyright MyCHIPs.org
-
-### TODO
-- Show message class/object diagrams for each protocol?
-- Expand state machines to handle retries?
-- Update to protocol 1.0 features
-- Lift chits signed by referee now
+## MyCHIPs Protocol Description 1.2 (working draft)
+Mar 2022; Copyright MyCHIPs.org
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.
@@ -20,7 +14,7 @@ In conjunction with the agent-model simulator, I could generate random data sets
 And with the network visualizer, I could now actually see what a network might evolve into and what type of scenarios the protocol would have to handle.
 
 As I went, I produced documents like those included here for
-[tallies](Tallies.md) and [lifts](Lifts.md)
+[tallies](learn-tally.md) and [lifts](learn-lift.md)
 to help me make sense of what I needed to code.
 Those still serve as a helpful reference for the prototype implementation.
 
@@ -42,7 +36,7 @@ Such an entity could be an individual person or it could be a legal organization
 The term *user* is also used to be roughly synonymous with entity (with a possible bias toward human entities).
 
 Entities should quantify the degree to which they trust the peer entities they connect with.
-When that trust is greater than zero (i.e. [credit terms](./Tallies.md#credit-terms) are offered), one should be prepared to lose the amount of value quantified in the trust.
+When that trust is greater than zero (i.e. [credit terms](learn-tally.md#credit-terms) are offered), one should be prepared to possibly lose (or exert an effort to collect) the amount of value quantified in the trust.
 For example, if I extend you 10 CHIPs of credit, I must recognize the possibility that you may fail to uphold your promise.
 In that case, I may lose the promised value, or have to rely on collateral if such is a part of the particular credit agreement.
 
@@ -51,7 +45,7 @@ For example, if I (A) share a tally with you (B), and you also share a tally wit
 C may hurt you.  But I don't want C to be able to hurt me.
 
 So the assumptions in a distributed network are that contracts and obligations exist only between two immediately connected peer entities.
-The instrument for documenting and enforcing that connection is the [Tally](./Tallies.md).
+The instrument for documenting and enforcing that connection is the [Tally](learn-tally.md).
 
 ### Sites and Nodes
 When reasoning about lifts and other MyCHIPs transactions, it is sometimes easiest to think of entities as individual, independent nodes
@@ -69,7 +63,7 @@ The term *node* will get used in a more generic way, possibly referring to an en
 The term *server* may be used sometimes as roughly synonymous with *site.*
 
 ### Protocol Layers
-This document is defining the **protocol** whereby nodes communicate with each other to:
+This document is defining the model state level **protocol** whereby nodes communicate with each other to:
 - Establish tallies (formalized trading relationships) between entities
 - Send value via direct Chits on a single tally
 - Discover potential lift pathways through the network
@@ -80,40 +74,55 @@ In addition, we will cover the following which might be considered as sub-protoc
 - Communicating with a Referee nominated to call time on a lift transaction
 
 At a lower level, sites will communicate with each other over an encrypted secure connection which uses
-[Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail in [this document](/doc/Dialogs.md).
+[Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail [here](/doc/learn-noise.md).
+
+### State Processing
+The protocol is implemented as a state transition model.  This is important because in a
+distributed network, nodes are apt to go offline from time to time and network connections may
+not always be reliable.
+
+End users will be running software on their mobile devices.
+Those devices will communicate with a user service control-layer process which will in turn communicated with the model inside the database.
+The database will communicate with a agent process which will communicate with other peer agent processes.
+
+If/when a message is lost in all of this, the system should:
+- Stay in a consistent state until the message gets through or is rightly abandoned;
+- Enforce the need to re-transmit the message as necessary;
+- Tolerate multiple messages getting through, or messages coming through late or at an unexpected time.
 
 ### Tally Use Cases
 A tally is established when two parties decide to formalize a relationship of trust between them using the MyCHIPs protocol.
 
 ![use-tally](uml/use-tally.svg)
 
-Here is some additional detail pertaining to these four use cases:
+These use-cases are explained as follows::
 - **Be My Vendor**:
   The User reaches out to a potential trading Partner and asks if he would like to establish a tally.
-  This must alway happen via some communication channel outside the MyCHIPs protocol.
+  This must always happen via some communication channel outside the MyCHIPs protocol.
   We will call this “out-of-band communication.”
   Examples include meeting in-person, email, teleconference or a traditional web connection.
-  In this case, the User is suggesting he hold the [Foil](Tallies.md#tally-parts) of the tally and the Partner will hold the [Stock](Tallies.md#tally-parts).
+  In this case, the User is suggesting he hold the [Foil](learn-tally.md#tally-parts) of the tally and the Partner will hold the [Stock](learn-tally.md#tally-parts).
   The partner is the vendor, or provider of services, so money (value) will normally flow from User to Partner.
   In the moment of exchange, the User will owe value to the Partner.
   In other words, the Partner will have lent money to the User.
 - **Be My Client**:
   This is really identical in all respects to the previous case, except the User is suggesting he be the Vendor (the Stock holder) and the Partner will be the Client (the Foil holder).
 - **Transaction**:
-  Once established, the tally will serve as a foundation for actual trades, or pledges of credit.
-  It will maintain and track a total balance owed in one direction or another.
-  And it constitutes a digital signed contract indicating the [terms and conditions](Tallies.md#credit-terms) by which the two parties have agree to conduct their trades.
+  Once established, the tally will serve as a foundation for payments (pledges of credit).
+  It will maintain and track a total balance owed in one direction or the other.
+  And it constitutes a signed digital contract indicating the [terms and conditions](learn-tally.md#credit-terms) by which the two parties have agreed to conduct their trades.
   The tally balance is modified by entering individual atomic transactions called [chits](https://www.dictionary.com/browse/chit).
   These chits are also digitally signed and become a part of the tally.
 - **Request Close**:
   A tally must be completely voluntary on the part of both parties.
   However, once agreed to (signed), the entities are duty-bound to uphold its terms.
   So a tally can be closed at any time, but the obligated entity (debtor) must somehow bring the tally balance to zero.
-  This might involve a [credit lift](Lifts.md) or it could be done by giving product, services, or some other kind of money.
+  This might involve a [credit lift](learn-lift.md) or it could be done by giving product, services, or some other kind of money.
 
 ### Tally Protocol
 The steps to establish a tally are shown in the following sequence diagram.
 This covers the first two tally use cases, the only difference being which entity is designated as the stock holder and which is the foil holder.
+Tally initiation is also discussed in some detail [here](learn-tally.md#establishing-a-tally).
 
 ![seq-tally](uml/seq-tally.svg)
 
@@ -124,38 +133,39 @@ When one of the partners wishes to end the trading relationship, he can do so by
 If the creditor wants to close the tally and is willing to forfeit his balance owed, he can simply gift the balance back to the debtor.
 The tally, marked as "closing," will then close automatically.
 
+![seq-tally-close](uml/seq-tally-close.svg)
+
 If the creditor wants to retain what is owed to him, he will have to wait for the agreed upon payment terms to time out.
 In the normal course of time, payment should be made by the debtor by way of a lift, or some other consideration of product, services or some other kind of money.
 
 If the debtor wants to close the tally sooner, he will have to figure out how to provide value sufficient to zero the balance.
-
-![seq-tally-close](uml/seq-tally-close.svg)
 
 Now we can derive the following state diagram to describe the tally protocol from the perspective of a single entity:
 
 [![state-tally](uml/state-tally.svg)](uml/state-tally.svg)
 
 ### Chit Use Cases
-A chit constitutes a pledge of future value from one entity to the other.
+A chit constitutes a pledge of future value from one entity to another.
 There are two basic types of chits:
 - **Direct Chit**:
-  This is a simple chit issued by one entity, to its direct trading partner.
-  This type of chit only needs to be signed by the entity pledging value.
+  This is a simple promise issued by one entity, to its direct trading partner.
+  It only needs to be signed by the entity pledging value.
 - **Lift Chit**:
-  In this case, the chit is part of a larger [credit lift](Lifts.md).
+  In this case, the chit is part of a larger [credit lift](learn-lift.md).
   There will be a whole group of chits, all bound to the lift.
-  A lift chit will to be signed by a *site* certificate, where the site is the system that hosts the MyCHIPs account for the particular user.
-  Clearly, the idea of letting one's Chip Service Provider sign chits on one's behalf sounds potentially dangerous.
+  A lift chit will to be signed by a *site* or *referee* certificate, where the site is the system that hosts the MyCHIPs accounts for all the users in the (local) lift or the referee is a site that arbitrates timing for a distributed lift in which multiple sites participate.
+  Clearly, the idea of letting one's Chip Service Provider (or worse, some unknown referee site) sign chits on one's behalf sounds potentially dangerous.
   So there are some limitations on lift chits:
-  - The net effect on an entity of a group (typically 2) of chits, belonging to a single lift, must be in accord with the [trading variables](Lifts.md#trading-variables) established and signed by that user.
-  - In general, this means the chits sum to zero.
-  - It could be non-zero if the trading variables specify a charge or allow a penalty.
+  - The net effect on an entity of a group of (typically 2) chits, belonging to a single lift, must be in accord with the [trading variables](learn-lifts.md#trading-variables) established and signed by that user.
+  - Typically this means the chits sum to zero so the entity doesn't gain or lose value through the lift.
+  - But it could be non-zero if the trading variables specify a charge or allow a penalty for certain lifts.
+  - It is the responsibility of a user's host site software to see that lifts are conducted securely and according to these limitations.
 
 ![use-chit](uml/use-chit.svg)
 
-This diagram shows two sets of similar use cases.
-In the simpler case, we are negotiating a chip with a direct trading partner.
-In the more complex case, we are executing a linear lift that will transmit value through the network to a peer we are not directly connected to.
+This diagram depicts two sets of similar use cases.
+In the simpler case, an entity will negotiate a payment with a direct trading partner.
+In the more complex case, we will execute a linear lift that will transmit value through the network to a peer entity our user is not directly connected to.
 This lift will also involve one of our direct partners who will be the first link in a chain of entities the lift will flow through.
 
 ### Direct Chit Protocol
@@ -183,7 +193,7 @@ This *chit chain* can be thought of as a tiny blockchain, known only to the two 
 When the data is kept this way, it is very easy for the two partners to verify that they have identical information, just by comparing the hash they hold for the last consensed chit on the chain.
 
 The third use case (Request Direct Invoice) is one step before this.
-For example, say you recognize that a vendor has provided services to you and you want to send payment.
+For example, imagine a vendor has provided you services and you are ready to remit payment.
 You may not know the exact charge, but you want to initiate the process by Requesting a Direct Invoice.
 
 This is not strictly part of the MyCHIPs protocol.
@@ -237,10 +247,12 @@ Participating entities along the way also get the benefit of a clearing function
 In order to perform these lifts, nodes must have some idea of where to send credits so they will arrive at their intended destination.
 If there was a single, giant database of all the tallies in the world, this would not be such a difficult task.
 A central-planning algorithm could simply determine the most efficient lift pathway and create the required chits on all the applicable tallies in a single, consistent, atomic transaction.
+In fact, a single MyCHIP site with lots of users can do these kinds of "local lifts" where opportunities
+exist among their own user base.
 
 But MyCHIPs is purposely designed as a <a href="https://blockchainengineer.com/centralized-vs-decentralized-vs-distributed-network/">fully distributed</a> system.
 The intent is, no single database will contain knowledge of the whole network.
-Ideally, databases will only contain information about the *local* entities they host and other *foreign* entities their local users are directly connected to by tallies.
+Ideally, databases will only contain detailed information about the *local* entities they host and other *foreign* entities their local users are directly connected to by tallies.
 Even then, information about foreign entities will be kept as limited as possible.
 
 To accomplish this, each database will build a map of theoretical routes believed to exist somewhere in the outside network.
@@ -275,89 +287,126 @@ This figure shows a convenient way to visualize a lift pathway in a real impleme
 A site database will contain multiple entities who are connected in a short, linear segment.
 Some of these are local, meaning their accounts are hosted by the site.
 For example, site B hosts users B1, B2 and B3.
+But a lift will probably be moving upstream through them, so we would describe the segment in the direction of the lift as [B3, B2, B1].
 
-Hopefully, each chain will also include two or more foreign users (hosted by some other site).
+Hopefully, each chain will begin and end with two or more foreign users (hosted by some other site).
 Otherwise, a distributed lift through the segment will not be possible.
-For example, the chain [B1, B2, B3] is also connected to an up-stream foreign peer A3 at its top end
+For example, the chain [B3, B2, B1] is also connected to an up-stream foreign peer A3 at its top end
 and a down-stream foreign peer C1 at its bottom.
 
 Site B knows about a complete segment [A3, B1, B2, B3, C1].
 But that is where site B's direct knowledge about the network ends.
 It will be reliant on site A, site B, and probably a bunch of other sites to execute a complete distributed lift.
 
-A lift segment is defined as:
+Note: As of Feb 2022, local path segments handle foreign peers differently.
+Older versions maintained an explicit entity ID (in the peer table) for remote peers and those ID's formed the top and bottom endpoints of segments.
+More recently, segments are only connected in the middle by local user ID's and the ends are characterized by no ID at all (a NULL).
+So the internal representation of the B segment would be: [NULL, B3, B2, B1, NULL].
+
+Sites typically will know nothing about the internal ID of users hosted on other sites.
+Information about the foreign peers at the end of a segment is derived from the partner certificate stored in the asociated tally.
+A CHIP address (cid:agent) is found there, but no local ID that can be used for linking segments.
+
+So a lift segment can be defined as:
 - One or more local entities connected in a linear chain; and
 - A foreign entity at the top of the chain; and
 - A foreign entity at the bottom of the chain.
 
 The *lift capacity* along a segment is computed by comparing the ability/desire of each entity in the chain to perform a lift.
-Individual entities define [trading variables](Tallies.md#trading-variables) that control how many credits they would like to maintain on any given tally.
+Individual entities define [trading variables](learn-tally.md#trading-variables) that control how many credits they would like to maintain on any given tally.
 
 <p align="center"><img src="figures/Lifts-5.jpg" width="400" title="Computing lift capacity"></p>
 
-The software compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
+The lift algorithm compares the actual tally balance to the *desired* balance to arrive at a lift capacity.
+
+As of February, 2022 lifts have been generalized to include transactions that move upstream *or downstream* (technically a *drop*).
+Previously segments were linked by joining tallies together stock-to-foil.
+So one could only consider a lift or a drop across the complete segment.
+
+Now tallies are linked together according to their capacity to flow (lift) value in either the stock-to-foil or foil-to-stock direction.
+In fact, a single tally might simultaneously be a candidate for a lift and a drop, as a member of different segments.
+This will allow much more flexibility for users in controlling their accumulated balances.
+
+So as the terms *upstream* and *downstream* are used in relation to a lift,
+*upstream* simply means in the direction we want the lift value to flow and *downstream* means the opposite.
 
 ### Route Discovery Protocol
-Having identified local segments that have capacity for a potential lift,
-each site then needs a way to cooperate with peer sites to gather just enough information so it can reasonably initiate lift proposals where needed.
+Having identified *local* segments that have capacity for a potential lift,
+each site then needs a way to cooperate with *foreign* peer sites to gather just enough 
+information so it can reasonably initiate lifts or participate in others' lifts.
 
-Each site needs to know whether a potential external route exists where:
-- a lift can be initiated through the top of a local segment (A3); and
-- that lift will return to us via the bottom of the segment (C1).
+Each site needs to know whether a potential external route might exist where:
+- a lift can be initiated through the top of a given local segment (B1->A3); and
+- for circular lifts: the lift will return to us via the bottom of the segment (C1->B3); or
+- for linear lifts: the lift will arrive at the desired destination entity (Xn);
 
-Site B doesn't really need to know many details about the route--just whether one or more such paths exist.
+In our scenario, site B doesn't really need to know many details about the route--just whether one or more such paths exist.
 The route may pass through many other sites on its way back to C1.
 In fact, it may pass through some sites more than once, traversing multiple segments.
 
-Now that site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as a single *node* in the lift--almost as though it were a single entity.
+Once site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as an integral *node* in the lift--almost as though it were a single entity.
 The lift will be committed (or canceled) in a single, atomic transaction on behalf of all the nodes belonging to the segment.
 
 Route discovery requests can be initiated in two ways:
 - Manually by a user/entity; or
-- By an autonomous process acting as *agent* on behalf of the entity (such as a [CRON](https://en.wikipedia.org/wiki/Cron) job.)
+- By an [autonomous process](https://en.wikipedia.org/wiki/Cron) acting as *agent* on behalf of the entity or the site.
 
 ![use-route](uml/use-route.svg)
 
 An entity would typically request a route because it intends to make a payment (linear lift) to some other entity.
-The payee entity's endpoint ID would typically be obtained by scanning a QR code.
-The User Interface would send that information (and any hints) to his host site.
-The server process can then commence the discovery process for suitable external routes to complete the intended lift.
+The payee entity's [CHIP address](learn-users.md#chip-addresses) might be obtained by scanning an invoice QR code or processing an object embedded in an email or text message.
+The payor's app would then send that information to his host site.
+His agent server process can then commence the discovery process for possible external routes to complete the intended lift.
 
-Note: for a linear lift, each end of the lift will involve a *half segment*.
-The payor node will consist of a local entity with zero or more other local entities upstream of it, and topped off by one foreign entity.
-For example: [B3, C1, C2].
+For a linear lift, each end of the lift may involve a *partial segment*.
+The payor segment may include zero or more other local entities upstream before the lift jumps to a foreign peer
+(for example: [C2, C1, (B3)]).
+The lift may pass through zero or more downstream local entities before reaching the payee
+(for example: [(B1), A3, A2]).
+Nodes along the way (relays) get the same experience whether the lift is circular or linear.
 
-The payee node will consist of a local entity with zero or more other local entities downstream of it, and a single foreign entity at the bottom.
-For example: [A2, A3, B1].
+Manual routing requests are handled as follows:
 
-Nodes along the way get the same experience whether the lift is circular or linear.
+![Manual Routing](uml/seq-route-man.svg "Manually initiating a route search")
 
-![Manual Routing](uml/seq-route-man.svg "Manual initiating a route search")
-
-As mentioned, an autonomous agent process is continually scanning for liftable balances along local segments.
-Upon discovering a segment with a capacity for a lift, the system will check its database for possible external routes that can be used to complete the circuit.
+As mentioned, an autonomous agent process is periodically scanning for liftable balances along local segments.
+Upon discovering a segment with a capacity for a lift, the system will check its database for external routes that might be used to complete the circuit.
 
 ![Automatic Routing](uml/seq-route-auto.svg "Automatic route scanning")
 
-If a suitable route is not yet known, the agent will commence a search.
-This is done by creating a draft route record in the local database and then propagating the query upstream.
+If a suitable route is not yet known, the agent will commence a search by creating one or more 
+draft route records in the local database.
+This causes the associated agent processes to propagate the query to their associated upstream partners.
 
-If previous successful searches have been conducted, but are too old to be reliable, a new search should be initiated to freshen the route in the database.
-This is done by resetting the local record to draft state and again propagating a query upstream.
+If previous successful searches have already been conducted but are too old to be reliable,
+the routes may be updated simply by resetting them to draft status again and the process will repeat.
 
 If previous searches have been inconclusive, the agent should similarly retry after a reasonable amount of time has passed.
+The database maintains a sorting algorithm internally to determine when to retry old routes and when to try creating new ones.
 
 As mentioned, each site acts in two roles:
-- It may initiate route queries necessary for conducting trades for local users; and
+- It may initiate upstream route queries necessary for conducting trades for local users; and
 - It may receive queries from downstream and act upon them.
 
-This second role is explained by the following sequence diagram:
+The second role is shown in the following sequence diagram:
 
 ![Routing Relay](uml/seq-route.svg "Responding to route queries")
+
+A node responding to a query from downstream really has four possible outcomes:
+- The destination node is found on a segment connected to this incoming request;
+- There is no pathway possible because there are no upstream tallies with foreign peers;
+- One or more pathways are possible through existing, known routes;
+- Pathways may be possible but more upstream queries will be needed to find out.
 
 Now we can derive the following state diagram to describe the route discovery protocol from the perspective of a single site:
 
 [![state-route](uml/state-route.svg)](uml/state-route.svg)
+
+Routes may exist in a pending state for some time before a response comes back from upstream
+indicating whether to mark the route as good or bad.
+So each route should be uniquely identifiable.
+In addition to knowing the tally UUID the query came in on, a querying node should supply a route ID.
+This route ID will be returned with subsequent updates so the node knows which route to update.
 
 ### Lift Protocol
 Once a site has discovered one or more viable external routes, it can proceed to propose an actual lift.
@@ -366,7 +415,7 @@ This use diagram shows five possible phases of the resulting lift:
 
 ![use-lift](uml/use-lift.svg)
 
-Here is the simplified example lift circuit again for reference.
+Let's consider the simplified example lift circuit again.
 Remember, each node could represent a single user or a segment of users local to a particular site.
 We will consider node A as the lift originator.
 Node B will be considered the destination of the lift.
@@ -377,21 +426,25 @@ For a linear lift, just imagine the tally between A and B does not (or need not)
 
 #### Proposal
 
-Proposals will travel counter-clockwise, <b>against</b> the normal flow of value (the arrows).
-Node A will propose the lift to node D because:
+Proposals will travel counter-clockwise, <b>against</b> the normal flow of payments (the arrows).
+Node A proposes the lift to node D because:
   - Node A contains a route record indicating that an external pathway exists (or has existed) leading from node D, upstream and eventually to node B; and
-    - it has capacity for a circular lift through an internal segment with D at the top and B at the bottom; or
+    - it has capacity for a circular lift through an internal segment with D at the top (output) and B at the bottom (input); or
     - it needs to transmit value from A to B (linear lift).
 
   The lift proposal is a conditional contract of the form:
-  "If I send a specified value to you on this tally, you agree to send that same value along through another node you are connected to, with that value eventually reaching my intended destination."
-  - The proposal contains a time, indicating how long the lift proposal will stay alive, before it will time out and will be considered "expired" (and therefore void).
+  "If I send a specified value to you on this tally, you agree to send that same value along through another node you are connected to, with that value eventually reaching the intended destination."
+  - The proposal contains a time, indicating how long the lift proposal will *stay alive*.  After that, it will time out and will be considered "expired" (and therefore void).
   - It also contains the identity of a proposed referee whose job it is to declare when the lift time has expired (or certify its successful completion).
     The referee is typically a well known, reliable site that is reachable by any node on the network.
-    Its identity consists of its
-    - network address (domain name or IP number), and
-    - (optional) network port
-  - It is each site's responsibility to decide for itself what referees are worthy of trust, and to collect a public key (out of band) for each referee it chooses to rely on.
+    This identity record includes:
+    - Connection protocol (https, chip, other)
+    - Network connection address/port information
+  - It is each site's responsibility to decide for itself what referees are worthy of trust.
+    - For https protocol, a site should have already collected (out of band) a public key for each referee it intendes to rely on.
+    - For chip protol, the connection information is a standard [CHIP address](learn-users.md#chip-addresses) for which the public key is inherently known.
+      The local site should probably already share a tally with the referee site.
+      This binds the parties to the responsible behavior they expect from each other.
   - If node D wants to participate in the lift, on the proposed terms, it indicates this by forwarding the proposal along to node C where the process repeats itself.
   - This action makes the lift binding upon D, subject only to receipt of an authorizing signature, generated within the specified timeout, as judged by the named referee.
   - If/when C receives the validating signature (by any means), D's obligation to C becomes valid and provable, regardless of whether D cooperates further in the transaction.
@@ -409,36 +462,44 @@ Node A will propose the lift to node D because:
   But it can only do so if the time, originally set forth in the lift proposal, has not yet expired (in the sole judgement of the referee).
   So the originator sends a message to the referee requesting permission to commit.
 
-  Assuming permission/authorization is given by the referee, the requester now possesses a digital signature of the referee indicating that the lift is good and valid.
-  It will proceed to transmit this information clockwise through the lift chain, starting with node B.
-  Node B will forward the signature to C, and so forth until all the nodes in the circuit have received the signature.
-  Each node can make the lift chits binding by affixing this signature to the chit record.
-
+  Depending solely on the time elapsed, the referee will answer either with an 
+  approval (good) or disapproval (void) message which
+  bear's the referee's digital signature.  The originator should now proceed to transmit
+  this record clockwise through the lift chain, starting with node B.
+  Node B will forward the signature to C, and so forth until all the nodes in the circuit have received 
+  the signature (whether good or void).
+  
+  Affixing a *good* signature will make make the applicable lift chits binding.
+  
 ![seq-lift-conf](uml/seq-lift-conf.svg)
 
 #### Referee Queries
-  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more wanted ones in their place.
+  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more wanted ones in their place
+  (or they all know the lift is expired and the chits can now be ignored).
   But if part of the network had a problem part-way through the lift, some nodes might be left in an indeterminate state.
   They are committed to the lift, but they don't have the required signature to complete so they really don't know for sure if the lift should go through or not.
 
   Participating nodes can consult their local clock and get a pretty good idea of when the lift should have timed out.
   If this time is exceeded, they can reach out to the referee node to ask the status of the lift.
   The referee will:
-  - respond with a "timed out" message; or
-  - provide the authorization signature.
+  - answer that time is still running--no answer yet; or
+  - respond with a signed "void" message; or
+  - provide the "good" authorization signature.
 
 ![seq-lift-ref](uml/seq-lift-ref.svg)
 
-As a further optimization, it will provide a greater of load distribution if nodes suspecting a timeout will first try reaching out to the lift originator to validate a lift.
-The originator shall respond similarly to any query with one of the following answers:
-- The lift is good; here's the referee's signature;
-- The lift has timed out, here's a signed timeout message from the referee;
-- I don't yet have an answer for this lift
+Participating nodes can provide a greater degree of load distribution if, upon discovering a local timeout, they will take the following steps in order:
+- See if any other segments exist on our same database that are part of the same lift (same uuid but different sequence) and already have the signature;
+- Send a chit consensus check to the upstream peer to see if the signature has been received there;
+- Wait an amount of time *after* expected timeout that is proportional to how much time was left on the lift promise (before expiration) when you received it.
+  This should generally cause the terminus node (or a node closer to that end of the chain) to act first.
+- Request status directly from the originator (if query address has been supplied), who can answer in like fashion to the referee;
+- Request status from the referee directly;
 
-As long as connectivity can be maintained with their upstream neighbor, the originator, or the referee, each node should be able to successfully complete the lift.
-If none of these can be reached, the lift commit will block indefinitely until connectivity can be restored.
+As long as connectivity can be maintained with a connected neighbor, the originator, or the referee, each node should be able to successfully complete the lift.
+If none of these can be reached, the lift commit/reject will block indefinitely until connectivity can be restored to someone with the signature.
 
-It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol suffers from potential safety and/or liveness issues.
+It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol is more vulnerable to potential safety and/or liveness issues.
 So it is important that sites maintain a list of trustworthy referees and their public keys.
 To support this function, a site willing to serve as referee must also support the following auxiliary protocol:
 
@@ -448,11 +509,11 @@ In general practice, it is expected that each host site will execute a tally wit
 Such tallies can contain contractual language expressing the referee's willingness to conduct its function with fidelity and good faith.
 This also supports the possibility of assessing fees in exchange for referee services where applicable.
 
-The Term of Service describes how long the referee commits to perform lifts.
+The Term of Service describes how long the referee promises to perform lifts.
 This will allow a service provider to discontinue service without breaking trust or losing reputation.
 
 #### Lift States
-Now we can derive the following state diagram to describe the lift protocol from the perspective of a single site:
+We can now derive the following state diagram to describe the lift protocol from the perspective of a single node or segment:
 
 [![state-lift](uml/state-lift.svg)](uml/state-lift.svg)
 
@@ -507,3 +568,6 @@ First, the states associated with the foil:
 And now, the states associated with the stock:
 
 [![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
+
+<br>[Next - Data Messages](learn-messages.md)
+<br>[Back to Index](README.md#contents)

@@ -1,0 +1,10 @@
+#sites=6
+newusers=4
+checkschema=false
+browser="chrome"
+userargs=( '-v' "$HOME/.inputrc:/root/.inputrc" '-v' "$HOME/.bashrc:/root/.bashrc" )
+#logviewer=xterm
+modelwins=( 0 0 )
+peerwins=( 600 0 )
+spawins=( 1200 0 )
+pgwins=( 1160 160 )

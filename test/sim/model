@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+//Standalone agent-based simulation modeler
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
+const Path = require('path')
+const { Log } = require('wyclif')
+Log.setPath(process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))
+
+var opts = require('yargs')
+  .alias('H','dbHost')     .default('dbHost',     process.env.MYCHIPS_DBHOST)	//SQL Database
+  .alias('D','dbName')     .default('dbName',     process.env.MYCHIPS_DBNAME || 'mychips')
+  .alias('U','dbUser')     .default('dbUser',     process.env.MYCHIPS_DBADMIN || 'admin')
+  .alias('P','dbPort')     .default('dbPort',     process.env.MYCHIPS_DBPORT)
+  .alias('h','ddHost')     .default('ddHost',     process.env.MYCHIPS_DDHOST || 'localhost')	//Document Database
+  .alias('d','ddName')     .default('ddName',     process.env.MYCHIPS_DDNAME || 'mychips')
+  .alias('u','ddUser')     .default('ddUser',     process.env.MYCHIPS_DDADMIN || 'admin')
+  .alias('p','ddPort')     .default('ddPort',     process.env.MYCHIPS_DDPORT || '27017')
+  .alias('a','agent')      .default('agent',      process.env.MYCHIPS_AGENT)
+  .alias('m','model')      .default('model',    1)
+  .alias('i','interval')   .default('interval', 3000)
+  .argv
+
+const moduleFile = '../../lib/model' + opts.model + '.js'
+const ModelCont = require(moduleFile)		//Model controller
+var log = Log('model')
+//log.debug("Model:", opts)
+
+var mod = new ModelCont({log,
+  host: opts.dbHost,
+  database:opts.dbName,
+  user: opts.dbUser, 
+  port: opts.dbPort, 
+}, {
+  host: opts.ddHost,
+  database:opts.ddName,
+  user: opts.ddUser, 
+  port: opts.ddPort, 
+}, opts)

@@ -6,16 +6,19 @@ database "Originator DB" as propDB
 database "Subject DB" as subjDB
 actor "Subject" as subj
 
-prop	->>	propDB:		Create draft, signed tally/ticket
+prop	->>	propDB:		Create void tally & ticket
 note over propDB
-  Ticket may be permanent or expiring and for one or multiple peers
+  Ticket may be one-time or reusable for multiple peers
 end note
-prop	-[#red]>> subj:		Communicate ticket to peer via QR code (out-of-band)
-subj	->>	subjDB:		Add peer specified in ticket
-subjDB	->>	propDB:		Connect via ticket, exchange keys
-propDB	->	propDB:		Detect pending proposed tally
-propDB	->>	subjDB:		Send proposed tally
-subjDB	->>	subj:		Present for review
+prop	-[#red]>> subj:		Communicate ticket to subject peer via QR code (out-of-band)
+subj	->>	subjDB:		Request to connect via ticket
+subjDB	->>	propDB:		Is this a known or local agent?\nConnect w/ticket or known key,\nprovide subject certificate
+propDB	->	propDB:		Construct/complete draft tally
+propDB	->>	prop:		Present for review
+prop	->>	propDB:		Accept/sign tally
+propDB	->>	subjDB:		Send proposed, signed tally
+subjDB	->	subjDB:		Enter draft tally,\ncheck for local partner
+subjDB	->>	subj:		Present tally for review
 loop until satisfied
  subj	->>	subjDB:		Modify tally terms
 end loop

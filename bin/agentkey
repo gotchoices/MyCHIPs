@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+// Create an agent key file
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
+// Usage: agentkey
+//        agentkey pki/agents
+const Fs = require('fs')
+const Path = require('path')
+const Os = require('os')
+const Crypto = require('crypto')
+const Hostname = Os.hostname()
+const Extension = ".agk"
+
+var argv = require('yargs')
+  .alias('h','host')       .default('host',       process.env.MYCHIPS_PEERHOST || Hostname)
+  .alias('p','port')       .default('port',       process.env.MYCHIPS_PEERPORT || '65430')
+  .alias('s','peerServer')
+  .argv
+
+var pkidir = argv._.shift() || '.'
+//console.log("host:", argv.host, "port:", argv.port, "pkidir:", argv.pkidir, "command:", command)
+
+try {
+  Fs.accessSync(pkidir, Fs.constants.W_OK)
+} catch (err) {
+  if (err) console.log("Can't write key to directory:")
+}
+
+var keyPair = Crypto.generateKeyPairSync('x25519')
+  , privKey = keyPair.privateKey
+  , jsonKey = privKey.export({format: 'jwk'})
+  , pubKey = jsonKey.x
+  , fileName = Path.join(pkidir, pubKey + Extension)
+  , key = {
+    host: argv.host,
+    port: argv.port,
+    key: jsonKey
+  }
+    
+Fs.writeFileSync(fileName, JSON.stringify(key))
+console.log(pubKey)

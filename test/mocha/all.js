@@ -1,19 +1,40 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //Run all tests in order
-const { DatabaseName, DBAdmin, MachineIP, Log } = require('../settings')
-const { exec } = require('child_process')
+const { DBName, DB2Name, DBAdmin, dropDB } = require('./common')
 
-require('./peercomm.js')
+require('./sch-crypto.js')
 require('./objectset.js')
 require('./peernoise.js')
-require('./impexp.js')
-require('./peer.js')
+//require('./peercomm.js')	//Deprecated
 
-describe("At End", function() {
+require('./impexp.js')		//Adds users needed for other tests
+require('./testusers.js')	//Run before sch-tally or tally
+require('./model1.js')
 
-  it('Drop database: ' + DatabaseName, function(done) {
-    exec('dropdb -U ' + DBAdmin + ' ' + DatabaseName)
-    done()
-  })
-});
+require('./sch-tally.js')
+require('./sch-chit.js')
+
+require('./user2.js')		//Needed for testing on two DB's
+require('./tally.js')
+require('./chit.js')
+
+require('./sch-path.js')
+require('./sch-route.js')
+require('./route.js')
+
+require('./sch-lift.js')
+require('./lift-in.js')
+require('./lift.js')
+
+//Re-enable after schema settles and more text fields are filled in
+//require('./schema.js')
+
+//Re-enable after consolidating users_v, peers_v?
+//require('./sch-multi.js')	//Will empty users table
+
+after('Delete test database', function(done) {
+  let dc = 2, _done = () => {if (!--dc) done()}		//dc _done's to be done
+  dropDB(_done)
+  dropDB(_done, DB2Name)
+})

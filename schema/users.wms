@@ -2,9 +2,8 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- What should users_v delete trigger to with peer table (nothing)?
-#- How to support multiple mobi users for a single corporate CDI
-#- How to support multiple credit partitions
+#X- What should users_v delete trigger to with peer table (nothing)?
+#- Make CID unique for all local users (trigger?)
 #- 
 require multiview.tcl base.tcl config.tcl
 
@@ -12,14 +11,14 @@ module mychips
 
 namespace eval users {
     def users_pk	{user_ent}
-    def users_v_up	{user_host user_port user_stat user_cmt serv_id}
+    def users_v_up	{user_host user_port user_stat user_hid user_cmt serv_id}
     def users_v_in	[concat $users_pk $users_v_up]
     def users_se	[concat $users_v_in crt_by crt_date mod_by]
     def peers_se	$peers::peers_v_in
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type]
-    def agents_se	{agent agent_key agent_host agent_port agent_ip}
+    def agents_se	{agent_key agent_host agent_port agent_ip}
 }
 
 # Data about users to facilitate their CHIP account
@@ -29,6 +28,7 @@ table mychips.users {base.ent mychips} {
   , user_host	text
   , user_port	int		
   , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
+  , user_hid	text		
   , user_cmt	varchar
   , serv_id	varchar
   , _last_tally	int		not null default 0
@@ -54,7 +54,7 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
   , cHost() || ':' || cPort()	as peer_sock
   , pe.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
 --  , pe.peer_cid || '@' || cHost() || ':' || cPort()			as peer_endp
-  , greatest(ee.mod_date, pe.mod_date, ue.mod_date) as mod_date
+  , greatest(ee.mod_date, pe.mod_date, ue.mod_date)			as mod_date
   , jsonb_build_object(
       'id',		ee.id
     , 'cid',		pe.peer_cid
@@ -83,7 +83,7 @@ view mychips.users_v {mychips.users mychips.peers base.ent_v mychips.parm_v_user
         {base.ent	{$users::ent_v_up}	{$base::ent_pk}		{$glob::stampup}}
         {mychips.peers	{$peers::peers_v_up}	{$peers::peers_pk}	{$glob::stampup}}
         {mychips.users	{$users::users_v_up}	{$users::users_pk}	{$glob::stampup}}
-    " mychips.users_vf_post)
+    " mychips.users_vf_post mychips.users_vf_pre)
     eval(multiview::delete mychips.users_v "
         {mychips.users	{$users::users_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
     ")
@@ -125,6 +125,26 @@ function {mychips.users_vf_post(new mychips.users_v, old mychips.users_v, tgop t
     end;
 $$;}
 
+# Before insert/update
+#----------------------------------------------------------------
+function mychips.users_tf_biu() {mychips.users mychips.ba2b64v(bytea)} {
+  returns trigger language plpgsql security definer as $$
+    begin
+        if new.user_hid isnull then
+          loop
+            select into new.user_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
+            if not exists (select user_ent from mychips.users where user_hid = new.user_hid) then
+              exit;					-- Make sure it is unique
+            end if;
+          end loop;
+        end if;
+        return new;
+    end;
+$$;}
+trigger mychips_users_tr_biu {} {
+    before update on mychips.users for each row execute procedure mychips.users_tf_biu();
+}
+
 # View of users with primary address and contact points
 #----------------------------------------------------------------
 view mychips.users_v_flat {mychips.users_v base.addr_v_flat base.comm_v_flat} {select 
@@ -138,10 +158,74 @@ view mychips.users_v_flat {mychips.users_v base.addr_v_flat base.comm_v_flat} {s
     left join	base.comm_v_flat	c on c.id = u.id
 }
 
-# What was this for?
-#table mychips.comm_test {base.comm mychips} {
-#    test_ent		text
-#  , test_seq		int
-#  , test_dat		varchar
-#  , foreign key (test_ent, test_seq) references base.comm on update cascade on delete cascade
-#}
+# Birth records should only be written once
+# -----------------------------------------------------------------
+function base.addr_tf_birth() {base.addr} {
+  returns trigger language plpgsql security definer as $$
+    begin
+      if session_user = 'subst($mychips::adminuser)' then
+        return new;
+      end if;
+      if old.addr_type = 'birth' then
+        raise exception '!mychips.users:BRM %', old.addr_ent;
+        return null;
+      end if;
+      return new;
+    end;
+$$;}
+trigger base_addr_tr_birth {} {
+    before update on base.addr for each row execute procedure base.addr_tf_birth();
+}
+
+# View limited to the user's own user record
+#----------------------------------------------------------------
+view mychips.users_v_me {mychips.users_v base.user_id(text)} {select 
+    u.*
+    from	mychips.users_v		u where user_ent = base.user_id(session_user)
+} -grant {
+    {user	s {s i u} {d}}
+} -primary id
+
+# View limited to user's own user address records
+#----------------------------------------------------------------
+view mychips.addr_v_me {base.addr_v base.user_id(text)} {select 
+    a.*
+    from	base.addr_v		a where addr_ent = base.user_id(session_user)
+} -grant {
+    {user	s {s i u} {d}}
+} -primary id
+
+# View limited to user's own user connect records
+#----------------------------------------------------------------
+view mychips.comm_v_me {base.comm_v base.user_id(text)} {select 
+    c.*
+    from	base.comm_v		c where comm_ent = base.user_id(session_user)
+} -grant {
+    {user	s {s i u} {d}}
+} -primary id
+
+# Create a new login ticket for the specified user
+#----------------------------------------------------------------
+function {mychips.ticket_login(uid text)} {mychips base.token_v_ticket mychips.users base.parm_int(text,text) base.parm_text(text,text)} {
+  returns base.token_v_ticket language plpgsql as $$
+    declare
+      trec	record;
+      urec	record;
+      retval	jsonb;
+    begin
+      insert into base.token_v_ticket (token_ent, allows) values (uid, 'login') returning * into trec;
+      select into urec * from mychips.users where user_ent = uid;
+      trec.host = coalesce(urec.user_host, base.parm_text('mychips','user_host'), trec.host);
+      trec.port = coalesce(urec.user_port, base.parm_int('mychips','user_port'), trec.port);
+      return trec;
+    end;
+$$;}
+
+# Return a certificate for the specified user
+#----------------------------------------------------------------
+function {mychips.user_cert(uid text)} {json.cert} {
+  returns jsonb language sql as $$
+    select to_jsonb(s) as cert from (
+      select date,chad,type,name,public,connect,place,identity from json.cert where id = uid
+    ) s
+$$;}

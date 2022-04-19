@@ -1,0 +1,500 @@
+[
+ {
+  "inp": "p1000",
+  "out": "p1003",
+  "circuit": false,
+  "min": 1,
+  "max": 5,
+  "bang": 2,
+  "reward": 0.04,
+  "margin": 0.0784,
+  "ath": [
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1002",
+  "circuit": false,
+  "min": 1,
+  "max": 5,
+  "bang": 3,
+  "reward": 0.04,
+  "margin": 0.079322,
+  "ath": [
+   "p1001",
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": null,
+  "circuit": false,
+  "min": 1,
+  "max": 5,
+  "bang": 3,
+  "reward": 0.04,
+  "margin": 0.0784,
+  "ath": [
+   "p1001",
+   "p1003",
+   null
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1001",
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 14,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1000",
+  "circuit": true,
+  "min": 5,
+  "max": 7,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": null,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": "p1003",
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1000",
+  "out": null,
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 28,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1003",
+   null
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1002",
+  "circuit": false,
+  "min": 5,
+  "max": 9,
+  "bang": 10,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1000",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1001",
+  "circuit": true,
+  "min": 5,
+  "max": 7,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1000",
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1003",
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.042877,
+  "ath": [
+   "p1000",
+   "p1002",
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": null,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.042877,
+  "ath": [
+   "p1000",
+   "p1002",
+   "p1001",
+   "p1003",
+   null
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": null,
+  "circuit": false,
+  "min": 5,
+  "max": 9,
+  "bang": 10,
+  "reward": 0.02,
+  "margin": 0.001,
+  "ath": [
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1002",
+  "circuit": false,
+  "min": 9,
+  "max": 13,
+  "bang": 18,
+  "reward": 0.02,
+  "margin": 0.04096,
+  "ath": [
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1001",
+  "circuit": true,
+  "min": 7,
+  "max": 9,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": "p1000",
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.042877,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": null,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.042877,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1001",
+  "out": null,
+  "circuit": false,
+  "min": 15,
+  "max": 19,
+  "bang": 30,
+  "reward": 0.04,
+  "margin": 0.04,
+  "ath": [
+   "p1003",
+   null
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1000",
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 10,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1002",
+  "circuit": true,
+  "min": 5,
+  "max": 7,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1001",
+   "p1000",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": null,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1003",
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 14,
+  "reward": 0.02,
+  "margin": 0.04096,
+  "ath": [
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": "p1002",
+  "circuit": true,
+  "min": 7,
+  "max": 9,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1001",
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": "p1002",
+  "out": null,
+  "circuit": false,
+  "min": 7,
+  "max": 11,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.04096,
+  "ath": [
+   "p1001",
+   "p1003",
+   null
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": "p1001",
+  "circuit": false,
+  "min": 7,
+  "max": 9,
+  "bang": 14,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": "p1000",
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 15,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": null,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": "p1003",
+  "circuit": true,
+  "min": 7,
+  "max": 9,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1003"
+  ]
+ },
+ {
+  "inp": "p1003",
+  "out": null,
+  "circuit": false,
+  "min": 7,
+  "max": 9,
+  "bang": 28,
+  "reward": 0.02,
+  "margin": 0.041919,
+  "ath": [
+   "p1002",
+   "p1001",
+   "p1003",
+   null
+  ]
+ },
+ {
+  "inp": null,
+  "out": "p1002",
+  "circuit": false,
+  "min": 9,
+  "max": 13,
+  "bang": 18,
+  "reward": 0.02,
+  "margin": 0.001,
+  "ath": [
+   "p1003",
+   "p1002"
+  ]
+ },
+ {
+  "inp": null,
+  "out": "p1001",
+  "circuit": false,
+  "min": 7,
+  "max": 9,
+  "bang": 21,
+  "reward": 0.02,
+  "margin": 0.001999,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001"
+  ]
+ },
+ {
+  "inp": null,
+  "out": "p1000",
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 20,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000"
+  ]
+ },
+ {
+  "inp": null,
+  "out": null,
+  "circuit": false,
+  "min": 5,
+  "max": 7,
+  "bang": 25,
+  "reward": 0.02,
+  "margin": 0.002997,
+  "ath": [
+   "p1003",
+   "p1002",
+   "p1001",
+   "p1000",
+   null
+  ]
+ }
+]

@@ -2,8 +2,8 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 #TODO:
-#- Split out peer fields from users table
-#- Can I have a 3-way writable multiview?
+#X- Split out peer fields from users table
+#X- Can I have a 3-way writable multiview?
 #- View should tell if there are active tallies with this peer or not
 #- 
 require multiview.tcl base.tcl config.tcl
@@ -19,8 +19,8 @@ other lockdown {mychips} {
 
 namespace eval peers {
     def peers_pk	{peer_ent}
-    def peers_v_up	{peer_cid peer_hid peer_psig peer_cmt}
-    def peers_v_in	[concat $peers_pk $peers_v_up peer_agent]
+    def peers_v_up	{peer_cid peer_cert peer_psig peer_cmt peer_named peer_agent}
+    def peers_v_in	[concat $peers_pk $peers_v_up]
     def peers_se	[concat $peers_v_in crt_by crt_date mod_by]
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name conn_pub]
     def ent_v_in	$base::ent_v_in
@@ -33,9 +33,10 @@ namespace eval peers {
 table mychips.peers {base.ent mychips.agents} {
     peer_ent	text		primary key references base.ent on update cascade on delete cascade
   , peer_cid	text		not null, unique (peer_cid, peer_agent)
-  , peer_hid	text		
   , peer_agent	text	        references mychips.agents on update cascade on delete restrict
-  , peer_psig	text		unique
+  , peer_psig	text
+  , peer_cert	jsonb
+  , peer_named	text
   , peer_cmt	text
     eval(s $glob::stamps)
 }
@@ -59,14 +60,14 @@ view mychips.peers_v {mychips.peers base.ent_v mychips.parm_v_user mychips.agent
     eval(fld_list $peers::ent_se	ee)
   , eval(fld_list $peers::peers_se	pe)
   , eval(fld_list $peers::agents_se	ag)
-  , ag.agent_host		as peer_host
-  , ag.agent_port		as peer_port
-  , cAgent()			as peer_cagent
-  , cHost()			as peer_chost
-  , cPort()			as peer_cport
-  , cHost() || ':' || cPort()	as peer_sock
-  , pe.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
---  , pe.peer_cid || '@' || cHost() || ':' || cPort()			as peer_endp
+  , ag.agent_host			as peer_host
+  , ag.agent_port			as peer_port
+  , cAgent()				as peer_cagent
+  , cHost()				as peer_chost
+  , cPort()				as peer_cport
+  , cHost() || ':' || cPort()		as peer_sock
+  , pe.peer_cid ||':'|| cAgent()	as peer_addr
+  , pe.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_full
   , greatest(ee.mod_date, pe.mod_date) as mod_date
 
     from	base.ent_v	ee
@@ -86,6 +87,7 @@ view mychips.peers_v {mychips.peers base.ent_v mychips.parm_v_user mychips.agent
         {mychips.peers	{$peers::peers_pk}	{(old.crt_by = session_user and (current_timestamp - old.crt_date) < '2 hours'::interval) or base.priv_has('userim',3)}}
     ")
 } -primary id
+#        {mychips.agents	{$agents::agents_v_up}	{$agents::agents_pk} {} {peer_agent}}
 
 # Pre-check agent info for new peer records
 #----------------------------------------------------------------
@@ -130,7 +132,7 @@ view mychips.peers_v_me {mychips.peers_v mychips.tallies base.user_id(text)} {se
   , t.count		as count
 
     from	mychips.peers_v		p
-    join	(select tally_ent, tally_seq, partner, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.partner = p.peer_ent
+    join	(select tally_ent, tally_seq, part_ent, status, count(*) as count from mychips.tallies where status = 'open' and tally_ent = base.user_id(session_user) group by 1,2,3,4) t on t.part_ent = p.peer_ent
 } -grant {
     {peer	s {s i u} {d}}
 } -primary id
@@ -146,24 +148,4 @@ $$;}
 #----------------------------------------------------------------
 trigger mychips_peers_tr_change {} {
     after insert or update or delete on mychips.peers for each statement execute procedure mychips.change_tf_notify('peers');
-}
-
-# Before insert/update
-#----------------------------------------------------------------
-function mychips.peers_tf_biu() {mychips.peers mychips.ba2b64v(bytea)} {
-  returns trigger language plpgsql security definer as $$
-    begin
-        if new.peer_hid isnull then
-          loop
-            select into new.peer_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
-            if not exists (select peer_ent from mychips.peers where peer_hid = new.peer_hid) then
-              exit;					-- Make sure it is unique
-            end if;
-          end loop;
-        end if;
-        return new;
-    end;
-$$;}
-trigger mychips_peers_tr_biu {} {
-    before update on mychips.peers for each row execute procedure mychips.peers_tf_biu();
 }

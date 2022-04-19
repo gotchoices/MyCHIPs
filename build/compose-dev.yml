@@ -1,7 +1,7 @@
 #This version ignores the copy of mychips in the /app folder and instead
 #mounts the local source tree under a development folder (/usr/local/devel).
-#This allows one to #make and test changes without having to rebuild the 
-#docker images.
+#This allows one to make and test changes in mychips and the four wyattERP
+#libraries without having to rebuild the docker images.
 #TODO:
 #- Implement encryption between mychips and postgres
 #- 
@@ -14,16 +14,18 @@ services:
     container_name: $MYCHIPS_HOST
     hostname: $MYCHIPS_HOST
     build:
-      context: $MYCHIPS_ROOT
+      context: ..
       dockerfile: build/docker-mychips
     environment:
-      NODE_DEBUG: $MYCHIPS_DEBUG
+      NODE_DEBUG: ${MYCHIPS_DEBUG:-debug}
       MYCHIPS_DBHOST: $MYCHIPS_DBHOST
     working_dir: ${MYCHIPS_DEVDIR}/mychips
     volumes:
       - "../..:${MYCHIPS_DEVDIR}"
       - "../test/local/docker/${MYCHIPS_HOST}.log:/var/tmp/mychips"
       - "../test/local/docker/pki:${MYCHIPS_DEVDIR}/${MYCHIPS_DIR:-mychips}/pki/local"
+#      - "~/.inputrc:/root/.inputrc"
+#      - "~/.bashrc:/root/.bashrc"
     depends_on:
       - postgres
     ports:
@@ -34,9 +36,9 @@ services:
       - frontend
 
   postgres:
-    image: gotchoices/pg:11
+    image: gotchoices/pg:13
     build:
-      context: $MYCHIPS_ROOT
+      context: ..
       dockerfile: build/docker-pg
     container_name: $MYCHIPS_DBHOST
     hostname: $MYCHIPS_DBHOST
@@ -48,6 +50,10 @@ services:
     volumes:
       - "../test/local/docker/${MYCHIPS_DBHOST}.pgdata:/var/lib/postgresql/data/pgdata"
       - "./dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh"
+#      - "~/.inputrc:/root/.inputrc"
+#      - "~/.bashrc:/root/.bashrc"
+    ports:
+      - "${MYCHIPS_DBPORT:-5432}:5432"
     networks:
       - backend
 

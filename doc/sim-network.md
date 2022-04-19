@@ -1,9 +1,12 @@
 ##Network Simulation
 
 The network simulation (try 2) is implemented by the test/sim/simnet script to launch various 
-MyCHIPs services on a number of different machines.  The goal is to simulate a
-small working MyCHIPs network environment so as to analyze/implement the lift
-algorithm.
+MyCHIPs services on a number of different machines on your local network.
+The goal is to simulate a small working MyCHIPs network environment so as to analyze/implement
+the lift algorithm.
+
+This system is not currently maintained and would likely require some effort to make it work
+with the current revision server.
 
 Each machine can run:
   - A single postgreSQL instance
@@ -24,8 +27,7 @@ ssh and perform the following actions:
     Note: this only happens on remote machines--not locals (see Config below)
   - Apply any changes to the database schema
   - Relaunch the SPA/clif service (currently disabled)
-  - Query the database for any configured servID's and launch one peer
-    server for each unique ID (launches only one, at the moment)
+  - Launch one peer server per site
 
 Since everything is done over ssh, it is very helpful to eliminate the need to 
 enter a password each time you connect.  You can do this with:

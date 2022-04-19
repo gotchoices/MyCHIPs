@@ -12,7 +12,7 @@ note over pay, payDB
 end note
 payDB	->>	recDB:		Store and transmit
 recDB	->>	rec:		Store and notify user
-loop until consensus
+loop until consensed
  payDB	<->	recDB:		Consensus acks/naks
 end loop
 
