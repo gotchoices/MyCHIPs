@@ -58,23 +58,22 @@ This is an area that needs future development. Simulations on windows and mac co
 
 One of the primary goals of the simulation is to gather analytical data to prove the viability of MyCHIPs in the real world. The simulation exports data to MongoDB throughout execution, but the data must be exported after the simulation is complete. We have created a script that exports the MongoDB data to a local folder in JSON files. 
 
-Run `npm run getAnalytics` after the simulation ends but before running `./simdock shutdown` to export simulation analytics to the `test/sim/local/analytics` directory. (See step 4 under Developement below)
+Run ``./../../lib/model3/exportAnalytics.sh`` after the simulation ends but before running `./simdock shutdown` to export simulation analytics to the `test/sim/local/analytics` directory. (See step 4 under Developement below)
 ## Development
 
 <ins>_ Do not edit Model 3 JavaScript files directly _</ins>
 
 The simulation Model 3 was developed using TypeScript to allow clear data typing, extendable classes, and inheritance. Changes must be made to the `*.ts` files. Any changed `*.ts` files must be transpiled before execution. 
 
-The easiest way to run steps 2-3 is by running the npm script `npm run runsim` (\*see note below). The overall work flow should look something like this:
+The easiest way to run steps 2-3 is by running the npm script ``./../../lib/model3/runsim.sh`` (\*see note below). The overall work flow should look something like this:
 
 1. Edit `*.ts` files.
 2. Run `npm tsc` before running the simulation.
 3. Run `./simdock startup`, `./simdock tickets`, and then `./simdock start sim --runs=50` as outlined [here](/doc/sim-docker.md).
-4. (Optional) Run `npm run getAnalytics` after the simulation ends but before running `./simdock shutdown` to export simulation analytics to the `test/sim/local/analytics` directory.
+4. (Optional) Run `./../../lib/model3/exportAnalytics.sh` after the simulation ends but before running `./simdock shutdown` to export simulation analytics to the `test/sim/local/analytics` directory.
 5. Run `./simdock shutdown` to end the simulation (this stops all simulation docker containers)
 
-
-\*Instead of running steps 2-3 individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence. This can be done with the command `npm run runsim`. Since the simulation is run asynchronously, the script should be run from the command line. We've seen some issues with using VS Code's NPM SCRIPTS runner.
+\*Instead of running steps 2-3 individually, developers may find it useful to run the `./../../lib/model3/runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence.
 ## Creating Accounts/Actions
 
 For greater depth and flexibility in the simulation, different types of user accounts can be implemented from the base class to represent various entities in a single simulation. They can represent different kinds of businesses, various consumers, financial entities, or any other type of my chips account that needs to be simulated. The extended classes can be modified to have any data or behavior desired, and can be programmed to interact with eachother as desired (For example, you could have an employee class that will seek employment from business classes within a specific salary range. See example "Employee" and "Retailer" classes in the model 3 code). With the ability to extend the functionality of accounts and actions, contributors, researchers, and potential users can all run the simulation to suit their unique needs.
@@ -156,7 +155,7 @@ Here is a basic description of the flow of data through the simulation:
 - Before running the simulation for the first time, make sure you ran `npm install` and exported the correct environment variables as indicated in the [setup instructions](/doc/sim-docker.md)
 - The Actions collection in the World DB is a shared queue where servers can tell eachother perform actions. No relation to our actions class.
 - Currently a user's id is unique only on their host server, while the peer_cid is unique to the world. This means two users with different peer_cids could have the same id on a server when one is downloaded as a peer. Kyle is working to make peer_cids the only identification needed and remove the need to download a user as a peer.
-- If you modify the config before you run killsim, the command will not work correctly. Make sure you only make changes to config.dock after you kill a simulation. (For example, if you change from 10 sites to 4, then run killsim it will only destroy containers and data for the first 4 servers, but will leave all of the others)
+- If you modify the config before you run ./simdock shutdown, the command will not work correctly. Make sure you only make changes to config.dock after you kill a simulation. (For example, if you change from 10 sites to 4, then run ./simdock shutdown it will only destroy containers and data for the first 4 servers, but will leave all of the others)
 
 ## Glossary
 

@@ -41,10 +41,6 @@
     "builddb": "cd schema; make objects",
     "preversion": "npm-run-all --parallel contract-hashes build-schema build && git add -A",
     "tsc": "cd lib && ../node_modules/typescript/bin/tsc",
-    "runsim": "./lib/model3/runsim.sh",
-    "getAnalytics": "./lib/model3/exportAnalytics.sh",
-    "stopsim": "./test/sim/simdock stop sim",
-    "killsim": "./test/sim/simdock shutdown"
   },
   "repository": {
     "type": "git",
