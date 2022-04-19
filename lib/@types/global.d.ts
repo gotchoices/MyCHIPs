@@ -41,11 +41,11 @@ interface AdjustableAccountParams {
   /** The maximum number of spending targets (foils) this entity will open */
   maxSpendingTargets: number | undefined
   /** The minimum number of spending targets (foils) this account will need to be satisfied*/
-  desiredSpendingTargets: number
+  desiredSpendingTargets: number | undefined
   /** The maximum number of income sources (stocks) this entity will open */
   maxIncomeSources: number | undefined
   /** The minimum number of income sources (stocks) this account will need to be satisfied */
-  desiredIncomeSources: number
+  desiredIncomeSources: number | undefined
   /** The minimum net worth the entity must have to be willing to spend money */
   minWorthToSpend: number | undefined
   /** A percentage defining the maximum amount this entity is willing to spend in one transaction */
@@ -53,7 +53,7 @@ interface AdjustableAccountParams {
   /** If the absolute value on any one connection (in or out) is greater than this, the account will ask for a lift */
   diffForLift: number | undefined
   /** If the net worth is less than this number, the account will not be satisfied */
-  minForSatisfaction: number
+  minForSatisfaction: number | undefined
 }
 
 interface ActionData {

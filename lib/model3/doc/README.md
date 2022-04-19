@@ -133,6 +133,16 @@ Here is a basic description of the flow of data through the simulation:
 
 ![Agent 3 Class UML](../doc/class-UML.png)
 
+## Configuration
+
+We designed the simulation to be easily configured between runs of the simulation. This is mostly achieved with the paramConfig.yaml file. This file specifies the time to spend on each round of the simulation, how often to run automatic lifts, and the details of the account types that should be included in the simulation. 
+
+The schema for this yaml file is described in the @types/global.d.ts file with the AdjustableSimParams and AdjustableAccountParams interfaces. The only required parameters are the type and percentOfTotal. All other parameters will have default values in the TypeScript that will be filled in when the account object is instantiated. All of the parameters may be provided in paramConfig.yaml however and these values will override any default values set in the account type's constructor. For example, the default BaseAccount type will set a default value of 3 to maxIncomeSources, but if we provided a value of 5 for maxIncomeSources in the paramConfig.yaml, all instantiated default accounts will have 5 as their maxIncomeSources value.
+
+The parameters are pulled into the simulation in the loadParamsConfig() method inside model3.ts. Account objects are then created in the eatAccounts() method in model3.ts. Each account object pulled from the local SQL database is assigned an account type from paramConfig.yaml and an Account object is created of the matching variety and stored.
+
+The method explained above is used because account objects are created and stored in the SQL database by the simdock script before the model simulation is ever started. We recommend that future developers delay the account creation until model3.ts is running to simplify this process. This way, the percentOfTotal parameter can be replaced by numberOfAccounts and the total number of accounts and the number of each type can be controlled completely by the paramConfig.yaml file.
+
 ## Debugging Tools
 
 - To query SQL databases, use `./simdock q <int-for-server-num> "<sql-query>"`

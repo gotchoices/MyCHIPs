@@ -1,8 +1,8 @@
-# This is just an example of how the config might look. 
-# The schema is described in lib/@types/global.d.ts in the AdjustableSimParams and AdjustableAccountParams interfaces
+# The schema is described in lib/@types/global.d.ts in the AdjustableSimParams and AdjustableAccountParams interfaces.
+# This file as a whole will must fit the AdjustableSimParams interface and each item in the accountTypes array should fit the AdjustableAccountParams interface.
 
-interval: 3000
-liftInterval: 5
+interval: 3000    # time for each round in milliseconds
+liftInterval: 5   # when to run automatic lifts
 
 accountTypes:
   - type: 'default' 
