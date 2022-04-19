@@ -146,8 +146,7 @@ Here is a basic description of the flow of data through the simulation:
 ## Gotchas
 
 - Before running the simulation for the first time, make sure you ran `npm install` and exported the correct environment variables as indicated in the [setup instructions](/doc/sim-docker.md)
-- The Actions collection in the World DB is a shared queue where servers can tell eachother perform actions. No relation to our actions class.
-- Currently a user's id is unique only on their host server, while the peer_cid is unique to the world. This means two users with different peer_cids could have the same id on a server when one is downloaded as a peer. Kyle is working to make peer_cids the only identification needed and remove the need to download a user as a peer.
+- Currently a user's local id (p100x) is meaningful only on their host server and should not be shared outside the context of their own server.
 - If you modify the config before you run ./simdock shutdown, the command will not work correctly. Make sure you only make changes to config.dock after you kill a simulation. (For example, if you change from 10 sites to 4, then run ./simdock shutdown it will only destroy containers and data for the first 4 servers, but will leave all of the others)
 
 ## Glossary
@@ -156,11 +155,11 @@ CHIP - A unit of digital credit in the MyCHIPs system
 
 Chit - A payment of X amount of CHIPs. Can be thought of similar to writing a check.
 
-Chad - A chad is the current way of identifying an account. When an account is trying to create a tally, it finds a random chad and makes a tally request to the account associated with that chad.
+[CHIP address](../doc/learn-users.md#chip-addresses) - A chad is the current way of identifying an account. When an account is trying to create a tally, it finds a random chad and makes a tally request to the account associated with that chad.
 
-Tallies
+[Tallies](../doc/learn-tally.md)
 
-- Tally is a contract between two accounts that consists of a stock and foil
+- A tally is a contract between two accounts that consists of a stock and foil
   - \*Multiple transactions can happen on a single tally 
   - As you make multiple transactions it results in an increase to the stock/foil amount, rather than an increase in the amount of tallies.
   
@@ -174,11 +173,10 @@ Foil - a spending target / negative change to your balance
 Process of making a payment
 
 - Account (you) finds a vendor (walmart) to give money to. (This represents a loan, gift, payment, etc.)
-- Asynchronously check for peer inside worldDB (right now it's random)
-  - Find someone that isn't ourselves that we aren't connected to
+- Find someone that isn't ourselves that we aren't connected to
 - If failed, try again
-- If success, check if person exists in our cache, add then add them if not. (TODO: See if we need a way to update this info or not)
-- Add them to our peer server which gives us
+- If success, check if person exists in our cache, add then add them if not.
+- Make payment (taken care of by MyCHIPs engine).
 - ID's are different on different servers
 
 ## Future Development (TODO's):
