@@ -184,3 +184,4 @@ Process of making a payment
 - Figure out why the touch command can't create files and make sure they are deleted in killsim
 - Simulation memory can work sporadically with asynchronous calls in large simulations. We need to look into synchronous container creation.
 - Add criteria for credit lifts to the config file to test various lift scenarios
+- implement accepting / rejecting tally requests (all are accepted automatically now)
