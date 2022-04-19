@@ -43,6 +43,15 @@ To run the simulation you need to follow these steps:
     
 \*For an in-depth explanation, please see the [setup instructions](/doc/sim-docker.md).
 
+### Large Scale Simulations
+
+Without the ability to scale the simulation to large numbers of users and servers, the simulation is not as useful as it could be. The current solution to run the solution at scale is to use a large container with a web service. Specifically, we have implemented the simuulation on an AWS EC2 instance.
+Using the elastic containers allows us to provide massive amounts of memory and disk space for the simulation on an efficient headless server, expanding the scale dramatically.
+
+To do this varies by web service and by the container it is used with. Any distribution of Linux that supports Nodejs, Docker, and MongoDB should be able to run the simulation. We have specifically tested Ubuntu Server and Amazon Linux 2. Spin up an instance (using the LTS version of your prefered distro) and make sure to install Nodejs, Docker, and Mongo with the package manager. Your instance must support Node 16+, Docker 20+, and Mongo 7+. Once you have this done, download or clone the mychips repository, install node packages, and follow the [setup instructions](/doc/sim-docker.md). 
+
+This is an area that needs future development. Simulations on windows and mac containers, memory usage testing, and discovering bounds (number of servers / accounts able to run) of different instances are all in need of development effort.
+
 ### Analytics
 
 One of the primary goals of the simulation is to gather analytical data to prove the viability of MyCHIPs in the real world. The simulation exports data to MongoDB throughout execution, but the data must be exported after the simulation is complete. We have created a script that exports the MongoDB data to a local folder in JSON files. 
