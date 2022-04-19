@@ -155,9 +155,9 @@ CHIP - A unit of digital credit in the MyCHIPs system
 
 Chit - A payment of X amount of CHIPs. Can be thought of similar to writing a check.
 
-[CHIP address](../doc/learn-users.md#chip-addresses) - A chad is the current way of identifying an account. When an account is trying to create a tally, it finds a random chad and makes a tally request to the account associated with that chad.
+[CHIP address](/doc/learn-users.md#chip-addresses) - A chad is the current way of identifying an account. When an account is trying to create a tally, it finds a random chad and makes a tally request to the account associated with that chad.
 
-[Tallies](../doc/learn-tally.md)
+[Tallies](/doc/learn-tally.md)
 
 - A tally is a contract between two accounts that consists of a stock and foil
   - \*Multiple transactions can happen on a single tally 
