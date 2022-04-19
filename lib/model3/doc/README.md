@@ -66,6 +66,8 @@ The easiest way to run steps 2-3 is by running the npm script `npm run runsim` (
 \*Instead of running steps 2-3 individually, developers may find it useful to run the `runsim.sh` bash script within the `lib/agent3` directory, which executes these steps in sequence. This can be done with the command `npm run runsim`. Since the simulation is run asynchronously, the script should be run from the command line. We've seen some issues with using VS Code's NPM SCRIPTS runner.
 ## Creating Accounts/Actions
 
+For greater depth and flexibility in the simulation, different types of user accounts can be implemented from the base class to represent various entities in a single simulation. They can represent different kinds of businesses, various consumers, financial entities, or any other type of my chips account that needs to be simulated. The extended classes can be modified to have any data or behavior desired, and can be programmed to interact with eachother as desired (For example, you could have an employee class that will seek employment from business classes within a specific salary range. See example "Employee" and "Retailer" classes in the model 3 code). With the ability to extend the functionality of accounts and actions, contributors, researchers, and potential users can all run the simulation to suit their unique needs.
+
 To add new accounts, implement "account.ts" and place the new account class file in the "/accounts" directory. Typescript will enforce implementation of class methods.
 
 ``` 
@@ -80,7 +82,9 @@ import Actions from '../actions'
 
 class NewAction implements Action { ...
 ```
-TODO: add some text here to describe how to add actions to accounts...
+Actions are added to accounts by pushing them into the given account's actions collection. Any new actions should be added to the ActionFactory and created using the factory. The code in the account class should look like this:
+    ``` this.actions.push(ActionFactory.createAction('FindEmployer', this)) ```
+
 
 ## Prettier & ESLint
 
