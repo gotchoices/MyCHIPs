@@ -201,3 +201,4 @@ Process of making a payment
 - Simulation memory can work sporadically with asynchronous calls in large simulations. We need to look into synchronous container creation.
 - Add criteria for credit lifts to the config file to test various lift scenarios
 - implement accepting / rejecting tally requests (all are accepted automatically now)
+- Ensure that more than one tally can not be created between the same two accounts.
