@@ -114,8 +114,9 @@ Here is a basic description of the flow of data through the simulation:
    - Creates and inserts users into the local SQL databases
    - Runs `sim-c.sh` which starts the simulation by creating one 'model' docker container per site, each running an AccountCluster process (the entrypoint is `test/sim/account` which instantiates the main class in `model3.ts`)
 
-2. Each 'account' (by running AccountCluster) loads the config file parameters, connects to their respective local SQL databases, and connects to the shared Mongo 'World' database.
-3. 'accounts' iterate through their local accounts, performing allowed actions, (such as purchase item, take out a loan, sell a good, etc...). For example, let's say Dave initiates a 'purchase item' action. To do so, he needs to find a new spending target. His account goes through these steps:
+2. Each server (by running AccountCluster) loads the config file parameters, connects to their respective local SQL databases, and connects to the shared Mongo 'World' database.
+3. Each server grabs the data for all of its local accounts from the local SQL database and creates an Account object for each account based on parameters pulled from the config file (more information on this in the Configuration section below).
+4. Each server iterates through their local accounts and performs allowed actions (such as purchase item, take out a loan, sell a good, etc...). For example, let's say Dave initiates a 'purchase item' action. To do so, he needs to find a new spending target. His account goes through these steps:
 
    1. Find peer in world DB (Mongo)
 
@@ -123,7 +124,7 @@ Here is a basic description of the flow of data through the simulation:
 
 4. Once the peers and SQLManager approve the connection, then the peers perform the tally behind the scenes of the simulation.
 
-5. Listeners to the SQL databases' peers or tallies will notify the 'agent' container of new change, and the 'agent' reacts accordingly
+5. Listeners on the SQL databases' peers or tallies will notify the 'model' container of new change, and the model3 server and its respective accounts react accordingly
 
 ### Simulation Sequence UML
 
