@@ -129,6 +129,7 @@ Here is a basic description of the flow of data through the simulation:
 ### Simulation Sequence UML
 
 ![Sequence UML](../doc/sequence-UML.png)
+[Link to LucidChart](https://lucid.app/lucidchart/01cc31e8-003b-4500-9702-52adfe2f75ba/edit?invitationId=inv_15760f04-75d9-412a-9a84-d63d8f6f8536)
 
 ### Model 3 Class UML Diagram
 
