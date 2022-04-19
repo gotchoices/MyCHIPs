@@ -119,13 +119,7 @@ Here is a basic description of the flow of data through the simulation:
 
    1. Find peer in world DB (Mongo)
 
-   2. Do we have the peer's info already downloaded?
-      1. If yes, look up the peer's ID in our cache
-      2. If not, add peer to our MyCHIPs DB (PG)
-         This gives the peer a new ID on our server (different than their ID on their server)
-         . If they are on a different server, ask them to download our info to their server
-   3. Once our info is on the peer's server...
-   4. Use the peer's ID (not peer_cid) to make a connection (tally) request with SQLManager
+   2. Use the peer's CHAD to make a connection (tally) request with SQLManager
 
 4. Once the peers and SQLManager approve the connection, then the peers perform the tally behind the scenes of the simulation.
 
