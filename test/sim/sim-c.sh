@@ -78,7 +78,7 @@ case $command in
 
     if $dobuild; then
       echo -n "Incremental schema update on site $SITE: "
-      make objects
+      make text objects
       date >$lastfile
     fi
     ;;

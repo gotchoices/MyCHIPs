@@ -7,24 +7,22 @@ Immediate:
 -  Distributed lifts work with model2/model3?
 -  Do some lifts fail (when they should) in the simulation?
 -  How do lift records get marked to void? (implement agent timeouts?)
+-  Some routes are failing with invalid state (RZ)
 - 
 - Cleanups:
+-  Can we totally get rid of peer table? (merge into user table)
 -  How to better assess lading on lift push through foreign tally (we don't know their target/bound)
 -   Merge local null min with route lading correctly
 -   Chit, tally or route protocol could update us with the latest trading vars from the other side?
 -  Should all xxx_process functions return text or JSON (routes need JSON)?
--  Why do some routes get stuck in draft mode?
+-  Why do some routes get stuck in draft mode (See RZ notice)?
 -  Should the "tally" property of a route message be in the message, not the object (since it should change at each hop)?
 -  Ditto for "step" property of a route message
 -  Mocha test for model2? (probably not right away)
 -  Command to test-run docker simulator--just to see if any error messages pop out?
 -  Can peer containers run with spa services disabled?
 -  Can/should we change chit units to be stored internally with sign relative to stock/foil?
--  Can we totally get rid of peer table? (merge into user table)
--  Better network visualizer
--    Small visual balance sheet for each user
--    Use gravity package for constant updating/stability
--    Get rid of unused fields in users_v_tallysum (only used by simulator, network visualizer)?
+-  Can we obsolete/remove (or trim) users_v_tallysum?
 - 
 - Linear lifts:
 -   Create draft lift record and retrieve digest

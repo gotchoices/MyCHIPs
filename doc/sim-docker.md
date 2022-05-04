@@ -28,8 +28,8 @@ single place for monitoring the status of a running simulation.
 
 Under the earlier simnet system, multiple VMs were created where each VM 
 represents a "site" and so would typically have an instance of the postgres 
-database, an SPA server, a peer server, and an agent modeler.  The idea is, a 
-site represents a single MyCHIPs service provider and its customers.
+database, an SPA server, a peer server, and an agent-based modeler (version 2 or 3).
+The idea is, a site represents a single MyCHIPs service provider and its customers.
 
 In this docker-based version, each process is a separate container.  So the
 notion of a "site" is not quite as clear.  It is probably best to think of a 
@@ -88,7 +88,8 @@ subdirectory (example of this in sim/sample):
 and include whatever settings you want to modify from the config.dock in
 this folder.  Some good things to focus on include:
 ```
-  agentwins, peerwins, spawins #X,Y screen coordinates of logging xterms
+  modelwins, peerwins, spawins #X,Y screen coordinates of logging xterms
+  modversion                   #Which agent-based modeler to use (2 or 3)
   logoffset                    #How xterms are tiled on the screen
   browser                      #Only firefox/chrome tested for now
   logwin                       #If you want to use xterm instead of logwin
@@ -205,11 +206,11 @@ Finally, it's time to start the simulation.  Run this:
 
 This should launch two more sets of logging windows on your screen (hopefully
 your local/config.dock settings are working OK). It will also launch two more
-container processes for each site, a peer server and an agent modeler. The
+container processes for each site, a peer server and an agent-based modeler. The
 peer server is the production MyCHIPs server that handles traffic from other
-servers on the network. The agent modeler attempts to simulate what humans
+servers on the network. The modeler attempts to simulate what humans
 might do when interacting on a MyCHIPs network (trading CHIPs in transactions).
-This command tells the agent modeler to run 50 iterations of its simulation.
+This command tells the modeler to run 50 iterations of its simulation.
 
 If your admin consoles are connected, you can select the Network tab to see
 tally connections being formed in the simulated network. There is an "Arrange"
@@ -284,8 +285,8 @@ There are a few examples of this in the sim/sample folder.
 
   ./simdock start peer all        #Start all peer servers
   ./simdock start peers           #Ditto
-  ./simdock start models --runs=10    #Run agent-models to do 10 iterations
-  ./simdock stop models           #Stop all models
+  ./simdock start models --runs=10    #Run modeler to do 10 iterations
+  ./simdock stop models           #Stop all modelers
 
   ./simdock start mongo           #Start mongodb (public database)
   ./simdock stop mongo            #Stop mongodb
@@ -296,22 +297,29 @@ There are a few examples of this in the sim/sample folder.
   ./simdock restore all profile1  #Restore all DB's from a folder called profile1
 ```
 
-## Development on Agent 3 with Typescript
+## Development on Modeler 3 with Typescript
+Simdock should be capable of running with modeler versions 2 or 3.
+Version 2 is quite basic and does not do a lot besides spending random money.
+Version 3 is the product of a BYU Capstone team and is designed to be more modular
+so many more and different behaviors can be modeled.
 
-The Agent 3 simulation model is developed with TypeScript. Therefore, if any changes are made to the TypeScript files (\*.ts), then they must be transpiled to JavaScript before the simluation can run using Agent Model 3.
+Although it is built on a much broader foundation than version 2, it has not had
+much more functionality actually implemented (at the time of this writing).
+This would be a helpful area for someone looking to contribute to the project.
 
-1. Edit \*.ts files
-2. Run the TypeScript transpiler CLI by using the following script:
-
-   ```
+Modeler 3 is also developed with TypeScript. So if any changes are made to the 
+TypeScript files (lib/*.ts), then they must be transpiled to JavaScript before the 
+simluation can run using the new changes using:
+```
    npm run tsc
-   ```
+```
 
-3. Make sure to set V3 agent model in test/sim/local/config.dock
-   ```
-   agentversion=3
-   ```
-4. Follow steps above to run simulation
+You can control which modeler version is invoked in test/sim/local/config.dock:
+```
+   modversion=3
+```
+
+There is also more extensive documentation for modeler 3 [here](/lib/model3/doc/README.md).
 
 <br>[Next - Network Simulation](sim-network.md)
 <br>[Back to Index](README.md#contents)

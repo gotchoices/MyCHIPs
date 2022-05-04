@@ -115,34 +115,47 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
 
 # List of users with summarized data about their tallies
 #----------------------------------------------------------------
-view mychips.users_v_tallies {mychips.users_v mychips.tallies} {select u.*
-  , coalesce(s.count, 0)			as count
-  , coalesce(s.net, 0)				as net
-  , coalesce(s.asset, 0)			as asset
-  , coalesce(s.assets, 0)			as assets
-  , coalesce(s.liab, 0)				as liab
-  , coalesce(s.liabs, 0)			as liabs
-  , greatest(s.latest, u.mod_date)		as latest
-  , coalesce(s.tallies, '[]'::jsonb)		as tallies
+view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
+  t as (select
+    tally_ent, tally_seq, tally_type, tally_uuid, net, inside, part_cid, part_agent, latest
+    from mychips.tallies_v order by net
+  ),
+  s as (select tally_ent
+    , count(tally_seq)					as count
+    , sum(net)						as net
+    , sum(net) filter (where net >= 0)			as asset
+    , count(net) filter (where net >= 0)			as assets
+    , sum(net) filter (where net < 0)				as liab
+    , count(net) filter (where net < 0)			as liabs
+    , max(latest)						as latest
+
+    , jsonb_agg(jsonb_build_object(
+        'ent',		tally_ent
+      , 'seq',		tally_seq
+      , 'type',		tally_type
+      , 'uuid',		tally_uuid
+      , 'net',		net
+      , 'inside',	inside
+      , 'part',		part_cid || ':' || part_agent
+      ))							as tallies
+    from t group by 1
+  )
+  select u.*
+    , coalesce(s.count, 0)			as count
+    , coalesce(s.net, 0)			as net
+    , coalesce(s.asset, 0)			as asset
+    , coalesce(s.assets, 0)			as assets
+    , coalesce(s.liab, 0)			as liab
+    , coalesce(s.liabs, 0)			as liabs
+    , greatest(s.latest, u.mod_date)		as latest
+    , coalesce(s.tallies, '[]'::jsonb)		as tallies
   
     from	mychips.users_v u
-    left join	(select tally_ent
-      , count(tally_seq)					as count
-      , sum(net)						as net
-      , sum(net) filter (where net >= 0)			as asset
-      , count(net) filter (where net >= 0)			as assets
-      , sum(net) filter (where net < 0)				as liab
-      , count(net) filter (where net < 0)			as liabs
-      , max(latest)						as latest
-      , jsonb_agg(jsonb_build_object(
-          'ent',		tally_ent
-        , 'seq',		tally_seq
-        , 'type',		tally_type
-        , 'uuid',		tally_uuid
-        , 'net',		net
-        , 'inside',		inside
-        , 'part',		part_cid || ':' || part_agent
-        ))							as tallies
-      from (select * from mychips.tallies_v order by net) t group by 1
-    ) s on s.tally_ent = u.user_ent;
+    left join	s on s.tally_ent = u.user_ent;
 }
+
+# Fixme:
+#----------------------------------------------------------------
+#This query fails (when column latest specified) to return tallies in net order
+#on certain (docker) database instances (PG13).  Not sure why!
+#select id,latest,jsonb_pretty(tallies) from mychips.users_v_tallies order by 1

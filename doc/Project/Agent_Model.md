@@ -1,6 +1,13 @@
 # Agent Model Enhancements
 Sep 2021
 
+## Project Update:
+This project was worked on by a 2021/2022 BYU Capstone team.
+They accomplished a good foundation for a new simulator but were not able to complete all the
+objectives noted herein.
+It would be very helpful for someone to take it from where they left off and actually use the simulator
+to answer some/all of the objective questions below.
+
 ## Project Background:
 MyCHIPs digital money works on the premise that in a sufficiently developed
 [network](/doc/Protocol.md#network-assumptions) of [private credit contracts (or tallies)](/doc/Tallies.md), it will be possible to 
