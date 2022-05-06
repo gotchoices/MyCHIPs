@@ -1,7 +1,31 @@
 TODO:
 
 Immediate:
-- Push release to master, merge with Capstone project
+X- Push release to master, merge with Capstone project
+X- Create dev branch
+X- Can we totally get rid of peer table? (merge into user table)
+-   Model1 still works?
+-     Generate default agents?
+-     Newline between cid/agent in network visualizer?
+-     Truncate long agent names in network visualizer
+X-   Model2 still works?
+X-   Model3 still works?
+-  Can we obsolete/remove (or trim) users_v_tallysum?
+-
+- Chit consensus
+-   Implement signatures/checking on tallies/chits
+-   Implement consensus protocol subsystem
+-   Mocha tests to simulate network disconnections, chit collisions
+-
+- Design protocol for amendments (like a pre-signed chit?)
+-   Build subsystem for entering/communicating amendments
+-   Setting trading variables (holder)
+-   Changing cid/agent (partner)
+-   Relaxing terms, including credit limit (either)
+-   Tally close command becomes an amendment
+-   Is tally call any different from tally close (probably)?
+-   Can set local trading variables: limit, lift variables
+-   Can assert remote amendments: close, call
 -   
 - Distributed lifts (interim, pre-1.0 functionality):
 -  Distributed lifts work with model2/model3?
@@ -10,7 +34,6 @@ Immediate:
 -  Some routes are failing with invalid state (RZ)
 - 
 - Cleanups:
--  Can we totally get rid of peer table? (merge into user table)
 -  How to better assess lading on lift push through foreign tally (we don't know their target/bound)
 -   Merge local null min with route lading correctly
 -   Chit, tally or route protocol could update us with the latest trading vars from the other side?
@@ -22,7 +45,7 @@ Immediate:
 -  Command to test-run docker simulator--just to see if any error messages pop out?
 -  Can peer containers run with spa services disabled?
 -  Can/should we change chit units to be stored internally with sign relative to stock/foil?
--  Can we obsolete/remove (or trim) users_v_tallysum?
+-  Delete noise branch
 - 
 - Linear lifts:
 -   Create draft lift record and retrieve digest
@@ -38,21 +61,6 @@ X-   Where/how to build/store agent private keys (pki folder?)
 -   How does the system identify local agents vs/ peer agents?
 -   Implement local lift scheduler/scanner/processor
 -  
-- Design protocol for amendments (like a pre-signed chit?)
--   Build subsystem for entering/communicating amendments
--   Setting trading variables (holder)
--   Changing cid/agent (partner)
--   Relaxing terms, including credit limit (either)
--   Tally close command becomes an amendment
--   Is tally call any different from tally close (probably)?
--   Can set local trading variables: limit, lift variables
--   Can assert remote amendments: close, call
-- 
-- Chit consensus
--   Implement signatures/checking on tallies/chits
--   Implement consensus protocol subsystem
--   Mocha tests to simulate network disconnections, chit collisions
--
 - Server now ready for single-site use?
 - 
 - Implement retries in state processing (tally, chit, route)

@@ -4,7 +4,6 @@
 tabdef mychips.users -focus ent_name -fields [concat {
     {user_ent		ent	6	{0 10}		-sort 1 -write 0 -hide 1}
     {user_stat		pdm	10	{1 10}		-ini act}
-    {serv_id		ent	20	{2 10}		}
     {user_host		ent	20	{1 11}		}
     {user_port		ent	8	{2 11}		-just r}
     {user_hid		ent	20	{3 11}		}

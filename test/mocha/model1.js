@@ -21,7 +21,7 @@ describe("Test Agent-based modeler 1", function() {
     let sql = `begin;
         delete from mychips.tallies;
         update mychips.users set _last_tally = 0;
-        update mychips.peers_v set peer_host = '${host}', peer_agent = '${agent0}', peer_port = ${port0} where peer_ent = '${ahoy}';
+        update mychips.users_v set peer_host = '${host}', peer_agent = '${agent0}', peer_port = ${port0} where user_ent = '${ahoy}';
         commit`
     db.query(sql, (e) => {if (e) done(e); done()})
   })

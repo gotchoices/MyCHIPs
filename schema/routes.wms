@@ -26,7 +26,7 @@ namespace eval routes {
 
 # Stores info about external pathways discovered from foreign servers
 #----------------------------------------------------------------
-table mychips.routes {mychips.peers mychips.tallies} {
+table mychips.routes {mychips.tallies} {
     rid		serial		primary key
   , via_ent	text		not null	-- Owner of local tally that starts the external route
   , via_tseq	int		not null
@@ -100,7 +100,7 @@ $$;}
 # Base view of pathway routes
 #----------------------------------------------------------------
 define expTime {greatest(ro.good_date, ro.lift_date) + pl.life}
-view mychips.routes_v {mychips.routes mychips.users_v mychips.peers_v mychips.tallies_v mychips.route_state(text,boolean) base.parm_v} {select 
+view mychips.routes_v {mychips.routes mychips.users_v mychips.tallies_v mychips.route_state(text,boolean) base.parm_v} {select 
     eval(fld_list $routes::routes_se	ro)
   , it.hold_cid		as via_cid
   , it.hold_agent	as via_agent

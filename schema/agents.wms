@@ -4,13 +4,13 @@
 # Current design constraints:
 #- A single mychips.js instance holds a single agent key
 #- A single mychips.js instance answers on one and only one IP number
-#- If an agent record is created by writing agent fields to mychips.peers_v 
+#- If an agent record is created by writing agent fields to mychips.users_v 
 # (which is possible), it is not possible to modify it again from that view.
 #TODO:
 #- We need a controlled way for an agent to change its network address securely
 #-   This probably should involve more than just proving possession of the agent private key
 #-   Once comfortable with the change, agents_v can be updated directly.
-#- 
+#- Do we need to delete agents when no longer referenced by either tallies or users? (see commented trigger below)
 module mychips
 
 namespace eval agents {
@@ -55,20 +55,21 @@ trigger mychips_agents_tr_biu {} {
     before insert or update on mychips.agents for each row execute procedure mychips.agents_tf_biu();
 }
 
-# After deleting a peer, delete agent if that was the last referencing peer
+#Problem: agents are referenced from tallies too!
+# After deleting a user, delete agent if that was the last referencing user
 #----------------------------------------------------------------
-function mychips.agents_tf_del() {mychips.agents mychips.peers} {
-  returns trigger language plpgsql security definer as $$
-    begin
-      if not old.peer_agent isnull and not exists (select peer_ent from mychips.peers where peer_agent = old.peer_agent) then
-        delete from mychips.agents where agent = old.peer_agent;
-      end if;
-      return old;
-    end;
-$$;}
-trigger mychips_agents_tr_del {} {
-    after delete on mychips.peers for each row execute procedure mychips.agents_tf_del();
-}
+#function mychips.agents_tf_del() {mychips.agents mychips.users} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#      if not old.peer_agent isnull and not exists (select user_ent from mychips.users where peer_agent = old.peer_agent) then
+#        delete from mychips.agents where agent = old.peer_agent;
+#      end if;
+#      return old;
+#    end;
+#$$;}
+#trigger mychips_agents_tr_del {} {
+#    after delete on mychips.users for each row execute procedure mychips.agents_tf_del();
+#}
 
 #Basic view
 #----------------------------------------------------------------

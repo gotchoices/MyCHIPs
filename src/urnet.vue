@@ -64,7 +64,7 @@ export default {
 
   computed: {
     menu() {return [
-      {tag: 'lenLoc', min:1, max:4, step:0.10, default:4, lang: this.viewMsg.lenLoc},
+      {tag: 'lenLoc', min:1, max:20, step:0.10, default:4, lang: this.viewMsg.lenLoc},
       {tag: 'lenFor', min:1, max:4, step:0.10, default:2, lang: this.viewMsg.lenFor},
       {tag: 'locPull', min:0, max:0.25, step:0.001, default:0.005, lang: this.viewMsg.locPull},
       {tag: 'forPull', min:0, max:0.5, step:0.01, default:0.25, lang: this.viewMsg.forPull},
@@ -376,7 +376,7 @@ console.log("Will delete:", nodeStray, edgeStray)
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
 //console.log("URnet async:", dat, dat.oper)
 
-      if (dat.target == 'peers' || dat.target == 'tallies')
+      if (dat.target == 'users' || dat.target == 'tallies')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
         this.refresh()
 

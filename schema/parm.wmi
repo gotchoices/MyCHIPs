@@ -1,6 +1,9 @@
 #!/bin/sh
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+#TODO:
+#- Are the 'agents' settings being used?
+#- 
 user_host=mychips.org
 user_port=54320
 peer_agent=UNASSIGNED		#Key word triggers setting of real agent key on first run
@@ -22,8 +25,8 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  ,('mychips', 'peer_host', 'text', null, '${peer_host}', null, 'Default network address where peer servers connect.')
  ,('mychips', 'peer_port', 'int', ${peer_port}, null, null, 'Default port where peer servers connect.')
 
- ,('peers', 'min_time', 'int', 5, null, null, 'Minimum number of minutes between retrying a message to a peer.')
- ,('peers', 'max_tries', 'int', 100, null, null, 'How many times to retry sending messages to a peer before giving up.')
+ ,('agents', 'min_time', 'int', 5, null, null, 'Minimum number of minutes between retrying a message to an agent server.')
+ ,('agents', 'max_tries', 'int', 100, null, null, 'How many times to retry sending messages to an agent server before giving up.')
 
  ,('routes', 'life', 'text', null, '60 min', null, 'A valid SQL interval describing how long a route should last before being considered stale')
  ,('routes', 'tries', 'int', 4, null, null, 'The number of times to retry discovering a pathway before giving up')

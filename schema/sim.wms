@@ -69,7 +69,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 # List of users with summarized data about their tallies (used primarily in simulation/visualization)
 #----------------------------------------------------------------
 view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
-    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
+    u.id, u.std_name, u.user_ent, u.peer_cid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
   , coalesce(s.units, 0)			as units
   , coalesce(s.net, 0)				as net
@@ -110,7 +110,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
   , coalesce(s.json, '[]'::jsonb)		as json
     from	mychips.users_v u
-    left join	mychips.tallies_v_sum s on s.tally_ent = u.peer_ent;
+    left join	mychips.tallies_v_sum s on s.tally_ent = u.user_ent;
 }
 
 # List of users with summarized data about their tallies

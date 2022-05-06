@@ -29,7 +29,7 @@ namespace eval tallies {
     def tally_sets_se	[concat $tally_sets_v_in tset_idx digest]
 }
 
-table mychips.tallies {mychips mychips.users mychips.peers} {
+table mychips.tallies {mychips mychips.users} {
     tally_ent	text		references mychips.users on update cascade on delete cascade
   , tally_seq	int	      , primary key (tally_ent, tally_seq)
 
@@ -62,7 +62,7 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
   , status	text		not null default 'draft'
   				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
-  , part_ent	text		references mychips.peers on update cascade on delete restrict
+  , part_ent	text		references mychips.users on update cascade on delete restrict
   				constraint "!mychips.tallies.NSP" check (part_ent != tally_ent)
   			      , constraint "!mychips.tallies.TNU" unique(tally_type, tally_uuid)
   , units_c	bigint		default 0 not null
@@ -237,7 +237,7 @@ trigger mychips_sets_tr_seq {} {
 
 # Notify the peer server process of user next-state requests, that need attention
 #----------------------------------------------------------------
-function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
+function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.tally_tries} {
   returns boolean language plpgsql security definer as $$
     declare
         jrec	jsonb;			-- Notify payload
@@ -349,7 +349,7 @@ $$;}
 # Base view of tallies
 #----------------------------------------------------------------
 define uSign {case when te.tally_type = 'stock' then (%1) else -(%1) end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.agents_v mychips.peers_v mychips.tally_state(text,text,text,text) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
+view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.agents_v mychips.tally_state(text,text,text,text) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
     eval(fld_list $tallies::tallies_se	te)
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
   , ua.agent_host			as hold_host
@@ -587,7 +587,7 @@ function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.
         trec		mychips.tallies;
         crec		mychips.chits;
         didem		int = 0;
-        min_min		int = coalesce(base.parm_int('peers','min_time'), 60);
+        min_min		int = coalesce(base.parm_int('agents','min_time'), 60);
         min_time	interval = (min_min::text || ' minutes')::interval;
     begin
         for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
