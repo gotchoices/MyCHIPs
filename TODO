@@ -12,21 +12,38 @@ X-   Model2 still works?
 X-   Model3 still works?
 -  Can we obsolete/remove (or trim) users_v_tallysum?
 -
+- Design protocol for amendments (like a pre-signed chit?)
+X-   Generalize Chit structure to include settings
+X-   Quidpro becomes arbitrary JSON payload data
+X-   Include issuer field on chits
+X-   Issuer field must be consistent with sign of units (if present)
+X-   Regression tests still work
+X-   Make new chit type for settings
+X-   Test module for setting chits
+X-   Are tally limits useful as tally parameters? (probably not)
+X-   Can we consolidate call/close requests?
+X-   How can (or should) a long-term loan be protected from over/early lifting?
+X-   When/how do we evaluate credit terms (and/or their formulas)?
+X-   Finish editing tally sections on credit terms and trading variables in learn-tally.md
+X-   Remove old tally settings code
+-   Make html widget to visualize lift/drop capacity on a tally
+-   A user can move the credit limit up or down at any time (subject to call parameter).
+-   A call is simply a reduction to zero of the limit.
+-   A call does not necessarily request to close the tally
+-   A close request is its own thing
+-   
+-   Set default bound from limit in credit terms 
+-   Handler to update/cache tally parameters when chit committed
+-     Update trading variables
+-     Request close
+-     Change user agent
+-   Remove code (and test) to request tally close by unauthenticated (non-chit) request.
+-   
 - Chit consensus
 -   Implement signatures/checking on tallies/chits
 -   Implement consensus protocol subsystem
 -   Mocha tests to simulate network disconnections, chit collisions
 -
-- Design protocol for amendments (like a pre-signed chit?)
--   Build subsystem for entering/communicating amendments
--   Setting trading variables (holder)
--   Changing cid/agent (partner)
--   Relaxing terms, including credit limit (either)
--   Tally close command becomes an amendment
--   Is tally call any different from tally close (probably)?
--   Can set local trading variables: limit, lift variables
--   Can assert remote amendments: close, call
--   
 - Distributed lifts (interim, pre-1.0 functionality):
 -  Distributed lifts work with model2/model3?
 -  Do some lifts fail (when they should) in the simulation?

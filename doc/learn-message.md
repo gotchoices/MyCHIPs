@@ -187,10 +187,17 @@ Property: **target**: chit
 
 The *object* property for the chit is defined as follows:
   - **uuid**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier)(UUID) for this particular chit.
-  - **tally**: the UUID of the tally this chit belongs to.
+  - **tally**: The UUID of the tally this chit belongs to.
+  - **issue**: The value 'stock' or 'foil' to indicate which holder issued the chit (or setting).
   - **date**: Date/time the chit was created
-  - **type**: The value 'tran' (transaction) or 'lift' (linear or circular)
-  - **for**: A description of what the payment is for
+  - **type**: The value 'tran' (transaction), 'set' (setting) or 'lift' (linear or circular)
+  - **ref**: A JSON data structure containing invoice, order, or other references material to the transaction.
+    For setting chits, this contains the values of the settings:
+    - For trading variables, use the property values [explained here](./learn-tally.md#trading-variables) (target,bound,reward,clutch).
+    - To mark a tally for closing, specify the property 'close' as true.
+    - To specify a tally call date, use the property 'call'.
+    - To specify a tally call date, use the property 'call'.
+  - **memo**: A human-readable description or comment about the transaction.
   - **units**: The number of milli-CHIPs on this chit.  Positive means a payment from Client to Vendor (or a drop).  Negative means a payment from Vendor to Client (or a lift).
   - **digest**: A string hash of the rest of the chit in a standard serialized format
   - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor

@@ -54,11 +54,11 @@ describe("Test chit state transitions", function() {
       , ent = interTest.tally.tally_ent
       , seq = interTest.tally.tally_seq
       , value = 123400
-      , reason = 'A test'
+      , ref = {a: 'A test'}
       , request = 'pend'
       , dc = 2, _done = () => {if (!--dc) done()}
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request)
-          values (%L, %s, %L, 'tran', %s, %L, %L) returning *`, ent, seq, uuid, value, reason, request)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, reference, request)
+          values (%L, %s, %L, 'tran', %s, %L, %L) returning *`, ent, seq, uuid, value, ref, request)
 //log.debug("Sql:", sql)
     dbU.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Row:", row)
@@ -81,8 +81,9 @@ describe("Test chit state transitions", function() {
       assert.equal(msg.to.cid, cid1)
       assert.equal(msg.to.agent, agent1)
       let obj = msg.object			//;log.debug("A obj:", obj)
-      assert.equal(obj.for, reason)
+      assert.deepStrictEqual(obj.ref, ref)
       assert.equal(obj.type, 'tran')
+      assert.equal(obj.issue, 'stock')
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
       assert.ok(!obj.signed)
@@ -173,9 +174,9 @@ describe("Test chit state transitions", function() {
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			;log.debug("A row:", row)
+      let row = getRow(res, 0)			//;log.debug("A row:", row)
       assert.equal(row.state, 'A.good')
       done()
     })
@@ -186,15 +187,15 @@ log.debug("Sql:", sql)
       , ent = interTest.tally.tally_ent
       , seq = interTest.tally.tally_seq
       , value = -123456				//Liability
-      , reason = 'Uninvoiced transfer'
+      , ref = {cmt: 'Uninvoiced transfer'}
       , request = 'good'
       , signature = cid0 + ' signature'
       , dc = 2, _done = () => {if (!--dc) done()}
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request, signature)
-          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, ent, seq, uuid, value, reason, request, signature)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, reference, request, signature)
+          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, ent, seq, uuid, value, ref, request, signature)
 //log.debug("Sql:", sql)
     dbU.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			;log.debug("Row:", row)
+      let row = getRow(res, 0)			//;log.debug("Row:", row)
       assert.equal(row.units, value)
       assert.equal(row.status,'pend')
       assert.equal(row.request,'good')
@@ -211,7 +212,8 @@ log.debug("Sql:", sql)
       assert.equal(msg.to.cid, cid1)
       assert.equal(msg.to.agent, agent1)
       let obj = msg.object			//;log.debug("A obj:", obj)
-      assert.equal(obj.for, reason)
+      assert.deepStrictEqual(obj.ref, ref)
+      assert.equal(obj.issue, 'stock')
       assert.equal(obj.type, 'tran')
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
@@ -228,9 +230,9 @@ log.debug("Sql:", sql)
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			;log.debug("row:", row)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.pend')
       interTest.chit = object			//Now dealing with this chit
       done()
@@ -313,6 +315,80 @@ log.debug("Sql:", sql)
       done()
     })
   })
+
+  it("Commit trading variable chit record (<start> -> User.pend.good)", function(done) {
+    let uuid = mkUuid(cid0, agent0, 'chit')
+      , ent = interTest.tally.tally_ent
+      , seq = interTest.tally.tally_seq
+      , ref = {
+        target: '1234',
+        bound:  '2345',
+        reward: '0.12',
+        clutch: '0.05',
+        limit:  '3456',
+        close: true,
+        call: '2050-Jan-01',
+      }
+      , request = 'good'
+      , signature = cid0 + ' signature'
+      , dc = 2, _done = () => {if (!--dc) done()}
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, reference, request, signature)
+          values (%L, %s, %L, 'user', %L, %L, %L) returning *`, ent, seq, uuid, ref, request, signature)
+//log.debug("Sql:", sql)
+    dbU.query(sql, (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("Row:", row)
+      assert.ok(!row.units)			//Null for settings
+      assert.equal(row.status,'pend')
+      assert.equal(row.request,'good')
+      assert.equal(row.state,'L.pend.good')
+      assert.equal(row.effect,'credit')
+      assert.equal(row.action, false)
+      _done()
+    })
+    busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
+      assert.equal(msg.target, 'chit')
+      assert.equal(msg.action, 'good')
+      assert.equal(msg.to.cid, cid1)
+      assert.equal(msg.to.agent, agent1)
+      let obj = msg.object			//;log.debug("A obj:", JSON.stringify(obj))
+      assert.deepStrictEqual(obj.ref, ref)
+      assert.equal(obj.issue, 'stock')
+      assert.equal(obj.type, 'user')
+      assert.equal(obj.uuid, uuid)
+      assert.equal(obj.signed, signature)
+
+      interTest.from = msg.from			//For next test
+      interTest.chit = obj
+      _done()
+    })
+  })
+/*
+  it("Agent transmits settings, confirms change to good (L.pend.good -> L.good)", function(done) {
+    let msg = {to: interTest.from, object: interTest.chit}
+      , logic = {context: ['L.pend.good'], update: {status: 'good'}}
+      , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+//log.debug("Sql:", sql)
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			;log.debug("row:", row)
+      assert.equal(row.state, 'L.good')
+      done()
+    })
+  })
+
+/*
+
+//  it("Verify tally properties are changed", function(done) {
+//    let msg = {to: interTest.from, object: interTest.chit}
+//      , logic = {context: ['L.pend.good'], update: {status: 'good'}}
+//      , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+//log.debug("Sql:", sql)
+//    dbA.query(sql, null, (e, res) => { if (e) done(e)
+//      let row = getRow(res, 0)			;log.debug("row:", row)
+//      assert.equal(row.state, 'L.good')
+//      done()
+//    })
+//  })
+
 /* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let it flush out before closing

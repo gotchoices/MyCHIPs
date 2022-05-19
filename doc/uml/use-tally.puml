@@ -9,7 +9,7 @@ actor "Partner" as partner
 usecase "Be My Vendor?" as offerStock
 usecase "Be My Client?" as offerFoil
 usecase "Transaction" as newChit
-usecase "Request Close" as reqClose
+usecase "Modify a Setting" as modSet
 
 user	--	offerStock
 		offerStock	--	partner
@@ -17,7 +17,7 @@ user	--	offerFoil
 		offerFoil	--	partner
 user	--	newChit
 		newChit		--	partner
-user	--	reqClose
-		reqClose	--	partner
+user	--	modSet
+		modSet		--	partner
 
 @enduml

@@ -1,5 +1,5 @@
-## MyCHIPs Protocol Description 1.2 (working draft)
-Mar 2022; Copyright MyCHIPs.org
+## MyCHIPs Protocol Description 1.3 (working draft)
+May 2022; Copyright MyCHIPs.org
 
 ### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.
@@ -113,12 +113,22 @@ These use-cases are explained as follows::
   And it constitutes a signed digital contract indicating the [terms and conditions](learn-tally.md#credit-terms) by which the two parties have agreed to conduct their trades.
   The tally balance is modified by entering individual atomic transactions called [chits](https://www.dictionary.com/browse/chit).
   These chits are also digitally signed and become a part of the tally.
-- **Request Close**:
-  A tally must be completely voluntary on the part of both parties.
-  However, once agreed to (signed), the entities are duty-bound to uphold its terms.
-  So a tally can be closed at any time, but the obligated entity (debtor) must somehow bring the tally balance to zero.
-  This might involve a [credit lift](learn-lift.md) or it could be done by giving product, services, or some other kind of money.
+- **Setting**:
+  There are a number of parameters in a tally that can be set unilaterally by the stock or foil holder after a tally has been signed and agreed to.
+  These should not violate the formal terms and conditions of the tally (i.e. those digitally signed by both parties).
+  But they will clearly affect how the system will operate the tally.
+  
+  Settings are modeled as a special kind of chit that transmits no value--only information.
+  This will facilitate verifying that each end of the tally contains the same information about settings.
 
+  Users can make the following tally settings:
+  - Adjust/change lift [trading variables](learn-lifts.md#trading-variables).
+    Although these seem to be solely the business of the user's host service, the partner site needs to know certain aspects in order to properly estimate lift lading capacity.
+  - Request a tally to be closed, once it's balance reaches zero.
+    While this can be done at any time, a debtor may still not have an obligation to pay down a debt any faster than specified in the previously signed credit terms.
+  - Specify a <i>call date</i> or when the other partner is expected to pay its balance down to zero.
+  - Change one's own agent address.
+  
 ### Tally Protocol
 The steps to establish a tally are shown in the following sequence diagram.
 This covers the first two tally use cases, the only difference being which entity is designated as the stock holder and which is the foil holder.
@@ -126,7 +136,7 @@ Tally initiation is also discussed in some detail [here](learn-tally.md#establis
 
 ![seq-tally](uml/seq-tally.svg)
 
-As mentioned, transactions are carried out as chits, which get added to the tally.
+As mentioned, transactions and settings are carried out as chits, which get added to the tally.
 More on chits [below](#chit-use-cases).
 
 When one of the partners wishes to end the trading relationship, he can do so by the steps in the following sequence diagram.
@@ -146,10 +156,15 @@ Now we can derive the following state diagram to describe the tally protocol fro
 
 ### Chit Use Cases
 A chit constitutes a pledge of future value from one entity to another.
-There are two basic types of chits:
+There are three basic types of chits:
 - **Direct Chit**:
   This is a simple promise issued by one entity, to its direct trading partner.
   It only needs to be signed by the entity pledging value.
+- **Setting Chit**:
+  This is a declaration by one entity that it wishes to change certain operating conditions of the tally.
+  It must be properly signed by that entity.
+  For most protocol purposes, it will be dealt with just like a direct chit.
+  It has the additional side effect of modifying things like the tally request (close), credit terms, or trading variables.
 - **Lift Chit**:
   In this case, the chit is part of a larger [credit lift](learn-lift.md).
   There will be a whole group of chits, all bound to the lift.
@@ -170,14 +185,15 @@ This lift will also involve one of our direct partners who will be the first lin
 
 ### Direct Chit Protocol
 We will first deal with the simpler case where a single direct chit is being entered onto an existing tally between two entities.
-Either entity can make a direct payment to the other simply by making and signing a chit.
+Either entity can change a setting or make a direct payment to the other simply by making and signing a chit.
 
-This diagram shows the first case, Sending a Direct Payment:
+This diagram shows the first case, Sending a Setting or Direct Payment:
 
 ![seq-chit-pmt](uml/seq-chit-pmt.svg)
 
 When requesting a direct payment from the other party, the sequence gets a little more complicated.
-This involves the generation of an *invoice,* or request for payment:
+This involves the generation of an *invoice,* or request for payment.
+Setting chits should never be handled through this sequence.
 
 ![seq-chit-inv](uml/seq-chit-inv.svg)
 
@@ -212,9 +228,63 @@ The returned object would contain:
 This sequence will be dealt with in more detail in the section below on [lifts](#lift-protocol).
 It can be generalized to the simpler case above where an invoice is requested from a direct partner.
 
-Now we can derive the following state diagram to describe the direct chit protocol from the perspective of a single entity:
+Now we can derive the following state diagram to describe the direct chit protocol from the perspective of a single entity.
+Note, the states for setting chits are shown as being treated right along with regular transaction chits, and depicted as:
+- User.pend.good, User.good: Settings made by our local user, and
+- Peer.good: Settings made by the remote peer.
 
 [![state-chit](uml/state-chit.svg)](uml/state-chit.svg)
+
+### Chit Consensus
+The last step in this diagram refers to a consensus process.
+This is a sub-protocol by which the peers at each end of a common tally agree upon which order chits are entered onto their copies of the tally.
+Chit order is not particularly important from a theoretical standpoint.
+But in an actual implementation, it is very helpful.
+
+Each chit contains a hash of its other contents.
+This hash is useful for detecting if anything in the chit has changed (something we don't want to happen).
+
+In addition, each chit contains a copy of the hash for the chit preceeding it on the tally.
+In this way, the hash of the latest chit can be compared with the same point in the chain on the other end of the tally.
+If the hashes are the same, we can rest assured that the stock and foil contain exactly the same chit information, at least up to that point.
+This is much more efficient than trying to compare every chit on the tally individually each time.
+
+Chits can originate from either end of the tally.
+For example, either party can unilaterally sign a chit that sends value to the other party.
+
+![use-cons](uml/use-cons.svg)
+
+In the case of lift chits, validating signatures will normally propagate around the lift circuit in the clockwise (downstream) direction.
+That means the foil holder on any given tally will get the signature before the stock holder.
+As they attempt to reach consensus on chit order, the signature will naturally get shared.
+
+This diagram shows the sequence of events for the two basic use cases:
+
+![seq-cons](uml/seq-cons.svg)
+
+The consensus algorithm is pretty simple.
+Essentially, the foil is always right about how to order the chits.
+It is the job of the stock to conform to that order.
+
+Both stock and foil have the duty to recognize, accept and store a duly signed and valid chit.
+
+The goal of the consenus protocol is then to:
+- get all valid chits linked into a hash-chained list; and
+- verify that the stock and foil both have an identical list of valid chits.
+
+The consensus protocol is centered around chits.
+But it is really the tally (its two halves) that are (or are not) fully consensed at any given time.
+
+Now we can derive the following state diagram to describe the tally/chit consensus protocol from the perspective of a single site.
+First, the states associated with the foil:
+
+[![state-cons](uml/state-conf.svg)](uml/state-conf.svg)
+
+And now, the states associated with the stock:
+
+[![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
+
+
 
 ### Credit Lifts Explained
 So far, the protocol has dealt primarily with transactions moving value between two partners who are directly connected by a tally.
@@ -521,53 +591,5 @@ The referee lift state diagram is as follows:
 
 [![state-ref](uml/state-ref.svg)](uml/state-ref.svg)
 
-### Consensus Protocol
-This is a sub-protocol by which the peers at each end of a common tally agree upon which order chits are entered onto their copies of the tally.
-Chit order is not particularly important from a theoretical standpoint.
-But in an actual implementation, it is very helpful.
-
-Each chit contains a hash of its other contents.
-This hash is useful for detecting if anything in the chit has changed (something we don't want to happen).
-
-In addition, each chit contains a copy of the hash for the chit preceeding it on the tally.
-In this way, the hash of the latest chit can be compared with the same point in the chain on the other end of the tally.
-If the hashes are the same, we can rest assured that the stock and foil contain exactly the same chit information, at least up to that point.
-This is much more efficient than trying to compare every chit on the tally individually each time.
-
-Chits can originate from either end of the tally.
-For example, either party can unilaterally sign a chit that sends value to the other party.
-
-![use-cons](uml/use-cons.svg)
-
-In the case of lift chits, validating signatures will normally propagate around the lift circuit in the clockwise (downstream) direction.
-That means the foil holder on any given tally will get the signature before the stock holder.
-As they attempt to reach consensus on chit order, the signature will naturally get shared.
-
-This diagram shows the sequence of events for the two basic use cases:
-
-![seq-cons](uml/seq-cons.svg)
-
-The consensus algorithm is pretty simple.
-Essentially, the foil is always right about how to order the chits.
-It is the job of the stock to conform to that order.
-
-Both stock and foil have the duty to recognize, accept and store a duly signed and valid chit.
-
-The goal of the consenus protocol is then to:
-- get all valid chits linked into a hash-chained list; and
-- verify that the stock and foil both have an identical list of valid chits.
-
-The consensus protocol is centered around chits.
-But it is really the tally (its two halves) that are (or are not) fully consensed at any given time.
-
-Now we can derive the following state diagram to describe the tally/chit consensus protocol from the perspective of a single site.
-First, the states associated with the foil:
-
-[![state-cons](uml/state-conf.svg)](uml/state-conf.svg)
-
-And now, the states associated with the stock:
-
-[![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
-
-<br>[Next - Data Messages](learn-messages.md)
+<br>[Next - Data Messages](learn-message.md)
 <br>[Back to Index](README.md#contents)

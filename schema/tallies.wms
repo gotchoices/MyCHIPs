@@ -10,8 +10,6 @@
 #
 #TODO:
 #- Can create digest offline in JavaScript that matches tally_sets?
-#- Can validate tally_sets record against supplied signature, mark cache field as valid
-#- dr_limit, cr_limit become a part of terms setting?
 #- Add constraints to assure things like contract and signatures are valid?
 #- Harden views; Can only update unsigned, working tally
 #- 
@@ -20,13 +18,9 @@ require config.tcl trigview.tcl
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
-    def tallies_v_up	{comment target reward clutch bound part_sig hold_sig request cr_limit dr_limit}
+    def tallies_v_up	{comment target reward clutch bound part_sig hold_sig request}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_cert part_cert hold_terms part_terms]
     def tallies_se	[concat $tallies_v_in tally_seq status digest units_pc units_c tally_date hold_cid hold_agent part_cid part_agent $glob::stampfn]
-
-    def tally_sets_pk	{tset_ent tset_seq tset_idx}
-    def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
-    def tally_sets_se	[concat $tally_sets_v_in tset_idx digest]
 }
 
 table mychips.tallies {mychips mychips.users} {
@@ -48,15 +42,11 @@ table mychips.tallies {mychips mychips.users} {
   , part_terms	jsonb					-- Terms partner grants to our holder
   , digest	bytea
 
--- Values settable by the holder, cached version of latest tally_sets record
+-- Values settable by the holder, cached version of latest applicable settings chit
   , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
   , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
   , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
   , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
-
---Fixme: need to rename to hold_limit, initialize from terms and then make settable (and eliminate the partner side column)
-  , dr_limit	bigint		not null default 0	-- A stock term
-  , cr_limit	bigint		not null default 0	-- A foil term
 
 -- Values used internally to track state, required actions
   , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
@@ -73,26 +63,16 @@ table mychips.tallies {mychips mychips.users} {
   , part_agent	text		references mychips.agents on update restrict on delete restrict
   , chain_conf	int		default 0 not null
   , _last_chit	int		not null default 0
-  , _last_tset	int		not null default 0
+
+--Obsolete values:
+--  , dr_limit	bigint		not null default 0	-- A stock term
+--  , cr_limit	bigint		not null default 0	-- A foil term
+--  , _last_tset	int		not null default 0
     eval(s $glob::stamps)
 }
 index {} mychips.tallies tally_uuid
 index {} mychips.tallies tally_type
 index {} mychips.tallies tally_date
-
-table mychips.tally_sets {mychips.tallies} {
-    tset_ent	text
-  , tset_seq	int	      , foreign key (tset_ent, tset_seq) references mychips.tallies on update cascade on delete cascade
-  , tset_idx	int	      , primary key (tset_ent, tset_seq, tset_idx)
-  , tset_date	timestamptz	not null default current_timestamp
-  , target	bigint
-  , reward	float
-  , clutch	float
-  , bound	bigint
-  , signature	text		not null
-  , digest	bytea
-}
-#index {} mychips.tally_sets tset_date
 
 table mychips.tally_tries {mychips.tallies} {
     ttry_ent	text	      , primary key (ttry_ent, ttry_seq)
@@ -208,32 +188,22 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
     end;
 $$;}
 
-# Generate unique sequence for new tally setting
+# Apply user settings to a tally
 #----------------------------------------------------------------
-function mychips.tally_sets_tf_seq() {mychips.tally_sets mychips.tset_json(mychips.tally_sets) mychips.j2h(jsonb)} {
-  returns trigger language plpgsql security definer as $$
-    declare
-      tfld	text;
-      qflds	text[];
-      qstrg	text;
+function {mychips.tally_settings(ta mychips.tallies, vals jsonb)} {mychips.tallies} {
+  returns void language plpgsql security definer as $$
+--    declare
+--      hchad jsonb; pchad jsonb; c jsonb;
     begin
-      if new.tset_idx is null then
-        update mychips.tallies set _last_tset = greatest(
-            coalesce(_last_tset,0) + 1,
-            (select coalesce(max(tset_idx),0)+1 from mychips.tally_sets where tset_ent = new.tset_ent and tset_seq = new.tset_seq)
-          ) where tally_ent = new.tset_ent and tally_seq = new.tset_seq
-            returning _last_tset into new.tset_idx;
-        if not found then new.tset_idx = 1; end if;
-      end if;
-      new.digest = mychips.j2h(mychips.tset_json(new));
-
-      update mychips.tallies set target = coalesce(new.target,target), reward = coalesce(new.reward,reward), clutch = coalesce(new.clutch,clutch), bound = coalesce(new.bound,bound) where tally_ent = new.tset_ent and tally_seq = new.tset_seq;
-      return new;
+raise notice 'tally settings:% % = %', ta.tally_ent, ta.tally_seq, vals;
+--      update mychips.tallies set
+--        target = coalesce(new.target,target), 
+--        reward = coalesce(new.reward,reward), 
+--        clutch = coalesce(new.clutch,clutch), 
+--        bound = coalesce(new.bound,bound)
+--      where tally_ent = new.tset_ent and tally_seq = new.tset_seq;
     end;
 $$;}
-trigger mychips_sets_tr_seq {} {
-    before insert on mychips.tally_sets for each row execute procedure mychips.tally_sets_tf_seq();
-}
 
 # Notify the peer server process of user next-state requests, that need attention
 #----------------------------------------------------------------
@@ -319,18 +289,6 @@ function {mychips.tally_json(te mychips.tallies)} {mychips.tallies} {
     )
 $$;}
 
-# Compute standard json output for tally settings
-#----------------------------------------------------------------
-function {mychips.tset_json(ts mychips.tally_sets)} {mychips.tally_sets} {
-  returns jsonb stable language sql as $$
-    select jsonb_strip_nulls(jsonb_build_object(
-       'target',	ts.target,
-       'reward',	ts.reward,
-       'clutch',	ts.clutch,
-       'bound',		ts.bound
-    ))
-$$;}
-
 # Compute current state of a tally, based on its various fields
 #----------------------------------------------------------------
 function {mychips.tally_state(status text, request text, hold_sig text, part_sig text)} {mychips} {
@@ -413,23 +371,6 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
-}
-
-# Base view of tally settings
-#----------------------------------------------------------------
-view mychips.tally_sets_v {mychips.tally_sets mychips.tset_json(mychips.tally_sets) mychips.j2h(jsonb)} {select 
-    eval(fld_list $tallies::tally_sets_se	ts)
-  
-  , mychips.tset_json(ts)				as json_core
-  , mychips.tset_json(ts) || jsonb_build_object(
-      'signature',	ts.digest
-    )		as json
-  , mychips.j2h(mychips.tset_json(ts))		as digest_v
-  , mychips.j2h(mychips.tset_json(ts)) = coalesce(ts.digest,'') as clean
-
-    from	mychips.tally_sets	ts;
-
-    eval(trigview::insert mychips.tally_sets_v mychips.tally_sets $tallies::tally_sets_v_in $tallies::tally_sets_pk {tset_date current_timestamp});
 }
 
 # User view of tallies

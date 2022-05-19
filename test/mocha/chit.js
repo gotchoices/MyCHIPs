@@ -70,10 +70,11 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     let uuid = mkUuid(cidO, agentO)
       , seq = interTest.talO.tally_seq
       , value = 1234500
-      , reason = 'Consulting invoice'
+      , ref = {x: 'Consulting invoice'}
+      , memo = 'A test memo'
       , request = 'pend'
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request)
-          values (%L, %s, %L, 'tran', %s, %L, %L) returning *`, userO, seq, uuid, value, reason, request)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, reference, memo, request)
+          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, userO, seq, uuid, value, ref, memo, request)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
@@ -81,7 +82,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(row.chit_ent, userO)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.request, request)
-      assert.equal(row.quidpro, reason)
+      assert.deepStrictEqual(row.reference, ref)
       assert.equal(row.effect, 'debit')
       assert.equal(row.units_p, value)
       assert.equal(row.units_g, 0)
@@ -92,9 +93,10 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     busS.register('ps', (msg) => {		//log.debug("S user msg:", msg)
       assert.equal(msg.state, 'L.pend')		//Subject is notified of the invoice
       let obj = msg.object
-      assert.equal(obj.for, reason)
+      assert.deepStrictEqual(obj.ref, ref)
       assert.equal(obj.units, value)
       assert.equal(obj.tally, interTest.talO.tally_uuid)
+      assert.equal(obj.memo, memo)
       assert.equal(obj.uuid, uuid)
       assert.ok(!obj.signed)
       interTest.chitS = obj
@@ -103,7 +105,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     busO.register('po', (msg) => {		//log.debug("O user msg:", msg)
       assert.equal(msg.state, 'A.pend')		//Originator is notified of the updated record
       let obj = msg.object
-      assert.equal(obj.for, reason)
+      assert.deepStrictEqual(obj.ref, ref)
       assert.equal(obj.units, value)
       assert.ok(!obj.signed)
       interTest.chitO = obj
@@ -203,11 +205,11 @@ log.debug("Sql:", dc, sql)
     let uuid = mkUuid(cidO, agentO)
       , seq = interTest.talO.tally_seq
       , value = -99123
-      , reason = 'Partial refund'
+      , ref = {z: 'Partial refund'}
       , request = 'good'
       , signed = cidO + ' signature'
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, quidpro, request, signature)
-          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, userO, seq, uuid, value, reason, request, signed)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, reference, request, signature)
+          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, userO, seq, uuid, value, ref, request, signed)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
@@ -215,13 +217,13 @@ log.debug("Sql:", dc, sql)
       assert.equal(row.chit_ent, userO)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.request, request)
-      assert.equal(row.quidpro, reason)
+      assert.deepStrictEqual(row.reference, ref)
       _done()
     })
     busS.register('ps', (msg) => {		//log.debug("S user msg:", msg, msg.object)
       assert.equal(msg.state, 'A.good')
       let obj = msg.object
-      assert.equal(obj.for, reason)
+      assert.deepStrictEqual(obj.ref, ref)
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
       assert.ok(obj.signed)
