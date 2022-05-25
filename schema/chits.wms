@@ -30,6 +30,7 @@ table mychips.chits {mychips.tallies mychips.lifts} {
   , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
   , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','user','peer'))
   , chit_date	timestamptz	not null default current_timestamp
+  , vests	timestamptz	not null default current_timestamp
   , units	bigint		constraint "!mychips.chits.CUN" check(units notnull and chit_type in ('lift','tran') or units isnull and chit_type in ('user','peer'))
   , reference	jsonb
   , memo	text

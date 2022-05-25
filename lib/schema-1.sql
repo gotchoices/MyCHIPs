@@ -2745,6 +2745,7 @@ chit_ent	text
   , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
   , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','user','peer'))
   , chit_date	timestamptz	not null default current_timestamp
+  , vests	timestamptz	not null default current_timestamp
   , units	bigint		constraint "!mychips.chits.CUN" check(units notnull and chit_type in ('lift','tran') or units isnull and chit_type in ('user','peer'))
   , reference	jsonb
   , memo	text
@@ -7396,6 +7397,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','chits','signature','mychips','chits','signature','f','f'),
   ('mychips','chits','status','mychips','chits','status','f','f'),
   ('mychips','chits','units','mychips','chits','units','f','f'),
+  ('mychips','chits','vests','mychips','chits','vests','f','f'),
   ('mychips','chits_v','action','mychips','chits_v','action','f','f'),
   ('mychips','chits_v','chain_idx','mychips','chits','chain_idx','f','f'),
   ('mychips','chits_v','chain_prv','mychips','chits','chain_prv','f','f'),

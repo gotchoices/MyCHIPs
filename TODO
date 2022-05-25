@@ -1,43 +1,30 @@
 TODO:
 
 Immediate:
-X- Push release to master, merge with Capstone project
-X- Create dev branch
-X- Can we totally get rid of peer table? (merge into user table)
--   Model1 still works?
--     Generate default agents?
--     Newline between cid/agent in network visualizer?
--     Truncate long agent names in network visualizer
-X-   Model2 still works?
-X-   Model3 still works?
--  Can we obsolete/remove (or trim) users_v_tallysum?
--
-- Design protocol for amendments (like a pre-signed chit?)
-X-   Generalize Chit structure to include settings
-X-   Quidpro becomes arbitrary JSON payload data
-X-   Include issuer field on chits
-X-   Issuer field must be consistent with sign of units (if present)
-X-   Regression tests still work
-X-   Make new chit type for settings
-X-   Test module for setting chits
-X-   Are tally limits useful as tally parameters? (probably not)
-X-   Can we consolidate call/close requests?
-X-   How can (or should) a long-term loan be protected from over/early lifting?
-X-   When/how do we evaluate credit terms (and/or their formulas)?
-X-   Finish editing tally sections on credit terms and trading variables in learn-tally.md
-X-   Remove old tally settings code
--   Make html widget to visualize lift/drop capacity on a tally
+X- Settings/limits:
+X-   What is the difference between a tally limit and a lift bound?
+X-     Tally limit is for reference of the parties only
+X-     Lift bound is consulted only by the lift algorithm
+X-   How/when are tally limits enforced?  (never by the system, only the users)
+X-   Consolidate bound/limit into one? (no)
+-   
+X- Make html widget to visualize lift/drop capacity on a tally
+X- Review tally document, make provision for post-dated chits?
+- Implement parser for consuming setting chit variables:
 -   A user can move the credit limit up or down at any time (subject to call parameter).
 -   A call is simply a reduction to zero of the limit.
 -   A call does not necessarily request to close the tally
--   A close request is its own thing
--   
--   Set default bound from limit in credit terms 
--   Handler to update/cache tally parameters when chit committed
--     Update trading variables
--     Request close
--     Change user agent
--   Remove code (and test) to request tally close by unauthenticated (non-chit) request.
+-   Can request tally close (a separate thing)
+-   Can update trading variables
+-   Change user agent
+- Set default bound from limit in credit terms?
+- Remove code (and test) to request tally close by unauthenticated (non-chit) request.
+
+- Model1 still works?
+-   Generate default agents?
+-   Newline between cid/agent in network visualizer?
+-   Truncate long agent names in network visualizer
+-  Can we obsolete/remove (or trim) users_v_tallysum?
 -   
 - Chit consensus
 -   Implement signatures/checking on tallies/chits
@@ -62,7 +49,6 @@ X-   Remove old tally settings code
 -  Command to test-run docker simulator--just to see if any error messages pop out?
 -  Can peer containers run with spa services disabled?
 -  Can/should we change chit units to be stored internally with sign relative to stock/foil?
--  Delete noise branch
 - 
 - Linear lifts:
 -   Create draft lift record and retrieve digest
@@ -78,7 +64,7 @@ X-   Where/how to build/store agent private keys (pki folder?)
 -   How does the system identify local agents vs/ peer agents?
 -   Implement local lift scheduler/scanner/processor
 -  
-- Server now ready for single-site use?
+- Server now ready for single-site use/deployment?
 - 
 - Implement retries in state processing (tally, chit, route)
 - Upgrade distributed lift subsystem fully to protocol 1.0

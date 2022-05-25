@@ -57,6 +57,7 @@ A tally includes the following information:
 Each atomic change to the amount owing (transaction) is referred to as a 
 ["chit"](https://www.dictionary.com/browse/chit) and includes:
   - Transaction date and time
+  - Vesting date and time (not yet implemented)
   - Transaction amount, in mCHIPs (1/1000th part of a CHIP)
   - A transaction type:
     - Unearned gift
@@ -80,57 +81,57 @@ Settings include:
   - Date of the change
   - Signature of the modifying party
 
-Tally data and chits must be maintained identially on the Stock and Foil (i.e. the two copies of the tally held by the parties to the credit agreement).
+Tally data and chits must be maintained identically on the Stock and Foil (i.e. the two copies of the tally held by the parties to the credit agreement).
 The order of chits must also (eventually) agree on both sides of the tally.
 This is called [chit consensus](./learn-protocol.md#chit-consensus).
 
 ### Evolution of Credit Terms
-The section below on [Credit Terms](#credit-terms) was written prior to the development of
-the distributed lift protocol.  As of May 2022, it is not particularly relevant to the 
-current protocol (1.0+) so readers not interested in the background history may wish to skip 
-ahead to the following section on [Trading Variables](#trading-variables).
 
 The tally fields reserved for credit terms were designed to hold parameters which could be
 referred to in the tally contract to adapt the contract to the specific numbers agreed to
-by the parties.  The parameters outlined below were designed with the idea that nearly any 
-sort of credit relationship could be documented using a tally.
+by the parties.  The parameters outlined below were originally designed with the idea that 
+nearly any sort of credit relationship could be represented using a tally.
 
-The author's current thinking is that this may not be particularly helpful for several
-reasons including:
-- When a chit is recorded on the tally, this implies that the credits being pledged by
-  the Client to the Vendor is available to be lifted (effectively transmuted) into other
-  credits deemed more useful to the Vendor (for example, with its own vendors).
-- But long term credit relationships (like a home loan or a car loan) entail a very different notion.
-  - Certainly, the total owing is considered <i>due</i> to the creditor, but not right away.
+As development continues, the author wonders if this was too ambitious.
+Some of the challenges include:
+- When a chit is recorded in the present implementation, this implies that the credits being pledged
+  are immediately available to be lifted (effectively transmuted) into other
+  credits deemed more useful to the recipient (for example, with its own vendors).
+- But longer term credit relationships (like a home loan or a car loan) entail a little different notion.
+  - Certainly, the total amount owing is considered <i>due</i> to the creditor, but not right away.
   - Amounts owing are due later on, in the future.  They are not immediately payable.
 - MyCHIPs is meant first, and foremost to be a payment system.  This implies a need for
-  fungibility (or at least effective-fungibility).  A private note promising future payment is 
-  clearly not fungible in any way.  A chit is effectively fungible only because of the novel MyCHIPs lift algorithm.
-- MyCHIPs is built for use in commerce to facilitate trade--not as a mechanism for creating arbitrary
+  fungibility (or at least effective-fungibility).  A private note promising payment only in the future is 
+  clearly not fungible.  A chit is effectively fungible only because of the novel MyCHIPs lift algorithm.
+- MyCHIPs is intended primarily for use in commerce to facilitate trade--not as a mechanism for creating arbitrary
   debt which, in some circumstances, [might be deemed a security](https://www.kramerlevin.com/en/perspectives-search/when-might-loans-be-deemed-securities.html).
-- The [Trading Variables](#trading-variables) developed as an integral part of the lift algorithm
-  do not seem to play nice with most of the credit terms proposed below.
+- The [Trading Variables](#trading-variables) developed as the sole drivers of the lift algorithm.
+  It was not initially clear how this might (or might not) be compatible with the credit terms below.
   For example, if a tally representing a home loan has a very large balance, it may suck up all available
   lift capacity, not allowing lifts for other tallies with smaller imbalances.
 - There is no obvious trigger or <i>appropriate moment</i> for evaluating credit terms that are expressed as a formula.
 
-If it is later determined how to effectively incorporate future payments (or other complex credit terms)
-into a MyCHIPs tally, those features can be re-incorporated.
-For now, credit terms will likely be limited to a default credit limit and perhaps a few other
-incidentals (such as default penalties and so forth).
+The present direction for resolving these matters is as follows:
+- Addition of the <i>vesting date</i> (not yet implemented) to the chit record.
+  - Use of a vesting date would likely be limited to manual chits (i.e. not lift chits).
+  - Before the vesting date, the chit would be totally ignored by the lift/route algorithm.
+  - After the vesting date, it would suddenly become relevant.
+  - This should have the effect of making the chit non-liquid prior to vesting and liquid thereafter.
+- We will consider tally credit terms to be primarily understood by the humans party to the tally.
+  Generally, credit terms will not be parsed by the computer, except to correlate them with the tally contract in a way so the parties can properly interpret their contract with each other.
+- The lift algorithm will not consult the credit terms at all, but will be guided solely by the trading variables.
 
-Users who wish to store long-term value in asset loans should probably execute a tally with a zero
-beginning balance on which the debtor may accumulate a debit balance.  The parties can keep a separate
-written loan document which agrees to charge interest only on the difference between the balance of
-the conventional loan and the balance of the associated tally.  This will facilitate the desired 
-qualities of a home-backed credit line without having to encumber the tally with all the minutiae 
-of a home loan.	
+In the initial roll-out, MyCHIPs should concentrate primarily on chits that vest immediately and are subject to immediate lifting.
+Users can carefully evaluate the viability of representing more complex credit relationships such as longer term loans.
+Users will also be responsible for their own conduct should they engage in activities that may be regulated.
 
 ### Credit Terms
-(Some aspects of this section may no longer be applicable or may be deprecated.
-See the [preceeding section](#evolution-of-credit-terms).
+Some aspects of this section may not represent the current implementation.
+Specifically, there is no current mechanism implemented for parsing variables or expressions in credit terms.
+These values should correlate with the particular tally contract selected by the parties
+and it will be up to the parties and/or the apps they use to properly interpret and enforce their agreed upon credit terms.
 
-The tally credit terms field is actually comprised of a series of variables, some 
+The tally credit terms field is a JSON object containing a series of variables (properties), some 
 of which are optional.  The purpose is to have enough variables that many common types of 
 credit arrangements can be reasonably represented by a suitable choice of values.
 
@@ -349,51 +350,51 @@ until I had funged it into a form of value I was more comfortable with.
 
 ### Trading Variables
 MyCHIPs credits are, by design, not transferrable.  This means, if someone owes 
-you value, you don't have the right to reassign that asset to a third party.
+you value, you don't have the right (or even the ability) to reassign that asset to a third party.
 This limitation is imposed purposely to avoid the need for trust among unrelated parties
 and it also makes CHIPs less vulnerable to theft or loss.
-But it seems like a pretty serious limitation--especially on something we are 
-trying to use as money.
+But it seems like a pretty serious limitation--especially on a system we intend to use as money.
 
 Thankfully, the [credit lift algorithm](http://gotchoices.org/mychips/acdc.html)
 makes it possible to virtually transmit *value*, if not the CHIP tokens themselves.
-This *effective fungibility* is enough to make CHIPs useful as money.
+This *effective fungibility* is enough to make CHIPs useful as a medium of exchange.
 
 [![A Tiny CHIP Network](http://gotchoices.org/figures/money_ac.svg)](http://gotchoices.org/figures/money_ac.svg "Click to see/run a decentralized private credit model")
 
-Circular lifts are typically executed autonomously (without direct user interaction).
-So the system needs a defined set of rules to know how the user wants this done.
+Circular lifts are typically executed autonomously by one's host service and without direct user interaction.
+Therefore, the system needs a defined set of rules to know how the user wants this done.
 
-In the absence of such direction, the system could just examine any credit 
+In the absence of such specific direction, the system might just examine any credit 
 imbalances and lift them back to zero.  While this would technically work, it 
 doesn't give the user much flexibility in how and where he may choose 
 to accumulate value (i.e. save money).
 
-So for better control, each tally half (stock or foil) contains trading parameter 
+For better control, each tally half (stock or foil) contains trading parameter 
 settings (implemented as a special kind of chit) that control how lifts will take place.
 Users can manually adjust these values themselves.
 The instruction for making such changes will be digitally signed by the user, 
 authorizing the site to act in accordance with the new settings.
 
-<p align="center"><img src="figures/Lifts-5.jpg" width="400" title="Visualizing Trading Variables"></p>
+<p align="center">
+  <embed src="figures/lifts.html" height="440" width="600" title="Visualizing Trading Variables">
+</p>
 
-The figure above shows visually how certain trading parameters determine they way lifts
-affect the tally balance.
+The interactive figure above allows you to drag settings to see visually the way trading parameters 
+determine if/when lifts or drops will be performed.
 
-Lifts are a critical method for reducing tally balances.
+Lifts are the critical method used for reducing accumulated tally balances.
 MyCHIPs also includes the notion of a *credit drop.*
 A drop is just a lift in reverse--a way of trading to increase a tally's balance.
 It will only occur if the trading variables are configured to allow it.
 
-In general, the stock holder (Vendor) controls most of the drop parameters and the foil holder (Client) controls most of the lift parameters.
-The exception to this is that each party must allows lifts/drops without restriction to the extent they are the pledging party (IOU grantor) and a balance is outstanding.
-
-<p align="center"><img src="uml/trade-seq.svg" title="Visualizing Lifts and Drops"></p>
+In general, the stock holder (Vendor) controls the drop parameters and the foil holder (Client) controls the lift parameters.
+But regardless of such settings, each party *must* allow lifts/drops without restriction to the extent they are the pledging party (IOU grantor) and a balance is outstanding.
+A simpler way of saying this is: “IOU's must be honored without charge or restriction.”
 
 Beyond that exception, parties can optionally charge a fee for lifts or drops.
 Or if so motivated, they can effectively *pay* a fee to facilitate their own lifts or drops.
 
-This is all managed with four basic trading variables controlled by each of the parties:
+Lift transactions are managed using four basic trading variables controlled by each of the parties:
 
 Client's (Foil) Trading Variables:
   - **Lift Target** (target):	Default: 0  
@@ -447,13 +448,23 @@ Vendor's (Stock) Trading Variables:
     If the user wants to retain the chips in the stock, he can enter a
     positive number (1 disables lifts altogether).  If he wants to get rid of
     the chips, he could consider entering a negative margin.
+
+Here is another diagram showing how lifts and drops are computed.  Note that the Tally
+Limits shown are actually part of the credit terms.
+These are primarily for users to observe when making manual transactions.
+They are not consulted by the system for lifts/drops.
+
+<p align="center"><img src="uml/trade-seq.svg" title="Visualizing Lifts and Drops"></p>
+
+The above figure also shows how/where the margin and clutch values come into play.
+As of May 2022, margin and clutch have not been fully implemented in the lift code.
+
   
-### Compatible Credit Terms
+### Simplified Credit Terms
 (May 2022)  
 It was mentioned [above](#evolution-of-credit-terms)
-that the credit terms will be trimmed down to focus on MyCHIPs'
-primary mission as a payment system and to be compatible with the system of trading variables.
-The following are the currently anticipated credit terms:
+that the credit terms will be simplified for the initial MyCHIPs rollout.
+The following are the anticipated initial credit terms:
   - **Maximum Balance** *(limit)*:  
     The current limit of credit.
     This can be overridden (either increased or decreased) by a setting asserted by the user
@@ -462,7 +473,7 @@ The following are the currently anticipated credit terms:
     been satisfied solely by way of lifts.
     This is roughly synonomous with reducing the limit and demanding the balance to be brought in line with the new, reduced limit.
     There will be no system control to enforce this, but it may be referred to by the parties in any enforcement action.
-  - **Penalty Interest** *(defint)*:  
+  - **Default Interest** *(defint)*:  
     In the event that a debtor does not satisfy an amount due upon demand, the credit balance will begin to accrue
     interest at this rate after the call period has elapsed.
     Again, this value is not processed by the software but should be referenced by the tally contract.
