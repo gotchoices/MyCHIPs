@@ -1,24 +1,16 @@
 TODO:
 
 Immediate:
-X- Settings/limits:
-X-   What is the difference between a tally limit and a lift bound?
-X-     Tally limit is for reference of the parties only
-X-     Lift bound is consulted only by the lift algorithm
-X-   How/when are tally limits enforced?  (never by the system, only the users)
-X-   Consolidate bound/limit into one? (no)
--   
 X- Make html widget to visualize lift/drop capacity on a tally
 X- Review tally document, make provision for post-dated chits?
-- Implement parser for consuming setting chit variables:
--   A user can move the credit limit up or down at any time (subject to call parameter).
--   A call is simply a reduction to zero of the limit.
--   A call does not necessarily request to close the tally
--   Can request tally close (a separate thing)
--   Can update trading variables
--   Change user agent
-- Set default bound from limit in credit terms?
-- Remove code (and test) to request tally close by unauthenticated (non-chit) request.
+X- Implement parser for consuming setting chit variables:
+X-   A user can move the credit limit up or down at any time (subject to call parameter).
+X-   A call is simply a reduction to zero of the limit.
+X-   A call does not necessarily request to close the tally
+X-   Can request tally close (a separate thing)
+X-   Can update trading variables
+X- Add regression tests for setting chits
+X- Set default bound from limit in credit terms?
 
 - Model1 still works?
 -   Generate default agents?
@@ -38,6 +30,7 @@ X- Review tally document, make provision for post-dated chits?
 -  Some routes are failing with invalid state (RZ)
 - 
 - Cleanups:
+- Remove code (and test) allowing tally close by unauthenticated (non-chit) request
 -  How to better assess lading on lift push through foreign tally (we don't know their target/bound)
 -   Merge local null min with route lading correctly
 -   Chit, tally or route protocol could update us with the latest trading vars from the other side?
@@ -66,10 +59,18 @@ X-   Where/how to build/store agent private keys (pki folder?)
 -  
 - Server now ready for single-site use/deployment?
 - 
+- Implement vesting support:
+- Create new vest field or can we just post-date the chit_date into the future?
+- Can only do future vesting for tran type (manual) chits
+- Tally totals for calculating lifts include only present/past chits (not future)
+- Additional total net_f field (future value)?
+- Add regression test(s) for this feature
+- 
 - Implement retries in state processing (tally, chit, route)
 - Upgrade distributed lift subsystem fully to protocol 1.0
 - Lifts detected bad by agent timeouts
 - Implement referee server in node server
+- Allow users to change their agent (setting chit)
 - Server now ready for distributed use?
 - 
 - Mobile:

@@ -28,10 +28,9 @@ table mychips.chits {mychips.tallies mychips.lifts} {
 
 -- Values directly contained in the external chit representation
   , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
-  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','user','peer'))
+  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','hold','part'))
   , chit_date	timestamptz	not null default current_timestamp
-  , vests	timestamptz	not null default current_timestamp
-  , units	bigint		constraint "!mychips.chits.CUN" check(units notnull and chit_type in ('lift','tran') or units isnull and chit_type in ('user','peer'))
+  , units	bigint		constraint "!mychips.chits.CUN" check(units notnull and chit_type in ('lift','tran') or units isnull and chit_type in ('hold','part'))
   , reference	jsonb
   , memo	text
   , digest	bytea		
@@ -155,7 +154,7 @@ trigger mychips_chits_tr_cache {} {
 function {mychips.chit_goodcheck(ch mychips.chits)} {
   mychips.chit_json(mychips.chits,mychips.tallies)
   mychips.chits_v mychips.j2h(jsonb)
-  mychips.tally_settings(mychips.tallies,jsonb)
+  mychips.tally_settings(text,mychips.tallies,jsonb)
 } {
   returns mychips.chits language plpgsql security definer as $$
     declare
@@ -175,8 +174,8 @@ function {mychips.chit_goodcheck(ch mychips.chits)} {
         return null;
       end if;
 
-      if ch.chit_type in ('user','peer') then			-- Apply tally settings
-        perform mychips.tally_settings(trec, ch.reference);
+      if ch.chit_type in ('hold','part') then			-- Apply tally settings
+        perform mychips.tally_settings(ch.chit_type, trec, ch.reference);
       end if;
 
 -- Fixme: implement improved consensus algorthim here:

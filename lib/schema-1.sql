@@ -2187,15 +2187,15 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   , part_cert	jsonb		constraint "!mychips.tallies.PCM" check (not (status = 'open' and part_cert isnull))
   , hold_sig	text		constraint "!mychips.tallies.USM" check (not (status = 'open' and hold_sig isnull))
   , part_sig	text		constraint "!mychips.tallies.PSM" check (not (status = 'open' and part_sig isnull))
-  , hold_terms	jsonb					-- Terms we grant to our partner
-  , part_terms	jsonb					-- Terms partner grants to our holder
+  , hold_terms	jsonb		not null default '{}'			-- Terms we grant to our partner
+  , part_terms	jsonb		not null default '{}'			-- Terms partner grants to our holder
   , digest	bytea
 
 
   , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
+  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
   , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
   , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
-  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
 
 
   , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
@@ -2210,6 +2210,8 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
   , part_agent	text		references mychips.agents on update restrict on delete restrict
+  , hold_sets	jsonb		not null default '{}'
+  , part_sets	jsonb		not null default '{}'
   , chain_conf	int		default 0 not null
   , _last_chit	int		not null default 0
 
@@ -2507,17 +2509,25 @@ create function mychips.tally_json(te mychips.tallies) returns jsonb stable lang
        )
     )
 $$;
-create function mychips.tally_settings(ta mychips.tallies, vals jsonb) returns void language plpgsql security definer as $$
-
-
+create function mychips.tally_settings(ty text, ta mychips.tallies, vals jsonb) returns void language plpgsql security definer as $$
     begin
 raise notice 'tally settings:% % = %', ta.tally_ent, ta.tally_seq, vals;
+      update mychips.tallies set			--Update trading variables, if present
+        hold_sets = hold_sets || case when ty = 'hold' then vals else '{}' end,
+        part_sets = part_sets || case when ty = 'part' then vals else '{}' end,
+        
+        target = coalesce((vals->>'target')::bigint, target),
+        bound  = coalesce((vals->>'bound')::bigint,  bound),
+        reward = coalesce((vals->>'reward')::float,  reward), 
+        clutch = coalesce((vals->>'clutch')::float,  clutch), 
 
 
 
 
 
+        request = case when status = 'open' and (vals->'close')::boolean then 'close' else null end	-- Enact any close request
 
+      where tally_ent = ta.tally_ent and tally_seq = ta.tally_seq;
     end;
 $$;
 create table mychips.tally_tries (
@@ -2743,10 +2753,9 @@ chit_ent	text
 
 
   , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
-  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','user','peer'))
+  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','hold','part'))
   , chit_date	timestamptz	not null default current_timestamp
-  , vests	timestamptz	not null default current_timestamp
-  , units	bigint		constraint "!mychips.chits.CUN" check(units notnull and chit_type in ('lift','tran') or units isnull and chit_type in ('user','peer'))
+  , units	bigint		constraint "!mychips.chits.CUN" check(units notnull and chit_type in ('lift','tran') or units isnull and chit_type in ('hold','part'))
   , reference	jsonb
   , memo	text
   , digest	bytea		
@@ -2911,7 +2920,7 @@ create function mychips.lifts_tf_bu() returns trigger language plpgsql security 
 $$;
 create trigger mychips_lifts_tr_notice after insert or update on mychips.lifts for each row execute procedure mychips.lifts_tf_notify();
 create view mychips.tallies_v as select 
-    te.tally_ent, te.comment, te.target, te.reward, te.clutch, te.bound, te.part_sig, te.hold_sig, te.request, te.tally_uuid, te.tally_type, te.version, te.part_ent, te.contract, te.hold_cert, te.part_cert, te.hold_terms, te.part_terms, te.tally_seq, te.status, te.digest, te.units_pc, te.units_c, te.tally_date, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.crt_by, te.mod_by, te.crt_date, te.mod_date
+    te.tally_ent, te.comment, te.target, te.reward, te.clutch, te.bound, te.part_sig, te.hold_sig, te.request, te.tally_uuid, te.tally_type, te.version, te.part_ent, te.contract, te.hold_cert, te.part_cert, te.hold_terms, te.part_terms, te.tally_seq, te.status, te.digest, te.units_pc, te.units_c, te.tally_date, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sets, te.part_sets, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
   , ua.agent_host			as hold_host
   , ua.agent_port			as hold_port
@@ -3661,8 +3670,8 @@ create function mychips.chit_goodcheck(ch mychips.chits) returns mychips.chits l
         return null;
       end if;
 
-      if ch.chit_type in ('user','peer') then			-- Apply tally settings
-        perform mychips.tally_settings(trec, ch.reference);
+      if ch.chit_type in ('hold','part') then			-- Apply tally settings
+        perform mychips.tally_settings(ch.chit_type, trec, ch.reference);
       end if;
 
 
@@ -4205,6 +4214,8 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));
+          new.hold_sets = new.hold_terms;
+          new.part_sets = new.part_terms;
         elsif new.status in ('draft','void','offer') and old.status in ('void','draft','offer') then
           null;
         elsif new.status = 'close' and old.status = 'open' then
@@ -7397,7 +7408,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','chits','signature','mychips','chits','signature','f','f'),
   ('mychips','chits','status','mychips','chits','status','f','f'),
   ('mychips','chits','units','mychips','chits','units','f','f'),
-  ('mychips','chits','vests','mychips','chits','vests','f','f'),
   ('mychips','chits_v','action','mychips','chits_v','action','f','f'),
   ('mychips','chits_v','chain_idx','mychips','chits','chain_idx','f','f'),
   ('mychips','chits_v','chain_prv','mychips','chits','chain_prv','f','f'),
@@ -7783,6 +7793,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies','hold_agent','mychips','tallies','hold_agent','f','f'),
   ('mychips','tallies','hold_cert','mychips','tallies','hold_cert','f','f'),
   ('mychips','tallies','hold_cid','mychips','tallies','hold_cid','f','f'),
+  ('mychips','tallies','hold_sets','mychips','tallies','hold_sets','f','f'),
   ('mychips','tallies','hold_sig','mychips','tallies','hold_sig','f','f'),
   ('mychips','tallies','hold_terms','mychips','tallies','hold_terms','f','f'),
   ('mychips','tallies','mod_by','mychips','tallies','mod_by','f','f'),
@@ -7791,6 +7802,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies','part_cert','mychips','tallies','part_cert','f','f'),
   ('mychips','tallies','part_cid','mychips','tallies','part_cid','f','f'),
   ('mychips','tallies','part_ent','mychips','tallies','part_ent','f','f'),
+  ('mychips','tallies','part_sets','mychips','tallies','part_sets','f','f'),
   ('mychips','tallies','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies','part_terms','mychips','tallies','part_terms','f','f'),
   ('mychips','tallies','request','mychips','tallies','request','f','f'),
@@ -7823,6 +7835,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','hold_cid','mychips','tallies','hold_cid','f','f'),
   ('mychips','tallies_v','hold_host','mychips','tallies_v','hold_host','f','f'),
   ('mychips','tallies_v','hold_port','mychips','tallies_v','hold_port','f','f'),
+  ('mychips','tallies_v','hold_sets','mychips','tallies','hold_sets','f','f'),
   ('mychips','tallies_v','hold_sig','mychips','tallies','hold_sig','f','f'),
   ('mychips','tallies_v','hold_terms','mychips','tallies','hold_terms','f','f'),
   ('mychips','tallies_v','inside','mychips','tallies_v','inside','f','f'),
@@ -7844,6 +7857,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v','part_ent','mychips','tallies','part_ent','f','f'),
   ('mychips','tallies_v','part_host','mychips','tallies_v','part_host','f','f'),
   ('mychips','tallies_v','part_port','mychips','tallies_v','part_port','f','f'),
+  ('mychips','tallies_v','part_sets','mychips','tallies','part_sets','f','f'),
   ('mychips','tallies_v','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies_v','part_terms','mychips','tallies','part_terms','f','f'),
   ('mychips','tallies_v','policy','mychips','tallies_v','policy','f','f'),
@@ -7880,6 +7894,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','hold_cid','mychips','tallies','hold_cid','f','f'),
   ('mychips','tallies_v_me','hold_host','mychips','tallies_v','hold_host','f','f'),
   ('mychips','tallies_v_me','hold_port','mychips','tallies_v','hold_port','f','f'),
+  ('mychips','tallies_v_me','hold_sets','mychips','tallies','hold_sets','f','f'),
   ('mychips','tallies_v_me','hold_sig','mychips','tallies','hold_sig','f','f'),
   ('mychips','tallies_v_me','hold_terms','mychips','tallies','hold_terms','f','f'),
   ('mychips','tallies_v_me','inside','mychips','tallies_v','inside','f','f'),
@@ -7901,6 +7916,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_me','part_ent','mychips','tallies','part_ent','f','f'),
   ('mychips','tallies_v_me','part_host','mychips','tallies_v','part_host','f','f'),
   ('mychips','tallies_v_me','part_port','mychips','tallies_v','part_port','f','f'),
+  ('mychips','tallies_v_me','part_sets','mychips','tallies','part_sets','f','f'),
   ('mychips','tallies_v_me','part_sig','mychips','tallies','part_sig','f','f'),
   ('mychips','tallies_v_me','part_terms','mychips','tallies','part_terms','f','f'),
   ('mychips','tallies_v_me','policy','mychips','tallies_v','policy','f','f'),

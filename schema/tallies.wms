@@ -9,9 +9,8 @@
 # need our own dedicated casting function.
 #
 #TODO:
-#- Can create digest offline in JavaScript that matches tally_sets?
-#- Add constraints to assure things like contract and signatures are valid?
-#- Harden views; Can only update unsigned, working tally
+#- Disable user from setting request to close directly (must use settings chit instead)
+#- Implement and test user setting new agent on established tally
 #- 
 module mychips
 require config.tcl trigview.tcl
@@ -20,7 +19,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{comment target reward clutch bound part_sig hold_sig request}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_cert part_cert hold_terms part_terms]
-    def tallies_se	[concat $tallies_v_in tally_seq status digest units_pc units_c tally_date hold_cid hold_agent part_cid part_agent $glob::stampfn]
+    def tallies_se	[concat $tallies_v_in tally_seq status digest units_pc units_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets $glob::stampfn]
 }
 
 table mychips.tallies {mychips mychips.users} {
@@ -38,15 +37,15 @@ table mychips.tallies {mychips mychips.users} {
   , part_cert	jsonb		constraint "!mychips.tallies.PCM" check (not (status = 'open' and part_cert isnull))
   , hold_sig	text		constraint "!mychips.tallies.USM" check (not (status = 'open' and hold_sig isnull))
   , part_sig	text		constraint "!mychips.tallies.PSM" check (not (status = 'open' and part_sig isnull))
-  , hold_terms	jsonb					-- Terms we grant to our partner
-  , part_terms	jsonb					-- Terms partner grants to our holder
+  , hold_terms	jsonb		not null default '{}'			-- Terms we grant to our partner
+  , part_terms	jsonb		not null default '{}'			-- Terms partner grants to our holder
   , digest	bytea
 
 -- Values settable by the holder, cached version of latest applicable settings chit
   , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
+  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
   , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
   , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
-  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
 
 -- Values used internally to track state, required actions
   , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
@@ -61,6 +60,8 @@ table mychips.tallies {mychips mychips.users} {
   , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
   , part_agent	text		references mychips.agents on update restrict on delete restrict
+  , hold_sets	jsonb		not null default '{}'
+  , part_sets	jsonb		not null default '{}'
   , chain_conf	int		default 0 not null
   , _last_chit	int		not null default 0
 
@@ -145,6 +146,8 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));	-- Generate record digest
+          new.hold_sets = new.hold_terms;			-- Default settings
+          new.part_sets = new.part_terms;
         elsif new.status in ('draft','void','offer') and old.status in ('void','draft','offer') then
           null;
         elsif new.status = 'close' and old.status = 'open' then
@@ -190,18 +193,26 @@ $$;}
 
 # Apply user settings to a tally
 #----------------------------------------------------------------
-function {mychips.tally_settings(ta mychips.tallies, vals jsonb)} {mychips.tallies} {
+function {mychips.tally_settings(ty text, ta mychips.tallies, vals jsonb)} {mychips.tallies} {
   returns void language plpgsql security definer as $$
---    declare
---      hchad jsonb; pchad jsonb; c jsonb;
     begin
 raise notice 'tally settings:% % = %', ta.tally_ent, ta.tally_seq, vals;
---      update mychips.tallies set
---        target = coalesce(new.target,target), 
---        reward = coalesce(new.reward,reward), 
---        clutch = coalesce(new.clutch,clutch), 
---        bound = coalesce(new.bound,bound)
---      where tally_ent = new.tset_ent and tally_seq = new.tset_seq;
+      update mychips.tallies set			--Update trading variables, if present
+        hold_sets = hold_sets || case when ty = 'hold' then vals else '{}' end,		-- Merge settings
+        part_sets = part_sets || case when ty = 'part' then vals else '{}' end,
+        
+        target = coalesce((vals->>'target')::bigint, target), 		-- Update cached trading variables
+        bound  = coalesce((vals->>'bound')::bigint,  bound),
+        reward = coalesce((vals->>'reward')::float,  reward), 
+        clutch = coalesce((vals->>'clutch')::float,  clutch), 
+
+-- Not yet implemented: need to test/validate
+--        hold_agent = case when ty = 'hold' then vals->>agent else hold_agent end,
+--        part_agent = case when ty = 'part' then vals->>agent else part_agent end,
+
+        request = case when status = 'open' and (vals->'close')::boolean then 'close' else null end	-- Enact any close request
+
+      where tally_ent = ta.tally_ent and tally_seq = ta.tally_seq;
     end;
 $$;}
 
