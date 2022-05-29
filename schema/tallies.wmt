@@ -49,7 +49,6 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {part_agent		{Partner Agent}		{Cached value of partner's agent from the holder certificate}}
     {chain_conf		{Chain Confirmed}	{The index of the last chit in the chain that has been confirmed with the partner peer}}
     {_last_chit		{Last Chit}		{Used internally to create new chit record index numbers}}
-    {_last_tset		{Last Setting}		{Used internally to create new tally setting records}}
 } $glob::stampt] -messages {
     {TNU		{Tally ID Not Unique}	{The chosen tally type and ID is not unique to the system}}
     {LMG		{Invalid Lift Margin}	{The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.}}

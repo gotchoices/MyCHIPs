@@ -185,7 +185,7 @@ function {mychips.chit_goodcheck(ch mychips.chits)} {
         prevhash = crec.digest;
       else
         thisidx = 1;				-- First chit in the chain
-        prevhash = trec.digest;
+        prevhash = trec.digest;			-- Begin with hash of the tally
       end if;
 
       if trec.tally_type = 'foil' then		-- Consensus algorithm for chit hash-chain:

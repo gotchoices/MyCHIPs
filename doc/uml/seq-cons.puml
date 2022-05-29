@@ -1,6 +1,6 @@
 @startuml
 !include common.puml
-$title(Chit Consensus Protocol)
+$title(Chit Chain Consensus Protocol)
 actor "Stock Holder" as vendor
 database "Stock DB" as stock
 database "Foil DB" as foil
@@ -26,7 +26,7 @@ else Foil originates/validates chit
     note over stock: DONE
   end
   
-  stock		->>	foil:		Please send chits since ackHash
+  stock		->>	foil:		Compare my list of unlinked chits
 end
 
 foil		->>	stock:		Send chits since last ackHash\nand new endHash

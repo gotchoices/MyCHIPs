@@ -201,6 +201,7 @@ The *object* property for the chit is defined as follows:
   - **units**: The number of milli-CHIPs on this chit.  Positive means a payment from Client to Vendor (or a drop).  Negative means a payment from Vendor to Client (or a lift).
   - **digest**: A string hash of the rest of the chit in a standard serialized format
   - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor
+  - **chain**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information about use of this property.
 
 Chit state transition messages are as follows:
 
@@ -221,6 +222,28 @@ Chit state transition messages are as follows:
 
 - *Agent->Agent:* **Approve Payment**: ***action***: good
   A peer is confirming/approving payment to our user on the indicated tally.
+
+#### Consensus Messages
+In addition to the four main subsystems mentioned above, there is a 
+[sub-protocol for maintaining consensus](learn-protocol.md#chit-chain-consensus) 
+between the stock and foil about the order in which chits are recorded on the tally (the chit chain).
+
+This can be thought of as a set of sub-states a tally can be in while its main state is open
+(and/or closing).  Since it does involve the tally's state, it has its own state processing
+subsystem and message set.
+
+Chain consensus can invoke/create the following messages:
+- **new**: Foil sends valid chit, accompanied by new endHash
+- **new**: Stock sends valid chit, accompanied by proposed endHash (propHash)
+- **ack**: Foil acknowledges stock's proposed endHash
+- **request**: Stock requests chits since last acknowledged endHash (ackHash)
+- **update**: Foil sends chits since last acknowledged endHash (ackHash)
+- **error**: Stock reports an error attempting to reconcile with endHash
+
+The first two actions are directly correlated with the sending of a chit--a message already occuring within the chit subsystem.
+So these actions are accomplished simply by populating the additional <i>chain</i> property in the applicable chit message.
+
+The other four messages will carry their own target property of <i>chain.</i>
 
 ### Route Messages
 Property: **target**: route

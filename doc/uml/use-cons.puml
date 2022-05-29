@@ -1,6 +1,6 @@
 @startuml
 !include common.puml
-$title(Chit Consensus)
+$title(Chit Chain Consensus)
 left to right direction
 
 database "Stock Holder DB" as stock

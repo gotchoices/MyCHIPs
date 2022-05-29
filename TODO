@@ -1,17 +1,13 @@
 TODO:
 
 Immediate:
-X- Make html widget to visualize lift/drop capacity on a tally
-X- Review tally document, make provision for post-dated chits?
-X- Implement parser for consuming setting chit variables:
-X-   A user can move the credit limit up or down at any time (subject to call parameter).
-X-   A call is simply a reduction to zero of the limit.
-X-   A call does not necessarily request to close the tally
-X-   Can request tally close (a separate thing)
-X-   Can update trading variables
-X- Add regression tests for setting chits
-X- Set default bound from limit in credit terms?
-
+- Make issue field work:
+-   Chit has internal issue field (stock or foil)
+-   Change two setting chit types to 'set'
+-   For tran chits, check sign against issuer
+-   Issue field gets written in upsert/update code
+-   Regression tests still pass
+- 
 - Model1 still works?
 -   Generate default agents?
 -   Newline between cid/agent in network visualizer?
@@ -31,9 +27,8 @@ X- Set default bound from limit in credit terms?
 - 
 - Cleanups:
 - Remove code (and test) allowing tally close by unauthenticated (non-chit) request
--  How to better assess lading on lift push through foreign tally (we don't know their target/bound)
+- Correctly assess lading on lift push through foreign tally (we now know parter's limit/bound)
 -   Merge local null min with route lading correctly
--   Chit, tally or route protocol could update us with the latest trading vars from the other side?
 -  Should all xxx_process functions return text or JSON (routes need JSON)?
 -  Why do some routes get stuck in draft mode (See RZ notice)?
 -  Should the "tally" property of a route message be in the message, not the object (since it should change at each hop)?
