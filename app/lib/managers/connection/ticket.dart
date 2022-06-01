@@ -7,7 +7,7 @@ class Ticket {
   final DateTime expires;
   final String host;
   final int port;
-  final String user;
+  final String? user;
 
   const Ticket(this.token, this.expires, this.host, this.port, this.user);
   factory Ticket.fromJson(Map<String, dynamic> json) => _$TicketFromJson(json["ticket"]);

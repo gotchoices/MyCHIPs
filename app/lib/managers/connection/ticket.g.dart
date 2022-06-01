@@ -11,7 +11,7 @@ Ticket _$TicketFromJson(Map<String, dynamic> json) => Ticket(
       DateTime.parse(json['expires'] as String),
       json['host'] as String,
       json['port'] as int,
-      json['user'] as String,
+      json['user'] as String?,
     );
 
 Map<String, dynamic> _$TicketToJson(Ticket instance) => <String, dynamic>{

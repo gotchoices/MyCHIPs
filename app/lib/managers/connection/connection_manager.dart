@@ -35,8 +35,8 @@ class ConnectionManager {
   final _connectionSubject = BehaviorSubject<Connection?>();
   get connectionStream => _connectionSubject.stream;
 
-  late Ticket? ticket;
-  late Key? _key;
+  late Ticket? ticket = null;
+  late Key? _key = null;
   get hasKey => _key != null;
 
   get canConnect => ticket != null || _key != null;
@@ -69,7 +69,7 @@ class ConnectionManager {
       // TODO: error handling... on certain errors connecting, toss out key and revert to token
       connection = await _connectWithKey(localKey);
     }
-    connection.channel.innerWebSocket!.doOnCancel(clearConnection);
+    //connection.channel.innerWebSocket!.doOnCancel(clearConnection);
     return connection;
   }
 
@@ -79,12 +79,19 @@ class ConnectionManager {
     final exPriv = await keyPair.privateKey.exportJsonWebKey();
     final privateKey = const JsonEncoder().convert(exPriv);
 
-    return Connection(await _openChannel({'token': ticket.token, 'pub': exPub}, ticket.user, {}),
-        Key(_configStream.value.host, _configStream.value.port, ticket.user, privateKey));
+    return Connection(
+        await _openChannel(
+            {'token': ticket.token, 'pub': _mapToBase64Json(exPub)}, ticket.user!, {}),
+        Key(_configStream.value.host, _configStream.value.port, ticket.user!, privateKey));
+  }
+
+  String _mapToBase64Json(Map input) {
+    return base64.encode(utf8.encode(JsonEncoder().convert(input)));
   }
 
   Future<Connection> _connectWithKey(Key key) async {
-    RsaPssPrivateKey myKey = await RsaPssPrivateKey.importJsonWebKey(key.toJson(), Hash.sha256);
+    RsaPssPrivateKey myKey =
+        await RsaPssPrivateKey.importJsonWebKey(jsonDecode(key.privateKey), Hash.sha256);
     final cookie = Random().nextDouble().toString(); // TODO: make this cryptographically random
     return await (HttpClient()..badCertificateCallback = ((cert, host, port) => true))
         .getUrl(Uri.parse(
@@ -118,6 +125,11 @@ class ConnectionManager {
   static Future<Key?> _loadKeyIfExists() async {
     final keyString = await const FlutterSecureStorage().read(key: _keyStorageKey);
     return keyString != null ? Key.fromJson(jsonDecode(keyString)) : null;
+  }
+
+  Future<void> clearKey() async {
+    await const FlutterSecureStorage().delete(key: _keyStorageKey);
+    _key = null;
   }
 
   static String _urlQueryFromMap(Map data) =>
