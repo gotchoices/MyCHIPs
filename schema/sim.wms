@@ -11,7 +11,6 @@
 view mychips.tallies_v_sum {mychips.tallies_v} {select 
     tally_ent
   , count(tally_seq)						as tallies
-  , sum(units)							as units
   , sum(net)							as net
   , array_agg(part_ent)						as part_ents
   , array_agg(part_cid)						as part_cids
@@ -21,7 +20,6 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(tally_type)					as types
   , array_agg(state)						as states
   , array_agg(net)						as nets
-  , array_agg(units)						as unitss
   , array_agg(inside)						as insides
 
   , array_agg(target)						as targets
@@ -30,8 +28,6 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(clutch)						as clutchs
   , array_agg(policy)						as policies
 
-  , sum(units) filter (where tally_type = 'stock')		as stock_uni
-  , sum(units) filter (where tally_type = 'foil')		as foil_uni
   , sum(net) filter (where tally_type = 'stock')		as stock_net
   , sum(net) filter (where tally_type = 'foil')			as foil_net
 
@@ -47,8 +43,6 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , array_agg(tally_uuid) filter (where tally_type = 'foil')	as foil_uuids
   , array_agg(tally_seq) filter (where tally_type = 'stock')	as stock_seqs
   , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
-  , array_agg(units) filter (where tally_type = 'stock')	as stock_unis
-  , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
   , array_agg(net) filter (where tally_type = 'stock')		as stock_nets
   , array_agg(net) filter (where tally_type = 'foil')		as foil_nets
 
@@ -71,12 +65,9 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
     u.id, u.std_name, u.user_ent, u.peer_cid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
-  , coalesce(s.units, 0)			as units
   , coalesce(s.net, 0)				as net
   , coalesce(s.stocks, 0)			as stocks
   , coalesce(s.foils, 0)			as foils
-  , coalesce(s.stock_uni, 0.0)			as stock_uni
-  , coalesce(s.foil_uni, 0.0)			as foil_uni
   , coalesce(s.clients, '{}'::text[])		as clients
   , coalesce(s.vendors, '{}'::text[])		as vendors
   
@@ -85,9 +76,8 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.part_agents, '{}'::text[])	as part_agents
   , coalesce(s.uuids, '{}'::uuid[])		as uuids
   , coalesce(s.seqs, '{}'::int[])		as seqs
-  , coalesce(s.types, '{}'::text[])		as types
+  , coalesce(s.types, '{}'::tally_side[])	as types
   , coalesce(s.states, '{}'::text[])		as states
-  , coalesce(s.unitss, '{}'::bigint[])		as unitss
   , coalesce(s.nets, '{}'::bigint[])		as nets
   , coalesce(s.insides, '{}'::boolean[])	as insides
 
@@ -105,8 +95,6 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.foil_uuids, '{}'::uuid[])	as foil_uuids
   , coalesce(s.stock_seqs, '{}'::int[])		as stock_seqs
   , coalesce(s.foil_seqs, '{}'::int[])		as foil_seqs
-  , coalesce(s.stock_unis, '{}'::bigint[])	as stock_unis
-  , coalesce(s.foil_unis, '{}'::bigint[])	as foil_unis
   , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
   , coalesce(s.json, '[]'::jsonb)		as json
     from	mychips.users_v u

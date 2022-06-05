@@ -83,7 +83,7 @@ Settings include:
 
 Tally data and chits must be maintained identically on the Stock and Foil (i.e. the two copies of the tally held by the parties to the credit agreement).
 The order of chits must also (eventually) agree on both sides of the tally.
-This is called [chit consensus](./learn-protocol.md#chit-consensus).
+This is called [chit consensus](./learn-protocol.md#chit-chain-consensus).
 
 ### Evolution of Credit Terms
 
@@ -930,4 +930,3 @@ See [this section](learn-lift.md#lift-states) for more on treatment of chits tha
 
 <br>[Next - The Credit Lift](learn-lift.md)
 <br>[Back to Index](README.md#contents)
-      

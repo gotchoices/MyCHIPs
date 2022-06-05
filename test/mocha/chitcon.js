@@ -1,4 +1,4 @@
-//Test chits between peers; Run only after tally tests
+//Test chit consensus between peers; Run only after chit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB or two different DBs:
@@ -39,6 +39,8 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     done()
   })
 
+/* xxxxxxxxxxxxx
+
   it("Restore open tallies", function(done) {
     let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(defTally.rest(saveName), (e) => {if (e) done(e); else _done()})
@@ -65,7 +67,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       _done()
     })
   })
-
+*/
   it("Originator requests payment from Subject", function(done) {
     let uuid = mkUuid(cidO, agentO)
       , seq = interTest.talO.tally_seq
@@ -112,7 +114,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       _done()
     })
   })
-
+/*
   it("Save pending chits for later testing", function(done) {
     let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(save('pend'), (e) => {if (e) done(e); _done()})
@@ -204,13 +206,12 @@ log.debug("Sql:", dc, sql)
   it("Originator sends payment to Subject", function(done) {
     let uuid = mkUuid(cidO, agentO)
       , seq = interTest.talO.tally_seq
-      , by = 'stock'
-      , value = 99123
+      , value = -99123
       , ref = {z: 'Partial refund'}
       , request = 'good'
       , signed = cidO + ' signature'
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, reference, request, signature)
-          values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L) returning *`, userO, seq, uuid, by, value, ref, request, signed)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, reference, request, signature)
+          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, userO, seq, uuid, value, ref, request, signed)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
@@ -250,7 +251,7 @@ log.debug("Sql:", dc, sql)
 
 // Main
 // ----------------------------------------------------------------------------
-describe("Chit testing", function() {
+describe("Chit consensus", function() {
   let config1 = {		//Two users on name host
     sites:1, saveName:'open1',
     cidO:cid0, cidS:cid1, userO:user0, userS:user1, aConO:aCon0, aConS:aCon1, agentO:agent0, agentS:agent1,
@@ -268,6 +269,6 @@ describe("Chit testing", function() {
     dbcSS: db2Conf()
   }
 
-  describe("Test chits between two users on same site", function() {Suite1(config1)})
-  describe("Test chits between two users on different sites", function() {Suite1(config2)})
+  describe("Test chit consensuss between two users on same site", function() {Suite1(config1)})
+//  describe("Test chit consensuss between two users on different sites", function() {Suite1(config2)})
 })

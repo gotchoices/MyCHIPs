@@ -440,6 +440,7 @@ create function norm_date(timestamptz) returns text immutable language sql as $$
     select to_char($1,'YYYY-Mon-DD HH24:MI:SS');
 $$;
 create extension "plpython3u";
+create type tally_side as enum ('stock','foil');
 create extension "uuid-ossp";
 create function wm.column_names(oid,int4[]) returns varchar[] as $$
     declare
@@ -2178,7 +2179,7 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
 
 
   , tally_uuid	uuid		not null
-  , tally_type	text		not null default 'stock' check(tally_type in ('stock','foil'))
+  , tally_type	tally_side	not null default 'stock'
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
   , comment	text
@@ -2753,8 +2754,9 @@ chit_ent	text
 
 
   , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
-  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','hold','part'))
+  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','set'))
   , chit_date	timestamptz	not null default current_timestamp
+  , issuer	tally_side	not null
   , units	bigint		constraint "!mychips.chits.CUN" check(units notnull and chit_type in ('lift','tran') or units isnull and chit_type in ('hold','part'))
   , reference	jsonb
   , memo	text
@@ -3427,7 +3429,7 @@ create function mychips.tally_process(msg jsonb, recipe jsonb) returns text lang
       trec	record;
       jrec	jsonb;
       acted	boolean = false;
-      tallyType text = 'stock';
+      tallyType tally_side = 'stock';
       notType text = 'foil';
     begin
 
@@ -4343,7 +4345,7 @@ create view mychips.users_v_tallysum as select
   , coalesce(s.part_agents, '{}'::text[])	as part_agents
   , coalesce(s.uuids, '{}'::uuid[])		as uuids
   , coalesce(s.seqs, '{}'::int[])		as seqs
-  , coalesce(s.types, '{}'::text[])		as types
+  , coalesce(s.types, '{}'::tally_side[])	as types
   , coalesce(s.states, '{}'::text[])		as states
   , coalesce(s.unitss, '{}'::bigint[])		as unitss
   , coalesce(s.nets, '{}'::bigint[])		as nets
@@ -5299,7 +5301,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','routes_v','vip_chad','eng','Route Partner Address','Full JSON CHIP address for the foreign partner on the tally the route starts on'),
   ('mychips','routes_v','vip_cid','eng','Route Partner CHIP ID','CHIP ID of the foreign partner on the tally the route starts on'),
   ('mychips','tallies','_last_chit','eng','Last Chit','Used internally to create new chit record index numbers'),
-  ('mychips','tallies','_last_tset','eng','Last Setting','Used internally to create new tally setting records'),
   ('mychips','tallies','bound','eng','Trade Limit','The maximum amount of value the stock/foil owner is willing to accumulate on this tally'),
   ('mychips','tallies','chain_conf','eng','Chain Confirmed','The index of the last chit in the chain that has been confirmed with the partner peer'),
   ('mychips','tallies','clutch','eng','Sell Margin','A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.'),
@@ -7399,6 +7400,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','chits','crt_by','mychips','chits','crt_by','f','f'),
   ('mychips','chits','crt_date','mychips','chits','crt_date','f','f'),
   ('mychips','chits','digest','mychips','chits','digest','f','f'),
+  ('mychips','chits','issuer','mychips','chits','issuer','f','f'),
   ('mychips','chits','lift_seq','mychips','chits','lift_seq','f','f'),
   ('mychips','chits','memo','mychips','chits','memo','f','f'),
   ('mychips','chits','mod_by','mychips','chits','mod_by','f','f'),

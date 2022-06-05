@@ -67,9 +67,8 @@ describe("Test chit state transitions", function() {
       assert.equal(row.units, value)
       assert.equal(row.status,'draft')
       assert.equal(row.request,'pend')
-      assert.equal(row.effect,'debit')
-      assert.equal(row.units_p, value)
-      assert.equal(row.units_g, 0)
+      assert.equal(row.net_p, value)
+      assert.equal(row.net_g, 0)
       assert.equal(row.tally_type, 'stock')
       assert.equal(row.action, false)
       assert.equal(row.state,'A.draft.pend')
@@ -83,7 +82,7 @@ describe("Test chit state transitions", function() {
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.deepStrictEqual(obj.ref, ref)
       assert.equal(obj.type, 'tran')
-      assert.equal(obj.issue, 'stock')
+      assert.equal(obj.by, 'foil')
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
       assert.ok(!obj.signed)
@@ -186,13 +185,14 @@ describe("Test chit state transitions", function() {
     let uuid = mkUuid(cid0, agent0, 'chit')
       , ent = interTest.tally.tally_ent
       , seq = interTest.tally.tally_seq
-      , value = -123456				//Liability
+      , by = 'stock'			//Liability
+      , value = 123456	
       , ref = {cmt: 'Uninvoiced transfer'}
       , request = 'good'
       , signature = cid0 + ' signature'
       , dc = 2, _done = () => {if (!--dc) done()}
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, units, reference, request, signature)
-          values (%L, %s, %L, 'tran', %s, %L, %L, %L) returning *`, ent, seq, uuid, value, ref, request, signature)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, reference, request, signature)
+          values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L) returning *`, ent, seq, uuid, by, value, ref, request, signature)
 //log.debug("Sql:", sql)
     dbU.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Row:", row)
@@ -213,7 +213,7 @@ describe("Test chit state transitions", function() {
       assert.equal(msg.to.agent, agent1)
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.deepStrictEqual(obj.ref, ref)
-      assert.equal(obj.issue, 'stock')
+      assert.equal(obj.by, by)
       assert.equal(obj.type, 'tran')
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
@@ -221,11 +221,12 @@ describe("Test chit state transitions", function() {
       _done()
     })
   })
-
+/*
   it("Agent receives invoice chit (<start> -> A.good)", function(done) {
     let uuid = mkUuid(cid1, agent1, 'chit')
-      , units = -87654
-      , object = Object.assign({}, interTest.chit, {uuid, units})
+      , by = 'stock'
+      , units = 87654
+      , object = Object.assign({}, interTest.chit, {uuid, by, units})
       , logic = {context: ['null','L.void','L.pend'], upsert: {status: 'pend'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
@@ -272,8 +273,9 @@ describe("Test chit state transitions", function() {
 
   it("Agent receives revised good, signed chit (A.void -> A.good)", function(done) {
     let uuid = mkUuid(cid1, agent1, 'chit')
+      , by = 'foil'
       , units = 32500
-      , object = Object.assign({}, interTest.chit, {uuid, units, signed: cid1 + ' signature'})
+      , object = Object.assign({}, interTest.chit, {uuid, by, units, signed: cid1 + ' signature'})
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
@@ -328,11 +330,12 @@ describe("Test chit state transitions", function() {
         limit:  '3456',
         close: true
       }
+      , by = 'stock'
       , request = 'good'
       , signature = cid0 + ' signature'
       , dc = 2, _done = () => {if (!--dc) done()}
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, reference, request, signature)
-          values (%L, %s, %L, 'hold', %L, %L, %L) returning *`, ent, seq, uuid, ref, request, signature)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, reference, request, signature)
+          values (%L, %s, %L, 'set', %L, %L, %L, %L) returning *`, ent, seq, uuid, by, ref, request, signature)
 //log.debug("Sql:", sql)
     dbU.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Row:", row)
@@ -352,8 +355,8 @@ describe("Test chit state transitions", function() {
       assert.equal(msg.to.agent, agent1)
       let obj = msg.object			//;log.debug("A obj:", JSON.stringify(obj))
       assert.deepStrictEqual(obj.ref, ref)
-      assert.equal(obj.issue, 'stock')
-      assert.equal(obj.type, 'hold')
+      assert.equal(obj.by, by)
+      assert.equal(obj.type, 'set')
       assert.equal(obj.uuid, uuid)
       assert.equal(obj.signed, signature)
 
@@ -370,11 +373,11 @@ describe("Test chit state transitions", function() {
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
-      let row = getRow(res, 0)			;log.debug("row:", row)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.good')
       _done()
     })
-    busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
+    busA.register('pa', (msg) => {		log.debug('BusA:', msg, msg.to, msg.from)
       assert.equal(msg.target, 'tally')		//Propagate close request to partner
       assert.equal(msg.action, 'close')
 //      let obj = msg.object			//;log.debug("A obj:", JSON.stringify(obj))

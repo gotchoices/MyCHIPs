@@ -5,10 +5,10 @@
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------
 view mychips.tallies_v_net {mychips.tallies_v} {with
-  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
+  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
     from mychips.tallies_v where liftable and not part_ent isnull
   ),
-  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr
+  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
     from mychips.tallies_v where liftable and part_ent isnull
   )
   select 			-- Internal tallies with both stock and foil
@@ -17,7 +17,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , t.tally_ent					as out
   , t.target, t.bound, t.reward
   , coalesce(p.clutch, 0)			as margin
-  , t.units_pc, t.net_pc
+  , t.net_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
@@ -34,7 +34,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , t.tally_ent					as out
   , t.target, t.bound, t.reward
   , 0						as margin
-  , t.units_pc, t.net_pc
+  , t.net_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
@@ -50,7 +50,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , t.part_ent					as out
   , 0 as target, 0 as bound
   , 0 as reward, 0 as margin				-- Assume zero costs from other side
-  , t.units_pc, -t.net_pc as net_pc
+  , -t.net_pc as net_pc
   , null					as min	-- Nulls because other side of 
 --  , t.net_pc					as min	-- tally is in charge of these
   , null					as max
