@@ -34,7 +34,7 @@
 - Launch the agent-based modeler simulation:
 ```
   cd ../sim
-  ./modeler -m 1		#Very basic version
+  ./model -m 1		#Very basic version
 ```  
   You can watch as the user nodes will begin to form tallies with each other 
   and begin to trade chits over the tallies.

@@ -151,7 +151,7 @@ describe("Initialize tally/path test data", function() {
 
   it("Check view tallies_v_net", function(done) {
     let sql = `update mychips.tallies set target = 3, bound = 7;
-               select json_agg(s) as json from (select tally_ent,tally_seq,tally_type,inv,inp,out,target,bound,units_pc,net_pc,min,max,sign
+               select json_agg(s) as json from (select tally_ent,tally_seq,tally_type,inv,inp,out,target,bound,net_pc,min,max,sign
                from mychips.tallies_v_net order by 1,2,3,4) s;`
     queryJson('tallies_v_net', db, sql, done, 2)
   })

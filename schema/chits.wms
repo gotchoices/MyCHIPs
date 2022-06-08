@@ -328,11 +328,6 @@ view mychips.chits_v {mychips.chits mychips.tallies mychips.chit_state(boolean,t
   , te.tally_type
   , te.tally_uuid
 
--- Deprecate these fields?
---  , case when isdebit() then 'debit' else 'credit' end		as effect
---  , case when ch.status = 'good' then ch.units else 0 end	as units_g
---  , case when ch.status = 'void' then 0 else ch.units end	as units_p
-
   , uSign(ch.units)							as net
   , case when ch.status = 'good' then uSign(ch.units) else 0 end	as net_g
   , case when ch.status = 'void' then 0 else uSign(ch.units) end	as net_p
@@ -344,7 +339,7 @@ view mychips.chits_v {mychips.chits mychips.tallies mychips.chit_state(boolean,t
       'digest',		ch.digest,
       'signed',		ch.signature
     )								as json
-  , mychips.j2h(mychips.chit_json(ch, te)) as digest_v
+  , mychips.j2h(mychips.chit_json(ch, te))			as digest_v
   , mychips.j2h(mychips.chit_json(ch, te)) = coalesce(ch.digest,'') as clean
 
     from	mychips.chits	ch

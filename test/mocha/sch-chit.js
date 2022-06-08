@@ -200,10 +200,9 @@ describe("Test chit state transitions", function() {
       assert.equal(row.status,'pend')
       assert.equal(row.request,'good')
       assert.equal(row.state,'L.pend.good')
-      assert.equal(row.effect,'credit')
-      assert.equal(row.units_p, value)
+      assert.equal(row.net_p, -value)		//Stock issue accrues negative
       assert.equal(row.action, false)
-      assert.equal(row.units_g, 0)
+      assert.equal(row.net_g, 0)
       _done()
     })
     busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
@@ -221,7 +220,7 @@ describe("Test chit state transitions", function() {
       _done()
     })
   })
-/*
+
   it("Agent receives invoice chit (<start> -> A.good)", function(done) {
     let uuid = mkUuid(cid1, agent1, 'chit')
       , by = 'stock'
@@ -343,7 +342,6 @@ describe("Test chit state transitions", function() {
       assert.equal(row.status,'pend')
       assert.equal(row.request,'good')
       assert.equal(row.state,'L.pend.good')
-      assert.equal(row.effect,'credit')
       assert.equal(row.action, false)
       interTest.ref = ref
       _done()

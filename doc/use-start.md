@@ -20,7 +20,7 @@ If you need to upgrade, a quick and easy way is:
 ```
 Now clone the MyCHIPs source code from the [github repository](github.com/gotchoices/mychips).
 If the folder gets created as "MyCHIPs" (because you copied the github clone link) rather than 
-"mychips", it may cause some problems on some platforms, so consider renaming it to "mychips."
+"mychips", it may cause some problems on some platforms, so consider renaming it to (lower case) "mychips."
 ```
   git clone https://github.com/gotchoices/mychips
   cd mychips

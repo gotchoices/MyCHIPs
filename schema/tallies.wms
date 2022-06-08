@@ -316,20 +316,12 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
   , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','close','draft']) as action
   , te.status = 'open' or (te.status = 'close' and net_pc != 0)		as liftable
 
---  , coalesce(cg.units, 0)				as units
---  , coalesce(cg.units, 0) + coalesce(ce.units, 0)	as units_p
-
   , coalesce(cg.chits, 0)				as chits
   , coalesce(cg.chits, 0) + coalesce(ce.chits, 0)	as chits_p
 
---  , coalesce(uSign(cg.net), 0)				as net
---  , coalesce(uSign(cg.units, 0)) + coalesce(uSign(ce.units), 0)	as net_p
   , coalesce(cg.net, 0)					as net
   , coalesce(cg.net, 0) + coalesce(ce.net, 0)		as net_p
   
---  , uSign(te.units_c)					as net_c
---  , uSign(te.units_pc)					as net_pc
-
   , greatest(cg.latest, te.mod_date)			as latest
   
   , mychips.tally_json(te) as json_core

@@ -38,7 +38,7 @@ describe("Test lift state transitions", function() {
     let sql = `delete from mychips.chits where chit_type = 'lift';
                delete from mychips.lifts;
                update mychips.tallies set clutch = 0.04;
-               update mychips.tallies set target = 2 where tally_type = 'stock' and units_pc != 0;
+               update mychips.tallies set target = 2 where tally_type = 'stock' and net_pc != 0;
                update mychips.tallies set target = 5 where tally_type = 'foil';`
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {done(e)})
@@ -160,9 +160,9 @@ it("Configure existing good route in DB", function(done) {
   it("Check created lift tallies/chits", function(done) {
     let {lift, sequence} = interTest.seek
       , sql = `select json_agg(s) as json from (select tally_ent, tally_seq,tally_type,
-               units,units_c,net,net_c,units_p,units_pc,chits,chits_p
+               net,net_c,net_p,net_pc,chits,chits_p
                from mychips.tallies_v where chits > 0 order by 1,2) s;`
-    queryJson('lift_chits', dbA, sql, done)
+    queryJson('lift_chits', dbA, sql, done, 1)
   })
 
   it("Agent informs DB of timeout (seek -> seek.check)", function(done) {
