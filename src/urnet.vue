@@ -30,6 +30,7 @@ const gapAngle = 0.005			//Gap between slices
 const startAngle = Math.PI / 2		//Start/end on East axis
 const endAngle = Math.PI / 2*5
 const minTextAngle = Math.PI / 8	//Display sum if pie slice bigger than this
+const truncAgent = 6			//Show this many digits of agent ID
 
 const neutral = '#DDD'			//Halfway between asset and liability
 const maxNwColor  = "hsl(230,50%,40%)"	//Positive, assets
@@ -144,7 +145,7 @@ export default {
           ${paths.join('\n')}
           <circle r="${radius}" fill="url(#radGrad)"/>
           <text x="${-radius}" y="${-radius -this.fontSize/2}" style="font:normal ${this.fontSize}px sans-serif";>
-            ${tag}
+            ${userRec.peer_cid}:${userRec.peer_agent.slice(-truncAgent)}
           </text>
           ${textCmds.join('\n')}
         </g>`
@@ -163,7 +164,7 @@ export default {
         , text = `
         <text x="${xOff}" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
           <tspan x="${-w2 + xOff}" y="${-h2 + yOff}">${cid}</tspan>
-          <tspan x="${-w2 + xOff}" y="${-h2 + yOff * 2}">${agent}</tspan>
+          <tspan x="${-w2 + xOff}" y="${-h2 + yOff * 2}">${agent.slice(-truncAgent)}</tspan>
           <tspan x="${-w2 + xOff}" y="${-h2 + yOff * 3}">${tally.net}</tspan>
         </text>`
         , rect = `x="${-w2}" y="${-h2}" rx="${yOff}" ry="${yOff}" width="${width}" height="${height}"`

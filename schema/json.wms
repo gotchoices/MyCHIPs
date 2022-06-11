@@ -122,8 +122,8 @@ view json.cert {mychips.users_v json.connect json.place mychips} {select p.id
   , jsonb_build_object(
        'cid', p.peer_cid
      , 'agent', p.peer_agent
-     , 'host', p.peer_chost
-     , 'port', p.peer_cport
+     , 'host', p.peer_host
+     , 'port', p.peer_port
     ) as "chad"
   , p.ent_type	as "type"
   , p.peer_psig	as "public"

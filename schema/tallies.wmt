@@ -59,6 +59,8 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
     {IVR		{Invalid Request}	{Tally request value is not valid}}
     {UCI		{User CHIP ID}		{An open tally must include a valid user CHIP ID}}
     {PCI		{Partner CHIP ID}	{An open tally must include a valid partner CHIP ID}}
+    {UAI		{User Agent ID}		{An open tally must include a valid user agent ID}}
+    {PAI		{Partner Agent ID}	{An open tally must include a valid partner agent ID}}
     {UCM		{User Certificate}	{An open tally must contain a user certificate}}
     {PCM		{Partner Certificate}	{An open tally must contain a partner certificate}}
     {USM		{User Signature}	{An open tally must contain a user signature}}

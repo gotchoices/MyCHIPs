@@ -5,7 +5,6 @@
 //- 
 import Vue from 'vue'
 import Wylib from 'wylib'
-import AppURNet1 from './urnet1.vue'
 import AppURNet from './urnet.vue'
 Vue.config.productionTip = false
 
@@ -17,7 +16,7 @@ const Template = `
 new Vue({
   el: '#app',
   template: Template,
-  components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-urnet1': AppURNet1, 'app-urnet': AppURNet},
+  components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-urnet': AppURNet},
   data() { return {
     state:      {curTab: 'users', tabs: {users:{}, conts:{}, urnet:{}, urnet2:{}, config:{}}},
     tag:	'mychips_admin',
@@ -28,7 +27,6 @@ new Vue({
       {tag: 'users',  view: 'mychips.users_v', title: 'Users'},
       {tag: 'conts',  view: 'mychips.contracts_v', title: 'Contracts'},
       {tag: 'config', view: 'base.parm_v', title: 'Settings'},
-//      {tag: 'urnet1',  component: 'app-urnet1', title: 'Network (Old)'},
       {tag: 'urnet',  component: 'app-urnet', title: 'Network'},
     ],
   }},

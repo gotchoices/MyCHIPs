@@ -59,8 +59,8 @@ view mychips.tokens_v {mychips.tokens mychips.users_v json.cert} {select
   , jsonb_build_object(
        'cid', u.peer_cid
      , 'agent', u.peer_agent
-     , 'host', u.peer_chost
-     , 'port', u.peer_cport
+     , 'host', u.peer_host
+     , 'port', u.peer_port
     ) as "chad"
       
     from	mychips.tokens	t

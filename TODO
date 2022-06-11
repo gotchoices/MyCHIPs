@@ -1,25 +1,17 @@
 TODO:
 
 Immediate:
-- Make issue field work:
-X-   Change tally_type to enum
-X-   Get regression tests working again
-X-    Why doesn't setting chit get transmitted?
-X-   Change units to always a positive number (internally and externally)
-X-   Must specify issuer explicitly (or allow defaulting to foil)
-X-   Add net field to chits_v
-X-   Make tallies_v.net draw from net fields in chits_v
-X-   Get all regression tests working again
-X-   Remove unused fields in chits_v?
-X-   Update wmt fields with changes
-X- Commit above changes
-X- Change manual section in use-pki.md from peer certs to agent instructions
 -   
-- Model1 still works?
--   Generate default agents?
--   Newline between cid/agent in network visualizer?
--   Truncate long agent names in network visualizer
--  Can we obsolete/remove (or trim) users_v_tallysum?
+X- Generate default agents?
+X-   Parm agent ID is default on user_certificate
+X-   Kickstart initializes parm agent ID from default_agent
+X- Truncate long agent names in network visualizer
+- Can we obsolete/remove (or trim) users_v_tallysum?
+-  Model1 still works?
+-  Simulation still works?
+-   Install node on mac
+-   Changes to units/net
+-   Trim tallysum fields
 -   
 - Chit consensus
 -   Implement signatures/checking on tallies/chits
@@ -43,7 +35,7 @@ X- Change manual section in use-pki.md from peer certs to agent instructions
 -  Mocha test for model2? (probably not right away)
 -  Command to test-run docker simulator--just to see if any error messages pop out?
 -  Can peer containers run with spa services disabled?
--  Can/should we change chit units to be stored internally with sign relative to stock/foil?
+X-  Can/should we change chit units to be stored internally with sign relative to stock/foil?
 - 
 - Linear lifts:
 -   Create draft lift record and retrieve digest
@@ -60,6 +52,9 @@ X-   Where/how to build/store agent private keys (pki folder?)
 -   Implement local lift scheduler/scanner/processor
 -  
 - Server now ready for single-site use/deployment?
+- 
+- Admin UI tab for editing local agents?
+- How to mark agents as local (and is it needed to determine local agents)?
 - 
 - Implement vesting support:
 - Create new vest field or can we just post-date the chit_date into the future?

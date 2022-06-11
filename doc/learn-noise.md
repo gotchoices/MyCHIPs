@@ -47,7 +47,7 @@ The [MyCHIPs Protocol](learn-protocol.md) describes a set of high level messages
 get passed back and forth between nodes in order to negotiate tallies, chits and lifts.
 
 At a lower level, it is necessary for sites to connect to each other over a secure, encrypted channel.
-MyCHIPs will use [Noise Protocol Framework](www.noiseprotocol.org)(NPF) to provide this security.
+MyCHIPs will use [Noise Protocol Framework](www.noiseprotocol.org) (NPF) to provide this security.
 Two nodes may interconnect according to the following use pattern:
 
 ![use-noise](uml/use-noise.svg)

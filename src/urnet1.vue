@@ -1,13 +1,8 @@
 //Admin interface; User Relationship Network Graph
+//This version deprecated
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
-//- Works OK with new peer-less schema
-//- 
-//- Future:
-//- Each user is a visual balance balance real-time pie-chart
-//- Use constant update d3 or similar to place nodes on chart
-//- Arrows are separate objects--not belonging directly to nodes
 //- 
 
 <template>

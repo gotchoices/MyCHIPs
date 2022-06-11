@@ -2210,7 +2210,9 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
   , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
+  				constraint "!mychips.tallies.UAI" check (not (status = 'open' and hold_agent isnull))
   , part_agent	text		references mychips.agents on update restrict on delete restrict
+  				constraint "!mychips.tallies.PAI" check (not (status = 'open' and part_agent isnull))
   , hold_sets	jsonb		not null default '{}'
   , part_sets	jsonb		not null default '{}'
   , chain_conf	int		default 0 not null
@@ -2246,14 +2248,14 @@ create view mychips.users_v as select
   , ue.user_ent, ue.user_host, ue.user_port, ue.user_stat, ue.user_hid, ue.peer_cid, ue.peer_agent, ue.peer_psig, ue.peer_named, ue.user_cmt, ue.crt_by, ue.crt_date, ue.mod_by
   , ag.agent_key, ag.agent_host, ag.agent_port, ag.agent_ip
 
-  , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
   , ag.agent_host		as peer_host
   , ag.agent_port		as peer_port
-  , coalesce(ue.peer_agent, pp.pagent)			as peer_cagent
-  , coalesce(ag.agent_host, pp.phost)			as peer_chost
-  , coalesce(ag.agent_port, pp.pport)			as peer_cport
-  , coalesce(ag.agent_host, pp.phost) || ':' || coalesce(ag.agent_port, pp.pport)	as peer_sock
-  , ue.peer_cid ||':'|| coalesce(ue.peer_agent, pp.pagent) ||'@'|| coalesce(ag.agent_host, pp.phost) ||':'|| coalesce(ag.agent_port, pp.pport)	as peer_addr
+
+
+
+
+
+
 
   , greatest(ee.mod_date, ue.mod_date)					as mod_date
   , jsonb_build_object(
@@ -2689,8 +2691,8 @@ create view json.cert as select p.id
   , jsonb_build_object(
        'cid', p.peer_cid
      , 'agent', p.peer_agent
-     , 'host', p.peer_chost
-     , 'port', p.peer_cport
+     , 'host', p.peer_host
+     , 'port', p.peer_port
     ) as "chad"
   , p.ent_type	as "type"
   , p.peer_psig	as "public"
@@ -2953,8 +2955,8 @@ create view mychips.tokens_v as select
   , jsonb_build_object(
        'cid', u.peer_cid
      , 'agent', u.peer_agent
-     , 'host', u.peer_chost
-     , 'port', u.peer_cport
+     , 'host', u.peer_host
+     , 'port', u.peer_port
     ) as "chad"
       
     from	mychips.tokens	t
@@ -3016,7 +3018,7 @@ create function mychips.tally_certs(ta mychips.tallies) returns mychips.tallies 
       ta.part_agent = pchad->>'agent';
 
       foreach c in array array[ hchad, pchad ] loop
-        if not c is null and not exists (select agent from mychips.agents where agent = c->>'agent') then
+        if (c->>'agent') notnull and not exists (select agent from mychips.agents where agent = c->>'agent') then
           insert into mychips.agents (agent, agent_host, agent_port) values (c->>'agent', c->>'host', (c->'port')::int);
         end if;
       end loop;
@@ -4771,7 +4773,7 @@ create function mychips.route_process(msg jsonb, recipe jsonb) returns jsonb lan
              return null;
         end if;
 
-        select into dest id, peer_cid, peer_chost from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';
+        select into dest id, peer_cid, peer_host from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';
 
 
         if recipe->'query' then			-- If there a query flag in the recipe object
@@ -5755,12 +5757,14 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','IVS','eng','Invalid Status','Tally status value is not valid'),
   ('mychips','tallies','LMG','eng','Invalid Lift Margin','The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.'),
   ('mychips','tallies','NSP','eng','Same Partner ID','Tally partner must be a separate entity'),
+  ('mychips','tallies','PAI','eng','Partner Agent ID','An open tally must include a valid partner agent ID'),
   ('mychips','tallies','PCI','eng','Partner CHIP ID','An open tally must include a valid partner CHIP ID'),
   ('mychips','tallies','PCM','eng','Partner Certificate','An open tally must contain a partner certificate'),
   ('mychips','tallies','PSM','eng','Partner Signature','An open tally must contain a partner signature'),
   ('mychips','tallies','STR','eng','Illegal State Request','The requested state transition is not allowed'),
   ('mychips','tallies','TGT','eng','Illegal Lift Target','Lift target must be less than or equal to the maximum lift amount'),
   ('mychips','tallies','TNU','eng','Tally ID Not Unique','The chosen tally type and ID is not unique to the system'),
+  ('mychips','tallies','UAI','eng','User Agent ID','An open tally must include a valid user agent ID'),
   ('mychips','tallies','UCI','eng','User CHIP ID','An open tally must include a valid user CHIP ID'),
   ('mychips','tallies','UCM','eng','User Certificate','An open tally must contain a user certificate'),
   ('mychips','tallies','USM','eng','User Signature','An open tally must contain a user signature'),
@@ -6857,7 +6861,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v','peer_sock','subframe','3 21'),
   ('mychips','users_v','peer_sock','write','0'),
   ('mychips','users_v','std_name','display','2'),
-  ('mychips','users_v','user_sock','display','5'),
   ('mychips','users_v','user_sock','input','ent'),
   ('mychips','users_v','user_sock','optional','1'),
   ('mychips','users_v','user_sock','size','28'),
@@ -8087,17 +8090,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v','mid_name','base','ent','mid_name','f','f'),
   ('mychips','users_v','mod_by','mychips','users','mod_by','f','f'),
   ('mychips','users_v','mod_date','mychips','users','mod_date','f','f'),
-  ('mychips','users_v','peer_addr','mychips','users_v','peer_addr','f','f'),
   ('mychips','users_v','peer_agent','mychips','users','peer_agent','f','f'),
-  ('mychips','users_v','peer_cagent','mychips','users_v','peer_cagent','f','f'),
-  ('mychips','users_v','peer_chost','mychips','users_v','peer_chost','f','f'),
   ('mychips','users_v','peer_cid','mychips','users','peer_cid','f','f'),
-  ('mychips','users_v','peer_cport','mychips','users_v','peer_cport','f','f'),
   ('mychips','users_v','peer_host','mychips','users_v','peer_host','f','f'),
   ('mychips','users_v','peer_named','mychips','users','peer_named','f','f'),
   ('mychips','users_v','peer_port','mychips','users_v','peer_port','f','f'),
   ('mychips','users_v','peer_psig','mychips','users','peer_psig','f','f'),
-  ('mychips','users_v','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','users_v','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v','std_name','base','ent_v','std_name','f','f'),
   ('mychips','users_v','tax_id','base','ent','tax_id','f','f'),
@@ -8107,7 +8105,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v','user_hid','mychips','users','user_hid','f','f'),
   ('mychips','users_v','user_host','mychips','users','user_host','f','f'),
   ('mychips','users_v','user_port','mychips','users','user_port','f','f'),
-  ('mychips','users_v','user_sock','mychips','users_v','user_sock','f','f'),
   ('mychips','users_v','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v','username','base','ent','username','f','f'),
   ('mychips','users_v_flat','age','base','ent_v','age','f','f'),
@@ -8144,17 +8141,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_flat','mid_name','base','ent','mid_name','f','f'),
   ('mychips','users_v_flat','mod_by','mychips','users','mod_by','f','f'),
   ('mychips','users_v_flat','mod_date','mychips','users','mod_date','f','f'),
-  ('mychips','users_v_flat','peer_addr','mychips','users_v','peer_addr','f','f'),
   ('mychips','users_v_flat','peer_agent','mychips','users','peer_agent','f','f'),
-  ('mychips','users_v_flat','peer_cagent','mychips','users_v','peer_cagent','f','f'),
-  ('mychips','users_v_flat','peer_chost','mychips','users_v','peer_chost','f','f'),
   ('mychips','users_v_flat','peer_cid','mychips','users','peer_cid','f','f'),
-  ('mychips','users_v_flat','peer_cport','mychips','users_v','peer_cport','f','f'),
   ('mychips','users_v_flat','peer_host','mychips','users_v','peer_host','f','f'),
   ('mychips','users_v_flat','peer_named','mychips','users','peer_named','f','f'),
   ('mychips','users_v_flat','peer_port','mychips','users_v','peer_port','f','f'),
   ('mychips','users_v_flat','peer_psig','mychips','users','peer_psig','f','f'),
-  ('mychips','users_v_flat','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','users_v_flat','phone_comm','base','comm_v_flat','phone_comm','f','f'),
   ('mychips','users_v_flat','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v_flat','ship_addr','base','addr_v_flat','ship_addr','f','f'),
@@ -8170,7 +8162,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_flat','user_hid','mychips','users','user_hid','f','f'),
   ('mychips','users_v_flat','user_host','mychips','users','user_host','f','f'),
   ('mychips','users_v_flat','user_port','mychips','users','user_port','f','f'),
-  ('mychips','users_v_flat','user_sock','mychips','users_v','user_sock','f','f'),
   ('mychips','users_v_flat','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v_flat','username','base','ent','username','f','f'),
   ('mychips','users_v_flat','web_comm','base','comm_v_flat','web_comm','f','f'),
@@ -8201,17 +8192,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_me','mid_name','base','ent','mid_name','f','f'),
   ('mychips','users_v_me','mod_by','mychips','users','mod_by','f','f'),
   ('mychips','users_v_me','mod_date','mychips','users','mod_date','f','f'),
-  ('mychips','users_v_me','peer_addr','mychips','users_v','peer_addr','f','f'),
   ('mychips','users_v_me','peer_agent','mychips','users','peer_agent','f','f'),
-  ('mychips','users_v_me','peer_cagent','mychips','users_v','peer_cagent','f','f'),
-  ('mychips','users_v_me','peer_chost','mychips','users_v','peer_chost','f','f'),
   ('mychips','users_v_me','peer_cid','mychips','users','peer_cid','f','f'),
-  ('mychips','users_v_me','peer_cport','mychips','users_v','peer_cport','f','f'),
   ('mychips','users_v_me','peer_host','mychips','users_v','peer_host','f','f'),
   ('mychips','users_v_me','peer_named','mychips','users','peer_named','f','f'),
   ('mychips','users_v_me','peer_port','mychips','users_v','peer_port','f','f'),
   ('mychips','users_v_me','peer_psig','mychips','users','peer_psig','f','f'),
-  ('mychips','users_v_me','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','users_v_me','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v_me','std_name','base','ent_v','std_name','f','f'),
   ('mychips','users_v_me','tax_id','base','ent','tax_id','f','f'),
@@ -8221,7 +8207,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_me','user_hid','mychips','users','user_hid','f','f'),
   ('mychips','users_v_me','user_host','mychips','users','user_host','f','f'),
   ('mychips','users_v_me','user_port','mychips','users','user_port','f','f'),
-  ('mychips','users_v_me','user_sock','mychips','users_v','user_sock','f','f'),
   ('mychips','users_v_me','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v_me','username','base','ent','username','f','f'),
   ('mychips','users_v_tallies','age','base','ent_v','age','f','f'),
@@ -8258,17 +8243,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallies','mod_by','mychips','users','mod_by','f','f'),
   ('mychips','users_v_tallies','mod_date','mychips','users','mod_date','f','f'),
   ('mychips','users_v_tallies','net','mychips','chits_v','net','f','f'),
-  ('mychips','users_v_tallies','peer_addr','mychips','users_v','peer_addr','f','f'),
   ('mychips','users_v_tallies','peer_agent','mychips','users','peer_agent','f','f'),
-  ('mychips','users_v_tallies','peer_cagent','mychips','users_v','peer_cagent','f','f'),
-  ('mychips','users_v_tallies','peer_chost','mychips','users_v','peer_chost','f','f'),
   ('mychips','users_v_tallies','peer_cid','mychips','users','peer_cid','f','f'),
-  ('mychips','users_v_tallies','peer_cport','mychips','users_v','peer_cport','f','f'),
   ('mychips','users_v_tallies','peer_host','mychips','users_v','peer_host','f','f'),
   ('mychips','users_v_tallies','peer_named','mychips','users','peer_named','f','f'),
   ('mychips','users_v_tallies','peer_port','mychips','users_v','peer_port','f','f'),
   ('mychips','users_v_tallies','peer_psig','mychips','users','peer_psig','f','f'),
-  ('mychips','users_v_tallies','peer_sock','mychips','users_v','peer_sock','f','f'),
   ('mychips','users_v_tallies','pref_name','base','ent','pref_name','f','f'),
   ('mychips','users_v_tallies','std_name','base','ent_v','std_name','f','f'),
   ('mychips','users_v_tallies','tallies','mychips','users_v_tallies','tallies','f','f'),
@@ -8279,7 +8259,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallies','user_hid','mychips','users','user_hid','f','f'),
   ('mychips','users_v_tallies','user_host','mychips','users','user_host','f','f'),
   ('mychips','users_v_tallies','user_port','mychips','users','user_port','f','f'),
-  ('mychips','users_v_tallies','user_sock','mychips','users_v','user_sock','f','f'),
   ('mychips','users_v_tallies','user_stat','mychips','users','user_stat','f','f'),
   ('mychips','users_v_tallies','username','base','ent','username','f','f'),
   ('mychips','users_v_tallysum','bounds','mychips','tallies_v_sum','bounds','f','f'),

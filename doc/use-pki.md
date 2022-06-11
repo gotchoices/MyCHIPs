@@ -58,31 +58,26 @@ This can be invoked manually with one of the following:
   bin/agents check
 ```
 
-You can list currently defined agents using one of:
+You can list currently defined agents using:
 ```
-  bin/agents list
-  bin/agents ls
-```
-
-You can delete an existing agent using one of:
-```
-  bin/agents rm <agent_ID>
-  bin/agents remove <agent_ID>
-  bin/agents del <agent_ID>
+  bin/agents list			#or ls
 ```
 
-You can create a new agent using one of:
+You can delete an existing agent using:
 ```
-  bin/agents new
-  bin/agents add
+  bin/agents rm <agent_ID>		#or remove, del
 ```
 
-Creating a new agent simply produces a new noise protocol private key and stores it in the pki/local folder.
-If you want to use any agent (other than the default) you will have to write it to the applicable field
-in the mychips.users_v view for each user who is expected to be reachable at that agent address.
+You can create a new agent using:
+```
+  bin/agents new			#or add
+```
 
-Users who have no agent setting will be reachable at whatever the default agent setting is.
-The default agent is simply specified by a symbolic link in the pki/local folder called "default_agent".
+Creating a new agent simply produces a new [noise protocol](learn-noise.md)
+private key and stores it in the pki/local folder.
+A default agent is identified by a symbolic link in the pki/local folder called "default_agent".
+
+In addition to a CHIP ID, each user must be assigned an agent ID (peer_agent field) in the mychips.users_v view.
 
 <br>[Next - System Administration](use-mobile.md)
 <br>[Back to Index](README.md#contents)

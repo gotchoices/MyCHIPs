@@ -63,7 +63,9 @@ table mychips.tallies {mychips mychips.users tally_side} {
   , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
   , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
+  				constraint "!mychips.tallies.UAI" check (not (status = 'open' and hold_agent isnull))
   , part_agent	text		references mychips.agents on update restrict on delete restrict
+  				constraint "!mychips.tallies.PAI" check (not (status = 'open' and part_agent isnull))
   , hold_sets	jsonb		not null default '{}'
   , part_sets	jsonb		not null default '{}'
   , chain_conf	int		default 0 not null
@@ -184,7 +186,7 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
       ta.part_agent = pchad->>'agent';
 --raise notice 'Tally check:% %', ta.hold_agent, ta.part_agent;
       foreach c in array array[ hchad, pchad ] loop
-        if not c is null and not exists (select agent from mychips.agents where agent = c->>'agent') then
+        if (c->>'agent') notnull and not exists (select agent from mychips.agents where agent = c->>'agent') then
           insert into mychips.agents (agent, agent_host, agent_port) values (c->>'agent', c->>'host', (c->'port')::int);
         end if;
       end loop;

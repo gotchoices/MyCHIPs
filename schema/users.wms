@@ -54,32 +54,32 @@ table mychips.users {base.ent mychips.agents} {
 
 # Special user-readable view to read certain user site defaults
 #----------------------------------------------------------------
-view mychips.parm_v_user {base.parm} {select
-    (select v_text from base.parm where module = 'mychips' and parm = 'user_host') as uhost
-  , (select v_int  from base.parm where module = 'mychips' and parm = 'user_port') as uport
-  , (select v_text from base.parm where module = 'mychips' and parm = 'peer_agent') as pagent
-  , (select v_text from base.parm where module = 'mychips' and parm = 'peer_host') as phost
-  , (select v_int  from base.parm where module = 'mychips' and parm = 'peer_port') as pport
-}
+#view mychips.parm_v_user {base.parm} {select
+#    (select v_text from base.parm where module = 'mychips' and parm = 'user_host') as uhost
+#  , (select v_int  from base.parm where module = 'mychips' and parm = 'user_port') as uport
+#  , (select v_text from base.parm where module = 'mychips' and parm = 'peer_agent') as pagent
+#  , (select v_text from base.parm where module = 'mychips' and parm = 'peer_host') as phost
+#  , (select v_int  from base.parm where module = 'mychips' and parm = 'peer_port') as pport
+#}
 
 # Base view of users, linked to entity and peer tables
 #----------------------------------------------------------------
-define cAgent {coalesce(ue.peer_agent, pp.pagent)}
-define cHost {coalesce(ag.agent_host, pp.phost)}
-define cPort {coalesce(ag.agent_port, pp.pport)}
-view mychips.users_v {mychips.users base.ent_v mychips.parm_v_user mychips.agents} {select 
+#define cAgent {coalesce(ue.peer_agent, pp.pagent)}
+#define cHost {coalesce(ag.agent_host, pp.phost)}
+#define cPort {coalesce(ag.agent_port, pp.pport)}
+view mychips.users_v {mychips.users base.ent_v mychips.agents} {select 
     eval(fld_list $users::ent_se	ee)
   , eval(fld_list $users::users_se	ue)
   , eval(fld_list $users::agents_se	ag)
 
-  , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
   , ag.agent_host		as peer_host
   , ag.agent_port		as peer_port
-  , cAgent()			as peer_cagent
-  , cHost()			as peer_chost
-  , cPort()			as peer_cport
-  , cHost() || ':' || cPort()	as peer_sock
-  , ue.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
+--  , cAgent()			as peer_cagent
+--  , cHost()			as peer_chost
+--  , cPort()			as peer_cport
+--  , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
+--  , cHost() || ':' || cPort()	as peer_sock
+--  , ue.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
 --  , ue.peer_cid || '@' || cHost() || ':' || cPort()			as peer_endp
   , greatest(ee.mod_date, ue.mod_date)					as mod_date
   , jsonb_build_object(
@@ -97,8 +97,8 @@ view mychips.users_v {mychips.users base.ent_v mychips.parm_v_user mychips.agent
 
     from	base.ent_v	ee
     left join	mychips.users	ue on ue.user_ent = ee.id
-    left join	mychips.agents	ag on ag.agent = ue.peer_agent
-    join	mychips.parm_v_user pp on true;
+    left join	mychips.agents	ag on ag.agent = ue.peer_agent;
+--    join	mychips.parm_v_user pp on true;
 
     eval(multiview::insert mychips.users_v "
         {base.ent	{$base::ent_v_in}	{$base::ent_pk}		{$glob::stampup}}

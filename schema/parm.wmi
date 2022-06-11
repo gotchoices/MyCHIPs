@@ -19,11 +19,13 @@ if [[ ! -z "$MYCHIPS_AGPORT" ]]; then peer_port="$MYCHIPS_AGPORT"; fi
 cat <<EOF
 insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values 
   ('mychips', 'site_ent', 'text', null, 'r1', null, 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
- ,('mychips', 'user_host', 'text', null, '${user_host}', null, 'Default IP where mobile application connects.')
- ,('mychips', 'user_port', 'int', ${user_port}, null, null, 'Default port where mobile user application connects.')
- ,('mychips', 'peer_agent', 'text', null, '${peer_agent}', null, 'Default agent key where peer servers connect.')
- ,('mychips', 'peer_host', 'text', null, '${peer_host}', null, 'Default network address where peer servers connect.')
- ,('mychips', 'peer_port', 'int', ${peer_port}, null, null, 'Default port where peer servers connect.')
+
+-- Deprecated:
+-- ,('mychips', 'user_host', 'text', null, '${user_host}', null, 'Default IP where mobile application connects.')
+-- ,('mychips', 'user_port', 'int', ${user_port}, null, null, 'Default port where mobile user application connects.')
+-- ,('mychips', 'peer_agent', 'text', null, '${peer_agent}', null, 'Default agent key where peer servers connect.')
+-- ,('mychips', 'peer_host', 'text', null, '${peer_host}', null, 'Default network address where peer servers connect.')
+-- ,('mychips', 'peer_port', 'int', ${peer_port}, null, null, 'Default port where peer servers connect.')
 
  ,('agents', 'min_time', 'int', 5, null, null, 'Minimum number of minutes between retrying a message to an agent server.')
  ,('agents', 'max_tries', 'int', 100, null, null, 'How many times to retry sending messages to an agent server before giving up.')

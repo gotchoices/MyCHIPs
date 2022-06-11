@@ -7,11 +7,11 @@
 //- 
 const Fs = require('fs')
 const Path = require('path')
-const { UserHost, UserPort, PeerHost, PeerPort, DefAgent, DBAdmin, DBHost, DBPort, Log } = require('../settings')
+const { UserHost, UserPort, PeerHost, PeerPort, PeerAgent, DBAdmin, DBHost, DBPort, Log } = require('../settings')
 var log = Log('Kickstart')
 var database = process.env.MYCHIPS_DBNAME || 'mychips'
 var user = DBAdmin || process.env.MYCHIPS_DBAdmin || DBAdmin || process.env.USER
-//console.log("database:", database, "user:", user, "UserHost:", UserHost, "uport:", UserPort, "pport:", PeerPort)
+//console.log("database:", database, "user:", user, "UserHost:", UserHost, "uport:", UserPort, "pport:", PeerPort, "PeerAgent:", PeerAgent)
 
 var { dbClient } = require("wyseman")
 const dbConfig = {
@@ -26,13 +26,16 @@ var db = new dbClient(dbConfig)
 
 var queryList = []
 //queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[UserHost]})
+//queryList.push({q:"select base.parmset('mychips','peer_agent',$1::text)", a:[PeerAgent]})
+//queryList.push({q:"select base.parmset('mychips','peer_host',$1::text)", a:[PeerHost]})
+//queryList.push({q:"select base.parmset('mychips','peer_port',$1::int)", a:[PeerPort]})
 
 //Insert some sample users
 var fileData = Fs.readFileSync(Path.join(__dirname, 'users.json'))
 var jsonData = JSON.parse(fileData)
 queryList.push({q:"select json.import($1::jsonb) as record;", a:[jsonData]})
 
-//For user agent-based model testing:
+//Used by agent-based modeler:
 queryList.push({q:"select base.parmset('model', 'interval',$1::int)", a:[1000]})
 queryList.push({q:"select base.parmset('model', 'addclient',$1::float)", a:[0.10]})
 queryList.push({q:"select base.parmset('model', 'addvendor',$1::float)", a:[0.20]})
@@ -45,7 +48,7 @@ queryList.push({q:"update mychips.users set user_host = $1, user_port=$2 where u
 
 //For testing tallies:
 let q = "update mychips.users_v set peer_agent=$1, peer_host=$2, peer_port=$3 where not peer_cid isnull;"
-queryList.push({q, a:[DefAgent, PeerHost, PeerPort]})
+queryList.push({q, a:[PeerAgent, PeerHost, PeerPort]})		//Get defaults from base.parm now
 
 var pending = 0
 queryList.forEach(elem=>{		//Run each of the SQL commands in sequence

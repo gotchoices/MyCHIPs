@@ -367,7 +367,7 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
              return null;		-- Query message to/from must match our known tally
         end if;			-- Verifies query is coming from up/down-stream on this tally
 
-        select into dest id, peer_cid, peer_chost from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';	-- Do we have the destination entity locally?
+        select into dest id, peer_cid, peer_host from mychips.users_v where peer_cid = find->>'cid' and peer_agent = find->>'agent';	-- Do we have the destination entity locally?
 --raise notice '  dest local: % %', dest.id, obj->>'find';
 
         if recipe->'query' then			-- If there a query flag in the recipe object
