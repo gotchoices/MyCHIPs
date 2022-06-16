@@ -1,17 +1,27 @@
 TODO:
 
 Immediate:
--   
-X- Generate default agents?
-X-   Parm agent ID is default on user_certificate
-X-   Kickstart initializes parm agent ID from default_agent
-X- Truncate long agent names in network visualizer
+X- Can run tests on mac host or linux guest
+X-  Common.js
+X-   Test for running pg
+X-   Start docker pg if none running
+X-   Set docker-compose to disconnect, run in background
+X-   Run sample query to make sure PG is up and running
+-   Change compose file names from -test to -pg
+-  Simulator model2/model3 testing:
+-   Test for running mongo
+-   Start docker mongo if none running
+-  Flag to indicate we launched pg/mongo
+-  Mocha test to run model2
+-  Mocha test to run model3
+-  Stop containers at end of testing
+- 
+- Did new tests reveal weakness in model2 (and model3)?
+- Fix model2/model3 (units->net, include issuer)
+- All regression tests now pass
+- Simulation still works
+- Trim tallysum fields?
 - Can we obsolete/remove (or trim) users_v_tallysum?
--  Model1 still works?
--  Simulation still works?
--   Install node on mac
--   Changes to units/net
--   Trim tallysum fields
 -   
 - Chit consensus
 -   Implement signatures/checking on tallies/chits
