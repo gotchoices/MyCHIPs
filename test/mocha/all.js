@@ -24,7 +24,9 @@ require('./peernoise.js')
 
 require('./impexp.js')		//Adds users needed for other tests
 require('./testusers.js')	//Run before sch-tally or tally
+
 require('./model1.js')
+require('./model2.js')
 
 require('./sch-tally.js')
 require('./sch-chit.js')
@@ -41,11 +43,8 @@ require('./sch-lift.js')
 require('./lift-in.js')
 require('./lift.js')
 
-//Re-enable after schema settles and more text fields are filled in
-//require('./schema.js')
-
-//Re-enable after consolidating users_v, peers_v?
-//require('./sch-multi.js')	//Will empty users table
+//require('./schema.js')	//Re-enable after schema settles and more text fields are filled in
+require('./sch-multi.js')	//Will empty users table
 
 after('Delete test database', function(done) {
   let dc = 2, _done = () => {if (!--dc) done()}		//dc _done's to be done

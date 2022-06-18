@@ -1,25 +1,19 @@
 TODO:
 
 Immediate:
-X- Can run tests on mac host or linux guest
-X-  Common.js
-X-   Test for running pg
-X-   Start docker pg if none running
-X-   Set docker-compose to disconnect, run in background
-X-   Run sample query to make sure PG is up and running
--   Change compose file names from -test to -pg
--  Simulator model2/model3 testing:
+X- Re-enable mocha/sch-multi.js
+- Simulator model2/model3 testing:
 -   Test for running mongo
+-   Get rid of replication set support/async
 -   Start docker mongo if none running
--  Flag to indicate we launched pg/mongo
--  Mocha test to run model2
--  Mocha test to run model3
--  Stop containers at end of testing
-- 
+- Mocha test to run model2
+- Mocha test to run model3?
+- Stop containers at end of testing
 - Did new tests reveal weakness in model2 (and model3)?
-- Fix model2/model3 (units->net, include issuer)
+- Fix model3 (units->net, include issuer?)
 - All regression tests now pass
 - Simulation still works
+- 
 - Trim tallysum fields?
 - Can we obsolete/remove (or trim) users_v_tallysum?
 -   

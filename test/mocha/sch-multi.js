@@ -8,7 +8,7 @@ var log = testLog(__filename)
 const interTest = {}
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
-describe("View mychips.peers_v", function() {
+describe("View mychips.users_v", function() {
   var db
   this.timeout(5000)		//May take a while to build database
 
@@ -27,13 +27,14 @@ describe("View mychips.peers_v", function() {
 
   describe('Multiview table insert tests', function() {
     const tests = [
-      {pkey:'agent', table:'mychips.agents_v',record:{agent:'Alone', agent_host:'mychips.net', agent_port:7201, agent_key:null, valid:false}},
+      {pkey:'agent', table:'mychips.agents_v',
+        record:{agent:'Alone', agent_host:'mychips.net', agent_port:7201, agent_key:null, valid:false}},
       {pkey: 'id', table:'base.ent_v',record:{ent_name:'BaseOnly'}},
       {pkey: 'id', table:'base.ent_v',record:{ent_name:'BaseOnly', fir_name:'Also'}},
-      {pkey: 'id', table:'mychips.peers_v',
-        record:{ent_name:'Chirpies',peer_cid:'zzyzy',peer_agent:'FACADE',peer_port:12345}},
-      {pkey: 'id', table:'mychips.peers_v',
-        record:{ent_name:'Chippers',peer_cid:'zzyzz',peer_agent:'BEADEE',peer_host:'mychips.org', peer_port:54321}},
+      {pkey: 'id', table:'mychips.users_v',
+        record:{ent_name:'Chirpies',peer_cid:'zzyzy',peer_agent:'FACADE',peer_host:'localhost',peer_port:12345}},
+//      {pkey: 'id', table:'mychips.users_v',
+//        record:{ent_name:'Chippers',peer_cid:'zzyzz',peer_agent:'BEADEE',peer_host:'mychips.org', peer_port:54321}},
       {pkey: 'id', table:'mychips.users_v',
         record:{ent_name:'Choppies',peer_cid:'zzyzu',user_host:'mychips.com',peer_agent:'Poodle',peer_host:'mychips.org', peer_port:12345}},
     ]
@@ -61,14 +62,12 @@ describe("View mychips.peers_v", function() {
 
   describe('Multiview update tests', function() {
     it('Last inserted entity number', function() {
-      assert.equal(interTest.lastId, 'p1004')		//ID number of our last insert
+      assert.equal(interTest.lastId, 'p1003')		//ID number of our last insert
     })
 
     const tests = [
       {pkey:'id', pkval: 'p1000', table:'base.ent_v',record:{fir_name:'Fred'}},		//Native table
-      {pkey:'id', pkval: 'p1000', table:'mychips.peers_v',record:{peer_cid:'freddie'}},	//Add a peer record
-      {pkey:'id', pkval: 'p1000', table:'mychips.peers_v',record:{peer_cid:'froopie'}},	//Modify a peer record
-      {pkey:'id', pkval: 'p1000', table:'mychips.users_v',record:{user_port:5555}},	//Add a user record
+      {pkey:'id', pkval: 'p1000', table:'mychips.users_v',record:{user_port:5555, peer_cid:'bubba'}},	//Add a user record
       {pkey:'id', pkval: 'p1001', table:'mychips.users_v',record:{peer_cid:'poofie', user_host:'mychips.net'}},	//Add user and peer
       {pkey:'id', pkval: 'p1001', table:'mychips.users_v',record:{peer_agent:'ZZYZX', peer_host:'mychips.org', peer_port:22332}},	//Add agent record
       {pkey:'agent', pkval: 'FACADE', table:'mychips.agents_v',record:{agent_host:'mychips.net', agent_port:7200}},
@@ -87,7 +86,7 @@ describe("View mychips.peers_v", function() {
 //log.debug('Values:', values)
         db.query(sql, values ,(err, res) => {if (err) {done(err)} else {
           let row = res.rows[0]				//Should just be one row
-          log.info("Row:", row)
+          log.info("Row:", row)				//;log.debug('Row:', row)
           fields.forEach(f => {assert.equal(record[f], row[f])})	//Check each field value
           done()
         }})
@@ -105,22 +104,7 @@ describe("View mychips.peers_v", function() {
         assert.equal(res.length, 4)		//begin, delete, select, end
         let row = res[2].rows[0]
         assert.equal(row.fir_name, 'Also')	//base record remains
-        assert.equal(row.peer_cid, 'poofie')	//peer record remains
-        assert.ifError(row.user_host)		//user record gone
-        done()
-      }})
-    })
-
-    it(`Delete user component only`, function(done) {
-      let sql = `begin; 
-        delete from mychips.peers_v where id = 'p1000';
-        select fir_name,peer_cid,user_host from mychips.users_v where id = 'p1000';
-        end;`
-      db.query(sql, (err, res) => {if (err) {done(err)} else {
-        assert.equal(res.length, 4)		//begin, delete, select, end
-        let row = res[2].rows[0]
-        assert.equal(row.fir_name, 'Fred')	//base record remains
-        assert.ifError(row.peer_cid)		//peer record gone
+//        assert.equal(row.peer_cid, 'poofie')	//peer record remains
         assert.ifError(row.user_host)		//user record gone
         done()
       }})
@@ -136,7 +120,7 @@ describe("View mychips.peers_v", function() {
       db.query(sql, (err, res) => {if (err) {done(err)} else {
         assert.equal(res.length, 6)		//begin, delete, select, delete, select, end
         let row = res[2].rows[0]
-        assert.equal(row.count, 1)		//Alone left over (before the last delete)
+        assert.equal(row.count, 4)		//Agents don't get auto-deleted anymore
         row = res[4].rows[0]
         assert.equal(row.count, 0)		//Now empty
         done()

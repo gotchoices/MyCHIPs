@@ -49,7 +49,8 @@ log.debug("Found Postgres at:", DBHost, DBPort)
         , env = Object.assign({MYCHIPS_DBHOST: dockName}, process.env)
 log.debug("Launching docker with compose:", cmd)
       Child.exec(cmd + ' up -d', {env}, (e,out,err) => {	//Try to launch one in docker
-//log.debug("Compose result:", e, out, err)
+//log.debug("Compose result:", e)
+        if (e && e.code == 127) throw "Can't find running postgres or docker-compose environment"
         if (!e) dockerPgDown = cmd + ' down'
         done()
       })

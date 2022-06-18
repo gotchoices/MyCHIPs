@@ -55,7 +55,7 @@ trigger mychips_agents_tr_biu {} {
     before insert or update on mychips.agents for each row execute procedure mychips.agents_tf_biu();
 }
 
-#Problem: agents are referenced from tallies too!
+#Problem: agents are referenced from tallies too!  Maybe we don't care about stray entries left in the agents table.
 # After deleting a user, delete agent if that was the last referencing user
 #----------------------------------------------------------------
 #function mychips.agents_tf_del() {mychips.agents mychips.users} {
