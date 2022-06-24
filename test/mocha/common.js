@@ -45,7 +45,7 @@ log.debug("Found Postgres at:", DBHost, DBPort)
       if (e.code != 'ECONNREFUSED') throw(e)
       let buildDir = Path.join(__dirname, '../..', 'build')
         , compFile = Path.join(buildDir, 'compose-pg.yml')
-        , cmd = `docker-compose -f ${compFile}`
+        , cmd = `docker-compose -p pg -f ${compFile}`
         , env = Object.assign({MYCHIPS_DBHOST: dockName}, process.env)
 log.debug("Launching docker with compose:", cmd)
       Child.exec(cmd + ' up -d', {env}, (e,out,err) => {	//Try to launch one in docker

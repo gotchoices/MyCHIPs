@@ -7,17 +7,21 @@ services:
     build:
       context: ..
       dockerfile: build/docker-pg
-    container_name: $MYCHIPS_DBHOST
-    hostname: $MYCHIPS_DBHOST
+    container_name: test-pg
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_HOST_AUTH_METHOD: trust
     tty: true
     stdin_open: true
     volumes:
-      - "../test/local/docker/${MYCHIPS_DBHOST}.pgdata:/var/lib/postgresql/data/pgdata"
+      - "../test/local/docker/test-pg.pgdata:/var/lib/postgresql/data/pgdata"
       - "./dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh"
 #      - "~/.inputrc:/root/.inputrc"
 #      - "~/.bashrc:/root/.bashrc"
     ports:
       - "${MYCHIPS_DBPORT:-5432}:5432"
+    networks:
+      - test-pg
+
+networks:
+  test-pg:

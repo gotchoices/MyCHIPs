@@ -26,7 +26,7 @@ require('./impexp.js')		//Adds users needed for other tests
 require('./testusers.js')	//Run before sch-tally or tally
 
 require('./model1.js')
-require('./model2.js')
+require('./models.js')		//Model2/3 require mongo instance
 
 require('./sch-tally.js')
 require('./sch-chit.js')
@@ -44,8 +44,9 @@ require('./lift-in.js')
 require('./lift.js')
 
 //require('./schema.js')	//Re-enable after schema settles and more text fields are filled in
-require('./sch-multi.js')	//Will empty users table
+//require('./sch-multi.js')	//Will empty users table
 
+/* */
 after('Delete test database', function(done) {
   let dc = 2, _done = () => {if (!--dc) done()}		//dc _done's to be done
   dropDB(_done)

@@ -19,6 +19,7 @@ while [[ $# -gt 0 ]]; do				#Grab command line arguments
     -u|--users) newusers=$2; shift;;			#How many users per site
     -a|--admin) pargs+=("admin");;			#For compatibility with simnet
     -c|--config) source $2; shift;;			#Load additional configuration
+    -m|--model) modversion="$2"; shift;;		#Modeler version
     --) shift; pargs+=("$@"); shift $#;;		#Done with switches
     *) pargs+=("$1");;
   esac
@@ -203,7 +204,7 @@ function start_model {
   local mach="$sitebase$n"
   local machtmp="$locdir/$mach"
   if [[ -d $machtmp ]]; then mkdir -p $machtmp; fi
-#echo "start_model mach:$mach @:$@"
+#echo "start_model mach:$mach version:$modversion @:$@"
 
   local modname="model$n"
   if ! run mychips --name $modname \
@@ -253,9 +254,7 @@ function admin {
 #Launch a mongodb instance
 #-------------------------------------------------------------------------------
 function start_mongo {
-  if ! run mongo -p 27017:27017 \
-  	-- --replSet $mongorepset \
-     ; then
+  if ! run mongo -p 27017:27017 ; then
     echo "Failed starting mongo"; return
   fi
   sleep 2			#Needs a pause to be ready for connections

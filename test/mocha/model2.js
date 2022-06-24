@@ -1,4 +1,5 @@
 //Test agent-based modeler at a simple level; run after impexp, testusers
+//Requires a running instance of mongodb
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
@@ -6,6 +7,12 @@
 const { dbClient, dbConf, testLog, Format, assert, getRow } = require('./common')
 const { host, agent0, port0 } = require('./def-users')
 const ModelCont = require('../../lib/model2')
+//const docConfig = {
+//  host: 'localhost',
+//  port: 27017,
+//  database: 'mychips',
+//  user: 'admin'
+//}
 var ahoy = 'o500'		//Give him agent@host:port info
 var log = testLog(__filename)
 
@@ -28,9 +35,9 @@ describe("Test Agent-based modeler 2", function() {
 
   it("Launch modeler", function(done) {
     let opts = {runs: 10, interval: 100, vendor:0.10, client:0.10, agent:agent0, done}
-      , doc = {}
+      , docConfig = {}
     this.timeout(10000)
-    modeler = new ModelCont(new dbConf(log), doc, opts)
+    modeler = new ModelCont(new dbConf(log), docConfig, opts)
   })
 
   it("Confirm some tallys/chits created", function(done) {

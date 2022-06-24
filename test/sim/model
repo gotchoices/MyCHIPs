@@ -13,7 +13,6 @@ var opts = require('yargs')
   .alias('P','dbPort')     .default('dbPort',     process.env.MYCHIPS_DBPORT)
   .alias('h','ddHost')     .default('ddHost',     process.env.MYCHIPS_DDHOST || 'localhost')	//Document Database
   .alias('d','ddName')     .default('ddName',     process.env.MYCHIPS_DDNAME || 'mychips')
-  .alias('u','ddUser')     .default('ddUser',     process.env.MYCHIPS_DDADMIN || 'admin')
   .alias('p','ddPort')     .default('ddPort',     process.env.MYCHIPS_DDPORT || '27017')
   .alias('a','agent')      .default('agent',      process.env.MYCHIPS_AGENT)
   .alias('m','model')      .default('model',    1)
@@ -33,6 +32,5 @@ var mod = new ModelCont({log,
 }, {
   host: opts.ddHost,
   database:opts.ddName,
-  user: opts.ddUser, 
   port: opts.ddPort, 
 }, opts)

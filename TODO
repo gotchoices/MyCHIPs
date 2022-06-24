@@ -2,21 +2,19 @@ TODO:
 
 Immediate:
 X- Re-enable mocha/sch-multi.js
-- Simulator model2/model3 testing:
--   Test for running mongo
--   Get rid of replication set support/async
--   Start docker mongo if none running
-- Mocha test to run model2
-- Mocha test to run model3?
-- Stop containers at end of testing
-- Did new tests reveal weakness in model2 (and model3)?
-- Fix model3 (units->net, include issuer?)
-- All regression tests now pass
-- Simulation still works
+X- Simulator model2 testing:
+X-   simdock can set config variables from command line (like model)
+X-   Get rid of user property in docConfig?
+X-   Get rid of replication set support/async
+X-   Test for running mongo
+X-   Start docker mongo if none running
+X-   Stop containers at end of testing
+- Mocha test to run model3
+-  Fix model3 (units->net, include issuer?)
+-  Trim (or obsolete/remove) tallysum fields?
+- All regression tests pass
+- Simulation still works for model2/model3
 - 
-- Trim tallysum fields?
-- Can we obsolete/remove (or trim) users_v_tallysum?
--   
 - Chit consensus
 -   Implement signatures/checking on tallies/chits
 -   Implement consensus protocol subsystem
