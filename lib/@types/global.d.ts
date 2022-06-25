@@ -1,11 +1,10 @@
-/** Kyle's custom logger that outputs data to simulation logging windows */
 interface WyclifLogger {
-  error(...args: string[] | unknown[]): void
-  warn(...args: string[]): void
-  info(...args: string[]): void
+  error(...args: any[]): void
+  warn(...args: any[]): void
+  info(...args: any[]): void
   debug(...args: any[]): void
-  verbose(...args: string[] | number[]): void
-  silly(...args: string[]): void
+  verbose(...args: any[]): void
+  silly(...args: any[]): void
   trace(...args: any[]): void
 }
 
@@ -13,6 +12,12 @@ interface DBConfig {
   host: string
   database: string
   user: string
+  port: string | undefined
+  log: WyclifLogger
+}
+interface DDConfig {
+  host: string
+  database: string
   port: string | undefined
 }
 
@@ -102,7 +107,7 @@ interface AccountData {
   /** List of sequence numbers that correspond to chits/payments on foil tallies */
   foil_seqs: number[]
   /** The net worth of this account */
-  units: number | string
+  net: number | string
   /** An array of strings ('stock' and 'tally') that indicates what kind of tally corresponds to the index */
   types?: string[]
   /** List of sequence numbers that correspond to chits/payments on tallies (combines the stock_seqs and foil_seqs arrays) */
@@ -173,19 +178,19 @@ interface NetworkConfig {
   _: any[]
   m: number
   model: number
-  // peerServer: string
-  // s: string
-  // 'peer-server': string
+// peerServer: string
+// s: string
+// 'peer-server': string
   runs: number
-  dbHost: string
-  H: string
+//  dbHost: string
+//  H: string
   'db-host': string
   dbName: string
   D: string
   'db-name': string
-  // dbAdmin: string
-  // A: string
-  // 'db-admin': string
+// dbAdmin: string
+// A: string
+// 'db-admin': string
   dbUser: string
   U: string
   'db-user': string
@@ -198,7 +203,7 @@ interface NetworkConfig {
   ddName: string
   d: string
   'dd-name': string
-  // ddAdmin: string
+// ddAdmin: string
   ddUser: string
   u: string
   'dd-user': string
@@ -211,4 +216,5 @@ interface NetworkConfig {
   interval: number
   i: number
   $0: string
+  done: function
 }

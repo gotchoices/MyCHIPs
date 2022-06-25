@@ -1813,12 +1813,6 @@ create function mychips.contracts_tf_bi() returns trigger language plpgsql secur
       return new;
     end;
 $$;
-create view mychips.parm_v_user as select
-    (select v_text from base.parm where module = 'mychips' and parm = 'user_host') as uhost
-  , (select v_int  from base.parm where module = 'mychips' and parm = 'user_port') as uport
-  , (select v_text from base.parm where module = 'mychips' and parm = 'peer_agent') as pagent
-  , (select v_text from base.parm where module = 'mychips' and parm = 'peer_host') as phost
-  , (select v_int  from base.parm where module = 'mychips' and parm = 'peer_port') as pport;
 create table mychips.users (
 user_ent	text		primary key references base.ent on update cascade on delete cascade
   , user_host	text
@@ -2273,8 +2267,8 @@ create view mychips.users_v as select
 
     from	base.ent_v	ee
     left join	mychips.users	ue on ue.user_ent = ee.id
-    left join	mychips.agents	ag on ag.agent = ue.peer_agent
-    join	mychips.parm_v_user pp on true;
+    left join	mychips.agents	ag on ag.agent = ue.peer_agent;
+
 
     
     
@@ -3917,10 +3911,10 @@ create view mychips.users_v_tallies as with
     , count(tally_seq)					as count
     , sum(net)						as net
     , sum(net) filter (where net >= 0)			as asset
-    , count(net) filter (where net >= 0)			as assets
-    , sum(net) filter (where net < 0)				as liab
+    , count(net) filter (where net >= 0)		as assets
+    , sum(net) filter (where net < 0)			as liab
     , count(net) filter (where net < 0)			as liabs
-    , max(latest)						as latest
+    , max(latest)					as latest
 
     , jsonb_agg(jsonb_build_object(
         'ent',		tally_ent
@@ -7582,11 +7576,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','lifts_v_dist','top_chad','mychips','lifts_v_dist','top_chad','f','f'),
   ('mychips','lifts_v_dist','top_tally','mychips','lifts_v_dist','top_tally','f','f'),
   ('mychips','lifts_v_dist','units','mychips','lifts','units','f','f'),
-  ('mychips','parm_v_user','pagent','mychips','parm_v_user','pagent','f','f'),
-  ('mychips','parm_v_user','phost','mychips','parm_v_user','phost','f','f'),
-  ('mychips','parm_v_user','pport','mychips','parm_v_user','pport','f','f'),
-  ('mychips','parm_v_user','uhost','mychips','parm_v_user','uhost','f','f'),
-  ('mychips','parm_v_user','uport','mychips','parm_v_user','uport','f','f'),
   ('mychips','route_tries','last','mychips','route_tries','last','f','f'),
   ('mychips','route_tries','rtry_rid','mychips','route_tries','rtry_rid','f','t'),
   ('mychips','route_tries','tries','mychips','route_tries','tries','f','f'),
@@ -9539,11 +9528,13 @@ insert into mychips.contracts (domain, name, version, language, published, diges
   ;
 insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values 
   ('mychips', 'site_ent', 'text', null, 'r1', null, 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
- ,('mychips', 'user_host', 'text', null, 'mychips.org', null, 'Default IP where mobile application connects.')
- ,('mychips', 'user_port', 'int', 54320, null, null, 'Default port where mobile user application connects.')
- ,('mychips', 'peer_agent', 'text', null, 'UNASSIGNED', null, 'Default agent key where peer servers connect.')
- ,('mychips', 'peer_host', 'text', null, 'mychips.org', null, 'Default network address where peer servers connect.')
- ,('mychips', 'peer_port', 'int', 65430, null, null, 'Default port where peer servers connect.')
+
+-- Deprecated:
+-- ,('mychips', 'user_host', 'text', null, 'mychips.org', null, 'Default IP where mobile application connects.')
+-- ,('mychips', 'user_port', 'int', 54320, null, null, 'Default port where mobile user application connects.')
+-- ,('mychips', 'peer_agent', 'text', null, 'UNASSIGNED', null, 'Default agent key where peer servers connect.')
+-- ,('mychips', 'peer_host', 'text', null, 'mychips.org', null, 'Default network address where peer servers connect.')
+-- ,('mychips', 'peer_port', 'int', 65430, null, null, 'Default port where peer servers connect.')
 
  ,('agents', 'min_time', 'int', 5, null, null, 'Minimum number of minutes between retrying a message to an agent server.')
  ,('agents', 'max_tries', 'int', 100, null, null, 'How many times to retry sending messages to an agent server before giving up.')

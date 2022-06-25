@@ -26,17 +26,11 @@ class FindNewSpendingTarget implements Action {
         Math.random() < this.account.newSpendingTargetOdds)
     ) {
       //  we randomly choose to))
-      console.log(
-        `\t${this.account.peer_cid} is finding a new spending target!`
-      )
+      this.logger.debug(`${this.account.peer_cid} is finding a new spending target!`)
       this.worldDBManager.findPeerAndUpdate(
         this.account.peer_cid,
         this.account.spendingTargetCids,
         (newPeer: AccountData) => {
-          console.log(
-            `${this.account.peer_cid} wants to connect to ${newPeer.peer_cid} on ${newPeer.peer_host}`
-          )
-
           this.logger.debug(
             this.account.peer_cid,
             '  attempting new spending source with',

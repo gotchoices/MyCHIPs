@@ -1,3 +1,17 @@
+//Version 3 agent-based model; More flexible testing for distributed network
+//Copyright MyCHIPs.org; See license in root of this package
+// TODO:
+//- Re-enable/fix facility for detecting pending connections (mongoWorldManager.ts:117)
+//- Delete any non-updated accounts in worldDB (if entity deleted in SQL, delete propagates to docDB)
+//- Disable (or fix/improve) automatic lifting calls
+//- Need better general code structure/organization
+//- Move @types folder into model3 folder?
+//- Why all the singleton structures (sql manager, doc manager, logging, etc.)?
+//- Trim/optimize fields being used from users_v_tallysum
+//- Implement more/different account types
+//- Draw run-time configuration items from base.parms (things like iteration interval which can change during run)
+//- Draw account personalities from yaml files (things that stay static during a simulatiuon run)
+//- 
 import SQLManager from './model3/sqlmanager'
 import MongoManager from './model3/mongoWorldManager'
 import Os from 'os'
@@ -38,15 +52,12 @@ class AccountCluster {
 
   constructor(
     myChipsDBConfig: DBConfig,
-    worldDBConfig: DBConfig,
+    worldDBConfig: DDConfig,
     networkConfig: NetworkConfig
   ) {
-    console.log('STARTING MODEL * VERSION 3 *')
     this.networkConfig = networkConfig
     this.host = Os.hostname()
     this.agent = networkConfig.agent
-    console.log('SERVER:', this.host)
-    console.log('AGENT:', this.agent)
 
     // Bind functions we are passing as callbacks (makes sure `this` always refers to this object)
     this.loadInitialUsers = this.loadInitialUsers.bind(this)
@@ -57,8 +68,11 @@ class AccountCluster {
     this.process = this.process.bind(this)
 
     // Initialize account logger
+    if (myChipsDBConfig.log) UnifiedLogger.setInstance(myChipsDBConfig.log)
     this.logger = UnifiedLogger.getInstance()
-    this.logger.info('Starting up Account Server v3 on:', this.host)
+
+    this.logger.debug('Starting Model-3')
+    this.logger.trace('SERVER:', this.host, 'AGENT:', this.agent)
 
     // Start setting things up
     this.hostedAccounts = []
@@ -76,14 +90,13 @@ class AccountCluster {
     try {
       let fileContents = fs.readFileSync(__dirname + '/model3/paramConfig.yaml')
       this.params = yaml.load(fileContents)
-      console.log(this.params)
+      this.logger.trace('Params:', this.params)
     } catch (e) {
-      console.log(e)
       this.logger.error(e)
     }
   }
 
-  configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DBConfig) {
+  configureDatabases(myChipsDBConfig: DBConfig, worldDBConfig: DDConfig) {
     this.logger.debug('Configuring the databases')
     // Configure SQLManager
     this.myChipsDBManager = SQLManager.getInstance(myChipsDBConfig, this.params)
@@ -100,7 +113,7 @@ class AccountCluster {
     if (this.networkConfig.runs) {
       this.runs = this.networkConfig.runs
     } //Max iterations
-    console.log('### RUNNING', this.runs, 'ROUNDS ###')
+    this.logger.trace('Running', this.runs, 'cycles')
 
     this.myChipsDBManager.createConnection(
       this.notifyOfAccountsChange,
@@ -117,10 +130,7 @@ class AccountCluster {
       this.loadInitialUsers
     )
 
-    //TODO: Right now we're in callback heck, despite our efforts to clean it up. I want to start
-    // using the async/await syntax to get rid of all of the callbacks.
-    // Because of this, the simulation doesn't start until eatAccounts() finishes running for the
-    // first time.
+    // The simulation doesn't start until eatAccounts() finishes running for the first time.
   }
 
   startSimulationRound() {
@@ -129,7 +139,7 @@ class AccountCluster {
       // If there is no limit on runs, or we're below the limit...
       if (!this.runs || this.runCounter < this.runs) {
         ++this.runCounter
-        console.log('\n###RUN NUMBER', this.runCounter, '###')
+        this.logger.debug('\n###RUN NUMBER', this.runCounter, '###')
 
         // Process each hosted account this round
         this.hostedAccounts.forEach(this.process)
@@ -141,12 +151,11 @@ class AccountCluster {
         }
       } else {
         // TODO: Add setTimeout() or otherwise handle asynchronous
-        console.log(
-          `END OF SIM ************* ${this.host} with ${this.runCounter} runs`
-        )
+        this.logger.info(`END OF SIM ************* ${this.host} with ${this.runCounter} runs`)
         this.close()
         this.recordFinalAnalytics()
-      }
+        if (this.networkConfig.done) this.networkConfig.done()		//Notify any calling process (like regression tests) that we're finished
+      }	
     }, this.params.interval)
   }
 
@@ -187,7 +196,7 @@ class AccountCluster {
 
   // -----------------------------------------------------------------------------
   /** Callback
-   * Takes the accounts from the MyChipsDBManager and loads them into the worldDB. Called whenever there is a change in the users table (postgres)
+   * Takes the accounts from the MyChipsDBManager and loads them into the worldDB. Called whenever there is a change in the postgres users table.
    *  @param dbAccounts - array of accounts fetched from MyChips Databases
    * * First time it's run dbAccounts (which contains postgres data) only has local data, on subsequence it has both local and world data, so it filters and only updates worldDB with local accounts
    * @param first - boolean that states whether this is the first time being run
@@ -198,11 +207,11 @@ class AccountCluster {
       return
     }
 
-    console.log('\nAccounts updated:', dbAccounts.length)
+    this.logger.trace('Accounts updated:', dbAccounts.length)
 
     // If loading all users (loading for the first time)
     if (first) {
-      console.log('Creating my account objects!')
+      this.logger.debug('Creating my account objects!')
       // Ensure all accounts hosted on this server have an Account object
       let typesToMake: [string, AdjustableAccountParams?][] = []
       this.params.accountTypes.forEach((accountType) => {
@@ -230,15 +239,15 @@ class AccountCluster {
         this.hostedAccounts.push(newAccount)
         hostedAccountIds.push(newAccount.peer_cid)
       }
-
+//throw('junk')
       // Start the simulation! It starts here because it can't start until the accounts are loaded and that happens here in a callback to an async method.
       this.startSimulationRound()
     } else {
-      console.log('Updating my local accounts')
+      this.logger.debug('Updating my local accounts')
       dbAccounts.forEach((accountData) => {
         this.hostedAccounts.forEach((hostedAccount) => {
           if (hostedAccount.peer_cid == accountData.peer_cid) {
-            console.log(
+            this.logger.trace(
               `\n${accountData.peer_cid}`
               // :\nkey:\t\t\t\told:\t\t\t\tnew:`
             )
@@ -246,9 +255,9 @@ class AccountCluster {
             //   let oldVal = hostedAccount.getAccountData()[key]
             //   let newVal = accountData[key]
             //   if (Array.isArray(newVal)) {
-            //     console.log(`${key}:\t\t[${oldVal}],\t\t[${newVal}]`)
+            //     this.logger.trace(`${key}:\t\t[${oldVal}],\t\t[${newVal}]`)
             //   } else {
-            //     console.log(`${key}:\t\t${oldVal},\t\t${newVal}`)
+            //     this.logger.trace(`${key}:\t\t${oldVal},\t\t${newVal}`)
             //   }
             // })
             hostedAccount.updateAccountData(accountData)
@@ -272,13 +281,14 @@ class AccountCluster {
   // -----------------------------------------------------------------------------
   //Shut down this controller
   close() {
-    this.logger.debug('Shutting down account handler')
+    this.logger.debug('Shutting down model 3 simulation')
     if (this.myChipsDBManager.isActiveQuery()) {
       //If there is a query in process
-      setTimeout(this.close, 500) //Try again in a half second
+      setTimeout(this.close, 500) 	//Try again in a half second
     } else {
       this.myChipsDBManager.closeConnection()
     }
+    this.worldDBManager.closeConnection()
     if (this.intervalTimer) clearInterval(this.intervalTimer)
   }
 
@@ -293,16 +303,11 @@ class AccountCluster {
       account.std_name,
       account.peer_cid
     )
-    console.log(account.peer_cid, 'is taking their turn')
+    this.logger.trace('Processing account:', account.peer_cid)
 
     account.takeAction()
 
-    this.logger.debug(
-      '  stocks:',
-      account.numIncomeSources,
-      '  foils:',
-      account.numSpendingTargets
-    )
+    this.logger.debug(' post stocks:',account.numIncomeSources,' foils:', account.numSpendingTargets)
   }
 
   recordFinalAnalytics() {

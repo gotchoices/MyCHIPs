@@ -112,10 +112,10 @@ view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
     , count(tally_seq)					as count
     , sum(net)						as net
     , sum(net) filter (where net >= 0)			as asset
-    , count(net) filter (where net >= 0)			as assets
-    , sum(net) filter (where net < 0)				as liab
+    , count(net) filter (where net >= 0)		as assets
+    , sum(net) filter (where net < 0)			as liab
     , count(net) filter (where net < 0)			as liabs
-    , max(latest)						as latest
+    , max(latest)					as latest
 
     , jsonb_agg(jsonb_build_object(
         'ent',		tally_ent

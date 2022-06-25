@@ -39,7 +39,7 @@
     "docker-stop": "docker-compose -f build/compose-dev.yml down",
     "model": "test/sim/model -m 2",
     "builddb": "cd schema; make objects",
-    "preversion": "npm-run-all --parallel contract-hashes build-schema build && git add -A",
+    "preversion": "npm-run-all --parallel contract-hashes build-schema build tsc && git add -A",
     "tsc": "cd lib && ../node_modules/typescript/bin/tsc"
   },
   "repository": {

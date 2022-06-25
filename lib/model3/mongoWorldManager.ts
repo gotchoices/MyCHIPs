@@ -6,7 +6,7 @@ import WorldManagerInterface from './worldManagerInterface'
 
 class MongoManager implements WorldManagerInterface {
   private static singletonInstance: MongoManager
-  private docConfig: DBConfig
+  private docConfig: DDConfig
   private host: string
   private logger: WyclifLogger
   private dbConnection!: Db
@@ -20,8 +20,10 @@ class MongoManager implements WorldManagerInterface {
   private foreignActionCallbackCache!: { [x: string]: (...args: any[]) => any }
   private foreignActionTagIndex!: number
 
-  private constructor(dbConfig: DBConfig, argv) {
-    this.docConfig = dbConfig
+  private constructor(dbConfig: DDConfig, argv) {
+    this.docConfig = Object.assign({}, {
+      host:'localhost', port: 27017, database: 'mychips'
+    }, dbConfig)
     this.logger = UnifiedLogger.getInstance()
 
     // MongoDB host name
@@ -33,7 +35,7 @@ class MongoManager implements WorldManagerInterface {
 
   /** Returns the singleton instance of the MongoManager */
   public static getInstance(
-    dbConfig?: DBConfig,
+    dbConfig?: DDConfig,
     networkConfig?: NetworkConfig
   ): MongoManager {
     if (!MongoManager.singletonInstance && dbConfig && networkConfig) {
@@ -51,28 +53,24 @@ class MongoManager implements WorldManagerInterface {
   }
 
   createConnection(loadInitialUsers: () => void) {
-    let url: string = `mongodb://${this.docConfig.host}:${this.docConfig.port}/?replicaSet=rs0`
+    let url: string = `mongodb://${this.docConfig.host}:${this.docConfig.port}`
     this.logger.verbose('Mongo:', this.host, url)
-    this.mongoClient = new MongoClient(url)
+    this.mongoClient = new MongoClient(url, {useUnifiedTopology: true})
     this.mongoClient.connect((err, client) => {
       //Connect to mongodb
       if (err) {
         this.logger.error('in Doc DB connect:', err?.stack)
-        //TODO remove console.logs
-        console.log('Error connecting to mongo:', err, err?.stack)
         return
       } else if (client == undefined) {
         this.logger.error('Client undefined in Doc DB connect')
-        console.log('Mongo client is undefined!')
         return
       } else {
-        this.logger.info('Connected to mongo simulation database')
-        console.log('Connected to Mongo!')
+        this.logger.trace('Connected to mongo simulation database')
       }
 
       this.dbConnection = client.db(this.docConfig.database)
 
-      this.accountsCollection = this.dbConnection.collection('accounts')
+      this.accountsCollection = this.dbConnection.collection('entities')
 
       this.analyticsLiftCollection = this.dbConnection.collection('lifts')
       this.analyticsServerCollection = this.dbConnection.collection('servers')
@@ -84,12 +82,15 @@ class MongoManager implements WorldManagerInterface {
     })
   }
 
+  closeConnection() {
+    this.mongoClient.close()
+  }
+
   isDBClientConnected(): boolean {
     return this.mongoClient != null
   }
 
   updateOneAccount(account: AccountData) {
-    // console.log("Putting into mongo:\n", account)
     this.accountsCollection.updateOne(
       { peer_cid: account.peer_cid, host: account.peer_host },
       { $set: account },
@@ -97,10 +98,8 @@ class MongoManager implements WorldManagerInterface {
       (e, r) => {
         if (e) {
           this.logger.error(e.message)
-          console.log('Error updating account:', account.std_name, e)
         } else {
-          this.logger.trace('Add/update account:', r)
-          console.log(account.peer_cid, 'added to mongo!')
+          this.logger.trace('Add/update mongo account:', r)
         }
       }
     )
@@ -119,36 +118,41 @@ class MongoManager implements WorldManagerInterface {
         $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
       },
       foils: { $lte: maxFoils }, //Or those with not too many foils already
-      pendingPartners: {
-        $ne: hostedAccountPeerCid, //Or anyone I have a pending connection with
-      },
+//Fixme: Can re-enable this, but we first need a way/place to clear pendingPartners
+//       particularly at the beginning when initializing the database.  We should also
+//       clear out a single cid when connection is made and moves to alreadyConnectedAccounts
+//      pendingPartners: {
+//        $ne: hostedAccountPeerCid, //Or anyone I have a pending connection with
+//      },
     }
 
     const update = {
       $set: { random: Math.random() }, //re-randomize this person
       $inc: { foils: 1 }, //And make it harder to get them again next time
-      $push: { pendingPartners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
+//Fixme: part of Fixme above
+//      $push: { pendingPartners: hostedAccountPeerCid }, //Immediately add ourselves to the array to avoid double connecting
     }
 
     const options = {
       //Sort by
       sort: { foils: 1, random: -1 },
     }
-
+//this.logger.debug('Mongo query:', JSON.stringify(query))
     this.accountsCollection
       //@ts-ignore
       .findOneAndUpdate(query, update, options)
       .then(
         (res) => {
-          if (res.ok) {
-            this.logger.verbose(
+//this.logger.debug('ZZ:', JSON.stringify(res))
+          if (res.ok && res && res.value) {
+            this.logger.debug(
               '  Best peer:',
-              res?.value?.std_name,
-              res?.value?.host
+              res?.value?.peer_cid,
+              res?.value?.agent
             )
             callback(res.value)
           } else {
-            this.logger.info('  No peer found:')
+            this.logger.error('  No peer result from mongo')
             callback(null)
           }
         },
@@ -156,8 +160,8 @@ class MongoManager implements WorldManagerInterface {
           this.logger.error('  Error finding a peer:', err)
         }
       )
-      .catch((reason) => {
-        this.logger.info(' No peer found:', reason)
+      .catch((err) => {
+        this.logger.error('Error in mongo query:', err.message)
       })
   }
 

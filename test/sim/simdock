@@ -469,7 +469,7 @@ function mongo {
   if [[ $cmd = 'find' ]]; then
     query="db.getCollection(\"entities\").find($1).pretty()"
   elif [[ $cmd = 'clear' ]]; then
-    query='db.getCollection("entities").deleteMany({}); db.getCollection("actions").deleteMany({})'
+    query='db.getCollection("entities").deleteMany({})'
   else
     query="$@"
   fi

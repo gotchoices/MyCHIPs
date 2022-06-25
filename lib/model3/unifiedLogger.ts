@@ -6,7 +6,11 @@ class UnifiedLogger {
 
   private constructor() {}
 
-  /** Gets the logger instance */
+  /** Sets a passed-in logger instance */
+  public static setInstance(log): void {
+    UnifiedLogger.instance = log
+  }
+
   public static getInstance(): WyclifLogger {
     if (!UnifiedLogger.instance) {
       UnifiedLogger.instance = Log('model-3')

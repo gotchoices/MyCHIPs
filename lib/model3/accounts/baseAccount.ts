@@ -60,10 +60,10 @@ class BaseAccount implements Account {
     host: string,
     accountParams?: AdjustableAccountParams
   ) {
-    console.log('Creating account object for', accountData.std_name)
     this.worldDBManager = MongoManager.getInstance()
     this.myChipsDBManager = SQLManager.getInstance()
     this.logger = UnifiedLogger.getInstance()
+    this.logger.trace('Creating account object for', accountData.std_name)
 
     //TODO these need to have actual parameters for the factory
     this.actions = []
@@ -101,7 +101,7 @@ class BaseAccount implements Account {
     this.targets = accountData.targets || []
     this.sequenceNums = accountData.seqs || []
     this.tallyTypes = accountData.types || []
-    this.netWorth = +accountData.units || 0
+    this.netWorth = +accountData.net || 0
 
     this.newIncomeSourceOdds = accountParams?.newIncomeSourceOdds || 0.1
     this.adjustSettingsOdds = accountParams?.adjustSettingsOdds || 0.5
@@ -130,7 +130,7 @@ class BaseAccount implements Account {
   acceptNewConnection(message: any) {
     // I don't know how to tell the difference between types of connections (whether this account is the income source or spending target)
     // As a default Account, we will always accept a connection
-    console.log(this.peer_cid, 'is accepting a connection request!')
+    this.logger.debug(this.peer_cid, 'is accepting a connection request!')
     this.myChipsDBManager.updateConnectionRequest(
       message.entity,
       message.sequence,
@@ -151,7 +151,7 @@ class BaseAccount implements Account {
   }
 
   updateAccountData(accountData: AccountData): void {
-    console.log(this.peer_cid, 'is getting updated info')
+    this.logger.trace(this.peer_cid, 'is getting updated info')
     this.id = accountData.id
     this.std_name = accountData.std_name
     this.ent_name = accountData.ent_name
@@ -180,7 +180,7 @@ class BaseAccount implements Account {
     this.targets = accountData.targets || []
     this.sequenceNums = accountData.seqs
     this.tallyTypes = accountData.types || []
-    this.netWorth = +accountData.units
+    this.netWorth = +accountData.net
   }
 
   getAccountData(): AccountData {
@@ -213,7 +213,7 @@ class BaseAccount implements Account {
       part_cids: this.partnerCids,
       targets: this.targets,
       types: this.tallyTypes,
-      units: this.netWorth,
+      net: this.netWorth,
       seqs: this.sequenceNums,
     }
   }

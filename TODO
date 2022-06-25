@@ -1,19 +1,14 @@
 TODO:
 
 Immediate:
-X- Re-enable mocha/sch-multi.js
-X- Simulator model2 testing:
-X-   simdock can set config variables from command line (like model)
-X-   Get rid of user property in docConfig?
-X-   Get rid of replication set support/async
-X-   Test for running mongo
-X-   Start docker mongo if none running
-X-   Stop containers at end of testing
-- Mocha test to run model3
--  Fix model3 (units->net, include issuer?)
--  Trim (or obsolete/remove) tallysum fields?
-- All regression tests pass
-- Simulation still works for model2/model3
+X- Mocha test to run model3
+X-  Model3 uses logger passed in by sim/model
+X-  Fix model3 (units->net, include issuer?)
+X- Simulation still works for model2/model3
+X- Doc accounts don't seem to be getting updated on first run
+X- Model3 calls done() when finished
+X- Model3 regression test passes
+X- All regression tests pass
 - 
 - Chit consensus
 -   Implement signatures/checking on tallies/chits
@@ -27,7 +22,7 @@ X-   Stop containers at end of testing
 -  Some routes are failing with invalid state (RZ)
 - 
 - Cleanups:
-- Remove code (and test) allowing tally close by unauthenticated (non-chit) request
+- Remove code (and then test) allowing tally close by unauthenticated (non-chit) request
 - Correctly assess lading on lift push through foreign tally (we now know parter's limit/bound)
 -   Merge local null min with route lading correctly
 -  Should all xxx_process functions return text or JSON (routes need JSON)?

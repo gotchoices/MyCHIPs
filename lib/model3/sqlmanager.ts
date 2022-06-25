@@ -7,7 +7,7 @@ import { Lift } from '../@types/models'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
 	peer_cid, peer_agent, peer_host, peer_port, mychips.user_cert(id) as cert, stocks, foils, part_cids, vendors, clients,
-	vendor_cids, vendor_agents, client_cids, stock_seqs, foil_seqs, units, types, seqs, targets
+	vendor_cids, vendor_agents, client_cids, stock_seqs, foil_seqs, net, types, seqs, targets
 	from mychips.users_v_tallysum
 	where not user_ent isnull`
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
@@ -66,7 +66,7 @@ class SQLManager {
     notifyOfParamsChange: (target: string, value: any) => void,
     notifyOfTallyChange: (msg: any) => void
   ) {
-    console.log('Connecting to MyCHIPs DB...')
+    this.logger.trace('Connecting to MyCHIPs DB...')
     this.dbConnection = new dbClient(this.config, (channel, payload) => {
       //Initialize Database connection
       let msg: any
@@ -95,8 +95,7 @@ class SQLManager {
         }
       }
     })
-    console.log('MyCHIPs DB Connected!')
-    this.logger.info('SQL Connection Created')
+    this.logger.trace('SQL Connection Created')
   }
 
   addConnectionRequest(
@@ -113,8 +112,8 @@ class SQLManager {
       requestingAccountID,
       targetAccountCertificate
     )
-    console.log(
-      'Making a connection/tally between',
+    this.logger.debug(
+      'Making tally between',
       requestingAccountCertificate.chad.cid,
       'and',
       targetAccountCertificate.chad.cid
@@ -135,23 +134,9 @@ class SQLManager {
       (err, res) => {
         if (err) {
           this.logger.error('Inserting a tally:', err.stack)
-          console.log(
-            'Error while making tally between',
-            requestingAccountCertificate.chad.cid,
-            'and',
-            targetAccountCertificate.chad.cid
-          )
-          console.log(err)
+          console.error(err)
           return
         }
-        console.log(
-          'Tally offered between',
-          requestingAccountCertificate.chad.cid,
-          'and',
-          targetAccountCertificate.chad.cid,
-          ':',
-          uuid
-        )
         this.logger.debug(
           '  Initial tally by:',
           requestingAccountID,
@@ -171,11 +156,10 @@ class SQLManager {
         (err, res) => {
           if (err) {
             this.logger.error('Updating a Tally:', err.stack)
-            console.log('Error trying to accept tally for', entity, sequence)
+            console.error('Error trying to accept tally for', entity, sequence)
           }
-          console.log(entity, 'accepted tally #', sequence)
           let row = res.rows && res.rows.length >= 1 ? res.rows[0] : null
-          this.logger.verbose(
+          this.logger.debug(
             'Tally accepted:',
             row.tally_ent,
             row.tally_seq,
@@ -203,22 +187,13 @@ class SQLManager {
     )
 
     this.query(
-      'insert into mychips.chits_v (chit_ent,chit_seq,chit_uuid,signature,units,quidpro,request) values ($1,$2,$3,$4,$5,$6,$7)',
+      'insert into mychips.chits_v (chit_ent,chit_seq,chit_uuid,signature,units,memo,request) values ($1,$2,$3,$4,$5,$6,$7)',
       [spenderId, sequence, uuidv4(), 'Signed', chipsToSpend, quid, 'good'],
       (e, r) => {
         if (e) {
           this.logger.error('In payment:', e.stack)
-          console.log(
-            'Error when',
-            spenderId,
-            'tried to pay',
-            receiverId,
-            chipsToSpend,
-            'chips'
-          )
           return
         }
-        console.log(spenderId, 'paying', receiverId, chipsToSpend, 'CHIPS')
         this.logger.debug('  payment:', spenderId, 'to:', receiverId)
       }
     )
@@ -253,7 +228,7 @@ class SQLManager {
   // ! TODO Does this fetch from all peers?
   // ! ANSWER No, just from the matching pg database/container
   queryAccounts(callback: (agents: AccountData[], first: boolean) => any) {
-    console.log('Getting users from MyCHIPs DB')
+    this.logger.debug('Getting users from MyCHIPs DB')
     this.query(userSql, (err: any, res: any) => {
       if (err) {
         this.logger.error('Getting Users:', err.stack)
@@ -265,7 +240,7 @@ class SQLManager {
   }
 
   queryLatestUsers(time: string, callback: (accounts: AccountData[]) => any) {
-    // Only load users once at time
+    // Only load users one at time
     // if (!this.loadingUsers) {
     //   this.loadingUsers = true
     this.query(userSql + ' and latest >= $1', [time], (err: any, res: any) => {
@@ -290,9 +265,8 @@ class SQLManager {
       (err, result) => {
         if (err) {
           this.logger.error("Can't start a lift:", err)
-          console.log('Error when starting a lift!', err)
         } else {
-          console.log('We did a lift!\n', result)
+          this.logger.debug('We did a lift!\n', result)
         }
       }
     )
@@ -300,13 +274,12 @@ class SQLManager {
 
   /** Searches for lifts on this server and performs them */
   performAutoLifts(): Lift | void {
-    console.log('Running automatic lifts!\n')
+    this.logger.debug('Running automatic lifts!\n')
     this.dbConnection.query('select mychips.lift_cycle(100)', (err, result) => {
       if (err) {
         this.logger.error('Automatic lifts:', err)
-        console.log('Error when doing auto lifts!', err)
       } else {
-        console.log('Results from auto lifts:\n', result)
+        this.logger.debug('Results from auto lifts:\n', result)
         return result.row[0]
       }
     })
@@ -318,7 +291,7 @@ class SQLManager {
       'select lift_guid,lift_seq,request,status,units,circular,path,dest_chid,dest_host,signature from mychips.lifts_v',
       (err, res) => {
         if (err) {
-          console.log('Error while getting lift analytics')
+          this.logger.error('Error while getting lift analytics')
           return null
         } else {
           return res

@@ -18,7 +18,7 @@ class AskForLift implements Action {
     //TODO: figure out how to get value from individual connections
     let greatestTallyValue = 20 // this is less than the default value, so this will never happen right now...
     if (greatestTallyValue > this.account.diffForLift) {
-      console.log(this.account.peer_cid, 'is asking for a lift!')
+      this.logger.trace(this.account.peer_cid, 'is asking for a lift!')
 
       this.myChipsDBManager.requestLift(this.account.peer_cid)
     }

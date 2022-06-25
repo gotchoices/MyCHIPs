@@ -50,7 +50,7 @@ before('Check for running mongo', function(done) {
 })
 
 require('./model2.js')
-//require('./model3.js')
+require('./model3.js')
 
 after('Stop any docker mongo', function(done) {
   cleanupMongo(done)
