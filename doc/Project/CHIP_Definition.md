@@ -1,89 +1,95 @@
-# Defining a CHIP
-Jan 2022
+# Computing the Value of a CHIP
+Jun 2022
 
 ## Project Background:
-MyCHIPs creates a platform for transmitting value through a distributed network
-of privately interconnected peers.
+[MyCHIPs](http://gotchoices.org/mychips) creates a platform for transmitting value through 
+a distributed network of privately interconnected peers.
 This is accomplished by way of the [lift algorithm](learn-lift.md).
 In order for lifts to function effectively, the system needs a way to quantify the
 units of value being exchanged at each [node](learn-node.md).
 
-MyCHIPs uses the unit of CHIPs as described in the book
+MyCHIPs uses the monetary unit of CHIPs as described in the book
 [Got Choices](http://gotchoices.org/book/chips.html) and defined in more detail
 [here](http://gotchoices.org/mychips/definition.html).
 
-Defining a perfectly objective unit of value is difficult--maybe impossible--since 
+Defining a perfectly objective unit of value is difficult--probably impossible--since 
 the idea of value is itself inherently relative.
 
 For example, when we ask "how much is a bushel of corn worth," we are really asking how much of
 some other commodity we may be expected to trade for it.
 Perhaps that corn is equivalent to a gallon of milk, or an hour of work, or some needed transportation.
+More commonly, we express the value in terms of some government-issued currency.
 
-Historically, this problem has been mitigated by governments providing a standard unit of
-measure for all other values to be measured against.
-This can work well enough--until someone starts starts manipulating the monetary standard for their own interests.
+The CHIP is intended to define a unit of value that is independent of government (or other) control.
+It is meant to be *practically objective*--not perfectly so,
+but objective enough to work for it's intended purpose.
 
-The CHIP is intended to define a unit of value that is *practially objective*--not perfectly so,
-but objective enough to work for it's intended purpose--and to function outside the influence of centralized actors.
+In order to achieve maximum independence and stability, 
+a CHIP is measured against the commodity most everyone has an ongoing supply of: human labor.
 
-The CHIP standard is backed by the commodity most everyone has an ongoing supply of: human labor.
+This has some distinct advantages but it also has some challenges.
+One problem is, the labor of one person is seldom equal to the labor of another.
 
-This has some distinct advantages but it also has some distinct challenges:
-For example, labor may seem much more valuable in a highly prosperous economy (like the US) as compared to one less developed (like India).
-Why is this exactly?
+Furthermore, labor costs are typically much higher in a more developed economy
+(like the US) as compared to one less developed (like India, for example).
+Why is that?
 
-Some of the difference can be explained by the cost of living in the two different countries.
-But that really is a bit of a circular argument isn't it?
+The economic [Law of One Price](https://en.wikipedia.org/wiki/Law_of_one_price) states
+that in the absense of trade frictions, the price of any given commodity should eventually
+converge toward a single value regardless of location.
 
-Other forces also play a part.
-For example, people may choose to live at different standards of living in various cultures.
-And border restrictions can create artificial barriers between markets, preventing equlibrium that would otherwise develop between them.
-
-Most cost/value differences can be explained in terms of supply and demand.
-How many people are available to fill a particular position?
-And how many jobs are available for those looking for work?
+So to determine a useful standard of value based on labor, we will have to deal with
+these two problems.
 
 ## Objectives:
 The goal of this project is to define a unit of measure (the CHIP) whose value transcends borders
 and cultures.
 It is a theoretical value based on one hour of standardized, normalized human labor.
 
-By *standardized* we mean to define what general level of proficiency are possessed by the person providing that labor.
-By *normalized* we mean to factor out external forces (such as imbalances of supply and demand) that cause the reference
-productivity to be valued differently across differing economies.
+By *standardized* we mean to define what general level of utility are provided by the person performing the labor.
+By *normalized* we mean to factor out frictions and distortions that cause the reference
+productivity to be valued differently in different locations and markets.
 
-For example, variances are likely caused by:
-- Supply of labor
-- Demand for labor
-- Differing levels of skill, strength, talent, or education
+Frictional distortions are likely to include:
+- Unusually high or low supply of labor
+- Resulting distortion in the demand for labor
+- Differing levels of skill, strength, talent, and education
 - Differing access to labor saving capital (tools, technology, machinery, equipment)
 
-## Strategy:
-- Hypothesize what factors are responsible for variances in differing economies.
-- Compare to the current CHIP definition and propose updates/modifications to that definition where necessary.
-- Attempt to quantify the mathematical effect those factors have on wages and costs.
+## Possible Strategies:
+- Hypothesize/confirm what factors are responsible for variances in differing economies.
+- Compare to the current [CHIP definition](http://gotchoices.org/mychips/definition.html) 
+  and propose updates/modifications to that definition where necessary.
+- Quantify the mathematical effect those factors have on wages and costs.
 - Create a normalization function that allows conversion of labor costs between economies.
 - Hypothesize samples of market data that can be taken from an economy to derive factor values.
 - Provide a mathematical model for the collection and application of normalization data.
+- Model capital equipment as an accumulation of past labor (i.e. the depreciating portion of the accumulated total of past labor inputs).
+- Model more educated workers as an aggregate of the inputs:
+  - Basic unskilled labor; and
+  - Education and training, viewed as a kind of capital asset (which can be valued based on accumlation of other labor inputs as noted previously).
 
 ## Outcomes:
-- A programmer can create a system to gather market data from market indexes published on the Internet.
+- Provide a working prototype that produces a quantified number in terms of a chosen traditional currency.
+- This may be implemented in a spreadsheet, matlab or other such mechanism familiar to the researcher.
+- From the prototype, a developer can create a computer program to gather market data from sources published on the Internet.
 - By applying the mathematical model to the sample data, it will be possible to
-  publish the current value of a CHIP, expressed in units of any existing national currency.
-- Currencies based on fractional reserve banking systems are expected to experience
-  ongoing inflation.
-- The standardized, normalized measure of value should remain constant in terms of its relationship to human labor.
-- As technology increases, it is expected that the production of most commodities will become more efficient over time (as expressed in the amount of standardized labor required to produce them).
+  publish a web page showing a past and/or current value of a CHIP, expressed in units of any existing national currency.
+
+## Expected Results:
+- Currencies based on fractional reserve banking systems are likely to experience ongoing inflation.
+- The CHIP unit of value should remain constant in terms of its relationship to human labor.
+- As technology increases, production of most commodities should become more efficient over time (as expressed in the amount of standardized labor required to produce them).
 - In a technologically advancing culture, the cost of most commodities (not subject to supply limitations) is expected to fall over time.
 - The standard of living should gradually increase (absent war and other forms of capital destruction).
 - The CHIP can supply a stable reference value by which to measure all other change.
 
 ## Technical Considerations:
 This project has two phases:
-- Creation of the economic model
-- Writing a program to sample economic data and publish ongoing results
+- Creation of the economic/mathematical model,
+- Writing a program to sample economic data, compute the index, publish past and/or current results in the form of a web page.
 
-## A Suggested Approach:
+## One Suggested Approach:
 It is fairly straightforward to construct a table of
 [commodities futures prices](https://www.agweb.com/markets/futures) as follows:
 
@@ -157,7 +163,7 @@ The next step is to build normalization functions to remove the speculative natu
 - futures pricing; and
 - market distortions due to border restrictions
 
-Some questions for consideration:
+## Some Questions for Consideration:
 - How can one tell when the supply and demand for any given commodity is in equilibrium?
 - Can we quantify how much this affects current prices?
 - Or do we just reject outlying data and rely on data coming from times/places where equilibrium is achieved (or crossed)?
@@ -171,3 +177,10 @@ Some questions for consideration:
   - Are there jobs in India that are difficult, but just possible to fill?
   - How much is paid for that work?
   - How much when the work is a citizen of India or Pakistan working over the Internet?
+
+## Some Resources of Possible Interest:
+- [The MyCHIPs Papers](http://gotchoices.org/mychips)
+- [The CHIP Definition](http://gotchoices.org/mychips/definition.html)
+- [Purchasing Power Parity](https://en.wikipedia.org/wiki/Purchasing_power_parity)
+- [A Source for World Economic Data](https://www.theglobaleconomy.com)
+- [The Rogers Commodity Index](https://en.wikipedia.org/wiki/Rogers_International_Commodity_Index)
