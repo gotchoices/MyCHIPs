@@ -1,168 +1,189 @@
 # MyCHIPs Mobile Application
-July 2020
+Jun 2022
 
-## Project Background:
-The current proof-of-concept release of MyCHIPs focuses on the testing and
-evaluation of a set of backend [servers and processes](/doc/Scaling.png).
-But the success of the project will ultimately be dependent upon a mobile 
+## Project Background
+Early MyCHIPs development focused primarily on a 
+[network of databases and process servers](/doc/Scaling.png)
+that form the matrix through by value is managed and transmitted.
+But the success of the project ultimately depends on a mobile 
 interface for the end user that is intuitive and easy to use.
 
-There are existing applications we can learn from such as Paypal and Venmo.
+We can learn from existing applications such as Paypal and Venmo.
 
-Paypal has traditionally been a bit more difficult to use in a peer-to-peer
-setting but does get used quite a bit in Ebay and other online commerce.
+Paypal has traditionally been a bit more difficult to use between casual users
+but it does get used extensively in online commerce.
 
-Venmo has emerged in Western markets as the choice for sending value from one
-peer to another.  It suffers from certain privacy issues that bother some
-people.  And it offers very little in the way of standardized monthly statements
-which can be relied on for balancing financial statements and the like.
+Venmo has emerged in Western markets as the choice for sending value from one private individual to another.
+It suffers from certain privacy issues that bother some people.
+It seems to be a bit confused about whether it is a payment platform or a social media.
+And it offers very little in the way of standardized monthly statements which can be relied on for balancing financial statements and the like.
 
-MyCHIPs has the additional challenge that it is dealing with a new (or very old)
-kind of money that most modern people are not used to.  So it would benefit from
-a graphical presentation that gives an instant and intuitive sense of how/where
-value is stored and how it is transmitted.
+MyCHIPs has the additional challenge that it is dealing with two concepts most users won't be used to:
+- A new unit of measure (not a dollar or other existing currency); and
+- The money is based on private credit rather than a central issue.
+  So the money will exist in a number of different bins or wallets depending on which of the user's partners have issued it.
 
-## Objectives:
+These differences need to be dealt with carefully so they do not create an undue obstacle for users.
+
+## Current Status
+As of Spring 2021, a [rudimentary application](/app/README.md) has been implemented
+in flutter (by a BYU capstone team).
+It was designed according to an early version of this document.
+But the team never succeeded in interfacing it to the backend so any data it
+displays is purely simulated.
+
+## The API
+A [JavaScript API](http://github.com/gotchoices/wyseman/tree/master/lib/wyseman.js).
+exists as part of the wyseman package.
+There is also a sample [JavaScript command line utility](/test/sample/entcli)
+that makes use of the API module.
+
+The team did attempt to port the JS API to Dart but did not complete that work.
+That code is [here](/app/lib/wyseman/wysemanClient.dart).
+Since that time, the Dart API has made some progress and can successfully connect
+to the backend.  This work is not yet part of the standard repository but can be
+made available upon request.
+It is also not yet structured in a way that is easily integrated into an application.
+
+The websocket protocol is conducted over a secure SSL connection.
+This means the mobile device must recognize the server as trustworthy.
+In most development environments, test instances of the server do not have
+real SSL certificates, recognized by standard browsers and built-in SSL support API's.
+So (at least for development) clients will need to install a local certificate 
+authority in order for the dart calls to allow connection over the websocket.
+
+Work yet to do on the API includes:
+- Finish the port to dart, including full SSL/CA support
+- Move the dart code into the Wyseman distribution
+- Add support for distribution through normal Dart repository system (pub.dev?)
+- Document how to get mobile devices to load a self-signed CA during development
+- Include regression testing code for the API in the Wyseman distribution
+- How does a dart/flutter app properly access Wyseman (npm only or also pub.dev)?
+  (Wyseman should properly support legacy tcl, ruby, javascript, and dart.)
+
+## User Presentation
+The app should present a simple set of buttons whose use and function is intuitive.
+These include:
+- Scan  
+  This allows the user to react to several kinds of actions from other users:
+  - Scan a prospective partner tally ticket (invitation to tally)
+  - Scan a vendor payment address, generate a request for invoice
+  - Scan an offline check from a trading partner (future)
+- Tally  
+  This begins the process of inviting another user to tally.
+  It will immediately present a QR code, scannable by the other party, 
+  which is an invitation to tally based on current default settings.
+  It will also present buttons specific to this context:
+  - Modify the credit amount offered to the other user.
+  - Modify the selected tally contract.
+  - Modify other tally credit parameters as per the system documentation.
+- Pay  
+  This button merely brings up a screen instructing the user how to actually pay:
+  by selecting a partner from the balance sheet and then selecting Pay, or by
+  scanning a payment address of a partner or remote peer user.
+  [CHIP addresses](/doc/learn-users.md#chip-addresses)
+  are long and cumbersome so there will be no way provided to type them in.
+- Request  
+  Similarly, this button instructs the user to start by selecting a partner
+  or scanning a peer CHIP address QR code.
+- Settings
+  - Profile/certificate  
+    Each user will need to establish his own certificate.
+    This includes his name, address and other identifying information as
+    explained [here](/doc/learn-tally.md#entity-certificates).
+  - Language preference
+  - Default tally parameters
+    - Default tally contract
+    - Default credit limit
+  - Service provider
+    - Hostname
+    - Port
+    - Connection key import/export
+  - Signing key maintenance
+    - Generate key (if it doesn't already exist)
+    - Import/export key
+  - Display preferences
+    - Tabular or visual balance sheet
+    - Preferred currency to provide automatic conversion to
+    - Conversion ratio (or URL for automatic)
+- History  
+  Show sortable/selectable history of all prior transactions.
+  Selecting transactions will activate a menu to allow:
+    - Pay this partner/peer again
+    - Request payment from this partner/peer
+- Help  
+  This is a question mark that always displays in the same place and is responsive
+  to whatever context the user is currently in.
+
+In addition to buttons, the main screen should display a balance sheet.
+In an early iteration it will be acceptable to have only a tabular balance sheet.
+In the future, the user should be able to select between a visual and tabular sheet.
+
 The source tree includes an example of a 
 [visual balance sheet](https://rawcdn.githack.com/gotchoices/MyCHIPs/0fa1d6511d5f487d6928770e3cf3312bdc6d273e/test/visbs/index.html)
 ([source code](/test/visbs/index.html)).
-The goal with this graph is to show a user an intuitive indication of their net
+The goal with this graph is to show the user an intuitive indication of their net
 wealth--a value that consists of the difference between their total assets and
 their total liabilities.
 
-Note: the sample graph also includes the ability to visualize assets and
-liabilities that are not held as CHIPs.
-That is an advanced feature and need not be a part of the initial implementation.
+The sample graph also includes the ability to visualize assets and liabilities that are not held as CHIPs.
+This is an advanced feature and need not be a part of the initial implementation.
 
-In a CHIP accounting system, tallies (private credit agreements) are kept with
-trading peers.  Each tally can contain a debit (asset) or a credit (liability)
-balance at any given time.  One objective is to display in a single graph:
-- Total assets
-- Total liabilities
-- Net value (assets - liabilities)
-- Trading partners (whether by stock or foil)
-- Individual balances with each trading partner
+Whether tabular or visual, the balance sheet should draw first attention to the user's
+total net value of CHIP assets.
+Then, the user should be able to discern how that total is derived from:
+- Total assets (positive tallies); and
+- Total liabilities (negative tallies)
 
-Additionally, the user interface will need the ability to do the following:
-- Drill into an individual tally to see transaction history detail
-- Invite new peers to initiate a new tally agreement
-- Respond to tally invitations (accept, modify, decline)
-- Transmit value to direct peers and/or indirect parties (Linear lift)
-- Invoice value from direct peers and/or indirect parties
-- Respond to invoices (accept, modify, decline)
-- Review/render tally trading contracts
-- Generate/manage/protect connection keys
-- Generate/manage/protect private trading keys
-- Respond to alarms generated from the users host server
-- Set/modify [trading parameters](/doc/Tallies.md#trading-variables)
+Finally, the sheet should provide a list or a selection of individual tallies
+with each different direct trading partner so the user can see whether each
+tally has a positive or negative balance and what that balance is.
 
-Users, whether consumers or sellers, should be able to interact using the app
-by generating QR codes on their screen and having the trading partner scan the
-QR code in their app.  QR codes can also be shared using email or text 
-messaging (out-of-MyCHIPs-band communication).  This functionality is 
-demonstrated in a rudientary way by the existing Wylib-based User Interface.
+If the user touches a trading partner on the balance sheet, he should be offered
+a context menu for:
+- Sending payment
+- Requesting payment
+- Requesting invoice
+- Viewing/setting trading parameters for the tally
+- Viewing the tally contract
+- View transaction history with that partner
 
-Additional information about the User Interface is available in
-[this more detailed document](/doc/Users.md).
+Tallies that are not entirely executed should also be shown and be accessible
+to interact with, review, submit, complete or reject.
 
-## Strategy:
-- Choose a deployment framework:
-  - Distributed web application (potential security issues)
-  - Native applications (iPhone/Android)
-  - NativeScript, React Native, Ionic, Flutter
-  - Other?
-- Create simple UI that starts with a graphical balance sheet visualizer
-- Limited thin-view UI buttons/actions (Invite, Send, Request)
-- Allow users to drill into deeper levels
-- Connect thin-view to the backend server
+Additional information about the User Interface and API is available in
+[this document](/doc/use-mobile.md).
 
-## Outcomes:
-- The mobile app is extremely easy for a new user to use
+## Thin Client View
+The mobile app should be only a view to the degree possible.
+The API supports any arbitrary number of control-layer reports and generators to be
+implemented and accessed.  These should be implemented for functions such as:
+- Generating QR codes
+- Generating tickets, invitations
+- Rendering tallies and contracts
+- Any other reports
+
+Additionally, all human-language data shall be queried from the backend by an identifying token.
+The database, control layer and API already supports this feature.
+So once a language pack has been generated for and installed in the backend, the mobile app
+should automatically be capable of operating in that language.
+
+## Implementation
+Unless there is a compelling reason to change the implementation language, it is
+preferred to proceed using Flutter.
+
+## Outcomes
+- The mobile app is easy for a new user to use
 - No particular training is necessary
 - All necessary prompting/help occurs in the course of use
 - App communicates with the backend server via the existing websocket API
 
-## Technical Considerations:
-The existing Wylib-based UI is intended primarily for testing and development 
-purposes.  However it does demonstrate some of the needed functionality.  Wylib 
-includes a 
-[module](http://github.com/gotchoices/wyseman/tree/master/lib/wyseman.js) that provides
-an encrypted/validated connection to the backend.  This includes an API that
-can do CrUD (Create, Update, Delete) functions on the database.  It can also
-invoke a variety of actions/reports which are executed in the backend.
+## Getting Help on the Protocol
+The protocol by which servers communicate with each other is described
+[here](/doc/learn-protocol.png).
+MyCHIPs includes an extensive set of regression tests that exercises the features
+of this protocol.
 
-The mobile app should be a thin view-only layer that relies on the backend
-for all control and model functionality (other than private key management and
-storage).
-
-## Tasks:
-As of Spring 2021, a [rudimentary app skeleton](/app/README.md) has been created 
-in flutter.
-The following are some task descriptions necessary to extend and mature it:
-
-### Finish Wyseman Dart Module
-A sample [JS test routine](/test/sample/entcli) as been provided to demonstrate
-and test the basic function of the 
-[JS Wyseman API module](http://github.com/gotchoices/wyseman/tree/master/lib/wyseman.js).
-
-These two modules were provided by the app development team with the task of
-porting wyseman.js to dart.  Much of that porting was done.  However, the team
-got stuck around the issue of site certificates.
-
-The websocket protocol is conducted over a secure SSL connection.  This means
-the mobile device must recognize the server as trustworthy.
-In most development environments, test instances of the server do not have
-real SSL certificates, recognized by standard browsers and built-in SSL support
-API's.  So (at least for development) clients will need to install a local 
-certificate authority in order for the dart calls to allow connection over the 
-websocket.  This is where the BYU team got stuck.
-
-The partially ported wyseman dart code is [here](/app/lib/wyseman/wysemanClient.dart).
-The task involves:
-- Finish the port to dart, including full SSL/CA support
-- Move the dart code into the Wyseman distribution
-- Document how to get mobile devices to load a self-signed CA during development
-- Include regression testing code in the Wyseman distribution
-- How does a dart/flutter app properly access Wyseman (npm only or also pub.dev)?
-  (Wyseman should properly support legacy tcl, ruby, javascript, and dart.)
-
-### Write DAOs in Flutter App
-The task involves:
-- Existing view inputs call DAO's to request actions/reports from the backend
-  (even if the backend has not fully implemented all such features)
-- JSON data from the backend is properly tracked, parsed, presented to the user
-- App extended and tested to correctly perform:
-  - Connection key management; Users can:
-    - receive a connection QR code from a service provider
-    - make an initial websocket connection
-    - safely store the permanent connection key
-    - export the connection key to other devices as the user may direct
-  - Signing key management; Users can:
-    - be prompted to create a signing key just-in-time, as it is needed
-    - safely store the signing key
-    - safely retrieve the signing key using a passphrase
-    - safely retrieve the signing key using biometrics available on the device
-    - print a QR code of the signing key (to be stored in a safe deposit box)
-  - Tally execution (control actions); Users can:
-    - invite other users to a tally (generate QR code)
-    - be invited to a tally (scan QR code)
-    - view and select tally contracts (from a standard list on the backend)
-    - negotiate and sign a tally (
-    - select basic trading variables
-    - view and update trading variables
-  - Direct CHIT payments (control actions); Users can:
-    - send signed CHIT to another user they share a tally with
-    - request CHIT from another user they share a tally with
-  - Indirect CHIT payments (control actions); Users can:
-    - send value to arbitrary, specified user (initiate linear lift)
-    - generate QR code to request value from arbitrary, specified payor
-
-### Improve holdings Pie Chart
-App home page shows intuitive pie chart indicating:
-- Total assets CHIPs
-- Total liability CHIPs
-- Net value of CHIPs
-- Value of other non-CHIP assets, quantified in CHIPs (advanced)
-
-Users can initiate transactions with selected partners by touching them
-on the pie chart, or attached nodes.
+In order to do so, they also simulate the actions of a user interface.
+By examining these tests, it is possible to understand much about the CRUD queries 
+you will need to issue actions to, and process responses from the database.
