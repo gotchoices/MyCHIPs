@@ -61,7 +61,7 @@ As expected, they uncovered several issues that need improvement before the syst
 Their work and results are summarized [here](test/analysis/dsr/phase-1/results.md).
 
 In response to that study, I created an [outline](doc/old-safety.md) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
-Now there is work being done at [BYU](www.byu.edu) to both validate the original DSR results, and evaluate proposed solutions.
+Now there is work being done at [BYU](https://www.byu.edu) to both validate the original DSR results, and evaluate proposed solutions.
 Early results would indicate that the [improved protocol](doc/learn-protocol.md) is now reasonably safe and live.
 
 This represents the current state of the project.
@@ -105,7 +105,7 @@ This represents the current state of the project.
 - Test original algorithm (DSR Study)
 - Improved algorithm
 
-Want to help out?  Clone this repo and follow the [instructions](sim-docker.md)
+Want to help out?  Clone this repo and follow the [instructions](doc/sim-docker.md)
 to get a simulated network running and visualize credit lifts in the administrator console.
 
 There is a current project roadmap in the [TODO file](TODO).
