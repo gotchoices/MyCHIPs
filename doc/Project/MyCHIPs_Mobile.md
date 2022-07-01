@@ -2,9 +2,9 @@
 Jun 2022
 
 ## Project Background
-Early MyCHIPs development focused primarily on a 
-[network of databases and process servers](/doc/Scaling.png)
-that form the matrix through by value is managed and transmitted.
+Early MyCHIPs development has focused primarily on the
+[network of databases and process servers](/doc/uml/scaling.svg)
+that form the matrix through which value is tracked and transmitted.
 But the success of the project ultimately depends on a mobile 
 interface for the end user that is intuitive and easy to use.
 
@@ -15,19 +15,19 @@ but it does get used extensively in online commerce.
 
 Venmo has emerged in Western markets as the choice for sending value from one private individual to another.
 It suffers from certain privacy issues that bother some people.
-It seems to be a bit confused about whether it is a payment platform or a social media.
+It seems to be a bit confused about whether it is a payment platform or a social medium.
 And it offers very little in the way of standardized monthly statements which can be relied on for balancing financial statements and the like.
 
-MyCHIPs has the additional challenge that it is dealing with two concepts most users won't be used to:
-- A new unit of measure (not a dollar or other existing currency); and
-- The money is based on private credit rather than a central issue.
-  So the money will exist in a number of different bins or wallets depending on which of the user's partners have issued it.
+MyCHIPs has the additional challenge that it is utilizes two concepts most users are not used to:
+- A new unit of measure.  This will feel a bit like using a foreign currency.
+- The money is based on private credit rather than a central bank issue.
+  This means money will exist in a number of different bins or wallets depending on which of the user's partners have issued it.
 
-These differences need to be dealt with carefully so they do not create an undue obstacle for users.
+These differences need to be dealt with artfully so they do not create an undue obstacle for users.
 
 ## Current Status
 As of Spring 2021, a [rudimentary application](/app/README.md) has been implemented
-in flutter (by a BYU capstone team).
+in flutter (by a BYU Capstone team).
 It was designed according to an early version of this document.
 But the team never succeeded in interfacing it to the backend so any data it
 displays is purely simulated.
@@ -35,11 +35,11 @@ displays is purely simulated.
 ## The API
 A [JavaScript API](http://github.com/gotchoices/wyseman/tree/master/lib/wyseman.js).
 exists as part of the wyseman package.
-There is also a sample [JavaScript command line utility](/test/sample/entcli)
+There is also an example [JavaScript command line utility](/test/sample/entcli)
 that makes use of the API module.
 
-The team did attempt to port the JS API to Dart but did not complete that work.
-That code is [here](/app/lib/wyseman/wysemanClient.dart).
+The Capstone team did attempt to port the JS API to Dart but did not successfully complete that work.
+Their code is [here](/app/lib/wyseman/wysemanClient.dart).
 Since that time, the Dart API has made some progress and can successfully connect
 to the backend.  This work is not yet part of the standard repository but can be
 made available upon request.
@@ -61,15 +61,18 @@ Work yet to do on the API includes:
 - How does a dart/flutter app properly access Wyseman (npm only or also pub.dev)?
   (Wyseman should properly support legacy tcl, ruby, javascript, and dart.)
 
+Additional information about the User Interface and API is available in
+[this document](/doc/use-mobile.md).
+
 ## User Presentation
 The app should present a simple set of buttons whose use and function is intuitive.
 These include:
-- Scan  
+- Scan (QR code)  
   This allows the user to react to several kinds of actions from other users:
   - Scan a prospective partner tally ticket (invitation to tally)
   - Scan a vendor payment address, generate a request for invoice
   - Scan an offline check from a trading partner (future)
-- Tally  
+- Tally (Two partners shaking hands)  
   This begins the process of inviting another user to tally.
   It will immediately present a QR code, scannable by the other party, 
   which is an invitation to tally based on current default settings.
@@ -77,16 +80,16 @@ These include:
   - Modify the credit amount offered to the other user.
   - Modify the selected tally contract.
   - Modify other tally credit parameters as per the system documentation.
-- Pay  
+- Pay (CHIP symbol with outbound arrow)  
   This button merely brings up a screen instructing the user how to actually pay:
   by selecting a partner from the balance sheet and then selecting Pay, or by
   scanning a payment address of a partner or remote peer user.
   [CHIP addresses](/doc/learn-users.md#chip-addresses)
   are long and cumbersome so there will be no way provided to type them in.
-- Request  
+- Request (Question mark with inbound arrow)  
   Similarly, this button instructs the user to start by selecting a partner
   or scanning a peer CHIP address QR code.
-- Settings
+- Settings (Gear Wheel)
   - Profile/certificate  
     Each user will need to establish his own certificate.
     This includes his name, address and other identifying information as
@@ -101,22 +104,28 @@ These include:
     - Connection key import/export
   - Signing key maintenance
     - Generate key (if it doesn't already exist)
-    - Import/export key
+    - [Securely](/doc/use-mobile.md#key-security) store the key
+    - Validated recall (biometrics, passkey, etc)
+    - Import/export key to other devices
   - Display preferences
     - Tabular or visual balance sheet
     - Preferred currency to provide automatic conversion to
     - Conversion ratio (or URL for automatic)
-- History  
+- History (ledger with time clock)  
   Show sortable/selectable history of all prior transactions.
   Selecting transactions will activate a menu to allow:
     - Pay this partner/peer again
     - Request payment from this partner/peer
-- Help  
-  This is a question mark that always displays in the same place and is responsive
-  to whatever context the user is currently in.
+- Help (Question mark)  
+  This always displays in the same place and is responsive to whatever context the user is 
+  currently in.  It will allow the user to get help screens without losing his place in
+  the current process.
 
 In addition to buttons, the main screen should display a balance sheet.
 In an early iteration it will be acceptable to have only a tabular balance sheet.
+By tabular, we mean a list of rows, each row pertaining to a tally.
+The rows should display a partner name and a balance, and any other helpful information (like target) that may fit.
+
 In the future, the user should be able to select between a visual and tabular sheet.
 
 The source tree includes an example of a 
@@ -148,11 +157,9 @@ a context menu for:
 - Viewing the tally contract
 - View transaction history with that partner
 
-Tallies that are not entirely executed should also be shown and be accessible
+Tallies that are not entirely executed (pending) should also be shown and be accessible
 to interact with, review, submit, complete or reject.
-
-Additional information about the User Interface and API is available in
-[this document](/doc/use-mobile.md).
+Past closed tallies should be viewable upon request (or configuration) but not typically by default.
 
 ## Thin Client View
 The mobile app should be only a view to the degree possible.
@@ -172,18 +179,21 @@ should automatically be capable of operating in that language.
 Unless there is a compelling reason to change the implementation language, it is
 preferred to proceed using Flutter.
 
+In the future it may be desirable to have several different mobile apps people can choose from.
+
 ## Outcomes
 - The mobile app is easy for a new user to use
-- No particular training is necessary
-- All necessary prompting/help occurs in the course of use
+- No prior or external training is necessary to use the app
+- All necessary prompting/help/learning occurs in the course of use
 - App communicates with the backend server via the existing websocket API
 
 ## Getting Help on the Protocol
 The protocol by which servers communicate with each other is described
-[here](/doc/learn-protocol.png).
+[here](/doc/learn-protocol.md).
 MyCHIPs includes an extensive set of regression tests that exercises the features
 of this protocol.
 
 In order to do so, they also simulate the actions of a user interface.
-By examining these tests, it is possible to understand much about the CRUD queries 
-you will need to issue actions to, and process responses from the database.
+By examining these tests, it is possible to understand much about the
+[CRUD](/doc/use-mobile.md#user-api-objects)
+queries you will need to issue actions to, and process responses from the database.
