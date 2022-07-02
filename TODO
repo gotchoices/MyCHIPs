@@ -1,30 +1,53 @@
 TODO:
 
 Immediate:
-X- Mocha test to run model3
-X-  Model3 uses logger passed in by sim/model
-X-  Fix model3 (units->net, include issuer?)
-X- Simulation still works for model2/model3
-X- Doc accounts don't seem to be getting updated on first run
-X- Model3 calls done() when finished
-X- Model3 regression test passes
-X- All regression tests pass
-- 
 - Chit consensus
--   Implement signatures/checking on tallies/chits
--   Implement consensus protocol subsystem
--   Mocha tests to simulate network disconnections, chit collisions
--
+X-  Can disable packet transmission for testing
+X-  How/where to store/derive ackHash (tallies_v.ack_hash)
+X-  How/where to store/derive propHash (select from chit with largest chain_idx)
+X-  How/where to store/derive consensus state (tallies.chain_stat)
+X-  Remove tally close dialog code to avoid double messages (setting chit and tally)
+X-  Can I hash chain a chit when request -> good?
+X-  Compute chit digest and send it with the validated chit
+X-  Make a handler for chain messages
+X-  Launch async messages to chain module
+X-  Mocha test to simulate network disconnections, chit collisions
+X-  Implement consensus protocol subsystem
+X-  Review chain message structure
+X-  Include tally uuid in chain messages
+X-  Stock ratchets forward upon receiving ack
+X-  Two easy chits consense correctly
+-  Enable harder tests
+-  Stock can request arbitrary chain query message
+-  Foil issues catchup message
+-  Stock processes catchup message
+-  Stock requeues any stray chits
+- All regression tests pass
+- Simulation still works
+-   
 - Distributed lifts (interim, pre-1.0 functionality):
 -  Distributed lifts work with model2/model3?
 -  Do some lifts fail (when they should) in the simulation?
 -  How do lift records get marked to void? (implement agent timeouts?)
 -  Some routes are failing with invalid state (RZ)
 - 
+- Linear lifts:
+-  Create draft lift record and retrieve digest
+-  Sign the digest and write to DB
+-  Trigger detects the new record
+-   If we have an internal path to the destination, pay with local lift (simple)
+-   Else, if we have a possible route, queue up as a distributed lift.
+- 
+- App Integration:
+-  Websocket API working in flutter
+-  Implement signatures/checking on tallies/chits
+-  Test tally initialization
+-  Test direct chit generation
+-  Test linear lift initiation
+- 
 - Cleanups:
-- Remove code (and then test) allowing tally close by unauthenticated (non-chit) request
 - Correctly assess lading on lift push through foreign tally (we now know parter's limit/bound)
--   Merge local null min with route lading correctly
+-  Merge local null min with route lading correctly
 -  Should all xxx_process functions return text or JSON (routes need JSON)?
 -  Why do some routes get stuck in draft mode (See RZ notice)?
 -  Should the "tally" property of a route message be in the message, not the object (since it should change at each hop)?
@@ -34,13 +57,6 @@ X- All regression tests pass
 -  Can peer containers run with spa services disabled?
 X-  Can/should we change chit units to be stored internally with sign relative to stock/foil?
 - 
-- Linear lifts:
--   Create draft lift record and retrieve digest
--   Sign the digest and write to DB
--   Trigger detects the new record
--     If we have an internal path to the destination, pay with local lift (simple)
--     Else, if we have a possible route, queue up as a distributed lift.
-- 
 - Server process: mychips.js
 X-   Can launch an agent server for each locally defined agent
 X-   Where/how to build/store agent private keys (pki folder?)
@@ -48,7 +64,7 @@ X-   Where/how to build/store agent private keys (pki folder?)
 -   How does the system identify local agents vs/ peer agents?
 -   Implement local lift scheduler/scanner/processor
 -  
-- Server now ready for single-site use/deployment?
+- System now ready for single-site use/deployment?
 - 
 - Admin UI tab for editing local agents?
 - How to mark agents as local (and is it needed to determine local agents)?

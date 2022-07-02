@@ -244,44 +244,44 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
-  if (saveName) it("Save open tallies for later (chit) testing", function(done) {
+  if (saveName) it("Save open tallies for later chit test", function(done) {
     let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(save(saveName), (e) => {if (e) done(e); _done()})
     if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
   })
 
+//Obsolete
 //  it("Simulate non-zero tally balance", function(done) {
 //    let dc = 2, _done = () => {if (!--dc) done()}
 //    dbO.query(uSql('units_c = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
 //    dbS.query(uSql('units_c = 1', userS, 1), (e, res) => { if (e) done(e); _done()})
 //  })
-
-  it("Subject requests to close the proposed tally", function(done) {
-    let sql = uSql('request = %L', 'close', userS, 1)
-      , dc = 3, _done = () => {if (!--dc) done()}
-//log.debug("Sql:", sql)
-    dbS.query(sql, (err, res) => { if (err) done(err)
-      let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.request, 'close')
-      assert.equal(row.status, 'open')
-      assert.equal(row.state, 'open.close')
-      _done()
-    })
-    busO.register('po', (msg) => {		//Originator is sent the close request
-      assert.equal(msg.entity, userO)
-      assert.equal(msg.state, 'close')
-      _done()
-    })
-    busS.register('ps', (msg) => {		//Subject is notified of open
+//  it("Subject requests to close the proposed tally", function(done) {
+//    let sql = uSql('request = %L', 'close', userS, 1)
+//      , dc = 3, _done = () => {if (!--dc) done()}
+////log.debug("Sql:", sql)
+//    dbS.query(sql, (err, res) => { if (err) done(err)
+//      let row = getRow(res, 0)			//;log.debug("row:", row)
+//      assert.equal(row.request, 'close')
+//      assert.equal(row.status, 'open')
+//      assert.equal(row.state, 'open.close')
+//      _done()
+//    })
+//    busO.register('po', (msg) => {		//Originator is sent the close request
+//      assert.equal(msg.entity, userO)
+//      assert.equal(msg.state, 'close')
+//      _done()
+//    })
+//    busS.register('ps', (msg) => {		//Subject is notified of open
 //log.debug("msg:", msg, msg.object.sign)
-      assert.equal(msg.entity, userS)
-      assert.equal(msg.state, 'close')
-      assert.ok(!!msg.object.sign.stock)
-      assert.ok(!!msg.object.sign.foil)
-      _done()
-    })
-  })
-
+//      assert.equal(msg.entity, userS)
+//      assert.equal(msg.state, 'close')
+//      assert.ok(!!msg.object.sign.stock)
+//      assert.ok(!!msg.object.sign.foil)
+//      _done()
+//    })
+//  })
+//
 //  it("Simulate tally balance going to zero (close -> closed)", function(done) {
 //    let dc = 2, _done = () => {if (!--dc) done()}
 //    dbO.query(uSql('units_c = 0', userO, seqO), (e, res) => { if (e) done(e)

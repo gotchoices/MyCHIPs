@@ -118,7 +118,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(save('pend'), (e) => {if (e) done(e); _done()})
   })
 
-  it("Subject declines Subject's invoice", function(done) {
+  it("Subject declines Originator's invoice", function(done) {
 //log.debug("S:", interTest.chitS)
     let uuid = interTest.chitS.uuid
       , sql = uSql('request = %L', 'void', userS, uuid)
@@ -172,12 +172,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(rest('pend'), (e) => {if (e) done(e); _done()})
   })
 
-  it("Subject accepts/pays Subject's invoice", function(done) {
+  it("Subject accepts/pays Originator's invoice", function(done) {
     let uuid = interTest.chitS.uuid
       , signed = cidS + ' signature'
       , sql = uSql('request = %L, signature = %L', 'good', signed, userS, uuid)
       , dc = 3, _done = (x) => {if (!--dc) done()}
-log.debug("Sql:", dc, sql)
+//log.debug("Sql:", dc, sql)
     dbS.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Row:", dc, e, row)
       assert.equal(row.chit_uuid, uuid)
@@ -235,6 +235,38 @@ log.debug("Sql:", dc, sql)
       assert.equal(msg.state, 'L.good')
       _done()
     })
+  })
+
+  it("Wait for consensus to settle", function(done) {
+    setTimeout(done, 200)
+  })
+
+  it("Verify chit consensus in DB", function(done) {
+    let sql = `select tally_ent,tally_seq,tally_type,state,chits,chain_conf,ack_hash from mychips.tallies_v where tally_type = $1`
+      , dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
+    dbO.query(sql, ['stock'], (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("O row:", row)
+      assert.equal(row.chits, 2)
+      assert.equal(row.chain_conf, 2)
+      _done()
+    })
+    dbS.query(sql, ['foil'], (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("S row:", row)
+      assert.equal(row.chits, 2)
+      assert.equal(row.chain_conf, 2)
+      _done()
+    })
+  })
+
+  if (saveName) it("Save open chits for later chitcon test", function(done) {
+    let dc = sites, _done = () => {if (!--dc) done()}
+    dbO.query(save(saveName), (e) => {if (e) done(e); _done()})
+    if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
+  })
+  if (saveName) it("Save open tallies for later chitcon test", function(done) {
+    let dc = sites, _done = () => {if (!--dc) done()}
+    dbO.query(defTally.save(saveName), (e) => {if (e) done(e); _done()})
+    if (sites > 1) dbS.query(defTally.save(saveName), (e) => {if (e) done(e); _done()})
   })
 
 /* */

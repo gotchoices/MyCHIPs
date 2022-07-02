@@ -254,55 +254,55 @@ log.debug("Object:", msg.object)
     })
   })
 
-  it("Save open tally record for later testing", function(done) {
-    dbA.query(save('open'), (e) => {if (e) done(e); else done()})
-  })
-
-  it("User request to close tally (open -> open.close)", function(done) {
-    let sql = uSql(`request = 'close'`, user0, 1)
-      , dc = 2, _done = () => {if (!--dc) done()}
-//log.debug("Sql M:", sql)
-    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'open.close')
-      _done()
-    })
-    busA.register('pa', (msg) => {		//Listen for message to agent process
-      assert.equal(msg.target, 'tally')
-      assert.equal(msg.action, 'close')
-      _done()
-    })
-  })
-
-  it("Agent transmits, confirms change to close (open.close -> close)", function(done) {
-    let logic = {context: ['open.close'], update: {status: 'close'}}
-      , { cid, agent } = interTest.from
-      , msg = {to: {cid, agent}, object: interTest.object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
-//log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'close')
-      done()
-    })
-  })
-
-  it("Restore open tally", function(done) {
-    dbA.query(rest('open'), (e) => {if (e) done(e); else done()})
-  })
-  it("Peer requests tally close (open -> close)", function(done) {
-    let object = {uuid: interTest.object.uuid}		//Minimal object
-      , logic = {context: ['open'], update: {status: 'close'}}
-      , { cid, agent } = interTest.from
-      , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
-//log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'close')
-      done()
-    })
-  })
+//Closing procedure moved to setting chit protocol
+//  it("Save open tally record for later testing", function(done) {
+//    dbA.query(save('open'), (e) => {if (e) done(e); else done()})
+//  })
+//  it("User request to close tally (open -> open.close)", function(done) {
+//    let sql = uSql(`request = 'close'`, user0, 1)
+//      , dc = 2, _done = () => {if (!--dc) done()}
+////log.debug("Sql M:", sql)
+//    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
+//      let row = getRow(res, 0)
+//      assert.equal(row.state, 'open.close')
+//      _done()
+//    })
+//    busA.register('pa', (msg) => {		//Listen for message to agent process
+//      assert.equal(msg.target, 'tally')
+//      assert.equal(msg.action, 'close')
+//      _done()
+//    })
+//  })
+//
+//  it("Agent transmits, confirms change to close (open.close -> close)", function(done) {
+//    let logic = {context: ['open.close'], update: {status: 'close'}}
+//      , { cid, agent } = interTest.from
+//      , msg = {to: {cid, agent}, object: interTest.object}
+//      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+////log.debug("Sql:", sql)
+//    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
+//      let row = getRow(res, 0)
+//      assert.equal(row.state, 'close')
+//      done()
+//    })
+//  })
+//
+//  it("Restore open tally", function(done) {
+//    dbA.query(rest('open'), (e) => {if (e) done(e); else done()})
+//  })
+//  it("Peer requests tally close (open -> close)", function(done) {
+//    let object = {uuid: interTest.object.uuid}		//Minimal object
+//      , logic = {context: ['open'], update: {status: 'close'}}
+//      , { cid, agent } = interTest.from
+//      , msg = {to: {cid, agent}, object}
+//      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+////log.debug("Sql:", sql)
+//    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
+//      let row = getRow(res, 0)
+//      assert.equal(row.state, 'close')
+//      done()
+//    })
+//  })
 
 /* */
   after('Disconnect from test database', function(done) {

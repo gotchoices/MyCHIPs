@@ -77,9 +77,8 @@ hOffer -[$peer]-> void : $trans($peer,Receive peer refusal, '', Act: void; Notif
 hOffer -[$peer]-> pOffer : $trans($peer,Receive modified tally, '', Act: offer; Notify user)
 void -[$peer]-> pOffer : $trans($peer,Receive modified tally,'', Act: offer; Notify user)
 
-open -right[$user]-> OpenClose : $trans($user, Issues close/call chit, '', Request close)
+open -[$user]-> close : $trans($user, Issues close/call chit, '', Set to close)
 open -[$peer]-> close : $trans($peer,Receive peer\nclose request, '', Act: close)
-OpenClose -[$db]-> close : $trans($db,Req:close detected,'',Transmit act:peerClose)
 close -right[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
 
 'closed --> [*]

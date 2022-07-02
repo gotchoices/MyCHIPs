@@ -19,7 +19,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{comment target reward clutch bound part_sig hold_sig request}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_cert part_cert hold_terms part_terms]
-    def tallies_se	[concat $tallies_v_in tally_seq status digest net_pc net_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets $glob::stampfn]
+    def tallies_se	[concat $tallies_v_in tally_seq status digest net_pc net_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets chain_conf $glob::stampfn]
 }
 
 other tally_side {} {
@@ -52,7 +52,7 @@ table mychips.tallies {mychips mychips.users tally_side} {
   , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
 
 -- Values used internally to track state, required actions
-  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
+  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open'))
   , status	text		not null default 'draft'
   				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
   , part_ent	text		references mychips.users on update cascade on delete restrict
@@ -68,7 +68,8 @@ table mychips.tallies {mychips mychips.users tally_side} {
   				constraint "!mychips.tallies.PAI" check (not (status = 'open' and part_agent isnull))
   , hold_sets	jsonb		not null default '{}'
   , part_sets	jsonb		not null default '{}'
-  , chain_conf	int		default 0 not null
+  , chain_conf	int		not null default 0
+  , chain_stat	text		not null default 'con' check (chain_stat in ('con','prob','req','err','pend'))
   , _last_chit	int		not null default 0
 
 --Obsolete values:
@@ -132,8 +133,7 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
       if not new.request isnull then		-- check for legal state transition requests
         if not (
           new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
-          new.request = 'open' and old.status = 'offer' or
-          new.request = 'close' and old.status = 'open'
+          new.request = 'open' and old.status = 'offer'
         ) then raise exception '!mychips.tallies:ISR % %', old.status, new.request;
         end if;
         if new.request = 'offer' then		-- Our user is re-drafting
@@ -217,7 +217,7 @@ function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v 
           on conflict (ttry_ent,ttry_seq) do update set tries = mychips.tally_tries.tries + 1, last = current_timestamp
             returning * into rrec;
 -- raise notice 'Try:%-%', tally.tally_ent, tally.tally_seq;
--- raise notice 'Tn c:% t:% f:%', channel, trec.part_chad, trec.hold_chad;
+--raise notice 'Tn c:% t:% f:%', channel, trec.part_chad, trec.hold_chad;
         jrec = jsonb_build_object(
           'target',	'tally',
           'action',	tally.request,
@@ -315,7 +315,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state
-  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','close','draft']) as action
+  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','draft']) as action
   , te.status = 'open' or (te.status = 'close' and net_pc != 0)		as liftable
 
   , coalesce(cg.chits, 0)				as chits
@@ -342,6 +342,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
       'clutch',		te.clutch,
       'bound',		te.bound
     )		as policy
+  , cc.digest		as ack_hash
 
     from	mychips.tallies	te
     left join	mychips.agents_v ua on ua.agent = te.hold_agent
@@ -353,7 +354,10 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
     left join	(select chit_ent, chit_seq,
          sum(net) as net, count(chit_idx) as chits, max(mod_date) as latest
          from mychips.chits_v where status = 'pend' and chit_type != 'set' group by 1,2
-       ) ce on ce.chit_ent = te.tally_ent and ce.chit_seq = te.tally_seq;
+       ) ce on ce.chit_ent = te.tally_ent and ce.chit_seq = te.tally_seq
+    left join	(select chit_ent,chit_seq,chain_idx,digest from mychips.chits_v where status = 'good'
+       ) cc on cc.chit_ent = te.tally_ent and cc.chit_seq = te.tally_seq
+         and cc.chain_idx = te.chain_conf;
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);

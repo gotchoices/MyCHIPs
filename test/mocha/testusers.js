@@ -26,7 +26,7 @@ describe("Establish test users", function() {
         update mychips.users_v set ${f0} where user_ent = '${user0}';
         update mychips.users_v set ${f1} where user_ent = '${user1}';
         select count(*) as count from mychips.users_v where ent_num >= 1000; commit;`
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     db.query(sql, (err, res) => {if (err) done(err)
       assert.equal(res.length, 8)	//8: begin, del, del, upd, upd, upd, select, commit
 //log.debug("Res:", res[6].rows[0])

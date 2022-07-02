@@ -83,7 +83,8 @@ log.debug("Taking down docker PG")
     return Format('select wm.table_%s(%L,%L);', func, tab, tag)
   },
 
-  getRow: function (res,idx,exp=1) {
+  getRow: function (res, idx, exp=1) {
+    assert.ok(res)
     assert.equal(res.rowCount, exp)
     return res.rows[idx]
   },

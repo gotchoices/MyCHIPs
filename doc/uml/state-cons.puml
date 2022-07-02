@@ -6,7 +6,9 @@ $title(Chit Chain Consensus Stock States)
 cons: Fully Consensed
 error: Can't Consense
 pend: Pending Acknowledge
+problem: Does not reconcile
 request: Requested Update
+newChit: Regular chit processing
 
 'state stock {
 '  stockPend:
@@ -20,10 +22,12 @@ cons -[$db]-> newChit: $trans($db, Site creates new\nvalid lift chit(s),'')
 newChit -[$db]-> pend: $trans($db,Detected new valid chit(s),'', 'Add to chain provisionally\nGenerate proposed endHash: propHash\nSend to Foil peer Act:prop')
 
 cons -[$peer]-> cons: $trans($peer,Receive new chit Act:new,'Can reconcile endHash', 'Conform to chain\nackHash = newHash')
-cons -[$peer]-> request: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash', 'Request update from Foil\nAct:compare')
+cons -[$peer]-> problem: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash')
+problem -[$db]-> request: $trans($db,Detected failed state,'', 'Request update from Foil\nAct:compare')
 
-request -[$peer]-> cons: $trans($peer,Receive chits since ackHash Act:update,'Chain now reconciles with endHash', 'ackHash = endHash')
 request -[$peer]-> error: $trans($peer,Receive chits since ackHash Act:update,'Cannot reconcile with endHash', 'Send error report to peer and user')
+request -[$peer]-> cons: $trans($peer,Receive chits since ackHash Act:update,'Chain now reconciles with endHash', 'ackHash = endHash')
+request -[$peer]-> newChit: $trans($peer,Receive chits since ackHash Act:update,'Still have unlinked chit(s)', 'Requeue for sending')
 
 pend -[$peer]-> cons: $trans($peer,Receive ack from Foil Act:ack,'Agree with proposed endHash', 'Ratchet: ackHash = propHash')
 

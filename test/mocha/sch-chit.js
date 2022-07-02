@@ -368,28 +368,27 @@ describe("Test chit state transitions", function() {
     let msg = {to: interTest.from, object: interTest.chit}
       , logic = {context: ['L.pend.good'], update: {status: 'good'}}
       , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
-      , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.state, 'L.good')
-      _done()
+      done()
     })
-    busA.register('pa', (msg) => {		log.debug('BusA:', msg, msg.to, msg.from)
-      assert.equal(msg.target, 'tally')		//Propagate close request to partner
-      assert.equal(msg.action, 'close')
-//      let obj = msg.object			//;log.debug("A obj:", JSON.stringify(obj))
-      _done()
-    })
+//    busA.register('pa', (msg) => {		log.debug('BusA:', msg, msg.to, msg.from)
+//      assert.equal(msg.target, 'tally')		//Propagate close request to partner
+//      assert.equal(msg.action, 'close')
+//      _done()
+//    })
   })
 
   it("Verify tally properties are changed", function(done) {
     let msg = {to: interTest.from, object: interTest.chit}
       , logic = {context: ['L.pend.good'], update: {status: 'good'}}
-      , sql = Format(`select target,bound,reward,clutch,hold_sets from mychips.tallies where tally_uuid = %L;`, interTest.chit.tally)
+      , sql = Format(`select state,target,bound,reward,clutch,hold_sets from mychips.tallies_v where tally_uuid = %L;`, interTest.chit.tally)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.state, 'close')
       assert.equal(row.target, interTest.ref.target)
       assert.equal(row.bound, interTest.ref.bound)
       assert.equal(row.reward, interTest.ref.reward)

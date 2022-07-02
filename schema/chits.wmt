@@ -16,12 +16,13 @@ tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credi
     {units		{Units}			{The amount of the transaction, measured in milli-CHIPs (1/1000 of a CHIP)}}
     {reference		{Reference}		{Any arbitrary JSON data about the transaction, meaningful to the parties.  May reference an invoice, a purchase order, a register, other document evidencing goods or services rendered, and a trading relationship between the parties.  For setting chits, this contains the settings being asserted.}}
     {memo		{Memo}			{Any other human-readable text description, context or explanation for the transaction}}
-    {digest		{Digest Hash}		{A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the chit}}
+    {digest		{Digest Hash}		{A hash of the chit transaction that will be digitally signed}}
     {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
     {request		{Request}		{The state transition algorithm for chits responds to transition requests entered into this field.}}
     {status		{Status}		{The status field indicates if the state has progressed to the point where the amount of the chit can be considered pending or final}}
-    {chain_prv		{Chain Previous}	{A copy of the hash from the previous chit in the hash chain}}
     {chain_idx		{Chain Index}		{Chits are stored in a hash-chain to prevent them from being altered later.  This indicates the order of the chit records in the hash chain.}}
+    {chain_prev		{Chain Previous}	{A copy of the hash from the previous chit in the hash chain}}
+    {chain_hash		{Chain Hash}		{A hash of the current chit record, including the previous record's hash so as to form a hash chain}}
     {lift_seq		{Lift Sequence}		{If a chit is part of a lift transaction, this indicates which tally record the chits belong to.  There can be more than one lift record per lift in some cases.}}
 } $glob::stampt] -messages {
     {BCT	{Bad Chit Type}		{Not a valid type for a tally chit}}
@@ -55,7 +56,7 @@ tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-li
     {seq		{Sequence}		{The sequence (tally) number of the owner of the tally the chain belongs to}}
     {digest		{Digest}		{A SHA256 hash of the MyCHIPs compliant data contained in the individual chit or tally}}
     {chain_idx		{Chain Index}		{The record number in the chain.  Base tally is -1, first chit is 0, second chit is 1...}}
-    {chain_prv		{Prior Hash}		{Contains the hash of the prior link (chit or tally) in the chain}}
+    {chain_prev		{Prior Hash}		{Contains the hash of the prior link (chit or tally) in the chain}}
     {prev_ok		{Prior Links}		{Is true if this and all previous records properly contain the hash copied from the prior record}}
     {hash_ok		{Prior Hashes}		{Is true if this and all previous records contain an accurate hash of the relevant data in their record}}
     {ok			{Chain Valid}		{True if all hashes are correctly computed up through this record}}

@@ -244,7 +244,7 @@ But in an actual implementation, it is very helpful.
 Each chit contains a hash of its other contents.
 This hash is useful for detecting if anything in the chit has changed (something we don't want to happen).
 
-In addition, each chit contains a copy of the hash for the chit preceeding it on the tally.
+Each chit also contains a copy of the hash for the chit preceeding it on the tally.
 In this way, the hash of the latest chit can be compared with the same point in the chain on the other end of the tally.
 If the end hashes are the same, we can rest assured that the stock and foil contain exactly the same chit information, at least up to that point.
 This is much more efficient than trying to compare every chit on the tally individually each time.
@@ -257,41 +257,63 @@ Users can also assert certain settings by way of a special settings chit.
 
 When chits are created as part of a distributed lift, validating signatures will normally propagate around the lift circuit in the downstream (foil to stock) direction.
 So the foil holder on any given tally will usually get the signature before the stock holder.
-As they attempt to reach consensus on chit order, the signature will naturally get shared.
+As they attempt to reach consensus on chit order, the signature will naturally get shared with the stock.
 
 The following diagram shows the sequence of events for the two basic use cases.  Keep in mind, this
-activity is going on as part of the normal chit creation process described above (and/or in the later lift section).
+activity is going on as part of the normal chit creation/transmission process described previously (and/or in the later lift section).
 
 ![seq-cons](uml/seq-cons.svg)
 
-The consensus algorithm is pretty simple.
+The consensus rules are pretty simple.
 Both stock and foil have the duty to recognize, accept and store a duly signed and valid chit received from the other.
-But the foil gets to choose how to order the chits in the chain.
+But the foil gets to choose what order the chits will be stored in the chain.
 It is the job of the stock to conform to that order.
 
 The goal of the consensus protocol is then to:
-- get all valid chits linked into a hash-chained list; and
-- verify that the stock and foil both have an identical list of valid chits.
+- order all valid chits linked into a hash-chained list; and
+- verify that the stock and foil both have an identical chained list of valid chits.
 
 The consensus protocol is centered around chits.
 But it is really the tally (its two halves) that are (or are not) fully consensed at any given time.
-So think of the chain consensus protocol as a system of sub-states occuring while a tally is in the open (and/or closing) primary state.
+So think of the chain consensus protocol as a system of tally sub-states occuring while a tally is in the open (and/or closing) primary state(s).
 
-Now we can derive the following state diagram to describe the tally/chit chain consensus sub-states from the perspective of a single site.
+The simplest case is where only one side generates a chit and that chit gets completely propagated and linked on both ends before anything else happens on the tally.
+In practice there are several other (more messy) scenarios:
+1. One or more valid chits get generated on both ends of the tally and are transmitted at about the same time.
+  Both stock and tally will have linked these chits already and think they have a valid end hash.
+  The stock will have to comport to the foil's version of things and reorder its chain accordingly.
+  So it should only keep a *provisional* end hash (propHash) until the foil acknowledges it.
+2. The network between stock and foil is disrupted.
+  The packet transmission system correctly detects this and uses retries to eventually get the packets through sometime later when connectivity is reestablished.
+  The state of a chit should remain pending until the transmitting node successfully connects with the other side's agent.
+  So this scenario should devolve into scenario 1 once connection is finally restored.
+3. A network packet is transmitted to the other side but then lost somehow.
+  This could probably happen if the agent process loses connection to the database at just the wrong time.
+  This probably would not be detected until someone tries to add another chit to the chain.
+  Then it would be evident to one side that it has a stray, valid chit that is not part of the other side's chain.
+  - If the stock lost a chit, it should become evident next time the foil sends a list of activitiy since the last acknowledged checkpoint.
+  - If the foil lost a chit, the stock should find it has a leftover valid chit after conforming to the foil.
+    It can then just resend that chit through the normal chit protocol.
+The system should be tolerant of a packet for the same chit (same tally and chit uuid) arriving twice.
+A chit has to be in the appropriate status for all state transitions, so this should not be a problem.
+
+We can now derive the following state diagram to describe the consensus sub-states from the perspective of a single side.
 First, the states associated with the foil:
 
 [![state-cons](uml/state-conf.svg)](uml/state-conf.svg)
 
-For the foil there is not much in the way of states to track.  The only transitions have to do with
-tracking new chits that have been created by either the Stock or the Foil.  And these transitions
-are already being tracked in the chit state machine.  So the Foil just needs to track new chits, 
-add them to its chit chain, and keep the Stock informed about the latest end hash.  All this should
-be possible to accomplish within the existing chit message protocol.
+For the foil there is not much in the way of states to track.
+The only transitions have to do with tracking new chits that have been created by either the Stock or the Foil.
+And these transitions are already being tracked in the chit state machine.
+So the Foil just needs to track new chits, add them to its chain, and keep the Stock informed about the latest end hash.
+All this should be possible to accomplish within the existing chit message protocol.
 
 For the Stock, it is a little more complicated, as the following diagram illustrates:
 
 [![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
 
+The stock must be able to conform to information it receives from the foil.
+It must also be able to remind the foil of any chits it may have overlooked or not yet received.
 
 ### Credit Lifts Explained
 So far, the protocol has dealt primarily with transactions moving value between two partners who are directly connected by a tally.

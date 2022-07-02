@@ -9,6 +9,7 @@ actor "Foil Holder" as client
 alt Stock originates/validates chit
   stock		->>	stock:		Apply validating signature to chit
   stock		->>	foil:		Transmit new valid Chit\nwith validating signature\nProposed endHash: propHash
+  foil		->>	foil:		Add/link new valid chit
 
   alt Foil agrees with stock's proposed endhash
     foil		->>	foil:		Ratchet forward\nackHash = propHash
@@ -31,12 +32,16 @@ end
 
 foil		->>	stock:		Send chits since last ackHash\nand new endHash
     
-alt All stock's chits under endHash are valid
+alt All newly received chits are valid
   stock		->>	stock:		Apply chits\nRatchet forward\nackHash = endHash
 else
   stock		->>	vendor:		Report error to user
   stock		->>	foil:		Report error
   foil		->>	client:		Report error to user
+end
+
+alt Does foil still have any valid, unlinked chits
+  stock		->>	foil:		Requeue/retry regular\nchit transmission to foil\n(return to top of diagram)
 end
 
 @enduml

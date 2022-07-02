@@ -190,7 +190,7 @@ The *object* property for the chit is defined as follows:
   - **tally**: The UUID of the tally this chit belongs to.
   - **issue**: The value 'stock' or 'foil' to indicate which holder issued the chit pledge (or setting).
   - **units**: The number of milli-CHIPs on this chit.  This should always be a positive number.
-  - **date**: Date/time the chit was created
+  - **date**: Date/time the chit was became/becomes effective.
   - **type**: The value 'tran' (transaction), 'set' (setting) or 'lift' (linear or circular)
   - **ref**: A JSON data structure containing invoice, order, or other references material to the transaction.
     For setting chits, this contains the values of the settings:
@@ -201,7 +201,7 @@ The *object* property for the chit is defined as follows:
   - **memo**: A human-readable description or comment about the transaction.
   - **digest**: A string hash of the rest of the chit in a standard serialized format
   - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor
-  - **chain**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information about use of this property.
+  - **digest**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information about use of this property.
 
 Chit state transition messages are as follows:
 
@@ -229,21 +229,26 @@ In addition to the four main subsystems mentioned above, there is a
 between the stock and foil about the order in which chits are recorded on the tally (the chit chain).
 
 This can be thought of as a set of sub-states a tally can be in while its main state is open
-(and/or closing).  Since it does involve the tally's state, it has its own state processing
-subsystem and message set.
+(and/or closing).  Since it really doesn't involve the tally's or chit's state directly, it has its 
+own state processing subsystem and message set.
 
-Chain consensus can invoke/create the following messages:
-- **new**: Foil sends valid chit, accompanied by new endHash
-- **new**: Stock sends valid chit, accompanied by proposed endHash (propHash)
+Chain consensus utilizes the following message action codes:
+- **new**: (virtual) Foil sends valid chit, accompanied by new endHash
+- **new**: (virtual) Stock sends valid chit, accompanied by proposed endHash (propHash)
 - **ack**: Foil acknowledges stock's proposed endHash
-- **request**: Stock requests chits since last acknowledged endHash (ackHash)
-- **update**: Foil sends chits since last acknowledged endHash (ackHash)
-- **error**: Stock reports an error attempting to reconcile with endHash
+- **req**: Stock requests chits since last acknowledged endHash (ackHash)
+- **upd**: Foil sends chits since last acknowledged endHash (ackHash)
+- **err**: Stock reports an error attempting to reconcile with endHash
 
 The first two actions are directly correlated with the sending of a chit--a message already occuring within the chit subsystem.
 So these actions are accomplished simply by populating the additional <i>chain</i> property in the applicable chit message.
 
 The other four messages will carry their own target property of <i>chain.</i>
+Additionally, they may contain an object with some or all of the following properties:
+- **tally**: The uuid of the tally the message pertains to
+- **chain**: The hash at the end of the chain
+- **index**: The index of the last chit in the chain
+- **chits**: An array of chits from a section of the chain
 
 ### Route Messages
 Property: **target**: route
