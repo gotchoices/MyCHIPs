@@ -601,7 +601,7 @@ Once collected, those credits can be spent.
 If credit has been extended to the customer as part of the tally, the customer
 can begin to buy things using the tally as payment, within the specified credit terms.
 
-### Entity Certificates and Identities
+### Entity Certificates
 Part of the information encapsulated and digitally signed within a tally includes a
 CHIP certificate.  The certificate has several purposes:
   - To provide information about the entity that identifies it to the satisfaction
