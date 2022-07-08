@@ -109,7 +109,11 @@ dbO.query('MARK---------->')
       _done()
     })
   })
-/*
+
+  it("Wait for consensus to settle", function(done) {
+    setTimeout(done, 250)
+  })
+
   it("Compare resulting chit chains", function(done) {
     let sql = 'select chit_seq, chain_idx, units, clean from mychips.chits_v where chit_ent = $1 order by 2'
       , rowsO, rowsS

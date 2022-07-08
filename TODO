@@ -2,27 +2,24 @@ TODO:
 
 Immediate:
 - Chit consensus
-X-  Can disable packet transmission for testing
-X-  How/where to store/derive ackHash (tallies_v.ack_hash)
-X-  How/where to store/derive propHash (select from chit with largest chain_idx)
-X-  How/where to store/derive consensus state (tallies.chain_stat)
-X-  Remove tally close dialog code to avoid double messages (setting chit and tally)
-X-  Can I hash chain a chit when request -> good?
-X-  Compute chit digest and send it with the validated chit
-X-  Make a handler for chain messages
-X-  Launch async messages to chain module
-X-  Mocha test to simulate network disconnections, chit collisions
-X-  Implement consensus protocol subsystem
-X-  Review chain message structure
-X-  Include tally uuid in chain messages
-X-  Stock ratchets forward upon receiving ack
-X-  Two easy chits consense correctly
--  Enable harder tests
--  Stock can request arbitrary chain query message
--  Foil issues catchup message
--  Stock processes catchup message
+X- Test for chit lost by the stock:
+X-  Foil notifies stock of correct chits sequence (3-4)
+X-  Stock can conform to sent chit list
+X-    Trigger properly grabs previous end hash
+X-    Trigger properly calculates new chit hash
+X-    End hashes agree on stock and foil
+X-    Incorporate prev_hash into each adjusted record
+X-  Regression test passes
+-  Can track/re-create state until packet sent to stock
+-  
+- Test for chits that cross in transit
+-  Make adjustable delay before received chit processed
+-  Test attempts a range of possible delays
+-  
+-  Stock can request arbitrary chain query message (when?)
 -  Stock requeues any stray chits
 - All regression tests pass
+- Comment out PG notices
 - Simulation still works
 -   
 - Distributed lifts (interim, pre-1.0 functionality):
