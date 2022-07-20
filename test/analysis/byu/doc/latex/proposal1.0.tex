@@ -1,0 +1,116 @@
+\documentclass[article, onecolumn, 12pt]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Utilizing Model Checking to Support Constructive Proofs\\
+of Distributed Cryptocurrency Protocols}
+
+\author{\IEEEauthorblockN{Kyle Storey}
+\IEEEauthorblockA{\textit{Brigham Young University} \\
+Provo, Utah \\
+kyle.r.storey@gmail.com}
+}
+
+\maketitle
+
+\begin{abstract}
+This work will explore how combining model checking and constructive proofs can be an effective method for formally verifying complex distributed protocols. Model checking allows us to exhaustively examine every possible case for a small number of distributed agents, but quickly grows intractable as the number of agents increases. Constructive proofs allow us to reason inductively and extend our reasoning to an arbitrarily number of agents. Model Checking can help to complete a constructive proof of difficult properties.
+\end{abstract}
+
+\section{Introduction}
+MyCHIPs is a novel digital currency based on a distributed network of trading partners linked by relationships of limited and quantified trust.  MyCHIPs claims certain properties hold for its protocols but makes no formal arguments to prove those claims. The work proposed in this thesis is to formally prove certain MyCHIPS assertions.
+
+Rather than deriving its value based on mathematically provable scarcity, ---as many cryptocurrencies such as Bitcoin and Ethereum do---MyCHIPs bases its value on individual credit and the ability of your trading partner to provide something of value in return. When one sends a unit of value (a CHIP) to a partner it is backed by a promise that that the issuer will provide some good or service to the receiver at some future time. This is usually sent in exchange for goods or services the receiver provides in the moment. In this way the CHIP can be thought of as an IOU. 
+
+Unfortunately, it is rarely the case that the goods or services the CHIP issuer can provide match up with what the recipient wants. And the issuer's CHIPs may not be useful or trusted by other trading partners that the receiver wants to do business with. This describes a fungibility problem common to most currencies based on private credit. Not only is fungiblity difficult, in many cases it causes security concerns. As Nakamoto and Satoshi describe in the bitcoin whitepaper, fungible tokens can be "double spent." Their paper describes the blockchain proof of work method of overcoming this problem. \cite{bitcoin} To avoid this problem CHIPs designed to be non-fungible. The IOU is good for the recipient and only the recipient and is non-transferable. But fungibility is almost always necessary for effective transactions so MyCHIPs implements a method to make CHIPs "virtually fungible."
+
+ MyCHIPs makes CHIPs virtually fungible using a distributed algorithm called a “credit lift” or for brevity a "lift". A to perform a lift the algorithm identifies a circuit of connected entities such that each one is owed some amount by their predecessor and owes the same amount or more to their successor in the circuit. After a lift has been executed, each entity in the circuit agrees to forgive the debt from their predecessor in exchange for an equal amount of their own debt to be forgiven by their successor. The net value each entity has is unchanged, but each reduce their liability.  Because trading relationships in MyCHIPs are limited by quantified trust---i.e. a credit limit---after a lift is complete each entity is again free to request goods or services from their trading partner on credit. In other words, each entity gives up CHIPs they have from an entity who usually pays them and receives CHIPs from an entity they usually pay.
+
+For MyCHIPs to be useful, security is vital. MyCHIPs claims, and this work seeks to formally prove, the properties described below. The term Node below refers to the representation of an entity on the MyCHIPs network. These properties must hold for all compliant nodes on the network, and must be robust against malicious actors.
+
+Because lifts cannot happen atomically in a decentralized system, if a Node disconnects during the lift we would like to show: 
+\begin{enumerate}
+\item No one but the discontinuing node is harmed. 
+\item Other nodes in the circiut are able to continue the lift. 
+\end{enumerate}
+We would also like to show that:
+\begin{enumerate}
+\setcounter{enumi}{2}
+\item Lifts are always either committed by all participants or invalidated by all participants.
+\item When a node participates in a lift, after the lift resolves the node is not harmed.
+
+\item No set of actions can be taken by a non-compliant node that causes harm to a compliant node. (This makes no claims that agreements made to give something of value in the real world will be honored.)
+
+\item Partner Nodes always eventually agree on the balance of CHIPs between them.
+
+\item Nodes do not acquire more debt or accept more credit from Nodes then they are comfortable with. (According to settings controllable by a human user).
+
+\item It is cryptographically impossible to falsify transaction records.
+
+\end{enumerate}
+
+\section{Thesis}
+This work will show that combining model checking and constructive proofs is an effective method for developing formal proofs of complex distributed protocols. Model checking allows us to exhaustively examine every possible case for a small number of nodes, but quickly grows intractable for a large number of nodes. Constructive proofs allow us to reason inductively and extend our reasoning to an arbitrary number of nodes. Model Checking can serve as an aide to support constructive proofs and may allow us to soundly admit difficult to prove lemmas which can be used to complete a formal proof that the protocol is correct.
+
+\section{Lift Protocol}
+The MyCHIPs lift protocol consists of three phases: discovery, promise, and commit. In the discover phase, a circuit and a lift value is discovered where each entity in the circuit has a negative balance with their predecessor that is equal to or greater then the lift value. It begins when one entity on the network decides to initiate a lift. To do so, this entity---which we will refer to as the originator--selects a node for which it has a negative balance to act as the termination of the lift.
+
+The originator then begins the search for a circuit by sending a route request to each node for which it has a positive balance. The request consists of the desired lift amount and the target node which is the desired lift termination. When a node receives a route request it first checks if it has a positive balance greater then the lift value with the specified target node, if it does it returns a message saying that a route has been found. Otherwise the node forwards the request to each of the nodes for which it has a positive balance. If it does not receive a positive response from any of these nodes it returns a negative response indicating that no route can be found to the target through that node.
+
+%What happens when a node receives a route request more then once? Infinite looping is a concern.
+
+If a route does not exist a lift cannot be executed terminating with that target. If a route is discovered the lift can move to the promise phase. The discovery phase is quite computationally complex and there are a lot of optimizations and caching that make the process more efficient. It also is not critical that the process be secure as no transfer of value occurs during this phase. Because of this this phase will not be modeled. I will assume that a circuit for which a lift should be executed has been identified when the promise phase of the lift begins.
+
+Once the originator has confirmation that a route exists through one of the nodes for which it has a positive balance it begins the promise phase.
+The originator selects a Referee among those offering their services. The Referee is a well-trusted node in the network that we assume to be honest and have consistent, good communication. The Referee will ensure consensus in the case of communication failures.
+
+
+The originator compiles a lift record which consists of the lift amount, the network id and public key of the referee, the network id of the lift target which is the termination node, the public key of the originator, a unique lift ID and a timeout timestamp which will be used to allow a lift that is hanging for a long time to be invalidated. The originator sends this to the termination node to confirm the terms. The termination node uses the lift ID to identify the lift once it has propagated through the network. The termination node confirms these terms and the originator continues. The originator creates a chit (a transaction record) that adds a number of CHIPs to the tally between itself and the first node in the route (a node that owes the originator CHIPs), but marks the chit as conditional on the receipt of the Referee's signature on the lift record. This essentially promises that the originator will forgive the debt of the first node if the lift is successful--which means that the originator also has it's own debt forgiven by the terminating node. The originator transmits this chit and the lift record to the first node.
+
+When a node in the cycle receives the chit and the lift record, it first confirms that it trusts the Referee to be fair and available. If the referee is not trusted, or the known route to the target is no longer valid (for instance if it was used in a different lift and the node no longer has debt on that route to clear) or any other reason according to the entity's preferences, the node returns a lift-rejected response to it's predecessor in the circuit. Otherwise it creates its own chit giving CHIPs made valid on it's receipt of the referee's signature on the lift. It transmits this chit and the lift record to the successor node in the circuit.
+
+This continues until the target node receives the lift record and transmits a chit to the originator. When this is accomplished each node in the circuit has promised value to it's successor in the cycle conditional on the referee signing the lift. This concludes the promise phase and the originator begins the commit phase.
+
+When the originator, receives the chit and lift record from the termination node, it confirms that the details of the lift match the lift record it sent around. It then sends a message to the referee with the lift record and a request for the referee's signature making the lift valid. When a referee receives a lift record, it makes sure the lift record has all the details and follows protocol, that the request for the signature is coming from the originator, and that according to it's own clock that the timeout has not been reached. If the Referee decides the lift is not valid it appends a reason for rejection at the bottom of the lift, signs that version and returns it to the originator. The originator passes this version to the termination node and it is passed around the chain notifying all participants that the lift has been invalidated. Otherwise the referee signs the lift record and returns it's signature to the originator. In either case it records it's result in case a node requests the status of the lift.
+
+When the originator receives this signature, it adds it to the chit it received from the target node making the chit valid and transmits the chit to the target node. Whenever a node in the cycle receives the chit with the signature it has forgiven the debt of it's successor, but has also received the signature. To recover this value it appends the signature to the chit it received from it's predecessor and transmits the chit. This continues around the circuit until the originator receives a chit with the valid signature. At this point all nodes have received exactly the amount of chips that they have forgiven and the lift is complete.
+
+At any point, a node can send the lift record to the referee to check the status of a lift. The referee will check with its records to determine if it has made a decision for that lift. If it does have a record it makes sure the lift record it received matches the lift it ruled on, and then transmits the result including its signature if it has a result. If it does not have a ruling for the lift record yet it checks to see if the lift has timed out or is otherwise invalid. If it is invalid it appends the reason for rejection and signs the new lift record. Otherwise it returns no signature with a message indicating that the lift is still pending. If, for instance, a node in the circuit failed to continue the lift in either the promise or the commit phase, the lift would timeout. We don't expect the clocks of individual nodes to be synchronized, but their local clocks should be close enough to know when it is appropriate to ask the referee if a timeout has occurred. By contacting the referee, the nodes that had already promised chips can get a confirmation that the lift is invalidated and they will not need to make good on that promise.
+%note a information attack is avoided here where you could send false lifts with different lift ideas to probe the status of transactions.
+
+
+%Note for Kyle, message from Originator to Termination pre-lift unclear.
+%Ask about value fragmentation. I.e. Sure there exists a path of value transfer but the value the entity gives is branched out to many other entities such that no one entity has enough value to make the transfer meaningful. Example: I work for a company and I obtain 100 chips for my labor. That company has 100 customers that each would like to obtain 1 chip's worth of goods. Each of those customers also have similar situations where the value of their work is split among 100 customers. Say a cycle can be found in just 6 steps. Myself, my company, a customer, their company, a customer, merchant I would like to buy from. I would need to execute 10000 separate lifts of 0.01 chips each in order to lift the entirety of my 100 chips. If I would like to spend my money with two merchants this likely would mean I would have to execute 20000 lifts.
+
+\section{Plan of Work}
+I will begin my work developing a model for the lift protocol executing in a simple 4 node circuit. This model will serve to validate that there are no trivial errors in the protocol that would prevent the above properties from holding. This will involve formalizing the protocol and the properties we want to prove about it. Next with this confirmation I will create a constructive proof that the properties hold for a simple 4 node circuit. Then I will extend this proof to any number of nodes. Next I will implement byzantine behavior in my simple model and verify that the properties hold for all protocol compliant nodes. I will then extend my constructive proof to consider byzantine behavior. Finally, I will extend this proof to reason over any topography and any state of nodes. This final proof will be sufficient to show that the above properties hold for the MyCHIPs lift protocol in all possible use cases both byzantine and benign.
+
+\section{Related Work}
+ Bhargavan et. al. Verify Smart Contracts \cite{SmartContracts}. Smart contracts are a type of distributed computation where the program that is executed is secured in a block-chain. While not directly related, smart contracts have the same financial stakes MyCHIPs have and some of their techniques could give inspiration.  Bhargavan et. al, translated the smart contract code into a function programming language, F*, aimed at verification. This allowed for contract verification based on F* type-checking.
+ 
+ 
+ Fischer, Lynch, and Paterson,\cite{Fischer} prove the impossibility of consensus on even a Boolean, with even one faulty (or malicous) process. However this is only true if the processes don't have synchronized clocks. This proof shows the necessity of the referee with strong reachability requirements for the lift algorithm to always eventually reach consensus on if the lift should commit or be invalidated.
+ 
+ 
+ Schneider, summarizes and frames many fault tolerant distributed algorithms in the framework of state machines\cite{StateMachine}. He shows how many common algorithms are isomorphic to and can be derived using the state machine approach. It is a helpful method to characterize and compare different approaches.
+ 
+ Lamport\cite{Lamport}, describes a refinement process that takes a distributed fault tolerant consensus algorithm and hardens it to be tolerant of byzantine actors through a process he calls "byzantizing." This method may be useful to ensure the MyCHIPs protocol follows key principles of Byzantine hard protocols.
+ 
+ Delzanno, Tatarek, and Traverso, model check a common consensus algorithm called Paxos in Spin. Their spin constructs provide helpful examples of how distributed algorithms are efficiently modeled.\cite{Delzanno_2014}
+ 
+ Konnov, Veith, and Widder explore the unsolved problems associated with model checking distributed algorithms. This can serve as a hazard map of difficult unsolved problems. It would be unfortunate if solving a known problem that is tangential to my work becomes prerequisite to finishing. This also can serve to give context to how my work and show how it progresses towards solving some of these problems.\cite{Konnov}
+
+\bibliographystyle{unsrt}
+\bibliography{proposal}
+
+\end{document}
+

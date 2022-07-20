@@ -1,0 +1,542 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.15 of Day Month 20?? (rev: eb3ff99)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 59 and seed -3073569665661686071 with 4 workers on 4 cores with 7282MB heap and 2730MB offheap memory [pid: 4473] (Mac OS X 10.13.6 x86_64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/kylestorey/workspace/MyCHIPs/test/analysis/krs/RefereeLifts.toolbox/RefereeLiftsExample/MC.tla
+Parsing file /Users/kylestorey/workspace/MyCHIPs/test/analysis/krs/RefereeLifts.toolbox/RefereeLiftsExample/RefereeLifts.tla
+Parsing file /Applications/TLA+ Toolbox.app/Contents/Eclipse/plugins/org.lamport.tlatools_1.0.0.202004251858/tla2sany/StandardModules/TLC.tla
+Parsing file /Applications/TLA+ Toolbox.app/Contents/Eclipse/plugins/org.lamport.tlatools_1.0.0.202004251858/tla2sany/StandardModules/Integers.tla
+Parsing file /Applications/TLA+ Toolbox.app/Contents/Eclipse/plugins/org.lamport.tlatools_1.0.0.202004251858/tla2sany/StandardModules/Sequences.tla
+Parsing file /Applications/TLA+ Toolbox.app/Contents/Eclipse/plugins/org.lamport.tlatools_1.0.0.202004251858/tla2sany/StandardModules/FiniteSets.tla
+Parsing file /Applications/TLA+ Toolbox.app/Contents/Eclipse/plugins/org.lamport.tlatools_1.0.0.202004251858/tla2sany/StandardModules/Bags.tla
+Parsing file /Applications/TLA+ Toolbox.app/Contents/Eclipse/plugins/org.lamport.tlatools_1.0.0.202004251858/tla2sany/StandardModules/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Bags
+Semantic processing of module RefereeLifts
+Semantic processing of module MC
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2020-09-23 22:50:16)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2212:0 @!@!@
+Implied-temporal checking--satisfiability problem has 1 branches.
+@!@!@ENDMSG 2212 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2020-09-23 22:50:22.
+@!@!@ENDMSG 2190 @!@!@
+"Init"  1
+@!@!@STARTMSG 1000:1 @!@!@
+TLC threw an unexpected exception.
+This was probably caused by an error in the spec or model.
+See the User Output or TLC Console for clues to what happened.
+The exception was a java.lang.RuntimeException
+: @!@!@STARTMSG 2261:0 @!@!@
+TLC encountered a temporal formula ([]A) when evaluating a predicate or action.
+line 927, col 17 to line 927, col 29 of module RefereeLifts
+@!@!@ENDMSG 2261 @!@!@
+@!@!@ENDMSG 1000 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ messages = <<>>
+/\ lifts = (A :> <<>> @@ B :> <<>> @@ C :> <<>> @@ D :> <<>>)
+/\ _stateNum = 1
+/\ linearLiftsRemaining = 4
+/\ paymentsRemaining = 8
+/\ tallies = ( <<A, B, "Foil">> :> [chits |-> <<>>] @@
+  <<A, C, "Stock">> :> [chits |-> <<>>] @@
+  <<B, A, "Stock">> :> [chits |-> <<>>] @@
+  <<B, C, "Foil">> :> [chits |-> <<>>] @@
+  <<B, D, "Foil">> :> [chits |-> <<>>] @@
+  <<C, A, "Foil">> :> [chits |-> <<>>] @@
+  <<C, B, "Stock">> :> [chits |-> <<>>] @@
+  <<D, B, "Stock">> :> [chits |-> <<>>] )
+/\ nextGuid = 101
+
+@!@!@ENDMSG 2217 @!@!@
+"Init"  1
+@!@!@STARTMSG 2103:1 @!@!@
+The error occurred when TLC was evaluating the nested
+expressions at the following positions:
+0. Line 927, column 9 to line 927, column 41 in RefereeLifts
+1. Line 927, column 9 to line 927, column 29 in RefereeLifts
+2. Line 927, column 9 to line 927, column 12 in RefereeLifts
+3. Line 198, column 5 to line 208, column 35 in RefereeLifts
+4. Line 198, column 8 to line 198, column 108 in RefereeLifts
+5. Line 201, column 8 to line 201, column 59 in RefereeLifts
+6. Line 203, column 8 to line 203, column 26 in RefereeLifts
+7. Line 204, column 8 to line 204, column 40 in RefereeLifts
+8. Line 205, column 8 to line 205, column 46 in RefereeLifts
+9. Line 206, column 8 to line 206, column 21 in RefereeLifts
+10. Line 207, column 8 to line 207, column 20 in RefereeLifts
+11. Line 208, column 8 to line 208, column 35 in RefereeLifts
+12. Line 927, column 17 to line 927, column 29 in RefereeLifts
+
+
+@!@!@ENDMSG 2103 @!@!@
+@!@!@STARTMSG 2201:0 @!@!@
+The coverage statistics at 2020-09-23 22:50:22
+@!@!@ENDMSG 2201 @!@!@
+@!@!@STARTMSG 2773:0 @!@!@
+<init_1600923015658285000 line 55, col 1 to line 55, col 24 of module MC>: 1:1
+@!@!@ENDMSG 2773 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 56, col 1 to line 69, col 41 of module MC: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2772:0 @!@!@
+<Spec line 927, col 1 to line 927, col 4 of module RefereeLifts>: 0:0
+@!@!@ENDMSG 2772 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 198, col 8 to line 198, col 108 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 198, col 8 to line 198, col 14 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |line 198, col 18 to line 198, col 108 of module RefereeLifts: 2:16
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 198, col 26 to line 198, col 86 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |||line 198, col 32 to line 198, col 86 of module RefereeLifts: 2:18
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 198, col 33 to line 198, col 65 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 198, col 81 to line 198, col 85 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 201, col 8 to line 201, col 59 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 203, col 8 to line 203, col 26 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 204, col 8 to line 204, col 40 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 205, col 8 to line 205, col 46 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 206, col 8 to line 206, col 21 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 207, col 8 to line 207, col 20 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 208, col 8 to line 208, col 35 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 927, col 17 to line 927, col 29 of module RefereeLifts: 2
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 227, col 8 to line 227, col 48 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 243, col 8 to line 243, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 264, col 8 to line 264, col 48 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 284, col 8 to line 284, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 304, col 8 to line 304, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 321, col 8 to line 321, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 338, col 8 to line 338, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 383, col 8 to line 383, col 38 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 393, col 8 to line 393, col 41 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 383, col 8 to line 383, col 38 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 438, col 8 to line 438, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 458, col 8 to line 458, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 476, col 8 to line 476, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 535, col 8 to line 535, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 560, col 8 to line 560, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 579, col 8 to line 579, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 778, col 8 to line 778, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 751, col 8 to line 751, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 597, col 8 to line 597, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 624, col 8 to line 624, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 657, col 8 to line 657, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 686, col 8 to line 686, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 703, col 8 to line 703, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 720, col 8 to line 720, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 810, col 8 to line 810, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 836, col 8 to line 836, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 853, col 8 to line 853, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 860, col 8 to line 860, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 227, col 8 to line 227, col 48 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 243, col 8 to line 243, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 264, col 8 to line 264, col 48 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 284, col 8 to line 284, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 304, col 8 to line 304, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 321, col 8 to line 321, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 338, col 8 to line 338, col 77 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 383, col 8 to line 383, col 38 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 393, col 8 to line 393, col 41 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 383, col 8 to line 383, col 38 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 438, col 8 to line 438, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 458, col 8 to line 458, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 476, col 8 to line 476, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 535, col 8 to line 535, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 560, col 8 to line 560, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 579, col 8 to line 579, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 778, col 8 to line 778, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 751, col 8 to line 751, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 597, col 8 to line 597, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 624, col 8 to line 624, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 657, col 8 to line 657, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 686, col 8 to line 686, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 703, col 8 to line 703, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 720, col 8 to line 720, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 810, col 8 to line 810, col 79 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 836, col 8 to line 836, col 70 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 853, col 8 to line 853, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 860, col 8 to line 860, col 86 of module RefereeLifts: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2774:0 @!@!@
+<PartnersBalancesAreSymmetrical line 947, col 1 to line 947, col 30 of module RefereeLifts>
+@!@!@ENDMSG 2774 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 948, col 5 to line 955, col 9 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 949, col 9 to line 955, col 9 of module RefereeLifts: 4
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 948, col 27 to line 948, col 44 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 948, col 34 to line 948, col 44 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |||line 138, col 16 to line 138, col 34 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  ||||line 136, col 24 to line 136, col 85 of module RefereeLifts: 1:4
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |||||line 136, col 32 to line 136, col 68 of module RefereeLifts: 1:5
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||||line 136, col 56 to line 136, col 67 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||||line 136, col 40 to line 136, col 53 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 138, col 30 to line 138, col 33 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2774:0 @!@!@
+<ProjectedAndAvailableBalancesAreEqualWhenNoLiftsInProgress line 957, col 1 to line 957, col 58 of module RefereeLifts>
+@!@!@ENDMSG 2774 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 958, col 5 to line 960, col 97 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 959, col 9 to line 960, col 97 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 958, col 27 to line 958, col 40 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2774:0 @!@!@
+<FoilBalancesAreNotPositive line 962, col 1 to line 962, col 26 of module RefereeLifts>
+@!@!@ENDMSG 2774 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 963, col 5 to line 965, col 45 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 964, col 9 to line 965, col 45 of module RefereeLifts: 4
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 963, col 15 to line 963, col 32 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 963, col 22 to line 963, col 32 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |||line 138, col 16 to line 138, col 34 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  ||||line 136, col 24 to line 136, col 85 of module RefereeLifts: 1:4
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |||||line 136, col 32 to line 136, col 68 of module RefereeLifts: 1:5
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||||line 136, col 56 to line 136, col 67 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||||line 136, col 40 to line 136, col 53 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 138, col 30 to line 138, col 33 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2774:0 @!@!@
+<StockBalancesAreNotNegative line 967, col 1 to line 967, col 27 of module RefereeLifts>
+@!@!@ENDMSG 2774 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 968, col 5 to line 970, col 45 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 969, col 9 to line 970, col 45 of module RefereeLifts: 4
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 968, col 15 to line 968, col 33 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 968, col 22 to line 968, col 33 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |||line 139, col 17 to line 139, col 36 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  ||||line 136, col 24 to line 136, col 85 of module RefereeLifts: 1:4
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |||||line 136, col 32 to line 136, col 68 of module RefereeLifts: 1:5
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||||line 136, col 56 to line 136, col 67 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||||line 136, col 40 to line 136, col 53 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 139, col 31 to line 139, col 35 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2774:0 @!@!@
+<UsersChitsOfGoodLiftsAreSymmetrical line 972, col 1 to line 972, col 35 of module RefereeLifts>
+@!@!@ENDMSG 2774 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 973, col 5 to line 990, col 13 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 973, col 24 to line 990, col 13 of module RefereeLifts: 4
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 973, col 17 to line 973, col 21 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2774:0 @!@!@
+<AvailableMoneySumIsZero line 992, col 1 to line 992, col 23 of module RefereeLifts>
+@!@!@ENDMSG 2774 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 993, col 5 to line 997, col 74 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 994, col 9 to line 995, col 34 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 994, col 12 to line 994, col 31 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 995, col 12 to line 995, col 34 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |||line 939, col 28 to line 939, col 82 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 939, col 47 to line 939, col 82 of module RefereeLifts: 4
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 939, col 40 to line 939, col 44 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 997, col 9 to line 997, col 74 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 997, col 9 to line 997, col 70 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |||line 126, col 5 to line 130, col 54 of module RefereeLifts: 9
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 126, col 8 to line 126, col 20 of module RefereeLifts: 9
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 129, col 18 to line 129, col 44 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 130, col 12 to line 130, col 54 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |||line 997, col 13 to line 997, col 69 of module RefereeLifts: 1:8
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2774:0 @!@!@
+<ProjectedMoneySumIsZero line 999, col 1 to line 999, col 23 of module RefereeLifts>
+@!@!@ENDMSG 2774 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 1000, col 5 to line 1004, col 74 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 1001, col 9 to line 1002, col 28 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 1001, col 12 to line 1001, col 31 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 1002, col 12 to line 1002, col 28 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |||line 937, col 22 to line 937, col 70 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 937, col 41 to line 937, col 70 of module RefereeLifts: 4
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 937, col 34 to line 937, col 38 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 1004, col 9 to line 1004, col 74 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 1004, col 9 to line 1004, col 70 of module RefereeLifts: 1
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |||line 126, col 5 to line 130, col 54 of module RefereeLifts: 9
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 126, col 8 to line 126, col 20 of module RefereeLifts: 9
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 129, col 18 to line 129, col 44 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||||line 130, col 12 to line 130, col 54 of module RefereeLifts: 8
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |||line 1004, col 13 to line 1004, col 69 of module RefereeLifts: 1:8
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2202:0 @!@!@
+End of statistics.
+@!@!@ENDMSG 2202 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(1) at 2020-09-23 22:50:22: 1 states generated (9 s/min), 1 distinct states found (9 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+1 states generated, 1 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 6666ms at (2020-09-23 22:50:22)
+@!@!@ENDMSG 2186 @!@!@
