@@ -79,15 +79,15 @@ class MyChipsTestState extends State<MyChipsTestPage> {
                 ]))),
       );
 
-  static Route<Object?> _userPromptDialog(BuildContext context, Object? arguments) {
-    return DialogRoute<void>(
-      context: context,
-      builder: (BuildContext context) => const AlertDialog(
-        title: Text('User needed for ticket'),
-        content: TextField(
-            controller: _ticketInputController,
-            decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Ticket")),
-      ),
-    );
-  }
+  // static Route<Object?> _userPromptDialog(BuildContext context, Object? arguments) {
+  //   return DialogRoute<void>(
+  //     context: context,
+  //     builder: (BuildContext context) => const AlertDialog(
+  //       title: Text('User needed for ticket'),
+  //       content: TextField(
+  //           controller: _ticketInputController,
+  //           decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Ticket")),
+  //     ),
+  //   );
+  // }
 }
