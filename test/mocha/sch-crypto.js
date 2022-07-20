@@ -28,7 +28,9 @@ describe("Test cryptographic schema functions", function() {
   })
 
   describe('Base 64 URL-safe routines', function() {
-    let wordList = Fs.readFileSync(WordFile).toString().split("\n")
+    let wordList = Fs.existsSync(WordFile) ?
+        Fs.readFileSync(WordFile).toString().split("\n") :
+        "Now is the time for all good men to come to the aid of their country".split(' ')
     
     for (let i = 0; i < Cycles; i++) {		//Make this many random phrases
       let wordArr = []
