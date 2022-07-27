@@ -2,25 +2,26 @@ TODO:
 
 Immediate:
 - Chit consensus
-X- Test for chit lost by the stock:
-X-  Foil notifies stock of correct chits sequence (3-4)
-X-  Stock can conform to sent chit list
-X-    Trigger properly grabs previous end hash
-X-    Trigger properly calculates new chit hash
-X-    End hashes agree on stock and foil
-X-    Incorporate prev_hash into each adjusted record
-X-  Regression test passes
--  Can track/re-create state until packet sent to stock
+X-  How do we determine the consensus state of a tally
+X-  State tracks when a packet still needs to go to a peer
+X-  Query to regenerate all pending packets
+X-  Make foil/stock state diagrams more parallel
+X-  Clear pathway for normal chit flow (unlinked, linking, linked)
+-  Implement chain state value in chits view
+-  Update existing code to honor chain state
+-  Existing regression tests still work
+-  Notify user when a consensus reached on a tally/chit
 -  
 - Test for chits that cross in transit
 -  Make adjustable delay before received chit processed
 -  Test attempts a range of possible delays
 -  
--  Stock can request arbitrary chain query message (when?)
--  Stock requeues any stray chits
-- All regression tests pass
-- Comment out PG notices
-- Simulation still works
+-  Stock can request arbitrary chain query message (is this needed?)
+-  Stock requeues any stray chits found after upd packet
+-  All regression tests pass
+-  Comment out PG notices
+-  Simulation still works
+-  Commit/merge to master
 -   
 - Distributed lifts (interim, pre-1.0 functionality):
 -  Distributed lifts work with model2/model3?

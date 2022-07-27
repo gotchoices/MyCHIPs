@@ -1,25 +1,39 @@
 @startuml
 !include common.puml
-
-$title(Chit Chain Consensus Foil States)
-'cons: Fully Consensed
-error: Can't Consense
+$title(Foil Chit Consensus States)
 
 state foil {
-  cons: Fully Consensed
-  newChit:
+  state "Unlinked" as unlinked
+  state "Linking" as linking
+  state "Linked" as linked
+  state "Notify" as notify
 }
-[*] --> cons
+state "Foil Consensus" as foil
+
+'State details:
+error: Can't Consense
+unlinked: Chain Seq is null
+linked: Chain Seq not null
+linked: Chain Seq <= Chain Conf
+linking: Chit local issue
+linking: Chain Seq not null
+linking: Chain Seq > Chain Conf
+notify: Chit remote issue
+notify: Chain Seq not null
+notify: Chain Seq > Chain Conf
+notify: Queued message: upd
 
 'State transition rules:
-cons -[$user]-> newChit: $trans($user, User creates new\nvalid direct chit(s),'')
-cons -[$db]-> newChit: $trans($db, Site creates new\nvalid lift chit(s),'')
+foil -[$db]-> unlinked: $trans($db, Site creates new\nvalid lift chit,'')
+foil -[$user]-> unlinked: $trans($user, User creates new\nvalid direct chit,'')
+foil -[$peer]-> notify: $trans($peer,Received new chit from stock,'Agree with proposed hash', 'Add chit to chain\nendHash = propHash\nQueue message Act:upd\nNo missing chits = ACK')
+foil -[$peer]-> notify: $trans($peer,Received new chit from stock,'Disagree with proposed hash', 'Add chit to chain\nendHash = newHash\nQueue message Act:upd\nSend missing chits = NACK')
 
-newChit -[$db]-> cons: $trans($db,Detected new valid chit(s),'', 'Add to chain\nGenerate endHash\nSend to Stock')
+unlinked -[$db]-> linking: $trans($db,Detected new valid chit(s),'', 'Add to chain\nGenerate endHash\n Act:new')
+linking -[$db]-> linked: $trans($db,Detect chit needs sending,'', 'Send queued message to Stock\nSend new chit Act:new\nRatchet ackHash = newHash')
+notify -[$db]-> linked: $trans($db,Detect queued message,'', 'Send queued message to Stock\nRatchet ackHash = newHash')
 
-foil -[$peer]-> foil: $trans($peer,Receive request for update Act:compare,'', 'Send all chits since ackHash\nand also new endHash')
-foil -[$peer]-> error: $trans($peer,Receive error report Act:error,'', 'Notify my local user of error')
-
-cons -[$peer]-> cons: $trans($peer,Foil receives new chit,'Agree with proposed endHash', 'Add to chain\nackHash = newHash\nAcknowledge Stock Act:ack')
+foil -[$peer]-> foil: $trans($peer,Receive update request\nfrom Stock Act:req,'', 'Send all chits since ackHash\n(or specified index)\nand also new endHash')
+foil -[$peer]-> error: $trans($peer,Receive error report\nfrom Stock Act:err,'', 'Notify my local user of error')
 
 @enduml

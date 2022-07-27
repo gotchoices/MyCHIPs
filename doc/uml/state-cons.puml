@@ -1,34 +1,45 @@
 @startuml
 !include common.puml
 
-$title(Chit Chain Consensus Stock States)
-[*] --> cons
-cons: Fully Consensed
-error: Can't Consense
-pend: Pending Acknowledge
-problem: Does not reconcile
-request: Requested Update
-newChit: Regular chit processing
+$title(Stock Chit Consensus States)
+state stock {
+  state "Unlinked" as unlinked
+  state "Linking" as linking
+  state "Pending" as pending
+  state "Notify" as notify
+  state "Linked" as linked
+}
+state "Stock Consensus" as stock
 
-'state stock {
-'  stockPend:
-'  stockRequest:
-'}
+'State details:
+error: Can't Consense
+unlinked: Chain Seq is null
+linking: Chit local issue
+linking: Chain Seq not null
+linking: Chain Seq > Chain Conf
+notify: Chit local issue
+notify: Chain Seq not null
+notify: Chain Seq > Chain Conf
+notify: Queued message: upd
+pending: Chain Seq not null
+pending: Chain Seq > Chain Conf
+pending: No queued message
+linked: Chain Seq not null
+linked: Chain Seq <= Chain Conf
 
 'State transition rules:
-cons -[$user]-> newChit: $trans($user, User creates new\nvalid direct chit(s),'')
-cons -[$db]-> newChit: $trans($db, Site creates new\nvalid lift chit(s),'')
+stock -[$user]-> unlinked: $trans($user, User creates new\nvalid direct chit(s),'')
+stock -[$db]-> unlinked: $trans($db, Site creates new\nvalid lift chit(s),'')
+stock -[$peer]-> linked: $trans($peer,Receive new chit\nfrom foil Act:new,'Can reconcile endHash', 'Conform to chain\nRatchet ackHash = newHash')
+stock -[$peer]-> notify: $trans($peer,Receive new chit\nfrom foil Act:new,'Cannot reconcile endHash','Queue message request for\nchits from last confirm Act:req\nApply specified chain Seq')
 
-newChit -[$db]-> pend: $trans($db,Detected new valid chit(s),'', 'Add to chain provisionally\nGenerate proposed endHash: propHash\nSend to Foil peer Act:prop')
+unlinked -[$db]-> linking: $trans($db,Detected new valid chit(s),'','Add to chain provisionally\nGenerate proposed\nendHash:propHash Act:new')
+linking -[$db]-> pending: $trans($db,Detect queued message,'','Send chit to foil Act:new')
 
-cons -[$peer]-> cons: $trans($peer,Receive new chit Act:new,'Can reconcile endHash', 'Conform to chain\nackHash = newHash')
-cons -[$peer]-> problem: $trans($peer,Receive new chit Act:new,'Cannot reconcile endHash')
-problem -[$db]-> request: $trans($db,Detected failed state,'', 'Request update from Foil\nAct:compare')
+notify -[$db]-> pending: $trans($db,Detect queued message,'','Request update from Foil\nAct:req')
+pending -[$peer]-> linked: $trans($peer,Receive end hash with\noptional chit list Act:upd,'Chain now reconciles with endHash', 'Ratchet ackHash = endHash')
 
-request -[$peer]-> error: $trans($peer,Receive chits since ackHash Act:update,'Cannot reconcile with endHash', 'Send error report to peer and user')
-request -[$peer]-> cons: $trans($peer,Receive chits since ackHash Act:update,'Chain now reconciles with endHash', 'ackHash = endHash')
-request -[$peer]-> newChit: $trans($peer,Receive chits since ackHash Act:update,'Still have unlinked chit(s)', 'Requeue for sending')
-
-pend -[$peer]-> cons: $trans($peer,Receive ack from Foil Act:ack,'Agree with proposed endHash', 'Ratchet: ackHash = propHash')
+stock -[$peer]-> error: $trans($peer,Receive chit list Act:upd,'Cannot reconcile with endHash', 'Send error report to peer and user')
+stock -[$peer]-> stock: $trans($peer,Receive chit list Act:upd,'Still have unlinked chit(s)', 'Requeue chit(s) for sending')
 
 @enduml

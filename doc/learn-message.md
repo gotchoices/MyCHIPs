@@ -226,27 +226,40 @@ Chit state transition messages are as follows:
 #### Consensus Messages
 In addition to the four main subsystems mentioned above, there is a 
 [sub-protocol for maintaining consensus](learn-protocol.md#chit-chain-consensus) 
-between the stock and foil about the order in which chits are recorded on the tally (the chit chain).
+between the stock and foil about the order and integrity of chits recorded on the tally (the chit chain).
 
-This can be thought of as a set of sub-states a tally can be in while its main state is open
-(and/or closing).  Since it really doesn't involve the tally's or chit's state directly, it has its 
-own state processing subsystem and message set.
+This can be thought of as a set of sub-states a tally can be in while its main state is open (and/or closing).
+For example, a stock can be said to be *consensed* or *not yet consensed* with its foil counterpart.
+But we can also think of consensus as an extension of the chit protocol because individual chits can either be
+*linked* into the chit chain or *not yet linked*.
 
-Chain consensus utilizes the following message action codes:
+This makes it difficult to attribute a single, granular consensus state to tally.
+A tally can have some chits linked, others in the process of being linked and still others needing to be linked.
+
+So for purposes of [negotiating consensus](lean-protocol.md#chit-chain-consensus), we will define a substate that is applicable to individual chits.
+A foil will be considered *in consensus* when every good chit has been linked into its chain.
+A stock will be considered *in consensus* when every good chit has been linked into its chain and the resulting end hash has been confirmed with the foil.
+
+Since attaining consensus is the result of hash-chaining chits, we will utilize the chit message handling module (i.e. property target = chit).
+Consensus messages specify the property action = 'chain' which means
+"Hand this message to the consensus processing module."
+
+The [consensus state machine](learn-protocol.md#chit-chain-consensus) references the following message sub-commands:
 - **new**: (virtual) Foil sends valid chit, accompanied by new endHash
 - **new**: (virtual) Stock sends valid chit, accompanied by proposed endHash (propHash)
-- **ack**: Foil acknowledges stock's proposed endHash
-- **req**: Stock requests chits since last acknowledged endHash (ackHash)
-- **upd**: Foil sends chits since last acknowledged endHash (ackHash)
-- **err**: Stock reports an error attempting to reconcile with endHash
+- **req**: Stock requests chits since last acknowledged endHash (ackHash) or some other starting point in the chain.
+- **upd**: Foil sends latest ending hash (ackHash) as well as an optional list of potentially unknown chits.  If the chit list is empty, this implies an ACK (acknowledge) of some prior provisional endHash the stock may have sent.
+- **err**: An error occurred while attempting to reconcile with a specified update packet.
 
 The first two actions are directly correlated with the sending of a chit--a message already occuring within the chit subsystem.
 So these actions are accomplished simply by populating the additional <i>chain</i> property in the applicable chit message.
+The latter three will encode the desired command into the property *sub*.
 
-The other four messages will carry their own target property of <i>chain.</i>
-Additionally, they may contain an object with some or all of the following properties:
+Chain messages then contain an object with some or all of the following properties:
+- **action**: = chain
+- **sub**: The chaining subcommand
 - **tally**: The uuid of the tally the message pertains to
-- **chain**: The hash at the end of the chain
+- **hash**: The hash at the end of the chain
 - **index**: The index of the last chit in the chain
 - **chits**: An array of chits from a section of the chain
 
