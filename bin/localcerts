@@ -59,7 +59,8 @@ if ! $batch; then			#Interactive mode
 else
   if [ ! -f $locdir/local.conf ]; then
     cp example.conf $locdir/local.conf
-    echo "domain=$(hostname -d)" >>$locdir/local.conf
+    domain=$(hostname -d)
+    echo "domain=${domain:-mychips.sim}" >>$locdir/local.conf
   fi
 fi
 
