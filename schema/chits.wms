@@ -16,25 +16,28 @@ require config.tcl trigview.tcl
 
 namespace eval chits {
     def chits_pk	{chit_ent chit_seq chit_idx}
-    def chits_v_up	{request signature units quidpro memo}
-    def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_uuid chit_type]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type $glob::stampfn chit_date chain_idx chain_prv lift_seq status digest]
+    def chits_v_up	{request signature units reference memo}
+    def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_uuid chit_type issuer]
+    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type issuer $glob::stampfn chit_date chain_idx chain_prv lift_seq status digest]
 }
 
-table mychips.chits {mychips.tallies mychips.lifts} {
+table mychips.chits {mychips.tallies mychips.lifts tally_side} {
     chit_ent	text
   , chit_seq	int	      , foreign key (chit_ent, chit_seq) references mychips.tallies on update cascade on delete cascade
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
 
 -- Values directly contained in the external chit representation
   , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
-  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran'))
+  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','set'))
   , chit_date	timestamptz	not null default current_timestamp
-  , units	bigint		not null
-  , quidpro	text
+  , issuer	tally_side	not null default 'foil'
+  , units	bigint		constraint "!mychips.chits.CUN" check(units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
+  , reference	jsonb
   , memo	text
   , digest	bytea		
-  , signature	text		constraint "!mychips.chits.GDS" check(status != 'good' or (request isnull and not signature isnull))
+  , signature	text		constraint "!mychips.chits.GDS" check(status != 'good' or 
+                                  (request isnull and not signature isnull) or 
+                                  (request isnull and chit_type = 'lift'))
 
 -- Values used internally to track state, required actions
   , request	text	        constraint "mychips.chits.BRQ" check (request is null or request in ('pend','good','void'))
@@ -63,25 +66,30 @@ table mychips.chit_tries {mychips.chits} {
 function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.chits)} {
   returns trigger language plpgsql security definer as $$
     begin
-        if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
-          update mychips.tallies set _last_chit = greatest(
-              coalesce(_last_chit,0) + 1,
-              (select coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq)
-            ) where tally_ent = new.chit_ent and tally_seq = new.chit_seq
-              returning _last_chit into new.chit_idx;
-          if not found then new.chit_idx = 1; end if;
+      if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
+        update mychips.tallies set _last_chit = greatest(
+            coalesce(_last_chit,0) + 1,
+            (select coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq)
+          ) where tally_ent = new.chit_ent and tally_seq = new.chit_seq
+            returning _last_chit into new.chit_idx;
+        if not found then new.chit_idx = 1; end if;
 -- select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq; -- Not safe for concurrent sessions
-        end if;
+      end if;
+      if new.units < 0 then			-- Interpret negative units as stock-issued
+        new.units = -new.units;
+        new.issuer = 'stock';
+      end if;
 
       if new.request = 'pend' then		-- User is drafting
         new.status = 'draft';
       elsif new.request = 'good' then		-- User is sending good pledge
         new.status = 'pend';
       end if;
-        if new.status = 'good' then		-- A received, signed chit can come in marked as good
-          return mychips.chit_goodcheck(new);
-        end if;
-        return new;
+--raise notice 'Chit pre:%', new;
+      if new.status = 'good' then		-- A received, signed chit can come in marked as good
+        return mychips.chit_goodcheck(new);
+      end if;
+      return new;
     end;
 $$;}
 trigger mychips_chits_tr_seq {} {
@@ -125,20 +133,19 @@ function mychips.chits_tf_cache() {mychips mychips.chits_v} {
       trec	record;
 --      crec	record;
     begin
+--raise notice 'Updating tally cache: %-%', trec.chit_ent, trec.chit_seq;
       if TG_OP = 'DELETE' then trec = old; else trec = new; end if;
 
 -- Not sure which if one of these approaches is more efficient:
---      select into crec sum(units_g) as units_g, sum(units_p) as units_p from mychips.chits_v where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq;
---      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user, units_gc = coalesce(crec.units_g,0), units_pc = coalesce(crec.units_p,0) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
-
-      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user, 
-        units_gc = coalesce(cs.sum_g,0), units_pc = coalesce(cs.sum_p,0) from (
-          select chit_ent, chit_seq, sum(units_g) as sum_g, sum(units_p) as sum_p from mychips.chits_v group by 1,2
+--      select into crec sum(net_g) as net_g, sum(net_p) as net_p from mychips.chits_v where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq;
+--      update mychips.tallies set mod_date = current_timestamp, mod_by = session_user, net_c = coalesce(crec.net_g,0), net_pc = coalesce(crec.net_p,0) where tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
+-- Or:
+      update mychips.tallies set 	-- mod_date = current_timestamp, mod_by = session_user, 
+        net_c = coalesce(cs.sum_g,0), net_pc = coalesce(cs.sum_p,0) from (
+          select sum(net_g) as sum_g, sum(net_p) as sum_p
+          from mychips.chits_v where chit_ent = trec.chit_ent and chit_seq = trec.chit_seq
         ) as cs
-          where	cs.chit_ent = mychips.tallies.tally_ent
-          and	cs.chit_seq = mychips.tallies.tally_seq
-          and	tally_ent = trec.chit_ent
-          and	tally_seq = trec.chit_seq;
+          where	tally_ent = trec.chit_ent and tally_seq = trec.chit_seq;
 
       return null;
     end;
@@ -149,43 +156,61 @@ trigger mychips_chits_tr_cache {} {
 
 # Quality check for a chit as it goes into status: good
 #----------------------------------------------------------------
-function {mychips.chit_goodcheck(ch mychips.chits)} {mychips.chit_json(mychips.chits,uuid) mychips.chits_v mychips.j2h(jsonb)} {
+function {mychips.chit_goodcheck(ch mychips.chits)} {
+  mychips.chit_json(mychips.chits,mychips.tallies)
+  mychips.chits_v mychips.j2h(jsonb)
+} {
   returns mychips.chits language plpgsql security definer as $$
     declare
-      trec	record;
+      trec	mychips.tallies;
       crec	record;
       prevhash	bytea;				-- Previous Hash
       thisidx	int;
+      settings	jsonb;
     begin
 
-      if ch.signature isnull then		-- Fixme: check actual signature validity here?
-        return null;
+      if ch.chit_type != 'lift' and ch.signature isnull then	-- Fixme: check actual signature validity?
+        raise exception '!mychips.chits:MIS %-%', ch.chit_ent, ch.chit_seq;
       end if;
 
-      select into trec tally_ent,tally_seq,tally_type,tally_uuid,digest,chain_conf from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
+      select into trec * from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
       if not found or trec.digest is null then		-- Can we find a valid tally to add this chit to?
-        raise exception 'Attempted chit link to invalid tally: %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
+        raise exception '!mychips.chits:LIT %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
         return null;
       end if;
 
+      if ch.chit_type = 'set' then			-- Apply tally settings
+        settings = ch.reference;
+        update mychips.tallies set
+          hold_sets = hold_sets || case when ch.issuer = trec.tally_type then settings else '{}' end,		-- Merge settings
+          part_sets = part_sets || case when ch.issuer = trec.tally_type then '{}' else settings end,
+          target = coalesce((settings->>'target')::bigint, target), 		-- Update cached trading variables
+          bound  = coalesce((settings->>'bound')::bigint,  bound),
+          reward = coalesce((settings->>'reward')::float,  reward), 
+          clutch = coalesce((settings->>'clutch')::float,  clutch), 
+          request = case when status = 'open' and (settings->'close')::boolean then 'close' else null end	-- Enact any close request
+        where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
+      end if;
+
+-- Fixme: implement improved consensus algorthim here:
       select into crec * from mychips.chits where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq and not digest isnull order by chain_idx desc limit 1;
       if found then				-- Can we find the previous end of chain?
         thisidx = greatest(crec.chain_idx + 1, 1);
         prevhash = crec.digest;
       else
         thisidx = 1;				-- First chit in the chain
-        prevhash = trec.digest;
+        prevhash = trec.digest;			-- Begin with hash of the tally
       end if;
 
       if trec.tally_type = 'foil' then		-- Consensus algorithm for chit hash-chain:
         ch.chain_idx = thisidx;			-- Foil ignores any specified index, just append at end of its chain
         ch.chain_prv = prevhash;
-        ch.digest = mychips.j2h(mychips.chit_json(ch, trec.tally_uuid));
+        ch.digest = mychips.j2h(mychips.chit_json(ch, trec));
 
       else					-- We hold a stock, which must conform to foil
         if ch.chain_idx isnull then		-- Stock has no specified index, append at end of chain
           ch.chain_idx = thisidx;
-          if ch.digest isnull then ch.digest = mychips.j2h(mychips.chit_json(ch, trec.tally_uuid)); end if;
+          if ch.digest isnull then ch.digest = mychips.j2h(mychips.chit_json(ch, trec)); end if;
           if ch.chain_prv isnull then ch.chain_prv = prevhash; end if;
 
         elsif ch.chain_idx >= 1 and ch.chain_idx <= thisidx then	-- There are existing chits in our way; stock must conform
@@ -235,7 +260,7 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
           'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
--- raise notice 'Chit notice:% % %', channel, trec.part_chad->>'cid', chit.chit_uuid;
+--raise notice 'Chit notice:% R:% O:% P:% C:% U:%', channel, chit.request, chit.chit_ent, trec.part_chad->>'cid', chit.chit_uuid, chit.units;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -248,9 +273,9 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
     declare
         dirty	boolean default false;
     begin
-        if TG_OP = 'INSERT' then
+        if TG_OP = 'INSERT' and not new.request isnull then
             dirty = true;
-        elsif new.request is not null and new.request is distinct from old.request then
+        elsif (not new.request isnull) and (new.request is distinct from old.request) then
             dirty = true;
         end if;
 --raise notice 'Chit update: %', dirty;
@@ -264,33 +289,6 @@ trigger mychips_chits_tr_notice {} {
 
 # Compute current state of this chit
 #----------------------------------------------------------------
-#function {mychips.chit_state(isdebit boolean, request text, signature text)} {mychips} {
-#  returns text immutable language plpgsql as $$
-#    begin return
-#      case when isdebit then
-#        case when signature = 'void'		then 'peerDecline'
-#           when request = 'userRequest'		then 'userRequest'
-#           when request is null and signature is not null	then 'peerValid'
-#           when request is null			then 'userInvoice'
-#           else					     'undefined'	end
-#      else	--is a credit
-#        case when signature = 'void' then
-#        case when request = 'userDecline'	then 'userDecline'
-#             when request is null		then 'userVoid'
-#             else				     'undefined'    end
-#           when signature is null then
-#        case when request is null		then 'peerInvoice'
-#             else				     'undefined'    end
-#           when request = 'userAgree'		then 'userAgree'
-#           when request = 'userDraft'		then 'userDraft'
-#           when request is null			then 'userValid'
-#      else     					     'undefined'	end
-#      end;
-#    end;
-#$$;}
-
-# Compute current state of this chit
-#----------------------------------------------------------------
 function {mychips.chit_state(isdebit boolean, status text, request text)} {mychips} {
   returns text immutable language sql as $$
     select
@@ -299,55 +297,53 @@ function {mychips.chit_state(isdebit boolean, status text, request text)} {mychi
       case when request isnull then '' else '.' || request end;
 $$;}
 
-# Indicates if the chit is finalized
-#----------------------------------------------------------------
-#function {mychips.chit_open(request text, signature text)} {mychips.chits} {
-#  returns boolean immutable language sql as $$
-#      select request is null and not signature is null and signature != 'void'
-#$$;}
-
 # Compute standard json output for a chit
 #----------------------------------------------------------------
-function {mychips.chit_json(ch mychips.chits, ta uuid)} {mychips.chits} {
+function {mychips.chit_json(ch mychips.chits, ta mychips.tallies)} {mychips.chits mychips.tallies} {
   returns jsonb stable language sql as $$
-    select jsonb_build_object(
-       'tally',		ta,
+    select jsonb_strip_nulls(jsonb_build_object(
+       'tally',		ta.tally_uuid,
+       'by',		ch.issuer,
        'type',		ch.chit_type,
        'uuid',		ch.chit_uuid,
        'date',		ch.chit_date,
        'units',		ch.units,
-       'for',		ch.quidpro
+       'ref',		ch.reference,
+       'memo',		ch.memo
 --       'index',		ch.chain_idx,
 --       'prior',		ch.chain_prv,
 --       'signed',	ch.signature
-    )
+    ))
 $$;}
 
 # Base view of chits
 #----------------------------------------------------------------
-define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
-view mychips.chits_v {mychips.chits mychips.tallies_v mychips.chit_state(boolean,text,text) mychips.chit_json(mychips.chits,uuid) mychips.j2h(jsonb)} {select 
+#define isdebit {te.tally_type = 'stock' and ch.units >= 0 or te.tally_type = 'foil' and ch.units < 0}
+define isdebit {ch.issuer != te.tally_type}
+define uSign {case when ch.issuer = te.tally_type then -(%1) else (%1) end}
+view mychips.chits_v {mychips.chits mychips.tallies mychips.chit_state(boolean,text,text) mychips.chit_json(mychips.chits,mychips.tallies) mychips.j2h(jsonb)} {select 
     eval(fld_list $chits::chits_se	ch)
   , te.hold_cid
   , te.part_cid
   , te.tally_type
   , te.tally_uuid
-  , case when isdebit() then 'debit' else 'credit' end		as effect
-  , case when ch.status = 'good' then ch.units else 0 end	as units_g
-  , case when ch.status = 'void' then 0 else ch.units end	as units_p
+
+  , uSign(ch.units)							as net
+  , case when ch.status = 'good' then uSign(ch.units) else 0 end	as net_g
+  , case when ch.status = 'void' then 0 else uSign(ch.units) end	as net_p
 
   , mychips.chit_state(isdebit(), ch.status, ch.request)	as state
   , mychips.chit_state(isdebit(), ch.status, ch.request) = any(array['L.pend']) as action
-  , mychips.chit_json(ch, te.tally_uuid)			as json_core
-  , mychips.chit_json(ch, te.tally_uuid) || jsonb_build_object(
+  , mychips.chit_json(ch, te)					as json_core
+  , mychips.chit_json(ch, te) || jsonb_build_object(
       'digest',		ch.digest,
       'signed',		ch.signature
     )								as json
-  , mychips.j2h(mychips.chit_json(ch, te.tally_uuid)) as digest_v
-  , mychips.j2h(mychips.chit_json(ch, te.tally_uuid)) = coalesce(ch.digest,'') as clean
+  , mychips.j2h(mychips.chit_json(ch, te))			as digest_v
+  , mychips.j2h(mychips.chit_json(ch, te)) = coalesce(ch.digest,'') as clean
 
-    from	mychips.chits		ch
-    join	mychips.tallies_v	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq;
+    from	mychips.chits	ch
+    join	mychips.tallies	te on te.tally_ent = ch.chit_ent and te.tally_seq = ch.chit_seq;
 
     eval(trigview::insert mychips.chits_v mychips.chits $chits::chits_v_in $chits::chits_pk [concat $glob::stampin]);
     eval(trigview::update mychips.chits_v mychips.chits $chits::chits_v_up $chits::chits_pk $glob::stampup);
@@ -402,18 +398,20 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
         if curState = 'null' then			-- Need to do insert
           insert into mychips.chits (
             chit_ent,chit_seq,chit_uuid,chit_type,chit_date,status,
-            signature,units,quidpro,memo,chain_idx,chain_prv,digest
+            signature,issuer,units,reference,memo,chain_idx,chain_prv,digest
           ) values (
             trec.tally_ent, trec.tally_seq, uuid, obj->>'type', (obj->>'date')::timestamptz,
             coalesce(recipe->'upsert'->>'status','pend'),
-            obj->>'signed', (obj->>'units')::bigint, obj->>'for', obj->>'memo', 
+            obj->>'signed', (obj->>'by')::tally_side, (obj->>'units')::bigint, 
+            obj->'ref', obj->>'memo', 
             (obj->>'index')::int, (obj->>'prior')::bytea, (obj->>'digest')::bytea
           ) returning chit_ent, chit_seq, chit_idx, chain_idx, chain_prv, digest into crec;
 --raise notice '  post-insert:% % %', trec.tally_type, obj->'index', crec;
         else						-- Chit already exists, do update
-          update mychips.chits set signature = obj->>'signed', units = (obj->>'units')::bigint,
+          update mychips.chits set signature = obj->>'signed', 
+            issuer = (obj->>'by')::tally_side, units = (obj->>'units')::bigint,
             status = coalesce(recipe->'upsert'->>'status','pend'),
-            quidpro = obj->>'for', memo = obj->>'memo', 
+            reference = obj->'ref', memo = obj->>'memo', 
             request = null, mod_date = current_timestamp, mod_by = session_user
             where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
 

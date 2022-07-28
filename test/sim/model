@@ -1,36 +1,36 @@
 #!/usr/bin/env node
-//Standalone agent-based simulation model
+//Standalone agent-based simulation modeler
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 const Path = require('path')
 const { Log } = require('wyclif')
 Log.setPath(process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))
 
-var argv = require('yargs')
+var opts = require('yargs')
   .alias('H','dbHost')     .default('dbHost',     process.env.MYCHIPS_DBHOST)	//SQL Database
   .alias('D','dbName')     .default('dbName',     process.env.MYCHIPS_DBNAME || 'mychips')
-  .alias('A','dbAdmin')    .default('dbAdmin',    process.env.MYCHIPS_DBADMIN || 'admin')
-  .alias('P','dbPort')     .default('dbPort',     process.env.MYCHIPS_DBADMIN)
+  .alias('U','dbUser')     .default('dbUser',     process.env.MYCHIPS_DBADMIN || 'admin')
+  .alias('P','dbPort')     .default('dbPort',     process.env.MYCHIPS_DBPORT)
   .alias('h','ddHost')     .default('ddHost',     process.env.MYCHIPS_DDHOST || 'localhost')	//Document Database
   .alias('d','ddName')     .default('ddName',     process.env.MYCHIPS_DDNAME || 'mychips')
-  .alias('a','ddAdmin')    .default('ddAdmin',    process.env.MYCHIPS_DDADMIN || 'admin')
   .alias('p','ddPort')     .default('ddPort',     process.env.MYCHIPS_DDPORT || '27017')
+  .alias('a','agent')      .default('agent',      process.env.MYCHIPS_AGENT)
   .alias('m','model')      .default('model',    1)
   .alias('i','interval')   .default('interval', 3000)
-  .alias('s','peerServer')
   .argv
 
-const moduleFile = '../../lib/agent' + argv.model + '.js'
-const AgentCont = require(moduleFile)		//Model controller
+const moduleFile = '../../lib/model' + opts.model + '.js'
+const ModelCont = require(moduleFile)		//Model controller
+var log = Log('model')
+//log.debug("Model:", opts)
 
-var agent = new AgentCont({
-  host: argv.dbHost,
-  database:argv.dbName,
-  user: argv.dbAdmin, 
-  port: argv.dbPort, 
+var mod = new ModelCont({log,
+  host: opts.dbHost,
+  database:opts.dbName,
+  user: opts.dbUser, 
+  port: opts.dbPort, 
 }, {
-  host: argv.ddHost,
-  database:argv.ddName,
-  user: argv.ddAdmin, 
-  port: argv.ddPort, 
-}, argv)
+  host: opts.ddHost,
+  database:opts.ddName,
+  port: opts.ddPort, 
+}, opts)

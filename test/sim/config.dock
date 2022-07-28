@@ -11,14 +11,14 @@ locdir="$mypath/local"		#Container logging and data goes here
 pkidir="$locdir/pki"		#Where certificates will be generated
 sitebase="ds"			#Docker site = database + spa + agent + N peer servers
 imagebase="gotchoices"		#Base part of image names we will create
-mongorepset=rs0			#Name of replica set
-agentversion=2			#Which agent model version to run
+modversion=3			#Which agent-based model version to run
 newusers=4			#How many local users to put on each machine
 sites=4				#How many DB sites to create
+checkschema=false		#Check/rebuild schema on each run
 
 logviewer=logwin		#How to view logs on screen (linux:xterm mac:logwin disable:none)
 logoffset=30			#Offset logging windows from each other
-agentwins=( 0 0 )		#Coordinates where debug windows start
+modelwins=( 0 0 )		#Coordinates where debug windows start
 peerwins=( 600 0 )
 spawins=( 1200 0 )
 pgwins=( 1320 160 )
@@ -27,7 +27,7 @@ spaports=48000			#Base range of https connections
 wsports=60000			#Base range of websocket connections
 
 images=( mongo pg devel mychips)	#Images to be built, if necessary
-versions=( 4.2.3 11 35 16)		#Container versions
+versions=( 4.2.3 13 35 16)		#Container versions
 
 confile="${MYCHIPS_SIM:-$mypath/local/config.dock}"
 #echo "Pwd:$(pwd) my:$mypath confile:$confile" >&2

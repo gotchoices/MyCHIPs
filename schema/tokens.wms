@@ -59,8 +59,8 @@ view mychips.tokens_v {mychips.tokens mychips.users_v json.cert} {select
   , jsonb_build_object(
        'cid', u.peer_cid
      , 'agent', u.peer_agent
-     , 'host', u.peer_chost
-     , 'port', u.peer_cport
+     , 'host', u.peer_host
+     , 'port', u.peer_port
     ) as "chad"
       
     from	mychips.tokens	t
@@ -125,7 +125,7 @@ function {mychips.token_valid(tok text, cert jsonb = null)} {mychips.tokens_v} {
         insert into mychips.tallies (
           tally_ent, tally_uuid, tally_type, version, comment, contract, hold_cert, hold_terms, part_cert, status
         ) select
-          tally_ent, mychips.random_uuid(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
+          tally_ent, uuid_generate_v4(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
         from mychips.tallies returning tally_ent, tally_seq into trec;
         perform mychips.tally_notify_user(trec.tally_ent, trec.tally_seq);
       else			-- one-time token, use template AS our new tally, invalidate token

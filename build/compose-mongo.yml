@@ -1,0 +1,17 @@
+#Launch a single mongodb instance to facilitate regression tests.
+version: '3.7'
+
+services:
+  mongo:
+    image: gotchoices/mongo:4.2.3
+    build:
+      context: ..
+      dockerfile: build/docker-mongo
+    container_name: test-mongo
+    ports:
+      - "${MYCHIPS_DDPORT:-27017}:27017"
+    networks:
+      - test-mongo
+
+networks:
+  test-mongo:

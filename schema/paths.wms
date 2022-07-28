@@ -4,168 +4,88 @@
 
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------
-view mychips.tallies_v_net_old {mychips.tallies} {select 
-    coalesce(ts.tally_uuid,tf.tally_uuid)	as uuid
-  , coalesce(ts.tally_ent,tf.part_ent)		as stock_ent
-  , coalesce(tf.tally_ent,ts.part_ent)		as foil_ent
-  , ts.tally_ent				as stock_user
---  , tf.tally_ent				as foil_user
-  
-  , tf.target							as lift_target
-  , coalesce(tf.reward,0)					as lift_reward
-  , coalesce(ts.clutch,0)					as lift_margin
-  , tf.units_pc - least(-tf.target, 0)				as lift_min
-  , tf.units_pc - least(-tf.bound, -tf.target, tf.dr_limit)	as lift_max
-  
-  , ts.target							as drop_target
-  , coalesce(ts.reward,0)					as drop_reward
-  , coalesce(tf.clutch,0)					as drop_margin
-  , greatest(ts.target, 0) - ts.units_pc			as drop_min
-  , greatest(ts.bound, ts.target, ts.cr_limit) - ts.units_pc	as drop_max
-  
-  from			(select * from mychips.tallies where tally_type = 'stock') ts
-  full outer join	(select * from mychips.tallies where tally_type = 'foil') tf on tf.tally_uuid = ts.tally_uuid
-}
-
-# Recursive view of tallies to show pathways native to our system
-#----------------------------------------------------------------
-view mychips.tallies_v_paths_old {mychips.users_v mychips.tallies_v_net_old} {
-  with recursive tally_path(first, last, length, path, uuids, cycle, circuit, inside, corein, fora, forz,
-      lift_min, lift_margin, lift_max, lift_reward,
-      drop_min, drop_margin, drop_max, drop_reward
-    ) as (
-    select	p.peer_ent, p.peer_ent, 1, array[p.peer_ent], '{}'::uuid[], false, false, not p.user_ent isnull, null::boolean, p.user_ent isnull, p.user_ent isnull,
-      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float, 
-      x'7FFFFFFFFFFFFFF'::bigint, 0::float, x'FFFFFFFFFFFFFFFF'::bigint, 0::float
-    from	mychips.users_v p
-    where	not p.peer_ent isnull
-  union all
-    select tp.first					as first
-      , t.stock_ent					as last
-      , tp.length + 1					as length
-      , tp.path || t.stock_ent				as path
-      , tp.uuids || t.uuid				as uuids
-      , t.stock_ent = any(tp.path)			as cycle
-      , tp.path[1] = t.stock_ent			as circuit
-      , tp.inside and not t.stock_user isnull		as inside
-      , case when tp.length < 2 then not t.stock_user isnull
-        when tp.length = 2 then not tp.forz
-        else tp.corein and not tp.forz
-        end						as corein
-      , tp.fora						as fora
-      , t.stock_user isnull				as forz
-
-      , least(t.lift_min,tp.lift_min)				as lift_min
-      , tp.lift_margin + t.lift_margin * (1 - tp.lift_margin)	as lift_margin
-      , case when t.lift_min < tp.lift_min then
-          least(t.lift_max,tp.lift_min)
-        else
-          least(tp.lift_max,t.lift_min) end			as lift_max
-      , case when t.lift_min < tp.lift_min then t.lift_reward else tp.lift_reward end as lift_reward
-
-      , least(t.drop_min,tp.drop_min)				as drop_min
-      , tp.drop_margin + t.drop_margin * (1 - tp.drop_margin)	as drop_margin
-      , case when t.drop_min < tp.drop_min then
-          least(t.drop_max,tp.drop_min)
-        else
-          least(tp.drop_max,t.drop_min) end			as drop_max
-      , case when t.drop_min < tp.drop_min then t.drop_reward else tp.drop_reward end as drop_reward
-
-    from	mychips.tallies_v_net_old t
-    join	tally_path	tp on tp.last = t.foil_ent and not tp.cycle
-  ) select tpr.first, tpr.last
-    , tpr.length, tpr.path, tpr.uuids
-    , tpr.circuit, tpr.inside, tpr.corein, tpr.fora, tpr.forz
-    , tpr.lift_margin, tpr.lift_reward, tpr.drop_margin, tpr.drop_reward
-    , greatest(tpr.lift_min, 0) as lift_min, greatest(tpr.lift_max, 0) as lift_max	-- Don't generate negative lift/drop allowances
-    , greatest(tpr.drop_min, 0) as drop_min, greatest(tpr.drop_max, 0) as drop_max
---    , tpr.lift_min, tpr.lift_max, tpr.drop_min, tpr.drop_max
-    , tpr.length * tpr.lift_min as bang
-    , corein and fora and forz as segment
-  from tally_path tpr where tpr.length > 1
-} -primary {last first length}
-
-# Simplified view for discovering inside lifts
-#----------------------------------------------------------------
-view mychips.tallies_v_lifts_old {mychips.tallies_v_paths_old} {
-  select * from mychips.tallies_v_paths_old where circuit order by 1 desc
-}
-
-# View showing a single entry for each credit relationship (for lift algorithm, pathway views)
-#----------------------------------------------------------------
-define netFields {tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, units_pc, net_pc, part_addr}
 view mychips.tallies_v_net {mychips.tallies_v} {with
-  t2 as (select netFields()
+  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
     from mychips.tallies_v where liftable and not part_ent isnull
   ),
-  t1 as (select netFields()
+  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
     from mychips.tallies_v where liftable and part_ent isnull
   )
   select 			-- Internal tallies with both stock and foil
-    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.part_ent					as inp
   , t.tally_ent					as out
-  , t.target, t.reward, t.bound
+  , t.target, t.bound, t.reward
   , coalesce(p.clutch, 0)			as margin
-  , t.units_pc
+  , t.net_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , false					as inv
-    from	t2 as t
-    join 	t2 as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
-    where t.net_pc < coalesce(t.bound,0)
+  , t.net_pc < t.bound				as canlift
+    from	t_loc as t
+    join 	t_loc as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
 
-  union select 			-- Tallies with foreign peers
-    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  union select 			-- Tallies with foreign peers, lifting toward us
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.part_ent					as inp
   , t.tally_ent					as out
-  , t.target, t.reward, t.bound
+  , t.target, t.bound, t.reward
   , 0						as margin
-  , t.units_pc
+  , t.net_pc
   , greatest(t.target - t.net_pc,0)		as min
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , false					as inv
-    from	t1 as t
-    where t.net_pc < coalesce(t.bound,0)
+  , t.net_pc < t.bound				as canlift
+    from	t_for as t
 
-  union select 			-- Tallies with foreign peers and reverse consideration
-    t.tally_ent, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  union select 			-- Tallies with foreign peers, lifting toward them
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.tally_ent					as inp
   , t.part_ent					as out
-  , 0 as target, 0 as reward, 0 as bound
-  , 0						as margin
-  , t.units_pc
-  , t.net_pc					as min
-  , t.net_pc					as max
+  , 0 as target, 0 as bound
+  , 0 as reward, 0 as margin				-- Assume zero costs from other side
+  , -t.net_pc as net_pc
+  , null					as min	-- Nulls because other side of 
+--  , t.net_pc					as min	-- tally is in charge of these
+  , null					as max
+--  , t.net_pc					as max
   , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
   , case when t.tally_type = 'foil' then 1 else -1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , true					as inv
-    from	t1 as t
-    where t.net_pc > 0
+  , true					as canlift	-- Let the other side limit lifts
+--  , -t.net_pc < 0			as canlift	-- Limit lifts to what we know (zero)
+    from	t_for as t
 }
 
-# Recursive view of tallies to show pathways native to our system
+# Recursive view of tallies to show pathways local to our system
 #----------------------------------------------------------------
+define xif {case when %3 isnull then %1.part_%2 else %1.hold_%2 end}
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
   with recursive tally_path (
-      inp, out, length, ath, uuids, signs, min, margin, max, reward, circuit
+      inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
+      top, top_tseq, bot, bot_tseq, circuit
     ) as (
-      select ti.inp, ti.out, 2, array[ti.out], array[ti.uuid], array[ti.sign],
-             ti.min, ti.margin, ti.max, ti.reward, false
+      select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], 
+             array[ti.tally_ent], array[ti.tally_seq], array[ti.sign],
+             ti.min, ti.margin, ti.max, ti.reward, 
+             ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
     from	mychips.tallies_v_net ti
+    where	ti.canlift
   union all
     select tp.inp					as inp
       , t.out						as out
-      , tp.length + 1					as length
+      , tp.edges + 1					as edges
       , tp.ath || t.out					as ath
       , tp.uuids || t.uuid				as uuids
+      , tp.ents || t.tally_ent				as ents
+      , tp.seqs || t.tally_seq				as seqs
       , tp.signs || t.sign				as signs
       , least(t.min, tp.min)				as min
       , tp.margin + t.margin * (1 - tp.margin)		as margin	-- Aggregated margin
@@ -174,29 +94,97 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
           least(t.max, tp.min)
         else
           least(t.min, tp.max) end			as max
-      , case when t.min < tp.min then t.reward else tp.reward end as reward	-- Only one reward
+      , case when t.min < tp.min then t.reward
+        else tp.reward end				as reward	-- Only one reward
+      , t.tally_ent					as top
+      , t.tally_seq					as top_tseq
+      , tp.bot						as bot
+      , tp.bot_tseq					as bot_tseq
       , coalesce(tp.inp = t.out, false)			as circuit
 
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
+    where	t.canlift
   ) select tpr.inp, tpr.out
-    , tpr.length, tpr.ath, tpr.uuids, tpr.signs, tpr.min, tpr.max, tpr.circuit
+    , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
+    , tpr.top, tpr.bot, tpr.circuit
     , tpr.margin::numeric(8,6)
     , tpr.reward::numeric(8,6)
-    , tpr.inp || tpr.ath	as path
-    , tpr.length * tpr.min	as bang
-    , tpr.inp isnull		as fori
-    , tpr.out isnull		as foro
-    , tpr.uuids[1]		as iuuid
-    , tpr.uuids[length-1]	as ouuid
---    , tpr.ath[1:length-2]	as at
-  from tally_path tpr				-- where tpr.length > 2
-} -primary {inp out length}
+    , tpr.edges + 1			as nodes
+    , tpr.edges * tpr.min		as bang
+    , tpr.inp isnull			as fori
+    , tpr.out isnull			as foro
+    , tpr.inp isnull and tpr.out isnull	as segment
+    , tpr.inp || tpr.ath		as path
+    , tpr.ath[1:edges-1]		as at
+    , tpr.inp || tpr.ath[1:edges-1]	as pat
 
-# Simplified view for discovering inside lifts
+    , tt.tally_seq as top_tseq, tt.tally_uuid as top_uuid
+    , bt.tally_seq as bot_tseq, bt.tally_uuid as bot_uuid
+
+    , tt.hold_cid as top_cid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
+    , bt.hold_cid as bot_cid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
+
+    , xif(tt,cid,out) as out_cid, xif(tt,agent,out) as out_agent, xif(tt,chad,out) as out_chad
+    , xif(bt,cid,inp) as inp_cid, xif(bt,agent,inp) as inp_agent, xif(bt,chad,inp) as inp_chad
+
+  from	tally_path tpr
+  join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
+  join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq
+} -primary {path}
+
+# View showing join of inside pathways and outside routes
+# to discover/analyze possible distributed lifts
 #----------------------------------------------------------------
-view mychips.tallies_v_lifts {mychips.tallies_v_paths} {
-  select * from mychips.tallies_v_paths where circuit order by 1 desc
+view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
+    tp.inp, tp.out, tp.top, tp.top_tseq, tp.bot, tp.bot_tseq
+  , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids, tp.ents, tp.seqs
+  , tp.fori, tp.foro, tp.segment, tp.bang
+  , tp.top_uuid, tp.top_cid, tp.top_agent, tp.top_chad
+  , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
+  , tp.out_cid, tp.out_agent, tp.out_chad
+  , tp.inp_cid, tp.inp_agent, tp.inp_chad
+  , r.rid, r.via_ent, r.via_tseq, r.via_tally
+  , r.dst_cid, r.dst_agent
+  , r.req_ent, r.req_tseq, r.req_tally, r.req_cid, r.req_agent, r.req_chad
+  , r.rpt_cid, r.rpt_agent, r.rpt_chad
+  , r.status
+  , r.lift_count
+  , r.native
+  , r.dst_cid = tp.inp_cid and r.dst_agent = tp.inp_agent as circuit
+  , tp.min	as path_min,	tp.margin::numeric(8,6)	as path_margin
+  , tp.max	as path_max,	tp.reward::numeric(8,6)	as path_reward
+  , r.min	as route_min,	r.margin::numeric(8,6)	as route_margin
+  , r.max	as route_max,	r.reward::numeric(8,6)	as route_reward
+  
+  , least(tp.min, r.min)				as min
+  , case when r.min < tp.min then
+        least(r.max, tp.min)
+      else
+        least(r.min, tp.max) end			as max
+  , (r.margin + tp.margin * (1-r.margin))::numeric(8,6)	as margin
+  , case when r.min < tp.min then r.reward
+      else tp.reward end::numeric(8,6)			as reward
+
+  from	mychips.routes_v	r
+  join	mychips.tallies_v_paths	tp on tp.top = r.via_ent and tp.top_tseq = r.via_tseq and tp.foro
+}
+
+# View of possible external routes compared to existing route records
+#----------------------------------------------------------------
+view mychips.routes_v_query {mychips.routes_v_paths mychips.routes_v mychips.route_sorter(text,boolean)} {
+  select tp.*
+  , r.rid, r.via_ent, r.via_tseq, r.via_tally
+  , r.dst_cid, r.dst_agent, r.status, r.expired
+  , mychips.route_sorter(r.status, r.expired)	as sorter
+  , r.via_ent is not null			as exist
+  , tp.inp_cid 					as find_cid
+  , tp.inp_agent				as find_agent
+  
+  from mychips.tallies_v_paths	tp
+  left join mychips.routes_v	r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq and
+                                     r.dst_cid = tp.inp_cid and r.dst_agent = tp.inp_agent
+  where tp.segment
 }

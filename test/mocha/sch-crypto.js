@@ -8,27 +8,29 @@
 //- 
 const Fs = require('fs')
 const assert = require("assert");
-const { DBName, DBAdmin, Log, Schema, dbClient } = require('./common')
+const { DBName, DBAdmin, testLog, Schema, dbClient, dropDB } = require('./common')
 const WordFile = '/usr/share/dict/words'
 const Words = 6
 const Cycles = 10
-var log = Log('testSchCrypto')
+var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("Test cryptographic schema functions", function() {
   var db
-  this.timeout(5000)		//May take a while to build database
 
 //  before('Delete test database', function(done) {
 //    dropDB(done)
 //  })
 
   before('Connect to (or create) test database', function(done) {
+    this.timeout(10000)		//May take a while to build database
     db = new dbClient(dbConfig, (chan, data) => {}, done)
   })
 
   describe('Base 64 URL-safe routines', function() {
-    let wordList = Fs.readFileSync(WordFile).toString().split("\n")
+    let wordList = Fs.existsSync(WordFile) ?
+        Fs.readFileSync(WordFile).toString().split("\n") :
+        "Now is the time for all good men to come to the aid of their country".split(' ')
     
     for (let i = 0; i < Cycles; i++) {		//Make this many random phrases
       let wordArr = []
@@ -60,7 +62,7 @@ log.debug('Decoded:', decoded)
       })
     }
   })
-
+/* */
   after('Disconnect from test database', function() {
     db.disconnect()
   })

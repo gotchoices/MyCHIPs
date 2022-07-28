@@ -53,7 +53,8 @@ author additional helpful information.
 - Working on the Software
   - [Support Libraries](work-hacking.md)
   - [Modifying the Database Schema](work-hacking.md#schema-hacking)
-  - [How You can Help](Project/README.md)
+  - [Testing Environment](work-testing.md)
+  - [Development Projects You Can Help With](Project/README.md)
   - Future Design Documents
     - [Schema Upgrades](work-upgrade.md)
   - Older Design Documents

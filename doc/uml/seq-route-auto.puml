@@ -18,7 +18,7 @@ loop Over all segments with lift capacity
   alt Current routes available
     localDB	->>	localDB:	Initiate lift request on segment
   
-  else Stale route found (good or failed)
+  else Expired route found, good or failed (none)
     localDB	->>	upDB:		Request route refresh
     
   else No route found
@@ -30,14 +30,14 @@ end
   note over localDB: new route status indeterminate (pending)
 
 alt Negative response
-  upDB	->>	localDB:		Route impossible
-  localDB	->>	localDB:	Set route status = bad
+  upDB	->>	localDB:		Route impossible (none)
+  localDB	->>	localDB:	Set route status = none
   
 else Positive response
   upDB	->>	localDB:		Route good
   localDB	->>	localDB:	Set route status = good
 
 end
-  note over localDB: routes will eventually time\nout and become stale
+  note over localDB: routes will eventually time\nout and become expired
   
 @enduml

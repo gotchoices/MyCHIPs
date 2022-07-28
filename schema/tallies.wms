@@ -9,33 +9,30 @@
 # need our own dedicated casting function.
 #
 #TODO:
-#- Can create digest offline in JavaScript that matches tally_sets?
-#- Can validate tally_sets record against supplied signature, mark cache field as valid
-#- dr_limit, cr_limit become a part of terms setting
-#- Add constraints to assure things like contract and signatures are valid?
-#- Harden views; Can only update unsigned, working tally
+#- Disable user from setting request to close directly (must use settings chit instead)
+#- Implement and test user setting new agent on established tally
 #- 
 module mychips
 require config.tcl trigview.tcl
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
-    def tallies_v_up	{request comment}
-    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_sig hold_cert part_cert hold_terms part_terms]
-    def tallies_se	[concat tally_ent tally_seq tally_type tally_uuid tally_date version part_ent hold_cert part_cert request comment contract target reward clutch bound status digest cr_limit dr_limit units_pc units_gc hold_cid hold_agent part_cid part_agent hold_sig part_sig hold_terms part_terms $glob::stampfn]
-
-    def tally_sets_pk	{tset_ent tset_seq tset_idx}
-    def tally_sets_v_in	{tset_ent tset_seq target reward clutch bound signature}
-    def tally_sets_se	[concat $tally_sets_v_in tset_idx digest]
+    def tallies_v_up	{comment target reward clutch bound part_sig hold_sig request}
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_cert part_cert hold_terms part_terms]
+    def tallies_se	[concat $tallies_v_in tally_seq status digest net_pc net_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets $glob::stampfn]
 }
 
-table mychips.tallies {mychips mychips.users mychips.peers} {
+other tally_side {} {
+  create type tally_side as enum ('stock','foil');
+} {drop type tally_side}
+
+table mychips.tallies {mychips mychips.users tally_side} {
     tally_ent	text		references mychips.users on update cascade on delete cascade
   , tally_seq	int	      , primary key (tally_ent, tally_seq)
 
 -- Values directly contained in the external tally representation
   , tally_uuid	uuid		not null
-  , tally_type	text		not null default 'stock' check(tally_type in ('stock','foil'))
+  , tally_type	tally_side	not null default 'stock'
   , tally_date	timestamptz	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
   , comment	text
@@ -44,55 +41,45 @@ table mychips.tallies {mychips mychips.users mychips.peers} {
   , part_cert	jsonb		constraint "!mychips.tallies.PCM" check (not (status = 'open' and part_cert isnull))
   , hold_sig	text		constraint "!mychips.tallies.USM" check (not (status = 'open' and hold_sig isnull))
   , part_sig	text		constraint "!mychips.tallies.PSM" check (not (status = 'open' and part_sig isnull))
-  , hold_terms	jsonb					-- Terms we grant to our partner
-  , part_terms	jsonb					-- Terms partner grants to our holder
+  , hold_terms	jsonb		not null default '{}'			-- Terms we grant to our partner
+  , part_terms	jsonb		not null default '{}'			-- Terms partner grants to our holder
   , digest	bytea
 
--- Values settable by the holder, cached version of latest tally_sets record
+-- Values settable by the holder, cached version of latest applicable settings chit
   , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
+  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
   , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
   , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
-  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
-
---Fixme: need to rename to hold_limit, initialize from terms and then make settable (and eliminate the partner side column)
-  , dr_limit	bigint		not null default 0	-- A stock term
-  , cr_limit	bigint		not null default 0	-- A foil term
 
 -- Values used internally to track state, required actions
   , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open','close'))
   , status	text		not null default 'draft'
   				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
-  , part_ent	text		references mychips.peers on update cascade on delete restrict
+  , part_ent	text		references mychips.users on update cascade on delete restrict
   				constraint "!mychips.tallies.NSP" check (part_ent != tally_ent)
-  			      , unique(tally_ent, part_ent, tally_type, tally_uuid)
-  , units_gc	bigint		default 0 not null
-  , units_pc	bigint		default 0 not null
+  			      , constraint "!mychips.tallies.TNU" unique(tally_type, tally_uuid)
+  , net_c	bigint		default 0 not null
+  , net_pc	bigint		default 0 not null
   , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
   , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
+  				constraint "!mychips.tallies.UAI" check (not (status = 'open' and hold_agent isnull))
   , part_agent	text		references mychips.agents on update restrict on delete restrict
+  				constraint "!mychips.tallies.PAI" check (not (status = 'open' and part_agent isnull))
+  , hold_sets	jsonb		not null default '{}'
+  , part_sets	jsonb		not null default '{}'
   , chain_conf	int		default 0 not null
   , _last_chit	int		not null default 0
-  , _last_tset	int		not null default 0
+
+--Obsolete values:
+--  , dr_limit	bigint		not null default 0	-- A stock term
+--  , cr_limit	bigint		not null default 0	-- A foil term
+--  , _last_tset	int		not null default 0
     eval(s $glob::stamps)
 }
 index {} mychips.tallies tally_uuid
 index {} mychips.tallies tally_type
 index {} mychips.tallies tally_date
-
-table mychips.tally_sets {mychips.tallies} {
-    tset_ent	text
-  , tset_seq	int	      , foreign key (tset_ent, tset_seq) references mychips.tallies on update cascade on delete cascade
-  , tset_idx	int	      , primary key (tset_ent, tset_seq, tset_idx)
-  , tset_date	timestamptz	not null default current_timestamp
-  , target	bigint
-  , reward	float
-  , clutch	float
-  , bound	bigint
-  , signature	text		not null
-  , digest	bytea
-}
-#index {} mychips.tally_sets tset_date
 
 table mychips.tally_tries {mychips.tallies} {
     ttry_ent	text	      , primary key (ttry_ent, ttry_seq)
@@ -119,7 +106,7 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
 -- select into new.tally_seq coalesce(max(tally_seq),0)+1 from mychips.tallies where tally_ent = new.tally_ent; -- Not safe for concurrent sessions
         end if;
         if new.tally_uuid is null then
-          new.tally_uuid = mychips.random_uuid();
+          new.tally_uuid = uuid_generate_v4();
         end if;
 
         if new.hold_cert is null then
@@ -129,6 +116,7 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
         if new.status = 'open' then	-- Should only happen in simulations
           new.digest = mychips.j2h(mychips.tally_json(new));
         end if;
+        new.bound = greatest(new.target, new.bound);
         return new;
     end;
 $$;}
@@ -164,6 +152,8 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));	-- Generate record digest
+          new.hold_sets = new.hold_terms;			-- Default settings
+          new.part_sets = new.part_terms;
         elsif new.status in ('draft','void','offer') and old.status in ('void','draft','offer') then
           null;
         elsif new.status = 'close' and old.status = 'open' then
@@ -172,6 +162,7 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
           raise exception '!mychips.tallies:IST % %', old.status, new.status;
         end if;
       end if;
+      new.bound = greatest(new.target, new.bound);
       return new;
     end;
 $$;}
@@ -195,7 +186,7 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
       ta.part_agent = pchad->>'agent';
 --raise notice 'Tally check:% %', ta.hold_agent, ta.part_agent;
       foreach c in array array[ hchad, pchad ] loop
-        if not c is null and not exists (select agent from mychips.agents where agent = c->>'agent') then
+        if (c->>'agent') notnull and not exists (select agent from mychips.agents where agent = c->>'agent') then
           insert into mychips.agents (agent, agent_host, agent_port) values (c->>'agent', c->>'host', (c->'port')::int);
         end if;
       end loop;
@@ -206,36 +197,9 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
     end;
 $$;}
 
-# Generate unique sequence for new tally setting
-#----------------------------------------------------------------
-function mychips.tally_sets_tf_seq() {mychips.tally_sets mychips.tset_json(mychips.tally_sets) mychips.j2h(jsonb)} {
-  returns trigger language plpgsql security definer as $$
-    declare
-      tfld	text;
-      qflds	text[];
-      qstrg	text;
-    begin
-      if new.tset_idx is null then
-        update mychips.tallies set _last_tset = greatest(
-            coalesce(_last_tset,0) + 1,
-            (select coalesce(max(tset_idx),0)+1 from mychips.tally_sets where tset_ent = new.tset_ent and tset_seq = new.tset_seq)
-          ) where tally_ent = new.tset_ent and tally_seq = new.tset_seq
-            returning _last_tset into new.tset_idx;
-        if not found then new.tset_idx = 1; end if;
-      end if;
-      new.digest = mychips.j2h(mychips.tset_json(new));
-
-      update mychips.tallies set target = coalesce(new.target,target), reward = coalesce(new.reward,reward), clutch = coalesce(new.clutch,clutch), bound = coalesce(new.bound,bound) where tally_ent = new.tset_ent and tally_seq = new.tset_seq;
-      return new;
-    end;
-$$;}
-trigger mychips_sets_tr_seq {} {
-    before insert on mychips.tally_sets for each row execute procedure mychips.tally_sets_tf_seq();
-}
-
 # Notify the peer server process of user next-state requests, that need attention
 #----------------------------------------------------------------
-function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.peers_v mychips.tally_tries} {
+function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v mychips.users_v mychips.tally_tries} {
   returns boolean language plpgsql security definer as $$
     declare
         jrec	jsonb;			-- Notify payload
@@ -263,7 +227,7 @@ function {mychips.tally_notify_agent(tally mychips.tallies)} {mychips.tallies_v 
           'from',	trec.hold_chad,
           'object',	trec.json
         );
--- raise notice 'Tally notice:% % %', channel, tally.request, trec.json->'uuid';
+--raise notice 'Tally notice:% % %', channel, tally.request, trec.json->'uuid';
         perform pg_notify(channel, jrec::text);			-- Notify peer server of next state action request
         return true;
     end;
@@ -271,7 +235,7 @@ $$;}
 
 # Generate notifications about updated tallies for listening peer servers
 #----------------------------------------------------------------
-function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies) mychips.route_circuit(text)} {
+function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies) mychips.route_circuit(text,int)} {
   returns trigger language plpgsql security definer as $$
     declare
       notify	boolean default false;
@@ -283,7 +247,9 @@ function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies
           notify = true;
         end if;
         if new.request is null and new.status = 'open' and old.status != 'open' then
-          perform mychips.route_circuit(new.tally_ent);		-- New tally, let's query for route info
+          if base.parm_boolean('routes', 'autoquery') then
+            perform mychips.route_circuit(new.tally_ent, new.tally_seq);		-- New tally; query for applicable route circuit info
+          end if;
         end if;
       end if;
       if notify then perform mychips.tally_notify_agent(new); end if;
@@ -315,18 +281,6 @@ function {mychips.tally_json(te mychips.tallies)} {mychips.tallies} {
     )
 $$;}
 
-# Compute standard json output for tally settings
-#----------------------------------------------------------------
-function {mychips.tset_json(ts mychips.tally_sets)} {mychips.tally_sets} {
-  returns jsonb stable language sql as $$
-    select jsonb_strip_nulls(jsonb_build_object(
-       'target',	ts.target,
-       'reward',	ts.reward,
-       'clutch',	ts.clutch,
-       'bound',		ts.bound
-    ))
-$$;}
-
 # Compute current state of a tally, based on its various fields
 #----------------------------------------------------------------
 function {mychips.tally_state(status text, request text, hold_sig text, part_sig text)} {mychips} {
@@ -344,31 +298,34 @@ $$;}
 
 # Base view of tallies
 #----------------------------------------------------------------
-define uSign {case when te.tally_type = 'stock' then %1 else -%1 end}
-view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.agents_v mychips.peers_v mychips.tally_state(text,text,text,text) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
+#define uSign {case when te.tally_type = 'stock' then (%1) else -(%1) end}
+view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.agents_v mychips.tally_state(text,text,text,text) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
     eval(fld_list $tallies::tallies_se	te)
-  , te.hold_cid ||':'|| ua.agent	as hold_addr
-  , te.hold_cid ||':'|| ua.atsock	as hold_full
-  , ua.sock				as hold_sock
-  , ua.agent_key			as hold_akey
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
+  , ua.agent_host			as hold_host
+  , ua.agent_port			as hold_port
+--  , te.hold_cid ||':'|| ua.agent	as hold_addr
+--  , te.hold_cid ||':'|| ua.atsock	as hold_full
 
   , te.part_cid ||':'|| pa.agent	as part_addr
-  , te.part_cid ||':'|| pa.atsock	as part_full
-  , pa.sock				as part_sock
-  , pa.agent_key			as part_akey
   , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
+  , pa.agent_host			as part_host
+  , pa.agent_port			as part_port
+--  , te.part_cid ||':'|| pa.atsock	as part_full
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state
   , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','close','draft']) as action
-  , te.status = 'open' or (te.status = 'close' and units_pc != 0)	as liftable
-  , coalesce(tc.units, 0)			as units
-  , coalesce(uSign(tc.units),0)			as net
-  , uSign(te.units_gc)				as net_gc
-  , uSign(te.units_pc)				as net_pc
-  , coalesce(tc.chits,0)			as chits
-  , greatest(coalesce(tc.latest, te.mod_date), te.mod_date)	as latest
+  , te.status = 'open' or (te.status = 'close' and net_pc != 0)		as liftable
+
+  , coalesce(cg.chits, 0)				as chits
+  , coalesce(cg.chits, 0) + coalesce(ce.chits, 0)	as chits_p
+
+  , coalesce(cg.net, 0)					as net
+  , coalesce(cg.net, 0) + coalesce(ce.net, 0)		as net_p
+  
+  , greatest(cg.latest, te.mod_date)			as latest
+  
   , mychips.tally_json(te) as json_core
   , mychips.tally_json(te) || jsonb_build_object(
       'sign',		json_build_object(
@@ -387,35 +344,19 @@ view mychips.tallies_v {mychips.tallies mychips.chits mychips.users_v mychips.ag
     )		as policy
 
     from	mychips.tallies	te
---    join	mychips.users_v	ue on ue.user_ent = te.tally_ent
---    join	jsonb_to_record(te.part_cert::jsonb) as pc (chip jsonb, public text) on true
---    join	jsonb_to_record(pc.chip) as ph (cid text, host text, port text, agent text) on true
     left join	mychips.agents_v ua on ua.agent = te.hold_agent
     left join	mychips.agents_v pa on pa.agent = te.part_agent
-    left join	(
-      select chit_ent, chit_seq, sum(units) as units, count(chit_idx) as chits, max(mod_date) as latest from mychips.chits where status = 'good'
-      group by 1,2
-    ) tc on tc.chit_ent = te.tally_ent and tc.chit_seq = te.tally_seq;
+    left join	(select chit_ent, chit_seq,
+         sum(net) as net, count(chit_idx) as chits, max(mod_date) as latest
+         from mychips.chits_v where status = 'good' and chit_type != 'set' group by 1,2
+       ) cg on cg.chit_ent = te.tally_ent and cg.chit_seq = te.tally_seq
+    left join	(select chit_ent, chit_seq,
+         sum(net) as net, count(chit_idx) as chits, max(mod_date) as latest
+         from mychips.chits_v where status = 'pend' and chit_type != 'set' group by 1,2
+       ) ce on ce.chit_ent = te.tally_ent and ce.chit_seq = te.tally_seq;
 
-    eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin {request 'draft'}]);
+    eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin]);
     eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
-}
-
-# Base view of tally settings
-#----------------------------------------------------------------
-view mychips.tally_sets_v {mychips.tally_sets mychips.tset_json(mychips.tally_sets) mychips.j2h(jsonb)} {select 
-    eval(fld_list $tallies::tally_sets_se	ts)
-  
-  , mychips.tset_json(ts)				as json_core
-  , mychips.tset_json(ts) || jsonb_build_object(
-      'signature',	ts.digest
-    )		as json
-  , mychips.j2h(mychips.tset_json(ts))		as digest_v
-  , mychips.j2h(mychips.tset_json(ts)) = coalesce(ts.digest,'') as clean
-
-    from	mychips.tally_sets	ts;
-
-    eval(trigview::insert mychips.tally_sets_v mychips.tally_sets $tallies::tally_sets_v_in $tallies::tally_sets_pk {tset_date current_timestamp});
 }
 
 # User view of tallies
@@ -426,97 +367,6 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
     where	t.tally_ent = base.user_id(session_user)
 } -grant {
     {tally	{s} {s i u} {d}}
-}
-
-# Summarize data about open tallies
-#----------------------------------------------------------------
-view mychips.tallies_v_sum {mychips.tallies_v} {select 
-    tally_ent
-  , count(tally_seq)						as tallies
-  , sum(units)							as units
-  , sum(net)							as net
-  , array_agg(part_ent)						as partners
-  , array_agg(part_cid)						as part_cids
-  , array_agg(tally_uuid)					as uuids
-  , array_agg(tally_seq)					as seqs
-  , array_agg(tally_type)					as types
-  , array_agg(state)						as states
-  , array_agg(net)						as nets
-  , array_agg(units)						as unitss
-  , array_agg(inside)						as insides
-
-  , array_agg(target)						as targets
-  , array_agg(reward)						as rewards
-  , array_agg(bound)						as bounds
-  , array_agg(clutch)						as clutchs
-  , array_agg(policy)						as policies
-
-  , sum(units) filter (where tally_type = 'stock')		as stock_uni
-  , sum(units) filter (where tally_type = 'foil')		as foil_uni
-  , sum(net) filter (where tally_type = 'stock')		as stock_net
-  , sum(net) filter (where tally_type = 'foil')			as foil_net
-
-  , count(nullif(tally_type, 'foil'))::int4			as stocks
-  , count(nullif(tally_type, 'stock'))::int4			as foils
-  , array_agg(part_ent) filter (where tally_type = 'stock')	as clients
-  , array_agg(part_ent) filter (where tally_type = 'foil')	as vendors
-  , array_agg(part_cid) filter (where tally_type = 'stock')	as client_cids
-  , array_agg(part_cid) filter (where tally_type = 'foil')	as vendor_cids
-  , array_agg(tally_uuid) filter (where tally_type = 'stock')	as stock_uuids
-  , array_agg(tally_uuid) filter (where tally_type = 'foil')	as foil_uuids
-  , array_agg(tally_seq) filter (where tally_type = 'stock')	as stock_seqs
-  , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
-  , array_agg(units) filter (where tally_type = 'stock')	as stock_unis
-  , array_agg(units) filter (where tally_type = 'foil')		as foil_unis
-  , array_agg(net) filter (where tally_type = 'stock')		as stock_nets
-  , array_agg(net) filter (where tally_type = 'foil')		as foil_nets
-
-  , max(latest)							as latest
-  from (select * from mychips.tallies_v order by tally_ent,tally_seq) t
-  group by 1;
-}
-
-# List of users with summarized data about their tallies (used primarily in simulation/visualization)
-#----------------------------------------------------------------
-view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
-    u.id, u.std_name, u.user_ent, u.peer_ent, u.peer_cid, u.peer_cagent, u.peer_sock, u.peer_chost, u.peer_cport, u.ent_name, u.fir_name, u.ent_type
-  , coalesce(s.tallies, 0)			as tallies
-  , coalesce(s.units, 0)			as units
-  , coalesce(s.net, 0)				as net
-  , coalesce(s.stocks, 0)			as stocks
-  , coalesce(s.foils, 0)			as foils
-  , coalesce(s.stock_uni, 0.0)			as stock_uni
-  , coalesce(s.foil_uni, 0.0)			as foil_uni
-  , coalesce(s.partners, '{}'::text[])		as partners
-  , coalesce(s.clients, '{}'::text[])		as clients
-  , coalesce(s.vendors, '{}'::text[])		as vendors
-  
-  , coalesce(s.part_cids, '{}'::text[])		as part_cids
-  , coalesce(s.uuids, '{}'::uuid[])		as uuids
-  , coalesce(s.seqs, '{}'::int[])		as seqs
-  , coalesce(s.types, '{}'::text[])		as types
-  , coalesce(s.states, '{}'::text[])		as states
-  , coalesce(s.unitss, '{}'::bigint[])		as unitss
-  , coalesce(s.nets, '{}'::bigint[])		as nets
-  , coalesce(s.insides, '{}'::boolean[])	as insides
-
-  , coalesce(s.targets, '{}'::bigint[])		as targets
-  , coalesce(s.rewards, '{}'::float[])		as rewards
-  , coalesce(s.bounds, '{}'::bigint[])		as bounds
-  , coalesce(s.clutchs, '{}'::float[])		as clutchs
-  , coalesce(s.policies, '{}'::jsonb[])		as policies
-  
-  , coalesce(s.client_cids, '{}'::text[])	as client_cids
-  , coalesce(s.vendor_cids, '{}'::text[])	as vendor_cids
-  , coalesce(s.stock_uuids, '{}'::uuid[])	as stock_uuids
-  , coalesce(s.foil_uuids, '{}'::uuid[])	as foil_uuids
-  , coalesce(s.stock_seqs, '{}'::int[])		as stock_seqs
-  , coalesce(s.foil_seqs, '{}'::int[])		as foil_seqs
-  , coalesce(s.stock_unis, '{}'::bigint[])	as stock_unis
-  , coalesce(s.foil_unis, '{}'::bigint[])	as foil_unis
-  , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
-    from	mychips.users_v u
-    left join	mychips.tallies_v_sum s on s.tally_ent = u.peer_ent;
 }
 
 # General routine to build update query string
@@ -541,31 +391,6 @@ $$;}
 
 # Process tally state transitions requested by the peer server process
 #----------------------------------------------------------------
-function {mychips.tally_notify_user(ent text, seq int, oldstate text = 'open')} {mychips.tallies_v} {
-  returns record language plpgsql as $$
-    declare
-      trec	record;
-      jrec	jsonb;
-    begin
-      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
-      if trec.action or (trec.state is distinct from oldState) then	-- Also notify if changed state
--- raise notice 'Tally user notify: mu_% %', trec.tally_ent, trec.json->'uuid';
-        jrec = jsonb_build_object(
-          'target',	'tally',
-          'entity',	trec.tally_ent,
-          'sequence',	trec.tally_seq,
-          'state',	trec.state,
-          'object',	trec.json
-        );
-        perform pg_notify('mu_' || trec.tally_ent, jrec::text);
-        perform pg_notify('mychips_user', jrec::text);		-- Simulations use this
-      end if;
-      return trec;
-    end;
-$$;}
-
-# Process tally state transitions requested by the peer server process
-#----------------------------------------------------------------
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
   returns text language plpgsql as $$
     declare
@@ -581,8 +406,8 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
       trec	record;			-- Holds tally record(s)
       jrec	jsonb;			-- Notify payload
       acted	boolean = false;
-      tallyType text = 'stock';
-      notType text = 'foil';
+      tallyType tally_side = 'stock';
+      notType	tally_side = 'foil';
     begin
 --raise notice 'Tally cid:% uuid:%', cid, uuid;
       select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = uuid;
@@ -620,14 +445,14 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
           ) values (
             uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, 
             obj->'agree', coalesce(recipe->'upsert'->>'status','offer'),
-            obj->>'note', obj->'sign'->>tallyType, obj->'sign'->>notType, 
+            obj->>'note', obj->'sign'->>(tallyType::text), obj->'sign'->>(notType::text), 
             hold->'terms', part->'terms', hold->'cert', part->'cert'
           ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
           update mychips.tallies set request = null, mod_date = current_timestamp, mod_by = session_user,
             status = coalesce(recipe->'upsert'->>'status','offer'),
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',
-            hold_sig = obj->'sign'->>tallyType, part_sig = obj->'sign'->>notType,
+            hold_sig = obj->'sign'->>(tallyType::text), part_sig = obj->'sign'->>(notType::text),
             hold_terms = hold->'terms', part_terms = part->'terms',
             hold_cert = hold->'cert', part_cert = part->'cert'
           where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
@@ -655,6 +480,31 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
     end;
 $$;}
 
+# Notify the user of relevant state changes on tallies
+#----------------------------------------------------------------
+function {mychips.tally_notify_user(ent text, seq int, oldstate text = 'open')} {mychips.tallies_v} {
+  returns record language plpgsql as $$
+    declare
+      trec	record;
+      jrec	jsonb;
+    begin
+      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
+      if trec.action or (trec.state is distinct from oldState) then	-- Also notify if changed state
+--raise notice 'Tally user notify: mu_% %', trec.tally_ent, trec.json->'uuid';
+        jrec = jsonb_build_object(
+          'target',	'tally',
+          'entity',	trec.tally_ent,
+          'sequence',	trec.tally_seq,
+          'state',	trec.state,
+          'object',	trec.json
+        );
+        perform pg_notify('mu_' || trec.tally_ent, jrec::text);
+        perform pg_notify('mychips_user', jrec::text);		-- Simulations use this
+      end if;
+      return trec;
+    end;
+$$;}
+
 # Check for any lingering, unprocessed notices
 # A peer server should call this on launch to become aware of any activity it has missed
 #----------------------------------------------------------------
@@ -664,7 +514,7 @@ function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.
         trec		mychips.tallies;
         crec		mychips.chits;
         didem		int = 0;
-        min_min		int = coalesce(base.parm_int('peers','min_time'), 60);
+        min_min		int = coalesce(base.parm_int('agents','min_time'), 60);
         min_time	interval = (min_min::text || ' minutes')::interval;
     begin
         for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
@@ -700,15 +550,3 @@ trigger mychips_tallies_tr_change {} {
 #trigger mychips_chits_tr_change {} {	--Redundant?
 #    after insert or update or delete on mychips.chits for each statement execute procedure mychips.change_tf_notify('chits');
 #}
-
-# Find an open tally meeting certain criteria, returning the sequence number (currently used only in agent1 model)
-#----------------------------------------------------------------
-function {mychips.tally_find(ent text, part text, typ text)} {mychips.tallies} {
-  returns int immutable language plpgsql as $$
-    declare
-      trec record;
-    begin
-      select into trec * from mychips.tallies where tally_ent = ent and status = 'open' and tally_type = typ and part_ent = part order by crt_date desc limit 1;
-      return trec.tally_seq;
-    end;
-$$;}

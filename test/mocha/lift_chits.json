@@ -1,0 +1,134 @@
+[
+ {
+  "tally_ent": "p1000",
+  "tally_seq": 1,
+  "tally_type": "foil",
+  "net": -2,
+  "net_c": -2,
+  "net_p": 2,
+  "net_pc": 2,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1000",
+  "tally_seq": 2,
+  "tally_type": "stock",
+  "net": 8,
+  "net_c": 8,
+  "net_p": 4,
+  "net_pc": 4,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1000",
+  "tally_seq": 3,
+  "tally_type": "stock",
+  "net": 14,
+  "net_c": 14,
+  "net_p": 14,
+  "net_pc": 14,
+  "chits": 1,
+  "chits_p": 1
+ },
+ {
+  "tally_ent": "p1001",
+  "tally_seq": 1,
+  "tally_type": "stock",
+  "net": 2,
+  "net_c": 2,
+  "net_p": -2,
+  "net_pc": -2,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1001",
+  "tally_seq": 2,
+  "tally_type": "foil",
+  "net": -4,
+  "net_c": -4,
+  "net_p": 0,
+  "net_pc": 0,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1001",
+  "tally_seq": 3,
+  "tally_type": "foil",
+  "net": 12,
+  "net_c": 12,
+  "net_p": 12,
+  "net_pc": 12,
+  "chits": 1,
+  "chits_p": 1
+ },
+ {
+  "tally_ent": "p1002",
+  "tally_seq": 1,
+  "tally_type": "stock",
+  "net": 4,
+  "net_c": 4,
+  "net_p": 0,
+  "net_pc": 0,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1002",
+  "tally_seq": 2,
+  "tally_type": "foil",
+  "net": -6,
+  "net_c": -6,
+  "net_p": -2,
+  "net_pc": -2,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1002",
+  "tally_seq": 3,
+  "tally_type": "foil",
+  "net": -14,
+  "net_c": -14,
+  "net_p": -14,
+  "net_pc": -14,
+  "chits": 1,
+  "chits_p": 1
+ },
+ {
+  "tally_ent": "p1003",
+  "tally_seq": 1,
+  "tally_type": "stock",
+  "net": 6,
+  "net_c": 6,
+  "net_p": 2,
+  "net_pc": 2,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1003",
+  "tally_seq": 2,
+  "tally_type": "foil",
+  "net": -10,
+  "net_c": -10,
+  "net_p": -6,
+  "net_pc": -6,
+  "chits": 1,
+  "chits_p": 2
+ },
+ {
+  "tally_ent": "p1003",
+  "tally_seq": 3,
+  "tally_type": "stock",
+  "net": -12,
+  "net_c": -12,
+  "net_p": -12,
+  "net_pc": -12,
+  "chits": 1,
+  "chits_p": 1
+ }
+]

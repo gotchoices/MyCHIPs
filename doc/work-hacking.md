@@ -115,5 +115,5 @@ have to edit pgsql/data/postgresql.conf and set the following:
 Consult your local installation for the particular postgres logfile location.
 (Something like /var/lib/pgsql/data/log).
 
-<br>[Next - Process Dialogs](old-dialog.md)
+<br>[Next - Testing Environment](work-testing.md)
 <br>[Back to Index](README.md#contents)

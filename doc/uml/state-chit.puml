@@ -2,7 +2,7 @@
 !include common.puml
 
 $title(Direct Chit States)
-state "L.pend.good" as lPendGood
+state "L.pend.good (and Hold.pend.good)" as lPendGood
 state "L.pend" as lPend
 state "L.pend.void" as lPendVoid
 state "L.void" as lVoid
@@ -12,8 +12,8 @@ state "A.void" as aVoid
 state "Lift.pend" as liftPend
 state "Lift.void" as liftVoid
 state good {
-  state "L.good" as lGood
-  state "A.good" as aGood
+  state "L.good (and Hold.good)" as lGood
+  state "A.good (and Part.good)" as aGood
   state "Lift.good" as liftGood
 }
 

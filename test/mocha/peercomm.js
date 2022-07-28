@@ -5,10 +5,10 @@ const port1 = 55551
 const port2 = 55552
 const assert = require("assert");
 const PeerComm = require("../../lib/peercomm")
-const { Log } = require('./common')
+const { testLog } = require('./common')
 const serv1 = "localhost:" + port1
-var log1 = Log('testPeercomm1')		//Enable separate logging for each end
-var log2 = Log('testPeercomm2')
+var log1 = testLog(__filename + '-1')		//Enable separate logging for each end
+var log2 = testLog(__filename + '-2')
 const config1 = {port: port1, log: log1}
 const config2 = {port: port2, log: log2}
 var callback1, callback2
@@ -50,7 +50,7 @@ describe("Peer to peer raw communications test", function() {
     }
     server1.send(serv1, {txt: msg1})	//Send a test message
   })
-
+/* */
   after('Clean up servers', function() {
     server1.close()
     server2.close()

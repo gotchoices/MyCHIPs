@@ -8,17 +8,17 @@ const Fs = require('fs')
 const Path = require('path')
 const Stringify = require('json-stable-stringify')	//Predictable property order
 const assert = require("assert");
-const { DBName, DBAdmin, Log, Schema, importCheck, dropDB, dbClient } = require('./common')
-var log = Log('testImpexp')
+const { DBName, DBAdmin, testLog, Schema, importCheck, dropDB, dbClient } = require('./common')
+var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("JSON contact import/export", function() {
   var db
-  this.timeout(5000)		//May take a while to build database
 
   before('Delete test database', function(done) {dropDB(done)})
 
   before('Connect to (or create) test database', function(done) {
+    this.timeout(10000)		//May take a while to build database
     db = new dbClient(dbConfig, (chan, data) => {}, done)
   })
 
@@ -99,7 +99,7 @@ describe("JSON certificate import/export", function() {
       done()
     })
   })
-
+/* */
   after('Disconnect from test database', function() {
     db.disconnect()
   })

@@ -14,6 +14,7 @@ usecase "My User Needs a\nCircuit Route" as findCircuit
 
 user		--	findLinear
 userAgent	--	findLinear
+			findLinear	-- upPart
 			findLinear	-- forPeer
 
 userAgent	--	findCircuit

@@ -1,21 +1,21 @@
 //Test local pathway schema at a basic level; run after impexp
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-// This will build a network of tallies as follows:
+// This will build a network of tallies as follows: (see doc/uml/test-paths.svg)
 //                              ________(-)_______
 //                             ^                  v
 //  External_Up -> User_0 -> User_1 -> User_2 -> User_3 -> External_Down
 //                   ^____________________v
 //TODO:
 //- 
-const Fs = require('fs')
-const { dbConf, Log, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
-var log = Log('testSchPath')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('./common')
+var log = testLog(__filename)
 //const Serialize = require("json-stable-stringify")
 const { host, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
+const { cidu, cidd, cidN } = require('./def-path')
 var interTest = {}			//Pass values from one test to another
 var tallySql = `insert into mychips.tallies (tally_ent, tally_uuid, tally_date, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
-var chitSql = `insert into mychips.chits (chit_ent, chit_seq, chit_uuid, units, signature, quidpro, status) select %L,%s,%L,%s,%L,%L,'good'`
+var chitSql = `insert into mychips.chits (chit_ent, chit_seq, chit_uuid, units, signature, reference, status) select %L,%s,%L,%s,%L,%L,'good'`
 var agree = {domain:"mychips.org", name:"test", version:1}
 var users = 4
 
@@ -37,9 +37,9 @@ describe("Initialize tally/path test data", function() {
   })
 
   it("Build users: " + users, function(done) {
-    let dc = users; _done = () => {if (!--dc) done()}	//_done's to be done
+    let dc = users, _done = () => {if (!--dc) done()}	//_done's to be done
     for (let u = 0; u < users; u++) {
-      let cid = "cid_" + u
+      let cid = cidN(u)
         , name = "User " + u
         , sql = `insert into mychips.users_v (ent_name, peer_cid, peer_agent, peer_host, peer_port) values($1, $2, $3, $4, $5) returning *;`
       db.query(sql, [name, cid, agent1, host, port1], (e, res) => {if (e) done(e)
@@ -53,12 +53,12 @@ describe("Initialize tally/path test data", function() {
     }
   })
 
-  it("Build local tallies", function(done) {
-    let dc = users-1; _done = () => {if (!--dc) done()}	//_done's to be done
+  it(`Build local tallies between ${users} users`, function(done) {
+    let dc = users-1, _done = () => {if (!--dc) done()}
     interTest.ids = []
     for (let u = 1; u < users; u++) {
       let s = u, f = u-1
-        , sCid = 'cid_' + s, fCid = 'cid_' + f
+        , sCid = cidN(s), fCid = cidN(f)
         , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
         , date = new Date().toISOString()
         , sId = 'p' + (1000+s), fId = 'p' + (1000+f)
@@ -86,10 +86,10 @@ describe("Initialize tally/path test data", function() {
     }
   })
 
-  it("Build up-stream tally", function(done) {
+  it("Build up-stream foreign tally", function(done) {
     let s= interTest.ids[1]
       , sId = s.fId, sCid = s.fCid, sCert = s.fCert, sSig = s.fSig
-      , fCid = 'cid_U'
+      , fCid = cidu
       , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
       , date = new Date().toISOString()
       , fCert = {chad:{cid:fCid, agent:agent0, host, port:port0}}
@@ -98,16 +98,16 @@ describe("Initialize tally/path test data", function() {
       , sql = `with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
           ${Format(chitSql, sId, 't.tally_seq', cuid, units, sSig, users)} from t returning *;`
     db.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_uuid, cuid)
       done()
     })
   })
 
-  it("Build down-stream tally", function(done) {
+  it("Build down-stream foreign tally", function(done) {
     let f= interTest.ids[users-1]
       , fId = f.sId, fCid = f.sCid, fCert = f.sCert, fSig = f.sSig
-      , sCid = 'cid_D'
+      , sCid = cidd
       , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
       , date = new Date().toISOString()
       , sCert = {chad:{cid:sCid, agent:agent2, host, port:port2}}
@@ -116,14 +116,14 @@ describe("Initialize tally/path test data", function() {
       , sql = `with t as (${Format(tallySql, fId, tuid, date, 'foil', agree, fCert, sCert, fSig, sSig)})
           ${Format(chitSql, fId, 't.tally_seq', cuid, units, fSig, users+1)} from t returning *;`
     db.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row);
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_uuid, cuid)
       done()
     })
   })
 
-  it("Build loop-back tallies", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//_done's to be done
+  it("Build loop-back internal tallies", function(done) {
+    let dc = 2, _done = () => {if (!--dc) done()}
       , buildem = (sId, sCid, sCert, sSig, fId, fCid, fCert, fSig, u, units) => {
          let tuid = mkUuid(sCid, agent0), cuid = mkUuid(fCid, agent0)
            , date = new Date().toISOString()
@@ -150,52 +150,24 @@ describe("Initialize tally/path test data", function() {
   })
 
   it("Check view tallies_v_net", function(done) {
-    let expFile = 'tallies_v_net.json'
-      , sql = `update mychips.tallies set target = 3, bound = 7;
-               select json_agg(s) as json from (select inp,out,target,bound,units_pc,min,max,sign
-               from mychips.tallies_v_net order by min,max,sign) s;`
-//log.debug("Sql:", sql)
-    db.query(sql, null, (e, res) => {if (e) done(e)
-      assert.equal(res.length, 2)
-      let res1 = res[1]					//;log.debug('res1:', res1)
-      assert.equal(res1.rowCount, 1)
-      let row = res1.rows[0]				//;log.debug('row:', JSON.stringify(row.json))
-//      Fs.writeFileSync(expFile+'.tmp', JSON.stringify(row.json,null,1))		//Save actual results
-      Fs.readFile(expFile, (e, fData) => {if (e) done(e)
-        let expObj = JSON.parse(fData)
-        assert.deepStrictEqual(row.json, expObj)
-        done()
-      })
-    })
+    let sql = `update mychips.tallies set target = 3, bound = 7;
+               select json_agg(s) as json from (select tally_ent,tally_seq,tally_type,inv,inp,out,target,bound,net_pc,min,max,sign
+               from mychips.tallies_v_net order by 1,2,3,4) s;`
+    queryJson('tallies_v_net', db, sql, done, 2)
   })
 
   it("Check view tallies_v_paths", function(done) {
-    let expFile = 'tallies_v_paths.json'
-      , sql = `
+    let sql = `
         update mychips.tallies set reward = 0.02, clutch = 0.04 where tally_type = 'foil';
         update mychips.tallies set reward = 0.04, clutch = 0.001 where tally_type = 'stock';
         select json_agg(s) as json from (
-          select inp,out,length,circuit,min,max,bang,reward,margin,ath
-            from mychips.tallies_v_paths where length > 2 order by path) s;`
-//log.debug("Sql:", sql)
-    db.query(sql, null, (e, res) => {if (e) done(e)
-      assert.equal(res.length, 3)
-      let res2 = res[2]					//;log.debug('res1:', res1)
-      assert.equal(res2.rowCount, 1)
-      let row = res2.rows[0]				//;log.debug('row:', JSON.stringify(row.json))
-//      Fs.writeFileSync(expFile+'.tmp', JSON.stringify(row.json,null,1))		//Save actual results
-      Fs.readFile(expFile, (e, fData) => {if (e) done(e)
-        let expObj = JSON.parse(fData)
-//      assert.equal(Serialize(row.json), Serialize(expect))
-        assert.deepStrictEqual(row.json, expObj)
-        done()
-      })
-    })
+          select inp,out,circuit,min,max,bang,reward,margin,ath
+            from mychips.tallies_v_paths where min > 0 and edges > 1 order by path) s;`
+    queryJson('tallies_v_paths', db, sql, done, 3)
   })
 
-/*
-*/
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{db.disconnect(); done()}, 200)
   })
-});
+})

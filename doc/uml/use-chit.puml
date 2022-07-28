@@ -7,7 +7,7 @@ actor "Local User" as user
 actor "Direct Partner" as partner
 actor "Indirect Peer(s)" as peer
 
-usecase "Send Direct Payment" as sendDirPmt
+usecase "Send Direct Payment\nor Issue Setting" as sendDirPmt
 usecase "Request Direct Payment" as reqDirPay
 usecase "Request Direct Invoice" as reqDirInv
 usecase "Pay Direct Invoice" as payDir

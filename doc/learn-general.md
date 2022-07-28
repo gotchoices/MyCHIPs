@@ -182,7 +182,7 @@ In its place, we expect people to meet in the real world, agree on trading
 terms, and then exchange trusted data in a strictly peer-to-peer way.  Rather 
 than creating a central trading depot, we want to create a billion separate and 
 secure connections--a billion separate and secure ledgers.  Then trusted 
-partners can trade directly over these private and intimate connections.  
+partners can trade directly over these private and intimate connections.
 Strangers can trade indirectly by rippling value through the network--but only 
 if they are trustworthy enough to maintain their own local connections of 
 trust.

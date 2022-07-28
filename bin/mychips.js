@@ -5,8 +5,8 @@
 //TODO:
 //- Only load credentials for services we are actually launching
 //- Should serve documents via https to prevent spoofing a document and digest
+//- Able to launch without SPA services
 //- 
-
 const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's clock
 const Os = require('os')
 const Path = require('path')
@@ -17,7 +17,7 @@ const { Wyseman } = require('wyseman')
 var { actions, Parser } = require('wyselib')
 Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
 
-var argv = Args({
+var opts = Args({
   dbHost:	process.env.MYCHIPS_DBHOST,
   dbPassword:	process.env.MYCHIPS_DBPASSWORD,
   dbName:	process.env.MYCHIPS_DBNAME	|| 'mychips',
@@ -35,113 +35,111 @@ var argv = Args({
   dbAdminCert:	process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
   dbCA:		process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-ca.crt')
 })
-  .alias('p','peerPortal').default('peerPortal',false)	//P2p unencrypted connections at this port
   .alias('d','docs')     .default('docs',	true)	//HTML document server
   .alias('l','lifts')    .default('lifts',	false)	//Run lift scheduler
-  .alias('m','model')    .default('model',	false)	//Run agent-based model
+  .alias('m','model')    .default('model',	false)	//Run agent-based modeler
   .alias('a','agentKey')				//Each peer server runs with a specific agent key
   .argv
 
-//log.debug("argv:", argv)
-var credentials = (!argv.noHTTPS && argv.spaPort) ? Credentials(argv.spaKey, argv.spaCert, null, log) : null
-var sslAdmin = Credentials(argv.dbAdminKey, argv.dbAdminCert, argv.dbCA)	//Ignore errors
-var sslUser = Credentials(argv.dbUserKey, argv.dbUserCert, argv.dbCA)
+//log.debug("opts:", opts)
+var credentials = (!opts.noHTTPS && opts.spaPort) ? Credentials(opts.spaKey, opts.spaCert, null, log) : null
+var sslAdmin = Credentials(opts.dbAdminKey, opts.dbAdminCert, opts.dbCA)	//Ignore errors
+var sslUser = Credentials(opts.dbUserKey, opts.dbUserCert, opts.dbCA)
 const pubDir = Path.join(__dirname, "..", "pub")
 
-log.info("SPA Port:   ", argv.spaPort, argv.wyclif, argv.spaKey, argv.spaCert)
-log.debug("Server ID:  ", argv.servID)
-log.debug("CLIF Ports:  ", argv.clifPort, argv.clifNP)
-log.debug("Agent Key:  ", argv.agentKey)
-log.debug("Doc Viewer: ", argv.docs)
-log.debug("Database:", argv.dbHost, argv.dbName, argv.dbAdmin)
+log.info( "SPA Port:    ", opts.spaPort, opts.wyclif, opts.spaKey, opts.spaCert)
+log.debug("CLIF Ports:  ", opts.clifPort, opts.clifNP)
+log.debug("Agent Key In:", opts.agentKey)
+log.debug("Doc Viewer:  ", opts.docs)
+log.debug("Database:    ", opts.dbHost, opts.dbName, opts.dbAdmin)
 log.trace("Database SSL:", sslAdmin, sslUser)
-log.trace("Agent:", argv.model, "Lifts:", argv.lifts)
-log.trace("Actions:", actions)
+log.trace("Modeler:     ", opts.model, "Lifts:", opts.lifts)
+log.trace("Actions:     ", actions)
 
-var expApp = SpaServer({
-  spaPort: argv.spaPort,
-  wyclif: !!argv.wyclif,
+var expApp = SpaServer({		//Serves up SPA applications via https
+  spaPort: opts.spaPort,
+  wyclif: !!opts.wyclif,
   favIconFile: 'favicon.png',
   pubDir, credentials
 }, log)
 
-var wyseman = new Wyseman({				//Launch SPA server and associated web socket
-  host: argv.dbHost,
-  password: argv.dbPassword,
-  database:argv.dbName,
+var wyseman = new Wyseman({		//Accepts websocket connections from SPA/apps
+  host: opts.dbHost,
+  password: opts.dbPassword,
+  database:opts.dbName,
   ssl: sslUser,
   user: null, log
 }, {
-  websock: {port: argv.clifPort, credentials, delta: MaxTimeDelta},
-  sock: argv.clifNP, 
+  websock: {port: opts.clifPort, credentials, delta: MaxTimeDelta},
+  sock: opts.clifNP, 
   dispatch: Dispatch,
   log, actions, expApp
 }, {
-  host: argv.dbHost,
-  password: argv.dbPassword,
-  database:argv.dbName,
-  user: argv.dbAdmin,
+  host: opts.dbHost,
+  password: opts.dbPassword,
+  database:opts.dbName,
+  user: opts.dbAdmin,
   connect: true,
   ssl: sslAdmin,
   log, schema: __dirname + "/../lib/schema.json"
 })
 
-if (Boolean(argv.agentKey)) {				//Create socket server for peer-to-peer communications
-  const PeerCont = require('../lib/peer2peer.js')	//Peer communications controller
-  var peerCont
-    , openPeerCont = (host, port, keys) => {
-        peerCont = new PeerCont({host, port, keys, poll: true}, {
-          host: argv.dbHost,
-          database:argv.dbName,
-          user: argv.dbAdmin, 
-        })
-      }
-  if (Boolean(argv.peerPortal)) {		//Non-encrypted mode
-    let split = argv.peerPortal.toString().split(':')	//In case of host:port given
-      , host = split[1] ? split[0] : Os.hostname
-      , port = split[1] || argv.peerPort
-      , publicKey = Buffer.from(host + ':' + port).toString('base64url')
-log.debug("Dummy agent:", host, port, '->', publicKey)
-    openPeerCont(host, port, {publicKey})	//Use dummy agent ID
-
-  } else Fs.readFile(argv.agentKey, (err, keyData) => {
-    if (err) {log.error("Can't access agent key file:", argv.agentKey); return}
-log.debug("agent:", keyData.toString())
-    let agent; try {
-       agent = JSON.parse(keyData.toString())
-    } catch (e) {
-      log.error("Can't parse key data in:", argv.agentKey, e.message)
-    }
-    let jwkKey = agent.key		//JWK has d (private), x (public) properties
-      , naclKey = jwkKey ? {
-        privateKey: jwkKey.d,
-        publicKey: jwkKey.x
-      } : null
-    openPeerCont(agent.host, agent.port, naclKey)
-  })
-}
-
-if (Boolean(argv.docs)) {			//Serve up contract documents
+if (Boolean(opts.docs)) {			//Serve up contract documents
   const DocServ = require('../lib/doc.js')
   var docs = new DocServ({
     pubDir, expApp
   }, {
-    host: argv.dbHost,
-    database:argv.dbName,
-    user: argv.dbAdmin, 
+    host: opts.dbHost,
+    database:opts.dbName,
+    user: opts.dbAdmin, 
   })
 }
 
-if (Boolean(argv.lifts)) {				//Run lift scheduler
+if (Boolean(opts.agentKey)) {		//Create socket server for peer-to-peer communications
+  const PeerCont = require('../lib/peer2peer.js')	//Peer communications controller
+  var peerCont
+  let log = Log('peer')
+    , openPeerCont = (host, port, keys) => {		//Launch peer module
+        peerCont = new PeerCont({host, port, keys, log, poll: true}, {
+          host: opts.dbHost,
+          database:opts.dbName,
+          user: opts.dbAdmin, 
+        })
+      }
+  if (/^\w+@[\w.]+:[0-9]+$/.test(opts.agentKey)) {	//Non-encrypted testing mode: agent@host:port
+    let [ agent, portal ] = opts.agentKey.split('@')
+      , [ host, port ] = portal.split(':')
+      , publicKey = Buffer.from(agent, 'base64url')	//if agent length not modulo 4, it may not decode right
+    log.debug("Dummy test agent:", publicKey.toString('base64url'), host, port)
+    openPeerCont(host, port, {publicKey})		//Use dummy agent ID w/ no private key
+
+  } else Fs.readFile(opts.agentKey, (err, keyData) => {
+    if (err) {log.error("Can't access agent key file:", opts.agentKey); return}
+    let agent; try {
+       agent = JSON.parse(keyData.toString())
+    } catch (e) {
+      log.error("Can't parse key data in:", opts.agentKey, e.message)
+    }
+    let jwkKey = agent.key		//JWK has d (private), x (public) properties
+      , naclKey = jwkKey ? {
+        privateKey:	Buffer.from(jwkKey.d, 'base64url'),
+        publicKey:	Buffer.from(jwkKey.x, 'base64url')
+      } : null
+log.debug("Agent:", jwkKey.x)
+    openPeerCont(agent.host, agent.port, naclKey)
+  })
+}
+
+if (Boolean(opts.lifts)) {				//Run lift scheduler
   const LiftCont = require('../lib/lifts.js')		//Lift controller
   var lifts = new LiftCont()
 }
 
-if (Boolean(argv.model)) {				//Run agent-based simulation model
+if (Boolean(opts.model)) {				//Run agent-based simulation model
   const AgentCont = require('../lib/agent.js')		//Model controller
   var agent = new AgentCont({
-    host: argv.dbHost,
-    database:argv.dbName,
-    user: argv.dbAdmin, 
+    host: opts.dbHost,
+    database:opts.dbName,
+    user: opts.dbAdmin, 
   })
 }

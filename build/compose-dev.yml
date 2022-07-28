@@ -17,13 +17,12 @@ services:
       context: ..
       dockerfile: build/docker-mychips
     environment:
-      NODE_DEBUG: ${MYCHIPS_DEBUG:-debug}
+      NODE_DEBUG: ${NODE_DEBUG:-debug}
       MYCHIPS_DBHOST: $MYCHIPS_DBHOST
     working_dir: ${MYCHIPS_DEVDIR}/mychips
     volumes:
       - "../..:${MYCHIPS_DEVDIR}"
       - "../test/local/docker/${MYCHIPS_HOST}.log:/var/tmp/mychips"
-      - "../test/local/docker/pki:${MYCHIPS_DEVDIR}/${MYCHIPS_DIR:-mychips}/pki/local"
 #      - "~/.inputrc:/root/.inputrc"
 #      - "~/.bashrc:/root/.bashrc"
     depends_on:

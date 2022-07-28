@@ -4,8 +4,8 @@
 // TODO
 //- 
 const assert = require("assert");
-const { DBName, DBAdmin, Log, Schema, dbClient } = require('./common')
-var log = Log('testSchema')
+const { DBName, DBAdmin, testLog, Schema, dbClient } = require('./common')
+var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 const SchemaList = "'mychips','json'"
 
@@ -36,7 +36,7 @@ log.debug("Sql:", sql)
       done()
     })
   })
-
+/* */
   after('Disconnect from test database', function(done) {
     db.disconnect()
     done()

@@ -5,35 +5,34 @@ database "Downstream DB" as downDB
 database "Local DB" as localDB
 database "Upstream DB" as upDB
 
-'collections "Other Peers on Network" as net
-
 downDB	->>	localDB:	Receive route query
 
 alt Route impossible via this path
-  localDB	->>	downDB:	Reply action: fail
+  localDB	->>	downDB:	Reply action: none
 
 else Destination peer found locally
-  localDB	->>	downDB:	Reply action: affirm
+  localDB	->>	downDB:	Reply action: good
 
 else Destination peer not found locally
   loop On upstream peers with lift capacity
-    localDB	->>	upDB: Create draft route\nQuery upstream
+    localDB	->>	upDB: Create draft route(s)\nQuery upstream
   end
 end
 
-  note over localDB: new route status indeterminate (pending)
+  note over localDB: new route status indeterminate (pend)
   
 alt Negative response
   upDB	->>	localDB:		Route impossible
-  localDB	->>	localDB:	Set route status = fail
-  localDB	->>	downDB:	Reply action: fail
+  localDB	->>	localDB:	Set route status = none
+'  localDB	->>	downDB:	Reply action: none
+  note over downDB, upDB: No downstream failure reply is made because there may be multiple such routes\nat this level, all leading back through the same downstream tally.
   
 else Positive response
   upDB	->>	localDB:		Route good
-  localDB	->>	localDB:	Set route status = affirm
-  localDB	->>	downDB:	Reply action: affirm
+  localDB	->>	localDB:	Set route status = good
+  localDB	->>	downDB:	Reply action: good
 
 end
-  note over localDB: routes will eventually time\nout and become stale
+  note over localDB: routes will eventually time\nout and become expired
 
 @enduml

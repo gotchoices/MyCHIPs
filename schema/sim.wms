@@ -1,0 +1,149 @@
+#Views for simulations, modelers, graph views
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- Simplify down to more concise, JSON view
+#- Only include needed fields
+
+# DEPRECATED:
+# Summarize data about open tallies
+#----------------------------------------------------------------
+view mychips.tallies_v_sum {mychips.tallies_v} {select 
+    tally_ent
+  , count(tally_seq)						as tallies
+  , sum(net)							as net
+  , array_agg(part_ent)						as part_ents
+  , array_agg(part_cid)						as part_cids
+  , array_agg(part_agent)					as part_agents
+  , array_agg(tally_uuid)					as uuids
+  , array_agg(tally_seq)					as seqs
+  , array_agg(tally_type)					as types
+  , array_agg(state)						as states
+  , array_agg(net)						as nets
+  , array_agg(inside)						as insides
+
+  , array_agg(target)						as targets
+  , array_agg(reward)						as rewards
+  , array_agg(bound)						as bounds
+  , array_agg(clutch)						as clutchs
+  , array_agg(policy)						as policies
+
+  , sum(net) filter (where tally_type = 'stock')		as stock_net
+  , sum(net) filter (where tally_type = 'foil')			as foil_net
+
+  , count(nullif(tally_type, 'foil'))::int4			as stocks
+  , count(nullif(tally_type, 'stock'))::int4			as foils
+  , array_agg(part_ent) filter (where tally_type = 'stock')	as clients
+  , array_agg(part_ent) filter (where tally_type = 'foil')	as vendors
+  , array_agg(part_cid) filter (where tally_type = 'stock')	as client_cids
+  , array_agg(part_agent) filter (where tally_type = 'stock')	as client_agents
+  , array_agg(part_cid) filter (where tally_type = 'foil')	as vendor_cids
+  , array_agg(part_agent) filter (where tally_type = 'foil')	as vendor_agents
+  , array_agg(tally_uuid) filter (where tally_type = 'stock')	as stock_uuids
+  , array_agg(tally_uuid) filter (where tally_type = 'foil')	as foil_uuids
+  , array_agg(tally_seq) filter (where tally_type = 'stock')	as stock_seqs
+  , array_agg(tally_seq) filter (where tally_type = 'foil')	as foil_seqs
+  , array_agg(net) filter (where tally_type = 'stock')		as stock_nets
+  , array_agg(net) filter (where tally_type = 'foil')		as foil_nets
+
+  , max(latest)							as latest
+  , jsonb_agg(jsonb_build_object(
+      'ent',	tally_ent
+    , 'seq',	tally_seq
+    , 'type',	tally_type
+    , 'uuid',	tally_uuid
+    , 'net',	net
+    , 'part',	part_cid || ':' || part_agent
+  ))								as json
+  from (select * from mychips.tallies_v order by net) t
+  group by 1;
+}
+
+# DEPRECATED:
+# List of users with summarized data about their tallies (used primarily in simulation/visualization)
+#----------------------------------------------------------------
+view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
+    u.id, u.std_name, u.user_ent, u.peer_cid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
+  , coalesce(s.tallies, 0)			as tallies
+  , coalesce(s.net, 0)				as net
+  , coalesce(s.stocks, 0)			as stocks
+  , coalesce(s.foils, 0)			as foils
+  , coalesce(s.clients, '{}'::text[])		as clients
+  , coalesce(s.vendors, '{}'::text[])		as vendors
+  
+  , coalesce(s.part_ents, '{}'::text[])		as part_ents
+  , coalesce(s.part_cids, '{}'::text[])		as part_cids
+  , coalesce(s.part_agents, '{}'::text[])	as part_agents
+  , coalesce(s.uuids, '{}'::uuid[])		as uuids
+  , coalesce(s.seqs, '{}'::int[])		as seqs
+  , coalesce(s.types, '{}'::tally_side[])	as types
+  , coalesce(s.states, '{}'::text[])		as states
+  , coalesce(s.nets, '{}'::bigint[])		as nets
+  , coalesce(s.insides, '{}'::boolean[])	as insides
+
+  , coalesce(s.targets, '{}'::bigint[])		as targets
+  , coalesce(s.rewards, '{}'::float[])		as rewards
+  , coalesce(s.bounds, '{}'::bigint[])		as bounds
+  , coalesce(s.clutchs, '{}'::float[])		as clutchs
+  , coalesce(s.policies, '{}'::jsonb[])		as policies
+  
+  , coalesce(s.client_cids, '{}'::text[])	as client_cids
+  , coalesce(s.client_agents, '{}'::text[])	as client_agents
+  , coalesce(s.vendor_cids, '{}'::text[])	as vendor_cids
+  , coalesce(s.vendor_agents, '{}'::text[])	as vendor_agents
+  , coalesce(s.stock_uuids, '{}'::uuid[])	as stock_uuids
+  , coalesce(s.foil_uuids, '{}'::uuid[])	as foil_uuids
+  , coalesce(s.stock_seqs, '{}'::int[])		as stock_seqs
+  , coalesce(s.foil_seqs, '{}'::int[])		as foil_seqs
+  , greatest(coalesce(s.latest, u.mod_date),u.mod_date)	as latest
+  , coalesce(s.json, '[]'::jsonb)		as json
+    from	mychips.users_v u
+    left join	mychips.tallies_v_sum s on s.tally_ent = u.user_ent;
+}
+
+# List of users with summarized data about their tallies
+#----------------------------------------------------------------
+view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
+  t as (select
+    tally_ent, tally_seq, tally_type, tally_uuid, net, inside, part_cid, part_agent, latest
+    from mychips.tallies_v order by net
+  ),
+  s as (select tally_ent
+    , count(tally_seq)					as count
+    , sum(net)						as net
+    , sum(net) filter (where net >= 0)			as asset
+    , count(net) filter (where net >= 0)		as assets
+    , sum(net) filter (where net < 0)			as liab
+    , count(net) filter (where net < 0)			as liabs
+    , max(latest)					as latest
+
+    , jsonb_agg(jsonb_build_object(
+        'ent',		tally_ent
+      , 'seq',		tally_seq
+      , 'type',		tally_type
+      , 'uuid',		tally_uuid
+      , 'net',		net
+      , 'inside',	inside
+      , 'part',		part_cid || ':' || part_agent
+      ))							as tallies
+    from t group by 1
+  )
+  select u.*
+    , coalesce(s.count, 0)			as count
+    , coalesce(s.net, 0)			as net
+    , coalesce(s.asset, 0)			as asset
+    , coalesce(s.assets, 0)			as assets
+    , coalesce(s.liab, 0)			as liab
+    , coalesce(s.liabs, 0)			as liabs
+    , greatest(s.latest, u.mod_date)		as latest
+    , coalesce(s.tallies, '[]'::jsonb)		as tallies
+  
+    from	mychips.users_v u
+    left join	s on s.tally_ent = u.user_ent;
+}
+
+# Fixme:
+#----------------------------------------------------------------
+#This query fails (when column latest specified) to return tallies in net order
+#on certain (docker) database instances (PG13).  Not sure why!
+#select id,latest,jsonb_pretty(tallies) from mychips.users_v_tallies order by 1

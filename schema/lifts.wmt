@@ -4,50 +4,47 @@
 tabtext mychips.lifts	{Lifts}			{Contains a record for each group of chits in a segment, belonging to a lift transaction} {
     {lift_uuid		{Lift GUID}		{A globally unique identifier for this lift.  It will be the same id across all servers who participate in the same transaction.}}
     {lift_seq		{Lift Sequence}		{A lift can cross a single database multiple times.  This will increment for each new lift record created as this happens.}}
+    {lift_type		{Lift Type}		{Whether/how this lift record was originated} {
+      {in		{Inside}		{The lift is limited to within a single database}}
+      {org		{Origin}		{The lift originated within the local database but is propagated to other sites}}
+      {rel		{Relay}			{The lift originated in another site and was propagated to this site}}
+    }}
     {request		{Request}		{The state transition algorithm for lifts responds to transition requests entered into this field.}}
     {status		{Status}		{The status field indicates what has been done and what needs to happen next, if anything}}
-    {inside		{Inside}		{If set, this lift applies only to users on the local database, involving no remote systems or peers}}
-    {route_ent		{Route Entity}		{This indicates an entity that is at the top of a local segment and also the beginning of an external route we will attempt to use for the lift}}
-    {dest_chid		{Destination CID}	{The CHIP ID of the entity we are seeking at the end of the line for this lift.  For circular lifts, it is the foreign peer at the bottom of our local segment.}}
-    {dest_host		{Destination Host}	{The IP number or domain name of the server where systems will expect to find the destination user}}
-    {circuit		{Circuit User}		{For circular lifts, this is the bottom local user in our local segment.  It will be the entity to complete the circle.  For linear lifts, this field is null.}}
-    {path		{Path}			{An array of local user/peer IDs showing the local segment along which our lift will occur.}}
     {tallies		{Tallies}		{An array of the tally global ID's in between the users/peers in our local segment path}}
-    {socket		{Socket}		{An endpoint (host:port) indicating where the destination system can contact the originating system to complete the lift.  Other systems may need to contact this same socket to complete a broken lift.}}
-    {public		{Public Key}		{The public key of the originating system.  The holder of the private key matching this public key is the only entity who can authenticate the lift in the commit phase.}}
+    {circuit		{Circuit User}		{For circular lifts, this is the bottom local user in our local segment.  It will be the entity to complete the circle.  For linear lifts, this field is null.}}
     {units		{Units}			{The amount of the lift transaction, as measured in milli-CHIPs (1/1,000)}}
-    {req_date		{Request Date}		{The date/time the lift was originated}}
-    {exp_date		{Expire Date}		{The date/time the lift will be considered expired and other systems can choose to void it, or make direct contact to see if it is still alive}}
-    {digest		{Digest Hash}		{A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.}}
+    {lift_date		{Lift Date}		{The date/time the lift was originated}}
+    {life		{Lifetime}		{The amount of time before the lift will be considered expired by its arbiter referee}}
+    {find		{Destination}		{The JSON CHIP Address of the entity we are seeking at the end of the line for this lift.  For circular lifts, it is the foreign peer at the bottom of our local segment.}}
+    {origin		{Origin}		{A JSON record describing information about how/where the lift originated.  Some parts encrypted for eyes of the destination agent only.}}
+    {referee		{Referee}		{The JSON CHIP Address of the site who will decide when the lift has expired}}
     {signature		{Signature}		{Digital signature of the lift originator indicating that the transaction is binding.}}
 } -messages {
-    {X {Y} {Z}}
+    {CIF		{Chit Failure}		{An operation failed to create chits correctly for a lift}}
+    {MDA		{Missing Agent}		{A destination CHIP address was given without specifying an agent address}}
+    {IVR		{Invalid Request}	{At attempt was made to set a lift request to an unallowed value}}
+    {IVS		{Invalid Status}	{At attempt was made to set a lift status to an unallowed value}}
 }
 
 tabtext mychips.lifts_v {Lifts}			{Standard view containing an entry for each lift with additional helpful derived fields} {
-    {botu_cid		{Bot User CID}		{CHIP ID of bottom user in the lift segment}}
-    {topu_ent		{Top User ID}		{Local system ID of top user in the lift segment}}
-    {topu_cid		{Top User CID}		{CHIP ID of top user in the lift segment}}
-    {topu_host		{Top User Host}		{Host system of the top user in the lift segment}}
-    {topu_serv		{Top User Server}	{Server ID of the top user in the lift segment}}
-    {topu_sock		{Top User Socket}	{Endpoint socket of the top user in the lift segment}}
-    {lasp_cid		{Last Peer CID}		{CHIP ID of bottom peer at the end of the lift segment}}
-    {lasp_sock		{Last Peer Socket}	{Endpoint socket of bottom peer at the end of the lift segment}}
-    {route_cid		{Route Peer CID}	{CHIP ID of top user/peer in the lift segment, base of external route}}
-    {route_host		{Route Peer Host}	{Host system of the top user/peer in the lift segment, base of external route}}
-    {route_sock		{Route Peer Socket}	{Endpoint socket of the top user/peer in the lift segment, base of external route}}
-    {route_user		{Route Peer Is User}	{Indicates the top user/peer in the lift segment, base of external route, is a local user (not a remote peer)}}
-    {json_core		{JSON Core}		{A JSON representation of the parts of the lift transaction that will be digitally hashed and signed}}
+    {state		{State}			{Derived from the status and request columns to show current transition state}}
     {json		{JSON}			{A JSON representation of the lift transaction, including the digital hash}}
+    {json_core		{JSON Core}		{A JSON representation of the parts of the lift transaction that will be digitally hashed and signed}}
     {digest_v		{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
     {clean		{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the lift record has not been tampered with.}}
+
+    {expires		{Expires}		{The date/time when the lift will be considered expired by the referee}}
+    {remains		{Remains}		{The amount of time before expiration, the local lift record was created and then relayed along}}
     {circular		{Circular}		{The lift is intended to form a complete circuit}}
-    {state		{State}			{Derived from the status and request columns to show current transition state}}
 }
 
-tabtext mychips.lift_tries {Chit Retries}	{Tracks how many times the lift state transition algorithm has tried to communicate a transition to a peer} {
-    {ltry_uuid		{Lift GUID}		{The lift we are tracking retries for}}
-    {ltry_seq		{Sequence}		{The sequence number of the lift}}
-    {last		{Last Try}		{The last time we tried}}
-    {tries		{Tries}			{How many tries we are up to}}
+tabtext mychips.lifts_v_dist {Distributed Lifts} {Standard view containing an entry for each lift with additional helpful derived fields applicable to distributed (not local) lifts} {
+    {top_chad		{Top Address}		{CHIP address of the entity who owns the top (output) tally in the local segment for this lift}}
+    {bot_chad		{Bottom Address}	{CHIP address of the entity who owns the bottom (input) tally in the local segment for this lift}}
+    {top_tally		{Top Tally}		{Uuid of the top (output) tally in the local segment for this lift}}
+    {bot_tally		{Bottom Tally}		{Uuid of the bottom (input) tally in the local segment for this lift}}
+    {origin_v		{Origin Template}	{A default template for the origin property for a new lift}}
+    {find_v		{Find Template}		{A default template for the destination property for a new lift}}
+    {referee_v		{Referee Template}	{A default template for the referee property for a new lift}}
 }

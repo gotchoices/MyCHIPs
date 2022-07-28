@@ -29,6 +29,8 @@ fi
 if [ ! -f example.conf ]; then
   echo "Error: Can't find PKI example configuration" >&2; exit 1
 fi
+locdir="$(pwd)/local"
+mkdir -p $locdir
 
 if ! $batch; then			#Interactive mode
   if [ -z "$EDITOR" ]; then
@@ -40,8 +42,6 @@ if ! $batch; then			#Interactive mode
     EDITOR="$defeditor"
   fi
 
-  locdir="$(pwd)/local"
-  mkdir -p $locdir
   if [ ! -f $locdir/local.conf ]; then
     cp example.conf $locdir/local.conf
   else
@@ -56,6 +56,11 @@ if ! $batch; then			#Interactive mode
   echo "Please change/review the settings to reflect your local site."
   echo -n "Enter to continue: "; read ans
   ${EDITOR} $locdir/local.conf
+else
+  if [ ! -f $locdir/local.conf ]; then
+    cp example.conf $locdir/local.conf
+    echo "domain=$(hostname -d)" >>$locdir/local.conf
+  fi
 fi
 
 for type in ${pargs[*]}; do

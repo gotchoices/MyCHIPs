@@ -1,0 +1,14 @@
+tabtext mychips.users_v_tallies	{Users and Tallies}	{View primarily for simulations and network visualizer} {
+    {x		{X}		{}}
+} -messages {
+    {lenFor	{Foreign Links}		{Relative length of links with foreign nodes}}
+    {lenLoc	{Local Links}		{Relative length of links with other local user nodes}}
+    {locPull	{Local Pull}		{How hard the link connector pulls between local user nodes}}
+    {forPull	{Foreign Pull}		{How hard the link connector pulls on foreign nodes}}
+    {centPull	{Centering}		{How hard nodes seek graph center}}
+    {repel	{Node Repel}		{How hard nodes repel each other}}
+    {vertAlign	{Vertical Align}	{How hard to push foriegn nodes to align with local user tally}}
+    {floatSink	{Bouyancy}		{How hard assets rise and liabilities sink}}
+    {simDecay	{Alpha Decay}		{Controls how fast the simulation settles}}
+    {velDecay	{Velocity Decay}	{Simulates atmospheric friction}}
+}

@@ -1,0 +1,27 @@
+#Launch a single postgres instance to facilitate regression tests.
+version: '3.7'
+
+services:
+  postgres:
+    image: gotchoices/pg:13
+    build:
+      context: ..
+      dockerfile: build/docker-pg
+    container_name: test-pg
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_HOST_AUTH_METHOD: trust
+    tty: true
+    stdin_open: true
+    volumes:
+      - "../test/local/docker/test-pg.pgdata:/var/lib/postgresql/data/pgdata"
+      - "./dbsetup.sh:/docker-entrypoint-initdb.d/dbsetup.sh"
+#      - "~/.inputrc:/root/.inputrc"
+#      - "~/.bashrc:/root/.bashrc"
+    ports:
+      - "${MYCHIPS_DBPORT:-5432}:5432"
+    networks:
+      - test-pg
+
+networks:
+  test-pg:

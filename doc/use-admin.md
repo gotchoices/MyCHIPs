@@ -1,5 +1,5 @@
 ## Connecting the Admin UI
-
+(The harder way)  
 Once you have a MyCHIPs server running, you can try connecting to the 
 SPA (possibly from another machine) by directing your browser to:
 ```
@@ -61,14 +61,22 @@ https://<hostname>:8000/admin.html
   connection tokens for other users using the admin GUI.
   
 ### URL Tickets:
+(The easier way)
   It is also possible using the -Q switch to make adminticket produce a URL which
   you can connect to directly, eliminating the need to import a key file into the
-  UI as described above.  Something like:
+  UI as described above.
+```
+    bin/adminticket -Q
+```
+  Then copy the output of this program and paste it into your browser location bar.
+  This should connect you to the server.
+
+  You may like to do this in one step with Something like:
 ```  
     chrome $(bin/adminticket -Q)
 ```  
   See the documentation in the wylib package for more detailed information on 
-  connection keys.
+  how connection keys work.
 
 <br>[Next - Testing The Server](use-test.md)
 <br>[Back to Index](README.md#contents)

@@ -2,11 +2,9 @@
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
 #Run multiple servers in multiple containers to simulate a larger MyCHIPs network
-#Usage:	(see README)
-#
+#Usage:	(see README.md)
 #TODO:
 #- 
-
 #Initialize
 #-------------------------------------------------------------------------------
 this="$(basename ${BASH_SOURCE})"
@@ -21,6 +19,7 @@ while [[ $# -gt 0 ]]; do				#Grab command line arguments
     -u|--users) newusers=$2; shift;;			#How many users per site
     -a|--admin) pargs+=("admin");;			#For compatibility with simnet
     -c|--config) source $2; shift;;			#Load additional configuration
+    -m|--model) modversion="$2"; shift;;		#Modeler version
     --) shift; pargs+=("$@"); shift $#;;		#Done with switches
     *) pargs+=("$1");;
   esac
@@ -59,15 +58,11 @@ if [ ! -f $pkidir/local.conf ]; then
 	EOF
 fi
 
-#See if we will run our local logfile viewer
+#Prepare if we will run our local logfile viewer
 #-------------------------------------------------------------------------------
 if [ "$logviewer" = "logwin" ]; then
-  for d in $mychips/node_modules $mychips/../node_modules; do
-    if [ -f $d/.bin/wylib-info ]; then
-      export TCLLIBPATH="$($d/.bin/wylib-info path) $TCLLIBPATH"
-      break
-    fi
-  done			;#echo "TCLLIBPATH:$TCLLIBPATH"; exit 0
+  export TCLLIBPATH="$(npx wylib-info path) $TCLLIBPATH"
+#  echo "TCLLIBPATH:$TCLLIBPATH"; exit 0
 fi
 
 #Encode command line arguments so we can pass to a container without special escaping
@@ -167,7 +162,6 @@ function start_spa {
   if [[ -d $machtmp ]]; then mkdir -p $machtmp; fi
 #echo "start_spa mach:$mach"
 
-  local pgname="pg$n"
   local spaname="spa$n"
   local spaxport=$(expr $spaports + $n)
   local wsxport=$(expr $wsports + $n)
@@ -176,7 +170,7 @@ function start_spa {
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
   	-e "NODE_DEBUG=$NODE_DEBUG" \
-  	-e "MYCHIPS_DBHOST=$pgname" \
+  	-e "SITE=$n" \
   	-- ${mysim}sim-c.sh spa; then
     echo "Failed starting MyCHIPs SPA server"; return
   fi
@@ -189,42 +183,39 @@ function start_peer {
   local mach="$sitebase$n"
   local machtmp="$locdir/$mach"
   if [[ -d $machtmp ]]; then mkdir -p $machtmp; fi
-#echo "start_peer mach:$mach NODE_DEBUG:$NODE_DEBUG"
+echo "start_peer mach:$mach NODE_DEBUG:$NODE_DEBUG"
 
-  local pgname="pg$n"
   local peername="peer$n"
   if ! run mychips --name $peername \
   	-v "$machtmp:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
   	-e "NODE_DEBUG=$NODE_DEBUG" \
-  	-e "MYCHIPS_DBHOST=$pgname" \
+  	-e "SITE=$n" \
   	-- ${mysim}sim-c.sh peer; then
     echo "Failed starting MyCHIPs peer server"; return
   fi
 }
 
-#Launch an instance of the mychips agent modeler
+#Launch an instance of the mychips agent-based model
 #-------------------------------------------------------------------------------
-function start_agent {
+function start_model {
   local n="${1:-0}"; shift			#Instance number: 0..N
   local mach="$sitebase$n"
   local machtmp="$locdir/$mach"
   if [[ -d $machtmp ]]; then mkdir -p $machtmp; fi
-#echo "start_agent mach:$mach"
+#echo "start_model mach:$mach version:$modversion @:$@"
 
-  local pgname="pg$n"
-  local peername="peer$n"
-  local agentname="agent$n"
-  if ! run mychips --name $agentname \
+  local modname="model$n"
+  if ! run mychips --name $modname \
   	-v "$machtmp:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
   	-e "NODE_DEBUG=$NODE_DEBUG" \
-  	-e "MYCHIPS_DBHOST=$pgname" \
+  	-e "SITE=$n" \
   	-e "MYCHIPS_DDHOST=mongo" \
-  	-- ${mysim}sim-c.sh agent $(encode -m $agentversion --peerServer $peername "$@"); then
-    echo "Failed starting MyCHIPs Agent Modeler"; return
+  	-- ${mysim}sim-c.sh model $(encode -m $modversion "$@"); then
+    echo "Failed starting MyCHIPs Agent-based Modeler"; return
   fi
 }
 
@@ -232,16 +223,15 @@ function start_agent {
 #-------------------------------------------------------------------------------
 function ticket {
   local n="${1:-0}"				#Instance number: 0..N
-#  local mach="$sitebase$n"
-#  local machtmp="$locdir/$mach"
-#echo "ticket mach:$mach"
+#echo "ticket mach:$mach DBHOST:$MYCHIPS_DBHOST"
   local spaname="spa$n"
+  local pgname="pg$n"
   local spaxport=$(expr $spaports + $n)
   local wsxport=$(expr $wsports + $n)
   local hostname="${spaname}.${domname}"
 
   docker exec -it $spaname bash -c \
-    "bin/adminticket -S $spaxport -P $wsxport -H $hostname -Q |tee /var/tmp/mychips/ticket.url"
+    "bin/adminticket -S $spaxport -P $wsxport -H $hostname -h $pgname -Q |tee /var/tmp/mychips/ticket.url"
   admin $n
 }
 function tickets {
@@ -264,9 +254,7 @@ function admin {
 #Launch a mongodb instance
 #-------------------------------------------------------------------------------
 function start_mongo {
-  if ! run mongo -p 27017:27017 \
-  	-- --replSet $mongorepset \
-     ; then
+  if ! run mongo -p 27017:27017 ; then
     echo "Failed starting mongo"; return
   fi
   sleep 2			#Needs a pause to be ready for connections
@@ -327,7 +315,7 @@ function start_log {
   local mach="$sitebase$n"
   local pidfile="$locdir/log-$log.pids"
   if [ "$log" = "pg" ]; then
-    local cmd="docker logs -f pg$n --tail 0"
+    local cmd="docker logs -f pg$n --tail 1"
   else
     local logfile="$locdir/$mach/$log"
     local cmd="tail -n 0 -f $logfile"
@@ -359,16 +347,22 @@ function stop_log {
   local n="${1:-all}"; shift
   local log="${1:-combined.log}"; shift
   local pidfile="$locdir/log-$log.pids"
+  local newfile="$locdir/log-$log.pids.tmp"
 
 #echo "stop_log n:$n pidfile:$pidfile"
   if [ ! -f $pidfile ]; then return; fi
+  touch $newfile
   while read pn pid; do
     if [[ ! -z $pid && ( $n == $pn || $n = 'all' ) ]]; then
       echo "  Kill PID: $pn $pid"
-      pkill -P $pid; kill $pid
+       kill $pid		#pkill -P $pid
+    else
+      echo "  Wait PID: $pn $pid"
+      echo "$pn $pid" >>$newfile
     fi
   done <$pidfile
-  if [[ $n = 'all' ]]; then rm -f $pidfile; fi
+  mv $newfile $pidfile
+#  if [[ $n = 'all' ]]; then rm -f $pidfile; fi
 }
 function stop_logs {
   stop log all "$@"
@@ -436,7 +430,9 @@ echo "Building docker image: $fullname"
 
   start_devel
   start_mongo
-  start sites
+  if [[ $1 != '-n' ]]; then	#Suppress launching sites
+    start sites
+  fi
 }
 
 #Initialize for a simulation run
@@ -445,7 +441,9 @@ function init {
   mongo clear
   for i in $(seq 0 $maxsite); do
     SITE=$i remote usercheck
-    SITE=$i remote dbcheck
+    if $checkschema ; then
+      SITE=$i remote dbcheck
+    fi
   done
 }
 
@@ -468,12 +466,14 @@ function shutdown {
 #-------------------------------------------------------------------------------
 function mongo {
   local cmd="${1:-find}"; shift
-  case $cmd in
-    find)
-      query='db.getCollection("agents").find()';;
-    clear)
-      query='db.getCollection("agents").deleteMany({}); db.getCollection("actions").deleteMany({})';;
-  esac
+  if [[ $cmd = 'find' ]]; then
+    query="db.getCollection(\"entities\").find($1).pretty()"
+  elif [[ $cmd = 'clear' ]]; then
+    query='db.getCollection("entities").deleteMany({})'
+  else
+    query="$@"
+  fi
+echo "mongo query: $query"
   docker exec -it mongo mongo --eval "$query" $dbname
 }
 
@@ -486,26 +486,26 @@ function start {
     mongo|devel)
       start_$targ "$@"
       ;;
-    pg|spa|site|log|peer|agent)
-      one_or_many start_$targ $1 "$@"
+    pg|spa|site|log|peer|model)
+      one_or_many start_$targ "$@"
       ;;
-    pgs|spas|sites|logs|peers|agents)
+    pgs|spas|sites|logs|peers|models)
       for i in $(seq 0 $maxsite); do 
         start_${targ::${#targ}-1} $i "$@"
       done 
       ;;
     sim)
       for i in $(seq 0 $maxsite); do 
-        start_log $i agent -x ${agentwins[0]} -y ${agentwins[1]}
+        start_log $i model -x ${modelwins[0]} -y ${modelwins[1]}
         start_log $i peer -x ${peerwins[0]} -y ${peerwins[1]}
       done
       for i in $(seq 0 $maxsite); do 
-        SITE=$i remote dbcheck
+        if $checkschema; then SITE=$i remote dbcheck; fi
         SITE=$i remote usercheck
         start_peer $i &
       done 
       for i in $(seq 0 $maxsite); do 
-        start_agent $i "$@" &
+        start_model $i "$@" &
       done
       ;;
   esac
@@ -532,11 +532,11 @@ function stop {
     site|log)
       stop_${targ} "$@"
       ;;
-    pg|spa|peer|agent)
+    pg|spa|peer|model)
       n="${1:-0}"; shift
       one_or_many stop_targ $n $targ "$@"
       ;;
-    pgs|spas|peers|agents)
+    pgs|spas|peers|models)
       for i in $(seq 0 $maxsite); do 
         stop_targ $i ${targ::${#targ}-1}
       done 
@@ -548,9 +548,9 @@ function stop {
       ;;
     sim)
 echo "Stop simulation"
-      stop agent all
+      stop model all
       stop peer all
-      stop_logs agent
+      stop_logs model
       stop_logs peer
       ;;
     *)
@@ -562,7 +562,7 @@ echo "Stop simulation"
 if [[ $(type -t $command) == "function" ]]; then
   $command "$@"
 
-elif [[ 'dbcheck|usercheck|q|backup|restore|dropdb' =~ $command ]]; then
+elif [[ 'dbcheck|usercheck|q|backup|restore|dropdb|parms' =~ $command ]]; then
   n="${1:-all}"; shift
   one_or_many remote $n $command "$@"
 

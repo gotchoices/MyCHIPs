@@ -1,39 +1,47 @@
 #!/bin/sh
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+#TODO:
+#- Are the 'agents' settings being used?
+#- 
 user_host=mychips.org
 user_port=54320
 peer_agent=UNASSIGNED		#Key word triggers setting of real agent key on first run
 peer_host=mychips.org
 peer_port=65430
-if [[ ! -z "$MYCHIPS_USER_HOST" ]]; then user_host="$MYCHIPS_USER_HOST"; fi
-if [[ ! -z "$MYCHIPS_USER_PORT" ]]; then user_port="$MYCHIPS_USER_PORT"; fi
-if [[ ! -z "$MYCHIPS_PEER_AGENT" ]]; then peer_agent="$MYCHIPS_PEER_AGENT"; fi
-if [[ ! -z "$MYCHIPS_PEER_HOST" ]]; then peer_host="$MYCHIPS_PEER_HOST"; fi
-if [[ ! -z "$MYCHIPS_PEER_PORT" ]]; then peer_port="$MYCHIPS_PEER_PORT"; fi
+if [[ ! -z "$MYCHIPS_SPAHOST" ]]; then user_host="$MYCHIPS_SPAHOST"; fi
+if [[ ! -z "$MYCHIPS_WSPORT" ]]; then user_port="$MYCHIPS_WSPORT"; fi
+if [[ ! -z "$MYCHIPS_AGENT" ]]; then peer_agent="$MYCHIPS_AGENT"; fi
+if [[ ! -z "$MYCHIPS_AGHOST" ]]; then peer_host="$MYCHIPS_AGHOST"; fi
+if [[ ! -z "$MYCHIPS_AGPORT" ]]; then peer_port="$MYCHIPS_AGPORT"; fi
 
 #Default parameters for connection port
 cat <<EOF
-insert into base.parm (module, parm, type, v_int, v_text, cmt) values 
-  ('mychips', 'site_ent', 'text', null, 'r1', 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
- ,('mychips', 'user_host', 'text', null, '${user_host}', 'Default IP where mobile application connects.')
- ,('mychips', 'user_port', 'int', ${user_port}, null, 'Default port where mobile user application connects.')
- ,('mychips', 'peer_agent', 'text', null, '${peer_agent}', 'Default agent key where peer servers connect.')
- ,('mychips', 'peer_host', 'text', null, '${peer_host}', 'Default network address where peer servers connect.')
- ,('mychips', 'peer_port', 'int', ${peer_port}, null, 'Default port where peer servers connect.')
+insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values 
+  ('mychips', 'site_ent', 'text', null, 'r1', null, 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
 
- ,('peers', 'min_time', 'int', 5, null, 'Minimum number of minutes between retrying a message to a peer.')
- ,('peers', 'max_tries', 'int', 100, null, 'How many times to retry sending messages to a peer before giving up.')
+-- Deprecated:
+-- ,('mychips', 'user_host', 'text', null, '${user_host}', null, 'Default IP where mobile application connects.')
+-- ,('mychips', 'user_port', 'int', ${user_port}, null, null, 'Default port where mobile user application connects.')
+-- ,('mychips', 'peer_agent', 'text', null, '${peer_agent}', null, 'Default agent key where peer servers connect.')
+-- ,('mychips', 'peer_host', 'text', null, '${peer_host}', null, 'Default network address where peer servers connect.')
+-- ,('mychips', 'peer_port', 'int', ${peer_port}, null, null, 'Default port where peer servers connect.')
 
- ,('routes', 'life', 'text', null, '60 min', 'A valid SQL interval describing how long a route should last before being considered stale')
- ,('routes', 'tries', 'int', 4, null, 'The number of times to retry discovering a pathway before giving up')
+ ,('agents', 'min_time', 'int', 5, null, null, 'Minimum number of minutes between retrying a message to an agent server.')
+ ,('agents', 'max_tries', 'int', 100, null, null, 'How many times to retry sending messages to an agent server before giving up.')
+
+ ,('routes', 'life', 'text', null, '60 min', null, 'A valid SQL interval describing how long a route should last before being considered stale')
+ ,('routes', 'tries', 'int', 4, null, null, 'The number of times to retry discovering a pathway before giving up')
+ ,('routes', 'maxstep', 'int', 10, null, null, 'Do not propagate route queries that have already hopped this many nodes to get to us')
+ ,('routes', 'maxquery', 'int', 10, null, null, 'The greatest number of new upstream routes to generate/maintain for each received query')
+ ,('routes', 'autoquery', 'boolean', null, null, true, 'The number of times to retry discovering a pathway before giving up')
  
- ,('lifts', 'order', 'text', null, 'bang desc', 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
- ,('lifts', 'interval', 'int', 10000, null,'The number of milliseconds between sending requests to the database to choose and conduct a lift')
- ,('lifts', 'limit', 'int', 1, null, 'The maximum number of lifts the database may perform per request cycle')
- ,('lifts', 'minimum', 'int', 10000, null, 'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
+ ,('lifts', 'order', 'text', null, 'bang desc', null, 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
+ ,('lifts', 'interval', 'int', 10000, null,null, 'The number of milliseconds between sending requests to the database to choose and conduct a lift')
+ ,('lifts', 'limit', 'int', 1, null, null, 'The maximum number of lifts the database may perform per request cycle')
+ ,('lifts', 'minimum', 'int', 10000, null, null, 'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
 
   on conflict on constraint parm_pkey do update
-    set type = EXCLUDED.type, v_int = EXCLUDED.v_int, v_text = EXCLUDED.v_text, cmt = EXCLUDED.cmt
+    set type = EXCLUDED.type, v_int = EXCLUDED.v_int, v_text = EXCLUDED.v_text, v_boolean = EXCLUDED.v_boolean, cmt = EXCLUDED.cmt
 ;
 EOF

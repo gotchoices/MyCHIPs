@@ -3,7 +3,7 @@
 
 #Create permissioning role groups
 base::group_roles {
-    mychips	{peer_2 user_2 contract_1 tally_2 chit_2 mychips_1}
+    mychips	{user_2 contract_1 tally_2 chit_2 mychips_1}
   } {
     mychips.chits_v
   }

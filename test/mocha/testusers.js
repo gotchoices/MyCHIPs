@@ -3,8 +3,8 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { dbConf, Log, Format, Bus, assert, dbClient } = require('./common')
-var log = Log('testUsers')
+const { dbConf, testLog, Format, Bus, assert, dbClient } = require('./common')
+var log = testLog(__filename)
 var { host, user0, user1, uKey0, uKey1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('./def-users')
 
 describe("Establish test users", function() {
@@ -23,8 +23,8 @@ describe("Establish test users", function() {
         delete from base.ent where ent_num > 1001;
         delete from mychips.tallies;
         update mychips.users set _last_tally = 0;
-        update mychips.users_v set ${f0} where peer_ent = '${user0}';
-        update mychips.users_v set ${f1} where peer_ent = '${user1}';
+        update mychips.users_v set ${f0} where user_ent = '${user0}';
+        update mychips.users_v set ${f1} where user_ent = '${user1}';
         select count(*) as count from mychips.users_v where ent_num >= 1000; commit;`
 log.debug("Sql:", sql)
     db.query(sql, (err, res) => {if (err) done(err)
@@ -36,7 +36,7 @@ log.info("Users:", row.count)
       done()
     })
   })
-
+/* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{
       db.disconnect()

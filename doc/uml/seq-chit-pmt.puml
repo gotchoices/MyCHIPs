@@ -1,14 +1,14 @@
 @startuml
 !include common.puml
-$title(Chit Direct Payment)
+$title(Chit Direct Payment or Setting)
 actor "Payor" as pay
 database "Payor DB" as payDB
 database "Receiver DB" as recDB
 actor "Receiver" as rec
 
-pay	->>	payDB:		Submit signed chit\nvalue --> receiver
+pay	->>	payDB:		Submit signed chit\nvalue --> receiver\nor setting
 note over pay, payDB
-  Payable/receivable is binding
+  Payable/receivable/setting is binding
 end note
 payDB	->>	recDB:		Store and transmit
 recDB	->>	rec:		Store and notify user

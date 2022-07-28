@@ -11,7 +11,7 @@ group User requests route via a specific tally/partner
 
   alt Pathway found locally
     userDB	->>	user:		Notify user: good
-  else Existing route found (good, failed or stale)
+  else Existing route found, good, failed (none) or expired
     userDB	->>	partDB:		Request route refresh
   else No route found
     userDB	->>	partDB:		Create draft route\nQuery upstream
@@ -26,10 +26,10 @@ group User requests any/all routes
     else Current good route found
       userDB ->>	user:		Update user: good
     
-    else Current failed route found
-      userDB ->>	user:		Update user: failed
+    else Current failed (none) route found
+      userDB ->>	user:		Update user: none
     
-    else Stale route found (good or failed)
+    else Expired route found, good or failed (none)
       userDB ->>	partDB:		Request route refresh
 
     else No existing route found

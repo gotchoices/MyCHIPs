@@ -67,8 +67,12 @@
             }
         }
     },
-    "hterms": null,
-    "pterms": null,
+    "hterms": {
+      "limit": 100
+    },
+    "pterms": {
+      "limit": 10
+    },
     "comment": null,
     "partner": {
         "chad": {

@@ -10,16 +10,16 @@ const assert = require('assert');
 const Noise = require('noise-protocol')
 const { Address6 } = require('ip-address')
 const PeerNoise = require('../../lib/peernoise')
-const { Log } = require('./common')
+const { testLog } = require('./common')
 
 const initPort = 55551
 const respPort = 55552
 const hostname = 'localhost'
 //const initAt = hostname + ':' + initPort
 //const respAt = hostname + ':' + respPort
-var log = Log('testPeercomm')
-var logI = Log('testPeercommI')		//Enable separate logging for each end
-var logR = Log('testPeercommR')
+var log = testLog(__filename)
+var logI = testLog(__filename + '-I')		//Enable separate logging for each end
+var logR = testLog(__filename + '-R')
 var message1 = "This is a test message."
 var message2 = "I hear you!"
 var message3 = "Can I hear myself?"
@@ -62,7 +62,7 @@ logI.debug("Initiator got query request:", req, data)
   })
 
   it("Send from responder to initiator on existing connection", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+    let dc = 2, _done = () => {if (!--dc) done()}	//2 _done's to be done
     initCB = function(connection, obj) {
       assert.equal(obj.text, message2)			//Got the same message we sent
       assert.equal(responder.connections.size(), 1)	//Should reuse existing connection
@@ -72,7 +72,7 @@ logI.debug("Initiator got query request:", req, data)
   })
 
   it("Send from initiator to initiator", function(done) {
-    let dc = 2; _done = () => {if (!--dc) done()}	//2 _done's to be done
+    let dc = 2, _done = () => {if (!--dc) done()}
     initCB = function(connection, obj) {
       assert.equal(obj.text, message3)			//Got the same message we sent
       _done()
@@ -114,8 +114,8 @@ logR.debug('RespCB:', connection, obj)
       })
     }, 25)
   })
-/*
-*/
+
+/* */
   after('Clean up peer objects', function() {
     initiator.close()
     responder.close()

@@ -5,10 +5,13 @@ All it really does is allow one to launch a set of server instances from
 a series of shell windows.  It does not implicitly include any kind of
 agent model or other function to stimulate transactions between the servers.
 
-It may come in handy again at some point in order to debug certain situations
-in the peer-to-peer protocol so we will keep it around for now.
+These scripts have not been maintained for several years and will likely require
+some effort to make them work correctly with the current system.
 
-It consists of two scripts, both located in the test/sim directory:
+They may come in handy again at some point in order to debug certain situations
+in the peer-to-peer protocol so we will keep them around for now.
+
+This consists of two scripts, both located in the test/sim directory:
 
 - simlocal:
   Runs a specified number of instances of the server on the local (Linux) machine.

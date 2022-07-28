@@ -1,45 +1,70 @@
-#!/bin/bash
-#Make one or more random users for use in agent modeling
-#Copyright MyCHIPs.org; See license in root of this package
-# -----------------------------------------------------------------------------
-#TODO:
-#- Update this to use node and to respect ../settings.js
-#- Use agent, not servID
-#- 
+#!/usr/bin/env node
+//Make one or more random users for use in testing/modeling
+//Copyright MyCHIPs.org; See license in root of this package
+// -----------------------------------------------------------------------------
+//TODO:
+//- 
+const {DBName, DBAdmin, DBHost, DBPort, PeerAgent, PeerHost, PeerPort} = require('../settings')
+const Http = require('http')
+const Format = require('pg-format')
+const { dbClient } = require("wyseman")
+var options = {
+  protocol: 'http:',
+  hostname: 'www.pseudorandom.name',
+  headers: {
+    'Accept': 'application/json',
+  }
+}
+var minDate = "1940-01-01"
+var maxDate = "2009-12-31"
+var minSecs = new Date(minDate).getTime()
+var maxSecs = new Date(maxDate).getTime()
+var diffSecs = maxSecs - minSecs
 
-DBHOST=${MYCHIPS_DBHOST}; if [ -z "$DBHOST" ]; then DBHOST="localhost"; fi
-DBNAME=${MYCHIPS_DBNAME}; if [ -z "$DBNAME" ]; then DBNAME="mychips"; fi
+var opts = require('yargs')
+  .alias('H','dbHost')  .default('dbHost', DBHost)
+  .alias('D','dbName')  .default('dbName', DBName)
+  .alias('U','dbAdmin') .default('dbAdmin', DBAdmin)
+  .alias('P','dbPort')  .default('dbPort', DBPort)
+  .alias('a','agent')   .default('agent',  PeerAgent)
+  .alias('h','host')    .default('host',   PeerHost)
+  .alias('p','port')    .default('port',   PeerPort)
+  .alias('n','number')  .default('number', 1)
+  .argv
 
-count=1
-servID='null'
-minDate="1940-01-01"
-maxDate="2009-12-31"
-minSecs=$(date -d "$minDate" +%s)
-diffSecs=$(expr $(date -d "$maxDate" +%s) - $minSecs)
-while [ $# -gt 0 ]; do
-  if [ "x$1" = "x-n" ]; then		#-n <number> 	How many users to create
-    count=$2
-  elif [ "x$1" = "x-h" ]; then		#-h <servID>	Specify the server for the user(s)
-    servID=$2
-  fi
-  shift 2
-done
-#echo "DBNAME:$DBNAME count:$count servID:$servID diffSecs:$diffSecs"
+//console.log('DB:', opts.dbName, opts.dbHost, opts.dbAdmin, 'agent:', opts.agent)
+var db = new dbClient({
+  host:		opts.dbHost, 
+  database:	opts.dbName, 
+  user:		opts.dbAdmin, 
+  port:		opts.dbPort,
+  connect:	true
+})
 
-while [ $count -gt 0 ]; do
-#  name="$(curl -s www.pseudorandom.name)"
-  name="$(wget -O - www.pseudorandom.name 2>/dev/null)"
-  read first last <<< "$name"
-  cid="$(echo ${first}_${last} |tr '[:upper:]' '[:lower:]')"
-  secs=$(expr ${RANDOM}${RANDOM} % $diffSecs + $minSecs)
-  date=$(date -d "@$secs" +%Y-%b-%d)
-  
-  echo "first:$first last:$last cid:$cid date:$date"
-
-#continue
-  psql $DBNAME admin -h $DBHOST >/dev/null <<EOF
-    insert into mychips.users_v (ent_name, fir_name, peer_cid, ent_type, born_date, serv_id)
-    values('$last', '$first', '${cid}', 'p', '${date}', $([ "$servID" == 'null' ] && echo "null" || echo "'${servID}'"))
-EOF
-  count=$(expr $count - 1)
-done
+var counter = opts.number
+for (let i = 0; i < opts.number; i++) {		//Loop n times
+  Http.get(options, res => {			//Get a random name
+//console.log("res:", res.headers)
+    res.setEncoding('utf8')
+    let body = ""
+    res.on("data", data => {body += data})
+    res.on("end", () => {			//Fetch done
+//console.log("got:", body)
+      let result = JSON.parse(body)
+        , [ first, last ] = result.name.split(' ')		//Get first, last names
+        , cid = first.toLowerCase() + '_' + last.toLowerCase()	//Make a CHIp ID
+        , randSecs = minSecs + (Math.random() * diffSecs)	//Make a random birthday
+        , bday = new Date(randSecs).toISOString().slice(0,10)
+        , sqlTpt = `insert into mychips.users_v (
+            ent_name, fir_name, ent_type, born_date, peer_cid, peer_agent, peer_host, peer_port
+          ) values (%L, %L, 'p', %L, %L, %L, %L, %s);`
+        , sql = Format(sqlTpt, last, first, bday, cid, opts.agent, opts.host, opts.port)
+//console.log("sql:", sql)
+      db.query(sql, (e, res) => {
+        if (e) console.error("Error:", e)
+          if (--counter <= 0)		//Disconnect after last one done
+            db.disconnect()
+      })
+    })
+  })
+}

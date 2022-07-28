@@ -1,0 +1,22 @@
+[
+ {
+  "rid": 2,
+  "via_ent": "p1000",
+  "via_tseq": 2,
+  "dst_cid": "cid_D",
+  "dst_agent": "UjY1NDM2",
+  "status": "good",
+  "step": 0,
+  "sorter": 0
+ },
+ {
+  "rid": 3,
+  "via_ent": "p1002",
+  "via_tseq": 4,
+  "dst_cid": "cid_1",
+  "dst_agent": "UTY1NDM1",
+  "status": "draft",
+  "step": 2,
+  "sorter": 5
+ }
+]

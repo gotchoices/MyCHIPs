@@ -1,0 +1,8 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabtext json.cert {JSON Certificate}	{JSON view of user certificates primarily meant for import/export} {
+    {identity	{Identity}		{JSON MyCHIPs identity record with optional state and birth records}}
+    {chad	{CHIP Address}		{Full JSON CHIP address record for the user}}
+    {name	{Entity Name}		{The name of the entity as represented on the CHIP certificate}}
+}

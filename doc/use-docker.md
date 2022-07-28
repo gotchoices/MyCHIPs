@@ -88,10 +88,13 @@ Specifically, it mounts whatever directory you have *mychips installed in*
 on /usr/local/devel.  This implies that anything else you have installed in the same
 folder is also accessible to the container.  This is so you can install the
 WyattERP suite parallel to mychips (rather than running out of node_modules).
-This allows you to work on those packages and have the changes seen immediately i
+This allows you to work on those packages and have the changes seen immediately in
 your running container.
 
 See [this section](work-hacking.md) for more on how to do this.
+
+This compose file also draws site certificates and the like from the mychips/pki folder
+(not local/docker/pki).
 
 ### Production Docker Container
 There is also a build profile for running a production docker instance that
@@ -99,9 +102,11 @@ can be launched as follows:
 ```
   npm run docker
 ```
-This is not currently well tested and it does not have specific provisions yet
-for maintaining local keys, certificates, log files, etc.  Hopefully that will become
-better sorted out in the future.
+This is not currently well tested.  Hopefully that will become better developed in the 
+future so one can run a development server under docker.
+
+If you experiment with this version, note that keys/certificates are accessed from
+the folder: test/local/docker/pki.
 
 <br>[Next - Native Installation](use-native.md)
 <br>[Back to Index](README.md#contents)

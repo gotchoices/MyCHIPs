@@ -95,3 +95,6 @@ So we will need a way to:
   - Quickly launch any others we may need (for example, on other ports) so
     they can at least answer port traffic, even if they have to wait some
     seconds for the new schema to become available for their queries.
+
+<br>[Next - FAQ](ref-faq.md)
+<br>[Back to Index](README.md#contents)

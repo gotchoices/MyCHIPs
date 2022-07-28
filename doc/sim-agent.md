@@ -1,21 +1,41 @@
-## Agent Model
-Most of this file was created before the agent model was coded and so primarily
-expresses design objectives.
+## Agent-Based Modeling
 
 In conjunction with the various iterations of the simulation environments, several
-versions of the agent model have been coded, or are in process.  These versions
-are located in the lib directory and invoked from the test/sim/agent script.
+versions of an agent modeler have been coded, or are in process.  These versions
+are located in the lib directory and invoked from the test/sim/modeler script.
 
-Versions 1 and 2 are very rudimentary and were coded and used to validate the 
-early lift algorithm.
+## Modeler Version 1
+This modeler is very simple, but still useful.  It only contemplates users on a
+single site so is not of much help in evaluating distributed lifts.  However it
+will generate interesting data sets on a single site so you can visualize and
+test local lifts, both circular and linear.
 
+To use it:
+- Start with a clean (or non-existent) database
+- Launch a server instance: npm run server
+- Connect the [admin browser UI](use-admin.md)
+- Initialize the database: cd test/sample; ./kickstart
+- Create some sample users: ./randuser -n 10
+- Launch the modeler: test/sim/modeler -m 1
+
+More detailed explanation [here](use-test.md).
+
+## Modeler Version 2
+Version 2 is built to handle multiple sites and simulate distributed lifts.
+This is the default the [docker-based simulation](sim-docker.md#containerized-simulation)
+was built for.
+
+## Modeler Version 3
 Version 3 is the subject of a BYU Capstone project (2021/2022) and will hopefully
 incorporate many more of the features outlined below.  The specific project 
 objectives are outlined [here](Project/Agent_Model.md).
 
 
 ## Objectives for User Agent Model
-Jan 2019 (Some information may be outdated)
+Jan 2019
+
+Much of the following was created before the agent model was coded and so primarily
+expresses design objectives.
 
 This is not a part of the production MyCHIPs server, but rather a tool to aid
 in the development of the network algorithms.  The idea is to spawn a number of

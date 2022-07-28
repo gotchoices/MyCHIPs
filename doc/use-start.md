@@ -20,7 +20,7 @@ If you need to upgrade, a quick and easy way is:
 ```
 Now clone the MyCHIPs source code from the [github repository](github.com/gotchoices/mychips).
 If the folder gets created as "MyCHIPs" (because you copied the github clone link) rather than 
-"mychips", it may cause some problems on some platforms, so consider renaming it to "mychips."
+"mychips", it may cause some problems on some platforms, so consider renaming it to (lower case) "mychips."
 ```
   git clone https://github.com/gotchoices/mychips
   cd mychips
@@ -54,7 +54,7 @@ Note: the docker methods will require docker engine >= 20.10.10.
   that runs on behalf of simulated users to create a data set of random CHIP trades.
 
   To run the simulation, install Docker on your machine and then get into 
-  the test/sim folder and follow the instructions [here](sim-docker.md).
+  the test/sim folder and follow the instructions [here](sim-docker.md). The current simulation Model 3 docs are found [here](../lib/model3/doc/README.md), and contain a summary of the instructions and implementation details. We suggest referring to Model 3 docs first when trying to run the most current version of the simulation.
 
   The simulation environment was developed on MacOS but it should also be 
   possible (though not well tested) to run on a Linux host.

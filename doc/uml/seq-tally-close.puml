@@ -7,7 +7,7 @@ database "Subject DB" as subjDB
 actor "Subject" as subj
 
 prop	->>	propDB:		Request tally be closed
-propDB	->>	subjDB:		Mark as closing and notify peer
+propDB	->>	subjDB:		Issue 'close' setting chit
 subjDB	->	subjDB:		Mark as closing
 loop until balance == 0
  propDB <->	subjDB:		Participate in lifts
