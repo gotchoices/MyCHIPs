@@ -40,10 +40,9 @@ that makes use of the API module.
 
 The Capstone team did attempt to port the JS API to Dart but did not successfully complete that work.
 Their code is [here](/app/lib/wyseman/wysemanClient.dart).
-Since that time, the Dart API has made some progress and can successfully connect
-to the backend.  This work is not yet part of the standard repository but can be
-made available upon request.
-It is also not yet structured in a way that is easily integrated into an application.
+Since that time, the Dart API has made some slow progress and can successfully connect
+to the backend.
+But it is not yet structured appropriately for integration into application.
 
 The websocket protocol is conducted over a secure SSL connection.
 This means the mobile device must recognize the server as trustworthy.
@@ -197,3 +196,111 @@ In order to do so, they also simulate the actions of a user interface.
 By examining these tests, it is possible to understand much about the
 [CRUD](/doc/use-mobile.md#user-api-objects)
 queries you will need to issue actions to, and process responses from the database.
+
+## Page and Frame Designs
+The following outlines a set of screens for a mobile app to accomplish the 
+functionality described [above](#user-presentation).
+- Frame: Profile Data
+  - CHIP ID
+  - surname, given names, company name
+  - addresses
+  - web, email, phone
+  - Identity records
+    - Tax ID number
+    - Birth ID record
+    - Photograph (ipfs hash?)
+
+- Frame: Tally Data
+  - Tally ID, data, notes
+  - Partner certificate data and credit limit
+  - Partner trading variable settings
+  - Holder certificate data and credit limit
+  - Holder trading variable settings
+  - Current balance
+  - Contract
+  - Holder, signatures
+
+- Page: Home
+  - Display:
+    - Balance sheet (visual or tabular)
+    - Summary data: CHIP assets, liabilities, net total
+    - Optional additional presentation in local currency (i.e. dollars)
+  - Actions:
+    - Touch: Select a tally -> Tally Edit
+    - Button: Toggle visual/tabular balance sheet
+    - Button: Add new tally (+) -> Tally Edit
+    - Button: Scan QR code -> QR Scan
+    - Button: Request Payment -> Invoice
+    - Button: Settings -> Settings
+
+- Page: QR Scan
+  - Display:
+    - Camera screen
+    - Instructions?
+  - Actions:
+    - QR code may be one of the following types:
+      - Connection ticket: create new account record, connect, -> Home
+      - Tally ticket: -> Tally Edit
+      - Payment address / Invoice: -> Pay
+      - Chit: Queue to send to our provider when connected
+    - Button: Home -> Home
+
+- Page: Tally Edit
+  - Display: Tally Data
+  - Editable: Tally Frame (if not closed)
+    - All applicable tally values (draft)
+    - Trading variables (open/close)
+  - Actions:
+    - Button: Preview contract PDF
+    - Button: Offer (draft)
+    - Button: Accept (draft)
+    - Button: Detail (open/close) -> Chits View
+    - Button: Home -> Home
+
+- Page: Chits View
+  - List of chits including: date, id, type, amount, status
+  - Actions:
+    - Button: Home -> Home
+
+- Page: Pay
+  - Display:
+    - Partner summary information (local tally)
+    - Payment CHIP address (remote lift payment)
+    - Optional conversion to local currency (dollars)
+  - Editable:
+    - Payment amount
+  - Actions:
+    - Pay: Initiate payment, -> Home
+    - Home: Cancel, -> Home
+
+- Page: Account
+  - Display:
+    - Provider address, port, connection key	(multiple providers/accounts?)
+    - Signing key(s)				(multiple signing keys?)
+  - Actions:
+    - Import/export connection key
+    - Import/export signing key
+    - Generate signing key
+    - Button: Home -> Home
+
+- Page: Settings
+  - Display:
+    - Local currency
+    - Notifications on/off
+    - Preferred tally contract
+    - Profile Data
+  - Actions:
+    - Button: Profile -> Profile
+    - Button: Home -> Home
+
+- Page: Profile
+  - Editables:
+    - Profile Data
+  - Actions:
+    - Button: Save: Save, -> Home
+    - Button: Home -> Home
+
+- Async: Tally offer, Invoice received, Payment received
+  - Display: Notification
+  - Actions:
+    - Click: -> Tally Edit (on applicable tally)
