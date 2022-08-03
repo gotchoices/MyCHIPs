@@ -1,25 +1,26 @@
 ## User Mobile Application
 
 ### General
-As of this writing (Jan 2022) the mobile app is not yet functional.
+As of this writing (Jul 2022) no mobile app is yet functional.
 There is a Flutter app originally written by the BYU Capstone team, but it is not yet
 connected to the backend.
 
-So the sections below represent design objectives and API definitions for what will
-become the mobile application.
-
+The sections below contain certain design objectives and API definitions for what 
+will hopefully become the mobile application.
+There is also a more detailed [project definition](Project/MyCHIPs_Mobile.md) that
+was the original specification for Capstone but has since been improved and augmented.
 
 ### Visual Balance Sheet
-One important <i>eventual</i> goal of MyCHIPs to create a dependable, alternative medium of exchange.
-Another critical goal is to build a diverse web of trusted links of interdependency 
+The primary goal of MyCHIPs is to create a dependable, alternative medium of exchange.
+A seconary goal is to encourage a diverse web of trusted links of interdependency 
 throughout society in order to make the world a more peaceful and friendly place to live in.
 
 In order to accomplish these goals, the end-user interface must be simple
 enough for everyone to use and understand.
 It will be an added bonus if the interface can imbue the user with deeper insights into:
   - The [true nature](http://gotchoices.org/mychips/value.html) of money/value
-  - Sustainable and dependable savings strategies (Balance Sheet)
-  - Healthy balance of productivity versus expenses (P&E)
+  - Sustainable and secure savings strategies (Balance Sheet)
+  - Healthy balance of productivity versus expenses (P&L)
 
 Many people approach money management solely from the standpoint of meeting their monthly expenses (P&E).
 They produce what they need to pay the bills.
