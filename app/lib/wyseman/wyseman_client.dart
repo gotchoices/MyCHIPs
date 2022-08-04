@@ -1,8 +1,8 @@
-// A module to connect a dart client to a MYCHIPs server via websocket
+// @dart=2.9
+//// A module to connect a dart client to a MYCHIPs server via websocket
 // see an implementation in test.dart
 
 import 'dart:convert';
-import 'dart:convert' show utf8;
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -61,8 +61,8 @@ class Client {
 
 // keylength, dbinfo, & http_port
   Client(List<String> db, int port, String ca) {
-    this.httpPort = port;
-    this.dbInfo = db;
+    httpPort = port;
+    dbInfo = db;
     this.ca = ca;
     //this.keyLength = keyLength;
   }
@@ -83,7 +83,7 @@ class Client {
 
     openWebSocket(authString, socketHeaders) {
       //db codes to base64
-      String encodedString = js.convert(this.dbInfo);
+      String encodedString = js.convert(dbInfo);
       List<int> bytes = utf8.encode(encodedString);
       String dbHex = base64.encode(bytes);
       //form query string with authstring parameter
@@ -94,8 +94,7 @@ class Client {
       //send connect array
       //connectArray = [url, socketHeaders];
       //open websocket connection
-      final channel =
-          IOWebSocketChannel.connect(Uri.parse(url), headers: socketHeaders);
+      final channel = IOWebSocketChannel.connect(Uri.parse(url), headers: socketHeaders);
       // String toSend =
       //     "{ id: 'list_cmd', action: 'select', view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_endp']}";
       // channel.sink.add(toSend);
@@ -111,8 +110,7 @@ class Client {
 
       BigInt pe = BigInt.from(65537);
 
-      KeyPair keyPair =
-          await RsaPssPrivateKey.generateKey(keyLength, pe, Hash.sha256);
+      KeyPair keyPair = await RsaPssPrivateKey.generateKey(keyLength, pe, Hash.sha256);
       RsaPssPrivateKey myPrivKey = keyPair.privateKey;
       RsaPssPublicKey myPubKey = keyPair.publicKey;
 
@@ -135,10 +133,7 @@ class Client {
       myFile.writeAsString(jsonEncode(loginTest));
 
       //build token auth string
-      authString = 'token=' +
-          token +
-          '&pub=' +
-          base64.encode(utf8.encode(js.convert(exPub)));
+      authString = 'token=' + token + '&pub=' + base64.encode(utf8.encode(js.convert(exPub)));
 
       openWebSocket(authString, null);
       key = loginTest['login']['privateKey'];
@@ -147,22 +142,17 @@ class Client {
     if (key != null) {
       Map<String, dynamic> keyJson = jsonDecode(key);
       print(keyJson);
-      RsaPssPrivateKey myKey =
-          await RsaPssPrivateKey.importJsonWebKey(keyJson, Hash.sha256);
+      RsaPssPrivateKey myKey = await RsaPssPrivateKey.importJsonWebKey(keyJson, Hash.sha256);
 
-      String origin =
-          "https://" + host.toString() + ":" + this.httpPort.toString();
+      String origin = "https://" + host.toString() + ":" + httpPort.toString();
       String endpoint = "/clientinfo";
 
       print('making call to ${origin + endpoint}');
       HttpClient client = new HttpClient();
       //magic line that just accepts all cert stuff
-      client.badCertificateCallback =
-          ((X509Certificate cert, String host, int port) => true);
+      client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
 
-      await client
-          .getUrl(Uri.parse(origin + endpoint))
-          .then((HttpClientRequest request) {
+      await client.getUrl(Uri.parse(origin + endpoint)).then((HttpClientRequest request) {
         request.headers.add('user-agent', 'Wyseman Websocket Client API');
         request.headers.add('cookie', rand.nextDouble().toString());
         // print('headers set');
@@ -183,8 +173,8 @@ class Client {
           //Printing to verify connection string
 
           List<int> newMessage = utf8.encode(js.convert(message));
-          File newMessageFile = await new File(
-              '/tmp/.key.txt'); //remember this is in the Docker container
+          File newMessageFile =
+              await new File('/tmp/.key.txt'); //remember this is in the Docker container
           newMessageFile.writeAsBytesSync(newMessage, flush: true);
 
           // sign bytes
@@ -193,10 +183,8 @@ class Client {
 
           socketHeaders['user-agent'] = 'Wyseman Websocket Client API';
           socketHeaders['cookie'] = message.cookie;
-          authString = 'sign=' +
-              base64Url.encode(sign).replaceAll('==', '') +
-              '&date=' +
-              message.date;
+          authString =
+              'sign=' + base64Url.encode(sign).replaceAll('==', '') + '&date=' + message.date;
 
           print("Auth String: " + authString);
           openWebSocket(authString, socketHeaders);
@@ -208,46 +196,3 @@ class Client {
     return connectArray;
   }
 }
-
-
-
-
-
-
-          // channel.stream.listen((event) {
-          //   channel.sink.add('recieved');
-          //   channel.sink.close(status.goingAway);
-          // });
-
-          //SecurityContext wsContext = new SecurityContext();
-          //AsciiDecoder asciiBoi = new AsciiDecoder();
-          //wsContext.setTrustedCertificates(local + '/spa_ca.crt');
-          /*
-             TODO:
-              THIS IS THE FINAL SECTION, WHERE THE CONNECTION ULTIMATELY FAILS
-             */
-          // SecureSocket s = await SecureSocket.connect(this.host, this.port,
-          //     context: wsContext,
-          //     onBadCertificate: ((X509Certificate cert) => true));
-
-          // s.listen((event) {
-          //   print('event recived!');
-          //   print(asciiBoi.convert(event));
-          // });
-
-          // String toSend =
-          //     "{ id: 'list_cmd', action: 'select', view: 'mychips.users_v', fields: ['id', 'std_name', 'peer_endp']}";
-
-          // Uint8List encodedMessage = utf8.encode(toSend);
-          // print(toSend.toString());
-          // s.write(toSend);
-          //print('write sent');
-          // WebSocket webSocket =
-          //     WebSocket.fromUpgradedSocket(s, serverSide: false);
-
-          // webSocket.listen((event) {
-          //   print('upgraded');
-          // });
-
-          // webSocket.add(toSend);
-          //print('it was sent');

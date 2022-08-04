@@ -1,12 +1,11 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import './view/home_page.dart';
-import 'objects/singletons.dart';
-import './view/test.dart';
+import 'managers/connection/connection_manager.dart';
+import 'managers/host/host_manager.dart';
+import 'view/test.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  initiateSingletons();
-  runApp(MyChipsTest()); //change back to MyChips()
+  ConnectionManager().initialize(HostManager().configStream);
+  runApp(MyChipsTestPage());
 }

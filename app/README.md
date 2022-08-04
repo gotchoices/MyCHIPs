@@ -16,6 +16,12 @@ the app.
 - Pay or request payment from those you have tallies with
 - Pay or request payment from an indirectly connected party
 
+## Setup
+- Run this in the app project directory to manually renerate the JSON serialization code, after changing any serialized structures:
+  `flutter pub run build_runner build`
+- Run this to start a watcher and have this run continuously:
+  `flutter pub run build_runner watch`
+
 ## Build
 - Follow the instructions to [install Flutter](https://flutter.dev/docs/get-started/install)
 - In this (app) directory, do:

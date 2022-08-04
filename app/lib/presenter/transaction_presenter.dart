@@ -1,7 +1,6 @@
-import 'package:flutter_app/DAOs/transaction_dao.dart';
+import '../DAOs/transaction_dao.dart';
 
 class TransactionPresenter {
-
   var dao = new TransactionDao();
 
   bool sendPayment(transaction) {
@@ -25,5 +24,4 @@ class TransactionPresenter {
     dao.cancelRequest(transaction);
     return true;
   }
-
 }
