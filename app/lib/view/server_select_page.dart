@@ -45,11 +45,9 @@ ExpansionPanelList makeServerList(servers) {
 }
 
 class ExpansionItem {
-  ExpansionItem(item) {
-    item = item;
-    header = item.name;
-    isExpanded = false;
-  }
+  ExpansionItem(this.item)
+      : header = item.name,
+        isExpanded = false;
 
   Server item;
   String header;

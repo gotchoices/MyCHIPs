@@ -1,4 +1,4 @@
-package com.example.flutter_app
+package org.gotchoices.mychips.mychips
 
 import io.flutter.embedding.android.FlutterActivity
 
