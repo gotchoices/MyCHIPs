@@ -311,6 +311,9 @@ difficult to fully understand the scope of the project.  So this section has bee
 added to break the project down into smaller phases which can be taken on as
 individual sub-projects.
 
+This should also allow backend development and enhancements to keep pace with the
+application development in a more orderly way.
+
 - Phase 1: Provider Connection / Authentication
   - Freshly launched app allows little other than to scan a QR code as first step
   - QR Scanner recognizes only one type so far: connection ticket
@@ -379,3 +382,5 @@ individual sub-projects.
   - User profile can include photo
   - Photos referenced by ipfs, stored on provider server as ipfs
   - Use ipfs also for tally contracts
+
+Other future phases likely to follow.
