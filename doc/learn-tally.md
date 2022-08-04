@@ -375,11 +375,13 @@ Users can manually adjust these values themselves.
 The instruction for making such changes will be digitally signed by the user, 
 authorizing the site to act in accordance with the new settings.
 
-<p align="center">
-  <embed src="figures/lifts.svg" width="600" title="Visualizing Trading Variables">
+<p align="center">		<!--- Github disables svg scripts -->
+  <embed src="figures/lifts.svg" width="500" title="Visualizing Trading Variables">
 </p>
 
-The interactive figure above allows you to drag settings to see visually the way trading parameters 
+This
+[interactive figure](https://cdn.jsdelivr.net/gh/gotchoices/MyCHIPs/doc/figures/lifts.svg)
+allows you to drag settings to see visually the way trading parameters 
 determine if/when lifts or drops will be performed.
 
 Lifts are the critical method used for reducing accumulated tally balances.
