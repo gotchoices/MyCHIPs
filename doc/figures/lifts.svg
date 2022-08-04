@@ -1,18 +1,13 @@
-<!DOCTYPE html>
-<!--
-TODO:
-- 
--->
-<html lang="en">
- <head>
-  <meta charset="utf-8" />
-  <title>Lift Visualizer</title>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg class="graph" width="420" height="420" viewBox="-10 -10 430 430"
+    title="Tally Trading Variables" descr="How trading variables affect lift amounts"
+    onload="repaint()" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <style>
     body {
 //      border: 1px purple solid;
     }
     .graph {
-      border: 1px blue solid;
+//      border: 1px blue solid;
       width: 100%;
       height: 50%;
       font-family: sans-serif;
@@ -32,15 +27,11 @@ TODO:
       marker-end: url(#arrow);
     }
   </style>
- </head>
-<body>
-  <svg class="graph">
-    <defs>
-      <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
-    </defs>
-  </svg>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8" type="text/javascript"></script>
-<script>
+  <defs>
+    <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
+
+    <script type="text/javascript" href="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8"></script>
+    <script type="text/javascript"><![CDATA[
 const tallyRad = 44
 const knobRad = 5
 const maxBal = 1000			//Maximum tally balance
@@ -196,7 +187,6 @@ function repaint() {
 }
 
 repaint()
-
-</script>
-</body>
-</html>
+    ]]></script>
+  </defs>
+</svg>
