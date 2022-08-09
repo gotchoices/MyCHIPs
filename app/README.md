@@ -1,14 +1,13 @@
 # MyCHIPs Mobile Application
-This implementation was coded by a BYU Capstone team during the fall 2020 and
+This implementation was initially coded by a BYU Capstone team during the fall 2020 and
 Winter 2021 semesters.  It is based on Flutter and was intended to achieve
 basic functionality in conjunction with the existing server backend.
 
 ## Status
-While the team did implement a number of the required screens, it was never
-successfully connected to the backend.  So all data is simulated locally in 
-the app.
+The capstone team built a number of the required screens, backed by MVVM-based boilerplate models.  Since then @n8allan built the beginnings of some manager infrastructure using reactive patterns, and has implemented Null safety across the code-base.
 
 ## Intended Features
+- Connect and reconnect to the back-end
 - Show or scan QR code to establish new tally relationships
 - View and keep track of established tally relationships
 - View and understand CHIP assets and liabilities
@@ -32,9 +31,23 @@ the app.
   [installation and user of flutter](https://www.youtube.com/watch?v=x0uinJvhNxI)
 
 ### TODO:
-- Finish porting the wyseman sebsocket client module to dart
-- Back-port wyseman dart client code into wyseman distribution
-- How to access wyseman.dart from wyseman npm distribution?
-- Can/should wyseman also be distributed as a dart package (pub.dev)?
-- Write DAOs to send/receive data and translate it for view
-- Extend/refine backend actions/reports as necessary to serve UI
+- Get token scanning UI working based on Test page (can paste or scan token)
+- Add prompt for User if user isn't in the token (usually won't be)
+- Redirect to token UI if connection needed, but lost or not established
+- Build managers to pull various data for screens
+- Connect UIs to various managers
+
+## How ConnectionManager works
+The `ConnectionManager` class is a singleton which manages the connection to the back-end.
+
+### Reactive connections ###
+The ConnectionManager exposes connectionStream, which is a stream of `Connection?`.  As is the pattern with reactive programming, this stream can be subscribed to to be notified whenever the connection changes or is broken (the connection will be null).
+
+### Configuration ###
+ConnectionManager is configured through it's `initialize` method, which should be given a stream of `HostConfig`.  The config is monitored, and if it changes, the connection is cleared.
+
+### Establishing ###
+To establish a connection, it must either have a key, which it attempts to load from storage at startup, or a ticket.  You can test whether it has a key using the hasKey member, e.g. `ConnectionManager().hasKey`.  If it doesn't provide a ticket (presumably through scanning a QR code or copy/paste), ensure that the ticket also has it's user member populated (the QR typically will not have this so the user will need to be prompted for this), then you can request the `connection` member to establish the connection, e.g. `await ConnectionManager().connection;`
+
+### Other actions ###
+To determine if a connection is established, use `ConnectionManager().connectionStream.hasValue`.  To clear the key, and prevent the device from automatically re-connecting, use `await ConnectionManager().clearKey()`.  To disconnect the current connection use `ConnectionManager().clearConnection();`
