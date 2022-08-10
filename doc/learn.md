@@ -6,7 +6,7 @@ For some theoretical background on the idea of time-money based on private credi
 the final chapters in
 [Got Choices, the Book](http://gotchoices.org/book/money.html).
 
-And please proceed to the more technical explanations given here:
+And please proceed to the more technical explanations that follow here:
 
 <br>[Next - A Complex Problem](learn-general.md)
 <br>[Back to Index](README.md#contents)

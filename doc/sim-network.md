@@ -1,4 +1,4 @@
-##Network Simulation
+## Network Simulation
 
 The network simulation (try 2) is implemented by the test/sim/simnet script to launch various 
 MyCHIPs services on a number of different machines on your local network.
@@ -77,18 +77,8 @@ simulation, each agent is connected to a single mongo database where agents
 are registered and actions are requested of other agents running on other
 machines.
 
-So you need to have a mongod running somewhere.  Also, it needs to be configured
-as a replica set master.  In mongod.conf, do:
-```
-:replication
-  replSetName: rs0
-```
-or on the command line, include --replSet rs0.
+So you need to have a mongod running somewhere accessible to the simulation.
 
-When first connecting to the database, you must issue the command:
-```
-  rs.initiate()
-```
 ###Certificates
 Each machine or virtual machine must have appropriate certificates.  For the
 simulation, these are drawn from the pki/local folder.  You can initialize a

@@ -107,5 +107,5 @@ a simplified network of tallies as follows:
 This provides examples of many of the basic scenarios that may occur when
 discovering and/or using pathways and routes for credit lifts.
 
-<br>[Next - User Application](use-pki.md)
+<br>[Next - System Certificates](use-pki.md)
 <br>[Back to Index](README.md#contents)

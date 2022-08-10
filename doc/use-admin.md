@@ -7,11 +7,11 @@ https://<hostname>:8000/admin.html
 ```
   Your browser will likely warn you of an insecure site.  
   For testing, you may be able to just proceed anyway.  Better yet, the
-  "npm init" command above will have created a certificate in pki/local/spa-ca.crt 
+  "npm initcerts" command executed previously will have created a certificate in pki/local/spa-ca.crt 
   (or test/docker/pki/spa-ca.crt for a docker test instance).
   If you tell your os/browser you trust that CA, you can proceed without warnings.
   
-  See the file in [pki/README.md](../pki/README.md) for more details about securing your site with
+  See [this section](use-pki.md) for more details about securing your site with
   an SSL certificate (whether you use a commercial certificate or make your own).
   
   If the connection is working, you should see an open connection dialog in the 
@@ -33,7 +33,7 @@ https://<hostname>:8000/admin.html
 ```  
   Make sure the host address matches what is on the spa certificate you built
   using the "npm run init" or "npm run cert" commands.
-  (See [pki/README.md](../pki/README.md) for more detailed info on this.)
+  (See [here](use-pki.md) for more detailed info on this.)
   
 - Use the "Import Keys:" option in the connection dialog to open the ticket file.
   You may also drag/drop your ticket file onto the Import button.
@@ -61,7 +61,7 @@ https://<hostname>:8000/admin.html
   connection tokens for other users using the admin GUI.
   
 ### URL Tickets:
-(The easier way)
+(The easier way)  
   It is also possible using the -Q switch to make adminticket produce a URL which
   you can connect to directly, eliminating the need to import a key file into the
   UI as described above.

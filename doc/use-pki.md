@@ -79,5 +79,5 @@ A default agent is identified by a symbolic link in the pki/local folder called 
 
 In addition to a CHIP ID, each user must be assigned an agent ID (peer_agent field) in the mychips.users_v view.
 
-<br>[Next - System Administration](use-mobile.md)
+<br>[Next - Mobile Application](use-mobile.md)
 <br>[Back to Index](README.md#contents)
