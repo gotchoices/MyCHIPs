@@ -104,7 +104,7 @@ Some of the challenges include:
   fungibility (or at least effective-fungibility).  A private note promising payment only in the future is 
   clearly not fungible.  A chit is effectively fungible only because of the novel MyCHIPs lift algorithm.
 - MyCHIPs is intended primarily for use in commerce to facilitate trade--not as a mechanism for creating arbitrary
-  debt which, in some circumstances, [might be deemed a security](https://www.kramerlevin.com/en/perspectives-search/when-might-loans-be-deemed-securities.html).
+  debt which, in certain circumstances, [might be deemed a security](https://www.kramerlevin.com/en/perspectives-search/when-might-loans-be-deemed-securities.html).
 - The [Trading Variables](#trading-variables) developed as the sole drivers of the lift algorithm.
   It was not initially clear how this might (or might not) be compatible with the credit terms below.
   For example, if a tally representing a home loan has a very large balance, it may suck up all available
@@ -375,11 +375,13 @@ Users can manually adjust these values themselves.
 The instruction for making such changes will be digitally signed by the user, 
 authorizing the site to act in accordance with the new settings.
 
-<p align="center">
-  <embed src="figures/lifts.html" height="440" width="600" title="Visualizing Trading Variables">
+<p align="center">		<!--- Github disables svg scripts -->
+  <embed src="figures/lifts.svg" width="500" title="Visualizing Trading Variables">
 </p>
 
-The interactive figure above allows you to drag settings to see visually the way trading parameters 
+This
+[interactive figure](https://cdn.jsdelivr.net/gh/gotchoices/MyCHIPs/doc/figures/lifts.svg)
+allows you to drag settings to see visually the way trading parameters 
 determine if/when lifts or drops will be performed.
 
 Lifts are the critical method used for reducing accumulated tally balances.

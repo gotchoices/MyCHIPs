@@ -19,7 +19,7 @@ current implementation design.  When that works, there will be more time and
 motivation for other possible "from-scratch" versions to come along that might 
 be more elegant or efficient.
 
-### Can you build this system on top of (Etherium, holochain, other blockchain...)?
+### Couldn't you build MyCHIPs on top of (Etherium, holochain, other favorite blockchain thing...)?
 
 Possibly.  Maybe somehow, but why?
 
@@ -50,7 +50,7 @@ job done according to the critical principles.  It is difficult to model
 relativity using Newtonian physics.  Time and space start to break down.  
 Likewise, it is hard to model private credit in the context of equity-based 
 notions (like public ledgers, reputation-based trust, and the like).  Those are 
-helpful constructs--just not directly applicable to a tokenless money system 
+helpful constructs--just not directly applicable to a fully distributed money system 
 based on private credit.
 
 ### Why use Javascript on the backend?
@@ -185,23 +185,32 @@ you're talking to Mongo.
 
 That's probably code for: Why didn't you implement this on top of HTTP?
 
-MyCHIPs is making every effort to de-centralize the monetary function.  It is
-a lot easier to code using centralized thinking.  De-centralized is harder.
+MyCHIPs is making every effort to not just de-centralize the monetary function, but
+to make it fully distributed.
+It is a lot easier to code using centralized thinking.
+De-centralized is harder.
+Distributed is even harder than that.
 
-HTTP was built for the purpose of requesting web pages in a client/server
-model.  Sure, it was extended to accommodate more authentic two-way data
-communications.  But it still has a fair amount of legacy overhead related to
-the way web browsers work.  HTTP is a hammer and MyCHIPs is not a nail.
+HTTP was built for the purpose of requesting web pages in a client/server model.
+Yes, it was since extended to accommodate more authentic two-way data communications.
+But it still has a fair amount of legacy overhead related to the way web browsers work.
+In short, HTTP is a hammer and MyCHIPs is not a nail.
 
 The way HTTP endpoints are defined and then proven authentic via DNS and a 
 hierarchical certificate authority system is, by definition, centralized.
 
-MyCHIPs uses IP numbers with optional host names.  And it used IP sockets in a
-very standard way.  But connections are authenticated using distributed keys so
-the system can work in the complete absense of a central certificate authority.
+MyCHIPs uses standard IP numbers with optional host names.
+So it can be used with or without DNS.
+This allows the system to work in the absense of a central certificate authority scheme.
 
-This was done not out of ignorance and not just to be different.  It is done 
-for a critical, strategic reason.
+MyCHIPs also uses IP sockets in a pretty standard way, albeit at a lower level than most people are used to.
+But connections are authenticated using distributed public/private key pairs as opposed to usernames and passwords.
+
+Furthermore, network nodes are not typically found at known, public locations.
+Certain site locations may only be known to their immediate trading partners.
+
+These design choices were not made out of ignorance nor merely to be different.
+Rather, they exist to accomplish very specific, critical, strategic performance objectives.
 
 <br>[Next - Source Tree](ref-source.md)
 <br>[Back to Index](README.md#contents)

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg class="graph" width="420" height="420" viewBox="-10 -10 430 430"
+    title="Tally Trading Variables" descr="How trading variables affect lift amounts"
+    onload="repaint()" 
+    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <style>
+    body {
+//      border: 1px purple solid;
+    }
+    .graph {
+//      border: 1px blue solid;
+//      width: 100%;
+//      height: 50%;
+      font-family: sans-serif;
+      font-size: 12px;
+      text-anchor: middle;
+    }
+    .stock .background {
+      fill: #bbb;
+    }
+    .peer circle {
+      stroke: #666;
+    }
+    .range {
+      fill: none;
+      stroke: #f0f;
+      stroke-width: 1.5px;
+      marker-end: url(#arrow);
+    }
+  </style>
+  <defs>
+    <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
+
+    <script type="text/javascript" href="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8"></script>
+    <script type="text/javascript"><![CDATA[
+const tallyRad = 44
+const knobRad = 5
+const maxBal = 1000			//Maximum tally balance
+const maxY = 100			//Pixels up to foil
+const maxO = 40				//Length of small sliders
+const setX = 150			//Settings slider location
+const markerWidth = 12			//Link arrowhead marker
+const markerHeight = 8
+const arrowPoints = [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
+var svgWid = (maxY + tallyRad*2) * 3
+var svgHei = (maxY + tallyRad*2) * 2.125		//Default image size
+const balScale = d3.scaleLinear()
+  .domain([-maxY, maxY])
+  .range([-maxBal, maxBal])
+  .clamp(true)
+  .interpolate(d3.interpolateRound)
+
+const setBars = {
+  tally:	{x: 0, source: -maxY, target: maxY},
+  lift:		{x: setX, source: 0, target: -maxY},
+  drop:		{x: setX, source: 0, target: maxY},
+  clRew:	{x: setX, source: -maxY-tallyRad, target: -maxY-tallyRad*2},
+  clClu:	{x: -setX, source: -maxY-tallyRad, target: -maxY-tallyRad*2},
+  vdRew:	{x: setX, source: maxY+tallyRad, target: maxY+tallyRad*2},
+  vdClu:	{x: -setX, source: maxY+tallyRad, target: maxY+tallyRad*2}
+}
+const setKnobs = {
+  balance: {bar: setBars.tally, v: 30, vmin:-maxY, vmax:maxY, min:-maxBal, max:maxBal, title: 'Tally Balance'},
+  lBound:  {bar: setBars.lift,  v: 80, vmin:0, vmax:maxY, min:0, max:maxBal,	title: 'Client Bound', push: 'lTarget'},
+  lTarget: {bar: setBars.lift,  v: 60, vmin:0, vmax:maxY, min:0, max:maxBal,	title: 'Client Target', pull: 'lBound'},
+  lReward: {bar: setBars.clRew, v:  6, vmin:0, vmax:maxO, min:0, max:1, 	title: 'Client Reward'},
+  lClutch: {bar: setBars.clClu, v:  0, vmin:0, vmax:maxO, min:0, max:1,		title: 'Client Clutch'},
+  dTarget: {bar: setBars.drop,  v: 50, vmin:0, vmax:maxY, min:0, max:maxBal,	title: 'Vendor Target', push: 'dBound'},
+  dBound:  {bar: setBars.drop,  v: 70, vmin:0, vmax:maxY, min:0, max:maxBal,	title: 'Vendor Bound', pull: 'dTarget'},
+  dReward: {bar: setBars.vdRew, v:  4, vmin:0, vmax:maxO, min:0, max:1,		title: 'Vendor Reward'},
+  dClutch: {bar: setBars.vdClu, v:  0, vmin:0, vmax:maxO, min:0, max:1,		title: 'Vendor Clutch'}
+}
+Object.values(setKnobs).forEach(k => {
+  k.yScale = d3.scaleLinear()			//Map relative pixels to Y screen location
+    .domain([k.vmin, k.vmax])
+    .range([k.bar.source, k.bar.target])
+  k.y = k.yScale(k.v)
+  k.yClamp = d3.scaleLinear().clamp(true)	//Force y location to span of range
+    .domain([k.bar.source, k.bar.target])
+    .range([k.bar.source, k.bar.target])
+  k.vScale = d3.scaleLinear()			//Map to display values
+    .domain([k.bar.source, k.bar.target])
+    .range([k.min, k.max])
+})
+const maxAsset = "hsl(230,50%,40%)"	//Positive color
+const minLiab  = "hsl(350,50%,40%)"	//Negative color
+const neutral = '#ddd'			//Halfway between asset and liability
+const posRange = d3.interpolate(neutral, maxAsset)
+const negRange = d3.interpolate(neutral, minLiab)
+
+const resItems = {
+  liftCap:   {x: -setX, y: -80, title: 'Normal Lift'},
+  liftCost:  {x: -setX, y: -60, title: 'Normal Cost'},
+  xLiftCap:  {x: -setX, y: -40, title: 'Extra Lift'},
+  xLiftCost: {x: -setX, y: -20, title: 'Extra Cost'},
+  dropCap:   {x: -setX, y:  20, title: 'Normal Drop'},
+  dropCost:  {x: -setX, y:  40, title: 'Normal Cost'},
+  xDropCap:  {x: -setX, y:  60, title: 'Extra Drop'},
+  xDropCost: {x: -setX, y:  80, title: 'Extra Cost'}
+}
+const resArr = []
+for (const [tag, el] of Object.entries(resItems)) {
+  resArr.push(Object.assign(el,{tag}))
+}
+
+const dragger = d3.drag()		//Drag function called by sliders
+  .on("drag", function (e,d) {
+    d.y = d.yClamp(d.y + e.dy)
+    if (d.push && setKnobs[d.push].y < d.y) setKnobs[d.push].y = d.y	//Move other dependent settings
+    if (d.pull && setKnobs[d.pull].y > d.y) setKnobs[d.pull].y = d.y
+    repaint()
+  })
+
+const graph = d3.select(".graph")			//Basic SVG settings
+    .attr("viewBox", [-svgWid / 2, -svgHei / 2, svgWid, svgHei])
+    .attr("width", svgWid).attr("height", svgHei)
+    .attr("transform", d3.zoomIdentity)
+    .call(s=>s.append("g").append("path").attr("stroke","#2F2").attr("d",`M${-setX/2},0 H${setX*1.5}`))	//Zero axis
+    
+const foil = graph.append("g").attr("class", "peer foil").attr("transform", d => `translate(0,${-maxY-tallyRad})`)
+  .call(s => s.append("circle").attr("class", "outline").attr("r", tallyRad))
+  .call(s => s.append("text").text("Client (foil)"))
+  .on("click", e=>{console.log("Clickit F", e)})
+
+const stock = graph.append("g").attr("class", "peer stock").attr("transform", d => `translate(0,${maxY+tallyRad})`)
+  .call(s => s.append("circle").attr("class", "outline").attr("r", tallyRad))
+  .call(s => s.append("text").text("Vendor (stock)"))
+  .on("click", e=>{console.log("Clickit S", e)})
+
+const sets = graph.append("g").attr("class", "sets")
+  .call(s => s.append("g").attr("class", "ranges").selectAll(".range")
+    .data(Object.values(setBars)).join("path").attr("class", "range")
+      .attr("d", d => `M${d.x},${d.source} V ${d.target}`)
+  )
+  .call(s => s.append("g").attr("class", "knobs"))
+
+const results = graph.append("g").attr("class", "results")
+  .call(s => s.selectAll(".result")
+    .data(resArr).join("g").attr("class", d => "result " + d.tag)
+    .attr("transform", d => `translate(${d.x},${d.y})`)
+    .call(s=>s.append("text").text(d => d.title + ':').attr("text-anchor", "end").attr("x", -4))
+    .call(s=>s.append("text").attr("class","value").attr("text-anchor", "start"))
+  )
+
+graph.select('#arrow')			//Add attributes to arrow marker
+  .attr('viewBox', [0, 0, markerWidth, markerHeight])
+  .attr('refX', markerWidth).attr('refY', markerHeight/2)
+  .attr('markerWidth', markerWidth).attr('markerHeight', markerHeight)
+  .append('path').attr('d', d3.line()(arrowPoints))
+
+function repaint() {
+  sets.select(".knobs").selectAll(".knob").data(Object.values(setKnobs)).join(
+    ent => ent.append("g").attr("class", "knob")
+      .call(dragger)
+      .call(s => s.append("circle").attr("class", "dot").attr("r", knobRad))
+      .call(s => s.append("text")
+        .attr("x", -10).attr("y", 3)
+        .attr("text-anchor", "end").text(d => d.title + ':')
+      )
+      .call(s => s.append("text").attr("class", "val")
+        .attr("x", 10).attr("y", 3)
+        .attr("text-anchor", "start")
+      )
+      .attr("r", knobRad)
+  ).attr("transform", d => `translate(${d.bar.x}, ${d.y})`)
+   .select(".val").text(d => {
+     d.value = d.vScale(d.y)
+     return d.value.toFixed(3)
+   })
+
+//console.log('Paint!', setKnobs.balance)
+  let bal = setKnobs.balance.value
+    , ratio = bal / maxBal
+  foil.select("circle").style("fill", bal > 0 ? negRange(ratio) : posRange(-ratio))
+  stock.select("circle").style("fill", bal > 0 ? posRange(ratio) : negRange(-ratio))
+
+  resItems.liftCap.v = Math.max(bal + setKnobs.lTarget.value, 0).toFixed(3)
+  resItems.liftCost.v = (setKnobs.dClutch.value * 100).toFixed(2) + '%'
+  resItems.xLiftCap.v = Math.max(setKnobs.lBound.value - Math.max(setKnobs.lTarget.value, -setKnobs.balance.value), 0).toFixed(3)
+  resItems.xLiftCost.v = ((setKnobs.dClutch.value + setKnobs.lReward.value) * 100).toFixed(2) + '%'
+
+  resItems.dropCap.v = Math.max(setKnobs.dTarget.value - bal, 0).toFixed(3)
+  resItems.dropCost.v = (setKnobs.lClutch.value * 100).toFixed(2) + '%'
+  resItems.xDropCap.v = Math.max(setKnobs.dBound.value - Math.max(setKnobs.dTarget.value,  setKnobs.balance.value), 0).toFixed(3)
+  resItems.xDropCost.v = ((setKnobs.lClutch.value + setKnobs.dReward.value) * 100).toFixed(2) + '%'
+  
+  results.data(resArr).join("g").selectAll(".value").text(d => d.v)
+}
+
+repaint()
+    ]]></script>
+  </defs>
+</svg>
