@@ -26,7 +26,7 @@ MyCHIPs has the additional challenge that it is utilizes two concepts most users
 These differences need to be dealt with artfully so they do not create an undue obstacle for users.
 
 ## Current Status
-As of Spring 2021, a [rudimentary application](/app/README.md) has been implemented
+As of Spring 2021, a [rudimentary application](/client/flutter/README.md) has been implemented
 in flutter (by a BYU Capstone team).
 It was designed according to an early version of this document.
 But the team never succeeded in interfacing it to the backend so any data it
@@ -39,7 +39,7 @@ There is also an example [JavaScript command line utility](/test/sample/entcli)
 that makes use of the API module.
 
 The Capstone team did attempt to port the JS API to Dart but did not successfully complete that work.
-Their code is [here](/app/lib/wyseman/wysemanClient.dart).
+Their code is [here](/client/flutter/lib/wyseman/wyseman_client.dart).
 Since that time, the Dart API has made some slow progress and can successfully connect
 to the backend.
 But it is not yet structured appropriately for integration into application.
