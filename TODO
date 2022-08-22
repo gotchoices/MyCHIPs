@@ -7,12 +7,17 @@ X-  State tracks when a packet still needs to go to a peer
 X-  Query to regenerate all pending packets
 X-  Make foil/stock state diagrams more parallel
 X-  Clear pathway for normal chit flow (unlinked, linking, linked)
--  Implement chain state value in chits view
--  Update existing code to honor chain state
+X-  Implement chain state value in chits view
+X-  Remove lib/chain.js
+-  Why one chit still left in pending state?
+-  Update existing code to honor chain state (honor how?)
+-    Only _process commands if in appropriate cstate?
 -  Existing regression tests still work
--  Notify user when a consensus reached on a tally/chit
+-  Notify user when a consensus reached on a tally/chit?
+-    So we don't have to timeout in tests
+-  Commit
 -  
-- Test for chits that cross in transit
+- Make test for chits that cross in transit
 -  Make adjustable delay before received chit processed
 -  Test attempts a range of possible delays
 -  

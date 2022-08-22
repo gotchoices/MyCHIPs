@@ -7,7 +7,7 @@ database "Foil DB" as foil
 actor "Foil Holder" as client
 
 alt Stock originates/validates chit
-  stock		->>	stock:		Apply validating signature to chit
+  vendor	->>	stock:		Apply validating signature to chit
   stock		->>	foil:		Transmit new valid Chit\nwith validating signature\nProposed endHash: propHash
   foil		->>	foil:		Add/link new valid chit
 
@@ -19,7 +19,7 @@ alt Stock originates/validates chit
   end
 
 else Foil originates/validates chit
-  foil		->>	foil:		Apply validating signature to chit
+  client	->>	foil:		Apply validating signature to chit
   foil		->>	stock:		Transmit new valid Chit\nwith validating signature\nAnd new endHash
 
   alt Stock agrees with new endHash
@@ -34,7 +34,7 @@ foil		->>	stock:		Send chits since last ackHash\nand new endHash
     
 alt All newly received chits are valid
   stock		->>	stock:		Apply chits\nRatchet forward\nackHash = endHash
-else
+else Can't reconcile/accept received chits
   stock		->>	vendor:		Report error to user
   stock		->>	foil:		Report error
   foil		->>	client:		Report error to user

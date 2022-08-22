@@ -33,7 +33,8 @@ agent process to the database since the subsystem is already inherently known by
 database procedure being called.
 
 ### Status and States
-The database is the authoritative repository of the system state.
+MyCHIPs is structured as a [model-view-controller](https://en.wikipedia.org/wiki/Model-view-controller) pattern.
+The database is the authoritative repository of the system state (the model).
 Processes in the control layer (user and agent processes) and or in the mobile app or other view 
 applications should consider their data transitory and should rely on the model as much as necessary.
 
@@ -59,15 +60,14 @@ indicating it is appropriate now to transition to the requested state (the new s
 
 Similarly, an agent process may receive a message from a peer agent at any time.
 These messages also request a change in state of the targeted object.
-A corresponding state change command can be issued directly to the database but it is contingent
-upon the existing state.
+A corresponding state change command can be issued directly to the database but it is contingent upon the existing state.
 In this way, commands will only be considered valid if the object is still in the intended state
 (context) at the instant they are interpreted.
 
 ### State Codes
 Previous to 2022, the states of subsystem objects (tallies, chits, routes, lifts) were
 arbitrarily named.
-Moving to protocol >= 1.0 they will utilize a state format encoded as follows:
+Moving to protocol >= 1.0 they utilize a state format encoded as follows:
 
   - type.status.request (tallies, chits)
   - status.freshness (routes)

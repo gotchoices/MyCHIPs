@@ -99,7 +99,7 @@ These use-cases are explained as follows::
 - **Be My Vendor**:
   The User reaches out to a potential trading Partner and asks if he would like to establish a tally.
   This must always happen via some communication channel outside the MyCHIPs protocol.
-  We will call this “out-of-band communication.”
+  We will call this “[out-of-band communication](https://en.wikipedia.org/wiki/Out-of-band_data).”
   Examples include meeting in-person, email, teleconference or a traditional web connection.
   In this case, the User is suggesting he hold the [Foil](learn-tally.md#tally-parts) of the tally and the Partner will hold the [Stock](learn-tally.md#tally-parts).
   The partner is the vendor, or provider of services, so money (value) will normally flow from User to Partner.
@@ -202,7 +202,7 @@ This is what the Payor does once he receives the proposed chit (see the alt cond
 
 Note that the [consensus algorithm](#chit-chain-consensus) has nothing to do with the validity of a chit.
 If a chit is signed by the party pledging value (debtor), it is a valid chit.
-However, the parties do eventually need to agree about the *order* in which chits are entered into the tally.
+However, the parties eventually need to also agree about the *order* in which chits are entered into the tally.
 
 The third use case (Request Direct Invoice) is one step before this.
 For example, imagine a vendor has provided you services and you are ready to remit payment.
@@ -236,7 +236,7 @@ The last step in the diagram above refers to a consensus process.
 This is a sub-protocol by which the stock and foil agree upon the order and content of chits entered onto their copies of the tally.
 Chit order may not be particularly important from a theoretical standpoint.
 But content certainly is.
-So we will use a storage mechanism is called a [hash chain](https://en.wikipedia.org/wiki/Hash_chain).
+MyCHIPs uses a storage mechanism called a [hash chain](https://en.wikipedia.org/wiki/Hash_chain) to assure consistency in both.
 
 Each chit contains a hash of its other contents.
 This hash is useful for detecting if anything in the chit has changed (something we don't want to happen).
@@ -263,15 +263,15 @@ But it is an important additional mechanism that makes sure the stock and foil k
 
 The consensus rules are pretty simple.
 Both stock and foil have the duty (and natural incentive) to recognize, accept and store a duly signed and valid chit received from the other.
-But the foil is responsible to choose the order to link chits into the chain.
-The stock must conform to that chosen order.
+But the foil is responsible to choose the order chits will be linked into the chain.
+The stock must conform to that order.
 
 The goal of the consensus protocol is then to:
 - order (link) all valid chits linked into a [hash-chained](https://en.wikipedia.org/wiki/Hash_chain) list; and
 - verify that the stock and foil both have an identical chained list of valid chits.
 
 The simplest case is when one side generates a chit and that chit gets completely propagated and linked on both ends before anything else happens on the tally.
-Unfortunately, actual practice involves several other much more messy scenarios:
+Unfortunately, real life will probably involve several other more messy scenarios:
 1. One or more valid chits get generated on both ends of the tally and are transmitted at about the same time.
   Both stock and tally will have linked these chits already and think they have a valid end hash.
   The stock will have to comport to the foil's version of things and reorder its chain accordingly.
@@ -313,10 +313,10 @@ First, the states associated with the foil:
 
 [![state-cons](uml/state-conf.svg)](uml/state-conf.svg)
 
-States for the foil are fairly simple.
+States for the foil are pretty straightforward.
 It mainly needs to track new good chits, link them into its chain, and reliably inform the Stock about the latest end hash.
 
-For the Stock, it is slightly more complicated.
+For the Stock, it is a little more complicated.
 It must be able to conform to information it receives from the foil.
 It can't really consider itself fully settled until receiving proper confirmation from the foil.
 And it may need to ask the foil for any chits it has overlooked or not yet received.

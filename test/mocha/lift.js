@@ -1,4 +1,4 @@
-//Test lift communications (lib/lift.js); Run only after sch-lift
+//Test lift communications (lib/lift.js); Run only after route, sch-lift
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates lift across 2 (or three) systems (see doc/uml/test-paths.svg)
@@ -13,7 +13,6 @@ var log = testLog(__filename)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('./def-users')
 const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
 var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
-var adminListen = 'mychips_admin'
 var adminListen = 'mychips_admin'
 var {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
@@ -89,7 +88,7 @@ describe("Peer-to-peer lift testing", function() {
           rr as (select uuids from mychips.routes_v_paths where foro and edges = 1 and inp_cid = %L)
           insert into mychips.lifts (lift_type, circuit, request, units, tallies, find)
           select 'org', true, 'init', %s, rr.uuids, %L from rr returning *;`, cidd, units, find)
-      , dc = 4, _done = () => {if (!--dc) done()}	//_done's to be done
+      , dc = 8, _done = () => {if (!--dc) done()}	//_done's to be done
 //log.debug("Sql:", sql)
     dbR.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
       let row = getRow(res, 0)
@@ -98,34 +97,38 @@ describe("Peer-to-peer lift testing", function() {
       _done()
     })
     busL.register('pl', (msg) => {		//log.debug("L msg:", msg)
-      assert.equal(msg.target, 'tallies')	//Capture events (1) when tallies/totals udpated
+      assert.equal(msg.target, 'tallies')	//Capture events (2) when tallies/totals udpated
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })
     busR.register('pr', (msg) => {		//log.debug("R msg:", msg)
-      assert.equal(msg.target, 'tallies')	//Two updates on remote site
+      assert.equal(msg.target, 'tallies')	//Six updates on remote site
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })
+  })
+
+  it("Wait for messages to settle", function(done) {
+    setTimeout(done, 250)
   })
 
   it("Propagate void messages back around lift loop", function(done) {
     let sql = `update mychips.lifts set status = 'pend', request = 'void'
                where status = 'draft' returning *`
       , dc = 4, _done = () => {if (!--dc) done()}	//_done's to be done
-//log.debug("Sql:", sql)
-    dbR.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
+log.debug("Sql:", sql)
+    dbR.query(sql, null, (e, res) => {if (e) done(e)	;log.debug("R res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.request, 'void')
       assert.equal(row.status, 'pend')
       _done()
     })
-    busL.register('pl', (msg) => {		//log.debug("L msg:", msg)
+    busL.register('pl', (msg) => {		log.debug("L msg:", msg)
       assert.equal(msg.target, 'tallies')	//Capture events (1) when tallies/totals udpated
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })
-    busR.register('pr', (msg) => {		//log.debug("R msg:", msg)
+    busR.register('pr', (msg) => {		log.debug("R msg:", msg)
       assert.equal(msg.target, 'tallies')	//Two updates on remote site
       assert.equal(msg.oper, 'UPDATE')
       _done()

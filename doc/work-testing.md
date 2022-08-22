@@ -19,15 +19,17 @@ up a postgres and mongo instance for its own use.
 
 For running isolated tests, something like this should work:
 ```
+  cd test/mocha
   npx mocha sch-crypto
 ```
 
-Keep in mind that many of the tests assume that other tests have run just
-before them.  They expect the database to be a certain state before they begin.
-See the notes at the beginning of each test.  For example, you may have to run
-something like this to get valid results:
+Keep in mind that many of the tests assume that other tests have run just prior.
+They expect the database to be a certain state before they begin.
+See the notes at the beginning of each test.
+For example, you may have to run a certain string of tests in just the right order to get valid results:
 ```
   npx mocha impexp testusers models
+  npx mocha impexp user2 sch-path sch-route route sch-lift.js
 ```
 
 When debugging a failed test, this procedure may help:
@@ -42,6 +44,15 @@ When debugging a failed test, this procedure may help:
   - Un-comment the debug lines for that test and
   - Now re-run the test command so only the last test fails.
   - Examine the debug output to try to determine what is failing
+
+## Unit Testing Paths, Routes and Lifts
+For testing that involves pathways between nodes, the test suite will create
+a simplified network of tallies as follows:
+
+[![MyCHIPs Site](uml/test-paths.svg)](uml/test-paths.svg)
+
+This provides examples of many of the basic scenarios that may occur when
+discovering and/or using pathways and routes for credit lifts.
 
 ### Bug Fixing Workflow
 When fixing bugs in MyCHIPs, please observe the following workflow pattern:

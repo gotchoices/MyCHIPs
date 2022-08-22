@@ -55,57 +55,7 @@
 ```
 
 ## Unit Testing
-The software also comes with a suite of regression tests.  These are by no means
-complete but do offer a helpful baseline.  You can run the test suite with this command:
-
-```
-npm test
-```
-Individual tests may be run by a command such as:
-```
-cd test/mocha
-npx mocha impexp
-```
-Note that many of the tests depend upon other tests being run first,
-so to work properly, you may have to run them in just the right order:
-```
-npx mocha impexp user2 sch-path sch-route route sch-lift.js
-```
-If you find a test that is failing, the best thing to do is to isolate such a
-command and execute it from the commmand line.  Then go into the script for
-the failing test and put a leading comment (/*) just after the failing test
-(so it is the very last one to run).
-
-Then enable debugging with:
-```
-export NODE_DEBUG=debug
-```
-and look in your system's temp directory (such as /tmp/wyatt) for log files
-that are receiving lots of debugging information.  On MacOS, it is particularly
-hard to find the location of this temporary file, so there is a script:
-```
-mocha/watch <test-name>
-```
-that should *tail* the file for you.
-
-To run these tests, you will need an instance of PostgreSQL running in reach of
-the running mocha process.  For a native installation, that shouldn't be a problem.
-When testing on docker, make sure you are running the *dev* version of the
-docker compose file
-```
-docker-compose docker-dev up
-```
-Also, make sure the settings and environment variables in test/settings.js can
-find your postgres service OK.
-
-## Unit Testing Paths, Routes and Lifts
-For testing that involves pathways between nodes, the test suite will create
-a simplified network of tallies as follows:
-
-[![MyCHIPs Site](uml/test-paths.svg)](uml/test-paths.svg)
-
-This provides examples of many of the basic scenarios that may occur when
-discovering and/or using pathways and routes for credit lifts.
+The software also comes with a suite of regression tests explained [here](work-testing.md).
 
 <br>[Next - System Certificates](use-pki.md)
 <br>[Back to Index](README.md#contents)

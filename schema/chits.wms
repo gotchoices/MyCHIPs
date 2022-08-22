@@ -18,7 +18,7 @@ namespace eval chits {
     def chits_pk	{chit_ent chit_seq chit_idx}
     def chits_v_up	{request signature units reference memo}
     def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_uuid chit_type issuer]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type issuer $glob::stampfn chit_date chain_idx chain_hash chain_prev lift_seq status digest]
+    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type issuer $glob::stampfn chit_date chain_send chain_idx chain_hash chain_prev lift_seq status digest]
 }
 
 table mychips.chits {mychips.tallies mychips.lifts tally_side} {
@@ -45,6 +45,7 @@ table mychips.chits {mychips.tallies mychips.lifts tally_side} {
   , chain_hash	bytea
   , chain_prev	bytea
   , chain_idx	int	      , unique(chit_ent, chit_seq, chain_idx)
+  , chain_send	jsonb
   , lift_seq	int           , foreign key (chit_uuid, lift_seq) references mychips.lifts (lift_uuid, lift_seq) on update cascade on delete cascade
   , constraint "!mychips.chits.BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
     eval(s $glob::stamps)
@@ -67,7 +68,6 @@ table mychips.chit_tries {mychips.chits} {
 function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.chits)} {
   returns trigger language plpgsql security definer as $$
     begin
-raise notice 'A';
       if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
         update mychips.tallies set _last_chit = greatest(
             coalesce(_last_chit,0) + 1,
@@ -248,8 +248,14 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
         elsif (not new.request isnull) and (new.request is distinct from old.request) then
             dirty = true;
         end if;
---raise notice 'Chit update: %', dirty;
-        if dirty then perform mychips.chit_notify_agent(new); end if;
+raise notice 'Chit update:% send:%', dirty, new.chain_send;
+        if dirty then				-- Communicate chit message
+          perform mychips.chit_notify_agent(new);
+        end if;
+
+        if new.chain_send notnull then		-- Communicate consensus message
+          perform mychips.chain_notify_agent(new);
+        end if;
         return new;
     end;
 $$;}
@@ -314,6 +320,7 @@ define uSign {case when ch.issuer = te.tally_type then -(%1) else (%1) end}
 view mychips.chits_v {
   mychips.chits mychips.tallies
   mychips.chit_state(boolean,text,text)
+  mychips.chit_cstate(mychips.chits,mychips.tallies)
   mychips.chit_json_h(mychips.chits,mychips.tallies)
   mychips.chit_json_r(mychips.chits,mychips.tallies)
   mychips.j2h(jsonb)
@@ -323,11 +330,13 @@ view mychips.chits_v {
   , te.part_cid
   , te.tally_type
   , te.tally_uuid
+  , te.chain_conf
 
   , uSign(ch.units)							as net
   , case when ch.status = 'good' then uSign(ch.units) else 0 end	as net_g
   , case when ch.status = 'void' then 0 else uSign(ch.units) end	as net_p
 
+  , mychips.chit_cstate(ch, te)					as cstate
   , mychips.chit_state(isdebit(), ch.status, ch.request)	as state
   , mychips.chit_state(isdebit(), ch.status, ch.request) = any(array['L.pend']) as action
   , mychips.chit_json_c(ch, te)					as json_core
@@ -356,7 +365,11 @@ view mychips.chits_v_me {mychips.chits_v mychips.tallies_v_me} {select
 
 # Process chit state transitions requested by the peer server process
 #----------------------------------------------------------------
-function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychips.chits_v} {
+function {mychips.chit_process(msg jsonb, recipe jsonb)} {
+  mychips.users_v
+  mychips.chits_v
+  mychips.chain_process(jsonb,jsonb)
+} {
   returns text language plpgsql as $$
     declare
       cid	text	= msg->'to'->>'cid';
@@ -364,14 +377,18 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {mychips.users_v mychip
       obj	jsonb	= msg->'object';
       uuid	uuid	= obj->>'uuid';
       curState	text;
-      qstrg	text;		-- Temporary string
-      crec	record;		-- Holds chit record(s)
-      trec	record;		-- Holds associated tally
-      erec	record;		-- Tally entity, we will ignore the one in msg
+      qstrg	text;			-- Temporary string
+      trec	record;			-- Holds associated tally
+      crec	record;			-- Holds chit record(s)
+      erec	record;			-- Tally entity, we will ignore the one in msg
       jrec	jsonb;
     begin
---raise notice 'chit top cid:% msg:%', cid, obj->>'uuid';
-      select into trec tally_ent, tally_seq, tally_type, state from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
+      if msg->>'action' = 'chain' then		-- Chaining has its own handler
+        return mychips.chain_process(msg,recipe);
+      end if;
+
+raise notice 'Chit top cid:% obj:%', cid, obj;
+      select into trec tally_ent, tally_seq, tally_type from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
       if not found then return null; end if;
 
       select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;

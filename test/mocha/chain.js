@@ -1,4 +1,4 @@
-//Test chit consensus between peers; Run only after chit
+//Test chit consensus between peers; Run only after tally, chit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB or two different DBs:
@@ -86,7 +86,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   it("Foil (Subject) sends payment that doesn't arrive", function(done) {
     let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
-    serverS.failSend = 'success'		//Fail to transmit but indicate success
+    serverS.failSend = 'success'		//Force: fail to transmit but indicate success
     addChit(dbS, 'foil', 1, userS, interTest.talS.tally_seq, _done)
     busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
@@ -181,5 +181,5 @@ describe("Chit chain consensus", function() {
   }
 
   describe("Test chit consensus between two users on same site", function() {Suite1(config1)})
-//  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
+  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
 })

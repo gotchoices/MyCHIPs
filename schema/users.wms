@@ -256,6 +256,14 @@ $$;}
 
 # Generate notifications about new or updated users for listening admin servers
 #----------------------------------------------------------------
+function mychips.users_tf_change() {mychips} {
+  returns trigger language plpgsql security definer as $$
+    begin
+--raise notice 'Admin users notify:%', TG_OP;
+      perform pg_notify('mychips_admin', format('{"target":"users", "oper":"%s", "time":"%s"}', TG_OP, transaction_timestamp()::text));
+      return null;
+    end;
+$$;}
 trigger mychips_users_tr_change {} {
-    after insert or update or delete on mychips.users for each statement execute procedure mychips.change_tf_notify('users');
+    after insert or update or delete on mychips.users for each statement execute procedure mychips.users_tf_change();
 }

@@ -254,10 +254,11 @@ log.debug("Object:", msg.object)
     })
   })
 
+  it("Save open tally record for later chit testing", function(done) {
+    dbA.query(save('open'), (e) => {if (e) done(e); else done()})
+  })
+
 //Closing procedure moved to setting chit protocol
-//  it("Save open tally record for later testing", function(done) {
-//    dbA.query(save('open'), (e) => {if (e) done(e); else done()})
-//  })
 //  it("User request to close tally (open -> open.close)", function(done) {
 //    let sql = uSql(`request = 'close'`, user0, 1)
 //      , dc = 2, _done = () => {if (!--dc) done()}

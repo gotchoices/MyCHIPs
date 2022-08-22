@@ -1,4 +1,4 @@
-//Test chits between peers; Run only after tally tests
+//Test chits between peers; Run only after impexp, testusers, user2, tally
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB or two different DBs:
@@ -196,10 +196,6 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
-//  it("Take a breath", function(done) {
-//    setTimeout(done, 250)
-//  })
-
   it("Originator sends payment to Subject", function(done) {
     let uuid = mkUuid(cidO, agentO)
       , seq = interTest.talO.tally_seq
@@ -238,7 +234,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   it("Wait for consensus to settle", function(done) {
-    setTimeout(done, 200)
+    setTimeout(done, 250)
   })
 
   it("Verify chit consensus in DB", function(done) {

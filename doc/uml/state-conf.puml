@@ -18,6 +18,7 @@ linked: Chain Seq <= Chain Conf
 linking: Chit local issue
 linking: Chain Seq not null
 linking: Chain Seq > Chain Conf
+linking: Chit not yet sent
 notify: Chit remote issue
 notify: Chain Seq not null
 notify: Chain Seq > Chain Conf

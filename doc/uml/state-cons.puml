@@ -17,7 +17,8 @@ unlinked: Chain Seq is null
 linking: Chit local issue
 linking: Chain Seq not null
 linking: Chain Seq > Chain Conf
-notify: Chit local issue
+linking: Chit not yet sent
+notify: Chit remote issue
 notify: Chain Seq not null
 notify: Chain Seq > Chain Conf
 notify: Queued message: upd

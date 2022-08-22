@@ -540,17 +540,14 @@ $$;}
 
 # Generate notifications about new or updated tallies for listening admin servers
 #----------------------------------------------------------------
-function mychips.change_tf_notify() {mychips} {
+function mychips.tallies_tf_change() {mychips} {
   returns trigger language plpgsql security definer as $$
     begin
---raise notice 'Change notify: mychips_admin';
-      perform pg_notify('mychips_admin', format('{"target":"%s", "oper":"%s", "time":"%s"}', coalesce(TG_ARGV[0],'Unknown'), TG_OP, transaction_timestamp()::text));
+raise notice 'Admin tallies notify:%', TG_OP;
+      perform pg_notify('mychips_admin', format('{"target":"tallies", "oper":"%s", "time":"%s"}', TG_OP, transaction_timestamp()::text));
       return null;
     end;
 $$;}
 trigger mychips_tallies_tr_change {} {
-    after insert or update or delete on mychips.tallies for each statement execute procedure mychips.change_tf_notify('tallies');
+    after insert or update or delete on mychips.tallies for each statement execute procedure mychips.tallies_tf_change();
 }
-#trigger mychips_chits_tr_change {} {	--Redundant?
-#    after insert or update or delete on mychips.chits for each statement execute procedure mychips.change_tf_notify('chits');
-#}
