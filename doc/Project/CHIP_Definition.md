@@ -20,34 +20,32 @@ some other commodity we may be expected to trade for it.
 Perhaps that corn is equivalent to a gallon of milk, or an hour of work, or some needed transportation.
 More commonly, we express the value in terms of some government-issued currency.
 
-The CHIP is intended to define a unit of value that is independent of government (or other) control.
-It is meant to be *practically objective*--not perfectly so,
+The CHIP is intended to define a unit of value that is independent of government or other centralized controls.
+It is designed to be *practically objective*--not perfectly so,
 but objective enough to work for it's intended purpose.
 
 In order to achieve maximum independence and stability, 
 a CHIP is measured against the commodity most everyone has an ongoing supply of: human labor.
-
-This has some distinct advantages but it also has some challenges.
-One problem is, the labor of one person is seldom equal to the labor of another.
-
-Furthermore, labor costs are typically much higher in a more developed economy
+This has some distinct advantages but it also has some challenges:
+- One problem is, the labor of one person is seldom equal to the labor of another.
+- Furthermore, labor costs are typically much higher in a more developed economy
 (like the US) as compared to one less developed (like India, for example).
-Why is that?
 
 The economic [Law of One Price](https://en.wikipedia.org/wiki/Law_of_one_price) states
-that in the absense of trade frictions, the price of any given commodity should eventually
-converge toward a single value regardless of location.
+that in the absense of trade frictions such as transportation, borders and regulations,
+the price of any given commodity should eventually converge toward a single value 
+regardless of location.
 
-So to determine a useful standard of value based on labor, we will have to deal with
-these two problems.
+So to determine a useful standard of value based on labor, we need a way to
+express how valuable some nominal standard of labor is, absent such frictions.
 
 ## Objectives:
 The goal of this project is to define a unit of measure (the CHIP) whose value transcends borders
 and cultures.
-It is a theoretical value based on one hour of standardized, normalized human labor.
-
-By *standardized* we mean to define what general level of utility are provided by the person performing the labor.
-By *normalized* we mean to factor out frictions and distortions that cause the reference
+It is a theoretical value based on one hour of <i>nominal work<> we will
+refer to as standardized, normalized human labor.
+- By *standardized* we mean to define what general level of utility are provided by the person performing the labor.
+- By *normalized* we mean to factor out frictions and distortions that cause the reference
 productivity to be valued differently in different locations and markets.
 
 Frictional distortions are likely to include:
@@ -88,6 +86,8 @@ Frictional distortions are likely to include:
 This project has two phases:
 - Creation of the economic/mathematical model,
 - Writing a program to sample economic data, compute the index, publish past and/or current results in the form of a web page.
+
+Researchers may prefer to engage on one or both phases.
 
 ## One Suggested Approach:
 It is fairly straightforward to construct a table of
