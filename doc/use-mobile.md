@@ -88,7 +88,7 @@ separately documented, but can be examined in more detail in the
   - Node.js [client source code](https://github.com/gotchoices/wyseman/blob/master/lib/client.js),
 
 The Node.js client API module could be incorporated into a web application, such as in the Ionic framework.
-A Dart API module is under development to facilitate a flutter implementation.
+A [Dart API](/client/flutter/lib/wyseman/wyseman_client.dart) module is under development to facilitate a flutter implementation.
 
 ### Sample Command-line Client
 There is a JS utility [here](https://github.com/gotchoices/MyCHIPs/blob/master/test/sample/entcli)
@@ -96,12 +96,12 @@ meant to demonstrate how to connect a client to the backend.
 
 As mentioned, MyCHIPs uses [Wyseman](https://github.com/gotchoices/wyseman)
 to form its API to the backend.  The [Wylib](https://github.com/gotchoices/wylib)
-library has a compatible [module](https://github.com/gotchoices/wylib/src/wyseman.js) that
+library has a compatible [module](https://github.com/gotchoices/wylib/blob/master/src/wyseman.js) that
 allows a client, running in a browser, to connect to the backend and send 
 [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) commands to the database.
 
 The sample command line program demonstrates how to do this without a browser in node.js.
-It makes use of a [client module](https://github.com/gotchoices/wylib/lib/client.js),
+It makes use of a [client module](https://github.com/gotchoices/wyseman/blob/master/lib/client.js),
 provided by Wyseman, that is similar to the browser-side code in Wylib and performs a comparable
 function, allowing a user to authenticate and connect.
 
@@ -149,10 +149,10 @@ User application developers should be aware of how to communicate with the backe
   - Receives JSON encoded commands from the user app, which can be
     - Abstracted SQL CRUD command
     - Abstracted SQL stored procedure all
-    - A call to JS code (an "action) living in the NodeJS server
+    - A call to JS code (an "action" or "report") living in the NodeJS server (control layer)
   - CRUD and stored procedures are simply translated to SQL, executed under the user's permissions, and the results returned to the app, tagged by the same transaction ID that generated the call.
-  - Actions get executed by an assigned control layer (NodeJS) procedure, which will likely be interacting with the DB (and using admin permissions).
-  - Actions can return results in a variety of formats:
+  - Actions (or reports, if they return something) get executed by an assigned control layer (NodeJS) procedure, which will likely be interacting with the DB (and using admin permissions).
+  - Reports can return results in a variety of formats:
     - Status only (similar to a stored procedure)
     - Text data
     - HTML display data
@@ -225,10 +225,9 @@ These are registered with Wyclif in the
 [main program](https://github.com/gotchoices/MyCHIPs/blob/master/bin/mychips.js)
 using the "Parser()" call currently around line 17.
 And the report functions themselves are found in
-[this](https://github.com/gotchoices/MyCHIPs/blob/master/lib/control1.js)
-file and
-[this](https://github.com/gotchoices/MyCHIPs/blob/master/lib/control2.js)
-file.
+[this file](https://github.com/gotchoices/MyCHIPs/blob/master/lib/control1.js)
+and
+[this file](https://github.com/gotchoices/MyCHIPs/blob/master/lib/control2.js).
 
 Report handlers can return information in a variety of formats.
 This can include html, svg, jpg and pdf, as well as JSON data that may be specific to
@@ -252,6 +251,60 @@ This gives more assurance that the code you are running won't betray you.
 
 In high security applications, it may make sense for the signing key to not even reside in the user application.
 It could instead reside in a separate key management device such as a USB or bluetooth dongle.
+
+### Initial Account Setup
+Most mobile applications include some kind of facility for establishing an initial account.
+For example, when you first launch the [Venmo app](http://venmo.com), it will step you through the process of becoming a Venmo customer.
+
+An application intended to be part of the MyCHIPs open-source distribution is different in that it is not targeted for a single account service provider.
+So rather than including sign-up screens, the app should assume that an account with a service provider already exists.
+And it should attempt to connect using a connection ticket supplied by that service provider.
+
+The expected sequence is as follows:
+- The user will choose a service provider;
+- The user navigates to a sign-up page on that provider's web site;
+- The sign-up procedure gathers any necessary personal information to build the user's account;
+- The web interface generates a one-time connection ticket using the ticket report in [this module](/lib/control1.js)
+  or by generating a token using the mychips.ticket_login stored procedure in [this schema module](/schema/users.wms);
+- The provider website then provides the user with one of the following:
+  - A QR code (generated from the ticket report above) that can be scanned by the mobile app;
+  - A [deep link](https://en.wikipedia.org/wiki/Mobile_deep_linking) which, when clicked, will automatically launch the mobile app and begin the connection/authentication procedure;
+
+A mobile app should be capable of scanning several kinds of MyCHIPs QR codes.
+If a connection ticket is found, the app should know to use it to attempt connection to the provider specified in the ticket.
+If the app encounters a regular web URL, it should launch that URL in the user's preferred browser.
+This way, if a provider provides QR with a link to it's sign-in page, the user will find his way there 
+whether he is scanning theh QR from his camera, scanning app, or MyCHIPs app.
+If the provider provides a QR connection ticket, the user can use that too--but only if he is scanning from the MyCHIPs app.
+
+### QR Connection Ticket Testing
+For testing an app, you can create a QR code connection ticket from the [Admin UI](use-admin.md).
+- Enable debugging (export NODE_DEBUG=debug) and watch the logging output of the server (tail -f /var/tmp/mychips/combined.log);
+- Follow the procedure [here](use-test.md#testing-the-server) for creating some sample users;
+- Then use the Users tab in the UI to preview (Launch Preview) the users;
+- Double click on one of the users to open an editing pane for that user;
+- Then find the Actions function in the associated menu;
+- Under Actions, select User Ticket to display a QR code;
+- The report window also gives the option for viewing/loading SVG, JSON and URL formats of the connection ticket.
+- You can correlate the debugging output to what you see in the
+  [generic dispatch launcher(http://github.com/gotchoices/wyclif/blob/master/lib/dispatch.js)
+  and the [dedicated report module](/lib/control1.js).
+
+Note that the displayed QR code is generated by the backend action/report system as described above.
+Mobile apps are not expected to do this kind of work but should instead operate as thin views and rely on the backend and control layer for as much processing as possible.
+
+The backend publishes what actions/reports are available to applications via its data dictionary.
+If the app is written to make use of this feature, it will have to do very little to implement a new action/report that becomes available in the backend.
+For example, query the data dictionary (using psql or similar SQL interface) as follows:
+```
+  select jsonb_pretty(styles) from wm.table_meta where sch = 'mychips' and tab = 'users_v';
+```
+This returns a JSON structure that includes an "action" property, an array of available actions/reports.
+Calling applications can call an action handler, providing any arbitrary JSON data structure
+and the handler can produce a customized report in any appropriate format.
+
+In this case, the report generates a web page the app can present to the user.
+Note that if you reload (right-click, reload) in the report window, the backend will not simply redisplay the QR code, but will in fact generate an entirely new ticket.
 
 ### Summary
 Best advice for an application developer is:
