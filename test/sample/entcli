@@ -144,7 +144,7 @@ log.debug("Arguments:", args)
         id: 'list_cmd',					//Packet ID
         action: 'select',				//Our command
         view: 'mychips.users_v',
-        fields: ['id', 'std_name', 'peer_endp']
+        fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
       });						break;
 
     case 'pay':

@@ -116,19 +116,19 @@ describe("Peer-to-peer lift testing", function() {
     let sql = `update mychips.lifts set status = 'pend', request = 'void'
                where status = 'draft' returning *`
       , dc = 4, _done = () => {if (!--dc) done()}	//_done's to be done
-log.debug("Sql:", sql)
-    dbR.query(sql, null, (e, res) => {if (e) done(e)	;log.debug("R res:", res.rows[0])
+//log.debug("Sql:", sql)
+    dbR.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.request, 'void')
       assert.equal(row.status, 'pend')
       _done()
     })
-    busL.register('pl', (msg) => {		log.debug("L msg:", msg)
+    busL.register('pl', (msg) => {		//log.debug("L msg:", msg)
       assert.equal(msg.target, 'tallies')	//Capture events (1) when tallies/totals udpated
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })
-    busR.register('pr', (msg) => {		log.debug("R msg:", msg)
+    busR.register('pr', (msg) => {		//log.debug("R msg:", msg)
       assert.equal(msg.target, 'tallies')	//Two updates on remote site
       assert.equal(msg.oper, 'UPDATE')
       _done()

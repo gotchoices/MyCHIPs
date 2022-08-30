@@ -148,6 +148,10 @@ dbO.query('MARK---------->')
     })
   })
 
+//  it("Wait for messages to settle", function(done) {
+//    setTimeout(done, 250)
+//  })
+
 /* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let things flush out before closing

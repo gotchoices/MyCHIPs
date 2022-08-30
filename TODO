@@ -9,11 +9,11 @@ X-  Make foil/stock state diagrams more parallel
 X-  Clear pathway for normal chit flow (unlinked, linking, linked)
 X-  Implement chain state value in chits view
 X-  Remove lib/chain.js
--  Why one chit still left in pending state?
+-  Why is one chit still left in pending state?
 -  Update existing code to honor chain state (honor how?)
 -    Only _process commands if in appropriate cstate?
 -  Existing regression tests still work
--  Notify user when a consensus reached on a tally/chit?
+-  Notify user (or admin?) when a consensus reached on a tally/chit?
 -    So we don't have to timeout in tests
 -  Commit
 -  
