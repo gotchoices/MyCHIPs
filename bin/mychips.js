@@ -56,12 +56,12 @@ log.trace("Database SSL:", sslAdmin, sslUser)
 log.trace("Modeler:     ", opts.model, "Lifts:", opts.lifts)
 log.trace("Actions:     ", actions)
 
-var expApp = SpaServer({		//Serves up SPA applications via https
+var expApp = new SpaServer({		//Serves up SPA applications via https
   spaPort: opts.spaPort,
   wyclif: !!opts.wyclif,
   favIconFile: 'favicon.png',
   pubDir, credentials
-}, log)
+}, log).expApp
 
 var wyseman = new Wyseman({		//Accepts websocket connections from SPA/apps
   host: opts.dbHost,

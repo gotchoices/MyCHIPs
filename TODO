@@ -1,6 +1,18 @@
 TODO:
 
 Immediate:
+- Wyseman Client API
+X-  Integrate needed parts of client.js into client_api
+X-  Make client_api work with entcli
+X-  Write regression test for wyseman client_ws.js, message.js
+X-  Make message/client_ws work with entcli
+X-  Make message/client_ws work with wylib (patch client.vue, delete src/wyseman.js)
+X-  Build stub for client_np (noise protocol)
+-  Make message/client_ws work with chark
+-  Integrate QR scanner into chark
+-  Check in chark, phase 1
+-  
+
 - Chit consensus
 X-  How do we determine the consensus state of a tally
 X-  State tracks when a packet still needs to go to a peer

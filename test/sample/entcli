@@ -9,8 +9,9 @@
 //   entcli -v ../test/local/my-saved-key-file.json -s 'My secret passphrase'	//Using an encrypted key exported from another UI
 // -----------------------------------------------------------------------------
 // TODO:
-//X- Save vault file encrypted
-//X- Can decrypt vault file
+//- Adapt to new client_lib
+//- Optimize/clean code
+//- Adapt to use api.request() call
 //- 
 const Yargs = require('yargs')			//Command line processing
 const Readline = require('readline')		//Read/write command line
@@ -18,14 +19,19 @@ const Fs = require('fs')			//Filesystem
 const Os = require('os')
 const Homedir = Os.homedir()			//Where to store connection key
 const Path = require('path')
-const Wm = require('wyseman')			//Wyseman provides our client connection
+const Fetch = require('node-fetch')		//Node doesn't have fetch built in
+const Https = require('https')
+const {ClientWs, ClientMessage, Encrypt} = require('wyseman')	//Client connection
+const Ws = require('ws')			//Websocket module
 const { Log } = require('wyclif')		//For logging
-const dbInfo = ['mychips_user','wylib']		//Listen for these notifies from the DB
+const UserAgent = "MyCHIPs Websocket Command Line Client"
+const webcrypto = require('crypto').webcrypto
 
 var log = Log('entcli')				//Instantiate a logger
-var config = {dbInfo, log}			//Configuration options for connection
+var encrypt = new Encrypt(webcrypto,null,Buffer)
+var pktId = 1
 
-var argv = Yargs				//Process command line
+var argv = Yargs				//Process command line arguments
   .alias('a', 'address')	.default('address',	'localhost')			//Hostname or IP address
   .alias('p', 'httpPort')	.default('httpPort',	8000)				//http port we will use briefly for authentication handshake
   .alias('w', 'wsPort')		.default('wsPort',	54320)				//Websocket port
@@ -36,10 +42,16 @@ var argv = Yargs				//Process command line
   .alias('t', 'ticket')				//One-time connection ticket
   .argv
 log.debug("argv:", argv)
-config.httpPort = argv.httpPort
 
-let credential = {host:argv.address, port: argv.wsPort, user: argv.user}	//Will pass to connection builder
-  , text2json = function(text) {		//Parse text to a JSON object
+var creds = {host:argv.address, port: argv.wsPort, user: argv.user}	//Will pass to connection builder
+var headers = {"user-agent": UserAgent, cookie: Math.random()}
+var localCA = argv.caFile ? Fs.readFileSync(argv.caFile) : null			//Consider local certificate authority file
+var httpPort = 8000
+var fetchOptions = {
+  headers,
+  agent: localCA ? new Https.Agent({ca:localCA}) : null
+}
+var text2json = function(text) {		//Parse text to a JSON object
       let json = {}
       if (text) try {json = JSON.parse(text)} catch(e) {
         log.error("Parsing ticket JSON: ", text)
@@ -47,83 +59,120 @@ let credential = {host:argv.address, port: argv.wsPort, user: argv.user}	//Will 
       return json
     }
 
-if (argv.ticket) {					//Connecting via a one-time ticket
-  let tText = Fs.readFileSync(argv.ticket)		//Grab the ticket text
-    , obj = text2json(tText)
-  if (obj.ticket) {				//JSON does contain a ticket property
-    let ticket = obj.ticket			//Some credential properties come from the ticket
-    credential.token = ticket.token
-    credential.host = ticket.host
-    credential.port = ticket.port
-    if (!credential.user) log.error("Must provide a username on the command line")
-    
-  } else {
-    log.error("No ticket found in:", argv.ticket)
+var config = {				//Resources we provide to the API connection manager
+  webcrypto,	httpPort,
+  listen:	['mychips_user','wylib'],
+  debug:	log.debug,		//For debug logging
+  fetch:	(uri) => {		//Fetch that works in our environment
+    return Fetch(uri, fetchOptions)
+  },
+  saveKey:	jKey => {				//Call this when a key generated
+log.debug("Writing connection key to vault:", argv.vault)
+    if (argv.secret) {
+      encrypt.encrypt(argv.secret, JSON.stringify(jKey)).then(s => {
+        Fs.writeFile(argv.vault, s, ()=>{})
+      })
+    } else {
+      Fs.writeFile(argv.vault, JSON.stringify(jKey), ()=>{})	//Store my key for later use
+    }
   }
-log.debug("Ticket credentials:", credential)
-
-} else if (Fs.existsSync(argv.vault)) {			//If we have a saved connection key
-  let vaultText = Fs.readFileSync(argv.vault)
-  credential = text2json(vaultText)
-log.trace("Loaded credentials:", credential)
-
-} else {	//User didn't specify -t or -v
-  console.log("No connection token or key credentials found!")
-  process.exit(1)
 }
 
-if (argv.caFile)
-  config.ca = Fs.readFileSync(argv.caFile)		//Use a specified certificate authority file
-
-var rl = Readline.createInterface({			//Initialize command line interface
+var rl = Readline.createInterface({		//Initialize command line interface
   input: process.stdin,
   output: process.stdout,
   terminal: true
 })
-rl.setPrompt("> ")					//Set our prompt
+rl.setPrompt("> ")				//Command line prompt
 
-let wmClient = new Wm.Client(config)			//Instantiate our connection to the backend
+var ws						//Websocket object
+var api = new ClientWs(config)			//Client API connection handler
+var localStore = {get: () => {}, set: () => {}}		//Dummy handler for local storage
+var mess = new ClientMessage(localStore, log.debug)	//Client API message cache
+var address = `${creds.host}:${argv.wsPort}`
+var origin = `https://${creds.host}:${httpPort}`
 
-wmClient.on('password', () => {			//Call this when an encrypt/decrypt password is needed
-  return argv.secret
-})
+const initialize = function() {
+  let wsOptions = {origin, headers, ca:localCA}		//Used when opening websocket
 
-wmClient.on('key', cred => {				//Call this when a key generated
-log.debug("Writing connection key to vault:", argv.vault)
-  Fs.writeFileSync(argv.vault, JSON.stringify(cred))	//Store my key for later use
-})
+  api.uri(creds).then(wsURI => {			//Build connection URI	
+log.debug('New:', wsURI, wsOptions)
+    ws = new Ws(wsURI, wsOptions)			//Open websocket to backend
 
-wmClient.on('error', err => {				//Error handler
-  log.debug("Websocket connection error:", err.message)
-})
+    ws.on('close', () => mess.onClose())
+    ws.on('open', () => mess.onOpen(address, m => {
+      ws.send(m)
+    }))
+    ws.on('error', err => {
+      mess.onClose()
+      console.error("Connection failed:", err.message)
+      process.exit()
+    })
+    ws.on('message', m => mess.onMessage(m))
 
-wmClient.connect(credential, ws => {			//Start a connection
+    mess.register('wylib0', 'wylib.data', (data, err) => {
+      console.log("Received:", data.help)
+log.debug("Backend supplies wylib data:", data, "err:", err)
+  
+      rl.prompt()					//Give initial prompt
+    })
+  }).catch(err => {
+log.error('Error initializing', err.message)
+  })	// api.uri()
+}	// initialize()
+  
+if (argv.ticket) {				//Connecting via a one-time ticket
+  let tText = Fs.readFileSync(argv.ticket)	//Grab the ticket text
+    , obj = text2json(tText)
 
-  ws.on('message', msg => {				//We have an incoming message
-log.debug("Websocket message:", msg)
-    let obj; if (msg) try {obj = JSON.parse(msg)} catch(e) {	//Parse it to a JSON object
-      log.error("Parsing JSON from db: ", msg)
-    }
-    console.log(JSON.stringify(obj,null,2))
-    rl.prompt()
-  })
+  if (obj.ticket) {				//JSON does contain a ticket property
+    let ticket = obj.ticket			//Some credential properties come from the ticket
+    creds.token = ticket.token
+    creds.host = ticket.host
+    creds.port = ticket.port
+    if (creds.user)
+      initialize(creds)
+    else
+      log.error("Must provide a username on the command line")
+    
+  } else {
+    log.error("No ticket found in:", argv.ticket)
+  }
+log.debug("Ticket credentials:", creds)
 
-  rl.on('line', line => {				//When the user inputs a line
-    log.debug("Got user line:", line)
-    handle(ws, line)					//Process it
-  })
+} else if (Fs.existsSync(argv.vault)) {			//If we have a saved connection key
+  let vaultText = Fs.readFileSync(argv.vault)
+  creds = text2json(vaultText)
+  api.keyCheck(creds, initialize)
+  
+  if (creds.s && creds.i && creds.d) {	//credentials are encrypted
+log.debug("Pre-decrypt:", creds)
+    encrypt.decrypt(argv.secret, JSON.stringify(creds)).then(s => {
+log.debug("Decrypt s:", s)
+      creds = text2json(s)
+log.debug("Post-decrypt credentials:", creds, creds.key)
+      initialize(creds)
+    }).catch(e => {
+      log.error("Initializing credentials: ", e.message)
+    })
+  } else {
+log.debug("Loaded plain credentials:", creds)
+    initialize(creds)
+  }
 
-log.debug("Websocket open")
-  rl.prompt()						//Give initial prompt
+} else {		//User didn't specify -t or -v
+  console.error("No connection token or key credentials found!")
+  process.exit(1)
+}
+
+rl.on('line', line => {				//When the user inputs a line
+  log.debug("Got user line:", line)
+  handle(ws, line)				//Process it
 })
 
 //Process command line input
 //--------------------------------------------------------------------------------
 const handle = function(ws, line) {
-
-  let sendit = obj => {					//Send command object to the backend
-    ws.send(JSON.stringify(obj))
-  }
 
   let args = line.match(/\\?.|^$/g).reduce((p, c) => {		//Parse command line into arguments
     if(c === '"') {
@@ -140,20 +189,22 @@ log.debug("Arguments:", args)
 
   switch (cmd) {
     case 'list':
-      sendit({
-        id: 'list_cmd',					//Packet ID
-        action: 'select',				//Our command
+      mess.request(pktId++, 'select', {
         view: 'mychips.users_v',
         fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
+      }, data => {
+        console.log(JSON.stringify(data,null,2))
+        rl.prompt()
       });						break;
 
     case 'pay':
-      sendit({
-        id: 'pay_cmd',
-        action: 'select',
+      mess.request(pktId++, 'select', {
         view: 'mychips.users_v',
         table: 'mychips.users_pay',			//Example function--not yet implemented
         params: args					//Table will become a function with these arguments
+      }, data => {
+        console.log(JSON.stringify(data,null,2))
+        rl.prompt()
       });						break;
 
     case 'exit':
