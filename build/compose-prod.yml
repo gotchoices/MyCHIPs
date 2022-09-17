@@ -6,7 +6,7 @@ version: '3.7'
 
 services:
   mychips:
-    image: gotchoices/mychips:16
+    image: gotchoices/mychips:18
     command: npm start
     container_name: $MYCHIPS_HOST
     hostname: $MYCHIPS_HOST

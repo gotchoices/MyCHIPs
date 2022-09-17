@@ -1,7 +1,7 @@
 # Build a production mychips image copied from the local source tree.
 # Currently loading node version 16
 
-ARG version=16
+ARG version=18
 FROM node:${version}-alpine
 RUN apk update && apk upgrade && apk add bash bash-completion postgresql-client openssl
 

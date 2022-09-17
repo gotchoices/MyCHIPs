@@ -1,0 +1,18 @@
+#!/bin/bash
+#Launch an Android emulator configured to communicate with the mychips backend
+#- Put mychips0 into the android emulator's hosts file
+#- Install the proper CA file in the device
+#https://stackoverflow.com/questions/41117715/how-to-edit-etc-hosts-file-in-android-studio-emulator-running-in-nougat
+avd="4.65_720p_Galaxy_Nexus_API_26"
+em="emulator-5554"
+
+cat >/tmp/hosts <<EOF
+127.0.0.1       localhost
+::1             ip6-localhost
+10.0.2.2	mychips0
+EOF
+
+emulator -avd $avd -writable-system	#-no-snapshot-load
+adb root
+adb -s $em remount
+adb -s $em push /tmp/hosts /system/etc/hosts 'emulator-5554'

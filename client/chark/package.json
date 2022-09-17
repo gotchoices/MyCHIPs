@@ -1,0 +1,42 @@
+{
+  "name": "chark",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@craftzdog/react-native-buffer": "^6.0.5",
+    "@react-navigation/native": "^6.0.12",
+    "@react-navigation/native-stack": "^6.8.0",
+    "b64u-lite": "^1.1.0",
+    "base64url": "^3.0.1",
+    "buffer": "^6.0.3",
+    "react": "18.1.0",
+    "react-native": "0.70.1",
+    "react-native-quick-base64": "^2.0.5",
+    "react-native-safe-area-context": "^4.3.3",
+    "react-native-screens": "^3.17.0",
+    "react-native-webview": "^11.23.0",
+    "react-native-webview-crypto": "^0.0.25",
+    "web-encoding": "^1.1.5",
+    "wyseman": "^1.1.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "@babel/runtime": "^7.12.5",
+    "@react-native-community/eslint-config": "^2.0.0",
+    "babel-jest": "^26.6.3",
+    "eslint": "^7.32.0",
+    "jest": "^26.6.3",
+    "metro-react-native-babel-preset": "^0.70.3",
+    "react-test-renderer": "18.0.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}

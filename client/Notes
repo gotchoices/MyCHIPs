@@ -1,0 +1,57 @@
+This folder contains several different attempts/implementations of a MyCHIPs
+mobile application:
+
+flutter: The original BYU Capstone dart/flutter-based app.  Hasn't really 
+	gotten the dart API working yet.
+
+rn: Tinkering in React Native
+
+chark: CHip App React Kyle
+	Kyle's attempt at a React Native app to demonstrate usage of the JS
+	client API.
+
+react: Nothing, can delete this folder
+
+--------------------------------------------------------------------------------
+Setting up React Native on Mac: (chark implementation)
+- See: https://reactnative.dev/docs/environment-setup
+
+brew install watchman		#File change watcher
+
+Do I need these:	Or is the built-in Java JDK sufficient?
+  brew tap homebrew/cask-versions
+  brew install --cask zulu11
+
+Installed Android Studio and SDK 12 as per notes above
+
+cd mychips/clients
+npx react-native init chark; cd chark
+
+Run from native MacOS terminal (not iterm):
+  npx react-native run-android
+    Command failed: couldn't find realpath command
+    Did: brew install coreutils
+
+To see if my phone on USB is found/recognized:
+  ~/Library/Android/sdk/platform-tools/adb devices
+
+Setting up React Navigation: https://reactnavigation.org/docs/getting-started
+ (Follow procedures for both Android and IOS)
+  npm install --save @react-navigation/native
+  npm install --save react-native-screens react-native-safe-area-context
+  npx pod-install ios
+  npm install --save @react-navigation/native-stack
+
+Had problem running on IOS, Fix here:
+  https://stackoverflow.com/questions/72729591/fbreactnativespec-h-error-after-upgrading-from-0-68-x-to-0-69-0
+
+To launch app:
+  npx react-native start		#in one shell
+  npx react-native run-android		#in a separate shell
+
+--------------------------------------------------------------------------------
+React Native Metro bundler doesn't seem to support symlinks.  So for accessing
+local wyseman package, need to follow these instructions:
+
+https://medium.com/@alielmajdaoui/linking-local-packages-in-react-native-the-right-way-2ac6587dcfa2
+
