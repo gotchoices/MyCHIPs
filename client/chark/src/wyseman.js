@@ -7,7 +7,7 @@ var log				// = console.log	//Print debug messages from library
 
 const LocalStore = {
   set: function(key, value) {
-console.log("Local set:", key, value)
+console.log("Local set:", key, !!value)
   },
 
   get: function(key) {

@@ -1,14 +1,13 @@
 // MyCHIPs Mobile Application
 // Copyright MyCHIPs.org
 // TODO:
-//- Review wyseman client connection code
-//-  Is it general enough to use in RN?
-//-  Or can I easily make it so?
 //- Connection:
-//-  Wrap websocket module
-//-  Can we do without origin in wsoptions?
-//-  entcli still works
-//-  Works in RN
+//X-  Wrap websocket module
+//X-  Can we do without origin in wsoptions?
+//X-  entcli still works
+//- Can connect with token
+//- Save key locally when generated
+//- Can connect with saved key
 //- 
 //- Add real scanner screen
 //- Read connection ticket (framework for other types)
@@ -36,13 +35,13 @@ const debug = console.log
 var ws
 
 console.log('Crypto:', window.crypto.subtle)
-function connect() {
+function connect(tok) {
   let ticket = require('./assets/ticket.json')
     , api = new ClientAPI({
         webcrypto: window.crypto,
         listen,
         httpPort, 
-        fetch: myFetch, 
+        fetch: myFetch,
         saveKey: () => {
 debug("Writing connection key to localStorage:")
         },
@@ -68,7 +67,7 @@ debug("Connection failed:", err.message)
     ws.onmessage = e => Wm.onMessage(e.data)
 
     Wm.register('wylib0', 'wylib.data', (data, err) => {
-debug("Backend supplies wylib data:", data, "err:", err)
+debug("Backend supplies wylib data:", !!data, "err:", err)
     })
   }).catch(err => {
 debug('Error initializing', err.message)
@@ -103,8 +102,16 @@ function HomeScreen({ navigation }) {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Home Screen</Text>
       <Button
-        title="Connect"
-        onPress={() => connect()}
+        title="Connect with Token"
+        onPress={() => connect(true)}
+      />
+      <Button
+        title="Connect with Key"
+        onPress={() => connect(false)}
+      />
+      <Button
+        title="Query Backend"
+        onPress={() => query()}
       />
       <GlobalMenu nav={navigation} />
     </View>

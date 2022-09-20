@@ -1,18 +1,42 @@
 #!/bin/bash
-#Launch an Android emulator configured to communicate with the mychips backend
-#- Put mychips0 into the android emulator's hosts file
-#- Install the proper CA file in the device
-#https://stackoverflow.com/questions/41117715/how-to-edit-etc-hosts-file-in-android-studio-emulator-running-in-nougat
-avd="4.65_720p_Galaxy_Nexus_API_26"
-em="emulator-5554"
+#Launch an Android emulator and configure it to communicate with the mychips backend
+#- Put mychips0 into the android emulator's hosts file, resolving to local host
+#  https://developer.android.com/studio/run/emulator-networking
+#- Install locally generated CA file in the device
+#  https://stackoverflow.com/questions/41117715/how-to-edit-etc-hosts-file-in-android-studio-emulator-running-in-nougat
 
-cat >/tmp/hosts <<EOF
-127.0.0.1       localhost
-::1             ip6-localhost
-10.0.2.2	mychips0
-EOF
+if [ -z "$1" ]; then
+  avd="$(emulator -list-avds |head -n 1)"
+else
+  avd="$1"
+fi				#;echo "avd:$avd"; exit
+logfile="../test/local/${avd}.log"
 
-emulator -avd $avd -writable-system	#-no-snapshot-load
-adb root
-adb -s $em remount
-adb -s $em push /tmp/hosts /system/etc/hosts 'emulator-5554'
+echo "Launching emulator: $avd in writable mode"
+emulator -avd $avd -writable-system -no-snapshot-load -verbose >$logfile &
+adb wait-for-device				#Make sure emulator has launched
+
+#What port is adb on?
+port="$(grep 'control console' $logfile | sed -e 's/^.*listening on port \([0-9]*\).*$/\1/')"
+if [ -z "$port" ]; then				#If debug output fails to inform us of port
+  port=5554					#Assume only one emulator running
+fi
+dev="emulator-$port"
+echo "port:$port device:$dev"
+adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
+
+adb -s $dev root				#Run adb daemon in root mode
+
+echo "Remounting"
+adb -s $dev remount
+
+echo "Copying host file"
+adb -s $dev push ./hosts /system/etc/hosts	#Install our custom hosts file
+
+#To innstall a CA cert on the emulator:
+#https://docs.mitmproxy.org/stable/howto-install-system-trusted-ca-android/
+cafile="../pki/local/spa-ca.crt"		;echo "CA:$cafile"; cat $cafile
+cahash="$(openssl x509 -inform PEM -subject_hash_old -in $cafile |head -n 1)"
+echo "cahash:$cahash"
+
+adb -s $dev push $cafile /system/etc/security/cacerts/${cahash}.0	#Install custom CA file
