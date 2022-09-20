@@ -2,8 +2,15 @@
 # Currently loading node version 16
 
 ARG version=18
-FROM node:${version}-alpine
-RUN apk update && apk upgrade && apk add bash bash-completion postgresql-client openssl
+FROM node:${version}
+RUN apt-get update; \
+	apt-get install -y postgresql-client; \
+	apt-get install -y openssl; \
+	apt-get install -y bash less iputils-ping; \
+	apt-get install -y busybox; busybox --install -s
+
+#For Alpine:
+#RUN apk update && apk upgrade && apk add bash bash-completion postgresql-client openssl
 
 WORKDIR /app
 COPY package*.json ./
