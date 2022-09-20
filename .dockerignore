@@ -1,4 +1,4 @@
 node_modules/
 .dockerignore
-app
+client
 test/analysis
