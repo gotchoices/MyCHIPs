@@ -25,15 +25,16 @@ dev="emulator-$port"
 echo "port:$port device:$dev"
 adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
 
+sleep 2						#;echo -n 'About to root...'; read ans
 adb -s $dev root				#Run adb daemon in root mode
 
-echo "Remounting"
+#echo -n 'About to remount...'; read ans
 adb -s $dev remount
 
-echo "Copying host file"
+echo "Copying host file"			#;echo -n 'About to copy hosts...'; read ans
 adb -s $dev push ./hosts /system/etc/hosts	#Install our custom hosts file
 
-#To innstall a CA cert on the emulator:
+#To install a CA cert on the emulator:
 #https://docs.mitmproxy.org/stable/howto-install-system-trusted-ca-android/
 cafile="../pki/local/spa-ca.crt"		;echo "CA:$cafile"; cat $cafile
 cahash="$(openssl x509 -inform PEM -subject_hash_old -in $cafile |head -n 1)"

@@ -5,9 +5,10 @@
 //X-  Wrap websocket module
 //X-  Can we do without origin in wsoptions?
 //X-  entcli still works
-//- Can connect with token
-//- Save key locally when generated
-//- Can connect with saved key
+//X- Can connect with token
+//X- Save key locally when generated
+//X- Can connect with saved key
+//- Status line shows connection state
 //- 
 //- Add real scanner screen
 //- Read connection ticket (framework for other types)
@@ -21,57 +22,30 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PolyfillCrypto from 'react-native-webview-crypto'
 
-const ClientAPI = require('wyseman/lib/client_ws')
-const Wm = require('./src/wyseman')
+//const ClientAPI = require('wyseman/lib/client_ws')
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 const httpPort = 8000
 const wsPort = 54320
+const Wm = require('./src/wyseman')
+const Connect = require('./src/connect')
+import ServIcon from './src/servicon'
 
-const myFetch = function(uri, options) {
-  console.log("Local fetch")
-  return fetch(uri, options)
-}
+const ticket = require('./assets/ticket.json')
 const debug = console.log
-var ws
+var conn = new Connect({
+  webcrypto: window.crypto,
+  httpPort, wsPort, listen,
+  wm: Wm
+})
+var pktId = 1
 
-console.log('Crypto:', window.crypto.subtle)
-function connect(tok) {
-  let ticket = require('./assets/ticket.json')
-    , api = new ClientAPI({
-        webcrypto: window.crypto,
-        listen,
-        httpPort, 
-        fetch: myFetch,
-        saveKey: () => {
-debug("Writing connection key to localStorage:")
-        },
-        debug:				console.log
-      })
-    , creds = Object.assign({user: 'admin'}, ticket.ticket)
-    , address = `${creds.host}:${wsPort}`
-    , origin = `https://${creds.host}:${httpPort}`
-
-console.log('Pre:', creds)
-  api.uri(creds).then(wsURI => {			//Build connection URI	
-debug('Connect:', wsURI)
-    ws = new WebSocket(wsURI)				//Open websocket to backend
-
-    ws.onclose = () => Wm.onClose()
-    ws.onopen = () => Wm.onOpen(address, m => {
-      ws.send(m)
-    })
-    ws.onerror = err => {
-      Wm.onClose()
-debug("Connection failed:", err.message)
-    }
-    ws.onmessage = e => Wm.onMessage(e.data)
-
-    Wm.register('wylib0', 'wylib.data', (data, err) => {
-debug("Backend supplies wylib data:", !!data, "err:", err)
-    })
-  }).catch(err => {
-debug('Error initializing', err.message)
-  })	// api.uri()
+function query() {
+  Wm.request(pktId++, 'select', {
+    view: 'mychips.users_v',
+    fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
+  }, data => {
+console.log('Data:', JSON.stringify(data,null,2))
+  })
 }
 
 function GlobalMenu(p) {
@@ -103,15 +77,23 @@ function HomeScreen({ navigation }) {
       <Text>Home Screen</Text>
       <Button
         title="Connect with Token"
-        onPress={() => connect(true)}
+        onPress={() => conn.connect(ticket)}
       />
       <Button
         title="Connect with Key"
-        onPress={() => connect(false)}
+        onPress={() => conn.connect()}
+      />
+      <Button
+        title="Disconnect"
+        onPress={() => conn.disconnect()}
       />
       <Button
         title="Query Backend"
         onPress={() => query()}
+      />
+      <Button
+        title="Toggle"
+        onPress={() => Connector.toggle('y')}
       />
       <GlobalMenu nav={navigation} />
     </View>
@@ -156,20 +138,19 @@ function SettingsScreen({ navigation }) {
 
 const Stack = createNativeStackNavigator();
 
-//    <View>
-//    </View>
 function App() {
   return (
-      <NavigationContainer>
-        <PolyfillCrypto />
-        <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
-          <Stack.Screen name="Receive" component={ReceiveScreen} />
-          <Stack.Screen name="Scan" component={ScanScreen} />
-          <Stack.Screen name="Invite" component={InviteScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+    <NavigationContainer>
+      <ServIcon server='hi'/>
+      <PolyfillCrypto />
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
+        <Stack.Screen name="Receive" component={ReceiveScreen} />
+        <Stack.Screen name="Scan" component={ScanScreen} />
+        <Stack.Screen name="Invite" component={InviteScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
