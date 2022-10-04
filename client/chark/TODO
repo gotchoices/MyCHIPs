@@ -2,7 +2,7 @@ Chark mobile application
 X- Move connection code to a separate module
 X- Store connection key on token connection
 X- Can connect subsequently using stored key
-- Icon on main (each) screen shows connection status
+X- Icon on main (each) screen shows connection status
 - Make module to wrap local async storage
 - Connection status icon updates from token/key/connected
 - Change to store connection key in secure storage

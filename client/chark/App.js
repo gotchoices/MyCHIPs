@@ -8,12 +8,10 @@
 //X- Can connect with token
 //X- Save key locally when generated
 //X- Can connect with saved key
-//- Status line shows connection state
-//- 
-//- Add real scanner screen
-//- Read connection ticket (framework for other types)
-//- How to access global resources (context)
-//- 
+//X- Status line shows connection state
+//- Add real QR scanner screen
+//- Read QR connection ticket (framework for other types)
+//- Can launch from deep link to connection ticket
 //- 
 
 import React, { Component } from 'react';
@@ -22,7 +20,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PolyfillCrypto from 'react-native-webview-crypto'
 
-//const ClientAPI = require('wyseman/lib/client_ws')
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 const httpPort = 8000
 const wsPort = 54320
@@ -37,8 +34,8 @@ var conn = new Connect({
   httpPort, wsPort, listen,
   wm: Wm
 })
-var pktId = 1
 
+var pktId = 1
 function query() {
   Wm.request(pktId++, 'select', {
     view: 'mychips.users_v',
@@ -91,10 +88,6 @@ function HomeScreen({ navigation }) {
         title="Query Backend"
         onPress={() => query()}
       />
-      <Button
-        title="Toggle"
-        onPress={() => Connector.toggle('y')}
-      />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -141,7 +134,7 @@ const Stack = createNativeStackNavigator();
 function App() {
   return (
     <NavigationContainer>
-      <ServIcon server='hi'/>
+      <ServIcon wm={Wm}/>
       <PolyfillCrypto />
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
