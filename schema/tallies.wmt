@@ -94,14 +94,15 @@ tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each
     {policy		{Policy}		{A JSON record of the standard lift and drop parameters}}
 }
 
-tabtext mychips.tallies_v_me {My Tallies}	{View containing all the tallies owned by the current user.} {
+tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertaining to the current user} {
 } -messages {
-    {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
-    {unlock	{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
-    {launch.title	{Tallies}		{Peer Trading Relationship Management}}
+    {close	{Close Tally}		{Request that the current tally be closed once its balance reaches zero}}
+    {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
+      {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}
+    {launch.title	{Tallies}		{Peer Trading Relationships}}
     {launch.instruct	{Basic Instructions}	{
       <p>Tallies are used to document and track trading agreements between partners.
-      <p>You can request a new tally from the action menu in the Peer tab.
+      <p>You can propose a new tally from the action menu in the Editing pane.
     }}
 }
 

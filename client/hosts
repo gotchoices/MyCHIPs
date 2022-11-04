@@ -2,3 +2,7 @@
 127.0.0.1       localhost
 ::1             ip6-localhost
 10.0.2.2	mychips0
+192.168.56.10	lux0 lux0.mychips.sim
+192.168.56.11	lux1 lux1.mychips.sim
+192.168.56.12	lux2 lux2.mychips.sim
+192.168.56.13	lux3 lux3.mychips.sim

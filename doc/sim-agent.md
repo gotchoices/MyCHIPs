@@ -16,7 +16,7 @@ To use it:
 - Connect the [admin browser UI](use-admin.md)
 - Initialize the database: cd test/sample; ./kickstart
 - Create some sample users: ./randuser -n 10
-- Launch the modeler: test/sim/modeler -m 1
+- Launch the modeler: test/sim/model -m 1
 
 More detailed explanation [here](use-test.md).
 

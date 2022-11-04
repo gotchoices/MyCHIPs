@@ -2,7 +2,18 @@ TODO:
 
 Immediate:
 - Wyseman Client API
--  Make message/client_ws work with chark
+X-  Make message/client_ws work with chark
+-  Implement report for invite to tally:
+-    Schema only allows one active token per draft tally
+-    PlPgSql function to build draft tally/token
+-    How to use/delete stale tallies/tokens?
+-    Report works in both User SPA and Chark
+-    Buttons: Edit Tally, Share, Delete
+-  
+-  Implement report for: Visual Balance Sheet
+-    Can view report from User SPA
+-    Can view report in WebView in Chark
+-  
 -  Integrate QR scanner into chark
 -  Check in chark, phase 1
 -  

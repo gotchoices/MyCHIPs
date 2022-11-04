@@ -40,6 +40,8 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
     }}
 }
 
+tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data}
+
 #Sample text in alternate language:
 tabtext mychips.users -lang fin	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
     {user_ent		{Entiteettien linkki}	{Yhteys yhteisön peruspöytään}}

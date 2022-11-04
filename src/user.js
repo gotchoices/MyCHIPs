@@ -5,7 +5,7 @@
 //- 
 import Vue from 'vue'
 import Wylib from 'wylib'
-import AppVBS from './visbs.vue'
+//import AppVBS from './visbs.vue'
 Vue.config.productionTip = false
 
 const Template = `
@@ -16,16 +16,17 @@ const Template = `
 new Vue({
   el: '#app',
   template: Template,
-  components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-visbs': AppVBS},
+//  components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-visbs': AppVBS},
+  components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher},
   data() { return {
-    state:      {curTab: 'dash', tabs: {dash:{}, peers:{}, tallies:{}}},
+    state:      {curTab: 'dash', tabs: {dash:{}, user:{}, tallies:{}}},
     tag:	'mychips_user',
     title:	'MyCHIPs User Portal',
     dbConf:	['mychips_user','wylib'],
     hasRun:	{},
     tabs:	[
-      {tag: 'dash', component: 'app-visbs', title: 'Dashboard'},
-      {tag: 'peers', view: 'mychips.peers_v_me', title: 'Peers'},
+//      {tag: 'dash', component: 'app-visbs', title: 'Dashboard'},
+      {tag: 'user', view: 'mychips.users_v_me', title: 'Profile'},
       {tag: 'tallies', view: 'mychips.tallies_v_me', title: 'Tallies'},
 //      {tag: 'config', view: 'base.parm_v', title: 'Settings'},
     ],

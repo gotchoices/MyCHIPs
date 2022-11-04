@@ -31,10 +31,10 @@ ssh and perform the following actions:
 
 Since everything is done over ssh, it is very helpful to eliminate the need to 
 enter a password each time you connect.  You can do this with:
-
+```
   ssh-keygen -t rsa -b 2048
   ssh-copy-id <username>@<servername>
-
+```
 This must be done manually.  It is not done as part of any automated scripting.
 You must generate the key one time, and then copy it to each of the machines
 you want to access for the simulation.
@@ -79,7 +79,7 @@ machines.
 
 So you need to have a mongod running somewhere accessible to the simulation.
 
-###Certificates
+### Certificates
 Each machine or virtual machine must have appropriate certificates.  For the
 simulation, these are drawn from the pki/local folder.  You can initialize a
 single machine with the command:

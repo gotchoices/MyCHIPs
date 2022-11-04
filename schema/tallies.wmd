@@ -46,12 +46,8 @@ tabdef mychips.tallies_v_me -display {
 } -json {
   actions {[
     {"name":"close","ask":"1"},
-    {"name":"lock","ask":"1"},
-    {"name":"unlock","ask":"1"},
-    {"name":"summary"},
-    {"name":"trade","format":"html","options":[
-      {"tag":"start","type":"date","input":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
-      {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
+    {"name":"invite","format":"html","options":[
+      {"tag":"reuse","input":"chk","onvalue":"t","offvalue":"f"}
     ]}
   ]}
   where {{"and":true,"items":[{"left":"status","oper":"=","entry":"open"}]}}

@@ -2,6 +2,7 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO:
+//- Obsolete file?
 //- Make example graphical visualizer
 //- Use SVGraph.vue?  Or something else?
 //- 
