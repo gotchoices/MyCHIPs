@@ -19,6 +19,8 @@ var database	= argv.d || process.env.MYCHIPS_DBNAME || 'mychips'
 var dbPort	= argv.p || process.env.MYCHIPS_DBPORT || 5432
 var user	= argv.u || process.env.MYCHIPS_DBADMIN || 'admin'
 var outFile	= argv.o ? (Array.isArray(argv.o) ? argv.o.pop() : argv.o) : null
+var id		= argv.i || user
+var spa		= id == user ? 'admin' : 'user'
 
 const { Log } = require("wyclif")
 const { dbClient } = require("wyseman")
@@ -32,7 +34,7 @@ var db = new dbClient({
 })
 
 let q = "select token, expires, host, port from base.ticket_login(base.user_id($1))"
-db.query(q, [user], (err, res) => {
+db.query(q, [id], (err, res) => {
     if (err) console.log("Error:", err.message, "\n  query:", q)
 //console.log("res:", res)
     if (res && res.rows && res.rows.length >= 1) {
@@ -41,10 +43,11 @@ db.query(q, [user], (err, res) => {
       if (spaWSPort) ticket.port = spaWSPort
       
       if (argv.q) {
-        tickText = `?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${user}`
+        tickText = `?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else if (argv.Q) {
-        tickText = `https://${ticket.host}:${spaPort}/admin.html?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${user}`
+        tickText = `https://${ticket.host}:${spaPort}/${spa}.html?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else {
+        if (id != user) ticket.user = id
         tickText = JSON.stringify({ticket})
       }
 
