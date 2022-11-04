@@ -3,9 +3,11 @@ X- Move connection code to a separate module
 X- Store connection key on token connection
 X- Can connect subsequently using stored key
 X- Icon on main (each) screen shows connection status
-- Make module to wrap local async storage
-- Connection status icon updates from token/key/connected
-- Change to store connection key in secure storage
-- Can use of connection key be enabled by biometrics?
+X- Connection status icon updates from token/key/connected
+X- How to connect as regular user
+- Make tally invitation action/report work
 - 
+- Change to store connection key in secure storage
+- Make module to wrap local async storage
+- Can use of connection key be enabled by biometrics?
 - 

@@ -27,6 +27,8 @@ const Wm = require('./src/wyseman')
 const Connect = require('./src/connect')
 import ServIcon from './src/servicon'
 
+import TallyInvite from './src/invite'
+
 const ticket = require('./assets/ticket.json')
 const debug = console.log
 var conn = new Connect({
@@ -36,10 +38,19 @@ var conn = new Connect({
 })
 
 var pktId = 1
-function query() {
+function query_users() {
   Wm.request(pktId++, 'select', {
-    view: 'mychips.users_v',
+    view: 'mychips.users_v_me',
     fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
+  }, data => {
+console.log('Data:', JSON.stringify(data,null,2))
+  })
+}
+function query_user() {		
+  Wm.request(pktId++, 'select', {
+    view: 'base.ent_v',
+    table: 'base.curr_eid',
+    params: []
   }, data => {
 console.log('Data:', JSON.stringify(data,null,2))
   })
@@ -85,8 +96,12 @@ function HomeScreen({ navigation }) {
         onPress={() => conn.disconnect()}
       />
       <Button
-        title="Query Backend"
-        onPress={() => query()}
+        title="Query Users"
+        onPress={() => query_users()}
+      />
+      <Button
+        title="Query Session User"
+        onPress={() => query_user()}
       />
       <GlobalMenu nav={navigation} />
     </View>
@@ -114,7 +129,7 @@ function ScanScreen(p) {
 function InviteScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Invite Screen</Text>
+      <TallyInvite wm={Wm}/>
       <GlobalMenu nav={navigation} />
     </View>
   );

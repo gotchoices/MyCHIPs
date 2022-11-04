@@ -6,7 +6,7 @@
 //- 
 
 const Message = require('wyseman/lib/client_msg')
-var log				// = console.log	//Print debug messages from library
+var log = console.log	//Print debug messages from library
 
 const LocalStore = {
   set: function(key, value) {

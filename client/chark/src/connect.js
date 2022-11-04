@@ -82,7 +82,8 @@ debug('Error initializing', err.message)
   
   connect(ticket) {
     if (ticket) {
-      let creds = Object.assign({user}, ticket.ticket)
+      let creds = Object.assign({}, ticket.ticket)
+      if (!creds.user) creds.user = user
       this.credConnect(creds)
     } else {
       AsyncStorage.getItem(keyTag).then(val => {
