@@ -27,7 +27,8 @@ const Wm = require('./src/wyseman')
 const Connect = require('./src/connect')
 import ServIcon from './src/servicon'
 
-import TallyInvite from './src/invite'
+//import TallyInvite from './src/invite'
+import Invite from './src/screens/Invite'
 
 const ticket = require('./assets/ticket.json')
 const debug = console.log
@@ -129,7 +130,7 @@ function ScanScreen(p) {
 function InviteScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <TallyInvite wm={Wm}/>
+      <Invite wm={Wm}/> 
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -194,3 +195,4 @@ const styles = StyleSheet.create({
 })
 
 export default App;
+
