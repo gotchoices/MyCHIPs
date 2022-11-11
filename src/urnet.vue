@@ -227,7 +227,7 @@ export default {
             user.lookup[tally.uuid] = tally			//tally lookup table by uuid
             delete edgeStray[tally.uuid]
 
-            if (!tally.inside) {				//Partner is a foreign peer
+            if (tally.part && !tally.inside) {			//Partner is a foreign peer
               pTag = (tally.part + '~' + tally.ent + '-' + tally.seq)
               this.putNode(pTag, this.peerSetup(tally.part, tag, tally))
               delete nodeStray[pTag]
