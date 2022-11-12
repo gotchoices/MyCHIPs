@@ -18,7 +18,22 @@ const TallyInvite = (props) => {
     setSelectedTallySeq(tally_seq);
   }
 
-  //Re-load templates from DB
+  //Create a new template
+  const newTemplate = () => {
+    const spec = {
+      fields: {
+        contract: {terms: 'Some Terms'},
+        comment: 'Test: ' + new Date()
+      },
+      view: 'mychips.tallies_v_me',
+    }
+
+    wm.request('_tpt_ref', 'insert', spec, data => {
+console.log('Insert done')
+      fetchTemplates()
+    });
+  }
+
   const fetchTemplates = () => {
     setLoading(true);
     setSelectedTallySeq(undefined);
@@ -42,9 +57,14 @@ const TallyInvite = (props) => {
 
     const template = data?.find((item) => item.id === selectedTallySeq); 
     console.log(template, 'template')
-    return;
+//    return;
 
-    wm.request('_invite', 'action', {name:'invite', view:'mychips.tallies_v'}, data => {
+    let control = {
+      name: 'invite',
+      view: 'mychips.tallies_v_me',
+      data: {tally: template.id, reuse: true}
+    }
+    wm.request('_invite', 'action', control, data => {
       console.log('TI data:', data)
     })
   }
@@ -77,12 +97,16 @@ const TallyInvite = (props) => {
         selectedTallySeq && (
           <View style={styles.regenerate}>
             <Button
-              title="Regenerate"
+              title="From Template"
               onPress={() => generate()}
             />
           </View>
         )
       }
+      <Button
+        title="New Invite"
+        onPress={() => newTemplate()}
+      />
       <Button
         title="Refresh"
         onPress={() => fetchTemplates()}

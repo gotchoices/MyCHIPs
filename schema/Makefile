@@ -30,4 +30,7 @@ sql:	objects text defs
 schema:	objects text defs
 	${WM} init -S ../lib/schema.json
 
+commit:	schema
+	${WM} -C
+
 all: objects text defs init

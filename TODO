@@ -4,8 +4,9 @@ Immediate:
 - Wyseman Client API
 X-  Make message/client_ws work with chark
 -  Implement report for invite to tally:
--    Schema only allows one active token per draft tally
--    PlPgSql function to build draft tally/token
+X-    Schema only allows one active token per draft tally?
+X-    PlPgSql function to build draft tally/token
+X-    Infill control code to build QR report
 -    How to use/delete stale tallies/tokens?
 -    Report works in both User SPA and Chark
 -    Buttons: Edit Tally, Share, Delete

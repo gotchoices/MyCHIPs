@@ -28,9 +28,12 @@ table mychips.tokens {mychips.tallies base.ent} {
 
 # Generate unique sequence for new entry
 #----------------------------------------------------------------
-function mychips.token_tf_seq() {mychips.tokens} {
+function mychips.token_tf_seq() {mychips.tokens base.curr_eid()} {
   returns trigger security definer language plpgsql as $$
     begin
+      if new.token_ent isnull then			-- For creating my own tokens
+         new.token_ent = base.curr_eid();
+      end if;
       if new.token_seq is null then
         select into new.token_seq coalesce(max(token_seq),0)+1 from mychips.tokens where token_ent = new.token_ent;
       end if;
@@ -51,11 +54,13 @@ trigger mychips_token_tr_seq {} {
 
 #Basic view
 #----------------------------------------------------------------
-view mychips.tokens_v {mychips.tokens mychips.users_v json.cert} {select
+view mychips.tokens_v {
+  mychips.tokens mychips.tallies mychips.users_v json.cert
+} {select
     eval(fld_list $tokens::tokens_se t)
   , u.peer_cid, u.peer_agent, u.std_name
   , t.expires <= current_timestamp as "expired"
-  , t.expires > current_timestamp and used is null as "valid"
+  , t.expires > current_timestamp and used is null and a.status = 'draft' as "valid"
   , jsonb_build_object(
        'cid', u.peer_cid
      , 'agent', u.peer_agent
@@ -63,8 +68,9 @@ view mychips.tokens_v {mychips.tokens mychips.users_v json.cert} {select
      , 'port', u.peer_port
     ) as "chad"
       
-    from	mychips.tokens	t
-    join	mychips.users_v	u	on u.user_ent = t.token_ent
+    from	mychips.tokens		t
+    join	mychips.users_v		u	on u.user_ent = t.token_ent
+    join	mychips.tallies	a	on a.tally_ent = t.token_ent and a.tally_seq = t.tally_seq
 
     eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk [concat $glob::stampin]);
     eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);
@@ -79,6 +85,38 @@ view mychips.tokens_v_me {mychips.tokens_v base.user_id(text)} {select
 } -grant {
     {tally	{s} {s i u} {d}}
 }
+
+# Fetch and possibly generate a token for the specified draft tally
+# This function not currently being used.  App currently calling insert/update directly
+#----------------------------------------------------------------
+function {mychips.ticket_get(seq int, reu boolean = false, exp timestamp = current_timestamp + '45 minutes')} {
+  mychips.tokens_v_me mychips.tallies_v_me base.curr_eid()
+} {
+  returns jsonb language plpgsql as $$
+    declare
+      trec	record;
+      ent	text = base.curr_eid();
+    begin
+    
+      select into trec token,expires,chad from mychips.tokens_v_me
+          where token_ent = ent
+          and tally_seq = seq and valid order by crt_date desc limit 1;
+
+      if not found then
+        if (select status from mychips.tallies_v_me where tally_ent = ent and tally_seq = seq) != 'draft' then
+          return null;
+        end if;
+        insert into mychips.tokens_v_me (tally_seq, reuse, expires) values (seq, reu, exp)
+          returning token, expires, chad into trec;
+      end if;
+      
+      return jsonb_build_object(
+        'token',	trec.token,
+        'expires',	trec.expires,
+        'chad',		trec.chad
+      );
+    end;
+$$;}
 
 # Initiate connection based on tally ticket received by our user
 #----------------------------------------------------------------
