@@ -14,8 +14,10 @@ const Fs = require('fs')
 const { Args, Dispatch, Log, Credentials, SpaServer} = require('wyclif')
 var log = Log('mychips', undefined, process.env.MYCHIPS_LOGPATH || Path.join('/var','tmp','mychips'))
 const { Wyseman } = require('wyseman')
-var { actions, Parser } = require('wyselib')
-Parser(actions, ['../lib/control1', '../lib/control2'].map(f=>require(f)))	//Require our app-specific reports
+const { actions, Parser } = require('wyselib')
+const contDir = '../lib/control'
+const controls = Fs.readdirSync(Path.join(__dirname, contDir)).map(f=>(Path.join(contDir, f)))
+Parser(actions, controls.map(f=>require(f)))	//Require our app-specific reports
 
 var opts = Args({
   dbHost:	process.env.MYCHIPS_DBHOST,

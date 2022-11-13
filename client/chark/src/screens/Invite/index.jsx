@@ -62,7 +62,10 @@ console.log('Insert done')
     let control = {
       name: 'invite',
       view: 'mychips.tallies_v_me',
-      data: {tally: template.id, reuse: true}
+      data: {
+        keys: [{tally_seq: template.id}],
+        options: {reuse: true}
+      }
     }
     wm.request('_invite', 'action', control, data => {
       console.log('TI data:', data)

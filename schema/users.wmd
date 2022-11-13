@@ -36,4 +36,10 @@ tabdef mychips.users_v -fields {
   }}
 }
 
+tabdef mychips.users_v_me -json {
+  actions {[
+    {"name":"usergraph","format":"html","single":"1"}
+  ]}
+}
+
 tabdef mychips.users_v_flat -display {id user_cid std_name bill_addr bill_city bill_state} -sort {std_name id}
