@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   item: itemStyle,
   activeItem: {
     ...itemStyle,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#bdbdbd',
   },
   activeText: {
     color: '#fff',

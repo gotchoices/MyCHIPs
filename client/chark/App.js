@@ -130,7 +130,10 @@ function ScanScreen(p) {
 function InviteScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Invite wm={Wm}/> 
+      <View style={{ flex: 1, marginBottom: 60 }}>
+        <Invite wm={Wm}/> 
+      </View>
+
       <GlobalMenu nav={navigation} />
     </View>
   );

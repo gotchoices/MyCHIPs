@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WebView } from 'react-native-webview';
-import { View, Button, FlatList, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Button, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 
 import TemplateItem from './TemplateItem';
 
@@ -9,6 +9,7 @@ const TallyInvite = (props) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedTallySeq, setSelectedTallySeq] = useState();
+  const [qrCode, setQrCode] = useState();
 
   useEffect(() => {
     fetchTemplates();
@@ -35,6 +36,7 @@ console.log('Insert done')
   }
 
   const fetchTemplates = () => {
+    console.log('fetching\n\n\n')
     setLoading(true);
     setSelectedTallySeq(undefined);
     const spec = {
@@ -47,6 +49,7 @@ console.log('Insert done')
       const _data = data.map(el => ({ id: el.tally_seq, contract: el.contract, comment: el.comment }))
       setData(_data);
       setLoading(false);
+      setQrCode(undefined);
     });
   }
 
@@ -67,7 +70,9 @@ console.log('Insert done')
         options: {reuse: true}
       }
     }
+
     wm.request('_invite', 'action', control, data => {
+      setQrCode(data);
       console.log('TI data:', data)
     })
   }
@@ -84,50 +89,79 @@ console.log('Insert done')
 
   return (
     <View style={styles.container}>
-      <WebView
-        source={{ uri: 'http://gotchoices.org' }}
-        style={styles.webView}
-      />
-
-      <Text style={styles.templateText}>Templates:</Text>
-
-      <FlatList 
-        data={data}
-        renderItem={renderItem}
-      />
-
       {
-        selectedTallySeq && (
-          <View style={styles.regenerate}>
-            <Button
-              title="From Template"
-              onPress={() => generate()}
+        qrCode && (
+          <View style={styles.webViewContainer}>
+            <WebView
+              originWhitelist={['*']}
+              source={{ html: qrCode }}
             />
           </View>
         )
       }
-      <Button
-        title="New Invite"
-        onPress={() => newTemplate()}
-      />
-      <Button
-        title="Refresh"
-        onPress={() => fetchTemplates()}
-      />
+
+      <View 
+        style={styles.listContainer}
+      >
+        <View
+          style={styles.listHeading}
+        >
+          <Text style={styles.templateText}>Templates: </Text>
+
+          <View style={{ marginLeft: 10 }}>
+            <Button
+              title="New Invite"
+              onPress={() => newTemplate()}
+            />
+          </View>
+
+        {
+          selectedTallySeq && (
+            <View style={{ marginLeft: 10 }}>
+              <Button
+                color="#ce8805"
+                title="From Template"
+                onPress={() => generate()}
+              />
+            </View>
+          )
+        }
+        </View>
+
+        <FlatList 
+          data={data}
+          renderItem={renderItem}
+          refreshing={loading}
+          onRefresh={() => fetchTemplates()}
+        />
+
+      </View>
+
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: 400,
+    marginTop: 20,
   },
-  webView: {
-    maxHeight: 360,
-    width: 300
+  listContainer: {
+    paddingVertical: 10,
+    flex: 1,
+  },
+  listHeading: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  webViewContainer: {
+    flex: 1,
   },
   templateText: {
     marginVertical: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   regenerate: {
     marginBottom: 10,
