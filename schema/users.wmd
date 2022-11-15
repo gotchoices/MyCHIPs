@@ -38,7 +38,7 @@ tabdef mychips.users_v -fields {
 
 tabdef mychips.users_v_me -json {
   actions {[
-    {"name":"usergraph","format":"html","single":"1"}
+    {"name":"graph","format":"html","single":"1"}
   ]}
 }
 

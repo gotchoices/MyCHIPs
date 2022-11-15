@@ -41,7 +41,7 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
 }
 
 tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} -messages {
-    {usergraph 	{User Tally Graph}	{Generate a visual graph of the user's tally relationships and balances}}
+    {graph 	{Tally Graph}	{Generate a visual graph of the user's tally relationships and balances}}
 }
 
 #Sample text in alternate language:

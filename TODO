@@ -7,13 +7,19 @@ X-  Make message/client_ws work with chark
 X-    Schema only allows one active token per draft tally?
 X-    PlPgSql function to build draft tally/token
 X-    Infill control code to build QR report
+X-    Report works in both User SPA and Chark
 -    How to use/delete stale tallies/tokens?
--    Report works in both User SPA and Chark
 -    Buttons: Edit Tally, Share, Delete
 -  
 -  Implement report for: Visual Balance Sheet
+-    How to display simple html (no iframe)
+-    Is urnet a big svg?
+-    Make this an SVG type report by default?
+-    Port code from urnet to display for a single user
+-    Make urnet into a general library class
 -    Can view report from User SPA
 -    Can view report in WebView in Chark
+-    Back-port admin console to use generalized library
 -  
 -  Integrate QR scanner into chark
 -  Check in chark, phase 1
