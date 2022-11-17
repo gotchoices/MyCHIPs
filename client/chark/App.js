@@ -14,23 +14,27 @@
 //- Can launch from deep link to connection ticket
 //- 
 
-import React, { Component } from 'react';
-import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules } from 'react-native';
+import React, { Component, useEffect } from 'react';
+import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PolyfillCrypto from 'react-native-webview-crypto'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+import ServIcon from './src/servicon'
+import { parse } from './src/utils/query-string';
+import constants from './src/config/constants';
+
+//import TallyInvite from './src/invite'
+import Invite from './src/screens/Invite'
+import Home from './src/screens/Home';
+const Connect = require('./src/connect')
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 const httpPort = 8000
 const wsPort = 54320
 const Wm = require('./src/wyseman')
-const Connect = require('./src/connect')
-import ServIcon from './src/servicon'
 
-//import TallyInvite from './src/invite'
-import Invite from './src/screens/Invite'
-
-const ticket = require('./assets/ticket.json')
 const debug = console.log
 var conn = new Connect({
   webcrypto: window.crypto,
@@ -83,27 +87,7 @@ function GlobalMenu(p) {
 function HomeScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Home Screen</Text>
-      <Button
-        title="Connect with Token"
-        onPress={() => conn.connect(ticket)}
-      />
-      <Button
-        title="Connect with Key"
-        onPress={() => conn.connect()}
-      />
-      <Button
-        title="Disconnect"
-        onPress={() => conn.disconnect()}
-      />
-      <Button
-        title="Query Users"
-        onPress={() => query_users()}
-      />
-      <Button
-        title="Query Session User"
-        onPress={() => query_user()}
-      />
+      <Home conn={conn} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -149,10 +133,47 @@ function SettingsScreen({ navigation }) {
 }
 
 const Stack = createNativeStackNavigator();
+const linking = {
+  prefixes: ["mychips0"],
+  config: {
+    screens:{
+      HomeScreen: "Home",
+    },
+  },
+};  
 
 function App() {
+  useEffect(() => {
+    Linking.getInitialURL().then((url) => {
+      AsyncStorage.getItem(constants.keyTag).then(val => {
+        console.log(JSON.parse(val), 'val')
+      })
+      if(url) {
+        const obj = parse(url);
+        conn.connect({
+          ticket: obj,
+        })
+      }
+    });
+
+    const listener = Linking.addEventListener('url', ({url}) => {
+      if(url) {
+        const obj = parse(url);
+        console.log(obj, 'obj')
+        conn.connect({
+          ticket: obj,
+        })
+      }
+    })
+
+    return () => {
+      conn.disconnect();
+      listener.remove();
+    };
+  }, []);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <ServIcon wm={Wm}/>
       <PolyfillCrypto />
       <Stack.Navigator initialRouteName="Home">

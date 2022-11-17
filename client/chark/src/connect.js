@@ -15,8 +15,9 @@
 //import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
+import constants from './config/constants';
+
 const ClientAPI = require('wyseman/lib/client_ws')
-const keyTag = 'connectKey'
 var user = 'admin'
 
 const myFetch = function(uri, options) {
@@ -49,7 +50,7 @@ module.exports = class {
 
   saveKey(key) {
 debug("Save connection key:", typeof key, key)
-    AsyncStorage.setItem(keyTag, JSON.stringify(key)).catch(err => {
+    AsyncStorage.setItem(constants.keyTag, JSON.stringify(key)).catch(err => {
 debug("Error saving connection key:", err.message)
     })
   }
@@ -86,8 +87,9 @@ debug('Error initializing', err.message)
       if (!creds.user) creds.user = user
       this.credConnect(creds)
     } else {
-      AsyncStorage.getItem(keyTag).then(val => {
+      AsyncStorage.getItem(constants.keyTag).then(val => {
         let creds = JSON.parse(val)
+        console.log(creds, 'hello creds')
         this.credConnect(creds)
       }).catch(err => {
 debug('Error fetching connection key', err.message)
