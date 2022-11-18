@@ -1,7 +1,9 @@
 ### Docker Test Instance
 
-This is probably the quickest way to launch MyCHIPs for simple testing and evaluation.
+This is a quick and simple way to launch MyCHIPs for simple testing and evaluation.
 You will need docker and node/npm installed on your system.
+Also, this is easier on Mac and perhaps Windows as docker under Linux 
+has certain additional [permission issues](https://docs.docker.com/engine/install/linux-postinstall/).
 
 To launch a single server/database pair in development mode:
 ```
@@ -9,11 +11,15 @@ To launch a single server/database pair in development mode:
 ```
 This will take a while on first run as it has to build images.  It should be 
 faster on subsequent runs.  Once containers are launched, it will run until you 
-interrupt it with a CTRL-C.  You can also use this to stop and remove the
+interrupt it with a CTRL-C.  You can then use this to stop and remove the
 containers:
 ```
   npm run docker-stop
 ```
+Beware, the container needs to mount the mychips main directory.
+If this is not called "mychips" (i.e. MyCHIPs) make sure you set the environment 
+variable MYCHIPS_ROOTNAME as needed by build/compose-dev.yml.
+
 The server is configured from the files build/config-dev.env and
 build/compose-dev.yaml.  Keep in mind, the hostname you choose for the 
 MyCHIPs server will have to resolve to your system.  For testing, you can solve 
@@ -60,6 +66,11 @@ The MyCHIPs server should be creating logs which you can view with:
 ```
   tail -f test/local/docker/mychips0.log/combined.log
 ```
+If you can't find these logs, check:
+- Is the mychips0.log folder created with permissions that allow the container to log to it?
+- Is the mychips0.log folder getting properly mounted under the container (at /var/tmp/mychips)?
+- Is the mychips main folder getting properly mounted under the container (at /usr/local/devel)?
+
 The PostgreSQL server creates logs you can view with this command:
 ```
   docker logs -f postgres0 --tail -0
