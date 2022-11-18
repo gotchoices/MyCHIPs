@@ -134,44 +134,15 @@ function SettingsScreen({ navigation }) {
 
 const Stack = createNativeStackNavigator();
 const linking = {
-  prefixes: ["mychips0"],
+  prefixes: ["mychips://"],
   config: {
     screens:{
-      HomeScreen: "Home",
+      Home: "connect",
     },
   },
 };  
 
 function App() {
-  useEffect(() => {
-    Linking.getInitialURL().then((url) => {
-      AsyncStorage.getItem(constants.keyTag).then(val => {
-        console.log(JSON.parse(val), 'val')
-      })
-      if(url) {
-        const obj = parse(url);
-        conn.connect({
-          ticket: obj,
-        })
-      }
-    });
-
-    const listener = Linking.addEventListener('url', ({url}) => {
-      if(url) {
-        const obj = parse(url);
-        console.log(obj, 'obj')
-        conn.connect({
-          ticket: obj,
-        })
-      }
-    })
-
-    return () => {
-      conn.disconnect();
-      listener.remove();
-    };
-  }, []);
-
   return (
     <NavigationContainer linking={linking}>
       <ServIcon wm={Wm}/>
