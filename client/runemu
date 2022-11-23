@@ -3,7 +3,10 @@
 #- Put mychips0 into the android emulator's hosts file, resolving to local host
 #  https://developer.android.com/studio/run/emulator-networking
 #- Install locally generated CA file in the device
+#- Install letsencrypt CA file in the device
 #  https://stackoverflow.com/questions/41117715/how-to-edit-etc-hosts-file-in-android-studio-emulator-running-in-nougat
+#le_url="https://letsencrypt.org/certs/isrgrootx1.pem"
+le_url="https://letsencrypt.org/certs/lets-encrypt-r3.pem"
 
 if [ -z "$1" ]; then
   avd="$(emulator -list-avds |head -n 1)"
@@ -36,8 +39,18 @@ adb -s $dev push ./hosts /system/etc/hosts	#Install our custom hosts file
 
 #To install a CA cert on the emulator:
 #https://docs.mitmproxy.org/stable/howto-install-system-trusted-ca-android/
-cafile="../pki/local/web-ca.crt"		#;echo "CA:$cafile"; cat $cafile
-cahash="$(openssl x509 -inform PEM -subject_hash_old -in $cafile |head -n 1)"
-echo "cahash:$cahash"
+function install_cert () {
+  cafile="$1"
+#  cafile="../pki/local/web-ca.crt"		#;echo "CA:$cafile"; cat $cafile
+  cahash="$(openssl x509 -inform PEM -subject_hash_old -in $cafile |head -n 1)"
+  echo "cafile:$cafile cahash:$cahash"
+  adb -s $dev push $cafile /system/etc/security/cacerts/${cahash}.0	#Install custom CA file
+}
 
-adb -s $dev push $cafile /system/etc/security/cacerts/${cahash}.0	#Install custom CA file
+install_cert "../pki/local/web-ca.crt"		#Install our local CA
+
+le_file="../pki/local/$(basename $le_url)"
+if [ ! -f $le_file ]; then
+  curl $le_url >$le_file
+fi
+install_cert $le_file				#Install letsencrypt CA
