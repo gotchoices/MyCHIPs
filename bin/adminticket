@@ -2,7 +2,7 @@
 //Create a connection ticket for the admin account
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-//Usage ./adminticket -H spaHost -P spaPort -u username -o outfile -d database -h databaseHost -p databasePort
+//Usage ./adminticket -H webHost -P webPort -u username -o outfile -d database -h databaseHost -p databasePort
 //TODO:
 //- 
 
@@ -11,16 +11,16 @@ const Os = require('os')
 var argv = require('yargs').argv
 //console.log("argv:", argv)
 
-var spaHost	= argv.H || Os.hostname() || 'localhost'
-var spaWSPort	= argv.P || 54320
-var spaPort	= argv.S || 8000
+var webHost	= argv.H || Os.hostname() || 'localhost'
+var webWSPort	= argv.P || 54320
+var webPort	= argv.S || 8000
 var dbHost	= argv.h || process.env.MYCHIPS_DBHOST || 'localhost'
 var database	= argv.d || process.env.MYCHIPS_DBNAME || 'mychips'
 var dbPort	= argv.p || process.env.MYCHIPS_DBPORT || 5432
 var user	= argv.u || process.env.MYCHIPS_DBADMIN || 'admin'
 var outFile	= argv.o ? (Array.isArray(argv.o) ? argv.o.pop() : argv.o) : null
 var id		= argv.i || user
-var spa		= id == user ? 'admin' : 'user'
+var spaName	= id == user ? 'admin' : 'user'
 
 const { Log } = require("wyclif")
 const { dbClient } = require("wyseman")
@@ -39,13 +39,13 @@ db.query(q, [id], (err, res) => {
 //console.log("res:", res)
     if (res && res.rows && res.rows.length >= 1) {
       let tickText, ticket = res.rows[0]
-      if (spaHost) ticket.host = spaHost
-      if (spaWSPort) ticket.port = spaWSPort
+      if (webHost) ticket.host = webHost
+      if (webWSPort) ticket.port = webWSPort
       
       if (argv.q) {
         tickText = `?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else if (argv.Q) {
-        tickText = `https://${ticket.host}:${spaPort}/${spa}.html?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
+        tickText = `https://${ticket.host}:${webPort}/${spaName}.html?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else {
         if (id != user) ticket.user = id
         tickText = JSON.stringify({ticket})

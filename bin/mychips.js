@@ -27,9 +27,9 @@ var opts = Args({
   dbAdmin:	process.env.MYCHIPS_DBADMIN	|| 'admin',
   clifPort:	process.env.MYCHIPS_WSPORT	|| 54320,
   clifNP:	process.env.MYCHIPS_NPPORT	|| 44320,
-  spaPort:	process.env.MYCHIPS_SPAPORT	|| 8000,
-  spaKey:	process.env.MYCHIPS_SPAKEY      || Path.join(__dirname, '../pki/local/spa-%.key'),
-  spaCert:	process.env.MYCHIPS_SPACERT     || Path.join(__dirname, '../pki/local/spa-%.crt'),
+  webPort:	process.env.MYCHIPS_WEBPORT	|| 8000,
+  webKey:	process.env.MYCHIPS_WEBKEY      || Path.join(__dirname, '../pki/local/web-%.key'),
+  webCert:	process.env.MYCHIPS_WEBCERT     || Path.join(__dirname, '../pki/local/web-%.crt'),
   agentKey:	process.env.MYCHIPS_AGENTKEY    || Path.join(__dirname, '../pki/local/default_agent'),
   dbUserKey:	process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname, '../pki/local/data-user.key'),
   dbUserCert:	process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
@@ -44,12 +44,12 @@ var opts = Args({
   .argv
 
 //log.debug("opts:", opts)
-var credentials = (!opts.noHTTPS && opts.spaPort) ? Credentials(opts.spaKey, opts.spaCert, null, log) : null
+var credentials = (!opts.noHTTPS && opts.webPort) ? Credentials(opts.webKey, opts.webCert, null, log) : null
 var sslAdmin = Credentials(opts.dbAdminKey, opts.dbAdminCert, opts.dbCA)	//Ignore errors
 var sslUser = Credentials(opts.dbUserKey, opts.dbUserCert, opts.dbCA)
 const pubDir = Path.join(__dirname, "..", "pub")
 
-log.info( "SPA Port:    ", opts.spaPort, opts.wyclif, opts.spaKey, opts.spaCert)
+log.info( "Web Port:    ", opts.webPort, opts.wyclif, opts.webKey, opts.webCert)
 log.debug("CLIF Ports:  ", opts.clifPort, opts.clifNP)
 log.debug("Agent Key In:", opts.agentKey)
 log.debug("Doc Viewer:  ", opts.docs)
@@ -59,7 +59,7 @@ log.trace("Modeler:     ", opts.model, "Lifts:", opts.lifts)
 log.trace("Actions:     ", actions)
 
 var expApp = new SpaServer({		//Serves up SPA applications via https
-  spaPort: opts.spaPort,
+  webPort: opts.webPort,
   wyclif: !!opts.wyclif,
   favIconFile: 'favicon.png',
   pubDir, credentials
