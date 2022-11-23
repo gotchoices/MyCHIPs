@@ -7,8 +7,8 @@ https://<hostname>:8000/admin.html
 ```
   Your browser will likely warn you of an insecure site.  
   For testing, you may be able to just proceed anyway.  Better yet, the
-  "npm initcerts" command executed previously will have created a certificate in pki/local/spa-ca.crt 
-  (or test/docker/pki/spa-ca.crt for a docker test instance).
+  "npm initcerts" command executed previously will have created a certificate in pki/local/web-ca.crt 
+  (or test/docker/pki/web-ca.crt for a docker test instance).
   If you tell your os/browser you trust that CA, you can proceed without warnings.
   
   See [this section](use-pki.md) for more details about securing your site with
@@ -31,7 +31,7 @@ https://<hostname>:8000/admin.html
     npm run adminticket -- -H 192.168.56.101 -o test/local/ticket.json	#or
     bin/adminticket mychips.mydomain.com -o test/tmp/ticket.json
 ```  
-  Make sure the host address matches what is on the spa certificate you built
+  Make sure the host address matches what is on the web certificate you built
   using the "npm run init" or "npm run cert" commands.
   (See [here](use-pki.md) for more detailed info on this.)
   

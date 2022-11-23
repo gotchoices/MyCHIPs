@@ -87,16 +87,16 @@ single machine with the command:
   npm run init
 ```
 That works for the machine you are running the command on, but you must also 
-generate (at least spa) certificates for all the other machines in your 
+generate (at least web) certificates for all the other machines in your 
 simulation.  This can be done with something like:
 ```
-  npm run cert -- -t spa lux1.%		#Where 'lux1' is a hostname
+  npm run cert -- -t web lux1.%		#Where 'lux1' is a hostname
 ```
 Run this once for each machine in your simulation so the server for that
 machine will be able to find it's certificate.  
 
 Keep in mind, these servers are running with self-signed certificates.  You
-will have to import the spa-ca.crt certificate into your browser (and/or os)
+will have to import the web-ca.crt certificate into your browser (and/or os)
 in order to access the admin console without a security warning.
 
 <br>[Next - Local Simulation](sim-local.md)

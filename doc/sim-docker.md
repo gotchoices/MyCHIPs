@@ -164,7 +164,7 @@ connecting via https to a node with a self-signed CA. Look for a CA
 certificate in:
 
 ```
-  test/sim/local/pki/spa-ca.crt
+  test/sim/local/pki/web-ca.crt
 ```
 
 and install it in your browser (and/or OS).

@@ -23,11 +23,11 @@ To make SPA (Single Page Application) certificates:
   cp example.conf local.conf			#Create your own local config
   $EDITOR local.conf				#Modify it for your own site
 
-  npm run cert -- -t spa <servername.%>
+  npm run cert -- -t web <servername.%>
 ```
 Where "servername" is the name of the computer your server will be running on.
 
-There is a file called spa-ca.crt which you will have to install in your
+There is a file called web-ca.crt which you will have to install in your
 browser and/or OS to tell it our certificates can be trusted.
   
 ### Database Certificates

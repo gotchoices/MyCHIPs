@@ -50,7 +50,7 @@ Next, the browser will complain that you are connecting to an SSL web server
 using a certificate signed by an unknown certificate authority.
 To fix that, you can import the CA file created by the software as follows (again for Mac OS):
 ```
-  open test/local/docker/pki/spa-ca.crt
+  open test/local/docker/pki/web-ca.crt
 ```
 You will need to tell the OS (in Keychain Access) to fully trust this CA.
 The certificate is called: Chippies.chip.

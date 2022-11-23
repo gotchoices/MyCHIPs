@@ -114,12 +114,12 @@ If your server is running in docker, you may need to run this inside that contai
 You may also have to supply the hostname (-H) and/or other parameters compatible with your docker environment.
 Specifically, the ticket needs to contain the correct host, port, user and token information.
 
-Now try running the client.  Note that for a production docker-based server, the spa certificate may
+Now try running the client.  Note that for a production docker-based server, the web certificate may
 be somewhere else (like test/local/docker/pki).  Specifying it to the CLI is comparable with
 installing it in your browser (or OS) for browser-based clients.
 ```
   cd test/sample
-  ./entcli -a mychips0 -c ../../pki/local/spa-ca.crt -t ../local/admin.json -u admin
+  ./entcli -a mychips0 -c ../../pki/local/web-ca.crt -t ../local/admin.json -u admin
 ```
 The program will provide logging (something like /tmp/wyatt/combined.log) if you have the
 environment variable NODE_DEBUG set to "debug" or "trace".  The backend should be logging as
@@ -134,7 +134,7 @@ Once you have connected using a one-time connection token, the program will crea
 permanent connection key and will store it in its "vault" ($USER/.mychips_keys).
 Then you can connect more simply with:
 ```
-  entcli -a mychips0 -c ../../pki/local/spa-ca.crt
+  entcli -a mychips0 -c ../../pki/local/web-ca.crt
 ```
 The key vault file is meant to be compatible with what is created/used in the browser-based sample GUI.
 So you should be able to import that same file into the browser GUI and connect successfully.
