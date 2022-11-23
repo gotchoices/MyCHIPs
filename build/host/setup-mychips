@@ -53,3 +53,5 @@ if [ $mode != 'prod' ]; then
   fi
   mychips/bin/develop
 fi
+
+mychips/bin/agents check

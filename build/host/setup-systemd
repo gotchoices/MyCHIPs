@@ -2,11 +2,14 @@
 # -------------------------------
 conf_dir="/etc/systemd/system"
 conf_file="mychips.service"
+web_port=443
 
 if [ "$mode" = "prod" ]; then
   mychips_dir=/home/${mychips_admin}/mychips
+  debug_level=notice
 else
   mychips_dir=/home/${mychips_admin}/devel/mychips
+  debug_level=debug
 fi
 
 rewrite=true
@@ -31,12 +34,18 @@ if $rewrite; then
 	Restart=always
 	KillSignal=SIGQUIT
 	WorkingDirectory=${mychips_dir}
-	ExecStart=npm start
+	ExecStart=npm run server
 	AmbientCapabilities=CAP_NET_BIND_SERVICE
 	CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+	Environment=MYCHIPS_WEBKEY=${mychips_dir}/pki/local/${key_file}
+	Environment=MYCHIPS_WEBCERT=${mychips_dir}/pki/local/${cert_file}
+	Environment=MYCHIPS_WEBPORT=${web_port}
+	Environment=NODE_DEBUG=${debug_level}
 
 	[Install]
 	WantedBy=multi-user.target
 EOF
-#  systemctl start mychips  
+
+  systemctl daemon-reload
+  systemctl start mychips  
 fi

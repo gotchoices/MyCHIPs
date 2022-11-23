@@ -12,6 +12,8 @@ mychips_admin=admin
 locale=en_US.UTF-8
 node_version=18
 mode=prod
+key_file=siteKey.pem
+cert_file=siteCert.pem
 
 oargs="$@"
 pargs=()
@@ -73,8 +75,8 @@ fi
 (echo "mode=$mode"
   cat setup-postgres) | ssh root@${csp_ip} 'bash -s'
 
-#(echo "csp_host=$csp_host"
-#  cat setup-certbot) | ssh root@${csp_ip} 'bash -s'
+(echo "mode=$mode csp_host=$csp_host mychips_admin=$mychips_admin key_file=$key_file cert_file=$cert_file"
+  cat setup-certbot) | ssh root@${csp_ip} 'bash -s'
 
-(echo "mode=$mode mychips_admin=$mychips_admin"
+(echo "mode=$mode mychips_admin=$mychips_admin key_file=$key_file cert_file=$cert_file"
   cat setup-systemd) | ssh root@${csp_ip} 'bash -s'

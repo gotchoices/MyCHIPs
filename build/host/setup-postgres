@@ -16,9 +16,9 @@ fi
 
 config_trust=$'#MyCHIPs development mode; insecure!
  local all admin peer
- local mychips +users trust
+ local mychips +mychips trust
  host all admin 127.0.0.1/32 trust
- host mychips +users 127.0.0.1/32 trust'
+ host mychips +mychips 127.0.0.1/32 trust'
 
 config_ssl=$'#MyCHIPs SSL mode
  Not yet implemented'
@@ -31,7 +31,7 @@ if egrep '^(local|host).*all.*all' $pg_hba; then
 fi
 
 if grep mychips $pg_hba >/dev/null; then
-  echo '  Host access seems to be configured'
+  echo '  Host access appears to be configured'
 else
   echo '  Configuring PostgreSQL host access'
   if [ "$mode" = "prod" ]; then

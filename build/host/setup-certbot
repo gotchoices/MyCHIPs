@@ -1,19 +1,57 @@
 #Setup site certificate using certbot/letsencrypt
 # -------------------------------
-if [ ! -d /etc/letsencrypt -o -z $(which certbot) ]; then
+cron_dir=/etc/cron.daily
+cron_file=certcopy
+le_dir=/etc/letsencrypt
+email="info@$csp_host"
+
+if [ ! -d $le_dir -o -z $(which certbot) ]; then
   echo '  Installing certbot certificate manager'
   apt-get install -y -q certbot
-fi  
+fi
 
-exit 0
-
-  found_le=$(ls /etc/letsencrypt/live)
-if [ ! -z "$found_cert" ]; then
-  echo "  Found cert folder OK: $found_cert"
+if [ -d $le_dir/live ]; then
+  echo "  Found cert folder OK: $le_dir/live"
 else
   echo "Creating site certificate for: $csp_host"
-  certbot certonly --standalone
+  certbot certonly -m "$email" --standalone --agree-tos -q -d $csp_host
   certbot renew --dry-run
 fi
 
-FIXME: install certs
+if [ ! -f $cron_dir/$cron_file ]; then
+  echo "  Installing cron daily job file: $cron_dir/$cron_file"
+  
+  if [ "$mode" = "prod" ]; then
+    mychips_dir="/home/${mychips_admin}/mychips"
+  else
+    mychips_dir="/home/${mychips_admin}/devel/mychips"
+  fi
+
+  pki_local=$mychips_dir/pki/local
+  if [ ! -d $pki_local ]; then
+    echo "Can't find mychips pki local folder: $pki_local"
+    exit 1
+  fi
+
+  cert_dir=$le_dir/live/$csp_host
+  if [ -z "$csp_host" -o ! -d $cert_dir ]; then
+    echo "Can't find site certificate folder: $cert_dir"
+    exit 1
+  fi
+  
+  cat >$cron_dir/$cron_file <<-EOF
+	#!/bin/bash
+	#Copy any updated site certificates to mychips
+	
+	if [ ! -f "$pki_local/$key_file" -o "$cert_dir/privkey.pem" -nt "$pki_local/$key_file" ]; then
+	  install -o $mychips_admin -g $mychips_admin -m 600 "$cert_dir/privkey.pem" "$pki_local/$key_file"
+	fi
+	
+	if [ ! -f "$pki_local/$cert_file" -o "$cert_dir/cert.pem" -nt "$pki_local/$cert_file" ]; then
+	  install -o $mychips_admin -g $mychips_admin -m 600 "$cert_dir/cert.pem" "$pki_local/$cert_file"
+	fi
+EOF
+  chmod 750 $cron_dir/$cron_file
+  sh $cron_dir/$cron_file
+  
+fi
