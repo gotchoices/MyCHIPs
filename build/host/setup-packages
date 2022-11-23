@@ -1,0 +1,10 @@
+# Install any generally necessary packages
+# -------------------------------
+echo '  Installing misc packages:'
+apt-get -q update >/dev/null
+
+if [ "$mode" != 'prod' ]; then
+  if [ -z $(which gcc) ]; then
+    apt-get -q install -y gcc
+  fi
+fi

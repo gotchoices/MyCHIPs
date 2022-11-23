@@ -1,0 +1,42 @@
+# Setup MyCHIPs as a system service
+# -------------------------------
+conf_dir="/etc/systemd/system"
+conf_file="mychips.service"
+
+if [ "$mode" = "prod" ]; then
+  mychips_dir=/home/${mychips_admin}/mychips
+else
+  mychips_dir=/home/${mychips_admin}/devel/mychips
+fi
+
+rewrite=true
+if [ -f $conf_dir/$conf_file ]; then
+  work_dir=$(grep ^WorkingDirectory $conf_dir/$conf_file)
+  if [ "$work_dir" = "mychips_dir" ]; then
+    echo "  Found systemd config file: $conf_dir/$conf_file"
+    rewrite=false
+  fi    
+fi
+
+if $rewrite; then
+  echo "  Installing systemd config file: $conf_dir/$conf_file"
+  cat >$conf_dir/$conf_file <<-EOF
+	[Unit]
+	Description=MyCHIPs Server
+
+	[Service]
+	PIDFile=/var/tmp/mychips.pid
+	User=${mychips_admin}
+	Group=${mychips_admin}
+	Restart=always
+	KillSignal=SIGQUIT
+	WorkingDirectory=${mychips_dir}
+	ExecStart=npm start
+	AmbientCapabilities=CAP_NET_BIND_SERVICE
+	CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+	[Install]
+	WantedBy=multi-user.target
+EOF
+#  systemctl start mychips  
+fi

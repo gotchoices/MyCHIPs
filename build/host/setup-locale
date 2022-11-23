@@ -1,0 +1,11 @@
+#Setup machine locale
+# -------------------------------
+if [ "$LANGUAGE" = "$language" ]; then
+  echo "  Found mychips locale OK: $LANGUAGE"
+else
+  echo "Initializing locale: $language $encoding"
+  lang=$(echo $language |cut -f 1 -d _)
+  apt-get install -y -q language-pack-$lang
+  locale-gen $language ${language}.${encoding}
+  update-locale LANGUAGE="$language" LANG="${language}.${encoding}" LC_ALL="${language}.${encoding}"
+fi

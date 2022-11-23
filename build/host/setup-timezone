@@ -1,0 +1,10 @@
+#Set desired timezone
+# -------------------------------
+found_zone="$(date +%Z)"
+if [ ! -z "$csp_zone" -a "$found_zone" != "$csp_zone" ]; then
+  echo "Setting host timezone from: $found_zone to: $csp_zone"
+  rm -f /etc/localtime
+  ln -sf /usr/share/zoneinfo/$csp_zone /etc/localtime
+else
+  echo "  Found timezone OK: $found_zone"
+fi

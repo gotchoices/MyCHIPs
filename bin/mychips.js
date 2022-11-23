@@ -35,7 +35,7 @@ var opts = Args({
   dbUserCert:	process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
   dbAdminKey:	process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname, '../pki/local/data-admin.key'),
   dbAdminCert:	process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
-  dbCA:		process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-ca.crt')
+  dbCA:		process.env.MYCHIPS_DBCA        || Path.join(__dirname, '../pki/local/data-ca.crt')
 })
   .alias('d','docs')     .default('docs',	true)	//HTML document server
   .alias('l','lifts')    .default('lifts',	false)	//Run lift scheduler

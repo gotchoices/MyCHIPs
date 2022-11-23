@@ -1,0 +1,16 @@
+[Unit]
+Description=MyCHIPs Server
+
+[Service]
+PIDFile=/var/tmp/mychips.pid
+User=mychips
+Group=mychips
+Restart=always
+KillSignal=SIGQUIT
+WorkingDirectory=/home/mychips/
+ExecStart=npm start
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

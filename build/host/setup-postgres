@@ -1,0 +1,50 @@
+# Install PostgreSQL for MyCHIPs use
+# -------------------------------
+pg_conf=/etc/postgresql/
+
+if [ ! -z $(which psql) ]; then
+  pg_version=$(psql --version)
+  echo "  Found installed postgres: $pg_version"
+else
+  apt-get -y -q install \
+    postgresql postgresql-contrib postgresql-pltcl postgresql-plpython3
+  su -l postgres -c "psql postgres postgres -c 'create extension pltcl'"
+  su -l postgres -c "psql postgres postgres -c 'create extension plpython3'"
+#  systemctl enable postgresql
+#  systemctl start postgresql
+fi
+
+config_trust=$'#MyCHIPs development mode; insecure!
+ local all admin peer
+ local mychips +users trust
+ host all admin 127.0.0.1/32 trust
+ host mychips +users 127.0.0.1/32 trust'
+
+config_ssl=$'#MyCHIPs SSL mode
+ Not yet implemented'
+
+pg_hba=$(find $pg_conf -name pg_hba.conf |tail -1)	#;echo "pg_hba:$pg_hba"
+if egrep '^(local|host).*all.*all' $pg_hba; then
+  echo '  Removing default host access'
+  cp $pg_hba $pg_hba.org
+  cat $pg_hba.org |sed -e "s/^\(local\|host\).*all.*all.*$/#&/g" >$pg_hba
+fi
+
+if grep mychips $pg_hba >/dev/null; then
+  echo '  Host access seems to be configured'
+else
+  echo '  Configuring PostgreSQL host access'
+  if [ "$mode" = "prod" ]; then
+    echo "$config_ssl" >>$pg_hba
+  else
+    echo "$config_trust" >>$pg_hba
+  fi
+  systemctl reload postgresql
+fi
+
+found_admin=$(su -l postgres \
+  -c "psql postgres postgres -A -t -c \"select rolname from pg_roles where rolname = 'admin'\"")
+if [ -z "$found_admin" ]; then
+  echo '  Creating admin database user'
+  su -l postgres -c 'psql -c "create role admin with login createdb superuser createrole"'
+fi

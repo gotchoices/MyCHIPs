@@ -1,0 +1,19 @@
+#Setup site certificate using certbot/letsencrypt
+# -------------------------------
+if [ ! -d /etc/letsencrypt -o -z $(which certbot) ]; then
+  echo '  Installing certbot certificate manager'
+  apt-get install -y -q certbot
+fi  
+
+exit 0
+
+  found_le=$(ls /etc/letsencrypt/live)
+if [ ! -z "$found_cert" ]; then
+  echo "  Found cert folder OK: $found_cert"
+else
+  echo "Creating site certificate for: $csp_host"
+  certbot certonly --standalone
+  certbot renew --dry-run
+fi
+
+FIXME: install certs

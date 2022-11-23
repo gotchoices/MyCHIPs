@@ -1,6 +1,14 @@
 TODO:
 
 Immediate:
+-  Network host build script(s)
+-   Install letsencrypt certs
+-   Crontab to freshen them to mychips folder
+-   Make symlinks to cert/key in pki/local
+-   ?: mychips.js will read a standard parameter file if it exists
+-   server serves up CSP home page on port 80
+-   
+
 - Wyseman Client API
 X-  Make message/client_ws work with chark
 -  Implement report for invite to tally:

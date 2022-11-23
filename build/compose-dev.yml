@@ -19,7 +19,7 @@ services:
     environment:
       NODE_DEBUG: ${NODE_DEBUG:-debug}
       MYCHIPS_DBHOST: $MYCHIPS_DBHOST
-    working_dir: ${MYCHIPS_DEVDIR}/mychips
+    working_dir: ${MYCHIPS_DEVDIR}/${MYCHIPS_ROOTNAME:-mychips}
     volumes:
       - "../..:${MYCHIPS_DEVDIR}"
       - "../test/local/docker/${MYCHIPS_HOST}.log:/var/tmp/mychips"

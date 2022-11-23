@@ -1,0 +1,55 @@
+#Install MyCHIPs server source tree
+# -------------------------------
+repo_url="https://github.com/gotchoices/mychips"
+wyseman_url="https://github.com/gotchoices/wyseman"
+wyclif_url="https://github.com/gotchoices/wyclif"
+wyselib_url="https://github.com/gotchoices/wyselib"
+wylib_url="https://github.com/gotchoices/wylib"
+mychips_dir=mychips
+
+if [ $mode = "prod" ]; then			#;echo "home:$home pwd:$(pwd)"
+  mychips_par=$(pwd)
+else
+  mychips_par=devel
+  mkdir -p $mychips_par
+  cd $mychips_par
+fi
+
+if [ -d $mychips_dir ]; then
+  echo "  Found mychips $mode dir: $(pwd)/$mychips_dir OK"
+else
+
+  echo "  Building MyCHIPs directory: $mychips_dir"
+  if ! git clone $repo_url || [ ! -d $mychips_dir ]; then
+    echo "Error fetching: $repo_url"
+    exit 1
+  fi
+
+fi
+
+if [ -d mychips/node_modules ]; then
+  echo '  Found mychips/node_modules OK'
+else
+  cd mychips
+  echo '  Running npm install'
+  npm install
+  npm update
+  cd ..
+fi
+
+if [ $mode != 'prod' ]; then
+  echo '  Checking WyattERP development installation'
+  if [ ! -d wyseman ]; then
+    git clone $wyseman_url
+  fi
+  if [ ! -d wyselib ]; then
+    git clone $wyselib_url
+  fi
+  if [ ! -d wyclif ]; then
+    git clone $wyclif_url
+  fi
+  if [ ! -d wylib ]; then
+    git clone $wylib_url
+  fi
+  mychips/bin/develop
+fi

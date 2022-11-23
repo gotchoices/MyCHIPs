@@ -1,0 +1,25 @@
+#Install proper version of node.js
+# -------------------------------
+if [ -z "$(which node)" ]; then
+  found_node=
+else
+  found_node=$(node --version |cut -f 1 -d . |tr -d 'v')
+fi				#;echo "found_node:$found_node node_version:$node_version"
+
+if [ "$found_node" = "$node_version" ]; then
+  echo "  Found node version OK: $found_node"
+  exit 0
+fi
+
+if [ -z "$(which npm)" ]; then
+ echo '  Installing npm'
+ apt-get install -y -q npm
+fi
+if [ -z "$(which n)" ]; then
+ echo '  Installing n node version manager'
+ npm install -g n
+fi
+
+echo "  Configuring for node version; $node_version"
+apt-get remove -y -q npm nodejs			#;apt-autoremove -y
+n 18
