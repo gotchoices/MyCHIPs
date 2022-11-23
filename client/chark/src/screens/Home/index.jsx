@@ -1,9 +1,31 @@
 import React, { useEffect } from 'react';
 import { View, Text, Button, TouchableOpacity, Linking } from 'react-native'
 
+const Wm = require('../../wyseman');
+
 import { parse } from '../../utils/query-string';
 
 const ticket = require('../../../assets/ticket.json')
+
+var pktId = 1
+function query_users() {
+  Wm.request(pktId++, 'select', {
+    view: 'mychips.users_v_me',
+    fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
+  }, data => {
+console.log('Data:', JSON.stringify(data,null,2))
+  })
+}
+function query_user() {
+  Wm.request(pktId++, 'select', {
+    view: 'base.ent_v',
+    table: 'base.curr_eid',
+    params: []
+  }, data => {
+console.log('Data:', JSON.stringify(data,null,2))
+  })
+}
+
 
 const HomeScreen = ({ navigation, conn }) => {
   useEffect(() => {
