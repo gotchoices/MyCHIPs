@@ -1,13 +1,17 @@
 TODO:
 
 Immediate:
--  Network host build script(s)
--   Install letsencrypt certs
--   Crontab to freshen them to mychips folder
--   Make symlinks to cert/key in pki/local
--   ?: mychips.js will read a standard parameter file if it exists
--   server serves up CSP home page on port 80
--   
+X-  Network host build script(s)
+X-   Install letsencrypt certs
+X-   Crontab to freshen them to mychips folder
+X-   Make symlinks to cert/key in pki/local
+X-   ?: mychips.js will read a standard parameter file if it exists
+X-   server serves up CSP home page on port 80
+X- wyseman not building on mychips.net
+X- Can reload admin console to correct port
+- Push latest
+- Merge to master?
+- 
 
 - Wyseman Client API
 X-  Make message/client_ws work with chark
