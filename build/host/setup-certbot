@@ -3,6 +3,8 @@
 cron_dir=/etc/cron.daily
 cron_file=certcopy
 le_dir=/etc/letsencrypt
+le_key=privkey.pem
+le_cert=fullchain.pem		//Need to include our_cert, R3, X1
 email="info@$csp_host"
 
 if [ ! -d $le_dir -o -z $(which certbot) ]; then
@@ -42,14 +44,22 @@ if [ ! -f $cron_dir/$cron_file ]; then
   cat >$cron_dir/$cron_file <<-EOF
 	#!/bin/bash
 	#Copy any updated site certificates to mychips
+	restart=false
 	
-	if [ ! -f "$pki_local/$key_file" -o "$cert_dir/privkey.pem" -nt "$pki_local/$key_file" ]; then
-	  install -o $mychips_admin -g $mychips_admin -m 600 "$cert_dir/privkey.pem" "$pki_local/$key_file"
+	if [ ! -f "$pki_local/$key_file" -o "$cert_dir/${le_key}" -nt "$pki_local/$key_file" ]; then
+	  install -o $mychips_admin -g $mychips_admin -m 600 "$cert_dir/${le_key}" "$pki_local/$key_file"
+	  restart=true
 	fi
 	
-	if [ ! -f "$pki_local/$cert_file" -o "$cert_dir/cert.pem" -nt "$pki_local/$cert_file" ]; then
-	  install -o $mychips_admin -g $mychips_admin -m 600 "$cert_dir/cert.pem" "$pki_local/$cert_file"
+	if [ ! -f "$pki_local/$cert_file" -o "$cert_dir/${le_cert}" -nt "$pki_local/$cert_file" ]; then
+	  install -o $mychips_admin -g $mychips_admin -m 600 "$cert_dir/${le_cert}" "$pki_local/$cert_file"
+	  restart=true
 	fi
+	
+	if $restart; then
+	  systemctl restart mychips
+	fi
+	
 EOF
   chmod 750 $cron_dir/$cron_file
   sh $cron_dir/$cron_file
