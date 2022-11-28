@@ -55,7 +55,17 @@ debug("Error saving connection key:", err.message)
     })
   }
 
-  credConnect(creds) {
+  /**
+   * @callback connectionCallback
+   * @param {any} err 
+   * @param {boolean} connected 
+   */
+
+  /**
+   * @param {Object} - Credential object
+   * @param {connectionCallback} [cb] - Callback called after connection is established or failed
+   */
+  credConnect(creds, cb = null) {
     let address = `${creds.host}:${this.wsPort}`
 console.log('Pre:', creds)
     if (this.ws) return
@@ -64,10 +74,19 @@ debug('Connect:', wsURI)
       this.ws = new WebSocket(wsURI)			//Open websocket to backend
 
       this.ws.onclose = () => this.wm.onClose()
-      this.ws.onopen = () => this.wm.onOpen(address, m => {
-        this.ws.send(m)
-      })
+      this.ws.onopen = () => {
+        this.wm.onOpen(address, m => {
+          this.ws.send(m)
+        })
+        if(cb) {
+          cb(null, true);
+        }
+      }
+
       this.ws.onerror = err => {
+        if(cb) {
+          cb(err);
+        }
         this.wm.onClose()
 debug("Connection failed:", err.message)
       }
@@ -81,11 +100,19 @@ debug('Error initializing', err.message)
     })	// api.uri()
   }
   
-  connect(ticket) {
+  /**
+   * @param {Object} ticket - Ticket 
+   * @param {connectionCallback} [cb] - Callback called after connection is established or failed
+   */
+  connect(ticket, cb = null) {
     if (ticket) {
       let creds = Object.assign({}, ticket.ticket)
       if (!creds.user) creds.user = user
-      this.credConnect(creds)
+      this.credConnect(creds, (err, connected) => {
+        if(cb) {
+          cb(err, connected);
+        }
+      })
     } else {
       AsyncStorage.getItem(constants.keyTag).then(val => {
         let creds = JSON.parse(val)

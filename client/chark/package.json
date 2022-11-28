@@ -20,10 +20,13 @@
     "react": "18.1.0",
     "react-native": "0.70.1",
     "react-native-quick-base64": "^2.0.5",
+    "react-native-reanimated": "^2.13.0",
     "react-native-safe-area-context": "^4.4.1",
     "react-native-screens": "^3.18.2",
+    "react-native-vision-camera": "^2.15.2",
     "react-native-webview": "^11.23.0",
     "react-native-webview-crypto": "^0.0.25",
+    "vision-camera-code-scanner": "^0.2.0",
     "web-encoding": "^1.1.5",
     "wyseman": "^1.1.7"
   },
