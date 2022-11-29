@@ -26,7 +26,7 @@ var opts = Args({
   dbPort:	process.env.MYCHIPS_DBPORT	|| 5432,
   dbAdmin:	process.env.MYCHIPS_DBADMIN	|| 'admin',
   webPort:	process.env.MYCHIPS_WEBPORT	|| 1024,
-  clifPort:	process.env.MYCHIPS_WSPORT	|| process.env.MYCHIPS_WEBPORT + 1 || 1025,
+  clifPort:	process.env.MYCHIPS_WSPORT	|| parseInt(process.env.MYCHIPS_WEBPORT) + 1 || 1025,
   clifNP:	process.env.MYCHIPS_NPPORT	|| 10240,
   webKey:	process.env.MYCHIPS_WEBKEY      || Path.join(__dirname, '../pki/local/web-%.key'),
   webCert:	process.env.MYCHIPS_WEBCERT     || Path.join(__dirname, '../pki/local/web-%.crt'),
