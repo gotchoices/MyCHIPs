@@ -28,6 +28,7 @@ import constants from './src/config/constants';
 //import TallyInvite from './src/invite'
 import Invite from './src/screens/Invite'
 import Home from './src/screens/Home';
+import Scanner from './src/screens/Scanner';
 const Connect = require('./src/connect')
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
@@ -83,11 +84,11 @@ function ReceiveScreen({ navigation }) {
   );
 }
 
-function ScanScreen(p) {
+function ScanScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Scan Screen</Text>
-      <GlobalMenu nav={p.navigation} />
+      <Scanner conn={conn} navigation={navigation} />
+      <GlobalMenu nav={navigation} />
     </View>
   );
 }
