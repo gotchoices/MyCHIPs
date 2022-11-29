@@ -23,8 +23,8 @@ services:
     depends_on:
       - postgres
     ports:
-      - "${MYCHIPS_SPAPORT:-8000}:8000"
-      - "${MYCHIPS_WSPORT:-54320}:54320"
+      - "${MYCHIPS_WEBPORT:-1024}:1024"
+      - "${MYCHIPS_WSPORT:-1025}:1025"
     networks:
       - backend
       - frontend

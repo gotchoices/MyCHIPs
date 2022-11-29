@@ -39,7 +39,8 @@ So in theory, the more users you can accommodate in a single database instance,
 the more valuable you can be to your customers in facilitating efficient lifts.
 
 A user's or peer's state is meant to be authoritatively kept in the database.
-This implies, the database must be ACID, and therefore Atomic.
+This implies, the database must be [ACID](https://en.wikipedia.org/wiki/ACID)
+and therefore [Atomic](https://en.wikipedia.org/wiki/Atomicity_(database_systems).
 
 The database will also have to issue its own asynchronous notifications as 
 there is no guaranty what other peer server instances may or may not be running 
@@ -52,17 +53,16 @@ requests, execute orderly state changes, and notify any listeners of applicable
 state changes.
 
 ### Peer Server Instance
-Each database instance can interact with one or more peer server instances.  
-The peer server listens for connections from other peer servers (i.e. other
-instances of itself, or similarly functioning software).  It will also initiate
-connections with other peers for the purpose of executing transactions.
+Each database instance can interact with one or more peer server instances, known as *agents*.
+Each listens for connections from other agents
+(i.e. other instances of itself, or similarly functioning software).
+It will also initiate connections with other agents for the purpose of executing transactions.
 
-The peer server transmits and listens on a public interface.  It processes
-requests, interprets state transitions, and then transmits changes of state
-back to the database instance, ideally over an internal, higher speed 
-interface.
+An gent transmits and listens on a public interface.
+It processes requests, interprets state transitions, and then transmits changes of state
+back to the database instance, ideally over an internal, higher speed interface.
 
-When a peer server is launched, it must know what users it acts on behalf of.
+When an agent is launched, it must know what users it acts on behalf of.
 It therefore should register itself with the database instance so as to receive
 notifications, which might have been intiated elsewhere, but which are 
 applicable to the user(s) the peer server works on behalf of.
@@ -95,7 +95,7 @@ planning, designing, visualizing debugging the lift algorithm.
 
 ### Connections
 Each user entity would typically have at least one up-stream and one down-
-stream trading connection (tally) in order to effectively trade on the network.  
+stream trading connection (tally) in order to effectively trade on the network.
 However, in some instances those two connections can virtually be with a single 
 other trading partner (i.e. on the same tally).
 
@@ -126,11 +126,10 @@ to initiate a credit lift around the circle, which will be a transaction
 involving all the entities in the loop.
 
 ### Scaling
-The MyCHIPs server is designed to be able to run all server processes in a
-single process.  So on a small system, it should be pretty easy to get up and
-running.  Everything can run on a single system, including the database.
+The MyCHIPs server is designed to be able to run all services in a single process.
+This simplifies things for smaller system where even the database may be running on the same computer.
 
-When this gets to be too much for a single computer, a next step might be to
+When this gets to be too much for a single CPU, a next step might be to
 split the database off onto a separate machine.  Now you have two kinds of
 thing to measure and scale: database processing and network traffic.
 
@@ -157,8 +156,8 @@ lifts.  This reference implementation is not currently attempting anything of
 that scope.
 
 ### Events
-All processes should be mostly event driven.  Most state transitions would
-occur directly or indirectly as a result of actions by a user somewhere.
+Processes are designed to be event driven.  Most state transitions should
+occur (whether directly or indirectly) as a result of actions by a user somewhere.
 But there are some exceptions.
 
 User Initiated: (someone with an account on our system) 
@@ -184,6 +183,41 @@ Automated:
 Admin Initiated:
   - Add new user
   - Issue ticket inviting a user to connect/validate keys
+
+### Services
+In summary, a site can carry on a variety of different types of network traffic as follows:
+- Service Provider Home Page: https://cspHost/index.html (port 443)  
+  Most sites will publish an https home page where new users can sign up and existing users can connect to restore a lost connection key.
+  Service Providers may publish any number of such pages to support their particular business model.
+  The server should carry this out over SSL on standard port 443.
+  Insecure connections over port 80 should be redirected to https.
+- Agents: np://agentIP:agentPort (65430 or any port)  
+  A site may support any number of agent processes answering on any number of different port numbers.
+  There are no *standard* port numbers to use.
+  The IP number and port for a particular agent are generally made known only to direct partners so there is no need for this to be generally known or predictable.
+  Agent traffic is carried out using [noise protocol](/learn-noise.md#noise-protocol-implementation).
+- User Connections:  https://cspHost:1024 (or any port)  
+  MyCHIPs can optionally serve up SPA web applications on a port defined by the administrator.
+  There is an app for the site administrator (admin.html) and one for regular users (user.html).
+  The admin app may be useful on small systems where new users are added by hand.
+  The user app is meant primarily for testing.
+  Regular users should generally connect via the mobile application.
+- User Websocket Connections:  wss://cspHost:1025 (or any port)  
+  User SPA's and mobile applications connect to the system via websocket.
+  During authentication, they must also perform an https fetch (https://cspHost:1024/clientinfo).
+  So by convention user connection services specify a pair of adjacent ports where https is done on the first, even port and websockets connect on ths second, odd port.
+- Reports:  https://cspHost:1024/report/id/resource  
+  User SPA's and mobile applications may also request reports from the control layer.
+  If/when such reports are furnished via https addresses, these will be on the same host:port where SPA's are served.
+- Documents:  https://cspHost/document/documentHash  
+  The site will provide a copy of any document to any client who knows enough to ask specifically for the document hash.
+  Hashes are expected to be SHA-256.
+  Documents include:
+  - Known MyCHIPs contracts (Specially serialized JSON)
+  - User ID photographs (JPG, GIF, PNG)
+  In the future, this service could be replaced or augmented by a general IPFS service.
+- Custom Integrations
+  User integrations (such as commercial users working in concert with other software) may well communicate directly with the SQL database.
 
 <br>[Next - Hacking](work-noise.md)
 <br>[Back to Index](README.md#contents)

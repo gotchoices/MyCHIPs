@@ -5,6 +5,7 @@
 // environment variables shown for each setting.
 const E = process.env
 const Fs = require('fs')
+const Os = require('os')
 const Path = require('path')
 
 var defAgent, peerHost, peerPort		//Will be derived from any default agent key found
@@ -27,9 +28,9 @@ module.exports={
   DBAdmin:	E.MYCHIPS_DBADMIN	|| "admin",		//Aministrator username for
   DBName:	E.MYCHIPS_DBNAME	|| 'mychips',		//Database name
   AdminID:	E.MYCHIPS_ADMIN_ID	|| "r1",		//Internal admin ID
-  UserHost:	E.MYCHIPS_WSHOST	|| "192.168.56.10",	//User SPA host address
-  UserPort:	E.MYCHIPS_WSPORT	|| 54320,		//User SPA port
-  AdminPort:	E.MYCHIPS_WSPORT	|| 54320,		//Admin SPA port
+  UserHost:	E.MYCHIPS_WSHOST	|| Os.hostname(),	//User websocket host address
+  UserPort:	E.MYCHIPS_WSPORT	|| 1025,		//User websocket port
+  AdminPort:	E.MYCHIPS_WSPORT	|| 1025,		//Admin websocket port
   PeerHost:	E.MYCHIPS_AGHOST	|| peerHost || "localhost",	//P2P host
   PeerPort:	E.MYCHIPS_AGPORT	|| peerPort || 65430,	//P2P port
   PeerAgent:	E.MYCHIPS_AGENT		|| defAgent,		//P2P agent address

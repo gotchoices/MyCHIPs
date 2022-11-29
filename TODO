@@ -1,27 +1,26 @@
 TODO:
 
 Immediate:
-X-  Network host build script(s)
-X-   Install letsencrypt certs
-X-   Crontab to freshen them to mychips folder
-X-   Make symlinks to cert/key in pki/local
-X-   ?: mychips.js will read a standard parameter file if it exists
-X-   server serves up CSP home page on port 80
-X- wyseman not building on mychips.net
-X- Can reload admin console to correct port
-- Push latest
-- Merge to master?
+- Services
+-  SPA/WS on 1024/1025 default
+-  Port 80 redirects to 443
+-  CSP web server on port 443 (from csp folder)
+-  Document server also on 443 (request by hash?)
 - 
-
-- Wyseman Client API
-X-  Make message/client_ws work with chark
--  Implement report for invite to tally:
-X-    Schema only allows one active token per draft tally?
-X-    PlPgSql function to build draft tally/token
-X-    Infill control code to build QR report
-X-    Report works in both User SPA and Chark
--    How to use/delete stale tallies/tokens?
--    Buttons: Edit Tally, Share, Delete
+- Create sample CSP signup page
+-  Can signup for new account
+-  Icons to download app (android and apple)
+-  Link for connection recovery
+- Can launch mychips with or without csp signup page service
+-  
+- Merge to master?
+-  
+- Can we serve user photos from the document server?
+-  Add user photo (document) database table?
+-  Include hash reference to photos in certificates
+- 
+- Refine/document report protocol
+-  Make tally invitation QR report work
 -  
 -  Implement report for: Visual Balance Sheet
 -    How to display simple html (no iframe)

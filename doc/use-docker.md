@@ -35,16 +35,17 @@ Once the server pair is running, we would like to connect to it using the admin 
 But the backend will not allow this without an authorized connection token.
 You can create one using the following bootstrap command:
 ```
-  docker exec mychips0 bin/adminticket -S 8000 -P 54320 -H mychips0 -Q
+  docker exec mychips0 bin/adminticket -Q	#or:
+  docker exec mychips0 bin/adminticket -S webPort -P WSPort -H mychips0 -Q
 ```
-The https SPA (Single Page Application) port and WebSocket ports in this command 
+The https SPA (Single Page Application) port and WebSocket ports in the second example
 must match up with what is in the config-dev.env file for the server pair you just launched.
 The bootstrap command will output a URL (containing the connection token) which 
 you can copy/paste into your browser.  Or if you are really tricky you can do 
 it all in one step with something like this (on Mac OS):
 ```
   open -n -a Firefox.app --args -new-tab \
-    $(docker exec mychips0 bin/adminticket -S 8000 -P 54320 -H mychips0 -Q)
+    $(docker exec mychips0 bin/adminticket -H mychips0 -Q)
 ```
 Next, the browser will complain that you are connecting to an SSL web server 
 using a certificate signed by an unknown certificate authority.

@@ -32,19 +32,16 @@ import Scanner from './src/screens/Scanner';
 const Connect = require('./src/connect')
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
-const httpPort = 8000
-const wsPort = 54320
 const Wm = require('./src/wyseman')
 
 const debug = console.log
 var conn = new Connect({
   webcrypto: window.crypto,
-  httpPort, wsPort, listen,
+  listen: listen,
   wm: Wm
 })
 
 function GlobalMenu(p) {
-//console.log('HI:',p.nav)
   return (
     <View style={styles.global}>
       <TouchableOpacity style={styles.buttonBox} onPress={()=>{p.nav.navigate('Home')}}>

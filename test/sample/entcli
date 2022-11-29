@@ -33,8 +33,8 @@ var pktId = 1
 
 var argv = Yargs				//Process command line arguments
   .alias('a', 'address')	.default('address',	'localhost')			//Hostname or IP address
-  .alias('p', 'httpPort')	.default('httpPort',	8000)				//http port we will use briefly for authentication handshake
-  .alias('w', 'wsPort')		.default('wsPort',	54320)				//Websocket port
+  .alias('p', 'httpPort')	.default('httpPort',	1024)				//http port we will use briefly for authentication handshake
+  .alias('w', 'wsPort')		.default('wsPort',	1025)				//Websocket port
   .alias('u', 'user')		.default('user',	process.env.USER)		//Username to connect as
   .alias('v', 'vault')		.default('vault',	Path.join(Homedir, '.mychips_keys'))	//Where to store my connection key
   .alias('s', 'secret')		.default('secret',	'my secret')			//A phrase to encrypt the private key

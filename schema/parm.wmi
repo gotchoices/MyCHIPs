@@ -5,11 +5,11 @@
 #- Are the 'agents' settings being used?
 #- 
 user_host=mychips.org
-user_port=54320
+user_port=1025
 peer_agent=UNASSIGNED		#Key word triggers setting of real agent key on first run
 peer_host=mychips.org
 peer_port=65430
-if [[ ! -z "$MYCHIPS_SPAHOST" ]]; then user_host="$MYCHIPS_SPAHOST"; fi
+if [[ ! -z "$MYCHIPS_WEBHOST" ]]; then user_host="$MYCHIPS_WEBHOST"; fi
 if [[ ! -z "$MYCHIPS_WSPORT" ]]; then user_port="$MYCHIPS_WSPORT"; fi
 if [[ ! -z "$MYCHIPS_AGENT" ]]; then peer_agent="$MYCHIPS_AGENT"; fi
 if [[ ! -z "$MYCHIPS_AGHOST" ]]; then peer_host="$MYCHIPS_AGHOST"; fi

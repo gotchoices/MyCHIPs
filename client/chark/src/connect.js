@@ -29,13 +29,12 @@ const debug = console.log
 
 module.exports = class {
   constructor(config) {
-    let { webcrypto, httpPort, wsPort, listen, wm } = config
-    Object.assign(this, {webcrypto, httpPort, wsPort, listen, wm})
+    let { webcrypto, listen, wm } = config
+    Object.assign(this, {webcrypto, listen, wm})
     this.ws = null
     this.api = new ClientAPI({
       webcrypto: this.webcrypto,
       listen: this.listen,
-      httpPort: this.httpPort,
       fetch: myFetch,
       saveKey: this.saveKey,
       debug:				null //console.log
@@ -66,7 +65,7 @@ debug("Error saving connection key:", err.message)
    * @param {connectionCallback} [cb] - Callback called after connection is established or failed
    */
   credConnect(creds, cb = null) {
-    let address = `${creds.host}:${this.wsPort}`
+    let address = `${creds.host}:${creds.port}`
 console.log('Pre:', creds)
     if (this.ws) return
     this.api.uri(creds).then(wsURI => {			//Build connection URI	

@@ -33,7 +33,9 @@ sleep 2						#;echo -n 'About to remount...'; read ans
 adb -s $dev remount
 
 echo "Copying host file"			#;echo -n 'Enter to continue...'; read ans
-adb -s $dev push ./hosts /system/etc/hosts	#Install our custom hosts file
+cp ./hosts /tmp/hosts.tmp
+grep mychips.sim /etc/hosts >>/tmp/hosts.tmp
+adb -s $dev push /tmp/hosts.tmp /system/etc/hosts	#Install our custom hosts file
 
 #To install a CA cert on the emulator:
 #https://docs.mitmproxy.org/stable/howto-install-system-trusted-ca-android/

@@ -12,8 +12,8 @@ var argv = require('yargs').argv
 //console.log("argv:", argv)
 
 var webHost	= argv.H || Os.hostname() || 'localhost'
-var webWSPort	= argv.P || 54320
-var webPort	= argv.S || 8000
+var webPort	= argv.S || 1024
+var webWSPort	= argv.P || (argv.S + 1) || 1025
 var dbHost	= argv.h || process.env.MYCHIPS_DBHOST || 'localhost'
 var database	= argv.d || process.env.MYCHIPS_DBNAME || 'mychips'
 var dbPort	= argv.p || process.env.MYCHIPS_DBPORT || 5432

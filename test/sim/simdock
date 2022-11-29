@@ -165,7 +165,7 @@ function start_spa {
   local spaname="spa$n"
   local spaxport=$(expr $spaports + $n)
   local wsxport=$(expr $wsports + $n)
-  if ! run mychips --name $spaname -p ${wsxport}:54320 -p ${spaxport}:8000 \
+  if ! run mychips --name $spaname -p ${wsxport}:1025 -p ${spaxport}:1024 \
   	-v "$machtmp:/var/tmp/mychips" \
   	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
   	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
