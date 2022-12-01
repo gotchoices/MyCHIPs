@@ -17,8 +17,8 @@ require config.tcl trigview.tcl
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
-    def tallies_v_up	{comment target reward clutch bound part_sig hold_sig request}
-    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid tally_type version part_ent contract hold_cert part_cert hold_terms part_terms]
+    def tallies_v_up	{tally_type comment contract hold_terms part_terms target reward clutch bound part_sig hold_sig request}
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid version part_ent hold_cert part_cert]
     def tallies_se	[concat $tallies_v_in tally_seq status digest net_pc net_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets chain_conf $glob::stampfn]
 }
 
@@ -360,7 +360,28 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
          and cc.chain_idx = te.chain_conf;
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin]);
-    eval(trigview::update mychips.tallies_v mychips.tallies $tallies::tallies_v_up $tallies::tallies_pk $glob::stampup);
+}
+
+# Custom update function; Only allow updates of regular fields for draft tally
+#----------------------------------------------------------------
+define updEnd {
+  where eval(fld_list_eq $tallies::tallies_pk old { and })
+    returning eval(join $tallies::tallies_pk ,) into eval(fld_list $tallies::tallies_pk new);
+}
+function {mychips.tallies_v_updfunc()} {mychips.tallies_v} {
+ returns trigger language plpgsql security definer as $$
+  begin
+    if old.status = 'draft' then
+      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up $glob::stampin) updEnd()
+    else
+      update mychips.tallies set eval(trigview::upfields {status} $glob::stampin) updEnd()
+    end if;
+    select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
+    return new;
+  end;
+$$;}
+trigger mychips_tallies_tr_upd {} {
+    instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 }
 
 # User view of tallies
