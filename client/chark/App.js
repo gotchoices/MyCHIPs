@@ -29,6 +29,10 @@ import constants from './src/config/constants';
 import Invite from './src/screens/Invite'
 import Home from './src/screens/Home';
 import Scanner from './src/screens/Scanner';
+import Tally from './src/screens/Tally';
+import EditDraftTally from './src/screens/Tally/EditDraftTally';
+import EditOpenTally from './src/screens/Tally/EditOpenTally';
+import TallyReport from './src/screens/Tally/TallyReport';
 const Connect = require('./src/connect')
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
@@ -66,7 +70,7 @@ function GlobalMenu(p) {
 function HomeScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Home conn={conn} />
+      <Home conn={conn} navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -94,7 +98,7 @@ function InviteScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{ flex: 1, marginBottom: 60 }}>
-        <Invite wm={Wm}/> 
+        <Invite wm={Wm} navigation={navigation} />
       </View>
 
       <GlobalMenu nav={navigation} />
@@ -106,6 +110,46 @@ function SettingsScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Settings Screen</Text>
+      <GlobalMenu nav={navigation} />
+    </View>
+  );
+}
+
+function TallyScreen({ navigation }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <Tally wm={Wm} navigation={navigation} />
+      <GlobalMenu nav={navigation} />
+    </View>
+  );
+}
+
+function TallyReportScreen({ navigation }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <TallyReport wm={Wm} navigation={navigation} />
+      <GlobalMenu nav={navigation} />
+    </View>
+  );
+}
+
+function TallyEditScreen({ route, navigation }) {
+  const { tally_seq, tally_ent } = route.params;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <EditDraftTally wm={Wm} tally_seq={tally_seq} tally_ent={tally_ent} />
+      <GlobalMenu nav={navigation} />
+    </View>
+  );
+}
+
+function OpenTallyEditScreen({ route, navigation }) {
+  const { tally_seq, tally_ent } = route.params;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <EditOpenTally wm={Wm} tally_seq={tally_seq} tally_ent={tally_ent} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -132,6 +176,10 @@ function App() {
         <Stack.Screen name="Scan" component={ScanScreen} />
         <Stack.Screen name="Invite" component={InviteScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Tallies" component={TallyScreen} />
+        <Stack.Screen name="TallyReport" component={TallyReportScreen} />
+        <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
+        <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

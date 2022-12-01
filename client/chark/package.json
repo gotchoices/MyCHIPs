@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
-    "@react-native-async-storage/async-storage": "^1.17.10",
-    "@react-navigation/native": "^6.0.12",
-    "@react-navigation/native-stack": "^6.9.1",
+    "@react-native-async-storage/async-storage": "^1.17.11",
+    "@react-native-picker/picker": "^2.4.8",
+    "@react-navigation/native": "^6.0.16",
+    "@react-navigation/native-stack": "^6.9.4",
     "b64u-lite": "^1.1.0",
     "base64url": "^3.0.1",
     "buffer": "^6.0.3",
@@ -24,15 +25,15 @@
     "react-native-safe-area-context": "^4.4.1",
     "react-native-screens": "^3.18.2",
     "react-native-vision-camera": "^2.15.2",
-    "react-native-webview": "^11.23.0",
+    "react-native-webview": "^11.25.0",
     "react-native-webview-crypto": "^0.0.25",
     "vision-camera-code-scanner": "^0.2.0",
     "web-encoding": "^1.1.5",
-    "wyseman": "^1.1.7"
+    "wyseman": "^1.1.8"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.2",
-    "@babel/runtime": "^7.20.1",
+    "@babel/core": "^7.20.5",
+    "@babel/runtime": "^7.20.6",
     "@react-native-community/eslint-config": "^2.0.0",
     "babel-jest": "^26.6.3",
     "eslint": "^7.32.0",

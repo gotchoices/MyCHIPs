@@ -1,11 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
 
 const TemplateItem = (props) => {
   const item = props.template;
 
   const onPress = () => {
     props.selectTemplate(item.id)
+  }
+
+  const onView = () => {
+    props.navigation.navigate('TallyEdit', {
+      tally_seq: item.id,
+      tally_ent: item.tally_ent,
+    });
   }
 
   const isActive = props.activeId === item.id
@@ -17,6 +24,11 @@ const TemplateItem = (props) => {
           <Text style={isActive && styles.activeText}>{item.comment}</Text>
         </View>
       </TouchableOpacity>
+
+      <Button 
+        title="View" 
+        onPress={onView}
+      />
     </View>
   )
 }
