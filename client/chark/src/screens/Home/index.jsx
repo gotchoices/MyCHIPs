@@ -1,7 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TouchableOpacity, Linking } from 'react-native'
-
-const Wm = require('../../wyseman');
 
 import { parse } from '../../utils/query-string';
 
@@ -53,6 +51,10 @@ const HomeScreen = ({ navigation, conn }) => {
     };
   }, []);
 
+  const getTallies = () => {
+    navigation.navigate('Tallies')
+  }
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Home Screen</Text>
@@ -75,6 +77,10 @@ const HomeScreen = ({ navigation, conn }) => {
       <Button
         title="Query Session User"
         onPress={() => query_user()}
+      />
+      <Button
+        title="Get Tallies"
+        onPress={() => getTallies()}
       />
     </View>
   );

@@ -115,7 +115,6 @@ debug('Error initializing', err.message)
     } else {
       AsyncStorage.getItem(constants.keyTag).then(val => {
         let creds = JSON.parse(val)
-        console.log(creds, 'hello creds')
         this.credConnect(creds)
       }).catch(err => {
 debug('Error fetching connection key', err.message)
