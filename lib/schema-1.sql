@@ -2832,6 +2832,9 @@ rtry_rid	int		primary key references mychips.routes on update cascade on delete 
 );
 create function mychips.token_tf_seq() returns trigger security definer language plpgsql as $$
     begin
+      if new.token_ent isnull then			-- For creating my own tokens
+         new.token_ent = base.curr_eid();
+      end if;
       if new.token_seq is null then
         select into new.token_seq coalesce(max(token_seq),0)+1 from mychips.tokens where token_ent = new.token_ent;
       end if;
@@ -3069,7 +3072,7 @@ create view mychips.tokens_v as select
     t.token_ent, t.token_seq, t.reuse, t.expires, t.tally_seq, t.token, t.used, t.crt_by, t.mod_by, t.crt_date, t.mod_date
   , u.peer_cid, u.peer_agent, u.std_name
   , t.expires <= current_timestamp as "expired"
-  , t.expires > current_timestamp and used is null as "valid"
+  , t.expires > current_timestamp and used is null and a.status = 'draft' as "valid"
   , jsonb_build_object(
        'cid', u.peer_cid
      , 'agent', u.peer_agent
@@ -3077,8 +3080,9 @@ create view mychips.tokens_v as select
      , 'port', u.peer_port
     ) as "chad"
       
-    from	mychips.tokens	t
-    join	mychips.users_v	u	on u.user_ent = t.token_ent
+    from	mychips.tokens		t
+    join	mychips.users_v		u	on u.user_ent = t.token_ent
+    join	mychips.tallies	a	on a.tally_ent = t.token_ent and a.tally_seq = t.tally_seq
 
     ;
     ;
@@ -3550,7 +3554,7 @@ $$;
 create trigger mychips_tallies_tr_bu before update on mychips.tallies for each row execute procedure mychips.tallies_tf_bu();
 create trigger mychips_tallies_tr_seq before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
 create view mychips.tallies_v as select 
-    te.tally_ent, te.comment, te.target, te.reward, te.clutch, te.bound, te.part_sig, te.hold_sig, te.request, te.tally_uuid, te.tally_type, te.version, te.part_ent, te.contract, te.hold_cert, te.part_cert, te.hold_terms, te.part_terms, te.tally_seq, te.status, te.digest, te.net_pc, te.net_c, te.tally_date, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sets, te.part_sets, te.chain_conf, te.crt_by, te.mod_by, te.crt_date, te.mod_date
+    te.tally_ent, te.tally_type, te.comment, te.contract, te.hold_terms, te.part_terms, te.target, te.reward, te.clutch, te.bound, te.part_sig, te.hold_sig, te.request, te.tally_uuid, te.version, te.part_ent, te.hold_cert, te.part_cert, te.tally_seq, te.status, te.digest, te.net_pc, te.net_c, te.tally_date, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sets, te.part_sets, te.chain_conf, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
   , ua.agent_host			as hold_host
   , ua.agent_port			as hold_port
@@ -3609,7 +3613,6 @@ create view mychips.tallies_v as select
        ) cc on cc.chit_ent = te.tally_ent and cc.chit_seq = te.tally_seq
          and cc.chain_idx = te.chain_conf;
 
-    ;
     ;
 create view json.tally as select
     te.tally_ent	as "id"
@@ -3847,7 +3850,7 @@ create function mychips.tallies_v_insfunc() returns trigger language plpgsql sec
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tallies_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.tallies (tally_ent,comment,target,reward,clutch,bound,part_sig,hold_sig,request,tally_uuid,tally_type,version,part_ent,contract,hold_cert,part_cert,hold_terms,part_terms,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,trec.comment,trec.target,trec.reward,trec.clutch,trec.bound,trec.part_sig,trec.hold_sig,trec.request,trec.tally_uuid,trec.tally_type,trec.version,trec.part_ent,trec.contract,trec.hold_cert,trec.part_cert,trec.hold_terms,trec.part_terms,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    insert into mychips.tallies (tally_ent,tally_type,comment,contract,hold_terms,part_terms,target,reward,clutch,bound,part_sig,hold_sig,request,tally_uuid,version,part_ent,hold_cert,part_cert,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,trec.tally_type,trec.comment,trec.contract,trec.hold_terms,trec.part_terms,trec.target,trec.reward,trec.clutch,trec.bound,trec.part_sig,trec.hold_sig,trec.request,trec.tally_uuid,trec.version,trec.part_ent,trec.hold_cert,trec.part_cert,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;
   end;
@@ -3970,7 +3973,13 @@ create view mychips.tallies_v_sum as select
   group by 1;
 create function mychips.tallies_v_updfunc() returns trigger language plpgsql security definer as $$
   begin
-    update mychips.tallies set comment = new.comment,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,part_sig = new.part_sig,hold_sig = new.hold_sig,request = new.request,mod_by = session_user,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    if old.status = 'draft' then
+      update mychips.tallies set tally_type = new.tally_type,comment = new.comment,contract = new.contract,hold_terms = new.hold_terms,part_terms = new.part_terms,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,part_sig = new.part_sig,hold_sig = new.hold_sig,request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
+    returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    else
+      update mychips.tallies set status = new.status,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
+    returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    end if;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;
   end;
@@ -4527,6 +4536,7 @@ create function mychips.routes_v_updfunc() returns trigger language plpgsql secu
     return new;
   end;
 $$;
+create trigger mychips_tallies_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 create view mychips.tallies_v_paths as with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
       top, top_tseq, bot, bot_tseq, circuit
@@ -4593,7 +4603,31 @@ create view mychips.tallies_v_paths as with recursive tally_path (
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
   join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq;
 create trigger mychips_tallies_v_tr_ins instead of insert on mychips.tallies_v for each row execute procedure mychips.tallies_v_insfunc();
-create trigger mychips_tallies_v_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
+create function mychips.ticket_get(seq int, reu boolean = false, exp timestamp = current_timestamp + '45 minutes') returns jsonb language plpgsql as $$
+    declare
+      trec	record;
+      ent	text = base.curr_eid();
+    begin
+    
+      select into trec token,expires,chad from mychips.tokens_v_me
+          where token_ent = ent
+          and tally_seq = seq and valid order by crt_date desc limit 1;
+
+      if not found then
+        if (select status from mychips.tallies_v_me where tally_ent = ent and tally_seq = seq) != 'draft' then
+          return null;
+        end if;
+        insert into mychips.tokens_v_me (tally_seq, reuse, expires) values (seq, reu, exp)
+          returning token, expires, chad into trec;
+      end if;
+      
+      return jsonb_build_object(
+        'token',	trec.token,
+        'expires',	trec.expires,
+        'chad',		trec.chad
+      );
+    end;
+$$;
 create view mychips.users_v_tallysum as select 
     u.id, u.std_name, u.user_ent, u.peer_cid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
@@ -5126,7 +5160,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('mychips','routes_v','eng','Foreign Routes','A view showing foreign peers that can be reached by way of one of our known foreign peers'),
   ('mychips','tallies','eng','Tallies','Contains an entry for each tally, which is a record of credit transactions between two trading partners.'),
   ('mychips','tallies_v','eng','Tallies','Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.'),
-  ('mychips','tallies_v_me','eng','My Tallies','View containing all the tallies owned by the current user.'),
+  ('mychips','tallies_v_me','eng','My Tallies','View containing the tallies pertaining to the current user'),
   ('mychips','tallies_v_net','eng','Tally Lift Edges','A view showing a single link between entities hypothetially eligible for a lift'),
   ('mychips','tallies_v_paths','eng','Tally Pathways','A view showing network pathways between local entities, based on the tallies they have in place'),
   ('mychips','tally_sets','eng','Tally Settings','An archive of past trading settings applied by the tally owner'),
@@ -5136,6 +5170,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('mychips','users','fin','CHIP käyttäjät','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
   ('mychips','users_v','eng','CHIP Users','Entities who have CHIP accounts on this server.'),
   ('mychips','users_v','fin','CHIP käytäjät näkymä','Yksiköt, joilla on CHIP-tilejä tällä palvelimella'),
+  ('mychips','users_v_me','eng','Current User','A view containing only the current user''s data'),
   ('mychips','users_v_tallies','eng','Users and Tallies','View primarily for simulations and network visualizer'),
   ('wm','column_ambig','eng','Ambiguous Columns','A view showing view and their columns for which no definitive native table and column can be found automatically'),
   ('wm','column_data','eng','Column Data','Contains information from the system catalogs about columns of tables in the system'),
@@ -5966,6 +6001,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','BND','eng','Illegal Lift Bound','Maximum lift boundary must be greater or equal to zero'),
   ('mychips','tallies','CNP','eng','Tally Contract','An open tally must reference a contract'),
   ('mychips','tallies','DMG','eng','Invalid Drop Margin','The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.'),
+  ('mychips','tallies','GTT','eng','Error in Tally TIcket','Couldn''t create a tally invitation ticket'),
   ('mychips','tallies','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','tallies','IVR','eng','Invalid Request','Tally request value is not valid'),
   ('mychips','tallies','IVS','eng','Invalid Status','Tally status value is not valid'),
@@ -5983,13 +6019,14 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','UCM','eng','User Certificate','An open tally must contain a user certificate'),
   ('mychips','tallies','USM','eng','User Signature','An open tally must contain a user signature'),
   ('mychips','tallies','VER','eng','Bad Tally Version','Tally version must be 1 or greater'),
+  ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
+  ('mychips','tallies_v_me','invite','eng','Invite to Tally','Create a new invitation to tally for a prospective partner'),
+  ('mychips','tallies_v_me','invite.reuse','eng','Reusable','Create a tally template that can be reused over again with any number of trading partners'),
   ('mychips','tallies_v_me','launch.instruct','eng','Basic Instructions','
       <p>Tallies are used to document and track trading agreements between partners.
-      <p>You can request a new tally from the action menu in the Peer tab.
+      <p>You can propose a new tally from the action menu in the Editing pane.
     '),
-  ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationship Management'),
-  ('mychips','tallies_v_me','lock','eng','Lock Account','Put the specified account(s) into lockdown mode, so no further trading can occur'),
-  ('mychips','tallies_v_me','unlock','eng','Unlock Account','Put the specified account(s) into functional mode, so normal trading can occur'),
+  ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationships'),
   ('mychips','tokens','X','eng','Y','Z'),
   ('mychips','users','ABC','fin','Koetus 1','Ensimmäinen testiviesti'),
   ('mychips','users','BCD','fin','Koetus 2','Toinen testiviesti'),
@@ -6010,6 +6047,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','users_v','trade.end','eng','End Date','Include trades on and before this date'),
   ('mychips','users_v','trade.start','eng','Start Date','Include trades on and after this date'),
   ('mychips','users_v','unlock','eng','Unlock Account','Put the specified account(s) into functional mode, so normal trading can occur'),
+  ('mychips','users_v_me','graph','eng','Tally Graph','Generate a visual graph of the user''s tally relationships and balances'),
   ('mychips','users_v_tallies','centPull','eng','Centering','How hard nodes seek graph center'),
   ('mychips','users_v_tallies','floatSink','eng','Bouyancy','How hard assets rise and liabilities sink'),
   ('mychips','users_v_tallies','forPull','eng','Foreign Pull','How hard the link connector pulls on foreign nodes'),
@@ -6232,12 +6270,8 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','tallies_v_liftss','display','["bang","length","min","max","fora","forz","path"]','t'),
   ('mychips','tallies_v_me','actions','[
     {"name":"close","ask":"1"},
-    {"name":"lock","ask":"1"},
-    {"name":"unlock","ask":"1"},
-    {"name":"summary"},
-    {"name":"trade","format":"html","options":[
-      {"tag":"start","type":"date","input":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
-      {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
+    {"name":"invite","format":"html","options":[
+      {"tag":"reuse","input":"chk","onvalue":"t","offvalue":"f"}
     ]}
   ]','f'),
   ('mychips','tallies_v_me','display','["tally_ent","tally_seq","tally_type","part_ent","part_name","dr_limit","cr_limit","total"]','t'),
@@ -6268,6 +6302,9 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','users_v','subviews','["base.addr_v", "base.comm_v"]','t'),
   ('mychips','users_v','where','{"and":true,"items":[{"left":"user_ent","not":true,"oper":"isnull"}, {"left":"ent_inact","not":true,"oper":"true"}, {"left":"ent_type","oper":"=","entry":"p"}]}','t'),
   ('mychips','users_v_flat','display','["id","user_cid","std_name","bill_addr","bill_city","bill_state"]','t'),
+  ('mychips','users_v_me','actions','[
+    {"name":"graph","format":"html","single":"1"}
+  ]','f'),
   ('wm','column_pub','focus','"code"','t'),
   ('wm','column_text','focus','"code"','t'),
   ('wm','message_text','focus','"code"','t'),
@@ -9767,7 +9804,7 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
 
 -- Deprecated:
 -- ,('mychips', 'user_host', 'text', null, 'mychips.org', null, 'Default IP where mobile application connects.')
--- ,('mychips', 'user_port', 'int', 54320, null, null, 'Default port where mobile user application connects.')
+-- ,('mychips', 'user_port', 'int', 1025, null, null, 'Default port where mobile user application connects.')
 -- ,('mychips', 'peer_agent', 'text', null, 'UNASSIGNED', null, 'Default agent key where peer servers connect.')
 -- ,('mychips', 'peer_host', 'text', null, 'mychips.org', null, 'Default network address where peer servers connect.')
 -- ,('mychips', 'peer_port', 'int', 65430, null, null, 'Default port where peer servers connect.')
