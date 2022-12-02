@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TouchableOpacity, Linking } from 'react-native'
 
 import { parse } from '../../utils/query-string';
+const Wm = require('../../../src/wyseman')
 
 const ticket = require('../../../assets/ticket.json')
 
