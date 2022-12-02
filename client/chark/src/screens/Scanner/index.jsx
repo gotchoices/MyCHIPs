@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, ActivityIndicator, Modal, View, Button, TextInput, Alert } from 'react-native';
 import { useCameraDevices, useFrameProcessor, Camera } from 'react-native-vision-camera';
 import { useScanBarcodes, BarcodeFormat, scanBarcodes } from 'vision-camera-code-scanner';
 
 import { parse } from '../../utils/query-string';
+import { colors } from '../../config/constants';
 
 const Scanner = (props) => {
   const devices = useCameraDevices();
@@ -11,6 +12,13 @@ const Scanner = (props) => {
 
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState();
+
+  // Temporary storage for qr code if username is not included in the ticket
+  const [tempQrCode, setTempQrCode] = useState();
 
   const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.QR_CODE], {
     checkInverted: true,
@@ -24,22 +32,59 @@ const Scanner = (props) => {
         setIsActive(false);
         const parsedCode = JSON.parse(qrCode);
 
-        if(parsedCode?.ticket) {
-          props.conn.connect({
-            ticket: parsedCode?.ticket,
-          }, (err, connected) => {
-            if(err) {
-              console.log('Error connecting: ', err)
-            } else if (connected){
-              props.navigation.navigate('Home');
-            }
-          });
+        if(parsedCode?.ticket && parsedCode?.ticket?.user) {
+          connect({ ticket: parsedCode.ticket })
+        } else if(parsedCode?.ticket) {
+          setTempQrCode(parsedCode.ticket);
+          setIsModalVisible(true);
         }
       } catch(err) {
         console.log(err.message)
       }
     }
   }, [qrCode, setIsActive])
+
+  /**
+   * @param {Object} args
+   * @param {Object} args.ticket
+   * @param {string} [args.username]
+   * @param {boolean} [args.needUsername]
+  */
+  const connect = (args) => {
+    let ticket = args?.ticket;
+    const username = args?.username?.trim();
+
+    if(!ticket) {
+      return Alert.alert('Ticket not found.');
+    }
+
+    console.log(args.needUsername === true && !username, 'args')
+    if(args.needUsername === true && !username) {
+      setUsernameError('Username required');
+      return;
+    }
+    setIsConnecting(true);
+    setIsModalVisible(false);
+
+    if(username) {
+      ticket.user = username;
+    }
+
+    props.conn.connect({
+      ticket,
+    }, (err, connected) => {
+      if(err) {
+        setIsActive(true);
+        setIsConnecting(false);
+        Alert.alert(err.message);
+      } else if (connected){
+        setIsConnecting(false);
+        props.navigation.navigate('Home');
+      }
+
+      setUsername(false);
+    });
+  }
 
   useEffect(() => {
     Camera.requestCameraPermission()
@@ -50,22 +95,102 @@ const Scanner = (props) => {
 
   return (
     device && hasPermission && (
-      <Camera
-        style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={isActive}
-        frameProcessor={frameProcessor}
-        frameProcessorFps={5}
-      />
+      <>
+        <Camera
+          style={StyleSheet.absoluteFill}
+          device={device}
+          isActive={isActive}
+          frameProcessor={frameProcessor}
+          frameProcessorFps={5}
+        />
+        {
+          isConnecting && (
+            <>
+              <ActivityIndicator size="large" color="#fff" />
+              <Text style={styles.connectingText}>
+                Connecting...
+              </Text>
+            </>
+          )
+        }
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => {
+            setIsModalVisible(false);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <View style={styles.formControl}>
+                <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Username</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter username"
+                  onChangeText={setUsername}
+                />
+
+                {
+                  usernameError && <Text style={{ color: colors.red }}>{usernameError}</Text>
+                }
+              </View>
+
+              <Button
+                title="Connect"
+                onPress={() => connect({
+                  ticket: tempQrCode,
+                  username,
+                  needUsername: true,
+                })}
+              />
+            </View>
+          </View>
+        </Modal>
+      </>
     )
   );
 }
 
 const styles = StyleSheet.create({
-  barcodeTextURL: {
+  connectingText: {
     fontSize: 20,
     color: 'white',
     fontWeight: 'bold',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    width: '80%',
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  formControl: {
+    marginVertical: 10,
+  },
+  input: {
+    padding: 10,
+    backgroundColor: colors.gray100,
   },
 });
 
