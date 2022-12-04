@@ -154,19 +154,22 @@ $$;}
 function mychips.users_tf_biu() {mychips.users mychips.ba2b64v(bytea)} {
   returns trigger language plpgsql security definer as $$
     begin
-        if new.user_hid isnull then
-          loop
-            select into new.user_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
-            if not exists (select user_ent from mychips.users where user_hid = new.user_hid) then
-              exit;					-- Make sure it is unique
-            end if;
-          end loop;
-        end if;
-        return new;
+      if new.user_hid isnull then
+        loop
+          select into new.user_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
+          if not exists (select user_ent from mychips.users where user_hid = new.user_hid) then
+            exit;					-- Make sure it is unique
+          end if;
+        end loop;
+      end if;
+      if new.peer_cid isnull then			-- Defaults to user ID if not specified
+        new.peer_cid = new.user_ent;
+      end if;
+      return new;
     end;
 $$;}
 trigger mychips_users_tr_biu {} {
-    before update on mychips.users for each row execute procedure mychips.users_tf_biu();
+    before insert or update on mychips.users for each row execute procedure mychips.users_tf_biu();
 }
 
 # View of users with primary address and contact points
@@ -242,6 +245,38 @@ function {mychips.ticket_login(uid text)} {mychips base.token_v_ticket mychips.u
       trec.host = coalesce(urec.user_host, base.parm_text('mychips','user_host'), trec.host);
       trec.port = coalesce(urec.user_port, base.parm_int('mychips','user_port'), trec.port);
       return trec;
+    end;
+$$;}
+
+# Generate login token based on personal information (ent_name,fir_name,born_date,email)
+# This can be for a new account, or for recovery on an existing account
+#----------------------------------------------------------------
+function {mychips.ticket_login(info jsonb)} {mychips.ticket_login(text)} {
+  returns base.token_v_ticket language plpgsql as $$
+    declare
+      uid	text;
+    begin
+--raise notice 'Ticket login:%', info;
+      select into uid id from base.ent u
+        where u.ent_name = info->>'ent_name'
+          and (u.ent_type = 'o' and info->>'fir_name' isnull or u.fir_name = info->>'fir_name')
+          and (u.born_date = (info->>'born_date')::date)
+          and exists (
+            select comm_seq from base.comm
+              where comm_ent = u.id and comm_type = 'email'
+              and not comm_inact and comm_spec = info->>'email'
+          );
+      if not found then 
+        if info->>'reqType' != 'register' or info->>'tos' != 'true' or info->>'ent_type' isnull then
+          return null; 
+        end if;
+        insert into mychips.users_v (ent_type, ent_name, fir_name, peer_cid, born_date)
+          values (info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cid',(info->>'born_date')::date)
+            returning id into uid;
+        insert into base.comm_v (comm_ent, comm_spec, comm_type)
+          values (uid, info->>'email', 'email');
+      end if;
+      return mychips.ticket_login(uid);
     end;
 $$;}
 

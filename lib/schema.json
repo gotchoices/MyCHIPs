@@ -1,5 +1,5 @@
 {
- "hash": "/14zmUEdsSFb/ERzZRln9t0ovG3cKlV21NJ7jvu4M44=",
+ "hash": "0gxjvaazPIEDaqpUkx1buvGzdzmDppEpT2tGZiuVMWs=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -3087,7 +3087,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJxdUdFuwyAMfO9X+CFSQaomrdr20GrfEhEwxBKBDMya/v0g3damfoLzcXc2OqFiBFuCZooBpqseac4vJWPKPdt+oCIkJOSSQgZO5Bwm8Cq4ohzC7GeXvzxk1CURX8GgpVAZKkPX7aDWgI7CempFFgJeVv1+JAOUQ/EeeMQ7B8DHOD9coep71AwUOG7f/wUe1HH4ePsWBnU0KPysjJjMu0gqmDgJeToxLiwPr0d5gP2Iy17K88aiJYsMuFDmDOLXcTXCwGBTnLbrgcuICeE/yucmmXyeqVUV560rhroD+4g1pM1/x545t99objes9s+7rjv/AIfFiyo=",
+   "create": "eJxtUc1uAiEQPutTzGET2USb1LQ9aHrz0qcwLAy7k7BAYaj69mXVtZJ0TjAzfH+oiJIRTHaKyTsYL2qgkF5ywpiObI4dZdFCRM7RJeBIfY8RrHR9lj1CsKFP3xYSqhyJL6DRkCsbMkHTLKFUhz256wmADDg8XdGPA2mg5LK1wAPOGwDW+/C4QEG2qBjIsa/fzlI7ue0+3n6ERuU1ChukFqN+F1E67UfR7naMZ27Xr9t2DasBz6u23T8RTJo8A54pcQJx57vSoGMw0Y91LHAaMCI8hHxWutrazVQFmp8Z0RXn5q8z3SfXc6ee3zMLWPBVndlisdhs4IBGZlu0l4QmFfB1mE2lgIoMoX5wVVBPyovV/+lvXz8t3jplul82zf4XLL2v4Q==",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1istTi0qji9Ji0/KLNXQtAYAs2sRzA=="
   },
   {
@@ -3810,7 +3810,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJxVzDsOgCAQhOGrbKmNF/AwBJbhUShkYaPeXjSxsJ5vfhbYDuqSY4TQdnHKtRltkGa6GJeVHEIRkFb/0LJ/ankVjZFgOZGUg3CCdagqheF13H7Y9PAkp3m9ASY5Ljg=",
+   "create": "eJxVzDEOwkAQQ9GruISGC3CYVTJxki3IrLwzAm7PBomC1nr+Jk5BhOq2UXi8ba+tl+xUL6Ey18TM1UXUY4wBF7It58mPn799PQYDJ9shf4IvWg7V5MYlR+APl1jP+OV6/wAF6zHu",
    "drop": "eJxLKcovUCgpykxPTy1SyExTSK3ILC4pVsitTM7ILCiOLy1OLSqOLymKT8osVcjPg4nrgcWtAd7HF8A="
   },
   {
@@ -4243,6 +4243,22 @@
    "col_data": [],
    "create": "eJxlzs0KAjEMBOBz9ylyVBDBsw9TYpvFYv9Ip4f69HZXUMTr8GUmToUhBL5FoTTcPdR21tIhFhqk0WFR6LAavAkZxlQNiXXQQwaprKKS3WQ/p41Kpl791uy4OfayJV6ifJOF6ET7xrs4F1DuMU62co+gyy4iNxiEJA2cKp7/znWdT8B+0HK8vgDnmk0Q",
    "drop": "eJxLKcovUChJTMpJVchMU0ityCwuKVbIrUzOyCwo1ivKLy1JjS8pykwttgYARekPyA=="
+  },
+  {
+   "obj_typ": "function",
+   "obj_nam": "mychips.ticket_login(jsonb)",
+   "obj_ver": 1,
+   "module": "mychips",
+   "min_rel": 1,
+   "max_rel": 1,
+   "deps": [
+    "mychips.ticket_login(text)"
+   ],
+   "delta": [],
+   "grants": [],
+   "col_data": [],
+   "create": "eJyNVNtuozAQfW6+YipFMpG8/YCi9Cv6jhwzEG/NmPiSbf9+bcCGXB6KIhHG58ztHJAWhUfoAkmvDMHwI89qdG9eyS/0jTa9okpRZ+CvM3Q6gEUfLDk4CYdv3nwhNddmRoMW1AfRI4x67N1Fg3Cw3+8gXi1KLSxO/wGCal88fvt6ej5hLLJbjhxqlB4UeZNgEH+dNcNcD8lDWIAA/85oEUKKNiQGhCOkTv98fLAcYgUMIKiFakb7nzGhmWFTNLM6ZWcWKEdBazA2ps/RTfoCPDzmPxlLTZuWeoQqE0qQHd7f0/2eiN/KeQfVJlx2Ic0wNA4vm0Wk0A00b2PCpjUdY+dxdyn3FMsj4yCUZnfchCKzVFIkYtFCdCPK7Wbv+Yd6eVDdlKMzIVL9GQkKKh5lvsXLZ2yFwWtsxkblnUfL0qYzwhs3n3ob8OYkS1f0SVU2rczehHRUr8UxKdzVazPk0C4Oy3YPMeSaK1S5BIdsIQ5ZbQ4jom2kajkUQbdCXoUO6FbVS7/8wZf8wUolkosw/jv75LkV9eltyW/O84GLe9Kw2Sx8VZqvbnk2WUiz31qBZ08VI9wufBHl6YclpltYkVPv9vv6P/6XZGg=",
+   "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1ivJTM5OLYnPyU/PzNPIKs7PS9K0BgAT8RPa"
   },
   {
    "obj_typ": "function",

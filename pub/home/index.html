@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>MyCHIPs Service Provider Example Home Page</title>
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+ </head>
+ <body>
+
+  <section class="vh-100" style="background-color: #eee;">
+    <div class="container h-100">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-lg-12 col-xl-11">
+          <div class="card text-black" style="border-radius: 25px;">
+            <div class="card-body p-md-5">
+              <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+  
+                  <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">MyCHIPs Service Signup</p>
+  
+                  <form id="formReg" class="mx-1 mx-md-4" method="post">
+
+                    <label class="form-label" for="inpEntType">User Type*</label>
+                    <input type=hidden id="inpEntTypeDB" name="ent_type" value="p">
+                    <div class="col-md-6 mb-4">
+                      <select class="select" id="inpEntType" onchange="changeType()">
+                        <option value="1" disabled>User Type</option>
+                        <option value="2">Person</option>
+                        <option value="3">Organization</option>
+                      </select>
+                    </div>
+  
+                    <div class="d-flex flex-row align-items-center mb-4">
+                      <div class="flex-fill mb-0">
+                        <label class="form-label" id="labEntName" for="inpEntName">Surname</label>
+                        <input type="text" id="inpEntName" name="ent_name" class="form-control" onchange="change(this)"/>
+                      </div>
+                    </div>
+  
+                    <div id="divGivName" class="d-flex flex-row align-items-center mb-4">
+                      <div class="flex-fill mb-0">
+                        <label class="form-label" for="inpGivName">First Given Name</label>
+                        <input type="text" id="inpGivName" name="fir_name" class="form-control" onchange="change(this)"/>
+                      </div>
+                    </div>
+  
+                    <div class="d-flex flex-row align-items-center mb-4">
+                      <div class="flex-fill mb-0">
+                        <label class="form-label" for="inpEmail">Email Address</label>
+                        <input type="email" id="inpEmail" name="email" class="form-control" onchange="change(this)"/>
+                      </div>
+                    </div>
+  
+                    <div class="d-flex flex-row align-items-center mb-4">
+                      <div class="flex-fill mb-0">
+                        <label class="form-label" id="labDate" for="inpDate">Birth Date</label>
+                        <input type="date" id="inpDate" name="born_date" class="form-control" onchange="change(this)"/>
+                      </div>
+                    </div>
+  
+                    <div class="form-check d-flex justify-content-center mb-5">
+                      <input class="form-check-input me-2" id="inpTOS" name="tos" type="checkbox" value="true" id="formTerms" onchange="change(this)"/>
+                      <label class="form-check-label" for="inpTOS">
+                        I agree to the <a href="/tos.html">Terms of service</a>
+                      </label>
+                    </div>
+  
+                    <input type=hidden id="inpOrigin" name="origin">
+                    <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
+                      <button class="btn btn-primary btn-lg" id="butSubmit" disabled formaction="/submit/register">Register</button>
+                    </div>
+                    <button id="butReissue" disabled formaction="/submit/ticket"
+                      style="background: none; border: none; color: #3030f0; text-decoration: underline; cursor: pointer;">
+                      Issue Connection Ticket to Existing User
+                    </button>
+  
+                  </form>
+  
+                </div>
+                <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
+  
+                  <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/draw1.webp"
+                    class="img-fluid" alt="Sample image">
+  
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+   <script>
+     const inpEntType = document.getElementById('inpEntType')
+     const inpEntTypeDB = document.getElementById('inpEntTypeDB')
+     const inpEntName = document.getElementById('inpEntName')
+     const labEntName = document.getElementById('labEntName')
+     const inpGivName = document.getElementById('inpGivName')
+     const divGivName = document.getElementById('divGivName')
+     const inpEmail = document.getElementById('inpEmail')
+     const inpDate = document.getElementById('inpDate')
+     const labDate = document.getElementById('labDate')
+     const inpTOS = document.getElementById('inpTOS')
+     const inpOrigin = document.getElementById('inpOrigin')
+     const butSubmit = document.getElementById('butSubmit')
+     const butReissue = document.getElementById('butReissue')
+     
+     function changeType() {
+//console.log('Type:', inpEntType.value)
+       if (inpEntType.value == 2) {		//Person
+         labEntName.innerHTML = 'Surname'
+         labDate.innerHTML = 'Birth Date'
+         divGivName.style.display='block'
+         divGivName.className='d-flex flex-row align-items-center mb-4'
+         inpEntTypeDB.value = 'p'
+       } else {				//Organization
+         labEntName.innerHTML = 'Organization Name'
+         labDate.innerHTML = 'Established Date'
+         divGivName.style.display='none'
+         divGivName.className=''
+         inpEntTypeDB.value = 'o'
+       }
+       change()
+     }
+
+     function change() {
+       let unfilled = !inpEntName.value 
+       	|| (!inpGivName.value && inpEntType.value == 2)
+       	|| !inpEmail.checkValidity()
+       	|| !inpDate.checkValidity() 
+       	|| !inpTOS.checked
+//console.log('Check:', unfilled, inpTOS.checked)
+       butSubmit.disabled = unfilled
+       butReissue.disabled = unfilled
+       inpOrigin.value = location
+     }
+   </script>
+ </body>
+</html>

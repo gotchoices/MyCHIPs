@@ -1,0 +1,8 @@
+# Setup sendmail for communicating with users
+# -------------------------------
+
+if which sendmail >/dev/null; then
+  echo "Found installed sendmail"
+else
+  apt-get install sendmail
+fi

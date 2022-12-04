@@ -19,24 +19,8 @@ const contDir = '../lib/control'
 const controls = Fs.readdirSync(Path.join(__dirname, contDir)).map(f=>(Path.join(contDir, f)))
 Parser(actions, controls.map(f=>require(f)))	//Require our app-specific reports
 
-var opts = Args({
-  dbHost:	process.env.MYCHIPS_DBHOST,
-  dbPassword:	process.env.MYCHIPS_DBPASSWORD,
-  dbName:	process.env.MYCHIPS_DBNAME	|| 'mychips',
-  dbPort:	process.env.MYCHIPS_DBPORT	|| 5432,
-  dbAdmin:	process.env.MYCHIPS_DBADMIN	|| 'admin',
-  webPort:	process.env.MYCHIPS_WEBPORT	|| 1024,
-  clifPort:	process.env.MYCHIPS_WSPORT	|| parseInt(process.env.MYCHIPS_WEBPORT) + 1 || 1025,
-  clifNP:	process.env.MYCHIPS_NPPORT	|| 10240,
-  webKey:	process.env.MYCHIPS_WEBKEY      || Path.join(__dirname, '../pki/local/web-%.key'),
-  webCert:	process.env.MYCHIPS_WEBCERT     || Path.join(__dirname, '../pki/local/web-%.crt'),
-  agentKey:	process.env.MYCHIPS_AGENTKEY    || Path.join(__dirname, '../pki/local/default_agent'),
-  dbUserKey:	process.env.MYCHIPS_DBUSERKEY   || Path.join(__dirname, '../pki/local/data-user.key'),
-  dbUserCert:	process.env.MYCHIPS_DBUSERCERT  || Path.join(__dirname, '../pki/local/data-user.crt'),
-  dbAdminKey:	process.env.MYCHIPS_DBADMINKEY  || Path.join(__dirname, '../pki/local/data-admin.key'),
-  dbAdminCert:	process.env.MYCHIPS_DBADMINCERT || Path.join(__dirname, '../pki/local/data-admin.crt'),
-  dbCA:		process.env.MYCHIPS_DBCA        || Path.join(__dirname, '../pki/local/data-ca.crt')
-})
+var opts = Args(require('../lib/config'))
+  .alias('h','home')     .default('home',	true)	//Service Provider HTML Home page
   .alias('d','docs')     .default('docs',	true)	//HTML document server
   .alias('l','lifts')    .default('lifts',	false)	//Run lift scheduler
   .alias('m','model')    .default('model',	false)	//Run agent-based modeler
@@ -44,22 +28,21 @@ var opts = Args({
   .argv
 
 //log.debug("opts:", opts)
-var credentials = (!opts.noHTTPS && opts.webPort) ? Credentials(opts.webKey, opts.webCert, null, log) : null
+var credentials = (!opts.noHTTPS && opts.uiPort) ? Credentials(opts.webKey, opts.webCert, null, log) : null
 var sslAdmin = Credentials(opts.dbAdminKey, opts.dbAdminCert, opts.dbCA)	//Ignore errors
 var sslUser = Credentials(opts.dbUserKey, opts.dbUserCert, opts.dbCA)
 const pubDir = Path.join(__dirname, "..", "pub")
 
-log.info( "Web Port:    ", opts.webPort, opts.wyclif, opts.webKey, opts.webCert)
-log.debug("CLIF Ports:  ", opts.clifPort, opts.clifNP)
+log.debug("UI Ports:   ", opts.uiPort, opts.clifPort, opts.clifNP)
 log.debug("Agent Key In:", opts.agentKey)
-log.debug("Doc Viewer:  ", opts.docs)
+log.debug("Web Services: ", opts.home, opts.httpPort, opts.httpsPort)
 log.debug("Database:    ", opts.dbHost, opts.dbName, opts.dbAdmin)
 log.trace("Database SSL:", sslAdmin, sslUser)
 log.trace("Modeler:     ", opts.model, "Lifts:", opts.lifts)
 log.trace("Actions:     ", actions)
 
-var expApp = new SpaServer({		//Serves up SPA applications via https
-  webPort: opts.webPort,
+var userExpApp = new SpaServer({	//Serves up SPA applications via https
+  uiPort: opts.uiPort,
   wyclif: !!opts.wyclif,
   favIconFile: 'favicon.png',
   pubDir, credentials
@@ -75,7 +58,8 @@ var wyseman = new Wyseman({		//Accepts websocket connections from SPA/apps
   websock: {port: opts.clifPort, credentials, delta: MaxTimeDelta},
   sock: opts.clifNP, 
   dispatch: Dispatch,
-  log, actions, expApp
+  expApp: userExpApp,
+  log, actions
 }, {
   host: opts.dbHost,
   password: opts.dbPassword,
@@ -86,15 +70,36 @@ var wyseman = new Wyseman({		//Accepts websocket connections from SPA/apps
   log, schema: __dirname + "/../lib/schema.json"
 })
 
-if (Boolean(opts.docs)) {			//Serve up contract documents
-  const DocServ = require('../lib/doc.js')
-  var docs = new DocServ({
-    pubDir, expApp
+if (Boolean(opts.home)) {			//Run general web page services
+  const CSPHome = require('../lib/csphome.js')
+  var cspExpApp = new CSPHome({
+    favIconFile: 'favicon.png',
+    httpPort: opts.httpPort,
+    httpsPort: opts.httpsPort,
+    smtpHost: opts.smtpHost,
+    smtpPort: opts.smtpPort,
+    linkExpire: opts.linkExpire,
+    email: {
+      register: opts.registEmail, 
+      ticket: opts.restorEmail
+    },
+    log, credentials
   }, {
     host: opts.dbHost,
     database:opts.dbName,
     user: opts.dbAdmin, 
-  })
+  }).expApp
+
+  if (Boolean(opts.docs)) {			//Serve up contract documents
+    const DocServ = require('../lib/doc.js')
+    var docs = new DocServ({
+      pubDir, expApp: cspExpApp
+    }, {
+      host: opts.dbHost,
+      database:opts.dbName,
+      user: opts.dbAdmin, 
+    })
+  }
 }
 
 if (Boolean(opts.agentKey)) {		//Create socket server for peer-to-peer communications
@@ -138,7 +143,7 @@ if (Boolean(opts.lifts)) {				//Run lift scheduler
 }
 
 if (Boolean(opts.model)) {				//Run agent-based simulation model
-  const AgentCont = require('../lib/agent.js')		//Model controller
+  const AgentCont = require('../lib/model2.js')		//Model controller
   var agent = new AgentCont({
     host: opts.dbHost,
     database:opts.dbName,

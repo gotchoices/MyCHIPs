@@ -23,7 +23,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "${MYCHIPS_WEBPORT:-1024}:1024"
+      - "${MYCHIPS_UIPORT:-1024}:1024"
       - "${MYCHIPS_WSPORT:-1025}:1025"
     networks:
       - backend

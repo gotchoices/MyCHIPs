@@ -50,7 +50,7 @@ Here is a comparable installation sequence for Ubuntu:
 ```
   apt-get update
   apt-get install - postgresql postgresql-contrib \
-        postgresql-pltcl postgresql-plpython3
+        postgresql-pltcl postgresql-plpython3 libpq-dev tcl-dev tcllib
   service postgresql enable
   service postgresql start
   su -l postgres -c 'psql -c "create role admin with login createdb superuser createrole"'

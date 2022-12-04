@@ -8,7 +8,7 @@ if [ ! -z $(which psql) ]; then
 else
   apt-get -q install -y \
     postgresql postgresql-contrib postgresql-pltcl postgresql-plpython3 \
-    libpq-dev tcl-dev
+    libpq-dev tcl-dev tcllib
   su -l postgres -c "psql postgres postgres -c 'create extension pltcl'"
   su -l postgres -c "psql postgres postgres -c 'create extension plpython3'"
 #  systemctl enable postgresql

@@ -2234,15 +2234,18 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
 );
 create function mychips.users_tf_biu() returns trigger language plpgsql security definer as $$
     begin
-        if new.user_hid isnull then
-          loop
-            select into new.user_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));
-            if not exists (select user_ent from mychips.users where user_hid = new.user_hid) then
-              exit;
-            end if;
-          end loop;
-        end if;
-        return new;
+      if new.user_hid isnull then
+        loop
+          select into new.user_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));
+          if not exists (select user_ent from mychips.users where user_hid = new.user_hid) then
+            exit;
+          end if;
+        end loop;
+      end if;
+      if new.peer_cid isnull then			-- Defaults to user ID if not specified
+        new.peer_cid = new.user_ent;
+      end if;
+      return new;
     end;
 $$;
 create trigger mychips_users_tr_change after insert or update or delete on mychips.users for each statement execute procedure mychips.users_tf_change();
@@ -2549,7 +2552,7 @@ token_ent	text		references base.ent on update cascade on delete cascade
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
 );
-create trigger mychips_users_tr_biu before update on mychips.users for each row execute procedure mychips.users_tf_biu();
+create trigger mychips_users_tr_biu before insert or update on mychips.users for each row execute procedure mychips.users_tf_biu();
 create view mychips.users_v_flat as select 
     u.*
   , a.bill_addr, a.bill_city, a.bill_state, a.bill_pcode, a.bill_country
@@ -2830,6 +2833,33 @@ rtry_rid	int		primary key references mychips.routes on update cascade on delete 
   , tries	int		not null default 1
   , last	timestamptz	not null default current_timestamp
 );
+create function mychips.ticket_login(info jsonb) returns base.token_v_ticket language plpgsql as $$
+    declare
+      uid	text;
+    begin
+
+      select into uid id from base.ent u
+        where u.ent_name = info->>'ent_name'
+          and (u.ent_type = 'o' and info->>'fir_name' isnull or u.fir_name = info->>'fir_name')
+          and (u.born_date = (info->>'born_date')::date)
+          and exists (
+            select comm_seq from base.comm
+              where comm_ent = u.id and comm_type = 'email'
+              and not comm_inact and comm_spec = info->>'email'
+          );
+      if not found then 
+        if info->>'reqType' != 'register' or info->>'tos' != 'true' or info->>'ent_type' isnull then
+          return null; 
+        end if;
+        insert into mychips.users_v (ent_type, ent_name, fir_name, peer_cid, born_date)
+          values (info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cid',(info->>'born_date')::date)
+            returning id into uid;
+        insert into base.comm_v (comm_ent, comm_spec, comm_type)
+          values (uid, info->>'email', 'email');
+      end if;
+      return mychips.ticket_login(uid);
+    end;
+$$;
 create function mychips.token_tf_seq() returns trigger security definer language plpgsql as $$
     begin
       if new.token_ent isnull then			-- For creating my own tokens

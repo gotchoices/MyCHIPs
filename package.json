@@ -67,6 +67,7 @@
     "js-yaml": "^4.1.0",
     "json-stable-stringify": "^1.0.1",
     "mathjs": "^9.5.0",
+    "nodemailer": "^6.8.0",
     "noise-protocol": "^3.0.1",
     "pg-format": "^1.0.4",
     "qr-image": "^3.2.0",
