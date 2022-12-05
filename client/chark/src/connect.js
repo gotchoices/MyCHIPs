@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import constants from './config/constants';
 
 const ClientAPI = require('wyseman/lib/client_ws')
-var user = 'admin'
+//var user = 'admin'
 
 const myFetch = function(uri, options) {
   console.log("Local fetch")
@@ -106,7 +106,7 @@ debug('Error initializing', err.message)
   connect(ticket, cb = null) {
     if (ticket) {
       let creds = Object.assign({}, ticket.ticket)
-      if (!creds.user) creds.user = user
+      //if (!creds.user) creds.user = user
       this.credConnect(creds, (err, connected) => {
         if(cb) {
           cb(err, connected);
@@ -115,7 +115,6 @@ debug('Error initializing', err.message)
     } else {
       AsyncStorage.getItem(constants.keyTag).then(val => {
         let creds = JSON.parse(val)
-        console.log(creds, 'hello creds')
         this.credConnect(creds)
       }).catch(err => {
 debug('Error fetching connection key', err.message)

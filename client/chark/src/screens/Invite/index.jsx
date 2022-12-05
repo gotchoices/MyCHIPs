@@ -36,17 +36,16 @@ console.log('Insert done')
   }
 
   const fetchTemplates = () => {
-    console.log('fetching\n\n\n')
     setLoading(true);
     setSelectedTallySeq(undefined);
     const spec = {
-      fields: ['tally_seq', 'contract', 'comment'],
+      fields: ['tally_ent', 'tally_seq', 'contract', 'comment', 'tally_uuid'],
       view: 'mychips.tallies_v_me',
-      where: {status: 'draft'}
+      where: { status: 'draft' }
     }
 
     wm.request('_inv_ref', 'select', spec, data => {
-      const _data = data.map(el => ({ id: el.tally_seq, contract: el.contract, comment: el.comment }))
+      const _data = data?.map(el => ({ tally_ent: el.tally_ent, id: el.tally_seq, contract: el.contract, comment: el.comment }))
       setData(_data);
       setLoading(false);
       setQrCode(undefined);
@@ -59,8 +58,6 @@ console.log('Insert done')
     }
 
     const template = data?.find((item) => item.id === selectedTallySeq); 
-    console.log(template, 'template')
-//    return;
 
     let control = {
       name: 'invite',
@@ -83,6 +80,7 @@ console.log('Insert done')
         template={item}
         activeId={selectedTallySeq}
         selectTemplate={selectTemplate}
+        navigation={props.navigation}
       />
     )
   }
