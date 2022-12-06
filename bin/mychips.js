@@ -79,10 +79,7 @@ if (Boolean(opts.home)) {			//Run general web page services
     smtpHost: opts.smtpHost,
     smtpPort: opts.smtpPort,
     linkExpire: opts.linkExpire,
-    email: {
-      register: opts.registEmail, 
-      ticket: opts.restorEmail
-    },
+    emailData: opts.cspEmail,
     log, credentials
   }, {
     host: opts.dbHost,

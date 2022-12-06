@@ -69,7 +69,7 @@ fi
 (echo "node_version=$node_version"
   cat setup-node) | ssh root@${csp_ip} 'bash -s'
 
-(echo "mode=$mode"
+(echo "mode=$mode csp_host=$csp_host"
   cat setup-mychips) | ssh ${mychips_admin}@${csp_ip} 'bash -s'
 
 (echo "mode=$mode"

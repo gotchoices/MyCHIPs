@@ -1,25 +1,20 @@
 TODO:
 
-Immediate:
-- Services
-X-  SPA/WS on 1024/1025 default
-X-  Port 80 redirects to 443 (test on production port)
-X-  CSP web server on port 443 (from csp folder)
-X-    Make forms work under bootstrap (form looks correct)
-X-    Submit triggers express, SQL query
--    Send final email with QR and deep link
--    Footer has Link to google play, app store
--    Footer has APK, Mac images
--    Can view terms of Service page
--  Document server also on 443 (request by hash?)
-- 
-- Move pki/local to local?
-- Move sim/local to local/sim?
-- Move test/local to local/test?
--  
+Backend Immediate Priorities:
 - Refine/document report protocol
 -  Including username in connection invitation is an option
 -  Make tally invitation QR report work in mobile app
+-  
+- User signup page:
+-  Includes link to app on google play, app store
+-  Includes link to APK, Mac images
+-    Can view terms of Service page
+-  Document server also on 443 (request by hash?)
+- 
+- Consolidate local dirs:
+-  Move pki/local under local?
+-  Move sim/local under local/sim?
+-  Move test/local under local/test?
 -  
 - Merge to master?
 -  
@@ -27,18 +22,15 @@ X-    Submit triggers express, SQL query
 -  Add user photo (document) database table?
 -  Include hash reference to photos in certificates
 - 
--  Implement report for: Visual Balance Sheet
--    How to display simple html (no iframe)
--    Is urnet a big svg?
--    Make this an SVG type report by default?
--    Port code from urnet to display for a single user
--    Make urnet into a general library class
--    Can view report from User SPA
--    Can view report in WebView in Chark
--    Back-port admin console to use generalized library
--  
--  Integrate QR scanner into chark
--  Check in chark, phase 1
+- Implement report for: Visual Balance Sheet
+-  How to display simple html (no iframe)
+-  Is urnet a big svg?
+-  Make this an SVG type report by default?
+-  Port code from urnet to display for a single user
+-  Make urnet into a general library class
+-  Can view report from User SPA
+-  Can view report in WebView in Chark
+-  Back-port admin console to use generalized library
 -  
 - Chit consensus
 -  Why is one chit still left in pending state after tests?
@@ -73,12 +65,15 @@ X-    Submit triggers express, SQL query
 -   If we have an internal path to the destination, pay with local lift (simple)
 -   Else, if we have a possible route, queue up as a distributed lift.
 - 
-- App Integration:
--  Websocket API working in flutter
--  Implement signatures/checking on tallies/chits
--  Test tally initialization
--  Test direct chit generation
--  Test linear lift initiation
+- Chark App Integration:
+-  Test/demonstrate drawing language data from backend
+-  User can sign up for new account
+-  User stepped through connection phase
+-  Can download app
+-  User prompted to complete minimum profile data
+-  User can create draft tally
+-  User can view draft tally QR/Deep link
+-  User can share draft tally invitation as a QR and/or deep link
 - 
 - Cleanups:
 - Correctly assess lading on lift push through foreign tally (we now know parter's limit/bound)

@@ -6,6 +6,7 @@ wyclif_url="https://github.com/gotchoices/wyclif"
 wyselib_url="https://github.com/gotchoices/wyselib"
 wylib_url="https://github.com/gotchoices/wylib"
 mychips_dir=mychips
+user_port=1025
 
 if [ $mode = "prod" ]; then			#;echo "home:$home pwd:$(pwd)"
   mychips_par=$(pwd)
@@ -55,3 +56,6 @@ if [ $mode != 'prod' ]; then
 fi
 
 mychips/bin/agents check
+
+psql mychips -c "select base.parmsett('wyseman','host','$csp_host');"
+psql mychips -c "select base.parmsett('wyseman','port','$user_port');"

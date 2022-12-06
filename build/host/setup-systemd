@@ -39,6 +39,8 @@ if $rewrite; then
 	CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 	Environment=MYCHIPS_WEBKEY=${mychips_dir}/pki/local/${key_file}
 	Environment=MYCHIPS_WEBCERT=${mychips_dir}/pki/local/${cert_file}
+	Environment=MYCHIPS_HTTPPORT=80
+	Environment=MYCHIPS_HTTPSPORT=443
 	Environment=NODE_DEBUG=${debug_level}
 
 	[Install]

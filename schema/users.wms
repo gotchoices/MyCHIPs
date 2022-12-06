@@ -257,21 +257,27 @@ function {mychips.ticket_login(info jsonb)} {mychips.ticket_login(text)} {
       uid	text;
     begin
 --raise notice 'Ticket login:%', info;
-      select into uid id from base.ent u
-        where u.ent_name = info->>'ent_name'
-          and (u.ent_type = 'o' and info->>'fir_name' isnull or u.fir_name = info->>'fir_name')
-          and (u.born_date = (info->>'born_date')::date)
-          and exists (
-            select comm_seq from base.comm
-              where comm_ent = u.id and comm_type = 'email'
-              and not comm_inact and comm_spec = info->>'email'
-          );
+      select into uid comm_ent from base.comm where comm_type = 'email'
+        and not comm_inact and comm_spec = info->>'email';
+      if found and info->>'reqType' = 'register' then
+        return null;			-- Should return a useful error here
+      end if;
+      select into uid id from mychips.users_v where ent_name = info->>'ent_name'
+          and (ent_type = 'o' and info->>'fir_name' isnull or fir_name = info->>'fir_name')
+          and (born_date = (info->>'born_date')::date);
       if not found then 
         if info->>'reqType' != 'register' or info->>'tos' != 'true' or info->>'ent_type' isnull then
           return null; 
         end if;
-        insert into mychips.users_v (ent_type, ent_name, fir_name, peer_cid, born_date)
-          values (info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cid',(info->>'born_date')::date)
+        insert into mychips.users_v (
+          ent_type, ent_name, fir_name, peer_cid, born_date,
+          user_host, user_port,
+          peer_agent, peer_host, peer_port
+        ) values (
+          info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cid',(info->>'born_date')::date,
+          info->>'user_host', nullif(info->>'user_port','')::int,
+          info->>'peer_agent', info->>'peer_host', nullif(info->>'peer_port','')::int
+        )
             returning id into uid;
         insert into base.comm_v (comm_ent, comm_spec, comm_type)
           values (uid, info->>'email', 'email');
