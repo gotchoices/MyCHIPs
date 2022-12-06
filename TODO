@@ -6,6 +6,7 @@ Backend Immediate Priorities:
 -  Make tally invitation QR report work in mobile app
 -  
 - User signup page:
+-  Email confirmation code, enter on page (rather than email link 1)?
 -  Includes link to app on google play, app store
 -  Includes link to APK, Mac images
 -    Can view terms of Service page
