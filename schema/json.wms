@@ -61,6 +61,21 @@ view json.connect {json base.comm_v} {select
     from base.comm_v where not comm_ent isnull with cascaded check option;
 } -primary {id seq}
 
+# View of file documents dedicated to JSON import
+#----------------------------------------------------------------
+view json.file {json base.file_v} {select
+    file_ent	as "id"
+  , file_seq	as "seq"
+  , file_data	as "data"
+  , file_type	as "media"
+  , file_fmt	as "format"
+  , file_prim	as "main"
+  , file_cmt	as "comment"
+  , file_priv	as "private"
+  , file_cks	as "digest"
+    from base.file_v where not file_ent isnull with cascaded check option;
+} -primary {id seq}
+
 # Nested view of users dedicated to JSON export
 #----------------------------------------------------------------
 view json.users {json.user json.place json.connect} {select
@@ -118,7 +133,7 @@ view json.contract {json mychips.contracts_v} {select
 
 # View of users for generating/accepting user certificates
 #----------------------------------------------------------------
-view json.cert {mychips.users_v json.connect json.place mychips} {select p.id
+view json.cert {mychips.users_v json.connect json.place json.file mychips} {select p.id
   , jsonb_build_object(
        'cid', p.peer_cid
      , 'agent', p.peer_agent
@@ -140,6 +155,10 @@ view json.cert {mychips.users_v json.connect json.place mychips} {select p.id
       select type,address,city,state,post,country,comment from json.place pl
         where not prior and not private and pl.id = p.id and type != 'birth' and main order by seq
     ) d) as "place"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
+      select media,digest,comment from json.file c
+        where c.id = p.id and not private and main order by seq
+    ) d) as "file"
   , jsonb_strip_nulls(jsonb_build_object(
       'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
       'birth', jsonb_strip_nulls(jsonb_build_object(

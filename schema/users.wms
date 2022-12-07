@@ -231,6 +231,15 @@ view mychips.comm_v_me {base.comm_v base.user_id(text)} {select
     {user	s {s i u} {d}}
 } -primary id
 
+# View limited to user's own user file records
+#----------------------------------------------------------------
+view mychips.file_v_me {base.file_v base.user_id(text)} {select 
+    c.*
+    from	base.file_v		c where file_ent = base.user_id(session_user)
+} -grant {
+    {user	s {s i u} {d}}
+} -primary id
+
 # Create a new login ticket for the specified user
 #----------------------------------------------------------------
 function {mychips.ticket_login(uid text)} {mychips base.token_v_ticket mychips.users base.parm_int(text,text) base.parm_text(text,text)} {
