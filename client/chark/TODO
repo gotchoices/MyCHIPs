@@ -1,47 +1,13 @@
-Chark mobile application development
-Project overview: https://github.com/gotchoices/MyCHIPs/blob/dev/doc/Project/MyCHIPs_Mobile.md
-
-Phase 1:
-X- New user can sign up on mychips.net site and receive connection token/link
-X- Existing users can refresh their connection token
-- App draws language data from backend
--  App automatically knows user's language of locale (or choice)
-- User can download/install apk file from index.html
--  npm script for building/installing latest apk
-- Scanning QR code connects correctly
--  Show helpful status on success and/or failure
-- App knows when new user has not connected yet:
--  Displays simplified page allowing only: scan QR
--  Processing of deep links also allowed at this point
-- Local connection key stored securely?
--  Can use of connection key be enabled by biometrics?
-- Upon connection, app obtains user profile
--  User guided/encouraged to complete his own profile
--   Select unique CHIP ID
--   address information
--   contact information (phone, web, text gateway)
--   birth record
--   personal photo (scale down and store in file_v_me)
--   create signing key
--   store signing key securely
--   
-
-Phase 2:
-- User can create/edit draft tallies
-- Can use a draft tally as a template to create a tally invitation
-- Properly display tally invitation QR generated in the backend
-- Tally invitation can be shared as QR or as a deep link
+Chark mobile application
+X- Move connection code to a separate module
+X- Store connection key on token connection
+X- Can connect subsequently using stored key
+X- Icon on main (each) screen shows connection status
+X- Connection status icon updates from token/key/connected
+X- How to connect as regular user
+- Make tally invitation action/report work
 - 
-
-Phase 3:
-- Receipt of tally deep link launches to tally editing page to respond to proposed tally
--  User can:
--   Accept
--   Modify
--   Reject
+- Change to store connection key in secure storage
+- Make module to wrap local async storage
+- Can use of connection key be enabled by biometrics?
 - 
-- 
-
-Phase 4:
-Phase 5:
-Phase 6:
