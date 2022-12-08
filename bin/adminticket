@@ -33,7 +33,7 @@ var db = new dbClient({
   schema: __dirname + "/../lib/schema.sql"		//Build DB if it doesn't exist
 })
 
-let q = "select token, expires, host, port from base.ticket_login(base.user_id($1))"
+let q = "select token, expires, host, port from base.ticket_login(base.user_id($1))"	//;console.log("q:", q, id)
 db.query(q, [id], (err, res) => {
     if (err) console.log("Error:", err.message, "\n  query:", q)
 //console.log("res:", res)
@@ -43,7 +43,7 @@ db.query(q, [id], (err, res) => {
       if (webWSPort) ticket.port = webWSPort
       
       if (argv.q) {
-        tickText = `?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
+        tickText = `mychips://connect?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else if (argv.Q) {
         tickText = `https://${ticket.host}:${webPort}/${spaName}.html?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else {

@@ -122,6 +122,12 @@ You should get successfully reconnected and be able to query data again.
 You should be able to disconnect/reconnect any number of times using
 the key.
 
+### Deep Links
+Mobile apps should support launching with a deep link prefixed with 'mychips' for example:
+```
+adb shell am start -W -a android.intent.action.VIEW -d 'mychips://connect?host=mychips0\&port=54320\&token=b4179431fd18d5abbde31f3e391a3d99\&user=p1000'
+```
+
 ### Other Notes / Caveats
 The Metro bundler doesn't seem to support symlinks.  This creates
 a problem running wyseman out of the local source folder.
