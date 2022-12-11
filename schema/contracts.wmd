@@ -21,7 +21,7 @@ tabdef mychips.contracts_v -f {
     {json		mle	{80 6}	{1 8 4}		-opt 1 -spf edw -state readonly}
 } -json {
   actions {[
-    {"name":"edit","format":"strdoc","slave":true},
+    {"name":"edit","render":"strdoc","slave":true},
     {"name":"publish","ask":true}
   ]}
   export {"contract"}

@@ -22,7 +22,7 @@ parm:
 	${WM} --no-make init
 
 run:
-	${WM} ${WMPATH}/lib/run_time.wms
+	${WM} ${WMPATH}/lib/run_time.wm*
 
 sql:	objects text defs
 	${WM} init -s >../lib/schema-1.sql

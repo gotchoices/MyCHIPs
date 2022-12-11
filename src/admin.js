@@ -18,7 +18,7 @@ new Vue({
   template: Template,
   components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-urnet': AppURNet},
   data() { return {
-    state:      {curTab: 'users', tabs: {users:{}, conts:{}, urnet:{}, urnet2:{}, config:{}}},
+    state:      {curTab: 'users', tabs: {users:{}, conts:{}, urnet:{}, config:{}}},
     tag:	'mychips_admin',
     title:	'MyCHIPs Admin',
     dbConf:	['mychips_admin','wylib'],

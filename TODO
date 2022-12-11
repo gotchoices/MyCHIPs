@@ -1,9 +1,23 @@
 TODO:
 
 Backend Immediate Priorities:
+X- Change DB error format to ~view:COD?
+X- Why aren't messages in that format displaying?
+X- DB errors display from language data
+X- Make/integrate lookup table of wyseman DB error codes
+X- Fill in the missing wyseman DB error codes
+X- Disable debug logging
+- Reports can parse/display language data
+- 
+- 
 - Refine/document report protocol
--  Including username in connection invitation is an option
+X-  Support for multiple formats in options
+X-  Reports should not require 2 passes
+X-  Make tally invitation QR report work in spa
+-  Allow reports to send data back with embedded language codes
+-  Do old reports still work?
 -  Make tally invitation QR report work in mobile app
+-  Including username in connection invitation is an option
 -  
 - User signup page:
 -  Email confirmation code, enter on page (rather than email link 1)?

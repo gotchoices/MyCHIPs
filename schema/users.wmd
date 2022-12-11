@@ -18,11 +18,11 @@ tabdef mychips.users_v -fields {
   id std_name ent_type user_stat user_sock born_date !fir_name !ent_name
 } -json {
   actions {[
-    {"name":"ticket","format":"html","single":"1"},
+    {"name":"ticket","render":"html","single":"1"},
     {"name":"lock","ask":"1"},
     {"name":"unlock","ask":"1"},
-    {"name":"summary","format":"html"},
-    {"name":"trade","format":"html","options":[
+    {"name":"summary","render":"html"},
+    {"name":"trade","render":"html","options":[
       {"tag":"start","type":"date","input":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
       {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
     ]}
@@ -38,7 +38,7 @@ tabdef mychips.users_v -fields {
 
 tabdef mychips.users_v_me -json {
   actions {[
-    {"name":"graph","format":"html","single":"1"}
+    {"name":"graph","render":"html","single":"1"}
   ]}
 }
 

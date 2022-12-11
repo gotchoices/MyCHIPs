@@ -34,38 +34,38 @@ table mychips.tallies {mychips mychips.users tally_side} {
   , tally_uuid	uuid		not null
   , tally_type	tally_side	not null default 'stock'
   , tally_date	timestamptz	not null default current_timestamp
-  , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
+  , version	int		not null default 1 constraint "!mychips.tallies:VER" check (version > 0)
   , comment	text
-  , contract	jsonb		constraint "!mychips.tallies.TCM" check (not (status = 'open' and contract isnull))
-  , hold_cert	jsonb		constraint "!mychips.tallies.UCM" check (not (status = 'open' and hold_cert isnull))
-  , part_cert	jsonb		constraint "!mychips.tallies.PCM" check (not (status = 'open' and part_cert isnull))
-  , hold_sig	text		constraint "!mychips.tallies.USM" check (not (status = 'open' and hold_sig isnull))
-  , part_sig	text		constraint "!mychips.tallies.PSM" check (not (status = 'open' and part_sig isnull))
+  , contract	jsonb		constraint "!mychips.tallies:TCM" check (not (status = 'open' and contract isnull))
+  , hold_cert	jsonb		constraint "!mychips.tallies:UCM" check (not (status = 'open' and hold_cert isnull))
+  , part_cert	jsonb		constraint "!mychips.tallies:PCM" check (not (status = 'open' and part_cert isnull))
+  , hold_sig	text		constraint "!mychips.tallies:USM" check (not (status = 'open' and hold_sig isnull))
+  , part_sig	text		constraint "!mychips.tallies:PSM" check (not (status = 'open' and part_sig isnull))
   , hold_terms	jsonb		not null default '{}'			-- Terms we grant to our partner
   , part_terms	jsonb		not null default '{}'			-- Terms partner grants to our holder
   , digest	bytea
 
 -- Values settable by the holder, cached version of latest applicable settings chit
-  , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
-  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
-  , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
-  , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
+  , target	bigint		not null default 0 constraint "!mychips.tallies:TGT" check (target >= 0 and target <= bound)
+  , bound	bigint		not null default 0 constraint "!mychips.tallies:BND" check (bound >= 0)
+  , reward	float		not null default 0 constraint "!mychips.tallies:RWD" check (reward >= -1 and reward <= 1)
+  , clutch	float		not null default 0 constraint "!mychips.tallies:CLT" check (clutch >= -1 and clutch <= 1)
 
 -- Values used internally to track state, required actions
-  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open'))
+  , request	text		constraint "!mychips.tallies:IVR" check(request is null or request in ('void','draft','offer','open'))
   , status	text		not null default 'draft'
-  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
+  				constraint "!mychips.tallies:IVS" check(status in ('void','draft','offer','open','close'))
   , part_ent	text		references mychips.users on update cascade on delete restrict
-  				constraint "!mychips.tallies.NSP" check (part_ent != tally_ent)
-  			      , constraint "!mychips.tallies.TNU" unique(tally_type, tally_uuid)
+  				constraint "!mychips.tallies:NSP" check (part_ent != tally_ent)
+  			      , constraint "!mychips.tallies:TNU" unique(tally_type, tally_uuid)
   , net_c	bigint		default 0 not null
   , net_pc	bigint		default 0 not null
-  , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
-  , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
+  , hold_cid	text		constraint "!mychips.tallies:UCI" check (not (status = 'open' and hold_cid isnull))
+  , part_cid	text		constraint "!mychips.tallies:PCI" check (not (status = 'open' and part_cid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
-  				constraint "!mychips.tallies.UAI" check (not (status = 'open' and hold_agent isnull))
+  				constraint "!mychips.tallies:UAI" check (not (status = 'open' and hold_agent isnull))
   , part_agent	text		references mychips.agents on update restrict on delete restrict
-  				constraint "!mychips.tallies.PAI" check (not (status = 'open' and part_agent isnull))
+  				constraint "!mychips.tallies:PAI" check (not (status = 'open' and part_agent isnull))
   , hold_sets	jsonb		not null default '{}'
   , part_sets	jsonb		not null default '{}'
   , chain_conf	int		not null default 0
@@ -134,7 +134,7 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
         if not (
           new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
           new.request = 'open' and old.status = 'offer'
-        ) then raise exception '!mychips.tallies:ISR % %', old.status, new.request;
+        ) then raise exception '!mychips.tallies:IST % %', old.status, new.request;
         end if;
         if new.request = 'offer' then		-- Our user is re-drafting
           new.part_sig = null;			-- Partner will have to re-sign

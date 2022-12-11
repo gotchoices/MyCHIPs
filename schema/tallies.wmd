@@ -46,8 +46,9 @@ tabdef mychips.tallies_v_me -display {
 } -json {
   actions {[
     {"name":"close","ask":"1"},
-    {"name":"invite","format":"html","options":[
-      {"tag":"reuse","input":"chk","onvalue":"t","offvalue":"f"}
+    {"name":"invite","render":"html","options":[
+      {"tag":"reuse","input":"chk","onvalue":"t","offvalue":"f"},
+      {"tag":"format","input":"pdm","values":["qr","link"]}
     ]}
   ]}
   where {{"and":true,"items":[{"left":"status","oper":"=","entry":"open"}]}}

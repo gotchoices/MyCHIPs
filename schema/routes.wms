@@ -33,20 +33,20 @@ table mychips.routes {mychips.tallies} {
   ,				foreign key (via_ent, via_tseq) references mychips.tallies on update cascade on delete cascade
   , dst_cid	text		not null
   , dst_agent	text		not null
-  , 				constraint "!mychips.routes.UNI" unique (via_ent, via_tseq, dst_cid, dst_agent)
+  , 				constraint "!mychips.routes:UNI" unique (via_ent, via_tseq, dst_cid, dst_agent)
   , req_ent	text
   , req_tseq	int	      , foreign key (req_ent, req_tseq) references mychips.tallies on update cascade on delete cascade
 
-  , status	text		not null default 'draft' constraint "!mychips.routes.BST" check(status in ('draft','pend','good','none'))
+  , status	text		not null default 'draft' constraint "!mychips.routes:BST" check(status in ('draft','pend','good','none'))
   , step	int		not null default 0 check (step >= 0)
   , lift_count	int		not null default 0 check (step >= 0)
   , lift_date	timestamptz	not null default current_timestamp
   , good_date	timestamptz	not null default current_timestamp
 
   , min		bigint		not null default 0
-  , margin	float		not null default 0 constraint "!mychips.paths.LMG" check (margin >= -1 and margin <= 1)
+  , margin	float		not null default 0 constraint "!mychips.paths:LMG" check (margin >= -1 and margin <= 1)
   , max		bigint		not null default 0
-  , reward	float		not null default 0 constraint "!mychips.paths.LRW" check (reward >= -1 and reward <= 1)
+  , reward	float		not null default 0 constraint "!mychips.paths:LRW" check (reward >= -1 and reward <= 1)
 }
 #index {} mychips.routes good_date
 

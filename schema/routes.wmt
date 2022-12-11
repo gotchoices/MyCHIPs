@@ -25,7 +25,9 @@ tabtext mychips.routes	{Foreign Routes}	{Information collected from other server
 } -messages {
     {BST	{Bad Route Status}		{Not a valid status for the route status}}
     {UNI	{Not Unique Route}		{Routes should have a unique combination of source and destination}}
-    {CRL	{Illegal Route Target}		{Routes should be only to users on other systems}}
+    {CRL        {Illegal Route Target}          {Routes should be only to users on other systems}}
+    {LMG	{Illegal Margin}		{The margin must be specified between -1 and 1}}
+    {LRW	{Illegal Reward}		{The reward must be specified between -1 and 1}}
 }
 
 tabtext mychips.routes_v	{Foreign Routes}	{A view showing foreign peers that can be reached by way of one of our known foreign peers} {

@@ -16,7 +16,8 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
     {user_hid		{Hashed ID}		{An obscured version of the ID by which might be given out as a more anonymous destination for a transaction}}
     {user_cmt		{User Comments}		{Administrative comments about this user}}
 } $glob::stampt] -messages {
-    {BRM {Birth Record Update} {Birth record can only be written once by the user}}
+    {BRM	{Birth Record Update}	{Birth record can only be written once by the user}}
+    {UST	{Invalid Trading Status}	{A disallowed value for the user trading status was specified}}
 }
 
 tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this server.} {

@@ -27,27 +27,27 @@ table mychips.chits {mychips.tallies mychips.lifts tally_side} {
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
 
 -- Values directly contained in the external chit representation
-  , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
-  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','set'))
+  , chit_uuid	uuid		not null, constraint "!mychips.chits:CUU" unique (chit_ent,chit_seq,chit_uuid)
+  , chit_type	text		not null default 'tran' constraint "!mychips.chits:BCT" check(chit_type in ('lift','tran','set'))
   , chit_date	timestamptz	not null default current_timestamp
   , issuer	tally_side	not null default 'foil'
-  , units	bigint		constraint "!mychips.chits.CUN" check(units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
+  , units	bigint		constraint "!mychips.chits:CUN" check(units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
   , reference	jsonb
   , memo	text
   , digest	bytea		
-  , signature	text		constraint "!mychips.chits.GDS" check(status != 'good' or 
+  , signature	text		constraint "!mychips.chits:GDS" check(status != 'good' or 
                                   (request isnull and not signature isnull) or 
                                   (request isnull and chit_type = 'lift'))
 
 -- Values used internally to track state, required actions
   , request	text	        constraint "mychips.chits.BRQ" check (request is null or request in ('pend','good','void'))
-  , status	text		not null default 'draft' constraint "!mychips.chits.BST" check(status in ('draft','pend','good','void'))
+  , status	text		not null default 'draft' constraint "!mychips.chits:BST" check(status in ('draft','pend','good','void'))
   , chain_hash	bytea
   , chain_prev	bytea
   , chain_idx	int	      , unique(chit_ent, chit_seq, chain_idx)
   , chain_send	jsonb
   , lift_seq	int           , foreign key (chit_uuid, lift_seq) references mychips.lifts (lift_uuid, lift_seq) on update cascade on delete cascade
-  , constraint "!mychips.chits.BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
+  , constraint "!mychips.chits:BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
     eval(s $glob::stamps)
 }
 index {} mychips.chits chit_uuid

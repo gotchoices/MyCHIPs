@@ -519,6 +519,7 @@ create view wm.fkey_data as select
     left join		pg_namespace	fn on fn.oid = fc.relnamespace
   where co.contype = 'f';
 grant select on table wm.fkey_data to public;
+create view wm.lang as select true;
 create table wm.message_text (
 mt_sch		name
   , mt_tab		name
@@ -571,7 +572,7 @@ create table wm.table_style (
 ts_sch		name
   , ts_tab		name
   , sw_name		varchar not null
-  , sw_value		varchar not null
+  , sw_value		jsonb not null
   , inherit		boolean default true
   , primary key (ts_sch, ts_tab, sw_name)
 );
@@ -1179,6 +1180,26 @@ select wm.create_role('ent_3');
 grant delete on table base.ent_v to ent_3;
 create index base_ent_x_ent_type_ent_num on base.ent (ent_type,ent_num);
 create index base_ent_x_username on base.ent (username);
+create table base.file (
+file_ent	text		references base.ent on update cascade on delete cascade
+  , file_seq	int	      , primary key (file_ent, file_seq)
+  , file_data	bytea		not null
+  , file_type	text		not null check(file_type in ('photo','scan','spread','write','other'))
+  , file_prim	boolean		not null default false
+  , file_fmt	text		not null
+  , file_cmt	text
+  , file_priv	boolean		not null default false
+  , file_cks	bytea		not null
+  , unique (file_ent, file_seq, file_type)		-- Needed for file_prim FK to work
+  , constraint "!base.file.USP" unique (file_ent, file_type, file_cks)
+
+    
+  , crt_date    timestamptz	not null default current_timestamp
+  , mod_date    timestamptz	not null default current_timestamp
+  , crt_by      name		not null default session_user references base.ent (username) on update cascade
+  , mod_by	name		not null default session_user references base.ent (username) on update cascade
+
+);
 create table base.parm (
 module	text
   , parm	text
@@ -1228,9 +1249,9 @@ $$;
 create table mychips.agents (
 agent	text	primary key
   , agent_key	bytea
-  , agent_host	text	constraint "!mychips.tallies.CHR" not null
-  , agent_port	int	constraint "!mychips.tallies.CPR" not null
-  , agent_ip	inet  , constraint "!mychips.agents.AHP" unique (agent_host, agent_port)
+  , agent_host	text	constraint "!mychips.tallies:CHR" not null
+  , agent_port	int	constraint "!mychips.tallies:CPR" not null
+  , agent_ip	inet  , constraint "!mychips.agents:AHP" unique (agent_host, agent_port)
     
   , crt_date    timestamptz	not null default current_timestamp
   , mod_date    timestamptz	not null default current_timestamp
@@ -1587,6 +1608,68 @@ create function base.ent_v_updfunc() returns trigger language plpgsql security d
     return new;
   end;
 $$;
+create table base.file_prim (
+prim_ent	text
+  , prim_seq	int
+  , prim_type	text
+  , primary key (prim_ent, prim_seq, prim_type)
+  , constraint file_prim_prim_ent_fk foreign key (prim_ent, prim_seq, prim_type) references base.file (file_ent, file_seq, file_type)
+    on update cascade on delete cascade deferrable
+);
+create function base.file_tf_aiud() returns trigger language plpgsql security definer as $$
+    begin
+        insert into base.file_prim (prim_ent, prim_seq, prim_type) 
+            select file_ent,max(file_seq),file_type from base.file where not exists (select * from base.file_prim cp where cp.prim_ent = file_ent and cp.prim_type = file_type) group by 1,3;
+        return old;
+    end;
+$$;
+create function base.file_tf_bd() returns trigger language plpgsql security definer as $$
+    begin
+        perform base.file_remove_prim(old.file_ent, old.file_seq, old.file_type);
+        return old;
+    end;
+$$;
+create function base.file_tf_bi() returns trigger language plpgsql security definer as $$
+    begin
+        if new.file_seq is null then			-- Generate unique sequence for new entry
+            update base.ent set _last_file = greatest(coalesce(_last_file,0) + 1,
+              (select coalesce(max(file_seq),0)+1 from base.file where file_ent = new.file_ent)
+            ) where id = new.file_ent returning _last_file into new.file_seq;
+            if not found then new.file_seq = 1; end if;
+
+        end if;
+        if not exists (select file_seq from base.file where file_ent = new.file_ent and file_type = new.file_type) then
+            new.file_prim = true;
+        end if;
+        if new.file_prim then				-- If this is primary, all others are now not
+            set constraints base.file_prim_prim_ent_fk deferred;
+            perform base.file_make_prim(new.file_ent, new.file_seq, new.file_type);
+        end if;
+        new.file_prim = false;
+        return new;
+    end;
+$$;
+create function base.file_tf_bu() returns trigger language plpgsql security definer as $$
+    declare
+        prim_it		boolean;
+    begin
+        if (not new.file_prim and old.file_prim) then
+            prim_it = false;
+        elsif new.file_prim and not old.file_prim then
+            prim_it = true;
+        end if;
+
+        if prim_it then
+            perform base.file_make_prim(new.file_ent, new.file_seq, new.file_type);
+        elsif not prim_it then
+            perform base.file_remove_prim(new.file_ent, new.file_seq, new.file_type);
+        end if;
+        new.file_prim = false;
+        return new;
+    end;
+$$;
+create index base_file_x_file_cks on base.file (file_cks);
+create index base_file_x_file_type on base.file (file_type);
 create table base.parm_audit (
 module text,parm text
           , a_seq	int		check (a_seq >= 0)
@@ -1825,7 +1908,7 @@ create table mychips.users (
 user_ent	text		primary key references base.ent on update cascade on delete cascade
   , user_host	text
   , user_port	int		
-  , user_stat	varchar		not null default 'lck' constraint "!mychips.users.UST" check (user_stat in ('act','lck','off'))
+  , user_stat	varchar		not null default 'lck' constraint "!mychips.users:UST" check (user_stat in ('act','lck','off'))
   , user_hid	text		
 
   , peer_cid	text		not null, unique (peer_cid, peer_agent)
@@ -1847,7 +1930,7 @@ ruid	serial primary key
   , component	text
   , name	text
   , descr	text
-  , access	varchar(5)	not null default 'read' constraint "!wylib.data.IAT" check (access in ('priv', 'read', 'write'))
+  , access	varchar(5)	not null default 'read' constraint "!wylib.data:IAT" check (access in ('priv', 'read', 'write'))
   , owner	text		not null default base.curr_eid() references base.ent on update cascade on delete cascade
   , data	jsonb
     
@@ -1964,6 +2047,56 @@ create trigger base_ent_tr_audit_d after delete on base.ent for each row execute
 create trigger base_ent_tr_audit_u after update on base.ent for each row execute procedure base.ent_tf_audit_u();
 create trigger base_ent_v_tr_ins instead of insert on base.ent_v for each row execute procedure base.ent_v_insfunc();
 create trigger base_ent_v_tr_upd instead of update on base.ent_v for each row execute procedure base.ent_v_updfunc();
+create function base.file_make_prim(ent text, seq int, typ text) returns void language plpgsql security definer as $$
+    begin
+
+        update base.file_prim set prim_seq = seq where prim_ent = ent and prim_type = typ;
+        if not found then
+            insert into base.file_prim (prim_ent,prim_seq,prim_type) values (ent,seq,typ);
+        end if;
+    end;
+$$;
+create function base.file_remove_prim(ent text, seq int, typ text) returns void language plpgsql security definer as $$
+    declare
+        prim_rec	record;
+        file_rec	record;
+    begin
+
+        select * into prim_rec from base.file_prim where prim_ent = ent and prim_seq = seq and prim_type = typ;
+        if found then			-- If the file we are deleting was a primary, find the next latest record
+            select * into file_rec from base.file where file_ent = prim_rec.prim_ent and file_type = prim_rec.prim_type and file_seq != seq order by file_seq desc limit 1;
+            if found then		-- And make it the new primary
+
+                update base.file_prim set prim_seq = file_rec.file_seq where prim_ent = file_rec.file_ent and prim_type = file_rec.file_type;
+            else
+
+                delete from base.file_prim where prim_ent = ent and prim_seq = seq and prim_type = typ;
+            end if;
+        else
+
+        end if;
+    end;
+$$;
+create trigger base_file_tr_aiud after insert or update or delete on base.file for each statement execute procedure base.file_tf_aiud();
+create trigger base_file_tr_bd before delete on base.file for each row execute procedure base.file_tf_bd();
+create trigger base_file_tr_bi before insert on base.file for each row execute procedure base.file_tf_bi();
+create trigger base_file_tr_bu before update on base.file for each row execute procedure base.file_tf_bu();
+create view base.file_v as select c.file_ent, c.file_seq, c.file_type, c.file_data, c.file_fmt, c.file_cmt, c.file_priv, c.file_cks, c.crt_by, c.mod_by, c.crt_date, c.mod_date
+      , oe.std_name
+      , cp.prim_seq is not null and cp.prim_seq = c.file_seq	as file_prim
+
+    from	base.file	c
+    join	base.ent_v	oe	on oe.id = c.file_ent
+    left join	base.file_prim	cp	on cp.prim_ent = c.file_ent and cp.prim_type = c.file_type;
+
+    ;
+    ;
+    create rule base_file_v_delete as on delete to base.file_v
+        do instead delete from base.file where file_ent = old.file_ent and file_seq = old.file_seq;
+grant select on table base.file_v to ent_1;
+grant insert on table base.file_v to ent_2;
+grant update on table base.file_v to ent_2;
+grant delete on table base.file_v to ent_3;
 create function base.parm_audit_tf_bi() --Call when a new audit record is generated
           returns trigger language plpgsql security definer as $$
             begin
@@ -2183,38 +2316,38 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   , tally_uuid	uuid		not null
   , tally_type	tally_side	not null default 'stock'
   , tally_date	timestamptz	not null default current_timestamp
-  , version	int		not null default 1 constraint "!mychips.tallies.VER" check (version > 0)
+  , version	int		not null default 1 constraint "!mychips.tallies:VER" check (version > 0)
   , comment	text
-  , contract	jsonb		constraint "!mychips.tallies.TCM" check (not (status = 'open' and contract isnull))
-  , hold_cert	jsonb		constraint "!mychips.tallies.UCM" check (not (status = 'open' and hold_cert isnull))
-  , part_cert	jsonb		constraint "!mychips.tallies.PCM" check (not (status = 'open' and part_cert isnull))
-  , hold_sig	text		constraint "!mychips.tallies.USM" check (not (status = 'open' and hold_sig isnull))
-  , part_sig	text		constraint "!mychips.tallies.PSM" check (not (status = 'open' and part_sig isnull))
+  , contract	jsonb		constraint "!mychips.tallies:TCM" check (not (status = 'open' and contract isnull))
+  , hold_cert	jsonb		constraint "!mychips.tallies:UCM" check (not (status = 'open' and hold_cert isnull))
+  , part_cert	jsonb		constraint "!mychips.tallies:PCM" check (not (status = 'open' and part_cert isnull))
+  , hold_sig	text		constraint "!mychips.tallies:USM" check (not (status = 'open' and hold_sig isnull))
+  , part_sig	text		constraint "!mychips.tallies:PSM" check (not (status = 'open' and part_sig isnull))
   , hold_terms	jsonb		not null default '{}'			-- Terms we grant to our partner
   , part_terms	jsonb		not null default '{}'			-- Terms partner grants to our holder
   , digest	bytea
 
 
-  , target	bigint		not null default 0 constraint "!mychips.tallies.TGT" check (target >= 0 and target <= bound)
-  , bound	bigint		not null default 0 constraint "!mychips.tallies.BND" check (bound >= 0)
-  , reward	float		not null default 0 constraint "!mychips.tallies.RWD" check (reward >= -1 and reward <= 1)
-  , clutch	float		not null default 0 constraint "!mychips.tallies.CLT" check (clutch >= -1 and clutch <= 1)
+  , target	bigint		not null default 0 constraint "!mychips.tallies:TGT" check (target >= 0 and target <= bound)
+  , bound	bigint		not null default 0 constraint "!mychips.tallies:BND" check (bound >= 0)
+  , reward	float		not null default 0 constraint "!mychips.tallies:RWD" check (reward >= -1 and reward <= 1)
+  , clutch	float		not null default 0 constraint "!mychips.tallies:CLT" check (clutch >= -1 and clutch <= 1)
 
 
-  , request	text		constraint "!mychips.tallies.IVR" check(request is null or request in ('void','draft','offer','open'))
+  , request	text		constraint "!mychips.tallies:IVR" check(request is null or request in ('void','draft','offer','open'))
   , status	text		not null default 'draft'
-  				constraint "!mychips.tallies.IVS" check(status in ('void','draft','offer','open','close'))
+  				constraint "!mychips.tallies:IVS" check(status in ('void','draft','offer','open','close'))
   , part_ent	text		references mychips.users on update cascade on delete restrict
-  				constraint "!mychips.tallies.NSP" check (part_ent != tally_ent)
-  			      , constraint "!mychips.tallies.TNU" unique(tally_type, tally_uuid)
+  				constraint "!mychips.tallies:NSP" check (part_ent != tally_ent)
+  			      , constraint "!mychips.tallies:TNU" unique(tally_type, tally_uuid)
   , net_c	bigint		default 0 not null
   , net_pc	bigint		default 0 not null
-  , hold_cid	text		constraint "!mychips.tallies.UCI" check (not (status = 'open' and hold_cid isnull))
-  , part_cid	text		constraint "!mychips.tallies.PCI" check (not (status = 'open' and part_cid isnull))
+  , hold_cid	text		constraint "!mychips.tallies:UCI" check (not (status = 'open' and hold_cid isnull))
+  , part_cid	text		constraint "!mychips.tallies:PCI" check (not (status = 'open' and part_cid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
-  				constraint "!mychips.tallies.UAI" check (not (status = 'open' and hold_agent isnull))
+  				constraint "!mychips.tallies:UAI" check (not (status = 'open' and hold_agent isnull))
   , part_agent	text		references mychips.agents on update restrict on delete restrict
-  				constraint "!mychips.tallies.PAI" check (not (status = 'open' and part_agent isnull))
+  				constraint "!mychips.tallies:PAI" check (not (status = 'open' and part_agent isnull))
   , hold_sets	jsonb		not null default '{}'
   , part_sets	jsonb		not null default '{}'
   , chain_conf	int		not null default 0
@@ -2342,6 +2475,25 @@ create function base.comm_v_updfunc() returns trigger language plpgsql security 
     return new;
   end;
 $$;
+create function base.file_v_insfunc() returns trigger language plpgsql security definer as $$
+  declare
+    trec record;
+    str  varchar;
+  begin
+    execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'base.file_v';
+    execute 'select ' || str || ';' into trec using new;
+    insert into base.file (file_ent,file_type,file_data,file_fmt,file_cmt,file_priv,file_prim,file_cks,crt_by,mod_by,crt_date,mod_date) values (new.file_ent,trec.file_type,trec.file_data,trec.file_fmt,trec.file_cmt,trec.file_priv,trec.file_prim,trec.file_cks,session_user,session_user,current_timestamp,current_timestamp) returning file_ent,file_seq into new.file_ent, new.file_seq;
+    select into new * from base.file_v where file_ent = new.file_ent and file_seq = new.file_seq;
+    return new;
+  end;
+$$;
+create function base.file_v_updfunc() returns trigger language plpgsql security definer as $$
+  begin
+    update base.file set file_type = new.file_type,file_data = new.file_data,file_fmt = new.file_fmt,file_cmt = new.file_cmt,file_priv = new.file_priv,file_prim = new.file_prim,file_cks = new.file_cks,mod_by = session_user,mod_date = current_timestamp where file_ent = old.file_ent and file_seq = old.file_seq returning file_ent,file_seq into new.file_ent, new.file_seq;
+    select into new * from base.file_v where file_ent = new.file_ent and file_seq = new.file_seq;
+    return new;
+  end;
+$$;
 create trigger base_parm_audit_tr_bi before insert on base.parm_audit for each row execute procedure base.parm_audit_tf_bi();
 create function base.parmsett(m text, p text, v text, t text default null) returns text language plpgsql as $$
     begin
@@ -2381,6 +2533,17 @@ create view json.contract as select
   , digest
   , sections
     from	mychips.contracts_v;
+create view json.file as select
+    file_ent	as "id"
+  , file_seq	as "seq"
+  , file_data	as "data"
+  , file_type	as "media"
+  , file_fmt	as "format"
+  , file_prim	as "main"
+  , file_cmt	as "comment"
+  , file_priv	as "private"
+  , file_cks	as "digest"
+    from base.file_v where not file_ent isnull with cascaded check option;
 create view json.place as select
     addr_ent	as "id"
   , addr_seq	as "seq"
@@ -2446,15 +2609,23 @@ create function mychips.contracts_v_updfunc() returns trigger language plpgsql s
     return new;
   end;
 $$;
+create view mychips.file_v_me as select 
+    c.*
+    from	base.file_v		c where file_ent = base.user_id(session_user);
+grant select on table mychips.file_v_me to user_1;
+grant select on table mychips.file_v_me to user_2;
+grant insert on table mychips.file_v_me to user_2;
+grant update on table mychips.file_v_me to user_2;
+grant delete on table mychips.file_v_me to user_3;
 create table mychips.lifts (
 lift_uuid	uuid
   , lift_seq	int	      , primary key (lift_uuid, lift_seq)
 
 
-  , request	text		constraint "!mychips.lifts.IVR" check(request isnull or request in ('init','seek','call','relay','found','term','check','good','void'))
-  , status	text		not null default 'draft' constraint "!mychips.lifts.IVS" check(status in ('draft','init','seek','call','found','pend','good','void'))
+  , request	text		constraint "!mychips.lifts:IVR" check(request isnull or request in ('init','seek','call','relay','found','term','check','good','void'))
+  , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','init','seek','call','found','pend','good','void'))
   , tallies	uuid[]		not null
-  , lift_type	text		not null default 'rel' constraint "!mychips.lifts.IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
+  , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
   , circuit	boolean		not null default true
 
 
@@ -2482,20 +2653,20 @@ rid		serial		primary key
   ,				foreign key (via_ent, via_tseq) references mychips.tallies on update cascade on delete cascade
   , dst_cid	text		not null
   , dst_agent	text		not null
-  , 				constraint "!mychips.routes.UNI" unique (via_ent, via_tseq, dst_cid, dst_agent)
+  , 				constraint "!mychips.routes:UNI" unique (via_ent, via_tseq, dst_cid, dst_agent)
   , req_ent	text
   , req_tseq	int	      , foreign key (req_ent, req_tseq) references mychips.tallies on update cascade on delete cascade
 
-  , status	text		not null default 'draft' constraint "!mychips.routes.BST" check(status in ('draft','pend','good','none'))
+  , status	text		not null default 'draft' constraint "!mychips.routes:BST" check(status in ('draft','pend','good','none'))
   , step	int		not null default 0 check (step >= 0)
   , lift_count	int		not null default 0 check (step >= 0)
   , lift_date	timestamptz	not null default current_timestamp
   , good_date	timestamptz	not null default current_timestamp
 
   , min		bigint		not null default 0
-  , margin	float		not null default 0 constraint "!mychips.paths.LMG" check (margin >= -1 and margin <= 1)
+  , margin	float		not null default 0 constraint "!mychips.paths:LMG" check (margin >= -1 and margin <= 1)
   , max		bigint		not null default 0
-  , reward	float		not null default 0 constraint "!mychips.paths.LRW" check (reward >= -1 and reward <= 1)
+  , reward	float		not null default 0 constraint "!mychips.paths:LRW" check (reward >= -1 and reward <= 1)
 );
 create trigger mychips_tallies_tr_change after insert or update or delete on mychips.tallies for each statement execute procedure mychips.tallies_tf_change();
 create index mychips_tallies_x_tally_date on mychips.tallies (tally_date);
@@ -2693,6 +2864,8 @@ create trigger base_addr_v_tr_ins instead of insert on base.addr_v for each row 
 create trigger base_addr_v_tr_upd instead of update on base.addr_v for each row execute procedure base.addr_v_updfunc();
 create trigger base_comm_v_tr_ins instead of insert on base.comm_v for each row execute procedure base.comm_v_insfunc();
 create trigger base_comm_v_tr_upd instead of update on base.comm_v for each row execute procedure base.comm_v_updfunc();
+create trigger base_file_v_tr_ins instead of insert on base.file_v for each row execute procedure base.file_v_insfunc();
+create trigger base_file_v_tr_upd instead of update on base.file_v for each row execute procedure base.file_v_updfunc();
 create view json.cert as select p.id
   , jsonb_build_object(
        'cid', p.peer_cid
@@ -2715,6 +2888,10 @@ create view json.cert as select p.id
       select type,address,city,state,post,country,comment from json.place pl
         where not prior and not private and pl.id = p.id and type != 'birth' and main order by seq
     ) d) as "place"
+  , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
+      select media,digest,comment from json.file c
+        where c.id = p.id and not private and main order by seq
+    ) d) as "file"
   , jsonb_strip_nulls(jsonb_build_object(
       'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
       'birth', jsonb_strip_nulls(jsonb_build_object(
@@ -2740,27 +2917,27 @@ chit_ent	text
   , chit_idx	int	      , primary key (chit_ent, chit_seq, chit_idx)
 
 
-  , chit_uuid	uuid		not null, constraint "!mychips.chits.CUU" unique (chit_ent,chit_seq,chit_uuid)
-  , chit_type	text		not null default 'tran' constraint "!mychips.chits.BCT" check(chit_type in ('lift','tran','set'))
+  , chit_uuid	uuid		not null, constraint "!mychips.chits:CUU" unique (chit_ent,chit_seq,chit_uuid)
+  , chit_type	text		not null default 'tran' constraint "!mychips.chits:BCT" check(chit_type in ('lift','tran','set'))
   , chit_date	timestamptz	not null default current_timestamp
   , issuer	tally_side	not null default 'foil'
-  , units	bigint		constraint "!mychips.chits.CUN" check(units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
+  , units	bigint		constraint "!mychips.chits:CUN" check(units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
   , reference	jsonb
   , memo	text
   , digest	bytea		
-  , signature	text		constraint "!mychips.chits.GDS" check(status != 'good' or 
+  , signature	text		constraint "!mychips.chits:GDS" check(status != 'good' or 
                                   (request isnull and not signature isnull) or 
                                   (request isnull and chit_type = 'lift'))
 
 
   , request	text	        constraint "mychips.chits.BRQ" check (request is null or request in ('pend','good','void'))
-  , status	text		not null default 'draft' constraint "!mychips.chits.BST" check(status in ('draft','pend','good','void'))
+  , status	text		not null default 'draft' constraint "!mychips.chits:BST" check(status in ('draft','pend','good','void'))
   , chain_hash	bytea
   , chain_prev	bytea
   , chain_idx	int	      , unique(chit_ent, chit_seq, chain_idx)
   , chain_send	jsonb
   , lift_seq	int           , foreign key (chit_uuid, lift_seq) references mychips.lifts (lift_uuid, lift_seq) on update cascade on delete cascade
-  , constraint "!mychips.chits.BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
+  , constraint "!mychips.chits:BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
     
   , crt_date    timestamptz	not null default current_timestamp
   , mod_date    timestamptz	not null default current_timestamp
@@ -2789,7 +2966,7 @@ create function mychips.lift_chitcheck(lf mychips.lifts) returns mychips.lifts l
             lf.lift_uuid, lf.lift_seq, lf.lift_date, stat, -lf.units);
 
           get diagnostics rows = ROW_COUNT; if rows < 1 then
-            raise exception '!mychips.lifts.CIF';
+            raise exception '!mychips.lifts:CIF';
           end if;
         end loop;
       end loop;
@@ -2838,21 +3015,27 @@ create function mychips.ticket_login(info jsonb) returns base.token_v_ticket lan
       uid	text;
     begin
 
-      select into uid id from base.ent u
-        where u.ent_name = info->>'ent_name'
-          and (u.ent_type = 'o' and info->>'fir_name' isnull or u.fir_name = info->>'fir_name')
-          and (u.born_date = (info->>'born_date')::date)
-          and exists (
-            select comm_seq from base.comm
-              where comm_ent = u.id and comm_type = 'email'
-              and not comm_inact and comm_spec = info->>'email'
-          );
+      select into uid comm_ent from base.comm where comm_type = 'email'
+        and not comm_inact and comm_spec = info->>'email';
+      if found and info->>'reqType' = 'register' then
+        return null;
+      end if;
+      select into uid id from mychips.users_v where ent_name = info->>'ent_name'
+          and (ent_type = 'o' and info->>'fir_name' isnull or fir_name = info->>'fir_name')
+          and (born_date = (info->>'born_date')::date);
       if not found then 
         if info->>'reqType' != 'register' or info->>'tos' != 'true' or info->>'ent_type' isnull then
           return null; 
         end if;
-        insert into mychips.users_v (ent_type, ent_name, fir_name, peer_cid, born_date)
-          values (info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cid',(info->>'born_date')::date)
+        insert into mychips.users_v (
+          ent_type, ent_name, fir_name, peer_cid, born_date,
+          user_host, user_port,
+          peer_agent, peer_host, peer_port
+        ) values (
+          info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cid',(info->>'born_date')::date,
+          info->>'user_host', nullif(info->>'user_port','')::int,
+          info->>'peer_agent', info->>'peer_host', nullif(info->>'peer_port','')::int
+        )
             returning id into uid;
         insert into base.comm_v (comm_ent, comm_spec, comm_type)
           values (uid, info->>'email', 'email');
@@ -3259,7 +3442,7 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
         if not (
           new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
           new.request = 'open' and old.status = 'offer'
-        ) then raise exception '!mychips.tallies:ISR % %', old.status, new.request;
+        ) then raise exception '!mychips.tallies:IST % %', old.status, new.request;
         end if;
         if new.request = 'offer' then		-- Our user is re-drafting
           new.part_sig = null;
@@ -5164,6 +5347,9 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','ent_link_v','eng','Entity Links','A view showing links to show how one entity (like an employee) is linked to another (like his company), plus the derived names of the entities'),
   ('base','ent_v','eng','Entities','A view of Entities, which can be a person, a company or a group, plus additional derived fields'),
   ('base','ent_v_pub','eng','Entities Public','A view of Entities from which ever user can access certain public information'),
+  ('base','file','eng','Document Files','Document files (photos, computer files, etc.) for entities'),
+  ('base','file_prim','eng','Primary Files','Internal table to track which file is the main one for each given type'),
+  ('base','file_v','eng','Document Files','View of users'' files with additional helpful fields'),
   ('base','language','eng','Languages','Contains standard ISO data about international language codes'),
   ('base','parm','eng','System Parameters','Contains parameter settings of several types for configuring and controlling various modules across the database'),
   ('base','parm_audit','eng','Parameters Auditing','Table tracking changes to the parameters table'),
@@ -5216,6 +5402,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('wm','fkey_pub','eng','Key Info','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key column.'),
   ('wm','fkeys_data','eng','Keys Data','Includes data from the system catalogs about how key fields in a table point to key fields in a foreign table.  Each key group is described on a separate row.'),
   ('wm','fkeys_pub','eng','Keys','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key group.'),
+  ('wm','lang','eng','Language Text','Language messages pertaining to Wyseman service routines'),
   ('wm','message_text','eng','Message Text','Contains messages in a particular language to describe an error, or a widget feature or button'),
   ('wm','objects','eng','Objects','Keeps data on database tables, views, functions, etc. telling how to build or drop each object and how it relates to other objects in the database.'),
   ('wm','objects_v','eng','Rel Objects','An enhanced view of the object table, expanded by showing the full object specifier, and each separate release this version of the object belongs to'),
@@ -5233,7 +5420,8 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('wm','view_column_usage','eng','View Column Usage','A version of a similar view in the information schema but faster.  For each view, tells what underlying table and column the view column uses.'),
   ('wylib','data','eng','GUI Data','Configuration and preferences data accessed by Wylib view widgets'),
   ('wylib','data','fin','GUI Data','Wylib-näkymäkomponenttien käyttämät konfigurointi- ja asetustiedot'),
-  ('wylib','data_v','eng','GUI Data','A view of configuration and preferences data accessed by Wylib view widgets');
+  ('wylib','data_v','eng','GUI Data','A view of configuration and preferences data accessed by Wylib view widgets'),
+  ('wyseman','lang','eng','Language Text','Language messages pertaining to Wyseman service routines');
 insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','addr','addr_cmt','eng','Comment','Any other notes about this address'),
   ('base','addr','addr_ent','eng','Entity ID','The ID number of the entity this address applies to'),
@@ -5282,7 +5470,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','comm','comm_inact','eng','Inactive','This record is no longer currently in use'),
   ('base','comm','comm_prim','eng','Primary','If checked this is the primary method of this type for contacting this entity'),
   ('base','comm','comm_priv','eng','Private','This record should not be shared publicly'),
-  ('base','comm','comm_seq','eng','Sequence','A unique number assigned to each new address for a given entity'),
+  ('base','comm','comm_seq','eng','Sequence','A unique number assigned to each new communication point for a given entity'),
   ('base','comm','comm_spec','eng','Num/Addr','The number or address to use when communication via this method and communication point'),
   ('base','comm','comm_type','eng','Medium','The method of communication'),
   ('base','comm','crt_by','eng','Created By','The user who entered this record'),
@@ -5357,6 +5545,24 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','ent_v','frm_name','eng','Formal Name','A person''s full name in a formal format: Last, Title First Middle'),
   ('base','ent_v','giv_name','eng','Given Name','A person''s First given name'),
   ('base','ent_v','std_name','eng','Name','The standard format for the entity''s name or, for a person, a standard format: Last, Preferred'),
+  ('base','file','crt_by','eng','Created By','The user who entered this record'),
+  ('base','file','crt_date','eng','Created','The date this record was created'),
+  ('base','file','file_cks','eng','Checksum','A hash or checksum of the data in the document, used to ensure data integrity'),
+  ('base','file','file_cmt','eng','Comment','Any other notes about this file'),
+  ('base','file','file_data','eng','Data','The binary data contained in this document'),
+  ('base','file','file_ent','eng','Entity','The ID number of the entity this file belongs to'),
+  ('base','file','file_fmt','eng','Format','A format code to indicate how the data is to be interpreted'),
+  ('base','file','file_prim','eng','Primary','If checked this is the primary method of this type for contacting this entity'),
+  ('base','file','file_priv','eng','Private','This record should not be shared publicly'),
+  ('base','file','file_seq','eng','Sequence','A unique number assigned to each new document for a given entity'),
+  ('base','file','file_type','eng','Type','The type of the document'),
+  ('base','file','mod_by','eng','Modified By','The user who last modified this record'),
+  ('base','file','mod_date','eng','Modified','The date this record was last modified'),
+  ('base','file_prim','prim_ent','eng','Entity','The entity ID number of the main file of this type'),
+  ('base','file_prim','prim_seq','eng','Sequence','The sequence number of the main file of this type'),
+  ('base','file_prim','prim_type','eng','type','The file type this record applies to'),
+  ('base','file_v','file_prim','eng','Primary','If true this is the primary file of this type'),
+  ('base','file_v','std_name','eng','Entity Name','The name of the entity this file pertains to'),
   ('base','language','code','eng','Language Code','The ISO 3-letter language code.  Where a native T-code exists, it is the one used here.'),
   ('base','language','eng_name','eng','Name in English','The common name of the language English'),
   ('base','language','fra_name','eng','Name in French','The common name of the language in French'),
@@ -5926,6 +6132,11 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('base','ent','marital','','eng','N/A','Marital status is not applicable (such as for organizations or groups)'),
   ('base','ent','marital','m','eng','Married','The person is in a current marriage'),
   ('base','ent','marital','s','eng','Single','The person has never married or is divorced or is the survivor of a deceased spouse'),
+  ('base','file','file_type','other','eng','Other','Some other type of document'),
+  ('base','file','file_type','photo','eng','Photograph','The document is a photogaph'),
+  ('base','file','file_type','scan','eng','Scan','The document is a scan of a physical document'),
+  ('base','file','file_type','spread','eng','Spreadsheet','The document is a spreadsheet'),
+  ('base','file','file_type','write','eng','Written','The document is a written article, paper, etc'),
   ('base','parm','type','boolean','eng','Boolean','The parameter can contain only the values of true or false'),
   ('base','parm','type','date','eng','Date','The parameter can contain only date values'),
   ('base','parm','type','float','eng','Float','The parameter can contain only values of floating point type (integer portion, decimal, fractional portion)'),
@@ -5986,6 +6197,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('base','ent_link','NBP','eng','Illegal Entity Org','A personal entity can not be an organization (and have member entities)'),
   ('base','ent_link','PBC','eng','Illegal Entity Member','Only personal entities can belong to company entities'),
   ('base','ent_v','directory','eng','Directory','Report showing basic contact data for the selected entities'),
+  ('base','file','USP','eng','Duplicate','There should only be one file for each separate type and checksum'),
   ('base','parm_v','launch.instruct','eng','Basic Instructions','
       <p>These settings control all kinds of different options on your system.
       <p>Each setting is interpreted within the context of the module it is intended for.
@@ -5997,6 +6209,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('base','priv','CLV','eng','Illegal Level','The privilege level must be null or a positive integer between 1 and 9'),
   ('base','priv_v','suspend','eng','Suspend User','Disable permissions for this user (not yet implemented)'),
   ('mychips','agents','AHP','eng','Unique Host/Port','Agent keys must be associated with a unique combination of host address and port'),
+  ('mychips','agents','CHR','eng','Agent Host Required','A host or IP address for the agent must be specified'),
+  ('mychips','agents','CPR','eng','Agent Port Required','A port number for the agent must be specified'),
   ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a tally chit'),
   ('mychips','chits','BLL','eng','Bad Lift Sequence','Only lift chits should include a lift sequence number'),
   ('mychips','chits','BST','eng','Bad Chit Status','Not a valid value the status field'),
@@ -6024,44 +6238,50 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','lifts','CIF','eng','Chit Failure','An operation failed to create chits correctly for a lift'),
   ('mychips','lifts','IVR','eng','Invalid Request','At attempt was made to set a lift request to an unallowed value'),
   ('mychips','lifts','IVS','eng','Invalid Status','At attempt was made to set a lift status to an unallowed value'),
+  ('mychips','lifts','IVT','eng','Invalid Type','At attempt was made to create a lift record with a disallowed type'),
   ('mychips','lifts','MDA','eng','Missing Agent','A destination CHIP address was given without specifying an agent address'),
   ('mychips','routes','BST','eng','Bad Route Status','Not a valid status for the route status'),
   ('mychips','routes','CRL','eng','Illegal Route Target','Routes should be only to users on other systems'),
+  ('mychips','routes','LMG','eng','Illegal Margin','The margin must be specified between -1 and 1'),
+  ('mychips','routes','LRW','eng','Illegal Reward','The reward must be specified between -1 and 1'),
   ('mychips','routes','UNI','eng','Not Unique Route','Routes should have a unique combination of source and destination'),
-  ('mychips','tallies','BND','eng','Illegal Lift Bound','Maximum lift boundary must be greater or equal to zero'),
-  ('mychips','tallies','CNP','eng','Tally Contract','An open tally must reference a contract'),
-  ('mychips','tallies','DMG','eng','Invalid Drop Margin','The drop margin should be specified as a number between 0 and 1, inclusive.  More normally, it should be a fractional number such as 0.2, which would assert a 20% cost on reverse lifts.'),
-  ('mychips','tallies','GTT','eng','Error in Tally TIcket','Couldn''t create a tally invitation ticket'),
+  ('mychips','tallies','BND','eng','Illegal Bound','Maximum lift boundary must be greater or equal to zero'),
+  ('mychips','tallies','CLT','eng','Illegal Clutch','Lift clutch must be between -1 and 1'),
   ('mychips','tallies','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','tallies','IVR','eng','Invalid Request','Tally request value is not valid'),
   ('mychips','tallies','IVS','eng','Invalid Status','Tally status value is not valid'),
-  ('mychips','tallies','LMG','eng','Invalid Lift Margin','The lift margin should be specified as a number between -1 and 1, non-inclusive.  More normally, it should be a fractional number such as 0.05, which would assert a 5% cost on lifts, or -0.02 which would give a 2% bonus for doing a lift.'),
   ('mychips','tallies','NSP','eng','Same Partner ID','Tally partner must be a separate entity'),
   ('mychips','tallies','PAI','eng','Partner Agent ID','An open tally must include a valid partner agent ID'),
   ('mychips','tallies','PCI','eng','Partner CHIP ID','An open tally must include a valid partner CHIP ID'),
-  ('mychips','tallies','PCM','eng','Partner Certificate','An open tally must contain a partner certificate'),
-  ('mychips','tallies','PSM','eng','Partner Signature','An open tally must contain a partner signature'),
-  ('mychips','tallies','STR','eng','Illegal State Request','The requested state transition is not allowed'),
-  ('mychips','tallies','TGT','eng','Illegal Lift Target','Lift target must be less than or equal to the maximum lift amount'),
+  ('mychips','tallies','PCM','eng','Bad Partner Certificate','An open tally must contain a partner certificate'),
+  ('mychips','tallies','PSM','eng','Bad Partner Signature','An open tally must contain a partner signature'),
+  ('mychips','tallies','RWD','eng','Illegal Reward','Lift reward must be between -1 and 1'),
+  ('mychips','tallies','TCM','eng','Bad Tally Contract','An open tally must contain a valid tally contract'),
+  ('mychips','tallies','TGT','eng','Illegal Target','Lift target must be less than or equal to the maximum lift amount'),
   ('mychips','tallies','TNU','eng','Tally ID Not Unique','The chosen tally type and ID is not unique to the system'),
   ('mychips','tallies','UAI','eng','User Agent ID','An open tally must include a valid user agent ID'),
   ('mychips','tallies','UCI','eng','User CHIP ID','An open tally must include a valid user CHIP ID'),
-  ('mychips','tallies','UCM','eng','User Certificate','An open tally must contain a user certificate'),
-  ('mychips','tallies','USM','eng','User Signature','An open tally must contain a user signature'),
+  ('mychips','tallies','UCM','eng','Bad User Certificate','An open tally must contain a user certificate'),
+  ('mychips','tallies','USM','eng','Bad User Signature','An open tally must contain a user signature'),
   ('mychips','tallies','VER','eng','Bad Tally Version','Tally version must be 1 or greater'),
   ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
   ('mychips','tallies_v_me','invite','eng','Invite to Tally','Create a new invitation to tally for a prospective partner'),
+  ('mychips','tallies_v_me','invite.format','eng','Format','Determines which type of invitation is generated'),
+  ('mychips','tallies_v_me','invite.format.link','eng','link','Return tally invitation as deep link Uniform Resource Locator'),
+  ('mychips','tallies_v_me','invite.format.qr','eng','qr','Return tally invitation as a QR code'),
   ('mychips','tallies_v_me','invite.reuse','eng','Reusable','Create a tally template that can be reused over again with any number of trading partners'),
   ('mychips','tallies_v_me','launch.instruct','eng','Basic Instructions','
       <p>Tallies are used to document and track trading agreements between partners.
       <p>You can propose a new tally from the action menu in the Editing pane.
     '),
   ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationships'),
+  ('mychips','tallies_v_me','URF','eng','Unknown Format','The requested report format is unsupported'),
   ('mychips','tokens','X','eng','Y','Z'),
   ('mychips','users','ABC','fin','Koetus 1','Ensimmäinen testiviesti'),
   ('mychips','users','BCD','fin','Koetus 2','Toinen testiviesti'),
   ('mychips','users','BRM','eng','Birth Record Update','Birth record can only be written once by the user'),
   ('mychips','users','DEF','fin','Koetus 3','Kolmanen testiviesti'),
+  ('mychips','users','UST','eng','Invalid Trading Status','A disallowed value for the user trading status was specified'),
   ('mychips','users_v','launch.instruct','eng','Basic Instructions','
       <p>Users are people or companies who are hosted by this system.
       <p>A user account record may be created from scratch, or appended to an existing entity 
@@ -6088,6 +6308,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','users_v_tallies','simDecay','eng','Alpha Decay','Controls how fast the simulation settles'),
   ('mychips','users_v_tallies','velDecay','eng','Velocity Decay','Simulates atmospheric friction'),
   ('mychips','users_v_tallies','vertAlign','eng','Vertical Align','How hard to push foriegn nodes to align with local user tally'),
+  ('wm','lang','23505','eng','Key Violation','An operation would have resulted in multiple records having duplicated data, which is required to be unique'),
+  ('wm','lang','badOperator','eng','Invalid Operator','The specified logic operator is invalid'),
   ('wylib','data','23505','eng','Key Violation','An operation would have resulted in multiple records having duplicated data, which is required to be unique'),
   ('wylib','data','appDefault','eng','Default State','Reload the application to its default state (you will lose any unsaved configuration state, including connection keys)!'),
   ('wylib','data','appEditState','eng','Edit States','Preview a list of saved states for this application'),
@@ -6131,7 +6353,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','dbeMenu','eng','Editing','A menu of functions for editing a database record'),
   ('wylib','data','dbeNoPkey','eng','No Primary key','The report update could not determine the primary key fields for the record.  Any changes may be lost.'),
   ('wylib','data','dbeOption','eng','Optional Fields','Show additional information about this record'),
-  ('wylib','data','dbePopupErr','eng','Popup Error','Error trying to open a child window.  Is the browser blocking popup windows?'),
+  ('wylib','data','dbePopupErr','eng','Popup Failed','Error trying to open a pop-up window.  Is the browser blocking pop-ups?'),
   ('wylib','data','dbePreview','eng','Preview Document','Preview this record as a document'),
   ('wylib','data','dbePrimary','eng','Primary Key','The value that uniquely identifies the current record among all the rows in the database table'),
   ('wylib','data','dbeRecordID','eng','Record ID','Load a record by specifying its primary key values directly'),
@@ -6263,86 +6485,61 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','winUnknown','eng','Unknown Message','An error or query was generated that could not be understood by the program'),
   ('wylib','data','X','eng','',''),
   ('wylib','data','X.dbpColSel','eng','Visible Columns','Show or hide individual columns'),
-  ('wylib','data','X.dbpFooter','eng','Footer','Check the box to turn on column summaries, at the bottom');
+  ('wylib','data','X.dbpFooter','eng','Footer','Check the box to turn on column summaries, at the bottom'),
+  ('wyseman','lang','23505','eng','Key Violation','An operation would have resulted in multiple records having duplicated data, which is required to be unique'),
+  ('wyseman','lang','badOperator','eng','Invalid Operator','The specified logic operator is invalid');
 insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
-  ('base','addr','focus','"addr_spec"','t'),
-  ('base','addr_v','display','["addr_type","addr_spec","state","city","pcode","country","addr_cmt","addr_seq"]','t'),
-  ('base','comm','focus','"comm_spec"','t'),
-  ('base','comm_v','display','["comm_type","comm_spec","comm_cmt","comm_seq"]','t'),
-  ('base','ent','display','["id","ent_type","ent_name","fir_name","born_date"]','t'),
-  ('base','ent','focus','"ent_name"','t'),
-  ('base','ent_link','focus','"org_id"','t'),
-  ('base','ent_v','actions','[{"name":"directory"}]','f'),
-  ('base','ent_v','subviews','["base.addr_v","base.comm_v","base.priv_v"]','t'),
-  ('base','ent_v_pub','focus','"ent_name"','t'),
-  ('base','parm_v','display','["module","parm","type","value","cmt"]','t'),
-  ('base','parm_v','focus','"module"','t'),
-  ('base','priv','focus','"priv"','t'),
-  ('base','priv_v','actions','[{"name":"suspend"}]','f'),
-  ('mychips','chits_v','display','["chit_ent","chit_seq","chit_idx","chit_type","units","value"]','t'),
-  ('mychips','chits_v_me','display','["chit_ent","chit_seq","chit_idx","chit_type","units","value"]','t'),
-  ('mychips','contracts','display','["domain","name","version","language","released","source","title"]','t'),
-  ('mychips','contracts','focus','"domain"','t'),
-  ('mychips','contracts_v','actions','[
-    {"name":"edit","format":"strdoc","slave":true},
-    {"name":"publish","ask":true}
-  ]','f'),
-  ('mychips','contracts_v','export','"contract"','t'),
-  ('mychips','contracts_v','launch','{
-    "initial": 1,
-    "import": "json.import"
-  }','t'),
-  ('mychips','routes','display','["route_ent","dest_ent","dest_chid","dest_host","status"]','t'),
-  ('mychips','routes_v','display','["route_ent","route_addr","dest_ent","dest_addr","status"]','t'),
-  ('mychips','routes_v_lifts','display','["route_ent","route_addr","dest_ent","dest_addr","status"]','t'),
-  ('mychips','tallies','display','["tally_ent","tally_seq","tally_type","status","part_ent","tally_date","tally_uuid","dr_limit","cr_limit","reward","target"]','t'),
-  ('mychips','tallies_v','display','["tally_ent","tally_seq","tally_type","status","part_ent","part_name","reward","dr_limit","cr_limit","target"]','t'),
-  ('mychips','tallies_v_liftss','display','["bang","length","min","max","fora","forz","path"]','t'),
-  ('mychips','tallies_v_me','actions','[
-    {"name":"close","ask":"1"},
-    {"name":"invite","format":"html","options":[
-      {"tag":"reuse","input":"chk","onvalue":"t","offvalue":"f"}
-    ]}
-  ]','f'),
-  ('mychips','tallies_v_me','display','["tally_ent","tally_seq","tally_type","part_ent","part_name","dr_limit","cr_limit","total"]','t'),
-  ('mychips','tallies_v_me','launch','{
-    "initial": 1,
-    "import": "json.import"
-  }','t'),
-  ('mychips','tallies_v_me','subviews','["mychips.chits_v_me"]','t'),
-  ('mychips','tallies_v_me','where','{"and":true,"items":[{"left":"status","oper":"=","entry":"open"}]}','t'),
-  ('mychips','tallies_v_paths','display','["bang","length","min","max","circuit","path"]','t'),
-  ('mychips','users','focus','"ent_name"','t'),
-  ('mychips','users_v','actions','[
-    {"name":"ticket","format":"html","single":"1"},
-    {"name":"lock","ask":"1"},
-    {"name":"unlock","ask":"1"},
-    {"name":"summary","format":"html"},
-    {"name":"trade","format":"html","options":[
-      {"tag":"start","type":"date","input":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
-      {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
-    ]}
-  ]','f'),
-  ('mychips','users_v','display','["id","std_name","ent_type","user_stat","user_sock","born_date","!fir_name","!ent_name"]','t'),
-  ('mychips','users_v','export','"user"','t'),
-  ('mychips','users_v','launch','{
-    "initial": 1,
-    "import": "json.import"
-  }','t'),
-  ('mychips','users_v','subviews','["base.addr_v", "base.comm_v"]','t'),
-  ('mychips','users_v','where','{"and":true,"items":[{"left":"user_ent","not":true,"oper":"isnull"}, {"left":"ent_inact","not":true,"oper":"true"}, {"left":"ent_type","oper":"=","entry":"p"}]}','t'),
-  ('mychips','users_v_flat','display','["id","user_cid","std_name","bill_addr","bill_city","bill_state"]','t'),
-  ('mychips','users_v_me','actions','[
-    {"name":"graph","format":"html","single":"1"}
-  ]','f'),
-  ('wm','column_pub','focus','"code"','t'),
-  ('wm','column_text','focus','"code"','t'),
-  ('wm','message_text','focus','"code"','t'),
-  ('wm','objects','focus','"obj_nam"','t'),
-  ('wm','table_text','focus','"code"','t'),
-  ('wm','value_text','focus','"code"','t'),
-  ('wylib','data','display','["ruid","component","name","descr","owner","access"]','t'),
-  ('wylib','data_v','display','["ruid","component","name","descr","own_name","access"]','t');
+  ('base','addr','focus','addr_spec','t'),
+  ('base','addr_v','display','addr_type','addr_spec','state','city','pcode','country','addr_cmt','addr_seq','t'),
+  ('base','comm','focus','file_type','t'),
+  ('base','comm_v','display','comm_type','comm_spec','comm_cmt','comm_seq','t'),
+  ('base','ent','display','id','ent_type','ent_name','fir_name','born_date','t'),
+  ('base','ent','focus','ent_name','t'),
+  ('base','ent_link','focus','org_id','t'),
+  ('base','ent_v','actions','{"name":"directory"}'::jsonb,'f'),
+  ('base','ent_v','subviews','base.addr_v','base.comm_v','base.priv_v','t'),
+  ('base','ent_v_pub','focus','ent_name','t'),
+  ('base','file_v','display','file_type','file_cks','file_cmt','file_seq','t'),
+  ('base','parm_v','display','module','parm','type','value','cmt','t'),
+  ('base','parm_v','focus','module','t'),
+  ('base','priv','focus','priv','t'),
+  ('base','priv_v','actions','{"name":"suspend"}'::jsonb,'f'),
+  ('mychips','chits_v','display','chit_ent','chit_seq','chit_idx','chit_type','units','value','t'),
+  ('mychips','chits_v_me','display','chit_ent','chit_seq','chit_idx','chit_type','units','value','t'),
+  ('mychips','contracts','display','domain','name','version','language','released','source','title','t'),
+  ('mychips','contracts','focus','domain','t'),
+  ('mychips','contracts_v','actions','{"name":"edit","slave":true,"render":"strdoc"}'::jsonb,'{"ask":true,"name":"publish"}'::jsonb,'f'),
+  ('mychips','contracts_v','export','contract','t'),
+  ('mychips','contracts_v','launch','{"import":"json.import","initial":1}'::jsonb,'t'),
+  ('mychips','routes','display','route_ent','dest_ent','dest_chid','dest_host','status','t'),
+  ('mychips','routes_v','display','route_ent','route_addr','dest_ent','dest_addr','status','t'),
+  ('mychips','routes_v_lifts','display','route_ent','route_addr','dest_ent','dest_addr','status','t'),
+  ('mychips','tallies','display','tally_ent','tally_seq','tally_type','status','part_ent','tally_date','tally_uuid','dr_limit','cr_limit','reward','target','t'),
+  ('mychips','tallies_v','display','tally_ent','tally_seq','tally_type','status','part_ent','part_name','reward','dr_limit','cr_limit','target','t'),
+  ('mychips','tallies_v_liftss','display','bang','length','min','max','fora','forz','path','t'),
+  ('mychips','tallies_v_me','actions','{"ask":"1","name":"close"}'::jsonb,'{"name":"invite","render":"html","options":[{"tag":"reuse","input":"chk","onvalue":"t","offvalue":"f"},{"tag":"format","input":"pdm","values":["qr","link"]}]}'::jsonb,'f'),
+  ('mychips','tallies_v_me','display','tally_ent','tally_seq','tally_type','part_ent','part_name','dr_limit','cr_limit','total','t'),
+  ('mychips','tallies_v_me','launch','{"import":"json.import","initial":1}'::jsonb,'t'),
+  ('mychips','tallies_v_me','subviews','mychips.chits_v_me','t'),
+  ('mychips','tallies_v_me','where','{"and":true,"items":[{"left":"status","oper":"=","entry":"open"}]}'::jsonb,'t'),
+  ('mychips','tallies_v_paths','display','bang','length','min','max','circuit','path','t'),
+  ('mychips','users','focus','ent_name','t'),
+  ('mychips','users_v','actions','{"name":"ticket","render":"html","single":"1"}'::jsonb,'{"ask":"1","name":"lock"}'::jsonb,'{"ask":"1","name":"unlock"}'::jsonb,'{"name":"summary","render":"html"}'::jsonb,'{"name":"trade","render":"html","options":[{"tag":"start","hint":"date","size":"11","type":"date","input":"ent","special":"cal","subframe":"1 1","template":"date"},{"tag":"end","hint":"date","size":"11","type":"date","input":"ent","special":"cal","subframe":"1 2","template":"date"}]}'::jsonb,'f'),
+  ('mychips','users_v','display','id','std_name','ent_type','user_stat','user_sock','born_date','!fir_name','!ent_name','t'),
+  ('mychips','users_v','export','user','t'),
+  ('mychips','users_v','launch','{"import":"json.import","initial":1}'::jsonb,'t'),
+  ('mychips','users_v','subviews','base.addr_v','base.comm_v','t'),
+  ('mychips','users_v','where','{"and":true,"items":[{"not":true,"left":"user_ent","oper":"isnull"},{"not":true,"left":"ent_inact","oper":"true"},{"left":"ent_type","oper":"=","entry":"p"}]}'::jsonb,'t'),
+  ('mychips','users_v_flat','display','id','user_cid','std_name','bill_addr','bill_city','bill_state','t'),
+  ('mychips','users_v_me','actions','{"name":"graph","render":"html","single":"1"}'::jsonb,'f'),
+  ('wm','column_pub','focus','code','t'),
+  ('wm','column_text','focus','code','t'),
+  ('wm','message_text','focus','code','t'),
+  ('wm','objects','focus','obj_nam','t'),
+  ('wm','table_text','focus','code','t'),
+  ('wm','value_text','focus','code','t'),
+  ('wylib','data','display','ruid','component','name','descr','owner','access','t'),
+  ('wylib','data_v','display','ruid','component','name','descr','own_name','access','t');
 insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','addr','addr_cmt','input','ent'),
   ('base','addr','addr_cmt','size','50'),
@@ -6447,37 +6644,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','addr_v','std_name','size','14'),
   ('base','addr_v','std_name','subframe','2 6 2'),
   ('base','addr_v','std_name','title',':'),
-  ('base','comm','comm_cmt','input','ent'),
-  ('base','comm','comm_cmt','size','50'),
-  ('base','comm','comm_cmt','special','edw'),
-  ('base','comm','comm_cmt','subframe','1 3 3'),
-  ('base','comm','comm_ent','input','ent'),
-  ('base','comm','comm_ent','justify','r'),
-  ('base','comm','comm_ent','optional','1'),
-  ('base','comm','comm_ent','size','5'),
-  ('base','comm','comm_ent','state','readonly'),
-  ('base','comm','comm_ent','subframe','1 5'),
-  ('base','comm','comm_inact','initial','false'),
-  ('base','comm','comm_inact','input','chk'),
-  ('base','comm','comm_inact','offvalue','false'),
-  ('base','comm','comm_inact','onvalue','true'),
-  ('base','comm','comm_inact','size','2'),
-  ('base','comm','comm_inact','subframe','2 2'),
-  ('base','comm','comm_seq','hide','1'),
-  ('base','comm','comm_seq','input','ent'),
-  ('base','comm','comm_seq','justify','r'),
-  ('base','comm','comm_seq','size','5'),
-  ('base','comm','comm_seq','state','readonly'),
-  ('base','comm','comm_seq','subframe','0 1'),
-  ('base','comm','comm_seq','write','0'),
-  ('base','comm','comm_spec','focus','true'),
-  ('base','comm','comm_spec','input','ent'),
-  ('base','comm','comm_spec','size','28'),
-  ('base','comm','comm_spec','subframe','1 1 3'),
-  ('base','comm','comm_type','initial','phone'),
-  ('base','comm','comm_type','input','pdm'),
-  ('base','comm','comm_type','size','5'),
-  ('base','comm','comm_type','subframe','1 2'),
   ('base','comm','crt_by','input','ent'),
   ('base','comm','crt_by','optional','1'),
   ('base','comm','crt_by','size','10'),
@@ -6490,6 +6656,31 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm','crt_date','state','readonly'),
   ('base','comm','crt_date','subframe','2 98'),
   ('base','comm','crt_date','write','0'),
+  ('base','comm','file_cmt','input','ent'),
+  ('base','comm','file_cmt','size','50'),
+  ('base','comm','file_cmt','special','edw'),
+  ('base','comm','file_cmt','subframe','1 3 3'),
+  ('base','comm','file_ent','input','ent'),
+  ('base','comm','file_ent','justify','r'),
+  ('base','comm','file_ent','optional','1'),
+  ('base','comm','file_ent','size','5'),
+  ('base','comm','file_ent','state','readonly'),
+  ('base','comm','file_ent','subframe','1 5'),
+  ('base','comm','file_fmt','input','ent'),
+  ('base','comm','file_fmt','size','10'),
+  ('base','comm','file_fmt','subframe','2 2'),
+  ('base','comm','file_seq','hide','1'),
+  ('base','comm','file_seq','input','ent'),
+  ('base','comm','file_seq','justify','r'),
+  ('base','comm','file_seq','size','5'),
+  ('base','comm','file_seq','state','readonly'),
+  ('base','comm','file_seq','subframe','0 1'),
+  ('base','comm','file_seq','write','0'),
+  ('base','comm','file_type','focus','true'),
+  ('base','comm','file_type','initial','phone'),
+  ('base','comm','file_type','input','pdm'),
+  ('base','comm','file_type','size','5'),
+  ('base','comm','file_type','subframe','1 2'),
   ('base','comm','mod_by','input','ent'),
   ('base','comm','mod_by','optional','1'),
   ('base','comm','mod_by','size','10'),
@@ -6736,6 +6927,27 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','ent_v_pub','username','size','12'),
   ('base','ent_v_pub','username','state','readonly'),
   ('base','ent_v_pub','username','subframe','2 2'),
+  ('base','file_v','file_cks','display','2'),
+  ('base','file_v','file_cmt','display','3'),
+  ('base','file_v','file_prim','initial','false'),
+  ('base','file_v','file_prim','input','chk'),
+  ('base','file_v','file_prim','offvalue','f'),
+  ('base','file_v','file_prim','onvalue','t'),
+  ('base','file_v','file_prim','size','2'),
+  ('base','file_v','file_prim','state','readonly'),
+  ('base','file_v','file_prim','subframe','3 2'),
+  ('base','file_v','file_prim','write','0'),
+  ('base','file_v','file_seq','display','4'),
+  ('base','file_v','file_seq','sort','2'),
+  ('base','file_v','file_type','display','1'),
+  ('base','file_v','file_type','sort','1'),
+  ('base','file_v','std_name','depend','file_ent'),
+  ('base','file_v','std_name','in','file_ent'),
+  ('base','file_v','std_name','input','ent'),
+  ('base','file_v','std_name','optional','1'),
+  ('base','file_v','std_name','size','14'),
+  ('base','file_v','std_name','subframe','2 5 2'),
+  ('base','file_v','std_name','title',':'),
   ('base','parm_v','cmt','display','5'),
   ('base','parm_v','cmt','input','ent'),
   ('base','parm_v','cmt','size','50'),
@@ -7453,6 +7665,36 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','ent_v_pub','mod_date','base','ent','mod_date','f','f'),
   ('base','ent_v_pub','std_name','base','ent_v','std_name','f','f'),
   ('base','ent_v_pub','username','base','ent','username','f','f'),
+  ('base','file','crt_by','base','file','crt_by','f','f'),
+  ('base','file','crt_date','base','file','crt_date','f','f'),
+  ('base','file','file_cks','base','file','file_cks','f','f'),
+  ('base','file','file_cmt','base','file','file_cmt','f','f'),
+  ('base','file','file_data','base','file','file_data','f','f'),
+  ('base','file','file_ent','base','file','file_ent','f','t'),
+  ('base','file','file_fmt','base','file','file_fmt','f','f'),
+  ('base','file','file_prim','base','file','file_prim','f','f'),
+  ('base','file','file_priv','base','file','file_priv','f','f'),
+  ('base','file','file_seq','base','file','file_seq','f','t'),
+  ('base','file','file_type','base','file','file_type','f','f'),
+  ('base','file','mod_by','base','file','mod_by','f','f'),
+  ('base','file','mod_date','base','file','mod_date','f','f'),
+  ('base','file_prim','prim_ent','base','file_prim','prim_ent','f','t'),
+  ('base','file_prim','prim_seq','base','file_prim','prim_seq','f','t'),
+  ('base','file_prim','prim_type','base','file_prim','prim_type','f','t'),
+  ('base','file_v','crt_by','base','file','crt_by','f','f'),
+  ('base','file_v','crt_date','base','file','crt_date','f','f'),
+  ('base','file_v','file_cks','base','file','file_cks','f','f'),
+  ('base','file_v','file_cmt','base','file','file_cmt','f','f'),
+  ('base','file_v','file_data','base','file','file_data','f','f'),
+  ('base','file_v','file_ent','base','file','file_ent','f','t'),
+  ('base','file_v','file_fmt','base','file','file_fmt','f','f'),
+  ('base','file_v','file_prim','base','file_v','file_prim','f','f'),
+  ('base','file_v','file_priv','base','file','file_priv','f','f'),
+  ('base','file_v','file_seq','base','file','file_seq','f','t'),
+  ('base','file_v','file_type','base','file','file_type','f','f'),
+  ('base','file_v','mod_by','base','file','mod_by','f','f'),
+  ('base','file_v','mod_date','base','file','mod_date','f','f'),
+  ('base','file_v','std_name','base','ent_v','std_name','f','f'),
   ('base','language','code','base','language','code','f','t'),
   ('base','language','eng_name','base','language','eng_name','f','f'),
   ('base','language','fra_name','base','language','fra_name','f','f'),
@@ -7533,6 +7775,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('json','cert','chad','json','cert','chad','f','f'),
   ('json','cert','connect','json','cert','connect','f','f'),
   ('json','cert','date','json','cert','date','f','f'),
+  ('json','cert','file','json','cert','file','f','f'),
   ('json','cert','id','base','ent','id','f','t'),
   ('json','cert','identity','json','cert','identity','f','f'),
   ('json','cert','name','json','cert','name','f','f'),
@@ -7557,6 +7800,15 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('json','contract','text','mychips','contracts','text','f','f'),
   ('json','contract','title','mychips','contracts','title','f','f'),
   ('json','contract','version','mychips','contracts','version','f','t'),
+  ('json','file','comment','json','file','comment','f','f'),
+  ('json','file','data','json','file','data','f','f'),
+  ('json','file','digest','json','file','digest','f','f'),
+  ('json','file','format','json','file','format','f','f'),
+  ('json','file','id','json','file','id','f','t'),
+  ('json','file','main','json','file','main','f','f'),
+  ('json','file','media','json','file','media','f','f'),
+  ('json','file','private','json','file','private','f','f'),
+  ('json','file','seq','json','file','seq','f','t'),
   ('json','place','address','json','place','address','f','f'),
   ('json','place','city','base','addr','city','f','f'),
   ('json','place','comment','json','place','comment','f','f'),
@@ -7802,6 +8054,20 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','contracts_v','text','mychips','contracts','text','f','f'),
   ('mychips','contracts_v','title','mychips','contracts','title','f','f'),
   ('mychips','contracts_v','version','mychips','contracts','version','f','t'),
+  ('mychips','file_v_me','crt_by','base','file','crt_by','f','f'),
+  ('mychips','file_v_me','crt_date','base','file','crt_date','f','f'),
+  ('mychips','file_v_me','file_cks','base','file','file_cks','f','f'),
+  ('mychips','file_v_me','file_cmt','base','file','file_cmt','f','f'),
+  ('mychips','file_v_me','file_data','base','file','file_data','f','f'),
+  ('mychips','file_v_me','file_ent','base','file','file_ent','f','f'),
+  ('mychips','file_v_me','file_fmt','base','file','file_fmt','f','f'),
+  ('mychips','file_v_me','file_prim','base','file_v','file_prim','f','f'),
+  ('mychips','file_v_me','file_priv','base','file','file_priv','f','f'),
+  ('mychips','file_v_me','file_seq','base','file','file_seq','f','f'),
+  ('mychips','file_v_me','file_type','base','file','file_type','f','f'),
+  ('mychips','file_v_me','mod_by','base','file','mod_by','f','f'),
+  ('mychips','file_v_me','mod_date','base','file','mod_date','f','f'),
+  ('mychips','file_v_me','std_name','base','ent_v','std_name','f','f'),
   ('mychips','lifts','circuit','mychips','lifts','circuit','f','f'),
   ('mychips','lifts','crt_by','mychips','lifts','crt_by','f','f'),
   ('mychips','lifts','crt_date','mychips','lifts','crt_date','f','f'),
@@ -8593,6 +8859,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendor_agents','mychips','tallies_v_sum','vendor_agents','f','f'),
   ('mychips','users_v_tallysum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
+  ('public','testview','bool','public','testview','bool','f','f'),
   ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
   ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
   ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
@@ -8747,6 +9014,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_obj','wm','fkeys_pub','tt_obj','f','f'),
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
+  ('wm','lang','bool','wm','lang','bool','f','f'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
@@ -9833,11 +10101,11 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
   ('mychips', 'site_ent', 'text', null, 'r1', null, 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
 
 -- Deprecated:
--- ,('mychips', 'user_host', 'text', null, 'mychips.org', null, 'Default IP where mobile application connects.')
--- ,('mychips', 'user_port', 'int', 1025, null, null, 'Default port where mobile user application connects.')
--- ,('mychips', 'peer_agent', 'text', null, 'UNASSIGNED', null, 'Default agent key where peer servers connect.')
--- ,('mychips', 'peer_host', 'text', null, 'mychips.org', null, 'Default network address where peer servers connect.')
--- ,('mychips', 'peer_port', 'int', 65430, null, null, 'Default port where peer servers connect.')
+-- ,('mychips', 'user_host', 'text', null, '', null, 'Default IP where mobile application connects.')
+-- ,('mychips', 'user_port', 'int', , null, null, 'Default port where mobile user application connects.')
+-- ,('mychips', 'peer_agent', 'text', null, '', null, 'Default agent key where peer servers connect.')
+-- ,('mychips', 'peer_host', 'text', null, '', null, 'Default network address where peer servers connect.')
+-- ,('mychips', 'peer_port', 'int', , null, null, 'Default port where peer servers connect.')
 
  ,('agents', 'min_time', 'int', 5, null, null, 'Minimum number of minutes between retrying a message to an agent server.')
  ,('agents', 'max_tries', 'int', 100, null, null, 'How many times to retry sending messages to an agent server before giving up.')

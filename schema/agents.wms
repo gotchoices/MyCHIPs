@@ -26,9 +26,9 @@ namespace eval agents {
 table mychips.agents {mychips base.ent} {
     agent	text	primary key
   , agent_key	bytea
-  , agent_host	text	constraint "!mychips.tallies.CHR" not null
-  , agent_port	int	constraint "!mychips.tallies.CPR" not null
-  , agent_ip	inet  , constraint "!mychips.agents.AHP" unique (agent_host, agent_port)
+  , agent_host	text	constraint "!mychips.tallies:CHR" not null
+  , agent_port	int	constraint "!mychips.tallies:CPR" not null
+  , agent_ip	inet  , constraint "!mychips.agents:AHP" unique (agent_host, agent_port)
     eval(s $glob::stamps)
 }
 

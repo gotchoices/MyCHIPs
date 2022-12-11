@@ -25,6 +25,7 @@ tabtext mychips.lifts	{Lifts}			{Contains a record for each group of chits in a 
     {MDA		{Missing Agent}		{A destination CHIP address was given without specifying an agent address}}
     {IVR		{Invalid Request}	{At attempt was made to set a lift request to an unallowed value}}
     {IVS		{Invalid Status}	{At attempt was made to set a lift status to an unallowed value}}
+    {IVT		{Invalid Type}		{At attempt was made to create a lift record with a disallowed type}}
 }
 
 tabtext mychips.lifts_v {Lifts}			{Standard view containing an entry for each lift with additional helpful derived fields} {

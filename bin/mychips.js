@@ -21,7 +21,7 @@ Parser(actions, controls.map(f=>require(f)))	//Require our app-specific reports
 
 var opts = Args(require('../lib/config'))
   .alias('h','home')     .default('home',	true)	//Service Provider HTML Home page
-  .alias('d','docs')     .default('docs',	true)	//HTML document server
+  .alias('d','docs')     .default('docs',	false)	//HTML document server
   .alias('l','lifts')    .default('lifts',	false)	//Run lift scheduler
   .alias('m','model')    .default('model',	false)	//Run agent-based modeler
   .alias('a','agentKey')				//Each peer server runs with a specific agent key

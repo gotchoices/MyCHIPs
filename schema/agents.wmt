@@ -7,5 +7,7 @@ tabtext mychips.agents	{Site Agents}		{Maintains the connection addresses of age
     {agent_port		{Agent Port}		{The port on which peers connect}}
     {agent_ip		{Agent IP}		{The IP number from which this agent last connected}}
 } $glob::stampt] -messages {
+    {CHR	{Agent Host Required}	{A host or IP address for the agent must be specified}}
+    {CPR	{Agent Port Required}	{A port number for the agent must be specified}}
     {AHP	{Unique Host/Port}	{Agent keys must be associated with a unique combination of host address and port}}
 }

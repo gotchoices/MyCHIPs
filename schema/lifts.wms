@@ -32,10 +32,10 @@ table mychips.lifts {mychips mychips.tallies} {
   , lift_seq	int	      , primary key (lift_uuid, lift_seq)
 
 -- Internal management
-  , request	text		constraint "!mychips.lifts.IVR" check(request isnull or request in ('init','seek','call','relay','found','term','check','good','void'))
-  , status	text		not null default 'draft' constraint "!mychips.lifts.IVS" check(status in ('draft','init','seek','call','found','pend','good','void'))
+  , request	text		constraint "!mychips.lifts:IVR" check(request isnull or request in ('init','seek','call','relay','found','term','check','good','void'))
+  , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','init','seek','call','found','pend','good','void'))
   , tallies	uuid[]		not null
-  , lift_type	text		not null default 'rel' constraint "!mychips.lifts.IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
+  , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
   , circuit	boolean		not null default true
 
 -- Other components of signed tally
@@ -145,7 +145,7 @@ function {mychips.lift_chitcheck(lf mychips.lifts)} {mychips.lifts} {
             lf.lift_uuid, lf.lift_seq, lf.lift_date, stat, -lf.units);
 
           get diagnostics rows = ROW_COUNT; if rows < 1 then
-            raise exception '!mychips.lifts.CIF';
+            raise exception '!mychips.lifts:CIF';
           end if;
         end loop;
       end loop;
