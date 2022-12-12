@@ -6,9 +6,11 @@ X- New user can sign up on mychips.net site and receive connection token/link
 X- Existing users can refresh their connection token
 - App draws language data from backend
 -  App automatically knows user's language of locale (or choice)
+-  App display info reactive to language changes
 - User can download/install apk file from index.html
 -  npm script for building/installing latest apk
-- Scanning QR code connects correctly
+-  npm script for building/installing latest ios (testflight?)
+X- Scanning QR code connects correctly
 -  Show helpful status on success and/or failure
 - App knows when new user has not connected yet:
 -  Displays simplified page allowing only: scan QR

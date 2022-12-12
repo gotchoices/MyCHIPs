@@ -18,10 +18,6 @@ mobile application:
 	An effort at a React Native app to demonstrate usage of the Wyseman
 	JS client API.  Hopefully a starting point for a working RN app.
 
-- chars: Example app from tryout developer (not checked in)
-
-- rn: Sandbox for tinkering in React Native (not checked in)
-
 ## Setup Notes
 These notes reflect some steps taken on MacOS to get the React Native app running:
 Also see: https://reactnative.dev/docs/environment-setup
