@@ -66,7 +66,7 @@ debug("Error saving connection key:", err.message)
    */
   credConnect(creds, cb = null) {
     let address = `${creds.host}:${creds.port}`
-console.log('Pre:', creds)
+console.log('Pre:', creds, 'hello')
     if (this.ws) return
     this.api.uri(creds).then(wsURI => {			//Build connection URI	
 debug('Connect:', wsURI)

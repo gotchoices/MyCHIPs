@@ -58,7 +58,6 @@ const Scanner = (props) => {
       return Alert.alert('Ticket not found.');
     }
 
-    console.log(args.needUsername === true && !username, 'args')
     if(args.needUsername === true && !username) {
       setUsernameError('Username required');
       return;
@@ -76,6 +75,7 @@ const Scanner = (props) => {
       if(err) {
         setIsActive(true);
         setIsConnecting(false);
+        props.conn.ws = null;
         Alert.alert(err.message);
       } else if (connected){
         setIsConnecting(false);

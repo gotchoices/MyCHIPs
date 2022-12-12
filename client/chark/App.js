@@ -15,7 +15,7 @@
 //- 
 
 import React, { Component, useEffect } from 'react';
-import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState } from 'react-native';
+import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState, TouchableWithoutFeedback } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PolyfillCrypto from 'react-native-webview-crypto'
@@ -33,6 +33,8 @@ import Tally from './src/screens/Tally';
 import EditDraftTally from './src/screens/Tally/EditDraftTally';
 import EditOpenTally from './src/screens/Tally/EditOpenTally';
 import TallyReport from './src/screens/Tally/TallyReport';
+import Setting from './src/screens/Setting';
+import Profile from './src/screens/Profile';
 const Connect = require('./src/connect')
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
@@ -108,8 +110,8 @@ function InviteScreen({ navigation }) {
 
 function SettingsScreen({ navigation }) {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Settings Screen</Text>
+    <View style={{ flex: 1 }}>
+      <Setting navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -155,6 +157,15 @@ function OpenTallyEditScreen({ route, navigation }) {
   );
 }
 
+function ProfileScreen({ route, navigation }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <Profile wm={Wm} />
+      <GlobalMenu nav={navigation} />
+    </View>
+  );
+}
+
 const Stack = createNativeStackNavigator();
 const linking = {
   prefixes: ["mychips://"],
@@ -180,6 +191,7 @@ function App() {
         <Stack.Screen name="TallyReport" component={TallyReportScreen} />
         <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
         <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,7 +8,9 @@ import {
   Button,
 } from 'react-native';
 
-const Profile = () => {
+import Avatar from './Avatar';
+
+const Profile = (props) => {
   const [profile, setProfile] = useState({
     email: '',
     phone: '',
@@ -18,6 +20,17 @@ const Profile = () => {
     birthDate: '',
     birthAddress: '',
   });
+
+  useEffect(() => {
+    const spec = {
+      view: 'mychips.users_v_me',
+      where: { username: 'p1000' }
+    }
+
+    props.wm.request('_user_ref', 'select', spec, data => {
+      console.log(data)
+    });
+  }, [])
 
   const onChange = (name) => {
     return (value) => {
@@ -30,11 +43,28 @@ const Profile = () => {
 
   const onSave = () => {
     console.log(profile);
+    const spec = {
+      fields: {
+        fir_name
+      },
+      view: 'mychips.users_v_me',
+    }
+
+    wm.request('_tpt_ref', 'insert', spec, data => {
+      console.log('Insert done')
+      fetchTemplates()
+    });
+
   }
 
   return (
     <ScrollView style={{ marginBottom: 55 }}>
       <View style={styles.container}>
+        <View style={{ marginBottom: 24 }}>
+          <Avatar
+          />
+        </View>
+
         <View style={styles.formControl}>
           <Text style={styles.label}>Email</Text>
           <TextInput 
