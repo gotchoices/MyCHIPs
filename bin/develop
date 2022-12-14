@@ -1,13 +1,13 @@
 #!/bin/bash
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
-#Configure mychips to draw WyattERP modules from source code located in a peer 
-#directory rather than the local node_modules directory.  We expect to find the 
-#modules: wylib, wyseman, wyclif, wyselib in the same directory as the mychips 
-#module.  A node_modules directory will be created above mychips with reference
-#to the WyattERP source modules.  You may also benefit from including the .bin
-#folder there in your path so you can run wyseman (and others) from the shell.
-#In this example, $HOME/devel contains mychips and the WyattERP modules:
+# Configure mychips to draw WyattERP modules from source code located in a peer 
+# directory rather than the local node_modules directory.  We expect to find the 
+# modules: wylib, wyseman, wyclif, wyselib in the same directory as the mychips 
+# module.  A node_modules directory will be created above mychips with reference
+# to the WyattERP source modules.  You may also benefit from including the .bin
+# folder there in your path so you can run wyseman (and others) from the shell.
+# In this example, $HOME/devel contains mychips and the WyattERP modules:
 #
 #    export PATH="$PATH:$HOME/devel/node_modules/.bin"
 #
@@ -55,3 +55,11 @@ IFS=: read -r -a patha <<< "$PATH"
 if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
   export PATH="${PATH}:$nodebin"
 fi
+
+# Check if any projects under the client folder also have a bin/develop script
+for proj in $(ls $appdir/client/*/bin/develop); do
+  echo "Running client project develop script: $proj"
+  dir=$(dirname $proj)
+  cd $dir					; pwd
+  ./develop
+done

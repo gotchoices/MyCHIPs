@@ -1,0 +1,56 @@
+#!/bin/bash
+#Make/keep a local copy of any needed Wyseman resources in our local node_modules
+#React Native's metro can't follow symlinks to packages so we need this kludge
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+files="client_ws.js client_msg.js"
+
+watchman="$(which watchman)"		;echo "watchman:$watchman"
+if [ -z "$watchman" ]; then
+  echo "Can't go into development mode unless watchman installed"
+  exit 1
+fi
+
+realpath() {			#OSX doesn't have a realpath
+   [ "$1" = "" ] && return 1
+   local dir=$(dirname "$1")
+   local file=$(basename "$1")
+   local last=$(pwd)
+   [ -d "$dir" ] && cd $dir || return 1
+   if [ -d "$file" ]; then
+     cd $file && pwd || return 1
+   else
+     echo `pwd`/$file | sed 's/\/\//\//g'
+   fi
+   cd $last
+}
+
+mydir="$(dirname $BASH_SOURCE)"		#Where this script is
+appdir="$(realpath "$mydir/..")"	#;echo "appdir:$appdir"
+
+findWatch="$(cd ..; node -e 'w=require.resolve("wyseman/lib"); console.log(w)')"
+watchDir="$(dirname $findWatch)"	;echo "watchDir:$watchDir"
+
+checkFiles() {
+  for file in $files; do
+    if ! diff $watchDir/$file $appdir/node_modules/wyseman/lib/$file >/dev/null; then
+      echo "Updating from local source: $watchDir/$file"
+      cp $watchDir/$file $appdir/node_modules/wyseman/lib/$file
+    fi
+  done					#;echo "fullFiles:$fullFiles"
+}
+
+if [ "$1" = "copyCheck" ]; then
+  checkFiles
+
+elif [ "$1" = "stop" ]; then
+  echo "Stopping watchman"
+  $watchman watch-del $watchDir
+else
+  echo "Installing latest wyseman from github: $appdir/node_modules"
+  npm install gotchoices/wyseman --no-save
+  
+  echo "Launching watchman on: $files"
+  $watchman watch $watchDir
+  $watchman -- trigger $watchDir wmcopy $files -- $appdir/bin/develop copyCheck
+fi
