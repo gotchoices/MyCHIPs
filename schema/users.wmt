@@ -24,7 +24,12 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
     {user_sock		{User Socket}		{The IP Number, and port to which the user's mobile device will connect}}
     {peer_sock		{Peer Socket}		{The IP Number, and port where other servers can connect to trade with this peer.}}
 } -messages {
+    {GUT	{Generating Ticket}	{An error occurred while generating a user connection ticket}}
+    {URF	{Unknown Format}	{The requested report format is unsupported}}
     {ticket 	{User Ticket}		{Generate a temporary, one-time pass to allow a user to establish a secure connection with the server}}
+      {ticket.format	{Format}	{Determines which type of connection ticket is generated}}
+        {ticket.format.qr	{qr}	{Return connection ticket as a QR code}}
+        {ticket.format.link	{link}	{Return connection ticket as deep link Uniform Resource Locator}}
     {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
     {unlock	{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
     {summary	{Summary Report}	{Report about the current status of the selected user}}

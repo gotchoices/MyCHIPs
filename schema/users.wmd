@@ -18,7 +18,9 @@ tabdef mychips.users_v -fields {
   id std_name ent_type user_stat user_sock born_date !fir_name !ent_name
 } -json {
   actions {[
-    {"name":"ticket","render":"html","single":"1"},
+    {"name":"ticket","render":"html","single":"1","options":[
+      {"tag":"format","input":"pdm","values":["qr","link"]}
+    ]},
     {"name":"lock","ask":"1"},
     {"name":"unlock","ask":"1"},
     {"name":"summary","render":"html"},

@@ -95,6 +95,7 @@ tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each
 
 tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertaining to the current user} {
 } -messages {
+    {GTT	{Generating Tally}	{An error occurred while generating a tally invitation ticket}}
     {URF	{Unknown Format}	{The requested report format is unsupported}}
     {close	{Close Tally}		{Request that the current tally be closed once its balance reaches zero}}
     {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
