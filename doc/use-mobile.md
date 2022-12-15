@@ -231,6 +231,50 @@ As one example, a user connection ticket is generated in the backend, including 
 The admin app needs only specify the report handler it wants to call and the
 backend will serve up everything it needs in order to display the connection code.
 
+### Language Data
+Wyseman also includes a facility for serving up a variety of dictionary data about database objects.
+This can be expressed in any number of languages.
+
+The intent is that a mobile app will draw all its language data from the backend.
+So app developers should code apps using language tags and then populate the database with whatever language strings are necessary for the app to operate.
+
+Language data are organized according to views, as in database views.
+Each view (or table) will contain all manner of data explaining the title and detailed descriptions for 
+the table itself, as well as all its columns.
+In addition, each table/view can have any number of arbitrary messages associated with it.
+
+An application wanting to access language data should execute something like this:
+```
+Wyseman.register(something_unique, view_name, (data, err) => {
+  if (err) {<report errot>; return}
+  local_reactive_variable = data
+})
+```
+This will do an initial fetch of the metadata from the database associated with the requested view.
+The wyseman module will also cache the data in memory for the duration of the object's existence.
+If available, the data can also be cached in the devices local storage so that when an app launches
+it will have all the language (and other) metadata from the previous session.
+
+Subsequent register calls will still fetch fresh data from the database.
+But in the mean time, display tags should still display correctly according to cached data.
+
+Any time a user's language preference changes, you should call:
+```
+   Wyseman.newLanguage(lang)
+```
+This will fetch all new language data for all registered views.
+If the app is built reactively, all language data in the app should change to display in the new language.
+
+To get an idea of what language data is available, try this queries:
+```
+  select sch,tab,title,help,jsonb_pretty(to_jsonb(messages)) from wm.table_lang where tab = 'some_view'
+```
+Note that the database can also store any number of arbitrary JSON structures associated with a few.
+These are called styles and can be queried as follows:
+```
+  select sch,tab,jsonb_pretty(styles) from wm.table_meta where tab = 'some_view'
+```
+
 ### Key Security
 A native web application has a notable security issue to deal with.
 Specifically, the user application will be responsible for storing and managing the user's transaction signing key.
