@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TouchableOpacity, Linking } from 'react-native'
 
+import useCurrentUser from '../../hooks/useCurrentUser';
 import { parse } from '../../utils/query-string';
+import { query_user } from '../../utils/user';
+
 const Wm = require('../../../src/wyseman')
 
 const ticket = require('../../../assets/ticket.json')
@@ -15,34 +18,32 @@ function query_users() {
 console.log('Data:', JSON.stringify(data,null,2))
   })
 }
-function query_user() {
-  Wm.request(pktId++, 'select', {
-    view: 'base.ent_v',
-    table: 'base.curr_eid',
-    params: []
-  }, data => {
-console.log('Data:', JSON.stringify(data,null,2))
-  })
-}
-
 
 const HomeScreen = ({ navigation, conn }) => {
+  const { setUser } = useCurrentUser();
+
+  const connect = (ticket) => {
+    conn.connect(ticket, (err, connected) => {
+      if(connected) {
+        query_user().then((data) => {
+          setUser(data?.[0]);
+        })
+      }
+    })
+  }
+
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
       if(url) {
         const obj = parse(url);
-        conn.connect({
-          ticket: obj,
-        })
+        connect({ ticket: obj });
       }
     });
 
     const listener = Linking.addEventListener('url', ({url}) => {
       if(url) {
         const obj = parse(url);
-        conn.connect({
-          ticket: obj,
-        })
+        connect({ ticket: obj });
       }
     })
 
@@ -56,16 +57,30 @@ const HomeScreen = ({ navigation, conn }) => {
     navigation.navigate('Tallies')
   }
 
+  const connectWithToken = () => {
+    connect(ticket);
+  }
+
+  const connectWithKey = () => {
+    connect(null)
+  }
+
+  const querySessionUser = () => {
+    query_user().then((data) => {
+      console.log(JSON.stringify(data, null, 2))
+    })
+  }
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Home Screen</Text>
       <Button
         title="Connect with Token"
-        onPress={() => conn.connect(ticket)}
+        onPress={connectWithToken}
       />
       <Button
         title="Connect with Key"
-        onPress={() => conn.connect()}
+        onPress={connectWithKey}
       />
       <Button
         title="Disconnect"
@@ -73,11 +88,11 @@ const HomeScreen = ({ navigation, conn }) => {
       />
       <Button
         title="Query Users"
-        onPress={() => query_users()}
+        onPress={query_users}
       />
       <Button
         title="Query Session User"
-        onPress={() => query_user()}
+        onPress={querySessionUser}
       />
       <Button
         title="Get Tallies"

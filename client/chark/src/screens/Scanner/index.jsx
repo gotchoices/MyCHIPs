@@ -5,10 +5,13 @@ import { useScanBarcodes, BarcodeFormat, scanBarcodes } from 'vision-camera-code
 
 import { parse } from '../../utils/query-string';
 import { colors } from '../../config/constants';
+import { query_user } from '../../utils/user';
+import useCurrentUser from '../../hooks/useCurrentUser';
 
 const Scanner = (props) => {
   const devices = useCameraDevices();
   const device = devices.back;
+  const { setUser } = useCurrentUser();
 
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -79,7 +82,10 @@ const Scanner = (props) => {
         Alert.alert(err.message);
       } else if (connected){
         setIsConnecting(false);
-        props.navigation.navigate('Home');
+        query_user().then((data) => {
+          setUser(data?.[0]);
+          props.navigation.navigate('Home');
+        })
       }
 
       setUsername(false);
