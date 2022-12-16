@@ -217,7 +217,7 @@ view mychips.users_v_me {mychips.users_v base.user_id(text)} {select
 #----------------------------------------------------------------
 view mychips.addr_v_me {base.addr_v base.user_id(text)} {select 
     a.*
-    from	base.addr_v		a where addr_ent = base.user_id(session_user)
+    from	base.addr_v a	where addr_ent = base.user_id(session_user)
 } -grant {
     {user	s {s i u} {d}}
 } -primary id
@@ -226,7 +226,7 @@ view mychips.addr_v_me {base.addr_v base.user_id(text)} {select
 #----------------------------------------------------------------
 view mychips.comm_v_me {base.comm_v base.user_id(text)} {select 
     c.*
-    from	base.comm_v		c where comm_ent = base.user_id(session_user)
+    from	base.comm_v c	where comm_ent = base.user_id(session_user)
 } -grant {
     {user	s {s i u} {d}}
 } -primary id
@@ -234,8 +234,8 @@ view mychips.comm_v_me {base.comm_v base.user_id(text)} {select
 # View limited to user's own user file records
 #----------------------------------------------------------------
 view mychips.file_v_me {base.file_v base.user_id(text)} {select 
-    c.*
-    from	base.file_v		c where file_ent = base.user_id(session_user)
+    f.*
+    from	base.file_v f where file_ent = base.user_id(session_user)
 } -grant {
     {user	s {s i u} {d}}
 } -primary id

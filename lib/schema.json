@@ -1,5 +1,5 @@
 {
- "hash": "5JS7XJIaPZW7P392G4pXB2xo33Xgy/pJdbCR1YIRozc=",
+ "hash": "VqSFOqlRE2vwjkmHQ3oizWqD+0ZlmwjJqo3/N3zGe+0=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -3837,7 +3837,7 @@
    "col_data": [
     "pri,id"
    ],
-   "create": "eJwti0EKhDAUQ9f1FFmqCy8gnqV82wwWrMr/VZnbT5XJJjxeEpRSiCvxRv6GJR02SIzqL58JMRhXhoIGNTL0b390z24W43/qnOBeqPXwMLeCCa8/jepTbI1mad/8w934AxApJ6E=",
+   "create": "eJwtiksOQEAQRNecopZYuIA4y6TNlJjEIN2DuL1P1Kby8p5XSiaOyBPp8lPcrJUQ1B0uEWIwzvQZJZ5J23w/6pqKQYx/CinOifr0L3LJ6PHp3aguhspoFtfFvVx3N/flJ5g=",
    "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWS0xJKYovi89NtQYAGEUOZw=="
   },
   {
@@ -3896,7 +3896,7 @@
    "col_data": [
     "pri,id"
    ],
-   "create": "eJwtijEOgzAQBGvzii0DhT8Q5S2WORZhKYcjn8HK7wNWplmNdqQwVuJMbNCvbOljXrJqOIMS0WB8UyoGXIif+q4lq5uj8Z86J2gbC9Gde8UL/T+MJaTlYTRLeQ+3j88fHXgn2A==",
+   "create": "eJwtijEOgzAQBGvnFVsmFP5AxFss51iEJQ5HPoPF7wlWplmNdqQwVuJIbNBTlvQ1L1k1HEGJaDCulIoHfogf+s4lq/tE4z+FuLawEF25VYzo924sIU1Po1nKW7j99b4ABR8nzw==",
    "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWS87PzY0vi89NtQYAGOEOeA=="
   },
   {
@@ -3953,7 +3953,7 @@
    "col_data": [
     "pri,id"
    ],
-   "create": "eJwtikEKhDAQBM/xFX3c9eAHZN8S4tjiQKJLJir+Xg3WpSm6JDMUYlceSKfM+rdu0ki/+0QEgzFSChrcSNfWnfKa3BCMb+qc4JiZiepcCn6o/2bMXseP0UzXxT/+7S8U/Ce0",
+   "create": "eJwtissJgDAUBM9axR7Vgw2ItYQYN/ggUcmLit37ncsy7LhEm4ldeCCebpJVWy+BZjeRsAploMsocePb5tu0xGKwyj+FxzExEa9yzujx3psyGRkrpaoss3m87i4CJSfI",
    "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWS8vMSY0vi89NtQYAGIkObA=="
   },
   {

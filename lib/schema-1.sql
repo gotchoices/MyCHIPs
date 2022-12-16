@@ -2574,7 +2574,7 @@ create view json.user as select
     from mychips.users_v where not user_ent is null with cascaded check option;
 create view mychips.addr_v_me as select 
     a.*
-    from	base.addr_v		a where addr_ent = base.user_id(session_user);
+    from	base.addr_v a	where addr_ent = base.user_id(session_user);
 grant select on table mychips.addr_v_me to user_1;
 grant select on table mychips.addr_v_me to user_2;
 grant insert on table mychips.addr_v_me to user_2;
@@ -2584,7 +2584,7 @@ create trigger mychips_agents_v_tr_ins instead of insert on mychips.agents_v for
 create trigger mychips_agents_v_tr_upd instead of update on mychips.agents_v for each row execute procedure mychips.agents_v_updfunc();
 create view mychips.comm_v_me as select 
     c.*
-    from	base.comm_v		c where comm_ent = base.user_id(session_user);
+    from	base.comm_v c	where comm_ent = base.user_id(session_user);
 grant select on table mychips.comm_v_me to user_1;
 grant select on table mychips.comm_v_me to user_2;
 grant insert on table mychips.comm_v_me to user_2;
@@ -2610,8 +2610,8 @@ create function mychips.contracts_v_updfunc() returns trigger language plpgsql s
   end;
 $$;
 create view mychips.file_v_me as select 
-    c.*
-    from	base.file_v		c where file_ent = base.user_id(session_user);
+    f.*
+    from	base.file_v f where file_ent = base.user_id(session_user);
 grant select on table mychips.file_v_me to user_1;
 grant select on table mychips.file_v_me to user_2;
 grant insert on table mychips.file_v_me to user_2;

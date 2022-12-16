@@ -25,6 +25,7 @@ To use it, follow these steps:
   cd mychips/build/host
   ./setup -i New_Server_IP -d New_Server_Domain_Name
 ```
+
 There is a lot of logging that goes by.  If you're not sure, it should
 be safe to run the script again and it should skip over steps that seem
 to be already done.
@@ -92,6 +93,37 @@ This will:
 - Iaunch the MyCHIPs server.
 For production use, you should likely make real certificates and agent IDs as explained [later](use-pki.md).
 This will avoid the need for your users to install your self-signed site CA.
+
+## Private CHIP Service Provider
+MyCHIPs is built to be able to run as a small-scale site which can be operated by:
+- an individual for one's own account
+- an individual for family and friends
+- a company for its own employees
+
+In this mode, the server would typically be managed by a person who would enter new accounts
+and personal data and would then issue a connection ticket manually to new users.
+This could be one in the existing admin SPA or in some custom interface that might be built to
+interact with the database directly.
+
+## Production CHIP Service Provider
+In a larger scale setting, it may be preferable to have users be able to sign themselves up.
+MyCHIPs now includes a simple web service for this when the server is launched using the
+--home=true option.
+
+It will publish a signup page on https://your-domain/index.html where users can connect to
+setup their own account or to create a new connection ticket for their account.
+Providers are encouraged to augment or replace this simple mechanism with their own web pages, icons, logos, as needed.
+
+### Automated Mailer
+As part of the automated signup, the server needs to send emails.
+This is accomplished via the nodemailer module.
+
+Many email hosts (like yahoo, gmail, etc) will apply great scrutiny to incoming emails.
+So without taking certain measures, registration emails may get filtered out as spam.
+
+MyCHIPs/nodemailer will sign messages with [DKIM](https://dkim.org), which will help.
+It may also be helpful to publish [DMARK](https://dmarc.org/overview/)
+and [SPF](https://open-spf.org) records for your site.
 
 <br>[Next - Connecting the Admin UI](use-admin.md)
 <br>[Back to Index](README.md#contents)
