@@ -12,12 +12,12 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { colors } from '../../config/constants';
 
+import useCurrentUser from '../../hooks/useCurrentUser';
 import Avatar from './Avatar';
 import HelpTextInput from '../../components/HelpTextInput';
-let pktId = 1;
+import Comm from './Comm';
 
 const Profile = (props) => {
-  const [user_ent, setUser_ent] = useState();
   const [avatar, setAvatar] = useState(undefined);
   const [tax_id, setTax_id] = useState('');
   const [country, setCountry] = useState('');
@@ -25,7 +25,8 @@ const Profile = (props) => {
   const [updatingSSN, setUpdatingSSN] = useState(false);
   const [userLang, setuserLang] = useState({});
   const [addrLang, setAddrLang] = useState({});
-  const [commLang, setCommLang] = useState({});
+
+  const { user } = useCurrentUser();
 
   const [profile, setProfile] = useState({
     email: '',
@@ -35,16 +36,6 @@ const Profile = (props) => {
     birth: '',
     birthAddress: '',
   });
-
-  useEffect(() => {
-    props.wm.request(pktId++, 'select', {
-      view: 'base.ent_v',
-      table: 'base.curr_eid',
-      params: []
-    }, data => {
-      setUser_ent(data?.[0]?.curr_eid)
-      })
-  }, [])
 
   useEffect(() => {
     props.wm.newLanguage('eng')
@@ -64,23 +55,13 @@ const Profile = (props) => {
       setAddrLang(data?.col ?? {});
     })
 
-    props.wm.register('comm_lang', 'base.comm_v_flat', (data, err) => {
-      if (err) {
-        return;
-      }
-
-      setCommLang(data?.col ?? {});
-    })
   }, [])
 
   useEffect(() => {
-    if(user_ent) {
-      getTaxCountryAndBirth(user_ent);
-      getAddress(user_ent);
-      getComm(user_ent);
-    }
-
-  }, [user_ent])
+    const user_ent = user?.curr_eid;
+    getTaxCountryAndBirth(user_ent);
+    getAddress(user_ent);
+  }, [])
 
   const getTaxCountryAndBirth = (user_ent) => {
     const spec = {
@@ -128,35 +109,6 @@ const Profile = (props) => {
 
   }
 
-  const getComm = (user_ent) => {
-    const commSpec = {
-      fields: ['comm_type', 'comm_spec'],
-      view: 'mychips.comm_v_me',
-      where: {
-        user_ent,
-      }
-    }
-
-    // Comm
-    props.wm.request('_comm_ref', 'select', commSpec, response => {
-      const comm = new Set(['email', 'phone'])
-      const commObj =  {};
-      response?.forEach((res) => {
-        if(comm.has(res.comm_type)) {
-          commObj[res.comm_type] = res.comm_spec;
-        }
-
-        setProfile((prev) => {
-          return {
-            ...prev,
-          ...commObj,
-          }
-        })
-      })
-    });
-
-  }
-
   const onChange = (name) => {
     return (value) => {
       setProfile({
@@ -164,6 +116,31 @@ const Profile = (props) => {
         [name]: value,
       });
     }
+  }
+
+  const saveComm = () => {
+    const user_ent = user?.curr_eid;
+
+    const spec = {
+      fields: [
+      {
+        comm_spec: '101-101-1011',
+        comm_type: 'phone',
+        comm_ent: user_ent,
+      },
+      {
+        comm_spec: '101-101-1011',
+        comm_type: 'phone',
+        comm_ent: user_ent,
+      },
+      ],
+      view: 'mychips.comm_v_me',
+    }
+
+    props.wm.request('_comm_ref', 'insert', spec, (data) => {
+      console.log(data)
+    })
+
   }
 
   const saveTaxCountryAndBirth = () => {
@@ -196,17 +173,10 @@ const Profile = (props) => {
           />
         </View>
 
-        <HelpTextInput
-          onChange={() => {}}
-          label={commLang?.email_comm?.title}
-          helpText={commLang?.email_comm?.help}
+        <Comm
+          wm={props.wm}
         />
 
-        <HelpTextInput
-          onChange={() => {}}
-          label={commLang?.phone_comm?.title}
-          helpText={commLang?.phone_comm?.help}
-        />
       </View>
 
       <View style={styles.wrapper}>
@@ -257,6 +227,8 @@ const Profile = (props) => {
             label={'Birth Address'}
           />
         </View>
+
+        <Button title="Save" onPress={() => {}} />
       </View>
 
     </ScrollView>

@@ -66,7 +66,7 @@ debug("Error saving connection key:", err.message)
    */
   credConnect(creds, cb = null) {
     let address = `${creds.host}:${creds.port}`
-console.log('Pre:', creds, 'hello')
+console.log('Pre:', creds)
     if (this.ws) return
     this.api.uri(creds).then(wsURI => {			//Build connection URI	
 debug('Connect:', wsURI)
@@ -115,7 +115,11 @@ debug('Error initializing', err.message)
     } else {
       AsyncStorage.getItem(constants.keyTag).then(val => {
         let creds = JSON.parse(val)
-        this.credConnect(creds)
+        this.credConnect(creds, (err, connected) => {
+          if(cb) {
+            cb(err, connected)
+          }
+        })
       }).catch(err => {
 debug('Error fetching connection key', err.message)
       })
