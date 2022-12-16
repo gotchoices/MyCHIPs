@@ -35,6 +35,8 @@ import EditOpenTally from './src/screens/Tally/EditOpenTally';
 import TallyReport from './src/screens/Tally/TallyReport';
 import Setting from './src/screens/Setting';
 import Profile from './src/screens/Profile';
+import UserProvider from './src/components/UserProvider';
+
 const Connect = require('./src/connect')
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
@@ -181,18 +183,20 @@ function App() {
     <NavigationContainer linking={linking}>
       <ServIcon wm={Wm}/>
       <PolyfillCrypto />
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
-        <Stack.Screen name="Receive" component={ReceiveScreen} />
-        <Stack.Screen name="Scan" component={ScanScreen} />
-        <Stack.Screen name="Invite" component={InviteScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="Tallies" component={TallyScreen} />
-        <Stack.Screen name="TallyReport" component={TallyReportScreen} />
-        <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
-        <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
-        <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
-      </Stack.Navigator>
+      <UserProvider>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
+          <Stack.Screen name="Receive" component={ReceiveScreen} />
+          <Stack.Screen name="Scan" component={ScanScreen} />
+          <Stack.Screen name="Invite" component={InviteScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Tallies" component={TallyScreen} />
+          <Stack.Screen name="TallyReport" component={TallyReportScreen} />
+          <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
+          <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+        </Stack.Navigator>
+      </UserProvider>
     </NavigationContainer>
   );
 }
