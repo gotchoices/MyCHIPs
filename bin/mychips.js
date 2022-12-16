@@ -74,11 +74,9 @@ if (Boolean(opts.home)) {			//Run general web page services
   const CSPHome = require('../lib/csphome.js')
   var cspExpApp = new CSPHome({
     favIconFile: 'favicon.png',
-    httpPort: opts.httpPort,
-    httpsPort: opts.httpsPort,
-    smtpHost: opts.smtpHost,
-    smtpPort: opts.smtpPort,
-    linkExpire: opts.linkExpire,
+    httpPort: opts.httpPort,		httpsPort: opts.httpsPort,
+    smtpHost: opts.smtpHost,		smtpPort: opts.smtpPort,
+    dkimKey: opts.dkimKey,		dkimSelect: opts.dkimSelect,
     emailData: opts.cspEmail,
     log, credentials
   }, {

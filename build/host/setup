@@ -14,6 +14,7 @@ node_version=18
 mode=prod
 key_file=siteKey.pem
 cert_file=siteCert.pem
+dkim_file=dkim_private.pem
 
 oargs="$@"
 pargs=()
@@ -78,5 +79,5 @@ fi
 (echo "mode=$mode csp_host=$csp_host mychips_admin=$mychips_admin key_file=$key_file cert_file=$cert_file"
   cat setup-certbot) | ssh root@${csp_ip} 'bash -s'
 
-(echo "mode=$mode mychips_admin=$mychips_admin key_file=$key_file cert_file=$cert_file"
+(echo "mode=$mode mychips_admin=$mychips_admin key_file=$key_file cert_file=$cert_file dkim_file=$dkim_file"
   cat setup-systemd) | ssh root@${csp_ip} 'bash -s'

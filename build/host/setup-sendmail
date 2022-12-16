@@ -1,8 +1,40 @@
 # Setup sendmail for communicating with users
 # -------------------------------
-
+# A good resource for dkim:
+#  https://www.mailhardener.com/kb/how-to-create-a-dkim-record-with-openssl
+#  
 if which sendmail >/dev/null; then
   echo "Found installed sendmail"
 else
   apt-get install sendmail
+fi							#;echo "cwd:$(pwd)"
+
+pkildir=$(find . -type d -path '*/mychips/pki/local')	#;echo "pkildir:$pkildir"
+if [ -z "$pkildir" -o ! -d "$pkildir" ] || ! cd "$pkildir"; then
+  echo "Can't find key storage folder: mychips/pki/local"
+  exit 1
+fi							#;echo "In; $pkildir, $(pwd)"
+
+if [ -f dkim_private.pem ]; then
+  echo "Found existing dkim private key file"
+else
+  openssl genrsa -out dkim_private.pem 2048
 fi
+
+if [ -f dkim_public.b64 ]; then
+  echo "Found existing dkim public key file"
+else
+  openssl rsa -in dkim_private.pem -pubout -outform der 2>/dev/null \
+    | openssl base64 -A \
+    > dkim_public.b64
+fi
+
+key="mychips._domainkey.$(hostname)"		#;echo "key:$key"
+founddkim=$(dig +short TXT $key)
+if [ -z "$founddkim" ]; then
+  echo "Example DNS dkim record: $key"
+  echo "v=DKIM1; p=$(cat dkim_public.b64)"
+else
+  echo "Found dkim record with dns"
+fi
+
