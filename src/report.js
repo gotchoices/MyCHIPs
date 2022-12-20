@@ -6,6 +6,7 @@
 import Vue from 'vue'
 import Wylib from 'wylib'
 Vue.config.productionTip = false
+Vue.config.devtools = false
 
 new Vue({
   el: '#app',

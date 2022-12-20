@@ -25,7 +25,7 @@ tabtext mychips.contracts_v	{Contracts}	{Each record contains contract language 
     {edit 		{Edit Sections}		{Dedicated window for properly editing the contract sections}}
     {publish		{Publish}		{Commit this version, write the publication date, and disable further modifications}}
     {IDK		{Invalid Key}		{The key values specified for the contract document are not valid}}
-    {TMK		{Bad Key Number}	{The report is designed to work with one and only one record}}
+    {TMK		{Bad Key Number}	{The contract report must be called with exactly one record ID}}
     {launch.title	{Contracts}		{Manage Trading Agreements}}
     {launch.instruct	{Basic Instructions}	{
       <p>If your users use only contracts created and maintained by other parties, you 

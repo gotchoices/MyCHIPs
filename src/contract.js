@@ -6,6 +6,7 @@
 //- 
 import Vue from 'vue'
 Vue.config.productionTip = false
+Vue.config.devtools = false
 
 const Wylib = require('wylib')
 const Stringify = require('json-stable-stringify')
