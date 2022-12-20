@@ -3,10 +3,10 @@
 found_admin=$(grep ^${mychips_admin} /etc/passwd |cut -f 1 -d :)
 if [ "$found_admin" = "$mychips_admin" ]; then
   echo "  Found mychips admin OK: $found_admin"
+elif grep "^$mychips_admin" /etc/group; then
+  echo "Creating admin user: $mychips_admin in existing group: $mychips_admin"
+  adduser --gecos 'MyCHIPs Administrator' --disabled-password $mychips_admin --ingroup $mychips_admin
 else
-  echo "Creating admin user: $mychips_admin"
+  echo "Creating admin user: $mychips_admin and group: $mychips_admin"
   adduser --gecos 'MyCHIPs Administrator' --disabled-password $mychips_admin
-#  useradd -m $mychips_admin
-#  usermod -aG docker $mychips_admin
-  exit 1
 fi

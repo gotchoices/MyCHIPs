@@ -6,7 +6,7 @@ wyclif_url="https://github.com/gotchoices/wyclif"
 wyselib_url="https://github.com/gotchoices/wyselib"
 wylib_url="https://github.com/gotchoices/wylib"
 mychips_dir=mychips
-user_port=1025
+dev_branch=dev
 
 if [ $mode = "prod" ]; then			#;echo "home:$home pwd:$(pwd)"
   mychips_par=$(pwd)
@@ -32,9 +32,21 @@ if [ -d mychips/node_modules ]; then
   echo '  Found mychips/node_modules OK'
 else
   cd mychips
+  if [ $mode != "prod" ]; then
+    git switch $dev_branch
+  fi
   echo '  Running npm install'
   npm install
   npm update
+  cd ..
+fi
+
+if [ -d mychips/pki/local ]; then
+  echo '  Found mychips/pki/local OK'
+else
+  cd mychips
+  npm run initcerts
+  npm run agentcheck
   cd ..
 fi
 
@@ -55,7 +67,6 @@ if [ $mode != 'prod' ]; then
   mychips/bin/develop
 fi
 
-mychips/bin/agents check
-
-psql mychips -c "select base.parmsett('wyseman','host','$csp_host');"
-psql mychips -c "select base.parmsett('wyseman','port','$user_port');"
+#Can't do these until schema has been created
+#psql mychips -c "select base.parmsett('wyseman','host','$csp_host');"
+#psql mychips -c "select base.parmsett('wyseman','port','$user_port');"

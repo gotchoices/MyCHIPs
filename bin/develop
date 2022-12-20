@@ -57,9 +57,9 @@ if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
 fi
 
 # Check if any projects under the client folder also have a bin/develop script
-for proj in $(ls $appdir/client/*/bin/develop); do
-  echo "Running client project develop script: $proj"
-  dir=$(dirname $proj)
-  cd $dir					; pwd
-  ./develop
-done
+#for proj in $(ls $appdir/client/*/bin/develop); do
+#  echo "Running client project develop script: $proj"
+#  dir=$(dirname $proj)
+#  cd $dir					; pwd
+#  ./develop
+#done

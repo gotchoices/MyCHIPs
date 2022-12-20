@@ -4,6 +4,8 @@
 found_host="$(hostname)"
 if [ "$found_host" = "$csp_host" ]; then
   echo "  Found hostname OK: $found_host"
+elif [ -z "$csp_host" ]; then
+  echo "  No hostname specified!"; exit
 else
   echo "Setting hostname from: $found_host to: $csp_host"
   hostname "$csp_host"

@@ -51,3 +51,4 @@ EOF
   systemctl daemon-reload
   systemctl start mychips  
 fi
+systemctl status mychips

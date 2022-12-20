@@ -1,18 +1,20 @@
 #Setup site certificate using certbot/letsencrypt
 # -------------------------------
+#This assumes this is the first time you have built the domain.
+#If moving a domain to a new IP, you may need to instead do: certbot renew --force-renew
 cron_dir=/etc/cron.daily
 cron_file=certcopy
 le_dir=/etc/letsencrypt
 le_key=privkey.pem
-le_cert=fullchain.pem		//Need to include our_cert, R3, X1
-email="info@$csp_host"
+le_cert=fullchain.pem		#Need to include our_cert, R3, X1
+email="${mychips_admin}@${csp_host}"
 
 if [ ! -d $le_dir -o -z $(which certbot) ]; then
   echo '  Installing certbot certificate manager'
   apt-get install -y -q certbot
 fi
 
-if [ -d $le_dir/live ]; then
+if [ -d "{$le_dir}/live" ]; then
   echo "  Found cert folder OK: $le_dir/live"
 else
   echo "Creating site certificate for: $csp_host"
@@ -28,9 +30,12 @@ if [ ! -f $cron_dir/$cron_file ]; then
   else
     mychips_dir="/home/${mychips_admin}/devel/mychips"
   fi
+  if [ ! -d "$mychips_dir" ]; then
+    "Can't find mychips folder: $mychips_dir"
+  fi
 
-  pki_local=$mychips_dir/pki/local
-  if [ ! -d $pki_local ]; then
+  pki_local="$mychips_dir/pki/local"
+  if [ ! -d "$pki_local" ]; then
     echo "Can't find mychips pki local folder: $pki_local"
     exit 1
   fi
@@ -56,8 +61,8 @@ if [ ! -f $cron_dir/$cron_file ]; then
 	  restart=true
 	fi
 	
-	if $restart; then
-	  systemctl restart mychips
+	if \$restart; then
+		  systemctl restart mychips
 	fi
 	
 EOF

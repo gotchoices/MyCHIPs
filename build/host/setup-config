@@ -1,0 +1,7 @@
+#Final configuration settings run as mychips_admin
+# -------------------------------
+user_port=1025
+
+#Can't do these until after schema has been created
+psql mychips -c "select base.parmsett('wyseman','host','$csp_host');"
+psql mychips -c "select base.parmsett('wyseman','port','$user_port');"

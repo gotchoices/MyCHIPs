@@ -49,3 +49,12 @@ if [ -z "$found_admin" ]; then
   echo '  Creating admin database user'
   su -l postgres -c 'psql -c "create role admin with login createdb superuser createrole"'
 fi
+
+cd /etc
+if grep '^::1.* localhost' hosts >/dev/null; then
+  echo "Removing IP6 localhost from /etc/hosts"
+  cat hosts |sed -e 's/^::1.* localhost/#&/' >hosts.new
+  echo '::1 ip6-localhost ip6-loopback' >>hosts.new
+  mv hosts hosts.org
+  mv hosts.new hosts
+fi

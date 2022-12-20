@@ -1,0 +1,43 @@
+# Setup sendmail dkim keys
+# -------------------------------
+# A good resource for dkim:
+#  https://www.mailhardener.com/kb/how-to-create-a-dkim-record-with-openssl
+#  
+#echo "cwd:$(pwd)"
+pkildir=$(find . -type d -path '*/mychips/pki/local')	#;echo "pkildir:$pkildir"
+if [ -z "$pkildir" -o ! -d "$pkildir" ] || ! cd "$pkildir"; then
+  echo "Can't find key storage folder: mychips/pki/local"
+  exit 1
+fi							#;echo "In; $pkildir, $(pwd)"
+if [ -z "$dkim_file" -o -z "$dkim_pub" ]; then
+  echo "Can't find dkim file definitions"
+  exit 1
+fi
+
+if [ -f "$dkim_file" ]; then
+  echo "Found existing dkim private key file: $dkim_file"
+else
+  openssl genrsa -out $dkim_file 2048
+fi
+
+if [ -f "$dkim_pub" ]; then
+  echo "Found existing dkim public key file: $dkim_pub"
+else
+  openssl rsa -in $dkim_file -pubout -outform der 2>/dev/null \
+    | openssl base64 -A \
+    > "$dkim_pub"
+fi
+
+key="mychips._domainkey.$(hostname)"		#;echo "key:$key"
+pub="$(cat $dkim_pub)"
+found_dkim="$(dig +short TXT $key)"
+if [ -z "$found_dkim" ]; then
+  echo "DNS dkim for: $key :"
+  echo "v=DKIM1; p=$pub"
+else
+  echo "Found dkim record with dns"		;echo "Found:$found_dkim"
+  fpub="$(echo $found_dkim |sed -e 's/^.*p=//')"	;echo "fpub:$fpub"
+  if [ "$fpub" != "$pub" ]; then
+    echo "Need to update DKIM in dns to: $pub"
+  fi
+fi
