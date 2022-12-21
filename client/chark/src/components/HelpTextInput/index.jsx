@@ -36,7 +36,7 @@ const HelpTextInput = (props) => {
               >
                 <Icon
                   name="question-circle"
-                  size={13}
+                  size={12}
                   color={colors.blue}
                   style={{ marginLeft: 5 }}
                 />
@@ -66,7 +66,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
   },
   input: {
     backgroundColor: colors.gray100,
