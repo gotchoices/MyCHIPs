@@ -47,11 +47,15 @@ export const getPersonal = (wm, user_ent) => {
 
 export const getAddresses = (wm, user_ent) => {
   const spec = {
-    fields: ['addr_ent', 'addr_spec', 'addr_seq', 'addr_type', 'city', 'state', 'country'],
+    fields: ['addr_ent', 'addr_spec', 'addr_seq', 'addr_type', 'city', 'state', 'country', 'pcode'],
     view: 'mychips.addr_v_me',
     where: {
       addr_ent: user_ent,
     },
+    order: {
+      field: 'crt_date',
+      asc: true,
+    }
   };
 
   return request(wm, '_addr_ref' + random(1000), 'select', spec);

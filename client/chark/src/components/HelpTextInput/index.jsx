@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Tooltip from 'react-native-walkthrough-tooltip';
+import PropTypes from 'prop-types';
 
 import { colors } from '../../config/constants';
 
@@ -73,6 +74,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray100,
   },
 });
+
+HelpTextInput.propTypes = {
+  label: PropTypes.string.isRequired,
+  helpText: PropTypes.string,
+  value: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
+  onChange: PropTypes.func.isRequired,
+}
 
 export default HelpTextInput;
 

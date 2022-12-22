@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   Button,
   TouchableWithoutFeedback,
   ScrollView,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -17,7 +18,9 @@ import useProfile from '../../../hooks/useProfile';
 import { getComm } from '../../../services/profile';
 
 import HelpText from '../../../components/HelpText';
+import CenteredModal from '../../../components/CenteredModal';
 import CommInput from './CommInput';
+import ChangePrimary from './ChangePrimary';
 
 import styles from './styles';
 
@@ -33,27 +36,44 @@ const Comm = (props) => {
   const { lang, communications, setCommunications } = useProfile();
   const user_ent = user?.curr_eid;
   const [seqToRemove, setSeqToRemove] = useState([]);
+  const [primary, setPrimary] = useState();
+  const [activeKey, setActiveKey] = useState();
 
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [keys, setKeys] = useState([]);
   const [byKey, setByKey] = useState({});
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     const type = props.type
-    const emails = communications.filter((comm) => comm.comm_type === profileType);
+    const items = communications.filter((comm) => comm.comm_type === profileType);
     const _keys = [];
     const _byKey = {};
+    let primary;
 
-    emails.forEach((email, index) => {
+    items.forEach((item, index) => {
       const key = `email_${index}`
       _keys.push(key);
-      _byKey[key] = email;
+      _byKey[key] = item;
+      if(item.comm_prim) {
+        primary = item.comm_seq;
+      }
     })
 
     setKeys(_keys)
     setByKey(_byKey)
+
+    if(primary) {
+      setPrimary(primary);
+    }
   }, [communications])
+
+  const items = useMemo(() => {
+    return keys.map((key) => {
+      return byKey[key];
+    }).filter((item) => !!item.comm_seq) 
+  }, [keys, byKey]) 
 
   const updateCommunicationList = () => {
     getComm(props.wm, user_ent).then((response) => {
@@ -168,6 +188,37 @@ const Comm = (props) => {
     setByKey(rest);
   }
 
+  const onPrimaryChangeClick = () => {
+    setIsModalVisible(true);
+  }
+
+  const onPrimaryChange = (value) => {
+    setPrimary(value);
+  }
+
+  const savePrimary = () => {
+    const spec = {
+      fields: {
+        comm_prim: true,
+      },
+      view: 'mychips.comm_v_me',
+      where: {
+        comm_seq: primary,
+        comm_ent: user_ent,
+      },
+    }
+
+    return request(props.wm, `change_primary_${pkt++}`, 'update', spec).then(() => {
+      updateCommunicationList();
+    }) 
+  }
+
+  const onModalClose = () => {
+    setPrimary(undefined);
+    setActiveKey(undefined);
+    setIsModalVisible(false);
+  }
+
   return (
     <ScrollView style={{ marginBottom: 55 }}>
       <View style={styles.container}>
@@ -178,7 +229,9 @@ const Comm = (props) => {
             style={styles.headerText}
           />
 
-          <TouchableWithoutFeedback>
+          <TouchableWithoutFeedback
+            onPress={onPrimaryChangeClick}
+          >
             <Text style={{ color: colors.blue }}>Change Primary {commText[profileType]}</Text>
           </TouchableWithoutFeedback>
         </View>
@@ -217,6 +270,22 @@ const Comm = (props) => {
           </View>
         </View>
       </View>
+
+      <CenteredModal
+        isVisible={isModalVisible}
+        onClose={() => {setIsModalVisible(false)}}
+      >
+        <ChangePrimary
+          title="Change Primary Email"
+          rowField="comm_spec"
+          seqField="comm_seq"
+          primaryField="comm_prim"
+          items={items}
+          onCancel={onModalClose}
+          onPrimaryChange={onPrimaryChange}
+          savePrimary={savePrimary}
+        />
+      </CenteredModal>
     </ScrollView>
   )
 }

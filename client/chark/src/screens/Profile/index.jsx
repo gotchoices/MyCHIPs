@@ -227,6 +227,7 @@ const Profile = (props) => {
 
         <View style={{ marginBottom: 16 }}>
           <Address
+            navigation={props.navigation}
           />
         </View>
       </View>

@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 
 import Comm from './Comm';
 import PersonalBio from './PersonalBio';
+import Address from './Address';
 
 const ProfileEdit = (props) => {
   const { profileType, title } = props.route?.params;
@@ -34,6 +35,14 @@ const ProfileEdit = (props) => {
   if(profileType === 'personal') {
     return (
       <PersonalBio
+        wm={props.wm}
+      />
+    )
+  } 
+
+  if(profileType === 'address') {
+    return (
+      <Address
         wm={props.wm}
       />
     )

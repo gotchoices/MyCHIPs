@@ -7,7 +7,7 @@ import useProfile from '../../../hooks/useProfile';
 import AddressItem from './AddressItem';
 import Header from '../Details/Header';
 
-const Address = () => {
+const Address = (props) => {
   const { user } = useCurrentUser();
   const { addresses, lang } = useProfile();
 
@@ -57,11 +57,18 @@ const Address = () => {
     },
   ];
 
+  const onEditPress = () => {
+    props.navigation.navigate('ProfileEdit', {
+      profileType: 'address',
+      title: 'Edit Addresses',
+    })
+  }
+
   return (
     <View style={styles.container}>
       <Header 
         title="Addresses"
-        onEditPress={() => {}}
+        onEditPress={onEditPress}
       />
 
       <View>
