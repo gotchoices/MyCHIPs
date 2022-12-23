@@ -4,3 +4,7 @@ export const round = (value, decimals) => {
   return parseFloat(result);
 }
 
+export const random = (number = 10) => {
+  return Math.floor(Math.random() * number);
+}
+

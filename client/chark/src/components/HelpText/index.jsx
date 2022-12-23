@@ -7,15 +7,16 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Tooltip from 'react-native-walkthrough-tooltip';
+import PropTypes from 'prop-types';
 
 import { colors } from '../../config/constants';
 
-const HelpTextInput = (props) => {
+const HelpText = (props) => {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
       <View style={styles.labelWrapper}>
-        <Text style={styles.label}>
+        <Text style={[styles.label, props?.style ?? {}]}>
           {props.label} 
         </Text>
 
@@ -57,5 +58,11 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HelpTextInput;
+HelpText.propTypes = {
+  label: PropTypes.string.isRequired,
+  helpText: PropTypes.string,
+  style: PropTypes.object,
+}
+
+export default HelpText;
 

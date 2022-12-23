@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -13,9 +13,11 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../../config/constants';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
+import useProfile from '../../hooks/useProfile';
 import Avatar from './Avatar';
-import HelpTextInput from '../../components/HelpTextInput';
-import Comm from './Comm';
+import Details from './Details';
+import PersonalBio from './PersonalBio';
+import Address from './Address';
 
 const Profile = (props) => {
   const [avatar, setAvatar] = useState(undefined);
@@ -27,6 +29,7 @@ const Profile = (props) => {
   const [addrLang, setAddrLang] = useState({});
 
   const { user } = useCurrentUser();
+  const { communications, lang, personal } = useProfile();
 
   const [profile, setProfile] = useState({
     email: '',
@@ -38,7 +41,6 @@ const Profile = (props) => {
   });
 
   useEffect(() => {
-    props.wm.newLanguage('eng')
     props.wm.register('users_lang', 'mychips.users_v_me', (data, err) => {
       if (err) {
         return;
@@ -163,95 +165,87 @@ const Profile = (props) => {
 
   }
 
+  const emails = useMemo(() => {
+    return communications.filter((comm) => {
+      return comm.comm_type === 'email';
+    })
+  }, [communications])
+
+  const phones = useMemo(() => {
+    return communications.filter((comm) => {
+      return comm.comm_type === 'phone';
+    })
+  }, [communications])
+
+  const onEditPress = (profileType, title) => {
+    return () => {
+      props.navigation.navigate('ProfileEdit', {
+        profileType,
+        title,
+      })
+    }
+  } 
+
   return (
     <ScrollView style={{ marginBottom: 55 }}>
-      <View style={styles.wrapper}>
-        <View style={{ marginBottom: 24 }}>
-          <Avatar
-            avatar={avatar}
-            setAvatar={setAvatar}
+      <View style={styles.container}>
+        <View style={styles.avatar}>
+          <Avatar />
+
+          <Text style={{ color: colors.black, marginTop: 16, fontSize: 18, fontWeight: 'bold', alignSelf: 'center' }}>
+            {personal?.cas_name}
+          </Text>
+        </View>
+
+        <View style={{ marginBottom: 16 }}>
+          <Details
+            title={lang?.email_comm?.title ?? ''}
+            helpText={lang?.email_comm?.help ?? ''}
+            rowField="comm_spec"
+            primaryField="comm_prim"
+            items={emails}
+            onEditPress={onEditPress('email', 'Edit Email')}
           />
         </View>
 
-        <Comm
-          wm={props.wm}
-        />
-
-      </View>
-
-      <View style={styles.wrapper}>
-        <HelpTextInput
-          value={tax_id}
-          onChange={setTax_id}
-          label={userLang?.tax_id?.title}
-          helpText={userLang?.tax_id?.help}
-        />
-
-        <HelpTextInput
-          value={country}
-          onChange={setCountry}
-          label={userLang?.country?.title}
-          helpText={userLang?.country?.help}
-        />
-
-        <HelpTextInput
-          value={born_date}
-          onChange={setBorn_date}
-          label={userLang?.born_date?.title}
-          helpText={userLang?.born_date?.help}
-        />
-
-        <Button 
-          title="Save"
-          disabled={updatingSSN}
-          onPress={saveTaxCountryAndBirth} 
-        />
-      </View>
-
-      <View style={styles.wrapper}>
-        <HelpTextInput
-          onChange={() => {}}
-          label={addrLang?.mail_addr?.title}
-          helpText={addrLang?.mail_addr?.help}
-        />
-
-        <HelpTextInput
-          onChange={() => {}}
-          label={addrLang?.phys_addr?.title}
-          helpText={addrLang?.phys_addr?.help}
-        />
-
-        <View style={styles.formControl}>
-          <HelpTextInput
-            onChange={() => {}}
-            label={'Birth Address'}
+        <View style={{ marginBottom: 16 }}>
+          <Details
+            title={lang?.phone_comm?.title ?? ''}
+            helpText={lang?.phone_comm?.help ?? ''}
+            rowField="comm_spec"
+            primaryField="comm_prim"
+            items={phones}
+            onEditPress={onEditPress('phone', 'Edit Phone')}
           />
         </View>
 
-        <Button title="Save" onPress={() => {}} />
-      </View>
+        <View style={{ marginBottom: 16 }}>
+          <PersonalBio
+            navigation={props.navigation}
+          />
+        </View>
 
+        <View style={{ marginBottom: 16 }}>
+          <Address
+            navigation={props.navigation}
+          />
+        </View>
+      </View>
     </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
     margin: 10,
     padding: 10,
-    backgroundColor: '#fff',
   },
-  formControl: {
-    marginVertical: 10,
-  },
-  label: {
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#F2F4F7',
-  },
+  avatar: {
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: colors.white,
+  }
 });
 
 export default Profile;

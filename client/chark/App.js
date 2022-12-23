@@ -36,6 +36,8 @@ import TallyReport from './src/screens/Tally/TallyReport';
 import Setting from './src/screens/Setting';
 import Profile from './src/screens/Profile';
 import UserProvider from './src/components/UserProvider';
+import ProfileProvider from './src/components/ProfileProvider';
+import ProfileEdit from './src/screens/Profile/ProfileEdit';
 
 const Connect = require('./src/connect')
 
@@ -159,11 +161,24 @@ function OpenTallyEditScreen({ route, navigation }) {
   );
 }
 
-function ProfileScreen({ route, navigation }) {
+function ProfileScreen(props) {
   return (
     <View style={{ flex: 1 }}>
-      <Profile wm={Wm} />
-      <GlobalMenu nav={navigation} />
+      <ProfileProvider wm={Wm}>
+        <Profile wm={Wm} {...props} />
+      </ProfileProvider>
+      <GlobalMenu nav={props.navigation} />
+    </View>
+  );
+}
+
+function ProfileEditScreen(props) {
+  return (
+    <View style={{ flex: 1 }}>
+      <ProfileProvider wm={Wm}>
+        <ProfileEdit wm={Wm} {...props} />
+      </ProfileProvider>
+      <GlobalMenu nav={props.navigation} />
     </View>
   );
 }
@@ -195,6 +210,7 @@ function App() {
           <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
           <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
           <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+          <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
         </Stack.Navigator>
       </UserProvider>
     </NavigationContainer>
