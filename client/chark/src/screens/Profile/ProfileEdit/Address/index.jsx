@@ -18,8 +18,22 @@ const Address = (props) => {
   const [mail, setMail] = useState([]);
   const [physical, setPhysical] = useState([]);
   const [birth, setBirth] = useState({});
+  const [countries, setCountries] = useState([]);
+  const [itemsToRemove, setItemsToRemove] = useState([]);
 
   const user_ent = user?.curr_eid;
+
+  //useEffect(() => {
+    //const spec = {
+      //fields: ['comm_name', 'code'],
+      //view: ['mychips.country'],
+    //}
+
+    //request(props.wm, `country_ref_${random(1000)}`, 'select', spec).then(response => {
+      //console.log('hello', response)
+      //setCountries(response);
+    //})
+  //}, [])
 
   useEffect(() => {
     const _mail = [];
@@ -115,6 +129,22 @@ const Address = (props) => {
       }
     })
 
+    if(itemsToRemove.length) {
+      itemsToRemove.forEach((seq) => {
+        const spec = {
+          view: 'mychips.addr_v_me',
+          where: {
+            addr_seq: seq,
+            addr_ent: user_ent,
+          },
+        }
+
+        promises.push(
+          request(props.wm, `remove_addr_${random(1000)}`, 'delete', spec)
+        )
+      })
+    }
+
     Promise.all(promises).then(() => {
     }).finally(() => {
       setUpdating(false);
@@ -182,6 +212,32 @@ const Address = (props) => {
     }
   }
 
+  const removeItem = (type, index) => {
+    return () => {
+      let items = [];
+
+      if(type === 'mail') {
+        items = mail;
+      } else if(type === 'phys') {
+        items = physical;
+      }
+
+      const itemToRemove = items[index];
+      const _items = items.filter((item, idx) => index !== idx) ;
+
+      if(type === 'mail') {
+        setMail(_items);
+      } else if(type === 'phys') {
+        setPhysical(_items);
+      }
+
+      if(itemToRemove?.addr_seq) {
+        setItemsToRemove(itemToRemove.addr_seq);
+      }
+
+    }
+  }
+
   return (
     <ScrollView style={{ marginBottom: 55 }}>
       <View style={styles.addressSection}>
@@ -198,6 +254,7 @@ const Address = (props) => {
             <AddressInput
               address={_mail}
               onChange={onChange('mail', index)}
+              onRemove={removeItem('mail', index)}
             />
           ))
         }
@@ -228,6 +285,7 @@ const Address = (props) => {
             <AddressInput
               address={_physical}
               onChange={onChange('phys', index)}
+              onRemove={removeItem('phys', index)}
             />
           ))
         }
@@ -283,6 +341,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   addButton: {
+    margin: 10,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

@@ -49,7 +49,7 @@ const HelpTextInput = (props) => {
       </View>
 
       <TextInput 
-        style={styles.input}
+        style={[styles.input, props?.inputStyle ?? {}]}
         value={props.value}
         onChangeText={props.onChange}
       />
@@ -84,6 +84,7 @@ HelpTextInput.propTypes = {
     PropTypes.number,
   ]),
   onChange: PropTypes.func.isRequired,
+  inputStyle: PropTypes.object, 
 }
 
 export default HelpTextInput;
