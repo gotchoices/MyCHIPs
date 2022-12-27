@@ -13,7 +13,7 @@
 
 //import React, { Component } from 'react'
 //import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as Keychain from 'react-native-keychain';
 
 import constants from './config/constants';
 
@@ -49,9 +49,17 @@ module.exports = class {
 
   saveKey(key) {
 debug("Save connection key:", typeof key, key)
-    AsyncStorage.setItem(constants.keyTag, JSON.stringify(key)).catch(err => {
+
+    const user = key?.user ?? 'user';
+    const password = JSON.stringify(key);
+
+    // Store the credentials
+    Keychain.setGenericPassword(user, password).catch(err => {
 debug("Error saving connection key:", err.message)
-    })
+    });
+
+    //AsyncStorage.setItem(constants.keyTag, JSON.stringify(key)).catch(err => {
+    //})
   }
 
   /**
@@ -113,16 +121,26 @@ debug('Error initializing', err.message)
         }
       })
     } else {
-      AsyncStorage.getItem(constants.keyTag).then(val => {
-        let creds = JSON.parse(val)
-        this.credConnect(creds, (err, connected) => {
-          if(cb) {
-            cb(err, connected)
-          }
-        })
+      Keychain.getGenericPassword().then((credentials) => {
+        if(credentials) {
+          const val = credentials.password;
+          const creds = JSON.parse(val);
+
+          this.credConnect(creds, (err, connected) => {
+            if(cb) {
+              cb(err, connected)
+            }
+          })
+        } else {
+          if(cb) cb(null, false);
+        } 
       }).catch(err => {
-debug('Error fetching connection key', err.message)
+        debug('Error fetching connection key', err.message)
       })
+
+      //AsyncStorage.getItem(constants.keyTag).then(val => {
+        //let creds = JSON.parse(val)
+      //})
     }
   }	// connect
 }	// class
