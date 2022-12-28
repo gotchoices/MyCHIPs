@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Toast from 'react-native-toast-message';
 
 import { colors } from '../../../config/constants';
 import { request } from '../../../services/profile';
@@ -37,7 +38,6 @@ const Comm = (props) => {
   const user_ent = user?.curr_eid;
   const [seqToRemove, setSeqToRemove] = useState([]);
   const [primary, setPrimary] = useState();
-  const [activeKey, setActiveKey] = useState();
 
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -63,10 +63,6 @@ const Comm = (props) => {
 
     setKeys(_keys)
     setByKey(_byKey)
-
-    if(primary) {
-      setPrimary(primary);
-    }
   }, [communications])
 
   const items = useMemo(() => {
@@ -161,9 +157,20 @@ const Comm = (props) => {
 
     setUpdating(true);
     Promise.all(promises).then(() => {
+      Toast.show({
+        type: 'success',
+        text1: 'Changes saved successfully.',
+        position: 'bottom',
+      });
       updateCommunicationList();
       setSeqToRemove([]);
-    }).catch(console.log).finally(() => {
+    }).catch((err) => {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+        position: 'bottom',
+      });
+    }).finally(() => {
       setUpdating(false);
     })
   }
@@ -197,6 +204,10 @@ const Comm = (props) => {
   }
 
   const savePrimary = () => {
+    if(!primary) {
+      return Promise.resolve();
+    }
+
     const spec = {
       fields: {
         comm_prim: true,
@@ -215,7 +226,6 @@ const Comm = (props) => {
 
   const onModalClose = () => {
     setPrimary(undefined);
-    setActiveKey(undefined);
     setIsModalVisible(false);
   }
 
@@ -284,6 +294,7 @@ const Comm = (props) => {
           onCancel={onModalClose}
           onPrimaryChange={onPrimaryChange}
           savePrimary={savePrimary}
+          selectedPrimary={primary}
         />
       </CenteredModal>
     </ScrollView>

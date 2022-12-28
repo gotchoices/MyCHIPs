@@ -5,6 +5,9 @@ const ProfileContext = createContext({
   personal: undefined,
   addresses: [],
   lang: {},
+  setLang: (data) => {
+    console.log('Set lang');
+  },
   setCommunications: (data) => {
     console.log('Set communication');
   },
@@ -15,13 +18,5 @@ const ProfileContext = createContext({
     console.log('Set personal bio');
   },
 })
-
-export const LangContext = createContext({
-  lang: {},
-  setLang: (data) => {
-    console.log('Set lang');
-  },
-});
-
 
 export default ProfileContext;

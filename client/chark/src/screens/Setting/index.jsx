@@ -1,11 +1,27 @@
-import React from 'react';
-import { View, TouchableWithoutFeedback, Text, StyleSheet, Image, Button } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Image, Button } from 'react-native';
 
 import { colors } from '../../config/constants';
+import useCurrentUser from '../../hooks/useCurrentUser';
+import useProfile from '../../hooks/useProfile';
+import { getPersonal } from '../../services/profile';
 
 import profileImg from '../../../assets/profile.png';
 
 const Setting = (props) => {
+  const { user } = useCurrentUser();
+  const user_ent = user?.curr_eid;
+  const {
+    personal,
+    setPersonal,
+  } = useProfile();
+
+  useEffect(() => {
+    getPersonal(props.wm, user_ent).then(data => {
+      setPersonal(data);
+    });
+  }, [])
+
   const onProfilePress = () => {
     props.navigation.navigate('Profile');
   }
@@ -19,7 +35,7 @@ const Setting = (props) => {
         />
 
         <Text style={styles.name}>
-          John Doe
+          {personal?.cas_name}
         </Text>
 
         <Button
@@ -50,7 +66,10 @@ const styles = StyleSheet.create({
   },
   name: {
     color: colors.black,
-    fontSize: 24,
+    marginVertical: 16,
+    fontSize: 18,
+    fontWeight: 'bold',
+    alignSelf: 'center',
   }
 });
 

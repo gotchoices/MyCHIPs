@@ -44,7 +44,7 @@ function buildAddress(address) {
   } = address;
   const arr = [addr_spec, city, state, country]
 
-  return arr.join(arr, ', ');
+  return arr.join(', ');
 }
 
 const styles = StyleSheet.create({

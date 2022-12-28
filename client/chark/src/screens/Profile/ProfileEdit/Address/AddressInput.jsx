@@ -29,16 +29,14 @@ const AddressInput = (props) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.address}>
-          { address?.addr_seq ? address?.addr_spec : 'New Address' }
-        </Text>
-
         <TouchableWithoutFeedback onPress={onRemove}>
-          <Icon
-            size={16}
-            name="trash-o"
-            color={colors.quicksilver}
-          />
+          <View style={{ padding: 5 }}>
+            <Icon
+              size={16}
+              name="trash-o"
+              color={colors.quicksilver}
+            />
+          </View>
         </TouchableWithoutFeedback>
       </View>
 
@@ -118,15 +116,17 @@ const AddressInput = (props) => {
 
 const styles = StyleSheet.create({
   container: {
+    margin: 10,
     padding: 10,
-    //backgroundColor: colors.white,
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: '#ddd',
   },
   header: {
     paddingVertical: 8,
     paddingHorizontal: 8,
-    backgroundColor: colors.snow,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   row: {
     flexDirection: 'row',
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 AddressInput.propTypes = {
   address: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
-  countries: PropTypes.array.isRequired,
+  countries: PropTypes.array,
   onRemove: PropTypes.func,
 }
 

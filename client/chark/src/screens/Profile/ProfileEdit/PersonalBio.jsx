@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { colors } from '../../../config/constants';
 import { request } from '../../../services/profile';
@@ -45,6 +46,11 @@ const PersonalBio = (props) => {
     }
 
     request(props.wm, '_tax_ref', 'update', spec).finally(() => {
+      Toast.show({
+        type: 'success',
+        text1: 'Changes saved successfully.',
+        position: 'bottom',
+      });
       setUpdating(false);
     })
   }
