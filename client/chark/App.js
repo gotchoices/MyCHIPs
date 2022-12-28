@@ -14,12 +14,11 @@
 //- Can launch from deep link to connection ticket
 //- 
 
-import React, { Component, useEffect } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState, TouchableWithoutFeedback } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PolyfillCrypto from 'react-native-webview-crypto'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import ServIcon from './src/servicon'
 import { parse } from './src/utils/query-string';
@@ -38,6 +37,7 @@ import Profile from './src/screens/Profile';
 import UserProvider from './src/components/UserProvider';
 import ProfileProvider from './src/components/ProfileProvider';
 import ProfileEdit from './src/screens/Profile/ProfileEdit';
+import Spinner from './src/components/Spinner';
 
 const Connect = require('./src/connect')
 
@@ -194,25 +194,55 @@ const linking = {
 };  
 
 function App() {
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if(!conn.ws) {
+      setLoading(true);
+      conn.connect(null, (err, connected) => {
+        setLoading(false);
+
+        if(err) {
+          console.log('Error connecting using key: ', err)
+          return;
+        } 
+      });
+    }
+  }, []);
+
   return (
     <NavigationContainer linking={linking}>
       <ServIcon wm={Wm}/>
       <PolyfillCrypto />
-      <UserProvider>
-        <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
-          <Stack.Screen name="Receive" component={ReceiveScreen} />
-          <Stack.Screen name="Scan" component={ScanScreen} />
-          <Stack.Screen name="Invite" component={InviteScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="Tallies" component={TallyScreen} />
-          <Stack.Screen name="TallyReport" component={TallyReportScreen} />
-          <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
-          <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
-          <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
-          <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
-        </Stack.Navigator>
-      </UserProvider>
+      {
+        loading && (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Spinner
+              text="Checking connection"
+            />
+        </View>
+        )
+      }
+
+      {
+        !loading && (
+          <UserProvider>
+            <Stack.Navigator initialRouteName="Home">
+              <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
+              <Stack.Screen name="Receive" component={ReceiveScreen} />
+              <Stack.Screen name="Scan" component={ScanScreen} />
+              <Stack.Screen name="Invite" component={InviteScreen} />
+              <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="Tallies" component={TallyScreen} />
+              <Stack.Screen name="TallyReport" component={TallyReportScreen} />
+              <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
+              <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
+              <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+              <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
+            </Stack.Navigator>
+          </UserProvider>
+        )
+      }
     </NavigationContainer>
   );
 }
