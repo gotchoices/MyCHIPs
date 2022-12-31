@@ -19,6 +19,8 @@ import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules,
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PolyfillCrypto from 'react-native-webview-crypto'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import Toast from 'react-native-toast-message';
 
 import ServIcon from './src/servicon'
 import { parse } from './src/utils/query-string';
@@ -115,7 +117,7 @@ function InviteScreen({ navigation }) {
 function SettingsScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
-      <Setting navigation={navigation} />
+      <Setting wm={Wm} navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -164,9 +166,7 @@ function OpenTallyEditScreen({ route, navigation }) {
 function ProfileScreen(props) {
   return (
     <View style={{ flex: 1 }}>
-      <ProfileProvider wm={Wm}>
-        <Profile wm={Wm} {...props} />
-      </ProfileProvider>
+      <Profile wm={Wm} {...props} />
       <GlobalMenu nav={props.navigation} />
     </View>
   );
@@ -175,9 +175,7 @@ function ProfileScreen(props) {
 function ProfileEditScreen(props) {
   return (
     <View style={{ flex: 1 }}>
-      <ProfileProvider wm={Wm}>
-        <ProfileEdit wm={Wm} {...props} />
-      </ProfileProvider>
+      <ProfileEdit wm={Wm} {...props} />
       <GlobalMenu nav={props.navigation} />
     </View>
   );
@@ -227,22 +225,25 @@ function App() {
       {
         !loading && (
           <UserProvider>
-            <Stack.Navigator initialRouteName="Home">
-              <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
-              <Stack.Screen name="Receive" component={ReceiveScreen} />
-              <Stack.Screen name="Scan" component={ScanScreen} />
-              <Stack.Screen name="Invite" component={InviteScreen} />
-              <Stack.Screen name="Settings" component={SettingsScreen} />
-              <Stack.Screen name="Tallies" component={TallyScreen} />
-              <Stack.Screen name="TallyReport" component={TallyReportScreen} />
-              <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
-              <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
-              <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
-              <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
-            </Stack.Navigator>
+            <ProfileProvider wm={Wm}>
+              <Stack.Navigator initialRouteName="Home">
+                <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
+                <Stack.Screen name="Receive" component={ReceiveScreen} />
+                <Stack.Screen name="Scan" component={ScanScreen} />
+                <Stack.Screen name="Invite" component={InviteScreen} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
+                <Stack.Screen name="Tallies" component={TallyScreen} />
+                <Stack.Screen name="TallyReport" component={TallyReportScreen} />
+                <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
+                <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
+                <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+                <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
+              </Stack.Navigator>
+            </ProfileProvider>
           </UserProvider>
         )
       }
+      <Toast />
     </NavigationContainer>
   );
 }

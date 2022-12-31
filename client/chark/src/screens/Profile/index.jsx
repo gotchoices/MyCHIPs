@@ -14,6 +14,8 @@ import { colors } from '../../config/constants';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
+import { getComm, getPersonal, getAddresses, getLang } from '../../services/profile';
+
 import Avatar from './Avatar';
 import Details from './Details';
 import PersonalBio from './PersonalBio';
@@ -21,95 +23,33 @@ import Address from './Address';
 
 const Profile = (props) => {
   const [avatar, setAvatar] = useState(undefined);
-  const [tax_id, setTax_id] = useState('');
-  const [country, setCountry] = useState('');
-  const [born_date, setBorn_date] = useState('');
-  const [updatingSSN, setUpdatingSSN] = useState(false);
-  const [userLang, setuserLang] = useState({});
-  const [addrLang, setAddrLang] = useState({});
+
+  const {
+    communications,
+    lang,
+    personal,
+    setPersonal,
+    setCommunications,
+    setAddresses,
+    setLang,
+  } = useProfile();
 
   const { user } = useCurrentUser();
-  const { communications, lang, personal } = useProfile();
-
-  const [profile, setProfile] = useState({
-    email: '',
-    phone: '',
-    mail: '',
-    phys: '',
-    birth: '',
-    birthAddress: '',
-  });
+  const user_ent = user?.curr_eid;
 
   useEffect(() => {
-    props.wm.register('users_lang', 'mychips.users_v_me', (data, err) => {
-      if (err) {
-        return;
-      }
-
-      setuserLang(data?.col ?? {});
+    getComm(props.wm, user_ent).then(data => {
+      setCommunications(data);
     })
 
-    props.wm.register('addr_lang', 'base.addr_v_flat', (data, err) => {
-      if (err) {
-        return;
-      }
-
-      setAddrLang(data?.col ?? {});
+    getAddresses(props.wm, user_ent).then(data => {
+      setAddresses(data);
     })
 
+    getLang(props.wm).then(data => {
+      setLang(data);
+    })
   }, [])
-
-  useEffect(() => {
-    const user_ent = user?.curr_eid;
-    getTaxCountryAndBirth(user_ent);
-    getAddress(user_ent);
-  }, [])
-
-  const getTaxCountryAndBirth = (user_ent) => {
-    const spec = {
-      fields: ['user_ent', 'tax_id', 'born_date', 'country'],
-      view: 'mychips.users_v_me',
-      where: {
-        user_ent,
-      }
-    }
-
-    props.wm.request('_user_ref', 'select', spec, (response) => {
-      const user = response?.[0];
-      setBorn_date(user?.born_date ?? '');
-      setCountry(user?.country ?? '');
-      setTax_id(user?.tax_id ?? '');
-    })
-
-  }
-
-  const getAddress = (user_ent) => {
-    const addrSpec = {
-      fields: ['addr_spec', 'addr_type'],
-      view: 'mychips.addr_v_me',
-      where: {
-        user_ent,
-      }
-    }
-
-    props.wm.request('_addr_ref', 'select', addrSpec, response => {
-      const addr = new Set(['phys', 'mail', 'birth'])
-      const addrObj =  {};
-      response?.forEach((res) => {
-        if(addr.has(res.addr_type)) {
-          addrObj[res.addr_type] = res.addr_spec;
-        }
-
-        setProfile((prev) => {
-          return {
-            ...prev,
-            ...addrObj,
-          }
-        })
-      });
-    });
-
-  }
 
   const onChange = (name) => {
     return (value) => {
@@ -118,51 +58,6 @@ const Profile = (props) => {
         [name]: value,
       });
     }
-  }
-
-  const saveComm = () => {
-    const user_ent = user?.curr_eid;
-
-    const spec = {
-      fields: [
-      {
-        comm_spec: '101-101-1011',
-        comm_type: 'phone',
-        comm_ent: user_ent,
-      },
-      {
-        comm_spec: '101-101-1011',
-        comm_type: 'phone',
-        comm_ent: user_ent,
-      },
-      ],
-      view: 'mychips.comm_v_me',
-    }
-
-    props.wm.request('_comm_ref', 'insert', spec, (data) => {
-      console.log(data)
-    })
-
-  }
-
-  const saveTaxCountryAndBirth = () => {
-    setUpdatingSSN(true);
-    const spec = {
-      fields: {
-        tax_id,
-        born_date,
-        country,
-      },
-      where: {
-        user_ent,
-      },
-      view: 'mychips.users_v_me',
-    }
-
-    props.wm.request('_tax_ref', 'update', spec, (data) => {
-      setUpdatingSSN(false);
-    })
-
   }
 
   const emails = useMemo(() => {

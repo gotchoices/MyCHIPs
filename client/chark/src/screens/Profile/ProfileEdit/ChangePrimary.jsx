@@ -5,39 +5,30 @@ import {
   Text,
   Button,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { colors } from '../../../config/constants';
-
-const Item = (props) => {
-  return (
-    <View style={styles.item}>
-      <Text>{props.value}</Text>
-
-      {
-        props.primary ? (
-          <Text style={styles.primary}>Primary</Text>
-        ) : (
-          <TouchableWithoutFeedback onPress={() => props.onPrimaryChange(props.seq)}>
-            <Text style={styles.setPrimary}>Set as Primary</Text>
-          </TouchableWithoutFeedback>
-        )
-      }
-    </View>
-  )
-}
 
 const ChangePrimary = (props) => {
   const items = props.items; 
   const rowField = props.rowField;
   const primaryField = props.primaryField;
+  const seqField = props.seqField;
 
   const [loading, setLoading] = useState(false);
 
   const onSave = () => {
     setLoading(true);
-    props.savePrimary().finally(() => {
+    props.savePrimary().then(() => {
+      Toast.show({
+        type: 'success',
+        text1: 'Changes saved successfully.',
+        position: 'bottom',
+      });
+    }).finally(() => {
       setLoading(false);
       props.onCancel();
     })
@@ -62,18 +53,22 @@ const ChangePrimary = (props) => {
               key={index}
               value={item[rowField]}
               primary={item[primaryField]}
-              seq={item[props.seqField]}
+              seq={item[seqField]}
               onPrimaryChange={props.onPrimaryChange}
+              selectedPrimary={props.selectedPrimary}
             />
           ))
         }
 
         <View style={styles.action}>
           <View style={[styles.actionItem, { marginRight: '4%' }]}>
-            <Button 
-              title="Cancel"
+            <TouchableWithoutFeedback
               onPress={props.onCancel}
-            />
+            >
+              <View style={{ borderColor: colors.blue, borderWidth: 1, paddingVertical: 7 }}>
+                <Text style={{ color: colors.blue, alignSelf: 'center' }}>Cancel</Text>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
           {
             !!items.length && (
@@ -91,6 +86,27 @@ const ChangePrimary = (props) => {
     </View>
   )
 }
+
+function Item(props) {
+  const isSelected = props.selectedPrimary === props.seq;
+
+  return (
+    <View style={[styles.item, isSelected ? styles.selectedItem : {}]}>
+      <Text>{props.value}</Text>
+
+      {
+        props.primary ? (
+          <Text style={styles.primary}>Primary</Text>
+        ) : (
+          <TouchableOpacity onPress={() => props.onPrimaryChange(props.seq)}>
+            <Text style={styles.setPrimary}>Set as Primary</Text>
+          </TouchableOpacity>
+        )
+      }
+    </View>
+  )
+}
+
 
 const styles = StyleSheet.create({
   container: {
@@ -131,6 +147,10 @@ const styles = StyleSheet.create({
   },
   actionItem: {
     width: '48%',
+  },
+  selectedItem: {
+    borderColor: colors.blue,
+    borderWidth: 1
   }
 });
 
@@ -143,6 +163,7 @@ ChangePrimary.propTypes = {
   onCancel: PropTypes.func.isRequired,
   onPrimaryChange: PropTypes.func.isRequired,
   savePrimary: PropTypes.func.isRequired,
+  selectedPrimary: PropTypes.number,
 }
 
 export default ChangePrimary;
