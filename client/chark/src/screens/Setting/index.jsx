@@ -1,14 +1,26 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, TouchableOpacity, TouchableWithoutFeedback, Text, StyleSheet, Image, Button, Platform, NativeModules } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { colors } from '../../config/constants';
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
 import { getPersonal } from '../../services/profile';
+import { languageMap } from '../../utils/language';
+
+import Language from './Language';
+import CenteredModal from '../../components/CenteredModal';
 
 import profileImg from '../../../assets/profile.png';
 
+const deviceLanguage =
+  Platform.OS === 'ios'
+  ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0]
+  : NativeModules.I18nManager.localeIdentifier;
+
 const Setting = (props) => {
+  const [isLangModalVisible, setIsLangModalVisible] = useState(false);
+
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
   const {
@@ -24,6 +36,14 @@ const Setting = (props) => {
 
   const onProfilePress = () => {
     props.navigation.navigate('Profile');
+  }
+
+  const showModal = () => {
+    setIsLangModalVisible(true);
+  }
+
+  const onCancel = () => {
+    setIsLangModalVisible(false);
   }
 
   return (
@@ -44,6 +64,35 @@ const Setting = (props) => {
         />
 
       </View>
+
+      <View style={styles.menu}>
+        <View>
+          <Text style={styles.menuTitle}>
+            Language Preference
+          </Text>
+
+          <Text style={styles.language}>
+            {languageMap[deviceLanguage]?.name ?? ''} ({deviceLanguage})
+          </Text>
+        </View>
+
+        <TouchableWithoutFeedback
+          onPress={showModal}
+        >
+          <Icon
+            name="edit"
+            size={15}
+            color={colors.quicksilver}
+          />
+        </TouchableWithoutFeedback>
+      </View>
+
+      <CenteredModal
+        isVisible={isLangModalVisible}
+        onClose={onCancel}
+      >
+        <Language wm={props.wm} onCancel={onCancel} />
+      </CenteredModal>
     </View>
   )
 }
@@ -51,13 +100,13 @@ const Setting = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 16,
+    padding: 16,
   },
   profile: {
-    marginHorizontal: 16,
     paddingVertical: 24,
     alignItems: 'center',
     backgroundColor: colors.white,
+    marginBottom: 8,
   },
   profileImage: {
     width: 100,
@@ -70,7 +119,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     alignSelf: 'center',
-  }
+  },
+  menu: {
+    padding: 12,
+    backgroundColor: colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  menuTitle: {
+    paddingBottom: 5,
+    color: colors.black,
+    fontWeight: '600',
+  },
 });
 
 export default Setting;
