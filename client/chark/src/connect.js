@@ -104,6 +104,9 @@ debug("Connection failed:", err.message)
 //      })
     }).catch(err => {
 debug('Error initializing', err.message)
+      if(cb) {
+        cb(err)
+      }
     })	// api.uri()
   }
   
