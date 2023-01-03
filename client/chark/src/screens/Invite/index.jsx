@@ -1,21 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { WebView } from 'react-native-webview';
-import { View, Button, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Button, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView, Modal } from 'react-native';
+
+import { colors } from '../../config/constants';
+import { request } from '../../services/profile';
+import { random } from '../../utils/common';
 
 import TemplateItem from './TemplateItem';
+import ShareTally from './ShareTally';
+import CenteredModal from '../../components/CenteredModal';
 
 const TallyInvite = (props) => {
   const wm = props.wm;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedTallySeq, setSelectedTallySeq] = useState();
-  const [qrCode, setQrCode] = useState();
+  const [tallyShareInfo, setTallyShareInfo] = useState();
+  const [isVisible, setIsVisible] = useState(false);
+  const [generatingInvite, setGeneratingInvite] = useState(false);
 
   useEffect(() => {
     fetchTemplates();
   }, []);
 
   const selectTemplate = (tally_seq) => {
+    if(tally_seq === selectedTallySeq) {
+      setSelectedTallySeq(undefined);
+      setTallyShareInfo(undefined)
+      return;
+    }
     setSelectedTallySeq(tally_seq);
   }
 
@@ -48,7 +61,7 @@ console.log('Insert done')
       const _data = data?.map(el => ({ tally_ent: el.tally_ent, id: el.tally_seq, contract: el.contract, comment: el.comment }))
       setData(_data);
       setLoading(false);
-      setQrCode(undefined);
+      setTallyShareInfo(undefined)
     });
   }
 
@@ -57,21 +70,50 @@ console.log('Insert done')
       return;
     }
 
+    setGeneratingInvite(true);
     const template = data?.find((item) => item.id === selectedTallySeq); 
 
-    let control = {
+    const qrSpec = {
       name: 'invite',
       view: 'mychips.tallies_v_me',
       data: {
         keys: [{tally_seq: template.id}],
-        options: {reuse: true}
+        options: {
+          reuse: true, format: 'qr'
+        }
       }
     }
 
-    wm.request('_invite', 'action', control, data => {
-      setQrCode(data);
-      console.log('TI data:', data)
+    const linkSpec = {
+      name: 'invite',
+      view: 'mychips.tallies_v_me',
+      data: {
+        keys: [{tally_seq: template.id}],
+        options: {
+          reuse: true, format: 'link'
+        }
+      }
+    }
+
+    const promises = [
+      request(props.wm, `_invite_ref_qr_${random(1000)}`, 'action', qrSpec),
+      request(props.wm, `_invite_ref_link_${random(1000)}`, 'action', linkSpec),
+    ]
+
+    Promise.all(promises).then(result => {
+      setGeneratingInvite(false);
+      setTallyShareInfo({
+        qrCode: result?.[0],
+        link: result?.[1],
+      });
+      setIsVisible(true)
     })
+  }
+
+  const onShareClose = () => {
+    setTallyShareInfo(undefined);
+    setSelectedTallySeq(undefined);
+    setIsVisible(false)
   }
 
   const renderItem = ({ item }) => {
@@ -85,19 +127,18 @@ console.log('Insert done')
     )
   }
 
+  if(tallyShareInfo) {
+    return <View style={styles.container}>
+      <ShareTally
+        qrCode={tallyShareInfo?.qrCode ?? ''}
+        link={tallyShareInfo?.link ?? ''}
+        onCancel={onShareClose}
+      />
+    </View>
+  }
+
   return (
     <View style={styles.container}>
-      {
-        qrCode && (
-          <View style={styles.webViewContainer}>
-            <WebView
-              originWhitelist={['*']}
-              source={{ html: qrCode }}
-            />
-          </View>
-        )
-      }
-
       <View 
         style={styles.listContainer}
       >
@@ -120,6 +161,7 @@ console.log('Insert done')
                 color="#ce8805"
                 title="From Template"
                 onPress={() => generate()}
+                disabled={generatingInvite}
               />
             </View>
           )
@@ -135,16 +177,33 @@ console.log('Insert done')
 
       </View>
 
+      <CenteredModal
+        isVisible={isVisible}
+        onClose={onShareClose}
+      >
+        {
+          tallyShareInfo?.qrCode  && (
+            <ShareTally
+              qrCode={tallyShareInfo?.qrCode ?? ''}
+              link={tallyShareInfo?.link ?? ''}
+              onCancel={onShareClose}
+            />
+          )
+        }
+      </CenteredModal>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
+    flex: 1,
+    margin: 10,
+    padding: 10,
+    marginBottom: 60,
+    backgroundColor: colors.white,
   },
   listContainer: {
-    paddingVertical: 10,
     flex: 1,
   },
   listHeading: {
@@ -160,6 +219,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 18,
     fontWeight: 'bold',
+    color: colors.black,
   },
   regenerate: {
     marginBottom: 10,

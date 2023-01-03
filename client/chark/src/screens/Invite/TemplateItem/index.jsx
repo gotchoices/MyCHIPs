@@ -37,7 +37,8 @@ const itemStyle = {
   borderWidth: 1,
   borderColor: '#DDD',
   borderRadius: 5,
-  padding: 10 
+  padding: 10,
+  marginBottom: 1,
 }
 
 const styles = StyleSheet.create({
