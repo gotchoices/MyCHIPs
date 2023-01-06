@@ -2,6 +2,7 @@
 # -------------------------------
 conf_dir="/etc/systemd/system"
 conf_file="mychips.service"
+log_dir="/var/log/mychips"
 web_port=443
 
 if [ "$mode" = "prod" ]; then
@@ -19,6 +20,11 @@ if [ -f $conf_dir/$conf_file ]; then
     echo "  Found systemd config file: $conf_dir/$conf_file"
     rewrite=false
   fi    
+fi
+
+if [ -d $log_dir ]; then
+  mkdir -p "$log_dir"
+  chown -R ${mychips_admin}.${mychips_admin} $log_dir
 fi
 
 if $rewrite; then
@@ -42,6 +48,7 @@ if $rewrite; then
 	Environment=MYCHIPS_DKIMKEY=${mychips_dir}/pki/local/${dkim_file}
 	Environment=MYCHIPS_HTTPPORT=80
 	Environment=MYCHIPS_HTTPSPORT=443
+	Environment=MYCHIPS_LOGPATH=${log_dir}
 	Environment=NODE_DEBUG=${debug_level}
 
 	[Install]
