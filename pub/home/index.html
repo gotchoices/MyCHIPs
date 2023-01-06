@@ -45,9 +45,16 @@
                       </div>
                     </div>
   
+                    <div class="form-pass flex-row align-items-center mb-4">
+                      <div class="flex-fill mb-0">
+                        <label class="form-label" id="labAddress" for="inpAddress">Address</label>
+                        <input type="text" id="inpAddress" name="address" class="form-control" />
+                      </div>
+                    </div>
+  
                     <div class="d-flex flex-row align-items-center mb-4">
                       <div class="flex-fill mb-0">
-                        <label class="form-label" for="inpEmail">Email Address</label>
+                        <label class="form-label" for="inpEmail">Email</label>
                         <input type="email" id="inpEmail" name="email" class="form-control" onchange="change(this)"/>
                       </div>
                     </div>
@@ -107,7 +114,9 @@
      const inpOrigin = document.getElementById('inpOrigin')
      const butSubmit = document.getElementById('butSubmit')
      const butReissue = document.getElementById('butReissue')
-     
+
+     Array.from(document.getElementsByClassName('form-pass')).forEach(e => {e.hidden = true})
+
      function changeType() {
 //console.log('Type:', inpEntType.value)
        if (inpEntType.value == 2) {		//Person
