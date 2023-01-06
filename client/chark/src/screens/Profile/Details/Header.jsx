@@ -23,11 +23,13 @@ const Header = (props) => {
       <TouchableWithoutFeedback 
         onPress={props.onEditPress}
       >
-        <Icon
-          name="edit"
-          size={15}
-          color={colors.quicksilver}
-        />
+        <View style={{ padding: 4 }}>
+          <Icon
+            name="edit"
+            size={15}
+            color={colors.quicksilver}
+          />
+        </View>
       </TouchableWithoutFeedback>
     </View>
   )

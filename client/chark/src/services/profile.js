@@ -34,7 +34,7 @@ export const getPersonal = (wm, user_ent) => {
   }
 
 
-  return request(wm, '_user_ref', 'select', spec).then(response => {
+  return request(wm, `_user_ref_${random(1000)}`, 'select', spec).then(response => {
     const user = response?.[0];
     return {
       born_date: user?.born_date ?? '',

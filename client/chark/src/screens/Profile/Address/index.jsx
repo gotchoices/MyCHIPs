@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import { colors } from '../../../config/constants';
@@ -53,7 +53,7 @@ const Address = (props) => {
     {
       title: 'Birth Address',
       helpText: lang?.birth_addr?.help ?? '',
-      items: addressObj?.birth ?? [],
+      items: addressObj?.birth?.length ? [addressObj?.birth?.[0]] : [],
     },
   ];
 
@@ -73,8 +73,9 @@ const Address = (props) => {
 
       <View>
         {
-          _addresses.map((address) => (
+          _addresses.map((address, index) => (
             <AddressItem
+              key={index}
               title={address.title}
               helpText={address.helpText}
               addresses={address.items}
