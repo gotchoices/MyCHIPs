@@ -105,6 +105,7 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
       {invite.format	{Format}	{Determines which type of invitation is generated}}
         {invite.format.qr	{qr}	{Return tally invitation as a QR code}}
         {invite.format.link	{link}	{Return tally invitation as deep link Uniform Resource Locator}}
+        {invite.format.json	{json}	{Return tally invitation as JSON object}}
     {launch.title	{Tallies}		{Peer Trading Relationships}}
     {launch.instruct	{Basic Instructions}	{
       <p>Tallies are used to document and track trading agreements between partners.

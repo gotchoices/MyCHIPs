@@ -19,7 +19,7 @@ tabdef mychips.users_v -fields {
 } -json {
   actions {[
     {"name":"ticket","render":"html","single":"1","options":[
-      {"tag":"format","input":"pdm","values":["qr","link","url"]}
+      {"tag":"format","input":"pdm","values":["qr","link","url","json"]}
     ]},
     {"name":"lock","ask":"1"},
     {"name":"unlock","ask":"1"},

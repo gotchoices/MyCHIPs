@@ -33,7 +33,8 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
       {ticket.format	{Format}	{Determines which type of connection ticket is generated}}
         {ticket.format.qr	{qr}	{Return connection ticket as a QR code}}
         {ticket.format.link	{link}	{Return connection ticket as deep link Uniform Resource Locator}}
-        {ticket.format.url	{url}	{Return connection ticket as an SPA Uniform Resource Locator }}
+        {ticket.format.url	{url}	{Return connection ticket as an SPA Uniform Resource Locator}}
+        {ticket.format.json	{json}	{Return connection ticket as JSON object}}
     {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
     {unlock	{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
     {summary	{Summary Report}	{Report about the current status of the selected user}}
@@ -53,6 +54,9 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
 tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} -messages {
     {graph 	{Tally Graph}	{Generate a visual graph of the user's tally relationships and balances}}
 }
+
+tabtext mychips.addr_v_me	{User Addresses}	{A view of the current user's partners' addresses}
+tabtext mychips.comm_v_me	{User Contact}		{A view of the current user's partners' communication points}
 
 #Sample text in alternate language:
 tabtext mychips.users -lang fin	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
