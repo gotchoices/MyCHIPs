@@ -16,11 +16,11 @@ mobile application:
 
 - chark: CHip App React Kyle
 	An effort at a React Native app to demonstrate usage of the Wyseman
-	JS client API.  Hopefully a starting point for a working RN app.
+	JS client API.  Hopefully will become the first standard MyCHIPs app.
 
 ## Setup Notes
-These notes reflect some steps taken on MacOS to get the React Native app running:
-Also see: https://reactnative.dev/docs/environment-setup
+These notes reflect steps taken on MacOS to get the React Native app running
+for Android:  Also see: https://reactnative.dev/docs/environment-setup
 
 File watcher to monitor file changes and auto load the app:
 ```
@@ -41,7 +41,7 @@ Get into the area for mobile apps:
 cd mychips/clients
 ```
 
-Make sure you have one or more emulators (Virtual Devices) configured.
+Make sure you have one or more android emulators (Virtual Devices) configured.
 Then launch an instance of an emulator using the provided script:
 ```
 ./runemu
@@ -73,22 +73,31 @@ Make sure the MyCHIPs backend is running.  Something like:
 ```
 export NODE_DEBUG=debug
 cd mychips
-npm run docker-dev
+npm run docker-dev		#docker, or
+npm start			#native
 ```
-Debugging info will be available from the (docker instance) backend using something like this:
+Debugging info will be available from the backend using something like this:
 ```
-tail -f test/local/docker/mychips0.log/combined.log
+tail -f test/local/docker/mychips0.log/combined.log	#or
+tail -f /var/tmp/mychips/combined.log
 ```
 If you haven't already, it will be helpful to initialize the backend database 
 with some data:
 ```
 docker exec mychips0 test/sample/kickstart
 docker exec mychips0 test/sample/randuser -n 4
-```
 
-Now generate a one-time connection token from the backend:
+or
+cd mychips/test/sample
+./kickstart
+./randuser -n 4
 ```
-docker exec mychips0 bin/adminticket >chark/assets/ticket.json
+Now generate a one-time connection token from the backend:
+
+NOTE: This method is deprecated.  See more current deep link method below.
+```
+docker exec mychips0 bin/adminticket >chark/assets/ticket.json	#or
+mychips/bin/adminticket >chark/assets/ticket.json
 ```
 Note: this example creates a ticket for the admin user and hard-copies
 it into the filesystem of the app.  This is only applicable in the very
@@ -123,6 +132,22 @@ Mobile apps should support launching with a deep link prefixed with 'mychips' fo
 ```
 adb shell am start -W -a android.intent.action.VIEW -d 'mychips://connect?host=mychips0\&port=54320\&token=b4179431fd18d5abbde31f3e391a3d99\&user=p1000'
 ```
+Note, by the time the link has been passed through bash and then the adb shell
+the amersand's will cause a problem if they are not escaped.
+So one method is to first produce the connection ticket deep link using:
+```
+mychips/bin/adminticket -i <user_id> -q
+```
+next, copy/paste it onto the command line with the above adb command and
+then insert a backslash before each ampersand before executing.
+
+This can be a little awkward especially since the backend may be running
+on a different machine, VM, docker instance, etc.
+There is a script in this folder to help with this so you can do something like:
+```
+docker exec mychips0 bin/adminticket -i p1000 -q |./linklaunch	#or
+bin/adminticket -i p1010 -q |./linklaunch
+
 
 ### Other Notes / Caveats
 The Metro bundler doesn't seem to support symlinks.  This creates

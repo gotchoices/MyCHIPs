@@ -1,0 +1,11 @@
+#!/bin/bash
+#Read a connection deep link, properly escape it, and launch in the
+#android emulator
+
+read link					#;echo "link:$link"
+
+#Insert escapes before ampersands
+esclink=$(echo $link |sed -e 's/&/\\&/g')	#;echo "esclink:$esclink"
+
+#Launch emulator with deep link:
+adb shell am start -W -a android.intent.action.VIEW -d "$esclink"
