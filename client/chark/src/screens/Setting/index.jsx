@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, TouchableWithoutFeedback, Text, StyleSheet, Image, Button, Platform, NativeModules } from 'react-native';
+import { View, TouchableOpacity, TouchableWithoutFeedback, Text, StyleSheet, Image, Platform, NativeModules } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { colors } from '../../config/constants';
@@ -10,6 +10,7 @@ import { languageMap } from '../../utils/language';
 
 import Language from './Language';
 import CenteredModal from '../../components/CenteredModal';
+import Button from '../../components/Button';
 
 import profileImg from '../../../assets/profile.png';
 
