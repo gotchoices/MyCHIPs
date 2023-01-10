@@ -15,7 +15,7 @@
 //- 
 
 import React, { Component, useEffect, useState } from 'react';
-import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState, TouchableWithoutFeedback } from 'react-native';
+import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState, TouchableWithoutFeedback, SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PolyfillCrypto from 'react-native-webview-crypto'
@@ -206,6 +206,7 @@ function App() {
   }, []);
 
   return (
+    <SafeAreaView style={{ flex: 1 }}>
     <NavigationContainer linking={linking}>
       <ServIcon wm={Wm}/>
       <PolyfillCrypto />
@@ -242,6 +243,7 @@ function App() {
       }
       <Toast />
     </NavigationContainer>
+    </SafeAreaView>
   );
 }
 
