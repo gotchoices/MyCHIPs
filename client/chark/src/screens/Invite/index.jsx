@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WebView } from 'react-native-webview';
-import { View, Button, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView, Modal } from 'react-native';
+import { View, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView, Modal } from 'react-native';
 
 import { colors } from '../../config/constants';
 import { request } from '../../services/profile';
@@ -9,6 +9,7 @@ import { random } from '../../utils/common';
 import TemplateItem from './TemplateItem';
 import ShareTally from './ShareTally';
 import CenteredModal from '../../components/CenteredModal';
+import Button from '../../components/Button';
 
 const TallyInvite = (props) => {
   const wm = props.wm;
@@ -158,7 +159,7 @@ console.log('Insert done')
           selectedTallySeq && (
             <View style={{ marginLeft: 10 }}>
               <Button
-                color="#ce8805"
+                style={{ backgroundColor: colors.mustardBrown }}
                 title="From Template"
                 onPress={() => generate()}
                 disabled={generatingInvite}

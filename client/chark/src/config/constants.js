@@ -18,4 +18,5 @@ export const colors = {
   brightgray: '#eeeeee',
   antiflashwhite: '#f3f3f3',
   snow: '#fbf9f9',
+  mustardBrown: '#ce8805',
 };

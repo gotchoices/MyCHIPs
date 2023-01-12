@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Button, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
 
@@ -11,6 +11,7 @@ import useProfile from '../../../../hooks/useProfile';
 
 import AddressInput from './AddressInput';
 import HelpText from '../../../../components/HelpText';
+import Button from '../../../../components/Button';
 
 const Address = (props) => {
   const { addresses, setAddresses, lang } = useProfile();
@@ -328,7 +329,7 @@ const Address = (props) => {
 
       </View>
 
-      <View style={{ marginBottom: 16 }}>
+      <View style={{ marginBottom: 16, marginHorizontal: 8, }}>
         <Button
           onPress={onSave}
           disabled={updating}

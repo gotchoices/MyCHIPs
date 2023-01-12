@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   input: {
+    paddingLeft: 10,
     backgroundColor: colors.antiflashwhite,
     marginBottom: 8,
     width: '90%',

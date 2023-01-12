@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TextInput,
   Text,
-  Button,
   TouchableWithoutFeedback,
   ScrollView,
   Modal,
@@ -22,6 +21,7 @@ import HelpText from '../../../components/HelpText';
 import CenteredModal from '../../../components/CenteredModal';
 import CommInput from './CommInput';
 import ChangePrimary from './ChangePrimary';
+import Button from '../../../components/Button';
 
 import styles from './styles';
 
