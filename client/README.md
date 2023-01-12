@@ -33,10 +33,30 @@ Need a working Java JDK.  This one is recommended by React Native:
   brew install --cask zulu11
 ```
 
-Need to install Android Studio and SDK 12.  Follow carefully 
-and precisely the process in the web link above.
+Need to install Android Studio and SDK 12.
+Follow carefully and precisely the process in the web link above
+(there are separate setup details for building android and ios).
 
-Get into the area for mobile apps:
+The instructions require a specific version of ruby (2.7.5 or 2.7.6?).
+Here are some approaches to consider.
+
+Via brew:
+```
+  brew install cocoapods
+  brew install ruby@2.7
+  brew link ruby@2.7
+```
+Via rvm (https://rvm.io/rvm/install):
+```
+  gpg --keyserver hkp://pgp.mit.edu --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+  curl -sSL https://get.rvm.io | bash
+  source ~/.rvm/scripts/rvm
+  rvm install 2.7.5
+  rvm use 2.7.5
+  gem install cocoapods
+```
+
+Next, get into the area for mobile apps:
 ```
 cd mychips/clients
 ```
