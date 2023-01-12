@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Button,
   Text,
   StyleSheet,
   ScrollView,
@@ -13,6 +12,7 @@ import { request } from '../../../services/profile';
 import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
 import HelpTextInput from '../../../components/HelpTextInput';
+import Button from '../../../components/Button';
 
 const PersonalBio = (props) => {
   const { user } = useCurrentUser();

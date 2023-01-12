@@ -13,9 +13,14 @@ const Button = (props) => {
   return (
     <TouchableWithoutFeedback
       onPress={props.onPress}
+      disabled={props.disabled ?? false}
     >
-      <View style={[styles.btn, props.style ?? {}]}>
-        <Text style={[styles.title, { color: props.textColor ?? colors.white }]}>
+      <View 
+        style={[styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
+      >
+        <Text 
+          style={[styles.title, { color: props.textColor ?? colors.white }, props.disabled ? styles.titleDisabled : {}]}
+        >
           {props.title}
         </Text>
       </View>
@@ -31,6 +36,9 @@ Button.propTypes = {
 
 const styles = StyleSheet.create({
   btn: {
+    borderWidth: 1,
+    borderColor: colors.blue,
+    alignItems: 'center',
     paddingHorizontal: 6,
     paddingVertical: 8,
     backgroundColor: colors.blue,
@@ -42,10 +50,16 @@ const styles = StyleSheet.create({
       width: 1
     }
   },
+  btnDisabled: {
+    backgroundColor: colors.lightgray,
+  },
   title: {
     textTransform: 'uppercase',
     fontSize: 12,
   },
+  titleDisabled: {
+    color: colors.gray700,
+  }
 });
 
 export default Button;

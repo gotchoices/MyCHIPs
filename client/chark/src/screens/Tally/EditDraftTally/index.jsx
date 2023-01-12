@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  Button,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
@@ -14,6 +13,7 @@ import {
 import { colors } from '../../../config/constants';
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
+import Button from '../../../components/Button';
 
 const EditTally = (props) => {
   const tally_seq = props.tally_seq;
@@ -286,6 +286,7 @@ const styles = StyleSheet.create({
   },
   input: {
     paddingHorizontal: 10,
+    paddingVertical: 10,
     backgroundColor: colors.gray100,
   },
   comment: {

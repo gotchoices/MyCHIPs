@@ -3,12 +3,13 @@ import PropTypes from 'prop-types';
 import {
   View,
   Text,
-  Button,
   TouchableWithoutFeedback,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+
+import Button from '../../../components/Button';
 
 import { colors } from '../../../config/constants';
 

@@ -3,15 +3,16 @@ import { Picker } from '@react-native-picker/picker';
 import {
   View,
   Text,
-  Button,
   Platform,
   NativeModules,
   TouchableWithoutFeedback,
   StyleSheet,
 } from 'react-native';
 
-import { colors } from '../../../config/constants';
 import HelpText from '../../../components/HelpText';
+import Button from '../../../components/Button';
+
+import { colors } from '../../../config/constants';
 import { languageMap } from '../../../utils/language';
 import { random } from '../../../utils/common';
 
@@ -81,13 +82,14 @@ const Language = (props) => {
         </Picker>
 
         <View style={styles.action}>
-          <TouchableWithoutFeedback
-            onPress={props.onCancel}
-          >
-            <View style={[styles.actionItem, styles.cancel]}>
-              <Text style={{ color: colors.blue }}>CANCEL</Text>
-            </View>
-          </TouchableWithoutFeedback>
+          <View style={styles.actionItem}>
+            <Button
+              title="Cancel"
+              style={styles.cancel}
+              onPress={props.onCancel}
+              textColor={colors.blue}
+            />
+          </View>
 
           <View style={styles.actionItem}>
             <Button
@@ -130,9 +132,8 @@ const styles = StyleSheet.create({
   cancel: {
     borderWidth: 1,
     borderColor: colors.blue,
+    backgroundColor: colors.white,
     marginRight: '4%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
 

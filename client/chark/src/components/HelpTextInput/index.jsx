@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   input: {
+    padding: 10,
     backgroundColor: colors.gray100,
   },
 });

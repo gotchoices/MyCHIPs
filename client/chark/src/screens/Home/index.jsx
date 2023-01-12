@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, TouchableOpacity, Linking } from 'react-native'
+import { View, Text, TouchableOpacity, Linking } from 'react-native'
+
+import Button from '../../components/Button';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
 import { parse } from '../../utils/query-string';

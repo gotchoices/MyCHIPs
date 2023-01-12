@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TextInput, Button } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import { colors } from '../../../config/constants';
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
+import Button from '../../../components/Button';
 
 const EditOpenTally = (props) => {
   const tally_seq = props.tally_seq;
@@ -146,6 +147,7 @@ const styles = StyleSheet.create({
   },
   input: {
     paddingHorizontal: 10,
+    paddingVertical: 10,
     backgroundColor: colors.gray100,
   },
   comment: {
