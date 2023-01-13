@@ -74,6 +74,17 @@ console.log('Insert done')
     setGeneratingInvite(true);
     const template = data?.find((item) => item.id === selectedTallySeq); 
 
+    const spec = {
+      name: 'invite',
+      view: 'mychips.tallies_v_me',
+      data: {
+        keys: [{tally_seq: template.id}],
+        options: {
+          reuse: true, format: 'json'
+        }
+      }
+    }
+
     const qrSpec = {
       name: 'invite',
       view: 'mychips.tallies_v_me',
@@ -96,19 +107,13 @@ console.log('Insert done')
       }
     }
 
-    const promises = [
-      request(props.wm, `_invite_ref_qr_${random(1000)}`, 'action', qrSpec),
-      request(props.wm, `_invite_ref_link_${random(1000)}`, 'action', linkSpec),
-    ]
-
-    Promise.all(promises).then(result => {
+    request(props.wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
       setGeneratingInvite(false);
       setTallyShareInfo({
-        qrCode: result?.[0],
-        link: result?.[1],
+        json: data,
       });
       setIsVisible(true)
-    })
+    });
   }
 
   const onShareClose = () => {
@@ -131,8 +136,7 @@ console.log('Insert done')
   if(tallyShareInfo) {
     return <View style={styles.container}>
       <ShareTally
-        qrCode={tallyShareInfo?.qrCode ?? ''}
-        link={tallyShareInfo?.link ?? ''}
+        tally={tallyShareInfo?.json ?? {}}
         onCancel={onShareClose}
       />
     </View>
@@ -159,7 +163,7 @@ console.log('Insert done')
           selectedTallySeq && (
             <View style={{ marginLeft: 10 }}>
               <Button
-                style={{ backgroundColor: colors.mustardBrown }}
+                style={{ backgroundColor: colors.mustardBrown, borderColor: colors.mustardBrown }}
                 title="From Template"
                 onPress={() => generate()}
                 disabled={generatingInvite}

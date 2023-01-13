@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { WebView } from 'react-native-webview';
 import {
@@ -10,12 +10,21 @@ import {
   Image,
 } from 'react-native';
 import Share from 'react-native-share';
+import QRCode from 'react-native-qrcode-svg';
 
 import { colors } from '../../../config/constants';
 
 const ShareTally = (props) => {
-  const link = props?.link?.join('');
+  const tallyObj = props.tally;
+  const ref = useRef();
+
   const [activeTab, setActiveTab] = useState('qr');
+  let link = '';
+
+  if(tallyObj?.tally) {
+    const tally = tallyObj.tally;
+    link = `mychips://tally?token=${tally.token}&chad=${JSON.stringify(tally.chad)}`;
+  }
 
   const changeTab = (tab) => {
     return () => {
@@ -26,22 +35,34 @@ const ShareTally = (props) => {
   const onShare = () => {
     let options = {};
     if(activeTab === 'qr') {
-      options = {
-        title: 'Tally invitation',
-        message: props?.qrCode,
-      }
+      qrtobase64().then(base64 => {
+        options = {
+          url: base64,
+        }
+
+        Share.open(options).then(console.log).catch(console.log);
+      })
     } else if(activeTab === 'link') {
       options = {
         title: 'Tally invitation',
-        message: props?.link?.join(''),
+        message: link?.join(''),
       }
-    }
 
-    Share.open(options).then(console.log).catch(console.log);
+      Share.open(options).then(console.log).catch(console.log);
+    }
   };
 
   const onCancel = () => {
     props.onCancel()
+  }
+
+  const qrtobase64 = () => {
+    return new Promise((resolve) => {
+      ref.current.toDataURL((data) => {
+        resolve('data:image/png;base64,'+data)
+      })
+    })
+
   }
 
   return (
@@ -68,38 +89,36 @@ const ShareTally = (props) => {
         </TouchableWithoutFeedback>
       </View>
 
-
       {
         activeTab === 'qr' && (
-          <WebView
-            originWhitelist={['*']}
-            scrollEnabled={false}
-            source={{
-              html: `
-                <html>
-                  <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-                  <body>
-                    <div style="width: 90%; height: auto; margin: auto;">
-                      ${props.qrCode}
-                    </div>
-                  </body>
-                </html>
-              ` 
-            }}
-          />
+          <View style={{ alignItems: 'center', paddingVertical: 32,  }}>
+            <QRCode
+              value={JSON.stringify(props.tally)}
+              getRef={ref}
+              size={200}
+            />
+          </View>
         )
       }
 
       {
         activeTab === 'link' && (
-          <WebView
+         <WebView
             originWhitelist={['*']}
             source={{ html: `
               <html>
                 <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
                 <body>
                   <div style="display: flex; align-items: center; padding-top: 20">
-                    ${link}
+                    <div>
+                      <a href="${link}">
+                        TIN
+                      </a>
+
+                      <p>
+                        TIL; ${tallyObj?.tally?.expires} 
+                      </p>
+                    </div>
                   </div>
                 </body>
               </html>
@@ -179,9 +198,8 @@ const styles = StyleSheet.create({
 });
 
 ShareTally.propTypes = {
-  qrCode: PropTypes.string,
-  link: PropTypes.array,
   onCancel: PropTypes.func.isRequired,
+  tally: PropTypes.object,
 }
 
 export default ShareTally;
