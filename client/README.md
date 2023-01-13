@@ -1,7 +1,7 @@
 # MyCHIPs Mobile
 
 ## Directory Structure
-This folder contains several different attempts/implementations of a MyCHIPs
+This folder contains multiple attempts/implementations of a MyCHIPs
 mobile application:
 
 - . (client):  
@@ -20,7 +20,7 @@ mobile application:
 
 ## Setup Notes
 These notes reflect steps taken on MacOS to get the React Native app running
-for Android:  Also see: https://reactnative.dev/docs/environment-setup
+for Android.
 
 File watcher to monitor file changes and auto load the app:
 ```
@@ -33,12 +33,13 @@ Need a working Java JDK.  This one is recommended by React Native:
   brew install --cask zulu11
 ```
 
-Need to install Android Studio and SDK 12.
-Follow carefully and precisely the process in the web link above
-(there are separate setup details for building android and ios).
+Install Android Studio and SDK 12.
+Follow **carefully and precisely** the process in the
+[instructions](https://reactnative.dev/docs/environment-setup).
+Note, there are separate setup details for building android and ios.
 
-The instructions require a specific version of ruby (2.7.5 or 2.7.6?).
-Here are some approaches to consider.
+React Native expects a specific version of ruby (we are using 2.7.5).
+Here are two approaches to consider for installation:
 
 Via brew:
 ```
@@ -46,7 +47,7 @@ Via brew:
   brew install ruby@2.7
   brew link ruby@2.7
 ```
-Via rvm (https://rvm.io/rvm/install):
+Via rvm [instructions](https://rvm.io/rvm/install):
 ```
   gpg --keyserver hkp://pgp.mit.edu --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
   curl -sSL https://get.rvm.io | bash
@@ -61,33 +62,40 @@ Next, get into the area for mobile apps:
 cd mychips/clients
 ```
 
-Make sure you have one or more android emulators (Virtual Devices) configured.
-Then launch an instance of an emulator using the provided script:
+Make sure you have one or more android emulators (Virtual Devices) configured in android studio.
+
+If you are connecting to a local MyCHIPs server that doesn't really have
+a real domain address and/or certificate, you should launch the
+android emulator using the provided script:
 ```
 ./runemu
 ```
 This script will also configure the emulator as follows:
 - Install a host file that will direct web traffic destined for address
   mychips0 to the local host computer where hopefully you have the mychips
-  backend running.  If it is running somewhere else, you will have to
+  backend running.  If it is running somewhere else, you may have to
   modify the client/host file so the emulator can find the correct address.
 - Install a custom CA file.  This will be copied from the pki/local
   folder.  If you are using some other certificate system, you will need
   to adapt the script for your own needs.
 
+If a standard, un-patched emulator can find your server IP address OK
+and will honor the certificate your server provides, you may not need
+to use the runemu script.
+
 Start react native and the metro bundler in a shell window:
 ```
 cd chark
-npx react-native start
+npm start
 ```
 Client debug messages will also render in that shell window.
 
 In a separate shell, run the app for android:
 ```
 cd chark
-npx react-native run-android
+npm run android
 ```
-The app should now be running on the emulator.
+The app should compile and load into the emulator.
 
 Make sure the MyCHIPs backend is running.  Something like:
 ```
@@ -170,26 +178,47 @@ bin/adminticket -i p1010 -q |./linklaunch
 
 
 ### Other Notes / Caveats
+
+#### Metro Launch
+During the ios build, the process uses curl to query http://localhost:8081/status
+to determine if the metro bundler is running.  If you have http_proxy set to
+something on your system, make sure you also have no_proxy set to exclude
+localhost from proxy traffic.  Otherwise, the build will not find your running
+metro and will attempt to launch a new one (which will fail because the port
+will already be in use).
+
+#### Metro Symlinks
 The Metro bundler doesn't seem to support symlinks.  This creates
-a problem running wyseman out of the local source folder.
+a problem running wyseman out of a local source folder
+(as opposed to what may be fetched from npmjs.org).
 
-To do so, follow these instructions:
-https://medium.com/@alielmajdaoui/linking-local-packages-in-react-native-the-right-way-2ac6587dcfa2
+There is a work-around included.  Execute:
+```
+npm develop
+```
+This will delete whatever wyseman is in chark/node_modules.
+It will then make a fresh copy from a local source copy of the wyseman library
+if it can be found parallel to the mychips project.
+Finally, it will set up a watchman process on wyseman so if you make
+any changes to the libraries chark is using, it will copy them into node_modules.
 
-When I ran the run-android command, I got an error:
+#### Realpath
+When first running the android build, the following error came up:
 "Command failed: couldn't find realpath command".
-I had to install realpath using:
+This was fixed by installing realpath using:
 ```
 brew install coreutils
 ```
 
-Can check the status of running emulator(s) using:
+#### ADB Command
+Can check the status of running android emulator(s) using:
 ```
 adb devices		#or:
 ~/Library/Android/sdk/platform-tools/adb devices
 
 ```
 
+#### Navigation in React Native
 Setting up React Navigation: https://reactnavigation.org/docs/getting-started
 (Follow procedures for both Android and IOS)
 ```
@@ -199,6 +228,7 @@ Setting up React Navigation: https://reactnavigation.org/docs/getting-started
   npm install --save @react-navigation/native-stack
 ```
 
+#### RN 0.68 to 0.69
 Had problem running on IOS, Fix here:
   https://stackoverflow.com/questions/72729591/fbreactnativespec-h-error-after-upgrading-from-0-68-x-to-0-69-0
 
