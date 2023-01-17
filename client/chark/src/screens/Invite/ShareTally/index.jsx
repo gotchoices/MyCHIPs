@@ -45,7 +45,7 @@ const ShareTally = (props) => {
     } else if(activeTab === 'link') {
       options = {
         title: 'Tally invitation',
-        message: link?.join(''),
+        message: link,
       }
 
       Share.open(options).then(console.log).catch(console.log);
