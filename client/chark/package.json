@@ -8,7 +8,8 @@
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint .",
-    "develop": "bin/develop"
+    "develop": "bin/develop",
+    "build-apk": "bin/build"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
