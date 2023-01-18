@@ -1,20 +1,15 @@
 TODO:
 
-Backend Immediate Priorities:
-X- Refine/document report protocol
-X- Allow reports to send data back with embedded language codes
-- Reports can parse/display language data
--  Only the main program has the language cached; have to ask for it
-X-  Do other old reports still work? (user, contract)
-X-  Including username in connection invitation is an option
-- Make tally invitation QR report work in mobile app
+- Refine/document report protocol in backend:
+-  Wyseman caches language data
+-  Reports can display in preferred language
+-  Tally invitation QR report still works in mobile app
 -  
-- User registration:
--  Email confirmation code, enter on page (rather than email link 1)?
--  Includes link to app on google play, Apple testflight
--  Includes link to APK, Mac images
--    Can view terms of Service page
--  Document server also on 443 (request by hash?)
+- User registration page refinements:
+-  Email confirmation code, enter on page, rather than emailing link? (low priority)
+-  Page Includes links to Android APK and Apple testflight
+-   Can view terms of Service page?
+-  Fix document server also running on 443 (request by hash?)
 - 
 - Consolidate local dirs:
 -  Move pki/local under local?
@@ -71,16 +66,40 @@ X-  Including username in connection invitation is an option
 -   Else, if we have a possible route, queue up as a distributed lift.
 - 
 - Chark App Integration:
--  Test/demonstrate drawing language data from backend
--  User can sign up for new account
--  User stepped through connection phase
--  Can download app
--  User prompted to complete minimum profile data
--  User can create draft tally
--  User can view draft tally QR/Deep link
--  User can share draft tally invitation as a QR and/or deep link
+-  New user process:
+X-  User can sign up for new account
+-   User can download app (android and IOS)
+-   User stepped through connection phase
+-   Can connect by scanning connection QR
+-   Can connect by following deep link
+-   User prompted to complete minimum required profile data
+-  Language display:
+-   Test/demonstrate drawing language data from backend
+-   All language data coming from backend
+-   Populate second language (Nepali?)
+-  Tally Initiation:
+-   User can create draft tally
+-   User can create multiple draft tallies
+-   Draft tallies may contain different details, including user certificate
+-   If tally is generated not from a draft, it uses default certificate data
+-   User can generate tally invitations from draft or default
+-   User can share tally invitation via text, email, scan, print, pdf, etc
+-   User can share tallyinvitation as a QR or deep link
+-  Tally recipient:
+-   User can view/evaluate tally invitations from deep link and QR
+-   User can reject tally invitation
+-   User can modify and counter offer (share) tally invitation
+-   User can accept tally invitation
+-   Accepted tally is digitally signed by both parties
+-  Chits:
+-   User can send unsolicited chit on any open tally
+-   User can send payment request chit on any open tally
+-   Users receive notification when chit is received
+-   User can respond to received payment request chit
+-   User can reject, modify, or accept payment request chit
 - 
-- Cleanups:
+- 
+- Misc Cleanups:
 - Correctly assess lading on lift push through foreign tally (we now know parter's limit/bound)
 -  Merge local null min with route lading correctly
 -  Should all xxx_process functions return text or JSON (routes need JSON)?
