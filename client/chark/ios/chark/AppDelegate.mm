@@ -1,3 +1,4 @@
+#import <React/RCTLinkingManager.h>
 #import "AppDelegate.h"
 
 #import <React/RCTBridge.h>
@@ -15,17 +16,6 @@
 #import <ReactCommon/RCTTurboModuleManager.h>
 
 #import <react/config/ReactNativeConfig.h>
-
-// Add the header at the top of the file:
-#import <React/RCTLinkingManager.h>
-
-// Add this inside `@implementation AppDelegate` above `@end`:
-- (BOOL)application:(UIApplication *)application
-   openURL:(NSURL *)url
-   options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-{
-  return [RCTLinkingManager application:application openURL:url options:options];
-}
 
 static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
@@ -140,5 +130,12 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 }
 
 #endif
+
+- (BOOL)application:(UIApplication *)application
+openURL:(NSURL *)url
+options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+  return [RCTLinkingManager application:application openURL:url options:options];
+}
 
 @end
