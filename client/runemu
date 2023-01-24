@@ -1,6 +1,7 @@
 #!/bin/bash
 #Launch an Android emulator and configure it to communicate with the mychips backend
 #- Put mychips0 into the android emulator's hosts file, resolving to local host
+#- Add in any hosts from the local machine relating to mychips.sim
 #  https://developer.android.com/studio/run/emulator-networking
 #- Install locally generated CA file in the device
 #- Install letsencrypt CA file in the device
@@ -42,7 +43,6 @@ adb -s $dev push /tmp/hosts.tmp /system/etc/hosts	#Install our custom hosts file
 #-------------------------------------------------
 function install_cert () {
   cafile="$1"
-#  cafile="../pki/local/web-ca.crt"		#;echo "CA:$cafile"; cat $cafile
   cahash="$(openssl x509 -inform PEM -subject_hash_old -in $cafile |head -n 1)"
   echo "cafile:$cafile cahash:$cahash"
   adb -s $dev push $cafile /system/etc/security/cacerts/${cahash}.0	#Install custom CA file
@@ -57,3 +57,5 @@ install_cert "../pki/local/web-ca.crt"		#Install our local CA
 #  curl $le_url >$le_file
 #fi
 #install_cert $le_file				#Install letsencrypt CA
+
+adb -s $dev unroot
