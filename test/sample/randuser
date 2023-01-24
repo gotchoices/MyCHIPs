@@ -5,11 +5,11 @@
 //TODO:
 //- 
 const {DBName, DBAdmin, DBHost, DBPort, PeerAgent, PeerHost, PeerPort} = require('../settings')
-const Http = require('http')
+const Https = require('https')
 const Format = require('pg-format')
 const { dbClient } = require("wyseman")
 var options = {
-  protocol: 'http:',
+  protocol: 'https:',
   hostname: 'www.pseudorandom.name',
   headers: {
     'Accept': 'application/json',
@@ -43,13 +43,13 @@ var db = new dbClient({
 
 var counter = opts.number
 for (let i = 0; i < opts.number; i++) {		//Loop n times
-  Http.get(options, res => {			//Get a random name
+  Https.get(options, res => {			//Get a random name
 //console.log("res:", res.headers)
     res.setEncoding('utf8')
     let body = ""
     res.on("data", data => {body += data})
     res.on("end", () => {			//Fetch done
-//console.log("got:", body)
+//console.log("got body:", body)
       let result = JSON.parse(body)
         , [ first, last ] = result.name.split(' ')		//Get first, last names
         , cid = first.toLowerCase() + '_' + last.toLowerCase()	//Make a CHIp ID
