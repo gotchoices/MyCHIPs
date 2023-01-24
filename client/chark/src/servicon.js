@@ -21,7 +21,7 @@ console.log('Connection address:', addr)
 
   render() {return (
     <View>
-      <Text>Server:{this.state.server}</Text>
+      <Text>Server:{this.props.connecting ? ' Connecting...' : this.state.server}</Text>
     </View>
   )}
 }
