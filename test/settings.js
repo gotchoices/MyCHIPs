@@ -28,7 +28,7 @@ module.exports={
   DBAdmin:	E.MYCHIPS_DBADMIN	|| "admin",		//Aministrator username for
   DBName:	E.MYCHIPS_DBNAME	|| 'mychips',		//Database name
   AdminID:	E.MYCHIPS_ADMIN_ID	|| "r1",		//Internal admin ID
-  UserHost:	E.MYCHIPS_WSHOST	|| Os.hostname(),	//User websocket host address
+  UserHost:	E.MYCHIPS_WEBHOST	|| Os.hostname(),	//User web/ws host address
   UserPort:	E.MYCHIPS_WSPORT	|| 1025,		//User websocket port
   AdminPort:	E.MYCHIPS_WSPORT	|| 1025,		//Admin websocket port
   PeerHost:	E.MYCHIPS_AGHOST	|| peerHost || "localhost",	//P2P host

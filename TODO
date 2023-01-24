@@ -1,14 +1,18 @@
 TODO:
 
 - Refine/document report protocol in backend:
--  Wyseman caches language data
--  Reports can display in preferred language
+X-  Wyseman caches language data
+X-  Reports can display in preferred language
+X-  Clean up control layer reports
+X-  Tally invitation works in web app
+X-  Remove experimental code in wylib/wyseman
 -  Tally invitation QR report still works in mobile app
+-  Commit changes
 -  
 - User registration page refinements:
 -  Email confirmation code, enter on page, rather than emailing link? (low priority)
 -  Page Includes links to Android APK and Apple testflight
--   Can view terms of Service page?
+-  Can view terms of Service page?
 -  Fix document server also running on 443 (request by hash?)
 - 
 - Consolidate local dirs:
@@ -66,6 +70,8 @@ TODO:
 -   Else, if we have a possible route, queue up as a distributed lift.
 - 
 - Chark App Integration:
+-  Document method for debugging server certificate
+-  
 -  New user process:
 X-  User can sign up for new account
 -   User can download app (android and IOS)

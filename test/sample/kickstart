@@ -25,7 +25,8 @@ const dbConfig = {
 var db = new dbClient(dbConfig)
 
 var queryList = []
-//queryList.push({q:"select base.parmset('mychips','mobi_host',$1::inet)", a:[UserHost]})
+queryList.push({q:"select base.parmset('wyseman','host',$1::text)", a:[UserHost]})
+queryList.push({q:"select base.parmset('wyseman','port',$1::int)", a:[UserPort]})
 //queryList.push({q:"select base.parmset('mychips','peer_agent',$1::text)", a:[PeerAgent]})
 //queryList.push({q:"select base.parmset('mychips','peer_host',$1::text)", a:[PeerHost]})
 //queryList.push({q:"select base.parmset('mychips','peer_port',$1::int)", a:[PeerPort]})

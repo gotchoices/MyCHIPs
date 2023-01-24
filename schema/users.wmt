@@ -27,8 +27,8 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
     {GTK		{Generating Ticket}	{A database error occurred while generating a user connection ticket}}
     {URF		{Unknown Format}	{Unknown format for a connection ticket}}
     {TMK		{Bad Key Number}	{The connection ticket must be called for exactly one user}}
-    {TIN		{Connection Ticket}	{Click this link to connect mobile app to service provider}}
-    {TIL		{Good Until}		{Connection ticket will expire after this time}}
+    {TIN		{Connection Ticket}	{Link to access your service provider}}
+    {TIL		{Good Until}		{Ticket expires after this time}}
     {ticket 		{User Ticket}		{Generate a temporary, one-time pass to allow a user to establish a secure connection with the server}}
       {ticket.format	{Format}	{Determines which type of connection ticket is generated}}
         {ticket.format.qr	{qr}	{Return connection ticket as a QR code}}
@@ -53,6 +53,11 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
 
 tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} -messages {
     {graph 	{Tally Graph}	{Generate a visual graph of the user's tally relationships and balances}}
+} -messages {
+    {launch.title	{Current User}		{Current User Account Record}}
+    {launch.instruct	{Basic Instructions}	{
+      <p>This view shows only the record pertaining to the connected user
+    }}
 }
 
 tabtext mychips.addr_v_me	{User Addresses}	{A view of the current user's partners' addresses}
