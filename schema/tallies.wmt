@@ -91,14 +91,15 @@ tabtext mychips.tallies_v {Tallies}		{Standard view containing an entry for each
     {digest_v		{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
     {clean		{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the tally has not been tampered with.}}
     {policy		{Policy}		{A JSON record of the standard lift and drop parameters}}
-} -mess {
-    {TMK		{Bad Key Number}	{The tally invitation must be called for exactly one tally}}
 }
 
 tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertaining to the current user} {
 } -messages {
     {GTK	{Generating Tally}	{A database error occurred while generating a tally invitation ticket}}
     {URF	{Unknown Format}	{Unknown format for a tally invitation}}
+    {TMK	{Bad Key Number}	{The tally invitation must be called for exactly one tally}}
+    {TIN	{Tally Invitation}	{Follow link to consider tally}}
+    {TIL	{Good Until}		{Invitation expires after this time}}
     {close	{Close Tally}		{Request that the current tally be closed once its balance reaches zero}}
     {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
       {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}

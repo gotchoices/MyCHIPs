@@ -83,6 +83,8 @@ If a standard, un-patched emulator can find your server IP address OK
 and will honor the certificate your server provides, you may not need
 to use the runemu script.
 
+There is not currently a similar method for patching the ios simulator.
+
 Start react native and the metro bundler in a shell window:
 ```
 cd chark
@@ -173,16 +175,24 @@ This can be a little awkward especially since the backend may be running
 on a different machine, VM, docker instance, etc.
 There is a script in this folder to help with this so you can do something like:
 ```
+bin/adminticket -i p1010 -q |./linklaunch			#or
 docker exec mychips0 bin/adminticket -i p1000 -q |./linklaunch	#or
-bin/adminticket -i p1010 -q |./linklaunch
+ssh where-server-is path/to/mychips/bin/adminticket -i p1010 -q |./linklaunch
 
+The linklaunch script is currently configured only for a single running
+android emulator--not ios.  But you can launch a deep link in xcode using:
+```
+  xcrun simctl openurl booted "deep link"			#or
+  xcrun simctl openurl booted "$(bin/adminticket -q)"
+  
+```
 
 ### Other Notes / Caveats
 
 #### Metro Launch
-During the ios build, the process uses curl to query http://localhost:8081/status
-to determine if the metro bundler is running.  If you have http_proxy set to
-something on your system, make sure you also have no_proxy set to exclude
+During the ios build, react-native uses curl to query http://localhost:8081/status
+to determine if the metro bundler is running.  If you have http_proxy defined
+on your system, make sure you also have no_proxy set to exclude
 localhost from proxy traffic.  Otherwise, the build will not find your running
 metro and will attempt to launch a new one (which will fail because the port
 will already be in use).
