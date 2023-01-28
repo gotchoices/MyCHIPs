@@ -1,11 +1,21 @@
 #!/bin/bash
-#Read a connection deep link, properly escape it, and launch in the
-#android emulator
+#Read a connection deep link, properly escape it, and launch in a
+#running emulator
 
 read link					#;echo "link:$link"
 
-#Insert escapes before ampersands
-esclink=$(echo $link |sed -e 's/&/\\&/g')	#;echo "esclink:$esclink"
+#Look for a running android emulator
+avds="$(adb devices |grep -v attached |grep device |wc -l)"
 
-#Launch emulator with deep link:
-adb shell am start -W -a android.intent.action.VIEW -d "$esclink"
+if [ ! -z "$avds" -a "$avds" -ge 1 ]; then	#Android running
+  #Insert escapes before ampersands
+  esclink=$(echo $link |sed -e 's/&/\\&/g')	#;echo "esclink:$esclink"
+
+  echo "Attempting launch to Android: $esclink"
+  adb shell am start -W -a android.intent.action.VIEW -d "$esclink"
+  exit 0
+fi
+
+#Otherwise, try to launch to any running IOS simulator
+echo "Attempting launch to IOS: $link"
+xcrun simctl openurl booted "$link"
