@@ -61,7 +61,7 @@ Next, get into the area for mobile apps:
 ```
 cd mychips/clients
 ```
-
+Android:  
 Make sure you have one or more android emulators (Virtual Devices) configured in android studio.
 
 If you are connecting to a local MyCHIPs server that doesn't really have
@@ -84,6 +84,19 @@ and will honor the certificate your server provides, you may not need
 to use the runemu script.
 
 There is not currently a similar method for patching the ios simulator.
+However, the ios simulators seem to read the hosts /etc/host file fine.
+To get it to accept a locally signed certificate, you might try opening
+Safari on the emulator and browing:
+```
+  https://your-server:8443
+```
+and confirming the warnings that you really want to visit the insecure site.
+
+There is also an xcode command for installing a root certificate on a
+simulator.  Something like:
+```
+  xcrun simctl keychain booted add-root-cert ../../pki/local/web-ca.crt
+```
 
 Start react native and the metro bundler in a shell window:
 ```
@@ -92,10 +105,12 @@ npm start
 ```
 Client debug messages will also render in that shell window.
 
-In a separate shell, run the app for android:
+In a separate shell, run the app:
 ```
 cd chark
-npm run android
+npm run android		#For android
+
+npm run ios		#For ios
 ```
 The app should compile and load into the emulator.
 
@@ -179,8 +194,10 @@ bin/adminticket -i p1010 -q |./linklaunch			#or
 docker exec mychips0 bin/adminticket -i p1000 -q |./linklaunch	#or
 ssh where-server-is path/to/mychips/bin/adminticket -i p1010 -q |./linklaunch
 
-The linklaunch script is currently configured only for a single running
-android emulator--not ios.  But you can launch a deep link in xcode using:
+The linklaunch script will first attempt to connect to a running android
+emulator.  If none is found, it will try to connect to a running IOS emulator.
+
+You can launch manually on IOS using something like:
 ```
   xcrun simctl openurl booted "deep link"			#or
   xcrun simctl openurl booted "$(bin/adminticket -q)"

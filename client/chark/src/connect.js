@@ -16,13 +16,15 @@
 import * as Keychain from 'react-native-keychain';
 
 import constants from './config/constants';
+const UserAgent = "MyCHIPs Chark Client"
+const headers = {"user-agent": UserAgent, cookie: (Math.random()).toString()}
 
 const ClientAPI = require('wyseman/lib/client_ws')
 //var user = 'admin'
 
-const myFetch = function(uri, options) {
-  console.log("Local fetch")
-  return fetch(uri, options)
+const myFetch = function(uri) {
+  console.log("Local fetch: ", uri)
+  return fetch(uri, {headers})
 }
 const debug = console.log
 //console.log('Crypto:', window.crypto.subtle)
@@ -74,11 +76,11 @@ debug("Error saving connection key:", err.message)
    */
   credConnect(creds, cb = null) {
     let address = `${creds.host}:${creds.port}`
-console.log('Pre:', creds)
+
     if (this.ws) return
     this.api.uri(creds).then(wsURI => {			//Build connection URI	
 debug('Connect:', wsURI)
-      this.ws = new WebSocket(wsURI)			//Open websocket to backend
+      this.ws = new WebSocket(wsURI, '', {headers})	//Open websocket to backend
 
       this.ws.onclose = () => this.wm.onClose()
       this.ws.onopen = () => {

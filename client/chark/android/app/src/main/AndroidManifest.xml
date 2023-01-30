@@ -32,7 +32,7 @@
           <action android:name="android.intent.action.VIEW" />
           <category android:name="android.intent.category.DEFAULT" />
           <category android:name="android.intent.category.BROWSABLE" />
-          <data android:scheme="mychips" android:host="connect"/>
+          <data android:scheme="mychips" />
         </intent-filter>
       </activity>
     </application>
