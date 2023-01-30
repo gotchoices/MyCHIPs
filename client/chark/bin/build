@@ -1,10 +1,38 @@
 #!/bin/bash
+#Build android and/or IOS release images
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+target=all
+path_a="android/app/build/outputs/apk/release/app-release.apk"
+path_i=""
+mydir="$(dirname $BASH_SOURCE)"		#Where this script is
 
-cd android 
-./gradlew assembleRelease
+build_ios() {
+  echo "IOS not yet implemented"
+}
+path_ios() {
+  echo "IOS path yet implemented"
+}
 
-Green='\033[1;32m'
-Yellow='\033[1;33m'
-NC='\033[0m' # No Color
+build_android() {
+  cd $mydir/../android 
+  ./gradlew assembleRelease
 
-echo -e "${Yellow}Path(if the build is successful):${Green} android/app/build/outputs/apk/release${NC}"
+  cd $mydir/..
+}
+path_android() {
+  echo "Path to APK:${mydir}/${path_a}"
+}
+
+if [ "$1" = "all" ]; then
+  build_android
+  build_ios
+  path_android
+  path_ios
+elif [ "$1" = "ios" ]; then
+  build_ios
+  path_ios
+else
+  build_android
+  path_android
+fi

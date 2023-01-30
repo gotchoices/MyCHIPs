@@ -9,7 +9,7 @@
     "test": "jest",
     "lint": "eslint .",
     "develop": "bin/develop",
-    "build-apk": "bin/build"
+    "build": "bin/build"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",

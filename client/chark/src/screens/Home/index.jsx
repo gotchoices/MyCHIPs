@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Linking } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native';
 
 import Button from '../../components/Button';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
 import { parse } from '../../utils/query-string';
 import { query_user } from '../../utils/user';
+import { getLinkHost } from '../../utils/common';
 
 const Wm = require('../../../src/wyseman')
 
@@ -21,7 +23,7 @@ console.log('Data:', JSON.stringify(data,null,2))
   })
 }
 
-const HomeScreen = ({ navigation, conn }) => {
+const HomeScreen = ({ navigation, conn, ...props }) => {
   const { setUser } = useCurrentUser();
 
   const connect = (ticket) => {
@@ -36,24 +38,36 @@ const HomeScreen = ({ navigation, conn }) => {
 
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
-      if(url) {
-        const obj = parse(url);
-        connect({ ticket: obj });
+      const host = getLinkHost(url ?? '');
+      if(host !== 'connect') {
+        return;
       }
+
+      const obj = parse(url);
+      connect({ ticket: obj });
     });
 
-    const listener = Linking.addEventListener('url', ({url}) => {
-      if(url) {
+  }, []);
+
+
+  useFocusEffect(
+    useCallback(() => {
+      const listener = Linking.addEventListener('url', ({url}) => {
+        const host = getLinkHost(url ?? '');
+        if(host !== 'connect') {
+          return;
+        }
+
         const obj = parse(url);
         connect({ ticket: obj });
-      }
-    })
+      })
 
-    return () => {
-      conn.disconnect();
-      listener.remove();
-    };
-  }, []);
+      return () => {
+        listener.remove();
+      };
+
+    }, [])
+  );
 
   const getTallies = () => {
     navigation.navigate('Tallies')
