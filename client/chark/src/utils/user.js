@@ -1,10 +1,9 @@
-const Wm = require('../../src/wyseman');
 
 let pktId = 1
 
-export function query_user() {
+export function query_user(wm) {
   return new Promise((resolve, reject) => {
-    Wm.request(pktId++, 'select', {
+    wm.request(pktId++, 'select', {
       view: 'base.ent_v',
       table: 'base.curr_eid',
       params: []

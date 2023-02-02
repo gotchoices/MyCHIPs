@@ -3,6 +3,8 @@ import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import { colors } from '../../../config/constants';
+import useSocket from '../../../hooks/useSocket';
+
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
@@ -10,6 +12,7 @@ import Button from '../../../components/Button';
 const EditOpenTally = (props) => {
   const tally_seq = props.tally_seq;
   const tally_ent = props.tally_ent;
+  const { wm } = useSocket();
 
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
@@ -29,7 +32,7 @@ const EditOpenTally = (props) => {
       },
     }
 
-    props.wm.request('_inv_ref', 'select', spec, data => {
+    wm.request('_inv_ref', 'select', spec, data => {
       setLoading(false);
       if(data?.length) {
         const _tally = data?.[0];

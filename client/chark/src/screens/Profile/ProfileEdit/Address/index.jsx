@@ -8,6 +8,7 @@ import { request, getAddresses } from '../../../../services/profile';
 import { random } from '../../../../utils/common';
 import useCurrentUser from '../../../../hooks/useCurrentUser';
 import useProfile from '../../../../hooks/useProfile';
+import useSocket from '../../../../hooks/useSocket';
 
 import AddressInput from './AddressInput';
 import HelpText from '../../../../components/HelpText';
@@ -31,7 +32,7 @@ const Address = (props) => {
       //view: ['mychips.country'],
     //}
 
-    //request(props.wm, `country_ref_${random(1000)}`, 'select', spec).then(response => {
+    //request(wm, `country_ref_${random(1000)}`, 'select', spec).then(response => {
       //console.log('hello', response)
       //setCountries(response);
     //})
@@ -118,7 +119,7 @@ const Address = (props) => {
         }
 
         promises.push(
-          request(props.wm, `mail_update_${random(1000)}`, 'update', spec)
+          request(wm, `mail_update_${random(1000)}`, 'update', spec)
         )
       } else {
         const spec = {
@@ -126,7 +127,7 @@ const Address = (props) => {
           view: 'mychips.addr_v_me',
         }
         promises.push(
-          request(props.wm, `mail_update_${random(1000)}`, 'insert', spec)
+          request(wm, `mail_update_${random(1000)}`, 'insert', spec)
         )
       }
     })
@@ -142,7 +143,7 @@ const Address = (props) => {
         }
 
         promises.push(
-          request(props.wm, `remove_addr_${random(1000)}`, 'delete', spec)
+          request(wm, `remove_addr_${random(1000)}`, 'delete', spec)
         )
       })
     }
@@ -161,7 +162,7 @@ const Address = (props) => {
   }
 
   const updateAddressList = () => {
-    getAddresses(props.wm, user_ent).then((response) => {
+    getAddresses(wm, user_ent).then((response) => {
       setAddresses(response);
     })
   }

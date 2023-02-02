@@ -5,6 +5,7 @@ import { View, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView, Modal 
 import { colors } from '../../config/constants';
 import { request } from '../../services/profile';
 import { random } from '../../utils/common';
+import useSocket from '../../hooks/useSocket';
 
 import TemplateItem from './TemplateItem';
 import ShareTally from './ShareTally';
@@ -12,13 +13,13 @@ import CenteredModal from '../../components/CenteredModal';
 import Button from '../../components/Button';
 
 const TallyInvite = (props) => {
-  const wm = props.wm;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedTallySeq, setSelectedTallySeq] = useState();
   const [tallyShareInfo, setTallyShareInfo] = useState();
   const [isVisible, setIsVisible] = useState(false);
   const [generatingInvite, setGeneratingInvite] = useState(false);
+  const { wm } = useSocket();
 
   useEffect(() => {
     fetchTemplates();
@@ -107,7 +108,7 @@ console.log('Insert done')
       }
     }
 
-    request(props.wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
+    request(wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
       setGeneratingInvite(false);
       setTallyShareInfo({
         json: data,
