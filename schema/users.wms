@@ -271,8 +271,8 @@ function {mychips.ticket_login(info jsonb)} {mychips.ticket_login(text)} {
       if found and info->>'reqType' = 'register' then
         return null;			-- Should return a useful error here
       end if;
-      select into uid id from mychips.users_v where ent_name = info->>'ent_name'
-          and (ent_type = 'o' and info->>'fir_name' isnull or fir_name = info->>'fir_name')
+      select into uid id from mychips.users_v where ent_name = trim(info->>'ent_name')
+          and (ent_type = 'o' and info->>'fir_name' isnull or fir_name = trim(info->>'fir_name'))
           and (born_date = (info->>'born_date')::date);
       if not found then 
         if info->>'reqType' != 'register' or info->>'tos' != 'true' or info->>'ent_type' isnull then
