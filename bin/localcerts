@@ -78,7 +78,7 @@ for type in ${pargs[*]}; do
 #    peer)
 #      npm run cert --silent -- -t peer "${host}.%";;
     *)
-      echo "Unknown certificate type: $type";
+      echo "Unknown certificate type: $type" >&2;
       exit 1;;
   esac
 done
