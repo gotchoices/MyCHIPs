@@ -79,7 +79,7 @@ describe("JSON certificate import/export", function() {
       , fileObj = JSON.parse(fileData).cert
     delete fileObj.date
     let fileStr = Stringify(fileObj)
-      , sql = "select to_json(s) as cert from (select * from json.cert where id = $1) s"
+      , sql = "select json_strip_nulls(to_json(s)) as cert from (select * from json.cert where id = $1) s"
     db.query(sql, ['p1003'] ,(err, res) => {if (err) done(err)
       assert.equal(res.rowCount, 1)
       let cert = res.rows[0].cert
