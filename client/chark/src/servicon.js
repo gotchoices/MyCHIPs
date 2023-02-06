@@ -8,6 +8,21 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
+import useSocket from './hooks/useSocket';
+
+const ServIcon = () => {
+  const { status } = useSocket();
+
+  return (
+    <View>
+      <Text style={{ paddingLeft: 14 }}>
+        {status}
+      </Text>
+    </View>
+  )
+}
+
+  /*
 export default class ServIcon extends Component {
   constructor(props) {
     super(props)
@@ -25,6 +40,7 @@ console.log('Connection address:', addr)
     </View>
   )}
 }
+*/
 
 //const styles = StyleSheet.create({
 //  buttonBox: {
@@ -34,3 +50,6 @@ console.log('Connection address:', addr)
 //    flex: 1,
 //  },
 //})
+//
+
+export default ServIcon;

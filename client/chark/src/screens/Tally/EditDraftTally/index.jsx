@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 
 import { colors } from '../../../config/constants';
+import useSocket from '../../../hooks/useSocket';
+
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
@@ -18,6 +20,7 @@ import Button from '../../../components/Button';
 const EditTally = (props) => {
   const tally_seq = props.tally_seq;
   const tally_ent = props.tally_ent;
+  const { wm } = useSocket();
 
   const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,7 +55,7 @@ const EditTally = (props) => {
       }
     }
 
-    props.wm.request('_inv_ref', 'select', spec, data => {
+    wm.request('_inv_ref', 'select', spec, data => {
       setLoading(false);
       setRefreshing(false);
       const _tally = data?.[0];
@@ -113,7 +116,7 @@ const EditTally = (props) => {
       },
     }
 
-    props.wm.request('_tpt_ref', 'update', spec, data => {
+    wm.request('_tpt_ref', 'update', spec, data => {
       setUpdating(false);
     });
   }

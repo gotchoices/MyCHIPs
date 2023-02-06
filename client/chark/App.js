@@ -40,18 +40,11 @@ import UserProvider from './src/components/UserProvider';
 import ProfileProvider from './src/components/ProfileProvider';
 import ProfileEdit from './src/screens/Profile/ProfileEdit';
 import TallyAccept from './src/screens/TallyAccept';
-
-const Connect = require('./src/connect')
+import SocketProvider from './src/components/SocketProvider';
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
-const Wm = require('./src/wyseman')
 
 const debug = console.log
-var conn = new Connect({
-  webcrypto: window.crypto,
-  listen: listen,
-  wm: Wm
-})
 
 function GlobalMenu(p) {
   return (
@@ -78,7 +71,7 @@ function GlobalMenu(p) {
 function HomeScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Home conn={conn} navigation={navigation} />
+      <Home navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -96,7 +89,7 @@ function ReceiveScreen({ navigation }) {
 function ScanScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Scanner conn={conn} navigation={navigation} />
+      <Scanner navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -105,7 +98,7 @@ function ScanScreen({ navigation }) {
 function InviteScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
-      <Invite wm={Wm} navigation={navigation} />
+      <Invite navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -114,7 +107,7 @@ function InviteScreen({ navigation }) {
 function SettingsScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
-      <Setting wm={Wm} navigation={navigation} />
+      <Setting navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -123,7 +116,7 @@ function SettingsScreen({ navigation }) {
 function TallyScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
-      <Tally wm={Wm} navigation={navigation} />
+      <Tally navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -132,7 +125,7 @@ function TallyScreen({ navigation }) {
 function TallyReportScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
-      <TallyReport wm={Wm} navigation={navigation} />
+      <TallyReport navigation={navigation} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -143,7 +136,7 @@ function TallyEditScreen({ route, navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <EditDraftTally wm={Wm} tally_seq={tally_seq} tally_ent={tally_ent} />
+      <EditDraftTally tally_seq={tally_seq} tally_ent={tally_ent} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -154,7 +147,7 @@ function OpenTallyEditScreen({ route, navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <EditOpenTally wm={Wm} tally_seq={tally_seq} tally_ent={tally_ent} />
+      <EditOpenTally tally_seq={tally_seq} tally_ent={tally_ent} />
       <GlobalMenu nav={navigation} />
     </View>
   );
@@ -163,7 +156,7 @@ function OpenTallyEditScreen({ route, navigation }) {
 function ProfileScreen(props) {
   return (
     <View style={{ flex: 1 }}>
-      <Profile wm={Wm} {...props} />
+      <Profile {...props} />
       <GlobalMenu nav={props.navigation} />
     </View>
   );
@@ -172,7 +165,7 @@ function ProfileScreen(props) {
 function ProfileEditScreen(props) {
   return (
     <View style={{ flex: 1 }}>
-      <ProfileEdit wm={Wm} {...props} />
+      <ProfileEdit {...props} />
       <GlobalMenu nav={props.navigation} />
     </View>
   );
@@ -181,7 +174,7 @@ function ProfileEditScreen(props) {
 function TallyAcceptScreen(props) {
   return (
     <View style={{ flex: 1 }}>
-      <TallyAccept wm={Wm} {...props} />
+      <TallyAccept {...props} />
       <GlobalMenu nav={props.navigation} />
     </View>
   );
@@ -203,47 +196,33 @@ const linking = {
 };  
 
 function App() {
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if(!conn.ws) {
-      setLoading(true);
-      conn.connect(null, (err, connected) => {
-        setLoading(false);
-
-        if(err) {
-          console.log('Error connecting using key: ', err)
-          return;
-        } 
-      });
-    }
-  }, []);
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
-    <NavigationContainer linking={linking}>
-      <ServIcon wm={Wm} connecting={loading} />
-      <PolyfillCrypto />
+      <NavigationContainer linking={linking}>
         <UserProvider>
-          <ProfileProvider wm={Wm}>
-            <Stack.Navigator initialRouteName="Home">
-              <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
-              <Stack.Screen name="Receive" component={ReceiveScreen} />
-              <Stack.Screen name="Scan" component={ScanScreen} />
-              <Stack.Screen name="Invite" component={InviteScreen} />
-              <Stack.Screen name="Settings" component={SettingsScreen} />
-              <Stack.Screen name="Tallies" component={TallyScreen} />
-              <Stack.Screen name="TallyReport" component={TallyReportScreen} />
-              <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
-              <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
-              <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
-              <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
-              <Stack.Screen name="TallyAccept" component={TallyAcceptScreen} options={{ title: 'Edit Profile' }} />
-            </Stack.Navigator>
-          </ProfileProvider>
+          <SocketProvider>
+            <ServIcon />
+            <PolyfillCrypto />
+              <ProfileProvider>
+                <Stack.Navigator initialRouteName="Home">
+                  <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
+                  <Stack.Screen name="Receive" component={ReceiveScreen} />
+                  <Stack.Screen name="Scan" component={ScanScreen} />
+                  <Stack.Screen name="Invite" component={InviteScreen} />
+                  <Stack.Screen name="Settings" component={SettingsScreen} />
+                  <Stack.Screen name="Tallies" component={TallyScreen} />
+                  <Stack.Screen name="TallyReport" component={TallyReportScreen} />
+                  <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
+                  <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
+                  <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+                  <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
+                  <Stack.Screen name="TallyAccept" component={TallyAcceptScreen} options={{ title: 'Edit Profile' }} />
+                </Stack.Navigator>
+              </ProfileProvider>
+            <Toast />
+          </SocketProvider>
         </UserProvider>
-      <Toast />
-    </NavigationContainer>
+      </NavigationContainer>
     </SafeAreaView>
   );
 }

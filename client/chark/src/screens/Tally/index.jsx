@@ -1,18 +1,20 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet, FlatList, TouchableWithoutFeedback } from 'react-native';
 
+import useSocket from '../../hooks/useSocket';
 import constants from '../../config/constants';
 import { round} from '../../utils/common';
 import Banner from './Banner';
 import Search from './Search';
 import TallyItem from './TallyItem';
+
 let pktId = 1;
 
 const Tally = (props) => {
-  const wm = props.wm;
   const [loading, setLoading] = useState(true);
   const [tallies, setTallies] = useState([]);
   const [currentUser, setCurrentUser] = useState('');
+  const { wm } = useSocket();
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
@@ -33,7 +35,7 @@ const Tally = (props) => {
   }, [])
 
   const fetchCurrentUser = () => {
-    props.wm.request(pktId++, 'select', {
+    wm.request(pktId++, 'select', {
       view: 'base.ent_v',
       table: 'base.curr_eid',
       params: []

@@ -15,6 +15,7 @@ import Button from '../../../components/Button';
 import { colors } from '../../../config/constants';
 import { languageMap } from '../../../utils/language';
 import { random } from '../../../utils/common';
+import useSocket from '../../../hooks/useSocket';
 
 const deviceLocale =
   Platform.OS === 'ios'
@@ -37,9 +38,10 @@ const fallbackLanguages = [
 const Language = (props) => {
   const [preferredLanguage, setPreferredLanguage] = useState(deviceLanguage ?? 'eng');
   const [languages, setLanguages] = useState([]);
+  const { wm } = useSocket();
 
   useEffect(() => {
-    props.wm.request(`language_ref_${random(1000)}`, 'select', {
+    wm.request(`language_ref_${random(1000)}`, 'select', {
       view: 'base.language_v',
       fields: ['code', 'eng_name', 'tables'],
       where: {
@@ -52,7 +54,7 @@ const Language = (props) => {
   }, [])
 
   const onSave = () => {
-    props.wm.newLanguage(preferredLanguage);
+    wm.newLanguage(preferredLanguage);
     props.onCancel();
   }
 

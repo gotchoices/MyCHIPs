@@ -7,7 +7,6 @@ import constants, { colors } from '../../../config/constants';
 import CustomText from '../../../components/CustomText';
 
 const TallyReport = (props) => {
-  const wm = props.wm;
 
   const navigateBalanceSheet = () => {
     props.navigation.navigate('Tallies');
