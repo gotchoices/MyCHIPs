@@ -1,11 +1,11 @@
 TODO:
 
+X- Deploy APK to somewhere for downloading (mychips.org)
+- Register with testflight
+- Test that simulations still run
+- Merge to master
+
 - Refine/document report protocol in backend:
-X-  Wyseman caches language data
-X-  Reports can display in preferred language
-X-  Clean up control layer reports
-X-  Tally invitation works in web app
-X-  Remove experimental code in wylib/wyseman
 -  Tally invitation QR report still works in mobile app
 -  Commit changes
 -  
@@ -19,8 +19,6 @@ X-  Remove experimental code in wylib/wyseman
 -  Move pki/local under local?
 -  Move sim/local under local/sim?
 -  Move test/local under local/test?
--  
-- Merge to master?
 -  
 - Can we serve user photos from the document server?
 -  Add user photo (document) database table?

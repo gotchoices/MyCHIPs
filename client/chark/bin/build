@@ -5,34 +5,46 @@
 target=all
 path_a="android/app/build/outputs/apk/release/app-release.apk"
 path_i=""
+orgdir=$(pwd)
 mydir="$(dirname $BASH_SOURCE)"		#Where this script is
 
 build_ios() {
-  echo "IOS not yet implemented"
+  echo "IOS build not yet implemented"
 }
+
 path_ios() {
   echo "IOS path yet implemented"
+}
+
+deploy_ios() {
+  echo "IOS deploy yet implemented"
 }
 
 build_android() {
   cd $mydir/../android 
   ./gradlew assembleRelease
 
-  cd $mydir/..
+  cd $orgdir
 }
+
 path_android() {
-  echo "Path to APK:${mydir}/${path_a}"
+  echo "Path to APK:${path_a}"
+}
+
+deploy_android() {
+  if [ ! -z "$MYCHIPS_ANDROID_APK_DEPLOY" ]; then
+    echo "Deploying Android APK:${path_a} to $MYCHIPS_ANDROID_API_DEPLOY"
+    scp ${mydir}/../${path_a} $MYCHIPS_ANDROID_APK_DEPLOY
+  fi
 }
 
 if [ "$1" = "all" ]; then
-  build_android
-  build_ios
-  path_android
-  path_ios
+  build_android;	build_ios;	deploy_ios
+  path_android;		path_android;	deploy_android
+
 elif [ "$1" = "ios" ]; then
-  build_ios
-  path_ios
+  build_ios;		path_ios;	deploy_ios
+
 else
-  build_android
-  path_android
+  build_android;	path_android;	deploy_android
 fi
