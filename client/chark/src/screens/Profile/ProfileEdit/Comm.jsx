@@ -16,6 +16,7 @@ import { request } from '../../../services/profile';
 import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
 import { getComm } from '../../../services/profile';
+import useSocket from '../../../hooks/useSocket';
 
 import HelpText from '../../../components/HelpText';
 import CenteredModal from '../../../components/CenteredModal';
@@ -38,6 +39,7 @@ const Comm = (props) => {
   const user_ent = user?.curr_eid;
   const [seqToRemove, setSeqToRemove] = useState([]);
   const [primary, setPrimary] = useState();
+  const { wm } = useSocket();
 
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -72,7 +74,7 @@ const Comm = (props) => {
   }, [keys, byKey]) 
 
   const updateCommunicationList = () => {
-    getComm(props.wm, user_ent).then((response) => {
+    getComm(wm, user_ent).then((response) => {
       setCommunications(response);
     })
   }
@@ -121,7 +123,7 @@ const Comm = (props) => {
         }
 
         promises.push(
-          request(props.wm, pkt++, 'update', spec)
+          request(wm, pkt++, 'update', spec)
         )
       } else {
         const spec = {
@@ -133,7 +135,7 @@ const Comm = (props) => {
           view: 'mychips.comm_v_me',
         }
         promises.push(
-          request(props.wm, pkt++, 'insert', spec)
+          request(wm, pkt++, 'insert', spec)
         )
       }
     })
@@ -149,7 +151,7 @@ const Comm = (props) => {
         }
 
         promises.push(
-          request(props.wm, pkt++, 'delete', spec)
+          request(wm, pkt++, 'delete', spec)
         )
       })
 
@@ -219,7 +221,7 @@ const Comm = (props) => {
       },
     }
 
-    return request(props.wm, `change_primary_${pkt++}`, 'update', spec).then(() => {
+    return request(wm, `change_primary_${pkt++}`, 'update', spec).then(() => {
       updateCommunicationList();
     }) 
   }

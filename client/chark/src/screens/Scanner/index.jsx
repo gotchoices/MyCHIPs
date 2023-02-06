@@ -2,16 +2,19 @@ import React, { useState, useEffect, useRef } from 'react'
 import { StyleSheet, Text, ActivityIndicator, Modal, View, Button, TextInput, Alert } from 'react-native';
 import { useCameraDevices, useFrameProcessor, Camera } from 'react-native-vision-camera';
 import { useScanBarcodes, BarcodeFormat, scanBarcodes } from 'vision-camera-code-scanner';
+import * as Keychain from 'react-native-keychain';
 
 import { parse } from '../../utils/query-string';
 import { colors } from '../../config/constants';
 import { query_user } from '../../utils/user';
+import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
 
 const Scanner = (props) => {
   const devices = useCameraDevices();
   const device = devices.back;
   const { setUser } = useCurrentUser();
+  const { connectSocket, disconnectSocket, wm } = useSocket();
 
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -72,20 +75,19 @@ const Scanner = (props) => {
       ticket.user = username;
     }
 
-    props.conn.connect({
+    connectSocket({
       ticket,
     }, (err, connected) => {
       if(err) {
         setIsActive(true);
         setIsConnecting(false);
-        props.conn.ws = null;
+        Keychain.resetGenericPassword();
+        disconnectSocket();
+
         Alert.alert(err.message);
       } else if (connected){
         setIsConnecting(false);
-        query_user().then((data) => {
-          setUser(data?.[0]);
-          props.navigation.navigate('Home');
-        })
+        props.navigation.navigate('Home');
       }
 
       setUsername(false);
