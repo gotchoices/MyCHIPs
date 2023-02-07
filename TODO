@@ -3,6 +3,7 @@ TODO:
 X- Deploy APK to somewhere for downloading (mychips.org)
 X- Register with testflight
 X- Test that simulations still run
+- Stray state in Tally state diagram
 - Publish latest Wyatt libs
 - Merge to master
 - Publish mychips to npmjs.org? (or remove same)

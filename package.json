@@ -1,6 +1,6 @@
 {
   "name": "mychips",
-  "version": "0.1.13",
+  "version": "0.2.0",
   "description": "Reference MyCHIPs server",
   "main": "lib/mychips.js",
   "preferGlobal": "true",
@@ -76,10 +76,10 @@
     "vue": "^2.6.14",
     "winston": "^3.3.3",
     "ws": "^7.5.5",
-    "wyclif": "^1.0.17",
-    "wylib": "^1.0.30",
-    "wyselib": "^1.0.26",
-    "wyseman": "^1.1.8",
+    "wyclif": "^1.0.18",
+    "wylib": "^1.0.31",
+    "wyselib": "^1.0.27",
+    "wyseman": "^1.1.10",
     "yaml": "^1.10.2",
     "yargs": "^15.4.1",
     "yargs-parser": "^18.1.3"

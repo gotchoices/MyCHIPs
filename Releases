@@ -1,5 +1,22 @@
 Change Log:
 
+0.2.0	2023-Feb
+	- Improved control layer reports
+	- React Native mobile app (chark)
+	- Implement cross-platform JS client API
+	- Template for building CHIP service provider
+	- Improved chit consensus
+	- Improved docker support
+	- Reorganized documentation
+	- CID:Agent addressing model
+	- Noise P2p protocol implemented 
+	- Regression testing suite
+	- Model3 simulator (BYU)
+	- Flutter Mobile App project (BYU)
+	- New network visualizer graph
+	- Improved COQ analysis (BYU)
+	- New P2P protocol 1.0+ drafted
+
 0.1.13	2021-Feb
 	- Command-line demo program for UI connections
 	- Use UML for system modeling and diagrams

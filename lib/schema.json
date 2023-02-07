@@ -1,5 +1,5 @@
 {
- "hash": "F8kHhATLqu/u9nAPSdA/7SppXXCTTAsbAAVLADu5GGY=",
+ "hash": "m1G+Xc76W8c93rjGcEfUKHwYq+peFcf8Em2/QkBHq48=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -368,7 +368,7 @@
    "col_data": [
     "pri,role,member"
    ],
-   "create": "eJyNkMEKwjAQRM/6FXORKIigV/FLREK0a40m2bKJLf69SZVWvOgeZ+YtzJyETCK0ljp0fiXsSHvyR5IIExHJ0SlBuDjBeJrky3rJTYElPH06xXrRvTmPSWyodWJtRMxjPv5ZKq0Wi/36UJBGbPsnsOkBRy25TABnYY/3TZpam3u6jAV8n7myDd8ZW70FYXAoBTlLu4z0G9jqN+mpkHmAgRyqA92FhBD4czs4eyOo/Gemtk8NO3P2",
+   "create": "eJyNkMEKwjAQRM/1K+YibaEIelT8EpEQ29VGk6xsY4t/b1Klihfd48y8hZlaSAdCb2jA4BbClpQjdyDpoDt0ZKkOEE6O146yeFFPuRlQwdGnk6wnPZpFF8T4kwqstIi+F+8/Va7ystwt9wm5iun/BFb79dr4kChLPdmIAUdhh9dl15PSt9C+W7gxc2bjvzOmeQnCYJ9acpS2ERmHMM1v0lEi4woTOfUHhpaE4PlzQFhzIeTxzzzfPACRnHW1",
    "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVijP1SvKz0mNz03NTUotKrYGAPrDDak="
   },
   {
@@ -521,7 +521,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJx1UstSwzAMPLdfsYcy0Jm0P5CBA3DnEzqOo6QeHLvITkv/HtlOn0AycWRZWq1W1kwqErrR6Wi8Q6MCrXds9hv2lp5GpwZCWiokLyJ9xwqW9jAuLsEUR3YBjZdo5RBIj2ziES11xhHDKtePqifs7K4PXxYhqsYSVMBiMYc8LWmrmLINRCY9k89zW2dXQ71x06HpUAg9Q8owubhpleAJ56cl4pbcbLZa4aOL5ARplL484/0V/iBcJhBMpHNAPTnJtYJ+2qWsRER6xDkrkCUdkWSpMNDQEBdNshxk0bEfcBjWKWJTAgJYXFtimjKEeelASUEestLiyz8pKp6CZQLcaK34WklqjpeTloKG9X43Z2WCzMZHowmPb1vSn8b1eDi9j1WpVeVe1oV4NgvrbGbQyS4U63PHWfCSe80zUb/k4uU5X4ek/lXmPzpnrW044d42+weEBN7dyKtezuKX2d/Uu5vo7xmXfRKyvr8YnbJhYiwx9XyxqH8AEkz8Xw==",
+   "create": "eJx1UkFugzAQPCevmAOHVEryAZQeqt77hMjAQiwZm65t0vy+a5ukSdoigfCwMzs7S8ukAqGPtg3aWTTK035iPR/ZGdpEq0ZCemwx8YxAX2ELQzO0DS9gCpGtR+OkWFl4aiPrcEFHvbbEMMoOUQ2EyUyD/zTwQTWGoDyqag25OmqNYsrvQGBqV3I77uoMNTRou3zUPYqfA6QNkw3HTomeWN68IJzIrla7HT76QFaUoozlGO9vcGfxsohgMZ0L6gUk24n69ZRYyYjMiBvLk6E2IKWyxUhjQ5wi0XOOgwx6diPO4z5VHEuBBwt0IqaFIc7LBEoa8piDFiwlKz0FKFLaw0ZjBOuE01x+vnTkWxjnpvXNWM4l2b1XS/oZK7TXQ95ZiuiO908YORDjr6qPlv6QkMKnvybzSlJiJgdU9vPQ7in133so5zRt/by8Xhm/GJaael1V9Tfsit1w",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVZISixO1SsoyiyLL8rPSdXIS8xN1SlJrSjRycwr0bQGADXFFDs="
   },
   {
@@ -3402,6 +3402,7 @@
    "max_rel": 1,
    "deps": [
     "base.ent_v",
+    "base.priv_has(text,int)",
     "mychips.agents",
     "mychips.users"
    ],
