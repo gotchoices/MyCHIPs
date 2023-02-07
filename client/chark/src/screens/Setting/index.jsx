@@ -7,6 +7,7 @@ import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
 import { getPersonal } from '../../services/profile';
 import { languageMap } from '../../utils/language';
+import useSocket from '../../hooks/useSocket';
 
 import Language from './Language';
 import CenteredModal from '../../components/CenteredModal';
@@ -21,6 +22,7 @@ const deviceLanguage =
 
 const Setting = (props) => {
   const [isLangModalVisible, setIsLangModalVisible] = useState(false);
+  const { wm } = useSocket();
 
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
@@ -30,7 +32,7 @@ const Setting = (props) => {
   } = useProfile();
 
   useEffect(() => {
-    getPersonal(props.wm, user_ent).then(data => {
+    getPersonal(wm, user_ent).then(data => {
       setPersonal(data);
     });
   }, [])
@@ -92,7 +94,7 @@ const Setting = (props) => {
         isVisible={isLangModalVisible}
         onClose={onCancel}
       >
-        <Language wm={props.wm} onCancel={onCancel} />
+        <Language onCancel={onCancel} />
       </CenteredModal>
     </View>
   )

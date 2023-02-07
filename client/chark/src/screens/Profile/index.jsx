@@ -10,6 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { colors } from '../../config/constants';
+import useSocket from '../../hooks/useSocket';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
@@ -22,6 +23,7 @@ import Address from './Address';
 
 const Profile = (props) => {
   const [avatar, setAvatar] = useState(undefined);
+  const { wm } = useSocket();
 
   const {
     communications,
@@ -37,15 +39,15 @@ const Profile = (props) => {
   const user_ent = user?.curr_eid;
 
   useEffect(() => {
-    getComm(props.wm, user_ent).then(data => {
+    getComm(wm, user_ent).then(data => {
       setCommunications(data);
     })
 
-    getAddresses(props.wm, user_ent).then(data => {
+    getAddresses(wm, user_ent).then(data => {
       setAddresses(data);
     })
 
-    getLang(props.wm).then(data => {
+    getLang(wm).then(data => {
       setLang(data);
     })
   }, [])

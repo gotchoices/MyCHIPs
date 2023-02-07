@@ -17,7 +17,6 @@ const ProfileEdit = (props) => {
   if(profileType === 'email') {
     return (
       <Comm 
-        wm={props.wm}
         profileType="email"
       />
     )
@@ -26,7 +25,6 @@ const ProfileEdit = (props) => {
   if(profileType === 'phone') {
     return (
       <Comm 
-        wm={props.wm}
         profileType="phone"
       />
     )
@@ -34,17 +32,13 @@ const ProfileEdit = (props) => {
 
   if(profileType === 'personal') {
     return (
-      <PersonalBio
-        wm={props.wm}
-      />
+      <PersonalBio />
     )
   } 
 
   if(profileType === 'address') {
     return (
-      <Address
-        wm={props.wm}
-      />
+      <Address />
     )
   } 
 

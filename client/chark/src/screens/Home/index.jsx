@@ -8,14 +8,13 @@ import useCurrentUser from '../../hooks/useCurrentUser';
 import { parse } from '../../utils/query-string';
 import { query_user } from '../../utils/user';
 import { getLinkHost } from '../../utils/common';
-
-const Wm = require('../../../src/wyseman')
+import useSocket from '../../hooks/useSocket';
 
 const ticket = require('../../../assets/ticket.json')
 
 var pktId = 1
-function query_users() {
-  Wm.request(pktId++, 'select', {
+function query_users(wm) {
+  wm.request(pktId++, 'select', {
     view: 'mychips.users_v_me',
     fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
   }, data => {
@@ -23,17 +22,12 @@ console.log('Data:', JSON.stringify(data,null,2))
   })
 }
 
-const HomeScreen = ({ navigation, conn, ...props }) => {
+const HomeScreen = ({ navigation, ...props }) => {
   const { setUser } = useCurrentUser();
+  const { connectSocket, disconnectSocket, wm, ws } = useSocket();
 
   const connect = (ticket) => {
-    conn.connect(ticket, (err, connected) => {
-      if(connected) {
-        query_user().then((data) => {
-          setUser(data?.[0]);
-        })
-      }
-    })
+    connectSocket(ticket);
   }
 
   useEffect(() => {
@@ -82,7 +76,7 @@ const HomeScreen = ({ navigation, conn, ...props }) => {
   }
 
   const querySessionUser = () => {
-    query_user().then((data) => {
+    query_user(wm).then((data) => {
       console.log(JSON.stringify(data, null, 2))
     })
   }
@@ -100,11 +94,11 @@ const HomeScreen = ({ navigation, conn, ...props }) => {
       />
       <Button
         title="Disconnect"
-        onPress={() => conn.disconnect()}
+        onPress={() => disconnectSocket()}
       />
       <Button
         title="Query Users"
-        onPress={query_users}
+        onPress={() => query_users(wm)}
       />
       <Button
         title="Query Session User"

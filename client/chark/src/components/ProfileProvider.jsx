@@ -4,7 +4,7 @@ import ProfileContext from '../context/ProfileContext';
 import useCurrentUser from '../hooks/useCurrentUser';
 import { getComm, getPersonal, getAddresses, getLang } from '../services/profile';
 
-const ProfileProvider = ({ wm, children }) => {
+const ProfileProvider = ({ children }) => {
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
 

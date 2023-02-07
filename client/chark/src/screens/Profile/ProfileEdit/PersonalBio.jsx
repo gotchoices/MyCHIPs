@@ -11,12 +11,15 @@ import { colors } from '../../../config/constants';
 import { request } from '../../../services/profile';
 import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
+import useSocket from '../../../hooks/useSocket';
+
 import HelpTextInput from '../../../components/HelpTextInput';
 import Button from '../../../components/Button';
 
 const PersonalBio = (props) => {
   const { user } = useCurrentUser();
   const { lang, personal, setPersonal } = useProfile();
+  const { wm } = useSocket();
   const user_ent = user?.curr_eid;
 
   const [updating, setUpdating] = useState(false);
@@ -45,7 +48,7 @@ const PersonalBio = (props) => {
       view: 'mychips.users_v_me',
     }
 
-    request(props.wm, '_tax_ref', 'update', spec).finally(() => {
+    request(wm, '_tax_ref', 'update', spec).finally(() => {
       Toast.show({
         type: 'success',
         text1: 'Changes saved successfully.',
