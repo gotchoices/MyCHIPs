@@ -67,7 +67,7 @@ table mychips.users {base.ent mychips.agents} {
 #define cAgent {coalesce(ue.peer_agent, pp.pagent)}
 #define cHost {coalesce(ag.agent_host, pp.phost)}
 #define cPort {coalesce(ag.agent_port, pp.pport)}
-view mychips.users_v {mychips.users base.ent_v mychips.agents} {select 
+view mychips.users_v {mychips.users base.ent_v mychips.agents base.priv_has(text,int)} {select 
     eval(fld_list $users::ent_se	ee)
   , eval(fld_list $users::users_se	ue)
   , eval(fld_list $users::agents_se	ag)
