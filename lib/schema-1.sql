@@ -881,7 +881,7 @@ id		text		primary key
   , ent_cmt	text
   , born_date	date
   , username	text		unique
-  , conn_pub	text
+  , conn_pub	jsonb
   , ent_inact	boolean		not null default false
   , country	varchar(3)	not null default 'US' references base.country on update cascade
   , tax_id	text          , unique(country, tax_id)
@@ -898,6 +898,22 @@ id		text		primary key
   , mod_by	name		not null default session_user references base.ent (username) on update cascade
 
 );
+create view base.language_v as select l.*,
+  tt.count as tables,
+  ct.count as columns,
+  vt.count as values,
+  mt.count as messages
+  
+  from		base.language	l
+  left join	(select language, count(title) from wm.table_text group by 1) tt
+  		on tt.language = l.code
+  left join	(select language, count(title) from wm.column_text group by 1) ct
+  		on ct.language = l.code
+  left join	(select language, count(title) from wm.value_text group by 1) vt
+  		on vt.language = l.code
+  left join	(select language, count(title) from wm.message_text group by 1) mt
+  		on mt.language = l.code;
+grant select on table base.language_v to public;
 create function base.priv_has(priv text, lev int) returns boolean language sql stable as $$
       select base.priv_role(session_user, priv, lev);
 $$;
@@ -2226,14 +2242,18 @@ create function base.priv_v_updfunc() returns trigger language plpgsql security 
   end;
 $$;
 create trigger base_token_tr_seq before insert on base.token for each row execute procedure base.token_tf_seq();
-create function base.token_valid(uname text, tok text, pub text) returns boolean language plpgsql as $$
+create function base.token_valid(uname text, tok text, pub jsonb) returns boolean language plpgsql as $$
     declare
       trec	record;
     begin
       select into trec valid,token,allows,token_ent,token_seq from base.token_v where username = uname and allows = 'login' order by token_seq desc limit 1;
       if found and trec.valid and tok = trec.token then
         update base.token set used = current_timestamp where token_ent = trec.token_ent and token_seq = trec.token_seq;
-        update base.ent set conn_pub = pub where id = trec.token_ent;
+        if (pub->'tag') notnull and (pub->'key') notnull then		-- Remember user's new public key
+          update base.ent set conn_pub[tag] = (pub->'key') where id = trec.token_ent;
+        else
+          update base.ent set conn_pub = pub where id = trec.token_ent;
+        end if;
         return true;
       end if;
       return false;
@@ -2867,12 +2887,12 @@ create trigger base_comm_v_tr_upd instead of update on base.comm_v for each row 
 create trigger base_file_v_tr_ins instead of insert on base.file_v for each row execute procedure base.file_v_insfunc();
 create trigger base_file_v_tr_upd instead of update on base.file_v for each row execute procedure base.file_v_updfunc();
 create view json.cert as select p.id
-  , jsonb_build_object(
+  , jsonb_strip_nulls(jsonb_build_object(
        'cid', p.peer_cid
      , 'agent', p.peer_agent
      , 'host', p.peer_host
      , 'port', p.peer_port
-    ) as "chad"
+    )) as "chad"
   , p.ent_type	as "type"
   , p.peer_psig	as "public"
   , case when p.ent_type = 'o' then
@@ -2889,8 +2909,8 @@ create view json.cert as select p.id
         where not prior and not private and pl.id = p.id and type != 'birth' and main order by seq
     ) d) as "place"
   , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
-      select media,digest,comment from json.file c
-        where c.id = p.id and not private and main order by seq
+      select media,digest,comment from json.file f
+        where f.id = p.id and not private and main order by seq
     ) d) as "file"
   , jsonb_strip_nulls(jsonb_build_object(
       'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
@@ -3020,8 +3040,8 @@ create function mychips.ticket_login(info jsonb) returns base.token_v_ticket lan
       if found and info->>'reqType' = 'register' then
         return null;
       end if;
-      select into uid id from mychips.users_v where ent_name = info->>'ent_name'
-          and (ent_type = 'o' and info->>'fir_name' isnull or fir_name = info->>'fir_name')
+      select into uid id from mychips.users_v where ent_name = trim(info->>'ent_name')
+          and (ent_type = 'o' and info->>'fir_name' isnull or fir_name = trim(info->>'fir_name'))
           and (born_date = (info->>'born_date')::date);
       if not found then 
         if info->>'reqType' != 'register' or info->>'tos' != 'true' or info->>'ent_type' isnull then
@@ -4190,7 +4210,7 @@ create function mychips.tallies_v_updfunc() returns trigger language plpgsql sec
       update mychips.tallies set tally_type = new.tally_type,comment = new.comment,contract = new.contract,hold_terms = new.hold_terms,part_terms = new.part_terms,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,part_sig = new.part_sig,hold_sig = new.hold_sig,request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
     returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     else
-      update mychips.tallies set status = new.status,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
+      update mychips.tallies set request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
     returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     end if;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
@@ -5350,7 +5370,8 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','file','eng','Document Files','Document files (photos, computer files, etc.) for entities'),
   ('base','file_prim','eng','Primary Files','Internal table to track which file is the main one for each given type'),
   ('base','file_v','eng','Document Files','View of users'' files with additional helpful fields'),
-  ('base','language','eng','Languages','Contains standard ISO data about international language codes'),
+  ('base','language','eng','Languages','Contains information  about international ISO language codes'),
+  ('base','language_v','eng','Languages','Contains information about about international ISO language codes'),
   ('base','parm','eng','System Parameters','Contains parameter settings of several types for configuring and controlling various modules across the database'),
   ('base','parm_audit','eng','Parameters Auditing','Table tracking changes to the parameters table'),
   ('base','parm_v','eng','Parameters','System parameters are stored in different tables depending on their data type (date, integer, etc.).  This view is a union of all the different type tables so all parameters can be viewed and updated in one place.  The value specified will have to be entered in a way that is compatible with the specified type so it can be stored natively in its correct data type.'),
@@ -5360,12 +5381,14 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('base','token_v','eng','Tokens','A view of the access codes, which allow users to connect for the first time'),
   ('base','token_v_ticket','eng','Login Tickets','A view of the access codes, which allow users to connect for the first time'),
   ('json','cert','eng','JSON Certificate','JSON view of user certificates primarily meant for import/export'),
+  ('mychips','addr_v_me','eng','User Addresses','A view of the current user''s partners'' addresses'),
   ('mychips','agents','eng','Site Agents','Maintains the connection addresses of agent processes'),
   ('mychips','chit_tries','eng','Chit Retries','Tracks how many times the chit state transition algorithm has tried to communicate a transition to a peer'),
   ('mychips','chits','eng','Chits','Contains an entry for each transaction of credit flow in either direction between the parties to the tally.'),
   ('mychips','chits_v','eng','Chits','Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.'),
   ('mychips','chits_v_chains','eng','Chit Chains','Contains information about hash-linked chains of value transfer (chit) records'),
   ('mychips','chits_v_me','eng','My Chits','View of all transactions on the tallies of the current user'),
+  ('mychips','comm_v_me','eng','User Contact','A view of the current user''s partners'' communication points'),
   ('mychips','contracts','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement'),
   ('mychips','contracts_v','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
   ('mychips','lifts','eng','Lifts','Contains a record for each group of chits in a segment, belonging to a lift transaction'),
@@ -5407,6 +5430,8 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('wm','objects_v','eng','Rel Objects','An enhanced view of the object table, expanded by showing the full object specifier, and each separate release this version of the object belongs to'),
   ('wm','objects_v_dep','eng','Dependencies','A recursive view showing which database objects depend on (must be created after) other database objects.'),
   ('wm','objects_v_depth','eng','Dep Objects','An enhanced view of the object table, expanded by showing the full object specifier, each separate release this version of the object belongs to, and the maximum depth it is along any path in the dependency tree.'),
+  ('wm','objects_v_max','eng','Latest Objects','Updatable view of database objects with the largest, most current version number'),
+  ('wm','objects_v_next','eng','Next Objects','View of database objects with the working release version number'),
   ('wm','releases','eng','Releases','Tracks the version number of each public release of the database design'),
   ('wm','role_members','eng','Role Members','Summarizes information from the system catalogs about members of various defined roles'),
   ('wm','table_data','eng','Table Data','Contains information from the system catalogs about views and tables in the system'),
@@ -5566,6 +5591,10 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','language','fra_name','eng','Name in French','The common name of the language in French'),
   ('base','language','iso_2','eng','Code 2','The ISO 2-letter code for this language, if it exists'),
   ('base','language','iso_3b','eng','Biblio Code','The ISO bibliographic 3-letter code for this language'),
+  ('base','language_v','columns','eng','Columns','How many database columns are documented in this language'),
+  ('base','language_v','messages','eng','Messages','How many UI messages are documented in this language'),
+  ('base','language_v','tables','eng','Tables','How many database tables are documented in this language'),
+  ('base','language_v','values','eng','Values','How many database column values are documented in this language'),
   ('base','parm','cmt','eng','Comment','Notes you may want to add about why the setting is set to a particular value'),
   ('base','parm','crt_by','eng','Created By','The user who entered this record'),
   ('base','parm','crt_date','eng','Created','The date this record was created'),
@@ -6201,7 +6230,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('base','parm_v','launch.title','eng','Settings','Site Operating Parameters'),
   ('base','priv','CLV','eng','Illegal Level','The privilege level must be null or a positive integer between 1 and 9'),
   ('base','priv_v','suspend','eng','Suspend User','Disable permissions for this user (not yet implemented)'),
-  ('mychips','agents','AHP','eng','Unique Host/Port','Agent keys must be associated with a unique combination of host address and port'),
+  ('mychips','agents','AHP','eng','Unique Host/Port','Each agent key must be associated with a unique combination of host address and port'),
   ('mychips','agents','CHR','eng','Agent Host Required','A host or IP address for the agent must be specified'),
   ('mychips','agents','CPR','eng','Agent Port Required','A port number for the agent must be specified'),
   ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a tally chit'),
@@ -6257,11 +6286,11 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','UCM','eng','Bad User Certificate','An open tally must contain a user certificate'),
   ('mychips','tallies','USM','eng','Bad User Signature','An open tally must contain a user signature'),
   ('mychips','tallies','VER','eng','Bad Tally Version','Tally version must be 1 or greater'),
-  ('mychips','tallies_v','TMK','eng','Bad Key Number','The tally invitation must be called for exactly one tally'),
   ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
   ('mychips','tallies_v_me','GTK','eng','Generating Tally','A database error occurred while generating a tally invitation ticket'),
   ('mychips','tallies_v_me','invite','eng','Invite to Tally','Create a new invitation to tally for a prospective partner'),
   ('mychips','tallies_v_me','invite.format','eng','Format','Determines which type of invitation is generated'),
+  ('mychips','tallies_v_me','invite.format.json','eng','json','Return tally invitation as JSON object'),
   ('mychips','tallies_v_me','invite.format.link','eng','link','Return tally invitation as deep link Uniform Resource Locator'),
   ('mychips','tallies_v_me','invite.format.qr','eng','qr','Return tally invitation as a QR code'),
   ('mychips','tallies_v_me','invite.reuse','eng','Reusable','Create a tally template that can be reused over again with any number of trading partners'),
@@ -6270,6 +6299,9 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
       <p>You can propose a new tally from the action menu in the Editing pane.
     '),
   ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationships'),
+  ('mychips','tallies_v_me','TIL','eng','Good Until','Invitation expires after this time'),
+  ('mychips','tallies_v_me','TIN','eng','Tally Invitation','Follow link to consider tally'),
+  ('mychips','tallies_v_me','TMK','eng','Bad Key Number','The tally invitation must be called for exactly one tally'),
   ('mychips','tallies_v_me','URF','eng','Unknown Format','Unknown format for a tally invitation'),
   ('mychips','tokens','X','eng','Y','Z'),
   ('mychips','users','ABC','fin','Koetus 1','Ensimmäinen testiviesti'),
@@ -6290,18 +6322,22 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','users_v','summary','eng','Summary Report','Report about the current status of the selected user'),
   ('mychips','users_v','ticket','eng','User Ticket','Generate a temporary, one-time pass to allow a user to establish a secure connection with the server'),
   ('mychips','users_v','ticket.format','eng','Format','Determines which type of connection ticket is generated'),
+  ('mychips','users_v','ticket.format.json','eng','json','Return connection ticket as JSON object'),
   ('mychips','users_v','ticket.format.link','eng','link','Return connection ticket as deep link Uniform Resource Locator'),
   ('mychips','users_v','ticket.format.qr','eng','qr','Return connection ticket as a QR code'),
-  ('mychips','users_v','ticket.format.url','eng','url','Return connection ticket as an SPA Uniform Resource Locator '),
-  ('mychips','users_v','TIL','eng','Good Until','Connection ticket will expire after this time'),
-  ('mychips','users_v','TIN','eng','Connection Ticket','Click this link to connect mobile app to service provider'),
+  ('mychips','users_v','ticket.format.url','eng','url','Return connection ticket as an SPA Uniform Resource Locator'),
+  ('mychips','users_v','TIL','eng','Good Until','Ticket expires after this time'),
+  ('mychips','users_v','TIN','eng','Connection Ticket','Link to access your service provider'),
   ('mychips','users_v','TMK','eng','Bad Key Number','The connection ticket must be called for exactly one user'),
   ('mychips','users_v','trade','eng','Trading Report','Report showing trades in a given date range'),
   ('mychips','users_v','trade.end','eng','End Date','Include trades on and before this date'),
   ('mychips','users_v','trade.start','eng','Start Date','Include trades on and after this date'),
   ('mychips','users_v','unlock','eng','Unlock Account','Put the specified account(s) into functional mode, so normal trading can occur'),
   ('mychips','users_v','URF','eng','Unknown Format','Unknown format for a connection ticket'),
-  ('mychips','users_v_me','graph','eng','Tally Graph','Generate a visual graph of the user''s tally relationships and balances'),
+  ('mychips','users_v_me','launch.instruct','eng','Basic Instructions','
+      <p>This view shows only the record pertaining to the connected user
+    '),
+  ('mychips','users_v_me','launch.title','eng','Current User','Current User Account Record'),
   ('mychips','users_v_tallies','centPull','eng','Centering','How hard nodes seek graph center'),
   ('mychips','users_v_tallies','floatSink','eng','Bouyancy','How hard assets rise and liabilities sink'),
   ('mychips','users_v_tallies','forPull','eng','Foreign Pull','How hard the link connector pulls on foreign nodes'),
@@ -6531,14 +6567,14 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','tallies','display','["tally_ent", "tally_seq", "tally_type", "status", "part_ent", "tally_date", "tally_uuid", "dr_limit", "cr_limit", "reward", "target"]','t'),
   ('mychips','tallies_v','display','["tally_ent", "tally_seq", "tally_type", "status", "part_ent", "part_name", "reward", "dr_limit", "cr_limit", "target"]','t'),
   ('mychips','tallies_v_liftss','display','["bang", "length", "min", "max", "fora", "forz", "path"]','t'),
-  ('mychips','tallies_v_me','actions','[{"ask": "1", "name": "close"}, {"name": "invite", "render": "html", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link"]}]}]','f'),
+  ('mychips','tallies_v_me','actions','[{"ask": "1", "name": "close"}, {"name": "invite", "render": "html", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link", "json"]}]}]','f'),
   ('mychips','tallies_v_me','display','["tally_ent", "tally_seq", "tally_type", "part_ent", "part_name", "dr_limit", "cr_limit", "total"]','t'),
   ('mychips','tallies_v_me','launch','{"import": "json.import", "initial": 1}','t'),
   ('mychips','tallies_v_me','subviews','["mychips.chits_v_me"]','t'),
   ('mychips','tallies_v_me','where','{"and": true, "items": [{"left": "status", "oper": "=", "entry": "open"}]}','t'),
   ('mychips','tallies_v_paths','display','["bang", "length", "min", "max", "circuit", "path"]','t'),
   ('mychips','users','focus','"ent_name"','t'),
-  ('mychips','users_v','actions','[{"name": "ticket", "render": "html", "single": "1", "options": [{"tag": "format", "input": "pdm", "values": ["qr", "link", "url"]}]}, {"ask": "1", "name": "lock"}, {"ask": "1", "name": "unlock"}, {"name": "summary", "render": "html"}, {"name": "trade", "render": "html", "options": [{"tag": "start", "hint": "date", "size": "11", "type": "date", "input": "ent", "special": "cal", "subframe": "1 1", "template": "date"}, {"tag": "end", "hint": "date", "size": "11", "type": "date", "input": "ent", "special": "cal", "subframe": "1 2", "template": "date"}]}]','f'),
+  ('mychips','users_v','actions','[{"name": "ticket", "render": "html", "single": "1", "options": [{"tag": "format", "input": "pdm", "values": ["qr", "link", "url", "json"]}]}, {"ask": "1", "name": "lock"}, {"ask": "1", "name": "unlock"}, {"name": "summary", "render": "html"}, {"name": "trade", "render": "html", "options": [{"tag": "start", "hint": "date", "size": "11", "type": "date", "input": "ent", "special": "cal", "subframe": "1 1", "template": "date"}, {"tag": "end", "hint": "date", "size": "11", "type": "date", "input": "ent", "special": "cal", "subframe": "1 2", "template": "date"}]}]','f'),
   ('mychips','users_v','display','["id", "std_name", "ent_type", "user_stat", "user_sock", "born_date", "!fir_name", "!ent_name"]','t'),
   ('mychips','users_v','export','"user"','t'),
   ('mychips','users_v','launch','{"import": "json.import", "initial": 1}','t'),
@@ -7714,6 +7750,15 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','language','fra_name','base','language','fra_name','f','f'),
   ('base','language','iso_2','base','language','iso_2','f','f'),
   ('base','language','iso_3b','base','language','iso_3b','f','f'),
+  ('base','language_v','code','base','language','code','f','t'),
+  ('base','language_v','columns','base','language_v','columns','f','f'),
+  ('base','language_v','eng_name','base','language','eng_name','f','f'),
+  ('base','language_v','fra_name','base','language','fra_name','f','f'),
+  ('base','language_v','iso_2','base','language','iso_2','f','f'),
+  ('base','language_v','iso_3b','base','language','iso_3b','f','f'),
+  ('base','language_v','messages','base','language_v','messages','f','f'),
+  ('base','language_v','tables','base','language_v','tables','f','f'),
+  ('base','language_v','values','base','language_v','values','f','f'),
   ('base','parm','cmt','base','parm','cmt','f','f'),
   ('base','parm','crt_by','base','parm','crt_by','f','f'),
   ('base','parm','crt_date','base','parm','crt_date','f','f'),

@@ -151,7 +151,7 @@ class SQLManager {
     if (accepted) {
       let target = 1
       this.query(
-        "update mychips.tallies_v set request = 'open', hold_sig = $3, target = $4 where tally_ent = $1 and tally_seq = $2 returning state;",
+        "update mychips.tallies set request = 'open', hold_sig = $3, target = $4 where tally_ent = $1 and tally_seq = $2 returning request, status;",
         [entity, sequence, 'Accepted', target],
         (err, res) => {
           if (err) {
@@ -163,7 +163,8 @@ class SQLManager {
             'Tally accepted:',
             row.tally_ent,
             row.tally_seq,
-            row.state
+            row.request,
+            row.status
           )
         }
       )

@@ -374,7 +374,7 @@ function {mychips.tallies_v_updfunc()} {mychips.tallies_v} {
     if old.status = 'draft' then
       update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up $glob::stampin) updEnd()
     else
-      update mychips.tallies set eval(trigview::upfields {status} $glob::stampin) updEnd()
+      update mychips.tallies set eval(trigview::upfields {request} $glob::stampin) updEnd()
     end if;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;

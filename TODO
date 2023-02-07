@@ -1,9 +1,11 @@
 TODO:
 
 X- Deploy APK to somewhere for downloading (mychips.org)
-- Register with testflight
-- Test that simulations still run
+X- Register with testflight
+X- Test that simulations still run
+- Publish latest Wyatt libs
 - Merge to master
+- Publish mychips to npmjs.org? (or remove same)
 
 - Refine/document report protocol in backend:
 -  Tally invitation QR report still works in mobile app
@@ -16,7 +18,7 @@ X- Deploy APK to somewhere for downloading (mychips.org)
 -  Fix document server also running on 443 (request by hash?)
 - 
 - Consolidate local dirs:
--  Move pki/local under local?
+-  Move pki/local under local/pki?
 -  Move sim/local under local/sim?
 -  Move test/local under local/test?
 -  
