@@ -14,7 +14,7 @@ const Scanner = (props) => {
   const devices = useCameraDevices();
   const device = devices.back;
   const { setUser } = useCurrentUser();
-  const { connectSocket, disconnectSocket, wm } = useSocket();
+  const { connectSocket, disconnectSocket, wm, ws } = useSocket();
 
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -34,18 +34,22 @@ const Scanner = (props) => {
 
   useEffect(() => {
     if(qrCode) {
-      try {
-        setIsActive(false);
-        const parsedCode = JSON.parse(qrCode);
+      if(ws) {
+        Alert.alert('You are already connected to a server');
+      } else {
+        try {
+          setIsActive(false);
+          const parsedCode = JSON.parse(qrCode);
 
-        if(parsedCode?.ticket && parsedCode?.ticket?.user) {
-          connect({ ticket: parsedCode.ticket })
-        } else if(parsedCode?.ticket) {
-          setTempQrCode(parsedCode.ticket);
-          setIsModalVisible(true);
+          if(parsedCode?.ticket && parsedCode?.ticket?.user) {
+            connect({ ticket: parsedCode.ticket })
+          } else if(parsedCode?.ticket) {
+            setTempQrCode(parsedCode.ticket);
+            setIsModalVisible(true);
+          }
+        } catch(err) {
+          console.log(err.message)
         }
-      } catch(err) {
-        console.log(err.message)
       }
     }
   }, [qrCode, setIsActive])
@@ -103,7 +107,7 @@ const Scanner = (props) => {
 
   return (
     device && hasPermission && (
-      <>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Camera
           style={StyleSheet.absoluteFill}
           device={device}
@@ -156,7 +160,7 @@ const Scanner = (props) => {
             </View>
           </View>
         </Modal>
-      </>
+      </View>
     )
   );
 }

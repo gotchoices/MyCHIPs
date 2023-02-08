@@ -9,7 +9,7 @@ import CustomText from '../../../components/CustomText';
 const TallyReport = (props) => {
 
   const navigateBalanceSheet = () => {
-    props.navigation.navigate('Tallies');
+    props.navigation.navigate('Home');
   }
 
   return (

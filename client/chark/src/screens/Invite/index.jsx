@@ -19,11 +19,11 @@ const TallyInvite = (props) => {
   const [tallyShareInfo, setTallyShareInfo] = useState();
   const [isVisible, setIsVisible] = useState(false);
   const [generatingInvite, setGeneratingInvite] = useState(false);
-  const { wm } = useSocket();
+  const { wm, ws } = useSocket();
 
   useEffect(() => {
     fetchTemplates();
-  }, []);
+  }, [ws]);
 
   const selectTemplate = (tally_seq) => {
     if(tally_seq === selectedTallySeq) {
@@ -206,7 +206,6 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 10,
     padding: 10,
-    marginBottom: 60,
     backgroundColor: colors.white,
   },
   listContainer: {
