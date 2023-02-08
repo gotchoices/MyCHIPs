@@ -15,6 +15,7 @@
     "@craftzdog/react-native-buffer": "^6.0.5",
     "@react-native-async-storage/async-storage": "^1.17.11",
     "@react-native-picker/picker": "^2.4.8",
+    "@react-navigation/bottom-tabs": "^6.5.4",
     "@react-navigation/native": "^6.0.16",
     "@react-navigation/native-stack": "^6.9.4",
     "b64u-lite": "^1.1.0",

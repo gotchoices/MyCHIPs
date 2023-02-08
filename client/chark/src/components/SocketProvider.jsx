@@ -31,7 +31,6 @@ const SocketProvider = ({ children }) => {
 
   const credConnect = (creds, cb = null) => {
     let address = `${creds.host}:${creds.port}`
-    if(ws) return;
 
     setStatus('Connecting Server...');
     connect.getUrl(creds).then(uri => {
@@ -84,6 +83,7 @@ const SocketProvider = ({ children }) => {
         wm.onMessage(e.data)
       }
     }).catch(err => {
+      console.log('Error initializing', err)
       setStatus('Server Disconnected');
       connectTimeout.current = setTimeout(() => {
         connectSocket()
@@ -96,6 +96,13 @@ const SocketProvider = ({ children }) => {
   }
 
   const connectSocket = (ticket, cb = null) => {
+    if(ws) {
+      if(!cb) return;
+
+      const err = new Error('User already connected');
+      return cb(err);
+    };
+
     if (ticket) {
       clearTimeout(connectTimeout.current);
       Keychain.resetGenericPassword();

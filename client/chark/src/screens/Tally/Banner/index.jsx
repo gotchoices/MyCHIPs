@@ -5,8 +5,11 @@ import { colors } from '../../../config/constants';
 import visualBtn from '../../../../assets/visual-button.png';
 import avatarImg from '../../../../assets/report-profile.png';
 import mychips from '../../../../assets/mychips-large.png';
+import useCurrentUser from '../../../hooks/useCurrentUser';
 
 const Banner = (props) => {
+  const { user } = useCurrentUser();
+
   const navigateToReport = () => {
     props.navigation.navigate('TallyReport')
   }
@@ -40,7 +43,7 @@ const Banner = (props) => {
             </View>
           </View>
 
-          <Text>{props.user}</Text>
+          <Text>{user?.curr_eid ?? ''}</Text>
         </View>
       </View>
     </View>

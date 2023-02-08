@@ -5,20 +5,43 @@
 //- Embelish with icons/styles
 //- Clicking on it will toggle connection status (is this needed?)
 //- 
-import React, { Component } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, Button, TouchableWithoutFeedback } from 'react-native';
 
 import useSocket from './hooks/useSocket';
 
+import CenteredModal from './components/CenteredModal';
+import TokenDebug from './components/TokenDebug';
+
 const ServIcon = () => {
   const { status } = useSocket();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const onCancel = () => {
+    setIsModalVisible(false);
+  }
 
   return (
-    <View>
-      <Text style={{ paddingLeft: 14 }}>
-        {status}
-      </Text>
-    </View>
+    <>
+      <View>
+        <TouchableWithoutFeedback
+          onPress={() => setIsModalVisible(true)}
+        >
+          <Text style={{ paddingLeft: 14, paddingVertical: 5 }}>
+            {status}
+          </Text>
+        </TouchableWithoutFeedback>
+      </View>
+
+      <CenteredModal
+        isVisible={isModalVisible}
+        onClose={onCancel}
+      >
+        <TokenDebug 
+          onCancel={onCancel}
+        />
+      </CenteredModal>
+    </>
   )
 }
 

@@ -2,13 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Linking } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native';
 
+import Tally from '../Tally';
 import Button from '../../components/Button';
 
-import useCurrentUser from '../../hooks/useCurrentUser';
 import { parse } from '../../utils/query-string';
 import { query_user } from '../../utils/user';
 import { getLinkHost } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
+import TokenDebug from '../../components/TokenDebug';
 
 const ticket = require('../../../assets/ticket.json')
 
@@ -22,8 +23,7 @@ console.log('Data:', JSON.stringify(data,null,2))
   })
 }
 
-const HomeScreen = ({ navigation, ...props }) => {
-  const { setUser } = useCurrentUser();
+const HomeScreen = (props) => {
   const { connectSocket, disconnectSocket, wm, ws } = useSocket();
 
   const connect = (ticket) => {
@@ -63,51 +63,9 @@ const HomeScreen = ({ navigation, ...props }) => {
     }, [])
   );
 
-  const getTallies = () => {
-    navigation.navigate('Tallies')
-  }
-
-  const connectWithToken = () => {
-    connect(ticket);
-  }
-
-  const connectWithKey = () => {
-    connect(null)
-  }
-
-  const querySessionUser = () => {
-    query_user(wm).then((data) => {
-      console.log(JSON.stringify(data, null, 2))
-    })
-  }
-
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Home Screen</Text>
-      <Button
-        title="Connect with Token"
-        onPress={connectWithToken}
-      />
-      <Button
-        title="Connect with Key"
-        onPress={connectWithKey}
-      />
-      <Button
-        title="Disconnect"
-        onPress={() => disconnectSocket()}
-      />
-      <Button
-        title="Query Users"
-        onPress={() => query_users(wm)}
-      />
-      <Button
-        title="Query Session User"
-        onPress={querySessionUser}
-      />
-      <Button
-        title="Get Tallies"
-        onPress={() => getTallies()}
-      />
+    <View style={{ flex: 1 }}>
+      <Tally navigation={props.navigation} />
     </View>
   );
 }

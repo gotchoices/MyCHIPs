@@ -18,6 +18,7 @@ import React, { Component, useEffect, useState } from 'react';
 import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState, TouchableWithoutFeedback, SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import PolyfillCrypto from 'react-native-webview-crypto'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Toast from 'react-native-toast-message';
@@ -44,36 +45,15 @@ import SocketProvider from './src/components/SocketProvider';
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 
-const debug = console.log
-
-function GlobalMenu(p) {
+const HomeStack = createNativeStackNavigator();
+function HomeStackScreen() {
   return (
-    <View style={styles.global}>
-      <TouchableOpacity style={styles.buttonBox} onPress={()=>{p.nav.navigate('Home')}}>
-        <Image style={styles.button} source={require("./assets/icon-home.png")}/>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonBox} onPress={()=>{p.nav.navigate('Receive')}}>
-        <Image style={styles.button} source={require("./assets/icon-receive.png")}/>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonBox} onPress={()=>{p.nav.navigate('Scan')}}>
-        <Image style={styles.button} source={require("./assets/icon-scan.png")}/>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonBox} onPress={()=>{p.nav.navigate('Invite')}}>
-        <Image style={styles.button} source={require("./assets/icon-invite.png")}/>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonBox} onPress={()=>{p.nav.navigate('Settings')}}>
-        <Image style={styles.button} source={require("./assets/icon-settings.png")}/>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-function HomeScreen({ navigation }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Home navigation={navigation} />
-      <GlobalMenu nav={navigation} />
-    </View>
+    <HomeStack.Navigator>
+      <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
+      <HomeStack.Screen name="TallyReport" component={TallyReport} />
+      <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
+      <HomeStack.Screen name="TallyAccept" component={TallyAccept} options={{ title: 'Tally Accept' }} />
+    </HomeStack.Navigator>
   );
 }
 
@@ -81,105 +61,32 @@ function ReceiveScreen({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Receive Screen</Text>
-      <GlobalMenu nav={navigation} />
     </View>
   );
 }
 
-function ScanScreen({ navigation }) {
+const InviteStack = createNativeStackNavigator();
+function InviteStackScreen() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Scanner navigation={navigation} />
-      <GlobalMenu nav={navigation} />
-    </View>
+    <InviteStack.Navigator>
+      <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} />
+      <InviteStack.Screen name="TallyEdit" component={EditDraftTally} options={{ title: 'Draft Tally' }}  />
+    </InviteStack.Navigator>
   );
 }
 
-function InviteScreen({ navigation }) {
+const SettingStack = createNativeStackNavigator();
+function SettingStackScreen() {
   return (
-    <View style={{ flex: 1 }}>
-      <Invite navigation={navigation} />
-      <GlobalMenu nav={navigation} />
-    </View>
+    <SettingStack.Navigator>
+      <SettingStack.Screen name="Setting" component={Setting} />
+      <SettingStack.Screen name="Profile" component={Profile} options={{ title: 'Profile' }} />
+      <SettingStack.Screen name="ProfileEdit" component={ProfileEdit} options={{ title: 'Edit Profile' }} />
+    </SettingStack.Navigator>
   );
 }
 
-function SettingsScreen({ navigation }) {
-  return (
-    <View style={{ flex: 1 }}>
-      <Setting navigation={navigation} />
-      <GlobalMenu nav={navigation} />
-    </View>
-  );
-}
-
-function TallyScreen({ navigation }) {
-  return (
-    <View style={{ flex: 1 }}>
-      <Tally navigation={navigation} />
-      <GlobalMenu nav={navigation} />
-    </View>
-  );
-}
-
-function TallyReportScreen({ navigation }) {
-  return (
-    <View style={{ flex: 1 }}>
-      <TallyReport navigation={navigation} />
-      <GlobalMenu nav={navigation} />
-    </View>
-  );
-}
-
-function TallyEditScreen({ route, navigation }) {
-  const { tally_seq, tally_ent } = route.params;
-
-  return (
-    <View style={{ flex: 1 }}>
-      <EditDraftTally tally_seq={tally_seq} tally_ent={tally_ent} />
-      <GlobalMenu nav={navigation} />
-    </View>
-  );
-}
-
-function OpenTallyEditScreen({ route, navigation }) {
-  const { tally_seq, tally_ent } = route.params;
-
-  return (
-    <View style={{ flex: 1 }}>
-      <EditOpenTally tally_seq={tally_seq} tally_ent={tally_ent} />
-      <GlobalMenu nav={navigation} />
-    </View>
-  );
-}
-
-function ProfileScreen(props) {
-  return (
-    <View style={{ flex: 1 }}>
-      <Profile {...props} />
-      <GlobalMenu nav={props.navigation} />
-    </View>
-  );
-}
-
-function ProfileEditScreen(props) {
-  return (
-    <View style={{ flex: 1 }}>
-      <ProfileEdit {...props} />
-      <GlobalMenu nav={props.navigation} />
-    </View>
-  );
-}
-
-function TallyAcceptScreen(props) {
-  return (
-    <View style={{ flex: 1 }}>
-      <TallyAccept {...props} />
-      <GlobalMenu nav={props.navigation} />
-    </View>
-  );
-}
-
+const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const linking = {
   prefixes: ["mychips://"],
@@ -204,20 +111,58 @@ function App() {
             <ServIcon />
             <PolyfillCrypto />
               <ProfileProvider>
-                <Stack.Navigator initialRouteName="Home">
-                  <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Tallies'}}/>
-                  <Stack.Screen name="Receive" component={ReceiveScreen} />
-                  <Stack.Screen name="Scan" component={ScanScreen} />
-                  <Stack.Screen name="Invite" component={InviteScreen} />
-                  <Stack.Screen name="Settings" component={SettingsScreen} />
-                  <Stack.Screen name="Tallies" component={TallyScreen} />
-                  <Stack.Screen name="TallyReport" component={TallyReportScreen} />
-                  <Stack.Screen name="TallyEdit" component={TallyEditScreen} options={{ title: 'Draft Tally' }} />
-                  <Stack.Screen name="OpenTallyEdit" component={OpenTallyEditScreen} options={{ title: 'Open Tally' }} />
-                  <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
-                  <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
-                  <Stack.Screen name="TallyAccept" component={TallyAcceptScreen} options={{ title: 'Edit Profile' }} />
-                </Stack.Navigator>
+                <Tab.Navigator screenOptions={{ headerShown: false, tabBarShowLabel: false }}>
+                  <Tab.Screen
+                    name="Tally"
+                    component={HomeStackScreen}
+                    options={{
+                      tabBarIcon: () => (
+                        <Image style={styles.button} source={require("./assets/icon-home.png")}/>
+                      )
+                    }}
+                  />
+
+                  <Tab.Screen
+                    name="Receive"
+                    component={ReceiveScreen}
+                    options={{
+                      tabBarIcon: () => (
+                        <Image style={styles.button} source={require("./assets/icon-receive.png")}/>
+                      )
+                    }}
+                  />
+
+                  <Tab.Screen
+                    name="Scan"
+                    component={Scanner}
+                    options={{
+                      unmountOnBlur: true,
+                      tabBarIcon: () => (
+                        <Image style={styles.button} source={require("./assets/icon-scan.png")}/>
+                      )
+                    }}
+                  />
+
+                  <Tab.Screen
+                    name="Invite Screen"
+                    component={InviteStackScreen}
+                    options={{
+                      tabBarIcon: () => (
+                        <Image style={styles.button} source={require("./assets/icon-invite.png")}/>
+                      )
+                    }}
+                  />
+
+                  <Tab.Screen
+                    name="Settings"
+                    component={SettingStackScreen}
+                    options={{
+                      tabBarIcon: () => (
+                        <Image style={styles.button} source={require("./assets/icon-settings.png")}/>
+                      )
+                    }}
+                  />
+                </Tab.Navigator>
               </ProfileProvider>
             <Toast />
           </SocketProvider>

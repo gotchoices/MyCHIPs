@@ -10,8 +10,7 @@ import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
 
 const EditOpenTally = (props) => {
-  const tally_seq = props.tally_seq;
-  const tally_ent = props.tally_ent;
+  const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
 
   const [loading, setLoading] = useState(true);
@@ -76,7 +75,7 @@ const EditOpenTally = (props) => {
   }
 
   return (
-    <ScrollView style={{ marginBottom: 55 }}>
+    <ScrollView>
       <View style={styles.container}>
         <CommonTallyView tally={tally} />
 

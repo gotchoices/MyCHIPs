@@ -16,10 +16,10 @@ import useSocket from '../../../hooks/useSocket';
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
+import Spinner from '../../../components/Spinner';
 
 const EditTally = (props) => {
-  const tally_seq = props.tally_seq;
-  const tally_ent = props.tally_ent;
+  const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
 
   const [updating, setUpdating] = useState(false);
@@ -124,7 +124,7 @@ const EditTally = (props) => {
   if(loading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Loading...</Text>
+        <Spinner text="Loading..." />
       </View>
     )
   }
@@ -141,7 +141,6 @@ const EditTally = (props) => {
 
   return (
     <ScrollView
-      style={{ marginBottom: 55 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -280,6 +279,7 @@ const EditTally = (props) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     margin: 10,
     padding: 10,
     backgroundColor: colors.white,

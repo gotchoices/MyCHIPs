@@ -83,7 +83,7 @@ const Profile = (props) => {
   } 
 
   return (
-    <ScrollView style={{ marginBottom: 55 }}>
+    <ScrollView>
       <View style={styles.container}>
         <View style={styles.avatar}>
           <Avatar />

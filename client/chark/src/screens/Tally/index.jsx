@@ -1,9 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, FlatList, TouchableWithoutFeedback } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import useSocket from '../../hooks/useSocket';
 import constants from '../../config/constants';
 import { round} from '../../utils/common';
+import useCurrentUser from '../../hooks/useCurrentUser';;
+
 import Banner from './Banner';
 import Search from './Search';
 import TallyItem from './TallyItem';
@@ -13,8 +16,8 @@ let pktId = 1;
 const Tally = (props) => {
   const [loading, setLoading] = useState(true);
   const [tallies, setTallies] = useState([]);
-  const [currentUser, setCurrentUser] = useState('');
-  const { wm } = useSocket();
+  const { wm, ws } = useSocket();
+  const { user } = useCurrentUser();
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
@@ -29,20 +32,10 @@ const Tally = (props) => {
     return round(total, 2);
   }, [totalNet])
 
-  useEffect(() => {
-    fetchCurrentUser();
-    fetchTallies()
-  }, [])
 
-  const fetchCurrentUser = () => {
-    wm.request(pktId++, 'select', {
-      view: 'base.ent_v',
-      table: 'base.curr_eid',
-      params: []
-    }, data => {
-      setCurrentUser(data?.[0]?.curr_eid);
-    })
-  }
+  useEffect(() => {
+    fetchTallies()
+  }, [user?.curr_eid])
 
   const fetchTallies = () => {
     const spec = {
@@ -89,7 +82,6 @@ const Tally = (props) => {
         totalNet={totalNet}
         totalNetDollar={totalNetDollar}
         navigation={props.navigation}
-        user={currentUser}
       /> 
 
       <View style={styles.search}>
