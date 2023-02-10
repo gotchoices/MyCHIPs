@@ -67,11 +67,13 @@ const SocketProvider = ({ children }) => {
       }
 
       websocket.onerror = err => {
+        console.log('Websocket error', err)
         setStatus('Server Disconnected');
         wm.onClose()
 
         if(err?.isTrusted === false) {
           Keychain.resetGenericPassword();
+          console.log('Deleted stored key')
         }
 
         if(cb) {
@@ -105,6 +107,7 @@ const SocketProvider = ({ children }) => {
 
     if (ticket) {
       clearTimeout(connectTimeout.current);
+      console.log('Resetting generic password for the new connection')
       Keychain.resetGenericPassword();
       let creds = Object.assign({}, ticket.ticket)
       credConnect(creds, cb)
