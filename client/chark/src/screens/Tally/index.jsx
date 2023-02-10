@@ -14,7 +14,7 @@ import TallyItem from './TallyItem';
 let pktId = 1;
 
 const Tally = (props) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [tallies, setTallies] = useState([]);
   const { wm, ws } = useSocket();
   const { user } = useCurrentUser();
@@ -34,10 +34,13 @@ const Tally = (props) => {
 
 
   useEffect(() => {
-    fetchTallies()
+    if(ws) {
+      fetchTallies()
+    }
   }, [user?.curr_eid])
 
   const fetchTallies = () => {
+    setLoading(true);
     const spec = {
       fields: ['tally_seq', 'tally_ent', 'net', 'tally_type', 'part_chad', 'part_cert'],
       view: 'mychips.tallies_v_me',
@@ -97,7 +100,6 @@ const Tally = (props) => {
           refreshing={loading}
           onRefresh={() => fetchTallies()}
         />
-
       </View>
     </View>
   )
