@@ -22,18 +22,23 @@ deploy_ios() {
 
 build_android() {
   cd $mydir/../android 
-  ./gradlew assembleRelease
-
-  cd $orgdir
+  if ./gradlew assembleRelease; then
+    built_a=true
+  else
+    built_a=false
+  fi
+  cd $orgdir			#;echo "RES:$build_a"
 }
 
 path_android() {
-  echo "Path to APK:${path_a}"
+  if $built_a; then
+    echo "Path to APK:${path_a}"
+  fi
 }
 
 deploy_android() {
-  if [ ! -z "$MYCHIPS_ANDROID_APK_DEPLOY" ]; then
-    echo "Deploying Android APK:${path_a} to $MYCHIPS_ANDROID_API_DEPLOY"
+  if $built_a && [ ! -z "$MYCHIPS_ANDROID_APK_DEPLOY" ]; then
+    echo "Deploying Android APK:${path_a} to $MYCHIPS_ANDROID_APK_DEPLOY"
     scp ${mydir}/../${path_a} $MYCHIPS_ANDROID_APK_DEPLOY
   fi
 }
