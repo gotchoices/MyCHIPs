@@ -40,7 +40,9 @@ tabdef mychips.users_v -fields {
 
 tabdef mychips.users_v_me -json {
   actions {[
-    {"name":"graph","render":"html","single":"1"}
+    {"name":"graph","render":"html","single":"1","options":[
+      {"tag":"format","input":"pdm","values":["html","url"]}
+    ]}
   ]}
 }
 
