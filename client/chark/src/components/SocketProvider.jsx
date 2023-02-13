@@ -9,12 +9,16 @@ import { query_user } from '../utils/user';
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 
+const initialConnectionBackoff = 1000;
+const maxConnectionBackoff = 11000;
+
 const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
   const [status, setStatus] = useState('Server Disconnected');
 
   const { setUser } = useCurrentUser();
   const connectTimeout = useRef();
+  const connectionBackoffRef = useRef(initialConnectionBackoff); // for exponential backoff 
 
   useEffect(() => {
     if(!ws) {
@@ -43,12 +47,18 @@ const SocketProvider = ({ children }) => {
         setWs(null);
         wm.onClose()
 
+        if(connectionBackoffRef.current < maxConnectionBackoff) {
+          connectionBackoffRef.current *= 2;
+        }
+
+        const delay = connectionBackoffRef.current + Math.floor(Math.random() * 3500)
         connectTimeout.current = setTimeout(() => {
           connectSocket()
-        }, 5000)
+        }, delay)
       }
 
       websocket.onopen = () => {
+        connectionBackoffRef.current = initialConnectionBackoff;
         setStatus('Server Connected');
         clearTimeout(connectTimeout.current);
         setWs(websocket);
@@ -71,11 +81,6 @@ const SocketProvider = ({ children }) => {
         setStatus('Server Disconnected');
         wm.onClose()
 
-        if(err?.isTrusted === false) {
-          Keychain.resetGenericPassword();
-          console.log('Deleted stored key')
-        }
-
         if(cb) {
           cb(err);
         }
@@ -85,11 +90,15 @@ const SocketProvider = ({ children }) => {
         wm.onMessage(e.data)
       }
     }).catch(err => {
+      if(connectionBackoffRef.current < maxConnectionBackoff) {
+        connectionBackoffRef.current *= 2;
+      }
+      const delay = connectionBackoffRef.current + Math.floor(Math.random() * 3500)
       console.log('Error initializing', err)
       setStatus('Server Disconnected');
       connectTimeout.current = setTimeout(() => {
         connectSocket()
-      }, 5000)
+      }, delay)
 
       if(cb) {
         cb(err);
