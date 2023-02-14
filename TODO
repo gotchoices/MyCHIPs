@@ -6,6 +6,12 @@ X- Stray state in Tally state diagram?
 -  Tally invitation QR report still works in mobile app
 
 - Implement report for: Visual Balance Sheet
+X-  Urnet still working (check error)
+X-  Breakout class for handling graph-specific operations
+X-  Urnet still working
+-  Implement single-user version that references class
+-  Obsolete: visbs.vue, urnet1.vue
+-  
 -  Report can return url or html with embedded iframe
 -  When report resource called for, return html/javascript
 -  Reimplement urnet using only d3 and no vue

@@ -106,7 +106,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
 view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
   t as (select
     tally_ent, tally_seq, tally_type, tally_uuid, net, inside, part_cid, part_agent, latest
-    from mychips.tallies_v order by net
+    from mychips.tallies_v where status in ('offer','open') order by net
   ),
   s as (select tally_ent
     , count(tally_seq)					as count
