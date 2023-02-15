@@ -9,11 +9,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { parse } from '../../utils/query-string';
 import { getLinkHost } from '../../utils/common';
 
+const tallyUri = new Set(['tally-accept', 'mychips.org/tally-accept']);
 const TallyAccept = (props) => {
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
       const host = getLinkHost(url ?? '');
-      if(host !== 'tally-accept') {
+      if(!tallyUri.has(host)) {
         return;
       }
 
@@ -27,7 +28,7 @@ const TallyAccept = (props) => {
     useCallback(() => {
       const listener = Linking.addEventListener('url', ({url}) => {
         const host = getLinkHost(url ?? '');
-        if(host !== 'tally-accept') {
+        if(!tallyUri.has(host)) {
           return;
         }
 

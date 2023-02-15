@@ -89,15 +89,19 @@ function SettingStackScreen() {
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const linking = {
-  prefixes: ["mychips://"],
+  prefixes: ["mychips://", "https://mychips.org"],
   config: {
     screens:{
-      Home: {
-        path: 'connect',
+      Tally: {
+        screens: {
+          Home: {
+            path: 'connect',
+          },
+          TallyAccept: {
+            path: 'tally-accept',
+          }
+        }
       },
-      TallyAccept: {
-        path: 'tally-accept',
-      }
     },
   },
 };  
