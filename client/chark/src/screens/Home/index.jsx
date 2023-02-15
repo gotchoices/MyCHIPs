@@ -23,6 +23,7 @@ console.log('Data:', JSON.stringify(data,null,2))
   })
 }
 
+const connectionUri = new Set(['connect', 'mychips.org/connect'])
 const HomeScreen = (props) => {
   const { connectSocket, disconnectSocket, wm, ws } = useSocket();
 
@@ -33,7 +34,7 @@ const HomeScreen = (props) => {
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
       const host = getLinkHost(url ?? '');
-      if(host !== 'connect') {
+      if(!connectionUri.has(host)) {
         return;
       }
 
@@ -48,7 +49,7 @@ const HomeScreen = (props) => {
     useCallback(() => {
       const listener = Linking.addEventListener('url', ({url}) => {
         const host = getLinkHost(url ?? '');
-        if(host !== 'connect') {
+        if(!connectionUri.has(host)) {
           return;
         }
 
