@@ -24,7 +24,7 @@
 import Wylib from 'wylib'
 //require("regenerator-runtime/runtime")        //Webpack needs this for async/generators (d3)
 const D3 = require('d3')
-const { VisBS } = require('./visbs.js')
+const { InitVisBS, UserVisBS } = require('./visbs.js')
 const View = 'mychips.users_v_tallies'
 
 export default {
@@ -36,18 +36,11 @@ export default {
   },
   inject: ['top'],			//Where to send modal messages
   data() { return {
-    fontSize:	18,
     viewMeta:	null,
     nodeData:	{},
     stateTpt:	{nodes:{}, edges:{}},
-    visbs:	null,
+    userRadius:	null,
     simulation:	null,			//Simulation object
-    userRadius:	80,
-    ringData: [
-      {tag: 'nw', rad: 30, title: 'Net Worth'},
-      {tag: 'al', rad: 20, title: 'Assets & Liabilities'},
-      {tag: 'ch', rad: 30, title: 'CHIP Tallies'}
-    ]
   }},
 
   computed: {
@@ -106,38 +99,35 @@ export default {
         let nodes = this.state.nodes
           , nodeStray = Object.assign({}, nodes)	//Track any nodes on our graph but no longer in the DB
           , edgeStray = Object.assign({}, this.state.edges)
-console.log("Update nodes:", nodes, users.length, users)
+//console.log("Update nodes:", nodes, users.length, users)
    
         for (let user of users) {				//For each user record
           let tag = user.peer_cid + ':' + user.peer_agent
-            , shades = this.visbs.shadeMap(user.assets, user.liabs)
-            , slice = 0					//Counter for color calculations
             , edges = []
+            , userVisBS = new UserVisBS(user)
+            , userNode = userVisBS.user(tag, user)
 
+          this.userRadius = userVisBS.userRadius
           if (tag in nodes && nodes[tag].latest >= user.latest) continue
 
           if (!(tag in this.nodeData)) this.nodeData[tag] = {}	//Keep structure of all node data
           Object.assign(this.nodeData[tag], user, {tag})
 
-console.log("  User:", tag, user.tallies)
-          user.lookup = {}
-          user.tallies.sort((a,b) => (a.net - b.net))		//DB tally sort has not been dependable
+//console.log("  User:", tag, user.tallies)
           for (const tally of user.tallies) {			//Look through user's tallies
-console.log("    tally:", tally)
+//console.log("    tally:", tally)
             let pTag = tally.part
-              , idx = tally.net >= 0 ? user.tallies.length - (++slice) : slice++
-            tally.color = shades[tally.net >= 0][idx]		//Compute slice colors
-            user.lookup[tally.uuid] = tally			//tally lookup table by uuid
             delete edgeStray[tally.uuid]
 
             if (tally.part && !tally.inside) {			//Partner is a foreign peer
               pTag = (tally.part + '~' + tally.ent + '-' + tally.seq)
-              this.putNode(pTag, this.visbs.peer(tally.part, tag, tally))
+              this.putNode(pTag, userVisBS.peer(tally.part, tag, tally))
               delete nodeStray[pTag]
-            } else if (!(tag in nodes)) {			//Local partner not on graph yet
+            } else if (!(tally.part in nodes)) {		//Local partner not on graph yet
+//console.log("ZZZ:", tally.part, Object.keys(this.state.nodes))
               continue						//Wait to process his record
             }
-if (!tag || !pTag) console.log("BAD TAG:", tag, pTag)
+//if (!tag || !pTag) console.log("BAD TAG:", tag, pTag)
             if (!(tally.uuid in this.state.edges)) {
               edges.push(tally.type == 'foil' ?
                 {source:{tag}, target:{tag:pTag}, uuid:tally.uuid, inside:tally.inside} :
@@ -145,13 +135,13 @@ if (!tag || !pTag) console.log("BAD TAG:", tag, pTag)
             }
           }
 
-          this.putNode(tag, this.visbs.user(tag, user))
+          this.putNode(tag, userNode)		//;console.log("Put:", tag)
           delete nodeStray[tag]
           edges.forEach(edge => {this.$set(this.state.edges, edge.uuid, edge)})
         }
 
 //console.log("Nodes:", this.state.nodes)
-console.log("Will delete:", nodeStray, edgeStray)
+//console.log("Will delete:", nodeStray, edgeStray)
         Object.keys(nodeStray).forEach(tag => {		//Delete anything on the SVG, not now in nodes
           this.$delete(this.state.nodes, tag)
           this.$delete(this.nodeData, tag)
@@ -160,13 +150,12 @@ console.log("Will delete:", nodeStray, edgeStray)
           this.$delete(this.state.edges, tag)
         })
 
-console.log("Node Data:", this.nodeData)
+//console.log("Node Data:", this.nodeData)
         this.simInit()
       })	//WM request
     },		//updateNodes
 
     simInit(alpha = 1) {
-console.log("Edges:", this.state.edges)
       let nodeList = Object.values(this.nodeData).map(el => (el.state))
         , linkList = Object.values(this.state.edges).map(edge => ({
           source: this.nodeData[edge.source.tag]?.state,
@@ -174,6 +163,8 @@ console.log("Edges:", this.state.edges)
           inside:edge.inside
         }))
         , sets = this.state.setting
+        , uRad = this.userRadius
+//console.log("simInit:", uRad, this.state.edges)
 
       this.simulation = D3.forceSimulation(nodeList)
         .alpha(alpha).alphaDecay(sets.simDecay || 0.05)
@@ -181,7 +172,7 @@ console.log("Edges:", this.state.edges)
 
       .force('link', D3.forceLink(linkList).distance(d => {
 //console.log("LD:", d, typeof d.inside, d.inside ? sets.lenLoc : sets.lenFor)
-        return this.userRadius * (d.inside ? sets.lenLoc : sets.lenFor)
+        return uRad * (d.inside ? sets.lenLoc : sets.lenFor)
       }).strength(d => {
         return ((d.inside ? sets.locPull : sets.forPull) || 0.05)
         sets.linkPull || 0.05
@@ -207,16 +198,16 @@ console.log("Edges:", this.state.edges)
         return d.radius
       }))
 
-      .force('y', D3.forceY().strength(			//Assets should move up, liabilities move down
+      .force('y', D3.forceY().strength(		//Assets should move up, liabilities move down
         sets.floatSink || 0.2
-      ).y(d => {		//Float or sink
+      ).y(d => {				//Float or sink
         let node = this.nodeData[d.tag]
 //console.log('Y:', d, this.state)
-        if (node.inside) {				//Local users
+        if (node.inside) {			//Local users
           let node = this.nodeData[d.tag]
 //console.log('Yl:', node.assets, node.liabs)
           if (node.assets <= 0 || node.liabs <= 0) return 0	//Untethered nodes hang near X axis
-          return ((node.assets - node.liabs) * this.userRadius)
+          return ((node.assets - node.liabs) * uRad)
         } else {					//Foreign peers
           return node.tally.net >= 0 ? this.state.minY : this.state.maxY	//Seek top or bottom of graph
         }
@@ -260,7 +251,7 @@ console.log("Edges:", this.state.edges)
 
   beforeMount: function() {
     Wylib.Common.stateCheck(this)
-    this.visbs = new VisBS(D3);
+    InitVisBS(D3)
 //console.log("URNet2 beforeMount:", this.state)    
 
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
@@ -270,9 +261,8 @@ console.log("Edges:", this.state.edges)
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
         this.refresh()
 
-//Fixme: eliminate?
-//      if (dat.oper == 'DELETE' || dat.oper == 'INSERT')
-//        this.$refs.svg.$emit('change')		//Automatic bump each time something changes
+//      if (dat.oper == 'DELETE' || dat.oper == 'INSERT')	//Fixme: eliminate this?
+//        this.$refs.svg.$emit('change')	//Automatic bump each time something changes
     })
     
     Wylib.Wyseman.register(this.id+'vm', View, (data, err) => {
