@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Oops!</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  
+  <body>
+    <div class="main_page">
+      <div class="page_header floating_element">
+        <a href="/">
+          <img src="MyCHIPs-logo-color.jpg" alt="MyCHIPs Logo"
+             style="height:175px;" class="floating_element" />
+        </a>
+        <div>
+          <span style="margin-top: 1em;" class="floating_element">
+            Oops!
+          </span>
+        </div>
+        <a href="/"><div class="banner">
+          MyCHIPs Digital Currency Project
+        </div></a>
+      </div>
+      <div class="content_section floating_element">
+        <div class="content_section_text">
+        Did you click a link hoping to get connected to your CHIP service provider?
+      <p>
+        You probably need to install the mobile app on your device first!
+      </div>
+      <div class="content_section_text">
+        Download the app for your platform:
+        <a href="/chark.apk">Android</a>
+        or
+        <a href="https://testflight.apple.com/join/5IP35ipV">iPhone.</a>
+      <p>
+        And then try again clicking the link that got you here.
+      </div>
+      <div class="content_section_text">
+        With the app correctly installed and configured on your device, that link should launch the app and connect you to your provider server.
+      </div>
+      </div>
+    </div>
+    <div class="footer">
+      MyCHIPs.org is a project of The Got Choices Foundation.  Copyright 2017-Present.  All rights reserved.
+    </div>
+  </body>
+</html>
+
