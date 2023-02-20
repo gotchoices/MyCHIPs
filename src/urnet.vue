@@ -22,9 +22,8 @@
 
 <script>
 import Wylib from 'wylib'
-//require("regenerator-runtime/runtime")        //Webpack needs this for async/generators (d3)
-const D3 = require('d3')
-const { InitVisBS, UserVisBS } = require('./visbs.js')
+const d3 = require('d3')
+const { VisBSInit, VisBSUser } = require('./visbs.js')
 const View = 'mychips.users_v_tallies'
 
 export default {
@@ -104,10 +103,10 @@ export default {
         for (let user of users) {				//For each user record
           let tag = user.peer_cid + ':' + user.peer_agent
             , edges = []
-            , userVisBS = new UserVisBS(user)
-            , userNode = userVisBS.user(tag, user)
+            , visBSUser = new VisBSUser(user)
+            , userNode = visBSUser.user(tag, user)
 
-          this.userRadius = userVisBS.userRadius
+          this.userRadius = visBSUser.userRadius
           if (tag in nodes && nodes[tag].latest >= user.latest) continue
 
           if (!(tag in this.nodeData)) this.nodeData[tag] = {}	//Keep structure of all node data
@@ -121,7 +120,7 @@ export default {
 
             if (tally.part && !tally.inside) {			//Partner is a foreign peer
               pTag = (tally.part + '~' + tally.ent + '-' + tally.seq)
-              this.putNode(pTag, userVisBS.peer(tally.part, tag, tally))
+              this.putNode(pTag, visBSUser.peer(tally.part, tag, tally))
               delete nodeStray[pTag]
             } else if (!(tally.part in nodes)) {		//Local partner not on graph yet
 //console.log("ZZZ:", tally.part, Object.keys(this.state.nodes))
@@ -166,11 +165,11 @@ export default {
         , uRad = this.userRadius
 //console.log("simInit:", uRad, this.state.edges)
 
-      this.simulation = D3.forceSimulation(nodeList)
+      this.simulation = d3.forceSimulation(nodeList)
         .alpha(alpha).alphaDecay(sets.simDecay || 0.05)
         .velocityDecay(sets.velDecay || 0.03)
 
-      .force('link', D3.forceLink(linkList).distance(d => {
+      .force('link', d3.forceLink(linkList).distance(d => {
 //console.log("LD:", d, typeof d.inside, d.inside ? sets.lenLoc : sets.lenFor)
         return uRad * (d.inside ? sets.lenLoc : sets.lenFor)
       }).strength(d => {
@@ -178,13 +177,13 @@ export default {
         sets.linkPull || 0.05
       }))
 
-      .force('center', D3.forceCenter()		//Nodes like the graph center
+      .force('center', d3.forceCenter()		//Nodes like the graph center
           .strength(sets.centPull || 0.1))
       
-      .force('charge', D3.forceManyBody()	//Nodes repel each other
+      .force('charge', d3.forceManyBody()	//Nodes repel each other
           .strength(-(sets.repel || 10)))
 
-      .force('x', D3.forceX().strength(
+      .force('x', d3.forceX().strength(
         sets.vertAlign || 0.05
       ).x(d => {		//Align foreign peers with user tally
 //console.log('X:', d, this.state)
@@ -194,11 +193,11 @@ export default {
         return (uNode.state.x + node.tally.cent[0])		//peers get pushed to align with user tally
       }))
 
-      .force('collision', D3.forceCollide().strength(0.75).radius(d => {
+      .force('collision', d3.forceCollide().strength(0.75).radius(d => {
         return d.radius
       }))
 
-      .force('y', D3.forceY().strength(		//Assets should move up, liabilities move down
+      .force('y', d3.forceY().strength(		//Assets should move up, liabilities move down
         sets.floatSink || 0.2
       ).y(d => {				//Float or sink
         let node = this.nodeData[d.tag]
@@ -251,7 +250,7 @@ export default {
 
   beforeMount: function() {
     Wylib.Common.stateCheck(this)
-    InitVisBS(D3)
+    VisBSInit({d3})
 //console.log("URNet2 beforeMount:", this.state)    
 
     Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
