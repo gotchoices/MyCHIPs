@@ -1,4 +1,4 @@
-define(TITLE,`Resources')
+define(TITLE,`MyCHIPs Home')
 define(CONTENT,`<div class="content_section_text">
         Learn about MyCHIPs--the digital currency designed to work as a currency!
       </div>
