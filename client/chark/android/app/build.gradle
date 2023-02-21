@@ -227,11 +227,18 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
+          def keystorePropertiesFile = rootProject.file("local.properties")
+          def keystoreProperties = new Properties()
+          if (keystorePropertiesFile.exists()) {
+            keystoreProperties.load(new FileInputStream(rootProject.file("local.properties")))
+              storeFile file(keystoreProperties['APP_STORE_FILE'])
+              storePassword keystoreProperties['APP_STORE_PASSWORD']
+              keyAlias keystoreProperties['APP_KEY_ALIAS']
+              keyPassword keystoreProperties['APP_KEY_PASSWORD']
+          } else {
+            println 'Could not find keystore properties file'
+          }
+        }        
     }
     buildTypes {
         debug {
