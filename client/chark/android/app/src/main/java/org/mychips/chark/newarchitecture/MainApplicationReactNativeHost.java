@@ -1,4 +1,4 @@
-package com.chark.newarchitecture;
+package org.mychips.chark.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -19,9 +19,9 @@ import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.fabric.ReactNativeConfig;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.chark.BuildConfig;
-import com.chark.newarchitecture.components.MainComponentsRegistry;
-import com.chark.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import org.mychips.chark.BuildConfig;
+import org.mychips.chark.newarchitecture.components.MainComponentsRegistry;
+import org.mychips.chark.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 

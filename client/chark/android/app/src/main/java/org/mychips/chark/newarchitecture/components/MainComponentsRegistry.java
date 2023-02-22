@@ -1,4 +1,4 @@
-package com.chark.newarchitecture.components;
+package org.mychips.chark.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;
