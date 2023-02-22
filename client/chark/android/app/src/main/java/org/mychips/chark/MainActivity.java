@@ -1,4 +1,4 @@
-package com.chark;
+package org.mychips.chark;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
