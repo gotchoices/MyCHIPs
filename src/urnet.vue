@@ -72,7 +72,7 @@ export default {
           let nodeTally = node.lookup[uuid]
           if (nodeTally) return nodeTally.hub
         } else {
-          return node.ends
+          return node.state.ends
         }
       }
     },
@@ -104,7 +104,9 @@ export default {
           let tag = user.peer_cid + ':' + user.peer_agent
             , edges = []
             , visBSUser = new VisBSUser(user)
-            , userNode = visBSUser.user(tag, user)
+            , state = visBSUser.user(user)
+            , { latest, lookup } = user
+            , userNode = {state, lookup, latest, inside: true}
 
           this.userRadius = visBSUser.userRadius
           if (tag in nodes && nodes[tag].latest >= user.latest) continue
@@ -120,7 +122,9 @@ export default {
 
             if (tally.part && !tally.inside) {			//Partner is a foreign peer
               pTag = (tally.part + '~' + tally.ent + '-' + tally.seq)
-              this.putNode(pTag, visBSUser.peer(tally.part, tag, tally))
+              let state = visBSUser.peer(tally)
+                , peer = {state, user: tag, tally, inside: false}
+              this.putNode(pTag, peer)
               delete nodeStray[pTag]
             } else if (!(tally.part in nodes)) {		//Local partner not on graph yet
 //console.log("ZZZ:", tally.part, Object.keys(this.state.nodes))

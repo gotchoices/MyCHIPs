@@ -1,4 +1,4 @@
-//Support class for visual balance sheet graphs (runs in both node and browser)
+//Support class for visual balance sheet graphs (can run direct in browser and via webpack)
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 const VisBSConfig = {
@@ -69,9 +69,8 @@ class VisBSUser {				//Build an object for a user and its peers
     })
   }
   
-  user(tag, uRec) {			//Generate control object for a user node
+  user(uRec) {				//Generate body data for a user node
 //console.log("User", tag, uRec.peer_cid, uRec.tallies)
-    let { lookup, latest } = uRec
     let paths = []
       , textCmds = []
       , radius = this.userRadius
@@ -117,11 +116,12 @@ class VisBSUser {				//Build an object for a user and its peers
         ${textCmds.join('\n')}
       </g>`
 //console.log("User body:", body, width, height)
-    return {state: {body, radius}, lookup, inside: true, latest}
+    return {body, radius}
   }
   
-  peer(part, user, tally) {			//Generate SVG code for a peer node
-    let [ cid, agent ] = part.split(':')
+  peer(tally) {					//Generate SVG code for a peer node
+    let { part } = tally
+      , [ cid, agent ] = part.split(':')
       , xOff = this.fontSize / 2
       , yOff = this.fontSize + 3
       , max = Math.max(cid.length + 2, agent.length + 6)	//take tspan into account
@@ -143,10 +143,10 @@ class VisBSUser {				//Build an object for a user and its peers
       </g>`
       , ends = [{x:0, y:-h2}, {x:w2, y:0}, {x:0, y:h2}, {x:-w2, y:0}]
 //console.log("Peer ends", ends)
-    return {state: {body, radius}, ends, user, tally, inside: false}
+    return {body, radius, ends}
   }
 
 }
 
-if (typeof module !== undefined)
-  module.exports = {VisBSInit, VisBSUser}
+if (typeof module !== 'undefined')		//For direct browser loads
+  module.exports = {VisBSConfig, VisBSInit, VisBSUser}
