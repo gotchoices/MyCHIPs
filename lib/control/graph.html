@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<!--
+TODO:
+- Can query user data from backend
+- Use new visbs module (process in backend and send just vector data?)
+- How to store user's selected view
+- Any way to set simulation parameters?
+- Any way to receive async updates from the DB?
+- Any way to set user non-chip assets/liabilities?
+-->
+<html lang="en">
+ <head>
+  <meta charset="utf-8" />
+  <title>Visual Balance Sheet</title>
+  <style>
+    body {
+//      border: 1px purple solid;
+    }
+    .visbs {
+      border: 1px blue solid;
+      width: 100%;
+      height: auto;
+      font-family: sans-serif;
+      font-size: 12px;
+      text-anchor: middle;
+    }
+    .visbs .background {
+      fill: #bbb;
+    }
+    .visbs .ring .name {
+      font-weight: bold;
+    }
+    .visbs .ring text {
+      pointer-events: none;
+    }
+    .partner text {
+      pointer-events: none;
+    }
+    .partner circle {
+      stroke: #666;
+    }
+    .link {
+      fill: none;
+      stroke: #666;
+      stroke-width: 2px;
+      opacity: 0.5;
+      marker-end: url(#arrow);
+    }
+  </style>
+ </head>
+<body>
+  <div class="buttons">
+    <button onclick="addHolding('chip')">New Tally</button>
+    <button onclick="addHolding('real')">New Real</button>
+    <button onclick="addHolding('fiat')">New Fiat</button>
+    <button onclick="delHolding()">Delete</button>
+  </div>
+  <svg class="visbs">
+    <defs>
+      <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
+    </defs>
+  </svg>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8" type="text/javascript"></script>
+<script src="visbs.js" charset="utf-8" type="text/javascript"></script>
+<script>
+
+VisBSInit({d3})
+console.log('A:', VisBSConfig)
+
+const markerWidth = 12			//Link arrowhead marker
+const markerHeight = 8
+const arrowPoints = [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
+//const minAngle = 0.125			//Suppress label on smaller slices
+//const egoRad = 240			//Holdings bubble
+//const egoRads = [2, egoRad * 0.3, egoRad * 0.45, egoRad * 0.8, egoRad]		//Relative sizes of donuts
+//const gapAngle = 0.004			//Gap between slices
+//const startAngle = Math.PI/2		//Start/end on East axis
+//const endAngle = Math.PI/2*5
+//const ariRad = 35			//Partner bubble size
+var svgWid = 680, svgHei = 680		//Default image size
+//var slices, rings, parts, tallies, subs	//Sorting arrays
+//var simulation
+
+//var holdings = [
+//  {id:  0, type: "chip", asset: true,  name: 'Alice',  amount: 100},
+//  {id:  1, type: "chip", asset: true,  name: 'Bob',    amount: 300},
+//  {id:  2, type: "chip", asset: true,  name: 'Chuck',  amount: 200},
+//  {id:  3, type: "chip", asset: true,  name: 'David',  amount: 400},
+//  {id:  4, type: "chip", asset: false, name: 'Edward', amount: 80},
+//  {id:  5, type: "chip", asset: false, name: 'Frank',  amount: -180},
+//  {id:  6, type: "chip", asset: false, name: 'George', amount: -380},
+//  {id:  7, type: "chip", asset: false, name: 'Harry',  amount: -280},
+//  {id:  8, type: "real", asset: true,  name: 'House',  amount: 10000},
+//  {id:  9, type: "real", asset: true,  name: 'Car',    amount: 2500},
+//  {id: 10, type: "fiat", asset: true,  name: 'Cash',   amount: 3000},
+//  {id: 11, type: "fiat", asset: false, name: 'Mortgage', amount: -8000},
+//  {id: 12, type: "fiat", asset: false, name: 'Car Loan', amount: -2000},
+//]
+//const maxChipP = "hsl(200,100%,30%)"	//Darkest positive CHIP
+//const minChipP = "hsl(200,100%,70%)"	//Lightest positive CHIP
+//const maxChipN = "hsl(10,100%,30%)"	//Darkest negative CHIP
+//const minChipN = "hsl(10,100%,70%)"	//Lightest negative CHIP
+//const maxNetW  = "hsl(230,50%,40%)"	//Positive, assets
+//const minNetW  = "hsl(350,50%,40%)"	//Negative, liabilities
+//const sumWorth  = {id: -1, type: 'nw', ring: 0, name: 'Net Worth',       amount: 0, color: '#888'}
+//const sumAssets = {id: -2, type: 'as', ring: 1, name: 'Assets',          amount: 0, color: maxNetW}
+//const sumLiabs  = {id: -3, type: 'li', ring: 1, name: 'Liabilities',     amount: 0, color: minNetW}
+//const sumCHIPsR = {id: -4, type: 'zchr', ring: 2, name: 'CHIP Receivable', amount: 0, color: maxChipP}
+//const sumCHIPsP = {id: -5, type: 'achp', ring: 2, name: 'CHIP Payable',    amount: 0, color: maxChipN}
+//const neutral = '#BBB'			//Halfway between asset and liability
+//const posRange = d3.interpolate(neutral, maxNetW)
+//const negRange = d3.interpolate(neutral, minNetW)
+
+//const Ranges = {	//Lookup table for ranges of colors, based on holding type
+//  chip:	{
+//    plus:	d3.interpolate(minChipP, maxChipP),
+//    minus:	d3.interpolate(minChipN, maxChipN),
+//  },
+//  fiat:	{
+//    plus:	d3.interpolate("hsl(145,100%,30%)", "hsl(145,100%,70%)"),
+//    minus:	d3.interpolate("hsl(325,100%,30%)", "hsl(325,100%,70%)"),
+//  },
+//  real:	{
+//    plus:	d3.interpolate("#a5672E", "#DCAD82"),	//https://icolorpalette.com/color/earthtone
+//  }
+//}
+
+const svg = d3.select(".visbs")			//Basic SVG settings
+    .attr("viewBox", [-svgWid / 2, -svgHei / 2, svgWid, svgHei])
+    .attr("width", svgWid).attr("height", svgHei)
+    .attr("transform", d3.zoomIdentity)
+//.call(s=>s.append("g").append("path").attr("stroke","#BFB").attr("d","M0,-1000V1000 M-1000,0H1000"))	//Crosshairs for debug
+    
+//const ego = svg.append("g").attr("class", "ego")		//Whole me circle
+//  .call(s => s.append("circle").attr("class", "background").attr("r", egoRad+1))		//Background
+//  .call(s => s.append("g").attr("class", "ring ring0"))		//Net worth
+//  .call(s => s.append("g").attr("class", "ring ring1")		//Assets/Liabilities
+//    .on("click", e=>{
+//console.log("Clickit", e)
+//    })
+//  )
+//  .call(s => s.append("g").attr("class", "ring ring2 sizable"))	//By type
+//  .call(s => s.append("g").attr("class", "ring ring3 sizable"))	//CHIP only
+const ego = svg.append("g").attr("id", "ego").attr("class", "ego")
+
+const alii = svg.append("g").attr("class", "partners")	//Others
+const nexi = svg.append("g").attr("class", "links")		//Links
+
+svg.select('#arrow')			//Add attributes to arrow marker
+  .attr('viewBox', [0, 0, markerWidth, markerHeight])
+  .attr('refX', 0).attr('refY', markerHeight/2)
+  .attr('markerWidth', markerWidth).attr('markerHeight', markerHeight)
+  .append('path').attr('d', d3.line()(arrowPoints))
+
+const drag = d3.drag()			//Drag function called by partner bubbles below
+  .on("drag", function (e, d) {
+console.log("drag:", e, d)
+    d3.select(this).attr("cx", d.x += e.dx).attr("cy", d.y += e.dy)
+    d.fx = d.x; d.fy = d.y		//Fix position during dragging
+//    simulation.alpha(1).restart()
+  })
+  .on("end", function (e,d) {
+    delete d.fx; delete d.fy		//Unfix, allow to be placed
+  })
+
+svg.call(d3.zoom()		//Default zoom scales whole graph
+  .on("zoom", e => {
+//console.log("svg zoom:", e.transform)
+    let { k } = e.transform
+      , wid = svgWid / k, hei = svgHei / k
+    svg.attr("viewBox", [-wid / 2, -hei / 2, wid, hei])
+  })
+  .on("end", e => {
+    init_simulation(0.8)
+  })
+)
+
+//function initData() {		//Re-initialize derived data structures
+//  parts = []						//Array of partners
+//  slices = [sumWorth, sumAssets, sumLiabs, sumCHIPsR, sumCHIPsP]
+//
+//  holdings.forEach(h => {				//Create summary records
+//    h.cent = [0,0]					//Initial centroid
+//    slices.push(h)
+//    h.ring = (h.type == 'chip') ? 3 : 2			//Which annular ring
+//    if (h.type == 'chip' && h.part == undefined) {
+//      let part = {					//Create a partner record
+//        x: (Math.random()-0.5) * egoRad * 2,		//Place initially at random
+//        y: (Math.random()-0.5) * egoRad * 2, 
+//        holding: h,
+//        type: h.asset ? 'foil' : 'stock'
+//      }
+//      h.part = part					//Link to partner record
+//      parts.push(part)
+//    }
+//  })
+////console.log("subs:", subs)
+//  summData()
+//  sortData()
+//}
+//
+//function sortData() {		//Re-initialize derived data structures
+//  rings = [[], [], [], []]
+//  slices.sort((ao,bo) => {			//Arrange the order slices will appear
+//    let a = ao.amount, aSign = Math.sign(a)
+//      , b = bo.amount, bSign = Math.sign(b)
+//    if (ao.ring > bo.ring) return 1		//Sort first by ring
+//    if (ao.ring < bo.ring) return -1
+//    if (aSign > bSign) return 1			//Then by sign
+//    if (aSign < bSign) return -1
+//    if (ao.type > bo.type) return 1		//Then by type (CHIP type names put them on East)
+//    if (ao.type < bo.type) return -1
+//    return (a - b)				//Then by amount
+//  })
+//  slices.forEach(s => {				//Assign slices to rings
+//    rings[s.ring].push(s)
+//  })
+//}
+//
+//function summData() {		//Re-compute summary data and slices
+//  slices.forEach(s => {if (s.id < 0) s.amount = 0})
+//
+//  holdings.forEach(h => {				//Create summary records
+//    sumWorth.amount += h.amount
+//    if (h.amount >= 0)
+//      sumAssets.amount += h.amount; else sumLiabs.amount += h.amount
+//    if (h.type == 'chip') {
+//      if (h.amount >= 0)
+//        sumCHIPsR.amount += h.amount; else sumCHIPsP.amount += h.amount
+//    }
+//  })
+////console.log("ALW", sumAssets.amount, sumLiabs.amount, sumWorth.amount)
+//  if (sumWorth.amount >= 0)
+//      sumWorth.color = posRange(sumWorth.amount / sumAssets.amount)
+//  else
+//      sumWorth.color = negRange(sumWorth.amount / sumLiabs.amount)
+//
+//  subs = {
+//    chip: {plus: [], minus: []},
+//    fiat: {plus: [], minus: []},
+//    real: {plus: []},
+//  }
+//  holdings.forEach(h => {	//Separate holdings by type and positive/negative
+//    let sign = h.amount >= 0 ? 'plus' : 'minus'
+//      , type = h.type || 'chip'
+//      , sub = subs[type][sign]
+////console.log('ty:', type, 'si:', sign, 'sub:', sub)
+//    if (sub) sub.push(h)
+//  })
+//
+//  Object.keys(Ranges).forEach(t => {		//Assign each holding a color
+//    ['plus','minus'].forEach(s => {
+//      let sub = subs[t][s]
+//      if (sub) {
+//        let ss = sub.sort((a,b)=>(Math.abs(a.amount) - Math.abs(b.amount)))
+//          , len = Math.max(2, ss.length)	//Can't quantize length 1
+//          , shades = d3.quantize(Ranges[t][s], len)
+////console.log('t:',t,'s:',s,'ss:',ss)
+//        ss.forEach((h,i) => {
+////console.log('i:',i, shades)
+//          h.color = shades[i]
+//        })
+//      }
+//    })
+//  })
+//}
+
+//function init_simulation(alph = 1, dec = 0.05) {
+//  let [ x, y, w, h ] = svg.attr("viewBox").split(',')
+//    , height = Math.max(h / 2, egoRad+ariRad * 2.5)
+//  simulation = d3.forceSimulation(parts)
+//    .alpha(alph)
+//    .alphaDecay(dec)
+//    .velocityDecay(0.3)
+//    .force('charge', d3.forceManyBody().strength(-100))
+//    .force('x', d3.forceX().strength(0.08).x(function(d) {
+////console.log('X:', d.holding.cent)
+//      return d.holding.cent[0] * 1.25		//Spread things out a little
+//    }))
+//    .force('y', d3.forceY().strength(0.1).y(d => {
+////console.log('Y:', height)
+//      return (d.holding.asset ? -1 : 1) * (height - ariRad)
+//    }))
+//    .force('collision', d3.forceCollide().strength(0.75).radius(ariRad))
+//    .on('tick', () => {
+////console.log('ticked')
+//      paintPartners()
+//    })
+//}
+
+//function addHolding(t) {
+//  let ans = prompt("Input Name and Value", "Partner 10")
+//  console.log("t:", t, "ans:", ans)
+//}
+//
+//function delHolding() {
+//  let ans = prompt("Input ID to delete:")
+//  console.log("ans:", ans)
+//}
+
+//function paintRings() {
+//  let i; for(i = 0; i < 3; i++) paintRing(i)
+//  tallies = paintRing(3)	//Last one (outer ring) will be our tallies
+//}
+
+function fetchData() {		//Grab data from server
+  let pageURL = window?.location?.href
+    , dataURL = pageURL.replace(/graph.html$/,'user.json')
+console.log('Fetch:', dataURL)
+  fetch(dataURL).then(resp => resp.json()).then(data => {
+console.log(' data:', data)
+    repaint(data)
+  })
+}
+
+function repaint(userRec) {
+console.log("User Data:", userRec)
+  let userGen = new VisBSUser(userRec)
+    , user = userGen.user(userRec)
+//console.log("UserBody:", user.body)
+  ego.html(user.body)
+  userRec.tallies.forEach(tally => {
+    let peer = userGen.peer(tally)
+    alii.append("g").attr("id", tally.part).call(drag).html(peer.body)
+console.log("tally:", tally, 'bod:', peer.body)
+  })
+}
+
+fetchData()
+
+//initData()
+//paintRings()
+//paintPartners()
+//init_simulation()
+
+</script>
+</body>
+</html>

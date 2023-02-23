@@ -18,6 +18,13 @@ If you need to upgrade, a quick and easy way is:
   sudo npm install -g n
   sudo n stable
 ```
+Note: if you are developing on a Mac or Windows machine, this is not referring to the 
+software on your native host, but rather on the Linux environment where the server will run.
+That environment will have to be one of:
+- Native Linux on a dedicated server
+- Native Linux in a VM (VirtualBox, cloud, etc)
+- Docker (should install software versions correctly on its own)
+
 Now clone the MyCHIPs source code from the [github repository](github.com/gotchoices/mychips).
 If the folder gets created as "MyCHIPs" (because you copied the github clone link) rather than 
 "mychips", it may cause some problems on some platforms, so consider renaming it to (lower case) "mychips."

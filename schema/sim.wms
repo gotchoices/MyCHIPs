@@ -106,7 +106,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
 view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
   t as (select
     tally_ent, tally_seq, tally_type, tally_uuid, net, inside, part_cid, part_agent, latest
-    from mychips.tallies_v order by net
+    from mychips.tallies_v where status in ('offer','open') order by net
   ),
   s as (select tally_ent
     , count(tally_seq)					as count
@@ -141,6 +141,15 @@ view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
     from	mychips.users_v u
     left join	s on s.tally_ent = u.user_ent;
 }
+
+# View limited to the user's own user record
+#----------------------------------------------------------------
+view mychips.users_v_tallies_me {mychips.users_v_tallies base.user_id(text)} {select 
+    u.*
+    from	mychips.users_v_tallies		u where id = base.user_id(session_user)
+} -grant {
+    {user	s s s}
+} -primary id
 
 # Fixme:
 #----------------------------------------------------------------

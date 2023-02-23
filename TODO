@@ -1,42 +1,45 @@
 TODO:
 
-X- Deploy APK to somewhere for downloading (mychips.org)
-X- Register with testflight
-X- Test that simulations still run
-- Stray state in Tally state diagram
-- Publish latest Wyatt libs
-- Merge to master
-- Publish mychips to npmjs.org? (or remove same)
+X- Stray state in Tally state diagram?
 
 - Refine/document report protocol in backend:
 -  Tally invitation QR report still works in mobile app
--  Commit changes
+
+- Implement report for: Visual Balance Sheet
+X-  Urnet still working (check error)
+X-  Breakout class for handling graph-specific operations
+X-  Urnet still working
+X-  Build valid user record in query
+X-    Must contain assets, liabs
 -  
+-  Wrap try/catch around VisBS module call
+-  Implement single-user version that references class
+-  Obsolete: visbs.vue, urnet1.vue
+-  
+-  Report can return url or html with embedded iframe
+-  When report resource called for, return html/javascript
+-  Reimplement urnet using only d3 and no vue
+-  Port code from urnet to display for a single user
+-  Can the new code be a resource called from urnet?
+-  Can view report from User SPA
+-  Can view report in WebView in Chark
+-  Back-port admin console network view to use generalized library
+
+- Consolidate local dirs:
+-  Move pki/local under local/pki?
+-  Move sim/local under local/sim?
+-  Move test/local under local/test?
+
+- Can we serve user photos from the document server?
+-  Add user photo (document) database table?
+-  Include hash reference to photos in certificates
+
 - User registration page refinements:
 -  Email confirmation code, enter on page, rather than emailing link? (low priority)
 -  Page Includes links to Android APK and Apple testflight
 -  Can view terms of Service page?
 -  Fix document server also running on 443 (request by hash?)
 - 
-- Consolidate local dirs:
--  Move pki/local under local/pki?
--  Move sim/local under local/sim?
--  Move test/local under local/test?
--  
-- Can we serve user photos from the document server?
--  Add user photo (document) database table?
--  Include hash reference to photos in certificates
-- 
-- Implement report for: Visual Balance Sheet
--  How to display simple html (no iframe)
--  Is urnet a big svg?
--  Make this an SVG type report by default?
--  Port code from urnet to display for a single user
--  Make urnet into a general library class
--  Can view report from User SPA
--  Can view report in WebView in Chark
--  Back-port admin console to use generalized library
--  
 - Chit consensus
 -  Why is one chit still left in pending state after tests?
 -  Update existing code to honor chain state (honor how?)

@@ -9,12 +9,16 @@ import { query_user } from '../utils/user';
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 
+const initialConnectionBackoff = 1000;
+const maxConnectionBackoff = 11000;
+
 const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
   const [status, setStatus] = useState('Server Disconnected');
 
   const { setUser } = useCurrentUser();
   const connectTimeout = useRef();
+  const connectionBackoffRef = useRef(initialConnectionBackoff); // for exponential backoff 
 
   useEffect(() => {
     if(!ws) {
@@ -31,7 +35,6 @@ const SocketProvider = ({ children }) => {
 
   const credConnect = (creds, cb = null) => {
     let address = `${creds.host}:${creds.port}`
-    if(ws) return;
 
     setStatus('Connecting Server...');
     connect.getUrl(creds).then(uri => {
@@ -44,12 +47,18 @@ const SocketProvider = ({ children }) => {
         setWs(null);
         wm.onClose()
 
+        if(connectionBackoffRef.current < maxConnectionBackoff) {
+          connectionBackoffRef.current *= 2;
+        }
+
+        const delay = connectionBackoffRef.current + Math.floor(Math.random() * 3500)
         connectTimeout.current = setTimeout(() => {
           connectSocket()
-        }, 5000)
+        }, delay)
       }
 
       websocket.onopen = () => {
+        connectionBackoffRef.current = initialConnectionBackoff;
         setStatus('Server Connected');
         clearTimeout(connectTimeout.current);
         setWs(websocket);
@@ -68,12 +77,9 @@ const SocketProvider = ({ children }) => {
       }
 
       websocket.onerror = err => {
+        console.log('Websocket error', err)
         setStatus('Server Disconnected');
         wm.onClose()
-
-        if(err?.isTrusted === false) {
-          Keychain.resetGenericPassword();
-        }
 
         if(cb) {
           cb(err);
@@ -84,10 +90,15 @@ const SocketProvider = ({ children }) => {
         wm.onMessage(e.data)
       }
     }).catch(err => {
+      if(connectionBackoffRef.current < maxConnectionBackoff) {
+        connectionBackoffRef.current *= 2;
+      }
+      const delay = connectionBackoffRef.current + Math.floor(Math.random() * 3500)
+      console.log('Error initializing', err)
       setStatus('Server Disconnected');
       connectTimeout.current = setTimeout(() => {
         connectSocket()
-      }, 5000)
+      }, delay)
 
       if(cb) {
         cb(err);
@@ -96,8 +107,16 @@ const SocketProvider = ({ children }) => {
   }
 
   const connectSocket = (ticket, cb = null) => {
+    if(ws) {
+      if(!cb) return;
+
+      const err = new Error('User already connected');
+      return cb(err);
+    };
+
     if (ticket) {
       clearTimeout(connectTimeout.current);
+      console.log('Resetting generic password for the new connection')
       Keychain.resetGenericPassword();
       let creds = Object.assign({}, ticket.ticket)
       credConnect(creds, cb)

@@ -16,7 +16,10 @@ var log = Log('mychips', undefined, process.env.MYCHIPS_LOGPATH || Path.join('/v
 const { Wyseman } = require('wyseman')
 const { actions, Parser } = require('wyselib')
 const contDir = '../lib/control'
-const controls = Fs.readdirSync(Path.join(__dirname, contDir)).map(f=>(Path.join(contDir, f)))
+
+const controls = Fs.readdirSync(Path.join(__dirname, contDir)).filter(el => {
+    return Path.extname(el).toLowerCase() == '.js'
+  }).map(f => Path.join(contDir, f))
 Parser(actions, controls.map(f=>require(f)))	//Require our app-specific reports
 
 var opts = Args(require('../lib/config'))

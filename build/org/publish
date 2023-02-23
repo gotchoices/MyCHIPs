@@ -1,0 +1,18 @@
+#!/bin/bash
+#Deploy web pages to mychips.org
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+mydir="$(dirname $BASH_SOURCE)"		#Where this script is
+files="*.html connect tally *.svg *.css"
+
+dest=$MYCHIPS_ORG_WEB_DEPLOY
+if [ -z "$dest" ]; then
+  echo "No destination found in: MYCHIPS_ORG_WEB_DEPLOY"
+else
+  echo "Deploying web pages to $dest"
+  cd $mydir
+  scp $files $dest
+  
+  echo "Make sure assetlinks.json is published if any change is necessary:"
+  echo "  Command: scp assetlinks.json $MYCHIPS_ORG_WEB_DEPLOY/.well-known"
+fi

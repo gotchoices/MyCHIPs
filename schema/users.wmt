@@ -53,7 +53,9 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
 
 tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} -messages {
     {graph 	{Tally Graph}	{Generate a visual graph of the user's tally relationships and balances}}
-} -messages {
+      {graph.format 	{Graph Format}	{How to return the graph report data}}
+        {graph.format.html	{html}	{Return HTML fragment that contains the report}}
+        {graph.format.url	{url}	{Return an url link to a web page containing the report}}
     {launch.title	{Current User}		{Current User Account Record}}
     {launch.instruct	{Basic Instructions}	{
       <p>This view shows only the record pertaining to the connected user

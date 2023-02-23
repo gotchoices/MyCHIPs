@@ -1,0 +1,43 @@
+#!/bin/bash
+#Build the web pages in this folder
+
+dir="$(basename $(pwd))"
+stddeps="template all.m4"
+
+if [ -z "$1" ]; then			#If no args given
+  set -- index.html privacy.html connect tally
+fi
+
+while [ ! -z "$1" ]; do
+  obj=$(basename -- "$1")		#The html file we are building
+  base=${obj%.*}
+  dobuild=false				#Default: no need to build
+
+  shift					;printf "Checking: %-16s" $obj
+  if [ ! -f ${base}.m4 ]; then
+    echo "  Can't find ${base}.m4"
+    continue
+  fi
+  for d in $stddeps ${base}.m4; do	#Every file is dependent on these
+    if [ ! -f $obj -o $d -nt $obj ]; then
+      dobuild=true			#Note if one or more is fresher than our target
+    fi
+  done
+  if [ ! -f $obj ]; then dobuild=true; fi
+
+  if $dobuild; then
+    printf "  Building: %-16s" $obj
+      (   echo 'divert(-1)'
+          cat $base.m4
+          echo 'include(all.m4)'
+          echo "define(THIS_FILE, \`$obj')"
+          echo 'divert(0)include(template)'
+      ) >${obj}.tmp
+      m4 ${obj}.tmp >$obj
+      echo
+  else
+      echo "  Nothing to do"
+  fi
+
+  rm -f ${obj}.tmp
+done

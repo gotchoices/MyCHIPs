@@ -1,0 +1,9 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "org.mychips.chark",
+    "sha256_cert_fingerprints":
+    ["7A:60:3F:34:14:A8:D3:B6:2E:E8:9C:E5:C1:7B:F8:FB:A5:CC:6A:79:B2:F5:9B:A1:53:03:41:4A:8D:AD:38:F9"]
+  }
+}]

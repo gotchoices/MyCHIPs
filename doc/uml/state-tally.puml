@@ -5,7 +5,7 @@ $title(Tally State Diagram)
 state "P.offer.void" as pOfferVoid
 state "B.offer.open" as BOfferOpen
 state "draft.offer" as DraftOffer
-state "open.close" as OpenClose
+'state "open.close" as OpenClose
 state working {
   state "draft" as draft
   state "void" as void
@@ -29,8 +29,8 @@ DraftOffer : Status: draft, Req: offer
 DraftOffer : Must have user signature
 DraftOffer : Agent: Attention!
 
-OpenClose : Status: open, Req: close
-OpenClose : Agent: Attention!
+'OpenClose : Status: open, Req: close
+'OpenClose : Agent: Attention!
 
 draft : Status: draft, Req: null
 draft : User: can modify, sign, delete
