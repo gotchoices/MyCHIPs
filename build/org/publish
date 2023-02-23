@@ -12,4 +12,7 @@ else
   echo "Deploying web pages to $dest"
   cd $mydir
   scp $files $dest
+  
+  echo "Make sure assetlinks.json is published if any change is necessary:"
+  echo "  Command: scp assetlinks.json $MYCHIPS_ORG_WEB_DEPLOY/.well-known"
 fi
