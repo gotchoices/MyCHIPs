@@ -142,6 +142,15 @@ view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
     left join	s on s.tally_ent = u.user_ent;
 }
 
+# View limited to the user's own user record
+#----------------------------------------------------------------
+view mychips.users_v_tallies_me {mychips.users_v_tallies base.user_id(text)} {select 
+    u.*
+    from	mychips.users_v_tallies		u where id = base.user_id(session_user)
+} -grant {
+    {user	s s s}
+} -primary id
+
 # Fixme:
 #----------------------------------------------------------------
 #This query fails (when column latest specified) to return tallies in net order

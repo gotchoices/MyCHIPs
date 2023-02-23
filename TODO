@@ -9,6 +9,10 @@ X- Stray state in Tally state diagram?
 X-  Urnet still working (check error)
 X-  Breakout class for handling graph-specific operations
 X-  Urnet still working
+X-  Build valid user record in query
+X-    Must contain assets, liabs
+-  
+-  Wrap try/catch around VisBS module call
 -  Implement single-user version that references class
 -  Obsolete: visbs.vue, urnet1.vue
 -  
