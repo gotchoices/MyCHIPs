@@ -1,33 +1,57 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>TITLE</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  
-  <body>
-    <div class="main_page">
-      <div class="page_header floating_element">
-        <a href="/">
-          <img src="MyCHIPs-logo-color.jpg" alt="MyCHIPs Logo"
-             style="height:175px;" class="floating_element" />
-        </a>
-        <div>
-          <span style="margin-top: 1em;" class="floating_element">
-            TITLE
-          </span>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>MyCHIPs Central</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!--CSS & Icons-->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+
+</head>
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center">
+      <a href="index.html" style='width:5%; margin-right:10px' class="logo"><img src="./MyCHIPs-logo-color.jpg" alt="" class="img-fluid"></a>
+      <h1 class="logo" ><a href="index.html">MyCHIPs</a></h1>
+    </div>
+  </header><!-- End Header -->
+<body>
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container position-relative">
+      <div class="row justify-content-center">
+        <div class="mb-20 col-xl-7 col-lg-9 text-center" style='margin-bottom:20px'>
+          <h1>TITLE</h1>
+          <h2>SUBTITLE</h2>
         </div>
-        <a href="/"><div class="banner">
-          BANNER
-        </div></a>
       </div>
-      <div class="content_section floating_element">
-        CONTENT
+      CONTENT
+    </div>
+  </section>
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="container d-md-flex py-4">
+
+      <div class="me-md-auto text-center text-md-start">
+        <div class="copyright">
+          MyCHIPS.org is a project of The Got Choices Foundation. &copy; Copyright 2017-Present. All Rights Reserved
+        </div>
       </div>
     </div>
-    <div class="footer">
-      MyCHIPs.org is a project of The Got Choices Foundation.  Copyright 2017-Present.  All rights reserved.
-    </div>
-  </body>
+  </footer><!-- End Footer -->
+
+</body>
+
 </html>
