@@ -9,7 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { parse } from '../../utils/query-string';
 import { getLinkHost } from '../../utils/common';
 
-const tallyUri = new Set(['tally-accept', 'mychips.org/tally-accept']);
+const tallyUri = new Set(['tally', 'mychips.org/tally']);
 const TallyAccept = (props) => {
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
