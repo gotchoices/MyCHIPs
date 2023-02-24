@@ -7,28 +7,28 @@ define(CONTENT,`
       </div>
 
       <div class="row icon-boxes">
-        LINK_BLOCK(ri-stack-line, https://gotchoices.org/mychips/index.html,
-          How it works,
-          Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi
-        )
         LINK_BLOCK(ri-lightbulb-flash-line, https://gotchoices.org/book/chips.html,
-          Original system concept,
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+          `Original system concept',
+          `Read from Got Choices, The Book, where a CHIP-based system was first proposed.'
+        )
+        LINK_BLOCK(ri-stack-line, https://gotchoices.org/mychips/index.html,
+          `How it works',
+          `Read The MyCHIPs Papers, which details how value can be transmitted in a purely peer-to-peer private credit network'.
         )
         LINK_BLOCK(ri-github-line, https://github.com/gotchoices/mychips,
-          Github,
-          Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+          `Open Source Code',
+          `Access the code for the MyCHIPs server and mobile application in Github.'
         )
         LINK_BLOCK(ri-coin-line, https://chipcentral.net/,
-          The CHIP as a unit of value,
-          At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
+          `The CHIP as a unit of value',
+          `Read the latest research into how the value of a CHIP is estimated.'
         )
         LINK_BLOCK(ri-user-line, https://mychips.net/, 
-          A CHIP service provider,
-          At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
+          `A CHIP service provider',
+          `Sign up for a test account with the first CHIP Service Provider'
         )
-        LINK_BLOCK(ri-fingerprint-line, 
-          privacy.html, Privacy Policy, 
-          At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
+        LINK_BLOCK(ri-fingerprint-line, privacy.html, 
+          `Privacy Policy', 
+          `How your data is treated.'
         )
 ')
