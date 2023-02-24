@@ -23,7 +23,7 @@ const ShareTally = (props) => {
 
   if(tallyObj?.tally) {
     const tally = tallyObj.tally;
-    link = `https://mychips.org/tally-accept?token=${tally.token}&chad=${JSON.stringify(tally.chad)}`;
+    link = `https://mychips.org/tally?token=${tally.token}&chad=${JSON.stringify(tally.chad)}`;
   }
 
   const changeTab = (tab) => {

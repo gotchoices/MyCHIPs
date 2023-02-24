@@ -98,7 +98,7 @@ const linking = {
             path: 'connect',
           },
           TallyAccept: {
-            path: 'tally-accept',
+            path: 'tally',
           }
         }
       },
