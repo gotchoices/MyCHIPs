@@ -6,8 +6,9 @@ const VisBSConfig = {
   startAngle:	Math.PI / 2,		//Start/end on East axis
   endAngle:	Math.PI / 2*5,
   minTextAngle:	Math.PI / 8,		//Display sum if pie slice bigger than this
-  truncAgent:	6,			//Show this many digits of agent ID
+  truncAgent:	10,			//Show this many digits of agent ID
   fontSize:	18,
+  chipMult:	1000,
 
   neutral:	"#DDD",			//Halfway between asset and liability
   maxNwColor:	"hsl(230,75%,40%)",	//Positive net worth
@@ -66,6 +67,7 @@ class VisBSUser {				//Build an object for a user and its peers
       let idx = tally.net >= 0 ? uRec.tallies.length - (++slice) : slice++
       tally.color = this.shades[tally.net >= 0][idx]
       uRec.lookup[tally.uuid] = tally			//tally lookup table by uuid
+      tally.chips = tally.net / this.chipMult
     })
   }
   
@@ -81,13 +83,25 @@ class VisBSUser {				//Build an object for a user and its peers
         , arcs
       if (tag == 'nw') {
         let color = uRec.net >= 0 ? this.gen.posNwColor(uRec.net / uRec.asset) : this.gen.negNwColor(uRec.net / uRec.liab)
-          , items = [{net:uRec.net, color}]
+          , items = [{
+            net:	uRec.net,
+            chips:	uRec.net / this.chipMult,
+            color
+          }]
         arcs = this.gen.pieGen(items)			//Generate net-worth circle
       } else if (tag == 'al') {
-        let items = [{net:uRec.liab, color: this.liabColor}, {net:uRec.asset, color: this.assetColor}]
+        let items = [{
+          net:		uRec.liab,
+          chips:	uRec.liab / this.chipMult,
+          color:	this.liabColor
+        }, {
+          net:		uRec.asset, 
+          chips:	uRec.asset / this.chipMult,
+          color:	this.assetColor
+        }]
         arcs = this.gen.pieGen(items)			//Generate assets/liabilities ring
       } else if (tag == 'ch') {
-        arcs = this.gen.pieGen(uRec.tallies)			//Generate outer CHIP ring
+        arcs = this.gen.pieGen(uRec.tallies)		//Generate outer CHIP ring
       }
       arcs.forEach(arc => {
         let d = arc.data
@@ -101,7 +115,7 @@ class VisBSUser {				//Build an object for a user and its peers
         d.arc = arc					//Access to arc from tally object
         if (arc.endAngle - arc.startAngle > this.minTextAngle) {
           let [x, y] = d.cent
-          textCmds.push(`<text x="${x}" y="${y}" dominant-baseline="middle" text-anchor="middle">${d.net}</text>`)
+          textCmds.push(`<text x="${x}" y="${y}" dominant-baseline="middle" text-anchor="middle">${d.chips}</text>`)
         }
         paths.push(`<path d="${pathData}" fill="${d.color}"/>`)
       })
@@ -122,17 +136,18 @@ class VisBSUser {				//Build an object for a user and its peers
   peer(tally) {					//Generate SVG code for a peer node
     let { part } = tally
       , [ cid, agent ] = part.split(':')
+      , tAgent = agent.slice(-this.truncAgent)
       , xOff = this.fontSize / 2
       , yOff = this.fontSize + 3
-      , max = Math.max(cid.length + 2, agent.length + 6)	//take tspan into account
+      , max = Math.max(cid.length + 2, tAgent.length + 6)	//take tspan into account
       , width = max * this.fontSize * 0.5,	w2 = width / 2
       , height = this.fontSize * 4,		h2 = height / 2
       , radius = w2
       , text = `
       <text x="${xOff}" y="${yOff}" style="font:normal ${this.fontSize}px sans-serif;">
         <tspan x="${-w2 + xOff}" y="${-h2 + yOff}">${cid}</tspan>
-        <tspan x="${-w2 + xOff}" y="${-h2 + yOff * 2}">${agent.slice(-this.truncAgent)}</tspan>
-        <tspan x="${-w2 + xOff}" y="${-h2 + yOff * 3}">${tally.net}</tspan>
+        <tspan x="${-w2 + xOff}" y="${-h2 + yOff * 2}">:${tAgent}</tspan>
+        <tspan x="${-w2 + xOff}" y="${-h2 + yOff * 3}">${tally.chips}c</tspan>
       </text>`
       , rect = `x="${-w2}" y="${-h2}" rx="${yOff}" ry="${yOff}" width="${width}" height="${height}"`
       , body = `
