@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Can query user data from backend
-X- Use new visbs module (process in backend and send just vector data?)
-- How to store user's selected view
-- Any way to set animation parameters?
-- Any way to receive async updates from the DB?
-- Any way to set user non-chip assets/liabilities?
+- Arrows erratic at close distances
+- Store user's last selected view
+- Adjust animation parameters?
+- How to receive async updates from the DB
+- Can set user non-chip assets/liabilities
 -->
 <html lang="en">
  <head>
@@ -49,14 +48,6 @@ X- Use new visbs module (process in backend and send just vector data?)
   </style>
  </head>
 <body>
-<!--
-  <div class="buttons">
-    <button onclick="addHolding('chip')">New Tally</button>
-    <button onclick="addHolding('real')">New Real</button>
-    <button onclick="addHolding('fiat')">New Fiat</button>
-    <button onclick="delHolding()">Delete</button>
-  </div>
--->
   <svg class="visbs">
     <defs>
       <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
@@ -72,9 +63,10 @@ X- Use new visbs module (process in backend and send just vector data?)
 
 VisBSInit({d3})
 
-const markerWidth = 12			//Link arrowhead marker
-const markerHeight = 8
-const arrowPoints = [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
+const markerWidth	= 12			//Link arrowhead marker
+const markerHeight	= 8
+const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
+const Pi2		= Math.PI / 2
 var bodyGen
 var userData
 var simulation
@@ -101,7 +93,7 @@ svg.select('#arrow')			//Add attributes to arrow marker
 
 const drag = d3.drag()			//Drag function called by partner bubbles below
   .on("drag", function (e, d) {
-console.log("drag:", e, d, this)
+//console.log("drag:", e, d, this)
     d.x += e.dx
     d.y += e.dy
     d.fx = d.x; d.fy = d.y		//Fix position during dragging
@@ -112,7 +104,7 @@ console.log("drag:", e, d, this)
     delete d.fx; delete d.fy		//Unfix, allow to be placed
   })
 
-svg.call(d3.zoom()		//Default zoom scales whole graph
+svg.call(d3.zoom()			//Default zoom scales whole graph
   .on("zoom", e => {
 //console.log("svg zoom:", e.transform)
     let { k } = e.transform
@@ -127,9 +119,9 @@ svg.call(d3.zoom()		//Default zoom scales whole graph
 function fetchData() {		//Grab data from server
   let pageURL = window?.location?.href
     , dataURL = pageURL.replace(/graph.html$/,'user.json')
-console.log('Fetch:', dataURL)
+//console.log('Fetch:', dataURL)
   fetch(dataURL).then(resp => resp.json()).then(data => {
-console.log(' data:', data)
+//console.log(' data:', data)
     userData = data
     userData.tallies.forEach(tally => {
       tally.x = (Math.random()-0.5) * svgWid
@@ -140,8 +132,16 @@ console.log(' data:', data)
   })
 }
 
+function peerClick(e, d) {		//Grab data from server
+console.log('click:', e, d)
+  let pageURL = window?.location?.href
+    , clickURL = pageURL.replace(/graph.html$/,'click?seq=' + d.seq)
+//console.log('Fetch:', clickURL)
+  fetch(clickURL)
+}
+
 function repaint() {
-console.log("User Data:", userData)
+//console.log("User Data:", userData)
   bodyGen = new VisBSUser(userData)
   let user = bodyGen.user(userData)
   
@@ -152,20 +152,51 @@ console.log("User Data:", userData)
 }
 
 function paintAlii() {
-console.log("tallies:", userData.tallies)
+//console.log("tallies:", userData.tallies)
   alii.selectAll(".partner")
     .data(userData.tallies)
     .join(ent => ent.append("g").attr("class", "partner")
       .html(t => {
-console.log("t:", t)
-        let peer = bodyGen.peer(t)
-        aliiRad = peer.radius
-        return peer.body
+//console.log("t:", t)
+        let p = t.peer = bodyGen.peer(t)
+        aliiRad = p.radius
+        return p.body
       })
     )
     .call(drag)
     .attr("transform", d => `translate(${d.x},${d.y})`)
+    .on('click', peerClick)
+
+  nexi.selectAll(".link")
+    .data(userData.tallies)
+    .join("path")
+      .attr("class", "link")
+      .attr("d", d3.linkRadial()
+        .source(d => endPoint(d, true))
+        .target(d => endPoint(d, false))
+      )
 }
+
+  function endPoint(d, normal) {	//Generate endpoints for a link arrow
+//console.log("EP:", d, normal)
+    let reverse = (d.type == 'stock')		//Show foils pointing to stocks
+      , egoBias = reverse ? markerWidth : 0
+      , aliiBias = reverse ? 0 : markerWidth
+//console.log('x:', d.x, 'y:', d.y)
+    if (normal != reverse)
+      return [d.hub.a + Pi2, d.hub.r + egoBias]		//Point on eco circle
+
+    let close = d.peer.ends.map(({x, y}) => ({		//Sort ends by how close they are to origin
+      x, y,
+      r: Math.sqrt(Math.pow(d.x + x, 2) + Math.pow(d.y + y, 2))
+    })).sort((a, b) =>
+      (a.r < b.r ? -1 : a.r > b.r ? 1 : 0)		//Sort by r
+    )[0]						//Pick closest
+    let x = d.x + close.x
+      , y = d.y + close.y
+    return [Math.atan2(y, x) + Pi2,		//On partner bubble 
+      Math.sqrt(Math.pow(y, 2) + Math.pow(x, 2)) - aliiBias]
+  }
 
 function initSimulation(alph = 1, dec = 0.05) {
   let [ x, y, w, h ] = svg.attr("viewBox").split(',')
@@ -174,22 +205,21 @@ function initSimulation(alph = 1, dec = 0.05) {
     .alpha(alph)
     .alphaDecay(dec)
     .velocityDecay(0.3)
-    .force('charge', d3.forceManyBody().strength(-100))
+    .force('charge', d3.forceManyBody().strength(-800))		//Nodes repel
     .force('x', d3.forceX().strength(0.08).x(function(d) {
-console.log('X:', d)
-      return d.cent[0] * 1.25		//Spread things out a little
+//console.log('X:', d)
+      return d.cent[0] * 1.25		//Spread things out horizontally
     }))
-    .force('y', d3.forceY().strength(0.1).y(d => {
-console.log('Y:', height)
-      return (d.asset ? -1 : 1) * (height - aliiRad)
+    .force('y', d3.forceY().strength(0.1).y(d => {		//Assets float
+//console.log('Y:', height)
+      return (d.net >= 0 ? -1 : 1) * (height - aliiRad * 2)
     }))
-    .force('collision', d3.forceCollide().strength(0.75).radius(aliiRad))
+    .force('collision', d3.forceCollide().strength(0.75).radius(aliiRad * 1.02))
     .on('tick', () => {
 //console.log('ticked')
       paintAlii()
     })
 }
-
 
 fetchData()
 
