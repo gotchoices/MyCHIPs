@@ -1,50 +1,34 @@
-define(TITLE,`MyCHIPs Home')
-define(CONTENT,`<div class="content_section_text">
-        Learn about MyCHIPs--the digital currency designed to work as a currency!
+define(TITLE,`MyCHIPs Central')
+define(SUBTITLE,`The digital currency designed to work as currency!')
+define(CONTENT,`
+      <div class="text-center">
+        <a href="https://mychips.org/chark.apk" class="btn-get-started scrollto">Android App (APK file)</a>
+        <a href="https://testflight.apple.com/join/5IP35ipV" class="btn-get-started scrollto">IOS App (beta mode)</a>
       </div>
-      <div class="content_section_text">
-      Quick Links:
-      <ul>
-        <li>
-          <a href="//gotchoices.org/mychips/index.html">
-            How it works
-          </a>
-        </li><li>
-          <a href="//gotchoices.org/book/chips.html">
-            Original System Concept
-          </a>
-        </li><li>
-          <a href="//github.com/gotchoices/mychips">
-            Open Source Code
-          </a>
-        </li><li>
-          <a href="//chipcentral.net">
-            The CHIP as a unit of value
-          </a>
-        </li><li>
-          <a href="https://mychips.net">
-            A CHIP Service Provider
-          </a>
-        </li><li>
-          <a href="/chark.apk">
-            Prototype Mobile App for Android (APK File)
-          </a>
-        </li><li>
-          <a href="https://testflight.apple.com/join/5IP35ipV">
-            Prototype Mobile App for IOS (via TestFlight)
-          </a>
-        </li><li>
-          <a href="//play.google.com/">
-            Find Mobile App on Google Play (not yet available)
-          </a>
-        </li><li>
-          <a href="//apple.com/app-store/">
-            Find Mobile App on Apple App Store (not yet available)
-          </a>
-        </li><li>
-          <a href="/privacy.html">
-            Privacy policy
-          </a>
-        </li>
-      </ul>
-    </div>')
+
+      <div class="row icon-boxes">
+        LINK_BLOCK(ri-lightbulb-flash-line, https://gotchoices.org/book/chips.html,
+          `Original system concept',
+          `Read from Got Choices, The Book, where a CHIP-based system was first proposed.'
+        )
+        LINK_BLOCK(ri-stack-line, https://gotchoices.org/mychips/index.html,
+          `How it works',
+          `Read The MyCHIPs Papers, which details how value can be transmitted in a purely peer-to-peer private credit network'.
+        )
+        LINK_BLOCK(ri-github-line, https://github.com/gotchoices/mychips,
+          `Open Source Code',
+          `Access the code for the MyCHIPs server and mobile application in Github.'
+        )
+        LINK_BLOCK(ri-coin-line, https://chipcentral.net/,
+          `The CHIP as a unit of value',
+          `Read the latest research into how the value of a CHIP is estimated.'
+        )
+        LINK_BLOCK(ri-user-line, https://mychips.net/, 
+          `A CHIP service provider',
+          `Sign up for a test account with the first CHIP Service Provider'
+        )
+        LINK_BLOCK(ri-fingerprint-line, privacy.html, 
+          `Privacy Policy', 
+          `How your data is treated.'
+        )
+')

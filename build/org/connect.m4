@@ -1,4 +1,5 @@
 define(TITLE,`Oops!')
+define(SUBTITLE, `')
 define(CONTENT,`<div class="content_section_text">
         Did you click a link hoping to get connected to your CHIP service provider?
       <p>

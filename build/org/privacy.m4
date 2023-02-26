@@ -1,4 +1,5 @@
 define(TITLE,`Privacy Policy')
+define(SUBTITLE, `')
 define(CONTENT,`<div class="content_section_text">
           MyCHIPs.org maintains the 
           <a href="https://github.com/gotchoices/MyCHIPs">
