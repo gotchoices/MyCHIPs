@@ -81,37 +81,20 @@ console.log('Insert done')
       data: {
         keys: [{tally_seq: template.id}],
         options: {
-          reuse: true, format: 'json'
-        }
-      }
-    }
-
-    const qrSpec = {
-      name: 'invite',
-      view: 'mychips.tallies_v_me',
-      data: {
-        keys: [{tally_seq: template.id}],
-        options: {
-          reuse: true, format: 'qr'
-        }
-      }
-    }
-
-    const linkSpec = {
-      name: 'invite',
-      view: 'mychips.tallies_v_me',
-      data: {
-        keys: [{tally_seq: template.id}],
-        options: {
-          reuse: true, format: 'link'
+          reuse: true,
+          format: ['json', 'link']
         }
       }
     }
 
     request(wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
+      const json = data?.[0];
+      const link = data?.[1];
+
       setGeneratingInvite(false);
       setTallyShareInfo({
-        json: data,
+        json,
+        link,
       });
       setIsVisible(true)
     });
@@ -137,7 +120,8 @@ console.log('Insert done')
   if(tallyShareInfo) {
     return <View style={styles.container}>
       <ShareTally
-        tally={tallyShareInfo?.json ?? {}}
+        json={tallyShareInfo?.json ?? {}}
+        link={tallyShareInfo?.link ?? ''}
         onCancel={onShareClose}
       />
     </View>

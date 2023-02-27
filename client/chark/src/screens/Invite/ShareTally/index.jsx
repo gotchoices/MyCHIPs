@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Image,
+  Linking,
 } from 'react-native';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
@@ -15,16 +16,11 @@ import QRCode from 'react-native-qrcode-svg';
 import { colors } from '../../../config/constants';
 
 const ShareTally = (props) => {
-  const tallyObj = props.tally;
+  const tallyObj = props.json;
+  const link = props.link;
   const ref = useRef();
 
   const [activeTab, setActiveTab] = useState('qr');
-  let link = '';
-
-  if(tallyObj?.tally) {
-    const tally = tallyObj.tally;
-    link = `https://mychips.org/tally?token=${tally.token}&chad=${JSON.stringify(tally.chad)}`;
-  }
 
   const changeTab = (tab) => {
     return () => {
@@ -59,10 +55,19 @@ const ShareTally = (props) => {
   const qrtobase64 = () => {
     return new Promise((resolve) => {
       ref.current.toDataURL((data) => {
-        resolve('data:image/png;base64,'+data)
+        resolve('data:image/png;base64,'+ data)
       })
     })
 
+  }
+
+  const openExternalLink = (event) => {
+    if (event.url && event.url.includes('mychips.org/tally')) {
+      Linking.openURL(event.url)
+      return false
+    } else {
+      return true
+    }
   }
 
   return (
@@ -93,7 +98,7 @@ const ShareTally = (props) => {
         activeTab === 'qr' && (
           <View style={{ alignItems: 'center', paddingVertical: 32,  }}>
             <QRCode
-              value={JSON.stringify(props.tally)}
+              value={JSON.stringify(props.json)}
               getRef={ref}
               size={200}
             />
@@ -105,19 +110,14 @@ const ShareTally = (props) => {
         activeTab === 'link' && (
          <WebView
             originWhitelist={['*']}
+            onShouldStartLoadWithRequest={openExternalLink}
             source={{ html: `
               <html>
                 <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
                 <body>
                   <div style="display: flex; align-items: center; padding-top: 20">
                     <div>
-                      <a href="${link}">
-                        TIN
-                      </a>
-
-                      <p>
-                        TIL; ${tallyObj?.tally?.expires} 
-                      </p>
+                      ${link}
                     </div>
                   </div>
                 </body>
@@ -199,7 +199,8 @@ const styles = StyleSheet.create({
 
 ShareTally.propTypes = {
   onCancel: PropTypes.func.isRequired,
-  tally: PropTypes.object,
+  json: PropTypes.object,
+  link: PropTypes.string,
 }
 
 export default ShareTally;
