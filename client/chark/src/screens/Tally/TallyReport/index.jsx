@@ -21,8 +21,8 @@ const TallyReport = (props) => {
       view:'mychips.users_v_me'
     }
 
-    wm.request(`visual_balance_${random()}`, 'action', spec, data => {
-      console.log('Graph data: ', data)
+    wm.request(`visual_balance_${random()}`, 'action', spec, (data, err) => {
+      console.log('Graph data: ', data, 'err:', err)
       setGraph(data);
     })
   }, [])
