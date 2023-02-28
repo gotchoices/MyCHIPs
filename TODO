@@ -1,32 +1,14 @@
 TODO:
 
-X- Stray state in Tally state diagram?
+- Make CHIP value extrapolator report
 
-- Implement report for: Visual Balance Sheet
-X-  Urnet still working (check error)
-X-  Breakout class for handling graph-specific operations
-X-  Urnet still working
-X-  Build valid user record in query
-X-    Must contain assets, liabs
-X-  Report can return url or html with embedded iframe
-X-  When report resource called for, return html/javascript
-X-  Port code from urnet to display for a single user
-X-  Can the new code be a resource called from urnet?
-X-  Can view report from User SPA
-X-  Back-port admin console network view to use generalized library
-- Draw tally links
-- Asset links float
-- Liability links drop
-- Swipe to refresh
-- Clicking on pie or peer generates hyperlink
-- Implement non-chip holding ring
-- + button to add holding
-- Holdings stored in local storage
-- Clicking on holding allows editing value
-- Zoom value stored in local storage
-- 
-- Wrap try/catch around VisBS module call
-- Obsolete: visbs.vue, urnet1.vue
+- Visual Balance Sheet report enhancements:
+-  Swipe to refresh
+-  Implement non-chip holding ring
+-  + button to add holding
+-  Holdings stored in local storage
+-  Clicking on holding allows editing value
+-  Zoom value stored in local storage
 - Can view report in WebView in Chark
 - Grab hyperlinks, launch tally view
 
