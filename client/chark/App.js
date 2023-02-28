@@ -50,7 +50,7 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
       <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-      <HomeStack.Screen name="TallyReport" component={TallyReport} />
+      <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
       <HomeStack.Screen name="TallyAccept" component={TallyAccept} options={{ title: 'Tally Accept' }} />
     </HomeStack.Navigator>

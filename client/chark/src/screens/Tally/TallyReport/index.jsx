@@ -1,12 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableWithoutFeedback, Text, Image } from 'react-native';
+import { WebView } from 'react-native-webview';
+
+import { random } from '../../../utils/common';
+import useSocket from '../../../hooks/useSocket';
+import constants, { colors } from '../../../config/constants';
+
+import Header from '../Header';
+import CustomText from '../../../components/CustomText';
 
 import tabularBtn from '../../../../assets/tabular-button.png';
 
-import constants, { colors } from '../../../config/constants';
-import CustomText from '../../../components/CustomText';
-
 const TallyReport = (props) => {
+  const [graph, setGraph] = useState();
+  const { wm } = useSocket();
+
+  useEffect(() => {
+    const spec = {
+      name:'graph',
+      view:'mychips.users_v_me'
+    }
+
+    wm.request(`visual_balance_${random()}`, 'action', spec, data => {
+      console.log('Graph data: ', data)
+      setGraph(data);
+    })
+  }, [])
 
   const navigateBalanceSheet = () => {
     props.navigation.navigate('Home');
@@ -15,23 +34,29 @@ const TallyReport = (props) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <CustomText as="h2" style={styles.headerText}>
-          Tally Report
-        </CustomText>
+        <Header
+          icon={tabularBtn}
+          title="Tally Report"
+          onClick={navigateBalanceSheet}
+        />
+      </View>
 
-        <TouchableWithoutFeedback
-          onPress={navigateBalanceSheet}
-        >
-          <Image
-            source={tabularBtn}
+      {
+        graph && (
+         <WebView
+            source={{ html: `
+              <html>
+                <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+                <body>
+                  <div style="display: flex; align-items: center; padding-top: 20">
+                    ${graph}
+                  </div>
+                </body>
+              </html>
+            `}}
           />
-        </TouchableWithoutFeedback>
-
-      </View>
-
-      <View style={styles.reportView}>
-        <Text>Tally report diagram</Text>
-      </View>
+        )
+      }
     </View>
   )
 }
@@ -39,26 +64,14 @@ const TallyReport = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray700,
-    marginBottom: 55,
   },
   header: {
-    margin: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: colors.gray700,
   },
   headerText: {
     color: colors.white,
   },
   reportView: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: '12%',
-    backgroundColor: colors.white,
-    width: '60%',
-    height: '60%',
-    alignSelf: 'center',
   }
 });
 
