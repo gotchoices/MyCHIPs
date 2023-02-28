@@ -6,6 +6,7 @@ import visualBtn from '../../../../assets/visual-button.png';
 import avatarImg from '../../../../assets/report-profile.png';
 import mychips from '../../../../assets/mychips-large.png';
 import useCurrentUser from '../../../hooks/useCurrentUser';
+import Header from '../Header';
 
 const Banner = (props) => {
   const { user } = useCurrentUser();
@@ -16,14 +17,11 @@ const Banner = (props) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Tally Report</Text>
-        <TouchableWithoutFeedback
-          onPress={navigateToReport}
-        >
-          <Image source={visualBtn} />
-        </TouchableWithoutFeedback>
-      </View>
+      <Header
+        icon={visualBtn}
+        title="Tally Report"
+        onClick={navigateToReport}
+      />
 
       <View style={{ alignItems: 'center' }}>
         <View style={styles.balanceContainer}>
@@ -61,17 +59,6 @@ const styles = StyleSheet.create({
   container: {
     height: 265,
     backgroundColor: colors.gray700,
-    padding: 32,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.white,
   },
   balanceContainer: {
     borderRadius: 25,
