@@ -58,7 +58,7 @@ var wyseman = new Wyseman({		//Accepts websocket connections from SPA/apps
   ssl: sslUser,
   user: null, log
 }, {
-  websock: {port: opts.clifPort, credentials, delta: MaxTimeDelta},
+  websock: {port: opts.clifPort, credentials, delta: MaxTimeDelta, uiPort: opts.uiPort},
   sock: opts.clifNP, 
   dispatch: Dispatch,
   expApp: userExpApp,
