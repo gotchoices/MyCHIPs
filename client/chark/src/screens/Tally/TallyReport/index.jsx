@@ -23,7 +23,6 @@ const TallyReport = (props) => {
     }
 
     wm.request(`visual_balance_${random()}`, 'action', spec, (data, err) => {
-      console.log('Graph data: ', data, 'err:', err)
       if(err) {
         Toast.show({
           type: 'error',
@@ -54,15 +53,15 @@ const TallyReport = (props) => {
       </View>
 
       {
-        graph && (
+        graph &&  (
           <WebView
             originWhitelist={["*"]}
             source={{ html: `
               <html>
                 <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
                 <body>
-                  <div style="display: flex; align-items: center; padding-top: 20">
-                    <div>
+                  <div style="display: flex; align-items: center;">
+                    <div style="width: 100%;">
                       ${graph}
                     </div>
                   </div>

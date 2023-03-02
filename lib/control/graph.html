@@ -117,7 +117,7 @@ svg.call(d3.zoom()			//Default zoom scales whole graph
 )
 
 function fetchData() {		//Grab data from server
-  let pageURL = window?.location?.href
+  let pageURL = ((window || {}).location || {}).href
     , dataURL = pageURL.replace(/graph.html$/,'user.json')
 //console.log('Fetch:', dataURL)
   fetch(dataURL).then(resp => resp.json()).then(data => {
@@ -134,7 +134,7 @@ function fetchData() {		//Grab data from server
 
 function peerClick(e, d) {		//Grab data from server
 console.log('click:', e, d)
-  let pageURL = window?.location?.href
+  let pageURL = ((window || {}).location || {}).href
     , clickURL = pageURL.replace(/graph.html$/,'click?seq=' + d.seq)
 //console.log('Fetch:', clickURL)
   fetch(clickURL)
