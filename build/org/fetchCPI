@@ -1,0 +1,35 @@
+#!/bin/bash
+dataURL="https://download.bls.gov/pub/time.series/cu/cu.data.1.AllItems"
+series="CUUR0000SA0"
+markYear=2020
+markSample=M01
+markValue=1
+markDollar=2.53
+
+#curl --silent $dataURL |grep "^${series} " >${series}.tsv
+
+{
+  echo "year,month,value"
+  while read tag year sample value junk; do
+    if [ "$sample" = "M13" ]; then
+      continue
+    fi
+    if [ "$year" = "$markYear" -a "$sample" = "$markSample" ]; then
+      markValue="${value}"		#;echo "MARK:$markValue"
+    fi
+    month="$(echo "$sample" |cut -b 2-)"
+    echo "${year},${month},${value}"
+  done <${series}.tsv
+} >cpi.csv
+
+#echo "markValue:$markValue"
+{
+  echo "date,value"
+  while IFS=',' read year month value junk; do
+    if [ "$year" = "year" ]; then	#skip header line
+      continue
+    fi
+#    echo "year:$year month:$month value:$value mark:$markDollar, $markValue"
+    printf '%s-%s-01,%.4f\n' $year $month $(awk "BEGIN {print $value * $markDollar / $markValue}")
+  done <cpi.csv
+} >chip-dollar.csv

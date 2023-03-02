@@ -3,7 +3,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
 mydir="$(dirname $BASH_SOURCE)"		#Where this script is
-files="*.html connect tally *.svg *.css assets"
+files="*.html connect tally *.svg *.css chip.json fetchCPI value.html assets"
 
 dest=$MYCHIPS_ORG_WEB_DEPLOY
 if [ -z "$dest" ]; then
