@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableWithoutFeedback, Text, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
+import Toast from 'react-native-toast-message';
 
 import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
@@ -23,12 +24,23 @@ const TallyReport = (props) => {
 
     wm.request(`visual_balance_${random()}`, 'action', spec, (data, err) => {
       console.log('Graph data: ', data, 'err:', err)
-      setGraph(data);
+      if(err) {
+        Toast.show({
+          type: 'error',
+          text1: err.message,
+        })
+      } else {
+        setGraph(data);
+      }
     })
   }, [])
 
   const navigateBalanceSheet = () => {
     props.navigation.navigate('Home');
+  }
+
+  const onWebViewError = (event) => {
+    console.log(event)
   }
 
   return (
@@ -43,13 +55,16 @@ const TallyReport = (props) => {
 
       {
         graph && (
-         <WebView
+          <WebView
+            originWhitelist={["*"]}
             source={{ html: `
               <html>
                 <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
                 <body>
                   <div style="display: flex; align-items: center; padding-top: 20">
-                    ${graph}
+                    <div>
+                      ${graph}
+                    </div>
                   </div>
                 </body>
               </html>
