@@ -41,6 +41,8 @@
           <category android:name="android.intent.category.BROWSABLE" />
           <data android:scheme="https" />
           <data android:host="mychips.org" />
+          <data android:pathPattern="/connect" />
+          <data android:pathPattern="/tally" />
         </intent-filter>
       </activity>
     </application>
