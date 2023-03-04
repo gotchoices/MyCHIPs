@@ -1,74 +1,75 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-
-tabtext mychips.chits	{Chits}			{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} [concat {
-    {chit_ent		{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
-    {chit_seq		{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
-    {chit_idx		{Chit Index}		{A unique identifier within the tally, identifying this chit}}
-    {chit_uuid		{Chit GUID}		{A globally unique identifier for this transaction}}
-    {chit_type		{Chit Type}		{The type of transaction represented by this flow of credit} {
-        {lift		{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity}}
-        {tran		{Transaction}		{The credit is granted in exchange for present or future goods, services or other, possibly charitable, consideration.}}
-        {set		{User Setting}		{The chit evidences a party (stock or foil) having asserted a change of certain operating parameters of the tally}}
-    }}
-    {chit_date		{Date/Time}		{The date and time when this transaction is effective}}
-    {issuer		{Issuer}		{Indicates whether the stock holder or the foil holder created (and signed) the chit.  For transaction and lift chits, this indicates which direction value flows (from issuer to recipient).}}
-    {units		{Units}			{The amount of the transaction, measured in milli-CHIPs (1/1000 of a CHIP)}}
-    {reference		{Reference}		{Any arbitrary JSON data about the transaction, meaningful to the parties.  May reference an invoice, a purchase order, a register, other document evidencing goods or services rendered, and a trading relationship between the parties.  For setting chits, this contains the settings being asserted.}}
-    {memo		{Memo}			{Any other human-readable text description, context or explanation for the transaction}}
-    {digest		{Digest Hash}		{A hash of the chit transaction that will be digitally signed}}
-    {signature		{Signature}		{Digital signature of the party authorizing the transaction}}
-    {request		{Request}		{The state transition algorithm for chits responds to transition requests entered into this field.}}
-    {status		{Status}		{The status field indicates if the state has progressed to the point where the amount of the chit can be considered pending or final}}
-    {chain_idx		{Chain Index}		{Chits are stored in a hash-chain to prevent them from being altered later.  This indicates the order of the chit records in the hash chain.}}
-    {chain_prev		{Chain Previous}	{A copy of the hash from the previous chit in the hash chain}}
-    {chain_hash		{Chain Hash}		{A hash of the current chit record, including the previous record's hash so as to form a hash chain}}
-    {lift_seq		{Lift Sequence}		{If a chit is part of a lift transaction, this indicates which tally record the chits belong to.  There can be more than one lift record per lift in some cases.}}
+tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} [concat {
+  {chit_ent	{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
+  {chit_seq	{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
+  {chit_idx	{Chit Index}		{A unique identifier within the tally, identifying this chit}}
+  {chit_uuid	{Chit GUID}		{A globally unique identifier for this transaction}}
+  {chit_type	{Chit Type}		{The type of transaction represented by this flow of credit} {
+    {lift	{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity}}
+    {tran	{Transaction}		{The credit is granted in exchange for present or future goods, services or other, possibly charitable, consideration.}}
+    {set	{User Setting}		{The chit evidences a party (stock or foil) having asserted a change of certain operating parameters of the tally}}
+  }}
+  {chit_date	{Date/Time}		{The date and time when this transaction is effective}}
+  {issuer	{Issuer}		{Indicates whether the stock holder or the foil holder created (and signed) the chit.  For transaction and lift chits, this indicates which direction value flows (from issuer to recipient).}}
+  {units	{Units}			{The amount of the transaction, measured in milli-CHIPs (1/1000 of a CHIP)}}
+  {reference	{Reference}		{Any arbitrary JSON data about the transaction, meaningful to the parties.  May reference an invoice, a purchase order, a register, other document evidencing goods or services rendered, and a trading relationship between the parties.  For setting chits, this contains the settings being asserted.}}
+  {memo		{Memo}			{Any other human-readable text description, context or explanation for the transaction}}
+  {digest	{Digest Hash}		{A hash of the chit transaction that will be digitally signed}}
+  {signature	{Signature}		{Digital signature of the party authorizing the transaction}}
+  {request	{Request}		{The state transition algorithm for chits responds to transition requests entered into this field.}}
+  {status	{Status}		{The status field indicates if the state has progressed to the point where the amount of the chit can be considered pending or final}}
+  {chain_idx	{Chain Index}		{Chits are stored in a hash-chain to prevent them from being altered later.  This indicates the order of the chit records in the hash chain.}}
+  {chain_send	{Chain Send}		{Holds missing chain information to be communicated to the partner about chit consensus}}
+  {chain_prev	{Chain Previous}	{A copy of the hash from the previous chit in the hash chain}}
+  {chain_hash	{Chain Hash}		{A hash of the current chit record, including the previous record's hash so as to form a hash chain}}
+  {lift_seq	{Lift Sequence}		{If a chit is part of a lift transaction, this indicates which tally record the chits belong to.  There can be more than one lift record per lift in some cases.}}
 } $glob::stampt] -messages {
-    {BCT	{Bad Chit Type}		{Not a valid type for a tally chit}}
-    {GDS	{Signature Check}	{Chits in a good state must include a signature}}
-    {BST	{Bad Chit Status}	{Not a valid value the status field}}
-    {BLL	{Bad Lift Sequence}	{Only lift chits should include a lift sequence number}}
-    {CUU	{Chit Not Unique}	{Chit UUID must be unique to each tally}}
-    {IST	{Illegal State Change}	{The executed state transition is not allowed}}
-    {LIT	{Link Invalid Tally}	{Attempted to link chit to invalid tally}}
-    {MIS	{Bad Chit Signature}	{A chit marked to be good has no signature}}
-    {CUN	{Bad Chit Units}	{Transactional chits must have a unit value.  Settings chits must not.}}
+  {BCT		{Bad Chit Type}		{Not a valid type for a tally chit}}
+  {GDS		{Signature Check}	{Chits in a good state must include a signature}}
+  {BST		{Bad Chit Status}	{Not a valid value the status field}}
+  {BLL		{Bad Lift Sequence}	{Only lift chits should include a lift sequence number}}
+  {CUU		{Chit Not Unique}	{Chit UUID must be unique to each tally}}
+  {IST		{Illegal State Change}	{The executed state transition is not allowed}}
+  {LIT		{Link Invalid Tally}	{Attempted to link chit to invalid tally}}
+  {MIS		{Bad Chit Signature}	{A chit marked to be good has no signature}}
+  {CUN		{Bad Chit Units}	{Transactional chits must have a unit value.  Settings chits must not.}}
 }
 
 tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
-    {net		{Net Value}		{The chit amount expressed as a positive or negative number, depending on how it accrues to the holder of this half of the tally.}}
-    {net_g		{Good Value}		{The net value of this chit that has been duly signed and so is considered binding.}}
-    {net_p		{Pending Value}		{The net value of this chit that when it has not yet been signed.  A value here indicates it is still pending and not final.}}
-    {state		{State}			{The state is used to track a transaction in process}}
-    {action		{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
-    {json_core		{JSON Core}		{A JSON representation of the parts of the chit transaction that will be digitally hashed and signed}}
-    {json		{JSON}			{A JSON representation of the chit transaction, including the digital hash}}
-    {digest_v		{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
-    {clean		{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the record has not been tampered with.}}
+  {net		{Net Value}		{The chit amount expressed as a positive or negative number, depending on how it accrues to the holder of this half of the tally.}}
+  {net_g	{Good Value}		{The net value of this chit that has been duly signed and so is considered binding.}}
+  {net_p	{Pending Value}		{The net value of this chit that when it has not yet been signed.  A value here indicates it is still pending and not final.}}
+  {state	{State}			{The state is used to track a transaction in process}}
+  {action	{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
+  {json_core	{JSON Core}		{A JSON representation of the parts of the chit transaction that will be digitally hashed and signed}}
+  {json		{JSON}			{A JSON representation of the chit transaction, including the digital hash}}
+  {hash_v	{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
+  {clean	{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the record has not been tampered with.}}
+  {cstate	{Consensus State}	{The state of the chit as defined for the consensus algorithm}}
 }
 
 tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user} {
 }
 
 tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {
-    {ent		{Entity}		{The entity ID of the owner of the tally the chain belongs to}}
-    {seq		{Sequence}		{The sequence (tally) number of the owner of the tally the chain belongs to}}
-    {digest		{Digest}		{A SHA256 hash of the MyCHIPs compliant data contained in the individual chit or tally}}
-    {chain_idx		{Chain Index}		{The record number in the chain.  Base tally is -1, first chit is 0, second chit is 1...}}
-    {chain_prev		{Prior Hash}		{Contains the hash of the prior link (chit or tally) in the chain}}
-    {prev_ok		{Prior Links}		{Is true if this and all previous records properly contain the hash copied from the prior record}}
-    {hash_ok		{Prior Hashes}		{Is true if this and all previous records contain an accurate hash of the relevant data in their record}}
-    {ok			{Chain Valid}		{True if all hashes are correctly computed up through this record}}
-    {last		{End of Chain}		{True if this is the last record in the chain}}
-    {length		{Length}		{Indicates how many chits are part of the chain}}
-    {uuids		{GUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
+  {ent		{Entity}		{The entity ID of the owner of the tally the chain belongs to}}
+  {seq		{Sequence}		{The sequence (tally) number of the owner of the tally the chain belongs to}}
+  {digest	{Digest}		{A SHA256 hash of the MyCHIPs compliant data contained in the individual chit or tally}}
+  {chain_idx	{Chain Index}		{The record number in the chain.  Base tally is -1, first chit is 0, second chit is 1...}}
+  {chain_prev	{Prior Hash}		{Contains the hash of the prior link (chit or tally) in the chain}}
+  {prev_ok	{Prior Links}		{Is true if this and all previous records properly contain the hash copied from the prior record}}
+  {hash_ok	{Prior Hashes}		{Is true if this and all previous records contain an accurate hash of the relevant data in their record}}
+  {ok		{Chain Valid}		{True if all hashes are correctly computed up through this record}}
+  {last		{End of Chain}		{True if this is the last record in the chain}}
+  {length	{Length}		{Indicates how many chits are part of the chain}}
+  {uuids	{GUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
 }
 
 tabtext mychips.chit_tries {Chit Retries}	{Tracks how many times the chit state transition algorithm has tried to communicate a transition to a peer} {
-    {ctry_ent		{Entity}		{The entity the chit/tally belongs to}}
-    {ctry_seq		{Sequence}		{The sequence number of the tally/chit}}
-    {ctry_idx		{Index}			{The index number of this chit}}
-    {last		{Last Try}		{The last time we tried}}
-    {tries		{Tries}			{How many tries we are up to}}
+  {ctry_ent	{Entity}		{The entity the chit/tally belongs to}}
+  {ctry_seq	{Sequence}		{The sequence number of the tally/chit}}
+  {ctry_idx	{Index}			{The index number of this chit}}
+  {last		{Last Try}		{The last time we tried}}
+  {tries	{Tries}			{How many tries we are up to}}
 }

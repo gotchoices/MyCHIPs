@@ -1,84 +1,91 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this server} [concat {
-    {user_ent		{User Entity}		{A link to the entities base table}}
-    {user_host		{User Host Address}	{The hostname or IP number where the users's mobile application connects}}
-    {user_port		{User Port}		{The port to which the user's mobile device will connect}}
-    {user_stat		{Trading Status}	{The current state of the user's account for trading of CHIPs} {
-        {act		{Active}		{Good to conduct trades}}
-        {lck		{Lockdown}		{Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.}}
-        {off		{Offline}		{Account completely off line.  No trades possible.}}
-    }}
-    {peer_cid		{CHIP ID}		{An ID string or name, unique to this user on its own CHIP service provider's system.  Similar to the name portion of an email address: <CHIP_ID>@<Provider_host_or_IP>}}
-    {peer_agent		{Peer Agent}		{The agent address where traffic is handled for this user}}
-    {peer_psig		{Peer Public Key}	{The peer's public key, known to other trading partners and used for signing transactions}}
-    {peer_named		{Birth Name}		{The peer's name at birth, used in the certificate identity record}}
-    {user_hid		{Hashed ID}		{An obscured version of the ID by which might be given out as a more anonymous destination for a transaction}}
-    {user_cmt		{User Comments}		{Administrative comments about this user}}
+  {user_ent		{User Entity}		{A link to the entities base table}}
+  {user_host		{User Host Address}	{The hostname or IP number where the users's mobile application connects}}
+  {user_port		{User Port}		{The port to which the user's mobile device will connect}}
+  {user_stat		{Trading Status}	{The current state of the user's account for trading of CHIPs} {
+    {act		{Active}		{Good to conduct trades}}
+    {lck		{Lockdown}		{Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.}}
+    {off		{Offline}		{Account completely off line.  No trades possible.}}
+  }}
+  {peer_cid		{CHIP ID}		{An ID string or name, unique to this user on its own CHIP service provider's system.  Similar to the name portion of an email address: <CHIP_ID>@<Provider_host_or_IP>}}
+  {peer_agent		{Peer Agent}		{The agent address where traffic is handled for this user}}
+  {peer_psig		{Peer Public Key}	{The peer's public key, known to other trading partners and used for signing transactions}}
+  {peer_named		{Birth Name}		{The peer's name at birth, used in the certificate identity record}}
+  {user_hid		{Hashed ID}		{An obscured version of the ID by which might be given out as a more anonymous destination for a transaction}}
+  {user_cmt		{User Comments}		{Administrative comments about this user}}
+  {_last_tally	{Last Tally}		{Sequence generator for this user's tallies}}
 } $glob::stampt] -messages {
-    {BRM	{Birth Record Update}	{Birth record can only be written once by the user}}
-    {UST	{Invalid Trading Status}	{A disallowed value for the user trading status was specified}}
+  {BRM	{Birth Record Update}	{Birth record can only be written once by the user}}
+  {UST	{Invalid Trading Status}	{A disallowed value for the user trading status was specified}}
 }
 
 tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this server.} {
-    {user_sock		{User Socket}		{The IP Number, and port to which the user's mobile device will connect}}
-    {peer_sock		{Peer Socket}		{The IP Number, and port where other servers can connect to trade with this peer.}}
+  {user_sock		{User Socket}		{The IP Number, and port to which the user's mobile device will connect}}
+  {peer_sock		{Peer Socket}		{The IP Number, and port where other servers can connect to trade with this peer.}}
+  {peer_host		{Peer Host}		{Hostname where other peer servers can transact with this user}}
+  {peer_port		{Peer Port}		{Port where other peer servers can transact with this user}}
+  {json			{JSON}			{User record in JSON format}}
 } -messages {
-    {GTK		{Generating Ticket}	{A database error occurred while generating a user connection ticket}}
-    {URF		{Unknown Format}	{Unknown format for a connection ticket}}
-    {TMK		{Bad Key Number}	{The connection ticket must be called for exactly one user}}
-    {TIN		{Connection Ticket}	{Link to access your service provider}}
-    {TIL		{Good Until}		{Ticket expires after this time}}
-    {ticket 		{User Ticket}		{Generate a temporary, one-time pass to allow a user to establish a secure connection with the server}}
-      {ticket.format	{Format}	{Determines which type of connection ticket is generated}}
-        {ticket.format.qr	{qr}	{Return connection ticket as a QR code}}
-        {ticket.format.link	{link}	{Return connection ticket as deep link Uniform Resource Locator}}
-        {ticket.format.url	{url}	{Return connection ticket as an SPA Uniform Resource Locator}}
-        {ticket.format.json	{json}	{Return connection ticket as JSON object}}
-    {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
-    {unlock	{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
-    {summary	{Summary Report}	{Report about the current status of the selected user}}
-    {trade	{Trading Report}	{Report showing trades in a given date range}}
-      {trade.start	{Start Date}	{Include trades on and after this date}}
-      {trade.end	{End Date}	{Include trades on and before this date}}
-    {launch.title	{Users}			{User Account Management}}
-    {launch.instruct	{Basic Instructions}	{
-      <p>Users are people or companies who are hosted by this system.
-      <p>A user account record may be created from scratch, or appended to an existing entity 
-         record (and/or peer record).
-         So if you are adding a new user, search first to see if they are already an existing peer
-         or other entity, and then furnish the additional information to fill out the user fields.
-    }}
+  {GTK		{Generating Ticket}	{A database error occurred while generating a user connection ticket}}
+  {URF		{Unknown Format}	{Unknown format for a connection ticket}}
+  {TMK		{Bad Key Number}	{The connection ticket must be called for exactly one user}}
+  {TIN		{Connection Ticket}	{Link to access your service provider}}
+  {TIL		{Good Until}		{Ticket expires after this time}}
+  {ticket 			{User Ticket}		{Generate a temporary, one-time pass to allow a user to establish a secure connection with the server}}
+    {ticket.format		{Format}	{Determines which type of connection ticket is generated}}
+      {ticket.format.qr		{qr}	{Return connection ticket as a QR code}}
+      {ticket.format.link	{link}	{Return connection ticket as deep link Uniform Resource Locator}}
+      {ticket.format.url	{url}	{Return connection ticket as an SPA Uniform Resource Locator}}
+      {ticket.format.json	{json}	{Return connection ticket as JSON object}}
+  {lock	{Lock Account}		{Put the specified account(s) into lockdown mode, so no further trading can occur}}
+  {unlock		{Unlock Account}	{Put the specified account(s) into functional mode, so normal trading can occur}}
+  {summary		{Summary Report}	{Report about the current status of the selected user}}
+  {trade		{Trading Report}	{Report showing trades in a given date range}}
+    {trade.start	{Start Date}		{Include trades on and after this date}}
+    {trade.end		{End Date}		{Include trades on and before this date}}
+  {launch.title		{Users}			{User Account Management}}
+  {launch.instruct	{Basic Instructions}	{
+    <p>Users are people or companies who are hosted by this system.
+    <p>A user account record may be created from scratch, or appended to an existing entity 
+       record (and/or peer record).
+       So if you are adding a new user, search first to see if they are already an existing peer
+       or other entity, and then furnish the additional information to fill out the user fields.
+  }}
 }
 
 tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} -messages {
-    {graph 	{Tally Graph}	{Generate a visual graph of the user's tally relationships and balances}}
-      {graph.format 	{Graph Format}	{How to return the graph report data}}
-        {graph.format.html	{html}	{Return HTML fragment that contains the report}}
-        {graph.format.url	{url}	{Return an url link to a web page containing the report}}
-    {launch.title	{Current User}		{Current User Account Record}}
-    {launch.instruct	{Basic Instructions}	{
-      <p>This view shows only the record pertaining to the connected user
-    }}
+  {graph 			{Tally Graph}		{Generate a visual graph of the user's tally relationships and balances}}
+    {graph.format 		{Graph Format}		{How to return the graph report data}}
+      {graph.format.html	{html}			{Return HTML fragment that contains the report}}
+      {graph.format.url		{url}			{Return an url link to a web page containing the report}}
+ {launch.title			{Current User}		{Current User Account Record}}
+  {launch.instruct		{Basic Instructions}	{
+    <p>This view shows only the record pertaining to the connected user
+  }}
 }
 
-tabtext mychips.addr_v_me	{User Addresses}	{A view of the current user's partners' addresses}
-tabtext mychips.comm_v_me	{User Contact}		{A view of the current user's partners' communication points}
+tabtext mychips.addr_v_me	{User Addresses}	{A view of the current user's addresses}
+tabtext mychips.comm_v_me	{User Contact}		{A view of the current user's communication points}
+tabtext mychips.file_v_me	{User Files}		{A view of the current user's data files}
+
+tabtext mychips.users_v_flat	{Flattened Users}	{A view of users with primary contacts and addresses on the same row}
 
 #Sample text in alternate language:
 tabtext mychips.users -lang fin	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
-    {user_ent		{Entiteettien linkki}	{Yhteys yhteisön peruspöytään}}
-    {user_stat		{Kaupan tila}		{CHIP-tilin kaupankäynnin tilille} {
-        {act		{Aktiivinen}		{Hyvä käydä kauppaa}}
-        {lck		{Lukittu}		{Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.}}
-        {off		{Irrotettu}		{Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.}}
-    }}
+  {user_ent	{Entiteettien linkki}	{Yhteys yhteisön peruspöytään}}
+  {user_stat	{Kaupan tila}		{CHIP-tilin kaupankäynnin tilille} {
+    {act	{Aktiivinen}		{Hyvä käydä kauppaa}}
+    {lck	{Lukittu}		{Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.}}
+    {off	{Irrotettu}		{Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.}}
+  }}
 } -messages {
-    {ABC {Koetus 1} {Ensimmäinen testiviesti}}
-    {BCD {Koetus 2} {Toinen testiviesti}}
-    {DEF {Koetus 3} {Kolmanen testiviesti}}
+  {ABC {Koetus 1} {Ensimmäinen testiviesti}}
+  {BCD {Koetus 2} {Toinen testiviesti}}
+  {DEF {Koetus 3} {Kolmanen testiviesti}}
 }
 
 tabtext mychips.users_v -lang fin	{CHIP käytäjät näkymä}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
-    {mobi_socket	{Käyttäjä pistorasia}		{IP-numero ja portti, johon käyttäjän mobiililaite yhdistää}}
+  {mobi_socket	{Käyttäjä pistorasia}		{IP-numero ja portti, johon käyttäjän mobiililaite yhdistää}}
 }
