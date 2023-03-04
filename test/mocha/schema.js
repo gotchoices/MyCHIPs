@@ -19,7 +19,7 @@ describe("General schema tests", function() {
 
   it('Check for undocumented tables', function(done) {
     let sql = `select sch,tab from wm.table_lang where help is null and sch in (${SchemaList}) order by 1,2`
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     db.query(sql, (e, res) => {if (e) done(e)
 //log.debug("res:", res.rows ? JSON.stringify(res.rows) : null)
       assert.equal(res.rows.length, 0)

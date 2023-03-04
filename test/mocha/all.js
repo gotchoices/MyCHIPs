@@ -43,7 +43,7 @@ require('./sch-lift.js')
 require('./lift-in.js')
 require('./lift.js')
 
-//require('./schema.js')	//Re-enable after schema settles and more text fields are filled in
+require('./schema.js')
 //require('./sch-multi.js')	//Will empty users table
 
 /* */
