@@ -43,7 +43,7 @@ require('./sch-lift.js')
 require('./lift-in.js')
 require('./lift.js')
 
-require('./schema.js')
+require('./language.js')
 //require('./sch-multi.js')	//Will empty users table
 
 /* */
