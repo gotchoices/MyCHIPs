@@ -1,34 +1,56 @@
 TODO:
 
-- Make CHIP value extrapolator report
+X- Refine/document report protocol in backend:
+X-  Tally invitation QR report still works in mobile app
 
-- Visual Balance Sheet report enhancements:
+X- Regression test for missing language text
+X- Test creates CSV templates for translator
+- Script to update DB from CSV
+- Script to build wmt file from DB for a language
+
+- Make CHIP value extrapolator report
+-  Make exchange rate table (in wyselib?)
+-  Initialization routine to pack exchange table
+-  Implement scheduler process
+-  Can initiate lifts
+-  Can query exchange rates daily
+-  Exchange report uses latest data available
+-  
+- Can we serve user photos from the document server?
+X-  Add user photo (document) database table
+-  Test photos from web app
+-  Test photos from mobile app
+-  Re-implement document server to include contracts and photos (by hash only)
+-  Incorporate photo in user certificate
+-  App displays my primary photo
+-
+- Library for managing keys
+-   Create signing key
+-   Import key from file, QR
+-   Export key to file, QR
+-   Integrate into chark
+
+- Visual Balance Sheet report enhancements (not urgent)
+X- Can view report in WebView in Chark
+-  Grab hyperlinks, launch tally view
 -  Swipe to refresh
 -  Implement non-chip holding ring
 -  + button to add holding
 -  Holdings stored in local storage
 -  Clicking on holding allows editing value
 -  Zoom value stored in local storage
-- Can view report in WebView in Chark
-- Grab hyperlinks, launch tally view
-
-- Refine/document report protocol in backend:
--  Tally invitation QR report still works in mobile app
 
 - Consolidate local dirs:
 -  Move pki/local under local/pki?
 -  Move sim/local under local/sim?
 -  Move test/local under local/test?
 
-- Can we serve user photos from the document server?
--  Add user photo (document) database table?
--  Include hash reference to photos in certificates
-
 - User registration page refinements:
 -  Email confirmation code, enter on page, rather than emailing link? (low priority)
 -  Page Includes links to Android APK and Apple testflight
 -  Can view terms of Service page?
 -  Fix document server also running on 443 (request by hash?)
+-  Make QR code part of inline html rather than an attachment (so it shows correctly in outlook)
 - 
 - Chit consensus
 -  Why is one chit still left in pending state after tests?
@@ -68,15 +90,15 @@ TODO:
 -  
 -  New user process:
 X-  User can sign up for new account
--   User can download app (android and IOS)
--   User stepped through connection phase
--   Can connect by scanning connection QR
--   Can connect by following deep link
+X-   User can download app (android and IOS)
+X-   User stepped through connection phase
+X-   Can connect by scanning connection QR
+X-   Can connect by following deep link
 -   User prompted to complete minimum required profile data
 -  Language display:
 -   Test/demonstrate drawing language data from backend
 -   All language data coming from backend
--   Populate second language (Nepali?)
+-   Populate more languages (Spanish & Nepali)
 -  Tally Initiation:
 -   User can create draft tally
 -   User can create multiple draft tallies
