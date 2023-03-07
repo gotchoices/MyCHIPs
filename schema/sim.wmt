@@ -1,14 +1,59 @@
-tabtext mychips.users_v_tallies	{Users and Tallies}	{View primarily for simulations and network visualizer} {
-    {x		{X}		{}}
+tabtext mychips.users_v_tallysum	{Summary User Tallies}	{Deprecated view of tallies belonging to users}
+
+tabtext mychips.users_v_tallies	{Users and Tallies}	{View of tallies belonging to users} {
+  {asset	{Asset Sum}		{CHIP Total of all tallies with positive value}}
+  {assets	{Assset Count}		{Number of tallies with positive value}}
+  {liab		{Liability Sum}		{CHIP Total of all tallies with negative value}}
+  {liabs	{Liability Count}	{Number of tallies with negative value}}
+  {count	{Tally Count}		{Total number of tallies for this user}}
+  {tallies	{Tallies}		{Array of tallies for this user}}
 } -messages {
-    {lenFor	{Foreign Links}		{Relative length of links with foreign nodes}}
-    {lenLoc	{Local Links}		{Relative length of links with other local user nodes}}
-    {locPull	{Local Pull}		{How hard the link connector pulls between local user nodes}}
-    {forPull	{Foreign Pull}		{How hard the link connector pulls on foreign nodes}}
-    {centPull	{Centering}		{How hard nodes seek graph center}}
-    {repel	{Node Repel}		{How hard nodes repel each other}}
-    {vertAlign	{Vertical Align}	{How hard to push foriegn nodes to align with local user tally}}
-    {floatSink	{Bouyancy}		{How hard assets rise and liabilities sink}}
-    {simDecay	{Alpha Decay}		{Controls how fast the simulation settles}}
-    {velDecay	{Velocity Decay}	{Simulates atmospheric friction}}
+  {lenFor	{Foreign Links}		{Relative length of links with foreign nodes}}
+  {lenLoc	{Local Links}		{Relative length of links with other local user nodes}}
+  {locPull	{Local Pull}		{How hard the link connector pulls between local user nodes}}
+  {forPull	{Foreign Pull}		{How hard the link connector pulls on foreign nodes}}
+  {centPull	{Centering}		{How hard nodes seek graph center}}
+  {repel	{Node Repel}		{How hard nodes repel each other}}
+  {vertAlign	{Vertical Align}	{How hard to push foriegn nodes to align with local user tally}}
+  {floatSink	{Bouyancy}		{How hard assets rise and liabilities sink}}
+  {simDecay	{Alpha Decay}		{Controls how fast the simulation settles}}
+  {velDecay	{Velocity Decay}	{Simulates atmospheric friction}}
 }
+
+tabtext mychips.users_v_tallies_me	{Users and Tallies}	{Permissioned view showing the current user's tallies}
+
+tabtext mychips.tallies_v_sum	{Summary Tally Data}	{Deprecated view of aggregated tally data} {
+  {bounds Deprecated}
+  {client_agents Deprecated}
+  {client_cids Deprecated}
+  {clients Deprecated}
+  {foil_nets Deprecated}
+  {foil_seqs Deprecated}
+  {foil_uuids Deprecated}
+  {foils Deprecated}
+  {insides Deprecated}
+  {clutchs Deprecated}
+  {foil_net Deprecated}
+  {nets Deprecated}
+  {part_agents Deprecated}
+  {policies Deprecated}
+  {rewards Deprecated}
+  {seqs Deprecated}
+  {states Deprecated}
+  {stock_net Deprecated}
+  {stock_seqs Deprecated}
+  {stock_uuids Deprecated}
+  {stock Deprecated}
+  {tallies Deprecated}
+  {targets Deprecated}
+  {types Deprecated}
+  {uuids Deprecated}
+  {vendor_agents Deprecated}
+  {vendor_cids Deprecated}
+  {part_cids Deprecated}
+  {part_ents Deprecated}
+  {stock_nets Deprecated}
+  {stocks Deprecated}
+  {vendors Deprecated}
+}
+

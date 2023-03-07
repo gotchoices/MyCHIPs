@@ -17,7 +17,6 @@ const TallyInvite = (props) => {
   const [loading, setLoading] = useState(false);
   const [selectedTallySeq, setSelectedTallySeq] = useState();
   const [tallyShareInfo, setTallyShareInfo] = useState();
-  const [isVisible, setIsVisible] = useState(false);
   const [generatingInvite, setGeneratingInvite] = useState(false);
   const { wm, ws } = useSocket();
 
@@ -96,14 +95,12 @@ console.log('Insert done')
         json,
         link,
       });
-      setIsVisible(true)
     });
   }
 
   const onShareClose = () => {
     setTallyShareInfo(undefined);
     setSelectedTallySeq(undefined);
-    setIsVisible(false)
   }
 
   const renderItem = ({ item }) => {
@@ -166,21 +163,6 @@ console.log('Insert done')
         />
 
       </View>
-
-      <CenteredModal
-        isVisible={isVisible}
-        onClose={onShareClose}
-      >
-        {
-          tallyShareInfo?.qrCode  && (
-            <ShareTally
-              qrCode={tallyShareInfo?.qrCode ?? ''}
-              link={tallyShareInfo?.link ?? ''}
-              onCancel={onShareClose}
-            />
-          )
-        }
-      </CenteredModal>
     </View>
   )
 }

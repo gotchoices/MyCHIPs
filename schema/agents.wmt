@@ -1,13 +1,21 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 tabtext mychips.agents	{Site Agents}		{Maintains the connection addresses of agent processes} [concat {
-    {agent		{Agent ID}		{Unique string identifying the agent service}}
-    {agent_key		{Agent Key}		{The connection public key decoded from the agent ID string}}
-    {agent_host		{Agent Host Address}	{The hostname or IP number where peers connect to this agent}}
-    {agent_port		{Agent Port}		{The port on which peers connect}}
-    {agent_ip		{Agent IP}		{The IP number from which this agent last connected}}
+  {agent		{Agent ID}		{Unique string identifying the agent service}}
+  {agent_key		{Agent Key}		{The connection public key decoded from the agent ID string}}
+  {agent_host		{Agent Host Address}	{The hostname or IP number where peers connect to this agent}}
+  {agent_port		{Agent Port}		{The port on which peers connect}}
+  {agent_ip		{Agent IP}		{The IP number from which this agent last connected}}
 } $glob::stampt] -messages {
-    {CHR	{Agent Host Required}	{A host or IP address for the agent must be specified}}
-    {CPR	{Agent Port Required}	{A port number for the agent must be specified}}
-    {AHP	{Unique Host/Port}	{Each agent key must be associated with a unique combination of host address and port}}
+  {CHR		{Agent Host Required}	{A host or IP address for the agent must be specified}}
+  {CPR		{Agent Port Required}	{A port number for the agent must be specified}}
+  {AHP		{Unique Host/Port}	{Each agent key must be associated with a unique combination of host address and port}}
 }
+
+tabtext mychips.agents_v	{Site Agents}	{Standardized view of agents known on the curren site} {
+  {sock		{Socket}	{The combination of agent host and port number as: host:port}}
+  {valid	{Valid}		{Indicates that the agent name can be decoded into a public key value}}
+  {atsock	{At Socket}	{The combination of agent address, host and port as: agent@host:port}}
+  {json		{JSON}		{The agent address, host and port as a JSON record}}
+}
+

@@ -2,7 +2,85 @@
 #----------------------------------------------------------------
 
 tabtext json.cert {JSON Certificate}	{JSON view of user certificates primarily meant for import/export} {
-    {identity	{Identity}		{JSON MyCHIPs identity record with optional state and birth records}}
-    {chad	{CHIP Address}		{Full JSON CHIP address record for the user}}
-    {name	{Entity Name}		{The name of the entity as represented on the CHIP certificate}}
+  {identity	{Identity}		{JSON MyCHIPs identity record with optional state and birth records}}
+  {chad		{CHIP Address}		{Full JSON CHIP address record for the user}}
+  {name		{Entity Name}		{The name of the entity as represented on the CHIP certificate}}
+  {type		{Entity Type}		{A one-letter code indicating p:person, o:organization, g:group}}
+  {public	{Public Key}		{A public rendition of the user's key for signing CHIP transactions}}
+  {connect	{Connections}		{Phone/web information for this user}}
+  {place	{Addresses}		{Physical/mailing addresses for this user}}
+  {file		{Data Files}		{Data files associated with this user}}
+  {date		{Export Date}		{Date and time when this certificate data was generated}}
 }
+
+tabtext json.user {JSON User Import} {JSON view of users dedicated to importing user accounts} {
+  {cid		{CHIP ID}		{The name by which this user is addressed in CHIP contracts and transactions}}
+  {agent	{Agent Address}		{The name and public key of a process that handles CHIP transactions for this user}}
+  {name		{Entity Name}		{The surname or company name for the CHIP user entity}}
+  {type		{Entity Type}		{A one-letter code indicating p:person, o:organization, g:group}}
+  {first	{Given Name}		{First given name of the person entity}}
+  {middle	{Middle Name}		{Other given names of the person entity}}
+  {prefer	{Preferred Name}	{The commonly used first name of the person entity}}
+  {begin	{Born Date}		{The birth date of an individual or establishment date of a group or organization}}
+  {juris	{Jurisdiction}		{Country or State to which the person or group is subject}}
+  {taxid	{Tax ID}		{How the person or organization is identified by its country or state}}
+  {named	{Birth Name}		{A record describing how the user was named originally or at birth}}
+}
+
+tabtext json.users {JSON User Export} {JSON view of users dedicated to exporting user accounts} {
+  {connect	{Connections}		{Phone/web information for this user}}
+  {place	{Addresses}		{Physical/mailing addresses for this user}}
+}
+
+tabtext json.place {JSON Location Import} {JSON view of addresses dedicated to importing user accounts} {
+  {id		{User ID}	{Internal identity of the user this address belongs to}}
+  {seq		{Sequence}	{Internal index number used for tracking this address}}
+  {address	{Address}	{Street or location address line(s)}}
+  {type		{Address Type}	{The kind of address}}
+  {main		{Is Main}	{True if this address is meant to be the most significant of its type for this user}}
+  {city		{City}		{The city the address is located in}}
+  {state	{State}		{The state the address is located in}}
+  {post		{Postal Code}	{Zip or postal code for this address}}
+  {comment	{Comment}	{Other notes relevant to this address}}
+  {prior	{Inactive}	{This address is no longer current for the user}}
+  {private	{Private}	{This address should not be shared on CHIP certificates or otherwise}}
+}
+
+tabtext json.connect {JSON Connection Import} {JSON view of phone/web dedicated to importing user accounts} {
+  {id		{User ID}	{Internal identity of the user this connection belongs to}}
+  {seq		{Sequence}	{Internal index number used for tracking this address}}
+  {address	{Address}	{Phone number, email, web address for this connection point}}
+  {media	{Medium}	{Type of connection point such as email, web, phone, etc.}}
+  {main		{Is Main}	{True if this contact point is meant to be the most significant of its type for this user}}
+  {comment	{Comment}	{Other notes relevant to this connection}}
+  {prior	{Inactive}	{This connection point is no longer current for the user}}
+  {private	{Private}	{This connection point should not be shared on CHIP certificates or otherwise}}
+}
+  
+tabtext json.file {JSON File Import} {JSON view of data files dedicated to importing user accounts} {
+  {id		{User ID}	{Internal identity of the user this connection belongs to}}
+  {seq		{Sequence}	{Internal index number used for tracking this address}}
+  {data		{Data}		{The binary data contained in this file}}
+  {media	{Media Type}	{The general type of the file: photo, scan, spreadsheet, document}}
+  {format	{Format}	{The format of the file: jpg, gif, doc, etc}}
+  {main		{Is Main}	{True if this file is meant to be the most significant of its type for this user}}
+  {comment	{Comment}	{Other notes relevant to this data file}}
+  {private	{Private}	{This connection point should not be shared on CHIP certificates or otherwise}}
+  {digest	{Hash Digest}	{A unique identifier used to externally reference this document}}
+}
+
+tabtext json.tally {JSON Tallies} {Standardized JSON view of tallies} {
+  {id		{Entity ID}	{Internal identity of the user this tally belongs to}}
+  {seq		{Sequence}	{Internal index number used for tracking this address}}
+  {type		{Tally Type}	{Stock or foil is held by this user}}
+  {uuid		{Tally ID}	{A unique identifier for this tally, shared by stock and foil}}
+  {date		{Tally Date}	{Date when the tally was executed}}
+  {comment	{Comment}	{Other notes relevant to this tally}}
+  {agree	{Contract}	{A reference to the contract agreed to by the tally partners}}
+  {holder	{Holder Cert}	{Certificate data by which the tally holder is identified}}
+  {partner	{Partner Cert}	{Certificate data by which the other partner is identified}}
+  {hterms	{Holder Terms}	{Credit terms by which the holder is bound}}
+  {pterms	{Partner Terms}	{Credit terms by which the other partner is bound}}
+}
+
+tabtext json.contract {JSON Contracts} {Standardized JSON view of tally contracts}
