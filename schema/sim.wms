@@ -55,7 +55,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
     , 'net',	net
     , 'part',	part_cid || ':' || part_agent
   ))								as json
-  from (select * from mychips.tallies_v order by net) t
+  from (select * from mychips.tallies_v where status = 'open' order by net) t
   group by 1;
 }
 
