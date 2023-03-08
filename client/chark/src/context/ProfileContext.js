@@ -1,6 +1,13 @@
 import { createContext } from 'react';
 
 const ProfileContext = createContext({
+  preferredLanguage: {
+    name: '',
+    code: '',
+  },
+  setPreferredLanguage: (data) => {
+    console.log('set preferred language')
+  },
   communications: [],
   personal: undefined,
   addresses: [],
