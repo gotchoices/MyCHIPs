@@ -43,7 +43,7 @@ const EditOpenTally = (props) => {
       }
     });
 
-  }, [])
+  }, [tally_seq, tally_ent])
 
   const onSave = () => {
     const data = {

@@ -6,6 +6,7 @@ import Toast from 'react-native-toast-message';
 import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
 import constants, { colors } from '../../../config/constants';
+import { parse } from '../../../utils/query-string';
 
 import Header from '../Header';
 import CustomText from '../../../components/CustomText';
@@ -19,7 +20,12 @@ const TallyReport = (props) => {
   useEffect(() => {
     const spec = {
       name:'graph',
-      view:'mychips.users_v_me'
+      view:'mychips.users_v_me',
+      data: {
+        options: {
+          format: 'url'
+        }
+      }
     }
 
     wm.request(`visual_balance_${random()}`, 'action', spec, (data, err) => {
@@ -42,6 +48,22 @@ const TallyReport = (props) => {
     console.log(event)
   }
 
+  const interceptRequest = (request) => {
+    const parsed = parse(request.url ?? '');
+
+    const tally_seq = parsed.seq;
+    const tally_ent = parsed.tally_ent;
+
+    if(tally_seq) {
+      props.navigation.navigate('OpenTallyEdit', {
+        tally_seq,
+        tally_ent,
+      });
+    }
+
+    return false;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -55,19 +77,9 @@ const TallyReport = (props) => {
       {
         graph &&  (
           <WebView
+            onShouldStartLoadWithRequest={interceptRequest}
             originWhitelist={["*"]}
-            source={{ html: `
-              <html>
-                <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-                <body>
-                  <div style="display: flex; align-items: center;">
-                    <div style="width: 100%;">
-                      ${graph}
-                    </div>
-                  </div>
-                </body>
-              </html>
-            `}}
+            source={{ uri: graph }}
           />
         )
       }
