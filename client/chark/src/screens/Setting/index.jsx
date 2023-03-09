@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, TouchableWithoutFeedback, Text, StyleSheet, Image, Platform, NativeModules } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { colors } from '../../config/constants';
 import useCurrentUser from '../../hooks/useCurrentUser';
@@ -20,6 +21,8 @@ const deviceLanguage =
   ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0]
   : NativeModules.I18nManager.localeIdentifier;
 
+const lang = `${languageMap[deviceLanguage]?.name ?? ''} (${deviceLanguage})`;
+
 const Setting = (props) => {
   const [isLangModalVisible, setIsLangModalVisible] = useState(false);
   const { wm } = useSocket();
@@ -29,6 +32,7 @@ const Setting = (props) => {
   const {
     personal,
     setPersonal,
+    preferredLanguage,
   } = useProfile();
 
   useEffect(() => {
@@ -75,7 +79,7 @@ const Setting = (props) => {
           </Text>
 
           <Text style={styles.language}>
-            {languageMap[deviceLanguage]?.name ?? ''} ({deviceLanguage})
+            {preferredLanguage?.name} ({preferredLanguage?.code})
           </Text>
         </View>
 
