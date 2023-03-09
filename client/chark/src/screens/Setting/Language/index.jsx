@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   StyleSheet,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import HelpText from '../../../components/HelpText';
 import Button from '../../../components/Button';
@@ -16,13 +17,7 @@ import { colors } from '../../../config/constants';
 import { languageMap } from '../../../utils/language';
 import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
-
-const deviceLocale =
-  Platform.OS === 'ios'
-  ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0] 
-  : NativeModules.I18nManager.localeIdentifier;
-
-const deviceLanguage = languageMap[deviceLocale]?.language;
+import useProfile from '../../../hooks/useProfile';
 
 const fallbackLanguages = [
   {
@@ -36,9 +31,14 @@ const fallbackLanguages = [
 ];
 
 const Language = (props) => {
-  const [preferredLanguage, setPreferredLanguage] = useState(deviceLanguage ?? 'eng');
+  const [language, setLanguage] = useState('');
   const [languages, setLanguages] = useState([]);
   const { wm } = useSocket();
+
+  const {
+    preferredLanguage, 
+    setPreferredLanguage,
+  } = useProfile();
 
   useEffect(() => {
     wm.request(`language_ref_${random(1000)}`, 'select', {
@@ -53,9 +53,21 @@ const Language = (props) => {
     })
   }, [])
 
+  useEffect(() => {
+    setLanguage(preferredLanguage?.code)
+  }, [preferredLanguage])
+
   const onSave = () => {
-    wm.newLanguage(preferredLanguage);
-    props.onCancel();
+    const found = languages.find((lang) => lang.code === language);
+    if(found) {
+      setPreferredLanguage({
+        name: found?.eng_name,
+        code: found?.code,
+      });
+      AsyncStorage.setItem('preferredLanguage', JSON.stringify(found));
+      wm.newLanguage(language);
+      props.onCancel();
+    }
   }
 
   return (
@@ -70,10 +82,10 @@ const Language = (props) => {
       <View style={styles.body}>
         <Picker
           style={styles.input}
-          selectedValue={preferredLanguage}
+          selectedValue={language}
           mode="dropdown"
           onValueChange={(item) => {
-            setPreferredLanguage(item);
+            setLanguage(item);
           }}
         >
           {
