@@ -1,0 +1,7 @@
+{
+  "base.country": [
+    "rename code to co_code",
+    "rename com_name to co_name",
+    "drop cur_name"
+  ]
+}

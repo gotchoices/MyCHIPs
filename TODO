@@ -9,11 +9,12 @@ X- Test creates CSV templates for translator
 - Script to build wmt file from DB for a language
 
 - Make CHIP value extrapolator report
--  Make exchange rate table (in wyselib?)
--  Initialization routine to pack exchange table
--  Implement scheduler process
--  Can initiate lifts
--  Can query exchange rates daily
+X-  Make exchange rate table in wyselib
+X-  Implement scheduler process
+X-  Can initiate lifts (basic pattern only for now)
+-  Can query/load historical exchange rate data
+-  Can query new exchange rates daily
+-  How to supplement currency table with missing (metals, CHIP)
 -  Exchange report uses latest data available
 -  
 - Can we serve user photos from the document server?

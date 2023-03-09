@@ -25,7 +25,7 @@ Parser(actions, controls.map(f=>require(f)))	//Require our app-specific reports
 var opts = Args(require('../lib/config'))
   .alias('h','home')     .default('home',	true)	//Service Provider HTML Home page
   .alias('d','docs')     .default('docs',	false)	//HTML document server
-  .alias('l','lifts')    .default('lifts',	false)	//Run lift scheduler
+  .alias('s','scheduler').default('scheduler',	false)	//Run master scheduler
   .alias('m','model')    .default('model',	false)	//Run agent-based modeler
   .alias('a','agentKey')				//Each peer server runs with a specific agent key
   .argv
@@ -38,10 +38,11 @@ const pubDir = Path.join(__dirname, "..", "pub")
 
 log.debug("UI Ports:   ", opts.uiPort, opts.clifPort, opts.clifNP)
 log.debug("Agent Key In:", opts.agentKey)
-log.debug("Web Services: ", opts.home, opts.httpPort, opts.httpsPort)
+log.debug("Web Services:", opts.home, opts.httpPort, opts.httpsPort)
 log.debug("Database:    ", opts.dbHost, opts.dbName, opts.dbAdmin)
 log.trace("Database SSL:", sslAdmin, sslUser)
-log.trace("Modeler:     ", opts.model, "Lifts:", opts.lifts)
+log.trace("Modeler:     ", opts.model)
+log.trace("Scheduler:   ", opts.scheduler)
 log.trace("Actions:     ", actions)
 
 var userExpApp = new SpaServer({	//Serves up SPA applications via https
@@ -135,9 +136,13 @@ log.debug("Agent:", jwkKey.x)
   })
 }
 
-if (Boolean(opts.lifts)) {				//Run lift scheduler
-  const LiftCont = require('../lib/lifts.js')		//Lift controller
-  var lifts = new LiftCont()
+if (Boolean(opts.scheduler)) {				//Run a scheduler
+  const Scheduler = require('../lib/scheduler.js')
+  var scheduler = new Scheduler({db: {
+    host: opts.dbHost,
+    database:opts.dbName,
+    user: opts.dbAdmin, 
+  }})
 }
 
 if (Boolean(opts.model)) {				//Run agent-based simulation model
