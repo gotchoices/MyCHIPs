@@ -137,7 +137,8 @@ console.log('click:', e, d)
   let pageURL = ((window || {}).location || {}).href
     , clickURL = pageURL.replace(/graph.html$/,'click?seq=' + d.seq)
 //console.log('Fetch:', clickURL)
-  fetch(clickURL)
+  //fetch(clickURL)
+  window.location.href = clickURL;
 }
 
 function repaint() {
