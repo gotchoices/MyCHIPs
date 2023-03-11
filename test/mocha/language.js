@@ -9,7 +9,7 @@ const { DBName, DBAdmin, testLog, Schema, dbClient } = require('./common')
 var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 const SchemaList = "'mychips','json'"
-const languages = ['fin', 'spa']
+const languages = ['fin', 'spa', 'nep']
 var missing = []
 
 describe("General schema tests", function() {
@@ -21,7 +21,8 @@ describe("General schema tests", function() {
   })
 
   it('Check for undocumented tables', function(done) {
-    let sql = `select sch,tab from wm.table_lang where help is null and sch in (${SchemaList}) order by 1,2`
+    let sql = `select * from wm.table_data td where td_sch in (${SchemaList}) and not exists
+      (select * from wm.table_text tt where tt.tt_sch = td.td_sch and tt.tt_tab = td.td_tab and tt.language = 'eng') order by 1,2`
 //log.debug("Sql:", sql)
     db.query(sql, (e, res) => {if (e) done(e)
 //log.debug("res:", res.rows ? JSON.stringify(res.rows) : null)
@@ -31,7 +32,7 @@ describe("General schema tests", function() {
   })
 
   it('Check for undocumented columns', function(done) {
-    let sql = `select sch,tab,col from wm.column_lang where help is null and sch in (${SchemaList}) order by 1,2`
+    let sql = `select sch,tab,col from wm.column_lang where help is null and sch in (${SchemaList}) and language = 'eng' order by 1,2`
 log.debug("Sql:", sql)
     db.query(sql, (e, res) => {if (e) done(e)
 //log.debug("res:", res)
@@ -43,8 +44,8 @@ log.debug("Sql:", sql)
   function checkLanguage(lang) {
     it(`Check for untranslated tags in: ${lang}`, function(done) {
     
-    let fields = ['fr_lang','fr_title','fr_help','to_lang','title','help','sch','tab','type','col','tag']
-      , where = `fr_lang = 'eng' and (to_lang isnull or to_lang = '${lang}') and (help isnull or title isnull)`
+    let fields = ['fr_lang','fr_title','fr_help','language','title','help','sch','tab','type','col','tag']
+      , where = `fr_lang = 'eng' and (language isnull or language = '${lang}') and (help isnull or title isnull)`
       , sql = `select ${fields.join(',')} from wm.language where ${where}`
 log.debug("Sql:", sql)
       db.query(sql, (e, res) => {if (e) done(e)
@@ -67,7 +68,7 @@ log.debug("res:", res)
     })
   }
 
-/* Disable for now  
+/* Disable for now
   languages.forEach(lang => {
     checkLanguage(lang)
   })
