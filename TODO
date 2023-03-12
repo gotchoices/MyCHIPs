@@ -5,8 +5,8 @@ X-  Tally invitation QR report still works in mobile app
 
 X- Regression test for missing language text
 X- Test creates CSV templates for translator
-- Script to update DB from CSV
-- Script to build wmt file from DB for a language
+X- Script to update DB from CSV
+- Script to build wmt file from DB for a language (don't duplicate non-native columns)
 
 - Make CHIP value extrapolator report
 X-  Make exchange rate table in wyselib
@@ -14,6 +14,12 @@ X-  Implement scheduler process
 X-  Can initiate lifts (basic pattern only for now)
 X-  Can query new exchange rates daily
 X-  How to supplement currency table with missing (metals, CHIP)
+X-  Redo language/country init scripts to cache file data
+X-  Have static supplemental files for additional currencies to support
+X-  Wm init runs faster now
+X-  Modify scheduler to use cron node module
+-  Enable scheduler to fetch dollar inflation data
+-  Fetch CHIP estimation data from mychips.org (in init script?)
 -  Exchange report uses latest data available
 -  Mention exchange data provider on mychips.org, mychips.net
 -  

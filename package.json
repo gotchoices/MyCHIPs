@@ -68,6 +68,7 @@
     "js-yaml": "^4.1.0",
     "json-stable-stringify": "^1.0.1",
     "mathjs": "^9.5.0",
+    "node-cron": "^3.0.2",
     "node-fetch": "^2.6.7",
     "nodemailer": "^6.8.0",
     "noise-protocol": "^3.0.1",
