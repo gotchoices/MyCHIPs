@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { WebView } from 'react-native-webview';
 import {
@@ -13,7 +13,7 @@ import {
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 
-import { colors } from '../../../config/constants';
+import { colors, qrType } from '../../../config/constants';
 
 const ShareTally = (props) => {
   const tallyObj = props.json;
@@ -22,6 +22,12 @@ const ShareTally = (props) => {
   const tallyUrl = tallyObj?.url;
 
   const [activeTab, setActiveTab] = useState('qr');
+  const qrData = useMemo(() => {
+    return JSON.stringify({
+      type: qrType.tally,
+      ticket: tallyObj?.ticket,
+    });
+  }, [tallyObj?.ticket])
 
   const changeTab = (tab) => {
     return () => {
@@ -62,7 +68,6 @@ const ShareTally = (props) => {
         resolve('data:image/png;base64,'+ data)
       })
     })
-
   }
 
   const openExternalLink = (event) => {
@@ -102,7 +107,7 @@ const ShareTally = (props) => {
         activeTab === 'qr' && (
           <View style={{ alignItems: 'center', paddingVertical: 32,  }}>
             <QRCode
-              value={tallyUrl}
+              value={qrData}
               getRef={ref}
               size={200}
             />

@@ -107,13 +107,6 @@ const SocketProvider = ({ children }) => {
   }
 
   const connectSocket = (ticket, cb = null) => {
-    if(ws) {
-      if(!cb) return;
-
-      const err = new Error('User already connected');
-      return cb(err);
-    };
-
     if (ticket) {
       clearTimeout(connectTimeout.current);
       console.log('Resetting generic password for the new connection')
