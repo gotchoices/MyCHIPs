@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { WebView } from 'react-native-webview';
 import {
@@ -13,14 +13,21 @@ import {
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 
-import { colors } from '../../../config/constants';
+import { colors, qrType } from '../../../config/constants';
 
 const ShareTally = (props) => {
   const tallyObj = props.json;
-  const link = props.link;
+  const linkHtml = props.link;
   const ref = useRef();
+  const tallyUrl = tallyObj?.url;
 
   const [activeTab, setActiveTab] = useState('qr');
+  const qrData = useMemo(() => {
+    return JSON.stringify({
+      type: qrType.tally,
+      ticket: tallyObj?.ticket,
+    });
+  }, [tallyObj?.ticket])
 
   const changeTab = (tab) => {
     return () => {
@@ -39,9 +46,12 @@ const ShareTally = (props) => {
         Share.open(options).then(console.log).catch(console.log);
       })
     } else if(activeTab === 'link') {
+      const expires = tallyObj?.ticket?.expires;
+      const date = expires ? `:${new Date(expires).toString()}` : ''
+      const message = `${tallyObj.title} \n\n${tallyUrl} \n\n${tallyObj.message} ${expires ? date : ''}`;
       options = {
         title: 'Tally invitation',
-        message: link,
+        message,
       }
 
       Share.open(options).then(console.log).catch(console.log);
@@ -58,7 +68,6 @@ const ShareTally = (props) => {
         resolve('data:image/png;base64,'+ data)
       })
     })
-
   }
 
   const openExternalLink = (event) => {
@@ -98,7 +107,7 @@ const ShareTally = (props) => {
         activeTab === 'qr' && (
           <View style={{ alignItems: 'center', paddingVertical: 32,  }}>
             <QRCode
-              value={JSON.stringify(props.json)}
+              value={qrData}
               getRef={ref}
               size={200}
             />
@@ -117,7 +126,7 @@ const ShareTally = (props) => {
                 <body>
                   <div style="display: flex; align-items: center; padding-top: 20">
                     <div>
-                      ${link}
+                      ${linkHtml}
                     </div>
                   </div>
                 </body>

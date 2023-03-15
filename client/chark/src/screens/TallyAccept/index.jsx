@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -11,34 +11,41 @@ import { getLinkHost } from '../../utils/common';
 
 const tallyUri = new Set(['tally', 'mychips.org/tally']);
 const TallyAccept = (props) => {
+  const { ticket } = props.route?.params ?? {};
+  const [tally, setTally] = useState(ticket);
+
   useEffect(() => {
-    Linking.getInitialURL().then((url) => {
-      const host = getLinkHost(url ?? '');
-      if(!tallyUri.has(host)) {
-        return;
-      }
-
-      const obj = parse(url);
-      console.log(obj)
-    });
-
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      const listener = Linking.addEventListener('url', ({url}) => {
+    if(!ticket) {
+      Linking.getInitialURL().then((url) => {
         const host = getLinkHost(url ?? '');
         if(!tallyUri.has(host)) {
           return;
         }
 
         const obj = parse(url);
-        console.log(obj)
-      })
+        console.log(obj);
+      });
 
-      return () => {
-        listener.remove();
-      };
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if(!ticket) {
+        const listener = Linking.addEventListener('url', ({url}) => {
+          const host = getLinkHost(url ?? '');
+          if(!tallyUri.has(host)) {
+            return;
+          }
+
+          const obj = parse(url);
+          console.log(obj, typeof obj.chad);
+        })
+
+        return () => {
+          listener.remove();
+        };
+      }
     }, [])
   );
 

@@ -20,3 +20,8 @@ export const colors = {
   snow: '#fbf9f9',
   mustardBrown: '#ce8805',
 };
+
+export const qrType = {
+  tally: 'tally',
+  connect: 'connect',
+}

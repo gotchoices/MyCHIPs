@@ -5,7 +5,7 @@ import { useScanBarcodes, BarcodeFormat, scanBarcodes } from 'vision-camera-code
 import * as Keychain from 'react-native-keychain';
 
 import { parse } from '../../utils/query-string';
-import { colors } from '../../config/constants';
+import { colors, qrType } from '../../config/constants';
 import { query_user } from '../../utils/user';
 import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
@@ -34,22 +34,35 @@ const Scanner = (props) => {
 
   useEffect(() => {
     if(qrCode) {
-      if(ws) {
-        Alert.alert('You are already connected to a server');
-      } else {
-        try {
-          setIsActive(false);
-          const parsedCode = JSON.parse(qrCode);
+      try {
+        setIsActive(false);
+        const parsedCode = JSON.parse(qrCode);
 
-          if(parsedCode?.ticket && parsedCode?.ticket?.user) {
-            connect({ ticket: parsedCode.ticket })
-          } else if(parsedCode?.ticket) {
-            setTempQrCode(parsedCode.ticket);
+        if(parsedCode?.type === qrType.tally) {
+          processTally(parsedCode);
+        } else {
+          processConnect(parsedCode);
+        }
+
+        // Process Tally
+        function processTally(parsed) {
+          props.navigation.navigate('TallyAccept', {
+            ticket: parsed?.ticket,
+          });
+        }
+
+        // Process the connection
+        function processConnect(parsed) {
+          if(parsed?.ticket && parsed?.ticket?.user) {
+            connect({ ticket: parsed.ticket })
+          } else if(parsed?.ticket) {
+            setTempQrCode(parsed.ticket);
             setIsModalVisible(true);
           }
-        } catch(err) {
-          console.log(err.message)
         }
+
+      } catch(err) {
+        console.log(err.message)
       }
     }
   }, [qrCode, setIsActive])
