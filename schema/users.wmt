@@ -22,8 +22,6 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
 }
 
 tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this server.} {
-  {user_sock		{User Socket}		{The IP Number, and port to which the user's mobile device will connect}}
-  {peer_sock		{Peer Socket}		{The IP Number, and port where other servers can connect to trade with this peer.}}
   {peer_host		{Peer Host}		{Hostname where other peer servers can transact with this user}}
   {peer_port		{Peer Port}		{Port where other peer servers can transact with this user}}
   {json			{JSON}			{User record in JSON format}}
@@ -71,21 +69,3 @@ tabtext mychips.comm_v_me	{User Contact}		{A view of the current user's communic
 tabtext mychips.file_v_me	{User Files}		{A view of the current user's data files}
 
 tabtext mychips.users_v_flat	{Flattened Users}	{A view of users with primary contacts and addresses on the same row}
-
-#Sample text in alternate language:
-tabtext mychips.users -lang fin	{CHIP käyttäjät}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
-  {user_ent	{Entiteettien linkki}	{Yhteys yhteisön peruspöytään}}
-  {user_stat	{Kaupan tila}		{CHIP-tilin kaupankäynnin tilille} {
-    {act	{Aktiivinen}		{Hyvä käydä kauppaa}}
-    {lck	{Lukittu}		{Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.}}
-    {off	{Irrotettu}		{Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.}}
-  }}
-} -messages {
-  {ABC {Koetus 1} {Ensimmäinen testiviesti}}
-  {BCD {Koetus 2} {Toinen testiviesti}}
-  {DEF {Koetus 3} {Kolmanen testiviesti}}
-}
-
-tabtext mychips.users_v -lang fin	{CHIP käytäjät näkymä}	{Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
-  {mobi_socket	{Käyttäjä pistorasia}		{IP-numero ja portti, johon käyttäjän mobiililaite yhdistää}}
-}

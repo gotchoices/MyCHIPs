@@ -74,13 +74,6 @@ view mychips.users_v {mychips.users base.ent_v mychips.agents base.priv_has(text
 
   , ag.agent_host		as peer_host
   , ag.agent_port		as peer_port
---  , cAgent()			as peer_cagent
---  , cHost()			as peer_chost
---  , cPort()			as peer_cport
---  , coalesce(ue.user_host, pp.uhost) || ':' || coalesce(ue.user_port, pp.uport)	as user_sock
---  , cHost() || ':' || cPort()	as peer_sock
---  , ue.peer_cid ||':'|| cAgent() ||'@'|| cHost() ||':'|| cPort()	as peer_addr
---  , ue.peer_cid || '@' || cHost() || ':' || cPort()			as peer_endp
   , greatest(ee.mod_date, ue.mod_date)					as mod_date
   , jsonb_build_object(
       'id',		ee.id

@@ -1,0 +1,23 @@
+This folder is for the support of languages other than English
+
+To generate a new language file:
+- Determine the 3-letter code (xyz, for example) for the new language
+- Edit test/mocha/language.js to include the code in the languages array
+- Make sure the last two tests are actually enabled in language.js
+- run: npx mocha languages.
+- This should create csv files for any tags missing in the target language
+- Open the CSV file in a spreadsheet
+- Perform the translation, filling in title and help for all applicable tags
+- Make sure the file is saved back in CSV format
+- Be in the mychips/schema folder (the following utilities consult Wyseman.conf)
+- Import new lanaguage tags into the db:
+    wm-csv2db <the_file_name>.csv
+- Check in wm.table_lang (and/or UI applications) for the correct language data
+- Create wyseman language file:
+    wm-db2wmt -s mychips -l <xyz> >language/<xyz>.wmt
+- Submit P/R to mychips/wyselib to include your language translation files/updates
+
+The "-s schema" switch to wm-db2wmt will limit the output to those tables/views belonging
+to the specified schema.  If you are translating tables/views that are part of wyselib,
+make sure to include those in the wyselib/schema/language folder rather than as part of
+the mychips repo.

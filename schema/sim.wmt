@@ -43,7 +43,6 @@ tabtext mychips.tallies_v_sum	{Summary Tally Data}	{Deprecated view of aggregate
   {stock_net Deprecated}
   {stock_seqs Deprecated}
   {stock_uuids Deprecated}
-  {stock Deprecated}
   {tallies Deprecated}
   {targets Deprecated}
   {types Deprecated}

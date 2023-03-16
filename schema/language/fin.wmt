@@ -1,0 +1,18 @@
+#Sample text in alternate language:
+
+tabtext mychips.users -lang fin {CHIP käyttäjät} {Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
+  {user_ent {Entiteettien linkki} {Yhteys yhteisön peruspöytään}}
+  {user_stat {Kaupan tila} {CHIP-tilin kaupankäynnin tilille} {
+    {act {Aktiivinen} {Hyvä käydä kauppaa}}
+    {lck {Lukittu} {Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.}}
+    {off {Irrotettu} {Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.}}
+  }}
+} -messages {
+  {ABC {Koetus 1} {Ensimmäinen testiviesti}}
+  {BCD {Koetus 2} {Toinen testiviesti}}
+  {DEF {Koetus 3} {Kolmanen testiviesti}}
+}
+
+tabtext mychips.users_v -lang fin {CHIP käytäjät näkymä} {Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
+  {peer_port {Käyttäjä pistorasia} {IP-numero ja portti, johon käyttäjän mobiililaite yhdistää}}
+}

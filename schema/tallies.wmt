@@ -27,8 +27,6 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
   {reward	{Buy Margin}		{A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.}}
   {clutch	{Sell Margin}		{A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.}}
   {bound	{Trade Limit}		{The maximum amount of value the stock/foil owner is willing to accumulate on this tally}}
-  {dr_limit	{Debit Limit}		{The maximum amount the Vendor (Stock) is granted to borrow from the Client (Foil) in exchange for goods and services}}
-  {cr_limit	{Credit Limit}		{The maximum amount the Client (Foil) is granted to borrow from the Vendor (Stock) in exchange for goods and services}}
 
   {request	{Request}		{Requested next status for the tally} {
     {void	{Void}			{One party has requested to negotiation before the tally has been opened}}
@@ -75,10 +73,7 @@ tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a
 }
 
 tabtext mychips.tallies_v {Tallies}	{Standard view containing an entry for each tally, which is a record of credit transactions between two trading partners.} {
-  {hold_addr	{Holder Address}	{The CHIP address (cid:agent) of the owner of the tally}}
-  {hold_chid	{Holder CHIP Address}	{Full JSON CHIP address of the entity that owns this part of the tally}}
   {part_addr	{Partner Address}	{The CHIP address (cid:agent) of the partner on this tally}}
-  {part_chid	{Partner CHIP Address}	{Full JSON CHIP address of the partner entity on the other end of the tally}}
 
   {inside	{Inside}		{The partner entity is also hosted by the same system as the tally owner}}
   {state	{State}			{A computed value indicating the state of progress as the tally goes through its lifecycle}}

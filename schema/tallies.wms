@@ -72,10 +72,6 @@ table mychips.tallies {mychips mychips.users tally_side} {
   , chain_stat	text		not null default 'con' check (chain_stat in ('con','prob','req','err','pend'))
   , _last_chit	int		not null default 0
 
---Obsolete values:
---  , dr_limit	bigint		not null default 0	-- A stock term
---  , cr_limit	bigint		not null default 0	-- A foil term
---  , _last_tset	int		not null default 0
     eval(s $glob::stamps)
 }
 index {} mychips.tallies tally_uuid
@@ -304,7 +300,6 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
   , ua.agent_host			as hold_host
   , ua.agent_port			as hold_port
---  , te.hold_cid ||':'|| ua.agent	as hold_addr
 --  , te.hold_cid ||':'|| ua.atsock	as hold_full
 
   , te.part_cid ||':'|| pa.agent	as part_addr

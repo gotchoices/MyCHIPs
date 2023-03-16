@@ -37,7 +37,6 @@ tabtext mychips.lifts_v {Lifts}		{Standard view containing an entry for each lif
   {clean	{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the lift record has not been tampered with.}}
   {expires	{Expires}		{The date/time when the lift will be considered expired by the referee}}
   {remains	{Remains}		{The amount of time before expiration, the local lift record was created and then relayed along}}
-  {circular	{Circular}		{The lift is intended to form a complete circuit}}
 }
 
 tabtext mychips.lifts_v_dist {Distributed Lifts} {Standard view containing an entry for each lift with additional helpful derived fields applicable to distributed (not local) lifts} {

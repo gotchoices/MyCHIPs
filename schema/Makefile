@@ -12,6 +12,9 @@ objects:
 text:
 	${WM} text
 
+lang:
+	${WM} lang
+
 defs:
 	${WM} defs
 

@@ -41,6 +41,19 @@ log.debug("Sql:", sql)
     })
   })
 
+  it('find stray text for non-existent columns', function(done) {
+    let sql = `select * from wm.column_text ct where not exists (
+      select * from wm.column_lang cl 
+        where cl.sch = ct.ct_sch and cl.tab = ct.ct_tab and cl.col = ct.ct_col)
+      and ct.ct_sch in (${SchemaList})`
+log.debug("Sql:", sql)
+    db.query(sql, (e, res) => {if (e) done(e)
+log.debug("res:", res)
+      assert.equal(res.rows.length, 0)
+      done()
+    })
+  })
+
   function checkLanguage(lang) {
     it(`Check for untranslated tags in: ${lang}`, function(done) {
     
@@ -58,7 +71,10 @@ log.debug("res:", res)
             , writable = Fs.createWriteStream(file)
           stream.pipe(writable)
           stream.write(fields)			//Header row
-          rows.forEach(row => stream.write(row))
+          rows.forEach(row => {
+            row.language = lang
+            stream.write(row)
+          })
           stream.end()
         }
         missing.push(lang)			//Remember if errors were found in this language

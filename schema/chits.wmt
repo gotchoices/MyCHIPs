@@ -55,7 +55,6 @@ tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies 
 tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {
   {ent		{Entity}		{The entity ID of the owner of the tally the chain belongs to}}
   {seq		{Sequence}		{The sequence (tally) number of the owner of the tally the chain belongs to}}
-  {digest	{Digest}		{A SHA256 hash of the MyCHIPs compliant data contained in the individual chit or tally}}
   {chain_idx	{Chain Index}		{The record number in the chain.  Base tally is -1, first chit is 0, second chit is 1...}}
   {chain_prev	{Prior Hash}		{Contains the hash of the prior link (chit or tally) in the chain}}
   {prev_ok	{Prior Links}		{Is true if this and all previous records properly contain the hash copied from the prior record}}

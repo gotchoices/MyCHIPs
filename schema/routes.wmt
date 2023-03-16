@@ -54,17 +54,17 @@ tabtext mychips.routes_v	{Foreign Routes}	{A view showing foreign peers that can
   {expires	{Expires}		{When this route will be considered uncertain}}
   {expired	{Expired}		{This route is uncertain because of the amount time passed since it was affirmed}}
   {state	{State}			{Indicates how/whether this route might be useable}}
-  {sorter	{Priority Sort}		{A field used to prioritize routes and potential routes for being generated/retried} {
-    {0		{Good}			{The route is believed good and fresh}}
-    {1		{Pending}		{Route queries have recently been generated but not resolved}}
-    {2		{Expired Good}		{The route was good but expiration time has passed}}
-    {3		{No Route}		{No route has been generated yet on this potential pathway}}
-    {4		{Expired Pending}	{A request for the route was issued but no response has been received}}
-    {5		{Other}			{The route is in some other state}}
-  }}
   {lading	{Lading}		{A JSON structure describing how much value can be lifted along this route and what fees might apply}}
   {json		{Route Object}		{JSON representation of the route used in peer-to-peer messages}}
 }
+#  {sorter	{Priority Sort}		{A field used to prioritize routes and potential routes for being generated/retried} {
+#    {0		{Good}			{The route is believed good and fresh}}
+#    {1		{Pending}		{Route queries have recently been generated but not resolved}}
+#    {2		{Expired Good}		{The route was good but expiration time has passed}}
+#    {3		{No Route}		{No route has been generated yet on this potential pathway}}
+#    {4		{Expired Pending}	{A request for the route was issued but no response has been received}}
+#    {5		{Other}			{The route is in some other state}}
+#  }}
 
 tabtext mychips.route_tries {Route Retries}	{Tracks how many times the route state transition algorithm has tried to communicate a transition to a peer} {
   {rtry_rid	{Retry Route ID}	{Primary key of the route we are tracking retries for}}
