@@ -12,13 +12,14 @@ import {
 } from 'react-native';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
+import ViewShot from "react-native-view-shot";
 
 import { colors, qrType } from '../../../config/constants';
 
 const ShareTally = (props) => {
   const tallyObj = props.json;
   const linkHtml = props.link;
-  const ref = useRef();
+  const viewShotRef = useRef();
   const tallyUrl = tallyObj?.url;
 
   const [activeTab, setActiveTab] = useState('qr');
@@ -38,13 +39,14 @@ const ShareTally = (props) => {
   const onShare = () => {
     let options = {};
     if(activeTab === 'qr') {
-      qrtobase64().then(base64 => {
+      viewShotRef.current.capture().then(uri => {
         options = {
-          url: base64,
-        }
+          title: 'Tally invitation',
+          url: uri,
+        };
 
         Share.open(options).then(console.log).catch(console.log);
-      })
+      });
     } else if(activeTab === 'link') {
       const expires = tallyObj?.ticket?.expires;
       const date = expires ? `:${new Date(expires).toString()}` : ''
@@ -60,14 +62,6 @@ const ShareTally = (props) => {
 
   const onCancel = () => {
     props.onCancel()
-  }
-
-  const qrtobase64 = () => {
-    return new Promise((resolve) => {
-      ref.current.toDataURL((data) => {
-        resolve('data:image/png;base64,'+ data)
-      })
-    })
   }
 
   const openExternalLink = (event) => {
@@ -105,13 +99,14 @@ const ShareTally = (props) => {
 
       {
         activeTab === 'qr' && (
-          <View style={{ alignItems: 'center', paddingVertical: 32,  }}>
-            <QRCode
-              value={qrData}
-              getRef={ref}
-              size={200}
-            />
-          </View>
+          <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1.0 }}>
+            <View style={{ alignItems: 'center', paddingVertical: 32,  }}>
+              <QRCode
+                value={qrData}
+                size={200}
+              />
+            </View>
+          </ViewShot>
         )
       }
 
