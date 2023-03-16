@@ -35,6 +35,7 @@
     "react-native-svg": "^12.5.0",
     "react-native-toast-message": "^2.1.5",
     "react-native-vector-icons": "^9.2.0",
+    "react-native-view-shot": "^3.5.0",
     "react-native-vision-camera": "^2.15.2",
     "react-native-walkthrough-tooltip": "^1.4.0",
     "react-native-webview": "^11.25.0",
