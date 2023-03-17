@@ -3,7 +3,7 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { DBName, DBAdmin, testLog, Schema, assert, dropDB, dbClient } = require('./common')
+const { DBName, DBAdmin, testLog, Schema, assert, dbClient } = require('./common')
 var log = testLog(__filename)
 const interTest = {}
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
@@ -11,10 +11,6 @@ const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schem
 describe("View mychips.users_v", function() {
   var db
   this.timeout(5000)		//May take a while to build database
-
-  before('Delete test database', function(done) {
-    dropDB(done)
-  })
 
   before('Connect to (or create) test database', function(done) {
     db = new dbClient(dbConfig, (chan, data) => {}, done)

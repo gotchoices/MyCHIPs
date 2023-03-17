@@ -8,7 +8,7 @@
 //- 
 const Fs = require('fs')
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, dbClient, dropDB } = require('./common')
+const { DBName, DBAdmin, testLog, Schema, dbClient } = require('./common')
 const WordFile = '/usr/share/dict/words'
 const Words = 6
 const Cycles = 10
@@ -17,10 +17,6 @@ const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schem
 
 describe("Test cryptographic schema functions", function() {
   var db
-
-//  before('Delete test database', function(done) {
-//    dropDB(done)
-//  })
 
   before('Connect to (or create) test database', function(done) {
     this.timeout(10000)		//May take a while to build database

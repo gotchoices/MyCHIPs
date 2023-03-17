@@ -1,12 +1,7 @@
 TODO:
 
-X- Refine/document report protocol in backend:
-X-  Tally invitation QR report still works in mobile app
-
-X- Regression test for missing language text
-X- Test creates CSV templates for translator
-X- Script to update DB from CSV
-- Script to build wmt file from DB for a language (don't duplicate non-native columns)
+X- Get language view to correctly generate remaining fields for a language
+X- Can jumpstart with XYZ language?
 
 - Make CHIP value extrapolator report
 X-  Make exchange rate table in wyselib

@@ -493,4 +493,6 @@ view mychips.chits_v_chains {mychips.chits_v mychips.tallies_v} {
   join (
     select chit_ent,chit_seq,max(chain_idx) as max from mychips.chits group by 1,2
   ) cm on cm.chit_ent = ccc.ent and cm.chit_seq = ccc.seq
+} -native {
+  {mychips.chits chain_idx}
 }

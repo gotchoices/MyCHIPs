@@ -355,6 +355,8 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
          and cc.chain_idx = te.chain_conf;
 
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin]);
+} -native {
+  {mychips.tallies status digest mod_date}
 }
 
 # Custom update function; Only allow updates of regular fields for draft tally

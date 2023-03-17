@@ -83,7 +83,9 @@ view json.users {json.user json.place json.connect} {select
   , (select array_agg(to_jsonb(d)) from (select type,address,city,state,post,country,main,comment,prior from json.place p where p.id = u.id order by seq) d) as place
   , (select array_agg(to_jsonb(d)) from (select media,address,main,comment,prior from json.connect c where c.id = u.id order by seq) d) as connect
     from json.user u;
-} -primary {id}
+} -primary {id} -native {
+  {json.user type}
+}
 
 # Standard view for tallies
 #----------------------------------------------------------------
@@ -173,7 +175,9 @@ view json.cert {mychips.users_v json.connect json.place json.file mychips} {sele
   , current_timestamp::timestamptz(3) as "date"
   
     from mychips.users_v p where not user_ent is null with cascaded check option;
-} -primary {id}
+} -primary {id} -native {
+  {base.ent id}
+}
 
 # Write certificate data to its various tables
 #----------------------------------------------------------------

@@ -170,6 +170,9 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
 
   from	mychips.routes_v	r
   join	mychips.tallies_v_paths	tp on tp.top = r.via_ent and tp.top_tseq = r.via_tseq and tp.foro
+} -native {
+  {mychips.tallies_v_net min max margin}
+  {mychips.tallies reward}
 }
 
 # View of possible external routes compared to existing route records

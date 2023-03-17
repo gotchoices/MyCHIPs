@@ -15,6 +15,8 @@ const DBName = "mychipsTestDB"
 const dockName = 'mychipsTestPG'
 const { DBHost, DBPort, DBAdmin, Log } = require('../settings.js')
 const { dbClient } = require("wyseman")
+const Schema = Path.join(__dirname, '../..', 'lib', 'schema.json')
+const SchemaDir = Path.join(__dirname, '../..', 'schema')
 var dockerPgDown = null		//command to kill docker postgres
 
 var testLog = function(fname) {		//Initiate a logging service for a mocha test file
@@ -28,8 +30,8 @@ module.exports={
   DBName,
   DB2Name: DBName + '2',
   DBAdmin, DBHost, DBPort, Log, dbClient,
-  Format, assert, Bus, testLog,
-  Schema: Path.join(__dirname, '../..', 'lib', 'schema.json'),
+  Format, assert, Bus, testLog, Schema, SchemaDir,
+
   dbConf: function(log, listen, database = DBName, schema) {
     Object.assign(this, {database, user: DBAdmin, connect: true, log, listen, schema})
   },
@@ -108,6 +110,15 @@ log.debug("Taking down docker PG")
         assert.ok(row.record)
         if (row.record) check(res,row.record.slice(1,-1).split(','))
       })
+    })
+  },
+
+  develop: function(dbName, done) {
+    Child.exec("make dev", {
+      cwd: SchemaDir,
+      env: Object.assign({}, process.env, {MYCHIPS_DBNAME: dbName})
+    }, (e,out,err) => {
+      if (e) done(e); done()
     })
   },
 

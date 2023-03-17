@@ -74,6 +74,8 @@ view mychips.tokens_v {
 
     eval(trigview::insert mychips.tokens_v mychips.tokens $tokens::tokens_v_in $tokens::tokens_pk [concat $glob::stampin]);
     eval(trigview::update mychips.tokens_v mychips.tokens $tokens::tokens_v_up $tokens::tokens_pk $glob::stampup);
+} -native {
+  {mychips.tokens tally_seq}
 }
 
 # User-permissioned view

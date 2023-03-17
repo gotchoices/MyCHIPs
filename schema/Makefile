@@ -24,13 +24,19 @@ init:
 parm:
 	${WM} --no-make init
 
-run:
-	${WM} ${WMPATH}/lib/run_time.wm*
+run:	#Production run-time
+	${WM} ${WMPATH}/lib/run_time.wm[st]
+
+dev:	#Development run-time
+	${WM} ${WMPATH}/lib/run_time.wm[st] ${WMPATH}/lib/develop.wm[st]
 
 sql:	objects text defs
 	${WM} init -s >../lib/schema-1.sql
 
-schema:	objects text defs
+clean:	run
+	${WM} ${WMPATH}/lib/run_time.wmi
+
+schema:	objects clean text defs
 	${WM} init -S ../lib/schema.json
 
 commit:	schema

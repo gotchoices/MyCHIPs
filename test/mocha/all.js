@@ -17,6 +17,8 @@ before('Can connect to postgres (may create DB)', function(done) {
   })
 })
 
+require('./schema.js')		//Builds development DB objects
+
 require('./sch-crypto.js')
 require('./objectset.js')
 require('./peernoise.js')

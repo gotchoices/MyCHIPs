@@ -8,7 +8,7 @@ const Fs = require('fs')
 const Path = require('path')
 const Stringify = require('json-stable-stringify')	//Predictable property order
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, importCheck, dropDB, dbClient } = require('./common')
+const { DBName, DBAdmin, testLog, Schema, importCheck, dropDB, dbClient, develop } = require('./common')
 var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
@@ -26,6 +26,11 @@ describe("JSON contact import/export", function() {
     db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
   })
 
+  it("Build development objects", function(done) {
+    this.timeout(5000)
+    develop(DBName, done)
+  })
+  
   it("Import known user record", function(done) {
     let file = Path.join(__dirname, 'user.json')
     importCheck(file, 'user', db, done, function(res, row) {

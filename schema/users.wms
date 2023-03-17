@@ -106,6 +106,8 @@ view mychips.users_v {mychips.users base.ent_v mychips.agents base.priv_has(text
     ")
 } -grant {
     {user	{s} {i u} {d}}
+} -native {
+  {mychips.users mod_date}
 } -primary id
 
 # Pre-check for new user records
@@ -176,6 +178,8 @@ view mychips.users_v_flat {mychips.users_v base.addr_v_flat base.comm_v_flat} {s
     from	mychips.users_v		u
     left join	base.addr_v_flat	a on a.id = u.id
     left join	base.comm_v_flat	c on c.id = u.id
+} -native {
+  {base.ent id}
 }
 
 # Birth records should only be written once

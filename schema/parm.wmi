@@ -37,9 +37,11 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  ,('routes', 'autoquery', 'boolean', null, null, true, 'The number of times to retry discovering a pathway before giving up')
  
  ,('lifts', 'order', 'text', null, 'bang desc', null, 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
- ,('lifts', 'interval', 'int', 10000, null,null, 'The number of milliseconds between sending requests to the database to choose and conduct a lift')
+ ,('lifts', 'interval', 'int', 60, null,null, 'The number of seconds between sending requests to the database to process lifts')
  ,('lifts', 'limit', 'int', 1, null, null, 'The maximum number of lifts the database may perform per request cycle')
  ,('lifts', 'minimum', 'int', 10000, null, null, 'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
+
+ ,('exchange', 'interval', 'int', 42000, null,null, 'The number of seconds between checks for updated exchange data')
 
   on conflict on constraint parm_pkey do update
     set type = EXCLUDED.type, v_int = EXCLUDED.v_int, v_text = EXCLUDED.v_text, v_boolean = EXCLUDED.v_boolean, cmt = EXCLUDED.cmt

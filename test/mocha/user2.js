@@ -4,7 +4,7 @@
 //TODO:
 //- 
 const Path = require('path')
-const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient } = require('./common')
+const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop } = require('./common')
 var log = testLog(__filename)
 var { host, user2, uKey2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
 var schema = Schema
@@ -17,6 +17,11 @@ describe("Establish test user on separate DB", function() {
   before('Connection to database', function(done) {
     this.timeout(10000)		//May take a while to build database
     db = new dbClient(db2Conf(), () => {}, ()=>{done()})
+  })
+
+  it('Build development DB objects', function(done) {
+    this.timeout(5000)
+    develop(DB2Name, done)
   })
 
   it("Create dummy users users for padding user IDs", function(done) {

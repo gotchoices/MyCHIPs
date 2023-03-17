@@ -56,6 +56,12 @@ if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
   export PATH="${PATH}:$nodebin"
 fi
 
+#Also build any development objects in the database schema
+if ! cd $appdir/schema; then
+  echo "Can't find mychips/schema folder"
+fi
+make dev			#;cd $appdir
+
 # Check if any projects under the client folder also have a bin/develop script
 #for proj in $(ls $appdir/client/*/bin/develop); do
 #  echo "Running client project develop script: $proj"
