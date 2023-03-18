@@ -18,7 +18,7 @@ namespace eval agents {
 
     def agents_v_in	{agent agent_host agent_port}
     def agents_v_up	{agent_host agent_port agent_ip}
-    def agents_se	{agent agent_key agent_host agent_port agent_ip}
+    def agents_se	[concat agent agent_key agent_host agent_port agent_ip $glob::stampfn]
 }
 
 # Data we maintain about site agents (own own and others)
@@ -28,7 +28,8 @@ table mychips.agents {mychips base.ent} {
   , agent_key	bytea
   , agent_host	text	constraint "!mychips.tallies:CHR" not null
   , agent_port	int	constraint "!mychips.tallies:CPR" not null
-  , agent_ip	inet  , constraint "!mychips.agents:AHP" unique (agent_host, agent_port)
+  , agent_ip	inet
+  , 			constraint "!mychips.agents:AHP" unique (agent_host, agent_port)
     eval(s $glob::stamps)
 }
 

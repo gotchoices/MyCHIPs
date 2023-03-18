@@ -1,7 +1,7 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 
-tabtext mychips.tallies	{Tallies}		{Contains an entry for each tally, which is a record of credit transactions between two trading partners.} [concat {
+tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a record of credit transactions between two trading partners.} [concat {
   {tally_ent	{Tally Entity}		{The ID number of the entity or person this tally belongs to}}
   {tally_seq	{Tally Sequence}	{A unique number among all tallies owned by this entity}}
   {tally_uuid	{Tally GUID}		{A globally unique identifier for this tally}}

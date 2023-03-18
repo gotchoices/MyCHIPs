@@ -18,13 +18,14 @@ new Vue({
   template: Template,
   components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-urnet': AppURNet},
   data() { return {
-    state:      {curTab: 'users', tabs: {users:{}, conts:{}, urnet:{}, config:{}}},
+    state:      {curTab: 'users', tabs: {users:{}, agents: {}, conts:{}, urnet:{}, config:{}}},
     tag:	'mychips_admin',
     title:	'MyCHIPs Admin',
     dbConf:	['mychips_admin','wylib'],
     hasRun:	{},
     tabs:	[
       {tag: 'users',  view: 'mychips.users_v', title: 'Users'},
+      {tag: 'agents', view: 'mychips.agents_v', title: 'Agents'},
       {tag: 'conts',  view: 'mychips.contracts_v', title: 'Contracts'},
       {tag: 'config', view: 'base.parm_v', title: 'Settings'},
       {tag: 'urnet',  component: 'app-urnet', title: 'Network'},

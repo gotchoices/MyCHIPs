@@ -1,0 +1,17 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabdef mychips.agents -focus ent_name -fields [concat {
+    {agent		ent	60	{0 0 3}		}
+    {agent_host		ent	20	{0 1}		}
+    {agent_port		ent	6	{1 1}		-just r}
+    {agent_ip		ent	20	{0 2}		-write 0 -sta readonly}
+    {agent_key		pdm	64	{0 7 3}		-opt 1}
+} $glob::stampd]
+
+tabdef mychips.agents_v -fields {
+    {valid		chk	4	{2 2}		-sta readonly -wr 0}
+    {sock		ent	28	{0 3}		-sta readonly -wr 0}
+    {atsock		ent	64	{0 4 3}		-sta readonly -wr 0}
+    {json		ent	28	{0 6}		-sta readonly -wr 0 -hide 1}
+} -display {agent agent_host agent_port}
