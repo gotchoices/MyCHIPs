@@ -30,7 +30,7 @@ namespace eval users {
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
     def ent_v_up	[lremove $base::ent_v_up ent_type]
-    def agents_se	{agent_key agent_host agent_port agent_ip}
+    def agents_se	{agent_key agent_ip}
 }
 
 # Data about users to facilitate their CHIP account
@@ -39,7 +39,7 @@ table mychips.users {base.ent mychips.agents} {
     user_ent	text		primary key references base.ent on update cascade on delete cascade
   , user_host	text
   , user_port	int		
-  , user_stat	varchar		not null default 'lck' constraint "!mychips.users:UST" check (user_stat in ('act','lck','off'))
+  , user_stat	varchar		not null default 'act' constraint "!mychips.users:UST" check (user_stat in ('act','lck','off'))
   , user_hid	text		
 
   , peer_cid	text		not null, unique (peer_cid, peer_agent)
