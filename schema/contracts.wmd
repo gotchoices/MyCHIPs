@@ -1,32 +1,33 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+---
+mychips.contracts:
+  focus: domain
+  fields:
+  - [domain,		ent,	20,	[1,1],		{}]
+  - [version,		ent,	3,	[2,1],		{just: r}]
+  - [published,		ent,	14,	[3,1],		{state: readonly, wr: 0}]
+  - [name,		ent,	30,	[1,2,2],	{}]
+  - [language,		ent,	4,	[3,2],		{}]
+  - [digest,		ent,	20,	[3,4],		{state: readonly, wr: 0}]
+  - [title,		ent,	40,	[1,3,2],	{spe: edw}]
+  - [tag,		ent,	10,	[3,3],		{}]
+  - [text,		mle,	80,	[1,5,4],	{spe: edw}]
+  - [sections,		ent,	80,			{hide: 1, state: readonly}]
+  - [crt_by,     	ent,	10,	[1,98],		{opt: 1, wr: 0, sta: readonly}]
+  - [crt_date,   	inf,	18,	[2,98],		{opt: 1, wr: 0, sta: readonly}]
+  - [mod_by,     	ent,	10,	[1,99],		{opt: 1, wr: 0, sta: readonly}]
+  - [mod_date,		inf,	18,	[2,99],		{opt: 1, wr: 0, sta: readonly}]
+  display: [domain, name, version, language, released, source, title]
 
-tabdef mychips.contracts -focus domain -f [concat {
-    {domain		ent	20	{1 1}		}
-    {version		ent	3	{2 1}		-just r}
-    {published		ent	14	{3 1}		-state readonly -wr 0}
-    {name		ent	30	{1 2 2}		}
-    {language		ent	4	{3 2}		}
-    {digest		ent	20	{3 4}		-state readonly -wr 0}
-    {title		ent	40	{1 3 2}		-spf edw}
-    {tag		ent	10	{3 3}		}
-    {text		mle	80	{1 5 4}		-spf edw}
-    {sections		ent	80	{}		-hide 1 -state readonly}
-} $glob::stampd] -display {
-    domain name version language released source title 
-}
-
-tabdef mychips.contracts_v -f {
-    {source		ent	20	{1 4 2}		-state readonly}
-    {json		mle	{80 6}	{1 8 4}		-opt 1 -spf edw -state readonly}
-} -json {
-  actions {[
-    {"name":"edit","render":"strdoc","slave":true},
-    {"name":"publish","ask":true}
-  ]}
-  export {"contract"}
-  launch {{
-    "initial": 1,
-    "import": "json.import"
-  }}
-}
+mychips.contracts_v:
+  fields:
+  - [source,		ent,	20,	[1,4,2],	{state: readonly}]
+  - [json,		mle,	[80,6],	[1,8,4],	{opt: 1, spe: edw, state: readonly}]
+  actions:
+  - {name: edit, render: strdoc, slave: true}
+  - {name: publish, ask: true}
+  export: contract
+  launch:
+    initial: 1
+    import: 'json.import'

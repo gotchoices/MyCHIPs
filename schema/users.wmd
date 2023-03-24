@@ -1,49 +1,75 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+---
+mychips.users:
+  focus: ent_name
+  fields:
+  - [user_ent,		ent,	6,	[0,10],		{sort: 1, write: 0, hide: 1}]
+  - [user_stat,		pdm,	10,	[2,4],		{ini: act}]
+  - [user_host,		ent,	20,	[1,11],		{}]
+  - [user_port,		number,	8,	[2,11],		{just: r, spe: calc}]
+  - [user_hid,		ent,	20,	[3,11],		{}]
+  - [user_cmt,		mle,	[80,2],	[1,12,4],	{}]
+  - [user_psig,		ent,	80,	[1,13,4],	{opt: 1}]
+  - [peer_cid,		ent,	12,	[1,5],		{}]
+  - [peer_agent,	ent,	12,	[2,5,2],	{}]
+  - [peer_named,	ent,	20,	[1,3,2],	{}]
+  - [crt_by,     	ent,	10,	[1,98],		{opt: 1, wr: 0, sta: readonly}]
+  - [crt_date,   	inf,	18,	[2,98],		{opt: 1, wr: 0, sta: readonly}]
+  - [mod_by,     	ent,	10,	[1,99],		{opt: 1, wr: 0, sta: readonly}]
+  - [mod_date,		inf,	18,	[2,99],		{opt: 1, wr: 0, sta: readonly}]
 
-tabdef mychips.users -focus ent_name -fields [concat {
-    {user_ent		ent	6	{0 10}		-sort 1 -write 0 -hide 1}
-    {user_stat		pdm	10	{1 10}		-ini act}
-    {user_host		ent	20	{1 11}		}
-    {user_port		ent	8	{2 11}		-just r}
-    {user_hid		ent	20	{3 11}		}
-    {user_cmt		mle	{80 2}	{1 12 4}	}
-} $glob::stampd]
+mychips.users_v:
+  fields:
+  - [ent_inact,		chk,	2,	[3,4],		{ini: f, onv: t, offv: f}]
+  - [pref_name,		ent,	14,	[1,2],		{tem: alpha}]
+  - [peer_host,		ent,	8,	[1,14],		{opt: 1, sta: readonly, wr: 0}]
+  - [peer_port,		ent,	8,	[2,14],		{opt: 1, sta: readonly, wr: 0}]
+  - [title,		ent,	8,	[3,14],		{opt: 1}]
+  - [agent_host,	ent,	28,	[1,15],		{opt: 1, sta: readonly, wr: 0}]
+  - [agent_port,	ent,	28,	[2,15],		{opt: 1, sta: readonly, wr: 0}]
+  - [agent_ip,		ent,	28,	{hide: 1}]
+  - [id,		ent,	10,	{hide: 1}]
+  - [ent_cmt,		ent,	10,	{hide: 1}]
+  - [bank,		ent,	10,	{hide: 1}]
+  - [username,		ent,	10,	{hide: 1}]
+  - [gender,		ent,	6,	{hide: 1}]
+  - [marital,		ent,	6,	{hide: 1}]
+  - [json,		ent,	20,	{hide: 1}]
+  - [agent_key,	ent,	20,	{hide: 1}]
+  display: [id, std_name, ent_type, user_stat, born_date, peer_agent, '!fir_name', '!ent_name']
+  actions:
+  - name: ticket
+    render: html
+    single: 1
+    options: [{tag: format, input: pdm, values: [qr,link,url,json]}]
+  - name: lock
+    ask: 1
+  - name: unlock
+    ask: 1
+  - name: summary
+    render: html
+  - name: trade
+    render: html
+    options:
+    - {tag: start, type: date, input: date, size: 11, subframe: [1,1]}
+    - {tag: end, type: date, input: date, size: 11, subframe: [1,2]}
+  where:
+    and: true
+    items: 
+    - {left: user_ent, not: true, oper: isnull}
+    - {left: ent_inact, not: true, oper: true}
+    - {left: ent_type, oper: '=', entry: p}
+  subviews: [base.addr_v, base.comm_v]
+  export: user
+  launch:
+    initial: 1
+    import: 'json.import'
 
-# A view with some additional pseudo fields
-tabdef mychips.users_v -fields {
-    {user_sock		ent	28	{3 11}		-opt 1 -sta readonly -wr 0}
-    {peer_sock		ent	28	{3 21}		-opt 1 -sta readonly -wr 0}
-} -display {
-  id std_name ent_type user_stat user_sock born_date !fir_name !ent_name
-} -json {
-  actions {[
-    {"name":"ticket","render":"html","single":"1","options":[
-      {"tag":"format","input":"pdm","values":["qr","link","url","json"]}
-    ]},
-    {"name":"lock","ask":"1"},
-    {"name":"unlock","ask":"1"},
-    {"name":"summary","render":"html"},
-    {"name":"trade","render":"html","options":[
-      {"tag":"start","type":"date","input":"ent","size":"11","subframe":"1 1","special":"cal","hint":"date","template":"date"},
-      {"tag":"end","type":"date","input":"ent","size":"11","subframe":"1 2","special":"cal","hint":"date","template":"date"}
-    ]}
-  ]}
-  where {{"and":true,"items":[{"left":"user_ent","not":true,"oper":"isnull"}, {"left":"ent_inact","not":true,"oper":"true"}, {"left":"ent_type","oper":"=","entry":"p"}]}}
-  subviews {["base.addr_v", "base.comm_v"]}
-  export {"user"}
-  launch {{
-    "initial": 1,
-    "import": "json.import"
-  }}
-}
+mychips.users_v_me:
+  actions:
+  - {name: graph, render: html, single: 1, options: [{tag:format, input:pdm, values: [html,url]}]}
 
-tabdef mychips.users_v_me -json {
-  actions {[
-    {"name":"graph","render":"html","single":"1","options":[
-      {"tag":"format","input":"pdm","values":["html","url"]}
-    ]}
-  ]}
-}
-
-tabdef mychips.users_v_flat -display {id user_cid std_name bill_addr bill_city bill_state} -sort {std_name id}
+mychips.users_v_flat:
+  display: [id, user_cid, std_name, bill_addr, bill_city, bill_state]
+  sort: [std_name, id]

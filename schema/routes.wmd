@@ -1,27 +1,32 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+---
+mychips.tallies_v_paths:
+  fields:
+  - {col: bang,		size:	10	}
+  - {col: length,	size:	4	}
+  - {col: min,		size:	10	}
+  - {col: max,		size:	10	}
+  - {col: circuit,	size:	5	}
+  - {col: path,		size:	120	}
+  display: [bang, length, min, max, circuit, path]
 
-tabdef mychips.tallies_v_paths -fields {
-  {bang		-size	10	}
-  {length	-size	4	}
-  {min		-size	10	}
-  {max		-size	10	}
-  {circuit	-size	5	}
-  {path		-size	120	}
-} -display {bang length min max circuit path}
+mychips.tallies_v_liftss:
+  display {bang length min max fora forz path}
 
-tabdef mychips.tallies_v_liftss -display {bang length min max fora forz path}
+mychips.routes:
+  fields:
+  - {col: route_ent,	size:	7	}
+  - {col: dest_ent,	size:	7	}
+  - {col: dest_chid,	size:	16	}
+  - {col: dest_host,	size:	18	}
+  display: [route_ent, dest_ent, dest_chid, dest_host, status]
 
-tabdef mychips.routes -fields {
-  {route_ent	-size	7	}
-  {dest_ent	-size	7	}
-  {dest_chid	-size	16	}
-  {dest_host	-size	18	}
-} -display {route_ent dest_ent dest_chid dest_host status}
+mychips.routes_v:
+  fields:
+  - {col: route_addr,	size:	30}
+  - {col: dest_addr,	size:	30}
+  display: [route_ent, route_addr, dest_ent, dest_addr, status]
 
-tabdef mychips.routes_v -fields {
-  {route_addr	-size	30}
-  {dest_addr	-size	30}
-} -display {route_ent route_addr dest_ent dest_addr status}
-
-tabdef mychips.routes_v_lifts -display {route_ent route_addr dest_ent dest_addr status}
+mychips.routes_v_lifts:
+  display: [route_ent, route_addr, dest_ent, dest_addr, status]
