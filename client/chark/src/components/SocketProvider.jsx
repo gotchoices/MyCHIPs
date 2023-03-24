@@ -6,8 +6,7 @@ import Connect, { headers } from '../connect';
 import SocketContext from '../context/SocketContext';
 import useCurrentUser from '../hooks/useCurrentUser';
 import { query_user } from '../utils/user';
-
-const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
+import { random } from '../utils/common';
 
 const initialConnectionBackoff = 1000;
 const maxConnectionBackoff = 11000;
@@ -26,15 +25,15 @@ const SocketProvider = ({ children }) => {
     }
   }, []);
 
-
-  const connect = new Connect({
-    webcrypto: window.crypto,
-    listen: listen,
-    wm,
-  })
-
   const credConnect = (creds, cb = null) => {
+    const user = `mu_${creds.user}`;
     let address = `${creds.host}:${creds.port}`
+
+    const connect = new Connect({
+      webcrypto: window.crypto,
+      listen: [user],
+      wm,
+    })
 
     setStatus('Connecting Server...');
     connect.getUrl(creds).then(uri => {
@@ -62,6 +61,10 @@ const SocketProvider = ({ children }) => {
         setStatus('Server Connected');
         clearTimeout(connectTimeout.current);
         setWs(websocket);
+        wm.listen(`listen_${random()}`, user, data => {
+          console.log('notification data', data)
+        })
+
         wm.onOpen(address, m => {
           websocket.send(m)
         })
