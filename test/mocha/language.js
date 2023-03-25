@@ -73,7 +73,8 @@ log.debug("res:", res)
     
     let fields = ['fr_lang','fr_title','fr_help','language','title','help','sch','tab','type','col','tag']
       , where = `fr_lang = 'eng' and language = '${lang}' and (help isnull or title isnull)`
-      , sql = `select ${fields.join(',')} from wm.language where ${where}`
+      , order = 'order by sch, tab, type, col, tag'
+      , sql = `select ${fields.join(',')} from wm.language where ${where} ${order}`
 log.debug("Sql:", sql)
       db.query(sql, (e, res) => {if (e) done(e)
         rows = res?.rows
@@ -99,7 +100,7 @@ log.debug("file:", file)
     })
   }
 
-/* Disable for now
+/* Disable for now 
   it('Install languages', function(done) {
     Child.exec("wyseman lang", {
       cwd: SchemaDir,
