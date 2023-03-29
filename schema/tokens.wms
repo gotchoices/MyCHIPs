@@ -166,7 +166,7 @@ function {mychips.token_valid(tok text, cert jsonb = null)} {mychips.tokens_v} {
           tally_ent, tally_uuid, tally_type, version, comment, contract, hold_cert, hold_terms, part_cert, status
         ) select
           tally_ent, uuid_generate_v4(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
-        from mychips.tallies returning tally_ent, tally_seq into trec;
+        from mychips.tallies where tally_ent = orec.token_ent and tally_seq = orec.tally_seq returning tally_ent, tally_seq into trec;
         perform mychips.tally_notify_user(trec.tally_ent, trec.tally_seq);
       else			-- one-time token, use template AS our new tally, invalidate token
         update mychips.tokens set used = current_timestamp where token_ent = orec.token_ent and token_seq = orec.token_seq;
