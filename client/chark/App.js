@@ -41,6 +41,7 @@ import UserProvider from './src/components/UserProvider';
 import ProfileProvider from './src/components/ProfileProvider';
 import ProfileEdit from './src/screens/Profile/ProfileEdit';
 import TallyAccept from './src/screens/TallyAccept';
+import TallyRequest from './src/screens/TallyRequest';
 import SocketProvider from './src/components/SocketProvider';
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
@@ -53,6 +54,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
       <HomeStack.Screen name="TallyAccept" component={TallyAccept} options={{ title: 'Tally Accept' }} />
+      <HomeStack.Screen name="TallyRequest" component={TallyRequest} options={{ title: 'Tally Request' }} />
     </HomeStack.Navigator>
   );
 }
@@ -97,7 +99,7 @@ const linking = {
           Home: {
             path: 'connect',
           },
-          TallyAccept: {
+          TallyRequest: {
             path: 'tally',
           }
         }

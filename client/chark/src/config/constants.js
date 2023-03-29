@@ -19,6 +19,7 @@ export const colors = {
   antiflashwhite: '#f3f3f3',
   snow: '#fbf9f9',
   mustardBrown: '#ce8805',
+  orangeRed: '#ff4d4f',
 };
 
 export const qrType = {
