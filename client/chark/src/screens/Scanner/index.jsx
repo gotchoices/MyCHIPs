@@ -39,14 +39,14 @@ const Scanner = (props) => {
         const parsedCode = JSON.parse(qrCode);
 
         if(parsedCode?.type === qrType.tally) {
-          processTally(parsedCode);
+          requestTally(parsedCode);
         } else {
           processConnect(parsedCode);
         }
 
-        // Process Tally
-        function processTally(parsed) {
-          props.navigation.navigate('TallyAccept', {
+        // Request Tally
+        function requestTally(parsed) {
+          props.navigation.navigate('TallyRequest', {
             ticket: parsed?.ticket,
           });
         }
