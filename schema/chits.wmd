@@ -3,10 +3,10 @@
 ---
 mychips.chits:
   fields:
-  - [chit_ent	-size	6]
-  - [chit_seq	-size	4]
-  - [chit_idx	-size	4]
-  - [units	-size	10]
+  - {col: chit_ent,	size:	6}
+  - {col: chit_seq,	size:	4}
+  - {col: chit_idx,	size:	4}
+  - {col: units,	size:	10}
 
 mychips.chits_v:
   display: [chit_ent, chit_seq, chit_idx, chit_type, units, value]
