@@ -1,11 +1,28 @@
 TODO:
 
-- Language support
-X-  Adapt to new jsonb style type (size, subframe)
--  Commit changes
--  Implement scm type for wylib language selector
--  Test switching languages in web app
--  wyseman/lib/client_msg.js handles heavy lifting
+X- Wyseman Language support
+X- Adapt to new jsonb style type (size, subframe)
+X- Implement special button for dew entries
+X- Can trigger calendar from special button
+X-   Can trigger calculator
+X-   Implement scrolled menu widget using mlb
+X-     Can specify static data set
+X-     Can specify DB query to produce data set
+X-     Can reference stock type for either/both above
+X-    Make resonable field width for data (derived from data dictionary if possible)
+X-    Make column headers show
+X-    Should scm be inside a dialog?
+X-    Row execute (double click) sends row result back to input
+X-    Make scm store its state with the parent window
+X-    SCM remembers its field widths
+X-    Document more extensive todo's in scm and put on back-burner
+X-   Why doesn't calculator open first time?
+X-   Obsolete wylib/src/indate.vue
+X-   Commit changes
+X- Implement scm type for prefs language selector
+X-  Test switching languages in web app
+X-  wyseman/lib/client_msg.js handles heavy lifting of language switch
+X- Integrate new spanish language changes
 
 - Make CHIP value extrapolator report
 X-  Modify scheduler to use cron node module
@@ -428,14 +445,14 @@ Wyseman:
 - Make database owned by mychips? (give admin read/write/delete but not create/drop)
 - 
 
-Preferences:
+Wylib Preferences:
 - App widget responsible for saving/restoring preference settings
 - Other modules can supply their own prefs defaults until better DB metadata arrives
 - Request wm Language object from app instead of direct from wyseman?
 - Request pr object from app instead of from prefs?
 - Make pdm option for fetching options from database via query (idx,title,help)
-- Make standard shortcut for language (there will be others too)
-- Can now select languages from prefs menu and app updates reactively
+X- Make standard shortcut for language (there will be others too)
+X- Can select languages from prefs menu and app updates reactively
 - Make standard shortcut for exists, given DB table, column
 - 
 

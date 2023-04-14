@@ -42,7 +42,7 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   }}
   {part_ent	{Partner Entity}	{The entity id number of the other party to this tally}}
   {net_c	{Signed Good Units}	{Total milliCHIP value of committed chits}}
-  {net_pc	{Signed Pending}	{Total milliSHIP value of committed and pending chits}}
+  {net_pc	{Signed Pending}	{Total milliCHIP value of committed and pending chits}}
   {hold_cid	{Holder CHIP ID}	{Cached value of holder's CHIP identity from the holder certificate}}
   {part_cid	{Partner CHIP ID}	{Cached value of partner's CHIP identify from the holder certificate}}
   {hold_agent	{Holder Agent}		{Cached value of holder's agent from the holder certificate}}

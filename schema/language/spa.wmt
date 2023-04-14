@@ -1,0 +1,57 @@
+tabtext mychips.users -lang spa {Usuarios de CHIP} {Entidades que tienen cuentas CHIP en este servidor} {
+  {user_ent {Entidad de usuario} {Un enlace a la tabla base de entidades.}}
+  {user_host {Dirección del host del usuario} {El nombre de host o número de IP donde se conecta la aplicación móvil de los usuarios}}
+  {user_port {Puerto de usuario} {El puerto al que se conectará el dispositivo móvil del usuario}}
+  {user_stat {Estado comercial} {El estado actual de la cuenta del usuario para el comercio de CHIP} {
+    {act {Activo} {Bueno para realizar intercambios}}
+    {lck {Aislamiento} {Cuenta en bloqueo de emergencia. No realice transacciones que resulten en una pérdida neta de crédito.}}
+    {off {Desconectado} {Cuenta completamente fuera de línea. No hay intercambios posibles.}}
+  }}
+  {user_hid {ID hash} {Una versión oscurecida de la identificación por la cual se puede dar como un destino más anónimo para una transacción}}
+  {peer_cid {ID DE CHIP} {Una cadena de ID o nombre, único para este usuario en el sistema de su propio proveedor de servicios CHIP. Similar a la parte del nombre de una dirección de correo electrónico: <CHIP_ID>@<Provider_host_or_IP>}}
+  {peer_agent {Agente de pares} {La dirección del agente donde se maneja el tráfico para este usuario}}
+  {peer_psig {Clave pública de pares} {La clave pública del par, conocida por otros socios comerciales y utilizada para firmar transacciones.}}
+  {peer_named {Nombre de nacimiento} {El nombre del par al nacer, utilizado en el registro de identidad del certificado}}
+  {user_cmt {Comentarios de Usuarios} {Comentarios administrativos sobre este usuario}}
+  {_last_tally {última cuenta} {El nombre de la entidad a la que pertenece este archivo}}
+  {crt_date {Creado } {La fecha en que se creó este registro}}
+  {mod_date {Modificado   } {La fecha de la última modificación de este registro}}
+  {crt_by {Creado por} {El usuario que ingresó este registro.}}
+  {mod_by {Modificado Por} {El usuario que modificó por última vez este registro}}
+} -messages {
+  {BRM {Actualización del Acta de Nacimiento} {El registro de nacimiento solo puede ser escrito una vez por el usuario}}
+  {UST {Estado comercial no válido} {Se especificó un valor no permitido para el estado comercial del usuario}}
+}
+
+tabtext mychips.users_v -lang spa {Usuarios de CHIP} {Entidades que tienen cuentas CHIP en este servidor.} {
+  {peer_host {Anfitrión del mismo nivel} {Nombre de host donde otros servidores del mismo nivel pueden realizar transacciones con este usuario}}
+  {peer_port {Puerto de pares} {Puerto donde otros servidores del mismo nivel pueden realizar transacciones con este usuario}}
+  {json {JSON} {Registro de usuario en formato JSON}}
+} -messages {
+  {GTK {Generando Ticket} {Se produjo un error en la base de datos al generar un ticket de conexión de usuario}}
+  {TIL {Bueno hasta} {El boleto caduca después de este tiempo}}
+  {TIN {Boleto de conexión} {Enlace para acceder a su proveedor de servicios}}
+  {TMK {Número de clave incorrecto} {El ticket de conexión debe solicitarse para exactamente un usuario}}
+  {URF {Formato desconocido} {Formato desconocido para un boleto de conexión}}
+  {launch.instruct {Instrucciones Basicas} {
+    <p>Los usuarios son personas o empresas alojadas en este sistema.
+    <p>Se puede crear un registro de cuenta de usuario desde cero o anexarse ​​a una entidad existente
+       registro (y/o registro de pares).
+       Entonces, si está agregando un nuevo usuario, busque primero para ver si ya es un compañero existente
+       u otra entidad, y luego proporcione la información adicional para completar los campos de usuario.
+  }}
+  {launch.title {Usuario   } {Gestión de cuentas de usuario}}
+  {lock {Bloquear cuenta} {Ponga la(s) cuenta(s) especificada(s) en modo de bloqueo, para que no se produzcan más transacciones}}
+  {summary {Informe resumido} {Informe sobre el estado actual del usuario seleccionado}}
+  {ticket {Ticket de usuario} {Genere un pase temporal de una sola vez para permitir que un usuario establezca una conexión segura con el servidor}}
+  {ticket.format {Formato} {Determina qué tipo de ticket de conexión se genera}}
+  {ticket.format.json {json} {Devolver ticket de conexión como objeto JSON}}
+  {ticket.format.link {enlace} {Boleto de conexión de retorno como enlace profundo Localizador Uniforme de Recursos}}
+  {ticket.format.qr {qr} {Billete de conexión de ida y vuelta como código QR}}
+  {ticket.format.url {url} {Boleto de conexión de ida y vuelta como localizador uniforme de recursos de SPA}}
+  {trade {Informe comercial} {Informe que muestra operaciones en un intervalo de fechas determinado}}
+  {trade.end {Fecha final} {Incluir transacciones en y antes de esta fecha}}
+  {trade.start {Fecha de Comienzo} {Incluir operaciones a partir de esta fecha}}
+  {unlock {Desbloquear cuenta} {Ponga la(s) cuenta(s) especificada(s) en modo funcional, para que pueda ocurrir el comercio normal}}
+}
+
