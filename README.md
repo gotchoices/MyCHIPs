@@ -52,19 +52,22 @@ The _holy grail_ of MyCHIPs has been a network implementation of the lift protoc
 in [this article](http://gotchoices.org/mychips/coupon.html) and explained in some more technical detail 
 in [this article](http://gotchoices.org/mychips/acdc.html).
 
-As of March, 2020, the software is successfully discovering, computing and performing fully distributed lifts in a simulated network.
-I consider this as a "preliminary proof of concept" and so am ready to release this code subject to the attched [LICENSE](LICENSE).
-It will need a lot more work to become production ready, but maybe this provides enough of a testing platform that others will be more willing to help make that happen.
+As of March, 2020, the software can successfully discover, compute and perform fully distributed lifts in a simulated network.
+This milestone was considered a "preliminary proof of concept" and triggered the release of this code subject to the attched [LICENSE](LICENSE).
+The work continues to make the codebase production ready.
 
-To kick off the public release of the source code, I commissioned a study by [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
+At the time of the public release of the source code, a study was commissioned to [DSR Corporation](https://en.dsr-corporation.com/) to analyze the lift alorithm as proposed in the documentation and partially implemented in the software.
 As expected, they uncovered several issues that need improvement before the system can be expected to perform in a fault-tolerant way.
 Their work and results are summarized [here](test/analysis/dsr/phase-1/results.md).
 
-In response to that study, I created an [outline](doc/old-safety.md) of how the algorithm might best be improved to resolve the issues uncovered by the DSR study.
-Now there is work being done at [BYU](https://www.byu.edu) to both validate the original DSR results, and evaluate proposed solutions.
-Early results would indicate that the [improved protocol](doc/learn-protocol.md) is now reasonably safe and live.
+In response to that study, this [outline](doc/old-safety.md) was drafted to determine how the algorithm could be improved to resolve the issues uncovered by the DSR study.
+That lead to the development of the [version 1.x protocol](doc/learn-protocol.md).
+There is currently work being done at [BYU](https://www.byu.edu) to both validate the original DSR results, and evaluate the new protocol.
+Present results indicate that the protocol is now reasonably safe and live.
 
-This represents the current state of the project.
+Development was begun in 2022 on a mobile app written in React Native.
+This facilitated the use of the existing JavaScript API and is progressing.
+The app can currently be loaded onto mobile devices from [mychips.net](https://mychips.net),an example CHIP Service Provider site.
 
 ### Milestones Completed so Far
 
@@ -104,6 +107,11 @@ This represents the current state of the project.
   - Consensus algorithm between stock and foil
 - Test original algorithm (DSR Study)
 - Improved algorithm
+- Mobile App
+  - Unified JavaScript API works for all existing UI's
+  - App connecting
+  - Basic screen layouts
+  - Tally initiation sequence
 
 Want to help out?  Clone this repo and follow the [instructions](doc/sim-docker.md)
 to get a simulated network running and visualize credit lifts in the administrator console.
@@ -119,7 +127,7 @@ There is a current project roadmap in the [TODO file](TODO).
 - Peer-to-peer networking
 - JavaScript/Node coding
 - SQL, PLPGSQL coding
-- Mobile app development
+- Mobile app development; React Native
 - Accounting
 - Economics
 - Contract law
