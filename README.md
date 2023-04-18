@@ -133,9 +133,11 @@ There is a current project roadmap in the [TODO file](TODO).
 - Contract law
 
 ### Other Interesting Projects/Resources:
+- [Sikoba](https://sikoba.com)
 - [Offset Credit](http://offsetcredit.org)
 - [Trustlines](http://trustlines.network)
 - [Open Credit Network](https://opencredit.network/)
 - [Credit Commons](http://www.creditcommons.net)
 - [The End of Money](https://www.amazon.com/End-Money-Future-Civilization/dp/1603580786)
 - [Life After Google](https://www.amazon.com/Life-After-Google-Blockchain-Economy/dp/1621575764)
+- [Money in the Modern Economy](https://www.bankofengland.co.uk/-/media/boe/files/quarterly-bulletin/2014/quarterly-bulletin-2014-q1.pdf)
