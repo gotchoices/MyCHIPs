@@ -1,34 +1,19 @@
 TODO:
 
-X- Wyseman Language support
-X- Adapt to new jsonb style type (size, subframe)
-X- Implement special button for dew entries
-X- Can trigger calendar from special button
-X-   Can trigger calculator
-X-   Implement scrolled menu widget using mlb
-X-     Can specify static data set
-X-     Can specify DB query to produce data set
-X-     Can reference stock type for either/both above
-X-    Make resonable field width for data (derived from data dictionary if possible)
-X-    Make column headers show
-X-    Should scm be inside a dialog?
-X-    Row execute (double click) sends row result back to input
-X-    Make scm store its state with the parent window
-X-    SCM remembers its field widths
-X-    Document more extensive todo's in scm and put on back-burner
-X-   Why doesn't calculator open first time?
-X-   Obsolete wylib/src/indate.vue
-X-   Commit changes
-X- Implement scm type for prefs language selector
-X-  Test switching languages in web app
-X-  wyseman/lib/client_msg.js handles heavy lifting of language switch
-X- Integrate new spanish language changes
-
 - Make CHIP value extrapolator report
 X-  Modify scheduler to use cron node module
--  Enable scheduler to fetch dollar inflation data
--  Fetch CHIP estimation data from mychips.org (in init script?)
--  Exchange report uses latest data available
+-  Mychips.org cron updates each month:
+X-   cpi-latest.json
+X-   chip-dollar.csv (so graph works)
+X-   don't record series in a field of <Series>.tsv
+X-   Make it be <Series>.csv?
+X-   Write file chip-latest.json
+X-   obsolete fetchCPI script
+-  Scheduler fetches/caches chip-latest.json
+-  Scheduler stores latest in DB
+-  Should scheduler ever fetch all chip exchange data?
+-  Exchange report returns latest chip exchange rate and date
+-  Mention bls.gov on mychips.org, mychips.net
 -  Mention exchange data provider on mychips.org, mychips.net
 -  
 - Can we serve user photos from the document server?
@@ -47,7 +32,7 @@ X-  Add user photo (document) database table
 
 - Visual Balance Sheet report enhancements (not urgent)
 X- Can view report in WebView in Chark
--  Grab hyperlinks, launch tally view
+X-  Grab hyperlinks, launch tally view
 -  Swipe to refresh
 -  Implement non-chip holding ring
 -  + button to add holding
@@ -55,7 +40,7 @@ X- Can view report in WebView in Chark
 -  Clicking on holding allows editing value
 -  Zoom value stored in local storage
 
-- Consolidate local dirs:
+- Consolidate local dirs?
 -  Move pki/local under local/pki?
 -  Move sim/local under local/sim?
 -  Move test/local under local/test?
@@ -115,8 +100,8 @@ X-   Can connect by following deep link
 -   All language data coming from backend
 -   Populate more languages (Spanish & Nepali)
 -  Tally Initiation:
--   User can create draft tally
--   User can create multiple draft tallies
+X-   User can create draft tally
+X-   User can create multiple draft tallies
 -   Draft tallies may contain different details, including user certificate
 -   If tally is generated not from a draft, it uses default certificate data
 -   User can generate tally invitations from draft or default

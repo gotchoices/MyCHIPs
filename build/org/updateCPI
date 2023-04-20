@@ -1,0 +1,198 @@
+#!/bin/node --no-warnings
+// Make sure we have the latest CPI data available.  General procedure:
+// 1. Check if we have a data file called <Series>.tsv.
+// 2. If not, download it by filtering out the series from the bls raw data file.
+// 3. Check for the file cpi-latest.json.  If not present, jump to 5.
+// 4. Compare today to the date in cpi-latest.json.  If today < latest + 45 days, jump to 8.
+// 5. Download latest series data from bls.
+// 6. Add any samples from lateset into <Series>.tsv it may be missing.
+// 7. Save latest sample and timestamp to cpi-latest.json.
+// 8. If <Series>.tsv later than chip-dollar.csv, regenerate chip-dollar.csv
+
+const Fs = require('fs')
+const Path = require('path')
+const Series = "CUUR0000SA0"
+const AllURL = "https://download.bls.gov/pub/time.series/cu/cu.data.1.AllItems"
+const UpdateURL = "https://api.bls.gov/publicAPI/v1/timeseries/data/" + Series
+const LatestName = "cpi-latest.json"
+const SecsInDay = 86400
+const StaleTime = 75 * SecsInDay		//refetch after so many days
+const CHIPName = "chip-dollar.csv"
+const CHIPLateName = "chip-latest.json"
+const MarkYear = '2020'
+const MarkPeriod = 'M01'
+const MarkDollar = 2.53
+
+var seriesFile = Path.join(__dirname, Series + '.csv')
+var latestFile = Path.join(__dirname, LatestName)
+var chipFile = Path.join(__dirname, CHIPName)
+var chipLateFile = Path.join(__dirname, CHIPLateName)
+var haveEm = {}
+
+function checkAll(cb) {		// Make sure we have the CPI history file from 1913
+  Fs.access(seriesFile, Fs.constants.F_OK, err => {	//console.log('All:')
+    if (!err) {
+      cb()
+    } else {
+      fetch(AllURL)
+      .then(res => res.text())
+      .then(tsvText => {
+        let rows = tsvText.split('\n')
+          , keep = rows.filter(row => {
+            let fields = row.split('\t')
+            return fields[0].startsWith(Series) && fields[2] != 'M13'
+          }).map(row => row.split('\t').map(field => field.trim()))
+            .map(row => row.slice(1,4).join(','))
+        Fs.writeFile(seriesFile, keep.join('\n')+'\n', err => {
+          if (err) throw err
+          cb()
+        })
+      }).catch(err => {throw err})
+    }
+  })
+}
+
+function checkLatest(ifYes, ifNo) {	// Do we need to grab the latest update
+  Fs.readFile(latestFile, 'utf8', (err, data) => {
+    if (err) {
+      if (err.code === 'ENOENT') {	//console.log('not found:', latestFile)
+        ifYes()				//File not found, so call getter
+      } else {
+        throw error
+      }
+    } else {
+      let lastDate
+      try {
+        let cont = JSON.parse(data)
+        lastDate = new Date(cont.date)
+      } catch {
+        throw 'Invalid JSON data'
+      }
+      let lastSeconds = Math.floor(lastDate.getTime() / 1000)
+        , staleSeconds = lastSeconds + StaleTime
+        , staleDate = new Date(staleSeconds * 1000)
+        , now = new Date()		//;console.log('now:', now, 'stale:', staleDate)
+      if (now > staleDate) {
+        ifYes()				//File is stale, so call getter
+      } else {
+        ifNo()				//File not yet stale
+      }
+    }
+  })
+}
+
+function periodToDate(year, period) {	//For a reporting period, return the first day of the next month
+  let month = parseInt(period?.slice(1))
+    , rMonth = month < 12 ? parseInt(month) + 1 : 1
+    , rYear = month < 12 ? year : parseInt(year) + 1
+  return rYear + '-' + rMonth.toString().padStart(2,'0') + '-01'
+}
+
+function updateSeries(done) {
+
+  Fs.readFile(seriesFile, 'utf8', (err, data) => {	//Read in the data we already have
+    if (err) {throw err}
+    data.toString().split('\n').forEach(line => {
+      let [ year, period, value ] = line.split(',')	//;console.log('line:', line)
+        , index = [year, period].join('-')
+      if (year != 'year' && value)
+        haveEm[index] = value
+    })
+
+    const process = function(series, data) {	//console.log('S:', series, data)
+      if (series != Series) throw 'Unexpected series: ' + series
+      let addEm = []
+      data.forEach(d => {
+        let index = d.year + '-' + d.period
+        if (!(index in haveEm) && d.period != 'M13')	//Drop year average samples
+          addEm.push(d)
+        if (d.latest) {					//console.log('L:', d)
+          let date = periodToDate(d.year, d.period)
+            , data = {date, year:d.year, period:d.period, value: d.value}
+          Fs.writeFile(latestFile, JSON.stringify(data), () => {})
+        }
+      })
+      let toAdd = addEm.sort((a,b) => {
+        return (a.year > b.year ? 1 : 
+                a.year < b.year ? -1 :
+                a.period > b.period ? 1 :
+                a.period < b.period ? -1 :
+                0
+                )
+      }).map(el => {
+        return [el.year, el.period, el.value].join(',')
+      })
+      let latest = toAdd.slice()			//;console.log('add:', toAdd, latest)
+
+      if (toAdd.length > 0)
+        Fs.appendFile(seriesFile, toAdd.join('\n') + '\n', done)
+      else
+        done()
+    }
+
+    // Grab the latest data from bls.gov
+    fetch(UpdateURL).then(res => {			//console.log('Fetch status:', res.status)
+      if (res.status != 200) throw "Data fetch failed"
+      return res.json()
+    }).then(res => {
+      if (res.status != 'REQUEST_SUCCEEDED') throw "JSON fetch failed"
+      res.Results.series?.forEach(s => {		//console.log('p:', s)
+        process(s.seriesID, s.data)
+      })
+    }).catch(err => {throw err})
+  })
+}
+
+function make(targFile, depFile, make) {		//console.log('make:', targFile, depFile)
+  Fs.stat(depFile, (err, depStats) => {
+    if (err) throw err;
+    Fs.stat(targFile, (err, targStats) => {
+      if (err?.code == 'ENOENT') {
+        make()
+      } else if (err) {
+        throw err;
+      } else if (depStats.mtime.getTime() > targStats.mtime.getTime()) {
+        make()
+      }
+    });
+  });
+}
+
+function buildCHIP() {				//console.log('BuildCHIP')
+  let markValue, lastRec
+  Fs.readFile(seriesFile, 'utf8', (err, data) => {
+    if (err) throw err
+    let rows = []
+      , outLines = ['date,value']
+    data.toString().split('\n').forEach(line => {
+      let [ year, period, value ] = line.split(',')	//;console.log('line:', line)
+        , date = periodToDate(year, period)
+      if (year && period && value)
+        rows.push({date, value})
+      if (year == MarkYear && period == MarkPeriod)
+        markValue = value
+    })
+    rows.forEach(row => {
+      let factor = row.value * MarkDollar / markValue
+      lastRec = [row.date, factor.toFixed(4)]
+      outLines.push(lastRec.join(','))
+    })
+    Fs.writeFile(chipFile, outLines.join('\n')+'\n', err => {
+      if (err) throw err
+    })
+    let [date, value] = lastRec
+    Fs.writeFile(chipLateFile, JSON.stringify({date, base:'USD', value}), err => {
+      if (err) throw err
+    })
+  })
+}
+
+checkAll(() => {
+  checkLatest(() => {				//console.log('get it!:')
+    updateSeries(() => {			//console.log('done')
+      make(chipFile, seriesFile, buildCHIP)
+    })
+  }, () => {					//console.log('have it already!:')
+    make(chipFile, seriesFile, buildCHIP)
+  })
+})
