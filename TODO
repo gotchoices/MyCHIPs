@@ -1,19 +1,11 @@
 TODO:
 
 - Make CHIP value extrapolator report
-X-  Modify scheduler to use cron node module
--  Mychips.org cron updates each month:
-X-   cpi-latest.json
-X-   chip-dollar.csv (so graph works)
-X-   don't record series in a field of <Series>.tsv
-X-   Make it be <Series>.csv?
-X-   Write file chip-latest.json
-X-   obsolete fetchCPI script
+X-  Mention bls.gov on mychips.org
 -  Scheduler fetches/caches chip-latest.json
--  Scheduler stores latest in DB
+-  Scheduler stores latest CHIP-USD rate in DB exchange table
 -  Should scheduler ever fetch all chip exchange data?
 -  Exchange report returns latest chip exchange rate and date
--  Mention bls.gov on mychips.org, mychips.net
 -  Mention exchange data provider on mychips.org, mychips.net
 -  
 - Can we serve user photos from the document server?
