@@ -25,9 +25,10 @@ const ServIcon = () => {
     <>
       <View>
         <TouchableWithoutFeedback
+          testID="serverIcon"
           onPress={() => setIsModalVisible(true)}
         >
-          <Text style={{ paddingLeft: 14, paddingVertical: 5 }}>
+          <Text style={{ paddingLeft: 14, paddingVertical: 5 }} testID="appStatus">
             {status}
           </Text>
         </TouchableWithoutFeedback>
