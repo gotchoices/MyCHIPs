@@ -1,0 +1,30 @@
+#!/bin/bash
+test_avd='Pixel_4_API_27_Test_Detox';
+
+found_avd="$(emulator -list-avds | grep 'Test_Detox')"
+
+if [[ $test_avd == $found_avd ]]; then
+  echo "Test emulator already exists. Skipping installation."
+else
+  echo "Test emulator not found."
+  echo -e "Installing system image...\n"
+  $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-27;default;x86_64" -y
+  $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses -y
+
+  echo -e "Creating emulator...\n"
+  $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager -v create avd -n Pixel_4_API_27_Test_Detox -d pixel_4 --package "system-images;android-27;default;x86_64"
+fi
+
+FILE=android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+if [ -f "$FILE" ]; then
+  echo "Build found. Skipping build creation."
+else
+  echo -e "Creating test build...\n"
+  detox build --configuration android.emu.debug
+fi
+
+cd .. && ./runemu "$test_avd"
+cd chark && detox test --configuration android.emu.debug
+
+echo -e "\Stopping the test emulator..."
+adb emu kill "$test_avd"
