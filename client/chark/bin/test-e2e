@@ -8,8 +8,8 @@ if [[ $test_avd == $found_avd ]]; then
 else
   echo "Test emulator not found."
   echo -e "Installing system image...\n"
-  $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-27;default;x86_64" -y
-  $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses -y
+  $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-27;default;x86_64"
+  $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
   echo -e "Creating emulator...\n"
   $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager -v create avd -n Pixel_4_API_27_Test_Detox -d pixel_4 --package "system-images;android-27;default;x86_64"
