@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 //Constantly observe (tail) a log file of one of the mocha tests.
 //Easy enough on Linux to also just do: tail -f /tmp/wyatt/test-testname.
-//But can be harder to find the log files on MacOS or Windows.
+//But can be harder to find the log file folder on MacOS or Windows.
 //Usage:
 //   watch tally
 //   watch sch-chit

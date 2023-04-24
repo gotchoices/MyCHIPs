@@ -28,7 +28,7 @@ describe("JSON contact import/export", function() {
 
   it("Build development objects", function(done) {
     this.timeout(5000)
-    develop(DBName, done)
+    develop(db, done)
   })
   
   it("Import known user record", function(done) {

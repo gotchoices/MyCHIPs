@@ -21,7 +21,7 @@ describe("Establish test user on separate DB", function() {
 
   it('Build development DB objects', function(done) {
     this.timeout(5000)
-    develop(DB2Name, done)
+    develop(db, done)
   })
 
   it("Create dummy users users for padding user IDs", function(done) {

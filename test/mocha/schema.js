@@ -19,7 +19,7 @@ describe("General schema checks", function() {
 
   it('Build development schema objects ("make run" in schema dir to undo)', function(done) {
     this.timeout(5000)
-    develop(DBName, done)
+    develop(db, done)
   })
 
   it('find columns with ambiguous inheritance', function(done) {

@@ -13,6 +13,7 @@ const assert = require('assert');
 const Bus = require('../bus')
 const DBName = "mychipsTestDB"
 const dockName = 'mychipsTestPG'
+const devSqlFile = require.resolve('wyseman/lib/develop.sql')
 const { DBHost, DBPort, DBAdmin, Log } = require('../settings.js')
 const { dbClient } = require("wyseman")
 const Schema = Path.join(__dirname, '../..', 'lib', 'schema.json')
@@ -51,7 +52,7 @@ log.debug("Found Postgres at:", DBHost, DBPort)
         , env = Object.assign({MYCHIPS_DBHOST: dockName}, process.env)
 log.debug("Launching docker with compose:", cmd)
       Child.exec(cmd + ' up -d', {env}, (e,out,err) => {	//Try to launch one in docker
-//log.debug("Compose result:", e)
+log.debug("Compose result:", e)
         if (e && e.code == 127) throw "Can't find running postgres or docker-compose environment"
         if (!e) dockerPgDown = cmd + ' down'
         done()
@@ -113,13 +114,26 @@ log.debug("Taking down docker PG")
     })
   },
 
-  develop: function(dbName, done) {
-    Child.exec("make dev", {
-      cwd: SchemaDir,
-      env: Object.assign({}, process.env, {MYCHIPS_DBNAME: dbName})
-    }, (e,out,err) => {
-      if (e) done(e); done()
+  develop: function(db, done) {
+    Fs.readFile(devSqlFile, (err, fileData) => {if (err) done(err)
+      let sql = fileData.toString()
+log.debug('sql:', sql)
+      db.query(sql, null ,(err, res) => {
+        if (err) done(err)
+log.debug('DD:', err, res.rows)
+//        assert.equal(res.rowCount, 1)
+//        let row = res.rows[0]
+//        assert.ok(row.record)
+//        if (row.record) check(res,row.record.slice(1,-1).split(','))
+        done()
+      })
     })
+//    Child.exec("make dev", {		//Old way using make/wyseman, dbName
+//      cwd: SchemaDir,
+//      env: Object.assign({}, process.env, {MYCHIPS_DBNAME: dbName})
+//    }, (e,out,err) => {
+//      if (e) done(e); done()
+//    })
   },
 
   queryJson: function(fileBase, db, sql, done, rows = 1, write = false) {

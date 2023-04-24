@@ -2163,16 +2163,31 @@ create function base.parm_v_tf_ins() returns trigger language plpgsql as $$
 $$;
 create function base.parm_v_tf_upd() returns trigger language plpgsql as $$
     begin
-        case when old.type = 'int' then
-            update base.parm set parm = new.parm, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp, v_int = new.value::int where module = old.module and parm = old.parm;
-        when old.type = 'date' then
-            update base.parm set parm = new.parm, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp, v_date = new.value::date where module = old.module and parm = old.parm;
-        when old.type = 'text' then
-            update base.parm set parm = new.parm, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp, v_text = new.value::text where module = old.module and parm = old.parm;
-        when old.type = 'float' then
-            update base.parm set parm = new.parm, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp, v_float = new.value::float where module = old.module and parm = old.parm;
-        when old.type = 'boolean' then
-            update base.parm set parm = new.parm, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp, v_boolean = new.value::boolean where module = old.module and parm = old.parm;
+        case when new.type = 'int' then
+            update base.parm set parm = new.parm, type = new.type, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp,
+              v_int = new.value::int,
+              v_date = null, v_text = null, v_float = null, v_boolean = null
+              where module = old.module and parm = old.parm;
+        when new.type = 'date' then
+            update base.parm set parm = new.parm, type = new.type, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp,
+              v_date = new.value::date,
+              v_int = null, v_text = null, v_float = null, v_boolean = null
+              where module = old.module and parm = old.parm;
+        when new.type = 'text' then
+            update base.parm set parm = new.parm, type = new.type, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp,
+              v_text = new.value::text,
+              v_int = null, v_date = null, v_float = null, v_boolean = null
+              where module = old.module and parm = old.parm;
+        when new.type = 'float' then
+            update base.parm set parm = new.parm, type = new.type, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp,
+              v_float = new.value::float,
+              v_int = null, v_date = null, v_text = null, v_boolean = null
+              where module = old.module and parm = old.parm;
+        when new.type = 'boolean' then
+            update base.parm set parm = new.parm, type = new.type, cmt = new.cmt, mod_by = session_user, mod_date = current_timestamp,
+              v_boolean = new.value::boolean,
+              v_int = null, v_date = null, v_text = null, v_float = null
+              where module = old.module and parm = old.parm;
         end case;
         return new;
     end;
@@ -5401,6 +5416,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('mychips','users_v_tallies','eng','Users and Tallies','View of tallies belonging to users'),
   ('mychips','users_v_tallies_me','eng','Users and Tallies','Permissioned view showing the current user''s tallies'),
   ('mychips','users_v_tallysum','eng','Summary User Tallies','Deprecated view of tallies belonging to users'),
+  ('wm','column_ambig','eng','Ambiguous Columns','A view showing view and their columns for which no definitive native table and column can be found automatically'),
   ('wm','column_data','eng','Column Data','Contains information from the system catalogs about columns of tables in the system'),
   ('wm','column_def','eng','Column Default','A view used internally for initializing columns to their default value'),
   ('wm','column_istyle','eng','Column Styles','A view of the default display styles for table and view columns'),
@@ -5415,6 +5431,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('wm','fkeys_data','eng','Keys Data','Includes data from the system catalogs about how key fields in a table point to key fields in a foreign table.  Each key group is described on a separate row.'),
   ('wm','fkeys_pub','eng','Keys','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key group.'),
   ('wm','lang','eng','Language Text','Language messages pertaining to Wyseman service routines'),
+  ('wm','language','eng','Translation Data','Language data organized for creation of translation tables'),
   ('wm','message_text','eng','Message Text','Contains messages in a particular language to describe an error, or a widget feature or button'),
   ('wm','objects','eng','Objects','Keeps data on database tables, views, functions, etc. telling how to build or drop each object and how it relates to other objects in the database.'),
   ('wm','objects_v','eng','Rel Objects','An enhanced view of the object table, expanded by showing the full object specifier, and each separate release this version of the object belongs to'),
@@ -5883,7 +5900,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','mod_by','eng','Modified By','The user who last modified this record'),
   ('mychips','tallies','mod_date','eng','Modified','The date this record was last modified'),
   ('mychips','tallies','net_c','eng','Signed Good Units','Total milliCHIP value of committed chits'),
-  ('mychips','tallies','net_pc','eng','Signed Pending','Total milliSHIP value of committed and pending chits'),
+  ('mychips','tallies','net_pc','eng','Signed Pending','Total milliCHIP value of committed and pending chits'),
   ('mychips','tallies','part_agent','eng','Partner Agent','Cached value of partner''s agent from the holder certificate'),
   ('mychips','tallies','part_cert','eng','Partner Certificate','The JSON structure of identifying data for the other party to this tally'),
   ('mychips','tallies','part_cid','eng','Partner CHIP ID','Cached value of partner''s CHIP identify from the holder certificate'),
@@ -6042,6 +6059,12 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','users_v_tallies','liab','eng','Liability Sum','CHIP Total of all tallies with negative value'),
   ('mychips','users_v_tallies','liabs','eng','Liability Count','Number of tallies with negative value'),
   ('mychips','users_v_tallies','tallies','eng','Tallies','Array of tallies for this user'),
+  ('wm','column_ambig','col','eng','Column','The name of the column within the view'),
+  ('wm','column_ambig','count','eng','Count','The number of possible native tables for this column'),
+  ('wm','column_ambig','natives','eng','Natives','A list of the possible native tables for this column'),
+  ('wm','column_ambig','sch','eng','Schema','The name of the schema this view is in'),
+  ('wm','column_ambig','spec','eng','Specified','True if the definitive native table has been specified explicitly in the schema definition files'),
+  ('wm','column_ambig','tab','eng','Table','The name of the view'),
   ('wm','column_data','cdt_col','eng','Column Name','The name of the column whose data is being described'),
   ('wm','column_data','cdt_sch','eng','Schema Name','The schema of the table this column belongs to'),
   ('wm','column_data','cdt_tab','eng','Table Name','The name of the table this column is in'),
@@ -6147,6 +6170,19 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('wm','fkeys_pub','tt_sch','eng','Schema','The schema of the table that has the referencing key fields'),
   ('wm','fkeys_pub','tt_tab','eng','Table','The name of the table that has the referencing key fields'),
   ('wm','lang','always','eng','Always','Always true'),
+  ('wm','language','col','eng','Column','Column name if applicable'),
+  ('wm','language','fr_help','eng','From Help','Help message in comparison language'),
+  ('wm','language','fr_lang','eng','From Language','Language being translated from'),
+  ('wm','language','fr_title','eng','From Title','Title in comparison language'),
+  ('wm','language','help','eng','Help','Help message in target language'),
+  ('wm','language','language','eng','Language','Target language to translate to'),
+  ('wm','language','obj','eng','Object','Full name (schema.view) of the table/view'),
+  ('wm','language','sch','eng','Schema','Database schema for the subject table/view'),
+  ('wm','language','sorter','eng','Sorter','A sort field to organize language tags in association with their view and/or column'),
+  ('wm','language','tab','eng','Table','Subject table or view'),
+  ('wm','language','tag','eng','Tag','Code for a value or message type'),
+  ('wm','language','title','eng','Title','Title in target language'),
+  ('wm','language','type','eng','Type','Type of language tag (table, column, value, message)'),
   ('wm','message_text','code','eng','Code','A unique code referenced in the source code to evoke this message in the language of choice'),
   ('wm','message_text','help','eng','Description','A longer, more descriptive version of the message'),
   ('wm','message_text','language','eng','Language','The language this message is in'),
@@ -9395,6 +9431,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','f'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','f'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','f'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -9545,6 +9587,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
+  ('wm','language','col','wm','language','col','f','f'),
+  ('wm','language','fr_help','wm','language','fr_help','f','f'),
+  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
+  ('wm','language','fr_title','wm','language','fr_title','f','f'),
+  ('wm','language','help','wm','value_text','help','f','f'),
+  ('wm','language','language','wm','value_text','language','f','t'),
+  ('wm','language','obj','wm','language','obj','f','f'),
+  ('wm','language','sch','wm','language','sch','f','f'),
+  ('wm','language','sorter','wm','language','sorter','f','f'),
+  ('wm','language','tab','wm','language','tab','f','f'),
+  ('wm','language','tag','wm','language','tag','f','f'),
+  ('wm','language','title','wm','value_text','title','f','f'),
+  ('wm','language','type','wm','language','type','f','f'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
