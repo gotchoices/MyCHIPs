@@ -36,7 +36,7 @@
     "adminticket": "bin/adminticket -o test/local/admin.json",
     "docker": "docker-compose -f build/compose-prod.yml --env-file build/config-prod.env up",
     "docker-dev": "docker-compose -f build/compose-dev.yml --env-file build/config-dev.env up",
-    "docker-stop": "docker-compose -f build/compose-dev.yml down",
+    "docker-stop": "docker-compose -f build/compose-dev.yml --env-file build/config-dev.env down",
     "model": "test/sim/model -m 2",
     "builddb": "cd schema; make objects",
     "preversion": "npm-run-all --parallel contract-hashes build-schema build tsc && git add -A",
