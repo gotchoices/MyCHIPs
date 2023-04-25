@@ -8,6 +8,10 @@ X-  Mention bls.gov on mychips.org
 -  Exchange report returns latest chip exchange rate and date
 -  Mention exchange data provider on mychips.org, mychips.net
 -  
+- Language Support
+X-  Integrate Bijay's Nepali language tags
+-  Integrate Vinay's new language tag needs
+-  
 - Can we serve user photos from the document server?
 X-  Add user photo (document) database table
 -  Test photos from web app

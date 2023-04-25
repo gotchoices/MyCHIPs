@@ -13,8 +13,10 @@ To generate a new language file:
 - Import new lanaguage tags into the db:
     wm-csv2db <the_file_name>.csv
 - Check in wm.table_lang (and/or UI applications) for the correct language data
-- Create wyseman language file:
-    wm-db2wmt -s mychips -l <xyz> >language/<xyz>.wmt
+- Create wyseman language files:
+    wm-db2wmt -s mychips -l <xyz> >language/<schema>-<xyz>.wmt
+- There are several schemas to consider (wm, wylib, base, mychips, json)
+- Try to rebuild from source "make clean lang" and make sure all tags still present in DB
 - Submit P/R to mychips/wyselib to include your language translation files/updates
 
 The "-s schema" switch to wm-db2wmt will limit the output to those tables/views belonging

@@ -11,7 +11,7 @@ const { DBName, DBAdmin, testLog, Schema, SchemaDir, dbClient } = require('./com
 var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 const SchemaList = "'mychips','json'"
-const languages = ['fin', 'spa', 'xyz']
+const languages = ['fin', 'spa', 'nep', 'xyz']
 var missing = []
 
 describe("Language data dictionary tests", function() {

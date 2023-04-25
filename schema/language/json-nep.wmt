@@ -1,0 +1,24 @@
+tabtext json.cert -lang nep {JSON प्रमाणपत्र} {प्रयोगकर्ता प्रमाणपत्रहरूको JSON दृश्य मुख्य रूपमा आयात/निर्यातको लागि हो} {
+}
+
+tabtext json.connect -lang nep {JSON जडान आयात} {प्रयोगकर्ता खाताहरू आयात गर्न समर्पित फोन/वेबको JSON दृश्य} {
+}
+
+tabtext json.contract -lang nep {JSON अनुबंध} {ट्याली अनुबंधहरूको मानकीकृत JSON दृश्य} {
+}
+
+tabtext json.file -lang nep {JSON फाइल आयात} {प्रयोगकर्ता खाताहरू आयात गर्न समर्पित डाटा फाइलहरूको JSON दृश्य} {
+}
+
+tabtext json.place -lang nep {JSON स्थान आयात} {प्रयोगकर्ता खाताहरू आयात गर्न समर्पित ठेगानाहरूको JSON दृश्य} {
+}
+
+tabtext json.tally -lang nep {JSON Tallies} {टालीहरूको मानकीकृत JSON दृश्य} {
+}
+
+tabtext json.user -lang nep {JSON प्रयोगकर्ता आयात} {प्रयोगकर्ता खाताहरू आयात गर्न समर्पित प्रयोगकर्ताहरूको JSON दृश्य} {
+}
+
+tabtext json.users -lang nep {JSON प्रयोगकर्ता निर्यात} {प्रयोगकर्ता खाताहरू निर्यात गर्न समर्पित प्रयोगकर्ताहरूको JSON दृश्य} {
+}
+
