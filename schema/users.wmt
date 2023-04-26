@@ -54,10 +54,16 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
 }
 
 tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} -messages {
+  {GCH	{Getting CHIP Value}	{An error occurred trying to fetch the current estimated CHIP value}}
   {graph 			{Tally Graph}		{Generate a visual graph of the user's tally relationships and balances}}
     {graph.format 		{Graph Format}		{How to return the graph report data}}
       {graph.format.html	{html}			{Return HTML fragment that contains the report}}
       {graph.format.url		{url}			{Return an url link to a web page containing the report}}
+  {chip 			{CHIP Value}		{Generate an estimate of the current CHIP value in terms of a standard currency}}
+    {chip.format 		{Report Format}		{How to return the chip valuation report data}}
+      {chip.format.html		{html}			{Return HTML fragment that contains the report}}
+      {chip.format.json		{json}			{Return a JSON record containing the CHIP exchange rate}}
+    {chip.curr 			{Currency}		{Code for a currency to use when expressing the CHIP value estimate}}
  {launch.title			{Current User}		{Current User Account Record}}
   {launch.instruct		{Basic Instructions}	{
     <p>This view shows only the record pertaining to the connected user

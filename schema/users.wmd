@@ -70,7 +70,11 @@ mychips.users_v:
 
 mychips.users_v_me:
   actions:
-  - {name: graph, render: html, single: 1, options: [{tag:format, input:pdm, values: [html,url]}]}
+  - {name: graph, render: html, options: [{tag: format, input: pdm, values: [html, url]}]}
+  - {name: chip, render: html, options: [
+      {tag: curr, input: ent, special: scm, data: currency},
+      {tag: format, input: pdm, values: [html, json]}
+    ]}
 
 mychips.users_v_flat:
   display: [id, user_cid, std_name, bill_addr, bill_city, bill_state]

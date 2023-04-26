@@ -2,10 +2,9 @@ TODO:
 
 - Make CHIP value extrapolator report
 X-  Mention bls.gov on mychips.org
--  Scheduler fetches/caches chip-latest.json
--  Scheduler stores latest CHIP-USD rate in DB exchange table
--  Should scheduler ever fetch all chip exchange data?
--  Exchange report returns latest chip exchange rate and date
+X-  Scheduler fetches/caches chip-latest.json
+X-  Scheduler stores latest CHIP-USD rate in DB exchange table
+X-  Exchange report returns latest chip exchange rate and date
 -  Mention exchange data provider on mychips.org, mychips.net
 -  
 - Language Support
