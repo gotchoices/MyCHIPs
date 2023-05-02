@@ -83,11 +83,11 @@ proctype originator() {
       ref[ORIGINATOR]?signature ->
       sendToSucc(signature, ORIGINATOR)
       balanceSuccDelta[ORIGINATOR] = balanceSuccDelta[ORIGINATOR] + LIFT_VALUE
+      balancePredDelta[ORIGINATOR] = balancePredDelta[ORIGINATOR] - LIFT_VALUE
       state[ORIGINATOR] = 1
   :: (state[ORIGINATOR] == 1 && pred[ORIGINATOR]?[signature]);
       printf("Originator: Recieved Signature, Lift Complete\n")
       pred[ORIGINATOR]?signature ->
-      balancePredDelta[ORIGINATOR] = balancePredDelta[ORIGINATOR] - LIFT_VALUE
       state[ORIGINATOR] = 1
       break
   od
@@ -193,21 +193,21 @@ init {
   }
 }
 
-#define fair (eventually (state[REFEREE] == GOOD || state[REFEREE] == VOID))
+#define fair ((state[REFEREE] == GOOD || state[REFEREE] == VOID))
 
 ltl fairPathExists {(always (! fair))} // should fail
 
-ltl p1 {always eventually (fair implies ( (state[ORIGINATOR] == GOOD || state[ORIGINATOR] == VOID)
-                                       && (state[RELAY] == GOOD      || state[RELAY] == VOID)
-                                       && (state[REFEREE] == GOOD    || state[REFEREE] == VOID)))}
+ltl p1 {always eventually (fair implies (state[ORIGINATOR] != PEND && state[RELAY] != PEND && state[REFEREE] != NO_LIFT))}
 
-ltl p2 {always eventually (fair implies ( (state[ORIGINATOR] == state[RELAY] && state[RELAY] == state[REFEREE])))}
+ltl p2 {always eventually (fair implies ((state[REFEREE] == GOOD implies state[ORIGINATOR] == GOOD) && (state[ORIGINATOR] == GOOD implies state[RELAY] == GOOD) && (state[RELAY] == GOOD implies state[REFEREE] == GOOD)))}
 
-ltl p3 {always eventually (fair implies ( (balanceSuccDelta[ORIGINATOR] + balancePredDelta[ORIGINATOR] >= 0)
-                                       && (balanceSuccDelta[RELAY] + balancePredDelta[RELAY] >= 0)))}
+ltl p3 {always eventually (fair implies ((balanceSuccDelta[ORIGINATOR] + balancePredDelta[ORIGINATOR] >= 0)
+                                       && (balanceSuccDelta[RELAY] + balancePredDelta[RELAY] >= 0)
+                                       ))}
 
-ltl p4 {always eventually (fair implies ((balanceSuccDelta[ORIGINATOR] ==  balancePredDelta[RELAY])
-                                      && (balanceSuccDelta[RELAY] == balancePredDelta[ORIGINATOR])))}
+ltl p4 {always eventually (fair implies ((balanceSuccDelta[ORIGINATOR] == -balancePredDelta[RELAY])
+                                      && (balanceSuccDelta[RELAY] == -balancePredDelta[ORIGINATOR])
+                                      ))}
 
 ltl test1 {always eventually ( !( (balanceSuccDelta[ORIGINATOR] + balancePredDelta[ORIGINATOR] > 0)
                                || (balanceSuccDelta[RELAY] + balancePredDelta[RELAY] > 0)))}
