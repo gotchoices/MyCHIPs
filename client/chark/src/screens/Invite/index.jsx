@@ -103,9 +103,10 @@ console.log('Insert done')
     setSelectedTallySeq(undefined);
   }
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     return (
       <TemplateItem 
+        testID={`tally-${index}`}
         template={item}
         activeId={selectedTallySeq}
         selectTemplate={selectTemplate}
@@ -115,7 +116,7 @@ console.log('Insert done')
   }
 
   if(tallyShareInfo) {
-    return <View style={styles.container}>
+    return <View style={styles.container} testID="tallyShare">
       <ShareTally
         json={tallyShareInfo?.json ?? {}}
         link={tallyShareInfo?.link ?? ''}
@@ -125,7 +126,7 @@ console.log('Insert done')
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="inviteScreen">
       <View 
         style={styles.listContainer}
       >
@@ -143,7 +144,7 @@ console.log('Insert done')
 
         {
           selectedTallySeq && (
-            <View style={{ marginLeft: 10 }}>
+            <View style={{ marginLeft: 10 }} testID="templateBtn">
               <Button
                 style={{ backgroundColor: colors.mustardBrown, borderColor: colors.mustardBrown }}
                 title="From Template"

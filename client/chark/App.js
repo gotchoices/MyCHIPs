@@ -14,19 +14,17 @@
 //- Can launch from deep link to connection ticket
 //- 
 
-import React, { Component, useEffect, useState } from 'react';
-import { Button, View, Text, StyleSheet, TouchableOpacity, Image, NativeModules, Linking, AppState, TouchableWithoutFeedback, SafeAreaView } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Image, SafeAreaView } from 'react-native';
+import { NavigationContainer, getStateFromPath } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import PolyfillCrypto from 'react-native-webview-crypto'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import Toast from 'react-native-toast-message';
+import notifee, { EventType } from '@notifee/react-native';
+import qs from 'query-string';
 
 import ServIcon from './src/servicon'
-import { parse } from './src/utils/query-string';
-import constants from './src/config/constants';
-
 //import TallyInvite from './src/invite'
 import Invite from './src/screens/Invite'
 import Home from './src/screens/Home';
@@ -43,6 +41,8 @@ import ProfileEdit from './src/screens/Profile/ProfileEdit';
 import TallyAccept from './src/screens/TallyAccept';
 import TallyRequest from './src/screens/TallyRequest';
 import SocketProvider from './src/components/SocketProvider';
+
+import { handleNotification } from './src/utils/notification';
 
 const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 
@@ -71,7 +71,7 @@ const InviteStack = createNativeStackNavigator();
 function InviteStackScreen() {
   return (
     <InviteStack.Navigator>
-      <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} />
+      <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
       <InviteStack.Screen name="TallyEdit" component={EditDraftTally} options={{ title: 'Draft Tally' }}  />
     </InviteStack.Navigator>
   );
@@ -89,9 +89,13 @@ function SettingStackScreen() {
 }
 
 const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
 const linking = {
   prefixes: ["mychips://", "https://mychips.org"],
+  getStateFromPath: (path, options) => {
+    const parsed = qs.parseUrl(path);
+    const newPath = parsed.url === '/tally' ? '/connect' : path;
+    return getStateFromPath(newPath, options);
+  },
   config: {
     screens:{
       Tally: {
@@ -99,19 +103,33 @@ const linking = {
           Home: {
             path: 'connect',
           },
-          TallyRequest: {
-            path: 'tally',
-          }
+          //TallyRequest: {
+            //path: 'tally',
+          //},
+          TallyAccept: {
+            path: 'tally-accept/:tally_seq',
+          },
         }
       },
     },
   },
-};  
+};
 
 function App() {
+  const navigationRef = useRef(); 
+
+  useEffect(() => {
+    return notifee.onForegroundEvent(event => {
+      handleNotification({
+        ...event,
+        navigationRef,
+      });
+    });
+  }, []);
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <NavigationContainer linking={linking}>
+      <NavigationContainer linking={linking} ref={navigationRef}>
         <UserProvider>
           <SocketProvider>
             <ServIcon />
@@ -153,6 +171,7 @@ function App() {
                     name="Invite Screen"
                     component={InviteStackScreen}
                     options={{
+                      tabBarTestID: "inviteTestID",
                       tabBarIcon: () => (
                         <Image style={styles.button} source={require("./assets/icon-invite.png")}/>
                       )

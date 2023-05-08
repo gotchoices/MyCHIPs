@@ -1,4 +1,4 @@
-import { dbClient, dbConf, testLog } from '../../../../test/mocha/common';
+import { dbClient, dbConf, testLog } from './common';
 
 const log = testLog(__filename);
 

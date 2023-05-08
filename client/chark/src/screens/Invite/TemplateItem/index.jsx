@@ -20,7 +20,7 @@ const TemplateItem = (props) => {
   const isActive = props.activeId === item.id
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={props.testID}>
       <TouchableOpacity onPress={onPress}>
         <View style={isActive ? styles.activeItem: styles.item}>
           <Text style={isActive && styles.activeText}>{item.comment}</Text>
