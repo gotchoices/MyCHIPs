@@ -14,6 +14,7 @@ const Button = (props) => {
     <TouchableWithoutFeedback
       onPress={props.onPress}
       disabled={props.disabled ?? false}
+      testID={props.testID ?? ''}
     >
       <View 
         style={[styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
@@ -32,6 +33,7 @@ Button.propTypes = {
   title: PropTypes.string.isRequired,
   textColor: PropTypes.string,
   onPress: PropTypes.func.isRequired,
+  testID: PropTypes.string,
 }
 
 const styles = StyleSheet.create({

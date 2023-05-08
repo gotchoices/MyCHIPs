@@ -46,7 +46,7 @@ const Scanner = (props) => {
 
         // Request Tally
         function requestTally(parsed) {
-          props.navigation.navigate('TallyRequest', {
+          props.navigation.navigate('Home', {
             ticket: parsed?.ticket,
           });
         }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Keychain from 'react-native-keychain';
+import notifee, { AndroidImportance } from '@notifee/react-native'
 
 const wm = require('../wyseman')
 import Connect, { headers } from '../connect';
@@ -36,6 +37,7 @@ const SocketProvider = ({ children }) => {
     })
 
     setStatus('Connecting Server...');
+
     connect.getUrl(creds).then(uri => {
       console.log('Connect:', uri)
       const websocket = new WebSocket(uri, '', { headers });
@@ -63,6 +65,7 @@ const SocketProvider = ({ children }) => {
         setWs(websocket);
         wm.listen(`listen_${random()}`, user, data => {
           console.log('notification data', data)
+          onDisplayNotification(data);
         })
 
         wm.onOpen(address, m => {
@@ -110,6 +113,7 @@ const SocketProvider = ({ children }) => {
   }
 
   const connectSocket = (ticket, cb = null) => {
+    console.log('ticket', ticket, 'ticket')
     if (ticket) {
       clearTimeout(connectTimeout.current);
       console.log('Resetting generic password for the new connection')
@@ -118,6 +122,7 @@ const SocketProvider = ({ children }) => {
       credConnect(creds, cb)
     } else {
       Keychain.getGenericPassword().then((credentials) => {
+        console.log(credentials, 'cre')
         if(credentials) {
           const val = credentials.password;
           const creds = JSON.parse(val);
@@ -148,6 +153,36 @@ const SocketProvider = ({ children }) => {
       {children}
     </SocketContext.Provider>
   )
+}
+
+async function onDisplayNotification(data) {
+  // Request permissions (required for iOS)
+  //await notifee.requestPermission()
+  
+  // Create a channel (required for Android)
+  const channelId = await notifee.createChannel({
+    id: 'important',
+    name: 'Default Channel',
+    importance: AndroidImportance.HIGH,
+  });
+
+  // Display a notification
+  await notifee.displayNotification({
+    title: 'Tally process',
+    body: data?.object?.comment ?? '',
+    data: {
+      type: 'tally-accept',
+      tally_seq: data.sequence?.toString(),
+      link: `mychips://tally-accept/${data.sequence}`,
+    },
+    android: {
+      channelId,
+      importance: AndroidImportance.HIGH,
+      pressAction: {
+        id: 'default',
+      },
+    },
+  });
 }
 
 export default SocketProvider;

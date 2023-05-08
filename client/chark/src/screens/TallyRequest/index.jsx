@@ -4,21 +4,13 @@ import {
   Text,
   Linking,
   StyleSheet,
-  TextInput,
-  ScrollView,
 } from 'react-native';
 import qs from 'query-string';
-import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { parse } from '../../utils/query-string';
 import { getLinkHost } from '../../utils/common';
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
-
-import Button from '../../components/Button';
-import CustomText from '../../components/CustomText';
-import CommonTallyView from '../Tally/CommonTallyView';
 
 const tallyUri = new Set(['tally', 'mychips.org/tally']);
 
@@ -29,43 +21,43 @@ const TallyRequest = (props) => {
   const [processing, setProcessing] = useState('Processing ticket...');
 
   // TODO: Maybe handle the url from single file 
-  useEffect(() => {
-    if(!ticket) {
-      Linking.getInitialURL().then((url) => {
-        const host = getLinkHost(url ?? '');
-        console.log('mounted host', url, host)
-        if(!tallyUri.has(host)) {
-          return;
-        }
+  //useEffect(() => {
+    //if(!ticket) {
+      //Linking.getInitialURL().then((url) => {
+        //const host = getLinkHost(url ?? '');
+        //console.log('mounted host', url, host)
+        //if(!tallyUri.has(host)) {
+          //return;
+        //}
 
-        const parsed = parseTallyInvitation(url);
-        requestProposedTally(ticket)
-      });
-    } else {
-      requestProposedTally(ticket)
-    }
-  }, []);
+        //const parsed = parseTallyInvitation(url);
+        //requestProposedTally(parsed)
+      //});
+    //} else {
+      //requestProposedTally(ticket)
+    //}
+  //}, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      if(!ticket) {
-        const listener = Linking.addEventListener('url', ({ url }) => {
-          const host = getLinkHost(url ?? '');
-          if(!tallyUri.has(host)) {
-            return;
-          }
+  //useFocusEffect(
+    //useCallback(() => {
+      //if(!ticket) {
+        //const listener = Linking.addEventListener('url', ({ url }) => {
+          //console.log('focus effect', url)
+          //const host = getLinkHost(url ?? '');
+          //if(!tallyUri.has(host)) {
+            //return;
+          //}
 
-          const parsed = parseTallyInvitation(url);
-          console.log('focus mounted', parsed)
-          requestProposedTally(parsed);
-        })
+          //const parsed = parseTallyInvitation(url);
+          //requestProposedTally(parsed);
+        //})
 
-        return () => {
-          listener.remove();
-        };
-      }
-    }, [])
-  );
+        //return () => {
+          //listener.remove();
+        //};
+      //}
+    //}, [])
+  //);
 
   function requestProposedTally(ticket) {
     const spec = {

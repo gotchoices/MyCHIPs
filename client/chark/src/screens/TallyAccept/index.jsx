@@ -1,33 +1,26 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
-  Text,
-  Linking,
   StyleSheet,
   TextInput,
   ScrollView,
 } from 'react-native';
-import qs from 'query-string';
 import { Picker } from '@react-native-picker/picker';
-import { useFocusEffect } from '@react-navigation/native';
 
-import { parse } from '../../utils/query-string';
-import { getLinkHost } from '../../utils/common';
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
+import useCurrentUser from '../../hooks/useCurrentUser';
 
 import Button from '../../components/Button';
 import CustomText from '../../components/CustomText';
 import Spinner from '../../components/Spinner';
 import CommonTallyView from '../Tally/CommonTallyView';
 
-const tallyUri = new Set(['tally', 'mychips.org/tally']);
-
 const ProcessTally = (props) => {
   const { wm } = useSocket();
-  const { tally_seq, tally_ent } = props.route?.params ?? {};
+  const { tally_seq } = props.route?.params ?? {};
+  const { user } = useCurrentUser();
 
-  const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
@@ -44,43 +37,41 @@ const ProcessTally = (props) => {
   const [comment, setComment] = useState(comment);
 
   useEffect(() => {
+    const fetchTally = () => {
+      const spec = {
+        fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
+        view: 'mychips.tallies_v_me',
+        where: {
+          tally_ent: user?.curr_eid,
+          tally_seq,
+        }
+      }
+
+      wm.request('_inv_ref', 'select', spec, data => {
+        setLoading(false);
+        setRefreshing(false);
+        const _tally = data?.[0];
+        if(_tally) {
+          setTally(data?.[0]);
+
+          setTallyType(_tally.tally_type);
+          setContract(_tally.contract?.terms ?? '');
+          setComment(_tally.comment ?? '');
+          setHoldTerms({
+            limit: _tally.hold_terms?.limit,
+            call: _tally.hold_terms?.call,
+          })
+          setPartTerms({
+            limit: _tally.part_terms?.limit,
+            call: _tally.part_terms?.call,
+          })
+        }
+      });
+    }
+
     fetchTally();
-  }, [])
+  }, [tally_seq, user?.curr_eid])
 
-  const fetchTally = (_refreshing = false) => {
-    if(_refreshing) {
-      setRefresing(true);
-    }
-    const spec = {
-      fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
-      view: 'mychips.tallies_v_me',
-      where: {
-        tally_ent,
-        tally_seq,
-      }
-    }
-
-    wm.request('_inv_ref', 'select', spec, data => {
-      setLoading(false);
-      setRefreshing(false);
-      const _tally = data?.[0];
-      if(_tally) {
-        setTally(data?.[0]);
-
-        setTallyType(_tally.tally_type);
-        setContract(_tally.contract?.terms ?? '');
-        setComment(_tally.comment ?? '');
-        setHoldTerms({
-          limit: _tally.hold_terms?.limit,
-          call: _tally.hold_terms?.call,
-        })
-        setPartTerms({
-          limit: _tally.part_terms?.limit,
-          call: _tally.part_terms?.call,
-        })
-      }
-    });
-  }
 
   const onHoldTermsChange = (name) => {
     return (value) => {

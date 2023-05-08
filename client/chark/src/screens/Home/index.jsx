@@ -1,74 +1,115 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Linking } from 'react-native'
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, Linking } from 'react-native'
+import qs from 'query-string';
+import Toast from 'react-native-toast-message';
 
 import Tally from '../Tally';
-import Button from '../../components/Button';
 
 import { parse } from '../../utils/query-string';
-import { query_user } from '../../utils/user';
 import { getLinkHost } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
-import TokenDebug from '../../components/TokenDebug';
-
-const ticket = require('../../../assets/ticket.json')
-
-var pktId = 1
-function query_users(wm) {
-  wm.request(pktId++, 'select', {
-    view: 'mychips.users_v_me',
-    fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
-  }, data => {
-console.log('Data:', JSON.stringify(data,null,2))
-  })
-}
 
 const connectionUri = new Set(['connect', 'mychips.org/connect'])
+const tallyUri = new Set(['tally', 'mychips.org/tally'])
+
 const HomeScreen = (props) => {
-  const { connectSocket, disconnectSocket, wm, ws } = useSocket();
+  const { connectSocket, wm } = useSocket();
+  const { ticket } = props.route?.params ?? {};
 
   const connect = (ticket) => {
     connectSocket(ticket);
   }
 
   useEffect(() => {
-    Linking.getInitialURL().then((url) => {
-      const host = getLinkHost(url ?? '');
-      if(!connectionUri.has(host)) {
-        return;
-      }
+    if(ticket) {
+      requestProposedTally(ticket)
+    }
+  }, [ticket?.token])
 
-      const obj = parse(url);
-      connect({ ticket: obj });
+  useEffect(() => {
+    const handleLink = (url) => {
+      const host = getLinkHost(url ?? '');
+
+      if(connectionUri.has(host)) {
+        const obj = parse(url);
+        connect({ ticket: obj });
+      } else if(tallyUri.has(host)) {
+        const parsed = parseTallyInvitation(url);
+        requestProposedTally(parsed)
+      }
+      return;
+    }
+
+    Linking.getInitialURL().then((url) => {
+      handleLink(url);
     });
+
+    const listener = Linking.addEventListener('url', ({url}) => {
+      handleLink(url);
+    })
+
+    return () => {
+      listener.remove();
+    };
 
   }, []);
 
+  function requestProposedTally(ticket) {
+    const spec = {
+      view: 'mychips.ticket_process',
+      params: [ticket],
+    }
 
-  useFocusEffect(
-    useCallback(() => {
-      const listener = Linking.addEventListener('url', ({url}) => {
-        const host = getLinkHost(url ?? '');
-        if(!connectionUri.has(host)) {
-          return;
-        }
+    Toast.show({
+      type: 'info',
+      text1: 'Processing tally ticket...',
+    });
 
-        const obj = parse(url);
-        connect({ ticket: obj });
-      })
-
-      return () => {
-        listener.remove();
-      };
-
-    }, [])
-  );
+    wm.request('_process_tally', 'select', spec, (data, err) => {
+      if(err) {
+        Toast.show({
+          type: 'error',
+          text1: err.message ?? 'Error processing tally ticket.',
+        })
+      } else if(data?.[0]?.ticket_process) {
+        Toast.show({
+          type: 'success',
+          text1: 'Tally ticket processed.'
+        })
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Tally ticket process failed.'
+        })
+      }
+    });
+  }
 
   return (
     <View style={{ flex: 1 }}>
       <Tally navigation={props.navigation} />
     </View>
   );
+}
+
+function parseTallyInvitation(url) {
+  const parsed = qs.parseUrl(url);
+  const query = parsed.query;
+
+  const token = query.token;
+
+  if(query.chad) {
+    try {
+      const chad = JSON.parse(query.chad);
+
+      return {
+        token,
+        chad,
+      }
+    } catch{
+      return;
+    }
+  }
 }
 
 export default HomeScreen;
