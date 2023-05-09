@@ -1,5 +1,5 @@
 define(TITLE,`MyCHIPs Central')
-define(SUBTITLE,`The digital currency designed to work as currency!')
+define(SUBTITLE,`The digital medium of commerce designed to work in commerce!')
 define(CONTENT,`
       <div class="text-center">
         <a href="https://mychips.org/chark.apk" class="btn-get-started scrollto">Android App (APK file)</a>
