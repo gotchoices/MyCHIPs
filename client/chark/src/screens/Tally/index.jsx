@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, FlatList, TouchableWithoutFeedback } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 
 import useSocket from '../../hooks/useSocket';
 import constants from '../../config/constants';
@@ -10,8 +9,6 @@ import useCurrentUser from '../../hooks/useCurrentUser';;
 import Banner from './Banner';
 import Search from './Search';
 import TallyItem from './TallyItem';
-
-let pktId = 1;
 
 const Tally = (props) => {
   const [loading, setLoading] = useState(false);
@@ -96,7 +93,7 @@ const Tally = (props) => {
           data={tallies}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item, index) => index}
+          keyExtractor={(_, index) => index}
           refreshing={loading}
           onRefresh={() => fetchTallies()}
         />

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { WebView } from 'react-native-webview';
 import { View, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView, Modal } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { colors } from '../../config/constants';
 import { request } from '../../services/profile';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
+import useInvite from '../../hooks/useInvite';
 
 import TemplateItem from './TemplateItem';
 import ShareTally from './ShareTally';
@@ -19,10 +20,13 @@ const TallyInvite = (props) => {
   const [tallyShareInfo, setTallyShareInfo] = useState();
   const [generatingInvite, setGeneratingInvite] = useState(false);
   const { wm, ws } = useSocket();
+  const { triggerInviteFetch } = useInvite();
 
   useEffect(() => {
-    fetchTemplates();
-  }, [ws]);
+    if(ws) {
+      fetchTemplates();
+    }
+  }, [ws, triggerInviteFetch]);
 
   const selectTemplate = (tally_seq) => {
     if(tally_seq === selectedTallySeq) {
@@ -43,8 +47,7 @@ const TallyInvite = (props) => {
       view: 'mychips.tallies_v_me',
     }
 
-    wm.request('_tpt_ref', 'insert', spec, data => {
-console.log('Insert done')
+    wm.request('_tpt_ref' + random(), 'insert', spec, () => {
       fetchTemplates()
     });
   }
@@ -53,13 +56,21 @@ console.log('Insert done')
     setLoading(true);
     setSelectedTallySeq(undefined);
     const spec = {
-      fields: ['tally_ent', 'tally_seq', 'contract', 'comment', 'tally_uuid'],
+      fields: ['tally_ent', 'tally_seq', 'contract', 'comment', 'tally_uuid', 'hold_terms', 'part_terms'],
       view: 'mychips.tallies_v_me',
-      where: { status: 'draft' }
+      where: { state: 'draft' }
     }
 
-    wm.request('_inv_ref', 'select', spec, data => {
-      const _data = data?.map(el => ({ tally_ent: el.tally_ent, id: el.tally_seq, contract: el.contract, comment: el.comment }))
+    wm.request('_inv_ref' + random(), 'select', spec, (data, err) => {
+      const _data = data?.map(el => ({
+        tally_ent: el.tally_ent,
+        id: el.tally_seq,
+        contract: el.contract,
+        comment: el.comment,
+        hold_terms: el.hold_terms,
+        part_terms: el.part_terms,
+      }));
+
       setData(_data);
       setLoading(false);
       setTallyShareInfo(undefined)
@@ -71,9 +82,21 @@ console.log('Insert done')
       return;
     }
 
-    setGeneratingInvite(true);
     const template = data?.find((item) => item.id === selectedTallySeq); 
 
+    const hold_limit = template?.hold_terms?.limit;
+    const part_limit = template?.part_terms?.limit;
+    if(
+      typeof hold_limit === 'undefined' || hold_limit === null ||
+      typeof part_limit === 'undefined' || part_limit === null
+    ) {
+      return Toast.show({
+        type: 'error',
+        text1: 'Please add hold terms and part terms before sharing tally.',
+      });
+    }
+
+    setGeneratingInvite(true);
     const spec = {
       name: 'invite',
       view: 'mychips.tallies_v_me',

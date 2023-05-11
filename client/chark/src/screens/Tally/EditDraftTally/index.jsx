@@ -1,17 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
   ScrollView,
   View,
-  Text,
   StyleSheet,
   TextInput,
   RefreshControl,
-  ActivityIndicator,
 } from 'react-native';
 
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
+import useInvite from '../../../hooks/useInvite';
 
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
@@ -21,6 +20,7 @@ import Spinner from '../../../components/Spinner';
 const EditTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
+  const { setTriggerInviteFetch } = useInvite();
 
   const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,12 +29,12 @@ const EditTally = (props) => {
   const [tallyType, setTallyType] = useState('stock');
   const [contract, setContract] = useState('Tally_Contract');
   const [holdTerms, setHoldTerms] = useState({
-    limit: 0,
-    call: 0,
+    limit: undefined,
+    call: undefined,
   });
   const [partTerms, setPartTerms] = useState({
-    limit: 0,
-    call: 0,
+    limit: undefined,
+    call: undefined,
   });
   const [comment, setComment] = useState(comment);
 
@@ -61,17 +61,18 @@ const EditTally = (props) => {
       const _tally = data?.[0];
       if(_tally) {
         setTally(data?.[0]);
+        const holdTermsLimit = _tally.hold_terms?.limit;
 
         setTallyType(_tally.tally_type);
         setContract(_tally.contract?.terms ?? '');
         setComment(_tally.comment ?? '');
         setHoldTerms({
-          limit: _tally.hold_terms?.limit,
-          call: _tally.hold_terms?.call,
+          limit: holdTermsLimit?.toString(),
+          call: _tally.hold_terms?.call?.toString(),
         })
         setPartTerms({
-          limit: _tally.part_terms?.limit,
-          call: _tally.part_terms?.call,
+          limit: _tally.part_terms?.limit?.toString(),
+          call: _tally.part_terms?.call?.toString(),
         })
       }
     });
@@ -81,7 +82,7 @@ const EditTally = (props) => {
     return (value) => {
       setHoldTerms({
         ...holdTerms,
-        [name]: 125,
+        [name]: value,
       })
     }
   }
@@ -90,25 +91,32 @@ const EditTally = (props) => {
     return (value) => {
       setPartTerms({
         ...partTerms,
-        [name]: parseInt(value),
+        [name]: value,
       })
     }
   }
 
   const onUpdate = () => {
     setUpdating(true);
-    const data = {
+
+    const payload = {
       tally_type: tallyType,
       contract: {
         terms: contract,
       },
-      hold_terms: holdTerms,
-      part_terms: partTerms, 
+      hold_terms: Object.keys(holdTerms).reduce((acc, key) => {
+        acc[key] = holdTerms[key] ? parseInt(holdTerms[key]) : undefined;
+        return acc;
+      }, {}),
+      part_terms: Object.keys(partTerms).reduce((acc, key) => {
+        acc[key] = partTerms[key] ? parseInt(partTerms[key]) : undefined;
+        return acc;
+      }, {}),
       comment,
     }
 
     const spec = {
-      fields: data,
+      fields: payload,
       view: 'mychips.tallies_v_me',
       where: {
         tally_ent,
@@ -116,8 +124,15 @@ const EditTally = (props) => {
       },
     }
 
-    wm.request('_tpt_ref', 'update', spec, data => {
+    wm.request('_tpt_ref', 'update', spec, (data, err) => {
       setUpdating(false);
+      if(err) {
+        return;
+      }
+
+      setTriggerInviteFetch(c => {
+        return c + 1;
+      })
     });
   }
 

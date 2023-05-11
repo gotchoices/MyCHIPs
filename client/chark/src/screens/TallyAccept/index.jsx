@@ -6,6 +6,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import Toast from 'react-native-toast-message';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
@@ -128,7 +129,17 @@ const ProcessTally = (props) => {
     }
 
     wm.request('_tally_accept', 'update', spec, (data, err) => {
-      console.log('accept', data, { err })
+      if(err) {
+        return Toast.show({
+          type: 'error',
+          text1: err.message,
+        });
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Tally accepted',
+      });
     });
   }
 
