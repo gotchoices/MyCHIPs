@@ -1,5 +1,5 @@
 define(TITLE,`MyCHIPs Central')
-define(SUBTITLE,`The digital medium of commerce designed to work in commerce!')
+define(SUBTITLE,`The digital medium of exchange designed for commerce!')
 define(CONTENT,`
       <div class="text-center">
         <a href="https://mychips.org/chark.apk" class="btn-get-started scrollto">Android App (APK file)</a>
@@ -26,6 +26,10 @@ define(CONTENT,`
         LINK_BLOCK(ri-user-line, https://mychips.net/, 
           `A CHIP service provider',
           `Sign up for a test account with the first CHIP Service Provider'
+        )
+        LINK_BLOCK(ri-user-line, https://mychips.org/Storey_Defense.mp4, 
+          `A Mathematical Proof for MyCHIPs Credit Lifts',
+          `See Kyle Storey defend his Masters Thesis which proves properties of the credit lift algorithm'
         )
         LINK_BLOCK(ri-fingerprint-line, privacy.html, 
           `Privacy Policy', 
