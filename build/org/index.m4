@@ -25,11 +25,11 @@ define(CONTENT,`
         )
         LINK_BLOCK(ri-user-line, https://mychips.net/, 
           `A CHIP service provider',
-          `Sign up for a test account with the first CHIP Service Provider'
+          `Sign up for a test account with the first CHIP Service Provider.'
         )
         LINK_BLOCK(ri-user-line, https://mychips.org/Storey_Defense.mp4, 
           `A Mathematical Proof for MyCHIPs Credit Lifts',
-          `See Kyle Storey defend his Masters Thesis proving important properties of the credit lift algorithm'
+          `See Kyle Storey defend his Masters Thesis proving important properties of the credit lift algorithm.'
         )
         LINK_BLOCK(ri-fingerprint-line, privacy.html, 
           `Privacy Policy', 
