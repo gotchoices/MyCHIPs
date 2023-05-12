@@ -48,7 +48,7 @@ It also took me a while to figure out a contract and licensing structure I felt 
 I want MyCHIPs to be free for everyone to use, but only if they will use it in good-faith commerce and trade as it is intended.
 
 ### Current Project Status:
-The _holy grail_ of MyCHIPs has been a network implementation of the lift protocol introduced in an intuitive way
+The _holy grail_ of MyCHIPs has been a network implementation of the lift protocol, which is introduced in an intuitive way
 in [this article](http://gotchoices.org/mychips/coupon.html) and explained in some more technical detail 
 in [this article](http://gotchoices.org/mychips/acdc.html).
 
@@ -62,12 +62,14 @@ Their work and results are summarized [here](test/analysis/dsr/phase-1/results.m
 
 In response to that study, this [outline](doc/old-safety.md) was drafted to determine how the algorithm could be improved to resolve the issues uncovered by the DSR study.
 That lead to the development of the [version 1.x protocol](doc/learn-protocol.md).
-There is currently work being done at [BYU](https://www.byu.edu) to both validate the original DSR results, and evaluate the new protocol.
-Present results indicate that the protocol is now reasonably safe and live.
+A followup work was recently completed at [BYU](https://www.byu.edu) to both validate the original DSR results, and evaluate the new, proposed protocol.
+The results prove suitable safety and liveness within a reasonable set of assumptions.
+The defense of that Master's thesis can be viewed [here.](https://mychips.org/Storey_Defense.mp4).
 
 Development was begun in 2022 on a mobile app written in React Native.
 This facilitated the use of the existing JavaScript API and is progressing.
-The app can currently be loaded onto mobile devices from [mychips.net](https://mychips.net),an example CHIP Service Provider site.
+The app can currently be loaded onto mobile devices from [mychips.net](https://mychips.net), an example CHIP Service Provider site.
+Current focus is on completing the mobile app and fully implementing the lift and route discovery protocols on the backend.
 
 ### Milestones Completed so Far
 
@@ -92,6 +94,7 @@ The app can currently be loaded onto mobile devices from [mychips.net](https://m
   - Support for actions/reports other control-layer functions
   - Support for editing/viewing tally contracts
   - Prototype Flutter/Dart app
+  - Partially working React Native app
 - Simulations
   - Agent-based modeling simulation process (very basic)
   - Local simulation engine (single host)
@@ -106,10 +109,11 @@ The app can currently be loaded onto mobile devices from [mychips.net](https://m
   - Chit transactions are stored in hash-chain list
   - Consensus algorithm between stock and foil
 - Test original algorithm (DSR Study)
-- Improved algorithm
+- Validate improved lift algorithm (BYU Study)
 - Mobile App
   - Unified JavaScript API works for all existing UI's
   - App connecting
+  - Basic user preferences
   - Basic screen layouts
   - Tally initiation sequence
 
@@ -120,14 +124,13 @@ There is a current project roadmap in the [TODO file](TODO).
 [Let us know](http://gotchoices.org/contact.html) how you would like to participate!
 
 ### Talent Needs:
-- Distributed asynchronous network consensus protocols (TLA+, SPIN)
-- SSL/TLS, private/public key encryption
+- Mobile app development; React Native
+- Javascript/Node.js
+- SQL, PLPGSQL
+- Encryption/cryptography
 - General Internet security
 - Internet protocols
 - Peer-to-peer networking
-- JavaScript/Node coding
-- SQL, PLPGSQL coding
-- Mobile app development; React Native
 - Accounting
 - Economics
 - Contract law
