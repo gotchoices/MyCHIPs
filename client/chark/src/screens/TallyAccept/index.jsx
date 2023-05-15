@@ -6,6 +6,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import Toast from 'react-native-toast-message';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
@@ -58,12 +59,12 @@ const ProcessTally = (props) => {
           setContract(_tally.contract?.terms ?? '');
           setComment(_tally.comment ?? '');
           setHoldTerms({
-            limit: _tally.hold_terms?.limit,
-            call: _tally.hold_terms?.call,
+            limit: _tally.hold_terms?.limit?.toString(),
+            call: _tally.hold_terms?.call?.toString(),
           })
           setPartTerms({
-            limit: _tally.part_terms?.limit,
-            call: _tally.part_terms?.call,
+            limit: _tally.part_terms?.limit?.toString(),
+            call: _tally.part_terms?.call?.toString(),
           })
         }
       });
@@ -102,13 +103,23 @@ const ProcessTally = (props) => {
       fields: data,
       view: 'mychips.tallies_v_me',
       where: {
-        tally_ent,
+        tally_ent: user?.curr_eid,
         tally_seq,
       },
     }
 
-    wm.request('_tally_sign', 'update', spec, data => {
-      console.log('sign', data)
+    wm.request('_tally_sign', 'update', spec, (data, err) => {
+      if(err) {
+        return Toast.show({
+          type: 'error',
+          text1: err.message,
+        });
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Tally signed.'
+      })
     });
   }
 
@@ -122,13 +133,23 @@ const ProcessTally = (props) => {
       fields: data,
       view: 'mychips.tallies_v_me',
       where: {
-        tally_ent,
+        tally_ent: user?.curr_eid,
         tally_seq,
       },
     }
 
     wm.request('_tally_accept', 'update', spec, (data, err) => {
-      console.log('accept', data, { err })
+      if(err) {
+        return Toast.show({
+          type: 'error',
+          text1: err.message,
+        });
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Tally accepted',
+      });
     });
   }
 
@@ -142,13 +163,12 @@ const ProcessTally = (props) => {
       fields: data,
       view: 'mychips.tallies_v_me',
       where: {
-        tally_ent,
+        tally_ent: user?.curr_eid,
         tally_seq,
       },
     }
 
     wm.request('_tally_reject', 'update', spec, data => {
-      console.log('reject', data)
     });
 
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as Keychain from 'react-native-keychain';
 import notifee, { AndroidImportance } from '@notifee/react-native'
 
@@ -11,6 +11,7 @@ import { random } from '../utils/common';
 
 const initialConnectionBackoff = 1000;
 const maxConnectionBackoff = 11000;
+const listenId = `listen_${random()}`;
 
 const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
@@ -63,7 +64,7 @@ const SocketProvider = ({ children }) => {
         setStatus('Server Connected');
         clearTimeout(connectTimeout.current);
         setWs(websocket);
-        wm.listen(`listen_${random()}`, user, data => {
+        wm.listen(`${listenId}-${user}`, user, data => {
           console.log('notification data', data)
           onDisplayNotification(data);
         })

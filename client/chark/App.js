@@ -41,6 +41,7 @@ import ProfileEdit from './src/screens/Profile/ProfileEdit';
 import TallyAccept from './src/screens/TallyAccept';
 import TallyRequest from './src/screens/TallyRequest';
 import SocketProvider from './src/components/SocketProvider';
+import InviteProvider from './src/components/InviteProvider';
 
 import { handleNotification } from './src/utils/notification';
 
@@ -70,10 +71,12 @@ function ReceiveScreen({ navigation }) {
 const InviteStack = createNativeStackNavigator();
 function InviteStackScreen() {
   return (
-    <InviteStack.Navigator>
-      <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
-      <InviteStack.Screen name="TallyEdit" component={EditDraftTally} options={{ title: 'Draft Tally' }}  />
-    </InviteStack.Navigator>
+    <InviteProvider>
+      <InviteStack.Navigator>
+        <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
+        <InviteStack.Screen name="TallyEdit" component={EditDraftTally} options={{ title: 'Draft Tally' }}  />
+      </InviteStack.Navigator>
+    </InviteProvider>
   );
 }
 
