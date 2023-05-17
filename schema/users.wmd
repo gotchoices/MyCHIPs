@@ -62,7 +62,7 @@ mychips.users_v:
     - {left: user_ent, not: true, oper: isnull}
     - {left: ent_inact, not: true, oper: 'true'}
     - {left: ent_type, oper: '=', entry: p}
-  subviews: [base.addr_v, base.comm_v]
+  subviews: [base.addr_v, base.comm_v, base.file_v]
   export: user
   launch:
     initial: 1
@@ -79,3 +79,4 @@ mychips.users_v_me:
 mychips.users_v_flat:
   display: [id, user_cid, std_name, bill_addr, bill_city, bill_state]
   sort: [std_name, id]
+  subviews: [mychips.addr_v_me, mychips.comm_v_me, mychips.file_v_me]
