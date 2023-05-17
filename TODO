@@ -1,23 +1,21 @@
 TODO:
 
-- Make CHIP value extrapolator report
-X-  Mention bls.gov on mychips.org
-X-  Scheduler fetches/caches chip-latest.json
-X-  Scheduler stores latest CHIP-USD rate in DB exchange table
-X-  Exchange report returns latest chip exchange rate and date
--  Mention exchange data provider on mychips.org, mychips.net
--  
 - Language Support
-X-  Integrate Bijay's Nepali language tags
--  Integrate Vinay's new language tag needs
+-  Integrate language tags for app
 -  
 - Can we serve user photos from the document server?
 X-  Add user photo (document) database table
 -  Test photos from web app
--  Test photos from mobile app
+-   Dew entries display at reasonable default width
+-   Bytea type displays as hex string in wylib
+-   Wylib can display image types in dew
+-   Wylib can import/export files from dew
 -  Re-implement document server to include contracts and photos (by hash only)
--  Incorporate photo in user certificate
+-  Incorporate photo into user certificate
+-  Test photos from mobile app
 -  App displays my primary photo
+-  App displays my partners' primary photo
+-  In mychips schema, make a trigger to prevent modifying/deleting a file referenced from a tally
 -
 - Library for managing keys
 -   Create signing key
