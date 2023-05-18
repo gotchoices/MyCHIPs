@@ -17,7 +17,7 @@ export const getComm = (wm, user_ent) => {
     },
     order: {
       field: 'crt_date',
-      asc: true,
+      asc: false,
     }
   }
 
