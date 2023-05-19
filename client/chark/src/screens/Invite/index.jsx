@@ -58,7 +58,11 @@ const TallyInvite = (props) => {
     const spec = {
       fields: ['tally_ent', 'tally_seq', 'contract', 'comment', 'tally_uuid', 'hold_terms', 'part_terms'],
       view: 'mychips.tallies_v_me',
-      where: { state: 'draft' }
+      where: { state: 'draft' },
+      order: {
+        field: 'crt_date',
+        asc: false,
+      }
     }
 
     wm.request('_inv_ref' + random(), 'select', spec, (data, err) => {

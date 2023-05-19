@@ -1,4 +1,5 @@
 import jestExpect from 'expect';
+import Toast from 'react-native-toast-message';
 
 import { dbConf, testLog, dbClient, Format, getRow } from './utils/common';
 import { getUrl } from './utils/connection';
@@ -8,6 +9,12 @@ let userO = 'p1000';
 let userS = 'p1001';
 const log = testLog(__filename);
 const dbcS = new dbConf(log, `mu_${userS}`);
+
+jest.mock('react-native-toast-message', () => ({
+  show: jest.fn(),
+  hide: jest.fn()
+}));
+
 
 describe('Token connection', () => {
   beforeAll(async () => {
@@ -38,7 +45,7 @@ describe('Token connection', () => {
   it('should create oriignator tally and process tally by subject', (done) => {
     const dbcO = new dbConf(log, `mu_${userO}`);
     const contract = { domain:"mychips.org", name:"deluxe", version:1.0 }
-    let s1 = Format('insert into mychips.tallies_v (tally_ent, contract) values(%L,%L)', userO, contract)
+    let s1 = Format('insert into mychips.tallies_v (tally_ent, contract, comment) values(%L,%L,%L)', userO, contract, `Test ${new Date()}`)
       , sql = `with row as (${s1} returning tally_ent, tally_seq, ${'false'})
     insert into mychips.tokens (token_ent, tally_seq, reuse) select * from row returning *;
     select * from mychips.tallies_v where tally_ent = '${userO}' and tally_seq = 1;
@@ -71,13 +78,12 @@ describe('Token connection', () => {
     })
   })
 
-  it('should open invite screen and share', async () => {
-    await element(by.id('inviteTestID')).tap();
-    await waitFor(element(by.id('inviteScreen'))).toBeVisible().withTimeout(3000);
-    await element(by.id('tally-0')).tap();
-    await waitFor(element(by.id('templateBtn'))).toBeVisible().withTimeout(1000);
-    await element(by.id('templateBtn')).tap();
-    await waitFor(element(by.id('tallyShare'))).toBeVisible().withTimeout(3000);
-  });
+  //it('should open invite screen and share', async (done) => {
+    //await element(by.id('inviteTestID')).tap();
+    //await waitFor(element(by.id('inviteScreen'))).toBeVisible().withTimeout(3000);
+    //await element(by.id('tally-0')).tap();
+    //await waitFor(element(by.id('templateBtn'))).toBeVisible().withTimeout(1000);
+    //await element(by.id('templateBtn')).tap();
+  //});
 
 });

@@ -15,13 +15,13 @@ else
   $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager -v create avd -n Pixel_4_API_27_Test_Detox -d pixel_4 --package "system-images;android-27;default;x86_64"
 fi
 
-FILE=android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-if [ -f "$FILE" ]; then
-  echo "Build found. Skipping build creation."
-else
-  echo -e "Creating test build...\n"
+#FILE=android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+#if [ -f "$FILE" ]; then
+  #echo "Build found. Skipping build creation."
+#else
+  #echo -e "Creating test build...\n"
   detox build --configuration android.emu.debug
-fi
+#fi
 
 cd .. && ./runemu "$test_avd"
 cd chark && detox test --configuration android.emu.debug
