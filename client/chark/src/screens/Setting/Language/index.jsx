@@ -19,17 +19,6 @@ import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
 import useProfile from '../../../hooks/useProfile';
 
-const fallbackLanguages = [
-  {
-    code: 'fin',
-    eng_name: 'Finnish',
-  },
-  {
-    code: 'eng',
-    eng_name: 'English',
-  },
-];
-
 const Language = (props) => {
   const [language, setLanguage] = useState('');
   const [languages, setLanguages] = useState([]);
@@ -49,7 +38,7 @@ const Language = (props) => {
         left: 'tables',
       },
     }, data => {
-      setLanguages(data ?? fallbackLanguages)
+      setLanguages(data ?? [])
     })
   }, [])
 

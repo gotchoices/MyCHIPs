@@ -1,8 +1,11 @@
 import { random } from '../utils/common';
 
 export const request = (wm, uniqueId, action, spec) => {
-  return new Promise((resolve) => {
-    wm.request(uniqueId, action, spec, (data) => {
+  return new Promise((resolve, reject) => {
+    wm.request(uniqueId, action, spec, (data, err) => {
+      if (err) {
+        return reject(err)
+      }
       resolve(data);
     })
   })
@@ -61,6 +64,37 @@ export const getAddresses = (wm, user_ent) => {
   return request(wm, '_addr_ref' + random(1000), 'select', spec);
 }
 
+
+export const getCountry = (wm, co_code) => {
+  const spec = {
+    fields: ['cur_code', 'co_name', 'co_code'],
+    view: 'base.country_v',
+    where: {
+      co_code,
+    }
+  };
+
+  return request(wm, '_co_ref' + random(1000), 'select', spec).then((countries) => {
+    return countries?.[0];
+  })
+}
+
+
+export const getCurrency = (wm, cur_code) => {
+  const spec = {
+    fields: ['cur_name', 'cur_code'],
+    view: 'base.currency',
+    where: {
+      cur_code,
+    }
+  }
+
+  return request(wm, '_cur_ref' + random(1000), 'select', spec).then(currencies  => {
+    return currencies?.[0];
+  });
+}
+
+
 const langRegister = (wm, uniqueId, view) => {
   return new Promise((resolve) => {
     wm.register(uniqueId, view, (data, err) => {
@@ -83,7 +117,6 @@ export const getLang = (wm) => {
     comm,
     personal,
   ]).then(responses => {
-
     const result = responses.reduce((response, acc) => {
       return Object.assign(acc, response ?? {});
     }, {});

@@ -19,6 +19,7 @@ const HomeScreen = (props) => {
   const connect = (ticket) => {
     connectSocket(ticket);
   }
+  
 
   useEffect(() => {
     if(ticket) {

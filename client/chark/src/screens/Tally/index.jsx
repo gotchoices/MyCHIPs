@@ -1,21 +1,27 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, StyleSheet, FlatList, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableWithoutFeedback, Text } from 'react-native';
 
 import useSocket from '../../hooks/useSocket';
+import useProfile from '../../hooks/useProfile';
 import constants from '../../config/constants';
-import { round} from '../../utils/common';
+import { round } from '../../utils/common';
 import useCurrentUser from '../../hooks/useCurrentUser';;
 
 import Banner from './Banner';
 import Search from './Search';
 import TallyItem from './TallyItem';
+import TallyHeader from './TallyHeader';
+import { random } from '../../utils/common';
 
 const Tally = (props) => {
   const [loading, setLoading] = useState(false);
   const [tallies, setTallies] = useState([]);
   const { wm, ws } = useSocket();
   const { user } = useCurrentUser();
+  const { preferredCurrency } = useProfile();
+  const currencyCode = preferredCurrency.code;
 
+  const [fiatRate, setFiatRate] = useState(0);
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
       return acc + (Number(current?.net ?? 0));
@@ -25,13 +31,31 @@ const Tally = (props) => {
   }, [tallies])
 
   const totalNetDollar = useMemo(() => {
-    const total = totalNet * constants.chipsToDollar;
+    const total = totalNet * fiatRate ?? constants.chipsToDollar;
     return round(total, 2);
-  }, [totalNet])
-
+  }, [totalNet, fiatRate])
 
   useEffect(() => {
-    if(ws) {
+    if (currencyCode) {
+      const espec = {
+        name: 'chip',
+        view: 'mychips.users_v_me',
+        data: {
+          options: {
+            curr: currencyCode,
+            format: 'json'
+          }
+        }
+      };
+
+      wm.request(`chip_json_${random(1000)}`, 'action', espec, (data, err) => {
+        setFiatRate(data?.fiat_rate);
+      });
+    }
+  }, [currencyCode])
+
+  useEffect(() => {
+    if (ws) {
       fetchTallies()
     }
   }, [user?.curr_eid])
@@ -47,7 +71,7 @@ const Tally = (props) => {
     }
 
     wm.request('_inv_ref', 'select', spec, data => {
-      if(data) {
+      if (data) {
         setTallies(data);
         setLoading(false);
       }
@@ -64,7 +88,7 @@ const Tally = (props) => {
   }
 
   const renderItem = ({ item, index }) => (
-    <TouchableWithoutFeedback 
+    <TouchableWithoutFeedback
       onPress={onItemPress({
         tally_seq: item.tally_seq,
         tally_ent: item.tally_ent,
@@ -76,57 +100,39 @@ const Tally = (props) => {
     </TouchableWithoutFeedback>
   );
 
+
   return (
-    <View style={styles.container}>
-      <Banner 
-        totalNet={totalNet}
-        totalNetDollar={totalNetDollar}
-        navigation={props.navigation}
-      /> 
-
-      <View style={styles.search}>
-        <Search />
-      </View>
-
-      <View style={styles.listContainer}>
-        <FlatList
-          data={tallies}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(_, index) => index}
-          refreshing={loading}
-          onRefresh={() => fetchTallies()}
+    <FlatList
+      ListHeaderComponent={
+        <TallyHeader
+          totalNet={totalNet}
+          totalNetDollar={totalNetDollar}
+          currencyCode={preferredCurrency.code}
         />
-      </View>
-    </View>
+      }
+      contentContainerStyle={styles.contentContainer}
+      data={tallies}
+      renderItem={renderItem}
+      showsVerticalScrollIndicator={false}
+      keyExtractor={(_, index) => index}
+      refreshing={loading}
+      onRefresh={() => fetchTallies()}
+    />
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  search: {
-    marginTop: 16,
-    backgroundColor: '#fff',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  listContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    width: '90%',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignSelf: 'center',
-    marginTop: 32,
-    marginBottom: 55,
+  contentContainer: {
+    paddingBottom: 16,
   },
   item: {
     paddingVertical: 18,
     borderBottomWidth: 2,
     borderBottomColor: '#E4E7EC',
+    width: "90%",
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF'
   },
   itemLast: {
     borderBottomWidth: 0,
