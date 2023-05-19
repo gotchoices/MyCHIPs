@@ -1,6 +1,13 @@
 import { createContext } from 'react';
 
 const ProfileContext = createContext({
+  preferredCurrency: {
+    code: '',
+    name: '',
+  },
+  setPreferredCurrency: (data) => {
+    console.log(data)
+  },
   preferredLanguage: {
     name: '',
     code: '',

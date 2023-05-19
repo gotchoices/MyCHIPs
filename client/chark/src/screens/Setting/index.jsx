@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors } from '../../config/constants';
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
-import { getPersonal } from '../../services/profile';
 import { languageMap } from '../../utils/language';
 import useSocket from '../../hooks/useSocket';
 
@@ -15,31 +14,34 @@ import CenteredModal from '../../components/CenteredModal';
 import Button from '../../components/Button';
 
 import profileImg from '../../../assets/profile.png';
+import Currency from './Currency';
 
 const deviceLanguage =
   Platform.OS === 'ios'
-  ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0]
-  : NativeModules.I18nManager.localeIdentifier;
+    ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0]
+    : NativeModules.I18nManager.localeIdentifier;
 
 const lang = `${languageMap[deviceLanguage]?.name ?? ''} (${deviceLanguage})`;
 
 const Setting = (props) => {
   const [isLangModalVisible, setIsLangModalVisible] = useState(false);
+  const [isSelectCurrencyVisible, setIsSelectCurrencyVisible] = useState(false);
+
   const { wm } = useSocket();
 
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
   const {
     personal,
-    setPersonal,
     preferredLanguage,
+    preferredCurrency,
   } = useProfile();
 
-  useEffect(() => {
-    getPersonal(wm, user_ent).then(data => {
-      setPersonal(data);
-    });
-  }, [])
+  // useEffect(() => {
+  //   getPersonal(wm, user_ent).then(data => {
+  //     setPersonal(data);
+  //   });
+  // }, [])
 
   const onProfilePress = () => {
     props.navigation.navigate('Profile');
@@ -53,12 +55,19 @@ const Setting = (props) => {
     setIsLangModalVisible(false);
   }
 
+  const showSelectCurrency = () => {
+    setIsSelectCurrencyVisible(true);
+  }
+  const cancelSelectCurrency = () => {
+    setIsSelectCurrencyVisible(false);
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.profile}>
         <Image
           style={styles.profileImage}
-          source={profileImg} 
+          source={profileImg}
         />
 
         <Text style={styles.name}>
@@ -94,11 +103,42 @@ const Setting = (props) => {
         </TouchableWithoutFeedback>
       </View>
 
+
+
+      {/* SELECT CURRENCY */}
+      <View style={[styles.menu, { marginTop: 10 }]}>
+        <View>
+          <Text style={styles.menuTitle}>
+            Currency
+          </Text>
+
+          <Text style={styles.language}>
+            {preferredCurrency?.name} ({preferredCurrency?.code})
+          </Text>
+        </View>
+
+        <TouchableWithoutFeedback
+          onPress={showSelectCurrency}
+        >
+          <Icon
+            name="edit"
+            size={15}
+            color={colors.quicksilver}
+          />
+        </TouchableWithoutFeedback>
+      </View>
+
       <CenteredModal
         isVisible={isLangModalVisible}
         onClose={onCancel}
       >
         <Language onCancel={onCancel} />
+      </CenteredModal>
+      <CenteredModal
+        isVisible={isSelectCurrencyVisible}
+        onClose={cancelSelectCurrency}
+      >
+        <Currency onCancel={cancelSelectCurrency} />
       </CenteredModal>
     </View>
   )

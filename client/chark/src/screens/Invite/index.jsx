@@ -37,6 +37,21 @@ const TallyInvite = (props) => {
     setSelectedTallySeq(tally_seq);
   }
 
+
+  const espec = {
+    name: 'chip',
+    view: 'mychips.users_v_me',
+    data: {
+      options: {
+        curr: 'USD', format: 'json'
+      }
+    }
+  }
+
+  wm.request(`chip_json_${random(1000)}`, 'action', espec, (data, err) => {
+    console.log('hello', data, err)
+  });
+
   //Create a new template
   const newTemplate = () => {
     const spec = {

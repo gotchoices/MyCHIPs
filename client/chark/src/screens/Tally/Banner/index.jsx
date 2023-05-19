@@ -37,7 +37,10 @@ const Banner = (props) => {
                   {props.totalNet}
                 </Text>
               </View>
-              <Text>${props.totalNetDollar} USD</Text>
+
+              {
+                !!props.currencyCode && <Text>{props.totalNetDollar} {props.currencyCode}</Text>
+              }
             </View>
           </View>
 
