@@ -13,7 +13,7 @@ const Banner = (props) => {
   const { user } = useCurrentUser();
 
   const navigateToReport = () => {
-    props.navigation.navigate('TallyReport')
+    props.navigation?.navigate?.('TallyReport')
   }
 
   const isNetNegative = props.totalNet < 0;
