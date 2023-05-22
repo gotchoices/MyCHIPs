@@ -60,7 +60,8 @@ const TallyReport = (props) => {
       });
     }
 
-    return false;
+    // Intercepting requests with url having text seq
+    return !request.url.includes('seq');
   }
 
   return (
@@ -79,6 +80,7 @@ const TallyReport = (props) => {
             onShouldStartLoadWithRequest={interceptRequest}
             originWhitelist={["*"]}
             source={{ uri: graph }}
+            startInLoadingState
           />
         )
       }
