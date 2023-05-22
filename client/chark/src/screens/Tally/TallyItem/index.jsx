@@ -1,15 +1,17 @@
 import React from 'react'; import { View, Image, Text, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 
-import constants, { colors } from '../../../config/constants';
+import { colors } from '../../../config/constants';
 import { round } from '../../../utils/common';
 
-import avatar from '../../../../assets/avatar.png';
+//import avatar from '../../../../assets/avatar.png';
 import mychips from '../../../../assets/mychips.png';
+import mychipsNeg from '../../../../assets/mychips-red.png';
 
 const TallyItem = (props) => {
   const tally = props.tally;
   const net = round((tally?.net ?? 0) / 1000, 2);
-  const dollar = round(net * constants.chipsToDollar, 2);
+  const convertedNet = round(net * props.conversionRate, 2);
  
   return (
     <View style={styles.container}>
@@ -28,12 +30,18 @@ const TallyItem = (props) => {
       <View style={styles.price}>
         <View style={styles.mychips}>
           <Image 
-            source={mychips}
+            source={net < 0 ? mychipsNeg : mychips}
           />
           <Text style={net < 0 ? styles.mychipsNetNeg : styles.mychipsNet}>{net}</Text>
         </View>
 
-        <Text style={dollar < 0 ? styles.dollarNeg : styles.dollar}>${dollar}</Text>
+        {
+          !!props.currency && (
+            <Text style={convertedNet < 0 ? styles.dollarNeg : styles.dollar}>
+              {convertedNet} {props.currency}
+            </Text>
+          )
+        }
       </View>
     </View>
   )
@@ -88,6 +96,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 })
+
+TallyItem.propTypes = {
+  tally: PropTypes.object.isRequired,
+  conversionRate: PropTypes.number.isRequired,
+  currency: PropTypes.string,
+}
 
 export default TallyItem;
 

@@ -1,39 +1,25 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet, FlatList, TouchableWithoutFeedback, Text } from 'react-native';
 
 import useSocket from '../../hooks/useSocket';
 import useProfile from '../../hooks/useProfile';
-import constants from '../../config/constants';
 import { round } from '../../utils/common';
 import useCurrentUser from '../../hooks/useCurrentUser';;
 
-import Banner from './Banner';
-import Search from './Search';
 import TallyItem from './TallyItem';
 import TallyHeader from './TallyHeader';
 import { random } from '../../utils/common';
 
 const Tally = (props) => {
-  const [loading, setLoading] = useState(false);
-  const [tallies, setTallies] = useState([]);
   const { wm, ws } = useSocket();
   const { user } = useCurrentUser();
   const { preferredCurrency } = useProfile();
+
+  const [loading, setLoading] = useState(false);
+  const [tallies, setTallies] = useState([]);
+  const [conversionRate, setConversionRate] = useState(0);
+
   const currencyCode = preferredCurrency.code;
-
-  const [fiatRate, setFiatRate] = useState(0);
-  const totalNet = useMemo(() => {
-    let total = tallies.reduce((acc, current) => {
-      return acc + (Number(current?.net ?? 0));
-    }, 0)
-
-    return round(total / 1000, 2);
-  }, [tallies])
-
-  const totalNetDollar = useMemo(() => {
-    const total = totalNet * fiatRate ?? constants.chipsToDollar;
-    return round(total, 2);
-  }, [totalNet, fiatRate])
 
   useEffect(() => {
     if (currencyCode) {
@@ -49,7 +35,9 @@ const Tally = (props) => {
       };
 
       wm.request(`chip_json_${random(1000)}`, 'action', espec, (data, err) => {
-        setFiatRate(data?.fiat_rate);
+        if(!err) {
+          setConversionRate(parseFloat(data?.rate ?? 0));
+        }
       });
     }
   }, [currencyCode])
@@ -59,6 +47,24 @@ const Tally = (props) => {
       fetchTallies()
     }
   }, [user?.curr_eid])
+
+  const totalNet = useMemo(() => {
+    let total = tallies.reduce((acc, current) => {
+      return acc + (Number(current?.net ?? 0));
+    }, 0)
+
+    return round(total / 1000, 2);
+  }, [tallies])
+
+  const totalNetDollar = useMemo(() => {
+    if(conversionRate) {
+      const total = totalNet * conversionRate;
+      return round(total, 2);
+    }
+
+    return 0;
+  }, [totalNet, conversionRate])
+
 
   const fetchTallies = () => {
     setLoading(true);
@@ -95,7 +101,11 @@ const Tally = (props) => {
       })}
     >
       <View style={[styles.item, index === tallies?.length - 1 ? styles.itemLast : null]}>
-        <TallyItem tally={item} />
+        <TallyItem
+          tally={item}
+          conversionRate={conversionRate} 
+          currency={preferredCurrency?.code}
+        />
       </View>
     </TouchableWithoutFeedback>
   );

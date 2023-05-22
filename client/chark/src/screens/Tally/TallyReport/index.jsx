@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableWithoutFeedback, Text, Image } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Toast from 'react-native-toast-message';
 
 import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
-import constants, { colors } from '../../../config/constants';
+import { colors } from '../../../config/constants';
 import { parse } from '../../../utils/query-string';
 
 import Header from '../Header';
-import CustomText from '../../../components/CustomText';
 
 import tabularBtn from '../../../../assets/tabular-button.png';
 
