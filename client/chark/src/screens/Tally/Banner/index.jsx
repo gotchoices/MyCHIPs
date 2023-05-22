@@ -5,6 +5,7 @@ import { colors } from '../../../config/constants';
 import visualBtn from '../../../../assets/visual-button.png';
 import avatarImg from '../../../../assets/report-profile.png';
 import mychips from '../../../../assets/mychips-large.png';
+import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import useCurrentUser from '../../../hooks/useCurrentUser';
 import Header from '../Header';
 
@@ -14,6 +15,8 @@ const Banner = (props) => {
   const navigateToReport = () => {
     props.navigation.navigate('TallyReport')
   }
+
+  const isNetNegative = props.totalNet < 0;
 
   return (
     <View style={styles.container}>
@@ -32,8 +35,8 @@ const Banner = (props) => {
               <Text>Net CHIP balance</Text>
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Image source={mychips} />
-                <Text style={props.totalNet < 0 ? styles.mychipsNetNeg : styles.mychipsNet}>
+                <Image source={isNetNegative ? mychipsNeg : mychips} />
+                <Text style={isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet}>
                   {props.totalNet}
                 </Text>
               </View>
