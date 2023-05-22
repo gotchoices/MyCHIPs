@@ -118,6 +118,7 @@ const Tally = (props) => {
           totalNet={totalNet}
           totalNetDollar={totalNetDollar}
           currencyCode={preferredCurrency.code}
+          navigation={props.navigation}
         />
       }
       contentContainerStyle={styles.contentContainer}

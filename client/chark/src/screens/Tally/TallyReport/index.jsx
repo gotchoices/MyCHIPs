@@ -54,7 +54,7 @@ const TallyReport = (props) => {
     const tally_ent = parsed.tally_ent;
 
     if(tally_seq) {
-      props.navigation.navigate('OpenTallyEdit', {
+      props.navigation?.navigate?.('OpenTallyEdit', {
         tally_seq,
         tally_ent,
       });
