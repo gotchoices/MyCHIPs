@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
   View,
-  Text,
-  Platform,
-  NativeModules,
-  TouchableWithoutFeedback,
   StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -14,7 +10,6 @@ import HelpText from '../../../components/HelpText';
 import Button from '../../../components/Button';
 
 import { colors } from '../../../config/constants';
-import { languageMap } from '../../../utils/language';
 import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
 import useProfile from '../../../hooks/useProfile';

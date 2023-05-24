@@ -25,7 +25,11 @@ const Currency = (props) => {
         field: 'cur_name',
         asc: true,
       }
-    }, data => {
+    }, (data, err) => {
+      if(err) {
+        return console.log('Error fetching currency', err)
+      }
+
       setCurrencies(data ?? []);
     })
   }, [])
@@ -35,6 +39,15 @@ const Currency = (props) => {
   }, [preferredCurrency])
 
   const onSave = () => {
+    if(currency === '') {
+      setPreferredCurrency({
+        name: '',
+        code: '',
+      })
+      AsyncStorage.setItem("preferredCurrency", JSON.stringify({ cur_name: '', cur_code: '' }));
+      props.onCancel();
+      return;
+    }
     const found = currencies.find((cur) => cur.cur_code === currency);
     if (found) {
       setPreferredCurrency({
@@ -61,6 +74,11 @@ const Currency = (props) => {
             setCurrency(item)
           }}
         >
+          <Picker.Item
+            label="None"
+            value=""
+          />
+
           {
             currencies.map((currency) => (
               <Picker.Item
