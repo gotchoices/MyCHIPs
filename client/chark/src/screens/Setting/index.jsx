@@ -105,15 +105,20 @@ const Setting = (props) => {
 
 
 
-      {/* SELECT CURRENCY */}
       <View style={[styles.menu, { marginTop: 10 }]}>
         <View>
           <Text style={styles.menuTitle}>
             Currency
           </Text>
 
+
           <Text style={styles.language}>
-            {preferredCurrency?.name} ({preferredCurrency?.code})
+            {
+              preferredCurrency?.code 
+               ? `${preferredCurrency?.name} (${preferredCurrency?.code})`
+               : 'None'
+
+            }
           </Text>
         </View>
 
@@ -134,6 +139,7 @@ const Setting = (props) => {
       >
         <Language onCancel={onCancel} />
       </CenteredModal>
+
       <CenteredModal
         isVisible={isSelectCurrencyVisible}
         onClose={cancelSelectCurrency}

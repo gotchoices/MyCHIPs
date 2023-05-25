@@ -42,7 +42,24 @@ const ProfileProvider = ({ children }) => {
       setPersonal(data);
       return data;
     })
-    .then((data) => getCountry(wm, data.country))
+    .then((_personalt) => {
+      return AsyncStorage.getItem('preferredLanguage').then((data) => {
+        if (data) {
+          try {
+            const language = JSON.parse(data);
+            setPreferredLanguage({
+              name: language?.eng_name,
+              code: language?.code,
+            })
+            return;
+          } catch (err) {
+            throw err;
+          }
+        } else {
+          return getCountry(wm, _personal.country)
+        }
+      });
+    })
     .then(country => {
       if(!country) { 
         return;
@@ -63,19 +80,6 @@ const ProfileProvider = ({ children }) => {
   }, [setPersonal])
 
   useEffect(() => {
-    AsyncStorage.getItem('preferredLanguage').then((data) => {
-      if (data) {
-        try {
-          const language = JSON.parse(data);
-          setPreferredLanguage({
-            name: language?.eng_name,
-            code: language?.code,
-          })
-        } catch (err) {
-          console.log('Error parsing language data', err)
-        }
-      }
-    })
   }, [])
 
   useEffect(() => {
