@@ -49,7 +49,6 @@ const TallyInvite = (props) => {
   }
 
   wm.request(`chip_json_${random(1000)}`, 'action', espec, (data, err) => {
-    console.log('hello', data, err)
   });
 
   //Create a new template

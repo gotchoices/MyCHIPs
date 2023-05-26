@@ -16,7 +16,6 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
       await notifee.cancelNotification(notification.id);
       break;
     case EventType.PRESS:
-      console.log('press notification', notification?.data);
       Linking.openURL(notification?.data?.link)
       break;
     default:
