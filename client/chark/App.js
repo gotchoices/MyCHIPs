@@ -38,7 +38,7 @@ import Profile from './src/screens/Profile';
 import UserProvider from './src/components/UserProvider';
 import ProfileProvider from './src/components/ProfileProvider';
 import ProfileEdit from './src/screens/Profile/ProfileEdit';
-import TallyAccept from './src/screens/TallyAccept';
+import TallyReview from './src/screens/TallyReview';
 import TallyRequest from './src/screens/TallyRequest';
 import SocketProvider from './src/components/SocketProvider';
 import InviteProvider from './src/components/InviteProvider';
@@ -54,7 +54,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
-      <HomeStack.Screen name="TallyAccept" component={TallyAccept} options={{ title: 'Tally Accept' }} />
+      <HomeStack.Screen name="TallyReview" component={TallyReview} options={{ title: 'Tally Review' }} />
       <HomeStack.Screen name="TallyRequest" component={TallyRequest} options={{ title: 'Tally Request' }} />
     </HomeStack.Navigator>
   );
@@ -109,7 +109,7 @@ const linking = {
           //TallyRequest: {
             //path: 'tally',
           //},
-          TallyAccept: {
+          TallyReview: {
             path: 'tally-accept/:tally_seq',
           },
         }
@@ -123,6 +123,7 @@ function App() {
 
   useEffect(() => {
     return notifee.onForegroundEvent(event => {
+      console.log(event, 'event')
       handleNotification({
         ...event,
         navigationRef,

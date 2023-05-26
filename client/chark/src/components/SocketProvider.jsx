@@ -16,6 +16,7 @@ const listenId = `listen_${random()}`;
 const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
   const [status, setStatus] = useState('Server Disconnected');
+  const [tallyState, setTallyState] = useState();
 
   const { setUser } = useCurrentUser();
   const connectTimeout = useRef();
@@ -65,8 +66,9 @@ const SocketProvider = ({ children }) => {
         clearTimeout(connectTimeout.current);
         setWs(websocket);
         wm.listen(`${listenId}-${user}`, user, data => {
-          console.log('notification data', data)
+          console.log('notification data', data?.status ?? data?.state, data)
           onDisplayNotification(data);
+          setTallyState(data?.status ?? data?.state)
         })
 
         wm.onOpen(address, m => {
@@ -114,7 +116,6 @@ const SocketProvider = ({ children }) => {
   }
 
   const connectSocket = (ticket, cb = null) => {
-    console.log('ticket', ticket, 'ticket')
     if (ticket) {
       clearTimeout(connectTimeout.current);
       console.log('Resetting generic password for the new connection')
@@ -123,7 +124,6 @@ const SocketProvider = ({ children }) => {
       credConnect(creds, cb)
     } else {
       Keychain.getGenericPassword().then((credentials) => {
-        console.log(credentials, 'cre')
         if(credentials) {
           const val = credentials.password;
           const creds = JSON.parse(val);
@@ -148,6 +148,7 @@ const SocketProvider = ({ children }) => {
       ws,
       wm,
       status,
+      tallyState,
       connectSocket,
       disconnectSocket,
     }}>

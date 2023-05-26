@@ -9,6 +9,7 @@ import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
 
 import { colors } from '../../config/constants';
+import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
 
@@ -18,24 +19,27 @@ import Spinner from '../../components/Spinner';
 import CommonTallyView from '../Tally/CommonTallyView';
 
 const ProcessTally = (props) => {
-  const { wm } = useSocket();
+  const { wm, tallyState } = useSocket();
   const { tally_seq } = props.route?.params ?? {};
   const { user } = useCurrentUser();
 
+  const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
   const [tallyType, setTallyType] = useState('stock');
   const [contract, setContract] = useState('Tally_Contract');
   const [holdTerms, setHoldTerms] = useState({
-    limit: 0,
-    call: 0,
+    limit: undefined,
+    call: undefined,
   });
   const [partTerms, setPartTerms] = useState({
-    limit: 0,
-    call: 0,
+    limit: undefined,
+    call: undefined,
   });
   const [comment, setComment] = useState(comment);
+  console.log('hold terms', holdTerms, )
+
 
   useEffect(() => {
     const fetchTally = () => {
@@ -48,7 +52,7 @@ const ProcessTally = (props) => {
         }
       }
 
-      wm.request('_inv_ref', 'select', spec, data => {
+      wm.request('_inv_ref' + random(), 'select', spec, data => {
         setLoading(false);
         setRefreshing(false);
         const _tally = data?.[0];
@@ -71,14 +75,14 @@ const ProcessTally = (props) => {
     }
 
     fetchTally();
-  }, [tally_seq, user?.curr_eid])
+  }, [tally_seq, user?.curr_eid, tallyState])
 
 
   const onHoldTermsChange = (name) => {
     return (value) => {
       setHoldTerms({
         ...holdTerms,
-        [name]: 125,
+        [name]: value,
       })
     }
   }
@@ -87,12 +91,12 @@ const ProcessTally = (props) => {
     return (value) => {
       setPartTerms({
         ...partTerms,
-        [name]: parseInt(value),
+        [name]: value,
       })
     }
   }
 
-  const approveTally = () => {
+  const offerTally = () => {
     const data = {
       tally_uuid: tally.tally_uuid,
       request: 'offer',
@@ -108,7 +112,7 @@ const ProcessTally = (props) => {
       },
     }
 
-    wm.request('_tally_sign', 'update', spec, (data, err) => {
+    wm.request('_tally_offer' + random(), 'update', spec, (data, err) => {
       if(err) {
         return Toast.show({
           type: 'error',
@@ -138,7 +142,7 @@ const ProcessTally = (props) => {
       },
     }
 
-    wm.request('_tally_accept', 'update', spec, (data, err) => {
+    wm.request('_tally_accept' + random(), 'update', spec, (data, err) => {
       if(err) {
         return Toast.show({
           type: 'error',
@@ -153,7 +157,7 @@ const ProcessTally = (props) => {
     });
   }
 
-  const rejectTally = () => {
+  const refuseTally = () => {
     const data = {
       request: 'void',
       hold_sig: null,
@@ -168,9 +172,50 @@ const ProcessTally = (props) => {
       },
     }
 
-    wm.request('_tally_reject', 'update', spec, data => {
+    wm.request('_tally_reject' + random(), 'update', spec, data => {
+      console.log(data, 'data')
     });
 
+  }
+
+  const onUpdate = () => {
+    setUpdating(true);
+
+    const payload = {
+      tally_type: tallyType,
+      contract: {
+        terms: contract,
+      },
+      hold_terms: Object.keys(holdTerms).reduce((acc, key) => {
+        acc[key] = holdTerms[key] ? parseInt(holdTerms[key]) : undefined;
+        return acc;
+      }, {}),
+      part_terms: Object.keys(partTerms).reduce((acc, key) => {
+        acc[key] = partTerms[key] ? parseInt(partTerms[key]) : undefined;
+        return acc;
+      }, {}),
+      comment,
+    }
+
+    const spec = {
+      fields: payload,
+      view: 'mychips.tallies_v_me',
+      where: {
+        tally_ent: user?.curr_eid,
+        tally_seq,
+      },
+    }
+
+    wm.request('update_tally' + random(), 'update', spec, (data, err) => {
+      console.log('update', data?.status, data)
+      setUpdating(false);
+      if(err) {
+        Toast.show({
+          type: 'error',
+          text1: err.message,
+        });
+      }
+    });
   }
 
   if(loading) {
@@ -310,23 +355,45 @@ const ProcessTally = (props) => {
         </View>
 
         <View style={styles.actions}>
-          <Button
-            style={{ marginRight: 10 }}
-            title="Sign"
-            onPress={approveTally}
-          />
+          {
+            tally?.status === 'draft' && !!tally?.part_cert && (
+              <Button
+                style={{ marginRight: 10 }}
+                title="Offer"
+                onPress={offerTally}
+              />
+            )
+          }
 
-          <Button
-            style={{ marginRight: 10 }}
-            title="Accept"
-            onPress={acceptTally}
-          />
+          {
+            ['offer'].includes(tally?.status) && (
+              <Button
+                style={{ marginRight: 10 }}
+                title="Accept"
+                onPress={acceptTally}
+              />
+            )
+          }
 
-          <Button
-            title="Reject"
-            style={styles.rejectBtn}
-            onPress={rejectTally}
-          />
+          {
+            ['draft', 'offer'].includes(tally?.status) && (
+              <Button
+                style={{ marginRight: 10 }}
+                title="Edit"
+                onPress={onUpdate}
+              />
+            )
+          }
+
+          {
+            ['draft', 'offer'] && (
+              <Button
+                title="Refuse"
+                style={styles.refuseBtn}
+                onPress={refuseTally}
+              />
+            )
+          }
         </View>
 
       </View>
@@ -355,10 +422,10 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
   },
-  rejectBtn: {
+  refuseBtn: {
     borderColor: colors.orangeRed,
     backgroundColor: colors.orangeRed,
-  }
+  },
 }) 
 
 export default ProcessTally;
