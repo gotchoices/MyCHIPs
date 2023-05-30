@@ -11,16 +11,20 @@ import {
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
+import useMessageText from '../../../hooks/useMessageText';
+import { getTallyText } from '../../../services/tally';
 
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
 import Spinner from '../../../components/Spinner';
+import HelpText from '../../../components/HelpText';
 
 const EditTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
+  const { messageText, setMessageText } = useMessageText();
 
   const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,6 +44,17 @@ const EditTally = (props) => {
 
   useEffect(() => {
     fetchTally();
+  }, [])
+
+  useEffect(() => {
+    getTallyText(wm).then(tallyText => {
+      setMessageText((prev) => {
+        return {
+          ...prev,
+          ...tallyText,
+        }
+      })
+    })
   }, [])
 
   const fetchTally = (_refreshing = false) => {
@@ -168,10 +183,11 @@ const EditTally = (props) => {
         <CommonTallyView tally={tally} />
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Tally Side
-          </CustomText>
-
+          <HelpText
+            label={messageText?.tally_type?.title ?? ''}
+            helpText={messageText?.tally_type?.help}
+            style={styles.headerText}
+          />
           <Picker
             mode="dropdown"
             selectedValue={tallyType}
@@ -186,10 +202,12 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Contract
-          </CustomText>
 
+          <HelpText
+            label={messageText?.contract?.title ?? ''}
+            helpText={messageText?.contract?.help}
+            style={styles.headerText}
+          />
           <Picker
             mode="dropdown"
             style={styles.input}
@@ -203,9 +221,11 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Credit terms
-          </CustomText>
+          <HelpText
+            label={messageText?.hold_terms?.title ?? ''}
+            helpText={messageText?.hold_terms?.help}
+            style={styles.headerText}
+          />
 
           <View style={{ marginVertical: 10 }}>
             <CustomText as="h5">
@@ -235,9 +255,11 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Credit terms for partner
-          </CustomText>
+          <HelpText
+            label={messageText?.part_terms?.title ?? ''}
+            helpText={messageText?.part_terms?.help}
+            style={styles.headerText}
+          />
 
           <View style={{ marginVertical: 10 }}>
             <CustomText as="h5">
@@ -267,9 +289,11 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Comment
-          </CustomText>
+          <HelpText
+            label={messageText?.comment?.title ?? ''}
+            helpText={messageText?.comment?.help}
+            style={styles.headerText}
+          />
 
           <TextInput 
             multiline
@@ -309,7 +333,11 @@ const styles = StyleSheet.create({
   },
   comment: {
     textAlignVertical: 'top',
-  }
+  },
+  headerText: {
+    color: colors.black,
+    fontSize: 14,
+  },
 })
 
 export default EditTally;

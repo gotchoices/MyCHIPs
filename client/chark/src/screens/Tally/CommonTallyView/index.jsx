@@ -1,37 +1,45 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-import CustomText from '../../../components/CustomText';
+import HelpText from '../../../components/HelpText';
+
+import { colors } from '../../../config/constants';
+import useMessageText from '../../../hooks/useMessageText';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
+  const { messageText } = useMessageText();
 
   return (
     <View>
       <View style={styles.detailControl}>
-        <CustomText as="h4">
-          UUID
-        </CustomText>
-
+        <HelpText
+          label={messageText?.tally_uuid?.title ?? ''}
+          helpText={messageText?.tally_uuid?.help}
+          style={styles.headerText}
+        />
         <Text>
           {tally.tally_uuid}
         </Text>
       </View>
 
       <View style={styles.detailControl}>
-        <CustomText as="h4">
-          Tally Date
-        </CustomText>
-
+        <HelpText
+          label={messageText?.tally_date?.title ?? ''}
+          helpText={messageText?.tally_date?.help}
+          style={styles.headerText}
+        />
         <Text>
           {new Date(tally.tally_date).toLocaleString()}
         </Text>
       </View>
 
       <View style={styles.detailControl}>
-        <CustomText as="h4">
-          Status
-        </CustomText>
+        <HelpText
+          label={messageText?.status?.title ?? ''}
+          helpText={messageText?.status?.help}
+          style={styles.headerText}
+        />
 
         <Text>
           {tally.status}
@@ -44,6 +52,10 @@ const CommonTallyView = (props) => {
 const styles = StyleSheet.create({
   detailControl: {
     marginVertical: 10
+  },
+  headerText: {
+    color: colors.black,
+    fontSize: 14,
   },
 })
 

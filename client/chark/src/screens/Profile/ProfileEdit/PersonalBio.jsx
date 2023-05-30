@@ -12,14 +12,16 @@ import { request } from '../../../services/profile';
 import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
 import useSocket from '../../../hooks/useSocket';
+import useMessageText from '../../../hooks/useMessageText';
 
 import HelpTextInput from '../../../components/HelpTextInput';
 import Button from '../../../components/Button';
 
 const PersonalBio = (props) => {
   const { user } = useCurrentUser();
-  const { lang, personal, setPersonal } = useProfile();
+  const { personal, setPersonal } = useProfile();
   const { wm } = useSocket();
+  const { messageText } = useMessageText();
   const user_ent = user?.curr_eid;
 
   const [updating, setUpdating] = useState(false);
@@ -51,7 +53,7 @@ const PersonalBio = (props) => {
     request(wm, '_tax_ref', 'update', spec).finally(() => {
       Toast.show({
         type: 'success',
-        text1: 'Changes saved successfully.',
+        messageText1: 'Changes saved successfully.',
         position: 'bottom',
       });
       setUpdating(false);
@@ -69,22 +71,22 @@ const PersonalBio = (props) => {
           <HelpTextInput
             value={personal.tax_id}
             onChange={onChange('tax_id')}
-            label={lang?.tax_id?.title}
-            helpText={lang?.tax_id?.help}
+            label={messageText?.tax_id?.title}
+            helpText={messageText?.tax_id?.help}
           />
 
           <HelpTextInput
             value={personal.country}
             onChange={onChange('country')}
-            label={lang?.country?.title}
-            helpText={lang?.country?.help}
+            label={messageText?.country?.title}
+            helpText={messageText?.country?.help}
           />
 
           <HelpTextInput
             value={personal.born_date}
             onChange={onChange('born_date')}
-            label={lang?.born_date?.title}
-            helpText={lang?.born_date?.help}
+            label={messageText?.born_date?.title}
+            helpText={messageText?.born_date?.help}
           />
 
           <View style={{ marginTop: 24, marginBottom: 16 }}>

@@ -4,12 +4,15 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../../config/constants';
 import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
+import useMessageText from '../../../hooks/useMessageText';
+
 import AddressItem from './AddressItem';
 import Header from '../Details/Header';
 
 const Address = (props) => {
   const { user } = useCurrentUser();
-  const { addresses, lang } = useProfile();
+  const { addresses } = useProfile();
+  const { messageText } = useMessageText();
 
   const user_ent = user?.curr_eid;
 
@@ -41,18 +44,18 @@ const Address = (props) => {
 
   const _addresses = [
     {
-      title: lang?.mail_addr?.title ?? '',
-      helpText: lang?.mail_addr?.help ?? '',
+      title: messageText?.mail_addr?.title ?? '',
+      helpText: messageText?.mail_addr?.help ?? '',
       items: addressObj?.mail ?? [],
     },
     {
-      title: lang?.phys_addr?.title ?? '',
-      helpText: lang?.phys_addr?.help ?? '',
+      title: messageText?.phys_addr?.title ?? '',
+      helpText: messageText?.phys_addr?.help ?? '',
       items: addressObj?.physical ?? [],
     },
     {
       title: 'Birth Address',
-      helpText: lang?.birth_addr?.help ?? '',
+      helpText: messageText?.birth_addr?.help ?? '',
       items: addressObj?.birth?.length ? [addressObj?.birth?.[0]] : [],
     },
   ];
