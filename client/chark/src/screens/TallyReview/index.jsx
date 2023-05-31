@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TextInput,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
@@ -12,16 +13,21 @@ import { colors } from '../../config/constants';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
+import useMessageText from '../../hooks/useMessageText';
+import { getTallyText } from '../../services/tally';
 
 import Button from '../../components/Button';
 import CustomText from '../../components/CustomText';
 import Spinner from '../../components/Spinner';
 import CommonTallyView from '../Tally/CommonTallyView';
+import HelpText from '../../components/HelpText';
 
 const ProcessTally = (props) => {
   const { wm, tallyState } = useSocket();
   const { tally_seq } = props.route?.params ?? {};
   const { user } = useCurrentUser();
+  const { messageText, setMessageText } = useMessageText();
+  const talliesText = messageText?.tallies ?? {};
 
   const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -38,8 +44,19 @@ const ProcessTally = (props) => {
     call: undefined,
   });
   const [comment, setComment] = useState(comment);
-  console.log('hold terms', holdTerms, )
 
+  useEffect(() => {
+    if(wm && !messageText?.tallies) {
+      getTallyText(wm).then(tallies => {
+        setMessageText((prev) => {
+          return {
+            ...prev,
+            tallies,
+          }
+        })
+      })
+    }
+  }, [wm, messageText?.tallies])
 
   useEffect(() => {
     const fetchTally = () => {
@@ -179,6 +196,7 @@ const ProcessTally = (props) => {
   }
 
   const onUpdate = () => {
+    Keyboard.dismiss();
     setUpdating(true);
 
     const payload = {
@@ -207,7 +225,6 @@ const ProcessTally = (props) => {
     }
 
     wm.request('update_tally' + random(), 'update', spec, (data, err) => {
-      console.log('update', data?.status, data)
       setUpdating(false);
       if(err) {
         Toast.show({
@@ -237,14 +254,16 @@ const ProcessTally = (props) => {
   }
 
   return (
-    <ScrollView>
+    <ScrollView keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <CommonTallyView tally={tally} />
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Tally Side
-          </CustomText>
+          <HelpText
+            label={talliesText?.tally_type?.title ?? ''}
+            helpText={talliesText?.tally_type?.help}
+            style={styles.headerText}
+          />
 
           <Picker
             mode="dropdown"
@@ -260,9 +279,11 @@ const ProcessTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Contract
-          </CustomText>
+          <HelpText
+            label={talliesText?.contract?.title ?? ''}
+            helpText={talliesText?.contract?.help}
+            style={styles.headerText}
+          />
 
           <Picker
             mode="dropdown"
@@ -277,9 +298,11 @@ const ProcessTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Credit terms
-          </CustomText>
+          <HelpText
+            label={talliesText?.hold_terms?.title ?? ''}
+            helpText={talliesText?.hold_terms?.help}
+            style={styles.headerText}
+          />
 
           <View style={{ marginVertical: 10 }}>
             <CustomText as="h5">
@@ -309,9 +332,11 @@ const ProcessTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Credit terms for partner
-          </CustomText>
+          <HelpText
+            label={talliesText?.part_terms?.title ?? ''}
+            helpText={talliesText?.part_terms?.help}
+            style={styles.headerText}
+          />
 
           <View style={{ marginVertical: 10 }}>
             <CustomText as="h5">
@@ -341,9 +366,11 @@ const ProcessTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Comment
-          </CustomText>
+          <HelpText
+            label={talliesText?.comment?.title ?? ''}
+            helpText={talliesText?.comment?.help}
+            style={styles.headerText}
+          />
 
           <TextInput 
             multiline
@@ -379,7 +406,8 @@ const ProcessTally = (props) => {
             ['draft', 'offer'].includes(tally?.status) && (
               <Button
                 style={{ marginRight: 10 }}
-                title="Edit"
+                title={updating ? 'Updating...' : 'Edit'}
+                disabled={updating}
                 onPress={onUpdate}
               />
             )
@@ -425,6 +453,10 @@ const styles = StyleSheet.create({
   refuseBtn: {
     borderColor: colors.orangeRed,
     backgroundColor: colors.orangeRed,
+  },
+  headerText: {
+    color: colors.black,
+    fontSize: 14,
   },
 }) 
 

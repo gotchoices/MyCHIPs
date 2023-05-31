@@ -3,18 +3,16 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  TextInput,
   Text,
-  TouchableOpacity,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
-import { getComm, getPersonal, getAddresses, getLang } from '../../services/profile';
+import useMessageText from '../../hooks/useMessageText';
+import { getComm, getAddresses, getProfileText} from '../../services/profile';
 
 import Avatar from './Avatar';
 import Details from './Details';
@@ -27,13 +25,12 @@ const Profile = (props) => {
 
   const {
     communications,
-    lang,
     personal,
     setPersonal,
     setCommunications,
     setAddresses,
-    setLang,
   } = useProfile();
+  const { messageText, setMessageText } = useMessageText();
 
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
@@ -47,19 +44,15 @@ const Profile = (props) => {
       setAddresses(data);
     })
 
-    getLang(wm).then(data => {
-      setLang(data);
+    getProfileText(wm).then(data => {
+      setMessageText((prev) => {
+        return {
+          ...prev,
+          ...data,
+        }
+      });
     })
   }, [])
-
-  const onChange = (name) => {
-    return (value) => {
-      setProfile({
-        ...profile,
-        [name]: value,
-      });
-    }
-  }
 
   const emails = useMemo(() => {
     return communications.filter((comm) => {
@@ -95,8 +88,8 @@ const Profile = (props) => {
 
         <View style={{ marginBottom: 16 }}>
           <Details
-            title={lang?.email_comm?.title ?? ''}
-            helpText={lang?.email_comm?.help ?? ''}
+            title={messageText?.email_comm?.title ?? ''}
+            helpText={messageText?.email_comm?.help ?? ''}
             rowField="comm_spec"
             primaryField="comm_prim"
             items={emails}
@@ -106,8 +99,8 @@ const Profile = (props) => {
 
         <View style={{ marginBottom: 16 }}>
           <Details
-            title={lang?.phone_comm?.title ?? ''}
-            helpText={lang?.phone_comm?.help ?? ''}
+            title={messageText?.phone_comm?.title ?? ''}
+            helpText={messageText?.phone_comm?.help ?? ''}
             rowField="comm_spec"
             primaryField="comm_prim"
             items={phones}

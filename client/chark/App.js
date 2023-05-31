@@ -42,6 +42,7 @@ import TallyReview from './src/screens/TallyReview';
 import TallyRequest from './src/screens/TallyRequest';
 import SocketProvider from './src/components/SocketProvider';
 import InviteProvider from './src/components/InviteProvider';
+import MessageTextProvider from './src/components/MessageTextProvider';
 
 import { handleNotification } from './src/utils/notification';
 
@@ -136,8 +137,11 @@ function App() {
       <NavigationContainer linking={linking} ref={navigationRef}>
         <UserProvider>
           <SocketProvider>
-            <ServIcon />
-            <PolyfillCrypto />
+            <MessageTextProvider>
+              <ServIcon />
+
+              <PolyfillCrypto />
+
               <ProfileProvider>
                 <Tab.Navigator screenOptions={{ headerShown: false, tabBarShowLabel: false }}>
                   <Tab.Screen
@@ -193,6 +197,8 @@ function App() {
                   />
                 </Tab.Navigator>
               </ProfileProvider>
+            </MessageTextProvider>
+
             <Toast />
           </SocketProvider>
         </UserProvider>

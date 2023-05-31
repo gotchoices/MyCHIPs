@@ -12,16 +12,21 @@ import {
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
+import useMessageText from '../../../hooks/useMessageText';
+import { getTallyText } from '../../../services/tally';
 
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
 import Spinner from '../../../components/Spinner';
+import HelpText from '../../../components/HelpText';
 
 const EditTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
+  const { messageText, setMessageText } = useMessageText();
+  const talliesText = messageText?.tallies ?? {};
 
   const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,10 +48,24 @@ const EditTally = (props) => {
     fetchTally();
   }, [])
 
+  useEffect(() => {
+    if(wm && !messageText?.tallies) {
+      getTallyText(wm).then(tallies => {
+        setMessageText((prev) => {
+          return {
+            ...prev,
+            tallies,
+          }
+        })
+      })
+    }
+  }, [wm, messageText?.tallies])
+
   const fetchTally = (_refreshing = false) => {
     if(_refreshing) {
       setRefresing(true);
     }
+
     const spec = {
       fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
       view: 'mychips.tallies_v_me',
@@ -98,6 +117,7 @@ const EditTally = (props) => {
   }
 
   const onUpdate = () => {
+    Keyboard.dismiss();
     setUpdating(true);
 
     const payload = {
@@ -130,8 +150,6 @@ const EditTally = (props) => {
       if(err) {
         return;
       }
-
-      Keyboard.dismiss();
 
       setTriggerInviteFetch(c => {
         return c + 1;
@@ -172,10 +190,11 @@ const EditTally = (props) => {
         <CommonTallyView tally={tally} />
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Tally Side
-          </CustomText>
-
+          <HelpText
+            label={talliesText?.tally_type?.title ?? ''}
+            helpText={talliesText?.tally_type?.help}
+            style={styles.headerText}
+          />
           <Picker
             mode="dropdown"
             selectedValue={tallyType}
@@ -190,10 +209,12 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Contract
-          </CustomText>
 
+          <HelpText
+            label={talliesText?.contract?.title ?? ''}
+            helpText={talliesText?.contract?.help}
+            style={styles.headerText}
+          />
           <Picker
             mode="dropdown"
             style={styles.input}
@@ -207,9 +228,11 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Credit terms
-          </CustomText>
+          <HelpText
+            label={talliesText?.hold_terms?.title ?? ''}
+            helpText={talliesText?.hold_terms?.help}
+            style={styles.headerText}
+          />
 
           <View style={{ marginVertical: 10 }}>
             <CustomText as="h5">
@@ -239,9 +262,11 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Credit terms for partner
-          </CustomText>
+          <HelpText
+            label={talliesText?.part_terms?.title ?? ''}
+            helpText={talliesText?.part_terms?.help}
+            style={styles.headerText}
+          />
 
           <View style={{ marginVertical: 10 }}>
             <CustomText as="h5">
@@ -271,9 +296,11 @@ const EditTally = (props) => {
         </View>
 
         <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Comment
-          </CustomText>
+          <HelpText
+            label={talliesText?.comment?.title ?? ''}
+            helpText={talliesText?.comment?.help}
+            style={styles.headerText}
+          />
 
           <TextInput 
             multiline
@@ -313,7 +340,11 @@ const styles = StyleSheet.create({
   },
   comment: {
     textAlignVertical: 'top',
-  }
+  },
+  headerText: {
+    color: colors.black,
+    fontSize: 14,
+  },
 })
 
 export default EditTally;

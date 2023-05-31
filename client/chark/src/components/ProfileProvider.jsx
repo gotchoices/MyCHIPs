@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import ProfileContext from '../context/ProfileContext';
 import useCurrentUser from '../hooks/useCurrentUser';
-import { getComm, getPersonal, getAddresses, getLang, getCurrency, getCountry } from '../services/profile';
+import { getPersonal, getCurrency, getCountry } from '../services/profile';
 
 import { languageMap } from '../utils/language';
 import useSocket from '../hooks/useSocket';
@@ -13,8 +13,6 @@ const deviceLanguage =
   Platform.OS === 'ios'
     ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0]
     : NativeModules.I18nManager.localeIdentifier;
-
-const lang = `${languageMap[deviceLanguage]?.name ?? ''} (${deviceLanguage})`;
 
 const ProfileProvider = ({ children }) => {
   const { user } = useCurrentUser();
@@ -35,7 +33,6 @@ const ProfileProvider = ({ children }) => {
   const [communications, setCommunications] = useState([]);
   const [personal, setPersonal] = useState({});
   const [addresses, setAddresses] = useState([]);
-  const [lang, setLang] = useState({});
 
   useEffect(() => {
     getPersonal(wm, user_ent).then(data => {
@@ -104,8 +101,6 @@ const ProfileProvider = ({ children }) => {
       setPreferredCurrency,
       preferredLanguage,
       setPreferredLanguage,
-      lang,
-      setLang,
       communications,
       addresses,
       personal,
