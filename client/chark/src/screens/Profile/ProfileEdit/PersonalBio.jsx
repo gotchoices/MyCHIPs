@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -50,7 +51,16 @@ const PersonalBio = (props) => {
       view: 'mychips.users_v_me',
     }
 
-    request(wm, '_tax_ref', 'update', spec).finally(() => {
+    request(wm, '_tax_ref', 'update', spec).then(() => {
+      Keyboard.dismiss();
+    }).catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+        position: 'bottom',
+      });
+
+    }).finally(() => {
       Toast.show({
         type: 'success',
         messageText1: 'Changes saved successfully.',
@@ -61,7 +71,7 @@ const PersonalBio = (props) => {
   }
 
   return (
-    <ScrollView>
+    <ScrollView keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Personal Bio</Text>

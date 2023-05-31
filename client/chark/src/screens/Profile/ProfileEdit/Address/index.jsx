@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
 
@@ -18,6 +18,7 @@ const Address = (props) => {
   const { addresses, setAddresses } = useProfile();
   const { user } = useCurrentUser();
   const { messageText } = useMessageText();
+  const { wm } = useSocket();
 
   const [updating, setUpdating] = useState(false);
   const [mail, setMail] = useState([]);
@@ -156,8 +157,14 @@ const Address = (props) => {
         text1: 'Changes saved successfully.',
         position: 'bottom',
       });
-
+      Keyboard.dismiss();
       updateAddressList();
+    }).catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+        position: 'bottom',
+      });
     }).finally(() => {
       setUpdating(false);
     })
@@ -251,7 +258,7 @@ const Address = (props) => {
   }
 
   return (
-    <ScrollView style={{ marginBottom: 55 }}>
+    <ScrollView style={{ marginBottom: 55 }} keyboardShouldPersistTaps="handled">
       <View style={styles.addressSection}>
         <View style={styles.header}>
           <HelpText

@@ -4,6 +4,8 @@ import {
   Text,
   TouchableWithoutFeedback,
   ScrollView,
+  Modal,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
@@ -158,6 +160,7 @@ const Comm = (props) => {
 
     setUpdating(true);
     Promise.all(promises).then(() => {
+      Keyboard.dismiss();
       Toast.show({
         type: 'success',
         text1: 'Changes saved successfully.',
@@ -231,7 +234,10 @@ const Comm = (props) => {
   }
 
   return (
-    <ScrollView style={{ marginBottom: 55 }}>
+    <ScrollView 
+      keyboardShouldPersistTaps="handled"
+      style={{ marginBottom: 55 }}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <HelpText
