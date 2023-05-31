@@ -3,12 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 import Button from '../../../components/Button';
 
+import { colors } from '../../../config/constants';
+
 const TemplateItem = (props) => {
   const item = props.template;
-
-  const onPress = () => {
-    props.selectTemplate(item.id)
-  }
 
   const onView = () => {
     props.navigation.navigate('TallyEdit', {
@@ -17,19 +15,27 @@ const TemplateItem = (props) => {
     });
   }
 
+  const share = () => {
+    props.generate(item.id)
+  }
+
   const isActive = props.activeId === item.id
 
   return (
     <View style={styles.container} testID={props.testID}>
-      <TouchableOpacity onPress={onPress}>
+      <TouchableOpacity onPress={onView}>
         <View style={isActive ? styles.activeItem: styles.item}>
-          <Text style={isActive && styles.activeText}>{item.comment}</Text>
+          <Text style={[styles.comment, isActive && styles.activeText]}>{item.comment}</Text>
+          <Text>Tally type: {item.tally_type ?? 'N/A'}</Text>
+          <Text>Partner CID: {item.part_cid ?? 'N/A'}</Text>
+          <Text>Status: {item.status ?? 'N/A'}</Text>
+          <Text>Credit limit: {item?.hold_terms?.limit ?? 'N/A'}</Text>
         </View>
       </TouchableOpacity>
 
       <Button 
-        title="View" 
-        onPress={onView}
+        title="Share" 
+        onPress={share}
       />
     </View>
   )
@@ -54,6 +60,11 @@ const styles = StyleSheet.create({
   },
   activeText: {
     color: '#fff',
+  },
+  comment: {
+    fontWeight: 'bold',
+    color: colors.black,
+    marginBottom: 5,
   }
 })
 

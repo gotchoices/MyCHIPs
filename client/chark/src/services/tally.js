@@ -1,17 +1,25 @@
 import { random } from '../utils/common';
-import { langRegister } from './request';
+import { langRegister, request } from './request';
 
 export const getTallyText = (wm) => {
-  const tallies = langRegister(wm, '_tally_lang' + random(), 'mychips.tallies');
+  return langRegister(wm, '_tally_lang' + random(), 'mychips.tallies');
+}
 
-  return Promise.all([
-    tallies,
-  ]).then(responses => {
-    const result = responses.reduce((response, acc) => {
-      return Object.assign(acc, response ?? {});
-    }, {});
+/**
+ * @param {Object} - args
+ * @param {string[]} - args.fields
+ * @param {any} - [args.where]
+ */
+export const fetchTallies = (wm, args) => {
+  const spec = {
+    fields: args.fields,
+    view: 'mychips.tallies_v_me',
+  }
 
-    return result;
-  })
+  if(args.where) {
+    spec.where = where;
+  }
+
+  return request(wm, 'tallies' + random(), 'select', spec);
 }
 

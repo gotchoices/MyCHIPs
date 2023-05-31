@@ -26,6 +26,7 @@ const EditTally = (props) => {
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
   const { messageText, setMessageText } = useMessageText();
+  const talliesText = messageText?.tallies ?? {};
 
   const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,20 +49,23 @@ const EditTally = (props) => {
   }, [])
 
   useEffect(() => {
-    getTallyText(wm).then(tallyText => {
-      setMessageText((prev) => {
-        return {
-          ...prev,
-          ...tallyText,
-        }
+    if(wm && !messageText?.tallies) {
+      getTallyText(wm).then(tallies => {
+        setMessageText((prev) => {
+          return {
+            ...prev,
+            tallies,
+          }
+        })
       })
-    })
-  }, [])
+    }
+  }, [wm, messageText?.tallies])
 
   const fetchTally = (_refreshing = false) => {
     if(_refreshing) {
       setRefresing(true);
     }
+
     const spec = {
       fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
       view: 'mychips.tallies_v_me',
@@ -113,6 +117,7 @@ const EditTally = (props) => {
   }
 
   const onUpdate = () => {
+    Keyboard.dismiss();
     setUpdating(true);
 
     const payload = {
@@ -145,8 +150,6 @@ const EditTally = (props) => {
       if(err) {
         return;
       }
-
-      Keyboard.dismiss();
 
       setTriggerInviteFetch(c => {
         return c + 1;
@@ -188,8 +191,8 @@ const EditTally = (props) => {
 
         <View style={styles.detailControl}>
           <HelpText
-            label={messageText?.tally_type?.title ?? ''}
-            helpText={messageText?.tally_type?.help}
+            label={talliesText?.tally_type?.title ?? ''}
+            helpText={talliesText?.tally_type?.help}
             style={styles.headerText}
           />
           <Picker
@@ -208,8 +211,8 @@ const EditTally = (props) => {
         <View style={styles.detailControl}>
 
           <HelpText
-            label={messageText?.contract?.title ?? ''}
-            helpText={messageText?.contract?.help}
+            label={talliesText?.contract?.title ?? ''}
+            helpText={talliesText?.contract?.help}
             style={styles.headerText}
           />
           <Picker
@@ -226,8 +229,8 @@ const EditTally = (props) => {
 
         <View style={styles.detailControl}>
           <HelpText
-            label={messageText?.hold_terms?.title ?? ''}
-            helpText={messageText?.hold_terms?.help}
+            label={talliesText?.hold_terms?.title ?? ''}
+            helpText={talliesText?.hold_terms?.help}
             style={styles.headerText}
           />
 
@@ -260,8 +263,8 @@ const EditTally = (props) => {
 
         <View style={styles.detailControl}>
           <HelpText
-            label={messageText?.part_terms?.title ?? ''}
-            helpText={messageText?.part_terms?.help}
+            label={talliesText?.part_terms?.title ?? ''}
+            helpText={talliesText?.part_terms?.help}
             style={styles.headerText}
           />
 
@@ -294,8 +297,8 @@ const EditTally = (props) => {
 
         <View style={styles.detailControl}>
           <HelpText
-            label={messageText?.comment?.title ?? ''}
-            helpText={messageText?.comment?.help}
+            label={talliesText?.comment?.title ?? ''}
+            helpText={talliesText?.comment?.help}
             style={styles.headerText}
           />
 

@@ -10,12 +10,14 @@ const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
 
+  const talliesText = messageText?.tallies;
+
   return (
     <View>
       <View style={styles.detailControl}>
         <HelpText
-          label={messageText?.tally_uuid?.title ?? ''}
-          helpText={messageText?.tally_uuid?.help}
+          label={talliesText?.tally_uuid?.title ?? ''}
+          helpText={talliesText?.tally_uuid?.help}
           style={styles.headerText}
         />
         <Text>
@@ -25,8 +27,8 @@ const CommonTallyView = (props) => {
 
       <View style={styles.detailControl}>
         <HelpText
-          label={messageText?.tally_date?.title ?? ''}
-          helpText={messageText?.tally_date?.help}
+          label={talliesText?.tally_date?.title ?? ''}
+          helpText={talliesText?.tally_date?.help}
           style={styles.headerText}
         />
         <Text>
@@ -36,8 +38,8 @@ const CommonTallyView = (props) => {
 
       <View style={styles.detailControl}>
         <HelpText
-          label={messageText?.status?.title ?? ''}
-          helpText={messageText?.status?.help}
+          label={talliesText?.status?.title ?? ''}
+          helpText={talliesText?.status?.help}
           style={styles.headerText}
         />
 

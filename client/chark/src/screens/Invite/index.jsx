@@ -28,6 +28,7 @@ const TallyInvite = (props) => {
   }, [ws, triggerInviteFetch]);
 
   const selectTemplate = (tally_seq) => {
+    return;
     if(tally_seq === selectedTallySeq) {
       setSelectedTallySeq(undefined);
       setTallyShareInfo(undefined)
@@ -55,7 +56,18 @@ const TallyInvite = (props) => {
     setLoading(true);
     setSelectedTallySeq(undefined);
     const spec = {
-      fields: ['tally_ent', 'tally_seq', 'contract', 'comment', 'tally_uuid', 'hold_terms', 'part_terms'],
+      fields: [
+        'tally_ent',
+        'tally_seq',
+        'contract',
+        'comment',
+        'tally_uuid',
+        'hold_terms',
+        'part_terms',
+        'tally_type',
+        'status',
+        'part_cid',
+      ],
       view: 'mychips.tallies_v_me',
       where: { state: 'draft' },
       order: {
@@ -72,6 +84,9 @@ const TallyInvite = (props) => {
         comment: el.comment,
         hold_terms: el.hold_terms,
         part_terms: el.part_terms,
+        tally_type: el.tally_type,
+        status: el.status,
+        part_cid: el.part_cid,
       }));
 
       setData(_data);
@@ -80,12 +95,13 @@ const TallyInvite = (props) => {
     });
   }
 
-  const generate = () => {
-    if(!selectedTallySeq) {
-      return;
-    }
+  const generate = (tally_seq) => {
+    //if(!selectedTallySeq) {
+      //return;
+    //}
 
-    const template = data?.find((item) => item.id === selectedTallySeq); 
+    //const template = data?.find((item) => item.id === selectedTallySeq); 
+    const template = data?.find((item) => item.id === tally_seq); 
 
     const hold_limit = template?.hold_terms?.limit;
     const part_limit = template?.part_terms?.limit;
@@ -137,6 +153,7 @@ const TallyInvite = (props) => {
         activeId={selectedTallySeq}
         selectTemplate={selectTemplate}
         navigation={props.navigation}
+        generate={generate}
       />
     )
   }
@@ -159,27 +176,27 @@ const TallyInvite = (props) => {
         <View
           style={styles.listHeading}
         >
-          <Text style={styles.templateText}>Templates: </Text>
+          <Text style={styles.templateText}>Drafts: </Text>
 
           <View style={{ marginLeft: 10 }}>
             <Button
-              title="New Invite"
+              title="New Draft"
               onPress={() => newTemplate()}
             />
           </View>
 
-        {
-          selectedTallySeq && (
-            <View style={{ marginLeft: 10 }} testID="templateBtn">
-              <Button
-                style={{ backgroundColor: colors.mustardBrown, borderColor: colors.mustardBrown }}
-                title="From Template"
-                onPress={() => generate()}
-                disabled={generatingInvite}
-              />
-            </View>
-          )
-        }
+          {
+            selectedTallySeq && (
+              <View style={{ marginLeft: 10 }} testID="templateBtn">
+                <Button
+                  style={{ backgroundColor: colors.mustardBrown, borderColor: colors.mustardBrown }}
+                  title="From Template"
+                  onPress={() => generate()}
+                  disabled={generatingInvite}
+                />
+              </View>
+            )
+          }
         </View>
 
         <FlatList 
