@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInput,
   RefreshControl,
+  Keyboard,
 } from 'react-native';
 
 import { colors } from '../../../config/constants';
@@ -130,6 +131,8 @@ const EditTally = (props) => {
         return;
       }
 
+      Keyboard.dismiss();
+
       setTriggerInviteFetch(c => {
         return c + 1;
       })
@@ -156,6 +159,7 @@ const EditTally = (props) => {
 
   return (
     <ScrollView
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
