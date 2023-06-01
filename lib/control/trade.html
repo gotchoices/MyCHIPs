@@ -6,10 +6,23 @@ X-  Make input box with each slider
 X-  Get them to display along bottom
 X-  Can input number into boxes
 X-  or adjust current number with sliders
--  Build tap, responsive to slider
--  Make arrow reusable
-- Bidirectional arrow for regular chits
-- Make target, bound display at different vertical height
+X-  Build tap, responsive to slider
+X-  Make arrow reusable
+X-  Taps reach bottom of graph
+-  Data contains info for arrow orientation (dir = 1 or -1)
+-  Draw arrow head
+-  Arrows render in correct direction
+-  
+- Add bidirectional arrow for regular chits
+- Target, bound display at different vertical height
+- Where to display/update credit/call limit?
+- Integrate into report generator, view in wylib
+- Access language data from DB
+- Display warning when in subsidy mode
+- Add reset/submit buttons
+- Implement context helps (?)
+- Optimize calls to repaint
+- Optimize styles >> CSS
 - 
 - Review css styles
 - 
@@ -30,6 +43,8 @@ X-  or adjust current number with sliders
     #svgContainer {
       width: 100%;
       position: relative;
+/*      padding: 2px; */
+      margin: 2px;
     }
     #reportSVG {
 /*      border: 1px blue solid; */
@@ -109,32 +124,39 @@ const markerWidth	= 12			//Link arrowhead marker
 const markerHeight	= 8
 const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
 //const Pi2		= Math.PI / 2
-var svgWid = 400, svgHei = 160		//Default image size
-var border		= 10
-var graphX		= svgWid * 0.80
-var graphY		= svgHei * 0.80
+var graphX		= 300		//Graphing space
+var graphY		= 120
+var border		= 4
 var entRad		= 5
 var entWidth		= 40
-var entHeight		= svgHei * 0.80
-var arrWidth		= 20
+var entHeight		= graphY
+var entTop		= 20
+var arrowWid		= 20
+var takeArrow		= 60
+var giveArrow		= 100
+var Arrow		= 60
+var svgWid		= graphX + entWidth * 2 + border * 2
+var svgHei		= graphY + entTop + border * 2
+var xMin		= -entWidth - border
+var yMin		= -border
 
 var entityData = [
-  {name: 'Me', x:0, y:20},
-  {name: 'Partner', x:graphX, y:20}
+  {name: 'Me', x:-entWidth, y:entTop},
+  {name: 'Partner', x:graphX, y:entTop}
 ]
 var setPointData = [
   {name: 'Target', x:10, y:0},
   {name: 'Bound', x:30, y:0}
 ]
 var liftArrowData = [
-  {name: 'Lift', x:0, y:60, tap:0, yOut: 60, fill:'yellow'},
-  {name: 'Drop', x:0, y:100, tap:0, yOut: 20, fill:'orange'}
+  {name: 'Take', x:0, y:takeArrow, tap:0, xTap:graphX/4*3, yOut: graphY - takeArrow, fill:'yellow'},
+  {name: 'Give', x:0, y:giveArrow, tap:0, xTap:graphX/4*1, yOut: graphY - giveArrow, fill:'orange'}
 ]
 
 const svg = d3.select("#reportSVG")			//Basic SVG settings
-    .attr("viewBox", [-border, -border, svgWid + border * 2, svgHei + border * 2])
+    .attr("viewBox", [xMin, yMin, svgWid, svgHei])
 //    .attr("width", svgWid).attr("height", svgHei)
-.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 V${svgHei} H${svgWid} v${-svgHei} h${-svgWid}`))	//Outline for debug
+.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 v${graphY} h${graphX} v${-graphY} h${-graphX}`))	//Outline for debug
     
 svg.select('#arrow')			//Add attributes to arrow marker
   .attr('viewBox', [0, 0, markerWidth, markerHeight])
@@ -166,9 +188,8 @@ const paintArrows = function () {
   .join("path")
     .attr("d", d => {
       let alen = graphX
-        , xTap = alen / 4
-        , tapRad = arrWidth / 2
-        , tapSize = Math.abs(arrWidth * d.tap)
+        , tapRad = arrowWid / 2
+        , tapSize = Math.abs(arrowWid * d.tap)
         , bigArc = tapRad + tapSize
         , dir = d.tap >= 0 ? -1 : 1
         , a1 = d.tap >= 0
@@ -177,9 +198,9 @@ const paintArrows = function () {
         , a2 = d.tap >= 0
              ? `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${-bigArc}`
              : `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${-tapRad}`
-      return `M 0 0 L 0 ${-arrWidth / 2} H ${alen}
-          v ${d.tap >= 0 ? arrWidth : arrWidth - tapSize}
-          h ${d.tap >= 0 ? -xTap + tapRad : -xTap - tapRad}
+      return `M 0 0 L 0 ${-arrowWid / 2} H ${alen}
+          v ${d.tap >= 0 ? arrowWid : arrowWid - tapSize}
+          h ${d.tap >= 0 ? -d.xTap + tapRad : -d.xTap - tapRad}
           ${a1}
           v ${d.yOut} h ${-tapSize} v${-d.yOut}
           ${a2}
