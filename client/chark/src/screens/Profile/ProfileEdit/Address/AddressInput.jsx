@@ -2,15 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {
   StyleSheet,
-  Text,
   View,
   TouchableWithoutFeedback,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Picker } from '@react-native-picker/picker';
 
 import { colors } from '../../../../config/constants';
-import HelpText from '../../../../components/HelpText';
 import HelpTextInput from '../../../../components/HelpTextInput';
 
 const AddressInput = (props) => {

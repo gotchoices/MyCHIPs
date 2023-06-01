@@ -12,8 +12,8 @@ import {
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
-import useMessageText from '../../../hooks/useMessageText';
-import { getTallyText } from '../../../services/tally';
+import { useTallyText } from '../../../hooks/useLanguage';
+import { fetchTallies } from '../../../services/tally';
 
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
@@ -25,8 +25,7 @@ const EditTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
-  const { messageText, setMessageText } = useMessageText();
-  const talliesText = messageText?.tallies ?? {};
+  const talliesText = useTallyText(wm);
 
   const [updating, setUpdating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -45,39 +44,21 @@ const EditTally = (props) => {
   const [comment, setComment] = useState(comment);
 
   useEffect(() => {
-    fetchTally();
-  }, [])
+    _fetchTally();
+  }, [wm])
 
-  useEffect(() => {
-    if(wm && !messageText?.tallies) {
-      getTallyText(wm).then(tallies => {
-        setMessageText((prev) => {
-          return {
-            ...prev,
-            tallies,
-          }
-        })
-      })
-    }
-  }, [wm, messageText?.tallies])
-
-  const fetchTally = (_refreshing = false) => {
+  const _fetchTally = (_refreshing = false) => {
     if(_refreshing) {
-      setRefresing(true);
+      setRefreshing(true);
     }
 
-    const spec = {
+    fetchTallies(wm, {
       fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
-      view: 'mychips.tallies_v_me',
       where: {
         tally_ent,
         tally_seq,
       }
-    }
-
-    wm.request('_inv_ref', 'select', spec, data => {
-      setLoading(false);
-      setRefreshing(false);
+    }).then((data) => {
       const _tally = data?.[0];
       if(_tally) {
         setTally(data?.[0]);
@@ -95,7 +76,10 @@ const EditTally = (props) => {
           call: _tally.part_terms?.call?.toString(),
         })
       }
-    });
+    }).finally(() => {
+      setLoading(false);
+      setRefreshing(false);
+    })
   }
 
   const onHoldTermsChange = (name) => {
@@ -181,7 +165,7 @@ const EditTally = (props) => {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={fetchTally}
+          onRefresh={_fetchTally}
         />
       }
     >
@@ -191,7 +175,7 @@ const EditTally = (props) => {
 
         <View style={styles.detailControl}>
           <HelpText
-            label={talliesText?.tally_type?.title ?? ''}
+            label={talliesText?.PCI?.title ?? ''}
             helpText={talliesText?.tally_type?.help}
             style={styles.headerText}
           />

@@ -5,10 +5,11 @@ import useSocket from '../../hooks/useSocket';
 import useProfile from '../../hooks/useProfile';
 import { round } from '../../utils/common';
 import useCurrentUser from '../../hooks/useCurrentUser';;
+import { fetchTallies } from '../../services/tally';
+import { getCurrency } from '../../services/user';
 
 import TallyItem from './TallyItem';
 import TallyHeader from './TallyHeader';
-import { random } from '../../utils/common';
 
 const Tally = (props) => {
   const { wm, ws } = useSocket();
@@ -23,28 +24,17 @@ const Tally = (props) => {
 
   useEffect(() => {
     if (currencyCode) {
-      const espec = {
-        name: 'chip',
-        view: 'mychips.users_v_me',
-        data: {
-          options: {
-            curr: currencyCode,
-            format: 'json'
-          }
-        }
-      };
-
-      wm.request(`chip_json_${random(1000)}`, 'action', espec, (data, err) => {
-        if(!err) {
-          setConversionRate(parseFloat(data?.rate ?? 0));
-        }
-      });
+      getCurrency(wm, currencyCode).then(data => {
+        setConversionRate(parseFloat(data?.rate ?? 0));
+      }).catch(err => {
+        // TODO
+      })
     }
   }, [currencyCode])
 
   useEffect(() => {
     if (ws) {
-      fetchTallies()
+      _fetchTallies()
     }
   }, [user?.curr_eid])
 
@@ -66,22 +56,20 @@ const Tally = (props) => {
   }, [totalNet, conversionRate])
 
 
-  const fetchTallies = () => {
+  const _fetchTallies = () => {
     setLoading(true);
-    const spec = {
+    fetchTallies(wm, {
       fields: ['tally_seq', 'tally_ent', 'net', 'tally_type', 'part_chad', 'part_cert'],
-      view: 'mychips.tallies_v_me',
       where: {
         status: 'open',
       }
-    }
-
-    wm.request('_inv_ref', 'select', spec, data => {
+    }).then(data => {
       if (data) {
         setTallies(data);
         setLoading(false);
       }
-    });
+    }).catch(err => {
+    })
   }
 
   const onItemPress = ({ tally_seq, tally_ent }) => {
@@ -127,7 +115,7 @@ const Tally = (props) => {
       showsVerticalScrollIndicator={false}
       keyExtractor={(_, index) => index}
       refreshing={loading}
-      onRefresh={() => fetchTallies()}
+      onRefresh={_fetchTallies}
     />
   )
 }

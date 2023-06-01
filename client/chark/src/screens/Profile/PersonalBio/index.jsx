@@ -28,6 +28,7 @@ const Item = (props) => {
 const PersonalBio = (props) => {
   const { personal } = useProfile();
   const { messageText } = useMessageText();
+  const profileText = messageText?.profile ?? {};
 
   const onEditPress = () => {
     props.navigation.navigate('ProfileEdit', {
@@ -44,20 +45,20 @@ const PersonalBio = (props) => {
       />
 
       <Item
-        title={messageText?.tax_id?.title}
-        helpText={messageText?.tax_id?.help}
+        title={profileText?.tax_id?.title ?? ''}
+        helpText={profileText?.tax_id?.help}
         value={personal?.tax_id}
       />
 
       <Item
-        title={messageText?.country?.title}
-        helpText={messageText?.country?.help}
+        title={profileText?.country?.title ?? ''}
+        helpText={profileText?.country?.help}
         value={personal?.country}
       />
 
       <Item
-        title={messageText?.born_date?.title}
-        helpText={messageText?.born_date?.help}
+        title={profileText?.born_date?.title ?? ''}
+        helpText={profileText?.born_date?.help}
         value={personal?.born_date}
       />
 

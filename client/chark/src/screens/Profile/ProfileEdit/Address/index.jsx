@@ -19,27 +19,15 @@ const Address = (props) => {
   const { user } = useCurrentUser();
   const { messageText } = useMessageText();
   const { wm } = useSocket();
+  const profileText = messageText?.profile ?? {};
 
   const [updating, setUpdating] = useState(false);
   const [mail, setMail] = useState([]);
   const [physical, setPhysical] = useState([]);
   const [birth, setBirth] = useState({});
-  const [countries, setCountries] = useState([]);
   const [itemsToRemove, setItemsToRemove] = useState([]);
 
   const user_ent = user?.curr_eid;
-
-  //useEffect(() => {
-    //const spec = {
-      //fields: ['comm_name', 'code'],
-      //view: ['mychips.country'],
-    //}
-
-    //request(wm, `country_ref_${random(1000)}`, 'select', spec).then(response => {
-      //console.log('hello', response)
-      //setCountries(response);
-    //})
-  //}, [])
 
   useEffect(() => {
     const _mail = [];
@@ -262,8 +250,8 @@ const Address = (props) => {
       <View style={styles.addressSection}>
         <View style={styles.header}>
           <HelpText
-            label={messageText?.mail_addr?.title ?? ''}
-            helpText={messageText?.mail_addr?.help}
+            label={profileText?.mail_addr?.title ?? ''}
+            helpText={profileText?.mail_addr?.help}
             style={styles.title}
           />
         </View>
@@ -294,8 +282,8 @@ const Address = (props) => {
       <View style={styles.addressSection}>
         <View style={styles.header}>
           <HelpText
-            label={messageText?.phys_addr?.title ?? ''}
-            helpText={messageText?.phys_addr?.help}
+            label={profileText?.phys_addr?.title ?? ''}
+            helpText={profileText?.phys_addr?.help}
             style={styles.title}
           />
         </View>
