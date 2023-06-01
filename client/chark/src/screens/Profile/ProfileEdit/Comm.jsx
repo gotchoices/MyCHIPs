@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
-  StyleSheet,
-  TextInput,
   Text,
   TouchableWithoutFeedback,
   ScrollView,
   Modal,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
@@ -17,6 +16,7 @@ import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
 import { getComm } from '../../../services/profile';
 import useSocket from '../../../hooks/useSocket';
+import useMessageText from '../../../hooks/useMessageText';
 
 import HelpText from '../../../components/HelpText';
 import CenteredModal from '../../../components/CenteredModal';
@@ -35,11 +35,12 @@ let pkt = 1;
 const Comm = (props) => {
   const profileType = props.profileType
   const { user } = useCurrentUser();
-  const { lang, communications, setCommunications } = useProfile();
+  const { communications, setCommunications } = useProfile();
   const user_ent = user?.curr_eid;
   const [seqToRemove, setSeqToRemove] = useState([]);
   const [primary, setPrimary] = useState();
   const { wm } = useSocket();
+  const { messageText } = useMessageText();
 
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -159,6 +160,7 @@ const Comm = (props) => {
 
     setUpdating(true);
     Promise.all(promises).then(() => {
+      Keyboard.dismiss();
       Toast.show({
         type: 'success',
         text1: 'Changes saved successfully.',
@@ -232,12 +234,15 @@ const Comm = (props) => {
   }
 
   return (
-    <ScrollView style={{ marginBottom: 55 }}>
+    <ScrollView 
+      keyboardShouldPersistTaps="handled"
+      style={{ marginBottom: 55 }}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <HelpText
-            label={lang?.[`${profileType}_comm`]?.title}
-            helpText={lang?.[`${profileType}_comm`]?.help}
+            label={messageText?.[`${profileType}_comm`]?.title}
+            helpText={messageText?.[`${profileType}_comm`]?.help}
             style={styles.headerText}
           />
 

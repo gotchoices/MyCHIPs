@@ -107,7 +107,7 @@ const langRegister = (wm, uniqueId, view) => {
   })
 }
 
-export const getLang = (wm) => {
+export const getProfileText = (wm) => {
   const addr = langRegister(wm, '_addr_lang', 'base.addr_v_flat').then();
   const comm = langRegister(wm, '_comm_lang', 'base.comm_v_flat');
   const personal = langRegister(wm, 'user_lang', 'mychips.users_v_me');

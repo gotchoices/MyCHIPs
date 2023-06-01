@@ -1,15 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableWithoutFeedback,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { colors } from '../../../config/constants';
 import useProfile from '../../../hooks/useProfile';
+import useMessageText from '../../../hooks/useMessageText';
+
 import Header from '../Details/Header';
 import HelpText from '../../../components/HelpText';
 
@@ -27,7 +26,8 @@ const Item = (props) => {
 
 
 const PersonalBio = (props) => {
-  const { personal, lang } = useProfile();
+  const { personal } = useProfile();
+  const { messageText } = useMessageText();
 
   const onEditPress = () => {
     props.navigation.navigate('ProfileEdit', {
@@ -44,20 +44,20 @@ const PersonalBio = (props) => {
       />
 
       <Item
-        title={lang?.tax_id?.title}
-        helpText={lang?.tax_id?.help}
+        title={messageText?.tax_id?.title}
+        helpText={messageText?.tax_id?.help}
         value={personal?.tax_id}
       />
 
       <Item
-        title={lang?.country?.title}
-        helpText={lang?.country?.help}
+        title={messageText?.country?.title}
+        helpText={messageText?.country?.help}
         value={personal?.country}
       />
 
       <Item
-        title={lang?.born_date?.title}
-        helpText={lang?.born_date?.help}
+        title={messageText?.born_date?.title}
+        helpText={messageText?.born_date?.help}
         value={personal?.born_date}
       />
 
