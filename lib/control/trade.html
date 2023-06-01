@@ -1,16 +1,11 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Can drag a wire with d3
-X- Draggable bound, target
-X- Make box for holder, partner
-X- Build sliders to control reward, bound
 - Build fat arrow for lift
--  Make input box with each slider
--  Get them to display along bottom
--  Can input number into boxes
--  or adjust current number with sliders
--  
+X-  Make input box with each slider
+X-  Get them to display along bottom
+X-  Can input number into boxes
+X-  or adjust current number with sliders
 -  Build tap, responsive to slider
 -  Make arrow reusable
 - Bidirectional arrow for regular chits
@@ -28,7 +23,7 @@ X- Build sliders to control reward, bound
 /*      padding: 0; */
 /*      margin: 0; */
       font-family: sans-serif;
-      font-size: 12px;
+      font-size: 18px;
       text-anchor: left;
     }
 
@@ -66,6 +61,9 @@ X- Build sliders to control reward, bound
     }
     .rangeArea .slider {
       width: 100%;
+    }
+    .setpoint {
+      font-size: 12px;
     }
     
   </style>
@@ -111,26 +109,26 @@ const markerWidth	= 12			//Link arrowhead marker
 const markerHeight	= 8
 const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
 //const Pi2		= Math.PI / 2
-var svgWid = 400, svgHei = 200		//Default image size
+var svgWid = 400, svgHei = 160		//Default image size
 var border		= 10
 var graphX		= svgWid * 0.80
 var graphY		= svgHei * 0.80
 var entRad		= 5
 var entWidth		= 40
-var entHeight		= 200
+var entHeight		= svgHei * 0.80
 var arrWidth		= 20
 
 var entityData = [
-  {name: 'Me', x:0, y:0},
-  {name: 'Partner', x:graphX, y:0}
+  {name: 'Me', x:0, y:20},
+  {name: 'Partner', x:graphX, y:20}
 ]
 var setPointData = [
   {name: 'Target', x:10, y:0},
   {name: 'Bound', x:30, y:0}
 ]
 var liftArrowData = [
-  {name: 'Lift', x:0, y:40},
-  {name: 'Drop', x:0, y:100}
+  {name: 'Lift', x:0, y:60, tap:0, yOut: 60, fill:'yellow'},
+  {name: 'Drop', x:0, y:100, tap:0, yOut: 20, fill:'orange'}
 ]
 
 const svg = d3.select("#reportSVG")			//Basic SVG settings
@@ -157,29 +155,40 @@ const entities = svg.selectAll(".entity")
       .attr("fill", "lightblue")
   })
 
-const liftArrows = svg.selectAll(".liftArrow")
+const paintArrows = function () {
+  svg.selectAll(".liftArrow")
   .data(liftArrowData)
   .join('g').attr("class", "liftArrow")
   .attr("transform", d => `translate(${d.x},${d.y})`)
-  .call(s => {
-    let a2 = arrWidth / 2
-      , tapRate = 0.40
-      , alen = graphX
-      , xTap = alen / 4
-      , tapRad = arrWidth / 2
-      , tapSize = arrWidth * tapRate
-      , path = `M 0 0 L 0 ${-a2} H ${alen} V ${arrWidth - tapSize} h ${-xTap + tapRad}
-        a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}
-        h ${-tapSize}
-        a ${tapRad + tapSize} ${tapRad + tapSize} 0 0 1 ${tapRad + tapSize} ${-tapRad - tapSize}
-        H 0
-      `
-    s.append("path")
-      .attr("d", path)
-      .attr("stroke", "red").attr("stroke-width", 1)
-      .attr("fill", "pink")
-  })
-  
+
+  .selectAll("path")
+  .data(d => [d])
+  .join("path")
+    .attr("d", d => {
+      let alen = graphX
+        , xTap = alen / 4
+        , tapRad = arrWidth / 2
+        , tapSize = Math.abs(arrWidth * d.tap)
+        , bigArc = tapRad + tapSize
+        , dir = d.tap >= 0 ? -1 : 1
+        , a1 = d.tap >= 0
+             ? `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}`
+             : `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${bigArc}`
+        , a2 = d.tap >= 0
+             ? `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${-bigArc}`
+             : `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${-tapRad}`
+      return `M 0 0 L 0 ${-arrWidth / 2} H ${alen}
+          v ${d.tap >= 0 ? arrWidth : arrWidth - tapSize}
+          h ${d.tap >= 0 ? -xTap + tapRad : -xTap - tapRad}
+          ${a1}
+          v ${d.yOut} h ${-tapSize} v${-d.yOut}
+          ${a2}
+          H 0 Z`
+    })
+    .attr("stroke-width", 1)
+    .attr("stroke", "grey").attr("fill", d => d.fill)
+}
+
 const dragSets = d3.drag()		//Drag function called by set points
   .on("start", function (ev, d) {
       d3.select(this).raise().classed("active", true);
@@ -200,18 +209,14 @@ const setPoints = svg.selectAll(".setpoint")
   .attr("transform", d => `translate(${d.x},${d.y})`)
   .call(s => {
     s.append("line")
-      .attr("x1", 0).attr("y1", 0)
+      .attr("x1", 0).attr("y1", 20)
       .attr("x2", 0).attr("y2", graphY)
       .attr("stroke", "blue").attr("stroke-width", 1)
   })
   .call(s => {
     s.append("text")
-      .attr("x", 0)
-      .attr("y", 0)
+      .attr("x", 0).attr("y", 15)
       .text(d => d.name)
-      .attr("font-family", "sans-serif")
-      .attr("font-size", "20px")
-      .attr("fill", "black");
   })
   .call(dragSets)
 
@@ -226,33 +231,34 @@ console.log("Repaint:")
 //  paintEgo()
 }
 
-function paintEgo() {
-console.log("Paint Ego:")
-  ego.append("rect")
-    .attr("x", 100)
-    .attr("y", 100)
-    .attr("width", 200)
-    .attr("height", 200)
-//    .call(drag)
-    
-//    .attr("transform", d => `translate(${d.x},${d.y})`)
-//    .on('click', peerClick)
-}
-
 repaint()
 
 document.getElementById("rewardRange").oninput = function() {
-    document.getElementById("rewardBox").value = this.value;
+  document.getElementById("rewardBox").value = this.value;
+  liftArrowData[0].tap = this.value
+  paintArrows()
 }
 document.getElementById("rewardBox").oninput = function() {
-    document.getElementById("rewardRange").value = this.value;
+  document.getElementById("rewardRange").value = this.value;
+  liftArrowData[0].tap = this.value
+  paintArrows()
 }
 document.getElementById("clutchRange").oninput = function() {
-    document.getElementById("clutchBox").value = this.value;
+  document.getElementById("clutchBox").value = this.value;
+  liftArrowData[1].tap = this.value
+  paintArrows()
 }
 document.getElementById("clutchBox").oninput = function() {
-    document.getElementById("clutchRange").value = this.value;
+  document.getElementById("clutchRange").value = this.value;
+  liftArrowData[1].tap = this.value
+  paintArrows()
 }
+
+//repaint() {
+//  paintArrows()
+//}
+
+paintArrows()
 
 </script>
 </body>
