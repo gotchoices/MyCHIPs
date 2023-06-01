@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!--
+TODO:
+X- Can drag a wire with d3
+X- Draggable bound, target
+X- Make box for holder, partner
+X- Build sliders to control reward, bound
+- Build fat arrow for lift
+-  Make input box with each slider
+-  Get them to display along bottom
+-  Can input number into boxes
+-  or adjust current number with sliders
+-  
+-  Build tap, responsive to slider
+-  Make arrow reusable
+- Bidirectional arrow for regular chits
+- Make target, bound display at different vertical height
+- 
+- Review css styles
+- 
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Trading Variable Settings</title>
+  <style>
+    html, body {
+/*      padding: 0; */
+/*      margin: 0; */
+      font-family: sans-serif;
+      font-size: 12px;
+      text-anchor: left;
+    }
+
+    #svgContainer {
+      width: 100%;
+      position: relative;
+    }
+    #reportSVG {
+/*      border: 1px blue solid; */
+      width: 100%;
+      display: block;
+      margin: 0 auto;
+    }
+    #reportTitle {
+/*      position: absolute;*/
+      top: 10px;
+      left: 10px;
+    }
+    #ranges {
+/*      width: 100%; */
+      display: flex;
+      justify-content: space-between;
+    }
+    .rangeArea {
+        width: 49%;
+    }
+    .rangeRow {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      height: 1.5em;
+    }
+    .rangeArea input[type=number] {
+      width: 10ch;
+    }
+    .rangeArea .slider {
+      width: 100%;
+    }
+    
+  </style>
+</head>
+<body>
+  <div id="svgContainer">
+    <p id="reportTitle">Trading Variable Settings</p>
+    <svg id="reportSVG">
+      <defs>
+        <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
+        <radialGradient id="radGrad">
+          <stop offset="0%" style="stop-color:#FFF; stop-opacity:0.9"/>
+          <stop offset="100%" style="stop-color:#ccc; stop-opacity:0"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div id="ranges">
+    <div class="rangeArea">
+      <div class="rangeRow">
+        <p>Reward:</p>
+          <input type="number" id="rewardBox" value="0" min="-1" max="1" step="0.01"/>
+      </div>
+      <input type="range" class="slider" id="rewardRange" value="0" min="-1" max="1" step="0.01"/>
+    </div>
+    <div class="rangeArea">
+      <div class="rangeRow">
+        <p>Clutch:</p>
+          <input type="number" id="clutchBox" value="0" min="-1" max="1" step="0.01"/>
+      </div>
+      <input type="range" class="slider" id="clutchRange" value="0" min="-1" max="1" step="0.01"/>
+    </div>
+</div>
+
+<!---
+<script src="d3.js" charset="utf-8" type="text/javascript"></script>
+--->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8" type="text/javascript"></script>
+
+<script>
+const markerWidth	= 12			//Link arrowhead marker
+const markerHeight	= 8
+const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
+//const Pi2		= Math.PI / 2
+var svgWid = 400, svgHei = 200		//Default image size
+var border		= 10
+var graphX		= svgWid * 0.80
+var graphY		= svgHei * 0.80
+var entRad		= 5
+var entWidth		= 40
+var entHeight		= 200
+var arrWidth		= 20
+
+var entityData = [
+  {name: 'Me', x:0, y:0},
+  {name: 'Partner', x:graphX, y:0}
+]
+var setPointData = [
+  {name: 'Target', x:10, y:0},
+  {name: 'Bound', x:30, y:0}
+]
+var liftArrowData = [
+  {name: 'Lift', x:0, y:40},
+  {name: 'Drop', x:0, y:100}
+]
+
+const svg = d3.select("#reportSVG")			//Basic SVG settings
+    .attr("viewBox", [-border, -border, svgWid + border * 2, svgHei + border * 2])
+//    .attr("width", svgWid).attr("height", svgHei)
+.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 V${svgHei} H${svgWid} v${-svgHei} h${-svgWid}`))	//Outline for debug
+    
+svg.select('#arrow')			//Add attributes to arrow marker
+  .attr('viewBox', [0, 0, markerWidth, markerHeight])
+  .attr('refX', 0).attr('refY', markerHeight/2)
+  .attr('markerWidth', markerWidth).attr('markerHeight', markerHeight)
+  .append('path').attr('d', d3.line()(arrowPoints))
+
+const entities = svg.selectAll(".entity")
+  .data(entityData)
+  .join('g').attr("class", "entity")
+  .attr("transform", d => `translate(${d.x},${d.y})`)
+  .call(s => {
+    s.append("rect")
+      .attr("x", 0).attr("y", 0)
+      .attr("rx", entRad)
+      .attr("width", entWidth).attr("height", entHeight)
+      .attr("stroke", "blue").attr("stroke-width", 1)
+      .attr("fill", "lightblue")
+  })
+
+const liftArrows = svg.selectAll(".liftArrow")
+  .data(liftArrowData)
+  .join('g').attr("class", "liftArrow")
+  .attr("transform", d => `translate(${d.x},${d.y})`)
+  .call(s => {
+    let a2 = arrWidth / 2
+      , tapRate = 0.40
+      , alen = graphX
+      , xTap = alen / 4
+      , tapRad = arrWidth / 2
+      , tapSize = arrWidth * tapRate
+      , path = `M 0 0 L 0 ${-a2} H ${alen} V ${arrWidth - tapSize} h ${-xTap + tapRad}
+        a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}
+        h ${-tapSize}
+        a ${tapRad + tapSize} ${tapRad + tapSize} 0 0 1 ${tapRad + tapSize} ${-tapRad - tapSize}
+        H 0
+      `
+    s.append("path")
+      .attr("d", path)
+      .attr("stroke", "red").attr("stroke-width", 1)
+      .attr("fill", "pink")
+  })
+  
+const dragSets = d3.drag()		//Drag function called by set points
+  .on("start", function (ev, d) {
+      d3.select(this).raise().classed("active", true);
+  })
+  .on("drag", function (ev, d) {	//console.log("drag:", ev, d)
+    d.x = ev.x
+    d3.select(this)
+      .attr("transform", `translate(${d.x},${d.y})`)
+//    paintSets()
+  })
+  .on("end", function (ev, d) {
+    d3.select(this).classed("active", false);
+  })
+
+const setPoints = svg.selectAll(".setpoint")
+  .data(setPointData)
+  .join('g').attr("class", "setpoint")
+  .attr("transform", d => `translate(${d.x},${d.y})`)
+  .call(s => {
+    s.append("line")
+      .attr("x1", 0).attr("y1", 0)
+      .attr("x2", 0).attr("y2", graphY)
+      .attr("stroke", "blue").attr("stroke-width", 1)
+  })
+  .call(s => {
+    s.append("text")
+      .attr("x", 0)
+      .attr("y", 0)
+      .text(d => d.name)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "20px")
+      .attr("fill", "black");
+  })
+  .call(dragSets)
+
+function repaint() {
+console.log("Repaint:")
+//  bodyGen = new VisBSUser(userData)
+//  let user = bodyGen.user(userData)
+  
+//  egoRad = user.radius
+//  ego.html(user.body)			//;console.log("UserBody:", user.body)
+  
+//  paintEgo()
+}
+
+function paintEgo() {
+console.log("Paint Ego:")
+  ego.append("rect")
+    .attr("x", 100)
+    .attr("y", 100)
+    .attr("width", 200)
+    .attr("height", 200)
+//    .call(drag)
+    
+//    .attr("transform", d => `translate(${d.x},${d.y})`)
+//    .on('click', peerClick)
+}
+
+repaint()
+
+document.getElementById("rewardRange").oninput = function() {
+    document.getElementById("rewardBox").value = this.value;
+}
+document.getElementById("rewardBox").oninput = function() {
+    document.getElementById("rewardRange").value = this.value;
+}
+document.getElementById("clutchRange").oninput = function() {
+    document.getElementById("clutchBox").value = this.value;
+}
+document.getElementById("clutchBox").oninput = function() {
+    document.getElementById("clutchRange").value = this.value;
+}
+
+</script>
+</body>
+</html>
