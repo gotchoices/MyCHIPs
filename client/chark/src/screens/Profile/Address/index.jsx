@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import { colors } from '../../../config/constants';
-import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
 import useMessageText from '../../../hooks/useMessageText';
 
@@ -10,11 +9,9 @@ import AddressItem from './AddressItem';
 import Header from '../Details/Header';
 
 const Address = (props) => {
-  const { user } = useCurrentUser();
   const { addresses } = useProfile();
   const { messageText } = useMessageText();
-
-  const user_ent = user?.curr_eid;
+  const profileText = messageText?.profile ?? {};
 
   const addressObj = useMemo(() => {
     const mail = [];
@@ -44,18 +41,18 @@ const Address = (props) => {
 
   const _addresses = [
     {
-      title: messageText?.mail_addr?.title ?? '',
-      helpText: messageText?.mail_addr?.help ?? '',
+      title: profileText?.mail_addr?.title ?? '',
+      helpText: profileText?.mail_addr?.help ?? '',
       items: addressObj?.mail ?? [],
     },
     {
-      title: messageText?.phys_addr?.title ?? '',
-      helpText: messageText?.phys_addr?.help ?? '',
+      title: profileText?.phys_addr?.title ?? '',
+      helpText: profileText?.phys_addr?.help ?? '',
       items: addressObj?.physical ?? [],
     },
     {
       title: 'Birth Address',
-      helpText: messageText?.birth_addr?.help ?? '',
+      helpText: profileText?.birth_addr?.help ?? '',
       items: addressObj?.birth?.length ? [addressObj?.birth?.[0]] : [],
     },
   ];

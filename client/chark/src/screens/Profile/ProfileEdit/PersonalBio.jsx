@@ -24,6 +24,7 @@ const PersonalBio = (props) => {
   const { wm } = useSocket();
   const { messageText } = useMessageText();
   const user_ent = user?.curr_eid;
+  const profileText = messageText?.profile ?? {};
 
   const [updating, setUpdating] = useState(false);
 
@@ -81,22 +82,22 @@ const PersonalBio = (props) => {
           <HelpTextInput
             value={personal.tax_id}
             onChange={onChange('tax_id')}
-            label={messageText?.tax_id?.title}
-            helpText={messageText?.tax_id?.help}
+            label={profileText?.tax_id?.title}
+            helpText={profileText?.tax_id?.help}
           />
 
           <HelpTextInput
             value={personal.country}
             onChange={onChange('country')}
-            label={messageText?.country?.title}
-            helpText={messageText?.country?.help}
+            label={profileText?.country?.title}
+            helpText={profileText?.country?.help}
           />
 
           <HelpTextInput
             value={personal.born_date}
             onChange={onChange('born_date')}
-            label={messageText?.born_date?.title}
-            helpText={messageText?.born_date?.help}
+            label={profileText?.born_date?.title}
+            helpText={profileText?.born_date?.help}
           />
 
           <View style={{ marginTop: 24, marginBottom: 16 }}>

@@ -25,11 +25,9 @@ import notifee, { EventType } from '@notifee/react-native';
 import qs from 'query-string';
 
 import ServIcon from './src/servicon'
-//import TallyInvite from './src/invite'
 import Invite from './src/screens/Invite'
 import Home from './src/screens/Home';
 import Scanner from './src/screens/Scanner';
-import Tally from './src/screens/Tally';
 import EditDraftTally from './src/screens/Tally/EditDraftTally';
 import EditOpenTally from './src/screens/Tally/EditOpenTally';
 import TallyReport from './src/screens/Tally/TallyReport';
@@ -39,14 +37,11 @@ import UserProvider from './src/components/UserProvider';
 import ProfileProvider from './src/components/ProfileProvider';
 import ProfileEdit from './src/screens/Profile/ProfileEdit';
 import TallyReview from './src/screens/TallyReview';
-import TallyRequest from './src/screens/TallyRequest';
 import SocketProvider from './src/components/SocketProvider';
 import InviteProvider from './src/components/InviteProvider';
 import MessageTextProvider from './src/components/MessageTextProvider';
 
 import { handleNotification } from './src/utils/notification';
-
-const listen = ['mychips_user','wylib']		//Listen for these notifies from the DB
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
@@ -56,7 +51,6 @@ function HomeStackScreen() {
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
       <HomeStack.Screen name="TallyReview" component={TallyReview} options={{ title: 'Tally Review' }} />
-      <HomeStack.Screen name="TallyRequest" component={TallyRequest} options={{ title: 'Tally Request' }} />
     </HomeStack.Navigator>
   );
 }
@@ -107,9 +101,6 @@ const linking = {
           Home: {
             path: 'connect',
           },
-          //TallyRequest: {
-            //path: 'tally',
-          //},
           TallyReview: {
             path: 'tally-accept/:tally_seq',
           },

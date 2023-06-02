@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
+import { fetchTallies } from '../../../services/tally';
+import { useTallyText } from '../../../hooks/useLanguage';
 
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
@@ -12,6 +13,7 @@ import Button from '../../../components/Button';
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
+  useTallyText(wm);
 
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
@@ -20,19 +22,14 @@ const EditOpenTally = (props) => {
   const [reward, setReward] = useState('');
   const [clutch, setClutch] = useState('');
 
-
   useEffect(() => {
-    const spec = {
+    fetchTallies(wm, {
       fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch'],
-      view: 'mychips.tallies_v_me',
       where: {
         tally_ent,
         tally_seq,
       },
-    }
-
-    wm.request('_inv_ref', 'select', spec, data => {
-      setLoading(false);
+    }).then(data => {
       if(data?.length) {
         const _tally = data?.[0];
         setTally(_tally);
@@ -41,8 +38,9 @@ const EditOpenTally = (props) => {
         setReward((_tally?.reward ?? '').toString())
         setClutch((_tally?.clutch ?? '').toString())
       }
-    });
-
+    }).finally(() => {
+      setLoading(false);
+    })
   }, [tally_seq, tally_ent])
 
   const onSave = () => {

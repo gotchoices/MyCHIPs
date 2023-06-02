@@ -1,3 +1,9 @@
+/**
+ * @param {any} wm - Wyseman instance
+ * @param {string} uniqueId- Unique string
+ * @param {string} action - Request action
+ * @param {Object} spec
+ */
 export const request = (wm, uniqueId, action, spec) => {
   return new Promise((resolve, reject) => {
     wm.request(uniqueId, action, spec, (data, err) => {

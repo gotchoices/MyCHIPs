@@ -3,10 +3,10 @@ import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Toast from 'react-native-toast-message';
 
-import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
 import { colors } from '../../../config/constants';
 import { parse } from '../../../utils/query-string';
+import { getTallyReport } from '../../../services/user';
 
 import Header from '../Header';
 
@@ -17,34 +17,18 @@ const TallyReport = (props) => {
   const { wm } = useSocket();
 
   useEffect(() => {
-    const spec = {
-      name:'graph',
-      view:'mychips.users_v_me',
-      data: {
-        options: {
-          format: 'url'
-        }
-      }
-    }
-
-    wm.request(`visual_balance_${random()}`, 'action', spec, (data, err) => {
-      if(err) {
-        Toast.show({
-          type: 'error',
-          text1: err.message,
-        })
-      } else {
-        setGraph(data);
-      }
+    getTallyReport(wm).then((data) => {
+      setGraph(data);
+    }).catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+      })
     })
-  }, [])
+  }, [setGraph])
 
   const navigateBalanceSheet = () => {
     props.navigation.navigate('Home');
-  }
-
-  const onWebViewError = (event) => {
-    console.log(event)
   }
 
   const interceptRequest = (request) => {

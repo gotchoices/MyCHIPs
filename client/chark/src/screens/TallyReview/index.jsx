@@ -13,8 +13,8 @@ import { colors } from '../../config/constants';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
-import useMessageText from '../../hooks/useMessageText';
-import { getTallyText } from '../../services/tally';
+import { useTallyText } from '../../hooks/useLanguage';
+import { fetchTallies, offerTally, acceptTally, refuseTally } from '../../services/tally';
 
 import Button from '../../components/Button';
 import CustomText from '../../components/CustomText';
@@ -26,11 +26,9 @@ const ProcessTally = (props) => {
   const { wm, tallyState } = useSocket();
   const { tally_seq } = props.route?.params ?? {};
   const { user } = useCurrentUser();
-  const { messageText, setMessageText } = useMessageText();
-  const talliesText = messageText?.tallies ?? {};
+  const talliesText = useTallyText(wm)
 
   const [updating, setUpdating] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
   const [tallyType, setTallyType] = useState('stock');
@@ -46,32 +44,14 @@ const ProcessTally = (props) => {
   const [comment, setComment] = useState(comment);
 
   useEffect(() => {
-    if(wm && !messageText?.tallies) {
-      getTallyText(wm).then(tallies => {
-        setMessageText((prev) => {
-          return {
-            ...prev,
-            tallies,
-          }
-        })
-      })
-    }
-  }, [wm, messageText?.tallies])
-
-  useEffect(() => {
     const fetchTally = () => {
-      const spec = {
+      fetchTallies(wm, {
         fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
-        view: 'mychips.tallies_v_me',
         where: {
           tally_ent: user?.curr_eid,
           tally_seq,
         }
-      }
-
-      wm.request('_inv_ref' + random(), 'select', spec, data => {
-        setLoading(false);
-        setRefreshing(false);
+      }).then(data => {
         const _tally = data?.[0];
         if(_tally) {
           setTally(data?.[0]);
@@ -88,7 +68,9 @@ const ProcessTally = (props) => {
             call: _tally.part_terms?.call?.toString(),
           })
         }
-      });
+      }).finally(() => {
+        setLoading(false);
+      })
     }
 
     fetchTally();
@@ -113,86 +95,56 @@ const ProcessTally = (props) => {
     }
   }
 
-  const offerTally = () => {
-    const data = {
+  const onOffer = () => {
+    offerTally(wm, {
       tally_uuid: tally.tally_uuid,
-      request: 'offer',
-      hold_sig: 'Originator Signature',
-    };
-
-    const spec = {
-      fields: data,
-      view: 'mychips.tallies_v_me',
-      where: {
-        tally_ent: user?.curr_eid,
-        tally_seq,
-      },
-    }
-
-    wm.request('_tally_offer' + random(), 'update', spec, (data, err) => {
-      if(err) {
-        return Toast.show({
-          type: 'error',
-          text1: err.message,
-        });
-      }
-
+      tally_ent: user?.curr_eid,
+      tally_seq,
+    }).then(() => {
       Toast.show({
         type: 'success',
         text1: 'Tally signed.'
       })
-    });
+    }).catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+      });
+    })
   }
 
-  const acceptTally = () => {
-    const data = {
-      request: 'open',
-      hold_sig: 'Subject Signature',
-    };
-
-    const spec = {
-      fields: data,
-      view: 'mychips.tallies_v_me',
-      where: {
-        tally_ent: user?.curr_eid,
-        tally_seq,
-      },
-    }
-
-    wm.request('_tally_accept' + random(), 'update', spec, (data, err) => {
-      if(err) {
-        return Toast.show({
-          type: 'error',
-          text1: err.message,
-        });
-      }
-
+  const onAccept = () => {
+    acceptTally(wm, {
+      tally_ent: user?.curr_eid,
+      tally_seq,
+    }).then(() => {
       Toast.show({
         type: 'success',
         text1: 'Tally accepted',
       });
-    });
+    }).catch(() => {
+      return Toast.show({
+        type: 'error',
+        text1: err.message,
+      });
+    })
   }
 
-  const refuseTally = () => {
-    const data = {
-      request: 'void',
-      hold_sig: null,
-    };
-
-    const spec = {
-      fields: data,
-      view: 'mychips.tallies_v_me',
-      where: {
-        tally_ent: user?.curr_eid,
-        tally_seq,
-      },
-    }
-
-    wm.request('_tally_reject' + random(), 'update', spec, data => {
-      console.log(data, 'data')
-    });
-
+  const onRefuse = () => {
+    refuseTally(wm, {
+      tally_ent: user?.curr_eid,
+      tally_seq,
+    }).then(() => {
+      Toast.show({
+        type: 'success',
+        text1: 'Tally refused.'
+      })
+    }).catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+      });
+    })
   }
 
   const onUpdate = () => {
@@ -387,7 +339,7 @@ const ProcessTally = (props) => {
               <Button
                 style={{ marginRight: 10 }}
                 title="Offer"
-                onPress={offerTally}
+                onPress={onOffer}
               />
             )
           }
@@ -397,7 +349,7 @@ const ProcessTally = (props) => {
               <Button
                 style={{ marginRight: 10 }}
                 title="Accept"
-                onPress={acceptTally}
+                onPress={onAccept}
               />
             )
           }
@@ -418,7 +370,7 @@ const ProcessTally = (props) => {
               <Button
                 title="Refuse"
                 style={styles.refuseBtn}
-                onPress={refuseTally}
+                onPress={onRefuse}
               />
             )
           }

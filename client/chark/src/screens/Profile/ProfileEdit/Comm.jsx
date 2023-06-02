@@ -41,15 +41,14 @@ const Comm = (props) => {
   const [primary, setPrimary] = useState();
   const { wm } = useSocket();
   const { messageText } = useMessageText();
+  const profileText = messageText?.profile ?? {};
 
-  const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [keys, setKeys] = useState([]);
   const [byKey, setByKey] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
-    const type = props.type
     const items = communications.filter((comm) => comm.comm_type === profileType);
     const _keys = [];
     const _byKey = {};
@@ -241,8 +240,8 @@ const Comm = (props) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <HelpText
-            label={messageText?.[`${profileType}_comm`]?.title}
-            helpText={messageText?.[`${profileType}_comm`]?.help}
+            label={profileText?.[`${profileType}_comm`]?.title ?? ''}
+            helpText={profileText?.[`${profileType}_comm`]?.help}
             style={styles.headerText}
           />
 

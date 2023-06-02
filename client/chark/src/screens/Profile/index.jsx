@@ -11,7 +11,7 @@ import useSocket from '../../hooks/useSocket';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
-import useMessageText from '../../hooks/useMessageText';
+import { useProfileText } from '../../hooks/useLanguage';
 import { getComm, getAddresses, getProfileText} from '../../services/profile';
 
 import Avatar from './Avatar';
@@ -30,7 +30,7 @@ const Profile = (props) => {
     setCommunications,
     setAddresses,
   } = useProfile();
-  const { messageText, setMessageText } = useMessageText();
+  const profileText = useProfileText(wm);
 
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
@@ -42,15 +42,6 @@ const Profile = (props) => {
 
     getAddresses(wm, user_ent).then(data => {
       setAddresses(data);
-    })
-
-    getProfileText(wm).then(data => {
-      setMessageText((prev) => {
-        return {
-          ...prev,
-          ...data,
-        }
-      });
     })
   }, [])
 
@@ -88,8 +79,8 @@ const Profile = (props) => {
 
         <View style={{ marginBottom: 16 }}>
           <Details
-            title={messageText?.email_comm?.title ?? ''}
-            helpText={messageText?.email_comm?.help ?? ''}
+            title={profileText?.email_comm?.title ?? ''}
+            helpText={profileText?.email_comm?.help ?? ''}
             rowField="comm_spec"
             primaryField="comm_prim"
             items={emails}
@@ -99,8 +90,8 @@ const Profile = (props) => {
 
         <View style={{ marginBottom: 16 }}>
           <Details
-            title={messageText?.phone_comm?.title ?? ''}
-            helpText={messageText?.phone_comm?.help ?? ''}
+            title={profileText?.phone_comm?.title ?? ''}
+            helpText={profileText?.phone_comm?.help ?? ''}
             rowField="comm_spec"
             primaryField="comm_prim"
             items={phones}

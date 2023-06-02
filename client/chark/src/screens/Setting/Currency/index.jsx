@@ -8,8 +8,8 @@ import HelpText from "../../../components/HelpText";
 
 import { colors } from '../../../config/constants';
 import useSocket from "../../../hooks/useSocket";
-import { random } from "../../../utils/common";
 import useProfile from "../../../hooks/useProfile";
+import { getCurrency } from '../../../services/currency';
 
 const Currency = (props) => {
   const [currency, setCurrency] = useState('');
@@ -18,21 +18,11 @@ const Currency = (props) => {
   const { preferredCurrency, setPreferredCurrency } = useProfile();
 
   useEffect(() => {
-    wm.request(`currency_ref_${random(1000)}`, 'select', {
-      view: 'base.currency',
-      fields: ['cur_code', 'cur_name'],
-      order: {
-        field: 'cur_name',
-        asc: true,
-      }
-    }, (data, err) => {
-      if(err) {
-        return console.log('Error fetching currency', err)
-      }
-
+    getCurrency(wm).then((data) => {
       setCurrencies(data ?? []);
+    }).catch(err => {
     })
-  }, [])
+  }, [setCurrencies])
 
   useEffect(() => {
     setCurrency(preferredCurrency.code);
