@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 TODO:
-- Build fat arrow for lift
+X- Build fat arrow for lift
 X-  Make input box with each slider
 X-  Get them to display along bottom
 X-  Can input number into boxes
@@ -9,15 +9,22 @@ X-  or adjust current number with sliders
 X-  Build tap, responsive to slider
 X-  Make arrow reusable
 X-  Taps reach bottom of graph
--  Data contains info for arrow orientation (dir = 1 or -1)
--  Draw arrow head
--  Arrows render in correct direction
+X-  Draw arrow head
+X- Add bidirectional arrow for direct chits
+- Where to display/adjust limit/call?
+- Label direct chit arrow
+- Label lift chit arrows area
+- Draw graph area behind arrows (narrower than gap)
+- Label graph at zero, tics up to limit
+- Align target/bound lines to graph area
+- Display actual target, bound values
+- Target, bound display in different spaces
 -  
-- Add bidirectional arrow for regular chits
-- Target, bound display at different vertical height
-- Where to display/update credit/call limit?
+- Data contains info for arrow orientation (dir = 1 or -1)
+- Arrowheads render in correct direction
+-  
 - Integrate into report generator, view in wylib
-- Access language data from DB
+- Pull language data from DB
 - Display warning when in subsidy mode
 - Add reset/submit buttons
 - Implement context helps (?)
@@ -80,6 +87,9 @@ X-  Taps reach bottom of graph
     .setpoint {
       font-size: 12px;
     }
+    .entity {
+      font-size: 10px;
+    }
     
   </style>
 </head>
@@ -132,17 +142,22 @@ var entWidth		= 40
 var entHeight		= graphY
 var entTop		= 20
 var arrowWid		= 20
-var takeArrow		= 60
-var giveArrow		= 100
-var Arrow		= 60
+var dirArrow		= 40
+var takeArrow		= 70
+var giveArrow		= 110
+//var Arrow		= 60
+var arrowSize		= 0.20
 var svgWid		= graphX + entWidth * 2 + border * 2
 var svgHei		= graphY + entTop + border * 2
 var xMin		= -entWidth - border
 var yMin		= -border
 
 var entityData = [
-  {name: 'Me', x:-entWidth, y:entTop},
-  {name: 'Partner', x:graphX, y:entTop}
+  {name: 'Me', x:graphX, y:entTop},
+  {name: 'Partner', x:-entWidth, y:entTop}
+]
+var directData = [
+  {x: 0, y:dirArrow}
 ]
 var setPointData = [
   {name: 'Target', x:10, y:0},
@@ -176,6 +191,24 @@ const entities = svg.selectAll(".entity")
       .attr("stroke", "blue").attr("stroke-width", 1)
       .attr("fill", "lightblue")
   })
+  .call(s => {
+    s.append("text")
+      .attr("x", "0.25em").attr("y", "1em")
+      .text(d => d.name)
+  })
+
+const direct = svg.selectAll(".direct")
+  .data(directData)
+  .join('g').attr("class", "direct")
+  .attr("transform", d => `translate(${d.x},${d.y})`)
+  .call(s => {
+    s.append("line")
+      .attr("x1", markerWidth).attr("y1", 0)
+      .attr("x2", graphX - markerWidth).attr("y2", 0)
+      .attr("marker-start", "url(#arrow)")
+      .attr("marker-end", "url(#arrow)")
+      .attr("stroke", "black").attr("stroke-width", 2)
+  })
 
 const paintArrows = function () {
   svg.selectAll(".liftArrow")
@@ -191,15 +224,17 @@ const paintArrows = function () {
         , tapRad = arrowWid / 2
         , tapSize = Math.abs(arrowWid * d.tap)
         , bigArc = tapRad + tapSize
-        , dir = d.tap >= 0 ? -1 : 1
+        , shaft = d.tap >= 0 ? arrowWid : arrowWid - tapSize
+        , arrowJot = shaft * arrowSize
+        , arrowTip = shaft / 2 + arrowJot
         , a1 = d.tap >= 0
              ? `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}`
              : `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${bigArc}`
         , a2 = d.tap >= 0
              ? `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${-bigArc}`
              : `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${-tapRad}`
-      return `M 0 0 L 0 ${-arrowWid / 2} H ${alen}
-          v ${d.tap >= 0 ? arrowWid : arrowWid - tapSize}
+      return `M 0 0 L 0 ${-arrowWid / 2} H ${alen - arrowTip}
+          v ${-arrowJot} l ${arrowTip} ${arrowTip} l ${-arrowTip} ${arrowTip} v ${-arrowJot}
           h ${d.tap >= 0 ? -d.xTap + tapRad : -d.xTap - tapRad}
           ${a1}
           v ${d.yOut} h ${-tapSize} v${-d.yOut}
