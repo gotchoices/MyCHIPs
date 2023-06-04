@@ -3,26 +3,25 @@
 TODO:
 X- Smaller text for graph ticks
 X- After update of max, graph updates
-- Convert setpoint initialization to paintSets function
-- 
-- Cursors display their current value
+X- Convert setpoint initialization to paintSets function
+X- Cursors display their current value
+X- Bigger main title
+X- Label graph at zero, tics up to limit
+X- Align target/bound lines to graph area
+X- Display actual target, bound values
+X- Target, bound display value in different spaces
 - After update of max, cursors update (position--not value)
-- 
-- Bigger main title
-- Reward/clutch turn red, display danger! when negative
 - Label direct chit arrow
 - Label lift chit arrows area
-- Draw graph area behind arrows (narrower than gap)
-- Label graph at zero, tics up to limit
-- Align target/bound lines to graph area
-- Display actual target, bound values
-- Target, bound display value in different spaces
--  
-- Where to display/adjust call?
+- Label graph as "credit limit"
 - Data contains info for arrow orientation (dir = 1 or -1)
 - Arrowheads render in correct direction
+- Reward/clutch turn red, display danger! when negative
+- Draw graph area behind arrows (narrower than gap)
 -  
+- Where to display/adjust call?
 - Integrate into report generator, view in wylib
+- Pull tally values from DB
 - Pull language data from DB
 - Display warning when in subsidy mode
 - Add reset/submit buttons
@@ -45,7 +44,9 @@ X- After update of max, graph updates
       font-size: 18px;
       text-anchor: left;
     }
-
+    #reportTitle {
+      font-size: 24px;
+    }
     #svgContainer {
       width: 100%;
       position: relative;
@@ -167,8 +168,8 @@ var directData = [
   {x: 0, y:dirArrow}
 ]
 var setPointData = [
-  {name: 'Target', value:0, x:0, y:0, anchor:'end'},
-  {name: 'Bound', value: 0, x:0, y:0, anchor:'start'}
+  {name: 'Target', value: 0, x:0, anchor:'end'},
+  {name: 'Bound', value: 0, x:0, anchor:'start'}
 ]
 var liftArrowData = [
   {name: 'Take', x:0, y:takeArrow, tap:0, xTap:graphX/4*3, yOut: graphY - takeArrow, fill:'yellow'},
@@ -206,6 +207,7 @@ const paintAxis = function () {
        if(newLimit && newLimit > 0) {
          credLimit = newLimit
          paintAxis()
+         paintSets()
        }
     })
   )
@@ -278,17 +280,25 @@ const paintArrows = function () {
     .attr("stroke", "grey").attr("fill", d => d.fill)
 }
 
+function checkTarget() {
+  let targ = setPointData[0]
+    , boun = setPointData[1]
+  if (targ.x > boun.x) {
+    targ.x = boun.x
+    targ.value = xScale.invert(targ.x).toFixed(3)
+  }
+}
+
 const dragSets = d3.drag()		//Drag function called by set points
   .on("start", function (ev, d) {
       d3.select(this).raise().classed("active", true);
   })
   .on("drag", function (ev, d) {	//console.log("drag:", ev, d)
-    d.x = ev.x
-    d.value = xScale.invert(d.x)
-console.log('v:', d.value)
-    d3.select(this)
-      .attr("transform", `translate(${d.x},${d.y})`)
-//    paintSets()
+    d.x = ev.x < 0 ? 0 :
+          ev.x > graphX ? graphX : ev.x
+    checkTarget()
+    d.value = xScale.invert(d.x).toFixed(3)
+    paintSets()
   })
   .on("end", function (ev, d) {
     d3.select(this).classed("active", false);
@@ -297,33 +307,29 @@ console.log('v:', d.value)
 const setPoints = svg.selectAll(".setpoint")
   .data(setPointData)
   .join('g').attr("class", "setpoint")
-  .attr("transform", d => `translate(${d.x},${d.y})`)
+  .attr("text-anchor", d => d.anchor)
   .call(s => {
     s.append("line")
-      .attr("x1", 0).attr("y1", 20)
+      .attr("x1", 0).attr("y1", "3em")
       .attr("x2", 0).attr("y2", graphY)
       .attr("stroke", "blue").attr("stroke-width", 1)
   })
   .call(s => {
     s.append("text")
-      .attr("x", 0).attr("y", 15)
-      .attr("text-anchor", d => d.anchor)
+      .attr("x", 0).attr("y", "1em")
       .text(d => d.name)
   })
   .call(dragSets)
 
-function repaint() {
-console.log("Repaint:")
-//  bodyGen = new VisBSUser(userData)
-//  let user = bodyGen.user(userData)
-  
-//  egoRad = user.radius
-//  ego.html(user.body)			//;console.log("UserBody:", user.body)
-  
-//  paintEgo()
+function paintSets() {
+console.log('ps:')
+  setPoints.attr("transform", d => `translate(${d.x}, 0)`)
+  .selectAll(".setValue")
+  .data(d => [d])
+  .join("text").attr("class", "setValue")
+  .attr("x", 0).attr("y", "2em")
+  .text(d => d.value)
 }
-
-repaint()
 
 document.getElementById("rewardRange").oninput = function() {
   document.getElementById("rewardBox").value = this.value;
@@ -352,6 +358,7 @@ document.getElementById("clutchBox").oninput = function() {
 
 paintArrows()
 paintAxis()
+paintSets()
 
 </script>
 </body>
