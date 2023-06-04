@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Build fat arrow for lift
-X-  Make input box with each slider
-X-  Get them to display along bottom
-X-  Can input number into boxes
-X-  or adjust current number with sliders
-X-  Build tap, responsive to slider
-X-  Make arrow reusable
-X-  Taps reach bottom of graph
-X-  Draw arrow head
-X- Add bidirectional arrow for direct chits
-- Where to display/adjust limit/call?
+X- Smaller text for graph ticks
+X- After update of max, graph updates
+- Convert setpoint initialization to paintSets function
+- 
+- Cursors display their current value
+- After update of max, cursors update (position--not value)
+- 
+- Bigger main title
+- Reward/clutch turn red, display danger! when negative
 - Label direct chit arrow
 - Label lift chit arrows area
 - Draw graph area behind arrows (narrower than gap)
 - Label graph at zero, tics up to limit
 - Align target/bound lines to graph area
 - Display actual target, bound values
-- Target, bound display in different spaces
+- Target, bound display value in different spaces
 -  
+- Where to display/adjust call?
 - Data contains info for arrow orientation (dir = 1 or -1)
 - Arrowheads render in correct direction
 -  
@@ -85,9 +84,16 @@ X- Add bidirectional arrow for direct chits
       width: 100%;
     }
     .setpoint {
-      font-size: 12px;
+      font-size: 10px;
+      cursor: pointer;
     }
     .entity {
+      font-size: 10px;
+    }
+    .scale {
+      font-size: 6px;
+    }
+    .limitText {
       font-size: 10px;
     }
     
@@ -124,10 +130,10 @@ X- Add bidirectional arrow for direct chits
     </div>
 </div>
 
-<!---
 <script src="d3.js" charset="utf-8" type="text/javascript"></script>
---->
+<!---
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8" type="text/javascript"></script>
+--->
 
 <script>
 const markerWidth	= 12			//Link arrowhead marker
@@ -135,12 +141,12 @@ const markerHeight	= 8
 const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
 //const Pi2		= Math.PI / 2
 var graphX		= 300		//Graphing space
-var graphY		= 120
+var graphY		= 140
 var border		= 4
 var entRad		= 5
-var entWidth		= 40
-var entHeight		= graphY
 var entTop		= 20
+var entWidth		= 40
+var entHeight		= graphY - entTop
 var arrowWid		= 20
 var dirArrow		= 40
 var takeArrow		= 70
@@ -151,6 +157,7 @@ var svgWid		= graphX + entWidth * 2 + border * 2
 var svgHei		= graphY + entTop + border * 2
 var xMin		= -entWidth - border
 var yMin		= -border
+var credLimit		= 1000
 
 var entityData = [
   {name: 'Me', x:graphX, y:entTop},
@@ -160,8 +167,8 @@ var directData = [
   {x: 0, y:dirArrow}
 ]
 var setPointData = [
-  {name: 'Target', x:10, y:0},
-  {name: 'Bound', x:30, y:0}
+  {name: 'Target', value:0, x:0, y:0, anchor:'end'},
+  {name: 'Bound', value: 0, x:0, y:0, anchor:'start'}
 ]
 var liftArrowData = [
   {name: 'Take', x:0, y:takeArrow, tap:0, xTap:graphX/4*3, yOut: graphY - takeArrow, fill:'yellow'},
@@ -178,6 +185,32 @@ svg.select('#arrow')			//Add attributes to arrow marker
   .attr('refX', 0).attr('refY', markerHeight/2)
   .attr('markerWidth', markerWidth).attr('markerHeight', markerHeight)
   .append('path').attr('d', d3.line()(arrowPoints))
+
+const xScale = d3.scaleLinear().range([0, graphX])
+const graphBox = svg.append("g").attr("class", "scale")
+  .attr("transform", `translate(0, ${graphY})`)
+
+const paintAxis = function () {
+  xScale.domain([0, credLimit])
+  graphBox.call(
+    d3.axisBottom(xScale).ticks(10)
+      .tickFormat(d => (d == credLimit ? '' : d))
+  )
+  .selectAll(".limitText").data([credLimit])
+  .join(ent => ent.append("text").attr("class","limitText")
+    .attr("x", graphX).attr("y", "1.6em")
+    .attr("fill", "green").attr("opacity", 1)
+    .style("cursor", "pointer")
+    .on("click", () => {
+       const newLimit = prompt("Enter new credit limit", credLimit);
+       if(newLimit && newLimit > 0) {
+         credLimit = newLimit
+         paintAxis()
+       }
+    })
+  )
+  .text(() => credLimit)
+}
 
 const entities = svg.selectAll(".entity")
   .data(entityData)
@@ -251,6 +284,8 @@ const dragSets = d3.drag()		//Drag function called by set points
   })
   .on("drag", function (ev, d) {	//console.log("drag:", ev, d)
     d.x = ev.x
+    d.value = xScale.invert(d.x)
+console.log('v:', d.value)
     d3.select(this)
       .attr("transform", `translate(${d.x},${d.y})`)
 //    paintSets()
@@ -272,6 +307,7 @@ const setPoints = svg.selectAll(".setpoint")
   .call(s => {
     s.append("text")
       .attr("x", 0).attr("y", 15)
+      .attr("text-anchor", d => d.anchor)
       .text(d => d.name)
   })
   .call(dragSets)
@@ -315,6 +351,7 @@ document.getElementById("clutchBox").oninput = function() {
 //}
 
 paintArrows()
+paintAxis()
 
 </script>
 </body>
