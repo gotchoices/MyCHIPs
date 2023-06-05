@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
-  TextInput,
   ScrollView,
   Keyboard,
+  RefreshControl,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
 
 import { colors } from '../../config/constants';
@@ -14,91 +13,45 @@ import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
 import { useTallyText } from '../../hooks/useLanguage';
-import { fetchTallies, offerTally, acceptTally, refuseTally } from '../../services/tally';
+import { offerTally, acceptTally, refuseTally } from '../../services/tally';
+import useTallyUpdate from '../../hooks/useTallyUpdate';
 
 import Button from '../../components/Button';
 import CustomText from '../../components/CustomText';
 import Spinner from '../../components/Spinner';
-import CommonTallyView from '../Tally/CommonTallyView';
-import HelpText from '../../components/HelpText';
+import TallyEditView from '../Tally/TallyEditView';
 
-const ProcessTally = (props) => {
+const TallyReview = (props) => {
   const { wm, tallyState } = useSocket();
   const { tally_seq } = props.route?.params ?? {};
   const { user } = useCurrentUser();
-  const talliesText = useTallyText(wm)
+  const tally_ent = user?.curr_eid;
+
+  // Fetch tally texts
+  useTallyText(wm)
 
   const [updating, setUpdating] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [tally, setTally] = useState();
-  const [tallyType, setTallyType] = useState('stock');
-  const [contract, setContract] = useState('Tally_Contract');
-  const [holdTerms, setHoldTerms] = useState({
-    limit: undefined,
-    call: undefined,
-  });
-  const [partTerms, setPartTerms] = useState({
-    limit: undefined,
-    call: undefined,
-  });
-  const [comment, setComment] = useState(comment);
-
-  useEffect(() => {
-    const fetchTally = () => {
-      fetchTallies(wm, {
-        fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
-        where: {
-          tally_ent: user?.curr_eid,
-          tally_seq,
-        }
-      }).then(data => {
-        const _tally = data?.[0];
-        if(_tally) {
-          setTally(data?.[0]);
-
-          setTallyType(_tally.tally_type);
-          setContract(_tally.contract?.terms ?? '');
-          setComment(_tally.comment ?? '');
-          setHoldTerms({
-            limit: _tally.hold_terms?.limit?.toString(),
-            call: _tally.hold_terms?.call?.toString(),
-          })
-          setPartTerms({
-            limit: _tally.part_terms?.limit?.toString(),
-            call: _tally.part_terms?.call?.toString(),
-          })
-        }
-      }).finally(() => {
-        setLoading(false);
-      })
-    }
-
-    fetchTally();
-  }, [tally_seq, user?.curr_eid, tallyState])
-
-
-  const onHoldTermsChange = (name) => {
-    return (value) => {
-      setHoldTerms({
-        ...holdTerms,
-        [name]: value,
-      })
-    }
-  }
-
-  const onPartTermsChange = (name) => {
-    return (value) => {
-      setPartTerms({
-        ...partTerms,
-        [name]: value,
-      })
-    }
-  }
+  const {
+    loading,
+    refreshing,
+    tally,
+    tallyType,
+    contract,
+    holdTerms,
+    partTerms,
+    comment,
+    setComment,
+    onHoldTermsChange,
+    onPartTermsChange,
+    setTallyType,
+    setContract,
+    fetchTally,
+  } = useTallyUpdate(wm, tally_seq, tally_ent, tallyState);
 
   const onOffer = () => {
     offerTally(wm, {
       tally_uuid: tally.tally_uuid,
-      tally_ent: user?.curr_eid,
+      tally_ent,
       tally_seq,
     }).then(() => {
       Toast.show({
@@ -115,7 +68,7 @@ const ProcessTally = (props) => {
 
   const onAccept = () => {
     acceptTally(wm, {
-      tally_ent: user?.curr_eid,
+      tally_ent,
       tally_seq,
     }).then(() => {
       Toast.show({
@@ -132,7 +85,7 @@ const ProcessTally = (props) => {
 
   const onRefuse = () => {
     refuseTally(wm, {
-      tally_ent: user?.curr_eid,
+      tally_ent,
       tally_seq,
     }).then(() => {
       Toast.show({
@@ -171,7 +124,7 @@ const ProcessTally = (props) => {
       fields: payload,
       view: 'mychips.tallies_v_me',
       where: {
-        tally_ent: user?.curr_eid,
+        tally_ent,
         tally_seq,
       },
     }
@@ -206,132 +159,29 @@ const ProcessTally = (props) => {
   }
 
   return (
-    <ScrollView keyboardShouldPersistTaps="handled">
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={fetchTally}
+        />
+      }
+    >
       <View style={styles.container}>
-        <CommonTallyView tally={tally} />
-
-        <View style={styles.detailControl}>
-          <HelpText
-            label={talliesText?.tally_type?.title ?? ''}
-            helpText={talliesText?.tally_type?.help}
-            style={styles.headerText}
-          />
-
-          <Picker
-            mode="dropdown"
-            selectedValue={tallyType}
-            style={styles.input}
-            onValueChange={(item) => {
-              setTallyType(item)
-            }}
-          >
-            <Picker.Item label="Stock" value="stock" />
-            <Picker.Item label="Foil" value="foil" />
-          </Picker>
-        </View>
-
-        <View style={styles.detailControl}>
-          <HelpText
-            label={talliesText?.contract?.title ?? ''}
-            helpText={talliesText?.contract?.help}
-            style={styles.headerText}
-          />
-
-          <Picker
-            mode="dropdown"
-            style={styles.input}
-            selectedValue={contract}
-            onValueChange={(item) => {
-              setContract(item)
-            }}
-          >
-            <Picker.Item label="Tally Contract" value="Tally_Contract" />
-          </Picker>
-        </View>
-
-        <View style={styles.detailControl}>
-          <HelpText
-            label={talliesText?.hold_terms?.title ?? ''}
-            helpText={talliesText?.hold_terms?.help}
-            style={styles.headerText}
-          />
-
-          <View style={{ marginVertical: 10 }}>
-            <CustomText as="h5">
-              Limit
-            </CustomText>
-
-            <TextInput 
-              keyboardType='numeric'
-              style={styles.input}
-              value={holdTerms?.limit}
-              onChangeText={onHoldTermsChange('limit')}
-            />
-          </View>
-
-          <View>
-            <CustomText as="h5">
-              Call
-            </CustomText>
-
-            <TextInput 
-              style={styles.input}
-              keyboardType='numeric'
-              value={holdTerms?.call}
-              onChangeText={onHoldTermsChange('call')}
-            />
-          </View>
-        </View>
-
-        <View style={styles.detailControl}>
-          <HelpText
-            label={talliesText?.part_terms?.title ?? ''}
-            helpText={talliesText?.part_terms?.help}
-            style={styles.headerText}
-          />
-
-          <View style={{ marginVertical: 10 }}>
-            <CustomText as="h5">
-              Limit
-            </CustomText>
-
-            <TextInput 
-              style={styles.input}
-              keyboardType='numeric'
-              value={partTerms?.limit}
-              onChangeText={onPartTermsChange('limit')}
-            />
-          </View>
-
-          <View>
-            <CustomText as="h5">
-              Call
-            </CustomText>
-
-            <TextInput
-              style={styles.input}
-              keyboardType='numeric'
-              value={partTerms?.call}
-              onChangeText={onPartTermsChange('call')}
-            />
-          </View>
-        </View>
-
-        <View style={styles.detailControl}>
-          <HelpText
-            label={talliesText?.comment?.title ?? ''}
-            helpText={talliesText?.comment?.help}
-            style={styles.headerText}
-          />
-
-          <TextInput 
-            multiline
-            numberOfLines={4}
-            value={comment}
-            style={[styles.input, styles.comment]}
-            onChangeText={setComment}
-          />
-        </View>
+        <TallyEditView
+          tally={tally}
+          tallyType={tallyType}
+          contract={contract}
+          holdTerms={holdTerms}
+          partTerms={partTerms}
+          comment={comment}
+          setComment={setComment}
+          onHoldTermsChange={onHoldTermsChange}
+          onPartTermsChange={onPartTermsChange}
+          setTallyType={setTallyType}
+          setContrac={setContract}
+        />
 
         <View style={styles.actions}>
           {
@@ -358,7 +208,7 @@ const ProcessTally = (props) => {
             ['draft', 'offer'].includes(tally?.status) && (
               <Button
                 style={{ marginRight: 10 }}
-                title={updating ? 'Updating...' : 'Edit'}
+                title={updating ? 'Updating...' : 'Update'}
                 disabled={updating}
                 onPress={onUpdate}
               />
@@ -388,17 +238,6 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: colors.white,
   },
-  detailControl: {
-    marginVertical: 10
-  },
-  input: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    backgroundColor: colors.gray100,
-  },
-  comment: {
-    textAlignVertical: 'top',
-  },
   actions: {
     flexDirection: 'row',
   },
@@ -406,10 +245,6 @@ const styles = StyleSheet.create({
     borderColor: colors.orangeRed,
     backgroundColor: colors.orangeRed,
   },
-  headerText: {
-    color: colors.black,
-    fontSize: 14,
-  },
 }) 
 
-export default ProcessTally;
+export default TallyReview;

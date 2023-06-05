@@ -100,7 +100,7 @@ const ShareTally = (props) => {
       {
         activeTab === 'qr' && (
           <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1.0 }}>
-            <View style={{ alignItems: 'center', paddingVertical: 32,  }}>
+            <View style={styles.qrView}>
               <QRCode
                 value={qrData}
                 size={200}
@@ -198,6 +198,12 @@ const styles = StyleSheet.create({
   share: {
     ...actionItem,
     backgroundColor: colors.blue,
+  },
+  qrView: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    backgroundColor: colors.white,
+    marginVertical: 10,
   },
 });
 
