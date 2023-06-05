@@ -29,7 +29,8 @@ const TemplateItem = (props) => {
           <Text>Tally type: {item.tally_type ?? 'N/A'}</Text>
           <Text>Partner CID: {item.part_cid ?? 'N/A'}</Text>
           <Text>Status: {item.status ?? 'N/A'}</Text>
-          <Text>Credit limit: {item?.hold_terms?.limit ?? 'N/A'}</Text>
+          <Text>Holder Credit limit: {item?.hold_terms?.limit ?? 'N/A'}</Text>
+          <Text>Partner Credit limit: {item?.part_terms?.limit ?? 'N/A'}</Text>
         </View>
       </TouchableOpacity>
 
