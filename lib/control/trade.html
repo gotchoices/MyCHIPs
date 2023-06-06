@@ -10,10 +10,10 @@ X- Label graph at zero, tics up to limit
 X- Align target/bound lines to graph area
 X- Display actual target, bound values
 X- Target, bound display value in different spaces
-- After update of max, cursors update (position--not value)
-- Label direct chit arrow
-- Label lift chit arrows area
-- Label graph as "credit limit"
+X- After update of max, cursors update (position--not value)
+X- Label direct chit arrow
+X- Label lift chit arrows area
+X- Label graph as "credit balance"
 - Data contains info for arrow orientation (dir = 1 or -1)
 - Arrowheads render in correct direction
 - Reward/clutch turn red, display danger! when negative
@@ -94,6 +94,9 @@ X- Target, bound display value in different spaces
     .scale {
       font-size: 6px;
     }
+    .arrowText {
+      font-size: 8px;
+    }
     .limitText {
       font-size: 10px;
     }
@@ -168,12 +171,12 @@ var directData = [
   {x: 0, y:dirArrow}
 ]
 var setPointData = [
-  {name: 'Target', value: 0, x:0, anchor:'end'},
-  {name: 'Bound', value: 0, x:0, anchor:'start'}
+  {name: 'Target', value: 0, anchor:'end'},
+  {name: 'Bound', value: 0, anchor:'start'}
 ]
 var liftArrowData = [
-  {name: 'Take', x:0, y:takeArrow, tap:0, xTap:graphX/4*3, yOut: graphY - takeArrow, fill:'yellow'},
-  {name: 'Give', x:0, y:giveArrow, tap:0, xTap:graphX/4*1, yOut: graphY - giveArrow, fill:'orange'}
+  {name: 'Lifts Out', x:0, y:takeArrow, tap:0, xTap:graphX/4*3, yOut: graphY - takeArrow, fill:'yellow'},
+  {name: 'Lifts In', x:0, y:giveArrow, tap:0, xTap:graphX/4*1, yOut: graphY - giveArrow, fill:'orange'}
 ]
 
 const svg = d3.select("#reportSVG")			//Basic SVG settings
@@ -190,6 +193,11 @@ svg.select('#arrow')			//Add attributes to arrow marker
 const xScale = d3.scaleLinear().range([0, graphX])
 const graphBox = svg.append("g").attr("class", "scale")
   .attr("transform", `translate(0, ${graphY})`)
+  .call(s => s.append("text")
+    .attr("x", "-1em").attr("y", "2.2em")
+    .attr("text-anchor", "end").attr("fill", "green")
+    .text("Balance:")
+  )
 
 const paintAxis = function () {
   xScale.domain([0, credLimit])
@@ -244,16 +252,27 @@ const direct = svg.selectAll(".direct")
       .attr("marker-end", "url(#arrow)")
       .attr("stroke", "black").attr("stroke-width", 2)
   })
+  .call(s => {
+    s.append("text").attr("class","arrowText")
+      .attr("x", graphX/2).attr("y", "-0.25em")
+      .attr("text-anchor", "middle")
+      .text("Direct")
+  })
 
 const paintArrows = function () {
   svg.selectAll(".liftArrow")
   .data(liftArrowData)
   .join('g').attr("class", "liftArrow")
   .attr("transform", d => `translate(${d.x},${d.y})`)
-
+  .call(s => {
+    s.append("text").attr("class", "arrowText")
+      .attr("x", graphX/2).attr("y", "-0.25em")
+      .attr("text-anchor", "middle")
+      .text(d => d.name)
+  })
   .selectAll("path")
   .data(d => [d])
-  .join("path")
+  .join("path").lower()
     .attr("d", d => {
       let alen = graphX
         , tapRad = arrowWid / 2
@@ -323,7 +342,10 @@ const setPoints = svg.selectAll(".setpoint")
 
 function paintSets() {
 console.log('ps:')
-  setPoints.attr("transform", d => `translate(${d.x}, 0)`)
+  setPoints.attr("transform", d => {
+    d.x = xScale(d.value)
+    return `translate(${d.x}, 0)`
+  })
   .selectAll(".setValue")
   .data(d => [d])
   .join("text").attr("class", "setValue")
