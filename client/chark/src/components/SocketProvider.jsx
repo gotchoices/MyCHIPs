@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as Keychain from 'react-native-keychain';
 import notifee, { AndroidImportance } from '@notifee/react-native'
+import { Linking } from 'react-native'
 
 const wm = require('../wyseman')
 import Connect, { headers } from '../connect';
 import SocketContext from '../context/SocketContext';
 import useCurrentUser from '../hooks/useCurrentUser';
 import { query_user } from '../utils/user';
-import { random } from '../utils/common';
+import { random, getLinkHost } from '../utils/common';
 
 const initialConnectionBackoff = 1000;
 const maxConnectionBackoff = 11000;
 const listenId = `listen_${random()}`;
+const connectionUri = new Set(['connect', 'mychips.org/connect'])
 
 const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
@@ -24,7 +26,12 @@ const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if(!ws) {
-      connectSocket()
+      Linking.getInitialURL().then((url) => {
+        const host = getLinkHost(url ?? '');
+        if(!connectionUri.has(host)) {
+          connectSocket()
+        }
+      });
     }
   }, []);
 
