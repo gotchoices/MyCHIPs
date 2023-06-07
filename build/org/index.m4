@@ -27,7 +27,7 @@ define(CONTENT,`
           `A CHIP service provider',
           `Sign up for a test account with the first CHIP Service Provider.'
         )
-        LINK_BLOCK(ri-user-line, https://mychips.org/Storey_Defense.mp4, 
+        LINK_BLOCK(ri-user-line, https://youtu.be/bl_lUW3VX5o,
           `A Mathematical Proof for MyCHIPs Credit Lifts',
           `See Kyle Storey defend his Masters Thesis proving important properties of the credit lift algorithm.'
         )
