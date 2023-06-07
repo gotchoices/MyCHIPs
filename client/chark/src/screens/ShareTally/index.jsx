@@ -1,5 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { WebView } from 'react-native-webview';
 import {
   Text,
@@ -7,22 +6,58 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Image,
   Linking,
 } from 'react-native';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import ViewShot from "react-native-view-shot";
 
-import { colors, qrType } from '../../../config/constants';
+import { colors, qrType } from '../../config/constants';
+import useSocket from '../../hooks/useSocket';
+import { request } from '../../services/request';
+import { random } from '../../utils/common';
 
 const ShareTally = (props) => {
-  const tallyObj = props.json;
-  const linkHtml = props.link;
+  const tally_id = props.route?.params?.tally_id;
+  //const tallyObj = props.route.params.json;
+  //const linkHtml = props.route.params.link;
   const viewShotRef = useRef();
+  const { wm } = useSocket();
+
+  const [invite, setInvite] = useState();
+  const [activeTab, setActiveTab] = useState('qr');
+
+  const tallyObj = invite?.json;
+  const linkHtml = invite?.link;
   const tallyUrl = tallyObj?.url;
 
-  const [activeTab, setActiveTab] = useState('qr');
+  useEffect(() => {
+    const spec = {
+      name: 'invite',
+      view: 'mychips.tallies_v_me',
+      data: {
+        keys: [{ tally_seq: tally_id }],
+        options: {
+          reuse: true,
+          format: ['json', 'link']
+        }
+      }
+    }
+
+    request(wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
+      const json = data?.[0];
+      const link = data?.[1];
+
+      setInvite({
+        json,
+        link
+      })
+    }).catch((e) => {
+      console.log("Sharing Exception", e);
+    });
+  }, [tally_id])
+  console.log('tally', tallyObj, 'tally')
+
   const qrData = useMemo(() => {
     return JSON.stringify({
       type: qrType.tally,
@@ -38,7 +73,7 @@ const ShareTally = (props) => {
 
   const onShare = () => {
     let options = {};
-    if(activeTab === 'qr') {
+    if (activeTab === 'qr') {
       viewShotRef.current.capture().then(uri => {
         options = {
           title: 'Tally invitation',
@@ -47,7 +82,7 @@ const ShareTally = (props) => {
 
         Share.open(options).then(console.log).catch(console.log);
       });
-    } else if(activeTab === 'link') {
+    } else if (activeTab === 'link') {
       const expires = tallyObj?.ticket?.expires;
       const date = expires ? `:${new Date(expires).toString()}` : ''
       const message = `${tallyObj.title} \n\n${tallyUrl} \n\n${tallyObj.message} ${expires ? date : ''}`;
@@ -60,10 +95,6 @@ const ShareTally = (props) => {
     }
   };
 
-  const onCancel = () => {
-    props.onCancel()
-  }
-
   const openExternalLink = (event) => {
     if (event.url && event.url.includes('mychips.org/tally')) {
       Linking.openURL(event.url)
@@ -71,6 +102,10 @@ const ShareTally = (props) => {
     } else {
       return true
     }
+  }
+
+  if(!invite) {
+    return false;
   }
 
   return (
@@ -112,10 +147,11 @@ const ShareTally = (props) => {
 
       {
         activeTab === 'link' && (
-         <WebView
+          <WebView
             originWhitelist={['*']}
             onShouldStartLoadWithRequest={openExternalLink}
-            source={{ html: `
+            source={{
+              html: `
               <html>
                 <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
                 <body>
@@ -140,13 +176,6 @@ const ShareTally = (props) => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={onCancel}
-        >
-          <View style={styles.cancel}>
-            <Text style={{ color: colors.blue, fontWeight: 'bold', fontSize: 16 }}>Cancel</Text>
-          </View>
-        </TouchableOpacity>
       </View>
     </View>
   )
@@ -207,10 +236,10 @@ const styles = StyleSheet.create({
   },
 });
 
-ShareTally.propTypes = {
-  onCancel: PropTypes.func.isRequired,
-  json: PropTypes.object,
-  link: PropTypes.string,
-}
+// ShareTally.propTypes = {
+//   onCancel: PropTypes.func.isRequired,
+//   json: PropTypes.object,
+//   link: PropTypes.string,
+// }
 
 export default ShareTally;

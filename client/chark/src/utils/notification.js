@@ -13,7 +13,7 @@ export const handleNotification = ({
 
     case EventType.PRESS:
       const data = detail.notification?.data ?? {};
-      navigationRef.current?.navigate?.('TallyReview', { ...data })
+      navigationRef.current?.navigate?.('TallyPreview', { ...data })
       break;
 
     default:

@@ -27,6 +27,7 @@ const TallyReview = (props) => {
   const { user } = useCurrentUser();
   const tally_ent = user?.curr_eid;
 
+
   // Fetch tally texts
   useTallyText(wm)
 
@@ -56,8 +57,9 @@ const TallyReview = (props) => {
     }).then(() => {
       Toast.show({
         type: 'success',
-        text1: 'Tally signed.'
-      })
+        text1: 'Offer is processed.',
+      });
+      props.navigation.goBack();
     }).catch(err => {
       Toast.show({
         type: 'error',
@@ -75,6 +77,7 @@ const TallyReview = (props) => {
         type: 'success',
         text1: 'Tally accepted',
       });
+      props.navigation.goBack();
     }).catch(() => {
       return Toast.show({
         type: 'error',
@@ -131,7 +134,7 @@ const TallyReview = (props) => {
 
     wm.request('update_tally' + random(), 'update', spec, (data, err) => {
       setUpdating(false);
-      if(err) {
+      if (err) {
         Toast.show({
           type: 'error',
           text1: err.message,
@@ -140,7 +143,7 @@ const TallyReview = (props) => {
     });
   }
 
-  if(loading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Spinner text="Loading..." />
@@ -148,7 +151,7 @@ const TallyReview = (props) => {
     )
   }
 
-  if(!tally) {
+  if (!tally) {
     return (
       <View style={{ flex: 1, alignItems: 'center' }}>
         <CustomText as="h2">
@@ -245,6 +248,6 @@ const styles = StyleSheet.create({
     borderColor: colors.orangeRed,
     backgroundColor: colors.orangeRed,
   },
-}) 
+})
 
 export default TallyReview;
