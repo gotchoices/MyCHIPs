@@ -1,30 +1,22 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Smaller text for graph ticks
-X- After update of max, graph updates
-X- Convert setpoint initialization to paintSets function
-X- Cursors display their current value
-X- Bigger main title
-X- Label graph at zero, tics up to limit
-X- Align target/bound lines to graph area
-X- Display actual target, bound values
-X- Target, bound display value in different spaces
-X- After update of max, cursors update (position--not value)
-X- Label direct chit arrow
-X- Label lift chit arrows area
-X- Label graph as "credit balance"
-- Data contains info for arrow orientation (dir = 1 or -1)
-- Arrowheads render in correct direction
-- Reward/clutch turn red, display danger! when negative
-- Draw graph area behind arrows (narrower than gap)
--  
-- Where to display/adjust call?
-- Integrate into report generator, view in wylib
+X- Data contains info for arrow orientation (dir = 1 or -1)
+X- Arrowheads render in correct direction
+X- How to scale in only X (mirror?)
+X- Integrate into report generator, view in wylib
 - Pull tally values from DB
 - Pull language data from DB
-- Display warning when in subsidy mode
 - Add reset/submit buttons
+- 
+- Refinements:
+- Make taps disappear when at 0
+- Adjust target/bound if credit limit reduced below them
+- Can click on target/bound to input number
+- Paint arrows different colors in free/charge/NA zones; or:
+-   otherwise label free/charge zones
+- Reward/clutch turn red, display danger! when negative
+- Where to display/adjust call time?
 - Implement context helps (?)
 - Optimize calls to repaint
 - Optimize styles >> CSS
@@ -120,17 +112,17 @@ X- Label graph as "credit balance"
   <div id="ranges">
     <div class="rangeArea">
       <div class="rangeRow">
-        <p>Reward:</p>
-          <input type="number" id="rewardBox" value="0" min="-1" max="1" step="0.01"/>
-      </div>
-      <input type="range" class="slider" id="rewardRange" value="0" min="-1" max="1" step="0.01"/>
-    </div>
-    <div class="rangeArea">
-      <div class="rangeRow">
         <p>Clutch:</p>
           <input type="number" id="clutchBox" value="0" min="-1" max="1" step="0.01"/>
       </div>
       <input type="range" class="slider" id="clutchRange" value="0" min="-1" max="1" step="0.01"/>
+    </div>
+    <div class="rangeArea">
+      <div class="rangeRow">
+        <p>Reward:</p>
+          <input type="number" id="rewardBox" value="0" min="-1" max="1" step="0.01"/>
+      </div>
+      <input type="range" class="slider" id="rewardRange" value="0" min="-1" max="1" step="0.01"/>
     </div>
 </div>
 
@@ -157,7 +149,7 @@ var takeArrow		= 70
 var giveArrow		= 110
 //var Arrow		= 60
 var arrowSize		= 0.20
-var svgWid		= graphX + entWidth * 2 + border * 2
+var svgWid		= graphX + entWidth * 3 + border * 2
 var svgHei		= graphY + entTop + border * 2
 var xMin		= -entWidth - border
 var yMin		= -border
@@ -171,12 +163,12 @@ var directData = [
   {x: 0, y:dirArrow}
 ]
 var setPointData = [
-  {name: 'Target', value: 0, anchor:'end'},
-  {name: 'Bound', value: 0, anchor:'start'}
+  {name: 'Target', dir:-1, value: 250, anchor:'end'},
+  {name: 'Bound',  dir:1,  value: 500, anchor:'start'}
 ]
 var liftArrowData = [
-  {name: 'Lifts Out', x:0, y:takeArrow, tap:0, xTap:graphX/4*3, yOut: graphY - takeArrow, fill:'yellow'},
-  {name: 'Lifts In', x:0, y:giveArrow, tap:0, xTap:graphX/4*1, yOut: graphY - giveArrow, fill:'orange'}
+  {name: 'Lifts In',  x:0, y:takeArrow, dir:1,  tap:0, xTap:graphX/4*1, fill:'yellow'},
+  {name: 'Lifts Out', x:0, y:giveArrow, dir:-1, tap:0, xTap:graphX/4*3, fill:'orange'}
 ]
 
 const svg = d3.select("#reportSVG")			//Basic SVG settings
@@ -266,34 +258,42 @@ const paintArrows = function () {
   .attr("transform", d => `translate(${d.x},${d.y})`)
   .call(s => {
     s.append("text").attr("class", "arrowText")
-      .attr("x", graphX/2).attr("y", "-0.25em")
+      .attr("x", graphX/2).attr("y", "-1.35em")
       .attr("text-anchor", "middle")
       .text(d => d.name)
   })
   .selectAll("path")
   .data(d => [d])
   .join("path").lower()
+    .attr("transform", d => {
+      let xOff = d.dir > 0 ? 0 : graphX + entWidth * 2
+//      return `translate(${xOff},0) scale(${d.dir})`
+      return `translate(${xOff},0) scale(${d.dir}, 1)`
+    })
     .attr("d", d => {
-      let alen = graphX
-        , tapRad = arrowWid / 2
+      let tapRad = arrowWid / 2
         , tapSize = Math.abs(arrowWid * d.tap)
         , bigArc = tapRad + tapSize
-        , shaft = d.tap >= 0 ? arrowWid : arrowWid - tapSize
+        , shaft = d.tap >= 0 ? arrowWid - tapSize : arrowWid
+        , tail = d.tap >= 0 ? arrowWid : arrowWid - tapSize
+        , right = graphX + entWidth * 2
         , arrowJot = shaft * arrowSize
         , arrowTip = shaft / 2 + arrowJot
-        , a1 = d.tap >= 0
-             ? `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}`
-             : `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${bigArc}`
-        , a2 = d.tap >= 0
-             ? `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${-bigArc}`
-             : `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${-tapRad}`
-      return `M 0 0 L 0 ${-arrowWid / 2} H ${alen - arrowTip}
+        , xTap = d.dir > 0 ? entWidth * 1.5 - arrowTip : right - entWidth * 1.5 - arrowTip
+        , yOut = entHeight - d.y
+        , arc1 = d.tap >= 0
+             ? `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${bigArc}`
+             : `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}`
+        , arc2 = d.tap >= 0
+             ? `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${-tapRad}`
+             : `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${-bigArc}`
+      return `M 0 ${-arrowWid/2} h ${right - arrowTip}
           v ${-arrowJot} l ${arrowTip} ${arrowTip} l ${-arrowTip} ${arrowTip} v ${-arrowJot}
-          h ${d.tap >= 0 ? -d.xTap + tapRad : -d.xTap - tapRad}
-          ${a1}
-          v ${d.yOut} h ${-tapSize} v${-d.yOut}
-          ${a2}
-          H 0 Z`
+          h ${d.tap >= 0 ? -xTap - tapRad : -xTap + tapRad}
+          ${arc1}
+          v ${yOut} h ${-tapSize} v${-yOut}
+          ${arc2}
+          H 0 l ${tail/2} ${-tail/2} Z`
     })
     .attr("stroke-width", 1)
     .attr("stroke", "grey").attr("fill", d => d.fill)
@@ -328,10 +328,9 @@ const setPoints = svg.selectAll(".setpoint")
   .join('g').attr("class", "setpoint")
   .attr("text-anchor", d => d.anchor)
   .call(s => {
-    s.append("line")
-      .attr("x1", 0).attr("y1", "3em")
-      .attr("x2", 0).attr("y2", graphY)
-      .attr("stroke", "blue").attr("stroke-width", 1)
+    s.append("path")
+      .attr("d", d => `M ${d.dir * 30} ${12} H 0 v ${graphY - 4}`)
+      .attr("stroke", "blue").attr("stroke-width", 1).attr("fill","none")
   })
   .call(s => {
     s.append("text")
@@ -349,7 +348,7 @@ console.log('ps:')
   .selectAll(".setValue")
   .data(d => [d])
   .join("text").attr("class", "setValue")
-  .attr("x", 0).attr("y", "2em")
+  .attr("x", d => d.dir * 2).attr("y", "2em")
   .text(d => d.value)
 }
 
@@ -374,10 +373,22 @@ document.getElementById("clutchBox").oninput = function() {
   paintArrows()
 }
 
-//repaint() {
-//  paintArrows()
-//}
+function fetchData() {		//Grab tally data from server
+  let pageURL = ((window || {}).location || {}).href
+    , dataURL = pageURL.replace(/trade.html$/,'trade.json')
+console.log('Fetch:', dataURL)
+  fetch(dataURL).then(resp => resp.json()).then(data => {
+console.log(' data:', data)
+//    userData = data
+//    userData.tallies.forEach(tally => {
+//      tally.x = (Math.random()-0.5) * svgWid
+//      tally.y = (Math.random()-0.5) * svgHei
+//    })
+//    repaint()
+  })
+}
 
+fetchData()
 paintArrows()
 paintAxis()
 paintSets()
