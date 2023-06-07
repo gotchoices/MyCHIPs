@@ -20,11 +20,11 @@ const TallyEditView = (props) => {
   const holdTerms = props.holdTerms;
   const partTerms = props.partTerms;
   const comment = props.comment;
-  const setComment  = props.setComment;
+  const setComment = props.setComment;
   const onHoldTermsChange = props.onHoldTermsChange;
   const onPartTermsChange = props.onPartTermsChange;
   const setTallyType = props.setTallyType;
-  const setContract= props.setContract;
+  const setContract = props.setContract;
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
@@ -84,7 +84,7 @@ const TallyEditView = (props) => {
             Limit
           </CustomText>
 
-          <TextInput 
+          <TextInput
             keyboardType='numeric'
             style={styles.input}
             value={holdTerms?.limit}
@@ -97,7 +97,7 @@ const TallyEditView = (props) => {
             Call
           </CustomText>
 
-          <TextInput 
+          <TextInput
             style={styles.input}
             keyboardType='numeric'
             value={holdTerms?.call}
@@ -118,7 +118,7 @@ const TallyEditView = (props) => {
             Limit
           </CustomText>
 
-          <TextInput 
+          <TextInput
             style={styles.input}
             keyboardType='numeric'
             value={partTerms?.limit}
@@ -147,7 +147,7 @@ const TallyEditView = (props) => {
           style={styles.headerText}
         />
 
-        <TextInput 
+        <TextInput
           multiline
           numberOfLines={4}
           value={comment}
@@ -178,6 +178,6 @@ const styles = StyleSheet.create({
     color: colors.black,
     fontSize: 14,
   },
-}) 
+})
 
 export default TallyEditView;

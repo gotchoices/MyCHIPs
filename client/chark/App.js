@@ -21,14 +21,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import PolyfillCrypto from 'react-native-webview-crypto'
 import Toast from 'react-native-toast-message';
-import notifee, { EventType } from '@notifee/react-native';
+import notifee from '@notifee/react-native';
 import qs from 'query-string';
 
 import ServIcon from './src/servicon'
 import Invite from './src/screens/Invite'
 import Home from './src/screens/Home';
 import Scanner from './src/screens/Scanner';
-import EditDraftTally from './src/screens/Tally/EditDraftTally';
+import TallyPreview from './src/screens/Tally/TallyPreview';
 import EditOpenTally from './src/screens/Tally/EditOpenTally';
 import TallyReport from './src/screens/Tally/TallyReport';
 import Setting from './src/screens/Setting';
@@ -36,12 +36,12 @@ import Profile from './src/screens/Profile';
 import UserProvider from './src/components/UserProvider';
 import ProfileProvider from './src/components/ProfileProvider';
 import ProfileEdit from './src/screens/Profile/ProfileEdit';
-import TallyReview from './src/screens/TallyReview';
 import SocketProvider from './src/components/SocketProvider';
 import InviteProvider from './src/components/InviteProvider';
 import MessageTextProvider from './src/components/MessageTextProvider';
 
 import { handleNotification } from './src/utils/notification';
+import ShareTally from './src/screens/ShareTally';
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
@@ -50,7 +50,6 @@ function HomeStackScreen() {
       <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
-      <HomeStack.Screen name="TallyReview" component={TallyReview} options={{ title: 'Tally Review' }} />
     </HomeStack.Navigator>
   );
 }
@@ -69,7 +68,8 @@ function InviteStackScreen() {
     <InviteProvider>
       <InviteStack.Navigator>
         <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
-        <InviteStack.Screen name="TallyEdit" component={EditDraftTally} options={{ title: 'Draft Tally' }}  />
+        <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }}  />
+        <InviteStack.Screen name="TallyShare" component={ShareTally} options={{ title: 'Share Tally', headerShadowVisible: false }} />
       </InviteStack.Navigator>
     </InviteProvider>
   );
@@ -95,14 +95,14 @@ const linking = {
     return getStateFromPath(newPath, options);
   },
   config: {
-    screens:{
+    screens: {
       Tally: {
         screens: {
           Home: {
             path: 'connect',
           },
-          TallyReview: {
-            path: 'tally-accept/:tally_seq',
+          TallyPreview: {
+            path: 'tally-preview/:tally_seq',
           },
         }
       },
@@ -111,7 +111,7 @@ const linking = {
 };
 
 function App() {
-  const navigationRef = useRef(); 
+  const navigationRef = useRef();
 
   useEffect(() => {
     return notifee.onForegroundEvent(event => {
@@ -140,7 +140,7 @@ function App() {
                     component={HomeStackScreen}
                     options={{
                       tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-home.png")}/>
+                        <Image style={styles.button} source={require("./assets/icon-home.png")} />
                       )
                     }}
                   />
@@ -150,7 +150,7 @@ function App() {
                     component={ReceiveScreen}
                     options={{
                       tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-receive.png")}/>
+                        <Image style={styles.button} source={require("./assets/icon-receive.png")} />
                       )
                     }}
                   />
@@ -161,7 +161,7 @@ function App() {
                     options={{
                       unmountOnBlur: true,
                       tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-scan.png")}/>
+                        <Image style={styles.button} source={require("./assets/icon-scan.png")} />
                       )
                     }}
                   />
@@ -172,7 +172,7 @@ function App() {
                     options={{
                       tabBarTestID: "inviteTestID",
                       tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-invite.png")}/>
+                        <Image style={styles.button} source={require("./assets/icon-invite.png")} />
                       )
                     }}
                   />
@@ -182,7 +182,7 @@ function App() {
                     component={SettingStackScreen}
                     options={{
                       tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-settings.png")}/>
+                        <Image style={styles.button} source={require("./assets/icon-settings.png")} />
                       )
                     }}
                   />
