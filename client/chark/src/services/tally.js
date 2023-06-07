@@ -88,12 +88,3 @@ export const refuseTally = (wm, args) => {
 
   return request(wm, '_tally_reject' + random(), 'update', spec)
 }
-
-export const createTemplate = (wm, payload) => {
-  const spec = {
-    fields: payload,
-    view: 'mychips.tallies_v_me',
-  }
-
-  return request(wm, 'new_template' + random(1000), 'insert', spec)
-}

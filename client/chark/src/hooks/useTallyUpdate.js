@@ -30,7 +30,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }
 
     fetchTallies(wm, {
-      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
+      fields: ['tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract'],
       where: {
         tally_ent,
         tally_seq,
@@ -92,7 +92,6 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     setTallyType,
     setContract,
     fetchTally,
-    setTally,
   }
 }
 

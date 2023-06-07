@@ -180,9 +180,9 @@ async function onDisplayNotification(data) {
     title: 'Tally process',
     body: data?.object?.comment ?? '',
     data: {
-      type: 'tally-preview',
+      type: 'tally-accept',
       tally_seq: data.sequence?.toString(),
-      link: `mychips://tally-preview/${data.sequence}`,
+      link: `mychips://tally-accept/${data.sequence}`,
     },
     android: {
       channelId,
