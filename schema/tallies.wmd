@@ -46,10 +46,14 @@ mychips.tallies_v_me:
   actions:
   - {name: close, ask: 1}
   - name: invite
-    render: html,
+    render: html
     options:
     - {tag: reuse, input: chk, onvalue: t, offvalue: f}
     - {tag: format, input: pdm, values: [qr, link, json]}
+  - name: trade
+    render: html
+    options:
+    - {tag: format, input: pdm, values: [html, url]}
   where: {and: true, items: [{left: status, oper: '=', entry: open}]}
   subviews: [mychips.chits_v_me]
   launch:

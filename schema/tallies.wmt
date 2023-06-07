@@ -112,6 +112,10 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
       {invite.format.qr		{qr}	{Return tally invitation as a QR code}}
       {invite.format.link	{link}	{Return tally invitation as deep link Uniform Resource Locator}}
       {invite.format.json	{json}	{Return tally invitation as JSON object}}
+  {trade 			{Trade Settings}	{Generate a graphical view of a tally's trading variable settings}}
+    {trade.format 		{Graph Format}		{How to return the graph report data}}
+      {trade.format.html	{html}			{Return HTML fragment that contains the report}}
+      {trade.format.url		{url}			{Return an url link to a web page containing the report}}
   {launch.title	{Tallies}		{Peer Trading Relationships}}
   {launch.instruct	{Basic Instructions}	{
     <p>Tallies are used to document and track trading agreements between partners.
