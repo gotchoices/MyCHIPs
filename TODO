@@ -1,6 +1,6 @@
 TODO:
 
-- Report for viewing/editing trading variables
+X- Report for viewing/editing trading variables
 
 - Tally protocol support
 -  How to easily understand/view draft tallies
@@ -8,16 +8,14 @@ TODO:
 -  Can sent a voluntary chit on a tally
 -  
 - Language Support
--  Integrate/find Vinay's language tags for app
+-  Integrate/find missing language tags for app
 -  
-- Can we serve user photos from the document server?
+X- Can we serve user photos from the document server?
 X-  Add user photo (document) database table
--  Test photos from web app
+X-  Test photos from web app
 X-   Dew entries display at reasonable default width
--   Can export file from widget
--   Bytea type displays as hex string in wylib
--   Wylib can display image types in dew
--   Wylib can import/export files from dew
+X-   Can export file from widget
+X-   Bytea type displays as hex string in wylib
 -  Re-implement document server to include contracts and photos (by hash only)
 -  Incorporate photo into user certificate
 -  Test photos from mobile app
