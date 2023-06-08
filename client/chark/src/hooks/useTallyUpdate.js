@@ -38,7 +38,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }).then(data => {
       const _tally = data?.[0];
       if(_tally) {
-        setTally(data?.[0]);
+        setTally(_tally);
 
         setTallyType(_tally.tally_type);
         setContract(_tally.contract?.terms ?? '');

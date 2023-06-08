@@ -26,8 +26,13 @@ const TallyInvite = (props) => {
   //Create a new template
   const newTemplate = () => {
     const payload = {
-        contract: { terms: 'Some Terms' },
-        comment: 'Test: ' + new Date()
+      contract: { terms: 'Some Terms' },
+      comment: 'Test: ' + new Date(),
+      hold_terms: {
+        call: 30,
+      }, part_terms: {
+        call: 30,
+      },
     }
 
     createTemplate(wm, payload).then(() => {
@@ -56,7 +61,7 @@ const TallyInvite = (props) => {
         'part_cid',
       ],
       view: 'mychips.tallies_v_me',
-      where: {left:"status", oper:"in", entry:"draft offer"},
+      where: { left: "status", oper: "in", entry: "draft offer" },
       order: {
         field: 'crt_date',
         asc: false,

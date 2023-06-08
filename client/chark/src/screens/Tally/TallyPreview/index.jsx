@@ -25,9 +25,6 @@ const TallyPreview = (props) => {
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
 
-  // Fetch tally text
-  useTallyText(wm);
-
   const [updating, setUpdating] = useState(false);
 
   const {
@@ -47,6 +44,9 @@ const TallyPreview = (props) => {
     fetchTally,
     setTally
   } = useTallyUpdate(wm, tally_seq, tally_ent);
+
+  // Fetch tally text
+  useTallyText(wm);
 
   const onShare = () => {
     const hold_limit = tally?.hold_terms?.limit;
@@ -208,20 +208,21 @@ const TallyPreview = (props) => {
   const canShare = !hasPartCert && tally.status === 'draft';
   const canOffer = hasPartCert && tally.status === 'draft';
   const canAccept = hasPartCert && tally.status === 'offer';
-  const canRefuse  = hasPartCert && tally.status === 'offer';
+  const canRefuse = hasPartCert && tally.status === 'offer';
 
   return (
-    <ScrollView
-      style={{ flex: 1 }}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={fetchTally}
-        />
-      }
-    >
-      <View style={styles.container}>
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={fetchTally}
+          />
+        }
+      >
         <TallyEditView
           tally={tally}
           tallyType={tallyType}
@@ -235,50 +236,51 @@ const TallyPreview = (props) => {
           setTallyType={setTallyType}
           setContrac={setContract}
         />
+      </ScrollView>
 
-        <View style={{ marginTop: 12, flexDirection: 'row' }}>
-          <CustomButton
-            show={canUpdate}
-            title={updating ? 'Updating...' : 'Update'}
-            disabled={updating}
-            onPress={onUpdate}
-          />
+      <View style={styles.actions}>
+        <CustomButton
+          show={canUpdate}
+          title={updating ? 'Updating...' : 'Update'}
+          disabled={updating}
+          onPress={onUpdate}
+        />
 
-          <CustomButton
-            show={canShare}
-            title="Share"
-            onPress={onShare}
-            style={styles.shareButton}
-          />
+        <CustomButton
+          show={canShare}
+          title="Share"
+          onPress={onShare}
+          style={styles.shareButton}
+        />
 
-          <CustomButton
-            show={canOffer}
-            title="Offer"
-            onPress={onOffer}
-            style={styles.shareButton}
-          />
+        <CustomButton
+          show={canOffer}
+          title="Offer"
+          onPress={onOffer}
+          style={styles.shareButton}
+        />
 
-          <CustomButton
-            show={canAccept}
-            title="Accept"
-            onPress={onAccept}
-            style={{ marginLeft: 10 }}
-          />
+        <CustomButton
+          show={canAccept}
+          title="Accept"
+          onPress={onAccept}
+          style={{ marginLeft: 10 }}
+        />
 
-          <CustomButton
-            show={canRefuse}
-            title="Refuse"
-            onPress={onRefuse}
-            style={styles.refuse}
-          />
-        </View>
+        <CustomButton
+          show={canRefuse}
+          title="Refuse"
+          onPress={onRefuse}
+          style={styles.refuse}
+        />
       </View>
-    </ScrollView>
+    </View>
+
   )
 }
 
 function CustomButton(props) {
-  if(!props.show) return null;
+  if (!props.show) return null;
 
   return (
     <Button
@@ -293,9 +295,11 @@ function CustomButton(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  contentContainer: {
+    backgroundColor: 'white',
     margin: 10,
     padding: 10,
-    backgroundColor: colors.white,
   },
   toolbar: {
     flexDirection: 'row',
@@ -329,6 +333,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.orangeRed,
     borderColor: colors.orangeRed,
     marginLeft: 10,
+  },
+  actions: {
+    margin: 10,
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    padding: 10,
   }
 })
 

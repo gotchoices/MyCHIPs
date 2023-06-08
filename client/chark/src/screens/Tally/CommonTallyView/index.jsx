@@ -11,9 +11,44 @@ const CommonTallyView = (props) => {
   const { messageText } = useMessageText();
 
   const talliesText = messageText?.tallies;
+  const hasPartCert = !!tally?.part_cert;
+  const partCert = tally?.part_cert;
 
   return (
     <View>
+      {
+        hasPartCert && <View style={styles.detailControl}>
+          <HelpText
+            label={'Partner Details'}
+            style={styles.headerText}
+          />
+
+          <View style={styles.detailControl}>
+            <HelpText
+              label={'Full Name'}
+              style={styles.secondaryheader}
+            />
+            <Text>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
+          </View>
+
+          <View style={styles.detailControl}>
+            <HelpText
+              label={'CID'}
+              style={styles.secondaryheader}
+            />
+            <Text>{partCert?.chad?.cid}</Text>
+          </View>
+
+          <View style={styles.detailControl}>
+            <HelpText
+              label={'Agent ID'}
+              style={styles.secondaryheader}
+            />
+            <Text>{partCert?.chad?.agent}</Text>
+          </View>
+        </View>
+      }
+
       <View style={styles.detailControl}>
         <HelpText
           label={talliesText?.tally_uuid?.title ?? ''}
@@ -58,6 +93,16 @@ const styles = StyleSheet.create({
   headerText: {
     color: colors.black,
     fontSize: 14,
+  },
+  secondaryheader: {
+    color: colors.black,
+    fontSize: 13,
+    fontWeight: 'normal',
+  },
+  label: {
+    fontWeight: 'bold',
+    color: colors.black,
+    fontSize: 14
   },
 })
 

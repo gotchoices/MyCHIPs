@@ -19,8 +19,6 @@ import { random } from '../../utils/common';
 
 const ShareTally = (props) => {
   const tally_id = props.route?.params?.tally_id;
-  //const tallyObj = props.route.params.json;
-  //const linkHtml = props.route.params.link;
   const viewShotRef = useRef();
   const { wm } = useSocket();
 
@@ -56,7 +54,6 @@ const ShareTally = (props) => {
       console.log("Sharing Exception", e);
     });
   }, [tally_id])
-  console.log('tally', tallyObj, 'tally')
 
   const qrData = useMemo(() => {
     return JSON.stringify({
@@ -196,9 +193,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
+    backgroundColor: colors.white,
   },
   tab: {
     flexDirection: 'row',
+    margin: 20,
   },
   tabItem: {
     padding: 8,
