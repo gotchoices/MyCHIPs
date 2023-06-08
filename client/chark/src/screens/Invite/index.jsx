@@ -3,58 +3,45 @@ import { View, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView, Modal 
 import Toast from 'react-native-toast-message';
 
 import { colors } from '../../config/constants';
-import { request } from '../../services/profile';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useInvite from '../../hooks/useInvite';
+import { createTemplate } from '../../services/tally';
 
 import TemplateItem from './TemplateItem';
-import ShareTally from './ShareTally';
 import Button from '../../components/Button';
 
 const TallyInvite = (props) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedTallySeq, setSelectedTallySeq] = useState();
-  const [tallyShareInfo, setTallyShareInfo] = useState();
-  const [generatingInvite, setGeneratingInvite] = useState(false);
   const { wm, ws } = useSocket();
   const { triggerInviteFetch } = useInvite();
 
   useEffect(() => {
-    if(ws) {
+    if (ws) {
       fetchTemplates();
     }
   }, [ws, triggerInviteFetch]);
 
-  const selectTemplate = (tally_seq) => {
-    return;
-    if(tally_seq === selectedTallySeq) {
-      setSelectedTallySeq(undefined);
-      setTallyShareInfo(undefined)
-      return;
-    }
-    setSelectedTallySeq(tally_seq);
-  }
-
   //Create a new template
   const newTemplate = () => {
-    const spec = {
-      fields: {
-        contract: {terms: 'Some Terms'},
+    const payload = {
+        contract: { terms: 'Some Terms' },
         comment: 'Test: ' + new Date()
-      },
-      view: 'mychips.tallies_v_me',
     }
 
-    wm.request('_tpt_ref' + random(), 'insert', spec, () => {
+    createTemplate(wm, payload).then(() => {
       fetchTemplates()
-    });
+    }).catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: err?.message ?? 'Error creating new template',
+      });
+    })
   }
 
   const fetchTemplates = () => {
     setLoading(true);
-    setSelectedTallySeq(undefined);
     const spec = {
       fields: [
         'tally_ent',
@@ -69,7 +56,7 @@ const TallyInvite = (props) => {
         'part_cid',
       ],
       view: 'mychips.tallies_v_me',
-      where: { state: 'draft' },
+      where: {left:"status", oper:"in", entry:"draft offer"},
       order: {
         field: 'crt_date',
         asc: false,
@@ -91,86 +78,22 @@ const TallyInvite = (props) => {
 
       setData(_data);
       setLoading(false);
-      setTallyShareInfo(undefined)
     });
-  }
-
-  const generate = (tally_seq) => {
-    //if(!selectedTallySeq) {
-      //return;
-    //}
-
-    //const template = data?.find((item) => item.id === selectedTallySeq); 
-    const template = data?.find((item) => item.id === tally_seq); 
-
-    const hold_limit = template?.hold_terms?.limit;
-    const part_limit = template?.part_terms?.limit;
-    if(
-      typeof hold_limit === 'undefined' || hold_limit === null ||
-      typeof part_limit === 'undefined' || part_limit === null
-    ) {
-      return Toast.show({
-        type: 'error',
-        text1: 'Please add hold terms and part terms before sharing tally.',
-      });
-    }
-
-    setGeneratingInvite(true);
-    const spec = {
-      name: 'invite',
-      view: 'mychips.tallies_v_me',
-      data: {
-        keys: [{tally_seq: template.id}],
-        options: {
-          reuse: true,
-          format: ['json', 'link']
-        }
-      }
-    }
-
-    request(wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
-      const json = data?.[0];
-      const link = data?.[1];
-
-      setGeneratingInvite(false);
-      setTallyShareInfo({
-        json,
-        link,
-      });
-    });
-  }
-
-  const onShareClose = () => {
-    setTallyShareInfo(undefined);
-    setSelectedTallySeq(undefined);
   }
 
   const renderItem = ({ item, index }) => {
     return (
-      <TemplateItem 
+      <TemplateItem
         testID={`tally-${index}`}
         template={item}
-        activeId={selectedTallySeq}
-        selectTemplate={selectTemplate}
         navigation={props.navigation}
-        generate={generate}
       />
     )
   }
 
-  if(tallyShareInfo) {
-    return <View style={styles.container} testID="tallyShare">
-      <ShareTally
-        json={tallyShareInfo?.json ?? {}}
-        link={tallyShareInfo?.link ?? ''}
-        onCancel={onShareClose}
-      />
-    </View>
-  }
-
   return (
     <View style={styles.container} testID="inviteScreen">
-      <View 
+      <View
         style={styles.listContainer}
       >
         <View
@@ -184,22 +107,9 @@ const TallyInvite = (props) => {
               onPress={() => newTemplate()}
             />
           </View>
-
-          {
-            selectedTallySeq && (
-              <View style={{ marginLeft: 10 }} testID="templateBtn">
-                <Button
-                  style={{ backgroundColor: colors.mustardBrown, borderColor: colors.mustardBrown }}
-                  title="From Template"
-                  onPress={() => generate()}
-                  disabled={generatingInvite}
-                />
-              </View>
-            )
-          }
         </View>
 
-        <FlatList 
+        <FlatList
           data={data}
           renderItem={renderItem}
           refreshing={loading}
