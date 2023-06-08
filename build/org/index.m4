@@ -13,7 +13,7 @@ define(CONTENT,`
         )
         LINK_BLOCK(ri-stack-line, https://gotchoices.org/mychips/index.html,
           `How it works',
-          `Read The MyCHIPs Papers, which details how value can be transmitted in a purely peer-to-peer private credit network'.
+          `Read The MyCHIPs Papers, which detail how value can be transmitted in a purely peer-to-peer private credit network'.
         )
         LINK_BLOCK(ri-coin-line, https://chipcentral.net/,
           `The CHIP as a unit of value',
