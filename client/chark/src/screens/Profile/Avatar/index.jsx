@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Image, View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
-import ImagePicker, {ImageOrVideo} from 'react-native-image-crop-picker';
+import ImagePicker from 'react-native-image-crop-picker';
+import { Buffer } from 'buffer';
 
 import { colors } from '../../../config/constants';
 import profileImg from '../../../../assets/profile.png';
@@ -23,8 +24,13 @@ const Avatar = (props) => {
       cropping: true,
       cropperCircleOverlay: true,
       freeStyleCropEnabled: true,	
+      includeBase64: true,
     }).then(image => {
-      props.setAvatar(image.path)
+      props.uploadProfile({
+        file: image.path,
+        fmt: image?.mime,
+        data: image.data,
+      })
     }).catch(console.log)
     .finally(() => {
       closeModal()
@@ -38,8 +44,13 @@ const Avatar = (props) => {
       cropping: true,
       cropperCircleOverlay: true,
       freeStyleCropEnabled: true,	
+      includeBase64: true,
     }).then(image => {
-      setAvatar(image.path)
+      props.uploadProfile({
+        file: image.path,
+        fmt: image?.mime,
+        data: image.data,
+      })
     }).catch(console.log)
     .finally(() => {
       closeModal()

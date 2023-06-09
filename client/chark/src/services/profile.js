@@ -125,4 +125,25 @@ export const getProfileText = (wm) => {
   })
 }
 
+export const uploadImage = (wm, payload) => {
+  const spec = {
+    fields: payload,
+    view: 'mychips.file_v_me',
+  }
+
+  return request(wm, 'upload_image' + random(1000), 'insert', spec);
+}
+
+export const getFile = (wm, user_ent) => {
+  const spec = {
+    fields: ['file_ent', 'file_fmt', 'file_data'],
+    view: 'mychips.file_v_me',
+    where: {
+      file_ent: user_ent,
+    },
+  }
+
+  return request(wm, 'get_image' + random(), 'select', spec);
+}
+
 export default request;

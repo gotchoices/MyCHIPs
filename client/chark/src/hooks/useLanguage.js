@@ -29,7 +29,6 @@ export const useProfileText = (wm) => {
   useEffect(() => {
     if(wm && !messageText?.profile) {
       getProfileText(wm).then(profile => {
-        console.log('profile', profile)
         setMessageText((prev) => {
           return {
             ...prev,
