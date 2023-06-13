@@ -16,10 +16,10 @@ const Button = (props) => {
       disabled={props.disabled ?? false}
       testID={props.testID ?? ''}
     >
-      <View 
-        style={[styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
+      <View
+        style={[props.style, styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
       >
-        <Text 
+        <Text
           style={[styles.title, { color: props.textColor ?? colors.white }, props.disabled ? styles.titleDisabled : {}]}
         >
           {props.title}
@@ -34,6 +34,7 @@ Button.propTypes = {
   textColor: PropTypes.string,
   onPress: PropTypes.func.isRequired,
   testID: PropTypes.string,
+  style: PropTypes.object,
 }
 
 const styles = StyleSheet.create({

@@ -9,6 +9,8 @@ import { useTallyText } from '../../../hooks/useLanguage';
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
+import HelpText from '../../../components/HelpText';
+import { err } from 'react-native-svg/lib/typescript/xml';
 
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -22,15 +24,17 @@ const EditOpenTally = (props) => {
   const [reward, setReward] = useState('');
   const [clutch, setClutch] = useState('');
 
+
+  // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
     fetchTallies(wm, {
-      fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch'],
+      fields: ['credit', 'bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net'],
       where: {
         tally_ent,
         tally_seq,
       },
     }).then(data => {
-      if(data?.length) {
+      if (data?.length) {
         const _tally = data?.[0];
         setTally(_tally);
         setTarget((_tally?.target ?? '').toString())
@@ -38,6 +42,8 @@ const EditOpenTally = (props) => {
         setReward((_tally?.reward ?? '').toString())
         setClutch((_tally?.clutch ?? '').toString())
       }
+    }).catch((e) => {
+      console.log("ERROR===>", e);
     }).finally(() => {
       setLoading(false);
     })
@@ -54,7 +60,7 @@ const EditOpenTally = (props) => {
     console.log(data, 'data')
   }
 
-  if(loading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>Loading...</Text>
@@ -62,7 +68,7 @@ const EditOpenTally = (props) => {
     )
   }
 
-  if(!tally) {
+  if (!tally) {
     return (
       <View style={{ flex: 1, alignItems: 'center' }}>
         <CustomText as="h2">
@@ -71,18 +77,28 @@ const EditOpenTally = (props) => {
       </View>
     )
   }
+  const onViewChitHistory = () => {
+    props.navigation.navigate('ChitHistory', {
+      tally_seq,
+      tally_ent,
+    });
+  }
 
   return (
     <ScrollView>
       <View style={styles.container}>
-        <CommonTallyView tally={tally} />
+
+        <CommonTallyView
+          tally={tally}
+          onViewChitHistory={onViewChitHistory}
+        />
 
         <View style={styles.detailControl}>
           <CustomText as="h4">
             Target
           </CustomText>
 
-          <TextInput 
+          <TextInput
             value={target}
             style={[styles.input]}
             onChangeText={setTarget}
@@ -94,7 +110,7 @@ const EditOpenTally = (props) => {
             Bound
           </CustomText>
 
-          <TextInput 
+          <TextInput
             value={bound}
             style={[styles.input]}
             onChangeText={setBound}
@@ -103,10 +119,10 @@ const EditOpenTally = (props) => {
 
         <View style={styles.detailControl}>
           <CustomText as="h4">
-            Reward 
+            Reward
           </CustomText>
 
-          <TextInput 
+          <TextInput
             value={reward}
             style={[styles.input]}
             onChangeText={setReward}
@@ -118,7 +134,7 @@ const EditOpenTally = (props) => {
             Clutch
           </CustomText>
 
-          <TextInput 
+          <TextInput
             value={clutch}
             style={[styles.input]}
             onChangeText={setClutch}
@@ -127,9 +143,10 @@ const EditOpenTally = (props) => {
 
         <View>
           <Button
-            title="Save" 
+            title="Save"
             onPress={onSave}
           />
+
         </View>
       </View>
     </ScrollView>

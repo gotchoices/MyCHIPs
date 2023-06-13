@@ -14,7 +14,7 @@ import Button from '../../../components/Button';
 import { colors } from '../../../config/constants';
 
 const ChangePrimary = (props) => {
-  const items = props.items; 
+  const items = props.items;
   const rowField = props.rowField;
   const primaryField = props.primaryField;
   const seqField = props.seqField;
@@ -74,7 +74,7 @@ const ChangePrimary = (props) => {
           {
             !!items.length && (
               <View style={styles.actionItem}>
-                <Button 
+                <Button
                   onPress={onSave}
                   disabled={loading}
                   title="Save Changes"

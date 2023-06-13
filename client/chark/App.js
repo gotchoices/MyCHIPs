@@ -42,6 +42,7 @@ import MessageTextProvider from './src/components/MessageTextProvider';
 
 import { handleNotification } from './src/utils/notification';
 import ShareTally from './src/screens/ShareTally';
+import ChitHistory from './src/screens/Tally/ChitHistory';
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
@@ -50,6 +51,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
+      <HomeStack.Screen name='ChitHistory' component={ChitHistory} options={{ title: 'Chit History' }} />
     </HomeStack.Navigator>
   );
 }
@@ -68,7 +70,7 @@ function InviteStackScreen() {
     <InviteProvider>
       <InviteStack.Navigator>
         <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
-        <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }}  />
+        <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }} />
         <InviteStack.Screen name="TallyShare" component={ShareTally} options={{ title: 'Share Tally', headerShadowVisible: false }} />
       </InviteStack.Navigator>
     </InviteProvider>
@@ -214,18 +216,18 @@ const styles = StyleSheet.create({
   },
   buttonBox: {
     alignItems: 'center',
-//    backgroundColor: '#e0e0e0',
+    //    backgroundColor: '#e0e0e0',
     borderRadius: 8,
     flex: 1,
   },
   button: {
-//    position: 'absolute',
-//    padding: 10,
-//    marginBottom: 20,
-//    shadowColor: '#303838',
-//    shadowOffset: { width: 0, height: 5 },
-//    shadowRadius: 10,
-//    shadowOpacity: 0.35,
+    //    position: 'absolute',
+    //    padding: 10,
+    //    marginBottom: 20,
+    //    shadowColor: '#303838',
+    //    shadowOffset: { width: 0, height: 5 },
+    //    shadowRadius: 10,
+    //    shadowOpacity: 0.35,
   },
 })
 

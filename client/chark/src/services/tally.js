@@ -16,11 +16,27 @@ export const fetchTallies = (wm, args) => {
     view: 'mychips.tallies_v_me',
   }
 
-  if(args.where) {
+  if (args.where) {
     spec.where = args.where;
   }
 
   return request(wm, 'tallies' + random(), 'select', spec);
+}
+
+export const fetchChitHistory = (wm, args) => {
+  const spec = {
+    fields: args.fields,
+    view: 'mychips.chits_v_me',
+  };
+
+  if (args.order) {
+    spec.order = args.order;
+  }
+
+  if (args.where) {
+    spec.where = args.where;
+  }
+  return request(wm, '_chit_history' + random(), 'select', spec);
 }
 
 /**
