@@ -1,5 +1,5 @@
 define(TITLE,`MyCHIPs Central')
-define(SUBTITLE,`The digital medium of exchange designed for commerce!')
+define(SUBTITLE,`The digital medium designed for exchange!')
 define(CONTENT,`
       <div class="text-center">
         <a href="https://mychips.org/chark.apk" class="btn-get-started scrollto">Android App (APK file)</a>
@@ -23,14 +23,20 @@ define(CONTENT,`
           `Open Source Code',
           `Access the code for the MyCHIPs server and mobile application in Github.'
         )
-        LINK_BLOCK(ri-presentation-line, https://youtu.be/bl_lUW3VX5o,
-          `A Mathematical Proof for MyCHIPs Credit Lifts',
-          `See Kyle Storey defend his Masters Thesis proving important properties of the credit lift algorithm.'
-        )
         LINK_BLOCK(ri-lightbulb-flash-line, https://gotchoices.org/book/chips.html,
           `Original system concept',
           `Read from Got Choices, The Book, where a CHIP-based system was first proposed.'
         )
+        LINK_BLOCK(ri-presentation-line, https://youtu.be/bl_lUW3VX5o,
+          `A Mathematical Proof for MyCHIPs Credit Lifts',
+          `See Kyle Storey defend his Masters Thesis proving important properties of the credit lift algorithm.'
+        )
+<!---
+        LINK_BLOCK(ri-presentation-line, https://youtu.be/xyz,
+          `Presentation at the Collaborative Finance Conference',
+          `The GotChoices Foundation presents on the MyCHIPs lift algorithm at the Commons Hub in Austria, Spring 2023.'
+        )
+-->
         LINK_BLOCK(ri-fingerprint-line, privacy.html, 
           `Privacy Policy', 
           `How your data is treated.'
