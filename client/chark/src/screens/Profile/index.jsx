@@ -5,6 +5,7 @@ import {
   ScrollView,
   Text,
 } from 'react-native';
+import { Buffer } from 'buffer';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
@@ -12,7 +13,7 @@ import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
 import { useProfileText } from '../../hooks/useLanguage';
-import { getComm, getAddresses, getProfileText} from '../../services/profile';
+import { getComm, getAddresses, uploadImage, getFile } from '../../services/profile';
 
 import Avatar from './Avatar';
 import Details from './Details';
@@ -43,6 +44,15 @@ const Profile = (props) => {
     getAddresses(wm, user_ent).then(data => {
       setAddresses(data);
     })
+
+    //getFile(wm, user_ent).then((_data) => {
+      //const file = _data?.[0]
+      //if(file) {
+        //const base64 = Buffer.from(file?.file_data).toString('base64');
+        //setAvatar(`data:${file.file_fmt};base64,${base64}`);
+      //}
+
+    //})
   }, [])
 
   const emails = useMemo(() => {
@@ -66,11 +76,34 @@ const Profile = (props) => {
     }
   } 
 
+  const uploadProfile = (data) => {
+    let fileData = Buffer.from(data.data)
+
+    const payload = {
+      file_fmt: data.fmt,
+      file_data: fileData,
+      file_cmt: 'Profile',
+    };
+
+    uploadImage(wm, payload)
+      .then((response) => {
+        if(response) {
+          const base64 = Buffer.from(response?.file_data, 'binary').toString('base64');
+          setAvatar(`data:${response.fmt};base64,${base64}`);
+        }
+
+      })
+      .catch(err => console.log('error', err))
+  }
+
   return (
     <ScrollView>
       <View style={styles.container}>
         <View style={styles.avatar}>
-          <Avatar />
+          <Avatar 
+            avatar={avatar}
+            uploadProfile={uploadProfile}
+          />
 
           <Text style={{ color: colors.black, marginTop: 16, fontSize: 18, fontWeight: 'bold', alignSelf: 'center' }}>
             {personal?.cas_name}
