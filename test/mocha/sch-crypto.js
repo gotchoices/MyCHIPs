@@ -36,7 +36,8 @@ describe("Test cryptographic schema functions", function() {
         wordArr.push(wordList[idx])
       }
       let string = wordArr.join(' ')		//Join the words together
-log.debug('String:', string)
+        , strBuf = Buffer.from(string)
+log.debug('String:', string, strBuf)
     
       it(`Encode/decode: ${string}`, function(done) {
         db.query('select mychips.ba2b64v($1::bytea) as b64;', [string] ,(e, res) => {if (e) done(e)
@@ -46,7 +47,7 @@ log.debug('String:', string)
 log.debug('Base64:', row.b64, encoded)
           assert.equal(row.b64, encoded)
           
-          db.query('select mychips.b64v2ba($1) as str;', [encoded] ,(e, res) => {if (e) done(e)
+          db.query("select encode(mychips.b64v2ba($1),'escape') as str;", [encoded] ,(e, res) => {if (e) done(e)
             assert.equal(res.rowCount, 1)
             let row = res.rows[0]				//Should just be one row
               , decoded = row.str.toString()
