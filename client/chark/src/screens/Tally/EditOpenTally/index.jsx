@@ -24,11 +24,14 @@ const EditOpenTally = (props) => {
   const [reward, setReward] = useState('');
   const [clutch, setClutch] = useState('');
 
+  useEffect(() => {
+
+  }, [])
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
     fetchTallies(wm, {
-      fields: ['credit', 'bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net'],
+      fields: ['bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net'],
       where: {
         tally_ent,
         tally_seq,
@@ -86,67 +89,63 @@ const EditOpenTally = (props) => {
 
   return (
     <ScrollView>
-      <View style={styles.container}>
-
-        <CommonTallyView
-          tally={tally}
-          onViewChitHistory={onViewChitHistory}
-        />
-
-        <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Target
-          </CustomText>
-
-          <TextInput
-            value={target}
-            style={[styles.input]}
-            onChangeText={setTarget}
+      <View>
+        <View style={styles.container}>
+          <CommonTallyView
+            tally={tally}
+            onViewChitHistory={onViewChitHistory}
           />
+
+          <View style={styles.detailControl}>
+            <CustomText as="h4">
+              Tally Type
+            </CustomText>
+            <Text style={styles.textInputStyle}>{tally.tally_type}</Text>
+          </View>
         </View>
 
-        <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Bound
-          </CustomText>
+        <View style={styles.container}>
+          <View style={styles.detailControl}>
+            <CustomText as="h4">
+              Holder Terms
+            </CustomText>
+            <Text style={styles.label}>Limit</Text>
+            <Text style={styles.textInputStyle}>{tally.hold_terms.limit ?? 0}</Text>
 
-          <TextInput
-            value={bound}
-            style={[styles.input]}
-            onChangeText={setBound}
-          />
+            <Text style={styles.label}>Call</Text>
+            <Text style={styles.textInputStyle}>{tally.hold_terms.call ?? 0}</Text>
+          </View>
         </View>
 
-        <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Reward
-          </CustomText>
+        <View style={styles.container}>
+          <View style={styles.detailControl}>
+            <CustomText as="h4">
+              Partner Terms
+            </CustomText>
+            <Text style={styles.label}>Limit</Text>
+            <Text style={styles.textInputStyle}>{tally.part_terms.limit ?? 0}</Text>
 
-          <TextInput
-            value={reward}
-            style={[styles.input]}
-            onChangeText={setReward}
-          />
+            <Text style={styles.label}>Call</Text>
+            <Text style={styles.textInputStyle}>{tally.part_terms.call ?? 0}</Text>
+          </View>
         </View>
 
-        <View style={styles.detailControl}>
+        <View style={styles.container}>
           <CustomText as="h4">
-            Clutch
+            Trading Variables
           </CustomText>
 
-          <TextInput
-            value={clutch}
-            style={[styles.input]}
-            onChangeText={setClutch}
-          />
-        </View>
+          <Text style={styles.label}>Target</Text>
+          <Text style={styles.textInputStyle}>{tally.target}</Text>
 
-        <View>
-          <Button
-            title="Save"
-            onPress={onSave}
-          />
+          <Text style={styles.label}>Bound</Text>
+          <Text style={styles.textInputStyle}>{tally.bound}</Text>
 
+          <Text style={styles.label}>Reward</Text>
+          <Text style={styles.textInputStyle}>{tally.reward}</Text>
+
+          <Text style={styles.label}>Clutch</Text>
+          <Text style={styles.textInputStyle}>{tally.clutch}</Text>
         </View>
       </View>
     </ScrollView>
@@ -169,6 +168,18 @@ const styles = StyleSheet.create({
   },
   comment: {
     textAlignVertical: 'top',
+  },
+  textInputStyle: {
+    paddingHorizontal: 10,
+    paddingVertical: 16,
+    color: 'black',
+    fontSize: 16,
+    backgroundColor: colors.gray100,
+  },
+  label: {
+    marginTop: 8,
+    fontSize: 14,
+    color: 'black',
   }
 })
 

@@ -20,6 +20,7 @@ const TallyReport = (props) => {
     getTallyReport(wm).then((data) => {
       setGraph(data);
     }).catch(err => {
+      console.log('Error==> ', err)
       Toast.show({
         type: 'error',
         text1: err.message,
@@ -37,7 +38,7 @@ const TallyReport = (props) => {
     const tally_seq = parsed.seq;
     const tally_ent = parsed.tally_ent;
 
-    if(tally_seq) {
+    if (tally_seq) {
       props.navigation?.navigate?.('OpenTallyEdit', {
         tally_seq,
         tally_ent,
@@ -59,7 +60,7 @@ const TallyReport = (props) => {
       </View>
 
       {
-        graph &&  (
+        graph && (
           <WebView
             onShouldStartLoadWithRequest={interceptRequest}
             originWhitelist={["*"]}
