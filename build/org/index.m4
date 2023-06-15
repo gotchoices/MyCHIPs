@@ -31,12 +31,10 @@ define(CONTENT,`
           `A Mathematical Proof for MyCHIPs Credit Lifts',
           `See Kyle Storey defend his Masters Thesis proving important properties of the credit lift algorithm.'
         )
-<!---
-        LINK_BLOCK(ri-presentation-line, https://youtu.be/xyz,
+        LINK_BLOCK(ri-presentation-line, https://youtu.be/iT3A_7N5ydA,
           `Presentation at the Collaborative Finance Conference',
           `The GotChoices Foundation presents on the MyCHIPs lift algorithm at the Commons Hub in Austria, Spring 2023.'
         )
--->
         LINK_BLOCK(ri-fingerprint-line, privacy.html, 
           `Privacy Policy', 
           `How your data is treated.'
