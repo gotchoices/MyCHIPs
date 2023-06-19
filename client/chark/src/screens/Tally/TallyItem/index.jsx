@@ -1,10 +1,10 @@
 import React from 'react'; import { View, Image, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
-import { colors } from '../../../config/constants';
+import { colors, placeholderImages } from '../../../config/constants';
 import { round } from '../../../utils/common';
 
-//import avatar from '../../../../assets/avatar.png';
+import avatar from '../../../../assets/avatar.png';
 import mychips from '../../../../assets/mychips.png';
 import mychipsNeg from '../../../../assets/mychips-red.png';
 
@@ -12,24 +12,24 @@ const TallyItem = (props) => {
   const tally = props.tally;
   const net = round((tally?.net ?? 0) / 1000, 2);
   const convertedNet = round(net * props.conversionRate, 2);
- 
+  const partCert = tally?.part_cert;
+
   return (
     <View style={styles.container}>
-      {/*
-        <Image 
-          style={styles.avatar}
-          source={avatar}
-        />
-      */}
 
-      <View style={{ flex: 1,  }}>
-        <Text style={styles.name}>{tally?.part_cert?.chad?.cid}</Text>
-        <Text style={styles.description}>{tally?.part_cert?.chad?.agent}</Text>
+      <Image
+        style={styles.avatar}
+        source={avatar}
+      />
+
+      <View style={{ flex: 1, }}>
+        <Text style={styles.name}>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
+        <Text style={[styles.description, { marginTop: 4 }]}>{partCert?.chad?.cid}:{partCert?.chad?.agent}</Text>
       </View>
 
       <View style={styles.price}>
         <View style={styles.mychips}>
-          <Image 
+          <Image
             source={net < 0 ? mychipsNeg : mychips}
           />
           <Text style={net < 0 ? styles.mychipsNetNeg : styles.mychipsNet}>{net}</Text>
@@ -64,13 +64,16 @@ const styles = StyleSheet.create({
   avatar: {
     marginRight: 8,
     alignSelf: 'center',
+    height: 45,
+    width: 45,
+    borderRadius: 45 / 2,
   },
   name: {
     fontSize: 16,
     fontWeight: 'bold',
   },
   description: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.gray500,
   },
   price: {

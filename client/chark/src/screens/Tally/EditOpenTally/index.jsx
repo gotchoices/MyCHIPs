@@ -9,6 +9,8 @@ import { useTallyText } from '../../../hooks/useLanguage';
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
+import HelpText from '../../../components/HelpText';
+import { err } from 'react-native-svg/lib/typescript/xml';
 
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -23,14 +25,19 @@ const EditOpenTally = (props) => {
   const [clutch, setClutch] = useState('');
 
   useEffect(() => {
+
+  }, [])
+
+  // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
+  useEffect(() => {
     fetchTallies(wm, {
-      fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch'],
+      fields: ['bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net'],
       where: {
         tally_ent,
         tally_seq,
       },
     }).then(data => {
-      if(data?.length) {
+      if (data?.length) {
         const _tally = data?.[0];
         setTally(_tally);
         setTarget((_tally?.target ?? '').toString())
@@ -38,6 +45,8 @@ const EditOpenTally = (props) => {
         setReward((_tally?.reward ?? '').toString())
         setClutch((_tally?.clutch ?? '').toString())
       }
+    }).catch((e) => {
+      console.log("ERROR===>", e);
     }).finally(() => {
       setLoading(false);
     })
@@ -54,7 +63,7 @@ const EditOpenTally = (props) => {
     console.log(data, 'data')
   }
 
-  if(loading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>Loading...</Text>
@@ -62,7 +71,7 @@ const EditOpenTally = (props) => {
     )
   }
 
-  if(!tally) {
+  if (!tally) {
     return (
       <View style={{ flex: 1, alignItems: 'center' }}>
         <CustomText as="h2">
@@ -71,65 +80,72 @@ const EditOpenTally = (props) => {
       </View>
     )
   }
+  const onViewChitHistory = () => {
+    props.navigation.navigate('ChitHistory', {
+      tally_seq,
+      tally_ent,
+    });
+  }
 
   return (
     <ScrollView>
-      <View style={styles.container}>
-        <CommonTallyView tally={tally} />
-
-        <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Target
-          </CustomText>
-
-          <TextInput 
-            value={target}
-            style={[styles.input]}
-            onChangeText={setTarget}
+      <View>
+        <View style={styles.container}>
+          <CommonTallyView
+            tally={tally}
+            onViewChitHistory={onViewChitHistory}
           />
+
+          <View style={styles.detailControl}>
+            <CustomText as="h4">
+              Tally Type
+            </CustomText>
+            <Text style={styles.textInputStyle}>{tally.tally_type}</Text>
+          </View>
         </View>
 
-        <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Bound
-          </CustomText>
+        <View style={styles.container}>
+          <View style={styles.detailControl}>
+            <CustomText as="h4">
+              Holder Terms
+            </CustomText>
+            <Text style={styles.label}>Limit</Text>
+            <Text style={styles.textInputStyle}>{tally.hold_terms.limit ?? 0}</Text>
 
-          <TextInput 
-            value={bound}
-            style={[styles.input]}
-            onChangeText={setBound}
-          />
+            <Text style={styles.label}>Call</Text>
+            <Text style={styles.textInputStyle}>{tally.hold_terms.call ?? 0}</Text>
+          </View>
         </View>
 
-        <View style={styles.detailControl}>
-          <CustomText as="h4">
-            Reward 
-          </CustomText>
+        <View style={styles.container}>
+          <View style={styles.detailControl}>
+            <CustomText as="h4">
+              Partner Terms
+            </CustomText>
+            <Text style={styles.label}>Limit</Text>
+            <Text style={styles.textInputStyle}>{tally.part_terms.limit ?? 0}</Text>
 
-          <TextInput 
-            value={reward}
-            style={[styles.input]}
-            onChangeText={setReward}
-          />
+            <Text style={styles.label}>Call</Text>
+            <Text style={styles.textInputStyle}>{tally.part_terms.call ?? 0}</Text>
+          </View>
         </View>
 
-        <View style={styles.detailControl}>
+        <View style={styles.container}>
           <CustomText as="h4">
-            Clutch
+            Trading Variables
           </CustomText>
 
-          <TextInput 
-            value={clutch}
-            style={[styles.input]}
-            onChangeText={setClutch}
-          />
-        </View>
+          <Text style={styles.label}>Target</Text>
+          <Text style={styles.textInputStyle}>{tally.target}</Text>
 
-        <View>
-          <Button
-            title="Save" 
-            onPress={onSave}
-          />
+          <Text style={styles.label}>Bound</Text>
+          <Text style={styles.textInputStyle}>{tally.bound}</Text>
+
+          <Text style={styles.label}>Reward</Text>
+          <Text style={styles.textInputStyle}>{tally.reward}</Text>
+
+          <Text style={styles.label}>Clutch</Text>
+          <Text style={styles.textInputStyle}>{tally.clutch}</Text>
         </View>
       </View>
     </ScrollView>
@@ -152,6 +168,18 @@ const styles = StyleSheet.create({
   },
   comment: {
     textAlignVertical: 'top',
+  },
+  textInputStyle: {
+    paddingHorizontal: 10,
+    paddingVertical: 16,
+    color: 'black',
+    fontSize: 16,
+    backgroundColor: colors.gray100,
+  },
+  label: {
+    marginTop: 8,
+    fontSize: 14,
+    color: 'black',
   }
 })
 
