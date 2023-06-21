@@ -114,9 +114,9 @@ const Setting = (props) => {
 
           <Text style={styles.language}>
             {
-              preferredCurrency?.code 
-               ? `${preferredCurrency?.name} (${preferredCurrency?.code})`
-               : 'None'
+              preferredCurrency?.code
+                ? `${preferredCurrency?.name} (${preferredCurrency?.code})`
+                : 'None'
 
             }
           </Text>
@@ -132,7 +132,12 @@ const Setting = (props) => {
           />
         </TouchableWithoutFeedback>
       </View>
-
+      <Button
+        onPress={() => {
+          props.navigation.navigate("GenerateKey");
+        }}
+        title='Generate Key'
+      />
       <CenteredModal
         isVisible={isLangModalVisible}
         onClose={onCancel}
