@@ -7,6 +7,9 @@
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     <uses-permission android:name=" android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name=" android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name=" android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
     <application
       android:name=".MainApplication"
