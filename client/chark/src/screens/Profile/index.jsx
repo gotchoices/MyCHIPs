@@ -77,7 +77,7 @@ const Profile = (props) => {
   } 
 
   const uploadProfile = (data) => {
-    let fileData = Buffer.from(data.data)
+    let fileData = Buffer.from(data.data, 'base64')
 
     const payload = {
       file_fmt: data.fmt,
