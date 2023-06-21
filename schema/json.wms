@@ -72,7 +72,7 @@ view json.file {json base.file_v} {select
   , file_prim	as "main"
   , file_cmt	as "comment"
   , file_priv	as "private"
-  , file_cks	as "digest"
+  , file_hash	as "digest"
     from base.file_v where not file_ent isnull with cascaded check option;
 } -primary {id seq}
 

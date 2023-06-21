@@ -3,7 +3,8 @@ TODO:
 X- Report for viewing/editing trading variables
 
 - Tally protocol support
--  How to easily understand/view draft tallies
+-  When a tally is cloned/invited, freshen the certificate info (agent)
+-  How to easily understand/view draft/offer tallies
 -  Can execute a signed tally with a partner
 -  Can sent a voluntary chit on a tally
 -  
@@ -16,10 +17,11 @@ X-  Test photos from web app
 X-   Dew entries display at reasonable default width
 X-   Can export file from widget
 X-   Bytea type displays as hex string in wylib
--  Re-implement document server to include contracts and photos (by hash only)
--  Incorporate photo into user certificate
 -  Test photos from mobile app
 -  App displays my primary photo
+-  Re-implement document server to include contracts and photos (by hash only)
+-  Incorporate photo into user certificate
+-  Trigger to prevent delete/update of files/contracts referenced in tallies
 -  App displays my partners' primary photo
 -  In mychips schema, make a trigger to prevent modifying/deleting a file referenced from a tally
 -

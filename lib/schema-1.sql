@@ -561,6 +561,7 @@ cur_code	varchar(3)	primary key
   , cur_name	text		not null unique
   , cur_numb	int
 );
+grant select on table base.currency to public;
 create table base.language (
 code	varchar(3)	primary key
   , iso_3b	text		unique
@@ -817,6 +818,7 @@ co_code	varchar(2)	primary key
   , iso_3	varchar(4)	not null unique
   , iana	varchar(6)
 );
+grant select on table base.country to public;
 create table base.exchange (
 curr	text		references base.currency
   , base	text		default 'USD' references base.currency
@@ -824,6 +826,7 @@ curr	text		references base.currency
   , sample	date		default current_date
   , primary key (curr, base, sample)
 );
+grant select on table base.exchange to public;
 create view base.language_v as select l.*,
   tt.count as tables,
   ct.count as columns,
@@ -1003,6 +1006,7 @@ id		text		primary key
   , bank	text
   , _last_addr	int		not null default 0	-- leading '_' makes these invisible to multiview triggers
   , _last_comm	int		not null default 0
+  , _last_file	int		not null default 0
 
 
 
@@ -1253,14 +1257,14 @@ create table base.file (
 file_ent	text		references base.ent on update cascade on delete cascade
   , file_seq	int	      , primary key (file_ent, file_seq)
   , file_data	bytea		not null
-  , file_type	text		not null check(file_type in ('photo','scan','spread','write','other'))
+  , file_type	text		not null check(file_type in ('bio','id','photo','cert','other'))
   , file_prim	boolean		not null default false
   , file_fmt	text		not null
   , file_cmt	text
   , file_priv	boolean		not null default false
-  , file_cks	bytea		not null
+  , file_hash	bytea		not null
   , unique (file_ent, file_seq, file_type)		-- Needed for file_prim FK to work
-  , constraint "!base.file.USP" unique (file_ent, file_type, file_cks)
+  , constraint "!base.file.USP" unique (file_ent, file_type, file_hash)
 
     
   , crt_date    timestamptz	not null default current_timestamp
@@ -1616,6 +1620,9 @@ create function base.file_tf_bd() returns trigger language plpgsql security defi
 $$;
 create function base.file_tf_bi() returns trigger language plpgsql security definer as $$
     begin
+        if new.file_ent isnull then			-- Default to current user
+          new.file_ent = base.user_id(session_user);
+        end if;
         if new.file_seq is null then			-- Generate unique sequence for new entry
             update base.ent set _last_file = greatest(coalesce(_last_file,0) + 1,
               (select coalesce(max(file_seq),0)+1 from base.file where file_ent = new.file_ent)
@@ -1631,6 +1638,9 @@ create function base.file_tf_bi() returns trigger language plpgsql security defi
             perform base.file_make_prim(new.file_ent, new.file_seq, new.file_type);
         end if;
         new.file_prim = false;
+        if new.file_hash isnull then			-- Make sure we have a file hash
+          new.file_hash = sha256(new.file_data);
+        end if;
         return new;
     end;
 $$;
@@ -1653,7 +1663,7 @@ create function base.file_tf_bu() returns trigger language plpgsql security defi
         return new;
     end;
 $$;
-create index base_file_x_file_cks on base.file (file_cks);
+create index base_file_x_file_hash on base.file (file_hash);
 create index base_file_x_file_type on base.file (file_type);
 create table base.parm_audit (
 module text,parm text
@@ -2066,9 +2076,12 @@ create trigger base_file_tr_aiud after insert or update or delete on base.file f
 create trigger base_file_tr_bd before delete on base.file for each row execute procedure base.file_tf_bd();
 create trigger base_file_tr_bi before insert on base.file for each row execute procedure base.file_tf_bi();
 create trigger base_file_tr_bu before update on base.file for each row execute procedure base.file_tf_bu();
-create view base.file_v as select c.file_ent, c.file_seq, c.file_type, c.file_data, c.file_fmt, c.file_cmt, c.file_priv, c.file_cks, c.crt_by, c.mod_by, c.crt_date, c.mod_date
+create view base.file_v as select c.file_ent, c.file_seq, c.file_type, c.file_data, c.file_fmt, c.file_cmt, c.file_priv, c.file_hash, c.crt_by, c.mod_by, c.crt_date, c.mod_date
       , oe.std_name
       , cp.prim_seq is not null and cp.prim_seq = c.file_seq	as file_prim
+      , octet_length(c.file_data) as file_size
+      , (regexp_split_to_array(c.file_fmt, E'/'))[array_length(regexp_split_to_array(c.file_fmt, E'/'), 1)] as file_ext
+      , regexp_replace(trim(trailing from regexp_replace(coalesce(c.file_cmt,c.file_type), E'[\\/:\\s]', '_', 'g')),E'[\s\.]+$', '', 'g') as file_name
 
     from	base.file	c
     join	base.ent_v	oe	on oe.id = c.file_ent
@@ -2484,14 +2497,14 @@ create function base.file_v_insfunc() returns trigger language plpgsql security 
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'base.file_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into base.file (file_ent,file_type,file_data,file_fmt,file_cmt,file_priv,file_prim,file_cks,crt_by,mod_by,crt_date,mod_date) values (new.file_ent,trec.file_type,trec.file_data,trec.file_fmt,trec.file_cmt,trec.file_priv,trec.file_prim,trec.file_cks,session_user,session_user,current_timestamp,current_timestamp) returning file_ent,file_seq into new.file_ent, new.file_seq;
+    insert into base.file (file_ent,file_seq,file_type,file_data,file_fmt,file_cmt,file_priv,file_prim,file_hash,crt_by,mod_by,crt_date,mod_date) values (new.file_ent,new.file_seq,trec.file_type,trec.file_data,trec.file_fmt,trec.file_cmt,trec.file_priv,trec.file_prim,trec.file_hash,session_user,session_user,current_timestamp,current_timestamp) returning file_ent,file_seq into new.file_ent, new.file_seq;
     select into new * from base.file_v where file_ent = new.file_ent and file_seq = new.file_seq;
     return new;
   end;
 $$;
 create function base.file_v_updfunc() returns trigger language plpgsql security definer as $$
   begin
-    update base.file set file_type = new.file_type,file_data = new.file_data,file_fmt = new.file_fmt,file_cmt = new.file_cmt,file_priv = new.file_priv,file_prim = new.file_prim,file_cks = new.file_cks,mod_by = session_user,mod_date = current_timestamp where file_ent = old.file_ent and file_seq = old.file_seq returning file_ent,file_seq into new.file_ent, new.file_seq;
+    update base.file set file_type = new.file_type,file_data = new.file_data,file_fmt = new.file_fmt,file_cmt = new.file_cmt,file_priv = new.file_priv,file_prim = new.file_prim,file_hash = new.file_hash,mod_by = session_user,mod_date = current_timestamp where file_ent = old.file_ent and file_seq = old.file_seq returning file_ent,file_seq into new.file_ent, new.file_seq;
     select into new * from base.file_v where file_ent = new.file_ent and file_seq = new.file_seq;
     return new;
   end;
@@ -2544,7 +2557,7 @@ create view json.file as select
   , file_prim	as "main"
   , file_cmt	as "comment"
   , file_priv	as "private"
-  , file_cks	as "digest"
+  , file_hash	as "digest"
     from base.file_v where not file_ent isnull with cascaded check option;
 create view json.place as select
     addr_ent	as "id"
@@ -3394,9 +3407,13 @@ create function mychips.token_valid(tok text, cert jsonb = null) returns boolean
 
       if orec.reuse then	-- Create a new tally from the template
         insert into mychips.tallies (
-          tally_ent, tally_uuid, tally_type, version, comment, contract, hold_cert, hold_terms, part_cert, status
+          tally_ent, tally_uuid, tally_type, version, contract, status,
+          hold_cert, hold_terms, 
+          part_cert, part_terms
         ) select
-          tally_ent, uuid_generate_v4(), tally_type, version, comment, contract, hold_cert, hold_terms, cert, 'draft'
+          tally_ent, uuid_generate_v4(), tally_type, version, contract, 'draft',
+          hold_cert, hold_terms, 
+          cert, part_terms
         from mychips.tallies where tally_ent = orec.token_ent and tally_seq = orec.tally_seq returning tally_ent, tally_seq into trec;
         perform mychips.tally_notify_user(trec.tally_ent, trec.tally_seq);
       else			-- one-time token, use template AS our new tally, invalidate token
@@ -5429,7 +5446,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('wm','fkey_pub','eng','Key Info','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key column.'),
   ('wm','fkeys_data','eng','Keys Data','Includes data from the system catalogs about how key fields in a table point to key fields in a foreign table.  Each key group is described on a separate row.'),
   ('wm','fkeys_pub','eng','Keys','Public view to see foreign key relationships between views and tables and what their native underlying tables/columns are.  One row per key group.'),
-  ('wm','lang','eng','Language Text','Language messages pertaining to Wyseman service routines'),
+  ('wm','lang','eng','Language Text','Language messages for Wyseman service routines and common functions'),
   ('wm','message_text','eng','Message Text','Contains messages in a particular language to describe an error, or a widget feature or button'),
   ('wm','objects','eng','Objects','Keeps data on database tables, views, functions, etc. telling how to build or drop each object and how it relates to other objects in the database.'),
   ('wm','objects_v','eng','Rel Objects','An enhanced view of the object table, expanded by showing the full object specifier, and each separate release this version of the object belongs to'),
@@ -5578,12 +5595,12 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','exchange','sample','eng','Sample Date','The date this exchange rate applies to'),
   ('base','file','crt_by','eng','Created By','The user who entered this record'),
   ('base','file','crt_date','eng','Created','The date this record was created'),
-  ('base','file','file_cks','eng','Checksum','A hash or checksum of the data in the document, used to ensure data integrity'),
   ('base','file','file_cmt','eng','Comment','Any other notes about this file'),
   ('base','file','file_data','eng','Data','The binary data contained in this document'),
   ('base','file','file_ent','eng','Entity','The ID number of the entity this file belongs to'),
-  ('base','file','file_fmt','eng','Format','A format code to indicate how the data is to be interpreted'),
-  ('base','file','file_prim','eng','Primary','If checked this is the primary method of this type for contacting this entity'),
+  ('base','file','file_fmt','eng','Format','A standard mimetype format code to indicate how the data is to be interpreted (image/jpeg, video/mp4, etc)'),
+  ('base','file','file_hash','eng','Checksum','A sha256 hash of the data in the document, used primarily to ensure data integrity'),
+  ('base','file','file_prim','eng','Primary','If checked this is the primary or main document of its type'),
   ('base','file','file_priv','eng','Private','This record should not be shared publicly'),
   ('base','file','file_seq','eng','Sequence','A unique number assigned to each new document for a given entity'),
   ('base','file','file_type','eng','Type','The type of the document'),
@@ -6282,11 +6299,11 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('base','ent','marital','','eng','N/A','Marital status is not applicable (such as for organizations or groups)'),
   ('base','ent','marital','m','eng','Married','The person is in a current marriage'),
   ('base','ent','marital','s','eng','Single','The person has never married or is divorced or is the survivor of a deceased spouse'),
+  ('base','file','file_type','bio','eng','Profile','A resume, bio or profile on the person or entity'),
+  ('base','file','file_type','cert','eng','Certification','A certificate of qualification or achievement'),
+  ('base','file','file_type','id','eng','Identification','A standard ID such as drivers or business license'),
   ('base','file','file_type','other','eng','Other','Some other type of document'),
-  ('base','file','file_type','photo','eng','Photograph','The document is a photogaph'),
-  ('base','file','file_type','scan','eng','Scan','The document is a scan of a physical document'),
-  ('base','file','file_type','spread','eng','Spreadsheet','The document is a spreadsheet'),
-  ('base','file','file_type','write','eng','Written','The document is a written article, paper, etc'),
+  ('base','file','file_type','photo','eng','Photo','A picture of the person or entity'),
   ('base','parm','type','boolean','eng','Boolean','The parameter can contain only the values of true or false'),
   ('base','parm','type','date','eng','Date','The parameter can contain only date values'),
   ('base','parm','type','float','eng','Float','The parameter can contain only values of floating point type (integer portion, decimal, fractional portion)'),
@@ -6418,6 +6435,10 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','TIL','eng','Good Until','Invitation expires after this time'),
   ('mychips','tallies_v_me','TIN','eng','Tally Invitation','Follow link to consider tally'),
   ('mychips','tallies_v_me','TMK','eng','Bad Key Number','The tally invitation must be called for exactly one tally'),
+  ('mychips','tallies_v_me','trade','eng','Trade Settings','Generate a graphical view of a tally''s trading variable settings'),
+  ('mychips','tallies_v_me','trade.format','eng','Graph Format','How to return the graph report data'),
+  ('mychips','tallies_v_me','trade.format.html','eng','html','Return HTML fragment that contains the report'),
+  ('mychips','tallies_v_me','trade.format.url','eng','url','Return an url link to a web page containing the report'),
   ('mychips','tallies_v_me','URF','eng','Unknown Format','Unknown format for a tally invitation'),
   ('mychips','users','BRM','eng','Birth Record Update','Birth record can only be written once by the user'),
   ('mychips','users','UST','eng','Invalid Trading Status','A disallowed value for the user trading status was specified'),
@@ -6446,6 +6467,12 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','users_v','trade.start','eng','Start Date','Include trades on and after this date'),
   ('mychips','users_v','unlock','eng','Unlock Account','Put the specified account(s) into functional mode, so normal trading can occur'),
   ('mychips','users_v','URF','eng','Unknown Format','Unknown format for a connection ticket'),
+  ('mychips','users_v_me','chip','eng','CHIP Value','Generate an estimate of the current CHIP value in terms of a standard currency'),
+  ('mychips','users_v_me','chip.curr','eng','Currency','Code for a currency to use when expressing the CHIP value estimate'),
+  ('mychips','users_v_me','chip.format','eng','Report Format','How to return the chip valuation report data'),
+  ('mychips','users_v_me','chip.format.html','eng','html','Return HTML fragment that contains the report'),
+  ('mychips','users_v_me','chip.format.json','eng','json','Return a JSON record containing the CHIP exchange rate'),
+  ('mychips','users_v_me','GCH','eng','Getting CHIP Value','An error occurred trying to fetch the current estimated CHIP value'),
   ('mychips','users_v_me','graph','eng','Tally Graph','Generate a visual graph of the user''s tally relationships and balances'),
   ('mychips','users_v_me','graph.format','eng','Graph Format','How to return the graph report data'),
   ('mychips','users_v_me','graph.format.html','eng','html','Return HTML fragment that contains the report'),
@@ -6478,6 +6505,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wm','lang','badUpdate','eng','Invalid Update','An update query produced nothing to update'),
   ('wm','lang','badWhere','eng','Invalid Where','The where-clause was not understood'),
   ('wm','lang','noResult','eng','No Result','The query did not produce the expected result'),
+  ('wm','lang','search','eng','Search','Find desired data or records'),
   ('wylib','data','23505','eng','Key Violation','An operation would have resulted in multiple records having duplicated data, which is required to be unique'),
   ('wylib','data','appDefault','eng','Default State','Reload the application to its default state (you will lose any unsaved configuration state, including connection keys)!'),
   ('wylib','data','appEditState','eng','Edit States','Preview a list of saved states for this application'),
@@ -6575,6 +6603,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('wylib','data','diaQuery','eng','Input','The user is asked for certain input data, and a confirmation before proceeding'),
   ('wylib','data','diaReport','eng','Report','Report window'),
   ('wylib','data','diaYes','eng','OK','Proceed with the proposed operation and close the dialog'),
+  ('wylib','data','fileExport','eng','Export File','Save this data to a local file on your device'),
+  ('wylib','data','fileImport','eng','Import File','Drag/drop files here, or click to import a file from your device'),
   ('wylib','data','IAT','eng','Invalid Access Type','Access type must be: priv, read, or write'),
   ('wylib','data','lchAdd','eng','Launch Preview','Use this button to open as many new database previews as you like'),
   ('wylib','data','lchImport','eng','Importer','Drag/drop files here, or click and browse, to import data from a JSON formatted file'),
@@ -6648,7 +6678,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('base','addr','focus','"addr_spec"','t'),
   ('base','addr_v','display','["addr_type", "addr_spec", "state", "city", "pcode", "country", "addr_cmt", "addr_seq"]','t'),
   ('base','addr_v','sort','["addr_type", "addr_seq"]','t'),
-  ('base','comm','focus','"file_type"','t'),
+  ('base','comm','focus','"comm_spec"','t'),
   ('base','comm_v','display','["comm_type", "comm_spec", "comm_cmt", "comm_seq"]','t'),
   ('base','comm_v','sort','["comm_type comm_seq"]','t'),
   ('base','country','display','["co_code", "iso_3", "co_name"]','t'),
@@ -6660,8 +6690,12 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('base','ent_v','subviews','["base.addr_v", "base.comm_v", "base.file_v", "base.priv_v"]','t'),
   ('base','ent_v_pub','focus','"ent_name"','t'),
   ('base','exchange','display','["curr", "base", "rate", "sample"]','t'),
-  ('base','file_v','display','["file_type", "file_cks", "file_cmt", "file_seq"]','t'),
+  ('base','file','focus','"file_type"','t'),
+  ('base','file_v','display','["file_seq", "file_type", "file_fmt", "file_prim", "file_cmt"]','t'),
   ('base','file_v','sort','["file_type", "file_seq"]','t'),
+  ('base','filez','focus','"file_type"','t'),
+  ('base','filez_v','display','["file_type", "file_cks", "file_cmt", "file_seq"]','t'),
+  ('base','filez_v','sort','["file_type", "file_seq"]','t'),
   ('base','parm_v','display','["module", "parm", "type", "value", "cmt"]','t'),
   ('base','parm_v','focus','"module"','t'),
   ('base','priv','focus','"priv"','t'),
@@ -6724,7 +6758,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','tallies_v_liftss','7','" "','t'),
   ('mychips','tallies_v_liftss','8','"{"','t'),
   ('mychips','tallies_v_liftss','9','"b"','t'),
-  ('mychips','tallies_v_me','actions','[{"ask": 1, "name": "close"}, {"name": "invite", "render": "html,", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link", "json"]}]}]','f'),
+  ('mychips','tallies_v_me','actions','[{"ask": 1, "name": "close"}, {"name": "invite", "render": "html", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link", "json"]}]}, {"name": "trade", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}]','f'),
   ('mychips','tallies_v_me','display','["tally_ent", "tally_seq", "tally_type", "part_ent", "part_name", "dr_limit", "cr_limit", "total"]','t'),
   ('mychips','tallies_v_me','launch','{"import": "json.import", "initial": "1,"}','t'),
   ('mychips','tallies_v_me','subviews','["mychips.chits_v_me"]','t'),
@@ -6735,11 +6769,12 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','users_v','display','["id", "std_name", "ent_type", "user_stat", "born_date", "peer_agent", "!fir_name", "!ent_name"]','t'),
   ('mychips','users_v','export','"user"','t'),
   ('mychips','users_v','launch','{"import": "json.import", "initial": 1}','t'),
-  ('mychips','users_v','subviews','["base.addr_v", "base.comm_v"]','t'),
+  ('mychips','users_v','subviews','["base.addr_v", "base.comm_v", "base.file_v"]','t'),
   ('mychips','users_v','where','{"and": true, "items": [{"not": true, "left": "user_ent", "oper": "isnull"}, {"not": true, "left": "ent_inact", "oper": "true"}, {"left": "ent_type", "oper": "=", "entry": "p"}]}','t'),
   ('mychips','users_v_flat','display','["id", "user_cid", "std_name", "bill_addr", "bill_city", "bill_state"]','t'),
   ('mychips','users_v_flat','sort','["std_name", "id"]','t'),
-  ('mychips','users_v_me','actions','[{"name": "graph", "render": "html", "single": 1, "options": [{"values": ["html", "url"], "input:pdm": null, "tag:format": null}]}]','f'),
+  ('mychips','users_v_flat','subviews','["mychips.addr_v_me", "mychips.comm_v_me", "mychips.file_v_me"]','t'),
+  ('mychips','users_v_me','actions','[{"name": "graph", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}, {"name": "chip", "render": "html", "options": [{"tag": "curr", "data": "currency", "input": "ent", "special": "scm"}, {"tag": "format", "input": "pdm", "values": ["html", "json"]}]}]','f'),
   ('tabdef mychips','tallies','display','["tally_ent", "tally_seq", "tally_type", "status", "part_ent", "tally_date", "tally_uuid", "dr_limit", "cr_limit", "reward", "target"]','t'),
   ('wm','column:pub','focus','"code"','t'),
   ('wm','column_pub','focus','"code"','t'),
@@ -6852,6 +6887,34 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','addr_v','std_name','size','14'),
   ('base','addr_v','std_name','subframe','{"x": 2, "y": 6, "xspan": 2}'),
   ('base','addr_v','std_name','title','{"": null}'),
+  ('base','comm','comm_cmt','input','"ent"'),
+  ('base','comm','comm_cmt','size','50'),
+  ('base','comm','comm_cmt','special','"edw"'),
+  ('base','comm','comm_cmt','subframe','{"x": 1, "y": 3, "xspan": 3}'),
+  ('base','comm','comm_ent','input','"ent"'),
+  ('base','comm','comm_ent','opt 1 -state readonly -just r','null'),
+  ('base','comm','comm_ent','size','5'),
+  ('base','comm','comm_ent','subframe','{"x": 1, "y": 5}'),
+  ('base','comm','comm_inact','initial','false'),
+  ('base','comm','comm_inact','input','"chk"'),
+  ('base','comm','comm_inact','offvalue','false'),
+  ('base','comm','comm_inact','onvalue','true'),
+  ('base','comm','comm_inact','size','2'),
+  ('base','comm','comm_inact','subframe','{"x": 2, "y": 2}'),
+  ('base','comm','comm_seq','hide','1'),
+  ('base','comm','comm_seq','input','"ent"'),
+  ('base','comm','comm_seq','justify','"r"'),
+  ('base','comm','comm_seq','size','5'),
+  ('base','comm','comm_seq','state','"readonly"'),
+  ('base','comm','comm_seq','subframe','{"x": 0, "y": 1}'),
+  ('base','comm','comm_seq','write','0'),
+  ('base','comm','comm_spec','input','"ent"'),
+  ('base','comm','comm_spec','size','28'),
+  ('base','comm','comm_spec','subframe','{"x": 1, "y": 1, "xspan": 3}'),
+  ('base','comm','comm_type','initial','"phone"'),
+  ('base','comm','comm_type','input','"pdm"'),
+  ('base','comm','comm_type','size','5'),
+  ('base','comm','comm_type','subframe','{"x": 1, "y": 2}'),
   ('base','comm','crt_by','input','"ent"'),
   ('base','comm','crt_by','optional','1'),
   ('base','comm','crt_by','size','10'),
@@ -6864,30 +6927,6 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','comm','crt_date','state','"readonly"'),
   ('base','comm','crt_date','subframe','{"x": 2, "y": 98}'),
   ('base','comm','crt_date','write','0'),
-  ('base','comm','file_cmt','input','"ent"'),
-  ('base','comm','file_cmt','size','50'),
-  ('base','comm','file_cmt','special','"edw"'),
-  ('base','comm','file_cmt','subframe','{"x": 1, "y": 3, "xspan": 3}'),
-  ('base','comm','file_ent','input','"ent"'),
-  ('base','comm','file_ent','justify','"r"'),
-  ('base','comm','file_ent','optional','1'),
-  ('base','comm','file_ent','size','5'),
-  ('base','comm','file_ent','state','"readonly"'),
-  ('base','comm','file_ent','subframe','{"x": 1, "y": 5}'),
-  ('base','comm','file_fmt','input','"ent"'),
-  ('base','comm','file_fmt','size','10'),
-  ('base','comm','file_fmt','subframe','{"x": 2, "y": 2}'),
-  ('base','comm','file_seq','hide','1'),
-  ('base','comm','file_seq','input','"ent"'),
-  ('base','comm','file_seq','justify','"r"'),
-  ('base','comm','file_seq','size','5'),
-  ('base','comm','file_seq','state','"readonly"'),
-  ('base','comm','file_seq','subframe','{"x": 0, "y": 1}'),
-  ('base','comm','file_seq','write','0'),
-  ('base','comm','file_type','initial','"phone"'),
-  ('base','comm','file_type','input','"pdm"'),
-  ('base','comm','file_type','size','5'),
-  ('base','comm','file_type','subframe','{"x": 1, "y": 2}'),
   ('base','comm','mod_by','input','"ent"'),
   ('base','comm','mod_by','optional','1'),
   ('base','comm','mod_by','size','10'),
@@ -7171,19 +7210,82 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','exchange','sample','display','4'),
   ('base','exchange','sample','input','"ent"'),
   ('base','exchange','sample','size','12'),
-  ('base','file_v','file_cks','display','2'),
-  ('base','file_v','file_cmt','display','3'),
+  ('base','file','crt_by','input','"ent"'),
+  ('base','file','crt_by','optional','1'),
+  ('base','file','crt_by','size','10'),
+  ('base','file','crt_by','state','"readonly"'),
+  ('base','file','crt_by','subframe','{"x": 1, "y": 98}'),
+  ('base','file','crt_by','write','0'),
+  ('base','file','crt_date','input','"inf"'),
+  ('base','file','crt_date','optional','1'),
+  ('base','file','crt_date','size','18'),
+  ('base','file','crt_date','state','"readonly"'),
+  ('base','file','crt_date','subframe','{"x": 2, "y": 98}'),
+  ('base','file','crt_date','write','0'),
+  ('base','file','file_cmt','input','"mle"'),
+  ('base','file','file_cmt','size','{"x": 50, "y": 2}'),
+  ('base','file','file_cmt','subframe','{"x": 1, "y": 3, "xspan": 3}'),
+  ('base','file','file_data','input','"ent"'),
+  ('base','file','file_data','size','40'),
+  ('base','file','file_data','special','"file"'),
+  ('base','file','file_data','state','"readonly"'),
+  ('base','file','file_data','subframe','{"x": 1, "y": 2, "xspan": 2}'),
+  ('base','file','file_ent','input','"ent"'),
+  ('base','file','file_ent','justify','"r"'),
+  ('base','file','file_ent','optional','1'),
+  ('base','file','file_ent','size','5'),
+  ('base','file','file_ent','state','"readonly"'),
+  ('base','file','file_ent','subframe','{"x": 1, "y": 5}'),
+  ('base','file','file_fmt','input','"ent"'),
+  ('base','file','file_fmt','size','6'),
+  ('base','file','file_fmt','special','"exs"'),
+  ('base','file','file_fmt','subframe','{"x": 2, "y": 1}'),
+  ('base','file','file_hash','input','"ent"'),
+  ('base','file','file_hash','optional','1'),
+  ('base','file','file_hash','size','40'),
+  ('base','file','file_hash','state','"readonly"'),
+  ('base','file','file_hash','subframe','{"x": 1, "y": 6, "xspan": 3}'),
+  ('base','file','file_priv','initial','false'),
+  ('base','file','file_priv','input','"chk"'),
+  ('base','file','file_priv','offvalue','"f"'),
+  ('base','file','file_priv','onvalue','"t"'),
+  ('base','file','file_priv','size','2'),
+  ('base','file','file_priv','subframe','{"x": 3, "y": 2}'),
+  ('base','file','file_seq','hide','1'),
+  ('base','file','file_seq','input','"ent"'),
+  ('base','file','file_seq','justify','"r"'),
+  ('base','file','file_seq','size','5'),
+  ('base','file','file_seq','state','"readonly"'),
+  ('base','file','file_seq','subframe','{"x": 1, "y": 0}'),
+  ('base','file','file_seq','write','0'),
+  ('base','file','file_type','initial','"phone"'),
+  ('base','file','file_type','input','"pdm"'),
+  ('base','file','file_type','size','6'),
+  ('base','file','file_type','subframe','{"x": 1, "y": 1}'),
+  ('base','file','mod_by','input','"ent"'),
+  ('base','file','mod_by','optional','1'),
+  ('base','file','mod_by','size','10'),
+  ('base','file','mod_by','state','"readonly"'),
+  ('base','file','mod_by','subframe','{"x": 1, "y": 99}'),
+  ('base','file','mod_by','write','0'),
+  ('base','file','mod_date','input','"inf"'),
+  ('base','file','mod_date','optional','1'),
+  ('base','file','mod_date','size','18'),
+  ('base','file','mod_date','state','"readonly"'),
+  ('base','file','mod_date','subframe','{"x": 2, "y": 99}'),
+  ('base','file','mod_date','write','0'),
+  ('base','file_v','file_cmt','display','5'),
+  ('base','file_v','file_fmt','display','3'),
+  ('base','file_v','file_prim','display','4'),
   ('base','file_v','file_prim','initial','false'),
   ('base','file_v','file_prim','input','"chk"'),
   ('base','file_v','file_prim','offvalue','"f"'),
   ('base','file_v','file_prim','onvalue','"t"'),
   ('base','file_v','file_prim','size','2'),
-  ('base','file_v','file_prim','state','"readonly"'),
-  ('base','file_v','file_prim','subframe','{"x": 3, "y": 2}'),
-  ('base','file_v','file_prim','write','0'),
-  ('base','file_v','file_seq','display','4'),
+  ('base','file_v','file_prim','subframe','{"x": 3, "y": 1}'),
+  ('base','file_v','file_seq','display','1'),
   ('base','file_v','file_seq','sort','2'),
-  ('base','file_v','file_type','display','1'),
+  ('base','file_v','file_type','display','2'),
   ('base','file_v','file_type','sort','1'),
   ('base','file_v','std_name','depend','"file_ent"'),
   ('base','file_v','std_name','initial','"file_ent"'),
@@ -7192,6 +7294,69 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','file_v','std_name','size','14'),
   ('base','file_v','std_name','subframe','{"x": 2, "y": 5, "xspan": 2}'),
   ('base','file_v','std_name','title','{"": null}'),
+  ('base','filez','crt_by','input','"ent"'),
+  ('base','filez','crt_by','optional','1'),
+  ('base','filez','crt_by','size','10'),
+  ('base','filez','crt_by','state','"readonly"'),
+  ('base','filez','crt_by','subframe','{"x": 1, "y": 98}'),
+  ('base','filez','crt_by','write','0'),
+  ('base','filez','crt_date','input','"inf"'),
+  ('base','filez','crt_date','optional','1'),
+  ('base','filez','crt_date','size','18'),
+  ('base','filez','crt_date','state','"readonly"'),
+  ('base','filez','crt_date','subframe','{"x": 2, "y": 98}'),
+  ('base','filez','crt_date','write','0'),
+  ('base','filez','file_cmt','input','"ent"'),
+  ('base','filez','file_cmt','size','50'),
+  ('base','filez','file_cmt','special','"edw"'),
+  ('base','filez','file_cmt','subframe','{"x": 1, "y": 3, "xspan": 3}'),
+  ('base','filez','file_ent','input','"ent"'),
+  ('base','filez','file_ent','justify','"r"'),
+  ('base','filez','file_ent','optional','1'),
+  ('base','filez','file_ent','size','5'),
+  ('base','filez','file_ent','state','"readonly"'),
+  ('base','filez','file_ent','subframe','{"x": 1, "y": 5}'),
+  ('base','filez','file_fmt','input','"ent"'),
+  ('base','filez','file_fmt','size','10'),
+  ('base','filez','file_fmt','subframe','{"x": 2, "y": 2}'),
+  ('base','filez','file_seq','hide','1'),
+  ('base','filez','file_seq','input','"ent"'),
+  ('base','filez','file_seq','justify','"r"'),
+  ('base','filez','file_seq','size','5'),
+  ('base','filez','file_seq','state','"readonly"'),
+  ('base','filez','file_seq','subframe','{"x": 0, "y": 1}'),
+  ('base','filez','file_seq','write','0'),
+  ('base','filez','file_type','initial','"phone"'),
+  ('base','filez','file_type','input','"pdm"'),
+  ('base','filez','file_type','size','5'),
+  ('base','filez','file_type','subframe','{"x": 1, "y": 2}'),
+  ('base','filez','mod_by','input','"ent"'),
+  ('base','filez','mod_by','optional','1'),
+  ('base','filez','mod_by','size','10'),
+  ('base','filez','mod_by','state','"readonly"'),
+  ('base','filez','mod_by','subframe','{"x": 1, "y": 99}'),
+  ('base','filez','mod_by','write','0'),
+  ('base','filez','mod_date','input','"inf"'),
+  ('base','filez','mod_date','optional','1'),
+  ('base','filez','mod_date','size','18'),
+  ('base','filez','mod_date','state','"readonly"'),
+  ('base','filez','mod_date','subframe','{"x": 2, "y": 99}'),
+  ('base','filez','mod_date','write','0'),
+  ('base','filez_v','file_prim','initial','false'),
+  ('base','filez_v','file_prim','input','"chk"'),
+  ('base','filez_v','file_prim','offvalue','"f"'),
+  ('base','filez_v','file_prim','onvalue','"t"'),
+  ('base','filez_v','file_prim','size','2'),
+  ('base','filez_v','file_prim','state','"readonly"'),
+  ('base','filez_v','file_prim','subframe','{"x": 3, "y": 2}'),
+  ('base','filez_v','file_prim','write','0'),
+  ('base','filez_v','std_name','depend','"file_ent"'),
+  ('base','filez_v','std_name','initial','"file_ent"'),
+  ('base','filez_v','std_name','input','"ent"'),
+  ('base','filez_v','std_name','optional','1'),
+  ('base','filez_v','std_name','size','14'),
+  ('base','filez_v','std_name','subframe','{"x": 2, "y": 5, "xspan": 2}'),
+  ('base','filez_v','std_name','title','{"": null}'),
   ('base','parm_v','cmt','display','5'),
   ('base','parm_v','cmt','input','"ent"'),
   ('base','parm_v','cmt','size','50'),
@@ -8072,6 +8237,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','currency','cur_numb','base','currency','cur_numb','f','f'),
   ('base','ent','_last_addr','base','ent','_last_addr','f','f'),
   ('base','ent','_last_comm','base','ent','_last_comm','f','f'),
+  ('base','ent','_last_file','base','ent','_last_file','f','f'),
   ('base','ent','bank','base','ent','bank','f','f'),
   ('base','ent','born_date','base','ent','born_date','f','f'),
   ('base','ent','conn_pub','base','ent','conn_pub','f','f'),
@@ -8161,11 +8327,11 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','exchange','sample','base','exchange','sample','f','t'),
   ('base','file','crt_by','base','file','crt_by','f','f'),
   ('base','file','crt_date','base','file','crt_date','f','f'),
-  ('base','file','file_cks','base','file','file_cks','f','f'),
   ('base','file','file_cmt','base','file','file_cmt','f','f'),
   ('base','file','file_data','base','file','file_data','f','f'),
   ('base','file','file_ent','base','file','file_ent','f','t'),
   ('base','file','file_fmt','base','file','file_fmt','f','f'),
+  ('base','file','file_hash','base','file','file_hash','f','f'),
   ('base','file','file_prim','base','file','file_prim','f','f'),
   ('base','file','file_priv','base','file','file_priv','f','f'),
   ('base','file','file_seq','base','file','file_seq','f','t'),
@@ -8177,14 +8343,17 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','file_prim','prim_type','base','file_prim','prim_type','f','t'),
   ('base','file_v','crt_by','base','file','crt_by','f','f'),
   ('base','file_v','crt_date','base','file','crt_date','f','f'),
-  ('base','file_v','file_cks','base','file','file_cks','f','f'),
   ('base','file_v','file_cmt','base','file','file_cmt','f','f'),
   ('base','file_v','file_data','base','file','file_data','f','f'),
   ('base','file_v','file_ent','base','file','file_ent','f','t'),
+  ('base','file_v','file_ext','base','file_v','file_ext','f','f'),
   ('base','file_v','file_fmt','base','file','file_fmt','f','f'),
+  ('base','file_v','file_hash','base','file','file_hash','f','f'),
+  ('base','file_v','file_name','base','file_v','file_name','f','f'),
   ('base','file_v','file_prim','base','file_v','file_prim','f','f'),
   ('base','file_v','file_priv','base','file','file_priv','f','f'),
   ('base','file_v','file_seq','base','file','file_seq','f','t'),
+  ('base','file_v','file_size','base','file_v','file_size','f','f'),
   ('base','file_v','file_type','base','file','file_type','f','f'),
   ('base','file_v','mod_by','base','file','mod_by','f','f'),
   ('base','file_v','mod_date','base','file','mod_date','f','f'),
@@ -8563,14 +8732,17 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','contracts_v','version','mychips','contracts','version','f','t'),
   ('mychips','file_v_me','crt_by','base','file','crt_by','f','f'),
   ('mychips','file_v_me','crt_date','base','file','crt_date','f','f'),
-  ('mychips','file_v_me','file_cks','base','file','file_cks','f','f'),
   ('mychips','file_v_me','file_cmt','base','file','file_cmt','f','f'),
   ('mychips','file_v_me','file_data','base','file','file_data','f','f'),
   ('mychips','file_v_me','file_ent','base','file','file_ent','f','f'),
+  ('mychips','file_v_me','file_ext','base','file_v','file_ext','f','f'),
   ('mychips','file_v_me','file_fmt','base','file','file_fmt','f','f'),
+  ('mychips','file_v_me','file_hash','base','file','file_hash','f','f'),
+  ('mychips','file_v_me','file_name','base','file_v','file_name','f','f'),
   ('mychips','file_v_me','file_prim','base','file_v','file_prim','f','f'),
   ('mychips','file_v_me','file_priv','base','file','file_priv','f','f'),
   ('mychips','file_v_me','file_seq','base','file','file_seq','f','f'),
+  ('mychips','file_v_me','file_size','base','file_v','file_size','f','f'),
   ('mychips','file_v_me','file_type','base','file','file_type','f','f'),
   ('mychips','file_v_me','mod_by','base','file','mod_by','f','f'),
   ('mychips','file_v_me','mod_date','base','file','mod_date','f','f'),
@@ -9410,12 +9582,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
-  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
-  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -9566,19 +9732,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
-  ('wm','language','col','wm','language','col','f','t'),
-  ('wm','language','fr_help','wm','language','fr_help','f','f'),
-  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
-  ('wm','language','fr_title','wm','language','fr_title','f','f'),
-  ('wm','language','help','wm','table_text','help','t','f'),
-  ('wm','language','language','wm','table_text','language','t','f'),
-  ('wm','language','obj','wm','language','obj','f','f'),
-  ('wm','language','sch','wm','language','sch','f','t'),
-  ('wm','language','sorter','wm','language','sorter','f','f'),
-  ('wm','language','tab','wm','language','tab','f','t'),
-  ('wm','language','tag','wm','language','tag','f','t'),
-  ('wm','language','title','wm','table_text','title','t','f'),
-  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
@@ -10864,6 +11017,7 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  ,('lifts', 'limit', 'int', 1, null, null, 'The maximum number of lifts the database may perform per request cycle')
  ,('lifts', 'minimum', 'int', 10000, null, null, 'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
 
+ ,('chip', 'interval', 'text', null, '12 * * * *', null, 'CRON scheduling specification for when to update chip exchange value')
  ,('exchange', 'interval', 'int', 42000, null,null, 'The number of seconds between checks for updated exchange data')
 
   on conflict on constraint parm_pkey do update
