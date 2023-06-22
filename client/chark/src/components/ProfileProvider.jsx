@@ -19,6 +19,7 @@ const ProfileProvider = ({ children }) => {
   const user_ent = user?.curr_eid;
   const { wm } = useSocket();
 
+  const [avatar, setAvatar] = useState(null)
 
   const [preferredLanguage, setPreferredLanguage] = useState({
     name: languageMap[deviceLanguage]?.name ?? '',
@@ -97,6 +98,8 @@ const ProfileProvider = ({ children }) => {
 
   return (
     <ProfileContext.Provider value={{
+      avatar,
+      setAvatar,
       preferredCurrency,
       setPreferredCurrency,
       preferredLanguage,
