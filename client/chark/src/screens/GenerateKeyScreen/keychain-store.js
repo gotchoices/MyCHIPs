@@ -16,7 +16,6 @@ export const storeKey = async (key) => {
   })
 };
 
-
 export const retrieveKey = (service) => {
   return new Promise((resolve, reject) => {
     try {

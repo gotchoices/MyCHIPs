@@ -28,6 +28,7 @@
     "react": "18.1.0",
     "react-native": "0.70.6",
     "react-native-crypto-js": "^1.0.0",
+    "react-native-document-picker": "^9.0.1",
     "react-native-fs": "^2.20.0",
     "react-native-image-crop-picker": "^0.38.1",
     "react-native-keychain": "^8.1.1",

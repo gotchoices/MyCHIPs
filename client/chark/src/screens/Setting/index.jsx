@@ -146,8 +146,9 @@ const Setting = (props) => {
 
       <View style={[styles.menu, { marginTop: 10 }]}>
         <TouchableOpacity
+          style={{ width: "100%" }}
           onPress={() => {
-
+            props.navigation.navigate("ImportKey");
           }}
         >
           <Text style={styles.menuTitle}>Import Key</Text>

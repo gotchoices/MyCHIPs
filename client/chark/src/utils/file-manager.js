@@ -39,7 +39,13 @@ export const encryptJSON = (jsonString, passphrase) => {
 
 // Function to decrypt the JSON string
 export const decryptJSON = (encryptedString, passphrase) => {
-  const decryptedBytes = CryptoJS.AES.decrypt(encryptedString, passphrase);
-  const decrypted = decryptedBytes.toString(CryptoJS.enc.Utf8);
-  return decrypted;
+  return new Promise((resolve, reject) => {
+    try {
+      const decryptedBytes = CryptoJS.AES.decrypt(encryptedString, passphrase);
+      const decrypted = decryptedBytes.toString(CryptoJS.enc.Utf8);
+      resolve(decrypted);
+    } catch (err) {
+      reject(err);
+    }
+  });
 };
