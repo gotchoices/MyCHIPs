@@ -13,7 +13,7 @@ import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
 import { useProfileText } from '../../hooks/useLanguage';
-import { getComm, getAddresses, uploadImage, getFile } from '../../services/profile';
+import { getComm, getAddresses, uploadImage } from '../../services/profile';
 
 import Avatar from './Avatar';
 import Details from './Details';
@@ -46,14 +46,6 @@ const Profile = (props) => {
 
     getAddresses(wm, user_ent).then(data => {
       setAddresses(data);
-    })
-
-    getFile(wm, user_ent).then((_data) => {
-      const file = _data?.[0]
-      if(file?.file_data64) {
-        setAvatar(`data:${file.file_fmt};base64,${file.file_data64}`);
-      }
-
     })
   }, [])
 

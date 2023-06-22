@@ -3,14 +3,17 @@ import { View, StyleSheet, Text, Image, TouchableWithoutFeedback } from 'react-n
 
 import { colors } from '../../../config/constants';
 import visualBtn from '../../../../assets/visual-button.png';
-import avatarImg from '../../../../assets/report-profile.png';
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import useCurrentUser from '../../../hooks/useCurrentUser';
+import useProfile from '../../../hooks/useProfile';
+
 import Header from '../Header';
+import Avatar from '../../../components/Avatar';
 
 const Banner = (props) => {
   const { user } = useCurrentUser();
+  const { avatar } = useProfile();
 
   const navigateToReport = () => {
     props.navigation?.navigate?.('TallyReport')
@@ -29,9 +32,9 @@ const Banner = (props) => {
       <View style={{ alignItems: 'center' }}>
         <View style={styles.balanceContainer}>
           <View style={styles.balance}>
-            <Image source={avatarImg} style={{ opacity: 1 }} />
+            <Avatar avatar={avatar} />
 
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ alignItems: 'center', marginLeft: 5 }}>
               <Text>Net CHIP balance</Text>
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>

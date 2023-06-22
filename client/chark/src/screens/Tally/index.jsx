@@ -36,7 +36,7 @@ const Tally = (props) => {
     if (ws) {
       _fetchTallies()
     }
-  }, [user?.curr_eid])
+  }, [ws, user?.curr_eid])
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
@@ -66,9 +66,11 @@ const Tally = (props) => {
     }).then(data => {
       if (data) {
         setTallies(data);
-        setLoading(false);
       }
     }).catch(err => {
+      console.log('Error fetching tallies', err)
+    }).finally(() => {
+      setLoading(false);
     })
   }
 

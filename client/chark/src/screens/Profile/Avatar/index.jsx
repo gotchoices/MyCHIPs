@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Image, View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
-import { Buffer } from 'buffer';
 
 import { colors } from '../../../config/constants';
-import profileImg from '../../../../assets/profile.png';
 
-const Avatar = (props) => {
+import Avatar from '../../../components/Avatar';
+
+const UserAvatar = (props) => {
   const [isVisible, setIsVisible] = useState(false);
 
   const openModal = () => {
@@ -63,10 +63,7 @@ const Avatar = (props) => {
         <TouchableOpacity
           onPress={openModal}
         >
-          <Image
-            style={styles.profileImage}
-            source={props.avatar ? { uri: props.avatar }: profileImg} 
-          />
+          <Avatar avatar={props.avatar} />
         </TouchableOpacity>
       </View>
 
@@ -144,4 +141,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default Avatar;
+export default UserAvatar;
