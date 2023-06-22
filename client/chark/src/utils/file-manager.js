@@ -1,31 +1,44 @@
 import ReactNativeFS from 'react-native-fs';
-import CryptoJS from 'react-native-crypto-js';
+import CryptoJS from "react-native-crypto-js";
 
-export const writeFileToDownloads = async (jsonString) => {
+export const downloadJSONFile = (jsonString) => {
   return new Promise((resolve, reject) => {
-    const path = ReactNativeFS.DownloadDirectoryPath + '/key.json';
-    console.log("File Path ==> ", path);
+    const downloadPath = ReactNativeFS.DownloadDirectoryPath + '/key1.json';
 
-    ReactNativeFS.writeFile(path, jsonString, 'utf8')
-      .then((success) => {
-        console.log("Saved ==> ", success);
-        resolve(success)
+    ReactNativeFS.writeFile(downloadPath, jsonString, 'utf8')
+      .then(() => {
+        ReactNativeFS.scanFile(downloadPath).then((result) => {
+          resolve(result);
+        });
       })
-      .catch((err) => {
-        console.log("Error==>", err);
+      .catch(err => {
         reject(err);
       });
-  })
+  });
+}
+
+export const downloadQRCode = (uri) => {
+  return new Promise((resolve, reject) => {
+    const downloadPath = ReactNativeFS.DownloadDirectoryPath + '/key.png';
+    ReactNativeFS.moveFile(uri, downloadPath)
+      .then(() => {
+        ReactNativeFS.scanFile(downloadPath).then((result) => {
+          resolve(result);
+        });
+      }).catch(err => {
+        reject(err)
+      });
+  });
 }
 
 // Function to encrypt the JSON string
-const encryptJSON = (jsonString, passphrase) => {
+export const encryptJSON = (jsonString, passphrase) => {
   const encrypted = CryptoJS.AES.encrypt(jsonString, passphrase).toString();
   return encrypted;
 };
 
 // Function to decrypt the JSON string
-const decryptJSON = (encryptedString, passphrase) => {
+export const decryptJSON = (encryptedString, passphrase) => {
   const decryptedBytes = CryptoJS.AES.decrypt(encryptedString, passphrase);
   const decrypted = decryptedBytes.toString(CryptoJS.enc.Utf8);
   return decrypted;

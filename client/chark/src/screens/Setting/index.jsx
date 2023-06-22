@@ -132,12 +132,28 @@ const Setting = (props) => {
           />
         </TouchableWithoutFeedback>
       </View>
-      <Button
-        onPress={() => {
-          props.navigation.navigate("GenerateKey");
-        }}
-        title='Generate Key'
-      />
+
+      <View style={[styles.menu, { marginTop: 10 }]}>
+        <TouchableOpacity
+          style={{ width: "100%" }}
+          onPress={() => {
+            props.navigation.navigate("GenerateKey");
+          }}
+        >
+          <Text style={styles.menuTitle}>Generate Keys</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={[styles.menu, { marginTop: 10 }]}>
+        <TouchableOpacity
+          onPress={() => {
+
+          }}
+        >
+          <Text style={styles.menuTitle}>Import Key</Text>
+        </TouchableOpacity>
+      </View>
+
       <CenteredModal
         isVisible={isLangModalVisible}
         onClose={onCancel}

@@ -1,12 +1,10 @@
 
 import React, { useState } from 'react';
-import { Button, StyleSheet, View, Text, ScrollView, Alert, PermissionsAndroid } from 'react-native';
-import { Buffer } from 'buffer';
-import SInfo from "react-native-sensitive-info";
-import downloadFile from './Progress/DownloadManager';
-import { saveSecureJSONToFile } from './Progress/FileManager';
+import { Button, StyleSheet, View, Text, ScrollView } from 'react-native';
 import { KeyConfig } from 'wyseman/lib/crypto';
-import { writeFileToDownloads } from '../../utils/file-manager';
+import { easyKey, retrieveKey, storeKey } from './keychain-store';
+import CenteredModal from '../../components/CenteredModal';
+import ExportModal from './ExportModal';
 
 const GenerateKeyScreen = () => {
   let initialPrivateKey = undefined;
@@ -14,6 +12,7 @@ const GenerateKeyScreen = () => {
 
   const [publicKey, setPublicKey] = useState(undefined);
   const [privateKey, setPrivateKey] = useState(undefined);
+  const [showModal, setShowModal] = useState(false);
 
   const generateECDSAKeys = async () => {
     subtle.generateKey(
@@ -31,81 +30,65 @@ const GenerateKeyScreen = () => {
     }).catch((e) => console.log("Exception ==> ", e));
   };
 
-  const exportKeySecurely = async () => {
-    try {
-      const value = JSON.stringify(privateKey);
-      const savingFirstData = await SInfo.setItem("key1", value, {
-        sharedPreferencesName: "mySharedPrefs",
-        keychainService: "myKeychain",
-        showModal: true,
-        touchID: true,
-        kSecAccessControl: 'kSecAccessControlBiometryAny',
-      });
-
-      console.log('Saved Data => ', savingFirstData);
-    } catch (error) {
-      console.log(error);
-      Alert.alert('Error', `Failed to save JWK file.${error} `);
-    }
+  const storeMykey = () => {
+    storeKey(JSON.stringify(privateKey));
   }
 
-  const getStoredKey = async () => {
-    const gettingFirstData = await SInfo.getItem("key1", {
-      sharedPreferencesName: "mySharedPrefs",
-      keychainService: "myKeychain",
-      showModal: true,
-      touchID: true,
-      kSecAccessControl: 'kSecAccessControlBiometryAny',
-    });
-
-    console.log("Result Data==>", gettingFirstData)
+  const getMyKey = () => {
+    retrieveKey();
   }
 
-  const writeJsonFile = async () => {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      writeFileToDownloads(JSON.stringify(privateKey)).then((success) => {
-        Alert.alert('Success', `File Saved Successfully`);
-      }).catch((err) => {
-        Alert.alert('Error', `Failed to save JWK file.${err} `);
-      });
-    } else {
-      Alert.alert('Error', `Permission Denied`);
-    }
-  }
+  return <>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        {publicKey && <Text>Public Json Key: {'\n'} {JSON.stringify(publicKey)}</Text>}
 
-  return <View style={styles.container}>
-    <ScrollView contentContainerStyle={styles.contentContainer}>
-      {publicKey && <Text>Public Key: {'\n'} {Buffer.from(JSON.stringify(publicKey)).toString('base64')}</Text>}
-      {publicKey && <Text>Public Json Key: {'\n'} {JSON.stringify(publicKey)}</Text>}
+        <View style={{ height: 20 }} />
 
-      <View style={{ height: 20 }} />
+        {privateKey && <Text>Private Json Key: {'\n'} {JSON.stringify(privateKey)}</Text>}
 
-      {privateKey && <Text>Private Key: {'\n'} {Buffer.from(JSON.stringify(privateKey)).toString('base64')}</Text>}
-      {privateKey && <Text>Private Json Key: {'\n'} {JSON.stringify(privateKey)}</Text>}
+      </ScrollView>
 
-    </ScrollView>
-    {/* downloadFileAsJson */}
-    <View style={styles.row}>
-      {
-        publicKey && privateKey ? <Button onPress={writeJsonFile}
-          title='Export Key'
-        /> : <></>
-      }
-      <View style={{ width: 16 }} />
-      <Button
-        onPress={generateECDSAKeys}
-        title='Generate Key'
-      />
-      <View style={{ width: 16 }} />
-      <Button
-        onPress={getStoredKey}
-        title='Get Data'
-      />
+      <View>
+        <View style={styles.row}>
+          {
+            publicKey && privateKey ? <Button onPress={() => setShowModal(true)}
+              title='Export Key'
+            /> : <></>
+          }
+          <View style={{ width: 16 }} />
+          <Button
+            onPress={generateECDSAKeys}
+            title='Generate Key'
+          />
+          <View style={{ width: 16 }} />
+
+        </View>
+        <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
+          <Button
+            onPress={storeMykey}
+            title='Store Key'
+          />
+          <View style={{ width: 16 }} />
+          <Button
+            onPress={getMyKey}
+            title='Get Key'
+          />
+        </View>
+      </View>
+
     </View>
-  </View>
+
+    <CenteredModal
+      isVisible={showModal}
+      onClose={() => setShowModal(false)}
+    >
+      <ExportModal
+        privateKey={JSON.stringify(privateKey)}
+        cancel={() => setShowModal(false)}
+      />
+    </CenteredModal >
+  </>
 }
 
 const styles = StyleSheet.create({
@@ -121,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'white',
     padding: 12,
-    margin: 12,
+    marginHorizontal: 12,
   }
 });
 
