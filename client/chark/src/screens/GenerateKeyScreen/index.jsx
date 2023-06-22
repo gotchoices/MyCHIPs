@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, View, Text, ScrollView } from 'react-native';
 import { KeyConfig } from 'wyseman/lib/crypto';
-import { easyKey, retrieveKey, storeKey } from './keychain-store';
+import { retrieveKey, storeKey } from './keychain-store';
 import CenteredModal from '../../components/CenteredModal';
 import ExportModal from './ExportModal';
+import PassphraseModal from './PassphraseModal';
 
 const GenerateKeyScreen = () => {
   let initialPrivateKey = undefined;
@@ -12,7 +13,15 @@ const GenerateKeyScreen = () => {
 
   const [publicKey, setPublicKey] = useState(undefined);
   const [privateKey, setPrivateKey] = useState(undefined);
+  const [passphrase, setPassphrase] = useState(undefined);
   const [showModal, setShowModal] = useState(false);
+  const [passphraseModal, setPassphraseModal] = useState(false);
+
+  useEffect(() => {
+    if (passphrase) {
+      setShowModal(true);
+    }
+  }, [passphrase])
 
   const generateECDSAKeys = async () => {
     subtle.generateKey(
@@ -46,23 +55,23 @@ const GenerateKeyScreen = () => {
     });
   }
 
+  const onExportKeys = () => {
+    setPassphraseModal(true);
+  }
+
   return <>
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {publicKey && <Text>Public Json Key: {'\n'} {JSON.stringify(publicKey)}</Text>}
-
         <View style={{ height: 20 }} />
-
         {privateKey && <Text>Private Json Key: {'\n'} {JSON.stringify(privateKey)}</Text>}
-
       </ScrollView>
 
       <View>
         <View style={styles.row}>
           {
-            publicKey && privateKey ? <Button onPress={() => setShowModal(true)}
-              title='Export Key'
-            /> : <></>
+            publicKey && privateKey ? <Button onPress={onExportKeys} title='Export Key' />
+              : <></>
           }
           <View style={{ width: 16 }} />
           <Button
@@ -70,7 +79,6 @@ const GenerateKeyScreen = () => {
             title='Generate Key'
           />
           <View style={{ width: 16 }} />
-
         </View>
         <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
           <Button
@@ -84,7 +92,6 @@ const GenerateKeyScreen = () => {
           />
         </View>
       </View>
-
     </View>
 
     <CenteredModal
@@ -94,8 +101,24 @@ const GenerateKeyScreen = () => {
       <ExportModal
         privateKey={JSON.stringify(privateKey)}
         cancel={() => setShowModal(false)}
+        passphrase={passphrase}
       />
-    </CenteredModal >
+    </CenteredModal>
+
+    <CenteredModal
+      isVisible={passphraseModal}
+      onClose={() => { setPassphraseModal(false) }}
+    >
+      <PassphraseModal
+        onPassphraseConfirmed={(passphrase) => {
+          setPassphrase(passphrase);
+          setPassphraseModal(false);
+        }}
+        cancel={() => {
+          setPassphraseModal(false);
+        }}
+      />
+    </CenteredModal>
   </>
 }
 

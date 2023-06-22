@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform } from "react-native"
 import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
@@ -7,10 +7,13 @@ import RNFS from 'react-native-fs';
 
 const ExportModal = (props) => {
   const viewShotRef = useRef();
+  console.log("From Export", props.passphrase);
+
+  const passphrase = props.passphrase;
 
   const encryptedData = useMemo(() => {
     return JSON.stringify({
-      key: encryptJSON(props.privateKey, 'password'),
+      key: encryptJSON(props.privateKey, passphrase),
     });
   }, [props.privateKey])
 
