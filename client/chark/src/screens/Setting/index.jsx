@@ -35,6 +35,7 @@ const Setting = (props) => {
     personal,
     preferredLanguage,
     preferredCurrency,
+    avatar,
   } = useProfile();
 
   // useEffect(() => {
@@ -67,7 +68,7 @@ const Setting = (props) => {
       <View style={styles.profile}>
         <Image
           style={styles.profileImage}
-          source={profileImg}
+          source={avatar ? { uri: avatar } : profileImg}
         />
 
         <Text style={styles.name}>

@@ -139,7 +139,7 @@ export const uploadImage = (wm, payload) => {
 
 export const getFile = (wm, user_ent) => {
   const spec = {
-    fields: ['file_ent', 'file_fmt', 'file_data'],
+    fields: ['file_ent', 'file_fmt', 'file_data64'],
     view: 'mychips.file_v_me',
     where: {
       file_ent: user_ent,

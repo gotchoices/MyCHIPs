@@ -1,6 +1,10 @@
 import { createContext } from 'react';
 
 const ProfileContext = createContext({
+  avatar: null,
+  setAvatar: (av) => {
+    console.log(av)
+  },
   preferredCurrency: {
     code: '',
     name: '',

@@ -19,12 +19,15 @@ import Avatar from './Avatar';
 import Details from './Details';
 import PersonalBio from './PersonalBio';
 import Address from './Address';
+import Spinner from '../../components/Spinner';
 
 const Profile = (props) => {
-  const [avatar, setAvatar] = useState(undefined);
+  const [loadingAvatar, setLoadingAvatar] = useState(false);
   const { wm } = useSocket();
 
   const {
+    avatar,
+    setAvatar,
     communications,
     personal,
     setPersonal,
@@ -45,14 +48,13 @@ const Profile = (props) => {
       setAddresses(data);
     })
 
-    //getFile(wm, user_ent).then((_data) => {
-      //const file = _data?.[0]
-      //if(file) {
-        //const base64 = Buffer.from(file?.file_data).toString('base64');
-        //setAvatar(`data:${file.file_fmt};base64,${base64}`);
-      //}
+    getFile(wm, user_ent).then((_data) => {
+      const file = _data?.[0]
+      if(file?.file_data64) {
+        setAvatar(`data:${file.file_fmt};base64,${file.file_data64}`);
+      }
 
-    //})
+    })
   }, [])
 
   const emails = useMemo(() => {
@@ -85,25 +87,31 @@ const Profile = (props) => {
       file_cmt: 'Profile',
     };
 
+    setLoadingAvatar(true);
     uploadImage(wm, payload)
       .then((response) => {
-        if(response) {
-          const base64 = Buffer.from(response?.file_data, 'binary').toString('base64');
-          setAvatar(`data:${response.fmt};base64,${base64}`);
+        if(response?.file_data64) {
+          setAvatar(`data:${response.fmt};base64,${response.file_data64}`);
         }
-
       })
       .catch(err => console.log('error', err))
+      .finally(() => {
+        setLoadingAvatar(false);
+      })
   }
 
   return (
     <ScrollView>
       <View style={styles.container}>
         <View style={styles.avatar}>
-          <Avatar 
-            avatar={avatar}
-            uploadProfile={uploadProfile}
-          />
+          {
+            loadingAvatar 
+              ? <Spinner />
+              : <Avatar 
+                  avatar={avatar}
+                  uploadProfile={uploadProfile}
+                />
+          }
 
           <Text style={{ color: colors.black, marginTop: 16, fontSize: 18, fontWeight: 'bold', alignSelf: 'center' }}>
             {personal?.cas_name}
