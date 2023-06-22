@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import ProfileContext from '../context/ProfileContext';
 import useCurrentUser from '../hooks/useCurrentUser';
-import { getPersonal, getCurrency, getCountry } from '../services/profile';
+import { getPersonal, getCurrency, getCountry, getFile } from '../services/profile';
 
 import { languageMap } from '../utils/language';
 import useSocket from '../hooks/useSocket';
@@ -34,6 +34,15 @@ const ProfileProvider = ({ children }) => {
   const [communications, setCommunications] = useState([]);
   const [personal, setPersonal] = useState({});
   const [addresses, setAddresses] = useState([]);
+
+  useEffect(() => {
+    getFile(wm, user_ent).then((_data) => {
+      const file = _data?.[0]
+      if(file?.file_data64) {
+        setAvatar(`data:${file.file_fmt};base64,${file.file_data64}`);
+      }
+    })
+  }, [wm, user_ent, setAvatar])
 
   useEffect(() => {
     getPersonal(wm, user_ent).then(data => {
@@ -76,9 +85,6 @@ const ProfileProvider = ({ children }) => {
       // console.log("Country Exception", err);
     });
   }, [setPersonal])
-
-  useEffect(() => {
-  }, [])
 
   useEffect(() => {
     AsyncStorage.getItem('preferredCurrency').then((data) => {

@@ -4,9 +4,10 @@ import PropTypes from 'prop-types';
 import { colors, placeholderImages } from '../../../config/constants';
 import { round } from '../../../utils/common';
 
-import avatar from '../../../../assets/avatar.png';
 import mychips from '../../../../assets/mychips.png';
 import mychipsNeg from '../../../../assets/mychips-red.png';
+
+import Avatar from '../../../components/Avatar';
 
 const TallyItem = (props) => {
   const tally = props.tally;
@@ -17,10 +18,7 @@ const TallyItem = (props) => {
   return (
     <View style={styles.container}>
 
-      <Image
-        style={styles.avatar}
-        source={avatar}
-      />
+      <Avatar style={styles.avatar} />
 
       <View style={{ flex: 1, }}>
         <Text style={styles.name}>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
