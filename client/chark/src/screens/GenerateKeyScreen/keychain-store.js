@@ -1,30 +1,28 @@
 import * as Keychain from 'react-native-keychain';
 
 export const storeKey = async (key) => {
-  try {
-    await Keychain.setGenericPassword('private_key', key, {
-      service: 'private_key',
-      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE,
-      accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-      securityLevel: Keychain.SECURITY_LEVEL.SECURE_SOFTWARE,
-      storage: Keychain.STORAGE_TYPE.RSA,
-    });
-    console.log('Key stored successfully.');
-  } catch (error) {
-    console.error('Failed to store key:', error);
-  }
+  return new Promise((resolve, reject) => {
+    try {
+      Keychain.setGenericPassword('private_key', key, {
+        service: 'private_key',
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE,
+        accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+        securityLevel: Keychain.SECURITY_LEVEL.SECURE_SOFTWARE,
+        storage: Keychain.STORAGE_TYPE.RSA,
+      }).then(result => resolve(result)).catch(reject);
+    } catch (error) {
+      reject(error);
+    }
+  })
 };
 
 
-export const retrieveKey = async () => {
-  try {
-    const credentials = await Keychain.getGenericPassword({ service: 'private_key' });
-    if (credentials) {
-      console.log('Retrieved key:', credentials);
-    } else {
-      console.log('No key stored.');
+export const retrieveKey = (service) => {
+  return new Promise((resolve, reject) => {
+    try {
+      Keychain.getGenericPassword({ service: service }).then(resolve).catch(reject);
+    } catch (error) {
+      reject(error);
     }
-  } catch (error) {
-    console.error('Failed to retrieve key:', error);
-  }
+  })
 };

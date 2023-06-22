@@ -31,11 +31,19 @@ const GenerateKeyScreen = () => {
   };
 
   const storeMykey = () => {
-    storeKey(JSON.stringify(privateKey));
+    storeKey(JSON.stringify(privateKey)).then(result => {
+      console.log('Key Saved ', result);
+    }).catch(err => {
+      console.log("Key Save Error ", err);
+    });
   }
 
   const getMyKey = () => {
-    retrieveKey();
+    retrieveKey('private_key').then(credentials => {
+      console.log("Credentials ", credentials);
+    }).catch(err => {
+      console.log("Error ", err)
+    });
   }
 
   return <>
