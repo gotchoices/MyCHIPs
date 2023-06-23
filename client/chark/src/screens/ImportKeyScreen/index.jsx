@@ -40,7 +40,6 @@ const ImportKeyScreen = () => {
     }
   };
 
-
   const decreptData = (passphrase) => {
     setPassphraseModal(false);
     decryptJSON(content, passphrase)
@@ -50,7 +49,7 @@ const ImportKeyScreen = () => {
       })
       .catch(e => {
         console.log("Decrept Ex ", e);
-        Alert("Error", "Failed to decrept");
+        Alert.alert("Error", "Failed to decrept");
       });
   }
 

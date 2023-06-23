@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Alert, Button, StyleSheet, TextInput, View } from "react-native"
 
 const PassphraseModal = (props) => {
-  const [passprase, setPassphrase] = useState();
+  const [passprase, setPassphrase] = useState(undefined);
 
   const onConfirmPassphrase = () => {
     if (passprase) {

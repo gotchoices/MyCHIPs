@@ -38,14 +38,15 @@ export const encryptJSON = (jsonString, passphrase) => {
 };
 
 // Function to decrypt the JSON string
-export const decryptJSON = (encryptedString, passphrase) => {
+export const decryptJSON = async (encryptedString, passphrase) => {
   return new Promise((resolve, reject) => {
     try {
       const decryptedBytes = CryptoJS.AES.decrypt(encryptedString, passphrase);
       const decrypted = decryptedBytes.toString(CryptoJS.enc.Utf8);
       resolve(decrypted);
-    } catch (err) {
-      reject(err);
+    } catch (error) {
+      console.log("Failed to decrypt ", error);
+      reject("Error failed to fetch data");
     }
   });
 };
