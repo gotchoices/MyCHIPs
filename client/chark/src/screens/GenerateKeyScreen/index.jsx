@@ -1,15 +1,26 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, View, Text, ScrollView } from 'react-native';
-import { KeyConfig } from 'wyseman/lib/crypto';
+import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
 import { retrieveKey, storeKey } from './keychain-store';
 import CenteredModal from '../../components/CenteredModal';
 import ExportModal from './ExportModal';
 import PassphraseModal from './PassphraseModal';
+import { TextEncoder } from 'web-encoding';
+const MyConfig = {
+  name: 'ECDSA',
+  hash: { name: 'SHA-256' },
+};
 
 const GenerateKeyScreen = () => {
-  let initialPrivateKey = undefined;
+  const encoder = new TextEncoder();
+  const data = encoder.encode("Hello world");
+
+  let signature = undefined;
   const subtle = window.crypto.subtle;
+  let currentKeyPair = { publicKey: undefined, privateKey: undefined };
+
+  let myPriKey = undefined;
 
   const [publicKey, setPublicKey] = useState(undefined);
   const [privateKey, setPrivateKey] = useState(undefined);
@@ -29,15 +40,46 @@ const GenerateKeyScreen = () => {
       true,
       ['sign', 'verify']
     ).then(keyPair => {
-      initialPrivateKey = keyPair.privateKey;
-      return subtle.exportKey('jwk', keyPair.publicKey)
+      myPriKey = keyPair.privateKey;
+      currentKeyPair = { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
+      return subtle.exportKey('jwk', keyPair.publicKey);
     }).then((pubKey) => {
       setPublicKey(pubKey);
-      return subtle.exportKey('jwk', initialPrivateKey);
+      return subtle.exportKey('jwk', currentKeyPair.privateKey);
     }).then((priKey) => {
       setPrivateKey(priKey)
     }).catch((e) => console.log("Exception ==> ", e));
   };
+
+  const encryptMessage = async () => {
+    try {
+      const enco = new TextEncoder();
+      const dataone = encoder.encode('message');
+
+      console.log("Data ", dataone);
+      const sig = await subtle.sign(
+        SignConfig,
+        myPriKey,
+        dataone,
+      );
+      console.log("Signature ", sig);
+    }
+    catch (ex) {
+      console.log("Exception, ", ex);
+    }
+  }
+
+  const decryptMessage = () => {
+    subtle.verify(
+      MyConfig,
+      currentKeyPair.publicKey,
+      signature,
+      data,
+    ).then(verified => {
+      console.log("Verified ==> ", verified);
+    }).catch(e => console.log('Exeption ==> ', e));
+  }
+
 
   const storeMykey = () => {
     storeKey(JSON.stringify(privateKey)).then(result => {
@@ -89,6 +131,18 @@ const GenerateKeyScreen = () => {
           <Button
             onPress={getMyKey}
             title='Get Key'
+          />
+        </View>
+
+        <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
+          <Button
+            onPress={encryptMessage}
+            title='Encrypt Message'
+          />
+          <View style={{ width: 16 }} />
+          <Button
+            onPress={decryptMessage}
+            title='Decrypt Message'
           />
         </View>
       </View>

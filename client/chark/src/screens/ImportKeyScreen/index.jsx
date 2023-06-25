@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { View, StyleSheet, Button, Alert, Text } from "react-native"
 import DocumentPicker from 'react-native-document-picker';
-import ReactNativeFS from 'react-native-fs';
 import PassphraseModal from "../GenerateKeyScreen/PassphraseModal";
 import CenteredModal from "../../components/CenteredModal";
 import { decryptJSON } from "../../utils/file-manager";
@@ -46,6 +45,7 @@ const ImportKeyScreen = () => {
       .then((data) => {
         console.log("Decrepted Data ", data);
         setPrivateKey(data);
+
       })
       .catch(e => {
         console.log("Decrept Ex ", e);
