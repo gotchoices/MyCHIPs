@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Button, StyleSheet, View, Text, ScrollView } from 'react-native';
+import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
 import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
 import { retrieveKey, storeKey } from './keychain-store';
 import CenteredModal from '../../components/CenteredModal';
@@ -45,7 +45,7 @@ const GenerateKeyScreen = () => {
     }).catch((e) => console.log("Exception ==> ", e));
   };
 
-  const encryptMessage = () => {
+  const signMessage = () => {
     retrieveKey('private_key').then(credentials => {
       const pvtKey = JSON.parse(credentials.password);
       return subtle.importKey('jwk', pvtKey, KeyConfig, true, ['sign']);
@@ -63,7 +63,7 @@ const GenerateKeyScreen = () => {
     });
   }
 
-  const decryptMessage = () => {
+  const verifyMessage = () => {
     subtle.importKey('jwk', publicKey, KeyConfig, true, ['verify']).then(pub => {
       return subtle.verify(
         SignConfig,
@@ -85,6 +85,7 @@ const GenerateKeyScreen = () => {
     storeKey(JSON.stringify(privateKey)).then(result => {
       console.log('Key Saved ', result);
     }).catch(err => {
+      Alert.alert("Error", err);
       console.log("Key Save Error ", err);
     });
   }
@@ -122,7 +123,8 @@ const GenerateKeyScreen = () => {
           />
           <View style={{ width: 16 }} />
         </View>
-        <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
+
+        <View style={[styles.row, { marginTop: 1 }]}>
           <Button
             onPress={storeMykey}
             title='Store Key'
@@ -136,13 +138,13 @@ const GenerateKeyScreen = () => {
 
         <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
           <Button
-            onPress={encryptMessage}
-            title='Encrypt Message'
+            onPress={signMessage}
+            title='Sign Message'
           />
           <View style={{ width: 16 }} />
           <Button
-            onPress={decryptMessage}
-            title='Decrypt Message'
+            onPress={verifyMessage}
+            title='Verify Message'
           />
         </View>
       </View>

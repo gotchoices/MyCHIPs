@@ -27,6 +27,7 @@
     "query-string": "^8.1.0",
     "react": "18.1.0",
     "react-native": "0.70.6",
+    "react-native-biometrics": "^3.0.1",
     "react-native-crypto-js": "^1.0.0",
     "react-native-document-picker": "^9.0.1",
     "react-native-fs": "^2.20.0",
