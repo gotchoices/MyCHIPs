@@ -6,21 +6,16 @@ import { retrieveKey, storeKey } from './keychain-store';
 import CenteredModal from '../../components/CenteredModal';
 import ExportModal from './ExportModal';
 import PassphraseModal from './PassphraseModal';
-import { TextEncoder } from 'web-encoding';
-const MyConfig = {
-  name: 'ECDSA',
-  hash: { name: 'SHA-256' },
-};
+import { TextEncoder, TextDecoder } from 'web-encoding';
 
 const GenerateKeyScreen = () => {
   const encoder = new TextEncoder();
-  const data = encoder.encode("Hello world");
+  const decoder = new TextDecoder();
+  const data = encoder.encode("Hello world!");
 
   let signature = undefined;
   const subtle = window.crypto.subtle;
   let currentKeyPair = { publicKey: undefined, privateKey: undefined };
-
-  let myPriKey = undefined;
 
   const [publicKey, setPublicKey] = useState(undefined);
   const [privateKey, setPrivateKey] = useState(undefined);
@@ -40,7 +35,6 @@ const GenerateKeyScreen = () => {
       true,
       ['sign', 'verify']
     ).then(keyPair => {
-      myPriKey = keyPair.privateKey;
       currentKeyPair = { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
       return subtle.exportKey('jwk', keyPair.publicKey);
     }).then((pubKey) => {
@@ -51,35 +45,41 @@ const GenerateKeyScreen = () => {
     }).catch((e) => console.log("Exception ==> ", e));
   };
 
-  const encryptMessage = async () => {
-    try {
-      const enco = new TextEncoder();
-      const dataone = encoder.encode('message');
-
-      console.log("Data ", dataone);
-      const sig = await subtle.sign(
+  const encryptMessage = () => {
+    retrieveKey('private_key').then(credentials => {
+      const pvtKey = JSON.parse(credentials.password);
+      return subtle.importKey('jwk', pvtKey, KeyConfig, true, ['sign']);
+    }).then(priv => {
+      console.log("Private Key ", priv);
+      return subtle.sign(
         SignConfig,
-        myPriKey,
-        dataone,
+        priv,
+        data,
       );
-      console.log("Signature ", sig);
-    }
-    catch (ex) {
-      console.log("Exception, ", ex);
-    }
+    }).then((sign) => {
+      signature = sign;
+    }).catch(err => {
+      console.log("Error ", err)
+    });
   }
 
   const decryptMessage = () => {
-    subtle.verify(
-      MyConfig,
-      currentKeyPair.publicKey,
-      signature,
-      data,
-    ).then(verified => {
+    subtle.importKey('jwk', publicKey, KeyConfig, true, ['verify']).then(pub => {
+      return subtle.verify(
+        SignConfig,
+        pub,
+        signature,
+        data,
+      );
+    }).then(verified => {
       console.log("Verified ==> ", verified);
-    }).catch(e => console.log('Exeption ==> ', e));
+      if (verified) {
+        console.log("Decoded Message ", decoder.decode(data))
+      }
+    }).catch(ex => {
+      console.log("Exception ", ex);
+    })
   }
-
 
   const storeMykey = () => {
     storeKey(JSON.stringify(privateKey)).then(result => {
