@@ -17,6 +17,7 @@ const ImportKeyScreen = () => {
     };
     DocumentPicker.pick(options).then((results) => {
       const result = results[0];
+      console.log("Document URI ", result.uri);
       if (result.uri && result.type === 'application/json') {
         readContent(result.uri);
       } else {

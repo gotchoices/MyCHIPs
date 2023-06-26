@@ -6,20 +6,6 @@ const rnBiometrics = new ReactNativeBiometrics()
 const isBiometricsAvailable = () => {
   return new Promise((resolve, reject) => {
     rnBiometrics.isSensorAvailable()
-      .then(result => resolve(result))
-      .catch(error => reject(error.toString()));
-  })
-}
-
-
-/** 
- * accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE,
- * on iOS 11 and above if biometrics no set then will be promted to device pincode
- * on android however the result may be different based on different android version for phones
- * */
-export const storeKey = (key) => {
-  return new Promise((resolve, reject) => {
-    isBiometricsAvailable()
       .then((result) => {
         const { available, biometryType, error } = result;
         if (available) {
@@ -32,6 +18,19 @@ export const storeKey = (key) => {
           reject('Biometrics not supported');
         }
       })
+      .then(result => resolve(result))
+      .catch(error => reject(error.toString()));
+  })
+}
+
+/** 
+ * accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE,
+ * on iOS 11 and above if biometrics no set then will be promted to device pincode
+ * on android however the result may be different based on different android version for phones
+ * */
+export const storeKey = (key) => {
+  return new Promise((resolve, reject) => {
+    isBiometricsAvailable()
       .then(result => {
         const { success, error } = result;
         if (success) {

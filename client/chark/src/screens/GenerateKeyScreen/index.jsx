@@ -58,6 +58,7 @@ const GenerateKeyScreen = () => {
       );
     }).then((sign) => {
       signature = sign;
+      Alert.alert("Success", "Message signed successfully");
     }).catch(err => {
       console.log("Error ", err)
     });
@@ -75,14 +76,19 @@ const GenerateKeyScreen = () => {
       console.log("Verified ==> ", verified);
       if (verified) {
         console.log("Decoded Message ", decoder.decode(data))
+        Alert.alert("Success", `Message verified: ${verified} \nDecoded Message: ${decoder.decode(data)}`);
+      } else {
+        Alert.alert("Error", `Failed to verify message`);
       }
     }).catch(ex => {
       console.log("Exception ", ex);
+      Alert.alert("Error", ex.toString());
     })
   }
 
   const storeMykey = () => {
     storeKey(JSON.stringify(privateKey)).then(result => {
+      Alert.alert("Success", "Private key saved successfully");
       console.log('Key Saved ', result);
     }).catch(err => {
       Alert.alert("Error", err);
@@ -93,8 +99,10 @@ const GenerateKeyScreen = () => {
   const getMyKey = () => {
     retrieveKey('private_key').then(credentials => {
       console.log("Credentials ", credentials);
+      Alert.alert("Success", `Key Fetched : ${credentials.password}`);
     }).catch(err => {
-      console.log("Error ", err)
+      console.log("Error ", err);
+      Alert.alert("Error", err.toString());
     });
   }
 

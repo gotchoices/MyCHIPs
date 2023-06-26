@@ -3,11 +3,9 @@ import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform } f
 import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
-import RNFS from 'react-native-fs';
 
 const ExportModal = (props) => {
   const viewShotRef = useRef();
-  console.log("From Export", props.passphrase);
 
   const passphrase = props.passphrase;
 
