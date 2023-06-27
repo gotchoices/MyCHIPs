@@ -1,189 +1,62 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { KeyConfig } from 'wyseman/lib/crypto';
 
-import React, { useEffect, useState } from 'react';
-import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
-import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
-import { retrieveKey, storeKey } from './keychain-store';
 import CenteredModal from '../../components/CenteredModal';
-import ExportModal from './ExportModal';
-import PassphraseModal from './PassphraseModal';
-import { TextEncoder, TextDecoder } from 'web-encoding';
+import PostGenerate from './PostGenerate';
+import Spinner from '../../components/Spinner';
 
-const GenerateKeyScreen = () => {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-  const data = encoder.encode("Hello world!");
-
-  let signature = undefined;
+const GenerateKeyScreen = (props) => {
   const subtle = window.crypto.subtle;
-  let currentKeyPair = { publicKey: undefined, privateKey: undefined };
 
+  const [generating, setGenerating] = useState(false);
   const [publicKey, setPublicKey] = useState(undefined);
   const [privateKey, setPrivateKey] = useState(undefined);
-  const [passphrase, setPassphrase] = useState(undefined);
-  const [showModal, setShowModal] = useState(false);
-  const [passphraseModal, setPassphraseModal] = useState(false);
-
-  useEffect(() => {
-    if (passphrase) {
-      setShowModal(true);
-    }
-  }, [passphrase])
+  const [showPostGenerateModal, setShowPostGenerateModal] = useState(false);
 
   const generateECDSAKeys = async () => {
-    subtle.generateKey(
-      KeyConfig,
-      true,
-      ['sign', 'verify']
-    ).then(keyPair => {
-      currentKeyPair = { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
-      return subtle.exportKey('jwk', keyPair.publicKey);
-    }).then((pubKey) => {
+    try {
+      setGenerating(true);
+      const keyPair = await subtle.generateKey(KeyConfig, true, ['sign', 'verify'])
+
+      const currentKeyPair = { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
+      const pubKey = await subtle.exportKey('jwk', keyPair.publicKey);
       setPublicKey(pubKey);
-      return subtle.exportKey('jwk', currentKeyPair.privateKey);
-    }).then((priKey) => {
+
+      const priKey = await subtle.exportKey('jwk', currentKeyPair.privateKey);
       setPrivateKey(priKey)
-    }).catch((e) => console.log("Exception ==> ", e));
+
+      setShowPostGenerateModal(true);
+    } catch(err) {
+      console.log('Error generating key', err);
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  const signMessage = () => {
-    retrieveKey('private_key').then(credentials => {
-      const pvtKey = JSON.parse(credentials.password);
-      return subtle.importKey('jwk', pvtKey, KeyConfig, true, ['sign']);
-    }).then(priv => {
-      console.log("Private Key ", priv);
-      return subtle.sign(
-        SignConfig,
-        priv,
-        data,
-      );
-    }).then((sign) => {
-      signature = sign;
-      Alert.alert("Success", "Message signed successfully");
-    }).catch(err => {
-      console.log("Error ", err)
-    });
-  }
+  return (
+    <>
+      <TouchableOpacity
+        style={{ width: "100%", flexDirection: 'row' }}
+        onPress={generateECDSAKeys}
+      >
+        <Text style={[props.menuStyle, { marginRight: 5 }]}>Generate Keys</Text>
+        { generating && <Spinner size="small" /> }
+      </TouchableOpacity>
 
-  const verifyMessage = () => {
-    subtle.importKey('jwk', publicKey, KeyConfig, true, ['verify']).then(pub => {
-      return subtle.verify(
-        SignConfig,
-        pub,
-        signature,
-        data,
-      );
-    }).then(verified => {
-      console.log("Verified ==> ", verified);
-      if (verified) {
-        console.log("Decoded Message ", decoder.decode(data))
-        Alert.alert("Success", `Message verified: ${verified} \nDecoded Message: ${decoder.decode(data)}`);
-      } else {
-        Alert.alert("Error", `Failed to verify message`);
-      }
-    }).catch(ex => {
-      console.log("Exception ", ex);
-      Alert.alert("Error", ex.toString());
-    })
-  }
+      <CenteredModal
+        isVisible={showPostGenerateModal}
+        onClose={() => setShowPostGenerateModal(false)}
+      >
+        <PostGenerate 
+          onClose={() => setShowPostGenerateModal(false)}
+          publicKey={publicKey}
+          privateKey={privateKey}
+        />
+      </CenteredModal>
 
-  const storeMykey = () => {
-    storeKey(JSON.stringify(privateKey)).then(result => {
-      Alert.alert("Success", "Private key saved successfully");
-      console.log('Key Saved ', result);
-    }).catch(err => {
-      Alert.alert("Error", err);
-      console.log("Key Save Error ", err);
-    });
-  }
-
-  const getMyKey = () => {
-    retrieveKey('private_key').then(credentials => {
-      console.log("Credentials ", credentials);
-      Alert.alert("Success", `Key Fetched : ${credentials.password}`);
-    }).catch(err => {
-      console.log("Error ", err);
-      Alert.alert("Error", err.toString());
-    });
-  }
-
-  const onExportKeys = () => {
-    setPassphraseModal(true);
-  }
-
-  return <>
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {publicKey && <Text>Public Json Key: {'\n'} {JSON.stringify(publicKey)}</Text>}
-        <View style={{ height: 20 }} />
-        {privateKey && <Text>Private Json Key: {'\n'} {JSON.stringify(privateKey)}</Text>}
-      </ScrollView>
-
-      <View>
-        <View style={styles.row}>
-          {
-            publicKey && privateKey ? <Button onPress={onExportKeys} title='Export Key' />
-              : <></>
-          }
-          <View style={{ width: 16 }} />
-          <Button
-            onPress={generateECDSAKeys}
-            title='Generate Key'
-          />
-          <View style={{ width: 16 }} />
-        </View>
-
-        <View style={[styles.row, { marginTop: 1 }]}>
-          <Button
-            onPress={storeMykey}
-            title='Store Key'
-          />
-          <View style={{ width: 16 }} />
-          <Button
-            onPress={getMyKey}
-            title='Get Key'
-          />
-        </View>
-
-        <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
-          <Button
-            onPress={signMessage}
-            title='Sign Message'
-          />
-          <View style={{ width: 16 }} />
-          <Button
-            onPress={verifyMessage}
-            title='Verify Message'
-          />
-        </View>
-      </View>
-    </View>
-
-    <CenteredModal
-      isVisible={showModal}
-      onClose={() => setShowModal(false)}
-    >
-      <ExportModal
-        privateKey={JSON.stringify(privateKey)}
-        cancel={() => setShowModal(false)}
-        passphrase={passphrase}
-      />
-    </CenteredModal>
-
-    <CenteredModal
-      isVisible={passphraseModal}
-      onClose={() => { setPassphraseModal(false) }}
-    >
-      <PassphraseModal
-        onPassphraseConfirmed={(passphrase) => {
-          setPassphrase(passphrase);
-          setPassphraseModal(false);
-        }}
-        cancel={() => {
-          setPassphraseModal(false);
-        }}
-      />
-    </CenteredModal>
-  </>
+    </>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -200,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 12,
     marginHorizontal: 12,
-  }
+  },
 });
 
 export default GenerateKeyScreen

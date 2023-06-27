@@ -12,6 +12,7 @@ import useSocket from '../../hooks/useSocket';
 import Language from './Language';
 import CenteredModal from '../../components/CenteredModal';
 import Button from '../../components/Button';
+import GenerateKey from '../GenerateKeyScreen';
 
 import profileImg from '../../../assets/profile.png';
 import Currency from './Currency';
@@ -134,14 +135,7 @@ const Setting = (props) => {
       </View>
 
       <View style={[styles.menu, { marginTop: 10 }]}>
-        <TouchableOpacity
-          style={{ width: "100%" }}
-          onPress={() => {
-            props.navigation.navigate("GenerateKey");
-          }}
-        >
-          <Text style={styles.menuTitle}>Generate Keys</Text>
-        </TouchableOpacity>
+        <GenerateKey menuStyle={styles.menuTitle} />
       </View>
 
       <View style={[styles.menu, { marginTop: 10 }]}>
