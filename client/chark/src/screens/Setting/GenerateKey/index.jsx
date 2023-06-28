@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { KeyConfig } from 'wyseman/lib/crypto';
 
-import CenteredModal from '../../components/CenteredModal';
+import CenteredModal from '../../../components/CenteredModal';
 import PostGenerate from './PostGenerate';
-import Spinner from '../../components/Spinner';
+import Spinner from '../../../components/Spinner';
 
-const GenerateKeyScreen = (props) => {
+const GenerateKey = (props) => {
   const subtle = window.crypto.subtle;
 
   const [generating, setGenerating] = useState(false);
@@ -27,7 +27,7 @@ const GenerateKeyScreen = (props) => {
       setPrivateKey(priKey)
 
       setShowPostGenerateModal(true);
-    } catch(err) {
+    } catch (err) {
       console.log('Error generating key', err);
     } finally {
       setGenerating(false);
@@ -41,14 +41,14 @@ const GenerateKeyScreen = (props) => {
         onPress={generateECDSAKeys}
       >
         <Text style={[props.menuStyle, { marginRight: 5 }]}>Generate Keys</Text>
-        { generating && <Spinner size="small" /> }
+        {generating && <Spinner size="small" />}
       </TouchableOpacity>
 
       <CenteredModal
         isVisible={showPostGenerateModal}
         onClose={() => setShowPostGenerateModal(false)}
       >
-        <PostGenerate 
+        <PostGenerate
           onClose={() => setShowPostGenerateModal(false)}
           publicKey={publicKey}
           privateKey={privateKey}
@@ -76,4 +76,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GenerateKeyScreen
+export default GenerateKey

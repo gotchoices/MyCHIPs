@@ -23,7 +23,6 @@ export const downloadJSONFile = (jsonString) => {
     const downloadPath = `${baseDownloadPath}/key-${getDateTime()}.json`;
 
     console.log("Final Download ", downloadPath);
-
     ReactNativeFS.writeFile(cachedPath, jsonString, 'utf8')
       .then(() => ReactNativeFS.copyFile(cachedPath, downloadPath))
       .then(() => {
@@ -70,17 +69,7 @@ export const decryptJSON = async (encryptedString, passphrase) => {
       const decrypted = decryptedBytes.toString(CryptoJS.enc.Utf8);
       resolve(decrypted);
     } catch (error) {
-      console.log("Failed to decrypt ", error);
-      reject("Error failed to fetch data");
+      reject(`Error failed to decrept data ${error}`);
     }
   });
 };
-
-/* 
-"reactNativePermissionsIOS": [
-  "Camera",
-  "Contacts",
-  "FaceID",
-  "Notifications",
-  "PhotoLibrary"
-] */

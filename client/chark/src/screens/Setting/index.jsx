@@ -12,7 +12,7 @@ import useSocket from '../../hooks/useSocket';
 import Language from './Language';
 import CenteredModal from '../../components/CenteredModal';
 import Button from '../../components/Button';
-import GenerateKey from '../GenerateKeyScreen';
+import GenerateKey from './GenerateKey';
 
 import profileImg from '../../../assets/profile.png';
 import Currency from './Currency';

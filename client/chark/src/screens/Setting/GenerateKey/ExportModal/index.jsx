@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform } from "react-native"
-import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../utils/file-manager";
+import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
 

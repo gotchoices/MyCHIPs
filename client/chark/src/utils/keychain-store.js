@@ -8,9 +8,10 @@ const isBiometricsAvailable = () => {
     .then((result) => {
       const { available, biometryType, error } = result;
       if (available) {
-        return rnBiometrics.simplePrompt({
-          promptMessage: 'Confirm biometrics to store keys'
-        });
+        return { success: true };
+        // return rnBiometrics.simplePrompt({
+        //   promptMessage: 'Confirm biometrics to store keys'
+        // });
       } else if (error === 'BIOMETRIC_ERROR_NONE_ENROLLED') {
         throw new Error('Biometrics not enrolled')
       } else {

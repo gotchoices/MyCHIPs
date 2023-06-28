@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { View, StyleSheet, Button, Alert, Text } from "react-native"
 import DocumentPicker from 'react-native-document-picker';
-import PassphraseModal from "../GenerateKeyScreen/PassphraseModal";
+import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
 import CenteredModal from "../../components/CenteredModal";
 import { decryptJSON } from "../../utils/file-manager";
 
@@ -50,7 +50,7 @@ const ImportKeyScreen = () => {
       })
       .catch(e => {
         console.log("Decrept Ex ", e);
-        Alert.alert("Error", "Failed to decrept");
+        Alert.alert("Error", e.toString());
       });
   }
 

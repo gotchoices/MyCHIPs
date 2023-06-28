@@ -3,9 +3,9 @@ import { TextEncoder, TextDecoder } from 'web-encoding';
 import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
 import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
 
-import { retrieveKey, storeKey } from '../keychain-store';
+import { retrieveKey, storeKey } from '../../../../utils/keychain-store';
 
-import CenteredModal from '../../../components/CenteredModal';
+import CenteredModal from '../../../../components/CenteredModal';
 import ExportModal from '../ExportModal';
 import PassphraseModal from '../PassphraseModal';
 
@@ -34,17 +34,17 @@ const PostGenerate = (props) => {
 
   const signMessage = async () => {
     try {
-      //const credentials = await retrieveKey('private_key') 
+      const credentials = await retrieveKey('private_key')
 
-      //const pvtKey = JSON.parse(credentials.password);
-      const pvtKey = privateKey;
+      const pvtKey = JSON.parse(credentials.password);
+      // const pvtKey = privateKey;
       const priv = await subtle.importKey('jwk', pvtKey, KeyConfig, true, ['sign']);
 
-      const sign = await subtle.sign( SignConfig, priv, data);
+      const sign = await subtle.sign(SignConfig, priv, data);
 
       setSignature(sign);
       Alert.alert("Success", "Message signed successfully");
-    } catch(err) {
+    } catch (err) {
       console.log("Error ", err)
     }
   }
@@ -65,7 +65,7 @@ const PostGenerate = (props) => {
         Alert.alert("Error", `Failed to verify message`);
       }
 
-    } catch(err) {
+    } catch (err) {
       Alert.alert("Error", ex.message);
     }
   }
@@ -74,7 +74,7 @@ const PostGenerate = (props) => {
     try {
       await storeKey(JSON.stringify(privateKey));
       Alert.alert("Success", "Private key saved successfully");
-    } catch(err) {
+    } catch (err) {
       Alert.alert("Error", err.message);
     }
   }
@@ -83,7 +83,7 @@ const PostGenerate = (props) => {
     try {
       const credentials = await retrieveKey('private_key')
       Alert.alert("Success", `Key Fetched : ${credentials.password}`);
-    } catch(err) {
+    } catch (err) {
       Alert.alert("Error", err.message);
     }
   }
