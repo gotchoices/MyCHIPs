@@ -12,6 +12,7 @@ import useSocket from '../../hooks/useSocket';
 import Language from './Language';
 import CenteredModal from '../../components/CenteredModal';
 import Button from '../../components/Button';
+import GenerateKey from './GenerateKey';
 
 import profileImg from '../../../assets/profile.png';
 import Currency from './Currency';
@@ -115,9 +116,9 @@ const Setting = (props) => {
 
           <Text style={styles.language}>
             {
-              preferredCurrency?.code 
-               ? `${preferredCurrency?.name} (${preferredCurrency?.code})`
-               : 'None'
+              preferredCurrency?.code
+                ? `${preferredCurrency?.name} (${preferredCurrency?.code})`
+                : 'None'
 
             }
           </Text>
@@ -132,6 +133,21 @@ const Setting = (props) => {
             color={colors.quicksilver}
           />
         </TouchableWithoutFeedback>
+      </View>
+
+      <View style={[styles.menu, { marginTop: 10 }]}>
+        <GenerateKey menuStyle={styles.menuTitle} />
+      </View>
+
+      <View style={[styles.menu, { marginTop: 10 }]}>
+        <TouchableOpacity
+          style={{ width: "100%" }}
+          onPress={() => {
+            props.navigation.navigate("ImportKey");
+          }}
+        >
+          <Text style={styles.menuTitle}>Import Key</Text>
+        </TouchableOpacity>
       </View>
 
       <CenteredModal
