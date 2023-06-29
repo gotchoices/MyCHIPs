@@ -43,6 +43,7 @@ import MessageTextProvider from './src/components/MessageTextProvider';
 import { handleNotification } from './src/utils/notification';
 import ShareTally from './src/screens/ShareTally';
 import ChitHistory from './src/screens/Tally/ChitHistory';
+import ImportKeyScreen from './src/screens/ImportKeyScreen';
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
@@ -84,6 +85,7 @@ function SettingStackScreen() {
       <SettingStack.Screen name="Setting" component={Setting} />
       <SettingStack.Screen name="Profile" component={Profile} options={{ title: 'Profile' }} />
       <SettingStack.Screen name="ProfileEdit" component={ProfileEdit} options={{ title: 'Edit Profile' }} />
+      <SettingStack.Screen name="ImportKey" component={ImportKeyScreen} options={{ title: 'Import Key' }} />
     </SettingStack.Navigator>
   );
 }

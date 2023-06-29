@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   View,
   StyleSheet,
   RefreshControl,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 
 import { colors } from '../../../config/constants';
@@ -211,7 +213,11 @@ const TallyPreview = (props) => {
   const canRefuse = hasPartCert && tally.status === 'offer';
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={[styles.container]}
+      behavior={Platform.OS === 'ios' ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
@@ -234,7 +240,7 @@ const TallyPreview = (props) => {
           onHoldTermsChange={onHoldTermsChange}
           onPartTermsChange={onPartTermsChange}
           setTallyType={setTallyType}
-          setContrac={setContract}
+          setContract={setContract}
         />
       </ScrollView>
 
@@ -274,8 +280,7 @@ const TallyPreview = (props) => {
           style={styles.refuse}
         />
       </View>
-    </View>
-
+    </KeyboardAvoidingView>
   )
 }
 
@@ -297,6 +302,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
+    flexGrow: 1,
     backgroundColor: 'white',
     margin: 10,
     padding: 10,
