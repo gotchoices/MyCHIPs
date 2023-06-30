@@ -3,7 +3,7 @@ TODO:
 X- Report for viewing/editing trading variables
 
 - Tally protocol support
--  When a tally is cloned/invited, freshen the certificate info (agent)
+-  When a tally is cloned/invited, freshen the certificate info (or at least, the agent)
 -  How to easily understand/view draft/offer tallies
 -  Can execute a signed tally with a partner
 -  Can sent a voluntary chit on a tally
@@ -17,10 +17,19 @@ X-  Test photos from web app
 X-   Dew entries display at reasonable default width
 X-   Can export file from widget
 X-   Bytea type displays as hex string in wylib
--  Test photos from mobile app
--  App displays my primary photo
+X-  Test photos from mobile app
+X-  App displays my primary photo
+X-  Incorporate photo into user certificate
+X-   Why don't file objects show up in certificate?
 -  Re-implement document server to include contracts and photos (by hash only)
--  Incorporate photo into user certificate
+-   Any user can get his partners' documents from his site (UI API)
+-   Anyone can query/fetch a contract from any site via public https
+-   Any site can get user documents from a partner site for any shared tally
+-    This is done via fetch from the regular https document portal
+-    Requester site furnishes: tally_uuid, file_hash64
+-    Assumption is that requester has the agent key for the tally
+-    Document is returned, encrypted using requester's agent key
+-   
 -  Trigger to prevent delete/update of files/contracts referenced in tallies
 -  App displays my partners' primary photo
 -  In mychips schema, make a trigger to prevent modifying/deleting a file referenced from a tally

@@ -63,7 +63,7 @@ view json.connect {json base.comm_v} {select
 
 # View of file documents dedicated to JSON import
 #----------------------------------------------------------------
-view json.file {json base.file_v} {select
+view json.file {json base.file_v mychips.ba2b64v(bytea)} {select
     file_ent	as "id"
   , file_seq	as "seq"
   , file_data	as "data"
@@ -72,7 +72,7 @@ view json.file {json base.file_v} {select
   , file_prim	as "main"
   , file_cmt	as "comment"
   , file_priv	as "private"
-  , file_hash	as "digest"
+  , mychips.ba2b64v(file_hash)	as "digest"
     from base.file_v where not file_ent isnull with cascaded check option;
 } -primary {id seq}
 
@@ -158,8 +158,8 @@ view json.cert {mychips.users_v json.connect json.place json.file mychips} {sele
         where not prior and not private and pl.id = p.id and type != 'birth' and main order by seq
     ) d) as "place"
   , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
-      select media,digest,comment from json.file f
-        where f.id = p.id and not private and main order by seq
+      select media,format,digest,comment from json.file f
+        where f.id = p.id and not f.private and f.main order by f.seq
     ) d) as "file"
   , jsonb_strip_nulls(jsonb_build_object(
       'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
