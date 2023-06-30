@@ -44,7 +44,7 @@ table mychips.users {base.ent mychips.agents} {
 
   , peer_cid	text		not null, unique (peer_cid, peer_agent)
   , peer_agent	text	        references mychips.agents on update cascade on delete restrict
-  , peer_psig	text
+  , peer_psig	jsonb
   , peer_named	text
   
   , user_cmt	varchar
@@ -284,7 +284,7 @@ $$;}
 function {mychips.user_cert(uid text)} {json.cert} {
   returns jsonb language sql as $$
     select to_jsonb(s) as cert from (
-      select date,chad,type,name,public,connect,place,identity from json.cert where id = uid
+      select date,chad,type,name,public,connect,place,identity,file from json.cert where id = uid
     ) s
 $$;}
 
