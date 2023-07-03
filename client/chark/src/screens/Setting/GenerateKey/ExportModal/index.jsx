@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform } from "react-native"
 import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
@@ -8,11 +8,15 @@ const ExportModal = (props) => {
   const viewShotRef = useRef();
 
   const passphrase = props.passphrase;
+  const [encryptedData, setEncryptedData] = useState(undefined);
 
-  const encryptedData = useMemo(() => {
-    return JSON.stringify({
-      key: encryptJSON(props.privateKey, passphrase),
-    });
+  useEffect(() => {
+    encryptJSON(props.privateKey, passphrase).then(result => {
+      console.log("Final Data ==> ", result);
+      setEncryptedData(result);
+    }).catch(e => {
+      console.log("Exception ==> ", ex);
+    })
   }, [props.privateKey])
 
   const permissionResult = async () => {

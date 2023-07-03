@@ -2,6 +2,10 @@ import ReactNativeFS from 'react-native-fs';
 import CryptoJS from "react-native-crypto-js";
 import { Platform } from 'react-native';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import 'react-native-get-random-values';
+import { Buffer } from 'buffer';
+
+const subtle = window.crypto.subtle;
 
 const getDateTime = () => {
   const currentDate = new Date();
@@ -55,10 +59,35 @@ export const downloadQRCode = (uri) => {
   });
 }
 
+const deriveKey = async (password, salt_1) => {
+  let salt = salt_1 || crypto.getRandomValues(new Uint8Array(8));
+  const importedKey = await subtle.importKey("raw", Buffer.from(password), { name: "PBKDF2" }, false, ["deriveKey"]);
+  const key = await subtle.deriveKey(
+    { name: "PBKDF2", salt: salt, iterations: 10000, hash: "SHA-256" },
+    importedKey,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ["encrypt", "decrypt"],
+  );
+  return [key, salt];
+};
+
 // Function to encrypt the JSON string
-export const encryptJSON = (jsonString, passphrase) => {
-  const encrypted = CryptoJS.AES.encrypt(jsonString, passphrase).toString();
-  return encrypted;
+export const encryptJSON = async (jsonString, passphrase) => {
+  try {
+    let iv = crypto.getRandomValues(new Uint8Array(12));
+    let data = Buffer.from(jsonString);
+    const [key, salt] = await deriveKey(passphrase);
+    const ciphertext = await subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+    const encryptedData = JSON.stringify({
+      s: Buffer.from(salt).toString('hex'),
+      i: Buffer.from(iv).toString('hex'),
+      d: Buffer.from(ciphertext).toString('base64')
+    });
+    return encryptedData;
+  } catch (e) {
+    return e.toString();
+  }
 };
 
 // Function to decrypt the JSON string
@@ -73,3 +102,8 @@ export const decryptJSON = async (encryptedString, passphrase) => {
     }
   });
 };
+
+
+/* 
+    // const encrypted = CryptoJS.AES.encrypt(jsonString, passphrase).toString();
+*/
