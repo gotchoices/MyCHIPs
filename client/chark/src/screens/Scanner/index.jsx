@@ -40,7 +40,9 @@ const Scanner = (props) => {
 
         if(parsedCode?.type === qrType.tally) {
           requestTally(parsedCode);
-        } else {
+        } else if (parsedCode?.sign) {
+          props.navigation.navigate("Settings", {screen: "ImportKey", params: parsedCode});
+        }else {
           processConnect(parsedCode);
         }
 

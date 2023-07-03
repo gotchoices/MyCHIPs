@@ -3,16 +3,20 @@ import { TextEncoder, TextDecoder } from 'web-encoding';
 import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
 import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
 
-import { retrieveKey, storeKey } from '../../../../utils/keychain-store';
+import { retrieveKey, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
 
 import CenteredModal from '../../../../components/CenteredModal';
 import ExportModal from '../ExportModal';
 import PassphraseModal from '../PassphraseModal';
+import { exportFile } from '../../../../utils/file-manager';
+import { createSignature, verifySignature } from '../../../../utils/message-signature';
+import { keyServices } from '../../../../config/constants';
 
 const PostGenerate = (props) => {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-  const data = encoder.encode("Hello world!");
+  const message = "My message is verified";
+  const data = encoder.encode(message);
 
   const subtle = window.crypto.subtle;
   const publicKey = props.publicKey;
@@ -33,47 +37,43 @@ const PostGenerate = (props) => {
 
 
   const signMessage = async () => {
-    try {
-      const credentials = await retrieveKey('private_key')
-
-      const pvtKey = JSON.parse(credentials.password);
-      // const pvtKey = privateKey;
-      const priv = await subtle.importKey('jwk', pvtKey, KeyConfig, true, ['sign']);
-
-      const sign = await subtle.sign(SignConfig, priv, data);
-
-      setSignature(sign);
-      Alert.alert("Success", "Message signed successfully");
-    } catch (err) {
-      console.log("Error ", err)
-    }
+    createSignature(message).then(signature => {
+      console.log("Signature ==> ", signature);
+      setSignature(signature);
+      Alert.alert("Success", 'Message signed success');
+    }).catch(e => {
+      console.log("Exception ==> ", e)
+      Alert.alert("Error", e.toString());
+    });
   }
 
   const verifyMessage = async () => {
-    try {
-      const pub = await subtle.importKey('jwk', publicKey, KeyConfig, true, ['verify'])
-      const verified = await subtle.verify(
-        SignConfig,
-        pub,
-        signature,
-        data,
-      );
-
+    const creadentials = await retrieveKey(keyServices.publicKey);
+    verifySignature(
+      signature,
+      message,
+      creadentials.password
+    ).then(verified => {
       if (verified) {
         Alert.alert("Success", `Message verified: ${verified} \nDecoded Message: ${decoder.decode(data)}`);
       } else {
         Alert.alert("Error", `Failed to verify message`);
       }
-
-    } catch (err) {
+    }).catch(ex => {
+      console.log("Why Failed==>", ex);
       Alert.alert("Error", ex.message);
-    }
+    });
   }
 
-  const storeMykey = async () => {
+  const storeKeys = async () => {
     try {
-      await storeKey(JSON.stringify(privateKey));
-      Alert.alert("Success", "Private key saved successfully");
+      await Promise.all(
+        [
+          storePublicKey(JSON.stringify(publicKey)),
+          storePrivateKey(JSON.stringify(privateKey))
+        ]
+      );
+      Alert.alert("Success", "Keys  saved successfully");
     } catch (err) {
       Alert.alert("Error", err.message);
     }
@@ -81,7 +81,7 @@ const PostGenerate = (props) => {
 
   const getMyKey = async () => {
     try {
-      const credentials = await retrieveKey('private_key')
+      const credentials = await retrieveKey(keyServices.privateKey)
       Alert.alert("Success", `Key Fetched : ${credentials.password}`);
     } catch (err) {
       Alert.alert("Error", err.message);
@@ -90,6 +90,10 @@ const PostGenerate = (props) => {
 
   const onExportKeys = () => {
     setPassphraseModal(true);
+    /*  console.log("Private Key ", privateKey);
+    exportFile(privateKey).then(file => {
+      console.log("Key Here", file);
+    }) */
   }
 
   return (
@@ -112,13 +116,13 @@ const PostGenerate = (props) => {
 
           <View style={[styles.row, { marginTop: 1 }]}>
             <Button
-              onPress={storeMykey}
-              title='Store Key'
+              onPress={storeKeys}
+              title='Store Keys'
             />
             <View style={{ width: 16 }} />
             <Button
               onPress={getMyKey}
-              title='Get Key'
+              title='Get Pvt Key'
             />
           </View>
 

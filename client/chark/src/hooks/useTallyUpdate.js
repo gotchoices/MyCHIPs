@@ -38,6 +38,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }).then(data => {
       const _tally = data?.[0];
       if(_tally) {
+        console.log("This is my tally ==> ", _tally);
         setTally(_tally);
 
         setTallyType(_tally.tally_type);

@@ -12,10 +12,14 @@ const ExportModal = (props) => {
 
   useEffect(() => {
     encryptJSON(props.privateKey, passphrase).then(result => {
-      console.log("Final Data ==> ", result);
-      setEncryptedData(result);
-    }).catch(e => {
-      console.log("Exception ==> ", ex);
+      if (result.success) {
+        console.log("Final Data ==> ", result.data);
+        setEncryptedData(result.data);
+      } else {
+        Alert.alert("Error", result.error);
+      }
+    }).catch(ex => {
+      Alert.alert("Error", ex);
     })
   }, [props.privateKey])
 
