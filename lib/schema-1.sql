@@ -1908,7 +1908,7 @@ user_ent	text		primary key references base.ent on update cascade on delete casca
 
   , peer_cid	text		not null, unique (peer_cid, peer_agent)
   , peer_agent	text	        references mychips.agents on update cascade on delete restrict
-  , peer_psig	text
+  , peer_psig	jsonb
   , peer_named	text
   
   , user_cmt	varchar
@@ -2079,7 +2079,9 @@ create trigger base_file_tr_bu before update on base.file for each row execute p
 create view base.file_v as select c.file_ent, c.file_seq, c.file_type, c.file_data, c.file_fmt, c.file_cmt, c.file_priv, c.file_hash, c.crt_by, c.mod_by, c.crt_date, c.mod_date
       , oe.std_name
       , cp.prim_seq is not null and cp.prim_seq = c.file_seq	as file_prim
-      , octet_length(c.file_data) as file_size
+      , octet_length(c.file_data)				as file_size
+      , encode(file_data, 'base64')				as file_data64
+      , encode(file_hash, 'base64')				as file_hash64
       , (regexp_split_to_array(c.file_fmt, E'/'))[array_length(regexp_split_to_array(c.file_fmt, E'/'), 1)] as file_ext
       , regexp_replace(trim(trailing from regexp_replace(coalesce(c.file_cmt,c.file_type), E'[\\/:\\s]', '_', 'g')),E'[\s\.]+$', '', 'g') as file_name
 
@@ -2557,7 +2559,7 @@ create view json.file as select
   , file_prim	as "main"
   , file_cmt	as "comment"
   , file_priv	as "private"
-  , file_hash	as "digest"
+  , mychips.ba2b64v(file_hash)	as "digest"
     from base.file_v where not file_ent isnull with cascaded check option;
 create view json.place as select
     addr_ent	as "id"
@@ -2904,8 +2906,8 @@ create view json.cert as select p.id
         where not prior and not private and pl.id = p.id and type != 'birth' and main order by seq
     ) d) as "place"
   , (select array_agg(jsonb_strip_nulls(to_jsonb(d))) from (
-      select media,digest,comment from json.file f
-        where f.id = p.id and not private and main order by seq
+      select media,format,digest,comment from json.file f
+        where f.id = p.id and not f.private and f.main order by f.seq
     ) d) as "file"
   , jsonb_strip_nulls(jsonb_build_object(
       'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
@@ -3318,7 +3320,7 @@ create view mychips.tokens_v as select
 create trigger mychips_token_tr_seq before insert on mychips.tokens for each row execute procedure mychips.token_tf_seq();
 create function mychips.user_cert(uid text) returns jsonb language sql as $$
     select to_jsonb(s) as cert from (
-      select date,chad,type,name,public,connect,place,identity from json.cert where id = uid
+      select date,chad,type,name,public,connect,place,identity,file from json.cert where id = uid
     ) s
 $$;
 create function mychips.chit_json_h(ch mychips.chits, ta mychips.tallies) returns jsonb stable language sql as $$
@@ -5545,6 +5547,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','currency','cur_numb','eng','Currency Number','The numeric code for this currency'),
   ('base','ent','_last_addr','eng','Addr Sequence','A field used internally to generate unique, sequential record numbers for address records'),
   ('base','ent','_last_comm','eng','Comm Sequence','A field used internally to generate unique, sequential record numbers for communication records'),
+  ('base','ent','_last_file','eng','File Sequence','A field used internally to generate unique, sequential record numbers for file records'),
   ('base','ent','bank','eng','Bank Routing','Bank routing information: bank_number<:.;,>account_number'),
   ('base','ent','born_date','eng','Born Date','Birth date for person entities or optionally, an incorporation date for entities'),
   ('base','ent','conn_pub','eng','Connection Key','The public key this user uses to authorize connection to the database'),
@@ -5599,7 +5602,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','file','file_data','eng','Data','The binary data contained in this document'),
   ('base','file','file_ent','eng','Entity','The ID number of the entity this file belongs to'),
   ('base','file','file_fmt','eng','Format','A standard mimetype format code to indicate how the data is to be interpreted (image/jpeg, video/mp4, etc)'),
-  ('base','file','file_hash','eng','Checksum','A sha256 hash of the data in the document, used primarily to ensure data integrity'),
+  ('base','file','file_hash','eng','Hash','A sha256 hash of the data in the document, used primarily to ensure data integrity'),
   ('base','file','file_prim','eng','Primary','If checked this is the primary or main document of its type'),
   ('base','file','file_priv','eng','Private','This record should not be shared publicly'),
   ('base','file','file_seq','eng','Sequence','A unique number assigned to each new document for a given entity'),
@@ -5609,7 +5612,12 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','file_prim','prim_ent','eng','Entity','The entity ID number of the main file of this type'),
   ('base','file_prim','prim_seq','eng','Sequence','The sequence number of the main file of this type'),
   ('base','file_prim','prim_type','eng','type','The file type this record applies to'),
+  ('base','file_v','file_data64','eng','Base64 Data','The file data represented as base64 format'),
+  ('base','file_v','file_ext','eng','Extension','A suggested extension to use when storing this file externally'),
+  ('base','file_v','file_hash64','eng','Base64 Hash','The file hash represented in base64 format'),
+  ('base','file_v','file_name','eng','Name','A suggested filename to use when storing this file externally'),
   ('base','file_v','file_prim','eng','Primary','If true this is the primary file of this type'),
+  ('base','file_v','file_size','eng','Size','How many bytes long the data is in this file'),
   ('base','file_v','std_name','eng','Entity Name','The name of the entity this file pertains to'),
   ('base','language','code','eng','Language Code','The ISO 3-letter language code.  Where a native T-code exists, it is the one used here.'),
   ('base','language','eng_name','eng','Name in English','The common name of the language English'),
@@ -7230,21 +7238,28 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','file','file_data','special','"file"'),
   ('base','file','file_data','state','"readonly"'),
   ('base','file','file_data','subframe','{"x": 1, "y": 2, "xspan": 2}'),
+  ('base','file','file_data64','input','"ent"'),
+  ('base','file','file_data64','optional','1'),
+  ('base','file','file_data64','size','40'),
+  ('base','file','file_data64','state','"readonly"'),
+  ('base','file','file_data64','subframe','{"x": 1, "y": 7, "xspan": 3}'),
+  ('base','file','file_data64','write','0'),
   ('base','file','file_ent','input','"ent"'),
   ('base','file','file_ent','justify','"r"'),
   ('base','file','file_ent','optional','1'),
   ('base','file','file_ent','size','5'),
   ('base','file','file_ent','state','"readonly"'),
   ('base','file','file_ent','subframe','{"x": 1, "y": 5}'),
+  ('base','file','file_fmt','alias','"mime"'),
   ('base','file','file_fmt','input','"ent"'),
   ('base','file','file_fmt','size','6'),
-  ('base','file','file_fmt','special','"exs"'),
   ('base','file','file_fmt','subframe','{"x": 2, "y": 1}'),
   ('base','file','file_hash','input','"ent"'),
   ('base','file','file_hash','optional','1'),
   ('base','file','file_hash','size','40'),
   ('base','file','file_hash','state','"readonly"'),
   ('base','file','file_hash','subframe','{"x": 1, "y": 6, "xspan": 3}'),
+  ('base','file','file_hash','write','0'),
   ('base','file','file_priv','initial','false'),
   ('base','file','file_priv','input','"chk"'),
   ('base','file','file_priv','offvalue','"f"'),
@@ -7258,7 +7273,7 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('base','file','file_seq','state','"readonly"'),
   ('base','file','file_seq','subframe','{"x": 1, "y": 0}'),
   ('base','file','file_seq','write','0'),
-  ('base','file','file_type','initial','"phone"'),
+  ('base','file','file_type','initial','"photo"'),
   ('base','file','file_type','input','"pdm"'),
   ('base','file','file_type','size','6'),
   ('base','file','file_type','subframe','{"x": 1, "y": 1}'),
@@ -8345,10 +8360,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','file_v','crt_date','base','file','crt_date','f','f'),
   ('base','file_v','file_cmt','base','file','file_cmt','f','f'),
   ('base','file_v','file_data','base','file','file_data','f','f'),
+  ('base','file_v','file_data64','base','file_v','file_data64','f','f'),
   ('base','file_v','file_ent','base','file','file_ent','f','t'),
   ('base','file_v','file_ext','base','file_v','file_ext','f','f'),
   ('base','file_v','file_fmt','base','file','file_fmt','f','f'),
   ('base','file_v','file_hash','base','file','file_hash','f','f'),
+  ('base','file_v','file_hash64','base','file_v','file_hash64','f','f'),
   ('base','file_v','file_name','base','file_v','file_name','f','f'),
   ('base','file_v','file_prim','base','file_v','file_prim','f','f'),
   ('base','file_v','file_priv','base','file','file_priv','f','f'),
@@ -8734,10 +8751,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','file_v_me','crt_date','base','file','crt_date','f','f'),
   ('mychips','file_v_me','file_cmt','base','file','file_cmt','f','f'),
   ('mychips','file_v_me','file_data','base','file','file_data','f','f'),
+  ('mychips','file_v_me','file_data64','base','file_v','file_data64','f','f'),
   ('mychips','file_v_me','file_ent','base','file','file_ent','f','f'),
   ('mychips','file_v_me','file_ext','base','file_v','file_ext','f','f'),
   ('mychips','file_v_me','file_fmt','base','file','file_fmt','f','f'),
   ('mychips','file_v_me','file_hash','base','file','file_hash','f','f'),
+  ('mychips','file_v_me','file_hash64','base','file_v','file_hash64','f','f'),
   ('mychips','file_v_me','file_name','base','file_v','file_name','f','f'),
   ('mychips','file_v_me','file_prim','base','file_v','file_prim','f','f'),
   ('mychips','file_v_me','file_priv','base','file','file_priv','f','f'),
