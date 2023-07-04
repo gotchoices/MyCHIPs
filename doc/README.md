@@ -48,7 +48,7 @@ author additional helpful information.
     - [Network Topology](learn-network.md)
     - [Peer to Peer Connections](learn-noise.md)
     - [Peer to Peer Protocol](learn-protocol.md)
-    - [Data Message Format](learn-message.md)
+    - [Data Formats](learn-message.md)
 
 - Working on the Software
   - [Support Libraries](work-hacking.md)

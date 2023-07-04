@@ -1,26 +1,25 @@
 TODO:
+X- Document import/export JSON key words
+X- Fix tally invitation JSON format to match (invite?)
+- Test/document where tally accept protocol fails
+- Make file report work in web UI
+- Make basic tally/contract viewer report
+- 
+- 
 
 X- Report for viewing/editing trading variables
 
 - Tally protocol support
--  When a tally is cloned/invited, freshen the certificate info (or at least, the agent)
+-  Can fully execute a signed tally with a partner (get last step working)
+-  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
 -  How to easily understand/view draft/offer tallies
--  Can execute a signed tally with a partner
 -  Can sent a voluntary chit on a tally
 -  
 - Language Support
 -  Integrate/find missing language tags for app
 -  
 X- Can we serve user photos from the document server?
-X-  Add user photo (document) database table
-X-  Test photos from web app
-X-   Dew entries display at reasonable default width
-X-   Can export file from widget
-X-   Bytea type displays as hex string in wylib
-X-  Test photos from mobile app
-X-  App displays my primary photo
-X-  Incorporate photo into user certificate
-X-   Why don't file objects show up in certificate?
+-  Can fetch photos for local users
 -  Re-implement document server to include contracts and photos (by hash only)
 -   Any user can get his partners' documents from his site (UI API)
 -   Anyone can query/fetch a contract from any site via public https
@@ -34,11 +33,10 @@ X-   Why don't file objects show up in certificate?
 -  App displays my partners' primary photo
 -  In mychips schema, make a trigger to prevent modifying/deleting a file referenced from a tally
 -
-- Library for managing keys
--   Create signing key
+- App functionality for managing keys:
+X-   Create signing key
 -   Import key from file, QR
 -   Export key to file, QR
--   Integrate into chark
 
 - Visual Balance Sheet report enhancements (not urgent)
 X- Can view report in WebView in Chark
@@ -57,10 +55,11 @@ X-  Grab hyperlinks, launch tally view
 
 - User registration page refinements:
 -  Email confirmation code, enter on page, rather than emailing link? (low priority)
--  Page Includes links to Android APK and Apple testflight
+X-  Page Includes links to Android APK and Apple testflight
 -  Can view terms of Service page?
 -  Fix document server also running on 443 (request by hash?)
 -  Make QR code part of inline html rather than an attachment (so it shows correctly in outlook)
+-  Can configure env for using an external SMTP service (mailgun, sendgrid, etc)
 - 
 - Chit consensus
 -  Why is one chit still left in pending state after tests?
