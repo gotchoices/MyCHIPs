@@ -49,7 +49,7 @@ export const offerTally = (wm, args) => {
   const fields = {
     tally_uuid: args.tally_uuid,
     request: 'offer',
-    hold_sig: 'Originator Signature',
+    hold_sig: 'Signature ' + args.tally_ent,
   };
 
   const spec = {
@@ -72,7 +72,7 @@ export const offerTally = (wm, args) => {
 export const acceptTally = (wm, args) => {
   const fields = {
     request: 'open',
-    hold_sig: 'Subject Signature',
+    hold_sig: 'Signature ' + args.tally_ent,
   };
 
   const spec = {
@@ -112,4 +112,18 @@ export const createTemplate = (wm, payload) => {
   }
 
   return request(wm, 'new_template' + random(1000), 'insert', spec)
+}
+
+export const fetchTallyFile = (wm, hash) => {
+  const spec = {
+    name: 'file',
+    view: 'mychips.tallies_v_me',
+    data: {
+      options: {
+        hash,
+      }
+    },
+  }
+
+  return request(wm, 'fetch_tally_file' + random(1000), 'action', spec);
 }
