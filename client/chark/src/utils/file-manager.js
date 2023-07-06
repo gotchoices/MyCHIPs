@@ -1,7 +1,6 @@
 import ReactNativeFS from 'react-native-fs';
 import CryptoJS from "react-native-crypto-js";
 import { Platform } from 'react-native';
-import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 
 const getDateTime = () => {
   const currentDate = new Date();
@@ -42,16 +41,12 @@ export const downloadQRCode = (uri) => {
     const baseDownloadPath = Platform.OS === 'ios' ? ReactNativeFS.DocumentDirectoryPath : ReactNativeFS.DownloadDirectoryPath;
     const downloadPath = baseDownloadPath + `/key-${getDateTime()}.png`;
 
-    if (Platform.OS === 'ios') {
-      CameraRoll.save(uri).then((result) => resolve(result)).catch(ex => reject(ex));
-    } else {
-      ReactNativeFS.moveFile(uri, downloadPath)
-        .then(() => ReactNativeFS.scanFile(downloadPath))
-        .then((result) => resolve(result))
-        .catch(err => {
-          reject(err)
-        });
-    }
+    ReactNativeFS.moveFile(uri, downloadPath)
+      .then(() => ReactNativeFS.scanFile(downloadPath))
+      .then((result) => resolve(result))
+      .catch(err => {
+        reject(err)
+      });
   });
 }
 
