@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useEffect, useState } from 'react';
-import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform } from "react-native"
+import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform, ScrollView } from "react-native"
 import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
@@ -71,7 +71,7 @@ const ExportModal = (props) => {
     return <Text>Generating</Text>
   }
 
-  return <View style={styles.container}>
+  return <ScrollView style={styles.container}>
     <View>
       <Text style={styles.jsonText}>{encryptedData}</Text>
       <Button onPress={exportToJsonFile} title="Download as Json" />
@@ -87,7 +87,7 @@ const ExportModal = (props) => {
       <View style={{ height: 24 }} />
       <Button onPress={props.cancel} title='Cancel' />
     </View>
-  </View>
+  </ScrollView>
 }
 
 const styles = StyleSheet.create({

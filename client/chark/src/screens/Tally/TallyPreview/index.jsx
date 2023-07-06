@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   View,
   StyleSheet,
   RefreshControl,
   Keyboard,
+  Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 
-import { colors } from '../../../config/constants';
+import { colors, keyServices } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
 import { useTallyText } from '../../../hooks/useLanguage';
@@ -19,6 +21,8 @@ import Spinner from '../../../components/Spinner';
 import TallyEditView from '../TallyEditView';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
 import { offerTally, acceptTally, refuseTally } from '../../../services/tally';
+import { createSignature, verifySignature } from '../../../utils/message-signature';
+import { retrieveKey } from '../../../utils/keychain-store';
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -26,6 +30,8 @@ const TallyPreview = (props) => {
   const { setTriggerInviteFetch } = useInvite();
 
   const [updating, setUpdating] = useState(false);
+  const [sig, setSig] = useState(undefined);
+  const [json, setJson] = useState(undefined);
 
   const {
     loading,
@@ -44,6 +50,10 @@ const TallyPreview = (props) => {
     fetchTally,
     setTally
   } = useTallyUpdate(wm, tally_seq, tally_ent);
+
+  useEffect(() => {
+    setJson(tally?.json);
+  }, [tally])
 
   // Fetch tally text
   useTallyText(wm);
@@ -149,7 +159,28 @@ const TallyPreview = (props) => {
   }
 
   const onAccept = () => {
-    acceptTally(wm, {
+    if (!json) {
+      Alert.alert("Tally can't be signed");
+      return;
+    }
+    createSignature(JSON.stringify(json)).then(signature => {
+      setSig(signature);
+      console.log("Signature ==> ", signature);
+      return acceptTally(
+        wm, { tally_ent, tally_seq, signature },
+      );
+    }).then((result) => {
+      console.log("RESULT ==> ", result);
+      Toast.show({
+        type: 'success',
+        text1: 'Tally accepted',
+      });
+      props.navigation.goBack();
+    }).catch(ex => {
+      console.log("Exception ==> ", ex);
+    });
+
+    /* acceptTally(wm, {
       tally_ent,
       tally_seq,
     }).then(() => {
@@ -163,7 +194,7 @@ const TallyPreview = (props) => {
         type: 'error',
         text1: err.message,
       });
-    })
+    }) */
   }
 
   const onRefuse = () => {
@@ -184,6 +215,19 @@ const TallyPreview = (props) => {
     })
   }
 
+  const onVerify = async () => {
+    const creds = await retrieveKey(keyServices.publicKey);
+    verifySignature(sig, JSON.stringify(json), creds.password)
+      .then((verified) => {
+        s
+        if (verified) {
+          console.log("Verified Successfully");
+        } else {
+          console.log("Verified Failed");
+        }
+      })
+      .catch(ex => console.log("Exception ==> ", ex))
+  }
 
   if (loading) {
     return (
@@ -211,7 +255,12 @@ const TallyPreview = (props) => {
   const canRefuse = hasPartCert && tally.status === 'offer';
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={[styles.container]}
+      behavior={Platform.OS === 'ios' ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
@@ -234,7 +283,7 @@ const TallyPreview = (props) => {
           onHoldTermsChange={onHoldTermsChange}
           onPartTermsChange={onPartTermsChange}
           setTallyType={setTallyType}
-          setContrac={setContract}
+          setContract={setContract}
         />
       </ScrollView>
 
@@ -274,8 +323,7 @@ const TallyPreview = (props) => {
           style={styles.refuse}
         />
       </View>
-    </View>
-
+    </KeyboardAvoidingView>
   )
 }
 
