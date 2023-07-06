@@ -39,6 +39,7 @@ import ProfileEdit from './src/screens/Profile/ProfileEdit';
 import SocketProvider from './src/components/SocketProvider';
 import InviteProvider from './src/components/InviteProvider';
 import MessageTextProvider from './src/components/MessageTextProvider';
+import TradingVariables from './src/screens/Tally/TradingVariables';
 
 import { handleNotification } from './src/utils/notification';
 import ShareTally from './src/screens/ShareTally';
@@ -53,6 +54,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
       <HomeStack.Screen name='ChitHistory' component={ChitHistory} options={{ title: 'Chit History' }} />
+      <HomeStack.Screen name='TradingVariables' component={TradingVariables} options={{ title: 'Trading Variables' }} />
     </HomeStack.Navigator>
   );
 }

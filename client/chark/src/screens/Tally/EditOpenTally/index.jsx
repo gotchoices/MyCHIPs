@@ -3,14 +3,12 @@ import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
 
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
-import { fetchTallies } from '../../../services/tally';
+import { fetchTallies, fetchTradingVariables } from '../../../services/tally';
 import { useTallyText } from '../../../hooks/useLanguage';
 
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
-import HelpText from '../../../components/HelpText';
-import { err } from 'react-native-svg/lib/typescript/xml';
 
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -23,10 +21,6 @@ const EditOpenTally = (props) => {
   const [bound, setBound] = useState('');
   const [reward, setReward] = useState('');
   const [clutch, setClutch] = useState('');
-
-  useEffect(() => {
-
-  }, [])
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
@@ -51,6 +45,10 @@ const EditOpenTally = (props) => {
       setLoading(false);
     })
   }, [tally_seq, tally_ent])
+
+  const showTradingVariables = () => {
+    props.navigation.navigate('TradingVariables')
+  }
 
   const onSave = () => {
     const data = {
@@ -80,6 +78,7 @@ const EditOpenTally = (props) => {
       </View>
     )
   }
+
   const onViewChitHistory = () => {
     props.navigation.navigate('ChitHistory', {
       tally_seq,
@@ -135,17 +134,12 @@ const EditOpenTally = (props) => {
             Trading Variables
           </CustomText>
 
-          <Text style={styles.label}>Target</Text>
-          <Text style={styles.textInputStyle}>{tally.target}</Text>
+          <Button
+            title="Show Trade"
+            style={{ borderRadius: 12, width: 120, marginTop: 12 }}
+            onPress={showTradingVariables}
+          />
 
-          <Text style={styles.label}>Bound</Text>
-          <Text style={styles.textInputStyle}>{tally.bound}</Text>
-
-          <Text style={styles.label}>Reward</Text>
-          <Text style={styles.textInputStyle}>{tally.reward}</Text>
-
-          <Text style={styles.label}>Clutch</Text>
-          <Text style={styles.textInputStyle}>{tally.clutch}</Text>
         </View>
       </View>
     </ScrollView>
