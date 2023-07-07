@@ -76,7 +76,6 @@ const ShareTally = (props) => {
           title: 'Tally invitation',
           url: uri,
         };
-
         Share.open(options).then(console.log).catch(console.log);
       });
     } else if (activeTab === 'link') {
