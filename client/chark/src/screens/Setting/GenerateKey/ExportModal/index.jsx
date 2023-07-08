@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useEffect } from 'react';
-import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform } from "react-native"
-import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../../utils/file-manager";
+import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform, ScrollView } from "react-native"
+import { encryptJSON, downloadJSONFile, downloadQRCode, shareJSONFile, shareQRCode } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -17,7 +17,7 @@ const ExportModal = (props) => {
 
   const permissionResult = async () => {
     let granted = false;
-    if ((Platform.OS === 'android' && Platform.Version > 29) || Platform.OS === 'ios') {
+    if ((Platform.OS === 'android' && Platform.Version > 29)) {
       granted = true;
     } else {
       granted = await PermissionsAndroid.request(
@@ -27,7 +27,7 @@ const ExportModal = (props) => {
     return granted;
   }
 
-  const exportToJsonFile = async () => {
+  const downloadAsJson = async () => {
     permissionResult().then((granted) => {
       if (granted) {
         downloadJSONFile(encryptedData).then(result => {
@@ -42,7 +42,7 @@ const ExportModal = (props) => {
     });
   }
 
-  const exportAsQRCode = async () => {
+  const downloadQrCode = async () => {
     permissionResult().then((granted) => {
       if (granted) {
         viewShotRef.current.capture().then(uri => {
@@ -59,14 +59,36 @@ const ExportModal = (props) => {
     });
   }
 
+  const onShareFile = () => {
+    shareJSONFile(encryptedData).then((result) => {
+      Alert.alert('Success', 'Shared file successfully!');
+    }).catch(e => {
+      console.log("Share Exception ", e);
+    });
+  }
+
+  const onShareQR = () => {
+    viewShotRef.current.capture().then(uri => {
+      shareQRCode(uri).then(result => {
+        console.log("Shared ", result);
+        Alert.alert('Success', 'Shared QR successfully!');
+      }).catch(ex => {
+        console.log("Exception Failed to Save; ", ex);
+      })
+    });
+  }
+
   if (!encryptedData) {
     return <Text>Generating</Text>
   }
 
-  return <View style={styles.container}>
+  return <ScrollView style={styles.container}>
     <View>
       <Text style={styles.jsonText}>{encryptedData}</Text>
-      <Button onPress={exportToJsonFile} title="Download as Json" />
+      <View style={styles.row}>
+        <Button onPress={onShareFile} title="Share File" />
+        {Platform.OS === 'android' ? <Button onPress={downloadAsJson} title="Download File" /> : <></>}
+      </View>
       <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1.0 }}>
         <View style={styles.qrView}>
           <QRCode
@@ -75,11 +97,14 @@ const ExportModal = (props) => {
           />
         </View>
       </ViewShot>
-      <Button onPress={exportAsQRCode} title="Download QR Code" />
+      <View style={styles.row}>
+        <Button onPress={onShareQR} title="Share QR" />
+        {Platform.OS === 'android' ? <Button onPress={downloadQrCode} title="Download QR" /> : <></>}
+      </View>
       <View style={{ height: 24 }} />
       <Button onPress={props.cancel} title='Cancel' />
     </View>
-  </View>
+  </ScrollView>
 }
 
 const styles = StyleSheet.create({
@@ -99,6 +124,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     marginVertical: 10,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  }
 })
 
 export default ExportModal;

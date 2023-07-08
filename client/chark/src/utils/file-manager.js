@@ -1,5 +1,6 @@
 import ReactNativeFS from 'react-native-fs';
 import CryptoJS from "react-native-crypto-js";
+import Share from 'react-native-share';
 import { Platform } from 'react-native';
 
 const getDateTime = () => {
@@ -13,40 +14,60 @@ const getDateTime = () => {
   return `${year}-${month}-${date} ${hours}${minutes}${seconds}`;
 }
 
-const iospath = "/Users/insightworkshop/Library/Developer/CoreSimulator/Devices/F7915F4B-6E61-46D0-AFDC-52B8EC9D8BFA/data/Containers/Shared/AppGroup/4F1DADD5-C6A3-429B-AD1C-4B5C74432C3D/File\ Provider\ Storage/Documents";
-
+// Android Support Only
 export const downloadJSONFile = (jsonString) => {
   return new Promise((resolve, reject) => {
     const cachedPath = `${ReactNativeFS.CachesDirectoryPath}/key-${getDateTime()}.json`;
-    const baseDownloadPath = Platform.OS === 'ios' ? ReactNativeFS.DocumentDirectoryPath : ReactNativeFS.DownloadDirectoryPath;
+    const baseDownloadPath = ReactNativeFS.DownloadDirectoryPath;
     const downloadPath = `${baseDownloadPath}/key-${getDateTime()}.json`;
 
-    console.log("Final Download ", downloadPath);
     ReactNativeFS.writeFile(cachedPath, jsonString, 'utf8')
-      .then(() => ReactNativeFS.copyFile(cachedPath, downloadPath))
-      .then(() => {
-        if (Platform.OS === 'ios') {
-          return "File Downloaded";
-        } else {
-          return ReactNativeFS.scanFile(downloadPath)
-        }
-      })
+      .then(() => ReactNativeFS.scanFile(downloadPath))
       .then((result) => resolve(result))
       .catch(err => reject(err));
   });
 }
 
+export const shareJSONFile = (jsonString) => {
+  return new Promise((resolve, reject) => {
+    const cachedPath = `${Platform.OS === 'android' ? "file://" : ''}${ReactNativeFS.TemporaryDirectoryPath}/key-${getDateTime()}.json`;
+    const options = {
+      title: 'Private Keys',
+      url: cachedPath,
+      type: 'application/json'
+    };
+
+    ReactNativeFS
+      .writeFile(cachedPath, jsonString, 'utf8').then(() => Share.open(options))
+      .then((result) => resolve(result))
+      .catch(err => reject(err));
+  });
+}
+
+// Android Support Only
 export const downloadQRCode = (uri) => {
   return new Promise((resolve, reject) => {
-    const baseDownloadPath = Platform.OS === 'ios' ? ReactNativeFS.DocumentDirectoryPath : ReactNativeFS.DownloadDirectoryPath;
+    const baseDownloadPath = ReactNativeFS.DownloadDirectoryPath;
     const downloadPath = baseDownloadPath + `/key-${getDateTime()}.png`;
-
     ReactNativeFS.moveFile(uri, downloadPath)
       .then(() => ReactNativeFS.scanFile(downloadPath))
       .then((result) => resolve(result))
       .catch(err => {
         reject(err)
       });
+  });
+}
+
+export const shareQRCode = (uri) => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      title: 'Private Keys',
+      url: uri,
+    };
+
+    Share.open(options)
+      .then((result) => resolve(result))
+      .catch(err => reject(err));
   });
 }
 
