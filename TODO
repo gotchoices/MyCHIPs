@@ -1,19 +1,14 @@
 TODO:
-X- Document import/export JSON key words
-X- Fix tally invitation JSON format to match (invite?)
+X- Make file report work in web UI
 - Test/document where tally accept protocol fails
-- Make file report work in web UI
 - Make basic tally/contract viewer report
 - 
-- 
-
-X- Report for viewing/editing trading variables
 
 - Tally protocol support
 -  Can fully execute a signed tally with a partner (get last step working)
 -  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
 -  How to easily understand/view draft/offer tallies
--  Can sent a voluntary chit on a tally
+-  Can sent a voluntary payment chit on a tally
 -  
 - Language Support
 -  Integrate/find missing language tags for app

@@ -116,6 +116,11 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
     {trade.format 		{Graph Format}		{How to return the graph report data}}
       {trade.format.html	{html}			{Return HTML fragment that contains the report}}
       {trade.format.url		{url}			{Return an url link to a web page containing the report}}
+  {file 			{Document File}		{Fetch any partner file attachements the referenced tally}}
+    {file.format 		{Return Format}		{How to return the graph report data}}
+      {file.format.html		{html}			{Return HTML document displaying the file objects}}
+      {file.format.json		{json}			{Return file data as JSON object}}
+    {file.digest 		{File Digest}		{Specify the base64url hash of a single document file to return}}
   {launch.title	{Tallies}		{Peer Trading Relationships}}
   {launch.instruct	{Basic Instructions}	{
     <p>Tallies are used to document and track trading agreements between partners.

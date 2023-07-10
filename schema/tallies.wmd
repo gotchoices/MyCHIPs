@@ -54,6 +54,11 @@ mychips.tallies_v_me:
     render: html
     options:
     - {tag: format, input: pdm, values: [html, url]}
+  - name: file
+    render: html
+    options:
+    - {tag: format, input: pdm, values: [html, json]}
+    - {tag: digest, input: text}
   where: {and: true, items: [{left: status, oper: '=', entry: open}]}
   subviews: [mychips.chits_v_me]
   launch:
