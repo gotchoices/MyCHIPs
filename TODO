@@ -1,6 +1,6 @@
 TODO:
-X- Make file report work in web UI
-- Test/document where tally accept protocol fails
+X- Test/document where tally accept protocol fails
+- Add reset and submit buttons for Trading Variables report (in user's language)
 - Make basic tally/contract viewer report
 - 
 
@@ -14,7 +14,7 @@ X- Make file report work in web UI
 -  Integrate/find missing language tags for app
 -  
 X- Can we serve user photos from the document server?
--  Can fetch photos for local users
+-  Can fetch photos for local partners?
 -  Re-implement document server to include contracts and photos (by hash only)
 -   Any user can get his partners' documents from his site (UI API)
 -   Anyone can query/fetch a contract from any site via public https
