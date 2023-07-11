@@ -144,6 +144,10 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
       if new.hold_cert is distinct from old.hold_cert or new.part_cert is distinct from old.part_cert then
         new = mychips.tally_certs(new);
       end if;
+      
+      if eval(difflist tally_type version tally_uuid tally_date comment contract hold_cert part_cert hold_terms part_terms) then
+        new.part_sig = null;				-- If we change things, take out of valid offer status
+      end if;
 
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
@@ -368,10 +372,8 @@ define updEnd {
 function {mychips.tallies_v_updfunc()} {mychips.tallies_v} {
  returns trigger language plpgsql security definer as $$
   begin
-    if old.status = 'draft' then
+    if old.status in ('void','draft','offer') then
       update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up $glob::stampin) updEnd()
-    else
-      update mychips.tallies set eval(trigview::upfields {request} $glob::stampin) updEnd()
     end if;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;

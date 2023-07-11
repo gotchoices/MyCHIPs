@@ -3,13 +3,22 @@
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
 mydir="$(dirname $BASH_SOURCE)"		#Where this script is
-files="*.html connect tally *.svg *.css chip.json fetchCPI value.html assets"
+files=""
+
+while [ ! -z "$1" ]; do
+  files="$files $1"
+  shift
+done
+
+if [ -z "$files" ]; then
+  files="*.html connect tally *.svg *.css chip.json fetchCPI value.html assets"
+fi
 
 dest=$MYCHIPS_ORG_WEB_DEPLOY
 if [ -z "$dest" ]; then
   echo "No destination found in: MYCHIPS_ORG_WEB_DEPLOY"
 else
-  echo "Deploying web pages to $dest"
+  echo "Deploying $files to $dest"
   cd $mydir
   scp -r $files $dest
   

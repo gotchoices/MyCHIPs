@@ -1,4 +1,4 @@
-## Data Message Encoding
+## Data Message and File Formats
 Feb 2022; Copyright MyCHIPs.org
 
 ### General
@@ -380,6 +380,103 @@ Lift state transition messages are as follows:
   In this case, the *signed* property should include the signature of the originator (with the *valid* property set to true).
   The referee should replace this signature with its own signature (and not transmit it further).
   However, if the lift is approved, the referee must keep the originator signature in its own database to prove that it acted only upon approval by the originator.
+
+### Import/Export Formats
+In addition to real-time, dynamic messages, certain objects may be transmitted
+over other media or in other ways.  For example, a site may issue to a user a connection
+ticket containing a one-time token and other connection information.  Users can issue
+tally invitations to each other.  And users may have to export keys or other data and
+then re-import that data on another device or platform.
+
+In these various instances, data may often be represented as either a JSON record or
+as a URI.  Data may also be represented as text or as a QR code.  Ideally a MyCHIPs
+mobile app should be able to scan a QR code containing any applicable record
+and know what to do with it.
+
+- *Connection Ticket:* Issued by Chip Service Provider  
+  URI:'https://HOST:HTTP_PORT/user.html?&port=WS_PORT&token=TOKEN$%user=USER'  
+  JSON:  
+  ```{ticket: {
+    token: TOKEN,
+    host: HOST,
+    port: WS_PORT,
+    user: USER,
+    expires: EXPIRATION_DATE
+  }}```
+
+- *Tally Invitation:* Issued from one user to another  
+  URI: 'https://mychips.org/tally?token=TOKEN&chad={cid:w,agent:x,host:y,port:z}'  
+  JSON:
+```
+  {invite: {
+    token: TOKEN,
+    chad: {
+      cid: USER_CHIP_ID,
+      agent: USERS_AGENT_PUBLIC_KEY,
+      host: AGENT_HOST_ADDRESS,
+      port: AGENT_HOST_PORT,
+    }
+  }}
+```
+
+- *Connection Key(s):* For backup/restore and sharing to another device  
+  JSON (unencrypted, not recommended):
+```
+  {connect: {
+    kty: "EC",				//Example data
+    crv: "P-256",
+    x: "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+    y: "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"
+  }}
+```
+  JSON (encrypted):
+```
+  {connect: {
+    s: SALT,
+    i: INITIALIZATION_VECTOR,
+    d: ENCRYPTED_DATA (should decrypt to serialized JWK key as above)
+  }}
+```
+
+- *Signing Key(s):* For backup/restore and sharing to another device  
+  JSON (unencrypted, not recommended):
+```
+  {sign: {
+    // jwk key data properties as above //
+  }}
+```
+  JSON (encrypted):
+```
+  {sign: {
+    // Encrypted key properties as above //
+  }}
+```
+
+- *User Record:* For backup/restore and sharing to another provider  
+  JSON:  
+```
+  {user: {
+    // See data example in test/mocha/user.json
+  }}
+```
+
+- *Tally Record:* For backup/restore and presentation to another user  
+  JSON:  
+```
+  {tally: {
+    // See data example in test/mocha/tally.json
+  }}
+```
+
+### JSON Records in Context
+The JSON records above all feature an outer wrapper of sorts where in the top
+level, there is a property naming the type of record to follow.
+
+Where applicable, multiple such records can follow the named property by simply
+using a JSON array rather than a JSON object.  (See example in test/mocha/users.json.)
+
+Also, in contexts where the type of the record is already clearly know, the 
+top-level named property can be omitted and the inner record can stand alone.
 
 <br>[Next - Hacking](work-hacking.md)
 <br>[Back to Index](README.md#contents)

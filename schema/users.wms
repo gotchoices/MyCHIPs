@@ -224,6 +224,27 @@ view mychips.file_v_me {base.file_v base.user_id(text)} {select
     {user	s {s i u} {d}}
 } -primary id
 
+# View limited to users' tally partners' file records (if on same DB)
+#----------------------------------------------------------------
+view mychips.file_v_part {mychips.tallies_v_me base.file_v base.user_id(text)} {
+  with tally as (select
+    tally_ent, tally_seq, part_ent, jsonb_array_elements(part_cert->'file') as file
+    from mychips.tallies_v_me
+  ),
+  ptab as (select
+      tally.tally_ent, tally.tally_seq, tally.part_ent,
+      tally.file->>'media' as media, tally.file->>'digest' as digest, 
+      tally.file->>'format' as format, tally.file->>'comment' as comment,
+      mychips.b64v2ba(tally.file->>'digest') as hash
+      from tally
+  )
+  select ptab.*, pfile.*
+    from ptab
+    left join base.file_v pfile on ptab.part_ent notnull and pfile.file_hash = ptab.hash
+} -grant {
+    {user	s {s i u} {d}}
+} -primary id
+
 # Create a new login ticket for the specified user
 #----------------------------------------------------------------
 function {mychips.ticket_login(uid text)} {mychips base.token_v_ticket mychips.users base.parm_int(text,text) base.parm_text(text,text)} {

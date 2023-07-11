@@ -6,9 +6,9 @@ export const getTallyText = (wm) => {
 }
 
 /**
- * @param {Object} - args
- * @param {string[]} - args.fields
- * @param {any} - [args.where]
+ * @param {Object} args
+ * @param {string[]} args.fields
+ * @param {any} [args.where]
  */
 export const fetchTallies = (wm, args) => {
   const spec = {
@@ -49,7 +49,7 @@ export const offerTally = (wm, args) => {
   const fields = {
     tally_uuid: args.tally_uuid,
     request: 'offer',
-    hold_sig: 'Originator Signature',
+    hold_sig: 'Signature ' + args.tally_ent,
   };
 
   const spec = {
@@ -72,7 +72,7 @@ export const offerTally = (wm, args) => {
 export const acceptTally = (wm, args) => {
   const fields = {
     request: 'open',
-    hold_sig: args.signature,//'Subject Signature'
+    hold_sig: 'Signature ' + args.tally_ent,
   };
 
   const spec = {
@@ -112,4 +112,32 @@ export const createTemplate = (wm, payload) => {
   }
 
   return request(wm, 'new_template' + random(1000), 'insert', spec)
+}
+
+export const fetchTallyFile = (wm, hash) => {
+  const spec = {
+    name: 'file',
+    view: 'mychips.tallies_v_me',
+    data: {
+      options: {
+        hash,
+      }
+    },
+  }
+
+  return request(wm, 'fetch_tally_file' + random(1000), 'action', spec);
+}
+
+/**
+ * @param {Object} args - Argument
+ * @param {Object} args.wm - Wyseman instance
+ * @param {any} args.payload - payload for action
+ */
+export const fetchTradingVariables = (wm, payload) => {
+  const spec = {
+    name: 'trade',
+    view: 'mychips.tallies_v_me',
+  }
+
+  return request(wm, 'fetch_trade' + random(1000), 'action', spec);
 }

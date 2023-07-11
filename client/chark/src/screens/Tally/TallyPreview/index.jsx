@@ -6,6 +6,7 @@ import {
   RefreshControl,
   Keyboard,
   Alert,
+  Platform,
   KeyboardAvoidingView,
 } from 'react-native';
 
@@ -259,7 +260,6 @@ const TallyPreview = (props) => {
       behavior={Platform.OS === 'ios' ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
-
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
