@@ -39,7 +39,12 @@
       <div class="content_section_text">
         Did you click a link hoping to start a MyCHIPs tally with someone?
       <p>
-        You probably need to install the mobile app on your device first!
+        You need to install the mobile app on your device first!
+      <p>
+        You will also need an account with a CHIP Service Provider.
+        The <a href="gotchoices.org">GotChoices</a> Foundation runs a provider <a href="https://mychips.net">here</a>
+        or if you're good with computers you may be able to 
+        <a href="https://github.com/gotchoices.org/mychips">become your own service provider.</a>
       </div>
       <div class="content_section_text">
         Download the app for your platform:
@@ -50,7 +55,8 @@
         And then try again clicking the link that got you here.
       </div>
       <div class="content_section_text">
-        With the app correctly installed and configured on your device, that link should launch the app and allow you to process the tally invitation.
+        With the app correctly installed and authorized by your provider, that link 
+        you clicked should launch the app and allow you to process the tally invitation.
       </div>
     </div>
   </section>
