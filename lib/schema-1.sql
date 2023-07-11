@@ -2081,7 +2081,6 @@ create view base.file_v as select c.file_ent, c.file_seq, c.file_type, c.file_da
       , cp.prim_seq is not null and cp.prim_seq = c.file_seq	as file_prim
       , octet_length(c.file_data)				as file_size
       , encode(file_data, 'base64')				as file_data64
-      , encode(file_hash, 'base64')				as file_hash64
       , (regexp_split_to_array(c.file_fmt, E'/'))[array_length(regexp_split_to_array(c.file_fmt, E'/'), 1)] as file_ext
       , regexp_replace(trim(trailing from regexp_replace(coalesce(c.file_cmt,c.file_type), E'[\\/:\\s]', '_', 'g')),E'[\s\.]+$', '', 'g') as file_name
 
@@ -3478,6 +3477,10 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
       if new.hold_cert is distinct from old.hold_cert or new.part_cert is distinct from old.part_cert then
         new = mychips.tally_certs(new);
       end if;
+      
+      if ((new.tally_type is distinct from old.tally_type) or (new.version is distinct from old.version) or (new.tally_uuid is distinct from old.tally_uuid) or (new.tally_date is distinct from old.tally_date) or (new.comment is distinct from old.comment) or (new.contract is distinct from old.contract) or (new.hold_cert is distinct from old.hold_cert) or (new.part_cert is distinct from old.part_cert) or (new.hold_terms is distinct from old.hold_terms) or (new.part_terms is distinct from old.part_terms)) then
+        new.part_sig = null;
+      end if;
 
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
@@ -4207,11 +4210,8 @@ create view mychips.tallies_v_sum as select
   group by 1;
 create function mychips.tallies_v_updfunc() returns trigger language plpgsql security definer as $$
   begin
-    if old.status = 'draft' then
+    if old.status in ('void','draft','offer') then
       update mychips.tallies set tally_type = new.tally_type,comment = new.comment,contract = new.contract,hold_terms = new.hold_terms,part_terms = new.part_terms,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,part_sig = new.part_sig,hold_sig = new.hold_sig,request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
-    returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
-    else
-      update mychips.tallies set request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
     returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     end if;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
@@ -4484,6 +4484,25 @@ grant select on table mychips.chits_v_me to chit_2;
 grant insert on table mychips.chits_v_me to chit_2;
 grant update on table mychips.chits_v_me to chit_2;
 grant delete on table mychips.chits_v_me to chit_3;
+create view mychips.file_v_part as with tally as (select
+    tally_ent, tally_seq, part_ent, jsonb_array_elements(part_cert->'file') as file
+    from mychips.tallies_v_me
+  ),
+  ptab as (select
+      tally.tally_ent, tally.tally_seq, tally.part_ent,
+      tally.file->>'media' as media, tally.file->>'digest' as digest, 
+      tally.file->>'format' as format, tally.file->>'comment' as comment,
+      mychips.b64v2ba(tally.file->>'digest') as hash
+      from tally
+  )
+  select ptab.*, pfile.*
+    from ptab
+    left join base.file_v pfile on ptab.part_ent notnull and pfile.file_hash = ptab.hash;
+grant select on table mychips.file_v_part to user_1;
+grant select on table mychips.file_v_part to user_2;
+grant insert on table mychips.file_v_part to user_2;
+grant update on table mychips.file_v_part to user_2;
+grant delete on table mychips.file_v_part to user_3;
 create function mychips.lift_process(msg jsonb, recipe jsonb) returns jsonb language plpgsql as $$
     declare
         obj		jsonb		= msg->'object';
@@ -5614,7 +5633,6 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('base','file_prim','prim_type','eng','type','The file type this record applies to'),
   ('base','file_v','file_data64','eng','Base64 Data','The file data represented as base64 format'),
   ('base','file_v','file_ext','eng','Extension','A suggested extension to use when storing this file externally'),
-  ('base','file_v','file_hash64','eng','Base64 Hash','The file hash represented in base64 format'),
   ('base','file_v','file_name','eng','Name','A suggested filename to use when storing this file externally'),
   ('base','file_v','file_prim','eng','Primary','If true this is the primary file of this type'),
   ('base','file_v','file_size','eng','Size','How many bytes long the data is in this file'),
@@ -6428,6 +6446,11 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','USM','eng','Bad User Signature','An open tally must contain a user signature'),
   ('mychips','tallies','VER','eng','Bad Tally Version','Tally version must be 1 or greater'),
   ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
+  ('mychips','tallies_v_me','file','eng','Document File','Fetch any partner file attachements the referenced tally'),
+  ('mychips','tallies_v_me','file.digest','eng','File Digest','Specify the base64url hash of a single document file to return'),
+  ('mychips','tallies_v_me','file.format','eng','Return Format','How to return the graph report data'),
+  ('mychips','tallies_v_me','file.format.html','eng','html','Return HTML document displaying the file objects'),
+  ('mychips','tallies_v_me','file.format.json','eng','json','Return file data as JSON object'),
   ('mychips','tallies_v_me','GTK','eng','Generating Tally','A database error occurred while generating a tally invitation ticket'),
   ('mychips','tallies_v_me','invite','eng','Invite to Tally','Create a new invitation to tally for a prospective partner'),
   ('mychips','tallies_v_me','invite.format','eng','Format','Determines which type of invitation is generated'),
@@ -6766,7 +6789,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','tallies_v_liftss','7','" "','t'),
   ('mychips','tallies_v_liftss','8','"{"','t'),
   ('mychips','tallies_v_liftss','9','"b"','t'),
-  ('mychips','tallies_v_me','actions','[{"ask": 1, "name": "close"}, {"name": "invite", "render": "html", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link", "json"]}]}, {"name": "trade", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}]','f'),
+  ('mychips','tallies_v_me','actions','[{"ask": 1, "name": "close"}, {"name": "invite", "render": "html", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link", "json"]}]}, {"name": "trade", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}, {"name": "file", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "json"]}, {"tag": "digest", "input": "text"}]}]','f'),
   ('mychips','tallies_v_me','display','["tally_ent", "tally_seq", "tally_type", "part_ent", "part_name", "dr_limit", "cr_limit", "total"]','t'),
   ('mychips','tallies_v_me','launch','{"import": "json.import", "initial": "1,"}','t'),
   ('mychips','tallies_v_me','subviews','["mychips.chits_v_me"]','t'),
@@ -8365,7 +8388,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('base','file_v','file_ext','base','file_v','file_ext','f','f'),
   ('base','file_v','file_fmt','base','file','file_fmt','f','f'),
   ('base','file_v','file_hash','base','file','file_hash','f','f'),
-  ('base','file_v','file_hash64','base','file_v','file_hash64','f','f'),
   ('base','file_v','file_name','base','file_v','file_name','f','f'),
   ('base','file_v','file_prim','base','file_v','file_prim','f','f'),
   ('base','file_v','file_priv','base','file','file_priv','f','f'),
@@ -8756,7 +8778,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','file_v_me','file_ext','base','file_v','file_ext','f','f'),
   ('mychips','file_v_me','file_fmt','base','file','file_fmt','f','f'),
   ('mychips','file_v_me','file_hash','base','file','file_hash','f','f'),
-  ('mychips','file_v_me','file_hash64','base','file_v','file_hash64','f','f'),
   ('mychips','file_v_me','file_name','base','file_v','file_name','f','f'),
   ('mychips','file_v_me','file_prim','base','file_v','file_prim','f','f'),
   ('mychips','file_v_me','file_priv','base','file','file_priv','f','f'),
@@ -8766,6 +8787,32 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','file_v_me','mod_by','base','file','mod_by','f','f'),
   ('mychips','file_v_me','mod_date','base','file','mod_date','f','f'),
   ('mychips','file_v_me','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','file_v_part','comment','mychips','file_v_part','comment','f','f'),
+  ('mychips','file_v_part','crt_by','base','file','crt_by','f','f'),
+  ('mychips','file_v_part','crt_date','base','file','crt_date','f','f'),
+  ('mychips','file_v_part','digest','mychips','file_v_part','digest','f','f'),
+  ('mychips','file_v_part','file_cmt','base','file','file_cmt','f','f'),
+  ('mychips','file_v_part','file_data','base','file','file_data','f','f'),
+  ('mychips','file_v_part','file_data64','base','file_v','file_data64','f','f'),
+  ('mychips','file_v_part','file_ent','base','file','file_ent','f','f'),
+  ('mychips','file_v_part','file_ext','base','file_v','file_ext','f','f'),
+  ('mychips','file_v_part','file_fmt','base','file','file_fmt','f','f'),
+  ('mychips','file_v_part','file_hash','base','file','file_hash','f','f'),
+  ('mychips','file_v_part','file_name','base','file_v','file_name','f','f'),
+  ('mychips','file_v_part','file_prim','base','file_v','file_prim','f','f'),
+  ('mychips','file_v_part','file_priv','base','file','file_priv','f','f'),
+  ('mychips','file_v_part','file_seq','base','file','file_seq','f','f'),
+  ('mychips','file_v_part','file_size','base','file_v','file_size','f','f'),
+  ('mychips','file_v_part','file_type','base','file','file_type','f','f'),
+  ('mychips','file_v_part','format','mychips','file_v_part','format','f','f'),
+  ('mychips','file_v_part','hash','mychips','file_v_part','hash','f','f'),
+  ('mychips','file_v_part','media','mychips','file_v_part','media','f','f'),
+  ('mychips','file_v_part','mod_by','base','file','mod_by','f','f'),
+  ('mychips','file_v_part','mod_date','base','file','mod_date','f','f'),
+  ('mychips','file_v_part','part_ent','mychips','tallies','part_ent','f','f'),
+  ('mychips','file_v_part','std_name','base','ent_v','std_name','f','f'),
+  ('mychips','file_v_part','tally_ent','mychips','tallies','tally_ent','f','f'),
+  ('mychips','file_v_part','tally_seq','mychips','tallies','tally_seq','f','f'),
   ('mychips','lifts','circuit','mychips','lifts','circuit','f','f'),
   ('mychips','lifts','crt_by','mychips','lifts','crt_by','f','f'),
   ('mychips','lifts','crt_date','mychips','lifts','crt_date','f','f'),
