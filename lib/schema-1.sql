@@ -3470,7 +3470,12 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
           new.status = 'draft';
         end if;
       end if;
-      
+
+
+
+
+
+
       if new.hold_cert isnull then
         new.hold_cert = mychips.user_cert(new.tally_ent);
       end if;
@@ -3478,10 +3483,6 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
         new = mychips.tally_certs(new);
       end if;
       
-      if ((new.tally_type is distinct from old.tally_type) or (new.version is distinct from old.version) or (new.tally_uuid is distinct from old.tally_uuid) or (new.tally_date is distinct from old.tally_date) or (new.comment is distinct from old.comment) or (new.contract is distinct from old.contract) or (new.hold_cert is distinct from old.hold_cert) or (new.part_cert is distinct from old.part_cert) or (new.hold_terms is distinct from old.hold_terms) or (new.part_terms is distinct from old.part_terms)) then
-        new.part_sig = null;
-      end if;
-
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));
@@ -5429,6 +5430,7 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('mychips','contracts','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement'),
   ('mychips','contracts_v','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
   ('mychips','file_v_me','eng','User Files','A view of the current user''s data files'),
+  ('mychips','file_v_part','eng','Partner Files','A view containing user files of current user''s tally partners'),
   ('mychips','lifts','eng','Lifts','Contains a record for each group of chits in a segment, belonging to a lift transaction'),
   ('mychips','lifts_v','eng','Lifts','Standard view containing an entry for each lift with additional helpful derived fields'),
   ('mychips','lifts_v_dist','eng','Distributed Lifts','Standard view containing an entry for each lift with additional helpful derived fields applicable to distributed (not local) lifts'),
@@ -5832,6 +5834,11 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','contracts_v','json','eng','JSON','The contract represented in JavaScript Object Notation and including its digest'),
   ('mychips','contracts_v','json_core','eng','JSON Core','The contract represented in JavaScript Object Notation'),
   ('mychips','contracts_v','source','eng','Source URL','The official web address where the author of this document maintains its public access'),
+  ('mychips','file_v_part','comment','eng','Comment','The document comment as recorded in the tally certificate'),
+  ('mychips','file_v_part','digest','eng','Digest','The document hash as recorded in the tally certificate'),
+  ('mychips','file_v_part','format','eng','Format','The document mime type as recorded in the tally certificate'),
+  ('mychips','file_v_part','hash','eng','Hash','The document hash in base64url format'),
+  ('mychips','file_v_part','media','eng','Media','The document type as recorded in the tally certificate'),
   ('mychips','lifts','circuit','eng','Circuit User','For circular lifts, this is the bottom local user in our local segment.  It will be the entity to complete the circle.  For linear lifts, this field is null.'),
   ('mychips','lifts','crt_by','eng','Created By','The user who entered this record'),
   ('mychips','lifts','crt_date','eng','Created','The date this record was created'),

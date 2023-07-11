@@ -140,7 +140,12 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
           new.status = 'draft';
         end if;
       end if;
-      
+
+-- Should re-offer/re-draft happen in a single update:
+--      if eval(difflist tally_type version tally_uuid tally_date comment contract hold_cert part_cert hold_terms part_terms) then
+--        new.part_sig = null;				-- If we change things, take out of valid offer status
+--      end if;
+
       if new.hold_cert isnull then
         new.hold_cert = mychips.user_cert(new.tally_ent);
       end if;
@@ -148,10 +153,6 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
         new = mychips.tally_certs(new);
       end if;
       
-      if eval(difflist tally_type version tally_uuid tally_date comment contract hold_cert part_cert hold_terms part_terms) then
-        new.part_sig = null;				-- If we change things, take out of valid offer status
-      end if;
-
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));	-- Generate record digest
