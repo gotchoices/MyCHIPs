@@ -154,6 +154,45 @@ Now we can derive the following state diagram to describe the tally protocol fro
 
 [![state-tally](uml/state-tally.svg)](uml/state-tally.svg)
 
+### UI Interpretation of Tally States
+The tally state is a combination of [type, status and request](learn-message.md#state-codes).
+Each [state](learn-message.md#status-and-states) has implications for the user interface:
+
+- draft:  
+  If the partner certificate on the tally is blank, the tally has likely been created as a template--meaning the intention is to promote it to a usable tally at some point.
+  In the reference implementation, a template can be used multiple times as a pattern for the creation of a new but separate tally.
+  Or it can itself be used by promotion to 'offer' status.
+  
+  A tally invitation is created when a one-time connection token is generated and linked to a draft tally.
+  This "ticket" is transmitted to a potential partner via link or QR code.
+  When the partner processes the invitation, it causes his site to
+  - establish a connection to our site
+  - affix his certificate
+  - transmit the tally back to us
+  
+  At this point, the tally still appears on our site as draft status, but it has partner information filled out.
+  In order to complete the invitation process, we need to request the status be promoted to offer.
+  But before doing so, we may review the partner's certificate information, the credit terms, and make sure we are still good to go ahead.
+  
+- void:
+  The tally has been rejected at some point.
+  The user doesn't normally want to see it appear again (although even a void tally could be re-offered or used as a template) if the user has a way to access it.
+- H.offer:
+  The tally has been signed by the local user but not by the partner yet.
+  It should show as an open item because he is awaiting the other party's signature.
+  But there is nothing to be done other than to wait for it.
+  It needs attention, but not ours.
+- P.offer:
+  The tally has been signed by the partner but not by the local user yet.
+  This is an action item because the other party is waiting for us to sign, counteroffer or reject.
+  It needs our immediate attention.
+- open:
+  The tally should appear in the list of active trading partners.
+  Chits may be created for an open tally.
+  This includes setting chits, which includes an action to close the tally when the balance reaches zero.
+- close:
+  The status/state should be updated by the system when the tally is marked for closing.
+
 ### Chit Use Cases
 A chit constitutes a pledge of future value from one entity to another.
 There are three basic types of chits:
