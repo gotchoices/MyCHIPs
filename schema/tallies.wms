@@ -44,6 +44,7 @@ table mychips.tallies {mychips mychips.users tally_side} {
   , hold_terms	jsonb		not null default '{}'			-- Terms we grant to our partner
   , part_terms	jsonb		not null default '{}'			-- Terms partner grants to our holder
   , digest	bytea
+--  			      , constraint "!mychips.tallies:TNU" unique(tally_type, tally_uuid) -- see unique index below
 
 -- Values settable by the holder, cached version of latest applicable settings chit
   , target	bigint		not null default 0 constraint "!mychips.tallies:TGT" check (target >= 0 and target <= bound)
@@ -57,7 +58,6 @@ table mychips.tallies {mychips mychips.users tally_side} {
   				constraint "!mychips.tallies:IVS" check(status in ('void','draft','offer','open','close'))
   , part_ent	text		references mychips.users on update cascade on delete restrict
   				constraint "!mychips.tallies:NSP" check (part_ent != tally_ent)
-  			      , constraint "!mychips.tallies:TNU" unique(tally_type, tally_uuid)
   , net_c	bigint		default 0 not null
   , net_pc	bigint		default 0 not null
   , hold_cid	text		constraint "!mychips.tallies:UCI" check (not (status = 'open' and hold_cid isnull))
@@ -74,9 +74,12 @@ table mychips.tallies {mychips mychips.users tally_side} {
 
     eval(s $glob::stamps)
 }
-index {} mychips.tallies tally_uuid
-index {} mychips.tallies tally_type
 index {} mychips.tallies tally_date
+
+index {"!mychips.tallies:TNU"} mychips.tallies {
+  create unique index "!mychips.tallies:TNU"
+  on mychips.tallies (tally_type, tally_uuid) where status in ('open','close')	-- Constraint only for active tallies
+} {drop index if exists mychips."!mychips.tallies:TNU"}
 
 table mychips.tally_tries {mychips.tallies} {
     ttry_ent	text	      , primary key (ttry_ent, ttry_seq)

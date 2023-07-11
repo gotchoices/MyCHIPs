@@ -2355,6 +2355,7 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   , digest	bytea
 
 
+
   , target	bigint		not null default 0 constraint "!mychips.tallies:TGT" check (target >= 0 and target <= bound)
   , bound	bigint		not null default 0 constraint "!mychips.tallies:BND" check (bound >= 0)
   , reward	float		not null default 0 constraint "!mychips.tallies:RWD" check (reward >= -1 and reward <= 1)
@@ -2366,7 +2367,6 @@ tally_ent	text		references mychips.users on update cascade on delete cascade
   				constraint "!mychips.tallies:IVS" check(status in ('void','draft','offer','open','close'))
   , part_ent	text		references mychips.users on update cascade on delete restrict
   				constraint "!mychips.tallies:NSP" check (part_ent != tally_ent)
-  			      , constraint "!mychips.tallies:TNU" unique(tally_type, tally_uuid)
   , net_c	bigint		default 0 not null
   , net_pc	bigint		default 0 not null
   , hold_cid	text		constraint "!mychips.tallies:UCI" check (not (status = 'open' and hold_cid isnull))
@@ -2684,10 +2684,10 @@ rid		serial		primary key
   , max		bigint		not null default 0
   , reward	float		not null default 0 constraint "!mychips.paths:LRW" check (reward >= -1 and reward <= 1)
 );
+create unique index "!mychips.tallies:TNU"
+  on mychips.tallies (tally_type, tally_uuid) where status in ('open','close')	-- Constraint only for active tallies;
 create trigger mychips_tallies_tr_change after insert or update or delete on mychips.tallies for each statement execute procedure mychips.tallies_tf_change();
 create index mychips_tallies_x_tally_date on mychips.tallies (tally_date);
-create index mychips_tallies_x_tally_type on mychips.tallies (tally_type);
-create index mychips_tallies_x_tally_uuid on mychips.tallies (tally_uuid);
 create function mychips.tally_json(te mychips.tallies) returns jsonb stable language sql as $$
     select jsonb_build_object(
        'version',	te.version,
