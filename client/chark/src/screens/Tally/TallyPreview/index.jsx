@@ -219,7 +219,6 @@ const TallyPreview = (props) => {
     const creds = await retrieveKey(keyServices.publicKey);
     verifySignature(sig, JSON.stringify(json), creds.password)
       .then((verified) => {
-        s
         if (verified) {
           console.log("Verified Successfully");
         } else {

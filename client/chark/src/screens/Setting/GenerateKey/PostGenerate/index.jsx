@@ -11,12 +11,20 @@ import PassphraseModal from '../PassphraseModal';
 import { exportFile } from '../../../../utils/file-manager';
 import { createSignature, verifySignature } from '../../../../utils/message-signature';
 import { keyServices } from '../../../../config/constants';
+import { updatePublicKey } from '../../../../services/profile';
+import useSocket from '../../../../hooks/useSocket';
+import useCurrentUser from '../../../../hooks/useCurrentUser';
 
 const PostGenerate = (props) => {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   const message = "My message is verified";
   const data = encoder.encode(message);
+
+  const { user } = useCurrentUser();
+  const { wm } = useSocket();
+
+  const user_ent = user?.curr_eid;
 
   const subtle = window.crypto.subtle;
   const publicKey = props.publicKey;
@@ -65,18 +73,26 @@ const PostGenerate = (props) => {
     });
   }
 
-  const storeKeys = async () => {
-    try {
-      await Promise.all(
+  const storeKeys = () => {
+    updatePublicKey(wm, {
+      public_key: publicKey,
+      where: {
+        user_ent
+      }
+    }).then(result => {
+      console.log("PUBLIC KEY UP ==> ", result);
+      return Promise.all(
         [
           storePublicKey(JSON.stringify(publicKey)),
           storePrivateKey(JSON.stringify(privateKey))
         ]
-      );
+      )
+    }).then(() => {
       Alert.alert("Success", "Keys  saved successfully");
-    } catch (err) {
-      Alert.alert("Error", err.message);
-    }
+    }).catch(ex => {
+      Alert.alert("Error", ex.message);
+      console.log("EXCEPTION ==> ", ex);
+    });
   }
 
   const getMyKey = async () => {
@@ -112,19 +128,24 @@ const PostGenerate = (props) => {
                 <Button onPress={onExportKeys} title='Export Key' />
               )
             }
-          </View>
-
-          <View style={[styles.row, { marginTop: 1 }]}>
+            <View style={{ width: 16 }} />
             <Button
               onPress={storeKeys}
-              title='Store Keys'
+              title='Save Keys'
+            />
+          </View>
+
+          {/* <View style={[styles.row, { marginTop: 1 }]}>
+            <Button
+              onPress={storeKeys}
+              title='Save Keys'
             />
             <View style={{ width: 16 }} />
             <Button
               onPress={getMyKey}
               title='Get Pvt Key'
             />
-          </View>
+          </View> */}
 
           <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
             <Button

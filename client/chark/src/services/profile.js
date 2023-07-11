@@ -89,7 +89,7 @@ export const getCurrency = (wm, cur_code) => {
     }
   }
 
-  return request(wm, '_cur_ref' + random(1000), 'select', spec).then(currencies  => {
+  return request(wm, '_cur_ref' + random(1000), 'select', spec).then(currencies => {
     return currencies?.[0];
   });
 }
@@ -148,6 +148,19 @@ export const getFile = (wm, user_ent) => {
   }
 
   return request(wm, 'get_image' + random(), 'select', spec);
+}
+
+export const updatePublicKey = (wm, args) => {
+  const fields = {
+    peer_psig: args.public_key,
+  }
+
+  const spec = {
+    fields,
+    view: 'mychips.users_v_me',
+    where: args.where,
+  }
+  return request(wm, "_update_key" + random(), 'update', spec);
 }
 
 export default request;
