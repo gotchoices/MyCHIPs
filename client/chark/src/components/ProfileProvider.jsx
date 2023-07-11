@@ -16,6 +16,7 @@ const deviceLanguage =
 
 const ProfileProvider = ({ children }) => {
   const { user } = useCurrentUser();
+  console.log(user, 'user user')
   const user_ent = user?.curr_eid;
   const { wm } = useSocket();
 
