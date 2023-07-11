@@ -1,6 +1,6 @@
-import React, { useRef, useMemo, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform, ScrollView } from "react-native"
-import { encryptJSON, downloadJSONFile, downloadQRCode } from "../../../../utils/file-manager";
+import { encryptJSON, downloadJSONFile, downloadQRCode, shareQRCode, shareJSONFile } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -40,7 +40,7 @@ const ExportModal = (props) => {
       if (granted) {
         downloadJSONFile(encryptedData).then(result => {
           console.log("Saved File to: ", result);
-          Alert.alert('Success', 'Saved to downloads', [{ text: "Ok", onPress: props.cancel }]);
+          Alert.alert('Success', 'Saved to downloads', [{ text: "Ok" }]);
         }).catch(ex => {
           console.log("Exception Failed to Save; ", ex);
         })
@@ -56,7 +56,7 @@ const ExportModal = (props) => {
         viewShotRef.current.capture().then(uri => {
           downloadQRCode(uri).then(result => {
             console.log("Saved QR to: ", result);
-            Alert.alert('Success', 'QR-Code Saved to downloads', [{ text: "Ok", onPress: props.cancel }]);
+            Alert.alert('Success', 'QR-Code Saved to downloads', [{ text: "Ok" }]);
           }).catch(ex => {
             console.log("Exception Failed to Save; ", ex);
           })

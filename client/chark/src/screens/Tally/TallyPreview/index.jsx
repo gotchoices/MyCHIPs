@@ -160,7 +160,7 @@ const TallyPreview = (props) => {
   }
 
   const onAccept = () => {
-    if (!json) {
+    /* if (!json) {
       Alert.alert("Tally can't be signed");
       return;
     }
@@ -179,9 +179,9 @@ const TallyPreview = (props) => {
       props.navigation.goBack();
     }).catch(ex => {
       console.log("Exception ==> ", ex);
-    });
+    }); */
 
-    /* acceptTally(wm, {
+    acceptTally(wm, {
       tally_ent,
       tally_seq,
     }).then(() => {
@@ -195,7 +195,7 @@ const TallyPreview = (props) => {
         type: 'error',
         text1: err.message,
       });
-    }) */
+    })
   }
 
   const onRefuse = () => {

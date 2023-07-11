@@ -1,5 +1,4 @@
 import ReactNativeFS from 'react-native-fs';
-import CryptoJS from "react-native-crypto-js";
 import Share from 'react-native-share';
 import { Platform } from 'react-native';
 import 'react-native-get-random-values';
