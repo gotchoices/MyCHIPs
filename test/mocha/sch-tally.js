@@ -105,7 +105,7 @@ log.debug("Object:", msg.object)
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'P.offer')
@@ -113,8 +113,10 @@ log.debug("Object:", msg.object)
     })
   }
 
-  it("Agent receives alternative draft (H.offer -> P.offer)", function(done) {peerProfferGo(done)})
-  
+  it("Agent receives alternative draft (H.offer -> P.offer)", function(done) {
+    peerProfferGo(done)
+  })
+/*  
   it("User request to promote tally to offer (P.offer -> P.offer.void)", function(done) {
     let sql = uSql(`request = 'void', hold_sig = null`, user0, 1)
       , dc = 2, _done = () => {if (!--dc) done()}

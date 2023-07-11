@@ -73,5 +73,12 @@ tabtext mychips.users_v_me	{Current User}		{A view containing only the current u
 tabtext mychips.addr_v_me	{User Addresses}	{A view of the current user's addresses}
 tabtext mychips.comm_v_me	{User Contact}		{A view of the current user's communication points}
 tabtext mychips.file_v_me	{User Files}		{A view of the current user's data files}
+tabtext mychips.file_v_part	{Partner Files}		{A view containing user files of current user's tally partners} {
+  {media	{Media}		{The document type as recorded in the tally certificate}}
+  {format	{Format}	{The document mime type as recorded in the tally certificate}}
+  {comment	{Comment}	{The document comment as recorded in the tally certificate}}
+  {digest	{Digest}	{The document hash as recorded in the tally certificate}}
+  {hash		{Hash}		{The document hash in base64url format}}
+}
 
 tabtext mychips.users_v_flat	{Flattened Users}	{A view of users with primary contacts and addresses on the same row}
