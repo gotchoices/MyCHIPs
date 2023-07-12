@@ -1,7 +1,10 @@
 import ReactNativeFS from 'react-native-fs';
-import CryptoJS from "react-native-crypto-js";
 import Share from 'react-native-share';
 import { Platform } from 'react-native';
+import 'react-native-get-random-values';
+import { Buffer } from 'buffer';
+
+const subtle = window.crypto.subtle;
 
 const getDateTime = () => {
   const currentDate = new Date();
@@ -71,21 +74,56 @@ export const shareQRCode = (uri) => {
   });
 }
 
+const deriveKey = async (password, currentSalt) => {
+  let salt = currentSalt || crypto.getRandomValues(new Uint8Array(8));
+  const importedKey = await subtle.importKey("raw", Buffer.from(password), { name: "PBKDF2" }, false, ["deriveKey"]);
+  const key = await subtle.deriveKey(
+    { name: "PBKDF2", salt: salt, iterations: 10000, hash: "SHA-256" },
+    importedKey,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ["encrypt", "decrypt"],
+  );
+  return [key, salt];
+};
+
 // Function to encrypt the JSON string
-export const encryptJSON = (jsonString, passphrase) => {
-  const encrypted = CryptoJS.AES.encrypt(jsonString, passphrase).toString();
-  return encrypted;
+export const encryptJSON = async (jsonString, passphrase) => {
+  try {
+    let iv = crypto.getRandomValues(new Uint8Array(12));
+    let data = Buffer.from(jsonString);
+    const [key, salt] = await deriveKey(passphrase);
+    const ciphertext = await subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+    // NOTE: Key may change in future.
+    const encryptedData = JSON.stringify({
+      sign: {
+        s: Buffer.from(salt).toString('hex'),
+        i: Buffer.from(iv).toString('hex'),
+        d: Buffer.from(ciphertext).toString('base64')
+      }
+    });
+    return { success: true, data: encryptedData };
+  } catch (e) {
+    return { success: false, error: e };
+  }
 };
 
 // Function to decrypt the JSON string
 export const decryptJSON = async (encryptedString, passphrase) => {
   return new Promise((resolve, reject) => {
     try {
-      const decryptedBytes = CryptoJS.AES.decrypt(encryptedString, passphrase);
-      const decrypted = decryptedBytes.toString(CryptoJS.enc.Utf8);
-      resolve(decrypted);
-    } catch (error) {
-      reject(`Error failed to decrept data ${error}`);
+      let { s, i, d } = JSON.parse(encryptedString).sign;
+      const salt = Buffer.from(s, 'hex');
+      const iv = Buffer.from(i, 'hex');
+      const data = Buffer.from(d, 'base64');
+      deriveKey(passphrase, salt)
+        .then(([key]) => key)
+        .then(key => subtle.decrypt({ name: "AES-GCM", iv }, key, data))
+        .then(bufferData => Buffer.from(new Uint8Array(bufferData)).toString())
+        .then(privateKey => resolve(privateKey))
+        .catch(e => reject(JSON.stringify(e)));
+    } catch (e) {
+      reject(e.toString());
     }
   });
 };

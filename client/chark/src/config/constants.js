@@ -26,3 +26,9 @@ export const qrType = {
   tally: 'tally',
   connect: 'connect',
 }
+
+
+export const keyServices = {
+  publicKey: 'public_key',
+  privateKey: 'private_key',
+}

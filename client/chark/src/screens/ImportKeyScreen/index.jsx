@@ -4,13 +4,22 @@ import DocumentPicker from 'react-native-document-picker';
 import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
 import CenteredModal from "../../components/CenteredModal";
 import { decryptJSON } from "../../utils/file-manager";
+import { useEffect } from "react";
 
-const ImportKeyScreen = () => {
+const ImportKeyScreen = (props) => {
+  const params = props.route?.params;
   const [content, setContent] = useState(undefined);
   const [passphraseModal, setPassphraseModal] = useState(false);
   const [privateKey, setPrivateKey] = useState(undefined);
 
-  const onImportKey = async () => {
+  useEffect(() => {
+    if (params) {
+      setContent(JSON.stringify(params));
+      setPassphraseModal(true);
+    }
+  }, [params])
+
+  const onImportKey = () => {
     const options = {
       type: [DocumentPicker.types.allFiles],
       mode: 'open',
@@ -32,7 +41,7 @@ const ImportKeyScreen = () => {
     try {
       const response = await fetch(fileUri);
       const jsonData = await response.json();
-      setContent(jsonData.key);
+      setContent(JSON.stringify(jsonData));
       setPassphraseModal(true);
     } catch (err) {
       console.log('Error reading file:', err);
@@ -40,13 +49,12 @@ const ImportKeyScreen = () => {
     }
   };
 
-  const decreptData = (passphrase) => {
+  const decryptKey = (passphrase) => {
     setPassphraseModal(false);
     decryptJSON(content, passphrase)
       .then((data) => {
         console.log("Decrepted Data ", data);
         setPrivateKey(data);
-
       })
       .catch(e => {
         console.log("Decrept Ex ", e);
@@ -66,7 +74,7 @@ const ImportKeyScreen = () => {
       onClose={() => { setPassphraseModal(false) }}
     >
       <PassphraseModal
-        onPassphraseConfirmed={decreptData}
+        onPassphraseConfirmed={decryptKey}
         cancel={() => {
           setPassphraseModal(false);
         }}

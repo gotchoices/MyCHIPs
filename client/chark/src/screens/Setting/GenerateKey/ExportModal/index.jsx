@@ -1,6 +1,6 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform, ScrollView } from "react-native"
-import { encryptJSON, downloadJSONFile, downloadQRCode, shareJSONFile, shareQRCode } from "../../../../utils/file-manager";
+import { encryptJSON, downloadJSONFile, downloadQRCode, shareQRCode, shareJSONFile } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -8,11 +8,19 @@ const ExportModal = (props) => {
   const viewShotRef = useRef();
 
   const passphrase = props.passphrase;
+  const [encryptedData, setEncryptedData] = useState(undefined);
 
-  const encryptedData = useMemo(() => {
-    return JSON.stringify({
-      key: encryptJSON(props.privateKey, passphrase),
-    });
+  useEffect(() => {
+    encryptJSON(props.privateKey, passphrase).then(result => {
+      if (result.success) {
+        console.log("Final Data ==> ", result.data);
+        setEncryptedData(result.data);
+      } else {
+        Alert.alert("Error", result.error);
+      }
+    }).catch(ex => {
+      Alert.alert("Error", ex);
+    })
   }, [props.privateKey])
 
   const permissionResult = async () => {
@@ -32,7 +40,7 @@ const ExportModal = (props) => {
       if (granted) {
         downloadJSONFile(encryptedData).then(result => {
           console.log("Saved File to: ", result);
-          Alert.alert('Success', 'Saved to downloads', [{ text: "Ok", onPress: props.cancel }]);
+          Alert.alert('Success', 'Saved to downloads', [{ text: "Ok" }]);
         }).catch(ex => {
           console.log("Exception Failed to Save; ", ex);
         })
@@ -48,7 +56,7 @@ const ExportModal = (props) => {
         viewShotRef.current.capture().then(uri => {
           downloadQRCode(uri).then(result => {
             console.log("Saved QR to: ", result);
-            Alert.alert('Success', 'QR-Code Saved to downloads', [{ text: "Ok", onPress: props.cancel }]);
+            Alert.alert('Success', 'QR-Code Saved to downloads', [{ text: "Ok" }]);
           }).catch(ex => {
             console.log("Exception Failed to Save; ", ex);
           })
