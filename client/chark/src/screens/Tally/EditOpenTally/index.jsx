@@ -80,9 +80,16 @@ const EditOpenTally = (props) => {
   }
 
   const onViewChitHistory = () => {
+    const partCert = tally?.part_cert;
+
     props.navigation.navigate('ChitHistory', {
       tally_seq,
       tally_ent,
+      tally_uuid: tally?.tally_uuid,
+      part_name: `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`,
+      cid: partCert?.chad?.cid,
+      date: tally?.tally_date,
+      net: tally?.net,
     });
   }
 

@@ -23,6 +23,7 @@
     "b64u-lite": "^1.1.0",
     "base64url": "^3.0.1",
     "buffer": "^6.0.3",
+    "moment": "^2.29.4",
     "prop-types": "^15.8.1",
     "query-string": "^8.1.0",
     "react": "18.1.0",

@@ -8,18 +8,19 @@ import useMessageText from '../../../hooks/useMessageText';
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import Button from '../../../components/Button';
+import { round } from '../../../utils/common';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
 
+  const net = round((tally?.net ?? 0) / 1000, 3)
   const talliesText = messageText?.tallies;
   const hasPartCert = !!tally?.part_cert;
   const hasNet = !!tally?.net;
   const isNetNegative = tally?.net < 0;
 
   const partCert = tally?.part_cert;
-
 
   return (
     <View>
@@ -34,7 +35,7 @@ const CommonTallyView = (props) => {
             <View style={styles.row}>
               <Image source={isNetNegative ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
               <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
-                {tally.net}
+                {net}
               </Text>
             </View>
             <Button
