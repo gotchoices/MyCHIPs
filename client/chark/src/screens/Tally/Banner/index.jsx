@@ -1,19 +1,17 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Text, Image, TouchableWithoutFeedback } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Text, Image } from 'react-native';
 
 import { colors } from '../../../config/constants';
 import visualBtn from '../../../../assets/visual-button.png';
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
-import useCurrentUser from '../../../hooks/useCurrentUser';
 import useProfile from '../../../hooks/useProfile';
 
 import Header from '../Header';
 import Avatar from '../../../components/Avatar';
 
 const Banner = (props) => {
-  const { user } = useCurrentUser();
-  const { avatar } = useProfile();
+  const { avatar, personal } = useProfile();
 
   const navigateToReport = () => {
     props.navigation?.navigate?.('TallyReport')
@@ -50,7 +48,7 @@ const Banner = (props) => {
             </View>
           </View>
 
-          <Text>{user?.curr_eid ?? ''}</Text>
+          <Text>{personal?.cas_name ?? ''}</Text>
         </View>
       </View>
     </View>
