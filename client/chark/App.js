@@ -177,6 +177,7 @@ function App() {
                     component={InviteStackScreen}
                     options={{
                       tabBarTestID: "inviteTestID",
+                      lazy: false,
                       tabBarIcon: () => (
                         <Image style={styles.button} source={require("./assets/icon-invite.png")} />
                       )
