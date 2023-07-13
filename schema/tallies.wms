@@ -523,6 +523,7 @@ function {mychips.tally_notify_user(ent text, seq int, oldstate text = 'open')} 
           'target',	'tally',
           'entity',	trec.tally_ent,
           'sequence',	trec.tally_seq,
+          'action',	trec.action,
           'state',	trec.state,
           'object',	trec.json
         );
