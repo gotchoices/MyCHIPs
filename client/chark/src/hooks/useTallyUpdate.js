@@ -19,26 +19,28 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
   const [comment, setComment] = useState(comment);
 
   useEffect(() => {
-    if(wm) {
+    if (wm) {
       fetchTally();
     }
   }, [wm, tally_seq, tally_ent, tallyState])
 
   const fetchTally = (_refreshing = false) => {
-    if(_refreshing) {
+    if (_refreshing) {
       setRefreshing(true);
     }
 
     fetchTallies(wm, {
-      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json','hold_sig'],
+      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig'],
       where: {
         tally_ent,
         tally_seq,
       }
     }).then(data => {
       const _tally = data?.[0];
-      if(_tally) {
-        console.log("MY TALLY ==> ", _tally);
+      if (_tally) {
+
+        console.log("TALLY_PREVIEW_TALLY ==> ", JSON.stringify(_tally));
+
         setTally(_tally);
 
         setTallyType(_tally.tally_type);

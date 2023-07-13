@@ -37,7 +37,7 @@ const Scanner = (props) => {
       try {
         setIsActive(false);
         const parsedCode = JSON.parse(qrCode);
-
+        console.log("PARSED_CODE ==> ", parsedCode);
         if(parsedCode?.type === qrType.tally) {
           requestTally(parsedCode);
         } else if (parsedCode?.sign) {

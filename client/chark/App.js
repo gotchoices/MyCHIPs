@@ -188,6 +188,7 @@ function App() {
                     name="Settings"
                     component={SettingStackScreen}
                     options={{
+                      lazy: false,
                       tabBarIcon: () => (
                         <Image style={styles.button} source={require("./assets/icon-settings.png")} />
                       )
