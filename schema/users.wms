@@ -226,7 +226,7 @@ view mychips.file_v_me {base.file_v base.user_id(text)} {select
 
 # View limited to users' tally partners' file records (if on same DB)
 #----------------------------------------------------------------
-view mychips.file_v_part {mychips.tallies_v_me base.file_v base.user_id(text)} {
+view mychips.file_v_part {mychips.tallies_v_me base.file_v} {
   with tally as (select
     tally_ent, tally_seq, part_ent, jsonb_array_elements(part_cert->'file') as file
     from mychips.tallies_v_me
