@@ -8,6 +8,7 @@ import mychips from '../../../../assets/mychips.png';
 import mychipsNeg from '../../../../assets/mychips-red.png';
 
 import Avatar from '../../../components/Avatar';
+import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const TallyItem = (props) => {
   const tally = props.tally;
@@ -27,9 +28,7 @@ const TallyItem = (props) => {
 
       <View style={styles.price}>
         <View style={styles.mychips}>
-          <Image
-            source={net < 0 ? mychipsNeg : mychips}
-          />
+          <ChitIcon color={net < 0 ? colors.red : colors.green} height={18} width={12} />
           <Text style={net < 0 ? styles.mychipsNetNeg : styles.mychipsNet}>{net}</Text>
         </View>
 

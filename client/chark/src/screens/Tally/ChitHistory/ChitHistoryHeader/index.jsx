@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
-import { Image, StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { colors } from "../../../../config/constants";
 import moment from 'moment';
 import { round } from "../../../../utils/common";
-import mychips from '../../../../../assets/mychips-large.png';
-import mychipsNeg from '../../../../../assets/mychips-red-large.png';
+import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
 
 const ChistHistoryHeader = (props, args) => {
   const { part_name, cid, date, net, runningBalance } = props.args ?? {};
@@ -19,7 +18,7 @@ const ChistHistoryHeader = (props, args) => {
         <View style={{ alignItems: 'flex-start' }}>
           <Text style={styles.label}>Running Balance</Text>
           <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 4 }]}>
-            <Image source={isNetNegative ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
+            <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
             <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net ?? 0) / 1000, 3)}</Text>
           </View>
         </View>
@@ -69,9 +68,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  image: {
-    height: 28,
-    width: 26,
-  }
 })
 export default ChistHistoryHeader;

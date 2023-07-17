@@ -45,6 +45,8 @@ import { handleNotification } from './src/utils/notification';
 import ShareTally from './src/screens/ShareTally';
 import ChitHistory from './src/screens/Tally/ChitHistory';
 import ImportKeyScreen from './src/screens/ImportKeyScreen';
+import { ChitReceiveIcon, HomeIcon, InviteIcon, ScannerIcon, SettingIcon } from './src/components/SvgAssets/SvgAssets';
+import { colors } from './src/config/constants';
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
@@ -145,8 +147,8 @@ function App() {
                     name="Tally"
                     component={HomeStackScreen}
                     options={{
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-home.png")} />
+                      tabBarIcon: (result) => (
+                        <HomeIcon color={result.focused ? result.color : colors.black100} />
                       )
                     }}
                   />
@@ -155,8 +157,8 @@ function App() {
                     name="Receive"
                     component={ReceiveScreen}
                     options={{
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-receive.png")} />
+                      tabBarIcon: (result) => (
+                        <ChitReceiveIcon color={result.focused ? result.color : colors.black100} />
                       )
                     }}
                   />
@@ -166,8 +168,8 @@ function App() {
                     component={Scanner}
                     options={{
                       unmountOnBlur: true,
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-scan.png")} />
+                      tabBarIcon: (result) => (
+                        <ScannerIcon color={result.focused ? result.color : colors.black100} />
                       )
                     }}
                   />
@@ -178,8 +180,8 @@ function App() {
                     options={{
                       tabBarTestID: "inviteTestID",
                       lazy: false,
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-invite.png")} />
+                      tabBarIcon: (result) => (
+                        <InviteIcon color={result.focused ? result.color : colors.black100} />
                       )
                     }}
                   />
@@ -189,8 +191,8 @@ function App() {
                     component={SettingStackScreen}
                     options={{
                       lazy: false,
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-settings.png")} />
+                      tabBarIcon: (result) => (
+                        <SettingIcon color={result.focused ? result.color : colors.black100} />
                       )
                     }}
                   />

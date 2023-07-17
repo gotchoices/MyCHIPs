@@ -16,9 +16,9 @@ const Header = (props) => {
       <TouchableWithoutFeedback
         onPress={props.onClick}
       >
-        <Image
-          source={props.icon}
-        />
+        <View>
+          {props.icon}
+        </View>
       </TouchableWithoutFeedback>
     </View>
   )

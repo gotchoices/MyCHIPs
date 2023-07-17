@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { fetchTallies } from '../services/tally';
+import { Platform } from 'react-native';
 
 const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
   const [refreshing, setRefreshing] = useState(false);
@@ -39,7 +40,8 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
       const _tally = data?.[0];
       if (_tally) {
 
-        console.log("TALLY_PREVIEW_TALLY ==> ", JSON.stringify(_tally));
+        console.log(`\n\n\n\nTALLY_PREVIEW_TALLY ${Platform.OS} ==> `, `${JSON.stringify(_tally)}\n\n\n\n`);
+        console.log(`\n\n\n\nSTATUS ${Platform.OS} ==> `, `${_tally.status}\n\n\n\n`);
 
         setTally(_tally);
 

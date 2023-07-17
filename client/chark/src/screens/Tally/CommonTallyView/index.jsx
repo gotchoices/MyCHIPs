@@ -1,14 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Image, Linking } from 'react-native';
 
 import HelpText from '../../../components/HelpText';
 
-import { colors } from '../../../config/constants';
+import { colors, connectsMap } from '../../../config/constants';
 import useMessageText from '../../../hooks/useMessageText';
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import Button from '../../../components/Button';
 import { round } from '../../../utils/common';
+import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
@@ -20,7 +21,20 @@ const CommonTallyView = (props) => {
   const hasNet = !!tally?.net;
   const isNetNegative = tally?.net < 0;
 
+  const connects = tally?.part_cert?.connect;
   const partCert = tally?.part_cert;
+
+  const handleLinkPress = (link) => {
+    Linking.canOpenURL(link)
+      .then((supported) => {
+        if (supported) {
+          Linking.openURL(link);
+        } else {
+          console.log('Cannot open URL: ', link);
+        }
+      })
+      .catch((error) => console.log('Error occurred:', error));
+  };
 
   return (
     <View>
@@ -33,7 +47,7 @@ const CommonTallyView = (props) => {
           />
           <View>
             <View style={styles.row}>
-              <Image source={isNetNegative ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
+              <ChitIcon color={isNetNegative ? colors.red : colors.green} height={14} width={14} />
               <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
                 {net}
               </Text>
@@ -76,6 +90,23 @@ const CommonTallyView = (props) => {
             />
             <Text>{partCert?.chad?.agent}</Text>
           </View>
+
+          {
+            connects.length > 0 && <View>
+              {
+                connects.map((connect, index) => {
+                  const link = connect.media === 'email' ? 'mailto:' : 'tel:';
+                  return <View key={`${connect?.address}${index}`} style={styles.detailControl}>
+                    <HelpText
+                      label={connectsMap.get(connect.media) ?? connect.media}
+                      style={styles.secondaryheader}
+                    />
+                    <Text onPress={() => { handleLinkPress(link + connect?.address) }}>{connect?.address}</Text>
+                  </View>
+                })
+              }
+            </View>
+          }
         </View>
       }
 
