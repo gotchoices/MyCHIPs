@@ -7,12 +7,18 @@ import ICSetting from '../../../assets/svg/ic_setting.svg';
 import ICChit from '../../../assets/svg/ic_chit.svg';
 import ICVisual from '../../../assets/svg/ic_visual.svg';
 import ICTabular from '../../../assets/svg/ic_tabular.svg';
+import ICFilter from '../../../assets/svg/ic_filter.svg';
+import ICSearch from '../../../assets/svg/ic_search.svg';
 import { colors } from '../../config/constants';
 
 
 export const VisualIcon = () => <ICVisual />
 
+export const SearchIcon = () => <ICSearch />
+
 export const TabularIcon = () => <ICTabular />
+
+export const FilterIcon = () => <ICFilter />
 
 
 export const ChitIcon = (props) => {

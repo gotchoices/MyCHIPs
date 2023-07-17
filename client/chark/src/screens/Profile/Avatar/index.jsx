@@ -23,7 +23,7 @@ const UserAvatar = (props) => {
       height: 300,
       cropping: true,
       cropperCircleOverlay: true,
-      freeStyleCropEnabled: true,	
+      freeStyleCropEnabled: true,
       includeBase64: true,
     }).then(image => {
       props.uploadProfile({

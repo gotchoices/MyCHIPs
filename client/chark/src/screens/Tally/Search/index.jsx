@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, Image, TextInput, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, TextInput, TouchableWithoutFeedback } from 'react-native';
 
-import searchImg from '../../../../assets/search.png';
-import filterImg from '../../../../assets/filter.png';
+import { FilterIcon, SearchIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const Search = () => {
   const onFilter = () => {
@@ -12,8 +11,8 @@ const Search = () => {
   return (
     <View style={styles.container}>
       <View style={styles.search}>
-        <Image source={searchImg} style={{ width: 20, height: 20}} />
-        <TextInput 
+        <SearchIcon />
+        <TextInput
           style={styles.searchInput}
           placeholder="Search Partners"
         />
@@ -21,9 +20,7 @@ const Search = () => {
 
       <TouchableWithoutFeedback onPress={onFilter}>
         <View style={styles.filter}>
-          <Image
-            source={filterImg}
-          />
+          <FilterIcon />
         </View>
       </TouchableWithoutFeedback>
     </View>
@@ -45,7 +42,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   searchInput: {
-    paddingHorizontal: 10,
+    padding: 10,
   },
   filter: {
     padding: 10
