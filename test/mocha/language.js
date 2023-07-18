@@ -1,4 +1,4 @@
-//Test language data dictionary
+//Test language data dictionary; run only after impexp
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO
@@ -78,7 +78,7 @@ log.debug("Sql:", sql)
     
     let fields = ['fr_lang','fr_title','fr_help','language','title','help','sch','tab','type','col','tag']
       , where = `fr_lang = 'eng' and language = '${lang}' and (help isnull or title isnull)`
-      , order = 'order by sch, tab, type, col, tag'
+      , order = 'order by sch,tab,sorter'	//'order by sch, tab, type, col, tag'
       , sql = `select ${fields.join(',')} from wm.language where ${where} ${order}`
 log.debug("Sql:", sql)
       db.query(sql, (e, res) => {if (e) done(e)
@@ -121,7 +121,7 @@ log.debug("file:", file)
 
   it(`Reporting on missing language tags: ${missing}`, function(done) {
 log.debug("Missing tags in:", missing)
-    assert.equal(missing.length, 0)
+    assert.equal(missing?.length, 0)
   })
 
 /* */
