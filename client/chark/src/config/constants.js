@@ -34,8 +34,8 @@ export const keyServices = {
   privateKey: 'private_key',
 }
 
-export const connectsMap = new Map([
-  ['email', "Email"],
-  ['phone', "Phone"],
-  ['cell', "Cell"]
-]);
+export const connectsObj = {
+  "email":"Email",
+  "phone":"Phone",
+  "cell": "Cell"
+}

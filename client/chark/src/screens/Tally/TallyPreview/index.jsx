@@ -161,24 +161,22 @@ const TallyPreview = (props) => {
 
   const onAccept = () => {
     if (!json) {
-      Alert.alert("Tally can't be signed");
+      Alert.alert("Tally can not be signed");
       return;
     }
     createSignature(JSON.stringify(json)).then(signature => {
       setSig(signature);
-      console.log("Signature ==> ", signature);
       return acceptTally(
         wm, { tally_ent, tally_seq, signature },
       );
     }).then((result) => {
-      console.log("RESULT ==> ", result);
       Toast.show({
         type: 'success',
         text1: 'Tally accepted',
       });
       props.navigation.goBack();
-    }).catch(ex => {
-      console.log("Exception ==> ", ex);
+    }).catch(err => {
+      Alert.alert("Error", err.message || err);
     });
 
     /* acceptTally(wm, {

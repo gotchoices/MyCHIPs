@@ -72,7 +72,7 @@ export const offerTally = (wm, args) => {
 export const acceptTally = (wm, args) => {
   const fields = {
     request: 'open',
-    hold_sig: args.signature,
+    hold_sig: args.signature,// 'Signature ' + args.tally_ent,
   };
 
   const spec = {

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, Linking } from 'react-native';
 
 import HelpText from '../../../components/HelpText';
 
-import { colors, connectsMap } from '../../../config/constants';
+import { colors, connectsObj } from '../../../config/constants';
 import useMessageText from '../../../hooks/useMessageText';
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
@@ -95,10 +95,11 @@ const CommonTallyView = (props) => {
             connects.length > 0 && <View>
               {
                 connects.map((connect, index) => {
-                  const link = connect.media === 'email' ? 'mailto:' : 'tel:';
+                  const media = connect.media;
+                  const link = media === 'email' ? 'mailto:' : 'tel:';
                   return <View key={`${connect?.address}${index}`} style={styles.detailControl}>
                     <HelpText
-                      label={connectsMap.get(connect.media) ?? connect.media}
+                      label={connectsObj[media] || media}
                       style={styles.secondaryheader}
                     />
                     <Text onPress={() => { handleLinkPress(link + connect?.address) }}>{connect?.address}</Text>

@@ -11,16 +11,17 @@ import { IconWrapper } from './SvgAssets/SvgAssets';
 
 const getIconName = (name) => {
   switch (name) {
+    // Other case can be handled here for now all icons using from .svg file.
     default: return name
   }
 }
 
 export default function CustomIcon(props) {
   const iconName = props.name;
+  const IconComponent = icons[iconName];
 
-  if (icons.hasOwnProperty(iconName)) {
-    const icon = icons[iconName]({ ...props });
-
+  if (IconComponent) {
+    const icon = IconComponent({ ...props });
     if (props.onPress) {
       return (
         <TouchableOpacity {...props}>

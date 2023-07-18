@@ -39,10 +39,6 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }).then(data => {
       const _tally = data?.[0];
       if (_tally) {
-
-        console.log(`\n\n\n\nTALLY_PREVIEW_TALLY ${Platform.OS} ==> `, `${JSON.stringify(_tally)}\n\n\n\n`);
-        console.log(`\n\n\n\nSTATUS ${Platform.OS} ==> `, `${_tally.status}\n\n\n\n`);
-
         setTally(_tally);
 
         setTallyType(_tally.tally_type);
