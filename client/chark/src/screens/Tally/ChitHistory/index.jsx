@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator } from "react-native";
+import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOpacity } from "react-native";
 import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
@@ -12,13 +12,8 @@ import { colors } from "../../../config/constants";
 const ChitHistory = (props) => {
   const { tally_seq, tally_ent, tally_uuid } = props.route?.params ?? {};
   const { wm } = useSocket();
-
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
-
-  const totalNet = useMemo(() => {
-    return chits?.reduce((total, item) => total + item.net, 0);
-  }, [chits])
 
   useEffect(() => {
     _fetchChitHistory();
@@ -28,15 +23,22 @@ const ChitHistory = (props) => {
     fetchChitHistory(
       wm,
       {
-        fields: ['part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 'crt_date', 'chit_date', 'reference', 'memo', 'status'],
+        fields: ['part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx'],
         order: ['crt_date'],
         where: {
           tally_uuid: tally_uuid,
-        }
+        },
+        order: ['chain_idx', 'chit_date']
       }
     ).then(data => {
       if (data?.length) {
-        setChits(data);
+        let runningBalance = 0;
+        const chitsWithRunningBalance = data.map((item) => {
+          runningBalance += item.net;
+          return { ...item, runningBalance };
+        });
+
+        setChits(chitsWithRunningBalance);
       }
     }).catch(ex => {
       console.log("EXCEPTION ==> ", ex);
@@ -45,25 +47,45 @@ const ChitHistory = (props) => {
     });
   }
 
-  const ChitItem = ({ item }) => {
-    const isNetNegative = item?.net < 0;
+  const onChipClick = (item, index) => {
+    props.navigation.navigate('ChitDetail', { ...item });
+  }
+
+  const ChitItem = ({ item, index }) => {
     const net = round((item?.net ?? 0) / 1000, 3);
+    const isNetNegative = net < 0;
+
+    const runningBalance = round((item?.runningBalance ?? 0) / 1000, 3);
+    const isRunningBalnceNeg = runningBalance < 0;
+
     const formatedDate = moment(item.chit_date).format('MMM DD, YYYY - hh:mm a');
 
-    return <View style={styles.chitItem}>
-      <View>
-        <Text style={{ color: 'black' }}>Reference: {item.reference ?? 'not added'} </Text>
-        <Text style={{ color: 'black' }}>Memo: {item.memo ?? 'not added'}</Text>
-        <Text style={{ color: 'black' }}>Status: {item.status}</Text>
-        <Text style={[styles.label, { marginTop: 4 }]}>{formatedDate}</Text>
+    return <TouchableOpacity
+      style={styles.chitItem}
+      onPress={() => { onChipClick(item, index) }}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.label, { marginTop: 6 }]}>{formatedDate}</Text>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+          <Text style={{ color: 'black' }}>Running Balance:  </Text>
+          <View style={styles.row}>
+            <Image source={isRunningBalnceNeg ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
+            <Text style={isRunningBalnceNeg ? styles.negativeText : styles.positiveText}>{runningBalance}</Text>
+          </View>
+        </View>
+
+        <Text style={{ color: 'black', marginTop: 4 }}>Reference: {item.reference ?? 'not added'} </Text>
+        <Text style={{ color: 'black', marginTop: 4 }}>Memo: {item.memo ?? 'not added'}</Text>
+        <Text style={{ color: 'black', marginTop: 4 }}>State: {item.state}</Text>
       </View>
+
+      <View style={{ width: 8 }} />
       <View style={isNetNegative ? styles.debidBg : styles.creditBg}>
         <Image source={isNetNegative ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
-        <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
-          {net}
-        </Text>
+        <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>{net}</Text>
       </View>
-    </View>
+    </TouchableOpacity >
   }
 
   const ItemSeparator = () => {
@@ -82,7 +104,7 @@ const ChitHistory = (props) => {
         <ChistHistoryHeader
           args={{
             ...props.route?.params,
-            runningBalance: totalNet
+            wm
           }}
         />
       }

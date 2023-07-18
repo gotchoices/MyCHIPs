@@ -45,6 +45,7 @@ import { handleNotification } from './src/utils/notification';
 import ShareTally from './src/screens/ShareTally';
 import ChitHistory from './src/screens/Tally/ChitHistory';
 import ImportKeyScreen from './src/screens/ImportKeyScreen';
+import ChitDetail from './src/screens/Tally/ChitDetail';
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
@@ -54,6 +55,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
       <HomeStack.Screen name='ChitHistory' component={ChitHistory} options={{ title: 'Chit History' }} />
+      <HomeStack.Screen name='ChitDetail' component={ChitDetail} options={{ title: 'Chit Detail' }} />
       <HomeStack.Screen name='TradingVariables' component={TradingVariables} options={{ title: 'Trading Variables' }} />
     </HomeStack.Navigator>
   );
