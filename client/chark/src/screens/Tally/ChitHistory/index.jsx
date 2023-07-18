@@ -24,7 +24,6 @@ const ChitHistory = (props) => {
       wm,
       {
         fields: ['part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx'],
-        order: ['crt_date'],
         where: {
           tally_uuid: tally_uuid,
         },
@@ -48,7 +47,7 @@ const ChitHistory = (props) => {
   }
 
   const onChipClick = (item, index) => {
-    props.navigation.navigate('ChitDetail', { ...item });
+    props.navigation.navigate('ChitDetail', { chit_uuid: item.chit_uuid });
   }
 
   const ChitItem = ({ item, index }) => {
