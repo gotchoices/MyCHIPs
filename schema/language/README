@@ -10,7 +10,7 @@ To generate a new language file:
 - Perform the translation, filling in title and help columns for all applicable tags
 - Make sure the file is saved back in CSV format
 - Be in the mychips/schema folder (the following utilities consult Wyseman.conf)
-- Import new lanaguage tags into the db:
+- Import new language tags into the db:
     wm-csv2db <the_file_name>.csv
 - Check in wm.table_lang (and/or UI applications) for the correct language data
 - Create wyseman language files:
@@ -23,3 +23,7 @@ The "-s schema" switch to wm-db2wmt will limit the output to those tables/views 
 to the specified schema.  If you are translating tables/views that are part of wyselib,
 make sure to include those in the wyselib/schema/language folder rather than as part of
 the mychips repo.
+
+NOTE: If the language description for a table/view does not exist, there is nothing to
+relate column/message/value tags to so even though they may import (wm-csv2db), they will 
+not export (wm-db2wmt) and so will be lost.
