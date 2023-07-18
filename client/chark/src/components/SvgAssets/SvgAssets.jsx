@@ -12,6 +12,15 @@ import ICSearch from '../../../assets/svg/ic_search.svg';
 import { colors } from '../../config/constants';
 
 
+export const IconWrapper = ({ IconComponent, color, size }) => {
+  const iconProps = {
+    color: color || colors.black100,
+    ...(size && { height: size }),
+    ...(size && { width: size }),
+  };
+  return <IconComponent {...iconProps} />;
+};
+
 export const VisualIcon = () => <ICVisual />
 
 export const SearchIcon = () => <ICSearch />

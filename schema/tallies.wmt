@@ -121,11 +121,13 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
       {file.format.html		{html}			{Return HTML document displaying the file objects}}
       {file.format.json		{json}			{Return file data as JSON object}}
     {file.digest 		{File Digest}		{Specify the base64url hash of a single document file to return}}
-  {launch.title	{Tallies}		{Peer Trading Relationships}}
+  {launch.title		{Tallies}		{Peer Trading Relationships}}
   {launch.instruct	{Basic Instructions}	{
     <p>Tallies are used to document and track trading agreements between partners.
     <p>You can propose a new tally from the action menu in the Editing pane.
   }}
+  {notify.draft		{Initiate Tally}		{Someone wants to engage with your invitation to open a MyCHIPs tally ledger}}
+  {notify.P.offer	{Tally Offer}			{You have received an offer to open a MyCHIPs tally ledger}}
 }
 
 tabtext mychips.tally_tries {Tally Retries}	{Table contains information about retries with peers to establish tallies} {

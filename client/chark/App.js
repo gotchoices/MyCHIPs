@@ -48,6 +48,7 @@ import ImportKeyScreen from './src/screens/ImportKeyScreen';
 import { ChitReceiveIcon, HomeIcon, InviteIcon, ScannerIcon, SettingIcon } from './src/components/SvgAssets/SvgAssets';
 import { colors } from './src/config/constants';
 
+import CustomIcon from './src/components/CustomIcon';
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
   return (
@@ -147,8 +148,8 @@ function App() {
                     name="Tally"
                     component={HomeStackScreen}
                     options={{
-                      tabBarIcon: (result) => (
-                        <HomeIcon color={result.focused ? result.color : colors.black100} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="home" {...props} />
                       )
                     }}
                   />
@@ -157,8 +158,8 @@ function App() {
                     name="Receive"
                     component={ReceiveScreen}
                     options={{
-                      tabBarIcon: (result) => (
-                        <ChitReceiveIcon color={result.focused ? result.color : colors.black100} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="receive" {...props} />
                       )
                     }}
                   />
@@ -168,8 +169,8 @@ function App() {
                     component={Scanner}
                     options={{
                       unmountOnBlur: true,
-                      tabBarIcon: (result) => (
-                        <ScannerIcon color={result.focused ? result.color : colors.black100} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="scan" {...props} />
                       )
                     }}
                   />
@@ -180,8 +181,8 @@ function App() {
                     options={{
                       tabBarTestID: "inviteTestID",
                       lazy: false,
-                      tabBarIcon: (result) => (
-                        <InviteIcon color={result.focused ? result.color : colors.black100} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="invite" {...props} />
                       )
                     }}
                   />
@@ -191,8 +192,8 @@ function App() {
                     component={SettingStackScreen}
                     options={{
                       lazy: false,
-                      tabBarIcon: (result) => (
-                        <SettingIcon color={result.focused ? result.color : colors.black100} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="settings" {...props} />
                       )
                     }}
                   />
