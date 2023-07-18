@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   textInput: {
     marginVertical: 24,
     borderWidth: 1,
-    paddingHorizontal: 12,
+    padding: 10,
   },
   row: {
     flexDirection: 'row',

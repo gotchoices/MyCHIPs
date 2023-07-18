@@ -8,6 +8,7 @@ import { round } from "../../../utils/common";
 import moment from 'moment';
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors } from "../../../config/constants";
+import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
 
 const ChitHistory = (props) => {
   const { tally_seq, tally_ent, tally_uuid } = props.route?.params ?? {};
@@ -58,7 +59,7 @@ const ChitHistory = (props) => {
         <Text style={[styles.label, { marginTop: 4 }]}>{formatedDate}</Text>
       </View>
       <View style={isNetNegative ? styles.debidBg : styles.creditBg}>
-        <Image source={isNetNegative ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
+        <ChitIcon color={isNetNegative ? colors.red : colors.green} height={14} width={14} />
         <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
           {net}
         </Text>

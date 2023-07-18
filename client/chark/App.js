@@ -45,6 +45,8 @@ import { handleNotification } from './src/utils/notification';
 import ShareTally from './src/screens/ShareTally';
 import ChitHistory from './src/screens/Tally/ChitHistory';
 import ImportKeyScreen from './src/screens/ImportKeyScreen';
+import { ChitReceiveIcon, HomeIcon, InviteIcon, ScannerIcon, SettingIcon } from './src/components/SvgAssets/SvgAssets';
+import { colors } from './src/config/constants';
 
 import CustomIcon from './src/components/CustomIcon';
 const HomeStack = createNativeStackNavigator();
@@ -147,7 +149,7 @@ function App() {
                     component={HomeStackScreen}
                     options={{
                       tabBarIcon: (props) => (
-                        <CustomIcon name="home" color={props.color} size={25}/>
+                        <CustomIcon name="home" {...props} />
                       )
                     }}
                   />
@@ -157,7 +159,7 @@ function App() {
                     component={ReceiveScreen}
                     options={{
                       tabBarIcon: (props) => (
-                        <CustomIcon name="receive" color={props.color} size={33}/>
+                        <CustomIcon name="receive" {...props} />
                       )
                     }}
                   />
@@ -168,7 +170,7 @@ function App() {
                     options={{
                       unmountOnBlur: true,
                       tabBarIcon: (props) => (
-                        <CustomIcon name="scan" color={props.color} size={33}/>
+                        <CustomIcon name="scan" {...props} />
                       )
                     }}
                   />
@@ -180,7 +182,7 @@ function App() {
                       tabBarTestID: "inviteTestID",
                       lazy: false,
                       tabBarIcon: (props) => (
-                          <CustomIcon name="invite" color={props.color} size={35}/>
+                        <CustomIcon name="invite" {...props} />
                       )
                     }}
                   />
@@ -189,8 +191,9 @@ function App() {
                     name="Settings"
                     component={SettingStackScreen}
                     options={{
+                      lazy: false,
                       tabBarIcon: (props) => (
-                        <CustomIcon name="settings" color={props.color} size={35}/>
+                        <CustomIcon name="settings" {...props} />
                       )
                     }}
                   />

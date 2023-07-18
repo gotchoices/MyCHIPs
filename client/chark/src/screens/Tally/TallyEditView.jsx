@@ -164,8 +164,7 @@ const styles = StyleSheet.create({
     marginVertical: 10
   },
   input: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    padding: 10,
     backgroundColor: colors.gray100,
   },
   comment: {
