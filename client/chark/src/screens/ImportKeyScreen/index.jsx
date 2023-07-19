@@ -1,16 +1,26 @@
 import React, { useState } from "react"
-import { View, StyleSheet, Button, Alert, Text } from "react-native"
+import { View, StyleSheet, Button, Alert, Text, ScrollView } from "react-native"
 import DocumentPicker from 'react-native-document-picker';
 import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
 import CenteredModal from "../../components/CenteredModal";
 import { decryptJSON } from "../../utils/file-manager";
 import { useEffect } from "react";
+import { isKeyStored, storePrivateKey, storePublicKey } from "../../utils/keychain-store";
+import { updatePublicKey } from "../../services/profile";
+import useCurrentUser from "../../hooks/useCurrentUser";
+import useSocket from "../../hooks/useSocket";
+import { Buffer } from "buffer";
 
 const ImportKeyScreen = (props) => {
   const params = props.route?.params;
   const [content, setContent] = useState(undefined);
   const [passphraseModal, setPassphraseModal] = useState(false);
   const [privateKey, setPrivateKey] = useState(undefined);
+  const [publicKey, setPublicKey] = useState(undefined);
+  const { user } = useCurrentUser();
+  const { wm } = useSocket();
+
+  const user_ent = user?.curr_eid;
 
   useEffect(() => {
     if (params) {
@@ -53,8 +63,12 @@ const ImportKeyScreen = (props) => {
     setPassphraseModal(false);
     decryptJSON(content, passphrase)
       .then((data) => {
-        console.log("Decrepted Data ", data);
         setPrivateKey(data);
+        const publicKey = JSON.parse(data);
+        delete publicKey.d;
+        publicKey.key_ops = ['verify'];
+        setPublicKey(JSON.stringify(publicKey));
+        console.log("EXPORTED_PUBLIC_KEY ==> ", publicKey);
       })
       .catch(e => {
         console.log("Decrept Ex ", e);
@@ -62,13 +76,61 @@ const ImportKeyScreen = (props) => {
       });
   }
 
+  const onUseKey = async () => {
+    const stored = await isKeyStored();
+    if (stored) {
+      Alert.alert(
+        "Generate Keys",
+        "Keys already exist, are you sure you want to proceed with new keys?",
+        [
+          { text: "Cancel" },
+          { text: "Proceed", onPress: storeKeys }
+        ]
+      );
+    } else {
+      storeKeys();
+    }
+  }
+
+  const storeKeys = () => {
+    updatePublicKey(wm, {
+      public_key: JSON.parse(publicKey),
+      where: {
+        user_ent
+      }
+    }).then(_ => {
+      return Promise.all(
+        [
+          storePublicKey(publicKey),
+          storePrivateKey(privateKey)
+        ]
+      )
+    }).then(() => {
+      Alert.alert("Success", "Keys  saved successfully");
+    }).catch(ex => {
+      Alert.alert("Error", ex.message);
+      console.log("EXCEPTION ==> ", ex);
+    });
+  }
+
   return <>
-    <View style={styles.container}>
-      {privateKey && <Text style={{ marginVertical: 12 }}>{privateKey}</Text>}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
+      {privateKey && <Text style={{ marginBottom: 12 }}>PRIVATE KEY: {privateKey}</Text>}
+      {publicKey && <Text style={{ marginVertical: 12 }}>PUBLIC KEY: {publicKey}</Text>}
+      <View style={{ height: 24 }} />
       <Button
         onPress={onImportKey}
-        title="Import Key" />
-    </View>
+        title="Import Key"
+      />
+      <View style={{ height: 24 }} />
+      {publicKey && <Button
+        onPress={onUseKey}
+        title="Use Imported Key"
+      />}
+    </ScrollView>
     <CenteredModal
       isVisible={passphraseModal}
       onClose={() => { setPassphraseModal(false) }}
@@ -86,8 +148,13 @@ const ImportKeyScreen = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
   },
+  contentContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 24,
+    margin: 16,
+    backgroundColor: 'white',
+  }
 })
 
 export default ImportKeyScreen;

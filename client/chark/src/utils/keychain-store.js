@@ -55,3 +55,16 @@ export const storePublicKey = (key) => {
 export const retrieveKey = (service) => {
   return Keychain.getGenericPassword({ service: service })
 };
+
+export const isKeyStored = async () => {
+  try {
+    const privateCreds = await retrieveKey(keyServices.privateKey);
+    if (privateCreds) {
+      return true;
+    }
+    return false;
+  } catch (ex) {
+    console.log("EXCEPTION ==> ", ex);
+    return false;
+  }
+}

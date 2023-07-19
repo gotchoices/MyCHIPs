@@ -3,7 +3,7 @@ import { TextEncoder, TextDecoder } from 'web-encoding';
 import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
 import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
 
-import { retrieveKey, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
+import { isKeyStored, retrieveKey, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
 
 import CenteredModal from '../../../../components/CenteredModal';
 import ExportModal from '../ExportModal';
@@ -57,6 +57,7 @@ const PostGenerate = (props) => {
 
   const verifyMessage = async () => {
     const creadentials = await retrieveKey(keyServices.publicKey);
+    console.log("PUBLIC_KEY ==> ", creadentials.password);
     verifySignature(
       signature,
       message,
@@ -73,6 +74,22 @@ const PostGenerate = (props) => {
     });
   }
 
+  const checkIfKeyStored = async () => {
+    const stored = await isKeyStored();
+    if (stored) {
+      Alert.alert(
+        "Generate Keys",
+        "Keys already exist, are you sure you want to proceed with new keys?",
+        [
+          { text: "Cancel" },
+          { text: "Proceed", onPress: storeKeys }
+        ]
+      );
+    } else {
+      storeKeys();
+    }
+  }
+
   const storeKeys = () => {
     updatePublicKey(wm, {
       public_key: publicKey,
@@ -80,7 +97,6 @@ const PostGenerate = (props) => {
         user_ent
       }
     }).then(result => {
-      console.log("PUBLIC KEY UP ==> ", result);
       return Promise.all(
         [
           storePublicKey(JSON.stringify(publicKey)),
@@ -94,6 +110,7 @@ const PostGenerate = (props) => {
       console.log("EXCEPTION ==> ", ex);
     });
   }
+
 
   const getMyKey = async () => {
     try {
@@ -130,22 +147,10 @@ const PostGenerate = (props) => {
             }
             <View style={{ width: 16 }} />
             <Button
-              onPress={storeKeys}
-              title='Save Keys'
+              onPress={checkIfKeyStored}
+              title='Use Generated Keys'
             />
           </View>
-
-          {/* <View style={[styles.row, { marginTop: 1 }]}>
-            <Button
-              onPress={storeKeys}
-              title='Save Keys'
-            />
-            <View style={{ width: 16 }} />
-            <Button
-              onPress={getMyKey}
-              title='Get Pvt Key'
-            />
-          </View> */}
 
           {/* <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
             <Button

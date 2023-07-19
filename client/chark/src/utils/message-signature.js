@@ -15,6 +15,7 @@ export const createSignature = (message) => {
       retrieveKey(keyServices.privateKey)
         .then(creds => {
           if (creds) {
+            console.log("PRIVATE KEY ==> ", creds.password);
             return subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
           } else {
             throw { isKeyAvailable: false, message: "Create Keys!" };
