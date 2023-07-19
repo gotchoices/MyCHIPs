@@ -92,9 +92,9 @@ const CommonTallyView = (props) => {
           </View>
 
           {
-            connects.length > 0 && <View>
+            connects?.length > 0 && <View>
               {
-                connects.map((connect, index) => {
+                connects?.map((connect, index) => {
                   const media = connect.media;
                   const link = media === 'email' ? 'mailto:' : 'tel:';
                   return <View key={`${connect?.address}${index}`} style={styles.detailControl}>
