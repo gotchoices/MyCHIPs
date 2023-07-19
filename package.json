@@ -72,6 +72,7 @@
     "node-fetch": "^2.6.7",
     "nodemailer": "^6.8.0",
     "noise-protocol": "^3.0.1",
+    "pdfmake": "^0.2.7",
     "pg-format": "^1.0.4",
     "qr-image": "^3.2.0",
     "sharp": "^0.32.1",

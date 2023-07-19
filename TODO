@@ -1,7 +1,14 @@
 TODO:
 X- Test/document where tally accept protocol fails
-- Add reset and submit buttons for Trading Variables report (in user's language)
 - Make basic tally/contract viewer report
+X-  Implement simple static pdf to test features of PDFMake library
+-  How to tell which contracts can be top-level tally contracts?
+-  Which properties to include in tally.contract field
+-  Build agreement Exhibit from tally contents
+-  Nested query that returns all contract components in a single query
+-  Build agreement pdf from actual contract
+- 
+- Add reset and submit buttons for Trading Variables report (in user's language)
 - 
 
 - Tally protocol support

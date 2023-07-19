@@ -913,7 +913,7 @@ create view wm.column_pub as select
   , coalesce(vt.help, nt.help)			as help
   from		wm.column_data cd
     left join	wm.column_text vt	on vt.ct_sch = cd.cdt_sch and vt.ct_tab = cd.cdt_tab and vt.ct_col = cd.cdt_col
-    left join	wm.column_text nt	on nt.ct_sch = cd.nat_sch and nt.ct_tab = cd.nat_tab and nt.ct_col = cd.nat_col
+    left join	wm.column_text nt	on nt.ct_sch = cd.nat_sch and nt.ct_tab = cd.nat_tab and nt.ct_col = cd.nat_col and cd.nat_tab != cd.cdt_tab
 
     where	cd.cdt_col != '_oid'
     and		cd.field >= 0;
@@ -4263,6 +4263,7 @@ create function mychips.tally_notify_user(ent text, seq int, oldstate text = 'op
           'target',	'tally',
           'entity',	trec.tally_ent,
           'sequence',	trec.tally_seq,
+          'action',	trec.action,
           'state',	trec.state,
           'object',	trec.json
         );
@@ -5944,7 +5945,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','hold_cid','eng','Holder CHIP ID','Cached value of holder''s CHIP identity from the holder certificate'),
   ('mychips','tallies','hold_sets','eng','Holder Settings','The current terms the holder has asserted on the tally'),
   ('mychips','tallies','hold_sig','eng','Holder Signed','The digital signature of the entity that owns/holds this tally'),
-  ('mychips','tallies','hold_terms','eng','Holder Terms','The terms the tally holder grants to the partner'),
+  ('mychips','tallies','hold_terms','eng','Holder Terms','The terms the tally holder sets for its partner'),
   ('mychips','tallies','mod_by','eng','Modified By','The user who last modified this record'),
   ('mychips','tallies','mod_date','eng','Modified','The date this record was last modified'),
   ('mychips','tallies','net_c','eng','Signed Good Units','Total milliCHIP value of committed chits'),
@@ -5955,7 +5956,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','part_ent','eng','Partner Entity','The entity id number of the other party to this tally'),
   ('mychips','tallies','part_sets','eng','Partner Settings','The current terms the partner has asserted on the tally'),
   ('mychips','tallies','part_sig','eng','Partner Signed','The digital signature of the other party to this tally'),
-  ('mychips','tallies','part_terms','eng','Partner Terms','The terms the tally partner grants to the holder'),
+  ('mychips','tallies','part_terms','eng','Partner Terms','The terms thepartner set for the tally holder'),
   ('mychips','tallies','request','eng','Request','Requested next status for the tally'),
   ('mychips','tallies','reward','eng','Buy Margin','A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.'),
   ('mychips','tallies','status','eng','Status','Current status of the tally record'),
@@ -6352,6 +6353,10 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','routes','status','good','eng','Good','The upstream peer server has answered that this route is possible'),
   ('mychips','routes','status','none','eng','None','The upstream peer server has answered that this route is not possible'),
   ('mychips','routes','status','pend','eng','Pending','A request has been made upstream to discover this route but no further status is yet known locally'),
+  ('mychips','tallies','hold_terms','call','eng','Call Period','After the holder demands payment of a balance, the partner is allowed this many days to comply'),
+  ('mychips','tallies','hold_terms','limit','eng','Credit Limit','Maximum amount the partner may become indebted to the tally holder'),
+  ('mychips','tallies','part_terms','call','eng','Call Period','After the partner demands payment of a balance, the tally holder is allowed this many days to comply'),
+  ('mychips','tallies','part_terms','limit','eng','Credit Limit','Maximum amount the tally holder may become indebted to the partner'),
   ('mychips','tallies','request','close','eng','Close','One party is requesting to discontinue further trading on this tally'),
   ('mychips','tallies','request','draft','eng','Draft','One party is suggesting terms for a tally'),
   ('mychips','tallies','request','open','eng','Open','One party is requesting to open the tally according to the specified terms'),
@@ -6452,6 +6457,10 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','UCM','eng','Bad User Certificate','An open tally must contain a user certificate'),
   ('mychips','tallies','USM','eng','Bad User Signature','An open tally must contain a user signature'),
   ('mychips','tallies','VER','eng','Bad Tally Version','Tally version must be 1 or greater'),
+  ('mychips','tallies_v_me','agree','eng','Tally Agreement','Generate the tally agreement as a printable PDF document'),
+  ('mychips','tallies_v_me','agree.format','eng','Agreement Format','How to return the tally agreement report data'),
+  ('mychips','tallies_v_me','agree.format.html','eng','html','Return HTML fragment that contains the report'),
+  ('mychips','tallies_v_me','agree.format.url','eng','url','Return an url link to a web page containing the report'),
   ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
   ('mychips','tallies_v_me','file','eng','Document File','Fetch any partner file attachements the referenced tally'),
   ('mychips','tallies_v_me','file.digest','eng','File Digest','Specify the base64url hash of a single document file to return'),
@@ -6470,6 +6479,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
     <p>You can propose a new tally from the action menu in the Editing pane.
   '),
   ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationships'),
+  ('mychips','tallies_v_me','notify.draft','eng','Initiate Tally','Someone wants to engage with your invitation to open a MyCHIPs tally ledger'),
+  ('mychips','tallies_v_me','notify.P.offer','eng','Tally Offer','You have received an offer to open a MyCHIPs tally ledger'),
   ('mychips','tallies_v_me','TIL','eng','Good Until','Invitation expires after this time'),
   ('mychips','tallies_v_me','TIN','eng','Tally Invitation','Follow link to consider tally'),
   ('mychips','tallies_v_me','TMK','eng','Bad Key Number','The tally invitation must be called for exactly one tally'),
@@ -6796,7 +6807,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','tallies_v_liftss','7','" "','t'),
   ('mychips','tallies_v_liftss','8','"{"','t'),
   ('mychips','tallies_v_liftss','9','"b"','t'),
-  ('mychips','tallies_v_me','actions','[{"ask": 1, "name": "close"}, {"name": "invite", "render": "html", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link", "json"]}]}, {"name": "trade", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}, {"name": "file", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "json"]}, {"tag": "digest", "input": "text"}]}]','f'),
+  ('mychips','tallies_v_me','actions','[{"ask": 1, "name": "close"}, {"name": "invite", "render": "html", "options": [{"tag": "reuse", "input": "chk", "onvalue": "t", "offvalue": "f"}, {"tag": "format", "input": "pdm", "values": ["qr", "link", "json"]}]}, {"name": "trade", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}, {"name": "file", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "json"]}, {"tag": "digest", "input": "text"}]}, {"name": "agree", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}]','f'),
   ('mychips','tallies_v_me','display','["tally_ent", "tally_seq", "tally_type", "part_ent", "part_name", "dr_limit", "cr_limit", "total"]','t'),
   ('mychips','tallies_v_me','launch','{"import": "json.import", "initial": "1,"}','t'),
   ('mychips','tallies_v_me','subviews','["mychips.chits_v_me"]','t'),
@@ -9655,6 +9666,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -9805,6 +9822,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
+  ('wm','language','col','wm','language','col','f','t'),
+  ('wm','language','fr_help','wm','language','fr_help','f','f'),
+  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
+  ('wm','language','fr_title','wm','language','fr_title','f','f'),
+  ('wm','language','help','wm','table_text','help','t','f'),
+  ('wm','language','language','wm','table_text','language','t','f'),
+  ('wm','language','obj','wm','language','obj','f','f'),
+  ('wm','language','sch','wm','language','sch','f','t'),
+  ('wm','language','sorter','wm','language','sorter','f','f'),
+  ('wm','language','tab','wm','language','tab','f','t'),
+  ('wm','language','tag','wm','language','tag','f','t'),
+  ('wm','language','title','wm','table_text','title','t','f'),
+  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
