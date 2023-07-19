@@ -9,6 +9,7 @@ import { random } from '../../../../utils/common';
 import useCurrentUser from '../../../../hooks/useCurrentUser';
 import useProfile from '../../../../hooks/useProfile';
 import useMessageText from '../../../../hooks/useMessageText';
+import useSocket from '../../../../hooks/useSocket';
 
 import AddressInput from './AddressInput';
 import HelpText from '../../../../components/HelpText';
@@ -19,7 +20,7 @@ const Address = (props) => {
   const { user } = useCurrentUser();
   const { messageText } = useMessageText();
   const { wm } = useSocket();
-  const profileText = messageText?.profile ?? {};
+  const addrFlatText = messageText?.addr_v_flat ?? {};
 
   const [updating, setUpdating] = useState(false);
   const [mail, setMail] = useState([]);
@@ -250,8 +251,8 @@ const Address = (props) => {
       <View style={styles.addressSection}>
         <View style={styles.header}>
           <HelpText
-            label={profileText?.mail_addr?.title ?? ''}
-            helpText={profileText?.mail_addr?.help}
+            label={addrFlatText?.mail_addr?.title ?? ''}
+            helpText={addrFlatText?.mail_addr?.help}
             style={styles.title}
           />
         </View>
@@ -282,8 +283,8 @@ const Address = (props) => {
       <View style={styles.addressSection}>
         <View style={styles.header}>
           <HelpText
-            label={profileText?.phys_addr?.title ?? ''}
-            helpText={profileText?.phys_addr?.help}
+            label={addrFlatText?.phys_addr?.title ?? ''}
+            helpText={addrFlatText?.phys_addr?.help}
             style={styles.title}
           />
         </View>

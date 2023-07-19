@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 
 Header.propTypes = {
   title: PropTypes.string.isRequired, 
-  helpTExt: PropTypes.string,
+  helpText: PropTypes.string,
   onEditPress: PropTypes.func,
 }
 

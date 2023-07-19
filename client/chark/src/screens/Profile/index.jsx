@@ -12,7 +12,7 @@ import useSocket from '../../hooks/useSocket';
 
 import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
-import { useProfileText } from '../../hooks/useLanguage';
+import { useCommunication, useUser, useAddressV, useAddressVFlat } from '../../hooks/useLanguage';
 import { getComm, getAddresses, uploadImage } from '../../services/profile';
 
 import Avatar from './Avatar';
@@ -34,7 +34,12 @@ const Profile = (props) => {
     setCommunications,
     setAddresses,
   } = useProfile();
-  const profileText = useProfileText(wm);
+
+  // Registering necessary text hooks for current language
+  const commText = useCommunication(wm);
+  useAddressV(wm);
+  useAddressVFlat(wm);
+  useUser(wm);
 
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
@@ -112,8 +117,8 @@ const Profile = (props) => {
 
         <View style={{ marginBottom: 16 }}>
           <Details
-            title={profileText?.email_comm?.title ?? ''}
-            helpText={profileText?.email_comm?.help ?? ''}
+            title={commText?.email_comm?.title ?? ''}
+            helpText={commText?.email_comm?.help ?? ''}
             rowField="comm_spec"
             primaryField="comm_prim"
             items={emails}
@@ -123,8 +128,8 @@ const Profile = (props) => {
 
         <View style={{ marginBottom: 16 }}>
           <Details
-            title={profileText?.phone_comm?.title ?? ''}
-            helpText={profileText?.phone_comm?.help ?? ''}
+            title={commText?.phone_comm?.title ?? ''}
+            helpText={commText?.phone_comm?.help ?? ''}
             rowField="comm_spec"
             primaryField="comm_prim"
             items={phones}

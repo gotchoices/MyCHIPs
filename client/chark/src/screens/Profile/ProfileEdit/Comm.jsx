@@ -26,7 +26,7 @@ import Button from '../../../components/Button';
 
 import styles from './styles';
 
-const commText = {
+const communicationText = {
   email: 'Email',
   phone: 'Phone',
 };
@@ -41,7 +41,7 @@ const Comm = (props) => {
   const [primary, setPrimary] = useState();
   const { wm } = useSocket();
   const { messageText } = useMessageText();
-  const profileText = messageText?.profile ?? {};
+  const commText = messageText?.comm ?? {};
 
   const [updating, setUpdating] = useState(false);
   const [keys, setKeys] = useState([]);
@@ -240,15 +240,15 @@ const Comm = (props) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <HelpText
-            label={profileText?.[`${profileType}_comm`]?.title ?? ''}
-            helpText={profileText?.[`${profileType}_comm`]?.help}
+            label={commText?.[`${profileType}_comm`]?.title ?? ''}
+            helpText={commText?.[`${profileType}_comm`]?.help}
             style={styles.headerText}
           />
 
           <TouchableWithoutFeedback
             onPress={onPrimaryChangeClick}
           >
-            <Text style={{ color: colors.blue }}>Change Primary {commText[profileType]}</Text>
+            <Text style={{ color: colors.blue }}>Change Primary {communicationText[profileType]}</Text>
           </TouchableWithoutFeedback>
         </View>
 
