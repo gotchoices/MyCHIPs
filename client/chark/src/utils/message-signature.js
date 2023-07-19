@@ -17,7 +17,7 @@ export const createSignature = (message) => {
           if (creds) {
             return subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
           } else {
-            throw Error(message = "Please create keys to proceed.",);
+            throw { isKeyAvailable: false, message: "Create Keys!" };
           }
         })
         .then(pvtKey => subtle.sign(SignConfig, pvtKey, data))

@@ -147,7 +147,7 @@ const PostGenerate = (props) => {
             />
           </View> */}
 
-          <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
+          {/* <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
             <Button
               onPress={signMessage}
               title='Sign Message'
@@ -157,7 +157,7 @@ const PostGenerate = (props) => {
               onPress={verifyMessage}
               title='Verify Message'
             />
-          </View>
+          </View> */}
 
           <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
             <Button
