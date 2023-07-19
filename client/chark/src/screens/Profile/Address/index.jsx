@@ -11,7 +11,8 @@ import Header from '../Details/Header';
 const Address = (props) => {
   const { addresses } = useProfile();
   const { messageText } = useMessageText();
-  const profileText = messageText?.profile ?? {};
+  const addrVText = messageText?.addr_v ?? {};
+  const addrFlatText = messageText?.addr_v_flat ?? {};
 
   const addressObj = useMemo(() => {
     const mail = [];
@@ -41,18 +42,18 @@ const Address = (props) => {
 
   const _addresses = [
     {
-      title: profileText?.mail_addr?.title ?? '',
-      helpText: profileText?.mail_addr?.help ?? '',
+      title: addrFlatText?.mail_addr?.title ?? '',
+      helpText: addrFlatText?.mail_addr?.help ?? '',
       items: addressObj?.mail ?? [],
     },
     {
-      title: profileText?.phys_addr?.title ?? '',
-      helpText: profileText?.phys_addr?.help ?? '',
+      title: addrFlatText?.phys_addr?.title ?? '',
+      helpText: addrFlatText?.phys_addr?.help ?? '',
       items: addressObj?.physical ?? [],
     },
     {
       title: 'Birth Address',
-      helpText: profileText?.birth_addr?.help ?? '',
+      helpText: addrFlatText?.birth_addr?.help ?? '',
       items: addressObj?.birth?.length ? [addressObj?.birth?.[0]] : [],
     },
   ];
@@ -67,7 +68,8 @@ const Address = (props) => {
   return (
     <View style={styles.container}>
       <Header 
-        title="Addresses"
+        title={addrVText?.addr_spec?.title ?? ''}
+        helpText={addrVText?.addr_spec?.help ?? ''}
         onEditPress={onEditPress}
       />
 

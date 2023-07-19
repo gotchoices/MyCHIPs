@@ -8,11 +8,13 @@ import useCurrentUser from '../../hooks/useCurrentUser';
 import useProfile from '../../hooks/useProfile';
 import { languageMap } from '../../utils/language';
 import useSocket from '../../hooks/useSocket';
+import { useExchange } from '../../hooks/useLanguage';
 
 import Language from './Language';
 import CenteredModal from '../../components/CenteredModal';
 import Button from '../../components/Button';
 import GenerateKey from './GenerateKey';
+import HelpText from '../../components/HelpText';
 
 import profileImg from '../../../assets/profile.png';
 import Currency from './Currency';
@@ -29,6 +31,7 @@ const Setting = (props) => {
   const [isSelectCurrencyVisible, setIsSelectCurrencyVisible] = useState(false);
 
   const { wm } = useSocket();
+  const exchange = useExchange(wm)
 
   const { user } = useCurrentUser();
   const user_ent = user?.curr_eid;
@@ -109,10 +112,11 @@ const Setting = (props) => {
 
       <View style={[styles.menu, { marginTop: 10 }]}>
         <View>
-          <Text style={styles.menuTitle}>
-            Currency
-          </Text>
-
+          <HelpText
+            label={exchange?.curr?.title ?? ''}
+            helpText={exchange?.curr?.help ?? ''}
+            style={styles.menuTitle}
+          />
 
           <Text style={styles.language}>
             {
