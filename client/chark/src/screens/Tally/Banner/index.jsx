@@ -9,6 +9,7 @@ import useProfile from '../../../hooks/useProfile';
 
 import Header from '../Header';
 import Avatar from '../../../components/Avatar';
+import { ChitIcon, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const Banner = (props) => {
   const { avatar, personal } = useProfile();
@@ -22,7 +23,7 @@ const Banner = (props) => {
   return (
     <View style={styles.container}>
       <Header
-        icon={visualBtn}
+        icon={<VisualIcon />}
         title="Tally Report"
         onClick={navigateToReport}
       />
@@ -36,7 +37,8 @@ const Banner = (props) => {
               <Text>Net CHIP balance</Text>
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Image source={isNetNegative ? mychipsNeg : mychips} />
+                {/* <Image source={isNetNegative ? mychipsNeg : mychips} /> */}
+                <ChitIcon color={isNetNegative ? colors.red : colors.green} />
                 <Text style={isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet}>
                   {props.totalNet}
                 </Text>

@@ -33,6 +33,9 @@ const EditOpenTally = (props) => {
     }).then(data => {
       if (data?.length) {
         const _tally = data?.[0];
+
+        console.log("TALLY_EDIT_TALLY ==> ", _tally);
+
         setTally(_tally);
         setTarget((_tally?.target ?? '').toString())
         setBound((_tally?.bound ?? '').toString())

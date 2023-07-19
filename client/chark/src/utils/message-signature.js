@@ -13,7 +13,13 @@ export const createSignature = (message) => {
       const encoder = new TextEncoder();
       const data = encoder.encode(message);
       retrieveKey(keyServices.privateKey)
-        .then(creds => subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']))
+        .then(creds => {
+          if (creds) {
+            return subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
+          } else {
+            throw Error(message = "Please create keys to proceed.",);
+          }
+        })
         .then(pvtKey => subtle.sign(SignConfig, pvtKey, data))
         .then(signature => resolve(Buffer.from(signature).toString('base64')))
         .catch(ex => reject(ex));

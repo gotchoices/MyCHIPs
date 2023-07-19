@@ -1,18 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { colors } from "../../../../config/constants";
 import moment from 'moment';
 import { round } from "../../../../utils/common";
-import mychips from '../../../../../assets/mychips-large.png';
-import mychipsNeg from '../../../../../assets/mychips-red-large.png';
 import useProfile from "../../../../hooks/useProfile";
 import { getCurrency } from "../../../../services/user";
+import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
 
 const ChistHistoryHeader = (props) => {
   const { part_name, cid, date, net, wm } = props.args ?? {};
   const { preferredCurrency } = useProfile();
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
+
 
   useEffect(() => {
     if (currencyCode) {
@@ -41,16 +41,16 @@ const ChistHistoryHeader = (props) => {
         <View style={{ alignItems: 'flex-start' }}>
           <Text style={[styles.label, { fontWeight: 'bold' }]}>Balance</Text>
           <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 8 }]}>
-            <Image source={isNetNegative ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
+            <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
             <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net ?? 0) / 1000, 3)}</Text>
           </View>
           {conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
         </View>
         <Text style={styles.label}>{moment(date).format(`MMM DD, YYYY`)}</Text>
-      </View>
+      </View >
       <Text style={[styles.title, { marginTop: 12 }]}>{part_name}</Text>
       <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cid}</Text>
-    </View>
+    </View >
     <Text style={[
       styles.title,
       {
@@ -61,7 +61,7 @@ const ChistHistoryHeader = (props) => {
     ]}>
       Latest Chits
     </Text>
-  </View>
+  </View >
 }
 
 const styles = StyleSheet.create({
@@ -90,10 +90,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  image: {
-    height: 28,
-    width: 26,
   },
   currency: {
     fontSize: 14,

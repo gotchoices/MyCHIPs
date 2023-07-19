@@ -46,8 +46,10 @@ import ShareTally from './src/screens/ShareTally';
 import ChitHistory from './src/screens/Tally/ChitHistory';
 import ImportKeyScreen from './src/screens/ImportKeyScreen';
 import ChitDetail from './src/screens/Tally/ChitDetail';
+import CustomIcon from './src/components/CustomIcon';
 
 const HomeStack = createNativeStackNavigator();
+
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
@@ -147,8 +149,8 @@ function App() {
                     name="Tally"
                     component={HomeStackScreen}
                     options={{
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-home.png")} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="home" {...props} />
                       )
                     }}
                   />
@@ -157,8 +159,8 @@ function App() {
                     name="Receive"
                     component={ReceiveScreen}
                     options={{
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-receive.png")} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="receive" {...props} />
                       )
                     }}
                   />
@@ -168,8 +170,8 @@ function App() {
                     component={Scanner}
                     options={{
                       unmountOnBlur: true,
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-scan.png")} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="scan" {...props} />
                       )
                     }}
                   />
@@ -180,8 +182,8 @@ function App() {
                     options={{
                       tabBarTestID: "inviteTestID",
                       lazy: false,
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-invite.png")} />
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="invite" {...props} />
                       )
                     }}
                   />
@@ -190,8 +192,9 @@ function App() {
                     name="Settings"
                     component={SettingStackScreen}
                     options={{
-                      tabBarIcon: () => (
-                        <Image style={styles.button} source={require("./assets/icon-settings.png")} />
+                      lazy: false,
+                      tabBarIcon: (props) => (
+                        <CustomIcon name="settings" {...props} />
                       )
                     }}
                   />

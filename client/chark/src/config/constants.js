@@ -6,6 +6,7 @@ export default {
 export const colors = {
   white: '#FFF',
   black: '#000',
+  black100: '#344054',
   green: '#147013',
   blue: '#2196F3',
   red: '#FA2E69',
@@ -31,4 +32,10 @@ export const qrType = {
 export const keyServices = {
   publicKey: 'public_key',
   privateKey: 'private_key',
+}
+
+export const connectsObj = {
+  "email":"Email",
+  "phone":"Phone",
+  "cell": "Cell"
 }

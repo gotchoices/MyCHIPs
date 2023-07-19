@@ -11,6 +11,7 @@ import { getTallyReport } from '../../../services/user';
 import Header from '../Header';
 
 import tabularBtn from '../../../../assets/tabular-button.png';
+import { TabularIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const TallyReport = (props) => {
   const [graph, setGraph] = useState();
@@ -53,7 +54,7 @@ const TallyReport = (props) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Header
-          icon={tabularBtn}
+          icon={<TabularIcon />}
           title="Tally Report"
           onClick={navigateBalanceSheet}
         />
