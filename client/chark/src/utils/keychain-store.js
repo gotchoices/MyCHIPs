@@ -60,11 +60,11 @@ export const isKeyStored = async () => {
   try {
     const privateCreds = await retrieveKey(keyServices.privateKey);
     if (privateCreds) {
-      return true;
+      return { keyStored: true, message: "Keys already exist, are you sure you want to override with new keys?" };
     }
-    return false;
+    return { keyStored: false };
   } catch (ex) {
     console.log("EXCEPTION ==> ", ex);
-    return false;
+    return { keyStored: false };
   }
 }

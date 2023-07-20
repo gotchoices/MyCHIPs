@@ -25,16 +25,12 @@ const PostGenerate = (props) => {
   const { wm } = useSocket();
 
   const user_ent = user?.curr_eid;
-
-  const subtle = window.crypto.subtle;
   const publicKey = props.publicKey;
   const privateKey = props.privateKey;
 
   const [passphrase, setPassphrase] = useState(undefined);
   const [showModal, setShowModal] = useState(false);
   const [passphraseModal, setPassphraseModal] = useState(false);
-
-  // For testing only
   const [signature, setSignature] = useState()
 
   useEffect(() => {
@@ -75,11 +71,11 @@ const PostGenerate = (props) => {
   }
 
   const checkIfKeyStored = async () => {
-    const stored = await isKeyStored();
-    if (stored) {
+    const { keyStored, message } = await isKeyStored();
+    if (keyStored) {
       Alert.alert(
         "Generate Keys",
-        "Keys already exist, are you sure you want to proceed with new keys?",
+        message,
         [
           { text: "Cancel" },
           { text: "Proceed", onPress: storeKeys }
@@ -111,22 +107,8 @@ const PostGenerate = (props) => {
     });
   }
 
-
-  const getMyKey = async () => {
-    try {
-      const credentials = await retrieveKey(keyServices.privateKey)
-      Alert.alert("Success", `Key Fetched : ${credentials.password}`);
-    } catch (err) {
-      Alert.alert("Error", err.message);
-    }
-  }
-
   const onExportKeys = () => {
     setPassphraseModal(true);
-    /*  console.log("Private Key ", privateKey);
-    exportFile(privateKey).then(file => {
-      console.log("Key Here", file);
-    }) */
   }
 
   return (
@@ -179,7 +161,10 @@ const PostGenerate = (props) => {
       >
         <ExportModal
           privateKey={JSON.stringify(privateKey)}
-          cancel={() => setShowModal(false)}
+          cancel={() => {
+            setPassphrase(undefined);
+            setShowModal(false);
+          }}
           passphrase={passphrase}
         />
       </CenteredModal>

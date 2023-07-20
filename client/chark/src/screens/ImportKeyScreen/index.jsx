@@ -9,7 +9,6 @@ import { isKeyStored, storePrivateKey, storePublicKey } from "../../utils/keycha
 import { updatePublicKey } from "../../services/profile";
 import useCurrentUser from "../../hooks/useCurrentUser";
 import useSocket from "../../hooks/useSocket";
-import { Buffer } from "buffer";
 
 const ImportKeyScreen = (props) => {
   const params = props.route?.params;
@@ -77,11 +76,11 @@ const ImportKeyScreen = (props) => {
   }
 
   const onUseKey = async () => {
-    const stored = await isKeyStored();
-    if (stored) {
+    const { keyStored, message } = await isKeyStored();
+    if (keyStored) {
       Alert.alert(
         "Generate Keys",
-        "Keys already exist, are you sure you want to proceed with new keys?",
+        message,
         [
           { text: "Cancel" },
           { text: "Proceed", onPress: storeKeys }

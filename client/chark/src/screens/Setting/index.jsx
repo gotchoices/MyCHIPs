@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, TouchableWithoutFeedback, Text, StyleSheet, Image, Platform, NativeModules } from 'react-native';
+import { View, TouchableOpacity, TouchableWithoutFeedback, Text, StyleSheet, Image, Platform, NativeModules, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
@@ -16,6 +16,7 @@ import GenerateKey from './GenerateKey';
 
 import profileImg from '../../../assets/profile.png';
 import Currency from './Currency';
+import ExportKey from './GenerateKey/ExportKey';
 
 const deviceLanguage =
   Platform.OS === 'ios'
@@ -65,7 +66,10 @@ const Setting = (props) => {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <View style={styles.profile}>
         <Image
           style={styles.profileImage}
@@ -150,6 +154,10 @@ const Setting = (props) => {
         </TouchableOpacity>
       </View>
 
+      <View style={[styles.menu, { marginTop: 10 }]}>
+        <ExportKey menuStyle={styles.menuTitle} />
+      </View>
+
       <CenteredModal
         isVisible={isLangModalVisible}
         onClose={onCancel}
@@ -163,13 +171,15 @@ const Setting = (props) => {
       >
         <Currency onCancel={cancelSelectCurrency} />
       </CenteredModal>
-    </View>
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  contentContainer: {
     padding: 16,
   },
   profile: {

@@ -154,11 +154,12 @@ export const updatePublicKey = (wm, args) => {
   const fields = {
     peer_psig: args.public_key,
   }
-
   const spec = {
     fields,
     view: 'mychips.users_v_me',
-    where: args.where,
+  }
+  if (args.where) {
+    spec.where = args.where;
   }
   return request(wm, "_update_key" + random(), 'update', spec);
 }
