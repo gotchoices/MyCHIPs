@@ -55,3 +55,16 @@ export const storePublicKey = (key) => {
 export const retrieveKey = (service) => {
   return Keychain.getGenericPassword({ service: service })
 };
+
+export const isKeyStored = async () => {
+  try {
+    const privateCreds = await retrieveKey(keyServices.privateKey);
+    if (privateCreds) {
+      return { keyStored: true, message: "Keys already exist, are you sure you want to override with new keys?" };
+    }
+    return { keyStored: false };
+  } catch (ex) {
+    console.log("EXCEPTION ==> ", ex);
+    return { keyStored: false };
+  }
+}

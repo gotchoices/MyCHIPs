@@ -3,7 +3,7 @@ import { TextEncoder, TextDecoder } from 'web-encoding';
 import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
 import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
 
-import { retrieveKey, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
+import { isKeyStored, retrieveKey, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
 
 import CenteredModal from '../../../../components/CenteredModal';
 import ExportModal from '../ExportModal';
@@ -25,16 +25,12 @@ const PostGenerate = (props) => {
   const { wm } = useSocket();
 
   const user_ent = user?.curr_eid;
-
-  const subtle = window.crypto.subtle;
   const publicKey = props.publicKey;
   const privateKey = props.privateKey;
 
   const [passphrase, setPassphrase] = useState(undefined);
   const [showModal, setShowModal] = useState(false);
   const [passphraseModal, setPassphraseModal] = useState(false);
-
-  // For testing only
   const [signature, setSignature] = useState()
 
   useEffect(() => {
@@ -57,6 +53,7 @@ const PostGenerate = (props) => {
 
   const verifyMessage = async () => {
     const creadentials = await retrieveKey(keyServices.publicKey);
+    console.log("PUBLIC_KEY ==> ", creadentials.password);
     verifySignature(
       signature,
       message,
@@ -73,6 +70,22 @@ const PostGenerate = (props) => {
     });
   }
 
+  const checkIfKeyStored = async () => {
+    const { keyStored, message } = await isKeyStored();
+    if (keyStored) {
+      Alert.alert(
+        "Generate Keys",
+        message,
+        [
+          { text: "Cancel" },
+          { text: "Proceed", onPress: storeKeys }
+        ]
+      );
+    } else {
+      storeKeys();
+    }
+  }
+
   const storeKeys = () => {
     updatePublicKey(wm, {
       public_key: publicKey,
@@ -80,7 +93,6 @@ const PostGenerate = (props) => {
         user_ent
       }
     }).then(result => {
-      console.log("PUBLIC KEY UP ==> ", result);
       return Promise.all(
         [
           storePublicKey(JSON.stringify(publicKey)),
@@ -95,21 +107,8 @@ const PostGenerate = (props) => {
     });
   }
 
-  const getMyKey = async () => {
-    try {
-      const credentials = await retrieveKey(keyServices.privateKey)
-      Alert.alert("Success", `Key Fetched : ${credentials.password}`);
-    } catch (err) {
-      Alert.alert("Error", err.message);
-    }
-  }
-
   const onExportKeys = () => {
     setPassphraseModal(true);
-    /*  console.log("Private Key ", privateKey);
-    exportFile(privateKey).then(file => {
-      console.log("Key Here", file);
-    }) */
   }
 
   return (
@@ -130,24 +129,12 @@ const PostGenerate = (props) => {
             }
             <View style={{ width: 16 }} />
             <Button
-              onPress={storeKeys}
-              title='Save Keys'
+              onPress={checkIfKeyStored}
+              title='Use Generated Keys'
             />
           </View>
 
-          {/* <View style={[styles.row, { marginTop: 1 }]}>
-            <Button
-              onPress={storeKeys}
-              title='Save Keys'
-            />
-            <View style={{ width: 16 }} />
-            <Button
-              onPress={getMyKey}
-              title='Get Pvt Key'
-            />
-          </View> */}
-
-          <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
+          {/* <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
             <Button
               onPress={signMessage}
               title='Sign Message'
@@ -157,7 +144,7 @@ const PostGenerate = (props) => {
               onPress={verifyMessage}
               title='Verify Message'
             />
-          </View>
+          </View> */}
 
           <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
             <Button
@@ -174,7 +161,10 @@ const PostGenerate = (props) => {
       >
         <ExportModal
           privateKey={JSON.stringify(privateKey)}
-          cancel={() => setShowModal(false)}
+          cancel={() => {
+            setPassphrase(undefined);
+            setShowModal(false);
+          }}
           passphrase={passphrase}
         />
       </CenteredModal>
