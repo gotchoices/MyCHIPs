@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
+  Text,
 } from 'react-native';
 
 import { colors, keyServices } from '../../../config/constants';
@@ -24,12 +25,14 @@ import { Toast } from 'react-native-toast-message/lib/src/Toast';
 import { offerTally, acceptTally, refuseTally } from '../../../services/tally';
 import { createSignature, verifySignature } from '../../../utils/message-signature';
 import { retrieveKey } from '../../../utils/keychain-store';
+import { GenerateKeysDialog } from './GenerateKeysDialog';
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
 
+  const [showDialog, setShowDialog] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [sig, setSig] = useState(undefined);
   const [json, setJson] = useState(undefined);
@@ -159,7 +162,7 @@ const TallyPreview = (props) => {
     })
   }
 
-  const onAccept = () => {
+  const onAccept = async () => {
     if (!json) {
       Alert.alert("Tally can not be signed");
       return;
@@ -176,24 +179,27 @@ const TallyPreview = (props) => {
       });
       props.navigation.goBack();
     }).catch(err => {
-      Alert.alert("Error", err.message || err);
+      const { isKeyAvailable, message } = err;
+      if (isKeyAvailable === false) {
+        Alert.alert(
+          "Create Keys",
+          "Seems like there is no key to create signature please continue to create one and accept tally.",
+          [
+            { text: "Cancel" },
+            { text: "Continue", onPress: showGenerateKey }
+          ]
+        );
+      } else {
+        Alert.alert("Error", message || err);
+      }
     });
+  }
+  const showGenerateKey = () => {
+    setShowDialog(true);
+  }
 
-    /* acceptTally(wm, {
-      tally_ent,
-      tally_seq,
-    }).then(() => {
-      Toast.show({
-        type: 'success',
-        text1: 'Tally accepted',
-      });
-      props.navigation.goBack();
-    }).catch(() => {
-      return Toast.show({
-        type: 'error',
-        text1: err.message,
-      });
-    }) */
+  const dismissGenerateKey = () => {
+    setShowDialog(false);
   }
 
   const onRefuse = () => {
@@ -253,74 +259,86 @@ const TallyPreview = (props) => {
   const canRefuse = hasPartCert && tally.status === 'offer';
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container]}
-      behavior={Platform.OS === 'ios' ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-    >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={fetchTally}
-          />
-        }
+    <>
+      <KeyboardAvoidingView
+        style={[styles.container]}
+        behavior={Platform.OS === 'ios' ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <TallyEditView
-          tally={tally}
-          tallyType={tallyType}
-          contract={contract}
-          holdTerms={holdTerms}
-          partTerms={partTerms}
-          comment={comment}
-          setComment={setComment}
-          onHoldTermsChange={onHoldTermsChange}
-          onPartTermsChange={onPartTermsChange}
-          setTallyType={setTallyType}
-          setContract={setContract}
-        />
-      </ScrollView>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.contentContainer}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={fetchTally}
+            />
+          }
+        >
+          <TallyEditView
+            tally={tally}
+            tallyType={tallyType}
+            contract={contract}
+            holdTerms={holdTerms}
+            partTerms={partTerms}
+            comment={comment}
+            setComment={setComment}
+            onHoldTermsChange={onHoldTermsChange}
+            onPartTermsChange={onPartTermsChange}
+            setTallyType={setTallyType}
+            setContract={setContract}
+          />
+        </ScrollView>
 
-      <View style={styles.actions}>
-        <CustomButton
-          show={canUpdate}
-          title={updating ? 'Updating...' : 'Update'}
-          disabled={updating}
-          onPress={onUpdate}
-        />
+        <View style={styles.actions}>
+          <CustomButton
+            show={canUpdate}
+            title={updating ? 'Updating...' : 'Update'}
+            disabled={updating}
+            onPress={onUpdate}
+          />
 
-        <CustomButton
-          show={canShare}
-          title="Share"
-          onPress={onShare}
-          style={styles.shareButton}
-        />
+          <CustomButton
+            show={canShare}
+            title="Share"
+            onPress={onShare}
+            style={styles.shareButton}
+          />
 
-        <CustomButton
-          show={canOffer}
-          title="Offer"
-          onPress={onOffer}
-          style={styles.shareButton}
-        />
+          <CustomButton
+            show={canOffer}
+            title="Offer"
+            onPress={onOffer}
+            style={styles.shareButton}
+          />
 
-        <CustomButton
-          show={canAccept}
-          title="Accept"
-          onPress={onAccept}
-          style={{ marginLeft: 10 }}
-        />
+          <CustomButton
+            show={canAccept}
+            title="Accept"
+            onPress={onAccept}
+            style={{ marginLeft: 10 }}
+          />
 
-        <CustomButton
-          show={canRefuse}
-          title="Refuse"
-          onPress={onRefuse}
-          style={styles.refuse}
-        />
-      </View>
-    </KeyboardAvoidingView>
+          <CustomButton
+            show={canRefuse}
+            title="Refuse"
+            onPress={onRefuse}
+            style={styles.refuse}
+          />
+        </View>
+      </KeyboardAvoidingView>
+      <GenerateKeysDialog
+        visible={showDialog}
+        onDismiss={dismissGenerateKey}
+        onError={(err) => {
+          Alert.alert("Error", err);
+        }}
+        onKeySaved={() => {
+          Alert.alert("Success", "Key is generated successfully now you can accept tally.");
+        }}
+      />
+    </>
   )
 }
 
