@@ -24,6 +24,14 @@ to the specified schema.  If you are translating tables/views that are part of w
 make sure to include those in the wyselib/schema/language folder rather than as part of
 the mychips repo.
 
-NOTE: If the language description for a table/view does not exist, there is nothing to
+NOTES:
+
+If the language description for a table/view does not exist, there is nothing to
 relate column/message/value tags to so even though they may import (wm-csv2db), they will 
 not export (wm-db2wmt) and so will be lost.
+
+The following query can show how many tags you have installed for a given language:
+  select sorter,title from wm.language 
+    where fr_lang = 'eng' and language = 'nep' and title notnull
+
+Make sure to have the development schema installed "make dev" to access that view.
