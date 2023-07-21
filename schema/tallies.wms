@@ -365,6 +365,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
     eval(trigview::insert mychips.tallies_v mychips.tallies $tallies::tallies_v_in $tallies::tallies_pk [concat $glob::stampin]);
 } -native {
   {mychips.tallies status digest mod_date}
+  {mychips.tallies_v json}
 }
 
 # Custom update function; Only allow updates of regular fields for draft tally
@@ -395,6 +396,8 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
     where	t.tally_ent = base.user_id(session_user)
 } -grant {
     {tally	{s} {s i u} {d}}
+} -native {
+  {mychips.tallies_v json}
 }
 
 # General routine to build update query string

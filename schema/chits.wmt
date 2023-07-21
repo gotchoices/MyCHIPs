@@ -2,9 +2,9 @@
 #----------------------------------------------------------------
 tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit flow in either direction between the parties to the tally.} [concat {
   {chit_ent	{Tally Entity}		{Entity ID of the owner of the tally this chit belongs to}}
-  {chit_seq	{Tally Sequence}	{Sequence number of the owner of the tally this chit belongs to}}
+  {chit_seq	{Tally Sequence}	{Sequence number of tally this chit belongs to}}
   {chit_idx	{Chit Index}		{A unique identifier within the tally, identifying this chit}}
-  {chit_uuid	{Chit GUID}		{A globally unique identifier for this transaction}}
+  {chit_uuid	{Chit UUID}		{A globally unique identifier for this transaction}}
   {chit_type	{Chit Type}		{The type of transaction represented by this flow of credit} {
     {lift	{Credit Lift}		{The transaction is part of a credit lift, so multiple chits should exist with the same ID number, which all net to zero in their effect to the relevant entity}}
     {tran	{Transaction}		{The credit is granted in exchange for present or future goods, services or other, possibly charitable, consideration.}}
@@ -17,8 +17,18 @@ tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit
   {memo		{Memo}			{Any other human-readable text description, context or explanation for the transaction}}
   {digest	{Digest Hash}		{A hash of the chit transaction that will be digitally signed}}
   {signature	{Signature}		{Digital signature of the party authorizing the transaction}}
-  {request	{Request}		{The state transition algorithm for chits responds to transition requests entered into this field.}}
-  {status	{Status}		{The status field indicates if the state has progressed to the point where the amount of the chit can be considered pending or final}}
+  {status	{Status}		{The status field indicates if the state has progressed to the point where the amount of the chit can be considered pending or final} {
+    {draft	{Draft}			{The chit is proposed or being worked on but does not yet affect the tally value}}
+    {pend	{Pending}		{The chit is part of a lift whose completion status is not yet known}}
+    {good	{Good}			{The chit is duly signed and a valid obligation}}
+    {void	{Void}			{The chit has been marked as invalid and can be ignored}}
+  }}
+  {request	{Request}		{The state transition algorithm for chits responds to transition requests entered into this field.} {
+    {{}		{None}			{No change is requested}}
+    {draft	{Draft}			{The holder requests the chit be moved to draft status}}
+    {good	{Good}			{The holder requests the chit be moved to good status}}
+    {void	{Void}			{The holder requests the chit be moved to void status}}
+  }}
   {chain_idx	{Chain Index}		{Chits are stored in a hash-chain to prevent them from being altered later.  This indicates the order of the chit records in the hash chain.}}
   {chain_send	{Chain Send}		{Holds missing chain information to be communicated to the partner about chit consensus}}
   {chain_prev	{Chain Previous}	{A copy of the hash from the previous chit in the hash chain}}
@@ -62,7 +72,7 @@ tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-li
   {ok		{Chain Valid}		{True if all hashes are correctly computed up through this record}}
   {last		{End of Chain}		{True if this is the last record in the chain}}
   {length	{Length}		{Indicates how many chits are part of the chain}}
-  {uuids	{GUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
+  {uuids	{UUID List}		{Contains a list of all the global IDs for each of the chits (and tally) in the chain}}
 }
 
 tabtext mychips.chit_tries {Chit Retries}	{Tracks how many times the chit state transition algorithm has tried to communicate a transition to a peer} {

@@ -2,7 +2,7 @@
 #----------------------------------------------------------------
 
 tabtext mychips.lifts	{Lifts}		{Contains a record for each group of chits in a segment, belonging to a lift transaction} [concat {
-  {lift_uuid	{Lift GUID}		{A globally unique identifier for this lift.  It will be the same id across all servers who participate in the same transaction.}}
+  {lift_uuid	{Lift UUID}		{A globally unique identifier for this lift.  It will be the same id across all servers who participate in the same transaction.}}
   {lift_seq	{Lift Sequence}		{A lift can cross a single database multiple times.  This will increment for each new lift record created as this happens.}}
   {lift_type	{Lift Type}		{Whether/how this lift record was originated} {
     {in		{Inside}		{The lift is limited to within a single database}}

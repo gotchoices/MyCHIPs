@@ -1,30 +1,38 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 ---
-tabdef mychips.tallies:
+mychips.tallies:
   fields:
-  - [tally_ent,		ent,	6,	[0,15],		{sort: 1, write: 0, hide: 1}]
+  - [tally_ent,		ent,	6,	[0,15],		{hide: 1}]
   - [tally_seq,		ent,	4,	[1,15],		{hide: 1}]
-  - [tally_type,	ent,	6,	[0,1],		{}]
-  - [version,		ent,	40,	[1,1],		{}]
-  - [tally_uuid,	ent,	40,	[0,2],		{}]
-  - [tally_date,	ent,	20,	[1,2],		{}]
-  - [part_ent,		ent,	8,	[2,2],		{}]
-  - [status,		ent,	10,	[0,3],		{}]
-  - [request,		ent,	10,	[1,3],		{}]
-  - [hold_sig,		ent,	20,	[1,4,2],	{}]
-  - [part_sig,		ent,	20,	[3,4,2],	{}]
+  - [tally_type,	pdm,	8,	[0,0],		{ini: stock}]
+  - [status,		ent,	8,	[0,1],		{}]
+  - [reward,		num,	8,	[0,2],		{ini: 0, just: r, attr: {min: -1, max: 1, step: 0.01}}]
+  - [clutch,		num,	8,	[0,3],		{ini: 0, just: r, attr: {min: -1, max: 1, step: 0.01}}]
   - [comment,		ent,	40,	[0,5,4],	{}]
-  - [contract,		ent,	20,	[0,6,4],	{}]
-  - [stock_terms,	mle,	[80,2],	[0,7,2],	{}]
-  - [foil_terms,	mle,	[80,2],	[0,8,4],	{}]
-  - [target,		ent,	8,	[0,9],		{}]
-  - [reward,		ent,	8,	[1,9],		{}]
-  - [clutch,		ent,	8,	[2,9],		{}]
-  - [bound,		ent,	8,	[3,9],		{}]
-  - [dr_limit,		ent,	12,	[0,10],		{}]
-  - [cr_limit,		ent,	12,	[1,10],		{}]
-  - [units,		ent,	16,	[2,10],		{}]
+
+  - [net_c,		ent,	10,	[1,0],		{just: r, wr: 0, sta: readonly}]
+  - [net_pc,		ent,	10,	[1,1],		{just: r, wr: 0, sta: readonly}]
+  - [target,		num,	8,	[1,2],		{ini: 0, just: r, attr: {min: 0}}]
+  - [bound,		num,	8,	[1,3],		{ini: 0, just: r, attr: {min: 0}}]
+  - [tally_uuid,	ent,	40,	[1,4,2],	{}]
+
+  - [tally_date,	ent,	20,	[2,0],		{}]
+  - [request,		pdm,	10,	[2,1],		{}]
+  - [contract,		ent,	20,	[2,2],		{}]
+
+  - [hold_sig,		ent,	10,	[0,7],		{sta: readonly, wr: 0}]
+  - [hold_cid,		ent,	20,	[1,7],		{sta: readonly, wr: 0}]
+  - [hold_agent,	ent,	28,	[2,7],		{sta: readonly, wr: 0}]
+  - [part_sig,		ent,	10,	[0,8],		{sta: readonly, wr: 0}]
+  - [part_cid,		ent,	20,	[1,8],		{sta: readonly, wr: 0}]
+  - [part_agent,	ent,	28,	[2,8],		{sta: readonly, wr: 0}]
+
+  - [version,		ent,	40,	[0,10],		{opt: 1}]
+  - [part_ent,		ent,	8,	[1,10],		{opt: 1}]
+  - [stock_terms,	mle,	[80,2],	[0,11,2],	{opt: 1}]
+  - [foil_terms,	mle,	[80,2],	[0,12,4],	{opt: 1}]
+  
   - [crt_by,     	ent,	10,	[1, 98],	{opt: 1, wr: 0, sta: readonly}]
   - [crt_date,   	inf,	18,	[2, 98],	{opt: 1, wr: 0, sta: readonly}]
   - [mod_by,     	ent,	10,	[1, 99],	{opt: 1, wr: 0, sta: readonly}]
@@ -33,12 +41,8 @@ tabdef mychips.tallies:
 
 mychips.tallies_v:
   fields:
-  - [user_cid,		ent,	28,	[3,14],		{opt: 1, sta: readonly, wr: 0}]
-  - [user_sock,		ent,	28,	[3,14],		{opt: 1, sta: readonly, wr: 0}]
-  - [user_name,		ent,	28,	[3,14],		{opt: 1, sta: readonly, wr: 0}]
-  - [part_cid,		ent,	28,	[3,16],		{opt: 1, sta: readonly, wr: 0}]
-  - [part_sock,		ent,	28,	[3,16],		{opt: 1, sta: readonly, wr: 0}]
-  - [part_name,		ent,	28,	[3,16],		{opt: 1, sta: readonly, wr: 0}]
+  - [hold_name,		ent,	28,	[3,7],		{sta: readonly, wr: 0}]
+  - [part_name,		ent,	28,	[3,8],		{sta: readonly, wr: 0}]
   display: [tally_ent, tally_seq, tally_type, status, part_ent, part_name, reward, dr_limit, cr_limit, target]
 
 mychips.tallies_v_me:

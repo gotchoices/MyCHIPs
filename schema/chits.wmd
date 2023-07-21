@@ -3,13 +3,38 @@
 ---
 mychips.chits:
   fields:
-  - {col: chit_ent,	size:	6}
-  - {col: chit_seq,	size:	4}
-  - {col: chit_idx,	size:	4}
-  - {col: units,	size:	10}
+  - {col: chit_ent,	size:	6,	hide: 1}
+  - {col: chit_seq,	size:	4,	hide: 1}
+  - {col: chit_idx,	size:	4,	hide: 1}
+  - [chit_type,		pdm,	6,	[0,0],		{}]
+  - [issuer,		ent,	6,	[1,0],		{}]
+
+  - [status,		ent,	10,	[0,1],		{}]
+  - [units,		ent,	10,	[1,1],		{just: r, spec: calc}]
+  - [request,		pdm,	10,	[1,2],		{}]
+  - [chit_date,		ent,	20,	[2,2],		{}]
+
+  - [memo,		ent,	40,	[0,3,2],	{}]
+  - [reference,		ent,	40,	[0,4,2],	{}]
+  - [chit_uuid,		ent,	40,	[1,5,2],	{}]
+
+  - [crt_by,     	ent,	10,	[1, 98],	{opt: 1, wr: 0, sta: readonly}]
+  - [crt_date,   	inf,	18,	[2, 98],	{opt: 1, wr: 0, sta: readonly}]
+  - [mod_by,     	ent,	10,	[1, 99],	{opt: 1, wr: 0, sta: readonly}]
+  - [mod_date,		inf,	18,	[2, 99],	{opt: 1, wr: 0, sta: readonly}]
 
 mychips.chits_v:
+  fields:
+  - [tally_type,	ent,	6,	[0,6],		{opt: 1, sta: readonly, wr: 0}]
+  - [tally_uuid,	ent,	20,	[1,6],		{opt: 1, sta: readonly, wr: 0}]
+  - [hold_cid,		ent,	20,	[1,7],		{opt: 1, sta: readonly, wr: 0}]
+  - [part_cid,		ent,	20,	[1,8],		{opt: 1, sta: readonly, wr: 0}]
   display: [chit_ent, chit_seq, chit_idx, chit_type, units, value]
 
 mychips.chits_v_me:
+  fields:
+  - [tally_type,	ent,	6,	[0,6],		{opt: 1, sta: readonly, wr: 0}]
+  - [tally_uuid,	ent,	20,	[1,6],		{opt: 1, sta: readonly, wr: 0}]
+  - [hold_cid,		ent,	20,	[1,7],		{opt: 1, sta: readonly, wr: 0}]
+  - [part_cid,		ent,	20,	[1,8],		{opt: 1, sta: readonly, wr: 0}]
   display: [chit_ent, chit_seq, chit_idx, chit_type, units, value]

@@ -19,6 +19,7 @@ namespace eval chits {
     def chits_v_up	{request signature units reference memo}
     def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_uuid chit_type issuer]
     def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type issuer $glob::stampfn chit_date chain_send chain_idx chain_hash chain_prev lift_seq status digest]
+    def chits_v_me_in	[lremove $chits_v_in chit_ent]
 }
 
 table mychips.chits {mychips.tallies mychips.lifts tally_side} {
@@ -76,6 +77,9 @@ function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.
             returning _last_chit into new.chit_idx;
         if not found then new.chit_idx = 1; end if;
 -- select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq; -- Not safe for concurrent sessions
+      end if;
+      if new.chit_uuid is null then
+        new.chit_uuid = uuid_generate_v4();
       end if;
       if new.units < 0 then			-- Interpret negative units as meaning stock-issued
         new.units = -new.units;
@@ -349,8 +353,6 @@ view mychips.chits_v {
 
     eval(trigview::insert mychips.chits_v mychips.chits $chits::chits_v_in $chits::chits_pk [concat $glob::stampin]);
     eval(trigview::update mychips.chits_v mychips.chits $chits::chits_v_up $chits::chits_pk $glob::stampup);
-} -grant {
-    {chit	{s} {i u} {d}}
 }
 
 # User view of chits
@@ -359,6 +361,9 @@ view mychips.chits_v_me {mychips.chits_v mychips.tallies_v_me} {select
     c.*
     from	mychips.chits_v c
     join	mychips.tallies_v_me t on c.chit_ent = t.tally_ent and c.chit_seq = t.tally_seq
+
+    eval(trigview::insert mychips.chits_v_me mychips.chits $chits::chits_v_me_in $chits::chits_pk [concat $glob::stampin {chit_ent session_user}]);
+    eval(trigview::update mychips.chits_v_me mychips.chits $chits::chits_v_up $chits::chits_pk $glob::stampup);
 } -grant {
     {chit	{s} {s i u} {d}}
 }
