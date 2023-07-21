@@ -1,7 +1,7 @@
 tabtext mychips.tallies -lang spa {Recuentos} {Contiene una entrada para cada conteo, que es un registro de transacciones de crédito entre dos socios comerciales.} {
   {tally_ent {Entidad de conteo} {El número de cédula de la entidad o persona a la que pertenece este cómputo}}
   {tally_seq {Secuencia de conteo} {Un número único entre todas las cuentas propiedad de esta entidad}}
-  {tally_uuid {GUID de cuenta} {Un identificador global único para este conteo}}
+  {tally_uuid {UUID de cuenta} {Un identificador global único para este conteo}}
   {tally_type {Tipo de conteo} {Determina si esta entidad suele ser el acreedor (acción) o el deudor (foil) para este conteo} {
     {foil {Frustrar} {La entidad a la que pertenece este recuento suele ser el deudor de las transacciones.}}
     {stock {Existencias} {La entidad a la que pertenece este recuento suele ser el acreedor de las transacciones.}}
