@@ -7,15 +7,17 @@ import useSocket from '../../../hooks/useSocket';
 import { colors } from '../../../config/constants';
 import { parse } from '../../../utils/query-string';
 import { getTallyReport } from '../../../services/user';
+import useMessageText from '../../../hooks/useMessageText';
 
 import Header from '../Header';
 
-import tabularBtn from '../../../../assets/tabular-button.png';
 import { TabularIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const TallyReport = (props) => {
   const [graph, setGraph] = useState();
   const { wm } = useSocket();
+  const { messageText } = useMessageText();
+  const userTallyText = messageText?.userTallies ?? {};
 
   useEffect(() => {
     getTallyReport(wm).then((data) => {
@@ -55,7 +57,7 @@ const TallyReport = (props) => {
       <View style={styles.header}>
         <Header
           icon={<TabularIcon />}
-          title="Tally Report"
+          title={userTallyText?.tallies?.title ?? ''}
           onClick={navigateBalanceSheet}
         />
       </View>

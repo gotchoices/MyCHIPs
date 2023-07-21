@@ -9,11 +9,12 @@ import { useTallyText } from '../../../hooks/useLanguage';
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
+import HelpText from '../../../components/HelpText';
 
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
-  useTallyText(wm);
+  const tallyText = useTallyText(wm);
 
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
@@ -112,9 +113,11 @@ const EditOpenTally = (props) => {
 
         <View style={styles.container}>
           <View style={styles.detailControl}>
-            <CustomText as="h4">
-              Holder Terms
-            </CustomText>
+            <HelpText
+              label={tallyText?.hold_terms?.title ?? ''}
+              helpText={tallyText?.hold_terms?.help}
+              style={styles.label}
+            />
             <Text style={styles.label}>Limit</Text>
             <Text style={styles.textInputStyle}>{tally.hold_terms.limit ?? 0}</Text>
 
@@ -125,9 +128,11 @@ const EditOpenTally = (props) => {
 
         <View style={styles.container}>
           <View style={styles.detailControl}>
-            <CustomText as="h4">
-              Partner Terms
-            </CustomText>
+            <HelpText
+              label={tallyText?.part_terms?.title ?? ''}
+              helpText={tallyText?.part_terms?.help}
+              style={styles.headerText}
+            />
             <Text style={styles.label}>Limit</Text>
             <Text style={styles.textInputStyle}>{tally.part_terms.limit ?? 0}</Text>
 
@@ -137,9 +142,10 @@ const EditOpenTally = (props) => {
         </View>
 
         <View style={styles.container}>
-          <CustomText as="h4">
-            Trading Variables
-          </CustomText>
+          <HelpText
+            label={'Trading Variables'}
+            style={styles.headerText}
+          />
 
           <Button
             title="Show Trade"
@@ -179,6 +185,10 @@ const styles = StyleSheet.create({
   },
   label: {
     marginTop: 8,
+    fontSize: 14,
+    color: 'black',
+  },
+  headerText: {
     fontSize: 14,
     color: 'black',
   }

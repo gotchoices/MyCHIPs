@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import MessageTextContext from '../context/MessageTextContext';
 
 const initialTexts = {
-  tallies: {},
-  comm: {},
-  addr_v_flat: {},
-  addr_v: {},
-  users: {},
-  exchange: {},
+  tallies: null,
+  comm: null,
+  addr_v_flat: null,
+  addr_v: null,
+  users: null,
+  exchange: null,
+  userTallies: null,
+  asset_v: null,
 }
 
 const MessageTextProvider = ({ children }) => {
