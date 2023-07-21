@@ -16,7 +16,6 @@ const deviceLanguage =
 
 const ProfileProvider = ({ children }) => {
   const { user } = useCurrentUser();
-  console.log(user, 'user user')
   const user_ent = user?.curr_eid;
   const { wm } = useSocket();
 
@@ -45,29 +44,30 @@ const ProfileProvider = ({ children }) => {
     })
   }, [wm, user_ent, setAvatar])
 
+  // Check for language and change it to the preferred language
+  useEffect(() => {
+    AsyncStorage.getItem('preferredLanguage').then((data) => {
+      if (data) {
+        try {
+          const language = JSON.parse(data);
+          wm.newLanguage(language.code)
+          setPreferredLanguage({
+            name: language?.eng_name,
+            code: language?.code,
+          })
+        } catch (err) {
+          throw err;
+        }
+      }
+    });
+  }, [setPreferredLanguage])
+
   useEffect(() => {
     getPersonal(wm, user_ent).then(data => {
       setPersonal(data);
       return data;
     })
-    .then((_personalt) => {
-      return AsyncStorage.getItem('preferredLanguage').then((data) => {
-        if (data) {
-          try {
-            const language = JSON.parse(data);
-            setPreferredLanguage({
-              name: language?.eng_name,
-              code: language?.code,
-            })
-            return;
-          } catch (err) {
-            throw err;
-          }
-        } else {
-          return getCountry(wm, _personal.country)
-        }
-      });
-    })
+    .then((_personal) => getCountry(wm, _personal.country))
     .then(country => {
       if(!country) { 
         return;

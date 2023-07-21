@@ -7,6 +7,7 @@ import { round } from '../../utils/common';
 import useCurrentUser from '../../hooks/useCurrentUser';;
 import { fetchTallies } from '../../services/tally';
 import { getCurrency } from '../../services/user';
+import { useUserTalliesText } from '../../hooks/useLanguage';
 
 import TallyItem from './TallyItem';
 import TallyHeader from './TallyHeader';
@@ -15,6 +16,7 @@ const Tally = (props) => {
   const { wm, ws } = useSocket();
   const { user } = useCurrentUser();
   const { preferredCurrency } = useProfile();
+  useUserTalliesText(wm);
 
   const [loading, setLoading] = useState(false);
   const [tallies, setTallies] = useState([]);

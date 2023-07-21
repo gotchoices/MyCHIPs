@@ -4,9 +4,6 @@ import PropTypes from 'prop-types';
 import { colors, placeholderImages } from '../../../config/constants';
 import { round } from '../../../utils/common';
 
-import mychips from '../../../../assets/mychips.png';
-import mychipsNeg from '../../../../assets/mychips-red.png';
-
 import Avatar from '../../../components/Avatar';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 

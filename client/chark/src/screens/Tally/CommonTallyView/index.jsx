@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Image, Linking } from 'react-native';
 
 import HelpText from '../../../components/HelpText';
 
 import { colors, connectsObj } from '../../../config/constants';
 import useMessageText from '../../../hooks/useMessageText';
-import mychips from '../../../../assets/mychips-large.png';
-import mychipsNeg from '../../../../assets/mychips-red-large.png';
+
 import Button from '../../../components/Button';
 import { round } from '../../../utils/common';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
@@ -14,6 +13,7 @@ import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
+  const userTallyText = messageText?.userTallies ?? {};
 
   const net = round((tally?.net ?? 0) / 1000, 3)
   const talliesText = messageText?.tallies;
@@ -41,8 +41,7 @@ const CommonTallyView = (props) => {
       {
         hasNet && <View style={styles.detailControl}>
           <HelpText
-            label={talliesText?.net?.title ?? 'Tally balance'}
-            helpText={talliesText?.net?.help}
+            label={'Tally Balance'}
             style={styles.headerText}
           />
           <View>
@@ -69,7 +68,8 @@ const CommonTallyView = (props) => {
 
           <View style={styles.detailControl}>
             <HelpText
-              label={'Full Name'}
+              label={userTallyText?.frm_name?.title ?? ''}
+              helpText={userTallyText?.frm_name?.help}
               style={styles.secondaryheader}
             />
             <Text>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
@@ -77,7 +77,8 @@ const CommonTallyView = (props) => {
 
           <View style={styles.detailControl}>
             <HelpText
-              label={'CID'}
+              label={talliesText?.part_cid?.title ?? ''}
+              helpText={talliesText?.part_cid?.help}
               style={styles.secondaryheader}
             />
             <Text>{partCert?.chad?.cid}</Text>
@@ -85,7 +86,8 @@ const CommonTallyView = (props) => {
 
           <View style={styles.detailControl}>
             <HelpText
-              label={'Agent ID'}
+              label={talliesText?.part_agent?.title ?? ''}
+              helpText={talliesText?.part_agent?.help}
               style={styles.secondaryheader}
             />
             <Text>{partCert?.chad?.agent}</Text>
@@ -99,7 +101,7 @@ const CommonTallyView = (props) => {
                   const link = media === 'email' ? 'mailto:' : 'tel:';
                   return <View key={`${connect?.address}${index}`} style={styles.detailControl}>
                     <HelpText
-                      label={connectsObj[media] || media}
+                      label={connectsObj[media] ?? media ?? ''}
                       style={styles.secondaryheader}
                     />
                     <Text onPress={() => { handleLinkPress(link + connect?.address) }}>{connect?.address}</Text>

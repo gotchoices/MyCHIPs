@@ -1,10 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
+import useMessageText from '../../../hooks/useMessageText';
+
 import { colors } from '../../../config/constants';
 
 const TemplateItem = (props) => {
   const item = props.template;
+  const { messageText } = useMessageText();
+  const tallyText = messageText?.tallies ?? {};
 
   const onView = () => {
     props.navigation.navigate('TallyPreview', {
@@ -18,9 +22,9 @@ const TemplateItem = (props) => {
       <TouchableOpacity onPress={onView}>
         <View style={styles.item}>
           <Text style={styles.comment}>{item.comment}</Text>
-          <Text>Tally type: {item.tally_type ?? 'N/A'}</Text>
-          <Text>Partner CID: {item.part_cid ?? 'N/A'}</Text>
-          <Text>Status: {item.status ?? 'N/A'}</Text>
+          <Text>{tallyText?.tally_type?.title ?? ''}: {item.tally_type ?? 'N/A'}</Text>
+          <Text>{tallyText?.part_cid?.title ?? ''}: {item.part_cid ?? 'N/A'}</Text>
+          <Text>{tallyText?.status?.title ?? ''}: {item.status ?? 'N/A'}</Text>
           <Text>Holder Credit limit: {item?.hold_terms?.limit ?? 'N/A'}</Text>
           <Text>Partner Credit limit: {item?.part_terms?.limit ?? 'N/A'}</Text>
         </View>
