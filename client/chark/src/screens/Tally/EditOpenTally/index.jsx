@@ -93,6 +93,10 @@ const EditOpenTally = (props) => {
     });
   }
 
+  const onPay = () => {
+    props.navigation.navigate("PaymentDetail", { tally_uuid: tally?.tally_uuid });
+  }
+
   return (
     <ScrollView>
       <View>
@@ -100,6 +104,7 @@ const EditOpenTally = (props) => {
           <CommonTallyView
             tally={tally}
             onViewChitHistory={onViewChitHistory}
+            onPay={onPay}
           />
 
           <View style={styles.detailControl}>

@@ -39,6 +39,15 @@ export const fetchChitHistory = (wm, args) => {
   return request(wm, '_chit_history' + random(), 'select', spec);
 }
 
+export const insertChit = (wm, payload) => {
+  const spec = {
+    fields: payload,
+    view: 'mychips.chits_v_me',
+  };
+
+  return request(wm, '_chit_insert' + random(), 'insert', spec);
+}
+
 /**
  * @param {Object} - args
  * @param {string[]} - args.tally_uuid

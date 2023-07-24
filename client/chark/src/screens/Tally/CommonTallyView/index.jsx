@@ -1,12 +1,8 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Linking } from 'react-native';
-
 import HelpText from '../../../components/HelpText';
-
 import { colors, connectsObj } from '../../../config/constants';
 import useMessageText from '../../../hooks/useMessageText';
-import mychips from '../../../../assets/mychips-large.png';
-import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import Button from '../../../components/Button';
 import { round } from '../../../utils/common';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
@@ -52,11 +48,18 @@ const CommonTallyView = (props) => {
                 {net}
               </Text>
             </View>
-            <Button
-              title='Chit History'
-              onPress={props.onViewChitHistory}
-              style={{ borderRadius: 12, width: 120, marginTop: 12 }}
-            />
+            <View style={{ flexDirection: 'row', marginTop: 12 }}>
+              <Button
+                title='Chit History'
+                onPress={props.onViewChitHistory}
+                style={{ borderRadius: 12, width: 120 }}
+              />
+              <Button
+                title='Pay'
+                onPress={props.onPay}
+                style={{ borderRadius: 12, paddingHorizontal: 22, marginStart: 12 }}
+              />
+            </View>
           </View>
         </View>
       }
