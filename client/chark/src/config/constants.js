@@ -39,3 +39,7 @@ export const connectsObj = {
   "phone":"Phone",
   "cell": "Cell"
 }
+
+export const localStorage = {
+  TallyPictures: 'TallyPictures',
+};

@@ -1,7 +1,8 @@
-import React from 'react'; import { View, Image, Text, StyleSheet } from 'react-native';
+import React , { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
-import { colors, placeholderImages } from '../../../config/constants';
+import { colors } from '../../../config/constants';
 import { round } from '../../../utils/common';
 
 import Avatar from '../../../components/Avatar';
@@ -16,7 +17,7 @@ const TallyItem = (props) => {
   return (
     <View style={styles.container}>
 
-      <Avatar style={styles.avatar} />
+      <Avatar style={styles.avatar} avatar={props.image} />
 
       <View style={{ flex: 1, }}>
         <Text style={styles.name}>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
