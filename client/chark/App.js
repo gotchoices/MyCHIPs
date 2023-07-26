@@ -152,7 +152,7 @@ function App() {
                     component={HomeStackScreen}
                     options={{
                       tabBarIcon: (props) => (
-                        <CustomIcon name="home" {...props} />
+                        <CustomIcon name="home" {...{ ...props, size: 24 }} />
                       )
                     }}
                   />
@@ -162,7 +162,7 @@ function App() {
                     component={ReceiveScreen}
                     options={{
                       tabBarIcon: (props) => (
-                        <CustomIcon name="receive" {...props} />
+                        <CustomIcon name="receive" {...{ ...props, size: 26 }} />
                       )
                     }}
                   />
@@ -173,7 +173,7 @@ function App() {
                     options={{
                       unmountOnBlur: true,
                       tabBarIcon: (props) => (
-                        <CustomIcon name="scan" {...props} />
+                        <CustomIcon name="scan" {...{ ...props, size: 23 }} />
                       )
                     }}
                   />
@@ -185,7 +185,7 @@ function App() {
                       tabBarTestID: "inviteTestID",
                       lazy: false,
                       tabBarIcon: (props) => (
-                        <CustomIcon name="invite" {...props} />
+                        <CustomIcon name="invite" {...{ ...props, size: 26 }} />
                       )
                     }}
                   />
@@ -196,7 +196,7 @@ function App() {
                     options={{
                       lazy: false,
                       tabBarIcon: (props) => (
-                        <CustomIcon name="settings" {...props} />
+                        <CustomIcon name="settings" {...{ ...props, size: 25 }} />
                       )
                     }}
                   />

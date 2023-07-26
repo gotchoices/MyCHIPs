@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native"
+import { Image, StyleSheet, Text, View } from "react-native"
 import { colors } from "../../../../config/constants";
 import moment from 'moment';
 import { round } from "../../../../utils/common";
 import useProfile from "../../../../hooks/useProfile";
 import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
+import profileImg from '../../../../../assets/profile.png';
 
 const ChistHistoryHeader = (props) => {
-  const { part_name, cid, date, net, wm } = props.args ?? {};
+  const { part_name, cid, date, net, wm, avatar } = props.args ?? {};
   const { preferredCurrency } = useProfile();
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
@@ -48,8 +49,16 @@ const ChistHistoryHeader = (props) => {
         </View>
         <Text style={styles.label}>{moment(date).format(`MMM DD, YYYY`)}</Text>
       </View >
-      <Text style={[styles.title, { marginTop: 12 }]}>{part_name}</Text>
-      <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cid}</Text>
+      <View style={[styles.row, { marginTop: 12 }]}>
+        <Image
+          style={styles.profileImage}
+          source={avatar ? { uri: avatar } : profileImg}
+        />
+        <View style={{ flex: 1, marginStart: 12, justifyContent: 'center' }}>
+          <Text style={styles.title}>{part_name}</Text>
+          <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cid}</Text>
+        </View>
+      </View>
     </View >
     <Text style={[
       styles.title,
@@ -96,6 +105,11 @@ const styles = StyleSheet.create({
     color: colors.gray700,
     fontWeight: "bold",
     margin: 4,
-  }
+  },
+  profileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
 })
 export default ChistHistoryHeader;

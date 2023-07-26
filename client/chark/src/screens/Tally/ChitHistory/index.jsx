@@ -9,12 +9,34 @@ import moment from 'moment';
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
+import { getFile } from "../../../services/profile";
 
 const ChitHistory = (props) => {
-  const { tally_seq, tally_ent, tally_uuid } = props.route?.params ?? {};
+  const { tally_seq, tally_ent, tally_uuid, cid } = props.route?.params ?? {};
   const { wm } = useSocket();
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
+  const [avatar, setAvatar] = useState(undefined);
+
+  useEffect(() => {
+    console.log("AVATAR_CID ==> ", props.route?.params);
+    function getProfileImage() {
+      if (cid) {
+        console.log("APICALL_START ==> ", cid)
+        getFile(wm, cid).then((_data) => {
+          console.log("DATA_RESULT ==> ", JSON.stringify(_data));
+          const file = _data?.[0]
+          if (file?.file_data64) {
+            console.log("BASE_64 ==> ", file?.file_data64);
+            setAvatar(`data:${file.file_fmt};base64,${file.file_data64}`);
+          }
+        }).catch(ex => {
+          console.log("AVATAR_EXCEPTION ==> ", ex);
+        })
+      }
+    }
+    getProfileImage();
+  }, [cid]);
 
   useEffect(() => {
     _fetchChitHistory();
@@ -106,7 +128,8 @@ const ChitHistory = (props) => {
         <ChistHistoryHeader
           args={{
             ...props.route?.params,
-            wm
+            wm,
+            avatar
           }}
         />
       }
