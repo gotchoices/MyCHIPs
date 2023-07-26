@@ -3,6 +3,11 @@ export default {
   chipsToDollar: 7.86,
 }
 
+export const dateFormats = {
+  date: 'YYYY-MM-DD',
+  dateTime: 'YYYY-MM-DD hh:mm a'
+}
+
 export const colors = {
   white: '#FFF',
   black: '#000',

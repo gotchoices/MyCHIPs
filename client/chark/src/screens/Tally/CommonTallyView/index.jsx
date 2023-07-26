@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Linking } from 'react-native';
 import HelpText from '../../../components/HelpText';
-import { colors, connectsObj } from '../../../config/constants';
+import { colors, connectsObj, dateFormats } from '../../../config/constants';
 import useMessageText from '../../../hooks/useMessageText';
 import Button from '../../../components/Button';
 import { round } from '../../../utils/common';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
+import { formatDate } from '../../../utils/format-date';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
@@ -132,7 +133,8 @@ const CommonTallyView = (props) => {
           style={styles.headerText}
         />
         <Text>
-          {new Date(tally.tally_date).toLocaleString()}
+          {/* {new Date(tally.tally_date).toLocaleString()} */}
+          {formatDate({ date: tally.tally_date, format: dateFormats.dateTime })}
         </Text>
       </View>
 

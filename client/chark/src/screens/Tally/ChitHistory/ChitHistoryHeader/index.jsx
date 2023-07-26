@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native"
 import { colors } from "../../../../config/constants";
-import moment from 'moment';
 import { round } from "../../../../utils/common";
 import useProfile from "../../../../hooks/useProfile";
 import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
 import profileImg from '../../../../../assets/profile.png';
+import { formatDate } from "../../../../utils/format-date";
 
 const ChistHistoryHeader = (props) => {
-  const { part_name, cid, date, net, wm, avatar } = props.args ?? {};
+  const { part_name, cid, date, net, wm, avatar, totalBalance } = props.args ?? {};
   const { preferredCurrency } = useProfile();
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
@@ -43,11 +43,11 @@ const ChistHistoryHeader = (props) => {
           <Text style={[styles.label, { fontWeight: 'bold' }]}>Balance</Text>
           <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 8 }]}>
             <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
-            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net ?? 0) / 1000, 3)}</Text>
+            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((totalBalance ?? 0) / 1000, 3)}</Text>
           </View>
           {conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
         </View>
-        <Text style={styles.label}>{moment(date).format(`MMM DD, YYYY`)}</Text>
+        <Text style={styles.label}>{formatDate(date)}</Text>
       </View >
       <View style={[styles.row, { marginTop: 12 }]}>
         <Image

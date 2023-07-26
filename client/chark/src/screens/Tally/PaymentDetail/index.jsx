@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, ScrollView, View, TextInput, ActivityIndicator, Text } from "react-native"
+import { StyleSheet, ScrollView, View, TextInput, ActivityIndicator, Text, Alert } from "react-native"
 import { colors } from "../../../config/constants";
 import Button from "../../../components/Button";
 import useProfile from "../../../hooks/useProfile";
@@ -9,7 +9,7 @@ import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
 
 const PaymentDetail = (props) => {
-  const { tally_uuid } = props.route?.params;
+  const { tally_uuid, chit_seq } = props.route?.params;
   const { wm } = useSocket();
   const { preferredCurrency } = useProfile();
   const [conversionRate, setConversionRate] = useState(undefined);
@@ -20,6 +20,7 @@ const PaymentDetail = (props) => {
   const [chit, setChit] = useState();
 
   const [loading, setLoading] = useState(false);
+  const [disabled, setDisabled] = useState(false);
 
   useEffect(() => {
     if (currencyCode) {
@@ -44,28 +45,35 @@ const PaymentDetail = (props) => {
     return 0;
   }, [chit, conversionRate])
 
-  useEffect(() => {
-    const convertedChit = parseInt(chit);
-    if (!Number.isNaN(convertedChit)) {
-
-    }
-  }, [chit])
-
   const onMakePayment = () => {
+    setDisabled(true);
     const payload = {
-      reference: "reference",
-      memo: "memo",
+      reference: JSON.stringify(reference),
+      memo: memo,
       status: 'open',
       signature: 'Signature',
-      net: 70,
+      units: chit,
+      tally_uuid,
+      chit_seq,
     };
     insertChit(
       wm,
       payload,
     ).then((result) => {
       console.log("RESULT ==> ", result);
+      Alert.alert("Success", "Chit payment success", [
+        {
+          text: "OK",
+          onPress: () => {
+            props.navigation.goBack();
+          }
+        }
+      ]);
     }).catch(err => {
       console.log("ERROR ==> ", err);
+      Alert.alert("Error", err.toString());
+    }).finally(() => {
+      setDisabled(false);
     });
   }
 
@@ -104,9 +112,10 @@ const PaymentDetail = (props) => {
         <></>
     }
     <Button
-      style={{ marginTop: 24 }}
+      style={{ marginTop: 24, }}
       title="Make Payment"
       onPress={onMakePayment}
+      disabled={disabled}
     />
   </ScrollView>
 }

@@ -33,6 +33,7 @@ const EditOpenTally = (props) => {
     }).then(data => {
       if (data?.length) {
         const _tally = data?.[0];
+
         setTally(_tally);
         setTarget((_tally?.target ?? '').toString())
         setBound((_tally?.bound ?? '').toString())
@@ -94,7 +95,13 @@ const EditOpenTally = (props) => {
   }
 
   const onPay = () => {
-    props.navigation.navigate("PaymentDetail", { tally_uuid: tally?.tally_uuid });
+    props.navigation.navigate(
+      "PaymentDetail",
+      {
+        tally_uuid: tally?.tally_uuid,
+        chit_seq: tally?.tally_seq,
+      }
+    );
   }
 
   return (
