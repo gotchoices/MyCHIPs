@@ -25,7 +25,6 @@ const GenerateKey = (props) => {
 
       const priKey = await subtle.exportKey('jwk', currentKeyPair.privateKey);
       setPrivateKey(priKey)
-
       setShowPostGenerateModal(true);
     } catch (err) {
       console.log('Error generating key', err);

@@ -123,15 +123,19 @@ export const createTemplate = (wm, payload) => {
   return request(wm, 'new_template' + random(1000), 'insert', spec)
 }
 
-export const fetchTallyFile = (wm, hash) => {
+export const fetchTallyFile = (wm, digest, tally_seq) => {
   const spec = {
     name: 'file',
     view: 'mychips.tallies_v_me',
     data: {
+      key: {
+        tally_seq,
+      },
       options: {
-        hash,
+        digest,
+        format: 'json',
       }
-    },
+    }
   }
 
   return request(wm, 'fetch_tally_file' + random(1000), 'action', spec);

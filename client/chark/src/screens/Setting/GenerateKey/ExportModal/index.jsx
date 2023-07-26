@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform, ScrollView } from "react-native"
+import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from "react-native"
 import { encryptJSON, downloadJSONFile, downloadQRCode, shareQRCode, shareJSONFile } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
@@ -87,7 +87,10 @@ const ExportModal = (props) => {
   }
 
   if (!encryptedData) {
-    return <Text>Generating</Text>
+    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <ActivityIndicator style={{ marginBottom: 24 }} />
+      <Button onPress={props.cancel} title='Cancel' />
+    </View>
   }
 
   return <ScrollView style={styles.container}>

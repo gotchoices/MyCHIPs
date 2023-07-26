@@ -21,10 +21,10 @@ const getDateTime = () => {
 export const downloadJSONFile = (jsonString) => {
   return new Promise((resolve, reject) => {
     const cachedPath = `${ReactNativeFS.CachesDirectoryPath}/key-${getDateTime()}.json`;
-    const baseDownloadPath = ReactNativeFS.DownloadDirectoryPath;
-    const downloadPath = `${baseDownloadPath}/key-${getDateTime()}.json`;
+    const downloadPath = `${ReactNativeFS.DownloadDirectoryPath}/key-${getDateTime()}.json`;
 
     ReactNativeFS.writeFile(cachedPath, jsonString, 'utf8')
+      .then(() => ReactNativeFS.moveFile(cachedPath, downloadPath))
       .then(() => ReactNativeFS.scanFile(downloadPath))
       .then((result) => resolve(result))
       .catch(err => reject(err));

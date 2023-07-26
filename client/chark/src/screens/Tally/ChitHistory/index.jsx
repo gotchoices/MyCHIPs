@@ -13,7 +13,7 @@ import { getFile } from "../../../services/profile";
 import { formatDate } from "../../../utils/format-date";
 
 const ChitHistory = (props) => {
-  const { tally_seq, tally_ent, tally_uuid, cid } = props.route?.params ?? {};
+  const { tally_seq, tally_ent, tally_uuid, digest } = props.route?.params ?? {};
   const { wm } = useSocket();
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
@@ -24,24 +24,17 @@ const ChitHistory = (props) => {
   }, 0);
 
   useEffect(() => {
-    console.log("AVATAR_CID ==> ", props.route?.params);
-    function getProfileImage() {
-      if (cid) {
-        console.log("APICALL_START ==> ", cid)
-        getFile(wm, cid).then((_data) => {
-          console.log("DATA_RESULT ==> ", JSON.stringify(_data));
-          const file = _data?.[0]
-          if (file?.file_data64) {
-            console.log("BASE_64 ==> ", file?.file_data64);
-            setAvatar(`data:${file.file_fmt};base64,${file.file_data64}`);
-          }
-        }).catch(ex => {
-          console.log("AVATAR_EXCEPTION ==> ", ex);
-        })
-      }
+    if (digest) {
+      fetchTallyFile(wm, digest, tally_seq).then((data) => {
+        const fileData = data?.[0]?.file_data;
+        const file_fmt = data?.[0]?.file_fmt;
+        if (fileData) {
+          const base64 = Buffer.from(fileData).toString('base64')
+          setAvatar(`data:${file_fmt};base64,${base64}`)
+        }
+      }).catch(err => console.log(err, 'eriuwqeiruiquweriuqweiru'))
     }
-    getProfileImage();
-  }, [cid]);
+  }, [digest])
 
   useEffect(() => {
     _fetchChitHistory();
