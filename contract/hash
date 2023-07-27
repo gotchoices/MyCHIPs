@@ -1,28 +1,63 @@
 #!/usr/bin/env node
-//Generate a hash for the specified yaml file(s)
+//Update the main hash in the specified yaml file(s)
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-//Usage: ./hashup file.yaml
-//TODO:
-//- 
-
+//Usage: ./hashes file1.yaml file2.yaml ...
+//
 const Fs = require('fs')
+const Readline = require('readline')
 const Os = require('os')
 const Yaml = require('yaml')
 const Stringify = require('json-stable-stringify')
-const Hash = require('hash.js')
-var argv = require('yargs').argv
-//console.log("argv:", argv)
+const Crypto = require('crypto')
+const Bs58 = require('bs58')
+var argv = require('yargs').argv		//;console.log("argv:", argv)
+
+const updateDigest = (file, newDigest) => {
+  let found = false
+    , changed = false
+    , tmpFile = file + '.tmp'
+  const readInterface = Readline.createInterface({
+    input: Fs.createReadStream(file),
+    output: Fs.createWriteStream(tmpFile),
+    console: false
+  });
+
+  readInterface.on('line', function(line) {
+    if (!found && line.trim().startsWith('rid:')) {
+      let oldDigest = line.match(/(rid:\s*['"])(.+)(['"])/)[2]
+//console.log('O:', oldDigest, 'N:', newDigest)
+      if (newDigest != oldDigest) {
+        let updLine = line.replace(/(rid:\s*['"]).+(['"])/, `$1${newDigest}$2`);
+        readInterface.output.write(updLine + '\n')
+        changed = true
+      }
+      found = true;
+    } else {
+      readInterface.output.write(line + '\n')
+    }
+  });
+
+  readInterface.on('close', function() {
+    if (changed)
+      Fs.renameSync(tmpFile, file);
+    else
+      Fs.unlinkSync(tmpFile);
+  });
+}
 
 argv._.forEach(file => {
 //  console.log("file:", file)
-  let yData = Fs.readFileSync(file).toString()
-    , jData = Yaml.parse(yData)
+  let yData = Fs.readFileSync(file).toString()		//Read Yaml file
+    , jData = Yaml.parse(yData)				//Convert to json
     , contract = jData.contract
-  core = Object.assign({}, contract)
-  delete core.digest
-  let strung = Stringify(core)
-    , digest = Hash.sha256().update(strung).digest('hex')
-//  console.log('strung:',strung)
-  console.log(digest)
+    , core = Object.assign({}, contract)
+  delete core.rid
+  let strung = Stringify(core)		//;console.log('strung:',strung)
+    , digest = Crypto.createHash('sha256').update(strung).digest()
+    , rid = Bs58.encode(digest)
+
+//console.log(digest)	
+//console.log('J:', JSON.stringify(core,null,2))
+  updateDigest(file, rid)
 })

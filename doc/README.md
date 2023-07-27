@@ -44,6 +44,7 @@ author additional helpful information.
   - Implementation:
     - [Users and Identities](learn-users.md)
     - [Tallies and Chits](learn-tally.md)
+    - [Tally Contracts](learn-contract.md)
     - [The Credit Lift](learn-lift.md)
     - [Network Topology](learn-network.md)
     - [Peer to Peer Connections](learn-noise.md)

@@ -139,9 +139,9 @@ The *object* property for the tally is defined as follows:
   - **uuid**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier) for this particular tally.
   - **comment**: Any comments to the tally the parties have agreed to include.
   - **created**: Date/time the tally was created
-  - **contract**: The general terms and conditions of the credit agreement.
-    - **name**: Issuer/author of the tally contract language
-    - **version**: Version of the contract
+  - **contract**: A reference to a digital contract containing the general terms and conditions for the tally.  Can be the document digest, or an object containing:
+    - **host**: Web address of Issuer/author guaranteed to have authoritative copy of the contract
+    - **digest**: Base 64 hash of the contract
   - **terms**: An object containing [credit variables](learn-tally.md#credit-terms)
   - **signed**:
     - **digest**: A string hash of the rest of the tally in a standard serialized format

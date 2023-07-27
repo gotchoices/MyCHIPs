@@ -1,15 +1,27 @@
 TODO:
-X- Test/document where tally accept protocol fails
-X- Get mychips.chits_v_me view to work, read/write
--
 
 - Make basic tally/contract viewer report
 X-  Implement simple static pdf to test features of PDFMake library
--  How to tell which contracts can be top-level tally contracts?
--  Which properties to include in tally.contract field
--  Build agreement Exhibit from tally contents
--  Nested query that returns all contract components in a single query
--  Build agreement pdf from actual contract
+X-  How to tell which contracts can be top-level tally contracts? (top=true)
+X-  Which properties to include in tally.contract field (digest, host, name)
+X- Make old "hash" program work (or replace it)
+X- Contracts migrated to base58btc
+- Make old contract viewer/editor work with latest changes
+X-  What parts of contract record is strdoc? (and what are MyCHIPs extensions)
+X-  How to show resource in preview mode?
+X-  Format resource links to fetch from report handler
+X-  Change "Reference" to "Resource" in "+" menu
+X-  How to revert back to content block
+X-  Clicking Resource link generates request to load that document (can we launch separate window with headers?)
+X-  Combine tag & name?  (how does cross-referencing work?)
+X-  Check in changes so far
+-  Build formatter that generates pdfmake control structure from strdoc object
+-  Contract report returns formatted pdf's of documents clicked in strdoc report
+-  
+- Nested query that returns all contract components in a single query
+- Format agreement pdf from actual contract
+- Query to return a tally + nested contract JSON
+- Format full tally agreement
 - 
 - Add reset and submit buttons for Trading Variables report (in user's language)
 - 

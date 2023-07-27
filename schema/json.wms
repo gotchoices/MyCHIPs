@@ -120,18 +120,17 @@ view json.tally {json mychips.tallies_v} {select
 # Standard view for contracts
 #----------------------------------------------------------------
 view json.contract {json mychips.contracts_v} {select
-    domain
+    host
   , name
   , version
   , language
   , published
   , title
   , text
-  , tag
-  , digest
+  , rid
   , sections
     from	mychips.contracts_v
-} -primary {domain name version language}
+} -primary {host name version language}
 
 # View of users for generating/accepting user certificates
 #----------------------------------------------------------------

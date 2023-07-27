@@ -2,9 +2,9 @@
 #----------------------------------------------------------------
 ---
 mychips.contracts:
-  focus: domain
+  focus: host
   fields:
-  - [domain,		ent,	20,	[1,1],		{}]
+  - [host,		ent,	20,	[1,1],		{}]
   - [version,		ent,	3,	[2,1],		{just: r}]
   - [published,		ent,	14,	[3,1],		{state: readonly, wr: 0}]
   - [name,		ent,	30,	[1,2,2],	{}]
@@ -18,7 +18,7 @@ mychips.contracts:
   - [crt_date,   	inf,	18,	[2,98],		{opt: 1, wr: 0, sta: readonly}]
   - [mod_by,     	ent,	10,	[1,99],		{opt: 1, wr: 0, sta: readonly}]
   - [mod_date,		inf,	18,	[2,99],		{opt: 1, wr: 0, sta: readonly}]
-  display: [domain, name, version, language, released, source, title]
+  display: [host, name, version, language, released, source, title]
 
 mychips.contracts_v:
   fields:

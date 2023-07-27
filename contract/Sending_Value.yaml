@@ -2,12 +2,12 @@
 # -----------------------------------------------------------------------------
 ---
   contract:
-    domain: mychips.org
+    host: mychips.org
     name: 'Sending_Value'
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\xdf3c4a3378b251531ebee3ded36e8a9d4e08f4e03f8e58ff1db9463ea44e2c0b'
+    rid: '2tCkQwq4zx5B7dCmEjbRZkz3QaF3xGi6fG7ESEtXkWSm'
     title: 'How Value is Transmitted in a MyCHIPs Network'
     text: >-
       A Tally contains individual Pledges or Chits, each of which constitutes a promise by the Issuer to deliver value, quantified in CHIPs, to the Recipient at some future time.

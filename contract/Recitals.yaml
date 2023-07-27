@@ -2,12 +2,12 @@
 # -----------------------------------------------------------------------------
 ---
   contract:
-    domain: mychips.org
+    host: mychips.org
     name: "Recitals"
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x723cff668a20b4ec730e86d45ec7990d0ce85b2e4991a012c8cf217a6f41718a'
+    rid: 'Hr3yY2MjeWmVKfYJiba2zQUgxrGDnw1MnYuJ9rjDuQRn'
     title: 'Purpose of The Contract'
     text: 'Whereas:'
     sections:

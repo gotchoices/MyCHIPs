@@ -2,25 +2,25 @@
 # -----------------------------------------------------------------------------
 ---
   contract:
-    domain: mychips.org
+    host: mychips.org
     name: 'Free'
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x2d4e1471aa3a772dabbd43159e1c74f27c2e4fdaa1aad16bccc6117ccac07c23'
+    rid: '9vdx9fmL2XQeyLKWaMQjNHzxPv5QTeZ1PZJDSdr3Rqi8'
     title: 'How to Use MyCHIPs at No Cost'
     text: >-
       End users may use MyCHIPs royalty free on the condition that, in all contracts and transactions, the following contract sections are included in their full force and intent, and abided by:
     sections:
       -
-        title: 'Recitals'
-        source: 'mychips.org/Recitals-1-eng?digest=cb4855eba4518a1af6390f629e738fc0fd0c99b4d44a7208fee2d36c24211f6a'
+        name: 'Recitals'
+        source: 'Hr3yY2MjeWmVKfYJiba2zQUgxrGDnw1MnYuJ9rjDuQRn'
       -
-        title: 'Tally Definition'
-        source: 'mychips.org/Tally_Definition-1-eng?digest=18de3cbaa87968bcb043461f8dbe86bb9e954c34270d9c01b641355a8913fc3d'
+        name: 'Tally_Definition'
+        source: 'BZrHne18JUX4gdPJzjBHGh1cTNxvmfqAFy6ppDQP2uos'
       -
-        title: 'CHIP Definition'
-        source: 'mychips.org/CHIP_Definition-1-eng?digest=152fe12217db6307bee73c248b5ee4efc7a4f12ac29aea6add9845e7a4b9afcc'
+        name: 'CHIP_Definition'
+        source: 'GLJJEMbxfH7caHcNEhNqR7H4yDhsPpBe9vJuxCdTonrB'
       -
-        title: 'Ethics'
-        source: 'mychips.org/Ethics-1-eng?digest=4d7a2c44887ac2fcb70e818795829f46c020740f571a0a5e9133059bbc75f417'
+        name: 'Ethics'
+        source: '3zAQw3iSh3EP9s2ynRshuEfWz8UAHXnk2uTmyQqMnVat'

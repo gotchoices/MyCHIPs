@@ -2,12 +2,12 @@
 # -----------------------------------------------------------------------------
 ---
   contract:
-    domain: mychips.org
+    host: mychips.org
     name: 'Credit_Terms'
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\xc558ca3d0795343b073ca448db819fefdbd56a8ad4171363812a1d427b6a6d85'
+    rid: 'EkLm2G1TwPyNLhXvVKUpbv3cn4csJPdXs5srDuXGuPfg'
     title: 'Terms and Conditions for Credit Authorized by Stock and Foil'
     text: >-
       When executing a Tally Agreement with each other, the Client and Vendor each decide the amount of credit they will extend to the other Party.

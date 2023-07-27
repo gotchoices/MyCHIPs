@@ -4,6 +4,7 @@ const	Path	= require("path")
 const	Glob	= require("glob")
 const	Yaml	= require("yaml")
 const	Fs	= require("fs")
+const	Bs58	= require("bs58")
 const	Format	= require("pg-format")
 
 var condir = Path.join(__dirname, '../contract')
@@ -12,19 +13,21 @@ var condir = Path.join(__dirname, '../contract')
 //Reach each YAML file from the contract folder
 Glob(condir + '/*.yaml', null, (err, files) => {
   let comma = ''
-  console.log("insert into mychips.contracts (domain, name, version, language, published, digest, title, text, sections) values\n")
+  console.log("insert into mychips.contracts (host, name, version, language, top, published, digest, title, text, sections) values\n")
 
   files.forEach(file => {
     let fileContent = Fs.readFileSync(file).toString()
       , contObj = Yaml.parse(fileContent)
 //console.log("File:", file, "Object:", contObj)
-    let { domain, name, version, language, published, title, digest, text } = contObj.contract
+    let { host, name, version, language, top, published, title, rid, text } = contObj.contract
       , sections = JSON.stringify(contObj.contract.sections)
+      , digest = Buffer.from(Bs58.decode(rid))
     console.log(`${comma}(
-      ${Format.literal(domain)},
+      ${Format.literal(host)},
       ${Format.literal(name)},
       ${version},
       ${Format.literal(language)},
+      ${Format.literal(top)},
       ${Format.literal(published)},
       ${Format.literal(digest)},
       ${Format.literal(title)},
@@ -36,6 +39,7 @@ Glob(condir + '/*.yaml', null, (err, files) => {
 
   console.log(`
     on conflict on constraint contracts_pkey do update set 
+          top		= EXCLUDED.top,
           published	= EXCLUDED.published,
           digest	= EXCLUDED.digest,
           title		= EXCLUDED.title,

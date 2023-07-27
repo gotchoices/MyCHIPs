@@ -2,12 +2,12 @@
 # -----------------------------------------------------------------------------
 ---
   contract:
-    domain: mychips.org
+    host: mychips.org
     name: 'Ethics'
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x9eacc39eb55712f418fa7798973bb3845d2f4e74ac11d9b1cb2f6c7ba55a5fd3'
+    rid: '3zAQw3iSh3EP9s2ynRshuEfWz8UAHXnk2uTmyQqMnVat'
     title: 'Ethical Conduct'
     text: >-
       The credits, or Chits, under a Tally agreement constitute a Pledge of Value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally.

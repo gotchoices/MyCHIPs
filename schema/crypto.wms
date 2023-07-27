@@ -79,6 +79,26 @@ function {mychips.b64v2ba(input text)} {mychips} {
     )
 $$;}
 
+# Encode binary data as base58
+#----------------------------------------------------------------
+function {mychips.ba2b58(input bytea)} {mychips plpy} {
+  returns text language plpython3u immutable as $$
+  import base58
+  if input is None:
+    return None
+  return base58.b58encode(input).decode('utf-8')
+$$;}
+
+# Decode base58 to binary
+#----------------------------------------------------------------
+function {mychips.b582ba(input text)} {mychips} {
+  returns bytea language plpython3u immutable as $$
+  import base58
+  if input is None:
+    return None
+  return base58.b58decode(input)
+$$;}
+
 #Can't find good v8 support for Fedora
 #other plv8 {} {create extension "plv8"} {drop extension if exists "plv8"}
 

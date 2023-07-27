@@ -2,12 +2,12 @@
 # -----------------------------------------------------------------------------
 ---
   contract:
-    domain: mychips.org
+    host: mychips.org
     name: 'Defaults'
     version: 1
     language: eng
     published: '2020-04-01'
-    digest: '\x371c2072735827601af425e87a04146ab92b75c9dfefd348ece4535363c1879e'
+    rid: 'EPtLQUmshMGkvFnSNzCbiLYLDoS6ARAmiDvEiZf2TF4B'
     title: 'Contract Breaches and Conditions of Default'
     text: >-
       Any of the following actions by either Party constitute a breach of the Agreement and therefore, the Party is deemed to be in Default:

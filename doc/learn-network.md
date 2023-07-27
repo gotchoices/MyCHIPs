@@ -215,7 +215,7 @@ In summary, a site can carry on a variety of different types of network traffic 
   Documents include:
   - Known MyCHIPs contracts (Specially serialized JSON)
   - User ID photographs (JPG, GIF, PNG)
-  In the future, this service could be replaced or augmented by a general IPFS service.
+  In the future, this service could possibly be replaced or augmented by a general IPFS service.
 - Custom Integrations
   User integrations (such as commercial users working in concert with other software) may well communicate directly with the SQL database.
 

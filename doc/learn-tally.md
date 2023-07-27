@@ -47,7 +47,7 @@ A tally includes the following information:
   - Client Certificate
     - Client CHIP address
   - Client Credit Terms; debt Client -> Vendor (N=credit card, 0=debit card)
-  - Reference to one or more standard, published contracts clauses, which
+  - Reference to one or more standard, published [contracts](learn-contract.md) clauses, which
     become the operable and binding terms of the indebtedness.
   - Digital signature of Vendor (indicates binding acceptance of the tally)
   - Digital signature of Client
@@ -88,7 +88,7 @@ This is called [chit consensus](./learn-protocol.md#chit-chain-consensus).
 ### Evolution of Credit Terms
 
 The tally fields reserved for credit terms were designed to hold parameters which could be
-referred to in the tally contract to adapt the contract to the specific numbers agreed to
+referred to in the [tally contract](learn-contract.md) to adapt the contract to the specific numbers agreed to
 by the parties.  The parameters outlined below were originally designed with the idea that 
 nearly any sort of credit relationship could be represented using a tally.
 
@@ -118,7 +118,8 @@ The present direction for resolving these matters is as follows:
   - After the vesting date, it would suddenly become relevant.
   - This should have the effect of making the chit non-liquid prior to vesting and liquid thereafter.
 - We will consider tally credit terms to be primarily understood by the humans party to the tally.
-  Generally, credit terms will not be parsed by the computer, except to correlate them with the tally contract in a way so the parties can properly interpret their contract with each other.
+  Generally, credit terms will not be parsed by the computer, except to correlate them with the 
+  [tally contract](learn-contract.md) in a way so the parties can properly interpret their contract with each other.
 - The lift algorithm will not consult the credit terms at all, but will be guided solely by the trading variables.
 
 In the initial roll-out, MyCHIPs should concentrate primarily on chits that vest immediately and are subject to immediate lifting.
@@ -930,5 +931,5 @@ move your latest valid index number forward (but not back) to that number.
 
 See [this section](learn-lift.md#lift-states) for more on treatment of chits that belong to a lift transaction.
 
-<br>[Next - The Credit Lift](learn-lift.md)
+<br>[Next - Tally Contracts](learn-contract.md)
 <br>[Back to Index](README.md#contents)
