@@ -9,6 +9,7 @@ const initialTexts = {
   addr_v: {},
   users: {},
   exchange: {},
+  hold_terms_lang: {},
 }
 
 const MessageTextProvider = ({ children }) => {

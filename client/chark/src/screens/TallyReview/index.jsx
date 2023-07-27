@@ -12,7 +12,7 @@ import { colors } from '../../config/constants';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useCurrentUser from '../../hooks/useCurrentUser';
-import { useTallyText } from '../../hooks/useLanguage';
+import { useHoldTermsText, useTallyText } from '../../hooks/useLanguage';
 import { offerTally, acceptTally, refuseTally } from '../../services/tally';
 import useTallyUpdate from '../../hooks/useTallyUpdate';
 
@@ -30,6 +30,7 @@ const TallyReview = (props) => {
 
   // Fetch tally texts
   useTallyText(wm)
+  useHoldTermsText(wm);
 
   const [updating, setUpdating] = useState(false);
   const {

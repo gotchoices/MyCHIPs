@@ -14,7 +14,7 @@ import {
 import { colors, keyServices } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
-import { useTallyText } from '../../../hooks/useLanguage';
+import { useHoldTermsText, useTallyText } from '../../../hooks/useLanguage';
 import useTallyUpdate from '../../../hooks/useTallyUpdate';
 
 import CustomText from '../../../components/CustomText';
@@ -61,6 +61,7 @@ const TallyPreview = (props) => {
 
   // Fetch tally text
   useTallyText(wm);
+  useHoldTermsText(wm);
 
   const onShare = () => {
     const hold_limit = tally?.hold_terms?.limit;

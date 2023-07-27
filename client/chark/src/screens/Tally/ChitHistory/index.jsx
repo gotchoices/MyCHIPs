@@ -3,9 +3,8 @@ import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOp
 import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
-import { fetchChitHistory } from "../../../services/tally";
+import { fetchChitHistory, fetchTallyPartnerPhoto } from "../../../services/tally";
 import { round } from "../../../utils/common";
-import moment from 'moment';
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
@@ -25,7 +24,7 @@ const ChitHistory = (props) => {
 
   useEffect(() => {
     if (digest) {
-      fetchTallyFile(wm, digest, tally_seq).then((data) => {
+      fetchTallyPartnerPhoto(wm, digest, tally_seq).then((data) => {
         const fileData = data?.[0]?.file_data;
         const file_fmt = data?.[0]?.file_fmt;
         if (fileData) {

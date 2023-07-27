@@ -81,7 +81,9 @@ const EditOpenTally = (props) => {
   }
 
   const onViewChitHistory = () => {
+
     const partCert = tally?.part_cert;
+    console.log("DIGEST_HAVE ==> ", JSON.stringify(tally));
     props.navigation.navigate('ChitHistory', {
       tally_seq,
       tally_ent,

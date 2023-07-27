@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -12,6 +12,7 @@ import useMessageText from '../../hooks/useMessageText';
 import CustomText from '../../components/CustomText';
 import CommonTallyView from '../Tally/CommonTallyView';
 import HelpText from '../../components/HelpText';
+import { useHoldTermsText } from '../../hooks/useLanguage';
 
 const TallyEditView = (props) => {
   const tally = props.tally;
@@ -28,7 +29,11 @@ const TallyEditView = (props) => {
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
+  const holdTermsText = messageText?.hold_terms_lang;
 
+  useEffect(() => {
+    console.log("LANGUAGE ==> ", holdTermsText);
+  }, [holdTermsText, messageText])
   return (
     <View>
       <CommonTallyView tally={tally} />
@@ -80,9 +85,14 @@ const TallyEditView = (props) => {
         />
 
         <View style={{ marginVertical: 10 }}>
-          <CustomText as="h5">
+          {/* <CustomText as="h5">
             Limit
-          </CustomText>
+          </CustomText> */}
+          <HelpText
+            label={holdTermsText?.[1]?.title ?? ''}
+            helpText={holdTermsText?.[1]?.help}
+            style={styles.h5}
+          />
 
           <TextInput
             keyboardType='numeric'
@@ -93,9 +103,14 @@ const TallyEditView = (props) => {
         </View>
 
         <View>
-          <CustomText as="h5">
+          {/* <CustomText as="h5">
             Call
-          </CustomText>
+          </CustomText> */}
+          <HelpText
+            label={holdTermsText?.[0]?.title ?? ''}
+            helpText={holdTermsText?.[0]?.help}
+            style={styles.h5}
+          />
 
           <TextInput
             style={styles.input}
@@ -114,9 +129,14 @@ const TallyEditView = (props) => {
         />
 
         <View style={{ marginVertical: 10 }}>
-          <CustomText as="h5">
+         {/*  <CustomText as="h5">
             Limit
-          </CustomText>
+          </CustomText> */}
+          <HelpText
+            label={holdTermsText?.[1]?.title ?? ''}
+            helpText={holdTermsText?.[1]?.help}
+            style={styles.h5}
+          />
 
           <TextInput
             style={styles.input}
@@ -127,9 +147,14 @@ const TallyEditView = (props) => {
         </View>
 
         <View>
-          <CustomText as="h5">
+          {/* <CustomText as="h5">
             Call
-          </CustomText>
+          </CustomText> */}
+          <HelpText
+            label={holdTermsText?.[0]?.title ?? ''}
+            helpText={holdTermsText?.[0]?.help}
+            style={styles.h5}
+          />
 
           <TextInput
             style={styles.input}
@@ -176,6 +201,11 @@ const styles = StyleSheet.create({
   headerText: {
     color: colors.black,
     fontSize: 14,
+  },
+  h5: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: 'bold',
   },
 })
 
