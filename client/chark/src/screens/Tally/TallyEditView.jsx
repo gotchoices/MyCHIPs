@@ -3,11 +3,14 @@ import {
   View,
   StyleSheet,
   TextInput,
+  TouchableWithoutFeedback,
+  Text,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import { colors } from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
+import useSocket from '../../hooks/useSocket';
 
 import CustomText from '../../components/CustomText';
 import CommonTallyView from '../Tally/CommonTallyView';
@@ -28,6 +31,27 @@ const TallyEditView = (props) => {
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
+
+  const { wm } = useSocket();
+
+  const showPDF = () => {
+    const spec = {
+      name: 'agree',
+      view: 'mychips.tallies_v_me',
+      data: {
+        key: {
+          tally_seq: tally.tally_seq,
+        },
+        options: {
+          format: 'url'
+        }
+      }
+    };
+
+    wm.request(`agree-${Math.random()}`, 'action', spec, (data, err) => {
+      console.log(data)
+    })
+  }
 
   return (
     <View>
@@ -70,6 +94,14 @@ const TallyEditView = (props) => {
         >
           <Picker.Item label="Tally Contract" value="Tally_Contract" />
         </Picker>
+
+        <TouchableWithoutFeedback
+          onPress={showPDF}
+        >
+          <Text>
+          Show PDF
+          </Text>
+        </TouchableWithoutFeedback>
       </View>
 
       <View style={styles.detailControl}>
