@@ -5,14 +5,10 @@ import {
   TextInput,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-
 import { colors } from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
-
-import CustomText from '../../components/CustomText';
 import CommonTallyView from '../Tally/CommonTallyView';
 import HelpText from '../../components/HelpText';
-import { useHoldTermsText } from '../../hooks/useLanguage';
 
 const TallyEditView = (props) => {
   const tally = props.tally;
@@ -29,11 +25,9 @@ const TallyEditView = (props) => {
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
-  const holdTermsText = messageText?.hold_terms_lang;
+  const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
+  const partTermsText = messageText?.terms_lang?.part_terms?.values;
 
-  useEffect(() => {
-    console.log("LANGUAGE ==> ", holdTermsText);
-  }, [holdTermsText, messageText])
   return (
     <View>
       <CommonTallyView tally={tally} />
@@ -84,15 +78,30 @@ const TallyEditView = (props) => {
           style={styles.headerText}
         />
 
-        <View style={{ marginVertical: 10 }}>
-          {/* <CustomText as="h5">
+        {
+          holdTermsText?.map((holdTerm, index) => {
+            return <View key={`${holdTerm?.value}${index}`} style={{ marginVertical: 10 }}>
+              <HelpText
+                label={holdTerm?.title ?? ''}
+                helpText={holdTerm?.help}
+                style={styles.h5}
+              />
+
+              <TextInput
+                keyboardType='numeric'
+                style={styles.input}
+                value={holdTerms?.[holdTerm?.value]}
+                // value={holdTerms?.limit}
+                onChangeText={onHoldTermsChange(holdTerm?.value)}
+              />
+            </View>
+          })
+        }
+
+        {/*  <View style={{ marginVertical: 10 }}>
+          <CustomText as="h5">
             Limit
-          </CustomText> */}
-          <HelpText
-            label={holdTermsText?.[1]?.title ?? ''}
-            helpText={holdTermsText?.[1]?.help}
-            style={styles.h5}
-          />
+          </CustomText>
 
           <TextInput
             keyboardType='numeric'
@@ -103,14 +112,9 @@ const TallyEditView = (props) => {
         </View>
 
         <View>
-          {/* <CustomText as="h5">
+          <CustomText as="h5">
             Call
-          </CustomText> */}
-          <HelpText
-            label={holdTermsText?.[0]?.title ?? ''}
-            helpText={holdTermsText?.[0]?.help}
-            style={styles.h5}
-          />
+          </CustomText>
 
           <TextInput
             style={styles.input}
@@ -118,7 +122,7 @@ const TallyEditView = (props) => {
             value={holdTerms?.call}
             onChangeText={onHoldTermsChange('call')}
           />
-        </View>
+        </View> */}
       </View>
 
       <View style={styles.detailControl}>
@@ -127,16 +131,28 @@ const TallyEditView = (props) => {
           helpText={talliesText?.part_terms?.help}
           style={styles.headerText}
         />
+        {
+          partTermsText?.map((partTerm, index) => {
+            return <View key={`${partTerm?.value}${index}`} style={{ marginVertical: 10 }}>
+              <HelpText
+                label={partTerm?.title ?? ''}
+                helpText={partTerm?.help}
+                style={styles.h5}
+              />
 
-        <View style={{ marginVertical: 10 }}>
-         {/*  <CustomText as="h5">
+              <TextInput
+                keyboardType='numeric'
+                style={styles.input}
+                value={partTerms?.[partTerm?.value]}
+                onChangeText={onPartTermsChange(partTerm?.value)}
+              />
+            </View>
+          })
+        }
+        {/* <View style={{ marginVertical: 10 }}>
+          <CustomText as="h5">
             Limit
-          </CustomText> */}
-          <HelpText
-            label={holdTermsText?.[1]?.title ?? ''}
-            helpText={holdTermsText?.[1]?.help}
-            style={styles.h5}
-          />
+          </CustomText>
 
           <TextInput
             style={styles.input}
@@ -147,14 +163,9 @@ const TallyEditView = (props) => {
         </View>
 
         <View>
-          {/* <CustomText as="h5">
+          <CustomText as="h5">
             Call
-          </CustomText> */}
-          <HelpText
-            label={holdTermsText?.[0]?.title ?? ''}
-            helpText={holdTermsText?.[0]?.help}
-            style={styles.h5}
-          />
+          </CustomText>
 
           <TextInput
             style={styles.input}
@@ -162,7 +173,7 @@ const TallyEditView = (props) => {
             value={partTerms?.call}
             onChangeText={onPartTermsChange('call')}
           />
-        </View>
+        </View> */}
       </View>
 
       <View style={styles.detailControl}>

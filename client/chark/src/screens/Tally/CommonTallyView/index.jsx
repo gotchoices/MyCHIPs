@@ -1,16 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Linking } from 'react-native';
 import HelpText from '../../../components/HelpText';
 import { colors, connectsObj, dateFormats } from '../../../config/constants';
 import useMessageText from '../../../hooks/useMessageText';
+
 import Button from '../../../components/Button';
 import { round } from '../../../utils/common';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 import { formatDate } from '../../../utils/format-date';
+import Avatar from '../../../components/Avatar';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
+  const userTallyText = messageText?.userTallies ?? {};
+  const [avatar, setAvatar] = useState(undefined);
 
   const net = round((tally?.net ?? 0) / 1000, 3)
   const talliesText = messageText?.tallies;
@@ -20,6 +24,25 @@ const CommonTallyView = (props) => {
 
   const connects = tally?.part_cert?.connect;
   const partCert = tally?.part_cert;
+
+  useEffect(() => {
+    const digest = tally?.part_cert?.file?.[0]?.digest;
+    const tally_seq = tally?.tally_seq;
+
+    if (digest) {
+      fetchTallyFile(wm, digest, tally_seq).then((data) => {
+        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
+        const fileData = data?.[0]?.file_data;
+        const file_fmt = data?.[0]?.file_fmt;
+        if (fileData) {
+          const base64 = Buffer.from(fileData).toString('base64')
+          setAvatar(`data:${file_fmt};base64,${base64}`);
+        }
+      }).catch(err => {
+        console.log("TALLY_FILE_ERROR ==> ", err)
+      })
+    }
+  }, [tally])
 
   const handleLinkPress = (link) => {
     Linking.canOpenURL(link)
@@ -38,8 +61,7 @@ const CommonTallyView = (props) => {
       {
         hasNet && <View style={styles.detailControl}>
           <HelpText
-            label={talliesText?.net?.title ?? 'Tally balance'}
-            helpText={talliesText?.net?.help}
+            label={'Tally Balance'}
             style={styles.headerText}
           />
           <View>
@@ -71,9 +93,12 @@ const CommonTallyView = (props) => {
             style={styles.headerText}
           />
 
+          <Avatar avatar={avatar} style={{ height: 40, width: 40 }} />
+
           <View style={styles.detailControl}>
             <HelpText
-              label={'Full Name'}
+              label={userTallyText?.frm_name?.title ?? ''}
+              helpText={userTallyText?.frm_name?.help}
               style={styles.secondaryheader}
             />
             <Text>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
@@ -81,7 +106,8 @@ const CommonTallyView = (props) => {
 
           <View style={styles.detailControl}>
             <HelpText
-              label={'CID'}
+              label={talliesText?.part_cid?.title ?? ''}
+              helpText={talliesText?.part_cid?.help}
               style={styles.secondaryheader}
             />
             <Text>{partCert?.chad?.cid}</Text>
@@ -89,7 +115,8 @@ const CommonTallyView = (props) => {
 
           <View style={styles.detailControl}>
             <HelpText
-              label={'Agent ID'}
+              label={talliesText?.part_agent?.title ?? ''}
+              helpText={talliesText?.part_agent?.help}
               style={styles.secondaryheader}
             />
             <Text>{partCert?.chad?.agent}</Text>
@@ -103,7 +130,7 @@ const CommonTallyView = (props) => {
                   const link = media === 'email' ? 'mailto:' : 'tel:';
                   return <View key={`${connect?.address}${index}`} style={styles.detailControl}>
                     <HelpText
-                      label={connectsObj[media] || media}
+                      label={connectsObj[media] ?? media ?? ''}
                       style={styles.secondaryheader}
                     />
                     <Text onPress={() => { handleLinkPress(link + connect?.address) }}>{connect?.address}</Text>

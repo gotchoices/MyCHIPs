@@ -1,5 +1,8 @@
 TODO:
 X- Test/document where tally accept protocol fails
+X- Get mychips.chits_v_me view to work, read/write
+-
+
 - Make basic tally/contract viewer report
 X-  Implement simple static pdf to test features of PDFMake library
 -  How to tell which contracts can be top-level tally contracts?
@@ -9,6 +12,8 @@ X-  Implement simple static pdf to test features of PDFMake library
 -  Build agreement pdf from actual contract
 - 
 - Add reset and submit buttons for Trading Variables report (in user's language)
+- 
+- Rebuilding text will expire text cache in server (async notify?)
 - 
 
 - Tally protocol support

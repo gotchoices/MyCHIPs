@@ -183,7 +183,6 @@ function App() {
                     component={InviteStackScreen}
                     options={{
                       tabBarTestID: "inviteTestID",
-                      lazy: false,
                       tabBarIcon: (props) => (
                         <CustomIcon name="invite" {...{ ...props, size: 26 }} />
                       )
@@ -194,7 +193,6 @@ function App() {
                     name="Settings"
                     component={SettingStackScreen}
                     options={{
-                      lazy: false,
                       tabBarIcon: (props) => (
                         <CustomIcon name="settings" {...{ ...props, size: 25 }} />
                       )

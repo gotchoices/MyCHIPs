@@ -3,7 +3,7 @@ import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOp
 import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
-import { fetchChitHistory, fetchTallyPartnerPhoto } from "../../../services/tally";
+import { fetchChitHistory, fetchTallyFile } from "../../../services/tally";
 import { round } from "../../../utils/common";
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
@@ -24,16 +24,19 @@ const ChitHistory = (props) => {
 
   useEffect(() => {
     if (digest) {
-      fetchTallyPartnerPhoto(wm, digest, tally_seq).then((data) => {
+      fetchTallyFile(wm, digest, tally_seq).then((data) => {
+        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
         const fileData = data?.[0]?.file_data;
         const file_fmt = data?.[0]?.file_fmt;
         if (fileData) {
           const base64 = Buffer.from(fileData).toString('base64')
           setAvatar(`data:${file_fmt};base64,${base64}`)
         }
-      }).catch(err => console.log(err, 'eriuwqeiruiquweriuqweiru'))
+      }).catch(err => {
+        console.log("TALLY_FILE_ERROR ==> ", err)
+      })
     }
-  }, [digest])
+  }, [digest, tally_seq])
 
   useEffect(() => {
     _fetchChitHistory();

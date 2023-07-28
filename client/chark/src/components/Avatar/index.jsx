@@ -1,15 +1,16 @@
 import React from 'react';
-import { StyleSheet, Image } from 'react-native';
-
-import profileImg from '../../../assets/profile.png';
+import { StyleSheet, Image, View } from 'react-native';
+import { ProfileImage } from '../SvgAssets/SvgAssets';
 
 const Avatar = (props) => {
-  return (
-    <Image 
-      source={props.avatar ? {uri: props.avatar} : profileImg}
-      style={[styles.image, props?.style ?? {}]} 
+  return props.avatar ? (
+    <Image
+      source={{ uri: props.avatar }}
+      style={[styles.image, props?.style ?? {}]}
     />
-  )
+  ) : (<View style={[styles.image, props?.style ?? {}]}>
+    <ProfileImage />
+  </View>)
 }
 
 const styles = StyleSheet.create({

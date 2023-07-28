@@ -16,9 +16,9 @@ import Button from '../../components/Button';
 import GenerateKey from './GenerateKey';
 import HelpText from '../../components/HelpText';
 
-import profileImg from '../../../assets/profile.png';
 import Currency from './Currency';
 import ExportKey from './GenerateKey/ExportKey';
+import Avatar from '../../components/Avatar';
 
 const deviceLanguage =
   Platform.OS === 'ios'
@@ -74,10 +74,7 @@ const Setting = (props) => {
       contentContainerStyle={styles.contentContainer}
     >
       <View style={styles.profile}>
-        <Image
-          style={styles.profileImage}
-          source={avatar ? { uri: avatar } : profileImg}
-        />
+        <Avatar style= {styles.profileImage} avatar = {avatar}/>
 
         <Text style={styles.name}>
           {personal?.cas_name}

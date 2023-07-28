@@ -6,7 +6,7 @@ mychips.agents:
   fields:
   - [agent,		ent,	60,	[0, 0, 3],	{spe: exs}]
   - [agent_host,	ent,	20,	[0, 1],		{spe: exs}]
-  - [agent_port,	num,	 6,	[1, 1],		{just: r, min: 0, max: 10}]
+  - [agent_port,	num,	 6,	[1, 1],		{just: r}]
   - [agent_ip,		ent,	20,	[0, 2],		{wr: 0, state: readonly}]
   - [agent_key,		ent,	64,	[0, 7, 3],	{opt: true}]
   - [crt_by,     	ent,	10,	[1, 98],	{opt: 1, wr: 0, sta: readonly}]

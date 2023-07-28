@@ -2,10 +2,8 @@ import React from 'react';
 import { View, StyleSheet, Text, Image } from 'react-native';
 
 import { colors } from '../../../config/constants';
-import visualBtn from '../../../../assets/visual-button.png';
-import mychips from '../../../../assets/mychips-large.png';
-import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import useProfile from '../../../hooks/useProfile';
+import useMessageText from '../../../hooks/useMessageText';
 
 import Header from '../Header';
 import Avatar from '../../../components/Avatar';
@@ -13,6 +11,8 @@ import { ChitIcon, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const Banner = (props) => {
   const { avatar, personal } = useProfile();
+  const { messageText } = useMessageText();
+  const userTallyText = messageText?.userTallies ?? {};
 
   const navigateToReport = () => {
     props.navigation?.navigate?.('TallyReport')
@@ -24,7 +24,7 @@ const Banner = (props) => {
     <View style={styles.container}>
       <Header
         icon={<VisualIcon />}
-        title="Tally Report"
+        title={userTallyText?.tallies?.title ?? ''}
         onClick={navigateToReport}
       />
 

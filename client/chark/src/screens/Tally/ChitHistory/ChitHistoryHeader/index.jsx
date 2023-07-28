@@ -5,8 +5,8 @@ import { round } from "../../../../utils/common";
 import useProfile from "../../../../hooks/useProfile";
 import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
-import profileImg from '../../../../../assets/profile.png';
 import { formatDate } from "../../../../utils/format-date";
+import Avatar from "../../../../components/Avatar";
 
 const ChistHistoryHeader = (props) => {
   const { part_name, cid, date, net, wm, avatar, totalBalance } = props.args ?? {};
@@ -50,9 +50,9 @@ const ChistHistoryHeader = (props) => {
         <Text style={styles.label}>{formatDate(date)}</Text>
       </View >
       <View style={[styles.row, { marginTop: 12 }]}>
-        <Image
+        <Avatar
           style={styles.profileImage}
-          source={avatar ? { uri: avatar } : profileImg}
+          avatar={avatar}
         />
         <View style={{ flex: 1, marginStart: 12, justifyContent: 'center' }}>
           <Text style={styles.title}>{part_name}</Text>

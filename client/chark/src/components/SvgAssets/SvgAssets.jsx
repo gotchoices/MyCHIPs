@@ -9,6 +9,7 @@ import ICVisual from '../../../assets/svg/ic_visual.svg';
 import ICTabular from '../../../assets/svg/ic_tabular.svg';
 import ICFilter from '../../../assets/svg/ic_filter.svg';
 import ICSearch from '../../../assets/svg/ic_search.svg';
+import IMGProfile from '../../../assets/svg/img_profile.svg';
 import { colors } from '../../config/constants';
 
 
@@ -20,6 +21,10 @@ export const IconWrapper = ({ IconComponent, color, size }) => {
   };
   return <IconComponent {...iconProps} />;
 };
+
+export const ProfileImage = ({ size }) => {
+  return <IMGProfile height={size} width={size} />
+}
 
 export const VisualIcon = () => <ICVisual />
 

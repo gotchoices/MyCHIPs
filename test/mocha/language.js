@@ -105,7 +105,7 @@ log.debug("file:", file)
     })
   }
 
-/* Disable for now 
+/* Disable unless specifically checking for missing languge tags:
   it('Install languages', function(done) {
     Child.exec("wyseman lang", {
       cwd: SchemaDir,

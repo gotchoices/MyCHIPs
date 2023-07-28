@@ -123,7 +123,7 @@ export const createTemplate = (wm, payload) => {
   return request(wm, 'new_template' + random(1000), 'insert', spec)
 }
 
-export const fetchTallyPartnerPhoto = (wm, digest, tally_seq) => {
+export const fetchTallyFile = (wm, digest, tally_seq) => {
   const spec = {
     name: 'file',
     view: 'mychips.tallies_v_me',
@@ -155,12 +155,3 @@ export const fetchTradingVariables = (wm, payload) => {
   return request(wm, 'fetch_trade' + random(1000), 'action', spec);
 }
 
-
-export const fetchTallyContract = (wm, payload) => {
-  const spec = {
-    name: 'agree',
-    view: 'mychips.tallies_v_me'
-  }
-
-  return request(wm, 'fetch_contract' + random(1000), 'action', spec);
-}
