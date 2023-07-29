@@ -1,6 +1,7 @@
 contract/old
 node_modules/
 schema/old
+local
 pki/local.conf
 pki/local
 doc/.~lock*

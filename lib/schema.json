@@ -1,5 +1,5 @@
 {
- "hash": "8VkA/WfFp3HkE8rdGaPkSdovkOKc7Y0Vn5ZaeBAMj10=",
+ "hash": "OFI/DddHFYUdOuBwptnPqbk8ysi4xH1PvGlEF0GxK74=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -2450,6 +2450,22 @@
    "col_data": [],
    "create": "eJxlkE2uwjAMhNdwCi8qtZVQL8BhqsQYGhSSEjvovduTn5Yg4dX4G4/lBAMpIbhGh2K8g8c/LmblCb2ToFDmO3s34A/nEQJJDI4hT2hgUdoSWOVuUd0I+GlBMXTdEVIxWUKpozNLMOvsorU8VKKjsZfZ63saGkogV794lv50OOCU1cZP0Dv1oMqzavxFgdMjkoXTppu5X1bcvWm2+LWuTKLRNWpreKFLSX26r5gRW1cW9WXQ33Z7Vo0zlY/mktmbYo/jsevOb0ctd+0=",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1kvOzyspSkwuic8qzs/TQBct1rQGAEGZGTU="
+  },
+  {
+   "obj_typ": "index",
+   "obj_nam": "mychips_contracts_x_rid",
+   "obj_ver": 1,
+   "module": "mychips",
+   "min_rel": 1,
+   "max_rel": 1,
+   "deps": [
+    "mychips.contracts"
+   ],
+   "delta": [],
+   "grants": [],
+   "col_data": [],
+   "create": "eJxLLkpNLElVyMxLSa1QyK1MzsgsKI5Pzs8rKUpMLimOr4gvykxRyM+DSenBpRQ0YEJJiUZJphYaKZnpqcUlmprWAEcPHvQ=",
+   "drop": "eJxLKcovUMjMS0mtUMhMU0ityCwuKVbIrUzOyCwojk/OzyspSkwuKY6viC/KTLEGAI5IEZo="
   },
   {
    "obj_typ": "table",
