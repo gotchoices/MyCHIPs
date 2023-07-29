@@ -105,6 +105,35 @@ trigger mychips_contracts_tr_bi {} {
     before insert on mychips.contracts for each row execute procedure mychips.contracts_tf_bi();
 }
 
+# Materialize all references in a json contract (will blow up on circular recursion)
+#----------------------------------------------------------------
+function {mychips.contract_mat(contract jsonb)} {mychips.contracts_v} {
+  returns jsonb language plpgsql as $$
+    declare
+      newObj		jsonb = contract;
+      fetchedCont	jsonb;
+      i			int;
+    begin
+    if not (contract ? 'sections') then
+      return contract;
+    end if;
+    for i in 0..jsonb_array_length(contract->'sections')-1 loop
+      if ((contract->'sections'->i) ? 'source') then
+        fetchedCont = (
+          select json from mychips.contracts_v where rid = contract->'sections'->i->>'source'
+        );
+        fetchedCont = mychips.contract_mat(fetchedCont);	-- Resolve sub-references
+        newObj = jsonb_set(
+          newObj,
+          array['sections', i::text], 
+          (newObj->'sections'->i) || fetchedCont
+        );
+      end if;
+    end loop;
+    return newObj;
+  end;
+$$;}
+
 # Update contracts in an orderly way (should really do this in the permissioned view)
 #----------------------------------------------------------------
 #function mychips.contracts_tf_bu() {mychips.contracts} {

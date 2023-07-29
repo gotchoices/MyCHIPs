@@ -2628,6 +2628,31 @@ grant select on table mychips.comm_v_me to user_2;
 grant insert on table mychips.comm_v_me to user_2;
 grant update on table mychips.comm_v_me to user_2;
 grant delete on table mychips.comm_v_me to user_3;
+create function mychips.contract_mat(contract jsonb) returns jsonb language plpgsql as $$
+    declare
+      newObj		jsonb = contract;
+      fetchedCont	jsonb;
+      i			int;
+    begin
+    if not (contract ? 'sections') then
+      return contract;
+    end if;
+    for i in 0..jsonb_array_length(contract->'sections')-1 loop
+      if ((contract->'sections'->i) ? 'source') then
+        fetchedCont = (
+          select json from mychips.contracts_v where rid = contract->'sections'->i->>'source'
+        );
+        fetchedCont = mychips.contract_mat(fetchedCont);
+        newObj = jsonb_set(
+          newObj,
+          array['sections', i::text], 
+          (newObj->'sections'->i) || fetchedCont
+        );
+      end if;
+    end loop;
+    return newObj;
+  end;
+$$;
 create trigger mychips_contracts_tr_bi before insert on mychips.contracts for each row execute procedure mychips.contracts_tf_bi();
 create function mychips.contracts_v_insfunc() returns trigger language plpgsql security definer as $$
   declare

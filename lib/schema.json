@@ -1,5 +1,5 @@
 {
- "hash": "OFI/DddHFYUdOuBwptnPqbk8ysi4xH1PvGlEF0GxK74=",
+ "hash": "0FbYuH0AbRmJAOfximHM2SQ3JVSSw3uXJWWSTfvYiKw=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -3964,6 +3964,22 @@
    ],
    "create": "eJwtijEOgzAQBGvnFVsmFP5AxFss51iEJQ5HPoPF7wlWplmNdqQwVuJIbNBTlvQ1L1k1HEGJaDCulIoHfogf+s4lq/tE4z+FuLawEF25VYzo924sIU1Po1nKW7j99b4ABR8nzw==",
    "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWS87PzY0vi89NtQYAGOEOeA=="
+  },
+  {
+   "obj_typ": "function",
+   "obj_nam": "mychips.contract_mat(jsonb)",
+   "obj_ver": 1,
+   "module": "mychips",
+   "min_rel": 1,
+   "max_rel": 1,
+   "deps": [
+    "mychips.contracts_v"
+   ],
+   "delta": [],
+   "grants": [],
+   "col_data": [],
+   "create": "eJx1UUtugzAUXJNTzAIpIIWo3QaVLnqAHqCqkGMe4MixqW2aRsrhSzAkTtJ69fx+M2+GG2KOUPeKO6EV9kfeis6uuVbOMO7KPXPJ/MHOarVNYcj1Rln/hWSq6VlD6GTX2C8JZhHHCwyvIi6ZoTEGFB3et7so8mMvmNfmU70mx1uq3oa075kLIooioaa+LTVCjZGoobTDld4rlpbGO+wyhWtJTQs84TtAUtWwwse1NhAQCk/r9QhdMmPYsZSkGtdeELIiAMieIbXuZo41kj/7skKkIzPdG063vG5uHhRJLnnAkqRJctRG7x+sseU3Di0ZghFVIOcdeFYUM/Zle5r/Q+BP+4OWYNC7Ocx4vSy5kL2vroLMKOjHldoKYrNx9OM+VwjaEj/5oODpFFJ9vCR08xyfrfG/yXy/95wayvkijvNfoWznMA==",
+   "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1kvOzyspSkwuic9NLNHIKs7PS9K0BgAUKRPd"
   },
   {
    "obj_typ": "trigger",

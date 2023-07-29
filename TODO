@@ -1,23 +1,19 @@
 TODO:
 
 - Make basic tally/contract viewer report
-X-  Build formatter that generates pdfmake control structure from strdoc object
-X-   Show document source data in small font to right of title
-X-   Use tables to build subsections
-X-   Subsections honor sub-numbering
-X-   Make class out of pdf generator module
--   
--  Make class to build document descriptor for tally information (prelude, postlude)
--  Contract report returns formatted pdf's of documents clicked in strdoc report
+X- Nested query that returns all contract components in a single query
+X- Can format the top-level tally strdoc contract
+-  Query to return a tally and nested contract JSON
+-  Formatter class can build document descriptors for tally information (prelude, postlude)
+-  Report formats full tally agreement
 -  
-- Nested query that returns all contract components in a single query
-- Format agreement pdf from actual contract
-- Query to return a tally + nested contract JSON
-- Format full tally agreement
+- Refactor document server to return contracts
+-  in json format
+-  in pdf format
+-  pdf's are cached by server
+-  Contract report launches pdf's of documents clicked in strdoc report
 - 
 - Add reset and submit buttons for Trading Variables report (in user's language)
-- 
-- Rebuilding text will expire text cache in server (async notify?)
 - 
 
 - Tally protocol support
