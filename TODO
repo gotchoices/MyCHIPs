@@ -1,21 +1,13 @@
 TODO:
 
 - Make basic tally/contract viewer report
-X-  Implement simple static pdf to test features of PDFMake library
-X-  How to tell which contracts can be top-level tally contracts? (top=true)
-X-  Which properties to include in tally.contract field (digest, host, name)
-X- Make old "hash" program work (or replace it)
-X- Contracts migrated to base58btc
-- Make old contract viewer/editor work with latest changes
-X-  What parts of contract record is strdoc? (and what are MyCHIPs extensions)
-X-  How to show resource in preview mode?
-X-  Format resource links to fetch from report handler
-X-  Change "Reference" to "Resource" in "+" menu
-X-  How to revert back to content block
-X-  Clicking Resource link generates request to load that document (can we launch separate window with headers?)
-X-  Combine tag & name?  (how does cross-referencing work?)
-X-  Check in changes so far
--  Build formatter that generates pdfmake control structure from strdoc object
+X-  Build formatter that generates pdfmake control structure from strdoc object
+X-   Show document source data in small font to right of title
+X-   Use tables to build subsections
+X-   Subsections honor sub-numbering
+X-   Make class out of pdf generator module
+-   
+-  Make class to build document descriptor for tally information (prelude, postlude)
 -  Contract report returns formatted pdf's of documents clicked in strdoc report
 -  
 - Nested query that returns all contract components in a single query
