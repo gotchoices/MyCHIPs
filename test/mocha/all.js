@@ -18,6 +18,7 @@ before('Can connect to postgres (may create DB)', function(done) {
 })
 
 require('./schema.js')		//Builds development DB objects
+require('./sch-multi.js')	//Will disrupt users table contents
 
 require('./sch-crypto.js')
 require('./objectset.js')
@@ -45,8 +46,8 @@ require('./sch-lift.js')
 require('./lift-in.js')
 require('./lift.js')
 
+require('./contract.js')
 require('./language.js')
-//require('./sch-multi.js')	//Will empty users table
 
 /* */
 after('Delete test database', function(done) {

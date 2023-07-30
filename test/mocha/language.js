@@ -49,11 +49,11 @@ log.debug("res:", res)
 
   it('Check for undocumented columns', function(done) {
     let sql = `select sch,tab,col from wm.column_lang where help is null and sch in (${SchemaList}) and language = 'eng' order by 1,2`
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     db.query(sql, (e, res) => {if (e) done(e)
       let objs = res.rows.map(el => (el.sch + '.' + el.tab + '.' + el.col))
         , list = res.rows.length > 0 ? JSON.stringify(objs,null,2) : ''
-log.debug("res:", res, "Rows:", JSON.stringify(res?.rows))
+log.debug("Undoc:", res, "Rows:", JSON.stringify(res?.rows))
       assert.equal(list, '')
 //      assert.equal(res.rows.length, 0)
       done()
@@ -67,7 +67,7 @@ log.debug("res:", res, "Rows:", JSON.stringify(res?.rows))
       and ct.ct_sch in (${SchemaList})`
 log.debug("Sql:", sql)
     db.query(sql, (e, res) => {if (e) done(e)
-//log.debug("res:", res, "Rows:", JSON.stringify(res?.rows))
+log.debug("Stray:", res, "Rows:", JSON.stringify(res?.rows))
       assert.equal(res?.rows?.length, 0)
       done()
     })

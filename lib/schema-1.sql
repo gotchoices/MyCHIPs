@@ -2317,7 +2317,6 @@ create function mychips.contracts_tf_bi() returns trigger language plpgsql secur
     end;
 $$;
 create view mychips.contracts_v as select c.host, c.name, c.version, c.language, c.top, c.title, c.text, c.digest, c.sections, c.published, c.crt_by, c.mod_by, c.crt_date, c.mod_date
-
   , mychips.ba2b58(c.digest)					as rid
   , mychips.contract_json(c)					as json_core
   , mychips.contract_json(c) || jsonb_build_object(
@@ -2628,6 +2627,35 @@ grant select on table mychips.comm_v_me to user_2;
 grant insert on table mychips.comm_v_me to user_2;
 grant update on table mychips.comm_v_me to user_2;
 grant delete on table mychips.comm_v_me to user_3;
+create function mychips.contract_formal(tcont jsonb, mat boolean = false) returns jsonb language plpgsql as $$
+    declare
+      rcont		jsonb;
+      chost		text = 'mychips.org';
+      source		text;
+    begin
+raise notice 'tc2: % %', tcont, mat;
+      if jsonb_typeof(tcont) = 'string' then
+        source = trim(both '"' from tcont::text);
+      elsif tcont ? 'source' then
+        source = tcont->>'source';
+      else
+        return null;
+      end if;
+      if tcont ? 'host' then
+        chost = tcont->>'host';
+      end if;
+      select into rcont json from mychips.contracts_v where host = chost and rid = source;
+raise notice 'tc2: % % %', chost, source, found;
+      if not found then
+        return null;
+      end if;
+      
+      if mat then
+        return mychips.contract_mat(rcont);
+      end if;
+      return rcont;
+    end;
+$$;
 create function mychips.contract_mat(contract jsonb) returns jsonb language plpgsql as $$
     declare
       newObj		jsonb = contract;
@@ -5897,16 +5925,15 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','contracts','name','eng','Document Name','A name for the contract, unique to the specified host'),
   ('mychips','contracts','published','eng','Published','The date this version of the covenant was first made available to the public'),
   ('mychips','contracts','sections','eng','Sections','Further sub-sections of contract text, describing the terms and conditions of the contract'),
-  ('mychips','contracts','tag','eng','Section Tag','A short alphanumeric string which can be used as a target for cross references inside the document'),
   ('mychips','contracts','text','eng','Text','An introductory paragraph of text at the top level of the document'),
   ('mychips','contracts','title','eng','Title','A brief, descriptive title which will be shown as a document or section header when a contract is rendered'),
+  ('mychips','contracts','top','eng','Top Level','Indicates that this document is suitable to be used as a tally contract (as opposed to just a section)'),
   ('mychips','contracts','version','eng','Version','The version number, starting at 1, of this contract document'),
   ('mychips','contracts_v','clean','eng','Clean','The stored digest matches the computed digest'),
   ('mychips','contracts_v','digest_v','eng','Computed Digest','The digest for this document as currently computed'),
   ('mychips','contracts_v','json','eng','JSON','The contract represented in JavaScript Object Notation and including its digest'),
   ('mychips','contracts_v','json_core','eng','JSON Core','The contract represented in JavaScript Object Notation'),
   ('mychips','contracts_v','rid','eng','Resource ID','Base58-encoded version of the contract document'),
-  ('mychips','contracts_v','source','eng','Source URL','The official web address where the author of this document maintains its public access'),
   ('mychips','file_v_part','comment','eng','Comment','The document comment as recorded in the tally certificate'),
   ('mychips','file_v_part','digest','eng','Digest','The document hash as recorded in the tally certificate'),
   ('mychips','file_v_part','format','eng','Format','The document mime type as recorded in the tally certificate'),
@@ -6008,7 +6035,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','chain_stat','eng','Chain Status','The consensus status of the chit chain related to this tally'),
   ('mychips','tallies','clutch','eng','Sell Margin','A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.'),
   ('mychips','tallies','comment','eng','Comment','Any notes the user might want to enter regarding this tally'),
-  ('mychips','tallies','contract','eng','Contract','The hash ID of the standard contract this tally is based upon.'),
+  ('mychips','tallies','contract','eng','Contract','The Resouce ID of the contract governing this tally (or a json record specifying it)'),
   ('mychips','tallies','crt_by','eng','Created By','The user who entered this record'),
   ('mychips','tallies','crt_date','eng','Created','The date this record was created'),
   ('mychips','tallies','digest','eng','Digest Hash','A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.'),
@@ -6433,6 +6460,9 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','routes','status','good','eng','Good','The upstream peer server has answered that this route is possible'),
   ('mychips','routes','status','none','eng','None','The upstream peer server has answered that this route is not possible'),
   ('mychips','routes','status','pend','eng','Pending','A request has been made upstream to discover this route but no further status is yet known locally'),
+  ('mychips','tallies','contract','host','eng','Host','The host site of the author of the governing contract (default: mychips.org)'),
+  ('mychips','tallies','contract','name','eng','Name','The tag name of the governing contract'),
+  ('mychips','tallies','contract','source','eng','Resource','The Resource ID of the governing contract'),
   ('mychips','tallies','hold_terms','call','eng','Call Period','After the holder demands payment of a balance, the partner is allowed this many days to comply'),
   ('mychips','tallies','hold_terms','limit','eng','Credit Limit','Maximum amount the partner may become indebted to the tally holder'),
   ('mychips','tallies','part_terms','call','eng','Call Period','After the partner demands payment of a balance, the tally holder is allowed this many days to comply'),

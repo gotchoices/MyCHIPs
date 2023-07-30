@@ -32,13 +32,6 @@ table mychips.contracts {mychips base.language base.ent} {
 }
 index mychips_contracts_x_rid mychips.contracts {mychips.ba2b58(digest)}
 
-# Make a contract url from a contract key
-#----------------------------------------------------------------
-#function {mychips.contract_url(dom text, nam text, ver int, lan text, dig text)} {mychips} {
-#  returns text immutable language sql as $$
-#    select dom || '/' || nam || '-' || ver::text || '-' || lan || case when dig is null then '' else '?' || dig end;
-#$$;}
-
 # Compute standard json output for a contract
 #----------------------------------------------------------------
 function {mychips.contract_json(c mychips.contracts)} {mychips.contracts} {
@@ -60,7 +53,6 @@ $$;}
 #----------------------------------------------------------------
 view mychips.contracts_v {mychips.contracts mychips.contract_json(mychips.contracts) mychips.j2h(jsonb) mychips.ba2b58(bytea)} {
     select eval(fld_list $contracts::contracts_se c)
---  , mychips.contract_url(c.host, c.name, c.version, c.language, c.digest::text) as source
   , mychips.ba2b58(c.digest)					as rid
   , mychips.contract_json(c)					as json_core
   , mychips.contract_json(c) || jsonb_build_object(
@@ -132,6 +124,39 @@ function {mychips.contract_mat(contract jsonb)} {mychips.contracts_v} {
     end loop;
     return newObj;
   end;
+$$;}
+
+# Return the contract associated with the contract field from a tally
+#----------------------------------------------------------------
+function {mychips.contract_formal(tcont jsonb, mat boolean = false)} {mychips.contracts_v} {
+  returns jsonb language plpgsql as $$
+    declare
+      rcont		jsonb;
+      chost		text = 'mychips.org';
+      source		text;
+    begin
+raise notice 'tc2: % %', tcont, mat;
+      if jsonb_typeof(tcont) = 'string' then
+        source = trim(both '"' from tcont::text);
+      elsif tcont ? 'source' then
+        source = tcont->>'source';
+      else
+        return null;
+      end if;
+      if tcont ? 'host' then
+        chost = tcont->>'host';
+      end if;
+      select into rcont json from mychips.contracts_v where host = chost and rid = source;
+raise notice 'tc2: % % %', chost, source, found;
+      if not found then
+        return null;
+      end if;
+      
+      if mat then
+        return mychips.contract_mat(rcont);
+      end if;
+      return rcont;
+    end;
 $$;}
 
 # Update contracts in an orderly way (should really do this in the permissioned view)

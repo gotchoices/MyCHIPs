@@ -7,7 +7,7 @@ tabtext mychips.contracts	{Contracts}	{Each record contains contract language to
   {language	{Language}		{The standard 3-letter ISO code for the language in which the contrat is written}}
   {title	{Title}			{A brief, descriptive title which will be shown as a document or section header when a contract is rendered}}
   {text		{Text}			{An introductory paragraph of text at the top level of the document}}
-  {tag		{Section Tag}		{A short alphanumeric string which can be used as a target for cross references inside the document}}
+  {top		{Top Level}		{Indicates that this document is suitable to be used as a tally contract (as opposed to just a section)}}
   {published	{Published}		{The date this version of the covenant was first made available to the public}}
   {sections	{Sections}		{Further sub-sections of contract text, describing the terms and conditions of the contract}}
   {digest	{Hash}			{The SHA-256 hash signature of the document which can be referenced by others to prove the accuracy of the contract}}
@@ -19,7 +19,6 @@ tabtext mychips.contracts	{Contracts}	{Each record contains contract language to
 }
 
 tabtext mychips.contracts_v	{Contracts}	{Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.} {
-  {source	{Source URL}		{The official web address where the author of this document maintains its public access}}
   {rid		{Resource ID}		{Base58-encoded version of the contract document}}
   {json_core	{JSON Core}		{The contract represented in JavaScript Object Notation}}
   {json		{JSON}			{The contract represented in JavaScript Object Notation and including its digest}}

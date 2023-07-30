@@ -1,9 +1,8 @@
 TODO:
 
 - Make basic tally/contract viewer report
-X- Nested query that returns all contract components in a single query
-X- Can format the top-level tally strdoc contract
--  Query to return a tally and nested contract JSON
+X-  Query to return a tally and nested contract JSON
+X-  Report runs from selected tally
 -  Formatter class can build document descriptors for tally information (prelude, postlude)
 -  Report formats full tally agreement
 -  

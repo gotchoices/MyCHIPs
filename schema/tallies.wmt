@@ -12,7 +12,11 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {tally_date	{Tally Date}		{The date and time this tally was initiated between the parties}}
   {version	{Version}		{A number indicating the format standard this tally adheres to}}
   {comment	{Comment}		{Any notes the user might want to enter regarding this tally}}
-  {contract	{Contract}		{The hash ID of the standard contract this tally is based upon.}}
+  {contract	{Contract}		{The Resouce ID of the contract governing this tally (or a json record specifying it)} {
+    {name	{Name}			{The tag name of the governing contract}}
+    {host	{Host}			{The host site of the author of the governing contract (default: mychips.org)}}
+    {source	{Resource}		{The Resource ID of the governing contract}}
+  }}
   {hold_cert	{Holder Certificate}	{The JSON structure of identifying data for the entity that owns/holds this tally}}
   {part_cert	{Partner Certificate}	{The JSON structure of identifying data for the other party to this tally}}
   {hold_sig	{Holder Signed}		{The digital signature of the entity that owns/holds this tally}}
