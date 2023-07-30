@@ -778,23 +778,26 @@ tally: {
   date: <Begin date of contract>,
   note: <Additional Comments>,
   stock: {
-    cert: <CHIP Certificate>
+    cert: <CHIP Certificate>,
     terms: <Credit Terms>
   }
   foil: {
-    cert: <CHIP Certificate>
+    cert: <CHIP Certificate>,
     terms: <Credit Terms>
   }
-  agree: {
-    domain: "mychips.org",
-    name: "standard"
-    version: 0.99
-  }
+  agree: <Hash of selected agreement>,
   sign: {
     foil: <Foil Holder Signature>,
-    stock: <Stock Holder Signature>>
+    stock: <Stock Holder Signature>,
     digest: <Hash of the rest of the tally>
   },
+}
+```
+The tally contract ("agree" property) can also contain a json object as follows (for cases where the host is not mychips.org):
+```
+agree: {
+  host: "example.com",
+  source: "BqQZqh3xUtye3JnAKhwdMrCMHem3vX67gV3UevGBr4pE"
 }
 ```
 A tally may contain any number of sequential chits.
