@@ -47,6 +47,8 @@ import ChitHistory from './src/screens/Tally/ChitHistory';
 import ImportKeyScreen from './src/screens/ImportKeyScreen';
 import ChitDetail from './src/screens/Tally/ChitDetail';
 import CustomIcon from './src/components/CustomIcon';
+import TallyContract from './src/screens/Tally/TallyContract';
+import Button from './src/components/Button';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -79,6 +81,7 @@ function InviteStackScreen() {
         <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
         <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }} />
         <InviteStack.Screen name="TallyShare" component={ShareTally} options={{ title: 'Share Tally', headerShadowVisible: false }} />
+        <InviteStack.Screen name="TallyContract" component={TallyContract} options={{ title: 'Tally Contract' }} />
       </InviteStack.Navigator>
     </InviteProvider>
   );

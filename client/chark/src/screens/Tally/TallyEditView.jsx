@@ -31,28 +31,6 @@ const TallyEditView = (props) => {
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
-
-  const { wm } = useSocket();
-
-  const showPDF = () => {
-    const spec = {
-      name: 'agree',
-      view: 'mychips.tallies_v_me',
-      data: {
-        key: {
-          tally_seq: tally.tally_seq,
-        },
-        options: {
-          format: 'url'
-        }
-      }
-    };
-
-    wm.request(`agree-${Math.random()}`, 'action', spec, (data, err) => {
-      console.log(data)
-    })
-  }
-
   return (
     <View>
       <CommonTallyView tally={tally} />
@@ -96,10 +74,10 @@ const TallyEditView = (props) => {
         </Picker>
 
         <TouchableWithoutFeedback
-          onPress={showPDF}
+          onPress={props.onViewContract}
         >
           <Text>
-          Show PDF
+            Show PDF
           </Text>
         </TouchableWithoutFeedback>
       </View>

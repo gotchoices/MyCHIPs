@@ -202,6 +202,10 @@ const TallyPreview = (props) => {
     setShowDialog(false);
   }
 
+  const onViewContract = () => {
+    props.navigation.navigate("TallyContract", { tally_seq });
+  }
+
   const onRefuse = () => {
     refuseTally(wm, {
       tally_ent,
@@ -288,6 +292,7 @@ const TallyPreview = (props) => {
             onPartTermsChange={onPartTermsChange}
             setTallyType={setTallyType}
             setContract={setContract}
+            onViewContract={onViewContract}
           />
         </ScrollView>
 
