@@ -1,19 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Linking } from 'react-native';
-
 import HelpText from '../../../components/HelpText';
-
-import { colors, connectsObj } from '../../../config/constants';
+import { colors, connectsObj, dateFormats } from '../../../config/constants';
 import useMessageText from '../../../hooks/useMessageText';
 
 import Button from '../../../components/Button';
 import { round } from '../../../utils/common';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
+import { formatDate } from '../../../utils/format-date';
+import Avatar from '../../../components/Avatar';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
   const userTallyText = messageText?.userTallies ?? {};
+  const [avatar, setAvatar] = useState(undefined);
 
   const net = round((tally?.net ?? 0) / 1000, 3)
   const talliesText = messageText?.tallies;
@@ -23,6 +24,25 @@ const CommonTallyView = (props) => {
 
   const connects = tally?.part_cert?.connect;
   const partCert = tally?.part_cert;
+
+  useEffect(() => {
+    const digest = tally?.part_cert?.file?.[0]?.digest;
+    const tally_seq = tally?.tally_seq;
+
+    if (digest) {
+      fetchTallyFile(wm, digest, tally_seq).then((data) => {
+        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
+        const fileData = data?.[0]?.file_data;
+        const file_fmt = data?.[0]?.file_fmt;
+        if (fileData) {
+          const base64 = Buffer.from(fileData).toString('base64')
+          setAvatar(`data:${file_fmt};base64,${base64}`);
+        }
+      }).catch(err => {
+        console.log("TALLY_FILE_ERROR ==> ", err)
+      })
+    }
+  }, [tally])
 
   const handleLinkPress = (link) => {
     Linking.canOpenURL(link)
@@ -51,11 +71,18 @@ const CommonTallyView = (props) => {
                 {net}
               </Text>
             </View>
-            <Button
-              title='Chit History'
-              onPress={props.onViewChitHistory}
-              style={{ borderRadius: 12, width: 120, marginTop: 12 }}
-            />
+            <View style={{ flexDirection: 'row', marginTop: 12 }}>
+              <Button
+                title='Chit History'
+                onPress={props.onViewChitHistory}
+                style={{ borderRadius: 12, width: 120 }}
+              />
+              <Button
+                title='Pay'
+                onPress={props.onPay}
+                style={{ borderRadius: 12, paddingHorizontal: 22, marginStart: 12 }}
+              />
+            </View>
           </View>
         </View>
       }
@@ -65,6 +92,8 @@ const CommonTallyView = (props) => {
             label={'Partner Details'}
             style={styles.headerText}
           />
+
+          <Avatar avatar={avatar} style={{ height: 40, width: 40 }} />
 
           <View style={styles.detailControl}>
             <HelpText
@@ -131,7 +160,8 @@ const CommonTallyView = (props) => {
           style={styles.headerText}
         />
         <Text>
-          {new Date(tally.tally_date).toLocaleString()}
+          {/* {new Date(tally.tally_date).toLocaleString()} */}
+          {formatDate({ date: tally.tally_date, format: dateFormats.dateTime })}
         </Text>
       </View>
 

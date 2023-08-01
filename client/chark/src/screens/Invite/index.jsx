@@ -11,6 +11,7 @@ import { createTemplate } from '../../services/tally';
 
 import TemplateItem from './TemplateItem';
 import Button from '../../components/Button';
+import { useHoldTermsText } from '../../hooks/useLanguage';
 
 const TallyInvite = (props) => {
   const [data, setData] = useState([]);
@@ -36,7 +37,8 @@ const TallyInvite = (props) => {
       },
     }
 
-    createTemplate(wm, payload).then(() => {
+    createTemplate(wm, payload).then((data) => {
+      console.log("CREATE_RESULT ==> ", JSON.stringify(data));
       fetchTemplates()
     }).catch(err => {
       Toast.show({

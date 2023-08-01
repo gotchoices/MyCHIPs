@@ -11,6 +11,7 @@ const initialTexts = {
   exchange: null,
   userTallies: null,
   asset_v: null,
+  terms_lang: null,
 }
 
 const MessageTextProvider = ({ children }) => {

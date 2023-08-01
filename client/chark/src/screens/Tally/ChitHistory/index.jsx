@@ -3,18 +3,40 @@ import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOp
 import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
-import { fetchChitHistory } from "../../../services/tally";
+import { fetchChitHistory, fetchTallyFile } from "../../../services/tally";
 import { round } from "../../../utils/common";
-import moment from 'moment';
 import ChistHistoryHeader from "./ChitHistoryHeader";
-import { colors } from "../../../config/constants";
+import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
+import { getFile } from "../../../services/profile";
+import { formatDate } from "../../../utils/format-date";
 
 const ChitHistory = (props) => {
-  const { tally_seq, tally_ent, tally_uuid } = props.route?.params ?? {};
+  const { tally_seq, tally_ent, tally_uuid, digest } = props.route?.params ?? {};
   const { wm } = useSocket();
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
+  const [avatar, setAvatar] = useState(undefined);
+
+  const totalBalance = chits?.reduce((accumulator, currentValue) => {
+    return accumulator + currentValue?.net;
+  }, 0);
+
+  useEffect(() => {
+    if (digest) {
+      fetchTallyFile(wm, digest, tally_seq).then((data) => {
+        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
+        const fileData = data?.[0]?.file_data;
+        const file_fmt = data?.[0]?.file_fmt;
+        if (fileData) {
+          const base64 = Buffer.from(fileData).toString('base64')
+          setAvatar(`data:${file_fmt};base64,${base64}`)
+        }
+      }).catch(err => {
+        console.log("TALLY_FILE_ERROR ==> ", err)
+      })
+    }
+  }, [digest, tally_seq])
 
   useEffect(() => {
     _fetchChitHistory();
@@ -37,7 +59,6 @@ const ChitHistory = (props) => {
           runningBalance += item.net;
           return { ...item, runningBalance };
         });
-
         setChits(chitsWithRunningBalance);
       }
     }).catch(ex => {
@@ -58,7 +79,7 @@ const ChitHistory = (props) => {
     const runningBalance = round((item?.runningBalance ?? 0) / 1000, 3);
     const isRunningBalnceNeg = runningBalance < 0;
 
-    const formatedDate = moment(item.chit_date).format('MMM DD, YYYY - hh:mm a');
+    const formatedDate = formatDate({ date: item.chit_date, format: dateFormats.dateTime });
 
     return <TouchableOpacity
       style={styles.chitItem}
@@ -106,7 +127,9 @@ const ChitHistory = (props) => {
         <ChistHistoryHeader
           args={{
             ...props.route?.params,
-            wm
+            wm,
+            avatar,
+            totalBalance
           }}
         />
       }

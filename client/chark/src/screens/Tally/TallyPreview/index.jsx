@@ -14,7 +14,7 @@ import {
 import { colors, keyServices } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
-import { useTallyText } from '../../../hooks/useLanguage';
+import { useHoldTermsText, useTallyText } from '../../../hooks/useLanguage';
 import useTallyUpdate from '../../../hooks/useTallyUpdate';
 
 import CustomText from '../../../components/CustomText';
@@ -22,7 +22,7 @@ import Button from '../../../components/Button';
 import Spinner from '../../../components/Spinner';
 import TallyEditView from '../TallyEditView';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
-import { offerTally, acceptTally, refuseTally } from '../../../services/tally';
+import { offerTally, acceptTally, refuseTally, fetchTallyFile } from '../../../services/tally';
 import { createSignature, verifySignature } from '../../../utils/message-signature';
 import { retrieveKey } from '../../../utils/keychain-store';
 import { GenerateKeysDialog } from './GenerateKeysDialog';
@@ -61,6 +61,7 @@ const TallyPreview = (props) => {
 
   // Fetch tally text
   useTallyText(wm);
+  useHoldTermsText(wm);
 
   const onShare = () => {
     const hold_limit = tally?.hold_terms?.limit;
@@ -96,7 +97,6 @@ const TallyPreview = (props) => {
   const onUpdate = () => {
     Keyboard.dismiss();
     setUpdating(true);
-
     const payload = {
       tally_type: tallyType,
       contract: {
