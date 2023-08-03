@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View, Alert } from 'react-native';
 import { WebView } from 'react-native-webview';
-import useSocket from '../../../hooks/useSocket';
-import Button from '../../../components/Button';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
+
+import useSocket from '../../../hooks/useSocket';
+import { getContract } from '../../../services/tally';
+
+import Button from '../../../components/Button';
 
 const TallyContract = (props) => {
   const { tally_seq } = props.route?.params ?? {};
@@ -30,37 +33,21 @@ const TallyContract = (props) => {
   }, [tally_seq]);
 
   useEffect(() => {
-    console.log("CONTRACT ==> ", contract);
   }, [contract])
 
-  const showPDF = () => {
+  const showPDF = async () => {
     setDownloading(true);
-    const spec = {
-      name: 'agree',
-      view: 'mychips.tallies_v_me',
-      data: {
-        key: {
-          tally_seq: tally_seq,
-        },
-        options: {
-          format: 'url'
-        }
-      }
-    };
 
-    wm.request(`agree-${Math.random()}`, 'action', spec, (data, err) => {
+    getContract(wm, {
+      tally_seq
+    }).then((data) => {
+      setContract(data);
+    }).catch(console.log).finally(() => {
       setDownloading(false);
-      console.log("RESULT ==> ", `${data}`);
-      console.log("ERROR ==> ", `${err}`);
-      if (data) {
-        setContract(data);
-      }
     })
   }
 
   const onShare = () => {
-    console.log("CONTRACT ==> ", contract);
-
     if (contract) {
       setDownloading(true);
       const downloadDest = `${RNFS.CachesDirectoryPath}/contract.pdf`;
@@ -72,7 +59,6 @@ const TallyContract = (props) => {
       RNFS.downloadFile(downloadOptions).promise
         .then(result => {
           if (result.statusCode === 200) {
-            console.log("DOWNLOADED ==> ", JSON.stringify(result));
             return downloadDest;
           }
           return "Failed to download";
@@ -86,10 +72,8 @@ const TallyContract = (props) => {
           };
           return Share.open(shareOptions);
         }).then(result => {
-          console.log("SHARED ==> ", result);
         }).catch(ex => {
           setDownloading(false);
-          console.log("EXCEPTION ==> ", JSON.stringify(ex));
         });
     } else {
       Alert.alert("Error", "Contract not found.");
@@ -102,10 +86,18 @@ const TallyContract = (props) => {
     </View>
   }
 
+  const injectedJs = `
+    const meta = document.createElement('meta'); 
+    meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0'); 
+    meta.setAttribute('name', 'viewport');
+    document.getElementsByTagName('head')[0].appendChild(meta); 
+  `;
+
   return <View style={styles.container}>
     <WebView
+      injectedJavaScript={injectedJs} 
+      scalesPageToFit={false}
       startInLoadingState={true}
-      scalesPageToFit={true}
       renderLoading={renderLoading}
       javaScriptEnabled={true}
       domStorageEnabled={true}
@@ -115,7 +107,7 @@ const TallyContract = (props) => {
     <Button
       title='Share'
       onPress={onShare}
-      style={{ borderRadius: 20, paddingHorizontal: 12, margin: 12 }}
+      style={{ paddingHorizontal: 12, margin: 12 }}
       disabled={downloading}
     />
   </View>
@@ -127,6 +119,8 @@ const styles = StyleSheet.create({
   },
   webView: {
     flex: 1,
+    width:"100%",
+    height:"100%"
   },
 })
 
