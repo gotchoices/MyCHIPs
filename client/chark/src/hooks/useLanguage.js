@@ -6,9 +6,9 @@ export const useTallyText = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    if(!messageText?.tallies) {
+    if (!messageText?.tallies) {
       wm.register('tally_lang' + Math.random(), 'mychips.tallies', (data, err) => {
-        if(data) {
+        if (data) {
           addTextsToState('tallies', data.col, setMessageText)
         }
       })
@@ -22,9 +22,9 @@ export const useUserTalliesText = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    if(!messageText?.userTallies) {
+    if (!messageText?.userTallies) {
       wm.register('user_tally_lang' + Math.random(), 'mychips.users_v_tallies', (data, err) => {
-        if(data) {
+        if (data) {
           addTextsToState('userTallies', data.col, setMessageText)
         }
       })
@@ -38,9 +38,9 @@ export const useCommunication = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    if(!messageText?.comm) {
+    if (!messageText?.comm) {
       wm.register('comm_lang' + Math.random(), 'base.comm_v_flat', (data, err) => {
-        if(data) {
+        if (data) {
           addTextsToState('comm', data.col, setMessageText)
         }
       })
@@ -54,9 +54,9 @@ export const useAddressV = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    if(!messageText?.addr_v) {
+    if (!messageText?.addr_v) {
       wm.register('addr_v' + Math.random(), 'base.addr_v', (data, err) => {
-        if(data) {
+        if (data) {
           addTextsToState('addr_v', data.col, setMessageText)
         }
       })
@@ -70,9 +70,9 @@ export const useAddressVFlat = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    if(!messageText?.addr_v_flat) {
+    if (!messageText?.addr_v_flat) {
       wm.register('addr_v_flat' + Math.random(), 'base.addr_v_flat', (data, err) => {
-        if(data) {
+        if (data) {
           addTextsToState('addr_v_flat', data.col, setMessageText)
         }
       })
@@ -86,9 +86,9 @@ export const useExchange = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    if(!messageText?.exchange) {
+    if (!messageText?.exchange) {
       wm.register('exchange' + Math.random(), 'base.exchange', (data, err) => {
-        if(data) {
+        if (data) {
           addTextsToState('exchange', data.col, setMessageText)
         }
       })
@@ -102,9 +102,9 @@ export const useUser = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    if(!messageText?.users) {
+    if (!messageText?.users) {
       wm.register('user_lang' + Math.random(), 'mychips.users_v_me', (data, err) => {
-        if(data) {
+        if (data) {
           addTextsToState('users', data.col, setMessageText)
         }
       })
@@ -112,6 +112,20 @@ export const useUser = (wm) => {
   }, [])
 
   return messageText?.users ?? {};
+}
+
+export const useHoldTermsText = (wm) => {
+  const { messageText, setMessageText } = useMessageText();
+
+  useEffect(() => {
+    wm.register('terms_lang' + Math.random(), 'mychips.tallies_v_me', (data, err) => {
+      if (data) {
+        addTextsToState('terms_lang', data.col, setMessageText)
+      }
+    })
+  }, [])
+
+  return messageText?.terms_lang ?? {};
 }
 
 function addTextsToState(field, texts, setState) {
@@ -122,4 +136,6 @@ function addTextsToState(field, texts, setState) {
     }
   })
 }
+
+
 

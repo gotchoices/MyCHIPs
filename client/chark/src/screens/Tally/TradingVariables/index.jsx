@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-
 import Button from '../../../components/Button';
-
 import useSocket from '../../../hooks/useSocket';
 import {  fetchTradingVariables } from '../../../services/tally';
 

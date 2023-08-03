@@ -4,12 +4,13 @@ import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import { fetchTallies, fetchTradingVariables } from '../../../services/tally';
-import { useTallyText } from '../../../hooks/useLanguage';
+import { useHoldTermsText, useTallyText } from '../../../hooks/useLanguage';
 
 import CustomText from '../../../components/CustomText';
 import CommonTallyView from '../CommonTallyView';
 import Button from '../../../components/Button';
 import HelpText from '../../../components/HelpText';
+import useMessageText from '../../../hooks/useMessageText';
 
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -22,6 +23,11 @@ const EditOpenTally = (props) => {
   const [bound, setBound] = useState('');
   const [reward, setReward] = useState('');
   const [clutch, setClutch] = useState('');
+  useHoldTermsText(wm);
+  const { messageText } = useMessageText();
+  const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
+  const partTermsText = messageText?.terms_lang?.part_terms?.values;
+
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
@@ -34,6 +40,7 @@ const EditOpenTally = (props) => {
     }).then(data => {
       if (data?.length) {
         const _tally = data?.[0];
+
         setTally(_tally);
         setTarget((_tally?.target ?? '').toString())
         setBound((_tally?.bound ?? '').toString())
@@ -81,17 +88,29 @@ const EditOpenTally = (props) => {
   }
 
   const onViewChitHistory = () => {
-    const partCert = tally?.part_cert;
 
+    const partCert = tally?.part_cert;
+    console.log("DIGEST_HAVE ==> ", JSON.stringify(partCert));
     props.navigation.navigate('ChitHistory', {
-      tally_seq,
+      tally_seq: tally?.tally_seq,
       tally_ent,
       tally_uuid: tally?.tally_uuid,
       part_name: `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`,
-      cid: partCert?.chad?.cid,
+      digest: partCert?.file?.[0]?.digest,
       date: tally?.tally_date,
       net: tally?.net,
+      cid: partCert?.chad?.cid,
     });
+  }
+
+  const onPay = () => {
+    props.navigation.navigate(
+      "PaymentDetail",
+      {
+        tally_uuid: tally?.tally_uuid,
+        chit_seq: tally?.tally_seq,
+      }
+    );
   }
 
   return (
@@ -101,6 +120,7 @@ const EditOpenTally = (props) => {
           <CommonTallyView
             tally={tally}
             onViewChitHistory={onViewChitHistory}
+            onPay={onPay}
           />
 
           <View style={styles.detailControl}>
@@ -118,11 +138,19 @@ const EditOpenTally = (props) => {
               helpText={tallyText?.hold_terms?.help}
               style={styles.label}
             />
-            <Text style={styles.label}>Limit</Text>
-            <Text style={styles.textInputStyle}>{tally.hold_terms.limit ?? 0}</Text>
+            {
+              holdTermsText?.map((holdTerm, index) => {
+                return <View key={`${holdTerm?.value}${index}`} style={{ marginVertical: 10 }}>
+                  <HelpText
+                    label={holdTerm?.title ?? ''}
+                    helpText={holdTerm?.help}
+                    style={styles.h5}
+                  />
 
-            <Text style={styles.label}>Call</Text>
-            <Text style={styles.textInputStyle}>{tally.hold_terms.call ?? 0}</Text>
+                  <Text style={styles.textInputStyle}>{tally.hold_terms?.[holdTerm?.value] ?? 0}</Text>
+                </View>
+              })
+            }
           </View>
         </View>
 
@@ -133,11 +161,19 @@ const EditOpenTally = (props) => {
               helpText={tallyText?.part_terms?.help}
               style={styles.headerText}
             />
-            <Text style={styles.label}>Limit</Text>
-            <Text style={styles.textInputStyle}>{tally.part_terms.limit ?? 0}</Text>
+            {
+              partTermsText?.map((partTerm, index) => {
+                return <View key={`${partTerm?.value}${index}`} style={{ marginVertical: 10 }}>
+                  <HelpText
+                    label={partTerm?.title ?? ''}
+                    helpText={partTerm?.help}
+                    style={styles.h5}
+                  />
 
-            <Text style={styles.label}>Call</Text>
-            <Text style={styles.textInputStyle}>{tally.part_terms.call ?? 0}</Text>
+                  <Text style={styles.textInputStyle}>{tally.part_terms?.[partTerm?.value] ?? 0}</Text>
+                </View>
+              })
+            }
           </View>
         </View>
 

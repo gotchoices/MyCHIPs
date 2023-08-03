@@ -49,6 +49,7 @@ import ChitDetail from './src/screens/Tally/ChitDetail';
 import CustomIcon from './src/components/CustomIcon';
 import TallyContract from './src/screens/Tally/TallyContract';
 import Button from './src/components/Button';
+import PaymentDetail from './src/screens/Tally/PaymentDetail';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -61,6 +62,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name='ChitHistory' component={ChitHistory} options={{ title: 'Chit History' }} />
       <HomeStack.Screen name='ChitDetail' component={ChitDetail} options={{ title: 'Chit Detail' }} />
       <HomeStack.Screen name='TradingVariables' component={TradingVariables} options={{ title: 'Trading Variables' }} />
+      <HomeStack.Screen name='PaymentDetail' component={PaymentDetail} options={{ title: 'Payment Detail' }} />
     </HomeStack.Navigator>
   );
 }
@@ -153,7 +155,7 @@ function App() {
                     component={HomeStackScreen}
                     options={{
                       tabBarIcon: (props) => (
-                        <CustomIcon name="home" {...props} />
+                        <CustomIcon name="home" {...{ ...props, size: 24 }} />
                       )
                     }}
                   />
@@ -163,7 +165,7 @@ function App() {
                     component={ReceiveScreen}
                     options={{
                       tabBarIcon: (props) => (
-                        <CustomIcon name="receive" {...props} />
+                        <CustomIcon name="receive" {...{ ...props, size: 26 }} />
                       )
                     }}
                   />
@@ -174,7 +176,7 @@ function App() {
                     options={{
                       unmountOnBlur: true,
                       tabBarIcon: (props) => (
-                        <CustomIcon name="scan" {...props} />
+                        <CustomIcon name="scan" {...{ ...props, size: 23 }} />
                       )
                     }}
                   />
@@ -185,7 +187,7 @@ function App() {
                     options={{
                       tabBarTestID: "inviteTestID",
                       tabBarIcon: (props) => (
-                        <CustomIcon name="invite" {...props} />
+                        <CustomIcon name="invite" {...{ ...props, size: 26 }} />
                       )
                     }}
                   />
@@ -195,7 +197,7 @@ function App() {
                     component={SettingStackScreen}
                     options={{
                       tabBarIcon: (props) => (
-                        <CustomIcon name="settings" {...props} />
+                        <CustomIcon name="settings" {...{ ...props, size: 25 }} />
                       )
                     }}
                   />

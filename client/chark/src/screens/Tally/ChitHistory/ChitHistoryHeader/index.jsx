@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native"
+import { Image, StyleSheet, Text, View } from "react-native"
 import { colors } from "../../../../config/constants";
-import moment from 'moment';
 import { round } from "../../../../utils/common";
 import useProfile from "../../../../hooks/useProfile";
 import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
+import { formatDate } from "../../../../utils/format-date";
+import Avatar from "../../../../components/Avatar";
 
 const ChistHistoryHeader = (props) => {
-  const { part_name, cid, date, net, wm } = props.args ?? {};
+  const { part_name, cid, date, net, wm, avatar, totalBalance } = props.args ?? {};
   const { preferredCurrency } = useProfile();
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
@@ -42,14 +43,22 @@ const ChistHistoryHeader = (props) => {
           <Text style={[styles.label, { fontWeight: 'bold' }]}>Balance</Text>
           <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 8 }]}>
             <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
-            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net ?? 0) / 1000, 3)}</Text>
+            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((totalBalance ?? 0) / 1000, 3)}</Text>
           </View>
           {conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
         </View>
-        <Text style={styles.label}>{moment(date).format(`MMM DD, YYYY`)}</Text>
+        <Text style={styles.label}>{formatDate(date)}</Text>
       </View >
-      <Text style={[styles.title, { marginTop: 12 }]}>{part_name}</Text>
-      <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cid}</Text>
+      <View style={[styles.row, { marginTop: 12 }]}>
+        <Avatar
+          style={styles.profileImage}
+          avatar={avatar}
+        />
+        <View style={{ flex: 1, marginStart: 12, justifyContent: 'center' }}>
+          <Text style={styles.title}>{part_name}</Text>
+          <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cid}</Text>
+        </View>
+      </View>
     </View >
     <Text style={[
       styles.title,
@@ -96,6 +105,11 @@ const styles = StyleSheet.create({
     color: colors.gray700,
     fontWeight: "bold",
     margin: 4,
-  }
+  },
+  profileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
 })
 export default ChistHistoryHeader;

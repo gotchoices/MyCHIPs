@@ -29,20 +29,21 @@ const ImportKeyScreen = (props) => {
   }, [params])
 
   const onImportKey = () => {
-    const options = {
-      type: [DocumentPicker.types.allFiles],
-      mode: 'open',
-    };
-    DocumentPicker.pick(options).then((results) => {
+    DocumentPicker.pick(
+      {
+        type: [DocumentPicker.types.allFiles],
+        mode: 'open',
+      }
+    ).then((results) => {
       const result = results[0];
       console.log("Document URI ", result.uri);
       if (result.uri && result.type === 'application/json') {
         readContent(result.uri);
       } else {
-        Alert('Error', 'Failed to select file');
+        Alert.alert('Error', 'Failed to select file');
       }
     }).catch((err) => {
-      Alert('Error', `Failed to select file ${err}`);
+      Alert.alert("Error", `${err.error}`);
     });
   };
 
@@ -53,8 +54,7 @@ const ImportKeyScreen = (props) => {
       setContent(JSON.stringify(jsonData));
       setPassphraseModal(true);
     } catch (err) {
-      console.log('Error reading file:', err);
-      Alert('Error', `Failed to select file ${err}`);
+      Alert.alert('Error', `Failed to select file ${err}`);
     }
   };
 
