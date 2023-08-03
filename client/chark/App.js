@@ -48,6 +48,7 @@ import ImportKeyScreen from './src/screens/ImportKeyScreen';
 import ChitDetail from './src/screens/Tally/ChitDetail';
 import CustomIcon from './src/components/CustomIcon';
 import PaymentDetail from './src/screens/Tally/PaymentDetail';
+import FilterScreen from './src/screens/Filter';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -76,9 +77,17 @@ function ReceiveScreen({ navigation }) {
 const InviteStack = createNativeStackNavigator();
 function InviteStackScreen() {
   return (
-    <InviteProvider>
+    <InviteProvider >
       <InviteStack.Navigator>
         <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
+        <InviteStack.Screen
+          name="FilterScreen"
+          component={FilterScreen}
+          options={{
+            title: 'Filters',
+            headerShadowVisible: false,
+          }}
+        />
         <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }} />
         <InviteStack.Screen name="TallyShare" component={ShareTally} options={{ title: 'Share Tally', headerShadowVisible: false }} />
       </InviteStack.Navigator>

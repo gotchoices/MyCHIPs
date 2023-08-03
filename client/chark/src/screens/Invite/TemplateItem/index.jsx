@@ -1,14 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-
 import useMessageText from '../../../hooks/useMessageText';
-
 import { colors } from '../../../config/constants';
+import { ArrowBackwardIcon, ArrowForwardIcon, WarningIcon } from '../../../components/SvgAssets/SvgAssets';
+import Avatar from '../../../components/Avatar/';
+import { TallyTrainingIcon } from './TallyTrailingIcon';
 
 const TemplateItem = (props) => {
   const item = props.template;
   const { messageText } = useMessageText();
   const tallyText = messageText?.tallies ?? {};
+  const partCert = item.part_cert;
 
   const onView = () => {
     props.navigation.navigate('TallyPreview', {
@@ -18,19 +20,24 @@ const TemplateItem = (props) => {
   }
 
   return (
-    <View style={styles.container} testID={props.testID}>
-      <TouchableOpacity onPress={onView}>
-        <View style={styles.item}>
-          <Text style={styles.comment}>{item.comment}</Text>
-          <Text>{tallyText?.tally_type?.title ?? ''}: {item.tally_type ?? 'N/A'}</Text>
-          <Text>{tallyText?.part_cid?.title ?? ''}: {item.part_cid ?? 'N/A'}</Text>
-          <Text>{tallyText?.status?.title ?? ''}: {item.status ?? 'N/A'}</Text>
-          <Text>Holder Credit limit: {item?.hold_terms?.limit ?? 'N/A'}</Text>
-          <Text>Partner Credit limit: {item?.part_terms?.limit ?? 'N/A'}</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  )
+    <TouchableOpacity style={[styles.row]} testID={props.testID} onPress={onView}>
+      <View style={[styles.row, { height: 40, alignItems: 'center' }]}>
+        {item?.tally_type === 'stock' ? <ArrowBackwardIcon /> : <ArrowForwardIcon />}
+        <Avatar style={{ height: 40, width: 40, marginStart: 12 }} />
+      </View>
+      <View style={styles.itemContent}>
+        {
+          partCert ? <View style={styles.row}>
+            <Text style={styles.name}>
+              {`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}
+            </Text>
+            <TallyTrainingIcon status={item.status} />
+          </View> : <Text style={styles.name}>Beginning template</Text>
+        }
+        <Text style={[styles.comment]}>{item.comment}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 }
 
 const itemStyle = {
@@ -46,10 +53,25 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   item: itemStyle,
-  comment: {
-    fontWeight: 'bold',
+  row: {
+    flexDirection: 'row',
+  },
+  name: {
+    fontSize: 16,
     color: colors.black,
-    marginBottom: 5,
+    fontWeight: '400'
+  },
+  comment: {
+    fontSize: 14,
+    color: '#636363',
+    fontWeight: '500',
+  },
+  itemContent: {
+    borderBottomWidth: 1,
+    borderColor: '#BBBBBB',
+    flex: 1,
+    marginStart: 16,
+    paddingBottom: 16,
   }
 })
 

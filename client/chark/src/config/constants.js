@@ -33,15 +33,14 @@ export const qrType = {
   connect: 'connect',
 }
 
-
 export const keyServices = {
   publicKey: 'public_key',
   privateKey: 'private_key',
 }
 
 export const connectsObj = {
-  "email":"Email",
-  "phone":"Phone",
+  "email": "Email",
+  "phone": "Phone",
   "cell": "Cell"
 }
 
