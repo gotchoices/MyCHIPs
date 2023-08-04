@@ -6,6 +6,7 @@ import { colors } from '../../config/constants';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useInvite from '../../hooks/useInvite';
+import { useTallyText } from '../../hooks/useLanguage';
 
 import { createTemplate } from '../../services/tally';
 
@@ -18,6 +19,8 @@ const TallyInvite = (props) => {
   const [loading, setLoading] = useState(false);
   const { wm, ws } = useSocket();
   const { triggerInviteFetch } = useInvite();
+
+  useTallyText(wm);
 
   useEffect(() => {
     if (ws) {
