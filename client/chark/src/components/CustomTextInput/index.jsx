@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     padding: 0,
     marginStart: 12,
     flex: 1,
+    fontFamily: 'inter'
   }
 });
 

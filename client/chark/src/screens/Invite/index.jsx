@@ -10,8 +10,9 @@ import TemplateItem from './TemplateItem';
 import CustomTextInput from '../../components/CustomTextInput';
 import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAssets';
 import FloatingActionButton from '../../components/FloadingActionButton';
+import useProfile from '../../hooks/useProfile';
 
-const Header_Height = 120;
+const Header_Height = 130;
 
 const useSearchData = (initialData) => {
   const [searchValue, setSearchValue] = useState('');
@@ -33,18 +34,34 @@ const useSearchData = (initialData) => {
   return { searchValue, setSearchValue, filteredData };
 };
 
+const EmptyContent = () => {
+  return <View style={{ flex: 1, alignItems: 'center', alignContent: 'center' }}>
+    <Text>No Tallies Found with the status.</Text>
+  </View>
+}
+
 const TallyInvite = (props) => {
   const [data, setData] = useState([]);
   const { searchValue, setSearchValue, filteredData } = useSearchData(data);
   const [loading, setLoading] = useState(false);
   const { wm, ws } = useSocket();
   const { triggerInviteFetch } = useInvite();
+  const { filter } = useProfile();
 
   useEffect(() => {
     if (ws) {
       fetchTemplates();
     }
-  }, [ws, triggerInviteFetch]);
+  }, [ws, triggerInviteFetch, filter]);
+
+  const getFilterResult = (filterBy, separatedBy) => {
+    const values = Object.values(filter);
+    const selectedValues = values.filter((item) => item.selected);
+    const entry = selectedValues.length === 0
+      ? values.map((item) => item?.[filterBy]).join(separatedBy)
+      : selectedValues.map((item) => item?.[filterBy]).join(separatedBy);
+    return entry;
+  }
 
   //Create a new template
   const newTemplate = () => {
@@ -70,6 +87,7 @@ const TallyInvite = (props) => {
   }
 
   const fetchTemplates = () => {
+    const entry = getFilterResult('status', ' ');
     setLoading(true);
     const spec = {
       fields: [
@@ -86,7 +104,7 @@ const TallyInvite = (props) => {
         'part_cert',
       ],
       view: 'mychips.tallies_v_me',
-      // where: { left: "status", oper: "in", entry: "draft offer" },
+      where: { left: "status", oper: "in", entry: entry },
       order: {
         field: 'crt_date',
         asc: false,
@@ -143,7 +161,7 @@ const TallyInvite = (props) => {
           leadingIcon={<SearchIcon size={16} />}
         />
         <View style={styles.row}>
-          <Text style={styles.title}>Drafts</Text>
+          <Text style={styles.title}>{getFilterResult('title', ' | ')}</Text>
           <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
             <FilterSecondIcon />
             <Text style={styles.filterText}>Filters</Text>
@@ -162,6 +180,7 @@ const TallyInvite = (props) => {
         keyExtractor={(item, index) => `${item.tally_ent}${item?.tally_uuid}${item?.tally_seq}${index}`}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         scrollEventThrottle={2}
+        ListEmptyComponent={loading ? <></> : <EmptyContent />}
         onScroll={Animated.event(
           [{
             nativeEvent: { contentOffset: { y: scrollY } }
@@ -205,11 +224,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    color: '#636363'
+    color: '#636363',
+    fontFamily: 'inter'
   },
   row: {
     flexDirection: 'row',
-    marginTop: 16,
+    marginTop: 18,
     justifyContent: 'space-between',
     alignItems: 'center'
   },
@@ -221,9 +241,9 @@ const styles = StyleSheet.create({
     borderColor: "#F0F0F0",
     backgroundColor: '#E7E7E7',
     flexDirection: 'row',
-    borderRadius: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -231,6 +251,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#636363',
     marginStart: 4,
+    fontFamily: 'inter',
   },
   header: {
     position: 'absolute',

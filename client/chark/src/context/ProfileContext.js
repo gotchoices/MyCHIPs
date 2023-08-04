@@ -31,6 +31,10 @@ const ProfileContext = createContext({
   setPersonal: (_) => {
     console.log('Set personal bio');
   },
+  filter: {},
+  setFilter: (_) => {
+    console.log('Set Filter');
+  }
 })
 
 export default ProfileContext;

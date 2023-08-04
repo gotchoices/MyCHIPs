@@ -127,13 +127,13 @@ const CommonTallyView = (props) => {
               {
                 connects?.map((connect, index) => {
                   const media = connect.media;
-                  const link = media === 'email' ? 'mailto:' : 'tel:';
+                  let link = connectsObj[media];
                   return <View key={`${connect?.address}${index}`} style={styles.detailControl}>
                     <HelpText
-                      label={connectsObj[media] ?? media ?? ''}
+                      label={link?.label ?? media ?? ''}
                       style={styles.secondaryheader}
                     />
-                    <Text onPress={() => { handleLinkPress(link + connect?.address) }}>{connect?.address}</Text>
+                    <Text onPress={() => { handleLinkPress(link?.link + connect?.address) }}>{connect?.address}</Text>
                   </View>
                 })
               }

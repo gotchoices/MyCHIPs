@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import useMessageText from '../../../hooks/useMessageText';
 import { colors } from '../../../config/constants';
 import { ArrowBackwardIcon, ArrowForwardIcon, WarningIcon } from '../../../components/SvgAssets/SvgAssets';
 import Avatar from '../../../components/Avatar/';
 import { TallyTrainingIcon } from './TallyTrailingIcon';
+import { fetchTallyFile } from '../../../services/tally';
 
 const TemplateItem = (props) => {
   const item = props.template;
-  const { messageText } = useMessageText();
-  const tallyText = messageText?.tallies ?? {};
+  const [avatar, setAvatar] = useState(undefined);
   const partCert = item.part_cert;
 
   const onView = () => {
@@ -19,11 +19,30 @@ const TemplateItem = (props) => {
     });
   }
 
+  useEffect(() => {
+    const digest = partCert?.file?.[0]?.digest;
+    const tally_seq = item?.tally_seq;
+
+    if (digest) {
+      fetchTallyFile(wm, digest, tally_seq).then((data) => {
+        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
+        const fileData = data?.[0]?.file_data;
+        const file_fmt = data?.[0]?.file_fmt;
+        if (fileData) {
+          const base64 = Buffer.from(fileData).toString('base64')
+          setAvatar(`data:${file_fmt};base64,${base64}`);
+        }
+      }).catch(err => {
+        console.log("TALLY_FILE_ERROR ==> ", err)
+      })
+    }
+  }, [item]);
+
   return (
     <TouchableOpacity style={[styles.row]} testID={props.testID} onPress={onView}>
       <View style={[styles.row, { height: 40, alignItems: 'center' }]}>
         {item?.tally_type === 'stock' ? <ArrowBackwardIcon /> : <ArrowForwardIcon />}
-        <Avatar style={{ height: 40, width: 40, marginStart: 12 }} />
+        <Avatar avatar={avatar} style={{ height: 40, width: 40, marginStart: 12 }} />
       </View>
       <View style={styles.itemContent}>
         {
@@ -59,12 +78,14 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     color: colors.black,
-    fontWeight: '400'
+    fontWeight: '400',
+    fontFamily: 'inter'
   },
   comment: {
     fontSize: 14,
     color: '#636363',
     fontWeight: '500',
+    fontFamily: 'inter'
   },
   itemContent: {
     borderBottomWidth: 1,

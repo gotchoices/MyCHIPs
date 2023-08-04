@@ -1,10 +1,11 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { colors } from "../../config/constants";
-import { SelectedIcon, SwitchSelectedIcon, SwitchUnselectedIcon, SwithcKeyIcon, UnSelectedIcon } from "../../components/SvgAssets/SvgAssets";
+import { SelectedIcon, UnSelectedIcon } from "../../components/SvgAssets/SvgAssets";
+import useProfile from '../../hooks/useProfile';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const FilterItem = ({ args, onSelected }) => {
-
   const onPress = () => {
     onSelected(args)
   }
@@ -17,36 +18,70 @@ const FilterItem = ({ args, onSelected }) => {
   </View >
 }
 
-const FilterScreen = () => {
-  const initialFilter = {
-    offer: { title: "Offers", selected: false, status: 'offer' },
-    draft: { title: "Drafts", selected: false, status: 'draft' },
-    void: { title: "Voids", selected: false, status: 'void' },
-  }
+const FilterScreen = (props) => {
+  const { filter, setFilter } = useProfile();
+  const navigation = props.navigation;
 
-  const [filter, setFilter] = useState(initialFilter);
+  useEffect(() => {
+    const addButtonToTopBar = () => {
+      navigation.setOptions({
+        headerRight: () => (
+          <TouchableOpacity onPress={onClear} style={{ marginRight: 16 }}>
+            <Text style={styles.reset}>Reset</Text>
+          </TouchableOpacity>
+        ),
+      });
+    };
+    addButtonToTopBar();
+
+    return () => {
+      navigation.setOptions({
+        headerRight: undefined,
+      });
+    };
+  }, [navigation]);
+
+
+  const onClear = () => {
+    const resetFilter = {
+      offer: { title: "Offers", selected: false, status: 'offer' },
+      draft: { title: "Drafts", selected: false, status: 'draft' },
+      void: { title: "Voids", selected: false, status: 'void' },
+    }
+    AsyncStorage.setItem("filterData", JSON.stringify(resetFilter)).then(() => {
+      setFilter(resetFilter)
+    })
+  }
 
   const onSelected = (args) => {
     const updatedData = {
       ...filter,
       [args.status]: { ...args, selected: !args.selected }
     }
-    setFilter(updatedData);
+    AsyncStorage.setItem("filterData", JSON.stringify(updatedData)).then(() => {
+      setFilter(updatedData);
+    })
   }
 
-  return <View style={styles.container}>
-    <Text style={styles.display}>Display</Text>
+  if (filter) {
+    return <View style={styles.container}>
+      <Text style={styles.display}>Display</Text>
 
-    <View style={styles.divider} />
+      <View style={styles.divider} />
 
-    <FilterItem args={filter.offer} onSelected={onSelected} />
-    <View style={styles.divider} />
+      <FilterItem args={filter.offer} onSelected={onSelected} />
+      <View style={styles.divider} />
 
-    <FilterItem args={filter.draft} onSelected={onSelected} />
-    <View style={styles.divider} />
+      <FilterItem args={filter.draft} onSelected={onSelected} />
+      <View style={styles.divider} />
 
-    <FilterItem args={filter.void} onSelected={onSelected} />
-    <View style={styles.divider} />
+      <FilterItem args={filter.void} onSelected={onSelected} />
+      <View style={styles.divider} />
+    </View>
+  }
+
+  return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <ActivityIndicator />
   </View>
 }
 
@@ -60,17 +95,30 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontSize: 16,
     padding: 16,
+    fontFamily: 'inter'
   },
   title: {
     fontSize: 14,
     color: colors.black,
-    fontWeight: '500'
+    fontWeight: '500',
+    fontFamily: 'inter'
   },
   row: {
-    flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
   },
   divider: {
-    height: 1, backgroundColor: '#ADADAD', width: '100%', marginVertical: 12
+    height: 1,
+    backgroundColor: '#ADADAD',
+    width: '100%',
+    marginVertical: 12
+  },
+  reset: {
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: 'inter',
+    color: '#636363',
   }
 })
 

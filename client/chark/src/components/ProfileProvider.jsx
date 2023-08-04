@@ -34,11 +34,38 @@ const ProfileProvider = ({ children }) => {
   const [communications, setCommunications] = useState([]);
   const [personal, setPersonal] = useState({});
   const [addresses, setAddresses] = useState([]);
+  const [filter, setFilter] = useState({});
+
+  useEffect(() => {
+    AsyncStorage.getItem("filterData").then(data => {
+      if (data) {
+        try {
+          const currentFilter = JSON.parse(data);
+          setFilter(currentFilter);
+        } catch (ex) {
+
+        }
+      } else {
+        const initialFilter = {
+          offer: { title: "Offers", selected: true, status: 'offer' },
+          draft: { title: "Drafts", selected: true, status: 'draft' },
+          void: { title: "Voids", selected: true, status: 'void' },
+        }
+        storeFilter(initialFilter)
+      }
+    })
+  }, [setFilter]);
+
+  const storeFilter = (data) => {
+    AsyncStorage.setItem("filterData", JSON.stringify(data)).then(() => {
+      setFilter(data);
+    });
+  }
 
   useEffect(() => {
     getFile(wm, user_ent).then((_data) => {
       const file = _data?.[0]
-      if(file?.file_data64) {
+      if (file?.file_data64) {
         setAvatar(`data:${file.file_fmt};base64,${file.file_data64}`);
       }
     })
@@ -67,24 +94,24 @@ const ProfileProvider = ({ children }) => {
       setPersonal(data);
       return data;
     })
-    .then((_personal) => getCountry(wm, _personal.country))
-    .then(country => {
-      if(!country) { 
-        return;
-      }
-
-      getCurrency(wm, country.cur_code).then(currency  => {
-        if(currency) {
-          setPreferredCurrency({
-            name: currency.cur_name,
-            code: currency.cur_code,
-          })
+      .then((_personal) => getCountry(wm, _personal.country))
+      .then(country => {
+        if (!country) {
+          return;
         }
+
+        getCurrency(wm, country.cur_code).then(currency => {
+          if (currency) {
+            setPreferredCurrency({
+              name: currency.cur_name,
+              code: currency.cur_code,
+            })
+          }
+        })
       })
-    })
-    .catch(err => {
-      // console.log("Country Exception", err);
-    });
+      .catch(err => {
+        // console.log("Country Exception", err);
+      });
   }, [setPersonal])
 
   useEffect(() => {
@@ -117,6 +144,8 @@ const ProfileProvider = ({ children }) => {
       setCommunications,
       setPersonal,
       setAddresses,
+      filter,
+      setFilter,
     }}>
       {children}
     </ProfileContext.Provider>
