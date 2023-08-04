@@ -155,3 +155,41 @@ export const fetchTradingVariables = (wm, payload) => {
   return request(wm, 'fetch_trade' + random(1000), 'action', spec);
 }
 
+/**
+ * @param {Object} args
+ * @param {string[]} args.fields
+ * @param {any} [args.where]
+ */
+export const fetchContracts = (wm, args) => {
+  const spec = {
+    fields: args.fields,
+    view: 'mychips.contracts_v',
+  }
+
+  if (args.where) {
+    spec.where = args.where;
+  }
+
+  return request(wm, 'contracts' + random(), 'select', spec);
+}
+
+/**
+ * @param {Object} args
+ * @param {string[]} args.tally_seq
+ */
+export const getContract = (wm, args) => {
+  const spec = {
+    name: 'agree',
+    view: 'mychips.tallies_v_me',
+    data: {
+      key: {
+        tally_seq: args.tally_seq,
+      },
+      options: {
+        format: 'url'
+      }
+    },
+  };
+
+  return request(wm, 'agree' + random(), 'action', spec);
+}

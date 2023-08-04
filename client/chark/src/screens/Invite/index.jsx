@@ -189,7 +189,7 @@ const TallyInvite = (props) => {
             useNativeDriver: false,
           }
         )}
-        progressViewOffset={100}
+        progressViewOffset={120}
       />
       <FloatingActionButton onPress={newTemplate} />
     </View>

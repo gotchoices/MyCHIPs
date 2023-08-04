@@ -1,14 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   TextInput,
+  TouchableWithoutFeedback,
+  Text,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { colors } from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
+import useSocket from '../../hooks/useSocket';
+import { fetchContracts } from '../../services/tally';
+
+import CustomText from '../../components/CustomText';
 import CommonTallyView from '../Tally/CommonTallyView';
 import HelpText from '../../components/HelpText';
+import CustomButton from '../../components/Button';
 
 const TallyEditView = (props) => {
   const tally = props.tally;
@@ -22,11 +29,25 @@ const TallyEditView = (props) => {
   const onPartTermsChange = props.onPartTermsChange;
   const setTallyType = props.setTallyType;
   const setContract = props.setContract;
+  const [tallyContracts, setTallyContracts] = useState([]);
 
+  const { wm } = useSocket();
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
+
+  useEffect(() => {
+    fetchContracts(wm, {
+      fields: ['top', 'name', 'title', 'language', 'host', 'rid', 'clean'],
+      where: { top: true },
+    }).then((data) => {
+      setTallyContracts((prev) => ([
+        ...prev,
+        ...data,
+      ]));
+    })
+  }, [])
 
   return (
     <View>
@@ -67,8 +88,19 @@ const TallyEditView = (props) => {
             setContract(item)
           }}
         >
-          <Picker.Item label="Tally Contract" value="Tally_Contract" />
+        {
+          tallyContracts.map((tallyContract) => (
+            <Picker.Item key={tallyContract.name} label={tallyContract.title} value={tallyContract.name} />
+          ))
+        }
         </Picker>
+
+        <CustomButton
+          title="Show PDF"
+          onPress={props.onViewContract}
+          textColor={colors.blue}
+          style={styles.showPDF}
+        />
       </View>
 
       <View style={styles.detailControl}>
@@ -212,6 +244,11 @@ const styles = StyleSheet.create({
   headerText: {
     color: colors.black,
     fontSize: 14,
+  },
+  showPDF: {
+    marginVertical: 8,
+    color: colors.blue,
+    backgroundColor: colors.white,
   },
   h5: {
     fontSize: 12,
