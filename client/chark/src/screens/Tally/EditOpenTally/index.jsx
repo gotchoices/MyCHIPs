@@ -113,6 +113,16 @@ const EditOpenTally = (props) => {
     );
   }
 
+  const showPDF = () => {
+    props.navigation.navigate("InviteScreen", {
+      screen: 'TallyContract',
+      initial: false,
+      params: {
+        tally_seq,
+      }
+    });
+  }
+
   return (
     <ScrollView>
       <View>
@@ -128,6 +138,22 @@ const EditOpenTally = (props) => {
               Tally Type
             </CustomText>
             <Text style={styles.textInputStyle}>{tally.tally_type}</Text>
+          </View>
+
+          <View style={styles.detailControl}>
+            <HelpText
+              label={tallyText?.contract?.title ?? ''}
+              helpText={tallyText?.contract?.help}
+              style={styles.label}
+            />
+
+            <Button
+              title="Show PDF"
+              textColor={colors.blue}
+              style={{ marginTop: 12, backgroundColor: colors.white }}
+              onPress={showPDF}
+            />
+
           </View>
         </View>
 
@@ -220,7 +246,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray100,
   },
   label: {
-    marginTop: 8,
     fontSize: 14,
     color: 'black',
   },

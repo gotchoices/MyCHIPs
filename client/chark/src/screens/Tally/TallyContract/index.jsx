@@ -29,23 +29,23 @@ const TallyContract = (props) => {
   }, [props.navigation, downloading]); */
 
   useEffect(() => {
+    const showPDF = async () => {
+      setDownloading(true);
+
+      getContract(wm, {
+        tally_seq
+      }).then((data) => {
+        setContract(data);
+      }).catch(console.log).finally(() => {
+        setDownloading(false);
+      })
+    }
+
     showPDF();
-  }, [tally_seq]);
+  }, [wm, tally_seq, setContract]);
 
   useEffect(() => {
   }, [contract])
-
-  const showPDF = async () => {
-    setDownloading(true);
-
-    getContract(wm, {
-      tally_seq
-    }).then((data) => {
-      setContract(data);
-    }).catch(console.log).finally(() => {
-      setDownloading(false);
-    })
-  }
 
   const onShare = () => {
     if (contract) {
@@ -102,7 +102,9 @@ const TallyContract = (props) => {
       javaScriptEnabled={true}
       domStorageEnabled={true}
       style={styles.webView}
-      source={{ uri: `https://docs.google.com/gview?embedded=true&url=${contract}` }}
+      source={{ 
+        uri: `https://docs.google.com/gview?embedded=true&url=${contract}`
+      }}
     />
     <Button
       title='Share'

@@ -3,16 +3,11 @@ import {
   View,
   StyleSheet,
   TextInput,
-  TouchableWithoutFeedback,
-  Text,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { colors } from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
-import useSocket from '../../hooks/useSocket';
-import { fetchContracts } from '../../services/tally';
 
-import CustomText from '../../components/CustomText';
 import CommonTallyView from '../Tally/CommonTallyView';
 import HelpText from '../../components/HelpText';
 import CustomButton from '../../components/Button';
@@ -29,25 +24,12 @@ const TallyEditView = (props) => {
   const onPartTermsChange = props.onPartTermsChange;
   const setTallyType = props.setTallyType;
   const setContract = props.setContract;
-  const [tallyContracts, setTallyContracts] = useState([]);
+  const tallyContracts = props.tallyContracts ?? [];
 
-  const { wm } = useSocket();
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
-
-  useEffect(() => {
-    fetchContracts(wm, {
-      fields: ['top', 'name', 'title', 'language', 'host', 'rid', 'clean'],
-      where: { top: true },
-    }).then((data) => {
-      setTallyContracts((prev) => ([
-        ...prev,
-        ...data,
-      ]));
-    })
-  }, [])
 
   return (
     <View>
@@ -88,11 +70,12 @@ const TallyEditView = (props) => {
             setContract(item)
           }}
         >
-        {
-          tallyContracts.map((tallyContract) => (
-            <Picker.Item key={tallyContract.name} label={tallyContract.title} value={tallyContract.name} />
-          ))
-        }
+          <Picker.Item label="Select contract" />
+          {
+            tallyContracts.map((tallyContract) => (
+              <Picker.Item key={tallyContract.name} label={tallyContract.title} value={tallyContract.rid} />
+            ))
+          }
         </Picker>
 
         <CustomButton

@@ -8,7 +8,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
   const [tallyType, setTallyType] = useState('stock');
-  const [contract, setContract] = useState('Tally_Contract');
+  const [contract, setContract] = useState('');
   const [holdTerms, setHoldTerms] = useState({
     limit: undefined,
     call: undefined,
@@ -42,7 +42,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
         setTally(_tally);
 
         setTallyType(_tally.tally_type);
-        setContract(_tally.contract?.terms ?? '');
+        setContract(_tally.contract?.rid ?? '');
         setComment(_tally.comment ?? '');
         setHoldTerms({
           limit: _tally.hold_terms?.limit?.toString(),

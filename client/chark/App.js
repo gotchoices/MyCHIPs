@@ -182,7 +182,7 @@ function App() {
                   />
 
                   <Tab.Screen
-                    name="Invite Screen"
+                    name="InviteScreen"
                     component={InviteStackScreen}
                     options={{
                       tabBarTestID: "inviteTestID",

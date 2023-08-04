@@ -77,6 +77,7 @@ const CommonTallyView = (props) => {
                 onPress={props.onViewChitHistory}
                 style={{ borderRadius: 12, width: 120 }}
               />
+
               <Button
                 title='Pay'
                 onPress={props.onPay}
