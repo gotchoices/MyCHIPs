@@ -1,5 +1,5 @@
 {
- "hash": "e58f/DecbSQS6YFegu6GatHCcq3Y6n+98pyDplJG624=",
+ "hash": "ycn7lVGjwbNJ/6r7o6qh0MfeQ7mHiRcqExOstx8jSmI=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -529,7 +529,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJw9jjEKwzAQBHu/YgsVcZMiwWCSP+QPJ/lsC6yTkE4Q/z52FFLuwA7jMpMy5ipOfRSE3a0+lasdxpuli5dUFcpv7ZFZa5YCuysTNpKl0sJIW9p1jXKv8CFUJbsxqMCYDgdJMSssFR7Gc89oSl/wisKPg+Fn/oLuv9rnDJnYxYlbS98Z8/wAztE9dQ==",
+   "create": "eJxNUMlOw0AMvfcrfIiUBFALhdBQxIGl7FTs26WaSZxkIJkZJh5I+HqyAOrFsp+en99zZJARQmJlREJJKOooE7oc8iAcc+YJqS0BYUU+GCRrZAm8JmSQM5laliLoXNeUKblpQRSFJcZzBFaC4wwARAK9hChhriROGwx+lTqgmcnUU+hwUWhlCDgrMQiXmT3SmooxUjH2vvyGglWEmuCs25wZo0x/guU6YxwJ9sDdGG9uBduTcGf/4PBodnxyen5xeTW/vrm9u394fHp+eWU8ijFJM/H2XkilP0xJ9vOrqr/dTkvaopFZ7/pEGYgyZppYfbL+3B+prSsQhLD672AoZIyV1y75y5ka6pDUov1m6XntxAUtcpQpZZ7fCEx8GI0gXAOXi9T1B46z+wNJxYhT",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1ksytTBKStQoSa0o0bQGAIWJEEs="
   },
   {
@@ -562,7 +562,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJw9jkEKgzAQRfeeYhYB66JZtAjS3qF3mMRRAzoJyQzU2zfV0uV78B/fZ0IhmJS9hMiw7X4JqViHN9cPl8BJBdwuhB1kEs1cQOgtsCLPijNBWtMuS+S7Qtg2FXQrARYwpoFqUsw1gIX64csTnMlQ4BWZHtXBL3yI5k/nxtYXxD6OdH7p7EgHtSrTdWi7xpjnB99pQmQ=",
+   "create": "eJxVkElPwzAQhe/8ijlESiNKJFoKAcSBfa/YVyHkJJPEEC84dtvw63GcpqK++c3M995MopBohMzwRFPBgdVJQWUVxmQQj6Ie5dJoiGuNJACF2ihegcaZhpLw3JAcQZay1oXgQwOUMaNJXCKQCjxvBeyjGbQQWsFYcNxxKsxhTnKKVnVXokwKZV1JhaNoub3VQhsNeSJSbAMGYYru5xudrUV+4IZwlqDUcO5ox0oJ1RmQUhYkRg174K8Phhujza1oe//g8Oj45PTs4vLqenxze3f/8Pj0/PL6RuIkxSwv6Nc340L+qEqbyXRW//pzGjfMgijXYaYE+2yOVbW5+uDHNJ/HsYGayJTnjW03PC2oPZdFdNkcr2/3baApnTCR9pwyioJFyz9St8u7nfiA1UVp+W4L1fN2/wClHZp4",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1ktKNEoytdBIqixJTdS0BgCXDhCb"
   },
   {
@@ -2459,13 +2459,14 @@
    "min_rel": 1,
    "max_rel": 1,
    "deps": [
+    "mychips.ba2b58(bytea)",
     "mychips.contracts"
    ],
    "delta": [],
    "grants": [],
    "col_data": [],
    "create": "eJxLLkpNLElVyMxLSa1QyK1MzsgsKI5Pzs8rKUpMLimOr4gvykxRyM+DSenBpRQ0YEJJiUZJphYaKZnpqcUlmprWAEcPHvQ=",
-   "drop": "eJxLKcovUMjMS0mtUMhMU0ityCwuKVbIrUzOyCwojk/OzyspSkwuKY6viC/KTLEGAI5IEZo="
+   "drop": "eJxLKcovUMjMS0mtUMhMU0ityCwuKVbIrUzOyCwo1oPS8cn5eSVFicklxfEV8UWZKdYAJ2AUxQ=="
   },
   {
    "obj_typ": "table",

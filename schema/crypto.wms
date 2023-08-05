@@ -1,5 +1,5 @@
 #Test key validation, digests, etc.
-#Requires plpythonu extension, and python rsa module: "pip install rsa"
+#Requires plpythonu extension, and python rsa, base58 modules: "pip install rsa base58", 
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 
@@ -83,20 +83,36 @@ $$;}
 #----------------------------------------------------------------
 function {mychips.ba2b58(input bytea)} {mychips plpy} {
   returns text language plpython3u immutable as $$
-  import base58
-  if input is None:
-    return None
-  return base58.b58encode(input).decode('utf-8')
+    if input is None:
+      return None
+    try:
+      import base58
+      return base58.b58encode(input).decode('utf-8')
+    except ImportError:
+      alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+      num = int.from_bytes(input, 'big')
+      encoding = ''
+      while num:
+        num, rem = divmod(num, 58)
+        encoding = alphabet[rem] + encoding
+      return encoding
 $$;}
 
 # Decode base58 to binary
 #----------------------------------------------------------------
 function {mychips.b582ba(input text)} {mychips} {
   returns bytea language plpython3u immutable as $$
-  import base58
   if input is None:
     return None
-  return base58.b58decode(input)
+  try: 
+    import base58
+    return base58.b58decode(input)
+  except ImportError:
+    alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+    num = 0
+    for char in input:
+      num = num * 58 + alphabet.index(char)
+    return num.to_bytes((num.bit_length() + 7) // 8, 'big')
 $$;}
 
 #Can't find good v8 support for Fedora

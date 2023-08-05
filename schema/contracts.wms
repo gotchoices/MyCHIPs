@@ -30,7 +30,7 @@ table mychips.contracts {mychips base.language base.ent} {
   , primary key(host, name, version, language)
     eval(s $glob::stamps)
 }
-index mychips_contracts_x_rid mychips.contracts {mychips.ba2b58(digest)}
+index {mychips_contracts_x_rid} {mychips.contracts mychips.ba2b58(bytea)} {mychips.ba2b58(digest)}
 
 # Compute standard json output for a contract
 #----------------------------------------------------------------

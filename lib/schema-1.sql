@@ -592,10 +592,17 @@ create operator =* (leftarg = text,rightarg = text,procedure = eqnocase, negator
 revoke all on schema public from public;
   grant all on schema public to admin;
 create function mychips.b582ba(input text) returns bytea language plpython3u immutable as $$
-  import base58
   if input is None:
     return None
-  return base58.b58decode(input)
+  try: 
+    import base58
+    return base58.b58decode(input)
+  except ImportError:
+    alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+    num = 0
+    for char in input:
+      num = num * 58 + alphabet.index(char)
+    return num.to_bytes((num.bit_length() + 7) // 8, 'big')
 $$;
 create function mychips.b64v2ba(input text) returns bytea language sql immutable as $$
     select decode(
@@ -605,10 +612,19 @@ create function mychips.b64v2ba(input text) returns bytea language sql immutable
     )
 $$;
 create function mychips.ba2b58(input bytea) returns text language plpython3u immutable as $$
-  import base58
-  if input is None:
-    return None
-  return base58.b58encode(input).decode('utf-8')
+    if input is None:
+      return None
+    try:
+      import base58
+      return base58.b58encode(input).decode('utf-8')
+    except ImportError:
+      alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+      num = int.from_bytes(input, 'big')
+      encoding = ''
+      while num:
+        num, rem = divmod(num, 58)
+        encoding = alphabet[rem] + encoding
+      return encoding
 $$;
 create function mychips.ba2b64v(input bytea) returns text language sql immutable as $$
     select translate(encode(input, 'base64'), E'/+=\n', '_-');
