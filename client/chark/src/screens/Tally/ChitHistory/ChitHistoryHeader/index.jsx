@@ -28,7 +28,7 @@ const ChistHistoryHeader = (props) => {
   const totalNetDollar = useMemo(() => {
     if (conversionRate) {
       const total = round((net ?? 0) / 1000, 3) * conversionRate;
-      return round(total, 3);
+      return round(total, 2);
     }
 
     return 0;

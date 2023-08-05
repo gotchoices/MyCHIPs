@@ -1,32 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Text, StyleSheet, ActivityIndicator, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import Toast from 'react-native-toast-message';
-
 import { colors } from '../../config/constants';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useInvite from '../../hooks/useInvite';
-import { useTallyText } from '../../hooks/useLanguage';
-
 import { createTemplate } from '../../services/tally';
-
 import TemplateItem from './TemplateItem';
-import Button from '../../components/Button';
-import { useHoldTermsText } from '../../hooks/useLanguage';
+import CustomTextInput from '../../components/CustomTextInput';
+import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAssets';
+import FloatingActionButton from '../../components/FloadingActionButton';
+import useProfile from '../../hooks/useProfile';
+
+const Header_Height = 130;
+
+const useSearchData = (initialData) => {
+  const [searchValue, setSearchValue] = useState('');
+  const [filteredData, setFilteredData] = useState(initialData);
+
+  useEffect(() => {
+    if (searchValue) {
+      const filtered = initialData.filter((item) => {
+        const userName = item.part_cert?.name;
+        const name = `${userName?.first}${userName?.middle ? ' ' + userName?.middle + ' ' : ''} ${userName?.surname}`
+        return name.toLowerCase().includes(searchValue.toLowerCase());
+      });
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(initialData);
+    }
+  }, [searchValue, initialData]);
+
+  return { searchValue, setSearchValue, filteredData };
+};
+
+const EmptyContent = () => {
+  return <View style={{ flex: 1, alignItems: 'center', alignContent: 'center' }}>
+    <Text>No Tallies Found with the status.</Text>
+  </View>
+}
 
 const TallyInvite = (props) => {
   const [data, setData] = useState([]);
+  const { searchValue, setSearchValue, filteredData } = useSearchData(data);
   const [loading, setLoading] = useState(false);
   const { wm, ws } = useSocket();
   const { triggerInviteFetch } = useInvite();
-
-  useTallyText(wm);
+  const { filter } = useProfile();
 
   useEffect(() => {
     if (ws) {
       fetchTemplates();
     }
-  }, [ws, triggerInviteFetch]);
+  }, [ws, triggerInviteFetch, filter]);
+
+  const getFilterResult = (filterBy, separatedBy) => {
+    const values = Object.values(filter);
+    const selectedValues = values.filter((item) => item.selected);
+    const entry = selectedValues.length === 0
+      ? values.map((item) => item?.[filterBy]).join(separatedBy)
+      : selectedValues.map((item) => item?.[filterBy]).join(separatedBy);
+    return entry;
+  }
 
   //Create a new template
   const newTemplate = () => {
@@ -52,6 +87,7 @@ const TallyInvite = (props) => {
   }
 
   const fetchTemplates = () => {
+    const entry = getFilterResult('status', ' ');
     setLoading(true);
     const spec = {
       fields: [
@@ -65,9 +101,10 @@ const TallyInvite = (props) => {
         'tally_type',
         'status',
         'part_cid',
+        'part_cert',
       ],
       view: 'mychips.tallies_v_me',
-      where: { left: "status", oper: "in", entry: "draft offer" },
+      where: { left: "status", oper: "in", entry: entry },
       order: {
         field: 'crt_date',
         asc: false,
@@ -85,6 +122,7 @@ const TallyInvite = (props) => {
         tally_type: el.tally_type,
         status: el.status,
         part_cid: el.part_cid,
+        part_cert: el.part_cert,
       }));
 
       setData(_data);
@@ -101,42 +139,66 @@ const TallyInvite = (props) => {
       />
     )
   }
+  const onFilter = () => {
+    props.navigation.navigate("FilterScreen");
+  }
+
+  const scrollY = new Animated.Value(0);
+  const diffClampScrollY = Animated.diffClamp(scrollY, 0, Header_Height);
+  const headerY = diffClampScrollY.interpolate({
+    inputRange: [0, Header_Height],
+    outputRange: [0, -Header_Height],
+    extrapolate: 'clamp'
+  });
 
   return (
-    <View style={styles.container} testID="inviteScreen">
-      <View
-        style={styles.listContainer}
-      >
-        <View
-          style={styles.listHeading}
-        >
-          <Text style={styles.templateText}>Drafts: </Text>
-
-          <View style={{ marginLeft: 10 }}>
-            <Button
-              title="New Draft"
-              onPress={() => newTemplate()}
-            />
-          </View>
-        </View>
-
-        <FlatList
-          data={data}
-          renderItem={renderItem}
-          refreshing={loading}
-          onRefresh={() => fetchTemplates()}
+    <View style={styles.container}>
+      <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
+        <CustomTextInput
+          placeholder="Search"
+          value={searchValue}
+          onChangeText={setSearchValue}
+          leadingIcon={<SearchIcon size={16} />}
         />
+        <View style={styles.row}>
+          <Text style={styles.title}>{getFilterResult('title', ' | ')}</Text>
+          <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
+            <FilterSecondIcon />
+            <Text style={styles.filterText}>Filters</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
 
-      </View>
+      <Animated.FlatList
+        bounces={false}
+        ListHeaderComponent={<View style={{ height: Header_Height }} />}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: colors.white }}
+        data={filteredData}
+        renderItem={renderItem}
+        refreshing={loading}
+        onRefresh={() => fetchTemplates()}
+        keyExtractor={(item, index) => `${item.tally_ent}${item?.tally_uuid}${item?.tally_seq}${index}`}
+        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+        scrollEventThrottle={2}
+        ListEmptyComponent={loading ? <></> : <EmptyContent />}
+        onScroll={Animated.event(
+          [{
+            nativeEvent: { contentOffset: { y: scrollY } }
+          }],
+          {
+            useNativeDriver: false,
+          }
+        )}
+        progressViewOffset={120}
+      />
+      <FloatingActionButton onPress={newTemplate} />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: 10,
-    padding: 10,
     backgroundColor: colors.white,
   },
   listContainer: {
@@ -160,6 +222,48 @@ const styles = StyleSheet.create({
   regenerate: {
     marginBottom: 10,
   },
+  title: {
+    fontSize: 16,
+    color: '#636363',
+    fontFamily: 'inter'
+  },
+  row: {
+    flexDirection: 'row',
+    marginTop: 18,
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  headerContainer: {
+    //padding: 16,
+  },
+  filterContainer: {
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
+    backgroundColor: '#E7E7E7',
+    flexDirection: 'row',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  filterText: {
+    fontSize: 12,
+    color: '#636363',
+    marginStart: 4,
+    fontFamily: 'inter',
+  },
+  header: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: Header_Height,
+    backgroundColor: colors.white,
+    zIndex: 1000,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  }
 })
 
 export default TallyInvite;

@@ -49,7 +49,7 @@ const Tally = (props) => {
       return acc + (Number(current?.net ?? 0));
     }, 0)
 
-    return round(total / 1000, 2);
+    return round(total / 1000, 3);
   }, [tallies])
 
   const totalNetDollar = useMemo(() => {

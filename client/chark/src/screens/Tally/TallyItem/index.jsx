@@ -10,7 +10,7 @@ import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const TallyItem = (props) => {
   const tally = props.tally;
-  const net = round((tally?.net ?? 0) / 1000, 2);
+  const net = round((tally?.net ?? 0) / 1000, 3);
   const convertedNet = round(net * props.conversionRate, 2);
   const partCert = tally?.part_cert;
 

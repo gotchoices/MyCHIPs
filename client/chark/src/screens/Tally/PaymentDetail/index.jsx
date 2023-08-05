@@ -38,8 +38,9 @@ const PaymentDetail = (props) => {
   const totalNetDollar = useMemo(() => {
     const convertedChit = parseInt(chit);
     if (conversionRate && convertedChit) {
-      const total = round((convertedChit ?? 0) / 1000, 3) * conversionRate;
-      return round(total, 3);
+      // const total = round((convertedChit ?? 0), 3) * conversionRate;
+      const total = convertedChit * conversionRate;
+      return round(total, 2);
     }
 
     return 0;
