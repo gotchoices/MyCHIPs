@@ -2893,7 +2893,13 @@ create function mychips.users_v_insfunc() returns trigger language plpgsql secur
 $$;
 create view mychips.users_v_me as select 
     u.*
-    from	mychips.users_v		u where user_ent = base.user_id(session_user);
+
+  , to_jsonb(c) as cert
+
+    from	mychips.users_v		u
+    left join	json.cert		c on c.id = u.user_ent
+
+    where user_ent = base.user_id(session_user);
 grant select on table mychips.users_v_me to user_1;
 grant select on table mychips.users_v_me to user_2;
 grant insert on table mychips.users_v_me to user_2;
@@ -3616,7 +3622,6 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
 $$;
 create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for each row execute procedure mychips.tokens_v_insfunc();
 create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
-select wm.create_role('mychips', '{"user_2","contract_1","tally_2","chit_2","mychips_1"}'); select base.pop_role('mychips');
 create function mychips.chain_consense(ch mychips.chits, ta mychips.tallies) returns mychips.chits language plpgsql as $$
     declare
       crec	record;
@@ -5020,6 +5025,7 @@ create view mychips.users_v_tallysum as select
   , coalesce(s.json, '[]'::jsonb)		as json
     from	mychips.users_v u
     left join	mychips.tallies_v_sum s on s.tally_ent = u.user_ent;
+select wm.create_role('mychips', '{"user_2","contract_1","tally_2","chit_2","mychips_1"}'); select base.pop_role('mychips');
 create function json.cert_tf_ii() returns trigger language plpgsql security definer as $$
   declare
     ent_name text = new.name;
@@ -6051,7 +6057,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','chain_stat','eng','Chain Status','The consensus status of the chit chain related to this tally'),
   ('mychips','tallies','clutch','eng','Sell Margin','A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.'),
   ('mychips','tallies','comment','eng','Comment','Any notes the user might want to enter regarding this tally'),
-  ('mychips','tallies','contract','eng','Contract','The Resouce ID of the contract governing this tally (or a json record specifying it)'),
+  ('mychips','tallies','contract','eng','Contract','The Resouce ID of the contract governing this tally (or a json record more fully specifying it)'),
   ('mychips','tallies','crt_by','eng','Created By','The user who entered this record'),
   ('mychips','tallies','crt_date','eng','Created','The date this record was created'),
   ('mychips','tallies','digest','eng','Digest Hash','A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.'),
@@ -6060,7 +6066,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','hold_cid','eng','Holder CID','Cached value of holder''s CHIP identity from the holder certificate'),
   ('mychips','tallies','hold_sets','eng','Holder Settings','The current terms the holder has asserted on the tally'),
   ('mychips','tallies','hold_sig','eng','Holder Signed','The digital signature of the entity that owns/holds this tally'),
-  ('mychips','tallies','hold_terms','eng','Holder Terms','The terms the tally holder sets for its partner'),
+  ('mychips','tallies','hold_terms','eng','Holder Terms','The credit terms the tally holder has offered to its partner'),
   ('mychips','tallies','mod_by','eng','Modified By','The user who last modified this record'),
   ('mychips','tallies','mod_date','eng','Modified','The date this record was last modified'),
   ('mychips','tallies','net_c','eng','Good Units','Total milliCHIP value of committed chits'),
@@ -6071,7 +6077,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','part_ent','eng','Partner Entity','The entity id number of the other party to this tally'),
   ('mychips','tallies','part_sets','eng','Partner Settings','The current terms the partner has asserted on the tally'),
   ('mychips','tallies','part_sig','eng','Partner Signed','The digital signature of the other party to this tally'),
-  ('mychips','tallies','part_terms','eng','Partner Terms','The terms thepartner set for the tally holder'),
+  ('mychips','tallies','part_terms','eng','Partner Terms','The credit terms the partner has offered to the tally holder'),
   ('mychips','tallies','request','eng','Request','Requested next status for the tally'),
   ('mychips','tallies','reward','eng','Buy Margin','A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.'),
   ('mychips','tallies','status','eng','Status','Current status of the tally record'),
@@ -6217,6 +6223,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','users_v','json','eng','JSON','User record in JSON format'),
   ('mychips','users_v','peer_host','eng','Peer Host','Hostname where other peer servers can transact with this user'),
   ('mychips','users_v','peer_port','eng','Peer Port','Port where other peer servers can transact with this user'),
+  ('mychips','users_v_me','cert','eng','Certificate','A JSON object containing all available certificate data for the user'),
   ('mychips','users_v_tallies','asset','eng','Asset Sum','CHIP Total of all tallies with positive value'),
   ('mychips','users_v_tallies','assets','eng','Assset Count','Number of tallies with positive value'),
   ('mychips','users_v_tallies','count','eng','Tally Count','Total number of tallies for this user'),
@@ -6479,6 +6486,9 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','tallies','contract','host','eng','Host','The host site of the author of the governing contract (default: mychips.org)'),
   ('mychips','tallies','contract','name','eng','Name','The tag name of the governing contract'),
   ('mychips','tallies','contract','source','eng','Resource','The Resource ID of the governing contract'),
+  ('mychips','tallies','hold_cert','chad','eng','CHIP Address','JSON object describing how/where other users communicate MyCHIPs transactions with you'),
+  ('mychips','tallies','hold_cert','date','eng','Certificate Date','Timestamp showing when this certificate data was generated'),
+  ('mychips','tallies','hold_cert','name','eng','Holder Name','A record (or array) of the names you are addressed by'),
   ('mychips','tallies','hold_terms','call','eng','Call Period','After the holder demands payment of a balance, the partner is allowed this many days to comply'),
   ('mychips','tallies','hold_terms','limit','eng','Credit Limit','Maximum amount the partner may become indebted to the tally holder'),
   ('mychips','tallies','part_terms','call','eng','Call Period','After the partner demands payment of a balance, the tally holder is allowed this many days to comply'),
@@ -6497,6 +6507,47 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','users','user_stat','act','eng','Active','Good to conduct trades'),
   ('mychips','users','user_stat','lck','eng','Lockdown','Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.'),
   ('mychips','users','user_stat','off','eng','Offline','Account completely off line.  No trades possible.'),
+  ('mychips','users_v_me','cert','chad','eng','CHIP Address','JSON object describing how/where other users communicate MyCHIPs transactions with you'),
+  ('mychips','users_v_me','cert','chad.agent','eng','Agent','Your agent address / public key'),
+  ('mychips','users_v_me','cert','chad.cid','eng','CHIP ID','The name by which you are uniquely identified by your MyCHIPs agent process'),
+  ('mychips','users_v_me','cert','chad.host','eng','Host','The internet host address where your agent can be reached'),
+  ('mychips','users_v_me','cert','chad.port','eng','Port','The port number where your agent can be reached'),
+  ('mychips','users_v_me','cert','connect','eng','Connections','An array of phone, email or similar contact points'),
+  ('mychips','users_v_me','cert','connect.address','eng','Address','The phone number, email address or similar'),
+  ('mychips','users_v_me','cert','connect.comment','eng','Comment','A note about this contact point'),
+  ('mychips','users_v_me','cert','connect.media','eng','Medium','The type of contact point'),
+  ('mychips','users_v_me','cert','date','eng','Date','Timestamp showing when this certificate data was generated'),
+  ('mychips','users_v_me','cert','file','eng','Attachments','An array of other file documents you provide to establish your identity'),
+  ('mychips','users_v_me','cert','file.comment','eng','Comment','An explanatory note about the document'),
+  ('mychips','users_v_me','cert','file.digest','eng','Digest','A unique, identifying hash of the document'),
+  ('mychips','users_v_me','cert','file.format','eng','Format','The file format for the document'),
+  ('mychips','users_v_me','cert','file.media','eng','File Type','The type of document (bio, id, photo, cert, other)'),
+  ('mychips','users_v_me','cert','identity','eng','Identity','An array of records that uniquely identify you'),
+  ('mychips','users_v_me','cert','identity.birth','eng','Birth','Information unique to your birth'),
+  ('mychips','users_v_me','cert','identity.birth.date','eng','Birth Date','The date you were born'),
+  ('mychips','users_v_me','cert','identity.birth.name','eng','Birth Name','Your original name, if changed'),
+  ('mychips','users_v_me','cert','identity.birth.place','eng','Birth Place','Where you resided when you were born'),
+  ('mychips','users_v_me','cert','identity.birth.place.address','eng','Birth Address','The street and number where you resided when you were born'),
+  ('mychips','users_v_me','cert','identity.birth.place.city','eng','Birth City','The city where you resided when you were born'),
+  ('mychips','users_v_me','cert','identity.birth.place.country','eng','Birth Country','The country where you resided when you were born'),
+  ('mychips','users_v_me','cert','identity.birth.place.post','eng','Birth Postal','The postal code for where you resided when you were born'),
+  ('mychips','users_v_me','cert','identity.birth.place.state','eng','Birth State','The state where you resided when you were born'),
+  ('mychips','users_v_me','cert','identity.state','eng','State ID','An official identification issued for you by a country'),
+  ('mychips','users_v_me','cert','identity.state.country','eng','Country','The state/country who issued the identity number'),
+  ('mychips','users_v_me','cert','identity.state.id','eng','Identifier','Your official state ID number (such as a Social Security Number)'),
+  ('mychips','users_v_me','cert','name','eng','Name','A record (or array) of the names you are addressed by'),
+  ('mychips','users_v_me','cert','name.first','eng','First Name','Your first given name'),
+  ('mychips','users_v_me','cert','name.prefer','eng','Preferred','The name you prefer to be called by'),
+  ('mychips','users_v_me','cert','name.surname','eng','Surname','Your family name'),
+  ('mychips','users_v_me','cert','place','eng','Addresses','An array of physical or mailing addresses'),
+  ('mychips','users_v_me','cert','place.address','eng','Street','Street or box information for this address'),
+  ('mychips','users_v_me','cert','place.city','eng','City','City this address is in'),
+  ('mychips','users_v_me','cert','place.comment','eng','Comment','A note explaining this address'),
+  ('mychips','users_v_me','cert','place.country','eng','Country','Country this address is in'),
+  ('mychips','users_v_me','cert','place.post','eng','Postal','Zip or postal code for this address'),
+  ('mychips','users_v_me','cert','place.state','eng','State','State this address is in'),
+  ('mychips','users_v_me','cert','public','eng','Public Key','The public part of the key you use to sign transactions'),
+  ('mychips','users_v_me','cert','type','eng','Entity Type','Type of entity you are (p:person, o:organization)'),
   ('wylib','data','access','priv','eng','Private','Only the owner of this data can read, write or delete it'),
   ('wylib','data','access','read','eng','Public Read','The owner can read and write, all others can read, or see it'),
   ('wylib','data','access','write','eng','Public Write','Anyone can read, write, or delete this data');
@@ -9732,6 +9783,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_me','bank','base','ent','bank','f','f'),
   ('mychips','users_v_me','born_date','base','ent','born_date','f','f'),
   ('mychips','users_v_me','cas_name','base','ent_v','cas_name','f','f'),
+  ('mychips','users_v_me','cert','mychips','users_v_me','cert','f','f'),
   ('mychips','users_v_me','conn_pub','base','ent','conn_pub','f','f'),
   ('mychips','users_v_me','country','base','ent','country','f','f'),
   ('mychips','users_v_me','crt_by','mychips','users','crt_by','f','f'),
