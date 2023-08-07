@@ -20,7 +20,7 @@ dkim_pub=dkim_public.b64
 ssh_pub="$HOME/.ssh/id_rsa.pub"
 ssh_user=root
 read language encoding junk <<<$(echo $locale |tr . ' ')	#;echo "language:$language encoding:$encoding"
-all=("hostname","timezone","packages","locale","admin","node","postgres","certbot","mychips","systemd","mailcerts","sendmail","config")
+all=("hostname" "timezone" "packages" "locale" "admin" "node" "postgres" "mychips" "certbot" "systemd" "mailcerts" "sendmail" "config")
 
 oargs="$@"
 pargs=()
@@ -48,7 +48,7 @@ fi
 
 if [ -z "$csp_ip" ]; then		#Need to fetch the IP number?
   csp_ip="$(dig +short $csp_host)"
-fi					#;echo "host:$csp_host ip:$csp_ip"
+fi					#;echo "host:$csp_host ip:$csp_ip args:$*"; exit
 
 runit() {				echo "Running module: $1"
   local mod="$1"; shift
