@@ -8,7 +8,6 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
-  Text,
 } from 'react-native';
 
 import { colors, keyServices } from '../../../config/constants';
@@ -16,6 +15,7 @@ import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
 import { useHoldTermsText, useTallyText } from '../../../hooks/useLanguage';
 import useTallyUpdate from '../../../hooks/useTallyUpdate';
+import { fetchContracts } from '../../../services/tally';
 
 import CustomText from '../../../components/CustomText';
 import Button from '../../../components/Button';
@@ -36,6 +36,7 @@ const TallyPreview = (props) => {
   const [updating, setUpdating] = useState(false);
   const [sig, setSig] = useState(undefined);
   const [json, setJson] = useState(undefined);
+  const [tallyContracts, setTallyContracts] = useState([]);
 
   const {
     loading,
@@ -54,6 +55,16 @@ const TallyPreview = (props) => {
     fetchTally,
     setTally
   } = useTallyUpdate(wm, tally_seq, tally_ent);
+
+  useEffect(() => {
+    fetchContracts(wm, {
+      fields: ['top', 'name', 'title', 'language', 'host', 'rid', 'clean'],
+      where: { top: true },
+    }).then((data) => {
+      setTallyContracts(data);
+    })
+  }, [])
+
 
   useEffect(() => {
     setJson(tally?.json);
@@ -96,15 +107,23 @@ const TallyPreview = (props) => {
 
   const onUpdate = () => {
     Keyboard.dismiss();
+
     setUpdating(true);
+
     const payload = {
       tally_type: tallyType,
-      contract: {
-        terms: contract,
-      },
       hold_terms: holdTermsData,
       part_terms: partTermsData,
       comment,
+    }
+
+    if(contract) {
+      const found = tallyContracts?.find((item) => item.rid === contract)
+      if(found) {
+        payload.contract = {
+          rid: found.rid,
+        };
+      }
     }
 
     const spec = {
@@ -293,6 +312,7 @@ const TallyPreview = (props) => {
             setTallyType={setTallyType}
             setContract={setContract}
             onViewContract={onViewContract}
+            tallyContracts={tallyContracts}
           />
         </ScrollView>
 
