@@ -90,7 +90,7 @@ table mychips.tally_tries {mychips.tallies} {
 
 # Generate unique sequence number for new tallies
 #----------------------------------------------------------------
-function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tallies) mychips.user_cert(text) mychips.j2h(jsonb) mychips.tally_json(mychips.tallies)} {
+function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tallies) mychips.user_cert(text) mychips.j2h(jsonb) mychips.tally_json(mychips.tallies) mychips.contracts_v} {
   returns trigger language plpgsql security definer as $$
     begin
         if new.tally_ent is null then
@@ -111,6 +111,10 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
 
         if new.hold_cert is null then
           new.hold_cert = mychips.user_cert(new.tally_ent);
+        end if;
+        if new.contract is null then
+          select into new.contract to_jsonb(rid) from mychips.contracts_v
+            where host = 'mychips.org' and name = 'Tally_Contract' and language = 'eng' order by version desc limit 1;
         end if;
         new = mychips.tally_certs(new);
         if new.status = 'open' then	-- Should only happen in simulations
