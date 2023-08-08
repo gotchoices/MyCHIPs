@@ -45,7 +45,7 @@ if [ -d mychips/pki/local ]; then
   echo '  Found mychips/pki/local OK'
 else
   cd mychips
-  npm run initcerts
+  npm run initcerts -- -b
   npm run agentcheck
   cd ..
 fi

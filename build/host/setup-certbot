@@ -19,6 +19,8 @@ if [ -d "{$le_dir}/live" ]; then
 else
   echo "Creating site certificate for: $csp_host"
   certbot certonly -m "$email" --standalone --agree-tos -q -d $csp_host
+
+  echo "Trying dry-run certificate renewal"
   certbot renew --dry-run
 fi
 

@@ -6,7 +6,7 @@ config="sendmail.mc"
 if which sendmail >/dev/null; then
   echo "Found installed sendmail"
 else
-  apt-get install sendmail mailutils
+  apt-get install -y sendmail mailutils
 fi							#;echo "cwd:$(pwd)"
 
 if ! cd $mail_condir; then

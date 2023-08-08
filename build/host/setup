@@ -20,7 +20,7 @@ dkim_pub=dkim_public.b64
 ssh_pub="$HOME/.ssh/id_rsa.pub"
 ssh_user=root
 read language encoding junk <<<$(echo $locale |tr . ' ')	#;echo "language:$language encoding:$encoding"
-all=("hostname" "timezone" "packages" "locale" "admin" "node" "postgres" "mychips" "certbot" "systemd" "mailcerts" "sendmail" "config")
+all=("hostname" "timezone" "packages" "locale" "admin" "node" "postgres" "mychips" "systemd" "certbot" "mailcerts" "sendmail" "config")
 
 oargs="$@"
 pargs=()
