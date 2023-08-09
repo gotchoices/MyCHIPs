@@ -3612,6 +3612,10 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
         if new.hold_cert is null then
           new.hold_cert = mychips.user_cert(new.tally_ent);
         end if;
+        if new.contract is null then
+          select into new.contract to_jsonb(rid) from mychips.contracts_v
+            where host = 'mychips.org' and name = 'Tally_Contract' and language = 'eng' order by version desc limit 1;
+        end if;
         new = mychips.tally_certs(new);
         if new.status = 'open' then	-- Should only happen in simulations
           new.digest = mychips.j2h(mychips.tally_json(new));
@@ -6993,7 +6997,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','tallies_v_paths','display','["bang", "length", "min", "max", "circuit", "path"]','t'),
   ('mychips','users','focus','"ent_name"','t'),
   ('mychips','users_v','actions','[{"name": "ticket", "render": "html", "single": 1, "options": [{"tag": "format", "input": "pdm", "values": ["qr", "link", "url", "json"]}]}, {"ask": 1, "name": "lock"}, {"ask": 1, "name": "unlock"}, {"name": "summary", "render": "html"}, {"name": "trade", "render": "html", "options": [{"tag": "start", "size": 11, "type": "date", "input": "date", "subframe": [1, 1]}, {"tag": "end", "size": 11, "type": "date", "input": "date", "subframe": [1, 2]}]}]','f'),
-  ('mychips','users_v','display','["id", "std_name", "ent_type", "user_stat", "born_date", "peer_agent", "!fir_name", "!ent_name"]','t'),
+  ('mychips','users_v','display','["id", "std_name", "ent_type", "user_stat", "born_date", "peer_cid", "peer_agent", "!fir_name", "!ent_name"]','t'),
   ('mychips','users_v','export','"user"','t'),
   ('mychips','users_v','launch','{"import": "json.import", "initial": 1}','t'),
   ('mychips','users_v','subviews','["base.addr_v", "base.comm_v", "base.file_v"]','t'),
@@ -8233,7 +8237,8 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v','marital','hide','1'),
   ('mychips','users_v','marital','input','"ent"'),
   ('mychips','users_v','marital','size','6'),
-  ('mychips','users_v','peer_agent','display','6'),
+  ('mychips','users_v','peer_agent','display','7'),
+  ('mychips','users_v','peer_cid','display','6'),
   ('mychips','users_v','peer_host','input','"ent"'),
   ('mychips','users_v','peer_host','optional','1'),
   ('mychips','users_v','peer_host','size','8'),
@@ -9962,6 +9967,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -10112,6 +10123,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
+  ('wm','language','col','wm','language','col','f','t'),
+  ('wm','language','fr_help','wm','language','fr_help','f','f'),
+  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
+  ('wm','language','fr_title','wm','language','fr_title','f','f'),
+  ('wm','language','help','wm','table_text','help','t','f'),
+  ('wm','language','language','wm','table_text','language','t','f'),
+  ('wm','language','obj','wm','language','obj','f','f'),
+  ('wm','language','sch','wm','language','sch','f','t'),
+  ('wm','language','sorter','wm','language','sorter','f','f'),
+  ('wm','language','tab','wm','language','tab','f','t'),
+  ('wm','language','tag','wm','language','tag','f','t'),
+  ('wm','language','title','wm','table_text','title','t','f'),
+  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
