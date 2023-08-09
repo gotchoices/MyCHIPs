@@ -39,7 +39,7 @@ mychips.users_v:
   - [marital,		ent,	6,	{hide: 1}]
   - [json,		ent,	20,	{hide: 1}]
   - [agent_key,	ent,	20,	{hide: 1}]
-  display: [id, std_name, ent_type, user_stat, born_date, peer_agent, '!fir_name', '!ent_name']
+  display: [id, std_name, ent_type, user_stat, born_date, peer_cid, peer_agent, '!fir_name', '!ent_name']
   actions:
   - name: ticket
     render: html
