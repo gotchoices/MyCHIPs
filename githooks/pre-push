@@ -68,7 +68,7 @@ do
       then
         ${dir}run.sh
         errorCode=$?
-        if [[ -z $errorCode ]]
+        if [ $errorCode -eq 0 ]; 
         then
           echo "TEST SUITE PASSED AT: ${dir}" 
         else
@@ -81,5 +81,4 @@ do
 	fi
 done
 
-echo >&2 "NEVER PUSHING FOR DEBUG"
-exit 2 #NEVER PUSH FOR TESTING
+exit 0 #ALL TESTS PASSED PROCEED WITH PUSH

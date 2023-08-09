@@ -11,5 +11,3 @@ Export key works
 Import key works
 #Main Screen
 Tally graph visualization works
-
-
