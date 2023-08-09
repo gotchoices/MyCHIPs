@@ -4,7 +4,6 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd $SCRIPT_DIR
 cd ..
 #Look through checklist
-echo "STARTING CHECKLIST"
 while read -u 10 line; do
   if [[ $line = \#* ]]
   then
