@@ -9,12 +9,16 @@ import { round } from '../../../utils/common';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 import { formatDate } from '../../../utils/format-date';
 import Avatar from '../../../components/Avatar';
+import { fetchTallyFile } from '../../../services/tally';
+import useSocket from '../../../hooks/useSocket';
+import { Buffer } from 'buffer';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
   const userTallyText = messageText?.userTallies ?? {};
   const [avatar, setAvatar] = useState(undefined);
+  const { wm } = useSocket();
 
   const net = round((tally?.net ?? 0) / 1000, 3)
   const talliesText = messageText?.tallies;
@@ -29,7 +33,7 @@ const CommonTallyView = (props) => {
     const digest = tally?.part_cert?.file?.[0]?.digest;
     const tally_seq = tally?.tally_seq;
 
-    if (digest) {
+    if (digest && wm) {
       fetchTallyFile(wm, digest, tally_seq).then((data) => {
         console.log("TALLY_SEQ ==> ", JSON.stringify(data));
         const fileData = data?.[0]?.file_data;
@@ -42,7 +46,7 @@ const CommonTallyView = (props) => {
         console.log("TALLY_FILE_ERROR ==> ", err)
       })
     }
-  }, [tally])
+  }, [wm, tally])
 
   const handleLinkPress = (link) => {
     Linking.canOpenURL(link)

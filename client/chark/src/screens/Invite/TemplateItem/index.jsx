@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import useMessageText from '../../../hooks/useMessageText';
 import { colors } from '../../../config/constants';
 import { ArrowBackwardIcon, ArrowForwardIcon, WarningIcon } from '../../../components/SvgAssets/SvgAssets';
 import Avatar from '../../../components/Avatar/';
 import { TallyTrainingIcon } from './TallyTrailingIcon';
 import { fetchTallyFile } from '../../../services/tally';
+import useSocket from '../../../hooks/useSocket';
+import { Buffer } from 'buffer';
 
 const TemplateItem = (props) => {
   const item = props.template;
   const [avatar, setAvatar] = useState(undefined);
+  const { wm } = useSocket();
   const partCert = item.part_cert;
 
   const onView = () => {
@@ -21,11 +23,10 @@ const TemplateItem = (props) => {
 
   useEffect(() => {
     const digest = partCert?.file?.[0]?.digest;
-    const tally_seq = item?.tally_seq;
+    const tally_seq = item?.id;
 
-    if (digest) {
+    if (digest && wm) {
       fetchTallyFile(wm, digest, tally_seq).then((data) => {
-        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
         const fileData = data?.[0]?.file_data;
         const file_fmt = data?.[0]?.file_fmt;
         if (fileData) {
@@ -36,7 +37,7 @@ const TemplateItem = (props) => {
         console.log("TALLY_FILE_ERROR ==> ", err)
       })
     }
-  }, [item]);
+  }, [wm, item]);
 
   return (
     <TouchableOpacity style={[styles.row]} testID={props.testID} onPress={onView}>
@@ -53,7 +54,7 @@ const TemplateItem = (props) => {
             <TallyTrainingIcon status={item.status} />
           </View> : <Text style={styles.name}>Beginning template</Text>
         }
-        <Text style={[styles.comment]}>{item.comment}</Text>
+        <Text style={[styles.comment]} numberOfLines={1} ellipsizeMode='tail'>{item.comment}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -85,7 +86,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#636363',
     fontWeight: '500',
-    fontFamily: 'inter'
+    fontFamily: 'inter',
+
   },
   itemContent: {
     borderBottomWidth: 1,

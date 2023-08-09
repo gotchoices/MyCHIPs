@@ -113,6 +113,7 @@ const TallyInvite = (props) => {
 
     wm.request('_inv_ref' + random(), 'select', spec, (data, err) => {
       const _data = data?.map(el => ({
+        tally_uuid: el.tally_uuid,
         tally_ent: el.tally_ent,
         id: el.tally_seq,
         contract: el.contract,
@@ -177,7 +178,7 @@ const TallyInvite = (props) => {
         renderItem={renderItem}
         refreshing={loading}
         onRefresh={() => fetchTemplates()}
-        keyExtractor={(item, index) => `${item.tally_ent}${item?.tally_uuid}${item?.tally_seq}${index}`}
+        keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         scrollEventThrottle={2}
         ListEmptyComponent={loading ? <></> : <EmptyContent />}
@@ -201,30 +202,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  listContainer: {
-    flex: 1,
-  },
-  listHeading: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginVertical: 10,
-    alignItems: 'center',
-  },
-  webViewContainer: {
-    flex: 1,
-  },
-  templateText: {
-    marginVertical: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.black,
-  },
-  regenerate: {
-    marginBottom: 10,
-  },
   title: {
     fontSize: 16,
-    color: '#636363',
+    color: colors.gray300,
     fontFamily: 'inter'
   },
   row: {
@@ -233,13 +213,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  headerContainer: {
-    //padding: 16,
-  },
   filterContainer: {
     borderWidth: 1,
-    borderColor: "#F0F0F0",
-    backgroundColor: '#E7E7E7',
+    borderColor: colors.white100,
+    backgroundColor: colors.white200,
     flexDirection: 'row',
     borderRadius: 20,
     paddingHorizontal: 12,

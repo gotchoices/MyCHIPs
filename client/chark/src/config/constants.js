@@ -10,12 +10,15 @@ export const dateFormats = {
 
 export const colors = {
   white: '#FFF',
+  white100: '#F0F0F0',
+  white200: '#E7E7E7',
   black: '#000',
   black100: '#344054',
   green: '#147013',
   blue: '#2196F3',
   red: '#FA2E69',
   gray100: '#F2F4F7',
+  gray300: '#636363',
   gray500: '#667085',
   gray700: '#475467',
   lightgray: '#d9d9d9',
@@ -39,10 +42,10 @@ export const keyServices = {
 }
 
 export const connectsObj = {
-  "email": {label :"Email", link:"mailto:"},
-  "phone": {label :"Phone Number", link:"tel:"},
-  "cell":  {label :"Cell Number", link:"tel:"},
-  "web":  {label :"Website", link:"https://"},
+  "email": { label: "Email", link: "mailto:" },
+  "phone": { label: "Phone Number", link: "tel:" },
+  "cell": { label: "Cell Number", link: "tel:" },
+  "web": { label: "Website", link: "https://" },
 }
 
 export const localStorage = {
