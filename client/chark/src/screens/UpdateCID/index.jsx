@@ -44,11 +44,11 @@ const UpdateCID = (props) => {
 
   return <View style={styles.container}>
     <View style={styles.header}>
-      <Text style={styles.title}>Update CID</Text>
+      <Text style={styles.title}>Please Set Your User ID </Text>
     </View>
     <TextInput
       style={styles.textInput}
-      placeholder="Enter CID"
+      placeholder="Eg. name_lastname"
       value={cid}
       onChangeText={setCid}
     />

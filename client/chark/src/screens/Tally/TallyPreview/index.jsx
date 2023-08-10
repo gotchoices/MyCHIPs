@@ -22,7 +22,7 @@ import Button from '../../../components/Button';
 import Spinner from '../../../components/Spinner';
 import TallyEditView from '../TallyEditView';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
-import { offerTally, acceptTally, refuseTally, fetchTallyFile } from '../../../services/tally';
+import { offerTally, acceptTally, refuseTally } from '../../../services/tally';
 import { createSignature, verifySignature } from '../../../utils/message-signature';
 import { retrieveKey } from '../../../utils/keychain-store';
 import { GenerateKeysDialog } from './GenerateKeysDialog';
@@ -117,9 +117,9 @@ const TallyPreview = (props) => {
       comment,
     }
 
-    if(contract) {
+    if (contract) {
       const found = tallyContracts?.find((item) => item.rid === contract)
-      if(found) {
+      if (found) {
         payload.contract = {
           rid: found.rid,
         };

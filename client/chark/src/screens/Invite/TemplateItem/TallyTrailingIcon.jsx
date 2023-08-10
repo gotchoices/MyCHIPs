@@ -20,11 +20,11 @@ export const TallyTrainingIcon = (props) => {
       placement="top"
       onClose={onPress}
       contentStyle={[styles.contentStyle]}
-      tooltipStyle={{  }}
+      tooltipStyle={{}}
       childrenWrapperStyle={{ opacity: 0 }}
       // backgroundColor="transparent"
     >
-      <TouchableOpacity style={[{ padding: 6 }, props.style]} onPress={onPress}>
+      <TouchableOpacity style={[styles.touchable, props.style]} onPress={onPress}>
         {tallyContent.icon}
       </TouchableOpacity>
     </Tooltip >
@@ -35,11 +35,16 @@ export const TallyTrainingIcon = (props) => {
 const styles = StyleSheet.create({
   contentStyle: {
     maxWidth: 200,
+  },
+  touchable: {
+    paddingHorizontal: 8,
+    paddingBottom: 6,
+    paddingTop: 2,
   }
 })
 
 const tallyContents = {
-  "draft": { icon: <WarningIcon size={12} />, message: "Your prospective partner is waiting for you to act on this tally" },
-  "offer": { icon: <TimerIcon size={12} />, message: "You are waiting on someone else before the tally is complete" },
+  "draft": { icon: <WarningIcon size={16} />, message: "Your prospective partner is waiting for you to act on this tally" },
+  "offer": { icon: <TimerIcon size={16} />, message: "You are waiting on someone else before the tally is complete" },
 }
 

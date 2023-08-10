@@ -10,6 +10,7 @@ import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
 import { getFile } from "../../../services/profile";
 import { formatDate } from "../../../utils/format-date";
+import { Buffer } from "buffer";
 
 const ChitHistory = (props) => {
   const { tally_seq, tally_ent, tally_uuid, digest } = props.route?.params ?? {};
@@ -23,7 +24,7 @@ const ChitHistory = (props) => {
   }, 0);
 
   useEffect(() => {
-    if (digest) {
+    if (digest && wm) {
       fetchTallyFile(wm, digest, tally_seq).then((data) => {
         console.log("TALLY_SEQ ==> ", JSON.stringify(data));
         const fileData = data?.[0]?.file_data;
@@ -36,7 +37,7 @@ const ChitHistory = (props) => {
         console.log("TALLY_FILE_ERROR ==> ", err)
       })
     }
-  }, [digest, tally_seq])
+  }, [digest, tally_seq, wm])
 
   useEffect(() => {
     _fetchChitHistory();
