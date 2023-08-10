@@ -55,7 +55,7 @@ const EditOpenTally = (props) => {
   }, [tally_seq, tally_ent])
 
   const showTradingVariables = () => {
-    props.navigation.navigate('TradingVariables')
+    props.navigation.navigate('TradingVariables', { tally_seq })
   }
 
   const onSave = () => {

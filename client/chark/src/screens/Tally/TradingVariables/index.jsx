@@ -5,13 +5,14 @@ import Button from '../../../components/Button';
 import useSocket from '../../../hooks/useSocket';
 import {  fetchTradingVariables } from '../../../services/tally';
 
-const TradingVariables = () => {
+const TradingVariables = (props) => {
+  const { tally_seq } = props.route?.params ?? {};
   const { wm } = useSocket();
 
   const [trade, setTrade] = useState(null);
 
   useEffect(() => {
-    fetchTradingVariables(wm).then((data) => {
+    fetchTradingVariables(wm, { tally_seq }).then((data) => {
       setTrade(data);
     }).catch(console.log)
   }, [])
