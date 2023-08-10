@@ -1,0 +1,13 @@
+#Tally Screen
+Create tally
+Share tally with QR code
+Tally with "Share button" pulls up OS share and result successfuly shares tally
+Tally deep link works
+#Settings Screen
+Change language, ensure text changes throughout app
+Change currency, ensure currency changes throughout app
+Generate Keys works
+Export key works
+Import key works
+#Main Screen
+Tally graph visualization works
