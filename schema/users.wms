@@ -193,7 +193,7 @@ trigger base_addr_tr_birth {} {
 view mychips.users_v_me {mychips.users_v base.user_id(text) json.cert} {select 
     u.*
 --  , mychips.user_cert(u.user_ent) as cert		-- introduces permission challenges
-  , to_jsonb(c) as cert
+  , to_jsonb(c) - 'id' as cert
 
     from	mychips.users_v		u
     left join	json.cert		c on c.id = u.user_ent

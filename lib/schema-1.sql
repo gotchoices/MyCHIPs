@@ -3486,7 +3486,7 @@ $$;
 create view mychips.users_v_me as select 
     u.*
 
-  , to_jsonb(c) as cert
+  , to_jsonb(c) - 'id' as cert
 
     from	mychips.users_v		u
     left join	json.cert		c on c.id = u.user_ent
