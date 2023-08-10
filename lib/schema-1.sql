@@ -425,6 +425,55 @@ create function is_date(s text) returns boolean language plpgsql immutable as $$
     end;
 $$;
 create schema json;
+create function json.flatten(json_in jsonb) returns table(name text, scalar jsonb, type text, value jsonb, level int, size int) 
+  language sql stable as $$
+    with recursive flatten as (
+      select
+        i.key as name,
+        case
+          when t in ('object','array') then null
+          else i.value
+        end as scalar,
+        t as type,
+        value,
+        0 as level,
+        case 
+          when t = 'array' then jsonb_array_length(i.value)
+          when t = 'object' then 1
+          else 0
+        end as size
+      from jsonb_each(json_in) i, lateral jsonb_typeof(i.value) t
+
+    union all
+      select
+        f.name || '.' || e.key,
+        case
+          when t in ('object','array') then null
+          else e.value
+        end as scalar,
+        t as type,
+        e.value,
+        f.level + 1 as level,
+        case 
+          when t = 'array' then jsonb_array_length(e.value)
+          when t = 'object' then 1
+          else 0
+        end as size
+
+      from flatten f
+      cross join lateral (
+        select key, value from jsonb_each(f.value)
+          where f.type = 'object'
+        union all
+        select key::text, value from jsonb_array_elements(f.value)
+          with ordinality as e(value,key)
+          where f.type = 'array'
+      ) e
+      cross join lateral jsonb_typeof(e.value) as t
+    )
+  select name, scalar, type, value, level, size
+  from flatten
+$$;
 create schema mychips;
 select wm.create_role('mychips_1');
 grant usage on schema mychips to mychips_1;
@@ -635,6 +684,13 @@ create function mychips.chit_state(isdebit boolean, status text, request text) r
       status ||
       case when request isnull then '' else '.' || request end;
 $$;
+create table mychips.creds (
+name	text
+  , func	text	default 'p' constraint "!mychips.creds:BCF" check(func in ('a','p','mt','re'))
+  , parm	text	not null default ''
+  , score	int	not null
+  , primary key (name, func, parm)
+);
 create function mychips.j2h(input jsonb) returns bytea language plpython3u immutable as $$
     import json
     import hashlib
@@ -871,6 +927,27 @@ grant select on table base.language_v to public;
 create function base.priv_has(priv text, lev int) returns boolean language sql stable as $$
       select base.priv_role(session_user, priv, lev);
 $$;
+create function mychips.creds_cert(cert jsonb) returns int language sql as $$
+
+    select sum(case
+      when r.func = 'a'
+        and c.value isnull then r.score
+      when r.func = 'p'
+        and c.value notnull then r.score
+      when r.func = 'mt'
+        and c.size > r.parm::int then r.score
+      when r.func = 're'
+        and trim(both '"' from c.scalar::text) ~ r.parm then r.score
+      else
+        0
+    end)
+      
+    from              mychips.creds      r
+    left join json.flatten(cert) c	on c.name = r.name
+$$;
+create view mychips.creds_v as select 
+    * from mychips.creds;
+grant select on table mychips.creds_v to mychips_1;
 create view wm.column_lang as select
     cd.cdt_sch					as sch
   , cd.cdt_tab					as tab
@@ -2891,20 +2968,6 @@ create function mychips.users_v_insfunc() returns trigger language plpgsql secur
     return new;
   end;
 $$;
-create view mychips.users_v_me as select 
-    u.*
-
-  , to_jsonb(c) as cert
-
-    from	mychips.users_v		u
-    left join	json.cert		c on c.id = u.user_ent
-
-    where user_ent = base.user_id(session_user);
-grant select on table mychips.users_v_me to user_1;
-grant select on table mychips.users_v_me to user_2;
-grant insert on table mychips.users_v_me to user_2;
-grant update on table mychips.users_v_me to user_2;
-grant delete on table mychips.users_v_me to user_3;
 create function mychips.users_v_updfunc() returns trigger language plpgsql security definer as $$
   declare
     trec record;
@@ -3420,6 +3483,20 @@ create function mychips.user_cert(uid text) returns jsonb language sql as $$
       select date,chad,type,name,public,connect,place,identity,file from json.cert where id = uid
     ) s
 $$;
+create view mychips.users_v_me as select 
+    u.*
+
+  , to_jsonb(c) as cert
+
+    from	mychips.users_v		u
+    left join	json.cert		c on c.id = u.user_ent
+
+    where user_ent = base.user_id(session_user);
+grant select on table mychips.users_v_me to user_1;
+grant select on table mychips.users_v_me to user_2;
+grant insert on table mychips.users_v_me to user_2;
+grant update on table mychips.users_v_me to user_2;
+grant delete on table mychips.users_v_me to user_3;
 create function mychips.chit_json_h(ch mychips.chits, ta mychips.tallies) returns jsonb stable language sql as $$
     select mychips.chit_json_c(ch, ta) || jsonb_strip_nulls(jsonb_build_object(
       'index',		ch.chain_idx,
@@ -5555,6 +5632,8 @@ insert into wm.table_text (tt_sch,tt_tab,language,title,help) values
   ('mychips','comm_v_me','eng','User Contact','A view of the current user''s communication points'),
   ('mychips','contracts','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement'),
   ('mychips','contracts_v','eng','Contracts','Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.'),
+  ('mychips','creds','eng','Credentials','Contains criteria for scoring entity certificates'),
+  ('mychips','creds_v','eng','Credentials','Standard view of criteria for scoring entity certificates'),
   ('mychips','file_v_me','eng','User Files','A view of the current user''s data files'),
   ('mychips','file_v_part','eng','Partner Files','A view containing user files of current user''s tally partners'),
   ('mychips','lifts','eng','Lifts','Contains a record for each group of chits in a segment, belonging to a lift transaction'),
@@ -5960,6 +6039,10 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','contracts_v','json','eng','JSON','The contract represented in JavaScript Object Notation and including its digest'),
   ('mychips','contracts_v','json_core','eng','JSON Core','The contract represented in JavaScript Object Notation'),
   ('mychips','contracts_v','rid','eng','Resource ID','Base58-encoded version of the contract document'),
+  ('mychips','creds','func','eng','Function','Determines how to test the property'),
+  ('mychips','creds','name','eng','Name','The full path name of the certificate property this score applies to'),
+  ('mychips','creds','parm','eng','Parameter','Contains a regular expression or an integer to use for property comparison'),
+  ('mychips','creds','score','eng','Score','An integer to apply to the aggregate score if this criterion matches'),
   ('mychips','file_v_part','comment','eng','Comment','The document comment as recorded in the tally certificate'),
   ('mychips','file_v_part','digest','eng','Digest','The document hash as recorded in the tally certificate'),
   ('mychips','file_v_part','format','eng','Format','The document mime type as recorded in the tally certificate'),
@@ -6480,6 +6563,10 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','chits','status','good','eng','Good','The chit is duly signed and a valid obligation'),
   ('mychips','chits','status','pend','eng','Pending','The chit is part of a lift whose completion status is not yet known'),
   ('mychips','chits','status','void','eng','Void','The chit has been marked as invalid and can be ignored'),
+  ('mychips','creds','func','a','eng','Absent','Apply score if the named property is present'),
+  ('mychips','creds','func','mt','eng','More Than','Apply score if the number of named elements is more than a specified value'),
+  ('mychips','creds','func','p','eng','Present','Apply score if the named property is absent'),
+  ('mychips','creds','func','re','eng','Regexp','Apply score if the property value matches a regular expression'),
   ('mychips','lifts','lift_type','in','eng','Inside','The lift is limited to within a single database'),
   ('mychips','lifts','lift_type','org','eng','Origin','The lift originated within the local database but is propagated to other sites'),
   ('mychips','lifts','lift_type','rel','eng','Relay','The lift originated in another site and was propagated to this site'),
@@ -6610,6 +6697,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','contracts_v','launch.title','eng','Contracts','Manage Trading Agreements'),
   ('mychips','contracts_v','publish','eng','Publish','Commit this version, write the publication date, and disable further modifications'),
   ('mychips','contracts_v','TMK','eng','Bad Key Number','The contract report must be called with exactly one record ID'),
+  ('mychips','creds','BCF','eng','Bad Function','Not a valid setting for a credential function'),
+  ('mychips','creds','CNU','eng','Not Unique','Each credential criteria must be unique in the name, function and parameter'),
   ('mychips','lifts','CIF','eng','Chit Failure','An operation failed to create chits correctly for a lift'),
   ('mychips','lifts','IVR','eng','Invalid Request','At attempt was made to set a lift request to an unallowed value'),
   ('mychips','lifts','IVS','eng','Invalid Status','At attempt was made to set a lift status to an unallowed value'),
@@ -7939,6 +8028,19 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','contracts_v','source','size','20'),
   ('mychips','contracts_v','source','state','"readonly"'),
   ('mychips','contracts_v','source','subframe','{"x": 1, "y": 4, "xspan": 2}'),
+  ('mychips','creds','func','input','"pdm"'),
+  ('mychips','creds','func','size','10'),
+  ('mychips','creds','func','subframe','{"x": 1, "y": 0}'),
+  ('mychips','creds','name','input','"ent"'),
+  ('mychips','creds','name','size','30'),
+  ('mychips','creds','name','subframe','{"x": 0, "y": 0}'),
+  ('mychips','creds','parm','input','"ent"'),
+  ('mychips','creds','parm','size','30'),
+  ('mychips','creds','parm','subframe','{"x": 0, "y": 1}'),
+  ('mychips','creds','score','input','"num"'),
+  ('mychips','creds','score','justify','"r"'),
+  ('mychips','creds','score','size','8'),
+  ('mychips','creds','score','subframe','{"x": 1, "y": 1}'),
   ('mychips','routes','dest_chid','size','16'),
   ('mychips','routes','dest_ent','size','7'),
   ('mychips','routes','dest_host','size','18'),
@@ -9087,6 +9189,14 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','contracts_v','title','mychips','contracts','title','f','f'),
   ('mychips','contracts_v','top','mychips','contracts','top','f','f'),
   ('mychips','contracts_v','version','mychips','contracts','version','f','t'),
+  ('mychips','creds','func','mychips','creds','func','f','t'),
+  ('mychips','creds','name','mychips','creds','name','f','t'),
+  ('mychips','creds','parm','mychips','creds','parm','f','t'),
+  ('mychips','creds','score','mychips','creds','score','f','f'),
+  ('mychips','creds_v','func','mychips','creds','func','f','t'),
+  ('mychips','creds_v','name','mychips','creds','name','f','t'),
+  ('mychips','creds_v','parm','mychips','creds','parm','f','t'),
+  ('mychips','creds_v','score','mychips','creds','score','f','f'),
   ('mychips','file_v_me','crt_by','base','file','crt_by','f','f'),
   ('mychips','file_v_me','crt_date','base','file','crt_date','f','f'),
   ('mychips','file_v_me','file_cmt','base','file','file_cmt','f','f'),
@@ -9967,12 +10077,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
-  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
-  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -10123,19 +10227,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
-  ('wm','language','col','wm','language','col','f','t'),
-  ('wm','language','fr_help','wm','language','fr_help','f','f'),
-  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
-  ('wm','language','fr_title','wm','language','fr_title','f','f'),
-  ('wm','language','help','wm','table_text','help','t','f'),
-  ('wm','language','language','wm','table_text','language','t','f'),
-  ('wm','language','obj','wm','language','obj','f','f'),
-  ('wm','language','sch','wm','language','sch','f','t'),
-  ('wm','language','sorter','wm','language','sorter','f','f'),
-  ('wm','language','tab','wm','language','tab','f','t'),
-  ('wm','language','tag','wm','language','tag','f','t'),
-  ('wm','language','title','wm','table_text','title','t','f'),
-  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
@@ -11409,6 +11500,23 @@ insert into mychips.contracts (host, name, version, language, top, published, di
           text		= EXCLUDED.text,
           sections	= EXCLUDED.sections
   ;
+insert into mychips.creds (name, func, parm, score) values 
+  ('chad', 'a', '', -100)
+ ,('private', 'a', '', -100)
+ ,('type', 'a', '', -100)
+ ,('connect', 'mt', '0', 10)
+ ,('connect', 'mt', '1', 10)
+ ,('place', 'mt', '0', 10)
+ ,('place', 'mt', '1', 10)
+ ,('file', 'mt', '0', 10)
+ ,('file', 'mt', '1', 10)
+ ,('identity.birth.date', 'mt', '0', 10)
+ ,('identity.birth.place', 'p', '', 10)
+ ,('identity.state.id', 'p', '', 20)
+
+  on conflict on constraint creds_pkey do update
+    set name = EXCLUDED.name, func = EXCLUDED.func, parm = EXCLUDED.parm, score = EXCLUDED.score
+;
 insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values 
   ('mychips', 'site_ent', 'text', null, 'r1', null, 'The ID number of the entity on this site that is the primary administrator.  Internal lifts will be signed by this entity.')
 
