@@ -309,3 +309,54 @@ function {json.import(data jsonb, target text default null, keys jsonb default n
       return newRecord;							-- Contains any newly created primary key
     end;
 $$;}
+
+function {json.flatten(json_in jsonb)} {} {
+  returns table(name text, scalar jsonb, type text, value jsonb, level int, size int) 
+  language sql stable as $$
+    with recursive flatten as (
+      select
+        i.key as name,
+        case
+          when t in ('object','array') then null
+          else i.value
+        end as scalar,
+        t as type,
+        value,
+        0 as level,
+        case 
+          when t = 'array' then jsonb_array_length(i.value)
+          when t = 'object' then 1
+          else 0
+        end as size
+      from jsonb_each(json_in) i, lateral jsonb_typeof(i.value) t
+
+    union all
+      select
+        f.name || '.' || e.key,
+        case
+          when t in ('object','array') then null
+          else e.value
+        end as scalar,
+        t as type,
+        e.value,
+        f.level + 1 as level,
+        case 
+          when t = 'array' then jsonb_array_length(e.value)
+          when t = 'object' then 1
+          else 0
+        end as size
+
+      from flatten f
+      cross join lateral (
+        select key, value from jsonb_each(f.value)
+          where f.type = 'object'
+        union all
+        select key::text, value from jsonb_array_elements(f.value)
+          with ordinality as e(value,key)
+          where f.type = 'array'
+      ) e
+      cross join lateral jsonb_typeof(e.value) as t
+    )
+  select name, scalar, type, value, level, size
+  from flatten
+$$;}
