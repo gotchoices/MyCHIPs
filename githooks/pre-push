@@ -20,6 +20,7 @@
 # with "WIP" (work in progress).
 
 TEST_DIR_NAME="__tests__"
+TEST_RUNNER_NAME="run.sh"
 remote="$1"
 url="$2"
 
@@ -64,9 +65,9 @@ do
     unique_testDirs=($(echo "${testDirs[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
     for dir in ${unique_testDirs[@]}
     do
-      if [[ -f "${dir}run.sh" ]]
+      if [[ -f "${dir}${TEST_RUNNER_NAME}" ]]
       then
-        ${dir}run.sh
+        ${dir}${TEST_RUNNER_NAME}
         errorCode=$?
         if [ $errorCode -eq 0 ]; 
         then
