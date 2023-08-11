@@ -17,8 +17,8 @@ require config.tcl trigview.tcl
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
-    def tallies_v_up	{tally_type comment contract hold_terms part_terms target reward clutch bound part_sig hold_sig request}
-    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid version part_ent hold_cert part_cert]
+    def tallies_v_up	{tally_type comment contract hold_terms part_terms target reward clutch bound hold_cert part_sig hold_sig request}
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid version part_ent part_cert]
     def tallies_se	[concat $tallies_v_in tally_seq status digest net_pc net_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets chain_conf $glob::stampfn]
 }
 
