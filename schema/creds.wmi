@@ -1,0 +1,26 @@
+#!/bin/sh
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- 
+
+#Default settings for scoring entity certificates
+cat <<EOF
+insert into mychips.creds (name, func, parm, score) values 
+  ('chad', 'a', '', -100)
+ ,('private', 'a', '', -100)
+ ,('type', 'a', '', -100)
+ ,('connect', 'mt', '0', 10)
+ ,('connect', 'mt', '1', 10)
+ ,('place', 'mt', '0', 10)
+ ,('place', 'mt', '1', 10)
+ ,('file', 'mt', '0', 10)
+ ,('file', 'mt', '1', 10)
+ ,('identity.birth.date', 'mt', '0', 10)
+ ,('identity.birth.place', 'p', '', 10)
+ ,('identity.state.id', 'p', '', 20)
+
+  on conflict on constraint creds_pkey do update
+    set name = EXCLUDED.name, func = EXCLUDED.func, parm = EXCLUDED.parm, score = EXCLUDED.score
+;
+EOF

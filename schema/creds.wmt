@@ -1,0 +1,18 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+tabtext mychips.creds	{Credentials}	{Contains criteria for scoring entity certificates} {
+  {name		{Name}		{The full path name of the certificate property this score applies to}}
+  {func		{Function}	{Determines how to test the property} {
+    {a		{Absent}	{Apply score if the named property is present}}
+    {p		{Present}	{Apply score if the named property is absent}}
+    {mt		{More Than}	{Apply score if the number of named elements is more than a specified value}}
+    {re		{Regexp}	{Apply score if the property value matches a regular expression}}
+  }}
+  {parm		{Parameter}	{Contains a regular expression or an integer to use for property comparison}}
+  {score	{Score}		{An integer to apply to the aggregate score if this criterion matches}}
+}  -messages {
+  {BCF		{Bad Function}	{Not a valid setting for a credential function}}
+  {CNU		{Not Unique}	{Each credential criteria must be unique in the name, function and parameter}}
+}
+
+tabtext mychips.creds_v {Credentials}	{Standard view of criteria for scoring entity certificates}
