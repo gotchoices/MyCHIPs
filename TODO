@@ -3,8 +3,15 @@ TODO:
 - Make basic tally/contract viewer report
 X-  Query to return a tally and nested contract JSON
 X-  Report runs from selected tally
--  Formatter class can build document descriptors for tally information (prelude, postlude)
+X-  Formatter class can build document descriptors for tally information (prolog, epilog)
 -  Report formats full tally agreement
+-  
+- Document fields in user certificate
+X-  Make function for flattening certificate
+X-  Tally inherits default certificate
+X-  Make wmt file for cert values
+X-  Tally contract formatter pulls language from data dictionary
+-  Review new language tags added.  Do we really need them all?
 -  
 - Refactor document server to return contracts
 -  in json format

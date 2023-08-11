@@ -12,20 +12,24 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {tally_date	{Tally Date}		{The date and time this tally was initiated between the parties}}
   {version	{Version}		{A number indicating the format standard this tally adheres to}}
   {comment	{Comment}		{Any notes the user might want to enter regarding this tally}}
-  {contract	{Contract}		{The Resouce ID of the contract governing this tally (or a json record specifying it)} {
+  {contract	{Contract}		{The Resouce ID of the contract governing this tally (or a json record more fully specifying it)} {
     {name	{Name}			{The tag name of the governing contract}}
     {host	{Host}			{The host site of the author of the governing contract (default: mychips.org)}}
     {source	{Resource}		{The Resource ID of the governing contract}}
   }}
-  {hold_cert	{Holder Certificate}	{The JSON structure of identifying data for the entity that owns/holds this tally}}
+  {hold_cert	{Holder Certificate}	{The JSON structure of identifying data for the entity that owns/holds this tally} {
+    {chad	{CHIP Address}		{JSON object describing how/where other users communicate MyCHIPs transactions with you}}
+    {date	{Certificate Date}	{Timestamp showing when this certificate data was generated}}
+    {name	{Holder Name}		{A record (or array) of the names you are addressed by}}
+  }}
   {part_cert	{Partner Certificate}	{The JSON structure of identifying data for the other party to this tally}}
   {hold_sig	{Holder Signed}		{The digital signature of the entity that owns/holds this tally}}
   {part_sig	{Partner Signed}	{The digital signature of the other party to this tally}}
-  {hold_terms	{Holder Terms}		{The terms the tally holder sets for its partner} {
+  {hold_terms	{Holder Terms}		{The credit terms the tally holder has offered to its partner} {
     {limit	{Credit Limit}		{Maximum amount the partner may become indebted to the tally holder}}
     {call	{Call Period}		{After the holder demands payment of a balance, the partner is allowed this many days to comply}}
   }}
-  {part_terms	{Partner Terms}		{The terms thepartner set for the tally holder} {
+  {part_terms	{Partner Terms}		{The credit terms the partner has offered to the tally holder} {
     {limit	{Credit Limit}		{Maximum amount the tally holder may become indebted to the partner}}
     {call	{Call Period}		{After the partner demands payment of a balance, the tally holder is allowed this many days to comply}}
   }}
@@ -115,6 +119,12 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {TMK		{Bad Key Number}	{The tally invitation must be called for exactly one tally}}
   {TIN		{Tally Invitation}	{Follow link to consider tally}}
   {TIL		{Good Until}		{Invitation expires after this time}}
+  {prolog	{MyCHIPS Tally Agreement} {An agreement between the Parties hereinafter known as: Foil Holder and Stock Holder}}
+  {prolog.foil	{Foil Certificate}	{Information identifying the Foil Holder}}
+  {prolog.stock	{Stock Certificate}	{Information identifying the Stock Holder}}
+  {epilog	{Agreed to}		{This Agreement is willingly accepted and agreed to by the Parties}}
+  {epilog.foil	{Foil Signature}	{Signature attesting to agreement of Foil Holder}}
+  {epilog.stock	{Stock Signature}	{Signature attesting to agreement of Stock Holder}}
   {close	{Close Tally}		{Request that the current tally be closed once its balance reaches zero}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
     {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}

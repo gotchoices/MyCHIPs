@@ -53,7 +53,51 @@ tabtext mychips.users_v	{CHIP Users}		{Entities who have CHIP accounts on this s
   }}
 }
 
-tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} -messages {
+tabtext mychips.users_v_me	{Current User}		{A view containing only the current user's data} {
+  {cert		{Certificate}	{A JSON object containing all available certificate data for the user} {
+    {chad		{CHIP Address}	{JSON object describing how/where other users communicate MyCHIPs transactions with you}}
+    {chad.cid		{CHIP ID}	{The name by which you are uniquely identified by your MyCHIPs agent process}}
+    {chad.host		{Host}		{The internet host address where your agent can be reached}}
+    {chad.port		{Port}		{The port number where your agent can be reached}}
+    {chad.agent		{Agent}		{Your agent address / public key}}
+    {date		{Date}		{Timestamp showing when this certificate data was generated}}
+    {name		{Name}		{A record (or array) of the names you are addressed by}}
+    {name.first		{First Name}	{Your first given name}}
+    {name.prefer	{Preferred}	{The name you prefer to be called by}}
+    {name.surname	{Surname}	{Your family name}}
+    {type		{Entity Type}	{Type of entity you are (p:person, o:organization)}}
+    {place		{Addresses}	{An array of physical or mailing addresses}}
+    {place.address	{Street}	{Street or box information for this address}}
+    {place.city		{City}		{City this address is in}}
+    {place.state	{State}		{State this address is in}}
+    {place.post		{Postal}	{Zip or postal code for this address}}
+    {place.country	{Country}	{Country this address is in}}
+    {place.comment	{Comment}	{A note explaining this address}}
+    {public		{Public Key}	{The public part of the key you use to sign transactions}}
+    {connect		{Connections}	{An array of phone, email or similar contact points}}
+    {connect.media	{Medium}	{The type of contact point}}
+    {connect.address	{Address}	{The phone number, email address or similar}}
+    {connect.comment	{Comment}	{A note about this contact point}}
+    {file		{Attachments}	{An array of other file documents you provide to establish your identity}}
+    {file.media		{File Type}	{The type of document (bio, id, photo, cert, other)}}
+    {file.digest	{Digest}	{A unique, identifying hash of the document}}
+    {file.format	{Format}	{The file format for the document}}
+    {file.comment	{Comment}	{An explanatory note about the document}}
+    {identity		{Identity}	{An array of records that uniquely identify you}}
+    {identity.birth	{Birth}		{Information unique to your birth}}
+    {identity.birth.date	{Birth Date}	{The date you were born}}
+    {identity.birth.name	{Birth Name}	{Your original name, if changed}}
+    {identity.birth.place	{Birth Place}	{Where you resided when you were born}}
+    {identity.birth.place.address	{Birth Address}	{The street and number where you resided when you were born}}
+    {identity.birth.place.city		{Birth City}	{The city where you resided when you were born}}
+    {identity.birth.place.state		{Birth State}	{The state where you resided when you were born}}
+    {identity.birth.place.post		{Birth Postal}	{The postal code for where you resided when you were born}}
+    {identity.birth.place.country	{Birth Country}	{The country where you resided when you were born}}
+    {identity.state		{State Issued}	{An official identification issued for you by a country}}
+    {identity.state.id		{State ID}	{Your official state ID number (such as a Social Security Number)}}
+    {identity.state.country	{Issue State}	{The state/country who issued the identity number}}
+  }}
+} -messages {
   {GCH	{Getting CHIP Value}	{An error occurred trying to fetch the current estimated CHIP value}}
   {graph 			{Tally Graph}		{Generate a visual graph of the user's tally relationships and balances}}
     {graph.format 		{Graph Format}		{How to return the graph report data}}
@@ -82,3 +126,4 @@ tabtext mychips.file_v_part	{Partner Files}		{A view containing user files of cu
 }
 
 tabtext mychips.users_v_flat	{Flattened Users}	{A view of users with primary contacts and addresses on the same row}
+
