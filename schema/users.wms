@@ -10,7 +10,7 @@
 #-   peer_addr: cid:agent
 #-   peer_full: cid:agent@host:port		Is this needed/useful anywhere?
 #-   Deprecate? peer_cagent, peer_chost, peer_cport, peer_sock
-require multiview.tcl base.tcl config.tcl
+require multiview.tcl trigview.tcl base.tcl config.tcl
 
 module mychips
 
@@ -26,6 +26,7 @@ namespace eval users {
     def users_pk	{user_ent}
     def users_v_up	{user_host user_port user_stat user_hid peer_cid peer_agent peer_psig peer_named user_cmt}
     def users_v_in	[concat $users_pk $users_v_up]
+    def users_v_up_me	{user_hid peer_cid peer_psig peer_named user_cmt}
     def users_se	[concat $users_v_in crt_by crt_date mod_by]
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
@@ -199,6 +200,9 @@ view mychips.users_v_me {mychips.users_v base.user_id(text) json.cert} {select
     left join	json.cert		c on c.id = u.user_ent
 
     where user_ent = base.user_id(session_user)
+
+  --e-val(trigview::insert mychips.users_v_me mychips.users_v $users::users_v_in $users::users_pk [concat $glob::stampin]);
+    eval(trigview::update mychips.users_v_me mychips.users_v $users::users_v_up_me $users::users_pk $glob::stampup);
 } -grant {
     {user	s {s i u} {d}}
 } -primary id
