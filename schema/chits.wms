@@ -64,7 +64,7 @@ table mychips.chit_tries {mychips.chits} {
   , last	timestamptz	not null default current_timestamp
 }
 
-# Generate unique sequence for new chit
+# Screen new chit record
 #----------------------------------------------------------------
 function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.chits)} {
   returns trigger language plpgsql security definer as $$
@@ -78,12 +78,13 @@ function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.
         if not found then new.chit_idx = 1; end if;
 -- select into new.chit_idx coalesce(max(chit_idx),0)+1 from mychips.chits where chit_ent = new.chit_ent and chit_seq = new.chit_seq; -- Not safe for concurrent sessions
       end if;
+
       if new.chit_uuid is null then
         new.chit_uuid = uuid_generate_v4();
       end if;
       if new.units < 0 then			-- Interpret negative units as meaning stock-issued
         new.units = -new.units;
-        new.issuer = 'stock';
+        new.issuer = case when old.issuer = 'stock' then 'foil' else 'stock' end;
       end if;
 
       if new.request = 'pend' then		-- User is drafting
