@@ -425,55 +425,6 @@ create function is_date(s text) returns boolean language plpgsql immutable as $$
     end;
 $$;
 create schema json;
-create function json.flatten(json_in jsonb) returns table(name text, scalar jsonb, type text, value jsonb, level int, size int) 
-  language sql stable as $$
-    with recursive flatten as (
-      select
-        i.key as name,
-        case
-          when t in ('object','array') then null
-          else i.value
-        end as scalar,
-        t as type,
-        value,
-        0 as level,
-        case 
-          when t = 'array' then jsonb_array_length(i.value)
-          when t = 'object' then 1
-          else 0
-        end as size
-      from jsonb_each(json_in) i, lateral jsonb_typeof(i.value) t
-
-    union all
-      select
-        f.name || '.' || e.key,
-        case
-          when t in ('object','array') then null
-          else e.value
-        end as scalar,
-        t as type,
-        e.value,
-        f.level + 1 as level,
-        case 
-          when t = 'array' then jsonb_array_length(e.value)
-          when t = 'object' then 1
-          else 0
-        end as size
-
-      from flatten f
-      cross join lateral (
-        select key, value from jsonb_each(f.value)
-          where f.type = 'object'
-        union all
-        select key::text, value from jsonb_array_elements(f.value)
-          with ordinality as e(value,key)
-          where f.type = 'array'
-      ) e
-      cross join lateral jsonb_typeof(e.value) as t
-    )
-  select name, scalar, type, value, level, size
-  from flatten
-$$;
 create schema mychips;
 select wm.create_role('mychips_1');
 grant usage on schema mychips to mychips_1;
@@ -638,6 +589,55 @@ create function base.priv_role(uname name, prv text, lev int) returns boolean se
     end;
 $$;
 create operator =* (leftarg = text,rightarg = text,procedure = eqnocase, negator = !=*);
+create function json.flatten(json_in jsonb) returns table(name text, scalar jsonb, type text, value jsonb, level int, size int) 
+  language sql stable as $$
+    with recursive flatten as (
+      select
+        i.key as name,
+        case
+          when t in ('object','array') then null
+          else i.value
+        end as scalar,
+        t as type,
+        value,
+        0 as level,
+        case 
+          when t = 'array' then jsonb_array_length(i.value)
+          when t = 'object' then 1
+          else 0
+        end as size
+      from jsonb_each(json_in) i, lateral jsonb_typeof(i.value) t
+
+    union all
+      select
+        f.name || '.' || e.key,
+        case
+          when t in ('object','array') then null
+          else e.value
+        end as scalar,
+        t as type,
+        e.value,
+        f.level + 1 as level,
+        case 
+          when t = 'array' then jsonb_array_length(e.value)
+          when t = 'object' then 1
+          else 0
+        end as size
+
+      from flatten f
+      cross join lateral (
+        select key, value from jsonb_each(f.value)
+          where f.type = 'object'
+        union all
+        select key::text, value from jsonb_array_elements(f.value)
+          with ordinality as e(value,key)
+          where f.type = 'array'
+      ) e
+      cross join lateral jsonb_typeof(e.value) as t
+    )
+  select name, scalar, type, value, level, size
+  from flatten
+$$;
 revoke all on schema public from public;
   grant all on schema public to admin;
 create function mychips.b582ba(input text) returns bytea language plpython3u immutable as $$
@@ -2763,6 +2763,9 @@ create function mychips.contract_mat(contract jsonb) returns jsonb language plpg
         fetchedCont = (
           select json from mychips.contracts_v where rid = contract->'sections'->i->>'source'
         );
+        if fetchedCont isnull then
+          raise '!mychips.contracts:IRI %', contract->'sections'->i->>'source';
+        end if;
         fetchedCont = mychips.contract_mat(fetchedCont);
         newObj = jsonb_set(
           newObj,
@@ -3491,7 +3494,10 @@ create view mychips.users_v_me as select
     from	mychips.users_v		u
     left join	json.cert		c on c.id = u.user_ent
 
-    where user_ent = base.user_id(session_user);
+    where user_ent = base.user_id(session_user)
+
+
+    ;
 grant select on table mychips.users_v_me to user_1;
 grant select on table mychips.users_v_me to user_2;
 grant insert on table mychips.users_v_me to user_2;
@@ -3600,6 +3606,13 @@ create function mychips.token_valid(tok text, cert jsonb = null) returns boolean
       return true;
     end;
 $$;
+create function mychips.users_v_me_updfunc() returns trigger language plpgsql security definer as $$
+  begin
+    update mychips.users_v set user_hid = new.user_hid,peer_cid = new.peer_cid,peer_psig = new.peer_psig,peer_named = new.peer_named,user_cmt = new.user_cmt,mod_by = session_user,mod_date = current_timestamp where user_ent = old.user_ent returning user_ent into new.user_ent;
+    select into new * from mychips.users_v_me where user_ent = new.user_ent;
+    return new;
+  end;
+$$;
 create view mychips.chits_v as select 
     ch.chit_ent, ch.chit_seq, ch.chit_idx, ch.request, ch.signature, ch.units, ch.reference, ch.memo, ch.chit_uuid, ch.chit_type, ch.issuer, ch.crt_by, ch.mod_by, ch.crt_date, ch.mod_date, ch.chit_date, ch.chain_send, ch.chain_idx, ch.chain_hash, ch.chain_prev, ch.lift_seq, ch.status, ch.digest
   , te.hold_cid
@@ -3703,6 +3716,7 @@ create function mychips.tallies_tf_seq() returns trigger language plpgsql securi
 $$;
 create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for each row execute procedure mychips.tokens_v_insfunc();
 create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
+create trigger mychips_users_v_me_tr_upd instead of update on mychips.users_v_me for each row execute procedure mychips.users_v_me_updfunc();
 create function mychips.chain_consense(ch mychips.chits, ta mychips.tallies) returns mychips.chits language plpgsql as $$
     declare
       crec	record;
@@ -3964,7 +3978,7 @@ $$;
 create trigger mychips_tallies_tr_bu before update on mychips.tallies for each row execute procedure mychips.tallies_tf_bu();
 create trigger mychips_tallies_tr_seq before insert on mychips.tallies for each row execute procedure mychips.tallies_tf_seq();
 create view mychips.tallies_v as select 
-    te.tally_ent, te.tally_type, te.comment, te.contract, te.hold_terms, te.part_terms, te.target, te.reward, te.clutch, te.bound, te.part_sig, te.hold_sig, te.request, te.tally_uuid, te.version, te.part_ent, te.hold_cert, te.part_cert, te.tally_seq, te.status, te.digest, te.net_pc, te.net_c, te.tally_date, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sets, te.part_sets, te.chain_conf, te.crt_by, te.mod_by, te.crt_date, te.mod_date
+    te.tally_ent, te.tally_type, te.comment, te.contract, te.hold_terms, te.part_terms, te.target, te.reward, te.clutch, te.bound, te.hold_cert, te.part_sig, te.hold_sig, te.request, te.tally_uuid, te.version, te.part_ent, te.part_cert, te.tally_seq, te.status, te.digest, te.net_pc, te.net_c, te.tally_date, te.hold_cid, te.hold_agent, te.part_cid, te.part_agent, te.hold_sets, te.part_sets, te.chain_conf, te.crt_by, te.mod_by, te.crt_date, te.mod_date
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
   , ua.agent_host			as hold_host
   , ua.agent_port			as hold_port
@@ -4103,12 +4117,14 @@ create function mychips.chits_tf_seq() returns trigger language plpgsql security
         if not found then new.chit_idx = 1; end if;
 
       end if;
+
       if new.chit_uuid is null then
         new.chit_uuid = uuid_generate_v4();
       end if;
       if new.units < 0 then			-- Interpret negative units as meaning stock-issued
         new.units = -new.units;
         new.issuer = 'stock';
+
       end if;
 
       if new.request = 'pend' then		-- User is drafting
@@ -4262,7 +4278,7 @@ create function mychips.tallies_v_insfunc() returns trigger language plpgsql sec
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.tallies_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.tallies (tally_ent,tally_type,comment,contract,hold_terms,part_terms,target,reward,clutch,bound,part_sig,hold_sig,request,tally_uuid,version,part_ent,hold_cert,part_cert,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,trec.tally_type,trec.comment,trec.contract,trec.hold_terms,trec.part_terms,trec.target,trec.reward,trec.clutch,trec.bound,trec.part_sig,trec.hold_sig,trec.request,trec.tally_uuid,trec.version,trec.part_ent,trec.hold_cert,trec.part_cert,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    insert into mychips.tallies (tally_ent,tally_type,comment,contract,hold_terms,part_terms,target,reward,clutch,bound,hold_cert,part_sig,hold_sig,request,tally_uuid,version,part_ent,part_cert,crt_by,mod_by,crt_date,mod_date) values (new.tally_ent,trec.tally_type,trec.comment,trec.contract,trec.hold_terms,trec.part_terms,trec.target,trec.reward,trec.clutch,trec.bound,trec.hold_cert,trec.part_sig,trec.hold_sig,trec.request,trec.tally_uuid,trec.version,trec.part_ent,trec.part_cert,session_user,session_user,current_timestamp,current_timestamp) returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
     return new;
   end;
@@ -4386,7 +4402,7 @@ create view mychips.tallies_v_sum as select
 create function mychips.tallies_v_updfunc() returns trigger language plpgsql security definer as $$
   begin
     if old.status in ('void','draft','offer') then
-      update mychips.tallies set tally_type = new.tally_type,comment = new.comment,contract = new.contract,hold_terms = new.hold_terms,part_terms = new.part_terms,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,part_sig = new.part_sig,hold_sig = new.hold_sig,request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
+      update mychips.tallies set tally_type = new.tally_type,comment = new.comment,contract = new.contract,hold_terms = new.hold_terms,part_terms = new.part_terms,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,hold_cert = new.hold_cert,part_sig = new.part_sig,hold_sig = new.hold_sig,request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
     returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     end if;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
@@ -6623,9 +6639,9 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','users_v_me','cert','identity.birth.place.country','eng','Birth Country','The country where you resided when you were born'),
   ('mychips','users_v_me','cert','identity.birth.place.post','eng','Birth Postal','The postal code for where you resided when you were born'),
   ('mychips','users_v_me','cert','identity.birth.place.state','eng','Birth State','The state where you resided when you were born'),
-  ('mychips','users_v_me','cert','identity.state','eng','State ID','An official identification issued for you by a country'),
-  ('mychips','users_v_me','cert','identity.state.country','eng','Country','The state/country who issued the identity number'),
-  ('mychips','users_v_me','cert','identity.state.id','eng','Identifier','Your official state ID number (such as a Social Security Number)'),
+  ('mychips','users_v_me','cert','identity.state','eng','State Issued','An official identification issued for you by a country'),
+  ('mychips','users_v_me','cert','identity.state.country','eng','Issue State','The state/country who issued the identity number'),
+  ('mychips','users_v_me','cert','identity.state.id','eng','State ID','Your official state ID number (such as a Social Security Number)'),
   ('mychips','users_v_me','cert','name','eng','Name','A record (or array) of the names you are addressed by'),
   ('mychips','users_v_me','cert','name.first','eng','First Name','Your first given name'),
   ('mychips','users_v_me','cert','name.prefer','eng','Preferred','The name you prefer to be called by'),
@@ -6673,8 +6689,9 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','agents','AHP','eng','Unique Host/Port','Each agent key must be associated with a unique combination of host address and port'),
   ('mychips','agents','CHR','eng','Agent Host Required','A host or IP address for the agent must be specified'),
   ('mychips','agents','CPR','eng','Agent Port Required','A port number for the agent must be specified'),
-  ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a tally chit'),
+  ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a chit'),
   ('mychips','chits','BLL','eng','Bad Lift Sequence','Only lift chits should include a lift sequence number'),
+  ('mychips','chits','BRQ','eng','Bad Chit Request','Not a valid value for a chit request'),
   ('mychips','chits','BST','eng','Bad Chit Status','Not a valid value the status field'),
   ('mychips','chits','CUN','eng','Bad Chit Units','Transactional chits must have a unit value.  Settings chits must not.'),
   ('mychips','chits','CUU','eng','Chit Not Unique','Chit UUID must be unique to each tally'),
@@ -6684,6 +6701,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chits','MIS','eng','Bad Chit Signature','A chit marked to be good has no signature'),
   ('mychips','contracts','BVN','eng','Bad Version Number','Version number for contracts should start with 1 and move progressively larger'),
   ('mychips','contracts','ILR','eng','Illegal Rows','A query expecting a single record returned zero or multiple rows'),
+  ('mychips','contracts','IRI','eng','Invalid Resource ID','A contract contains a reference to another document that can not be found'),
   ('mychips','contracts','PBC','eng','Publish Constraints','When publishing a document, one must specify the digest hash, the source location, and the content sections'),
   ('mychips','contracts','UNC','eng','Unknown Command','The contract editor report received an unrecognized action command'),
   ('mychips','contracts_v','edit','eng','Edit Sections','Dedicated window for properly editing the contract sections'),
@@ -6733,6 +6751,9 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','agree.format.html','eng','html','Return HTML fragment that contains the report'),
   ('mychips','tallies_v_me','agree.format.url','eng','url','Return an url link to a web page containing the report'),
   ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
+  ('mychips','tallies_v_me','epilog','eng','Signatures','By attaching its digital signature as defined herein, each Party affirms that it willingly accepts and agrees to the terms and conditions of this Agreemeent'),
+  ('mychips','tallies_v_me','epilog.foil','eng','Foil Signature','Foil Holder''s digital signature'),
+  ('mychips','tallies_v_me','epilog.stock','eng','Stock Signature','Stock Holder''s digital signature'),
   ('mychips','tallies_v_me','file','eng','Document File','Fetch any partner file attachements the referenced tally'),
   ('mychips','tallies_v_me','file.digest','eng','File Digest','Specify the base64url hash of a single document file to return'),
   ('mychips','tallies_v_me','file.format','eng','Return Format','How to return the graph report data'),
@@ -6752,6 +6773,11 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationships'),
   ('mychips','tallies_v_me','notify.draft','eng','Initiate Tally','Someone wants to engage with your invitation to open a MyCHIPs tally ledger'),
   ('mychips','tallies_v_me','notify.P.offer','eng','Tally Offer','You have received an offer to open a MyCHIPs tally ledger'),
+  ('mychips','tallies_v_me','prolog','eng','MyCHIPS Tally Agreement','An agreement between the Parties hereinafter known as: Foil Holder and Stock Holder'),
+  ('mychips','tallies_v_me','prolog.foil','eng','Foil Certificate','Information identifying the Foil Holder'),
+  ('mychips','tallies_v_me','prolog.stock','eng','Stock Certificate','Information identifying the Stock Holder'),
+  ('mychips','tallies_v_me','terms.foil','eng','Foil Terms','Terms set forth by Foil Holder and extended to Stock Holder'),
+  ('mychips','tallies_v_me','terms.stock','eng','Stock Terms','Terms set forth by Stock Holder and extended to Foil Holder'),
   ('mychips','tallies_v_me','TIL','eng','Good Until','Invitation expires after this time'),
   ('mychips','tallies_v_me','TIN','eng','Tally Invitation','Follow link to consider tally'),
   ('mychips','tallies_v_me','TMK','eng','Bad Key Number','The tally invitation must be called for exactly one tally'),
@@ -9912,7 +9938,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_me','frm_name','base','ent_v','frm_name','f','f'),
   ('mychips','users_v_me','gender','base','ent','gender','f','f'),
   ('mychips','users_v_me','giv_name','base','ent_v','giv_name','f','f'),
-  ('mychips','users_v_me','id','base','ent','id','f','t'),
+  ('mychips','users_v_me','id','base','ent','id','t','t'),
   ('mychips','users_v_me','json','mychips','users_v','json','f','f'),
   ('mychips','users_v_me','marital','base','ent','marital','f','f'),
   ('mychips','users_v_me','mid_name','base','ent','mid_name','f','f'),
@@ -10077,6 +10103,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -10227,6 +10259,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
+  ('wm','language','col','wm','language','col','f','t'),
+  ('wm','language','fr_help','wm','language','fr_help','f','f'),
+  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
+  ('wm','language','fr_title','wm','language','fr_title','f','f'),
+  ('wm','language','help','wm','table_text','help','t','f'),
+  ('wm','language','language','wm','table_text','language','t','f'),
+  ('wm','language','obj','wm','language','obj','f','f'),
+  ('wm','language','sch','wm','language','sch','f','t'),
+  ('wm','language','sorter','wm','language','sorter','f','f'),
+  ('wm','language','tab','wm','language','tab','f','t'),
+  ('wm','language','tag','wm','language','tag','f','t'),
+  ('wm','language','title','wm','table_text','title','t','f'),
+  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
@@ -11366,10 +11411,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\xe3d0e5aa6189d8396437fbb30797273de3fcb8917cceebc6e1a11951e3480408',
+      E'\\x0034289bf92adc738222ab597c623714db9820c7142d1a5bc0fe3b3cbda5afc1',
       'Defining a CHIP',
-      'MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of Credit between willing parties. This Credit is comprised of a number of individual promises, or Chits, made by one Party, for the benefit of the other Party, to deliver future value according to terms and conditions mutually agreed upon by the Parties. The party Pledging the future value is referred to as the Issuer. The party the Pledge is made to is referred to as the Recipient. A Pledge accrues as a receivable asset to the Recipient and a payable liability to the Issuer just as with any open-account indebtedness that might be incurred in the ordinary course of business.',
-      '[{"text":"The amount of value represented in a Tally or a Chit is quantified in units of CHIPs. Internally a MyCHIPs server is expected to record transactions in integer units of 1/1000th of a CHIP. User interfaces are expected to render values as decimal CHIPs with up to 3 digits after a decimal point, for example: 1234.567."},{"text":"All transactions associated with this Tally shall be quantified exlusively in CHIPs, as defined herein, and not using any other unit of measure. For example, it is a breach of this covenant to produce a Pledge which the Parties understand to be measured in Dollars or Euros. It is not a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs."},{"text":"One CHIP is defined as having a value equal to:","sections":[{"text":"The value produced by one continuously applied hour of adult human work;"},{"text":"in such circumstance where there is neither a shortage nor a surplus of such willing labor available; and"},{"text":"where the task can be reasonably understood with only minimal training and orientation; and"},{"text":"without considering the added productivity achieved by the use of labor-saving capital equipment; and"},{"text":"where the person performing the work has a normal, or average, functioning mind and body; and"},{"text":"can communicate effectively as needed with others in the work; and"},{"text":"can read and write effectively as needed to understand the work; and"},{"text":"understands, and can effectively employ basic arithmetic and counting as necessary for the work; and"},{"text":"otherwise, possesses no unusual strengths, weaknesses, developed skills, talents or abilities relevant to the work."}]}]'
+      'MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of Value between willing parties. This Value, or credit, is comprised of a number of individual promises, or Chits, made by one Party, for the benefit of the other Party, to deliver future value according to terms and conditions mutually agreed upon hereby. The party Pledging the future value is referred to as the Issuer. The party the Pledge is made to is referred to as the Recipient. A Pledge accrues as a receivable asset to the Recipient and a payable liability to the Issuer just as with any open-account indebtedness that might be incurred in the ordinary course of business or commerce.',
+      '[{"text":"The amount of value represented in a Tally or a Chit is quantified in units of CHIPs. Internally, a MyCHIPs server is expected to record transactions in integer units of 1/1000th of a CHIP. User interfaces are expected to render values as decimal CHIPs with up to 3 digits after the decimal point, for example: 1234.567."},{"text":"All transactions associated with this Tally shall be quantified exclusively in CHIPs, as defined herein, and not in any other unit of measure. For example, it is a breach of this covenant to produce a Pledge which the Parties understand to be measured in Dollars or Euros. It is not a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs."},{"text":"One CHIP is defined as having a value equal to:","sections":[{"text":"The value produced by one continuously applied hour of adult human work;"},{"text":"in such circumstance where there is neither a shortage nor a surplus of such willing labor available; and"},{"text":"where the task can be reasonably understood with only minimal training and orientation; and"},{"text":"without considering the added productivity achieved by the use of labor-saving capital equipment; and"},{"text":"where the person performing the work has a normal, or average, functioning mind and body; and"},{"text":"can communicate effectively as needed with others in the work; and"},{"text":"can read and write effectively as needed to understand the work; and"},{"text":"understands, and can effectively employ basic arithmetic and counting as necessary for the work; and"},{"text":"otherwise, possesses no unusual strengths, weaknesses, developed skills, talents or abilities relevant to the work."}]}]'
     )
 ,(
       'mychips.org',
@@ -11378,9 +11423,9 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\xcc423f140a4835ea096370fd6d10e1b4bcc27d783e0db2ce58a915f112998eab',
-      'Terms and Conditions for Credit Authorized by Stock and Foil',
-      'When executing a Tally Agreement with each other, the Client and Vendor each decide the amount of credit they will extend to the other Party. They may also specify parameters that influence how and when the debt will be satisfied. Those parameters are referred to generally as Credit Terms. Such terms can be specified by the Vendor to be applied by credit issued by the Client. They can also be specified by the Client to be applied by credit issued by the Vendor in such cases where the Tally may develop a negative balance. The various credit terms are defined as follows:',
+      E'\\x947939505394f5ae93a00c4ee8398f6ed09e5f2699f70fb55809bcda53f08d4f',
+      'Terms and Conditions for Authorized Credit',
+      'When executing a Tally Agreement, the Parties each decide the amount of credit they will extend to the other Party. They may also specify parameters that influence how and when the debt will be satisfied. Those parameters are referred to generally as Credit Terms. Such terms can be specified by the Vendor to be applied by credit issued by the Client. They can also be specified by the Client to be applied by credit issued by the Vendor in such cases where the Tally may develop a negative balance. The various credit terms are defined as follows:',
       '[{"title":"Maximum Balance","text":"This indicates the most the Issuer can count on borrowing against Product it obtains from the Recipient. The balance may be expressed as a single number, or as an expression, which is a function of time. Expressions may be used to amortize a loan, requiring principal to be paid down over time."},{"title":"Maximum Paydown","text":"This specifies the most the Issuer can pay down principal in advance of otherwise prevailing requirements and have his interest calculations reduced accordingly. This can be used to create a minimum interest return for a Recipient, while still allowing the Issuer to store value in the loan balance."},{"title":"Compound Interval","text":"The amount of time that passes before interest is calculated and applied to a balance. This may also define when payments are due. For example, if the application of such a charge raises a balance above the Maximum Balance, some kind of Lifting will have to occur to correct this."},{"title":"Grace Period","text":"New amounts of indebtedness will not accrue interest charges until this amount of time has passed."},{"title":"Rate","text":"An annualized rate expressed as a positive floating point number. For example, 0.05 means 5% per annum. This number will be scaled to match the Compound Interval in order to compute the interest/dividend charges to be applied during that an interval."},{"title":"Call Notice","text":"The amount of notice required to be given by Recipient to the Issuer in order to require all principal and accrued charges due and payable. If not present, the Issuer has no obligation to reduce principal any faster than is indicated by the Minimum Payment. The Call Notice is triggered by affixing a signed Call to the tally. The debt must be satisfied within the specified number of days after the date of the Call. For a fully amortizing debt, a Recipient would register an immediate call, with the number of notice days set to the term of the amortization."},{"title":"Minimum Payment","text":"An amount, or a formula for the smallest amount that may be paid at each Compound Interval."}]'
     )
 ,(
@@ -11390,10 +11435,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\xc704c0846d1bbbf10e38ae635467249cfcdf612fb627ecf0d60779361b764110',
+      E'\\x37ec427ff8dfe1a3aefa00693a4fc0bb7ee2e551eb6fc5e20e8aa8ad7b470e08',
       'Contract Breaches and Conditions of Default',
-      'Any of the following actions by either Party constitute a breach of the Agreement and therefore, the Party is deemed to be in Default:',
-      '[{"title":"Failure of Duty","text":"Failure to honor any obligation outlined in the Tally, including all its referenced Contract components."},{"title":"False Representation","text":"Determination that any representation given in connection with the Tally is factually untrue."},{"title":"Failure to Commit","text":"Failure to complete a Credit Lift transactions previously committed to as a result of intentional manipulation of software and/or a network."},{"title":"Attempt to Cheat","text":"Failure to complete a Credit Lift honestly and according to the protocol documented and demonstrated by the reference server implementation published by mychips.org."},{"title":"Failure to Honor","text":"Failure to provide sufficient connections to accomplish necessary Credit Lifts, followed by failure to make a Recipient whole by alternative means."}]'
+      'Any of the following actions by either Party constitutes a breach of this Agreement, thereby deeming the Party to be in Default.',
+      '[{"title":"Failure of Duty","text":"Failure to honor any of the obligations specified in this Agreement."},{"title":"False Representation","text":"Making any representation in connection with the Tally that is factually untrue."},{"title":"Failure to Commit","text":"Failure to complete a Credit Lift transactions previously committed to, due to intentional manipulation of software and/or the network."},{"title":"Attempt to Cheat","text":"Failure to complete a Credit Lift honestly and in accordance with the protocol documented and demonstrated by the reference server implementation published by MyCHIPs.org."},{"title":"Failure to Honor","text":"Failure to provide sufficient connections to accomplish necessary Credit Lifts, followed by failure to make a Recipient whole by alternative means."}]'
     )
 ,(
       'mychips.org',
@@ -11402,10 +11447,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\xa156dc100b1b74997853835f776c7721858ed5bfe3c40a5a39b9ecd83ac1c8b0',
+      E'\\x291fc04c476a29514f90103f6438a5b712ea122058188e98503e4fa82e30db43',
       'Duties of the Parties to Each Other',
-      'Each Party has certain duties under this Agreement which duties posit corresponding rights to the other Party as follows:',
-      '[{"title":"Cooperation","text":"The Parties enter into this Tally to exchange credit for the purpose of facilitating cooperative commerce and trade with each other as well as others."},{"title":"Good Faith","text":"Each Party shall behave honestly and with integrity in the transactions facilitated by the Tally. Neither Party shall use the Tally to intentionally cheat, defraud, or steal value from the other Party."},{"title":"Competency","text":"Each Party shall take reasonable care to ensure that the other Party is mentally competent to enter into the Contract and its associated transactions. This includes avoiding the receipt of Pledges from those who are too young, too old, or otherwise unable to fully understand the obligations they are entering into."},{"title":"Disclosure","text":"Each Party shall honestly inform the other Party of information relevant to its decision to execute this Tally and/or its associated Pledges. This includes disclosures about any known dangers or deficiences regarding Product purchased by way of the Tally. It also includes known information about one''s ability or past performance in fulfilling Pledges made to other parties."},{"title":"Consent","text":"Each Party shall take reasonable care to ensure that the other Party has entered into this Contract of its own free will and choice."},{"title":"Identity","text":"Each Party shall honestly represent its identity to the other and furnish accurate information adequate for further enforcement of any debt incurred under the Tally."},{"title":"Privacy","text":"Each Party shall take reasonable measures to keep private any information, not already generally available by other means, and which is revealed or discovered in connection with the execution of the Tally."},{"title":"Lift Execution","text":"Each Party shall make reasonable efforts to use software which faithfully executes the MyCHIPs protocol, as published by mychips.org, in good faith. Each Party''s server, having completed the conditional phase of a Lift transaction, shall then make every effort to commit the final phase of that lift in accordance with the agreed upon terms. Use of a current, unmodified, official release of the MyCHIPs software as distributed by mychips.org satisfies the requirements of this section."},{"title":"Resolution by Other Means","text":"Should a Party fail, within 10 days of request, to provide or maintain suitable connections to satisfy an outstanding Pledges by way of Credit Lifts, it shall provide payment upon demand in some other medium satisfactory to the Receiver. This includes payment by a sound government currency in common use by the Receiver such as Dollars or Euros, for example. It could include payment in gold, silver or other precious commodities acceptable to the Receiver. It could also include Product furnished by the Issuer and satisfactory to the Receiver. The Receiver shall not unreasonably refuse a good faith payment offered by such other means."},{"title":"Lift Authority","text":"Each Party authorizes its agent host system to sign Credit Lifts, on behalf of that Party, using the system''s own private/public key. All such lifts executed and signed by the Party''s host system shall be binding upon the Party so long as they conform to the Trading Variables established and signed by the Party in its private counterpart of the Tally. Each Party shall hold its system operator(s) harmless for untinentional errors or losses incurred while using a current, unmodified official release of the MyCHIPs sotware as distributed by mychips.org."},{"title":"Notice of Default","text":"Should one Party find the other Party in Default of this Agreement, it shall give written notice to the Defaulting Party by email, text message or certified mail. Such notice may be as simple as to state the act or circumstance deemed to be a breach, and to request the problem be resolved."},{"title":"Cure of Default","text":"Upon receiving a notice of Default, a Party must make a timely, good faith effort to satisfy the complaint of the noticing Party within 10 days."},{"title":"Publication","text":"If a Default is not cured within 10 days, the non-breaching Party is entitled to publish the identity of the breaching Party and information about the nature of the breach, notwithstanding any obligations regarding privacy. Such publication shall be done solely to inform others who might contemplate entering into a similar transaction with the breaching Party. If a Party has previously published such information and the breaching Party subsequently and satisfactorily cures the breach, the publishing Party shall then also similarly publish information indicating that the breach has been cured."},{"title":"Collateral","text":"If collateral is offered to secure a debt incurred by an Issuer under this Tally, such shall be evidenced by an external agreement such as a deed of trust, a lien or notice of interest. If such agreement is duly executed by the Parties, a Recipient shall enjoy all recourse available by law in using the collateral to fully collect the debt incurred under this Agreement."}]'
+      'Each Party has certain duties under this Agreement, and these duties create corresponding rights for the other Party as follows:',
+      '[{"title":"Cooperation","text":"The Parties enter into this Tally to exchange credit for the purpose of facilitating cooperative commerce and trade with each other as well as others."},{"title":"Good Faith","text":"Each Party shall behave honestly and with integrity in the transactions facilitated by the Tally. Neither Party shall use the Tally to intentionally cheat, defraud, or steal value from the other Party."},{"title":"Competency","text":"Each Party shall take reasonable care to ensure that the other Party is mentally competent to enter into this Agreement and its associated transactions including avoiding the receipt of Pledges from parties who are too young, too old, or otherwise unable to fully understand the obligations they are entering into."},{"title":"Disclosure","text":"Each Party shall honestly inform the other Party of information relevant to its decision to execute this Tally and/or its associated Pledges. This includes disclosures about any known dangers or deficiences regarding the Product purchased by way of the Tally, and information about one''s ability or past performance in fulfilling Pledges made to other parties."},{"title":"Consent","text":"Each Party shall take reasonable care to ensure that the other Party has entered into this Agreement of its own free will and choice."},{"title":"Identity","text":"Each Party shall honestly represent its identity to the other and furnish accurate information adequate for further enforcement of any debt incurred under the Tally."},{"title":"Privacy","text":"Each Party shall take reasonable measures to keep private any information not already generally available by other means, and which is revealed or discovered in connection with the execution of the Tally."},{"title":"Lift Transaction","text":"A Credit Lift is a distributed transaction by which parties can effectively exchange amounts of indebtedness with other users on the network. Such transaction can be used to clear credit balances among a group of users. It can also be used to transmit value through the network to a party one is not directly connected to."},{"title":"Lift Execution","text":"Each Party shall make reasonable efforts to use software which faithfully executes the MyCHIPs protocol, as published by MyCHIPs.org, in good faith. Each Party''s server, having completed the conditional phase of a Lift transaction, shall then make every effort to commit the final phase of that lift in accordance with the agreed upon terms. Use of a current, unmodified, official release of the MyCHIPs software as distributed by MyCHIPs.org satisfies the requirements of this section."},{"title":"Resolution by Other Means","text":"Should a Party fail, within the applicable Call Terms, to provide or maintain suitable connections to satisfy an outstanding Pledges by way of Credit Lifts, it shall provide payment upon demand in some other medium satisfactory to the Receiver. This may include payment of a sound government currency in common use by the Receiver such as Dollars or Euros, for example. It may include payment in gold, silver or other precious commodities acceptable to the Receiver. It may also include Product furnished by the Issuer and satisfactory to the Receiver. The Receiver shall not unreasonably refuse a good faith payment offered by such other means."},{"title":"Lift Authority","text":"Each Party authorizes its agent host system to sign Chits associated with Credit Lifts, on behalf of that Party, using the agent''s own private/public key. All such lifts executed and signed by the Party''s agent shall be binding upon the Party so long as they conform to the Trading Variables established and signed by the Party and attached to the Tally. Each Party shall hold its system operator(s) harmless for unintentional errors or losses incurred while using a current, unmodified official release of the MyCHIPs software as distributed by MyCHIPs.org."},{"title":"Notice of Default","text":"Should one Party find the other Party in Default of this Agreement, it shall give written notice to the Defaulting Party by email, text message or certified mail according to the contact information contained in the Tally. Such notice may be as simple as to state the act or circumstance deemed to be a breach, and to request the problem be resolved."},{"title":"Cure of Default","text":"Upon receiving a notice of Default, a Party must make a timely, good faith effort to satisfy the complaint of the noticing Party within 10 days."},{"title":"Publication","text":"If a Default is not cured within 10 days of notice, the non-breaching Party is entitled to publish the identity of the breaching Party and information about the nature of the breach, notwithstanding any obligations regarding privacy. Such publication shall be done solely to inform others who might contemplate entering into a similar transaction with the breaching Party. If a Party has previously published such information and the breaching Party subsequently and satisfactorily cures the breach, the publishing Party shall then also similarly publish information indicating that the breach has been cured."},{"title":"Collateral","text":"If collateral is offered to secure a debt incurred by an Issuer under this Tally, such shall be evidenced by an external agreement such as a deed of trust, lien or notice of interest. A reference to this Tally may be included in that agreement by noting the Tally''s UUID number. If such agreement is duly executed by the Parties, the Recipient shall have all legal recourse to use the collateral to fully collect the debt incurred under this Agreement."}]'
     )
 ,(
       'mychips.org',
@@ -11414,10 +11459,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\x2c5c1f732a572821ebccde4e75c9354bee2b7d251a128f447cc8942264a597a5',
+      E'\\x9cb869648b56f9aa75f383cf446b726ae2645788b3ee7be7ed9483d2cf2f7c69',
       'Ethical Conduct',
-      'The credits, or Chits, under a Tally agreement constitute a Pledge of Value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally. In order for such a Pledge to be a valid, and therefore enforceable, the following conditions must also be met:',
-      '[{"title":"Competency","text":"The Issuer is of such age and mental capacity to understand the obligations he/she is entering into."},{"title":"Informed Consent","text":"Both parties are reasonably informed by the other as to all material terms of the transaction. This includes the nature and quality of the Product, as well as the nature and quality of the credit being offered as consideration."},{"title":"Dispute Resolution","text":"In case of a dispute between the Parties over any associated transaction being resolved by legal remedy, the prevailing Party shall be entitled to collect from the losing Party actual incurred damages, plus all collection costs, including attorneys fees."},{"title":"Frivolous Claims","text":"Should any cause of action brought by one Party against the other be shown to be frivolous, or without basis, the penalty shall be increased to two times the actual incurred damages, plus all collection costs, including attorneys fees."},{"title":"Fraud","text":"When intentional fraud can be proven in such a dispute, the penalty shall be increased to three times the actual incurred damages, plus all collection costs, including attorneys fees."},{"title":"Severability","text":"If any portion of this agreement is deemed to be unenforceable by any means, the remaining portions shall remain in full effect."},{"title":"Honor","text":"The debtor agrees to not excuse itself from honoring the agreement by reason of bankruptcy or similar recourse, even though the prevailing law may allow it."},{"title":"Indemnity","text":"The Parties shall hold harmless MyCHIPs.org and all owners and author(s) of the MyCHIPs software for any loss related to the use of the software."},{"title":"Chain of Honor","text":"The obligations related to good faith and honesty made by the Parties also extend to other parties they may be indirectly connected to. For example, it is a breach of this covenant to use your trading relationship under this Tally to defraud another party somewhere else on the network. Each Party agrees to cooperate with the other in the rectification of any fraud or loss which may occur in the course of trading on this Tally. This implies the assignment of contract rights, as applicable such that any unduly harmed party may invoke the rights of each party along a chain of transactions in order to remedy a fraud or undue loss."}]'
+      'The credits, or Chits, under this Agreement constitute a Pledge of Value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally. In order for such a Pledge to be a valid, and therefore enforceable, the following conditions must also be met:',
+      '[{"title":"Competency","text":"The Issuer is of such age and mental capacity to understand the obligations it is entering into."},{"title":"Informed Consent","text":"Both parties are reasonably informed by the other as to all material terms of the transaction. This includes the nature and quality of the Product. It also includes the ability of the Issuer to provide the agreed upon Value within the agreed upon terms."},{"title":"Dispute Resolution","text":"In the case of a dispute between the Parties over any associated transaction being resolved by legal remedy, the prevailing Party shall be entitled to collect actual incurred damages from the losing Party, plus all collection costs, including attorneys'' fees."},{"title":"Frivolous Claims","text":"Should any cause of action brought by one Party against the other be shown to be frivolous, or without basis, the penalty shall be increased to two times the actual incurred damages, plus all collection costs, including attorneys'' fees."},{"title":"Fraud","text":"When intentional fraud can be proven in such a dispute, the penalty shall be increased to three times the actual incurred damages, plus all collection costs, including attorneys'' fees."},{"title":"Severability","text":"If any portion of this agreement is deemed to be unenforceable by any means, the remaining portions shall remain in full effect."},{"title":"Honor","text":"The debtor agrees to not excuse itself from honoring the agreement by reason of bankruptcy or similar recourse, even though prevailing law may allow it."},{"title":"Indemnity","text":"The Parties shall hold harmless MyCHIPs.org, its owners and affiliates, and all authors of and contributers to the MyCHIPs software and protocol for any loss related to its use."},{"title":"Chain of Honor","text":"The obligations related to good faith and honesty made by the Parties also extend to other parties they may be indirectly connected to. For example, it is a breach of this covenant to use your trading relationship under this Tally to defraud another party somewhere else on the MyCHIPs network. Each Party agrees to cooperate with the other in the rectification of any fraud or loss that may occur in the course of trading on this Tally. This cooperation implies the assignment of contract rights, as applicable, so that any unduly harmed party may invoke the rights of each party along a chain of transactions in order to remedy a fraud or undue loss."}]'
     )
 ,(
       'mychips.org',
@@ -11438,10 +11483,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\xfa4bd06347ca6164c1635b9fd85ec25f45c574adcadbfe5135735b5abf0f3039',
+      E'\\x5ac8d5fc26d4a09ff2645b9ae777c0cbb6983a3077d0f77df258e0f509957729',
       'Purpose of The Contract',
       'Whereas:',
-      '[{"text":"As part of the ordinary course of business, the Parties wish to engage in the exchange of goods and services, hereinafter referred to as Product; and"},{"text":"It is unlikely in any specific transacton that a two-way exchange of Product can be found that is exactly balanced in both time and value and/or is desired by the Parties; and"},{"text":"The Parties desire an efficient way to conduct a single transfer of Product with consideration being given in the form of a Pledge of Value, or a debt, to be honored at some future time and in a form acceptable to the Parties; and"},{"text":"The Parties wanting to issue, receive, and formalize such Pledges of Value, or Credit, in a system of open-account indebtedness and in a digital format for the sake of convenience and accuracy; and"},{"text":"The Parties desire to use the MyCHIPs Protocol as published and explained by mychips.org and demonstrated by its Reference Implementation, to accomplish this;"},{"text":"It is hereby agreed as follows:"}]'
+      '[{"text":"In pursuit of their various interests, the Parties wish to engage in the exchange of goods and services, hereinafter referred to as Product; and"},{"text":"It is unlikely in any specific transaction that a two-way exchange of Product can be found that is exactly balanced in both time and value and/or is desired by the Parties; and"},{"text":"The Parties desire an efficient way to conduct a single transfer of Product with consideration being given in the form of a Pledge of Value, or a debt, to be honored at some future time and in a form acceptable to the Parties; and"},{"text":"The Parties wanting to issue, receive, and formalize such Pledges of Value, or Credit, in a system of open-account indebtedness and in a digital format for the sake of convenience and accuracy; and"},{"text":"The Parties desire to use the MyCHIPs Protocol as defined published by MyCHIPs.org and demonstrated by its Reference Implementation, to accomplish this;"},{"text":"It is hereby agreed as follows:"}]'
     )
 ,(
       'mychips.org',
@@ -11450,10 +11495,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\x9233d65f8a19ddbbcc4e620114cf194cab9ebd94635577fd39d1f98ade5a6830',
+      E'\\xd0c8a5fc00be1b10c76752f6a0f775839c0e17c7f0ea3d0c00db89c5a915f632',
       'General Representations of the Parties',
       'The Parties represent as follows about themselves:',
-      '[{"title":"Competency","text":"Each Party is of such age and mental capacity to understand the obligations it is entering into by executing this Tally."},{"title":"Financial Capacity","text":"Each Party has the means to satisfy the debts it incurs under the Tally."},{"title":"Network Connections","text":"Each Party will maintain sufficient Client relationships to reasonably facilitate Credit Lifts."},{"title":"Identity","text":"Each Party''s identity as expressed in the Tally is true and accurate."},{"title":"Authority","text":"If a Party is a corporation or other organization, that individual executing the Tally represents that he/she is duly authorized to enter into the Tally on behalf of the organization."},{"title":"Nature of Credit Obligations","text":"This Tally will not be used to document an equity or financial interest where a future return is promised which is a function of the financial success of a venture. Rather, the Tally will be used to record and track debt obligations such as the following:","sections":[{"text":"A note delivered in consumer financing"},{"text":"A note secured by a lien on real property such as a home"},{"text":"A note secured by a lien on a small business or some of its assets"},{"text":"A note relating to a character loan"},{"text":"A note which formalizes an open-account indebtedness incurred in the ordinary course of business"},{"text":"Short-term notes secured by an assignment of accounts receivable"},{"text":"Notes given in connection with loans to a business for current operations"}]}]'
+      '[{"title":"Competency","text":"Each Party has the age and mental capacity to understand the obligations it is assuming by executing this Agreement."},{"title":"Financial Capacity","text":"Each Party has the financial means to satisfy the debts it may incur under this Agreement."},{"title":"Network Connections","text":"Each Party will maintain sufficient additional Tally relationships to reasonably facilitate Credit Lifts, which are the primary means by which debts are expected to be satisfied."},{"title":"Identity","text":"The identity of each Party, as represented in the Tally, is true and accurate."},{"title":"Authority","text":"If a Party is a corporation or other legal entity, the individual executing the Tally Agreement represents that they are duly authorized to enter into the Agreement on behalf of the entity."},{"title":"Nature of Credit Obligations","text":"This Tally will not be used to issue an equity or financial interest where a future return is promised which is a function of the financial success of a venture. Rather, the Tally use will be limited to recording and tracking debt obligations such as the following:","sections":[{"text":"A note delivered in consumer financing"},{"text":"A note secured by a lien on real property such as a home"},{"text":"A note secured by a lien on a small business or some of its assets"},{"text":"A note relating to a character loan"},{"text":"A note which formalizes an open-account indebtedness incurred in the ordinary course of business"},{"text":"Short-term notes secured by an assignment of accounts receivable"},{"text":"Notes given in connection with loans to a business for current operations"}]}]'
     )
 ,(
       'mychips.org',
@@ -11474,9 +11519,9 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       't',
       '2020-04-01',
-      E'\\xa0fb64fcec78ef93eb974385c8b99399d898cb3589ae10d29cd0b02d52c90187',
-      'Tally Contract',
-      'This Contract has been incorporated into a MyCHIPs Tally by reference, which includes a digital hash of the contents of the document. This Contract also incorporates further documents by reference, including their digital hashes. All such terms and conditions, including those contained in the Tally itself, this document, and the ones it references, together form the complete Tally Agreement between the Parties.',
+      E'\\x2a9cce15c808ebb82b7cc9aa42d1fc9b073565f85ff062eedbc0e0c3b15ea27a',
+      'MyCHIPS Tally Agreement',
+      'This Contract is part of an Agreement by and between the Parties hereinafter referred to as Foil Holder and Stock Holder. A digital hash of this Contract has been incorporated into a MyCHIPs digital Tally which also contains other Data relevant to the Agreement. Tally Data includes details about the identities of the Parties as well as digital signatures by the Parties attesting to their acceptance of this Agreement and is shown at the end of the Contract. This Contract also incorporates further documents by reference, including their digital hashes. All terms and conditions, including those contained in the Tally itself, this document, and the other documents it references, together form the complete Tally Agreement between the Parties.',
       '[{"name":"Recitals","source":"Hr3yY2MjeWmVKfYJiba2zQUgxrGDnw1MnYuJ9rjDuQRn"},{"name":"Tally_Definition","source":"BZrHne18JUX4gdPJzjBHGh1cTNxvmfqAFy6ppDQP2uos"},{"name":"CHIP_Definition","source":"GLJJEMbxfH7caHcNEhNqR7H4yDhsPpBe9vJuxCdTonrB"},{"name":"Ethics","source":"3zAQw3iSh3EP9s2ynRshuEfWz8UAHXnk2uTmyQqMnVat"},{"name":"Duties_Rights","source":"BroTb9jYQDdxoeBoHE9d9JPLuGcbf7G944eV2jNYkVTM"},{"name":"Representations","source":"AqiNQkNRYN97kYa3k2MJv4poFsVqBqnX31yorWuTm1sV"},{"name":"Defaults","source":"EPtLQUmshMGkvFnSNzCbiLYLDoS6ARAmiDvEiZf2TF4B"},{"name":"Credit_Terms","source":"EkLm2G1TwPyNLhXvVKUpbv3cn4csJPdXs5srDuXGuPfg"}]'
     )
 ,(
@@ -11486,10 +11531,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\x9cff2fd7edf0471eb58bfad05f8986aee2c7fa5226602b1c9eea31af35398a56',
+      E'\\x5f5624d319ebbcfb6f391b4907ac28dbbb1560e099a0288ba0133645b4f32ecb',
       'What a Tally is and How it Works',
-      'Pledges of Value are tracked by means of a Tally. A Tally is an agreement between two willing Parties, normally stored as a digital electronic record, and by which the Parties document and enforce a series of Pledges of Value, or Chits, made between them.',
-      E'[{"title":"Signing Keys","text":"Each Party is in possession of a digital key consisting of a private part and a public part. Each Party is responsible to maintain knowledge and possession of its key and to keep the private portion absolutely confidential. The public part of the key will be used to validate one''s digital signature and so must be shared with the other Party."},{"title":"Signing the Tally","text":"The Parties agree to the terms and conditions incorporated in the Tally by computing a standardized hash from the normalized contents of the Tally, and encrypting that hash using their private key. This act of signing is normally conducted by a user interacting with an application running on a computer or mobile device. By producing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions contained in that Tally, including those that are incorporated by reference. If one Party is in possession of a valid signature of the Tally, which can be verified by the other Party''s public key, this is sufficient proof of the consent of the other Party to the Agreement in its entirety."},{"title":"Stock and Foil","text":"The two Parties to a Tally are distinct with respect to their expected roles. Specifically, the Tally is stored as two complementary counterparts: a Stock, and a Foil, each held or stored by one of the Parties or its agent service provider."},{"title":"Vendor Role","text":"The Party holding the Stock is expected to be the provider of Product most often in the normal course of transactions. This role is referred to as the \\"Vendor.\\""},{"title":"Client Role","text":"The Party holding the Foil is expected to most often be the recipient of Product. This role is referred to as the \\"Client.\\""},{"title":"Typical Examples","text":"For example, if a regular customer establishes a Tally with a merchant to buy Product from that merchant, the customer would hold the Foil and the merchant would hold the Stock. In an employment scenario, the employer will hold the Foil and the Employee will hold the Stock. In less formal trading relationships, the Parties can select their roles of Vendor and Client as seems best to fit the trading relationship."},{"title":"Chits","text":"Each Pledge of Credit contained in a Tally is referred to as a Chit. The Party who is pledging value by the Chit is referred to as the Issuer of credit for that Chit. The Party the pledge is made to is the Receiver of credit. Either Party may unilaterally add valid, digitally signed Chits to the Tally as long as it does so as an Issuer."},{"title":"Authority to Pledge","text":"Neither Party may unilaterally add a Chit as Receiver, or a Chit which would grant value from the other Party to itself. However, either Party may request such a Pledge from the other Party."},{"title":"Net Credit","text":"In spite of the distinct definition of the Vendor and Client, individual Pledges may be made by either Party, to the other Party. For example, a Vendor may also make Pledges to a Client. When added together, the net value of all Pledges contained in the Tally, form a total value for the Tally. Unless that value is zero, it will result in a net indebtedness of one Party to the other."},{"title":"Net Issuer and Recipient","text":"This indebtedness is credit, which can be thought of as a loan, a debt, or and IOU. At any given time, the indebted Party is referred to as the Net Issuer of credit. The other Party is referred to as the Net Recipient of credit."},{"title":"Variable Roles","text":"The roles of Vendor and Client remain constant in the context of the Tally with its two counterparts, Stock and Foil. As the Tally Stock accumulates a positive value, the Client would be the Net Issuer and the Vendor would be the Net Recipient. But the roles of Net Issuer and Net Recipient of credit can become reversed if the balance of the Tally moves from positive to negative."}]'
+      'Pledges of Value are tracked by means of a Tally. A Tally is an agreement between two willing Parties, normally stored as a digital electronic record, and by which the Parties document and enforce a series of Pledges of Value, called Chits, made between them.',
+      '[{"title":"Signing Keys","text":"Each Party is in possession of a digital key consisting of a private part and a public part. Each Party is responsible to maintain knowledge and possession of its key and to keep the private portion absolutely confidential. The public part of the key is used to validate the Party''s digital signature and so it must be shared with the other Party. This is accomplished by including both Parties'' public keys in the Tally Data."},{"title":"Signing the Tally","text":"The Parties agree to the terms and conditions incorporated into the Tally by computing a standardized hash from the normalized contents of the Tally, and encrypting that hash using their private key. This act of signing is normally conducted by a user interacting with an application running on a computer or mobile device. By producing and sharing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions of this Agreement."},{"title":"Stock and Foil","text":"The two Parties to a Tally are distinct with respect to their expected roles as Foil Holder and Stock Holder. Specifically, the Tally is stored as two complementary counterparts: a Foil, and a Stock, each held or stored by one of the Parties directly or by an agent service provider."},{"title":"Client Role","text":"The Foil Holder is expected to most often be the recipient or purchaser of Product. This role may also be referred to as the Client."},{"title":"Vendor Role","text":"The Stock Holder is expected most often to be the provider or seller of Product. This role may also be referred to as the Vendor."},{"title":"Typical Examples","text":"For example, if a regular customer establishes a Tally with a merchant to buy Product from that merchant, the customer will normally hold the Foil and the merchant will normally hold the Stock. In an employment scenario, the employer will normally hold the Foil and the Employee will normally hold the Stock. In a more casual trading relationship where Client/Vendor roles may be unclear, the Parties may select their roles as Foil Holder and Stock Holder in any way they choose."},{"title":"Chits","text":"Each Pledge of Credit contained in a Tally is referred to as a Chit. The Party who is pledging positive value by the Chit is referred to as the Issuer of credit for that Chit. The Party the pledge is made to is the Receiver of credit. Either Party may unilaterally add valid, digitally signed Chits to the Tally as long as it does so as the Issuer."},{"title":"Authority to Pledge","text":"Neither Party may unilaterally add a Chit as Receiver, meaning a Chit that would grant value from the other Party to itself. However, either Party may request such a Pledge from the other Party. It just does not become binding until it is duly signed by the Issuer."},{"title":"Net Credit","text":"In spite of the distinct definition of the Vendor and Client, individual Pledges may be made by either Party, to the other Party. For example, a Vendor may also make Pledges to a Client. When added together, the net value of all Pledges contained in the Tally, form a total, net value for the Tally. Unless that value is zero, it will result in a net indebtedness of one Party to the other."},{"title":"Net Issuer and Recipient","text":"This indebtedness is credit, which can be thought of as a loan, a debt, or an IOU. At any given time, the indebted Party is referred to as the Net Issuer of credit or Net Debtor. The other Party is referred to as the Net Recipient of credit or Net Creditor."},{"title":"Variable Roles","text":"The roles of Client and Vendor remain constant in the context of the Tally with its two counterparts, Foil Holder and Stock Holder. As the Tally Stock accumulates a positive value, the Client will be the Net Issuer and the Vendor will be the Net Recipient. But the roles of Net Issuer and Net Recipient of credit can become reversed if the balance of the Tally moves from positive to negative."}]'
     )
 
     on conflict on constraint contracts_pkey do update set 

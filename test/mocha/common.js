@@ -119,8 +119,7 @@ log.debug("Taking down docker PG")
       let sql = fileData.toString()
 log.debug('sql:', sql)
       db.query(sql, null ,(err, res) => {
-        if (err) done(err)
-log.debug('DD:', err, res.rows)
+        if (err) done(err)		//;log.debug('DD:', err, res.rows)
 //        assert.equal(res.rowCount, 1)
 //        let row = res.rows[0]
 //        assert.ok(row.record)

@@ -205,6 +205,8 @@ view mychips.users_v_me {mychips.users_v base.user_id(text) json.cert} {select
     eval(trigview::update mychips.users_v_me mychips.users_v $users::users_v_up_me $users::users_pk $glob::stampup);
 } -grant {
     {user	s {s i u} {d}}
+} -native {
+    {base.ent	id}
 } -primary id
 
 # View limited to user's own user address records
