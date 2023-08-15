@@ -193,3 +193,23 @@ export const getContract = (wm, args) => {
 
   return request(wm, 'agree' + random(), 'action', spec);
 }
+
+
+export const updateHoldCert = (wm, args) => {
+  const fields = {
+    hold_cert: args.hold_cert,
+  };
+
+  const spec = {
+    fields,
+    view: 'mychips.tallies_v_me',
+    where: {
+      tally_ent: args.tally_ent,
+      tally_seq: args.tally_seq,
+    },
+  }
+
+  console.log("MY_REQUEST ==> ", JSON.stringify(spec));
+
+  return request(wm, '_update_hold_cert_' + random(), 'update', spec);
+}

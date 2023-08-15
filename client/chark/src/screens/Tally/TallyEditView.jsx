@@ -30,6 +30,7 @@ const TallyEditView = (props) => {
   const talliesText = messageText?.tallies;
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
+  const hasPartCert = !!tally?.part_cert;
 
   return (
     <View>
@@ -84,6 +85,16 @@ const TallyEditView = (props) => {
           textColor={colors.blue}
           style={styles.showPDF}
         />
+
+        {
+          hasPartCert ? <></> :
+            <CustomButton
+              title="Update Contract"
+              onPress={props.onUpdateContract}
+              textColor={colors.blue}
+              style={styles.showPDF}
+            />
+        }
       </View>
 
       <View style={styles.detailControl}>

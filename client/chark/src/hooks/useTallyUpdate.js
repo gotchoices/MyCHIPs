@@ -31,7 +31,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }
 
     fetchTallies(wm, {
-      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig'],
+      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig', 'hold_cert'],
       where: {
         tally_ent,
         tally_seq,
@@ -40,6 +40,9 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
       const _tally = data?.[0];
       if (_tally) {
         setTally(_tally);
+        // Stock (Partner) Foil (Start)
+        console.log("TYPE_OF_TALLY ==> ", JSON.stringify(_tally?.tally_type));
+        console.log("NEW_TALLY_CERT ==> ", JSON.stringify(_tally?.part_cert));
 
         setTallyType(_tally.tally_type);
         setContract(_tally.contract?.rid ?? '');

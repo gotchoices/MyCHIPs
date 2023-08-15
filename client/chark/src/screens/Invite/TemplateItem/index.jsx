@@ -15,6 +15,8 @@ const TemplateItem = (props) => {
   const partCert = item.part_cert;
 
   const onView = () => {
+    props.onItemSelected(item);
+    return;
     props.navigation.navigate('TallyPreview', {
       tally_seq: item.id,
       tally_ent: item.tally_ent,

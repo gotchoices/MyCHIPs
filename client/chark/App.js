@@ -51,6 +51,7 @@ import TallyContract from './src/screens/Tally/TallyContract';
 import Button from './src/components/Button';
 import PaymentDetail from './src/screens/Tally/PaymentDetail';
 import FilterScreen from './src/screens/Filter';
+import DraftTally from './src/screens/Tally/DraftTally';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -58,6 +59,7 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
       <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
+      <HomeStack.Screen name="DraftTally" component={DraftTally} options={{ title: 'Draft Tally' }} />
       <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
       <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
       <HomeStack.Screen name='ChitHistory' component={ChitHistory} options={{ title: 'Chit History' }} />
