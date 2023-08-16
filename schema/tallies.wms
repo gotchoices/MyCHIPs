@@ -544,7 +544,7 @@ $$;}
 # Check for any lingering, unprocessed notices
 # A peer server should call this on launch to become aware of any activity it has missed
 #----------------------------------------------------------------
-function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.chits base.parm_int(text,text)} {
+function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.chits base.parm_int(text,text) mychips.chit_notify_agent(mychips.chits)} {
   returns int language plpgsql as $$
     declare
         trec		mychips.tallies;
@@ -563,7 +563,7 @@ function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.
         for crec in select * from mychips.chits ch
           join mychips.chit_tries ct on ct.ctry_ent = ch.chit_ent and ct.ctry_seq = ch.chit_seq and ct.ctry_idx = ch.chit_idx
           where ch.request is not null and (current_timestamp - ct.last) >= min_time loop
-            perform mychips.chit_notify(crec);
+            perform mychips.chit_notify_agent(crec);
             didem = didem + 1;
         end loop;
         return didem;
