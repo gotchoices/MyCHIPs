@@ -4,6 +4,10 @@ TODO:
 X-  Query to return a tally and nested contract JSON
 X-  Report runs from selected tally
 X-  Formatter class can build document descriptors for tally information (prolog, epilog)
+X-  Update RID's in Tally_Contract, Free
+X-  Review/edit Credit Terms document
+-  Move Tally Data to end of agreement
+-  Include signatures
 -  Report formats full tally agreement
 -  
 - Document fields in user certificate
@@ -12,6 +16,13 @@ X-  Tally inherits default certificate
 X-  Make wmt file for cert values
 X-  Tally contract formatter pulls language from data dictionary
 -  Review new language tags added.  Do we really need them all?
+-  
+- Tally/chit signatures
+X-  What happens if I try to create a signed chit issued by the other party?
+-  Can I validate tally signatures coming in from the UI
+-  Can I validate tally signatures in the DB?
+-  
+- Properly detect MYCHIPS_ROOTNAME for docker-dev (git rev-parse --show-toplevel)
 -  
 - Refactor document server to return contracts
 -  in json format

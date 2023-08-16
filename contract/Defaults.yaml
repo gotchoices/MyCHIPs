@@ -7,27 +7,27 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'EPtLQUmshMGkvFnSNzCbiLYLDoS6ARAmiDvEiZf2TF4B'
+    rid: '4mJNcoNSDzgnb8YExnMCU9hQCMdof4MCSg8xc2cVeUmV'
     title: 'Contract Breaches and Conditions of Default'
     text: >-
-      Any of the following actions by either Party constitute a breach of the Agreement and therefore, the Party is deemed to be in Default:
+      Any of the following actions by either Party constitutes a breach of this Agreement, thereby deeming the Party to be in Default.
     sections:
       -
         title: 'Failure of Duty'
         text: >-
-          Failure to honor any obligation outlined in the Tally, including all its referenced Contract components.
+          Failure to honor any of the obligations specified in this Agreement.
       -
         title: 'False Representation'
         text: >-
-          Determination that any representation given in connection with the Tally is factually untrue.
+          Making any representation in connection with the Tally that is factually untrue.
       -
         title: 'Failure to Commit'
         text: >-
-          Failure to complete a Credit Lift transactions previously committed to as a result of intentional manipulation of software and/or a network.
+          Failure to complete a Credit Lift transactions previously committed to, due to intentional manipulation of software and/or the network.
       -
         title: 'Attempt to Cheat'
         text: >-
-          Failure to complete a Credit Lift honestly and according to the protocol documented and demonstrated by the reference server implementation published by mychips.org.
+          Failure to complete a Credit Lift honestly and in accordance with the protocol documented and demonstrated by the reference server implementation published by MyCHIPs.org.
       -
         title: 'Failure to Honor'
         text: >-

@@ -7,74 +7,75 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'BZrHne18JUX4gdPJzjBHGh1cTNxvmfqAFy6ppDQP2uos'
+    rid: '7R9vCwLyJcTxH3Y8yQ2886EPiqEyoUuzxD9mQSMbdjq4'
     title: 'What a Tally is and How it Works'
     text: >-
       Pledges of Value are tracked by means of a Tally.
-      A Tally is an agreement between two willing Parties, normally stored as a digital electronic record, and by which the Parties document and enforce a series of Pledges of Value, or Chits, made between them.
+      A Tally is an agreement between two willing Parties, normally stored as a digital electronic record, and by which the Parties document and enforce a series of Pledges of Value, called Chits, made between them.
     sections:
       -
         title: 'Signing Keys'
         text: >-
           Each Party is in possession of a digital key consisting of a private part and a public part.
           Each Party is responsible to maintain knowledge and possession of its key and to keep the private portion absolutely confidential.
-          The public part of the key will be used to validate one's digital signature and so must be shared with the other Party.
+          The public part of the key is used to validate the Party's digital signature and so it must be shared with the other Party.
+          This is accomplished by including both Parties' public keys in the Tally Data.
       -
         title: 'Signing the Tally'
         text: >-
-          The Parties agree to the terms and conditions incorporated in the Tally by computing a standardized hash from the normalized contents of the Tally, and encrypting that hash using their private key.
+          The Parties agree to the terms and conditions incorporated into the Tally by computing a standardized hash from the normalized contents of the Tally, and encrypting that hash using their private key.
           This act of signing is normally conducted by a user interacting with an application running on a computer or mobile device.
-          By producing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions contained in that Tally, including those that are incorporated by reference.
-          If one Party is in possession of a valid signature of the Tally, which can be verified by the other Party's public key, this is sufficient proof of the consent of the other Party to the Agreement in its entirety.
+          By producing and sharing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions of this Agreement.
       -
         title: 'Stock and Foil'
         text: >-
-          The two Parties to a Tally are distinct with respect to their expected roles.
-          Specifically, the Tally is stored as two complementary counterparts: a Stock, and a Foil, each held or stored by one of the Parties or its agent service provider.
-      -
-        title: 'Vendor Role'
-        text: >-
-          The Party holding the Stock is expected to be the provider of Product most often in the normal course of transactions.
-          This role is referred to as the "Vendor."
+          The two Parties to a Tally are distinct with respect to their expected roles as Foil Holder and Stock Holder.
+          Specifically, the Tally is stored as two complementary counterparts: a Foil, and a Stock, each held or stored by one of the Parties directly or by an agent service provider.
       -
         title: 'Client Role'
         text: >-
-          The Party holding the Foil is expected to most often be the recipient of Product.
-          This role is referred to as the "Client."
+          The Foil Holder is expected to most often be the recipient or purchaser of Product.
+          This role may also be referred to as the Client.
+      -
+        title: 'Vendor Role'
+        text: >-
+          The Stock Holder is expected most often to be the provider or seller of Product.
+          This role may also be referred to as the Vendor.
       -
         title: 'Typical Examples'
         text: >-
-          For example, if a regular customer establishes a Tally with a merchant to buy Product from that merchant, the customer would hold the Foil and the merchant would hold the Stock.
-          In an employment scenario, the employer will hold the Foil and the Employee will hold the Stock.
-          In less formal trading relationships, the Parties can select their roles of Vendor and Client as seems best to fit the trading relationship.
+          For example, if a regular customer establishes a Tally with a merchant to buy Product from that merchant, the customer will normally hold the Foil and the merchant will normally hold the Stock.
+          In an employment scenario, the employer will normally hold the Foil and the Employee will normally hold the Stock.
+          In a more casual trading relationship where Client/Vendor roles may be unclear, the Parties may select their roles as Foil Holder and Stock Holder in any way they choose.
       -
         title: 'Chits'
         text: >-
           Each Pledge of Credit contained in a Tally is referred to as a Chit.
-          The Party who is pledging value by the Chit is referred to as the Issuer of credit for that Chit.
+          The Party who is pledging positive value by the Chit is referred to as the Issuer of credit for that Chit.
           The Party the pledge is made to is the Receiver of credit.
-          Either Party may unilaterally add valid, digitally signed Chits to the Tally as long as it does so as an Issuer.
+          Either Party may unilaterally add valid, digitally signed Chits to the Tally as long as it does so as the Issuer.
       -
         title: 'Authority to Pledge'
         text: >-
-          Neither Party may unilaterally add a Chit as Receiver, or a Chit which would grant value from the other Party to itself.
+          Neither Party may unilaterally add a Chit as Receiver, meaning a Chit that would grant value from the other Party to itself.
           However, either Party may request such a Pledge from the other Party.
+          It just does not become binding until it is duly signed by the Issuer.
       -
         title: 'Net Credit'
         text: >-
           In spite of the distinct definition of the Vendor and Client, individual Pledges may be made by either Party, to the other Party.
           For example, a Vendor may also make Pledges to a Client.
-          When added together, the net value of all Pledges contained in the Tally, form a total value for the Tally.
+          When added together, the net value of all Pledges contained in the Tally, form a total, net value for the Tally.
           Unless that value is zero, it will result in a net indebtedness of one Party to the other.
       -
         title: 'Net Issuer and Recipient'
         text: >-
-          This indebtedness is credit, which can be thought of as a loan, a debt, or and IOU.
-          At any given time, the indebted Party is referred to as the Net Issuer of credit.
-          The other Party is referred to as the Net Recipient of credit.
+          This indebtedness is credit, which can be thought of as a loan, a debt, or an IOU.
+          At any given time, the indebted Party is referred to as the Net Issuer of credit or Net Debtor.
+          The other Party is referred to as the Net Recipient of credit or Net Creditor.
       -
         title: 'Variable Roles'
         text: >-
-          The roles of Vendor and Client remain constant in the context of the Tally with its two counterparts, Stock and Foil.
-          As the Tally Stock accumulates a positive value, the Client would be the Net Issuer and the Vendor would be the Net Recipient.
+          The roles of Client and Vendor remain constant in the context of the Tally with its two counterparts, Foil Holder and Stock Holder.
+          As the Tally Stock accumulates a positive value, the Client will be the Net Issuer and the Vendor will be the Net Recipient.
           But the roles of Net Issuer and Net Recipient of credit can become reversed if the balance of the Tally moves from positive to negative.

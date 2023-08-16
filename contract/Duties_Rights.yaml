@@ -7,10 +7,10 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'BroTb9jYQDdxoeBoHE9d9JPLuGcbf7G944eV2jNYkVTM'
+    rid: '3mXoCRRbbUkhdyG6HpeqVA2aiP1E83vti8dbizD9rqTx'
     title: "Duties of the Parties to Each Other"
     text: >-
-      Each Party has certain duties under this Agreement which duties posit corresponding rights to the other Party as follows:
+      Each Party has certain duties under this Agreement, and these duties create corresponding rights for the other Party as follows:
     sections:
       -
         title: 'Cooperation'
@@ -24,18 +24,16 @@
       -
         title: 'Competency'
         text: >-
-          Each Party shall take reasonable care to ensure that the other Party is mentally competent to enter into the Contract and its associated transactions.
-          This includes avoiding the receipt of Pledges from those who are too young, too old, or otherwise unable to fully understand the obligations they are entering into.
+          Each Party shall take reasonable care to ensure that the other Party is mentally competent to enter into this Agreement and its associated transactions including avoiding the receipt of Pledges from parties who are too young, too old, or otherwise unable to fully understand the obligations they are entering into.
       -
         title: 'Disclosure'
         text: >-
           Each Party shall honestly inform the other Party of information relevant to its decision to execute this Tally and/or its associated Pledges.
-          This includes disclosures about any known dangers or deficiences regarding Product purchased by way of the Tally.
-          It also includes known information about one's ability or past performance in fulfilling Pledges made to other parties.
+          This includes disclosures about any known dangers or deficiences regarding the Product purchased by way of the Tally, and information about one's ability or past performance in fulfilling Pledges made to other parties.
       -
         title: 'Consent'
         text: >-
-          Each Party shall take reasonable care to ensure that the other Party has entered into this Contract of its own free will and choice.
+          Each Party shall take reasonable care to ensure that the other Party has entered into this Agreement of its own free will and choice.
       -
         title: 'Identity'
         text: >-
@@ -43,31 +41,37 @@
       -
         title: 'Privacy'
         text: >-
-          Each Party shall take reasonable measures to keep private any information, not already generally available by other means, and which is revealed or discovered in connection with the execution of the Tally.
+          Each Party shall take reasonable measures to keep private any information not already generally available by other means, and which is revealed or discovered in connection with the execution of the Tally.
+      -
+        title: 'Lift Transaction'
+        text: >-
+          A Credit Lift is a distributed transaction by which parties can effectively exchange amounts of indebtedness with other users on the network.
+          Such transaction can be used to clear credit balances among a group of users.
+          It can also be used to transmit value through the network to a party one is not directly connected to.
       -
         title: 'Lift Execution'
         text: >-
-          Each Party shall make reasonable efforts to use software which faithfully executes the MyCHIPs protocol, as published by mychips.org, in good faith.
+          Each Party shall make reasonable efforts to use software which faithfully executes the MyCHIPs protocol, as published by MyCHIPs.org, in good faith.
           Each Party's server, having completed the conditional phase of a Lift transaction, shall then make every effort to commit the final phase of that lift in accordance with the agreed upon terms.
-          Use of a current, unmodified, official release of the MyCHIPs software as distributed by mychips.org satisfies the requirements of this section.
+          Use of a current, unmodified, official release of the MyCHIPs software as distributed by MyCHIPs.org satisfies the requirements of this section.
       -
         title: 'Resolution by Other Means'
         text: >-
-          Should a Party fail, within 10 days of request, to provide or maintain suitable connections to satisfy an outstanding Pledges by way of Credit Lifts, it shall provide payment upon demand in some other medium satisfactory to the Receiver.
-          This includes payment by a sound government currency in common use by the Receiver such as Dollars or Euros, for example.
-          It could include payment in gold, silver or other precious commodities acceptable to the Receiver.
-          It could also include Product furnished by the Issuer and satisfactory to the Receiver.
+          Should a Party fail, within the applicable Call Terms, to provide or maintain suitable connections to satisfy an outstanding Pledges by way of Credit Lifts, it shall provide payment upon demand in some other medium satisfactory to the Receiver.
+          This may include payment of a sound government currency in common use by the Receiver such as Dollars or Euros, for example.
+          It may include payment in gold, silver or other precious commodities acceptable to the Receiver.
+          It may also include Product furnished by the Issuer and satisfactory to the Receiver.
           The Receiver shall not unreasonably refuse a good faith payment offered by such other means.
       -
         title: 'Lift Authority'
         text: >-
-          Each Party authorizes its agent host system to sign Credit Lifts, on behalf of that Party, using the system's own private/public key.
-          All such lifts executed and signed by the Party's host system shall be binding upon the Party so long as they conform to the Trading Variables established and signed by the Party in its private counterpart of the Tally.
-          Each Party shall hold its system operator(s) harmless for untinentional errors or losses incurred while using a current, unmodified official release of the MyCHIPs sotware as distributed by mychips.org.
+          Each Party authorizes its agent host system to sign Chits associated with Credit Lifts, on behalf of that Party, using the agent's own private/public key.
+          All such lifts executed and signed by the Party's agent shall be binding upon the Party so long as they conform to the Trading Variables established and signed by the Party and attached to the Tally.
+          Each Party shall hold its system operator(s) harmless for unintentional errors or losses incurred while using a current, unmodified official release of the MyCHIPs software as distributed by MyCHIPs.org.
       -
         title: 'Notice of Default'
         text: >-
-          Should one Party find the other Party in Default of this Agreement, it shall give written notice to the Defaulting Party by email, text message or certified mail.
+          Should one Party find the other Party in Default of this Agreement, it shall give written notice to the Defaulting Party by email, text message or certified mail according to the contact information contained in the Tally.
           Such notice may be as simple as to state the act or circumstance deemed to be a breach, and to request the problem be resolved.
       -
         title: 'Cure of Default'
@@ -76,11 +80,12 @@
       -
         title: 'Publication'
         text: >-
-          If a Default is not cured within 10 days, the non-breaching Party is entitled to publish the identity of the breaching Party and information about the nature of the breach, notwithstanding any obligations regarding privacy.
+          If a Default is not cured within 10 days of notice, the non-breaching Party is entitled to publish the identity of the breaching Party and information about the nature of the breach, notwithstanding any obligations regarding privacy.
           Such publication shall be done solely to inform others who might contemplate entering into a similar transaction with the breaching Party.
           If a Party has previously published such information and the breaching Party subsequently and satisfactorily cures the breach, the publishing Party shall then also similarly publish information indicating that the breach has been cured.
       -
         title: 'Collateral'
         text: >-
-          If collateral is offered to secure a debt incurred by an Issuer under this Tally, such shall be evidenced by an external agreement such as a deed of trust, a lien or notice of interest.
-          If such agreement is duly executed by the Parties, a Recipient shall enjoy all recourse available by law in using the collateral to fully collect the debt incurred under this Agreement.
+          If collateral is offered to secure a debt incurred by an Issuer under this Tally, such shall be evidenced by an external agreement such as a deed of trust, lien or notice of interest.
+          A reference to this Tally may be included in that agreement by noting the Tally's UUID number.
+          If such agreement is duly executed by the Parties, the Recipient shall have all legal recourse to use the collateral to fully collect the debt incurred under this Agreement.

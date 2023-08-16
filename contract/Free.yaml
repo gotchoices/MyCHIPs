@@ -7,20 +7,20 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: '9vdx9fmL2XQeyLKWaMQjNHzxPv5QTeZ1PZJDSdr3Rqi8'
+    rid: '2ebMqwxUsS42mGbc9Wi1ncfPyecYpyvPgY9juf33kR8k'
     title: 'How to Use MyCHIPs at No Cost'
     text: >-
       End users may use MyCHIPs royalty free on the condition that, in all contracts and transactions, the following contract sections are included in their full force and intent, and abided by:
     sections:
       -
         name: 'Recitals'
-        source: 'Hr3yY2MjeWmVKfYJiba2zQUgxrGDnw1MnYuJ9rjDuQRn'
+        source: '77PKAAHiHBDKEKgDAtzsZSVZFAVMW4fTYD4aw2bvee72'
       -
         name: 'Tally_Definition'
-        source: 'BZrHne18JUX4gdPJzjBHGh1cTNxvmfqAFy6ppDQP2uos'
+        source: '7R9vCwLyJcTxH3Y8yQ2886EPiqEyoUuzxD9mQSMbdjq4'
       -
         name: 'CHIP_Definition'
-        source: 'GLJJEMbxfH7caHcNEhNqR7H4yDhsPpBe9vJuxCdTonrB'
+        source: '1o8WA4AchpWBMjYuQoztdxmMZahEintSyQdz3nT9Pap'
       -
         name: 'Ethics'
-        source: '3zAQw3iSh3EP9s2ynRshuEfWz8UAHXnk2uTmyQqMnVat'
+        source: 'BYmhLcQ1PuprYggtPFQqSEMs61x2oJzQPpF2PLxTygG8'
