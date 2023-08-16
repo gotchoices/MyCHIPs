@@ -66,9 +66,17 @@ table mychips.chit_tries {mychips.chits} {
 
 # Screen new chit record
 #----------------------------------------------------------------
-function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.chits)} {
+function mychips.chits_tf_bi() {mychips.tallies mychips.chit_goodcheck(mychips.chits,mychips.tallies)} {
   returns trigger language plpgsql security definer as $$
+    declare
+      ta	mychips.tallies;
     begin
+      select into ta * from mychips.tallies where tally_ent = new.chit_ent and tally_seq = new.chit_seq;
+      if not found or ta.digest isnull then		-- Can we find the valid tally the chit belongs to?
+        raise exception '!mychips.chits:LIT %-%-%', ta.tally_ent, ta.tally_seq, ta.tally_type;
+        return null;
+      end if;
+
       if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
         update mychips.tallies set _last_chit = greatest(
             coalesce(_last_chit,0) + 1,
@@ -90,24 +98,35 @@ function mychips.chits_tf_seq() {mychips.tallies mychips.chit_goodcheck(mychips.
       if new.request = 'pend' then		-- User is drafting
         new.status = 'draft';
       elsif new.request = 'good' then		-- User is sending good pledge
+        if ta.tally_type != new.issuer then	-- He better be the issuer
+          raise exception '!mychips.chits:ILI %-%', new.chit_ent, new.chit_seq;
+        end if;
         new.status = 'pend';
-        return mychips.chit_goodcheck(new);	-- Need chit to be chained before we transmit it
+        return mychips.chit_goodcheck(new, ta);	-- Need chit to be chained before we transmit it
 
-      elsif new.status = 'good' then		-- A signed chit from peer can come in marked as good
-        return mychips.chit_goodcheck(new);	-- May double-check certain chits (will check in goodcheck)
+      elsif new.status = 'good' then		-- A signed chit can come in from a peer marked as good (but not from our user via chits_v_me)
+        return mychips.chit_goodcheck(new, ta);	-- May double-check certain chits (will check in goodcheck)
       end if;
       return new;
     end;
 $$;}
-trigger mychips_chits_tr_seq {} {
-    before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
+trigger mychips_chits_tr_bi {} {
+    before insert on mychips.chits for each row execute procedure mychips.chits_tf_bi();
 }
 
 # Before updating each chit record
 #----------------------------------------------------------------
-function mychips.chits_tf_bu() {mychips.chit_goodcheck(mychips.chits)} {
+function mychips.chits_tf_bu() {mychips.chit_goodcheck(mychips.chits,mychips.tallies)} {
   returns trigger language plpgsql security definer as $$
+    declare
+      ta	mychips.tallies;
     begin
+      select into ta * from mychips.tallies where tally_ent = new.chit_ent and tally_seq = new.chit_seq;
+      if not found or ta.digest isnull then		-- Can we find the valid tally the chit belongs to?
+        raise exception '!mychips.chits:LIT %-%-%', ta.tally_ent, ta.tally_seq, ta.tally_type;
+        return null;
+      end if;
+
       if new.status != old.status then			-- Check for valid state transitions
         if not (
           new.status in ('draft','pend') and old.status in ('draft','pend') or
@@ -122,12 +141,12 @@ function mychips.chits_tf_bu() {mychips.chit_goodcheck(mychips.chits)} {
         new.status = 'draft';
       elsif new.request = 'good' then		-- User is sending good pledge
         new.status = 'pend';
-        return mychips.chit_goodcheck(new);
+        return mychips.chit_goodcheck(new, ta);
       elsif new.status = 'good' and old.status != 'good' then	-- Received good chit
-        return mychips.chit_goodcheck(new);
+        return mychips.chit_goodcheck(new, ta);
       elsif new.status = 'reproc' then		-- Need to reorder this chit in the chain
         new.status = 'good';
-        return mychips.chit_goodcheck(new);
+        return mychips.chit_goodcheck(new, ta);
       end if;
       return new;
     end;
@@ -167,14 +186,14 @@ trigger mychips_chits_tr_cache {} {
 
 # Quality check for a chit as it goes into status: good
 #----------------------------------------------------------------
-function {mychips.chit_goodcheck(ch mychips.chits)} {
+function {mychips.chit_goodcheck(ch mychips.chits, ta mychips.tallies)} {
   mychips.chit_json_h(mychips.chits,mychips.tallies)
+  mychips.tallies
   mychips.chits_v
   mychips.j2h(jsonb)
 } {
   returns mychips.chits language plpgsql security definer as $$
     declare
-      trec	mychips.tallies;
       settings	jsonb;
     begin
 
@@ -184,27 +203,21 @@ function {mychips.chit_goodcheck(ch mychips.chits)} {
       
       if ch.chain_prev notnull then return ch; end if;		-- Already processed/chained this chit
 
-      select into trec * from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
-      if not found or trec.digest isnull then		-- Can we find the valid tally the chit belongs to?
-        raise exception '!mychips.chits:LIT %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
-        return null;
-      end if;
-
       if ch.chit_type = 'set' then			-- Apply tally settings
         settings = ch.reference;
         update mychips.tallies set
-          hold_sets = hold_sets || case when ch.issuer = trec.tally_type then settings else '{}' end,		-- Merge settings
-          part_sets = part_sets || case when ch.issuer = trec.tally_type then '{}' else settings end,
+          hold_sets = hold_sets || case when ch.issuer = ta.tally_type then settings else '{}' end,		-- Merge settings
+          part_sets = part_sets || case when ch.issuer = ta.tally_type then '{}' else settings end,
           target = coalesce((settings->>'target')::bigint, target), 		-- Update cached trading variables
           bound  = coalesce((settings->>'bound')::bigint,  bound),
           reward = coalesce((settings->>'reward')::float,  reward), 
           clutch = coalesce((settings->>'clutch')::float,  clutch), 
           status = case when status = 'open' and (settings->'close')::boolean then 'close' else status end	-- Enact any close request
-        where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
+        where tally_ent = ta.tally_ent and tally_seq = ta.tally_seq;
       end if;
 
-      ch.digest = mychips.j2h(mychips.chit_json_c(ch, trec));	-- Hash that the issuer signs
-      return mychips.chain_consense(ch, trec);
+      ch.digest = mychips.j2h(mychips.chit_json_c(ch, ta));	-- Hash that the issuer signs
+      return mychips.chain_consense(ch, ta);
     end;
 $$;}
 

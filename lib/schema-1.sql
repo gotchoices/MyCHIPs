@@ -3416,30 +3416,6 @@ create function mychips.lifts_tf_bu() returns trigger language plpgsql security 
     end;
 $$;
 create trigger mychips_lifts_tr_notice after insert or update on mychips.lifts for each row execute procedure mychips.lifts_tf_notify();
-create function mychips.tally_notices() returns int language plpgsql as $$
-    declare
-        trec		mychips.tallies;
-        crec		mychips.chits;
-        didem		int = 0;
-        min_min		int = coalesce(base.parm_int('agents','min_time'), 60);
-        min_time	interval = (min_min::text || ' minutes')::interval;
-    begin
-        for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
-          join mychips.tally_tries tr on tr.ttry_ent = ta.tally_ent and tr.ttry_seq = ta.tally_seq
-          where ta.request is not null and (current_timestamp - tr.last) >= min_time loop
-            perform mychips.tally_notify_agent(trec);
-            didem = didem + 1;
-        end loop;
-
-        for crec in select * from mychips.chits ch
-          join mychips.chit_tries ct on ct.ctry_ent = ch.chit_ent and ct.ctry_seq = ch.chit_seq and ct.ctry_idx = ch.chit_idx
-          where ch.request is not null and (current_timestamp - ct.last) >= min_time loop
-            perform mychips.chit_notify(crec);
-            didem = didem + 1;
-        end loop;
-        return didem;
-    end;
-$$;
 create function mychips.ticket_process(ticket jsonb, uname text = session_user) returns boolean language plpgsql security definer as $$
     declare
       trec	record;
@@ -3815,9 +3791,8 @@ raise notice 'Chain STOCK: idx:% hash:% prv:%', ch.chain_idx, ch.chain_hash, ch.
       return ch;
     end;
 $$;
-create function mychips.chit_goodcheck(ch mychips.chits) returns mychips.chits language plpgsql security definer as $$
+create function mychips.chit_goodcheck(ch mychips.chits, ta mychips.tallies) returns mychips.chits language plpgsql security definer as $$
     declare
-      trec	mychips.tallies;
       settings	jsonb;
     begin
 
@@ -3827,27 +3802,21 @@ create function mychips.chit_goodcheck(ch mychips.chits) returns mychips.chits l
       
       if ch.chain_prev notnull then return ch; end if;
 
-      select into trec * from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
-      if not found or trec.digest isnull then		-- Can we find the valid tally the chit belongs to?
-        raise exception '!mychips.chits:LIT %-%-%', trec.tally_ent, trec.tally_seq, trec.tally_type;
-        return null;
-      end if;
-
       if ch.chit_type = 'set' then			-- Apply tally settings
         settings = ch.reference;
         update mychips.tallies set
-          hold_sets = hold_sets || case when ch.issuer = trec.tally_type then settings else '{}' end,
-          part_sets = part_sets || case when ch.issuer = trec.tally_type then '{}' else settings end,
+          hold_sets = hold_sets || case when ch.issuer = ta.tally_type then settings else '{}' end,
+          part_sets = part_sets || case when ch.issuer = ta.tally_type then '{}' else settings end,
           target = coalesce((settings->>'target')::bigint, target),
           bound  = coalesce((settings->>'bound')::bigint,  bound),
           reward = coalesce((settings->>'reward')::float,  reward), 
           clutch = coalesce((settings->>'clutch')::float,  clutch), 
           status = case when status = 'open' and (settings->'close')::boolean then 'close' else status end	-- Enact any close request
-        where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
+        where tally_ent = ta.tally_ent and tally_seq = ta.tally_seq;
       end if;
 
-      ch.digest = mychips.j2h(mychips.chit_json_c(ch, trec));
-      return mychips.chain_consense(ch, trec);
+      ch.digest = mychips.j2h(mychips.chit_json_c(ch, ta));
+      return mychips.chain_consense(ch, ta);
     end;
 $$;
 create function mychips.chit_process(msg jsonb, recipe jsonb) returns text language plpgsql as $$
@@ -4080,34 +4049,16 @@ create function mychips.chit_notify_agent(chit mychips.chits) returns boolean la
         return true;
     end;
 $$;
-create function mychips.chits_tf_bu() returns trigger language plpgsql security definer as $$
+create function mychips.chits_tf_bi() returns trigger language plpgsql security definer as $$
+    declare
+      ta	mychips.tallies;
     begin
-      if new.status != old.status then			-- Check for valid state transitions
-        if not (
-          new.status in ('draft','pend') and old.status in ('draft','pend') or
-          new.status = 'pend' and old.status = 'void' or
-          new.status in ('void','good') and old.status = 'pend' or
-          new.status = 'reproc'
-        ) then raise exception '!mychips.chits:IST % %', old.status, new.status;
-        end if;
+      select into ta * from mychips.tallies where tally_ent = new.chit_ent and tally_seq = new.chit_seq;
+      if not found or ta.digest isnull then		-- Can we find the valid tally the chit belongs to?
+        raise exception '!mychips.chits:LIT %-%-%', ta.tally_ent, ta.tally_seq, ta.tally_type;
+        return null;
       end if;
 
-      if new.request = 'pend' then		-- User is drafting/re-drafting
-        new.status = 'draft';
-      elsif new.request = 'good' then		-- User is sending good pledge
-        new.status = 'pend';
-        return mychips.chit_goodcheck(new);
-      elsif new.status = 'good' and old.status != 'good' then	-- Received good chit
-        return mychips.chit_goodcheck(new);
-      elsif new.status = 'reproc' then		-- Need to reorder this chit in the chain
-        new.status = 'good';
-        return mychips.chit_goodcheck(new);
-      end if;
-      return new;
-    end;
-$$;
-create function mychips.chits_tf_seq() returns trigger language plpgsql security definer as $$
-    begin
       if new.chit_idx is null then			-- update should lock the mychips.tallies row until transaction completes
         update mychips.tallies set _last_chit = greatest(
             coalesce(_last_chit,0) + 1,
@@ -4129,11 +4080,48 @@ create function mychips.chits_tf_seq() returns trigger language plpgsql security
       if new.request = 'pend' then		-- User is drafting
         new.status = 'draft';
       elsif new.request = 'good' then		-- User is sending good pledge
+        if ta.tally_type != new.issuer then	-- He better be the issuer
+          raise exception '!mychips.chits:ILI %-%', new.chit_ent, new.chit_seq;
+        end if;
         new.status = 'pend';
-        return mychips.chit_goodcheck(new);
+        return mychips.chit_goodcheck(new, ta);
 
-      elsif new.status = 'good' then		-- A signed chit from peer can come in marked as good
-        return mychips.chit_goodcheck(new);
+      elsif new.status = 'good' then		-- A signed chit can come in from a peer marked as good (but not from our user via chits_v_me)
+        return mychips.chit_goodcheck(new, ta);
+      end if;
+      return new;
+    end;
+$$;
+create function mychips.chits_tf_bu() returns trigger language plpgsql security definer as $$
+    declare
+      ta	mychips.tallies;
+    begin
+      select into ta * from mychips.tallies where tally_ent = new.chit_ent and tally_seq = new.chit_seq;
+      if not found or ta.digest isnull then		-- Can we find the valid tally the chit belongs to?
+        raise exception '!mychips.chits:LIT %-%-%', ta.tally_ent, ta.tally_seq, ta.tally_type;
+        return null;
+      end if;
+
+      if new.status != old.status then			-- Check for valid state transitions
+        if not (
+          new.status in ('draft','pend') and old.status in ('draft','pend') or
+          new.status = 'pend' and old.status = 'void' or
+          new.status in ('void','good') and old.status = 'pend' or
+          new.status = 'reproc'
+        ) then raise exception '!mychips.chits:IST % %', old.status, new.status;
+        end if;
+      end if;
+
+      if new.request = 'pend' then		-- User is drafting/re-drafting
+        new.status = 'draft';
+      elsif new.request = 'good' then		-- User is sending good pledge
+        new.status = 'pend';
+        return mychips.chit_goodcheck(new, ta);
+      elsif new.status = 'good' and old.status != 'good' then	-- Received good chit
+        return mychips.chit_goodcheck(new, ta);
+      elsif new.status = 'reproc' then		-- Need to reorder this chit in the chain
+        new.status = 'good';
+        return mychips.chit_goodcheck(new, ta);
       end if;
       return new;
     end;
@@ -4664,8 +4652,8 @@ raise notice 'Chit update:% send:%', dirty, new.chain_send;
         return new;
     end;
 $$;
+create trigger mychips_chits_tr_bi before insert on mychips.chits for each row execute procedure mychips.chits_tf_bi();
 create trigger mychips_chits_tr_bu before update on mychips.chits for each row execute procedure mychips.chits_tf_bu();
-create trigger mychips_chits_tr_seq before insert on mychips.chits for each row execute procedure mychips.chits_tf_seq();
 create view mychips.chits_v_me as select 
     c.*
     from	mychips.chits_v c
@@ -5053,6 +5041,30 @@ create view mychips.tallies_v_paths as with recursive tally_path (
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
   join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq;
 create trigger mychips_tallies_v_tr_ins instead of insert on mychips.tallies_v for each row execute procedure mychips.tallies_v_insfunc();
+create function mychips.tally_notices() returns int language plpgsql as $$
+    declare
+        trec		mychips.tallies;
+        crec		mychips.chits;
+        didem		int = 0;
+        min_min		int = coalesce(base.parm_int('agents','min_time'), 60);
+        min_time	interval = (min_min::text || ' minutes')::interval;
+    begin
+        for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
+          join mychips.tally_tries tr on tr.ttry_ent = ta.tally_ent and tr.ttry_seq = ta.tally_seq
+          where ta.request is not null and (current_timestamp - tr.last) >= min_time loop
+            perform mychips.tally_notify_agent(trec);
+            didem = didem + 1;
+        end loop;
+
+        for crec in select * from mychips.chits ch
+          join mychips.chit_tries ct on ct.ctry_ent = ch.chit_ent and ct.ctry_seq = ch.chit_seq and ct.ctry_idx = ch.chit_idx
+          where ch.request is not null and (current_timestamp - ct.last) >= min_time loop
+            perform mychips.chit_notify_agent(crec);
+            didem = didem + 1;
+        end loop;
+        return didem;
+    end;
+$$;
 create function mychips.ticket_get(seq int, reu boolean = false, exp timestamp = current_timestamp + '45 minutes') returns jsonb language plpgsql as $$
     declare
       trec	record;
