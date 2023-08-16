@@ -43,6 +43,7 @@ tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit
   {CUU		{Chit Not Unique}	{Chit UUID must be unique to each tally}}
   {IST		{Illegal State Change}	{The executed state transition is not allowed}}
   {LIT		{Link Invalid Tally}	{Attempted to link chit to invalid tally}}
+  {ILI		{Illegal Chit Issuer}	{User attempted to execute a good chit issued by the partner}}
   {MIS		{Bad Chit Signature}	{A chit marked to be good has no signature}}
   {CUN		{Bad Chit Units}	{Transactional chits must have a unit value.  Settings chits must not.}}
 }
