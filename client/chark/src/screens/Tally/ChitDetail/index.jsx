@@ -45,9 +45,9 @@ const ChitDetail = (props) => {
     contentContainerStyle={styles.contentContainer}
   >
     <Text style={styles.text}>CHIT UUID: {chit?.chit_uuid}</Text>
-    <Text style={styles.text}>CHAIN HASH: {chit?.chain_hash.type} {chit?.chain_hash.data.toString()}</Text>
+    <Text style={styles.text}>CHAIN HASH: {chit?.chain_hash?.type} {chit?.chain_hash?.data?.toString()}</Text>
     <Text style={styles.text}>SIGNATURE: {chit?.signature}</Text>
-    <Text style={styles.text}>CLEAN: {chit?.clean.toString()}</Text>
+    <Text style={styles.text}>CLEAN: {chit?.clean?.toString()}</Text>
 
     <Text style={[styles.text, { color: colors.blue, fontWeight: 'bold' }]}>WORK IN PROGRESS</Text>
   </ScrollView>

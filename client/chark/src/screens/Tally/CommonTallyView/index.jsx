@@ -87,6 +87,13 @@ const CommonTallyView = (props) => {
                 onPress={props.onPay}
                 style={{ borderRadius: 12, paddingHorizontal: 22, marginStart: 12 }}
               />
+
+              <Button
+                title='Request'
+                onPress={props.onRequest}
+                style={{ borderRadius: 12, paddingHorizontal: 22, marginStart: 12 }}
+              />
+
             </View>
           </View>
         </View>
