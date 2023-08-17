@@ -322,7 +322,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state
-  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','draft']) as action
+  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer']) as action
   , te.status = 'open' or (te.status = 'close' and net_pc != 0)		as liftable
 
   , coalesce(cg.chits, 0)				as chits
