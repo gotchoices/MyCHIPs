@@ -108,12 +108,15 @@ function {mychips.contract_mat(contract jsonb)} {mychips.contracts_v} {
     begin
     if not (contract ? 'sections') then
       return contract;
-    end if;
+    end if;			--;raise notice 'S %', contract->'sections';
     for i in 0..jsonb_array_length(contract->'sections')-1 loop
       if ((contract->'sections'->i) ? 'source') then
         fetchedCont = (
           select json from mychips.contracts_v where rid = contract->'sections'->i->>'source'
         );
+        if fetchedCont isnull then
+          raise '!mychips.contracts:IRI %', contract->'sections'->i->>'source';
+        end if;
         fetchedCont = mychips.contract_mat(fetchedCont);	-- Resolve sub-references
         newObj = jsonb_set(
           newObj,

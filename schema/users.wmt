@@ -67,6 +67,7 @@ tabtext mychips.users_v_me	{Current User}		{A view containing only the current u
     {name.surname	{Surname}	{Your family name}}
     {type		{Entity Type}	{Type of entity you are (p:person, o:organization)}}
     {place		{Addresses}	{An array of physical or mailing addresses}}
+    {place.type		{Type}		{The kind of address}}
     {place.address	{Street}	{Street or box information for this address}}
     {place.city		{City}		{City this address is in}}
     {place.state	{State}		{State this address is in}}

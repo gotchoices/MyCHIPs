@@ -7,7 +7,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: '4USxrqmV9rH9C3zwxkUZ8TuBjdQSpToED3X65dsG8nLg'
+    rid: 'YdLoNtqSm9D8WZ7864cC3XB2o7mqAZzBCa3oFjmp4pQ'
     title: 'Credit Terms and Conditions'
     text: >-
       When executing a Tally Agreement, the Parties each decide the amount of credit they will extend to the other Party.
@@ -34,6 +34,12 @@
           If not specified, the Issuer has no obligation to reduce principal any faster than is indicated by the Minimum Payment.
           Call terms can be changed at any time by either party, but never in such a way as to limit Issuer's rights under the Tally.
           For example, when reducing the call from 120 to 30, the effective terms will still be 120 until that period of time has first elapsed, after which the new call period will become effective.
+      -
+        title: 'Security (lien); Default: None'
+        text: >-
+          This specifies any assets that are offered by the Issuer as collateral against amounts owed under the Agreement.
+          It can contain one or more references to assets understood by the Parties including, but not limited to, recorded trust deeds, UCC liens, titles, serial numbers or model numbers.
+          Leaving this property unspecified implies a personal (or corporate where applicable) guaranty of the amount owing with full recourse against any assets of the Issuer.
       -
         title: 'Maximum Paydown (mort); Default: No Maximum'
         text: >-

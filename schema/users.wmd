@@ -69,6 +69,7 @@ mychips.users_v:
     import: 'json.import'
 
 mychips.users_v_me:
+  display: [id, std_name, ent_type, user_stat, born_date, peer_cid, peer_agent, '!fir_name', '!ent_name']
   actions:
   - {name: graph, render: html, options: [{tag: format, input: pdm, values: [html, url]}]}
   - {name: chip, render: html, options: [

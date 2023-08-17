@@ -116,15 +116,10 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
 } -messages {
   {GTK		{Generating Tally}	{A database error occurred while generating a tally invitation ticket}}
   {URF		{Unknown Format}	{Unknown format for a tally invitation}}
+  {CNF		{Unknown Contract}	{Unable to find a contract for the tally}}
   {TMK		{Bad Key Number}	{The tally invitation must be called for exactly one tally}}
   {TIN		{Tally Invitation}	{Follow link to consider tally}}
   {TIL		{Good Until}		{Invitation expires after this time}}
-  {prolog	{MyCHIPS Tally Agreement} {An agreement between the Parties hereinafter known as: Foil Holder and Stock Holder}}
-  {prolog.foil	{Foil Certificate}	{Information identifying the Foil Holder}}
-  {prolog.stock	{Stock Certificate}	{Information identifying the Stock Holder}}
-  {epilog	{Agreed to}		{This Agreement is willingly accepted and agreed to by the Parties}}
-  {epilog.foil	{Foil Signature}	{Signature attesting to agreement of Foil Holder}}
-  {epilog.stock	{Stock Signature}	{Signature attesting to agreement of Stock Holder}}
   {close	{Close Tally}		{Request that the current tally be closed once its balance reaches zero}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
     {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}
@@ -145,7 +140,14 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
     {agree.format 		{Agreement Format}	{How to return the tally agreement report data}}
       {agree.format.html	{html}			{Return HTML fragment that contains the report}}
       {agree.format.url		{url}			{Return an url link to a web page containing the report}}
-  {launch.title		{Tallies}		{Peer Trading Relationships}}
+    {agree.data			{Tally Data}		{Parameters from the tally relevant to the Tally Agreement}}
+    {agree.terms.foil		{Foil Terms}		{Terms set forth by Foil Holder and extended to Stock Holder}}
+    {agree.terms.stock		{Stock Terms}		{Terms set forth by Stock Holder and extended to Foil Holder}}
+    {agree.cert.foil		{Foil Certificate}	{Information identifying the Foil Holder}}
+    {agree.cert.stock		{Stock Certificate}	{Information identifying the Stock Holder}}
+    {agree.sign			{Agreed By}		{Digital signatures of the Parties}}
+    {agree.other		{Other Data}		{More information in the Tally}}
+{launch.title		{Tallies}		{Peer Trading Relationships}}
   {launch.instruct	{Basic Instructions}	{
     <p>Tallies are used to document and track trading agreements between partners.
     <p>You can propose a new tally from the action menu in the Editing pane.

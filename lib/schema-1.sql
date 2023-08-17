@@ -3961,7 +3961,7 @@ create view mychips.tallies_v as select
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state
-  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','draft']) as action
+  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer']) as action
   , te.status = 'open' or (te.status = 'close' and net_pc != 0)		as liftable
 
   , coalesce(cg.chits, 0)				as chits
@@ -6664,6 +6664,7 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','users_v_me','cert','place.country','eng','Country','Country this address is in'),
   ('mychips','users_v_me','cert','place.post','eng','Postal','Zip or postal code for this address'),
   ('mychips','users_v_me','cert','place.state','eng','State','State this address is in'),
+  ('mychips','users_v_me','cert','place.type','eng','Type','The kind of address'),
   ('mychips','users_v_me','cert','public','eng','Public Key','The public part of the key you use to sign transactions'),
   ('mychips','users_v_me','cert','type','eng','Entity Type','Type of entity you are (p:person, o:organization)'),
   ('wylib','data','access','priv','eng','Private','Only the owner of this data can read, write or delete it'),
@@ -6707,6 +6708,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chits','CUN','eng','Bad Chit Units','Transactional chits must have a unit value.  Settings chits must not.'),
   ('mychips','chits','CUU','eng','Chit Not Unique','Chit UUID must be unique to each tally'),
   ('mychips','chits','GDS','eng','Signature Check','Chits in a good state must include a signature'),
+  ('mychips','chits','ILI','eng','Illegal Chit Issuer','User attempted to execute a good chit issued by the partner'),
   ('mychips','chits','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','chits','LIT','eng','Link Invalid Tally','Attempted to link chit to invalid tally'),
   ('mychips','chits','MIS','eng','Bad Chit Signature','A chit marked to be good has no signature'),
@@ -6758,13 +6760,18 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','USM','eng','Bad User Signature','An open tally must contain a user signature'),
   ('mychips','tallies','VER','eng','Bad Tally Version','Tally version must be 1 or greater'),
   ('mychips','tallies_v_me','agree','eng','Tally Agreement','Generate the tally agreement as a printable PDF document'),
+  ('mychips','tallies_v_me','agree.cert.foil','eng','Foil Certificate','Information identifying the Foil Holder'),
+  ('mychips','tallies_v_me','agree.cert.stock','eng','Stock Certificate','Information identifying the Stock Holder'),
+  ('mychips','tallies_v_me','agree.data','eng','Tally Data','Parameters from the tally relevant to the Tally Agreement'),
   ('mychips','tallies_v_me','agree.format','eng','Agreement Format','How to return the tally agreement report data'),
   ('mychips','tallies_v_me','agree.format.html','eng','html','Return HTML fragment that contains the report'),
   ('mychips','tallies_v_me','agree.format.url','eng','url','Return an url link to a web page containing the report'),
+  ('mychips','tallies_v_me','agree.other','eng','Other Data','More information in the Tally'),
+  ('mychips','tallies_v_me','agree.sign','eng','Agreed By','Digital signatures of the Parties'),
+  ('mychips','tallies_v_me','agree.terms.foil','eng','Foil Terms','Terms set forth by Foil Holder and extended to Stock Holder'),
+  ('mychips','tallies_v_me','agree.terms.stock','eng','Stock Terms','Terms set forth by Stock Holder and extended to Foil Holder'),
   ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
-  ('mychips','tallies_v_me','epilog','eng','Signatures','By attaching its digital signature as defined herein, each Party affirms that it willingly accepts and agrees to the terms and conditions of this Agreemeent'),
-  ('mychips','tallies_v_me','epilog.foil','eng','Foil Signature','Foil Holder''s digital signature'),
-  ('mychips','tallies_v_me','epilog.stock','eng','Stock Signature','Stock Holder''s digital signature'),
+  ('mychips','tallies_v_me','CNF','eng','Unknown Contract','Unable to find a contract for the tally'),
   ('mychips','tallies_v_me','file','eng','Document File','Fetch any partner file attachements the referenced tally'),
   ('mychips','tallies_v_me','file.digest','eng','File Digest','Specify the base64url hash of a single document file to return'),
   ('mychips','tallies_v_me','file.format','eng','Return Format','How to return the graph report data'),
@@ -6784,11 +6791,6 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationships'),
   ('mychips','tallies_v_me','notify.draft','eng','Initiate Tally','Someone wants to engage with your invitation to open a MyCHIPs tally ledger'),
   ('mychips','tallies_v_me','notify.P.offer','eng','Tally Offer','You have received an offer to open a MyCHIPs tally ledger'),
-  ('mychips','tallies_v_me','prolog','eng','MyCHIPS Tally Agreement','An agreement between the Parties hereinafter known as: Foil Holder and Stock Holder'),
-  ('mychips','tallies_v_me','prolog.foil','eng','Foil Certificate','Information identifying the Foil Holder'),
-  ('mychips','tallies_v_me','prolog.stock','eng','Stock Certificate','Information identifying the Stock Holder'),
-  ('mychips','tallies_v_me','terms.foil','eng','Foil Terms','Terms set forth by Foil Holder and extended to Stock Holder'),
-  ('mychips','tallies_v_me','terms.stock','eng','Stock Terms','Terms set forth by Stock Holder and extended to Foil Holder'),
   ('mychips','tallies_v_me','TIL','eng','Good Until','Invitation expires after this time'),
   ('mychips','tallies_v_me','TIN','eng','Tally Invitation','Follow link to consider tally'),
   ('mychips','tallies_v_me','TMK','eng','Bad Key Number','The tally invitation must be called for exactly one tally'),
@@ -7132,6 +7134,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','users_v_flat','sort','["std_name", "id"]','t'),
   ('mychips','users_v_flat','subviews','["mychips.addr_v_me", "mychips.comm_v_me", "mychips.file_v_me"]','t'),
   ('mychips','users_v_me','actions','[{"name": "graph", "render": "html", "options": [{"tag": "format", "input": "pdm", "values": ["html", "url"]}]}, {"name": "chip", "render": "html", "options": [{"tag": "curr", "data": "currency", "input": "ent", "special": "scm"}, {"tag": "format", "input": "pdm", "values": ["html", "json"]}]}]','f'),
+  ('mychips','users_v_me','display','["id", "std_name", "ent_type", "user_stat", "born_date", "peer_cid", "peer_agent", "!fir_name", "!ent_name"]','t'),
   ('tabdef mychips','tallies','display','["tally_ent", "tally_seq", "tally_type", "status", "part_ent", "tally_date", "tally_uuid", "dr_limit", "cr_limit", "reward", "target"]','t'),
   ('wm','column:pub','focus','"code"','t'),
   ('wm','column_pub','focus','"code"','t'),
@@ -8414,6 +8417,15 @@ insert into wm.column_style (cs_sch,cs_tab,cs_col,sw_name,sw_value) values
   ('mychips','users_v_flat','id','sort','2'),
   ('mychips','users_v_flat','std_name','display','3'),
   ('mychips','users_v_flat','std_name','sort','1'),
+  ('mychips','users_v_me','born_date','display','5'),
+  ('mychips','users_v_me','ent_name','display','0'),
+  ('mychips','users_v_me','ent_type','display','3'),
+  ('mychips','users_v_me','fir_name','display','0'),
+  ('mychips','users_v_me','id','display','1'),
+  ('mychips','users_v_me','peer_agent','display','7'),
+  ('mychips','users_v_me','peer_cid','display','6'),
+  ('mychips','users_v_me','std_name','display','2'),
+  ('mychips','users_v_me','user_stat','display','4'),
   ('tabdef mychips','tallies','bound','input','"ent"'),
   ('tabdef mychips','tallies','bound','size','8'),
   ('tabdef mychips','tallies','bound','subframe','{"x": 3, "y": 9}'),
@@ -11415,10 +11427,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\x947939505394f5ae93a00c4ee8398f6ed09e5f2699f70fb55809bcda53f08d4f',
-      'Terms and Conditions for Authorized Credit',
-      'When executing a Tally Agreement, the Parties each decide the amount of credit they will extend to the other Party. They may also specify parameters that influence how and when the debt will be satisfied. Those parameters are referred to generally as Credit Terms. Such terms can be specified by the Vendor to be applied by credit issued by the Client. They can also be specified by the Client to be applied by credit issued by the Vendor in such cases where the Tally may develop a negative balance. The various credit terms are defined as follows:',
-      '[{"title":"Maximum Balance","text":"This indicates the most the Issuer can count on borrowing against Product it obtains from the Recipient. The balance may be expressed as a single number, or as an expression, which is a function of time. Expressions may be used to amortize a loan, requiring principal to be paid down over time."},{"title":"Maximum Paydown","text":"This specifies the most the Issuer can pay down principal in advance of otherwise prevailing requirements and have his interest calculations reduced accordingly. This can be used to create a minimum interest return for a Recipient, while still allowing the Issuer to store value in the loan balance."},{"title":"Compound Interval","text":"The amount of time that passes before interest is calculated and applied to a balance. This may also define when payments are due. For example, if the application of such a charge raises a balance above the Maximum Balance, some kind of Lifting will have to occur to correct this."},{"title":"Grace Period","text":"New amounts of indebtedness will not accrue interest charges until this amount of time has passed."},{"title":"Rate","text":"An annualized rate expressed as a positive floating point number. For example, 0.05 means 5% per annum. This number will be scaled to match the Compound Interval in order to compute the interest/dividend charges to be applied during that an interval."},{"title":"Call Notice","text":"The amount of notice required to be given by Recipient to the Issuer in order to require all principal and accrued charges due and payable. If not present, the Issuer has no obligation to reduce principal any faster than is indicated by the Minimum Payment. The Call Notice is triggered by affixing a signed Call to the tally. The debt must be satisfied within the specified number of days after the date of the Call. For a fully amortizing debt, a Recipient would register an immediate call, with the number of notice days set to the term of the amortization."},{"title":"Minimum Payment","text":"An amount, or a formula for the smallest amount that may be paid at each Compound Interval."}]'
+      E'\\x081a18add2f12a9ca4e7a272f2c17fab3838b8b982dbc68a3944a677a0a0cd01',
+      'Credit Terms and Conditions',
+      'When executing a Tally Agreement, the Parties each decide the amount of credit they will extend to the other Party. They may also specify other terms and conditions that influence how and when the debt will be managed and/or satisfied. Those various parameters are together referred to as Credit Terms. Terms can be specified by the Vendor that will be applied to credit issued by the Client. Terms can also be specified by the Client that will be applied to credit issued by the Vendor, in such cases where the Tally develops a negative balance. These Terms are incorporated into the Tally Data and become part of the agreement that is digitally signed by the Parties. In such cases where a particular Credit Term is not explicitly included in the Tally Data, the default value for that term, as listed below, shall apply. These various credit terms are defined in the Tally Data object by the property name shown in parentheses and are interpreted as follows:',
+      E'[{"title":"Maximum Balance (limit); Default: 24","text":"This indicates the largest amount, in CHIPs, the Issuer can rely on becoming indebted to Recipient. There is nothing in this limit that prevents Issuer from making pledges in excess of this amount but Recipient is not obligated to accept such excess as payment for Product. The balance can be expressed as a single number. Or it may be given as an algebraic expression that is a function of Time (in days D or months M) such as in this example: \\"124000 - (124000 * M / 36)\\", which reduces a starting value down to zero over three years."},{"title":"Call Notice (call); Default: unspecified","text":"The number of days notice required to be given by Recipient to Issuer before the balance of principal and/or accrued interest can be called due and payable. If not specified, the Issuer has no obligation to reduce principal any faster than is indicated by the Minimum Payment. Call terms can be changed at any time by either party, but never in such a way as to limit Issuer''s rights under the Tally. For example, when reducing the call from 120 to 30, the effective terms will still be 120 until that period of time has first elapsed, after which the new call period will become effective."},{"title":"Security (lien); Default: None","text":"This specifies any assets that are offered by the Issuer as collateral against amounts owed under the Agreement. It can contain one or more references to assets understood by the Parties including, but not limited to, recorded trust deeds, UCC liens, titles, serial numbers or model numbers. Leaving this property unspecified implies a personal (or corporate where applicable) guaranty of the amount owing with full recourse against any assets of the Issuer."},{"title":"Maximum Paydown (mort); Default: No Maximum","text":"This specifies the most the Issuer can pay down principal in advance of otherwise prevailing requirements and have his interest calculations reduced accordingly. This can be used to create a minimum interest return for a Recipient, while still allowing the Issuer to store value in the loan balance. This may also be given as an algebraic expression that is a function of Time (in days D or months M)."},{"title":"Compound Interval (period); Default: Monthly","text":"The interval of time that passes before interest may be calculated and applied to the outstanding balance. Such calculations are expected to be performed by the Recipient and provided to the Issuer where applicable. For amortized balances, this also defines the regular payment interval."},{"title":"Grace Period (grace); Default: 30","text":"New amounts of indebtedness will not accrue interest charges until this many days have passed."},{"title":"Rate (rate); Default: 0.05","text":"An annualized rate of interest expressed as a positive floating point number. For example, 0.05 means 5% per annum. This number will be scaled to match the Compound Interval in order to compute the interest/dividend charges to be applied during an interval."},{"title":"Minimum Payment (pay); Default: no limit","text":"The smallest amount, in CHIPs, the Issuer may pay down the balance at each Compound Interval period. This may also be given as an algebraic expression that is a function of Time (in days D or months M)."}]'
     )
 ,(
       'mychips.org',
@@ -11463,10 +11475,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\x849b0f0a822fa7952adfc4672dd8adbd5db3d990702d1119da35d162003f6f11',
+      E'\\x187d06f24c30f868fea2860194c58428ef912c5b029f76641b00e605ca4184b9',
       'How to Use MyCHIPs at No Cost',
       'End users may use MyCHIPs royalty free on the condition that, in all contracts and transactions, the following contract sections are included in their full force and intent, and abided by:',
-      '[{"name":"Recitals","source":"Hr3yY2MjeWmVKfYJiba2zQUgxrGDnw1MnYuJ9rjDuQRn"},{"name":"Tally_Definition","source":"BZrHne18JUX4gdPJzjBHGh1cTNxvmfqAFy6ppDQP2uos"},{"name":"CHIP_Definition","source":"GLJJEMbxfH7caHcNEhNqR7H4yDhsPpBe9vJuxCdTonrB"},{"name":"Ethics","source":"3zAQw3iSh3EP9s2ynRshuEfWz8UAHXnk2uTmyQqMnVat"}]'
+      '[{"name":"Recitals","source":"77PKAAHiHBDKEKgDAtzsZSVZFAVMW4fTYD4aw2bvee72"},{"name":"Tally_Definition","source":"7R9vCwLyJcTxH3Y8yQ2886EPiqEyoUuzxD9mQSMbdjq4"},{"name":"CHIP_Definition","source":"1o8WA4AchpWBMjYuQoztdxmMZahEintSyQdz3nT9Pap"},{"name":"Ethics","source":"BYmhLcQ1PuprYggtPFQqSEMs61x2oJzQPpF2PLxTygG8"}]'
     )
 ,(
       'mychips.org',
@@ -11511,10 +11523,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       't',
       '2020-04-01',
-      E'\\x2a9cce15c808ebb82b7cc9aa42d1fc9b073565f85ff062eedbc0e0c3b15ea27a',
+      E'\\x32f2473a0701bbd8b32b41247fc2579ab6a0358fe2135f74d70a056d8116b49c',
       'MyCHIPS Tally Agreement',
       'This Contract is part of an Agreement by and between the Parties hereinafter referred to as Foil Holder and Stock Holder. A digital hash of this Contract has been incorporated into a MyCHIPs digital Tally which also contains other Data relevant to the Agreement. Tally Data includes details about the identities of the Parties as well as digital signatures by the Parties attesting to their acceptance of this Agreement and is shown at the end of the Contract. This Contract also incorporates further documents by reference, including their digital hashes. All terms and conditions, including those contained in the Tally itself, this document, and the other documents it references, together form the complete Tally Agreement between the Parties.',
-      '[{"name":"Recitals","source":"Hr3yY2MjeWmVKfYJiba2zQUgxrGDnw1MnYuJ9rjDuQRn"},{"name":"Tally_Definition","source":"BZrHne18JUX4gdPJzjBHGh1cTNxvmfqAFy6ppDQP2uos"},{"name":"CHIP_Definition","source":"GLJJEMbxfH7caHcNEhNqR7H4yDhsPpBe9vJuxCdTonrB"},{"name":"Ethics","source":"3zAQw3iSh3EP9s2ynRshuEfWz8UAHXnk2uTmyQqMnVat"},{"name":"Duties_Rights","source":"BroTb9jYQDdxoeBoHE9d9JPLuGcbf7G944eV2jNYkVTM"},{"name":"Representations","source":"AqiNQkNRYN97kYa3k2MJv4poFsVqBqnX31yorWuTm1sV"},{"name":"Defaults","source":"EPtLQUmshMGkvFnSNzCbiLYLDoS6ARAmiDvEiZf2TF4B"},{"name":"Credit_Terms","source":"EkLm2G1TwPyNLhXvVKUpbv3cn4csJPdXs5srDuXGuPfg"}]'
+      '[{"name":"Recitals","source":"77PKAAHiHBDKEKgDAtzsZSVZFAVMW4fTYD4aw2bvee72"},{"name":"Tally_Definition","source":"7R9vCwLyJcTxH3Y8yQ2886EPiqEyoUuzxD9mQSMbdjq4"},{"name":"CHIP_Definition","source":"1o8WA4AchpWBMjYuQoztdxmMZahEintSyQdz3nT9Pap"},{"name":"Ethics","source":"BYmhLcQ1PuprYggtPFQqSEMs61x2oJzQPpF2PLxTygG8"},{"name":"Duties_Rights","source":"3mXoCRRbbUkhdyG6HpeqVA2aiP1E83vti8dbizD9rqTx"},{"name":"Representations","source":"F41FpktEz15va8XoaEvqcvgRrirTRMz8WaMYryAGqRhs"},{"name":"Defaults","source":"4mJNcoNSDzgnb8YExnMCU9hQCMdof4MCSg8xc2cVeUmV"},{"name":"Credit_Terms","source":"YdLoNtqSm9D8WZ7864cC3XB2o7mqAZzBCa3oFjmp4pQ"}]'
     )
 ,(
       'mychips.org',
