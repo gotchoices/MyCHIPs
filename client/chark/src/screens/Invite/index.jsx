@@ -102,6 +102,7 @@ const TallyInvite = (props) => {
         'status',
         'part_cid',
         'part_cert',
+        'hold_cert',
       ],
       view: 'mychips.tallies_v_me',
       where: { left: "status", oper: "in", entry: entry },
@@ -124,6 +125,7 @@ const TallyInvite = (props) => {
         status: el.status,
         part_cid: el.part_cid,
         part_cert: el.part_cert,
+        hold_cert: el.hold_cert,
       }));
 
       setData(_data);
@@ -137,9 +139,16 @@ const TallyInvite = (props) => {
         testID={`tally-${index}`}
         template={item}
         navigation={props.navigation}
+        onItemSelected={item => {
+          props.navigation.navigate('TallyPreview', {
+            tally_seq: item.id,
+            tally_ent: item.tally_ent,
+          });
+        }}
       />
     )
   }
+
   const onFilter = () => {
     props.navigation.navigate("FilterScreen");
   }

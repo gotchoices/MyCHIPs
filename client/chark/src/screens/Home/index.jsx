@@ -13,6 +13,7 @@ import CenteredModal from '../../components/CenteredModal';
 import UpdateCID from '../UpdateCID';
 import useProfile from '../../hooks/useProfile';
 import { useId } from 'react';
+import { UpdateHoldCert } from '../Tally/TallyPreview/UpdateHoldCert';
 
 const connectionUri = new Set(['connect', 'mychips.org/connect'])
 const tallyUri = new Set(['tally', 'mychips.org/tally'])
@@ -24,6 +25,9 @@ const HomeScreen = (props) => {
   const { personal, setPersonal } = useProfile();
 
   const [visible, setVisible] = useState(false);
+  const [updateCertVisible, setUpdateCertVisible] = useState(false);
+
+  const [tallyProcess, setTallyProcess] = useState(undefined);
 
   const connect = (ticket) => {
     connectSocket(ticket);
@@ -74,6 +78,14 @@ const HomeScreen = (props) => {
 
   }, []);
 
+  const onShowUpdateCert = () => {
+    setUpdateCertVisible(true);
+  }
+
+  const onDismissUpdateCert = () => {
+    setUpdateCertVisible(false);
+  }
+
   const showUpdateDialog = () => {
     setVisible(true);
   }
@@ -89,7 +101,15 @@ const HomeScreen = (props) => {
     });
     dismissUpdateDialog();
   }
+  
   function requestProposedTally(ticket) {
+    // Here allow user to select the level of certificate
+    setTallyProcess(ticket);
+    console.log("THIS IS TRIGGERRED WHEN SCANNED", JSON.stringify(ticket));
+    props.navigation.navigate("DraftTally", ticket);
+    // onShowUpdateCert();
+
+    return;
     const spec = {
       view: 'mychips.ticket_process',
       params: [ticket],
@@ -120,6 +140,39 @@ const HomeScreen = (props) => {
     });
   }
 
+  function startProcessTally(partCert) {
+    console.log("DATA IS HERE ==> ", JSON.stringify({ ...tallyProcess, part_cert: partCert }));
+    const spec = {
+      view: 'mychips.ticket_process',
+      params: [{ ...tallyProcess, part_cert: partCert }],
+    }
+
+    Toast.show({
+      type: 'info',
+      text1: 'Processing tally ticket...',
+    });
+
+    wm.request('_process_tally', 'select', spec, (data, err) => {
+      if (err) {
+        Toast.show({
+          type: 'error',
+          text1: err.message ?? 'Error processing tally ticket.',
+        })
+      } else if (data?.[0]?.ticket_process) {
+        Toast.show({
+          type: 'success',
+          text1: 'Tally ticket processed.'
+        })
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Tally ticket process failed.'
+        })
+      }
+    });
+  }
+
+
   return (
     <>
       <View style={{ flex: 1 }}>
@@ -133,6 +186,18 @@ const HomeScreen = (props) => {
           userId={user?.curr_eid}
           cancel={dismissUpdateDialog}
           success={onSuccess}
+        />
+      </CenteredModal>
+      <CenteredModal
+        isVisible={updateCertVisible}
+        onClose={onDismissUpdateCert}
+      >
+        <UpdateHoldCert
+          onDismiss={onDismissUpdateCert}
+          onUpdateCert={(data) => {
+            onDismissUpdateCert();
+            startProcessTally(data);
+          }}
         />
       </CenteredModal>
     </>

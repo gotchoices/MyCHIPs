@@ -119,6 +119,7 @@ export const useHoldTermsText = (wm) => {
 
   useEffect(() => {
     wm.register('terms_lang' + Math.random(), 'mychips.tallies_v_me', (data, err) => {
+      // console.log("\n\n\n\n\nMESSAGE_FETCH_CONTENT ==> ", `${JSON.stringify(data?.col)}\n\n\n\n\n`);
       if (data) {
         addTextsToState('terms_lang', data.col, setMessageText)
       }

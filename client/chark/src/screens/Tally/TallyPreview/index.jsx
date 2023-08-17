@@ -15,7 +15,7 @@ import useSocket from '../../../hooks/useSocket';
 import useInvite from '../../../hooks/useInvite';
 import { useHoldTermsText, useTallyText } from '../../../hooks/useLanguage';
 import useTallyUpdate from '../../../hooks/useTallyUpdate';
-import { fetchContracts } from '../../../services/tally';
+import { fetchContracts, updateHoldCert } from '../../../services/tally';
 
 import CustomText from '../../../components/CustomText';
 import Button from '../../../components/Button';
@@ -26,6 +26,8 @@ import { offerTally, acceptTally, refuseTally } from '../../../services/tally';
 import { createSignature, verifySignature } from '../../../utils/message-signature';
 import { retrieveKey } from '../../../utils/keychain-store';
 import { GenerateKeysDialog } from './GenerateKeysDialog';
+import { UpdateHoldCert } from './UpdateHoldCert';
+import CenteredModal from '../../../components/CenteredModal';
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -37,6 +39,7 @@ const TallyPreview = (props) => {
   const [sig, setSig] = useState(undefined);
   const [json, setJson] = useState(undefined);
   const [tallyContracts, setTallyContracts] = useState([]);
+  const [updateCert, setUpdateCert] = useState(false);
 
   const {
     loading,
@@ -65,6 +68,14 @@ const TallyPreview = (props) => {
     })
   }, [])
 
+
+  const onDisplayCertUpdate = () => {
+    setUpdateCert(true);
+  }
+
+  const onDismissCertUpdate = () => {
+    setUpdateCert(false);
+  }
 
   useEffect(() => {
     setJson(tally?.json);
@@ -104,6 +115,26 @@ const TallyPreview = (props) => {
     acc[key] = partTerms[key] ? parseInt(partTerms[key]) : undefined;
     return acc;
   }, {});
+
+  // Update returns success but still not updating hold_cert
+  const onUpdateCert = (cert) => {
+    onDismissCertUpdate();
+    console.log("NEW_UPDATE_VALUE ==> ", typeof cert);
+    updateHoldCert(wm, {
+      hold_cert: cert,
+      tally_ent,
+      tally_seq,
+    }).then(result => {
+      fetchTally();
+
+      Toast.show({
+        type: 'success',
+        text1: 'Certificate updated successfully.',
+      });
+    }).catch(ex => {
+      console.log("EXCEPTION_HERE ==> ", ex);
+    });
+  }
 
   const onUpdate = () => {
     Keyboard.dismiss();
@@ -313,6 +344,9 @@ const TallyPreview = (props) => {
             setContract={setContract}
             onViewContract={onViewContract}
             tallyContracts={tallyContracts}
+            onUpdateContract={() => {
+              onDisplayCertUpdate();
+            }}
           />
         </ScrollView>
 
@@ -363,6 +397,16 @@ const TallyPreview = (props) => {
           Alert.alert("Success", "Key is generated successfully now you can accept tally.");
         }}
       />
+      <CenteredModal
+        isVisible={updateCert}
+        onClose={onDismissCertUpdate}
+      >
+        <UpdateHoldCert
+          onUpdateCert={onUpdateCert}
+          onDismiss={onDismissCertUpdate}
+          tallyCurrentHoldCert={tally?.hold_cert}
+        />
+      </CenteredModal>
     </>
   )
 }

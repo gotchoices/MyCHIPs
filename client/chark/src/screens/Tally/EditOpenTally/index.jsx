@@ -28,9 +28,12 @@ const EditOpenTally = (props) => {
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
 
-
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
+    fetchTally();
+  }, [tally_seq, tally_ent]);
+
+  const fetchTally = () => {
     fetchTallies(wm, {
       fields: ['bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net'],
       where: {
@@ -52,7 +55,7 @@ const EditOpenTally = (props) => {
     }).finally(() => {
       setLoading(false);
     })
-  }, [tally_seq, tally_ent])
+  }
 
   const showTradingVariables = () => {
     props.navigation.navigate('TradingVariables', { tally_seq })
@@ -109,8 +112,17 @@ const EditOpenTally = (props) => {
       {
         tally_uuid: tally?.tally_uuid,
         chit_seq: tally?.tally_seq,
+        tally_type: tally?.tally_type,
       }
     );
+  }
+
+  const onRequest = () => {
+    props.navigation.navigate("RequestDetail", {
+      tally_uuid: tally?.tally_uuid,
+      chit_seq: tally?.tally_seq,
+      tally_type: tally?.tally_type,
+    });
   }
 
   const showPDF = () => {
@@ -131,6 +143,7 @@ const EditOpenTally = (props) => {
             tally={tally}
             onViewChitHistory={onViewChitHistory}
             onPay={onPay}
+            onRequest={onRequest}
           />
 
           <View style={styles.detailControl}>

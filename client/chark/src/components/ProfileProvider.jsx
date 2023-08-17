@@ -64,7 +64,8 @@ const ProfileProvider = ({ children }) => {
 
   useEffect(() => {
     getFile(wm, user_ent).then((_data) => {
-      const file = _data?.[0]
+      const file = _data?.[0];
+      console.log("\n\n\n\n\n\n\nAVATAR_LOG_HERE ==> ", file?.file_data64);
       if (file?.file_data64) {
         setAvatar(`data:${file.file_fmt};base64,${file.file_data64}`);
       }

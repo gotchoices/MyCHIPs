@@ -8,7 +8,7 @@ import useSocket from "../../../hooks/useSocket";
 import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
 
-const PaymentDetail = (props) => {
+const RequestDetail = (props) => {
   const { tally_uuid, chit_seq, tally_type } = props.route?.params;
   const { wm } = useSocket();
   const { preferredCurrency } = useProfile();
@@ -59,8 +59,8 @@ const PaymentDetail = (props) => {
       memo: memo,
       status: 'open',
       signature: 'Signature',
-      issuer: tally_type,
-      request: 'good',
+      request: 'pend',
+      issuer: tally_type === 'stock' ? 'foil' : 'stock',
       units: net,
       tally_uuid,
       chit_seq,
@@ -148,4 +148,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default PaymentDetail;
+export default RequestDetail;

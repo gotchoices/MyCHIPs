@@ -7,7 +7,7 @@ import useMessageText from '../../../hooks/useMessageText';
 
 import Header from '../Header';
 import Avatar from '../../../components/Avatar';
-import { ChitIcon, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
+import { AddIcon, ChitIcon, ProfileImage, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const Banner = (props) => {
   const { avatar, personal } = useProfile();

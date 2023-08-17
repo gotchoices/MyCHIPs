@@ -29,7 +29,7 @@ export const getComm = (wm, user_ent) => {
 
 export const getPersonal = (wm, user_ent) => {
   const spec = {
-    fields: ['user_ent', 'tax_id', 'born_date', 'country', 'cas_name', "peer_cid"],
+    fields: ['user_ent', 'tax_id', 'born_date', 'country', 'cas_name', "peer_cid", 'cert'],
     view: 'mychips.users_v_me',
     where: {
       user_ent,
@@ -46,8 +46,18 @@ export const getPersonal = (wm, user_ent) => {
       cas_name: user?.cas_name ?? '',
       cid: user?.peer_cid ?? '',
       user_id: user?.user_ent ?? '',
+      cert: user?.cert,
     }
   });
+}
+
+export const getUserCert = (wm, user_ent) => {
+  const spec = {
+    view: 'mychips.user_cert',
+    params: [user_ent]
+  };
+
+  return request(wm, `_user_cert_${random(1000)}`, 'select', spec);
 }
 
 export const getAddresses = (wm, user_ent) => {
