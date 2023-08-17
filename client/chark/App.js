@@ -52,6 +52,7 @@ import Button from './src/components/Button';
 import PaymentDetail from './src/screens/Tally/PaymentDetail';
 import FilterScreen from './src/screens/Filter';
 import DraftTally from './src/screens/Tally/DraftTally';
+import RequestDetail from './src/screens/Tally/RequestDetail';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -66,6 +67,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name='ChitDetail' component={ChitDetail} options={{ title: 'Chit Detail' }} />
       <HomeStack.Screen name='TradingVariables' component={TradingVariables} options={{ title: 'Trading Variables' }} />
       <HomeStack.Screen name='PaymentDetail' component={PaymentDetail} options={{ title: 'Payment Detail' }} />
+      <HomeStack.Screen name='RequestDetail' component={RequestDetail} options={{ title: 'Request Detail' }} />
     </HomeStack.Navigator>
   );
 }

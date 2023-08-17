@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native"
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import useSocket from "../../../hooks/useSocket";
 import TemplateItem from "../../Invite/TemplateItem";
 import { random } from "../../../utils/common";
@@ -8,6 +8,8 @@ import Button from "../../../components/Button";
 import CenteredModal from "../../../components/CenteredModal";
 import { UpdateHoldCert } from "../TallyPreview/UpdateHoldCert";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import CheckBox from "@react-native-community/checkbox";
+import { TallyTrainingIcon } from "../../Invite/TemplateItem/TallyTrailingIcon";
 
 const DraftTally = (props) => {
   const tallyProcess = props.route?.params ?? {};
@@ -95,16 +97,68 @@ const DraftTally = (props) => {
     });
   }
 
+  /* 
+    <TemplateItem
+          testID={`tally-${index}`}
+          template={item}
+          navigation={props.navigation}
+          onItemSelected={item => {
+            Alert.alert(
+              'Certificate',
+              'Continue with the selected draft tally certificate',
+              [
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                },
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    startProcessingTally(item.hold_cert);
+                  },
+                },
+              ],
+              { cancelable: false }
+            );
+          }}
+        />
+         */
   const renderItem = ({ item, index }) => {
+    const partCert = item?.part_cert;
     return (
-      <TemplateItem
-        testID={`tally-${index}`}
-        template={item}
-        navigation={props.navigation}
-        onItemSelected={item => {
-          startProcessingTally(item.hold_cert);
-        }}
-      />
+      <TouchableOpacity
+        style={[styles.row]}
+        onPress={() => {
+          Alert.alert(
+            'Certificate',
+            'Continue with the selected draft tally certificate',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+              },
+              {
+                text: 'OK',
+                onPress: () => {
+                  startProcessingTally(item.hold_cert);
+                },
+              },
+            ],
+            { cancelable: false }
+          );
+        }}>
+        <View style={styles.itemContent}>
+          {
+            partCert ? <View style={styles.row}>
+              <Text style={styles.name}>
+                {`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}
+              </Text>
+              <TallyTrainingIcon status={item.status} />
+            </View> : <Text style={styles.name}>Beginning template</Text>
+          }
+          <Text style={[styles.comment]} numberOfLines={1} ellipsizeMode='tail'>{item.comment}</Text>
+        </View>
+      </TouchableOpacity>
     )
   }
   if (loading) {
@@ -115,6 +169,15 @@ const DraftTally = (props) => {
 
   const HeaderContent = () => {
     return <View style={{ paddingBottom: 16, justifyContent: 'center', alignItems: 'flex-end' }}>
+      <Text style={{
+        alignSelf: 'flex-start',
+        paddingBottom: 18,
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'black'
+      }}>
+        Customize your cetificate to establish connection
+      </Text>
       <Button
         title="Customize"
         onPress={onShowUpdateCert}
@@ -155,6 +218,29 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
     backgroundColor: colors.white
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  name: {
+    fontSize: 16,
+    color: colors.black,
+    fontWeight: '400',
+    fontFamily: 'inter'
+  },
+  comment: {
+    fontSize: 14,
+    color: '#636363',
+    fontWeight: '500',
+    fontFamily: 'inter',
+
+  },
+  itemContent: {
+    borderBottomWidth: 1,
+    borderColor: '#BBBBBB',
+    flex: 1,
+    marginStart: 16,
+    paddingBottom: 16,
   }
 })
 
