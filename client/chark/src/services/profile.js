@@ -29,7 +29,7 @@ export const getComm = (wm, user_ent) => {
 
 export const getPersonal = (wm, user_ent) => {
   const spec = {
-    fields: ['user_ent', 'tax_id', 'born_date', 'country', 'cas_name', "peer_cid", 'cert'],
+    fields: ['user_ent', 'tax_id', 'born_date', 'country', 'cas_name', "peer_cid", 'cert', 'ent_type', 'ent_name'],
     view: 'mychips.users_v_me',
     where: {
       user_ent,
@@ -43,7 +43,7 @@ export const getPersonal = (wm, user_ent) => {
       born_date: user?.born_date ?? '',
       country: user?.country ?? '',
       tax_id: user?.tax_id ?? '',
-      cas_name: user?.cas_name ?? '',
+      cas_name: user?.ent_type === 'p' ? user?.cas_name : user?.ent_name ?? '',
       cid: user?.peer_cid ?? '',
       user_id: user?.user_ent ?? '',
       cert: user?.cert,

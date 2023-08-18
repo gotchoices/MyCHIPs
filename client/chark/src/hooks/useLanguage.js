@@ -119,7 +119,6 @@ export const useHoldTermsText = (wm) => {
 
   useEffect(() => {
     wm.register('terms_lang' + Math.random(), 'mychips.tallies_v_me', (data, err) => {
-      // console.log("\n\n\n\n\nMESSAGE_FETCH_CONTENT ==> ", `${JSON.stringify(data?.col)}\n\n\n\n\n`);
       if (data) {
         addTextsToState('terms_lang', data.col, setMessageText)
       }
@@ -127,6 +126,21 @@ export const useHoldTermsText = (wm) => {
   }, [])
 
   return messageText?.terms_lang ?? {};
+}
+
+export const useTallyLanguage = (wm) => {
+  const { messageText, setMessageText } = useMessageText();
+
+  useEffect(() => {
+    wm.register('chits_lang' + Math.random(), 'mychips.chits_v_me', (data, err) => {
+      console.log("CHITS_LANGUAGE ==> ", JSON.stringify(data.col.reference));
+      if (data) {
+        addTextsToState('chits_lang', data?.col, setMessageText)
+      }
+    })
+  }, [])
+
+  return messageText ?? {};
 }
 
 function addTextsToState(field, texts, setState) {
