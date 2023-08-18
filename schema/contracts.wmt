@@ -16,6 +16,7 @@ tabtext mychips.contracts	{Contracts}	{Each record contains contract language to
   {PBC		{Publish Constraints}	{When publishing a document, one must specify the digest hash, the source location, and the content sections}}
   {UNC		{Unknown Command}	{The contract editor report received an unrecognized action command}}
   {ILR		{Illegal Rows}		{A query expecting a single record returned zero or multiple rows}}
+  {IRI		{Invalid Resource ID}	{A contract contains a reference to another document that can not be found}}
 }
 
 tabtext mychips.contracts_v	{Contracts}	{Each record contains contract language to be included by reference in a MyCHIPs tally or a similar agreement.} {

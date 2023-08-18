@@ -1,0 +1,9 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+---
+mychips.creds:
+  fields:
+  - [name,		ent,	30,	[0,0],		{}]
+  - [func,		pdm,	10,	[1,0],		{}]
+  - [parm,		ent,	30,	[0,1],		{}]
+  - [score,		num,	8,	[1,1],		{just: r}]

@@ -8,34 +8,36 @@
     language: eng
     top: true
     published: '2020-04-01'
-    rid: 'BqQZqh3xUtye3JnAKhwdMrCMHem3vX67gV3UevGBr4pE'
-    title: 'Tally Contract'
+    rid: '4Rsf766qpu48sNA9KYgtjAaxwB4EdS68W1sazEfvB779'
+    title: 'MyCHIPS Tally Agreement'
     text: >-
-      This Contract has been incorporated into a MyCHIPs Tally by reference, which includes a digital hash of the contents of the document.
+      This Contract is part of an Agreement by and between the Parties hereinafter referred to as Foil Holder and Stock Holder.
+      A digital hash of this Contract has been incorporated into a MyCHIPs digital Tally which also contains other Data relevant to the Agreement.
+      Tally Data includes details about the identities of the Parties as well as digital signatures by the Parties attesting to their acceptance of this Agreement and is shown at the end of the Contract.
       This Contract also incorporates further documents by reference, including their digital hashes.
-      All such terms and conditions, including those contained in the Tally itself, this document, and the ones it references, together form the complete Tally Agreement between the Parties.
+      All terms and conditions, including those contained in the Tally itself, this document, and the other documents it references, together form the complete Tally Agreement between the Parties.
     sections:
       -
         name: 'Recitals'
-        source: 'Hr3yY2MjeWmVKfYJiba2zQUgxrGDnw1MnYuJ9rjDuQRn'
+        source: '77PKAAHiHBDKEKgDAtzsZSVZFAVMW4fTYD4aw2bvee72'
       -
         name: 'Tally_Definition'
-        source: 'BZrHne18JUX4gdPJzjBHGh1cTNxvmfqAFy6ppDQP2uos'
+        source: '7R9vCwLyJcTxH3Y8yQ2886EPiqEyoUuzxD9mQSMbdjq4'
       -
         name: 'CHIP_Definition'
-        source: 'GLJJEMbxfH7caHcNEhNqR7H4yDhsPpBe9vJuxCdTonrB'
+        source: '1o8WA4AchpWBMjYuQoztdxmMZahEintSyQdz3nT9Pap'
       -
         name: 'Ethics'
-        source: '3zAQw3iSh3EP9s2ynRshuEfWz8UAHXnk2uTmyQqMnVat'
+        source: 'BYmhLcQ1PuprYggtPFQqSEMs61x2oJzQPpF2PLxTygG8'
       -
         name: 'Duties_Rights'
-        source: 'BroTb9jYQDdxoeBoHE9d9JPLuGcbf7G944eV2jNYkVTM'
+        source: '3mXoCRRbbUkhdyG6HpeqVA2aiP1E83vti8dbizD9rqTx'
       -
         name: 'Representations'
-        source: 'AqiNQkNRYN97kYa3k2MJv4poFsVqBqnX31yorWuTm1sV'
+        source: 'F41FpktEz15va8XoaEvqcvgRrirTRMz8WaMYryAGqRhs'
       -
         name: 'Defaults'
-        source: 'EPtLQUmshMGkvFnSNzCbiLYLDoS6ARAmiDvEiZf2TF4B'
+        source: '4mJNcoNSDzgnb8YExnMCU9hQCMdof4MCSg8xc2cVeUmV'
       -
         name: 'Credit_Terms'
-        source: 'EkLm2G1TwPyNLhXvVKUpbv3cn4csJPdXs5srDuXGuPfg'
+        source: 'YdLoNtqSm9D8WZ7864cC3XB2o7mqAZzBCa3oFjmp4pQ'

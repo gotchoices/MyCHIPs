@@ -161,11 +161,16 @@ export const fetchTallyFile = (wm, digest, tally_seq) => {
  * @param {Object} args - Argument
  * @param {Object} args.wm - Wyseman instance
  * @param {any} args.payload - payload for action
+ * @param {number} args.payload.tally_seq - payload for action
  */
 export const fetchTradingVariables = (wm, payload) => {
+  console.log(payload, 'payload')
   const spec = {
     name: 'trade',
     view: 'mychips.tallies_v_me',
+    data: {
+      key: payload.tally_seq
+    }
   }
 
   return request(wm, 'fetch_trade' + random(1000), 'action', spec);

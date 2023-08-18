@@ -1,6 +1,8 @@
 #Setup mychips administrative user
 # -------------------------------
+log_dir="/var/log/mychips"
 found_admin=$(grep ^${mychips_admin} /etc/passwd |cut -f 1 -d :)
+
 if [ "$found_admin" = "$mychips_admin" ]; then
   echo "  Found mychips admin OK: $found_admin"
 elif grep "^$mychips_admin" /etc/group; then
@@ -9,4 +11,10 @@ elif grep "^$mychips_admin" /etc/group; then
 else
   echo "Creating admin user: $mychips_admin and group: $mychips_admin"
   adduser --gecos 'MyCHIPs Administrator' --disabled-password $mychips_admin
+fi
+
+if [ ! -d "$log_dir" ]; then
+  echo "Building logfile for mychips: $log_dir"
+  mkdir -p "$log_dir"
+  chown admin.admin "$log_dir"
 fi

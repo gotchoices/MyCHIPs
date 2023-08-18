@@ -17,8 +17,8 @@ require config.tcl trigview.tcl
 
 namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
-    def tallies_v_up	{tally_type comment contract hold_terms part_terms target reward clutch bound part_sig hold_sig request}
-    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid version part_ent hold_cert part_cert]
+    def tallies_v_up	{tally_type comment contract hold_terms part_terms target reward clutch bound hold_cert part_sig hold_sig request}
+    def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid version part_ent part_cert]
     def tallies_se	[concat $tallies_v_in tally_seq status digest net_pc net_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets chain_conf $glob::stampfn]
 }
 
@@ -90,7 +90,7 @@ table mychips.tally_tries {mychips.tallies} {
 
 # Generate unique sequence number for new tallies
 #----------------------------------------------------------------
-function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tallies) mychips.user_cert(text) mychips.j2h(jsonb) mychips.tally_json(mychips.tallies)} {
+function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tallies) mychips.user_cert(text) mychips.j2h(jsonb) mychips.tally_json(mychips.tallies) mychips.contracts_v} {
   returns trigger language plpgsql security definer as $$
     begin
         if new.tally_ent is null then
@@ -111,6 +111,10 @@ function mychips.tallies_tf_seq() {mychips.users mychips.tally_certs(mychips.tal
 
         if new.hold_cert is null then
           new.hold_cert = mychips.user_cert(new.tally_ent);
+        end if;
+        if new.contract is null then
+          select into new.contract to_jsonb(rid) from mychips.contracts_v
+            where host = 'mychips.org' and name = 'Tally_Contract' and language = 'eng' order by version desc limit 1;
         end if;
         new = mychips.tally_certs(new);
         if new.status = 'open' then	-- Should only happen in simulations
@@ -318,7 +322,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
   
   , not te.part_ent is null						as inside
   , mychips.tally_state(status,request,hold_sig,part_sig)		as state
-  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer','draft']) as action
+  , mychips.tally_state(status,request,hold_sig,part_sig) = any(array['P.offer']) as action
   , te.status = 'open' or (te.status = 'close' and net_pc != 0)		as liftable
 
   , coalesce(cg.chits, 0)				as chits
@@ -540,7 +544,7 @@ $$;}
 # Check for any lingering, unprocessed notices
 # A peer server should call this on launch to become aware of any activity it has missed
 #----------------------------------------------------------------
-function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.chits base.parm_int(text,text)} {
+function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.chits base.parm_int(text,text) mychips.chit_notify_agent(mychips.chits)} {
   returns int language plpgsql as $$
     declare
         trec		mychips.tallies;
@@ -559,7 +563,7 @@ function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.
         for crec in select * from mychips.chits ch
           join mychips.chit_tries ct on ct.ctry_ent = ch.chit_ent and ct.ctry_seq = ch.chit_seq and ct.ctry_idx = ch.chit_idx
           where ch.request is not null and (current_timestamp - ct.last) >= min_time loop
-            perform mychips.chit_notify(crec);
+            perform mychips.chit_notify_agent(crec);
             didem = didem + 1;
         end loop;
         return didem;

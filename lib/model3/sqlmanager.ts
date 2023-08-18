@@ -105,7 +105,6 @@ class SQLManager {
   ) {
     let uuid = uuidv4()
     let sig = 'Valid'
-    let contract = { name: 'mychips-0.99' }
 
     this.logger.debug(
       'Tally request:',
@@ -120,11 +119,10 @@ class SQLManager {
     )
 
     this.query(
-      'insert into mychips.tallies_v (tally_ent, tally_uuid, contract, request, hold_cert, part_cert, hold_sig, tally_type) values ($1, $2, $3, $4, $5, $6, $7, $8);',
+      'insert into mychips.tallies_v (tally_ent, tally_uuid, request, hold_cert, part_cert, hold_sig, tally_type) values ($1, $2, $3, $4, $5, $6, $7);',
       [
         requestingAccountID,
         uuid,
-        contract,
         'offer',
         requestingAccountCertificate,
         targetAccountCertificate,

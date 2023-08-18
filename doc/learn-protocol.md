@@ -207,7 +207,7 @@ There are three basic types of chits:
 - **Lift Chit**:
   In this case, the chit is part of a larger [credit lift](learn-lift.md).
   There will be a whole group of chits, all bound to the lift.
-  A lift chit will to be signed by a *site* or *referee* certificate, where the site is the system that hosts the MyCHIPs accounts for all the users in the (local) lift or the referee is a site that arbitrates timing for a distributed lift in which multiple sites participate.
+  A lift chit will be signed by a *agent* or *referee* certificate, where the agent belongs to the system that hosts the MyCHIPs accounts for all the users in the (local) lift or the referee is a site that arbitrates timing for a distributed lift in which multiple sites participate.
   Clearly, the idea of letting one's Chip Service Provider (or worse, some unknown referee site) sign chits on one's behalf sounds potentially dangerous.
   So there are some limitations on lift chits:
   - The net effect on an entity of a group of (typically 2) chits, belonging to a single lift, must be in accordance with the [trading variables](learn-lifts.md#trading-variables) established and signed by that user.

@@ -1,0 +1,21 @@
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+---
+  contract:
+    host: mychips.org
+    name: 'Tally_Testing'
+    version: 1
+    language: eng
+    top: true
+    published: '2023-08-17'
+    rid: 'Dw1Wc6aQ8quSz7KYjgSHrCXsd9kPe23hCyJEMca5XYDk'
+    title: 'Tally Testing and Evaluation Agreement'
+    text: >-
+      When invoked by a Tally, this Contract causes the resulting Agreement to be completely non-binding on the Parties regardless of the language that will follow.
+      A Tally created with this Contract is solely for the purposes of testing and evaluation and no amounts mentioned are actually due or payable by either Party to the other.
+      When using this tally, the Parties are solely and individually responsible for disabling lifts on the tally by configuring the appropriate Trading Variables (i.e. reward=1, clutch=1).
+      Failure to do so on a production system where other binding tallies are in use will likely result in a total loss value from the resulting lift(s)!
+    sections:
+      -
+        name: 'Tally_Contract'
+        source: '4Rsf766qpu48sNA9KYgtjAaxwB4EdS68W1sazEfvB779'

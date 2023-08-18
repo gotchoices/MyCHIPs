@@ -1,0 +1,48 @@
+#Objects for parsing and evaluating user certificates
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+module mychips
+
+table mychips.creds {mychips} {
+    name	text
+  , func	text	default 'p' constraint "!mychips.creds:BCF" check(func in ('a','p','mt','re'))
+  , parm	text	not null default ''
+  , score	int	not null
+  , primary key (name, func, parm)
+}
+
+#index {"!mychips.creds:CNU"} mychips.creds {
+#  create unique index "!mychips.creds:CNU"
+#  on mychips.creds (name, func, parm)
+#} {drop index if exists mychips."!mychips.creds:CNU"}
+
+# Base view of credentials
+#----------------------------------------------------------------
+view mychips.creds_v {mychips.creds} {select 
+    * from mychips.creds
+} -grant {
+  mychips
+}
+# -primary {name func parm}
+
+# Generate a score of a certificate
+#----------------------------------------------------------------
+function {mychips.creds_cert(cert jsonb)} {mychips.creds json.flatten(jsonb)} {
+  returns int language sql as $$
+--raise notice 'creds_cert';
+    select sum(case
+      when r.func = 'a'
+        and c.value isnull then r.score
+      when r.func = 'p'
+        and c.value notnull then r.score
+      when r.func = 'mt'
+        and c.size > r.parm::int then r.score
+      when r.func = 're'
+        and trim(both '"' from c.scalar::text) ~ r.parm then r.score
+      else
+        0
+    end)
+      
+    from              mychips.creds      r
+    left join json.flatten(cert) c	on c.name = r.name
+$$;}

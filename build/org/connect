@@ -32,22 +32,22 @@
     <div class="container position-relative">
       <div class="row justify-content-center">
         <div class="mb-20 col-xl-7 col-lg-9 text-center" style='margin-bottom:20px'>
-          <h1>Oops!</h1>
+          <h1>Almost There!</h1>
           <h2></h2>
         </div>
       </div>
       <div class="content_section_text">
         Did you click a link hoping to get connected to your CHIP service provider?
       <p>
-        You probably need to install the mobile app on your device first!
+        You will need to install the app on your mobile device first!
       </div>
       <div class="content_section_text">
-        Download the app for your platform:
+        Download the app for your mobile device here:
         <a href="/chark.apk">Android</a>
         or
         <a href="https://testflight.apple.com/join/5IP35ipV">iPhone.</a>
       <p>
-        And then try again clicking the link that got you here.
+        And then try again using the same link that got you here.
       </div>
       <div class="content_section_text">
         With the app correctly installed and configured on your device, that link should launch the app and connect you to your provider server.

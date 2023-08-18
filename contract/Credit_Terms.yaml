@@ -7,52 +7,63 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'EkLm2G1TwPyNLhXvVKUpbv3cn4csJPdXs5srDuXGuPfg'
-    title: 'Terms and Conditions for Credit Authorized by Stock and Foil'
+    rid: 'YdLoNtqSm9D8WZ7864cC3XB2o7mqAZzBCa3oFjmp4pQ'
+    title: 'Credit Terms and Conditions'
     text: >-
-      When executing a Tally Agreement with each other, the Client and Vendor each decide the amount of credit they will extend to the other Party.
-      They may also specify parameters that influence how and when the debt will be satisfied.
-      Those parameters are referred to generally as Credit Terms.
-      Such terms can be specified by the Vendor to be applied by credit issued by the Client.
-      They can also be specified by the Client to be applied by credit issued by the Vendor in such cases where the Tally may develop a negative balance.
-      The various credit terms are defined as follows:
+      When executing a Tally Agreement, the Parties each decide the amount of credit they will extend to the other Party.
+      They may also specify other terms and conditions that influence how and when the debt will be managed and/or satisfied.
+      Those various parameters are together referred to as Credit Terms.
+      Terms can be specified by the Vendor that will be applied to credit issued by the Client.
+      Terms can also be specified by the Client that will be applied to credit issued by the Vendor, in such cases where the Tally develops a negative balance.
+      These Terms are incorporated into the Tally Data and become part of the agreement that is digitally signed by the Parties.
+      In such cases where a particular Credit Term is not explicitly included in the Tally Data, the default value for that term, as listed below, shall apply.
+      These various credit terms are defined in the Tally Data object by the property name shown in parentheses and are interpreted as follows:
     sections:
       -
-        title: 'Maximum Balance'
+        title: 'Maximum Balance (limit); Default: 24'
         text: >-
-          This indicates the most the Issuer can count on borrowing against Product it obtains from the Recipient.
-          The balance may be expressed as a single number, or as an expression, which is a function of time.
-          Expressions may be used to amortize a loan, requiring principal to be paid down over time.
+          This indicates the largest amount, in CHIPs, the Issuer can rely on becoming indebted to Recipient.
+          There is nothing in this limit that prevents Issuer from making pledges in excess of this amount but Recipient is not obligated to accept such excess as payment for Product.
+          The balance can be expressed as a single number.
+          Or it may be given as an algebraic expression that is a function of Time (in days D or months M) such as in this example:
+          "124000 - (124000 * M / 36)", which reduces a starting value down to zero over three years.
       -
-        title: 'Maximum Paydown'
+        title: 'Call Notice (call); Default: unspecified'
+        text: >-
+          The number of days notice required to be given by Recipient to Issuer before the balance of principal and/or accrued interest can be called due and payable.
+          If not specified, the Issuer has no obligation to reduce principal any faster than is indicated by the Minimum Payment.
+          Call terms can be changed at any time by either party, but never in such a way as to limit Issuer's rights under the Tally.
+          For example, when reducing the call from 120 to 30, the effective terms will still be 120 until that period of time has first elapsed, after which the new call period will become effective.
+      -
+        title: 'Security (lien); Default: None'
+        text: >-
+          This specifies any assets that are offered by the Issuer as collateral against amounts owed under the Agreement.
+          It can contain one or more references to assets understood by the Parties including, but not limited to, recorded trust deeds, UCC liens, titles, serial numbers or model numbers.
+          Leaving this property unspecified implies a personal (or corporate where applicable) guaranty of the amount owing with full recourse against any assets of the Issuer.
+      -
+        title: 'Maximum Paydown (mort); Default: No Maximum'
         text: >-
           This specifies the most the Issuer can pay down principal in advance of otherwise prevailing requirements and have his interest calculations reduced accordingly.
           This can be used to create a minimum interest return for a Recipient, while still allowing the Issuer to store value in the loan balance.
+          This may also be given as an algebraic expression that is a function of Time (in days D or months M).
       -
-        title: 'Compound Interval'
+        title: 'Compound Interval (period); Default: Monthly'
         text: >-
-          The amount of time that passes before interest is calculated and applied to a balance.
-          This may also define when payments are due.
-          For example, if the application of such a charge raises a balance above the Maximum Balance, some kind of Lifting will have to occur to correct this.
+          The interval of time that passes before interest may be calculated and applied to the outstanding balance.
+          Such calculations are expected to be performed by the Recipient and provided to the Issuer where applicable.
+          For amortized balances, this also defines the regular payment interval.
       -
-        title: 'Grace Period'
+        title: 'Grace Period (grace); Default: 30'
         text: >-
-          New amounts of indebtedness will not accrue interest charges until this amount of time has passed.
+          New amounts of indebtedness will not accrue interest charges until this many days have passed.
       -
-        title: 'Rate'
+        title: 'Rate (rate); Default: 0.05'
         text: >-
-          An annualized rate expressed as a positive floating point number.
+          An annualized rate of interest expressed as a positive floating point number.
           For example, 0.05 means 5% per annum.
-          This number will be scaled to match the Compound Interval in order to compute the interest/dividend charges to be applied during that an interval.
+          This number will be scaled to match the Compound Interval in order to compute the interest/dividend charges to be applied during an interval.
       -
-        title: 'Call Notice'
+        title: 'Minimum Payment (pay); Default: no limit'
         text: >-
-          The amount of notice required to be given by Recipient to the Issuer in order to require all principal and accrued charges due and payable.
-          If not present, the Issuer has no obligation to reduce principal any faster than is indicated by the Minimum Payment.
-          The Call Notice is triggered by affixing a signed Call to the tally.
-          The debt must be satisfied within the specified number of days after the date of the Call.
-          For a fully amortizing debt, a Recipient would register an immediate call, with the number of notice days set to the term of the amortization.
-      -
-        title: 'Minimum Payment'
-        text: >-
-          An amount, or a formula for the smallest amount that may be paid at each Compound Interval.
+          The smallest amount, in CHIPs, the Issuer may pay down the balance at each Compound Interval period.
+          This may also be given as an algebraic expression that is a function of Time (in days D or months M).

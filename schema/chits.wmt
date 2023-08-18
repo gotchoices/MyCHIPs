@@ -35,13 +35,15 @@ tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit
   {chain_hash	{Chain Hash}		{A hash of the current chit record, including the previous record's hash so as to form a hash chain}}
   {lift_seq	{Lift Sequence}		{If a chit is part of a lift transaction, this indicates which tally record the chits belong to.  There can be more than one lift record per lift in some cases.}}
 } $glob::stampt] -messages {
-  {BCT		{Bad Chit Type}		{Not a valid type for a tally chit}}
+  {BRQ		{Bad Chit Request}	{Not a valid value for a chit request}}
+  {BCT		{Bad Chit Type}		{Not a valid type for a chit}}
   {GDS		{Signature Check}	{Chits in a good state must include a signature}}
   {BST		{Bad Chit Status}	{Not a valid value the status field}}
   {BLL		{Bad Lift Sequence}	{Only lift chits should include a lift sequence number}}
   {CUU		{Chit Not Unique}	{Chit UUID must be unique to each tally}}
   {IST		{Illegal State Change}	{The executed state transition is not allowed}}
   {LIT		{Link Invalid Tally}	{Attempted to link chit to invalid tally}}
+  {ILI		{Illegal Chit Issuer}	{User attempted to execute a good chit issued by the partner}}
   {MIS		{Bad Chit Signature}	{A chit marked to be good has no signature}}
   {CUN		{Bad Chit Units}	{Transactional chits must have a unit value.  Settings chits must not.}}
 }

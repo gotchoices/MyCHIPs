@@ -1,16 +1,30 @@
-define(TITLE,`Oops!')
+define(TITLE,`Invited to Tally?')
 define(SUBTITLE,`')
 define(CONTENT,`<div class="content_section_text">
-        Did you click a link hoping to start a MyCHIPs tally with someone?
+     Here are the steps to get started:
+     <ul>
+        <li>Install the MyCHIPs app on your mobile device.</li>
+        <li>Set up an account with a Service Provider.</li>
+     </ul>
       <p>
-        You need to install the mobile app on your device first!
-      <p>
-        You will also need an account with a CHIP Service Provider.
-        The <a href="https://gotchoices.org/mychips">GotChoices</a> Foundation runs a provider <a href="https://mychips.net">here</a>
-        or if you are talented with computers you may be able to 
-        <a href="https://github.com/gotchoices/mychips">be your own service provider.</a>
+        The <a href="https://gotchoices.org/mychips">GotChoices</a> Foundation runs a CHIP Service Provider <a href="https://mychips.net">here</a>.
+        If you are good with computers, you may be able to 
+        <a href="https://github.com/gotchoices/mychips">become your own service provider.</a>
       </div>
       GETAPP
       <div class="content_section_text">
-        With the app correctly installed and connected to your provider, the tally invitation link should launch the app and allow you to start a tally.
-      </div>')
+        With the app correctly installed and connected to your provider, 
+        you should be ready to respond to the tally invitation.
+      </div>
+
+      <hr>
+      <div class="content_section_text">
+        <h4>What is a tally?</h4>
+      <p>
+        It is a private ledger between two parties that keeps track of how much you owe each other.
+        Connected within a network of other users, you can use these credits much like money.
+        You can even pay people and companies you are not directly connected to!
+      <p>
+        Learn more about MyCHIPs <a href="https://mychips.org">here.</a>
+      </div>
+')

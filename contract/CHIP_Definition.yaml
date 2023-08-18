@@ -7,23 +7,23 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'GLJJEMbxfH7caHcNEhNqR7H4yDhsPpBe9vJuxCdTonrB'
+    rid: '1o8WA4AchpWBMjYuQoztdxmMZahEintSyQdz3nT9Pap'
     title: 'Defining a CHIP'
     text: >-
-      MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of Credit between willing parties.
-      This Credit is comprised of a number of individual promises, or Chits, made by one Party, for the benefit of the other Party, to deliver future value according to terms and conditions mutually agreed upon by the Parties.
+      MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of Value between willing parties.
+      This Value, or credit, is comprised of a number of individual promises, or Chits, made by one Party, for the benefit of the other Party, to deliver future value according to terms and conditions mutually agreed upon hereby.
       The party Pledging the future value is referred to as the Issuer.
       The party the Pledge is made to is referred to as the Recipient.
-      A Pledge accrues as a receivable asset to the Recipient and a payable liability to the Issuer just as with any open-account indebtedness that might be incurred in the ordinary course of business.
+      A Pledge accrues as a receivable asset to the Recipient and a payable liability to the Issuer just as with any open-account indebtedness that might be incurred in the ordinary course of business or commerce.
     sections:
       -
         text: >-
           The amount of value represented in a Tally or a Chit is quantified in units of CHIPs.
-          Internally a MyCHIPs server is expected to record transactions in integer units of 1/1000th of a CHIP.
-          User interfaces are expected to render values as decimal CHIPs with up to 3 digits after a decimal point, for example: 1234.567.
+          Internally, a MyCHIPs server is expected to record transactions in integer units of 1/1000th of a CHIP.
+          User interfaces are expected to render values as decimal CHIPs with up to 3 digits after the decimal point, for example: 1234.567.
       -
         text: >-
-          All transactions associated with this Tally shall be quantified exlusively in CHIPs, as defined herein, and not using any other unit of measure.
+          All transactions associated with this Tally shall be quantified exclusively in CHIPs, as defined herein, and not in any other unit of measure.
           For example, it is a breach of this covenant to produce a Pledge which the Parties understand to be measured in Dollars or Euros.
           It is not a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs.
       -

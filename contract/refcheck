@@ -1,16 +1,13 @@
 #!/usr/bin/env node
-//Update the main hash in the specified yaml file(s)
+//Check any resource references in the specified yaml files
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-//Usage: ./hash file1.yaml file2.yaml ...
-//
+//Usage: ./refcheck file1.yaml file2.yaml ...
+//TODO:
+//- update to correct references automatically
+//-
 const Fs = require('fs')
-const Readline = require('readline')
-const Os = require('os')
 const Yaml = require('yaml')
-const Stringify = require('json-stable-stringify')
-const Crypto = require('crypto')
-const Bs58 = require('bs58')
 var argv = require('yargs').argv		//;console.log("argv:", argv)
 
 const updateDigest = (file, newDigest) => {
@@ -46,18 +43,27 @@ const updateDigest = (file, newDigest) => {
   });
 }
 
+const grabRID = function(name) {
+  let file = name + '.yaml'
+    , yData = Fs.readFileSync(file).toString()		//Read Yaml file
+    , jData = Yaml.parse(yData)				//Convert to json
+    , contract = jData.contract
+  return contract?.rid
+}
+
 argv._.forEach(file => {
 //  console.log("file:", file)
   let yData = Fs.readFileSync(file).toString()		//Read Yaml file
     , jData = Yaml.parse(yData)				//Convert to json
     , contract = jData.contract
-    , core = Object.assign({}, contract)
-  delete core.rid
-  let strung = Stringify(core)		//;console.log('strung:',strung)
-    , digest = Crypto.createHash('sha256').update(strung).digest()
-    , rid = Bs58.encode(digest)
-
-//console.log(digest)	
-//console.log('J:', JSON.stringify(core,null,2))
-  updateDigest(file, rid)
+  
+  for (let sec of contract?.sections) {
+    let {name, source} = sec
+    if (name && source) {
+      let fileRID = grabRID(name)		//;console.log('n:', name, 's:', source)
+      if (fileRID != source) {
+        console.log(file, ':\n  ', fileRID, "!=", source)
+      }
+    }
+  }
 })
