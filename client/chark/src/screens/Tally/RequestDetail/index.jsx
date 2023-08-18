@@ -6,21 +6,33 @@ import useProfile from "../../../hooks/useProfile";
 import { getCurrency } from "../../../services/user";
 import useSocket from "../../../hooks/useSocket";
 import { round } from "../../../utils/common";
-import { insertChit } from "../../../services/tally";
+import { insertChit, updateChitDetails } from "../../../services/tally";
+import { useTallyLanguage } from "../../../hooks/useLanguage";
+import useMessageText from "../../../hooks/useMessageText";
+import HelpText from "../../../components/HelpText";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
 
 const RequestDetail = (props) => {
-  const { tally_uuid, chit_seq, tally_type } = props.route?.params;
+  const { tally_uuid, chit_seq, tally_type, editDetails } = props.route?.params;
   const { wm } = useSocket();
   const { preferredCurrency } = useProfile();
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
+  const editNetValue = Math.abs?.(editDetails?.net);
 
-  const [memo, setMemo] = useState();
-  const [reference, setReference] = useState();
-  const [chit, setChit] = useState();
+  const [memo, setMemo] = useState(editDetails?.memo ?? "");
+  const [reference, setReference] = useState(editDetails?.reference ? JSON.parse(editDetails?.reference) : "");
+  const [chit, setChit] = useState(editNetValue ? editNetValue?.toString() : "");
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
+
+  useTallyLanguage(wm);
+  const { messageText } = useMessageText();
+
+  const referenceText = messageText?.chits_lang?.reference;
+  const memoText = messageText?.chits_lang?.memo;
+  const netText = messageText?.chits_lang?.net;
 
   useEffect(() => {
     if (currencyCode) {
@@ -38,13 +50,12 @@ const RequestDetail = (props) => {
   const totalNetDollar = useMemo(() => {
     const convertedChit = parseInt(chit);
     if (conversionRate && convertedChit) {
-      // const total = round((convertedChit ?? 0), 3) * conversionRate;
       const total = convertedChit * conversionRate;
       return round(total, 2);
     }
 
     return 0;
-  }, [chit, conversionRate])
+  }, [chit, conversionRate]);
 
   const onMakePayment = () => {
     const net = round((chit ?? 0) * 1000, 3)
@@ -88,6 +99,37 @@ const RequestDetail = (props) => {
     });
   }
 
+  const updateRequest = () => {
+    const net = round((chit ?? 0) * 1000, 3)
+
+    if (net < 0) {
+      Alert.alert("Alert", "Can't input negative chit.");
+      return;
+    }
+
+    updateChitDetails(
+      wm,
+      {
+        data: {
+          reference: JSON.stringify(reference),
+          memo: memo,
+          units: net,
+          // request: 'offer',
+        },
+        chit_ent: editDetails?.chit_ent,
+        chit_idx: editDetails?.chit_idx,
+        chit_seq: editDetails?.chit_seq,
+        chit_uuid: editDetails?.chit_uuid,
+      }
+    ).then((data) => {
+      Toast.show({ type: 'success', text1: 'Chit request refused successfully' });
+      props.navigation.goBack();
+    }).catch(ex => {
+      console.log("ERROR ==> ", ex);
+      Toast.show({ type: 'error', text1: 'Failed to refuse chit please try again.' })
+    });
+  }
+
   if (loading) {
     return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <ActivityIndicator size={"large"} />
@@ -98,17 +140,34 @@ const RequestDetail = (props) => {
     style={styles.container}
     contentContainerStyle={styles.contentContainer}
   >
+    <HelpText
+      label={memoText?.title ?? ''}
+      helpText={memoText?.help ?? ''}
+      style={styles.headerText}
+    />
     <TextInput
       style={styles.input}
       placeholder="Memo"
       value={memo}
       onChangeText={setMemo}
     />
+
+    <HelpText
+      label={referenceText?.title ?? ''}
+      helpText={referenceText?.help ?? ''}
+      style={styles.headerText}
+    />
     <TextInput
       style={styles.input}
       placeholder="Reference"
       value={reference}
       onChangeText={setReference}
+    />
+
+    <HelpText
+      label={netText?.title ?? ''}
+      helpText={netText?.help ?? ''}
+      style={styles.headerText}
     />
     <TextInput
       style={styles.input}
@@ -122,12 +181,21 @@ const RequestDetail = (props) => {
         <Text style={{ fontWeight: '500' }}>{currencyCode} {totalNetDollar}</Text> :
         <></>
     }
-    <Button
-      style={{ marginTop: 24, }}
-      title="Request Payment"
-      onPress={onMakePayment}
-      disabled={disabled}
-    />
+    {
+      editDetails ?
+        <Button
+          style={{ marginTop: 24, }}
+          title="Update Request"
+          onPress={updateRequest}
+          disabled={disabled}
+        /> :
+        <Button
+          style={{ marginTop: 16, }}
+          title="Request Payment"
+          onPress={onMakePayment}
+          disabled={disabled}
+        />
+    }
   </ScrollView>
 }
 
@@ -144,7 +212,11 @@ const styles = StyleSheet.create({
   input: {
     padding: 10,
     backgroundColor: colors.gray100,
-    marginVertical: 10,
+    marginBottom: 16,
+  },
+  headerText: {
+    color: colors.black,
+    fontSize: 14,
   },
 })
 
