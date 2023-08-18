@@ -44,7 +44,7 @@ const TallyInvite = (props) => {
   const [data, setData] = useState([]);
   const { searchValue, setSearchValue, filteredData } = useSearchData(data);
   const [loading, setLoading] = useState(false);
-  const { wm, ws } = useSocket();
+  const { wm, ws, tallyNegotiation } = useSocket();
   const { triggerInviteFetch } = useInvite();
   const { filter } = useProfile();
 
@@ -52,7 +52,7 @@ const TallyInvite = (props) => {
     if (ws) {
       fetchTemplates();
     }
-  }, [ws, triggerInviteFetch, filter]);
+  }, [ws, triggerInviteFetch, filter, tallyNegotiation]);
 
   const getFilterResult = (filterBy, separatedBy) => {
     const values = Object.values(filter);
