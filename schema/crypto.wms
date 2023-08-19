@@ -79,7 +79,7 @@ function {mychips.b64v2ba(input text)} {mychips} {
     )
 $$;}
 
-# Encode binary data as base58
+# Encode binary data as base58 - Obsolete?
 #----------------------------------------------------------------
 function {mychips.ba2b58(input bytea)} {mychips plpy} {
   returns text language plpython3u immutable as $$
@@ -98,7 +98,7 @@ function {mychips.ba2b58(input bytea)} {mychips plpy} {
       return encoding
 $$;}
 
-# Decode base58 to binary
+# Decode base58 to binary - Obsolete?
 #----------------------------------------------------------------
 function {mychips.b582ba(input text)} {mychips} {
   returns bytea language plpython3u immutable as $$

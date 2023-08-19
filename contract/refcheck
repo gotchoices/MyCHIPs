@@ -7,12 +7,12 @@
 //- update to correct references automatically
 //-
 const Fs = require('fs')
+const Readline = require('readline')
 const Yaml = require('yaml')
 var argv = require('yargs').argv		//;console.log("argv:", argv)
 
-const updateDigest = (file, newDigest) => {
-  let found = false
-    , changed = false
+const updateDigest = (file, findDigest, newDigest) => new Promise((resolve) => {
+  let changed = false
     , tmpFile = file + '.tmp'
   const readInterface = Readline.createInterface({
     input: Fs.createReadStream(file),
@@ -21,15 +21,14 @@ const updateDigest = (file, newDigest) => {
   });
 
   readInterface.on('line', function(line) {
-    if (!found && line.trim().startsWith('rid:')) {
-      let oldDigest = line.match(/(rid:\s*['"])(.+)(['"])/)[2]
+    if (!changed && line.trim().startsWith('source:')) {
+      let oldDigest = line.match(/(source:\s*['"])(.+)(['"])/)[2]
 //console.log('O:', oldDigest, 'N:', newDigest)
-      if (newDigest != oldDigest) {
-        let updLine = line.replace(/(rid:\s*['"]).+(['"])/, `$1${newDigest}$2`);
-        readInterface.output.write(updLine + '\n')
+      if (findDigest == oldDigest && newDigest != oldDigest) {
+        let updLine = line.replace(/(source:\s*['"]).+(['"])/, `$1${newDigest}$2`);
+        readInterface.output.write(updLine + '\n')		//;console.log('Changed!')
         changed = true
       }
-      found = true;
     } else {
       readInterface.output.write(line + '\n')
     }
@@ -37,13 +36,14 @@ const updateDigest = (file, newDigest) => {
 
   readInterface.on('close', function() {
     if (changed)
-      Fs.renameSync(tmpFile, file);
+      Fs.renameSync(tmpFile, file)			//,console.log('Rename:', tmpFile)
     else
-      Fs.unlinkSync(tmpFile);
-  });
-}
+      Fs.unlinkSync(tmpFile)				//,console.log('Unlink:', tmpFile)
+    resolve()
+  })
+})
 
-const grabRID = function(name) {
+const grabRID = function(name) {			//console.log("grab:", file)
   let file = name + '.yaml'
     , yData = Fs.readFileSync(file).toString()		//Read Yaml file
     , jData = Yaml.parse(yData)				//Convert to json
@@ -51,19 +51,23 @@ const grabRID = function(name) {
   return contract?.rid
 }
 
-argv._.forEach(file => {
-//  console.log("file:", file)
-  let yData = Fs.readFileSync(file).toString()		//Read Yaml file
-    , jData = Yaml.parse(yData)				//Convert to json
-    , contract = jData.contract
+const processFiles = async () => {			//console.log("file:", file)
+  for (const file of argv._) {
+    let yData = Fs.readFileSync(file).toString()	//Read Yaml file
+      , jData = Yaml.parse(yData)			//Convert to json
+      , contract = jData.contract
   
-  for (let sec of contract?.sections) {
-    let {name, source} = sec
-    if (name && source) {
-      let fileRID = grabRID(name)		//;console.log('n:', name, 's:', source)
-      if (fileRID != source) {
-        console.log(file, ':\n  ', fileRID, "!=", source)
+    for (let sec of contract?.sections) {
+      let {name, source} = sec
+      if (name && source) {
+        let fileRID = grabRID(name)		//;console.log('n:', name, 's:', source)
+        if (fileRID != source) {
+          console.log(file, ':\n  ', source, "-->", fileRID)
+          await updateDigest(file, source, fileRID)
+        }
       }
     }
   }
-})
+}
+
+processFiles()

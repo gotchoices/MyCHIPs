@@ -6,11 +6,9 @@
 //
 const Fs = require('fs')
 const Readline = require('readline')
-const Os = require('os')
 const Yaml = require('yaml')
 const Stringify = require('json-stable-stringify')
 const Crypto = require('crypto')
-const Bs58 = require('bs58')
 var argv = require('yargs').argv		//;console.log("argv:", argv)
 
 const updateDigest = (file, newDigest) => {
@@ -30,6 +28,7 @@ const updateDigest = (file, newDigest) => {
       if (newDigest != oldDigest) {
         let updLine = line.replace(/(rid:\s*['"]).+(['"])/, `$1${newDigest}$2`);
         readInterface.output.write(updLine + '\n')
+        console.log(file, ':\n  ', oldDigest, "-->", newDigest)
         changed = true
       }
       found = true;
@@ -55,7 +54,7 @@ argv._.forEach(file => {
   delete core.rid
   let strung = Stringify(core)		//;console.log('strung:',strung)
     , digest = Crypto.createHash('sha256').update(strung).digest()
-    , rid = Bs58.encode(digest)
+    , rid = Buffer.from(digest).toString('base64url')
 
 //console.log(digest)	
 //console.log('J:', JSON.stringify(core,null,2))

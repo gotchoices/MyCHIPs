@@ -7,7 +7,7 @@
 //- Can/should we use pgcrypto as opposed to python crypto?
 //- 
 const Fs = require('fs')
-const Bs58 = require('bs58')
+//const Bs58 = require('bs58')
 const assert = require("assert");
 const { DBName, DBAdmin, testLog, Schema, dbClient } = require('./common')
 const WordFile = '/usr/share/dict/words'
@@ -77,7 +77,8 @@ describe("Test crypto schema encoder functions", function() {
       }
     })
   })
-  
+
+/* Disabled
   describe('Base 58 routines', function() {
     encode_decode({
       encoder: 'mychips.ba2b58',
@@ -87,5 +88,5 @@ describe("Test crypto schema encoder functions", function() {
       }
     })
   })
-  
+*/  
 });

@@ -1994,7 +1994,7 @@ create function mychips.contract_json(c mychips.contracts) returns jsonb stable 
       , 'sections',	c.sections
     ))
 $$;
-create index mychips_contracts_x_rid on mychips.contracts (mychips.ba2b58(digest));
+create index mychips_contracts_x_rid on mychips.contracts (mychips.ba2b64v(digest));
 create table mychips.users (
 user_ent	text		primary key references base.ent on update cascade on delete cascade
   , user_host	text
@@ -2410,10 +2410,10 @@ create function mychips.contracts_tf_bi() returns trigger language plpgsql secur
     end;
 $$;
 create view mychips.contracts_v as select c.host, c.name, c.version, c.language, c.top, c.title, c.text, c.digest, c.sections, c.published, c.crt_by, c.mod_by, c.crt_date, c.mod_date
-  , mychips.ba2b58(c.digest)					as rid
+  , mychips.ba2b64v(c.digest)					as rid
   , mychips.contract_json(c)					as json_core
   , mychips.contract_json(c) || jsonb_build_object(
-      'rid',		mychips.ba2b58(c.digest)
+      'rid',		mychips.ba2b64v(c.digest)
     )								as json
   , mychips.j2h(mychips.contract_json(c)) as digest_v
   , mychips.j2h(mychips.contract_json(c)) = coalesce(c.digest,'') as clean
@@ -10126,6 +10126,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -10276,6 +10282,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
+  ('wm','language','col','wm','language','col','f','t'),
+  ('wm','language','fr_help','wm','language','fr_help','f','f'),
+  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
+  ('wm','language','fr_title','wm','language','fr_title','f','f'),
+  ('wm','language','help','wm','table_text','help','t','f'),
+  ('wm','language','language','wm','table_text','language','t','f'),
+  ('wm','language','obj','wm','language','obj','f','f'),
+  ('wm','language','sch','wm','language','sch','f','t'),
+  ('wm','language','sorter','wm','language','sorter','f','f'),
+  ('wm','language','tab','wm','language','tab','f','t'),
+  ('wm','language','tag','wm','language','tag','f','t'),
+  ('wm','language','title','wm','table_text','title','t','f'),
+  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
@@ -11475,10 +11494,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\x187d06f24c30f868fea2860194c58428ef912c5b029f76641b00e605ca4184b9',
+      E'\\x4421be68f1bda5cc1f37c37a9af3cbc55ab4ec2e48289b82fd85288de168fd74',
       'How to Use MyCHIPs at No Cost',
       'End users may use MyCHIPs royalty free on the condition that, in all contracts and transactions, the following contract sections are included in their full force and intent, and abided by:',
-      '[{"name":"Recitals","source":"77PKAAHiHBDKEKgDAtzsZSVZFAVMW4fTYD4aw2bvee72"},{"name":"Tally_Definition","source":"7R9vCwLyJcTxH3Y8yQ2886EPiqEyoUuzxD9mQSMbdjq4"},{"name":"CHIP_Definition","source":"1o8WA4AchpWBMjYuQoztdxmMZahEintSyQdz3nT9Pap"},{"name":"Ethics","source":"BYmhLcQ1PuprYggtPFQqSEMs61x2oJzQPpF2PLxTygG8"}]'
+      '[{"name":"Recitals"},{"name":"Tally_Definition"},{"name":"CHIP_Definition"},{"name":"Ethics","source":"nLhpZItW-ap184PPRGtyauJkV4iz7nvn7ZSD0s8vfGk"}]'
     )
 ,(
       'mychips.org',
@@ -11523,10 +11542,10 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       't',
       '2020-04-01',
-      E'\\x32f2473a0701bbd8b32b41247fc2579ab6a0358fe2135f74d70a056d8116b49c',
+      E'\\x3a795d8d53062bbde9e064a14676f71266de9febc66b0f4b02fe869f2d62f0ac',
       'MyCHIPS Tally Agreement',
       'This Contract is part of an Agreement by and between the Parties hereinafter referred to as Foil Holder and Stock Holder. A digital hash of this Contract has been incorporated into a MyCHIPs digital Tally which also contains other Data relevant to the Agreement. Tally Data includes details about the identities of the Parties as well as digital signatures by the Parties attesting to their acceptance of this Agreement and is shown at the end of the Contract. This Contract also incorporates further documents by reference, including their digital hashes. All terms and conditions, including those contained in the Tally itself, this document, and the other documents it references, together form the complete Tally Agreement between the Parties.',
-      '[{"name":"Recitals","source":"77PKAAHiHBDKEKgDAtzsZSVZFAVMW4fTYD4aw2bvee72"},{"name":"Tally_Definition","source":"7R9vCwLyJcTxH3Y8yQ2886EPiqEyoUuzxD9mQSMbdjq4"},{"name":"CHIP_Definition","source":"1o8WA4AchpWBMjYuQoztdxmMZahEintSyQdz3nT9Pap"},{"name":"Ethics","source":"BYmhLcQ1PuprYggtPFQqSEMs61x2oJzQPpF2PLxTygG8"},{"name":"Duties_Rights","source":"3mXoCRRbbUkhdyG6HpeqVA2aiP1E83vti8dbizD9rqTx"},{"name":"Representations","source":"F41FpktEz15va8XoaEvqcvgRrirTRMz8WaMYryAGqRhs"},{"name":"Defaults","source":"4mJNcoNSDzgnb8YExnMCU9hQCMdof4MCSg8xc2cVeUmV"},{"name":"Credit_Terms","source":"YdLoNtqSm9D8WZ7864cC3XB2o7mqAZzBCa3oFjmp4pQ"}]'
+      '[{"name":"Recitals"},{"name":"Tally_Definition"},{"name":"CHIP_Definition"},{"name":"Ethics"},{"name":"Duties_Rights"},{"name":"Representations"},{"name":"Defaults"},{"name":"Credit_Terms","source":"CBoYrdLxKpyk56Jy8sF_qzg4uLmC28aKOUSmd6CgzQE"}]'
     )
 ,(
       'mychips.org',
@@ -11539,6 +11558,18 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'What a Tally is and How it Works',
       'Pledges of Value are tracked by means of a Tally. A Tally is an agreement between two willing Parties, normally stored as a digital electronic record, and by which the Parties document and enforce a series of Pledges of Value, called Chits, made between them.',
       '[{"title":"Signing Keys","text":"Each Party is in possession of a digital key consisting of a private part and a public part. Each Party is responsible to maintain knowledge and possession of its key and to keep the private portion absolutely confidential. The public part of the key is used to validate the Party''s digital signature and so it must be shared with the other Party. This is accomplished by including both Parties'' public keys in the Tally Data."},{"title":"Signing the Tally","text":"The Parties agree to the terms and conditions incorporated into the Tally by computing a standardized hash from the normalized contents of the Tally, and encrypting that hash using their private key. This act of signing is normally conducted by a user interacting with an application running on a computer or mobile device. By producing and sharing a digital signature of the hash of the Tally, the Party is agreeing to all the terms and conditions of this Agreement."},{"title":"Stock and Foil","text":"The two Parties to a Tally are distinct with respect to their expected roles as Foil Holder and Stock Holder. Specifically, the Tally is stored as two complementary counterparts: a Foil, and a Stock, each held or stored by one of the Parties directly or by an agent service provider."},{"title":"Client Role","text":"The Foil Holder is expected to most often be the recipient or purchaser of Product. This role may also be referred to as the Client."},{"title":"Vendor Role","text":"The Stock Holder is expected most often to be the provider or seller of Product. This role may also be referred to as the Vendor."},{"title":"Typical Examples","text":"For example, if a regular customer establishes a Tally with a merchant to buy Product from that merchant, the customer will normally hold the Foil and the merchant will normally hold the Stock. In an employment scenario, the employer will normally hold the Foil and the Employee will normally hold the Stock. In a more casual trading relationship where Client/Vendor roles may be unclear, the Parties may select their roles as Foil Holder and Stock Holder in any way they choose."},{"title":"Chits","text":"Each Pledge of Credit contained in a Tally is referred to as a Chit. The Party who is pledging positive value by the Chit is referred to as the Issuer of credit for that Chit. The Party the pledge is made to is the Receiver of credit. Either Party may unilaterally add valid, digitally signed Chits to the Tally as long as it does so as the Issuer."},{"title":"Authority to Pledge","text":"Neither Party may unilaterally add a Chit as Receiver, meaning a Chit that would grant value from the other Party to itself. However, either Party may request such a Pledge from the other Party. It just does not become binding until it is duly signed by the Issuer."},{"title":"Net Credit","text":"In spite of the distinct definition of the Vendor and Client, individual Pledges may be made by either Party, to the other Party. For example, a Vendor may also make Pledges to a Client. When added together, the net value of all Pledges contained in the Tally, form a total, net value for the Tally. Unless that value is zero, it will result in a net indebtedness of one Party to the other."},{"title":"Net Issuer and Recipient","text":"This indebtedness is credit, which can be thought of as a loan, a debt, or an IOU. At any given time, the indebted Party is referred to as the Net Issuer of credit or Net Debtor. The other Party is referred to as the Net Recipient of credit or Net Creditor."},{"title":"Variable Roles","text":"The roles of Client and Vendor remain constant in the context of the Tally with its two counterparts, Foil Holder and Stock Holder. As the Tally Stock accumulates a positive value, the Client will be the Net Issuer and the Vendor will be the Net Recipient. But the roles of Net Issuer and Net Recipient of credit can become reversed if the balance of the Tally moves from positive to negative."}]'
+    )
+,(
+      'mychips.org',
+      'Tally_Testing',
+      1,
+      'eng',
+      't',
+      '2023-08-17',
+      E'\\x8fdfb95b5eec1baaea7b39274a0b159fbf9d690222f82fe3fd11e1232149f291',
+      'Tally Testing and Evaluation Agreement',
+      'When invoked by a Tally, this Contract causes the resulting Agreement to be completely non-binding on the Parties regardless of the language that will follow. A Tally created with this Contract is solely for the purposes of testing and evaluation and no amounts mentioned are actually due or payable by either Party to the other. When using this tally, the Parties are solely and individually responsible for disabling lifts on the tally by configuring the appropriate Trading Variables (i.e. reward=1, clutch=1). Failure to do so on a production system where other binding tallies are in use will likely result in a total loss value from the resulting lift(s)!',
+      '[{"name":"Tally_Contract","source":"OnldjVMGK73p4GShRnb3Emben-vGaw9LAv6Gny1i8Kw"}]'
     )
 
     on conflict on constraint contracts_pkey do update set 

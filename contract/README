@@ -11,10 +11,13 @@ as follows:
   ./hash Free.yaml			#or
   ./hash *.yaml
 
-You can also check to see if the references to other documents are correct by
+You then must check to see if the references to other documents are correct by
 running:
 
   ./refcheck *.yaml
+
+Run these two commands alternately until all hashes and references are
+resolved (no more messages).
 
 Then, you may need to re-import the documents into the database by running
 (in the schema directory):

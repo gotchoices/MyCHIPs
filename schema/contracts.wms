@@ -30,7 +30,7 @@ table mychips.contracts {mychips base.language base.ent} {
   , primary key(host, name, version, language)
     eval(s $glob::stamps)
 }
-index {mychips_contracts_x_rid} {mychips.contracts mychips.ba2b58(bytea)} {mychips.ba2b58(digest)}
+index {mychips_contracts_x_rid} {mychips.contracts mychips.ba2b64v(bytea)} {mychips.ba2b64v(digest)}
 
 # Compute standard json output for a contract
 #----------------------------------------------------------------
@@ -51,12 +51,12 @@ $$;}
 
 #Basic view
 #----------------------------------------------------------------
-view mychips.contracts_v {mychips.contracts mychips.contract_json(mychips.contracts) mychips.j2h(jsonb) mychips.ba2b58(bytea)} {
+view mychips.contracts_v {mychips.contracts mychips.contract_json(mychips.contracts) mychips.j2h(jsonb) mychips.ba2b64v(bytea)} {
     select eval(fld_list $contracts::contracts_se c)
-  , mychips.ba2b58(c.digest)					as rid
+  , mychips.ba2b64v(c.digest)					as rid
   , mychips.contract_json(c)					as json_core
   , mychips.contract_json(c) || jsonb_build_object(
-      'rid',		mychips.ba2b58(c.digest)
+      'rid',		mychips.ba2b64v(c.digest)
     )								as json
   , mychips.j2h(mychips.contract_json(c)) as digest_v
   , mychips.j2h(mychips.contract_json(c)) = coalesce(c.digest,'') as clean

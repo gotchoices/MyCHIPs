@@ -41,8 +41,7 @@ The procedure in the next section uses only self-signed certificates.
 As root:
 ```
   dnf install postgresql postgresql-server postgresql-devel \
-  	postgresql-pltcl postgresql-plpython3 postgresql-contrib python3-pip
-  python3 -m pip install base58
+  	postgresql-pltcl postgresql-plpython3 postgresql-contrib
   su -l postgres -c initdb
   systemctl enable postgresql
   systemctl start postgresql
@@ -52,8 +51,7 @@ Here is a comparable installation sequence for Ubuntu:
 ```
   apt-get update
   apt-get install - postgresql postgresql-contrib \
-        postgresql-pltcl postgresql-plpython3 libpq-dev tcl-dev tcllib python3
-  python3 -m pip install base58
+        postgresql-pltcl postgresql-plpython3 libpq-dev tcl-dev tcllib
   service postgresql enable
   service postgresql start
   su -l postgres -c 'psql -c "create role admin with login createdb superuser createrole"'

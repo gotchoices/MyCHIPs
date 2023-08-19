@@ -7,9 +7,8 @@ if [ ! -z $(which psql) ]; then
   echo "  Found installed postgres: $pg_version"
 else
   apt-get -q install -y \
-    postgresql postgresql-contrib postgresql-pltcl postgresql-plpython3 python3-pip \
+    postgresql postgresql-contrib postgresql-pltcl postgresql-plpython3 \
     libpq-dev tcl-dev tcllib
-  python3 -m pip install base58
   su -l postgres -c "psql postgres postgres -c 'create extension pltcl'"
   su -l postgres -c "psql postgres postgres -c 'create extension plpython3'"
 #  systemctl enable postgresql

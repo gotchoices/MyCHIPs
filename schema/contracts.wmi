@@ -4,7 +4,6 @@ const	Path	= require("path")
 const	Glob	= require("glob")
 const	Yaml	= require("yaml")
 const	Fs	= require("fs")
-const	Bs58	= require("bs58")
 const	Format	= require("pg-format")
 
 var condir = Path.join(__dirname, '../contract')
@@ -21,7 +20,7 @@ Glob(condir + '/*.yaml', null, (err, files) => {
 //console.log("File:", file, "Object:", contObj)
     let { host, name, version, language, top, published, title, rid, text } = contObj.contract
       , sections = JSON.stringify(contObj.contract.sections)
-      , digest = Buffer.from(Bs58.decode(rid))
+      , digest = Buffer.from(rid, 'base64url')
     console.log(`${comma}(
       ${Format.literal(host)},
       ${Format.literal(name)},
