@@ -131,6 +131,11 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
       {file.format.html		{html}			{Return HTML document displaying the file objects}}
       {file.format.json		{json}			{Return file data as JSON object}}
     {file.digest 		{File Digest}		{Specify the base64url hash of a single document file to return}}
+  {hello 			{Hello Test}		{A hello world type report}}
+    {hello.format 		{Return Format}		{How to return the graph report data}}
+      {hello.format.html	{html}			{Return HTML document displaying the file objects}}
+      {hello.format.json	{json}			{Return file data as JSON object}}
+    {hello.digest 		{File Digest}		{Specify the base64url hash of a single document file to return}}
   {agree 			{Tally Agreement}	{Generate the tally agreement as a printable PDF document}}
     {agree.format 		{Agreement Format}	{How to return the tally agreement report data}}
       {agree.format.html	{html}			{Return HTML fragment that contains the report}}
