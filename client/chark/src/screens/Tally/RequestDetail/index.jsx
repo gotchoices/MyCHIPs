@@ -124,7 +124,7 @@ const RequestDetail = (props) => {
     }
     <Button
       style={{ marginTop: 24, }}
-      title="Make Payment"
+      title="Request Payment"
       onPress={onMakePayment}
       disabled={disabled}
     />

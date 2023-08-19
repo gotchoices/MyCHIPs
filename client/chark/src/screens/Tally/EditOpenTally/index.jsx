@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TextInput, RefreshControl } from 'react-native';
 
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
@@ -34,6 +34,7 @@ const EditOpenTally = (props) => {
   }, [tally_seq, tally_ent]);
 
   const fetchTally = () => {
+    setLoading(true);
     fetchTallies(wm, {
       fields: ['bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net'],
       where: {
@@ -136,7 +137,14 @@ const EditOpenTally = (props) => {
   }
 
   return (
-    <ScrollView>
+    <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={loading}
+          onRefresh={fetchTally}
+        />
+      }
+    >
       <View>
         <View style={styles.container}>
           <CommonTallyView

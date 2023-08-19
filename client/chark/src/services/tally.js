@@ -48,6 +48,22 @@ export const insertChit = (wm, payload) => {
   return request(wm, '_chit_insert' + random(), 'insert', spec);
 }
 
+export const updateChitRequest = (wm, args) => {
+  const data = {
+    request: args.request,
+  };
+
+  const spec = {
+    fields: data,
+    view: 'mychips.chits_v_me',
+    where: {
+      chit_uuid: args.chit_uuid,
+    },
+  }
+
+  return request(wm, '_chit_refuse' + random(), 'update', spec)
+}
+
 /**
  * @param {Object} - args
  * @param {string[]} - args.tally_uuid

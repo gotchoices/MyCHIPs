@@ -1,4 +1,4 @@
-import React , { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -7,6 +7,7 @@ import { round } from '../../../utils/common';
 
 import Avatar from '../../../components/Avatar';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
+import { formatRandomString } from '../../../utils/format-string';
 
 const TallyItem = (props) => {
   const tally = props.tally;
@@ -21,7 +22,7 @@ const TallyItem = (props) => {
 
       <View style={{ flex: 1, }}>
         <Text style={styles.name}>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
-        <Text style={[styles.description, { marginTop: 4 }]}>{partCert?.chad?.cid}:{partCert?.chad?.agent}</Text>
+        <Text style={[styles.description, { marginTop: 4 }]}>{partCert?.chad?.cid}:{formatRandomString(partCert?.chad?.agent)}</Text>
       </View>
 
       <View style={styles.price}>

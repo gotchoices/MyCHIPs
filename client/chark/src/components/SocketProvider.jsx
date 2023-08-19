@@ -18,7 +18,7 @@ const connectionUri = new Set(['connect', 'mychips.org/connect'])
 const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
   const [status, setStatus] = useState('Server Disconnected');
-  const [tallyState, setTallyState] = useState();
+  const [tallyNegotiation, setTallyNegotiation] = useState(undefined);
 
   const { setUser } = useCurrentUser();
   const connectTimeout = useRef();
@@ -73,9 +73,15 @@ const SocketProvider = ({ children }) => {
         clearTimeout(connectTimeout.current);
         setWs(websocket);
         wm.listen(`${listenId}-${user}`, user, data => {
-          console.log('notification data', data?.status ?? data?.state, data)
+          console.log('notification data', data, 'NOTIFICATION DATA')
           onDisplayNotification(data);
-          setTallyState(data?.status ?? data?.state)
+          if(data?.target === 'tally') {
+            setTallyNegotiation({
+              uuid: data?.object?.uuid,
+              sequence: data?.sequence,
+              state: data?.state,
+            })
+          }
         })
 
         wm.onOpen(address, m => {
@@ -155,9 +161,9 @@ const SocketProvider = ({ children }) => {
       ws,
       wm,
       status,
-      tallyState,
       connectSocket,
       disconnectSocket,
+      tallyNegotiation,
     }}>
       {children}
     </SocketContext.Provider>

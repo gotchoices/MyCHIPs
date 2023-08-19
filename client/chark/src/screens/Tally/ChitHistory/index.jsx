@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOpacity, RefreshControl } from "react-native";
 import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
@@ -8,7 +8,6 @@ import { round } from "../../../utils/common";
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
-import { getFile } from "../../../services/profile";
 import { formatDate } from "../../../utils/format-date";
 import { Buffer } from "buffer";
 
@@ -44,6 +43,7 @@ const ChitHistory = (props) => {
   }, [tally_uuid])
 
   const _fetchChitHistory = () => {
+    setLoading(true);
     fetchChitHistory(
       wm,
       {
@@ -124,6 +124,12 @@ const ChitHistory = (props) => {
 
   return <View style={styles.container}>
     <FlatList
+      refreshControl={
+        <RefreshControl
+          refreshing={loading}
+          onRefresh={_fetchChitHistory}
+        />
+      }
       ListHeaderComponent={
         <ChistHistoryHeader
           args={{
