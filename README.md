@@ -138,6 +138,7 @@ There is a current project roadmap in the [TODO file](TODO).
 ### Other Interesting Projects/Resources:
 - [Sikoba](https://sikoba.com)
 - [Offset Credit](http://offsetcredit.org)
+- [Ledger Loops](http://ledgerloops.com)
 - [Trustlines](http://trustlines.network)
 - [Open Credit Network](https://opencredit.network/)
 - [Credit Commons](http://www.creditcommons.net)
