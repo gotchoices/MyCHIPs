@@ -14,12 +14,14 @@ import UpdateCID from '../UpdateCID';
 import useProfile from '../../hooks/useProfile';
 import { useId } from 'react';
 import { UpdateHoldCert } from '../Tally/TallyPreview/UpdateHoldCert';
+import { useNavigation } from '@react-navigation/native';
 
 const connectionUri = new Set(['connect', 'mychips.org/connect'])
 const tallyUri = new Set(['tally', 'mychips.org/tally'])
 
 const HomeScreen = (props) => {
   const { connectSocket, wm } = useSocket();
+  const navigation = useNavigation();
   const { ticket } = props.route?.params ?? {};
   const { user } = useCurrentUser();
   const { personal, setPersonal } = useProfile();
@@ -101,12 +103,11 @@ const HomeScreen = (props) => {
     });
     dismissUpdateDialog();
   }
-  
+
   function requestProposedTally(ticket) {
-    // Here allow user to select the level of certificate
     setTallyProcess(ticket);
     console.log("THIS IS TRIGGERRED WHEN SCANNED", JSON.stringify(ticket));
-    props.navigation.navigate("DraftTally", ticket);
+    navigation.navigate("DraftTally", ticket);
     // onShowUpdateCert();
 
     return;

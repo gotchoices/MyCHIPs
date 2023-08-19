@@ -7,6 +7,8 @@ import { getCurrency } from "../../../services/user";
 import useSocket from "../../../hooks/useSocket";
 import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
+import { useTallyLanguage } from "../../../hooks/useLanguage";
+import useMessageText from "../../../hooks/useMessageText";
 
 const PaymentDetail = (props) => {
   const { tally_uuid, chit_seq, tally_type } = props.route?.params;
@@ -21,6 +23,13 @@ const PaymentDetail = (props) => {
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  useTallyLanguage(wm);
+
+  const { messageText } = useMessageText();
+
+  useEffect(()=>{
+    console.log("REF_SCREEN_VALUE ==> ", JSON.stringify(messageText));
+  }, [messageText])
 
   useEffect(() => {
     if (currencyCode) {
@@ -38,7 +47,6 @@ const PaymentDetail = (props) => {
   const totalNetDollar = useMemo(() => {
     const convertedChit = parseInt(chit);
     if (conversionRate && convertedChit) {
-      // const total = round((convertedChit ?? 0), 3) * conversionRate;
       const total = convertedChit * conversionRate;
       return round(total, 2);
     }
