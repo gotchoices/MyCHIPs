@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # An example hook script to verify what is about to be pushed.  Called by "git
 # push" after it has checked the remote status, but before anything has been
@@ -31,22 +31,22 @@ ROOT_DIR="."
 
 while read local_ref local_oid remote_ref remote_oid
 do
-	if test "$local_oid" = "$zero" 
+  if test "$local_oid" = "$zero" 
   then
-		# Handle delete
-		:
-	else
-		if test "$remote_oid" = "$zero" 
+    # Handle delete
+    :
+  else
+    if test "$remote_oid" = "$zero" 
     then
-			# New branch, examine all commits
-			range="$local_oid"
-		else
-			# Update to existing branch, examine new commits
-			range="$remote_oid..$local_oid"
-		fi
+      # New branch, examine all commits
+      range="$local_oid"
+    else
+      # Update to existing branch, examine new commits
+      range="$remote_oid..$local_oid"
+    fi
 
     changedFiles=$(git diff-tree --no-commit-id --name-only $range -r)
-		# Check for WIP commit
+    # Check for WIP commit
     testDirs=()
     for file in $changedFiles
     do
@@ -78,7 +78,7 @@ do
         fi
       fi
     done
-	fi
+  fi
 done
 
 exit 1 #ALL TESTS PASSED PROCEED WITH PUSH
