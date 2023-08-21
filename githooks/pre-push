@@ -19,8 +19,7 @@
 # This sample shows how to prevent push of commits where the log message starts
 # with "WIP" (work in progress).
 
-TEST_DIR_NAME="__tests__"
-TEST_RUNNER_NAME="run.sh"
+TEST_RUNNER_NAME=".testscript.sh"
 remote="$1"
 url="$2"
 
@@ -47,35 +46,32 @@ do
 
     changedFiles=$(git diff-tree --no-commit-id --name-only $range -r)
     # Check for WIP commit
-    testDirs=()
+    testRunners=()
     for file in $changedFiles
     do
       current=$file
       while [[ $current != "." ]]
       do
         current=$(dirname $current)
-        if [ -d "${ROOT_DIR}/${current}/${TEST_DIR_NAME}/" ]
+        if [ -f "${ROOT_DIR}/${current}/${TEST_RUNNER_NAME}" ]
         then
-          testDirs+=("${ROOT_DIR}/${current}/${TEST_DIR_NAME}/")
+          testRunners+=("${ROOT_DIR}/${current}/${TEST_RUNNER_NAME}")
         fi
       done
       #Remove duplicates
     done
     #remove duplicates
-    unique_testDirs=($(echo "${testDirs[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
-    for dir in ${unique_testDirs[@]}
+    unique_testRunners=($(echo "${testRunners[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+    for runner in ${unique_testRunners[@]}
     do
-      if [[ -f "${dir}${TEST_RUNNER_NAME}" ]]
+      ${runner}
+      errorCode=$?
+      if [ $errorCode -eq 0 ]; 
       then
-        ${dir}${TEST_RUNNER_NAME}
-        errorCode=$?
-        if [ $errorCode -eq 0 ]; 
-        then
-          echo "TEST SUITE PASSED AT: ${dir}" 
-        else
-          echo >&2 "TEST SUITE FAILED AT: ${dir}" 
-          exit $errorCode
-        fi
+        echo "TEST SUITE PASSED AT: ${runner}" 
+      else
+        echo >&2 "TEST SUITE FAILED AT: ${dir}" 
+        exit $errorCode
       fi
     done
   fi
