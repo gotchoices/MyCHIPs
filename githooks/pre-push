@@ -30,7 +30,6 @@ ROOT_DIR="."
 
 while read local_ref local_oid remote_ref remote_oid
 do
-  echo "RUNNING TESTS" $remote_ref
 
   if test "$local_oid" = "$zero" 
   then
@@ -45,11 +44,12 @@ do
       # Update to existing branch, examine new commits
       range="$remote_oid..$local_oid"
     fi
-    if $remote_ref != "master"
+    if [[ ! "${remote_ref}" =~ .*"master" ]]
     then
-	    echo "SKIPPING TESTS"
-	    exit 1
+	    echo "SKIPPING REGRESSION TESTS"
+	    exit 0
     fi
+    echo "RUNNING REGRESSION TESTS"
 
     changedFiles=$(git diff-tree --no-commit-id --name-only $range -r)
     # Check for WIP commit
@@ -84,4 +84,4 @@ do
   fi
 done
 
-exit 1 #ALL TESTS PASSED PROCEED WITH PUSH
+exit 0 #ALL TESTS PASSED PROCEED WITH PUSH
