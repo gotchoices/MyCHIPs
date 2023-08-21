@@ -6,7 +6,7 @@ const VisBSConfig = {
   startAngle:	Math.PI / 2,		//Start/end on East axis
   endAngle:	Math.PI / 2*5,
   minTextAngle:	Math.PI / 8,		//Display sum if pie slice bigger than this
-  truncAgent:	10,			//Show this many digits of agent ID
+  agentChars:	4,			//Starting agent chars to show
   fontSize:	18,
   chipMult:	1000,
 
@@ -71,6 +71,12 @@ class VisBSUser {				//Build an object for a user and its peers
     })
   }
   
+  shortAgent(agent) {				//Format a shortened agent address
+  if (agent.length <= (this.agentChars * 2 + 3))
+    return agent
+  return agent.substr(0, this.agentChars) + "..." + agent.substr(-this.agentChars)
+}
+  
   user(uRec) {				//Generate body data for a user node
 //console.log("User", tag, uRec.peer_cid, uRec.tallies)
     let paths = []
@@ -124,8 +130,9 @@ class VisBSUser {				//Build an object for a user and its peers
       <g stroke="black" stroke-width="0.5">
         ${paths.join('\n')}
         <circle r="${radius}" fill="url(#radGrad)"/>
-        <text x="${-radius}" y="${-radius -this.fontSize/2}" style="font:normal ${this.fontSize}px sans-serif";>
-          ${uRec.peer_cid}:${uRec.peer_agent.slice(-this.truncAgent)}
+        <text y="${-radius -this.fontSize/2}" style="font:normal ${this.fontSize}px sans-serif";>
+          <tspan x="${-radius}" >${uRec.peer_cid}:${this.shortAgent(uRec.peer_agent)}</tspan>
+          <tspan x="${-radius}" dy="${this.fontSize}">${uRec.id}</tspan>
         </text>
         ${textCmds.join('\n')}
       </g>`
@@ -136,7 +143,7 @@ class VisBSUser {				//Build an object for a user and its peers
   peer(tally) {					//Generate SVG code for a peer node
     let { part } = tally
       , [ cid, agent ] = part.split(':')
-      , tAgent = agent.slice(-this.truncAgent)
+      , tAgent = this.shortAgent(agent)
       , xOff = this.fontSize / 2
       , yOff = this.fontSize + 3
       , max = Math.max(cid.length + 2, tAgent.length + 6)	//take tspan into account
