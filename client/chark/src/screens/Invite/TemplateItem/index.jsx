@@ -7,12 +7,18 @@ import { TallyTrainingIcon } from './TallyTrailingIcon';
 import { fetchTallyFile } from '../../../services/tally';
 import useSocket from '../../../hooks/useSocket';
 import { Buffer } from 'buffer';
+import { object } from 'prop-types';
 
 const TemplateItem = (props) => {
   const item = props.template;
   const [avatar, setAvatar] = useState(undefined);
   const { wm } = useSocket();
   const partCert = item.part_cert;
+
+
+  useEffect(() => {
+    console.log("EACH_ITEM_LOG ==> ", JSON.stringify(item));
+  }, [item]);
 
   const onView = () => {
     props.onItemSelected(item);
@@ -51,7 +57,9 @@ const TemplateItem = (props) => {
         {
           partCert ? <View style={styles.row}>
             <Text style={styles.name}>
-              {`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}
+              {partCert?.type === 'o'
+                ? `${partCert?.name}`
+                : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}
             </Text>
             <TallyTrainingIcon status={item?.status} type={item?.tally_type} />
           </View> : <Text style={styles.name}>Beginning template</Text>

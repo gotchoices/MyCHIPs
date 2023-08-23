@@ -113,7 +113,11 @@ const CommonTallyView = (props) => {
               helpText={userTallyText?.frm_name?.help}
               style={styles.secondaryheader}
             />
-            <Text>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
+            <Text>{
+              partCert?.type === 'o'
+                ? `${partCert?.name}`
+                : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
+            }</Text>
           </View>
 
           <View style={styles.detailControl}>
