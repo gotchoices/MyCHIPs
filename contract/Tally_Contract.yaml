@@ -8,7 +8,7 @@
     language: eng
     top: true
     published: '2020-04-01'
-    rid: 'OnldjVMGK73p4GShRnb3Emben-vGaw9LAv6Gny1i8Kw'
+    rid: '4rjsHZc0f25gJ0hScruketO_fWGMlfGulOsqfRqBIsQ'
     title: 'MyCHIPS Tally Agreement'
     text: >-
       This Contract is part of an Agreement by and between the Parties hereinafter referred to as Foil Holder and Stock Holder.
@@ -19,21 +19,25 @@
     sections:
       -
         name: 'Recitals'
+        source: 'WsjV_CbUoJ_yZFua53fAy7aYOjB30Pd98ljg9QmVdyk'
       -
         name: 'Tally_Definition'
+        source: 'X1Yk0xnrvPtvORtJB6wo27sVYOCZoCiLoBM2RbTzLss'
       -
         name: 'CHIP_Definition'
+        source: 'ADQom_kq3HOCIqtZfGI3FNuYIMcULRpbwP47PL2lr8E'
       -
         name: 'Ethics'
+        source: 'nLhpZItW-ap184PPRGtyauJkV4iz7nvn7ZSD0s8vfGk'
       -
         name: 'Duties_Rights'
+        source: 'KR_ATEdqKVFPkBA_ZDiltxLqEiBYGI6YUD5PqC4w20M'
       -
         name: 'Representations'
+        source: '0Mil_AC-GxDHZ1L2oPd1g5wOF8fw6j0MANuJxakV9jI'
       -
         name: 'Defaults'
+        source: 'N-xCf_jf4aOu-gBpOk_Au37i5VHrb8XiDoqorXtHDgg'
       -
         name: 'Credit_Terms'
         source: 'CBoYrdLxKpyk56Jy8sF_qzg4uLmC28aKOUSmd6CgzQE'
-
-# -----------------------------------------------------------------------------
-# More stuff

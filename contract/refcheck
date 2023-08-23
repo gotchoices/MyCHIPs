@@ -23,10 +23,10 @@ const updateDigest = (file, findDigest, newDigest) => new Promise((resolve) => {
   readInterface.on('line', function(line) {
     if (!changed && line.trim().startsWith('source:')) {
       let oldDigest = line.match(/(source:\s*['"])(.+)(['"])/)[2]
-//console.log('O:', oldDigest, 'N:', newDigest)
+console.log('O:', oldDigest, 'N:', newDigest)
       if (findDigest == oldDigest && newDigest != oldDigest) {
         let updLine = line.replace(/(source:\s*['"]).+(['"])/, `$1${newDigest}$2`);
-        readInterface.output.write(updLine + '\n')		//;console.log('Changed!')
+        readInterface.output.write(updLine + '\n')		;console.log('Changed!')
         changed = true
       }
     } else {
@@ -39,7 +39,8 @@ const updateDigest = (file, findDigest, newDigest) => new Promise((resolve) => {
       Fs.renameSync(tmpFile, file)			//,console.log('Rename:', tmpFile)
     else
       Fs.unlinkSync(tmpFile)				//,console.log('Unlink:', tmpFile)
-    resolve()
+//    resolve()
+    setTimeout(resolve, 500)
   })
 })
 
