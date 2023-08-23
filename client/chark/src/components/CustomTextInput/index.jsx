@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     borderColor: '#BBBBBB',
     height: 35,
     paddingHorizontal: 16,
-    borderRadius: 13,
+    borderRadius: 8,
     alignItems: 'center',
   },
   textInput: {

@@ -12,7 +12,7 @@ import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAsse
 import FloatingActionButton from '../../components/FloadingActionButton';
 import useProfile from '../../hooks/useProfile';
 
-const Header_Height = 130;
+const Header_Height = 160;
 
 const useSearchData = (initialData) => {
   const [searchValue, setSearchValue] = useState('');
@@ -164,24 +164,25 @@ const TallyInvite = (props) => {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
-        <CustomTextInput
-          placeholder="Search"
-          value={searchValue}
-          onChangeText={setSearchValue}
-          leadingIcon={<SearchIcon size={16} />}
-        />
-        <View style={styles.row}>
+        <Text style={styles.h1}>Working Tallies</Text>
+        <View style={[styles.row, { marginVertical: 22 }]}>
           <Text style={styles.title}>{getFilterResult('title', ' | ')}</Text>
           <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
             <FilterSecondIcon />
             <Text style={styles.filterText}>Filters</Text>
           </TouchableOpacity>
         </View>
+        <CustomTextInput
+          placeholder="Search"
+          value={searchValue}
+          onChangeText={setSearchValue}
+          leadingIcon={<SearchIcon size={16} />}
+        />
       </Animated.View>
 
       <Animated.FlatList
         bounces={false}
-        ListHeaderComponent={<View style={{ height: Header_Height }} />}
+        ListHeaderComponent={<View style={{ height: Header_Height, marginTop: 12 }} />}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: colors.white }}
         data={filteredData}
         renderItem={renderItem}
@@ -218,7 +219,6 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    marginTop: 18,
     justifyContent: 'space-between',
     alignItems: 'center'
   },
@@ -249,6 +249,13 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     justifyContent: 'center',
     paddingHorizontal: 16,
+  },
+  h1: {
+    fontSize: 18,
+    fontFamily: 'inter',
+    fontWeight: '500',
+    color: '#636363',
+    alignSelf: 'center',
   }
 })
 

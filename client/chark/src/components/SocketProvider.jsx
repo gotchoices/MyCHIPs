@@ -17,7 +17,7 @@ const connectionUri = new Set(['connect', 'mychips.org/connect'])
 
 const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
-  const [status, setStatus] = useState('Server Disconnected');
+  const [status, setStatus] = useState('Disconnected');
   const [tallyNegotiation, setTallyNegotiation] = useState(undefined);
 
   const { setUser } = useCurrentUser();
@@ -45,7 +45,7 @@ const SocketProvider = ({ children }) => {
       wm,
     })
 
-    setStatus('Connecting Server...');
+    setStatus('Connecting');
 
     connect.getUrl(creds).then(uri => {
       console.log('Connect:', uri)
@@ -53,7 +53,7 @@ const SocketProvider = ({ children }) => {
 
       websocket.onclose = () => {
         console.log('Socket connection closed')
-        setStatus('Server Disconnected');
+        setStatus('Disconnected');
         setWs(null);
         wm.onClose()
 
@@ -69,7 +69,7 @@ const SocketProvider = ({ children }) => {
 
       websocket.onopen = () => {
         connectionBackoffRef.current = initialConnectionBackoff;
-        setStatus('Server Connected');
+        setStatus('Connected');
         clearTimeout(connectTimeout.current);
         setWs(websocket);
         wm.listen(`${listenId}-${user}`, user, data => {
@@ -100,7 +100,7 @@ const SocketProvider = ({ children }) => {
 
       websocket.onerror = err => {
         console.log('Websocket error', err)
-        setStatus('Server Disconnected');
+        setStatus('Disconnected');
         wm.onClose()
 
         if(cb) {
@@ -117,7 +117,7 @@ const SocketProvider = ({ children }) => {
       }
       const delay = connectionBackoffRef.current + Math.floor(Math.random() * 3500)
       console.log('Error initializing', err)
-      setStatus('Server Disconnected');
+      setStatus('Disconnected');
       connectTimeout.current = setTimeout(() => {
         connectSocket()
       }, delay)
