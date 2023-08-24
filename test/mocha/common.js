@@ -8,9 +8,11 @@ const Path = require('path')
 const Net = require('net')
 const Child = require('child_process')
 const Format = require('pg-format')
+const Stringify = require('json-stable-stringify')
 const Uuid = require('uuid')
 const assert = require('assert');
 const Bus = require('../bus')
+const Crypto = require('../../lib/crypto.js')
 const DBName = process.env.MyCHIPS_TESTDB ?? "mychipsTestDB"
 const dockName = 'mychipsTestPG'
 const devSqlFile = require.resolve('wyseman/lib/develop.sql')
@@ -31,7 +33,7 @@ module.exports={
   DBName,
   DB2Name: DBName + '2',
   DBAdmin, DBHost, DBPort, Log, dbClient,
-  Format, assert, Bus, testLog, Schema, SchemaDir,
+  Format, assert, Bus, testLog, Schema, SchemaDir, Crypto, Stringify,
 
   dbConf: function(log, listen, database = DBName, schema) {
     Object.assign(this, {database, user: DBAdmin, connect: true, log, listen, schema})
@@ -117,7 +119,7 @@ log.debug("Taking down docker PG")
   develop: function(db, done) {
     Fs.readFile(devSqlFile, (err, fileData) => {if (err) done(err)
       let sql = fileData.toString()
-log.debug('sql:', sql)
+//log.debug('sql:', sql)
       db.query(sql, null ,(err, res) => {
         if (err) done(err)		//;log.debug('DD:', err, res.rows)
 //        assert.equal(res.rowCount, 1)

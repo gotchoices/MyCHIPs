@@ -7087,7 +7087,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('mychips','users_v','export','"user"','t'),
   ('mychips','users_v','launch','{"import": "json.import", "initial": 1}','t'),
   ('mychips','users_v','subviews','["base.addr_v", "base.comm_v", "base.file_v"]','t'),
-  ('mychips','users_v','where','{"and": true, "items": [{"not": true, "left": "user_ent", "oper": "isnull"}, {"not": true, "left": "ent_inact", "oper": "true"}, {"left": "ent_type", "oper": "=", "entry": "p"}]}','t'),
+  ('mychips','users_v','where','{"and": true, "items": [{"not": true, "left": "user_ent", "oper": "isnull"}, {"not": true, "left": "ent_inact", "oper": "true"}]}','t'),
   ('mychips','users_v_flat','display','["id", "user_cid", "std_name", "bill_addr", "bill_city", "bill_state"]','t'),
   ('mychips','users_v_flat','sort','["std_name", "id"]','t'),
   ('mychips','users_v_flat','subviews','["mychips.addr_v_me", "mychips.comm_v_me", "mychips.file_v_me"]','t'),
@@ -7101,6 +7101,7 @@ insert into wm.table_style (ts_sch,ts_tab,sw_name,sw_value,inherit) values
   ('wm','objects','fockus','"obj_nam"','t'),
   ('wm','table_data','display','["obj", "kind", "cols", "system", "pkey"]','t'),
   ('wm','table_pub','display','["obj", "kind", "cols", "pkey", "title", "help"]','t'),
+  ('wm','table_pub','where','{"language": "eng"}','t'),
   ('wm','table_text','focus','"code"','t'),
   ('wm','value_text','focus','"code"','t'),
   ('wylib','data','display','["ruid", "component", "name", "descr", "owner", "access"]','t'),
@@ -11489,7 +11490,7 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       NULL,
       '2020-04-01',
-      E'\\x474793402d95ce27fa97a6bd834801febdebc378fd2bd637b6b38b0b2f7cebab',
+      E'\\x81430dc378c8a988d1a5742d3e66637854ca463d9e001ea56681d94fd04ad034',
       'How to Use MyCHIPs at No Cost',
       'End users may use MyCHIPs royalty free on the condition that, in all contracts and transactions, the following contract sections are included in their full force and intent, and abided by:',
       '[{"name":"Recitals","source":"WsjV_CbUoJ_yZFua53fAy7aYOjB30Pd98ljg9QmVdyk"},{"name":"Tally_Definition","source":"X1Yk0xnrvPtvORtJB6wo27sVYOCZoCiLoBM2RbTzLss"},{"name":"CHIP_Definition","source":"ADQom_kq3HOCIqtZfGI3FNuYIMcULRpbwP47PL2lr8E"},{"name":"Ethics","source":"nLhpZItW-ap184PPRGtyauJkV4iz7nvn7ZSD0s8vfGk"}]'
@@ -11537,7 +11538,7 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       't',
       '2020-04-01',
-      E'\\xe2b8ec1d97347f6e6027485272bba47ad3bf7d618c95f1ae94eb2a7d1a8122c4',
+      E'\\x4c050ca328f08102aade68bcb7d5f6631afe8a2dc7053993778f9c99ea443540',
       'MyCHIPS Tally Agreement',
       'This Contract is part of an Agreement by and between the Parties hereinafter referred to as Foil Holder and Stock Holder. A digital hash of this Contract has been incorporated into a MyCHIPs digital Tally which also contains other Data relevant to the Agreement. Tally Data includes details about the identities of the Parties as well as digital signatures by the Parties attesting to their acceptance of this Agreement and is shown at the end of the Contract. This Contract also incorporates further documents by reference, including their digital hashes. All terms and conditions, including those contained in the Tally itself, this document, and the other documents it references, together form the complete Tally Agreement between the Parties.',
       '[{"name":"Recitals","source":"WsjV_CbUoJ_yZFua53fAy7aYOjB30Pd98ljg9QmVdyk"},{"name":"Tally_Definition","source":"X1Yk0xnrvPtvORtJB6wo27sVYOCZoCiLoBM2RbTzLss"},{"name":"CHIP_Definition","source":"ADQom_kq3HOCIqtZfGI3FNuYIMcULRpbwP47PL2lr8E"},{"name":"Ethics","source":"nLhpZItW-ap184PPRGtyauJkV4iz7nvn7ZSD0s8vfGk"},{"name":"Duties_Rights","source":"KR_ATEdqKVFPkBA_ZDiltxLqEiBYGI6YUD5PqC4w20M"},{"name":"Representations","source":"0Mil_AC-GxDHZ1L2oPd1g5wOF8fw6j0MANuJxakV9jI"},{"name":"Defaults","source":"N-xCf_jf4aOu-gBpOk_Au37i5VHrb8XiDoqorXtHDgg"},{"name":"Credit_Terms","source":"CBoYrdLxKpyk56Jy8sF_qzg4uLmC28aKOUSmd6CgzQE"}]'
@@ -11561,7 +11562,7 @@ insert into mychips.contracts (host, name, version, language, top, published, di
       'eng',
       't',
       '2023-08-17',
-      E'\\x8fdfb95b5eec1baaea7b39274a0b159fbf9d690222f82fe3fd11e1232149f291',
+      E'\\x9a0c4f06953efdca2796ddc6f9cfaad50dd84c4673cf208ce34280c432c3a779',
       'Tally Testing and Evaluation Agreement',
       'When invoked by a Tally, this Contract causes the resulting Agreement to be completely non-binding on the Parties regardless of the language that will follow. A Tally created with this Contract is solely for the purposes of testing and evaluation and no amounts mentioned are actually due or payable by either Party to the other. When using this tally, the Parties are solely and individually responsible for disabling lifts on the tally by configuring the appropriate Trading Variables (i.e. reward=1, clutch=1). Failure to do so on a production system where other binding tallies are in use will likely result in a total loss value from the resulting lift(s)!',
       '[{"name":"Tally_Contract","source":"4rjsHZc0f25gJ0hScruketO_fWGMlfGulOsqfRqBIsQ"}]'

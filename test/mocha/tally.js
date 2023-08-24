@@ -9,13 +9,13 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify} = require('./common')
 var log = testLog(__filename)
 const PeerCont = require("../../lib/peer2peer")
 const PeerNoise = require("../../lib/peernoise")
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
-var {stateField, uSql, save, rest} = require('./def-tally')
+var {stateField, uSql, sSql, save, rest} = require('./def-tally')
 var interTest = {}			//Pass values from one test to another
 
 //Establish tally between two users
@@ -24,6 +24,23 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   var busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
   var seqO = reuse ? 2 : 1
+  
+  const getSignature = function(db, user, seq, done) {
+    let sql = sSql('t.json, u.user_cmt', user, seq)	//;log.debug('sql:', sql)
+    db.query(sql, (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)				//;log.debug("row:", row)
+        , key = row.user_cmt				//;log.debug("key:", key)
+        , serial = Stringify(row.json)			//;log.debug('JSON:', serial.slice(0,40))
+
+      assert.ok(row.json)
+      Crypto.sign(key, serial, sign => {
+        let textSign = Buffer.from(sign).toString('base64url')
+        assert.ok(textSign)			//;log.debug('sign:', textSign)
+        interTest.sign = textSign
+        done()
+      })
+    })
+  }
 
   before('Connection 0 to test database', function(done) {	//Emulate originator user
     dbO = new dbClient(dbcO, (chan, data) => {
@@ -120,9 +137,13 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
+  it("Generate tally signature", function(done) {
+    getSignature(dbO, userO, seqO, done)
+  })
+
   it("Originator approves, signs the proposed tally", function(done) {
-    let uuid = mkUuid(cidO, agent0)			//Make a real UUID for this user/tally
-      , sql = uSql('tally_uuid = %L, request = %L, hold_sig = %L', uuid, 'offer', 'Originator Signature', userO, seqO)
+    let uuid = mkUuid(cidO, agent0)		//Make a real UUID for this user/tally
+      , sql = uSql('tally_uuid = %L, request = %L, hold_sig = %L', uuid, 'offer', interTest.sign, userO, seqO)
       , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbO.query(sql, (err, res) => { if (err) done(err)
@@ -192,8 +213,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(rest('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
+  it("Generate tally signature", function(done) {
+    getSignature(dbS, userS, 1, done)
+  })
+
   it("Subject counters the proposed tally", function(done) {
-    let sql = uSql('request = %L, hold_sig = %L', 'offer', 'Subject Signature', userS, 1)
+    let sql = uSql('request = %L, hold_sig = %L', 'offer', interTest.sign, userS, 1)
       , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
@@ -221,8 +246,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(rest('Hoffer'), (e) => {if (e) done(e); _done()})
   })
 
+  it("Generate tally signature", function(done) {
+    getSignature(dbS, userS, 1, done)
+  })
+
   it("Subject accepts the proposed tally", function(done) {
-    let sql = uSql('request = %L, hold_sig = %L', 'open', 'Subject Signature', userS, 1)
+    let sql = uSql('request = %L, hold_sig = %L', 'open', interTest.sign, userS, 1)
       , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
