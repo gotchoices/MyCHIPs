@@ -9,6 +9,7 @@ import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
 import { useTallyLanguage } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
+import HelpText from "../../../components/HelpText";
 
 const PaymentDetail = (props) => {
   const { tally_uuid, chit_seq, tally_type } = props.route?.params;
@@ -23,13 +24,13 @@ const PaymentDetail = (props) => {
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  
   useTallyLanguage(wm);
-
   const { messageText } = useMessageText();
 
-  useEffect(()=>{
-    console.log("REF_SCREEN_VALUE ==> ", JSON.stringify(messageText));
-  }, [messageText])
+  const referenceText = messageText?.chits_lang?.reference;
+  const memoText = messageText?.chits_lang?.memo;
+  const netText = messageText?.chits_lang?.net;
 
   useEffect(() => {
     if (currencyCode) {
@@ -106,17 +107,33 @@ const PaymentDetail = (props) => {
     style={styles.container}
     contentContainerStyle={styles.contentContainer}
   >
+    <HelpText
+      label={memoText?.title ?? ''}
+      helpText={memoText?.help ?? ''}
+      style={styles.headerText}
+    />
     <TextInput
       style={styles.input}
       placeholder="Memo"
       value={memo}
       onChangeText={setMemo}
     />
+    <HelpText
+      label={referenceText?.title ?? ''}
+      helpText={referenceText?.help ?? ''}
+      style={styles.headerText}
+    />
     <TextInput
       style={styles.input}
       placeholder="Reference"
       value={reference}
       onChangeText={setReference}
+    />
+
+    <HelpText
+      label={netText?.title ?? ''}
+      helpText={netText?.help ?? ''}
+      style={styles.headerText}
     />
     <TextInput
       style={styles.input}
@@ -131,7 +148,7 @@ const PaymentDetail = (props) => {
         <></>
     }
     <Button
-      style={{ marginTop: 24, }}
+      style={{ marginTop: 8, }}
       title="Make Payment"
       onPress={onMakePayment}
       disabled={disabled}
@@ -152,7 +169,11 @@ const styles = StyleSheet.create({
   input: {
     padding: 10,
     backgroundColor: colors.gray100,
-    marginVertical: 10,
+    marginBottom: 16,
+  },
+  headerText: {
+    color: colors.black,
+    fontSize: 14,
   },
 })
 

@@ -47,7 +47,7 @@ const ChitHistory = (props) => {
     fetchChitHistory(
       wm,
       {
-        fields: ['part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx'],
+        fields: ['part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx', 'action'],
         where: {
           tally_uuid: tally_uuid,
         },
@@ -60,6 +60,7 @@ const ChitHistory = (props) => {
           runningBalance += item.net;
           return { ...item, runningBalance };
         });
+        console.log("FINALCHITS ==> ", JSON.stringify(chitsWithRunningBalance));
         setChits(chitsWithRunningBalance);
       }
     }).catch(ex => {
@@ -70,7 +71,12 @@ const ChitHistory = (props) => {
   }
 
   const onChipClick = (item, index) => {
-    props.navigation.navigate('ChitDetail', { chit_uuid: item.chit_uuid });
+    props.navigation.navigate('ChitDetail', {
+      chit_uuid: item.chit_uuid,
+      chit_ent: item.chit_ent,
+      chit_idx: item.chit_idx,
+      chit_seq: item.chit_seq,
+    });
   }
 
   const ChitItem = ({ item, index }) => {
@@ -86,28 +92,38 @@ const ChitHistory = (props) => {
       style={styles.chitItem}
       onPress={() => { onChipClick(item, index) }}
     >
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.label, { marginTop: 6 }]}>{formatedDate}</Text>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-          <Text style={{ color: 'black' }}>Running Balance:  </Text>
-          <View style={styles.row}>
-            <Image source={isRunningBalnceNeg ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
-            <Text style={isRunningBalnceNeg ? styles.negativeText : styles.positiveText}>{runningBalance}</Text>
+      <View>
+        {
+          item?.action && <View style={{ backgroundColor: 'red', width: "100%", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 }}>
+            <Text style={{ color: 'white', fontSize: 12 }}>Action Required</Text>
           </View>
+        }
+      </View>
+      <View style={{ ...styles.chitItem, flexDirection: 'row' }}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.label, { marginTop: 6 }]}>{formatedDate}</Text>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+            <Text style={{ color: 'black' }}>Running Balance:  </Text>
+            <View style={styles.row}>
+              <Image source={isRunningBalnceNeg ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
+              <Text style={isRunningBalnceNeg ? styles.negativeText : styles.positiveText}>{runningBalance}</Text>
+            </View>
+          </View>
+
+          <Text style={{ color: 'black', marginTop: 4 }}>Reference: {item.reference ?? 'not added'} </Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>Memo: {item.memo ?? 'not added'}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>State: {item.state}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>Action: {item.action?.toString()}</Text>
         </View>
 
-        <Text style={{ color: 'black', marginTop: 4 }}>Reference: {item.reference ?? 'not added'} </Text>
-        <Text style={{ color: 'black', marginTop: 4 }}>Memo: {item.memo ?? 'not added'}</Text>
-        <Text style={{ color: 'black', marginTop: 4 }}>State: {item.state}</Text>
-      </View>
-
-      <View style={{ width: 8 }} />
-      <View style={isNetNegative ? styles.debidBg : styles.creditBg}>
-        <ChitIcon color={isNetNegative ? colors.red : colors.green} height={14} width={14} />
-        <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
-          {net}
-        </Text>
+        <View style={{ width: 8 }} />
+        <View style={isNetNegative ? styles.debidBg : styles.creditBg}>
+          <ChitIcon color={isNetNegative ? colors.red : colors.green} height={14} width={14} />
+          <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
+            {net}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity >
   }
@@ -159,7 +175,6 @@ const styles = StyleSheet.create({
     padding: 16
   },
   chitItem: {
-    flexDirection: 'row',
     backgroundColor: 'white',
     padding: 12,
     alignItems: 'flex-start',

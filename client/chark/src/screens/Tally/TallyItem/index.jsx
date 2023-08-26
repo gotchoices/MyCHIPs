@@ -21,7 +21,11 @@ const TallyItem = (props) => {
       <Avatar style={styles.avatar} avatar={props.image} />
 
       <View style={{ flex: 1, }}>
-        <Text style={styles.name}>{`${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}</Text>
+        <Text style={styles.name}>{
+          partCert?.type === 'o'
+            ? `${partCert?.name}`
+            : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
+        }</Text>
         <Text style={[styles.description, { marginTop: 4 }]}>{partCert?.chad?.cid}:{formatRandomString(partCert?.chad?.agent)}</Text>
       </View>
 

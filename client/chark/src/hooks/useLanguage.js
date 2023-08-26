@@ -133,7 +133,7 @@ export const useTallyLanguage = (wm) => {
 
   useEffect(() => {
     wm.register('chits_lang' + Math.random(), 'mychips.chits_v_me', (data, err) => {
-      console.log("CHITS_LANGUAGE ==> ", JSON.stringify(data.col.reference));
+      console.log("CHITS_LANGUAGE ==> ", JSON.stringify(data?.col.reference));
       if (data) {
         addTextsToState('chits_lang', data?.col, setMessageText)
       }
