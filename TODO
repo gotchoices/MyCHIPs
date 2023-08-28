@@ -5,8 +5,7 @@ X- Are exchange rates / CHIP inflator working?
 - Tally/chit signatures
 X-  What happens if I try to create a signed chit issued by the other party?
 X-  Make regression tests use real keys on tallies
--  Make module to cache users' public keys
--  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
+X-  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
 -  Can/should we validate tally signatures in the DB anywhere?
 -  
 - Refactor chit chains to use base64url for chain hash (instead of hex)
@@ -22,7 +21,6 @@ X-  Make regression tests use real keys on tallies
 - 
 - Add reset and submit buttons for Trading Variables report (in user's language)
 - 
-
 - Tally protocol support
 -  Can fully execute a signed tally with a partner (get last step working)
 -  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
@@ -159,9 +157,9 @@ X-  Can/should we change chit units to be stored internally with sign relative t
 - Server process: mychips.js
 X-   Can launch an agent server for each locally defined agent
 X-   Where/how to build/store agent private keys (pki folder?)
--   Agents table keeps track of each agent's latest connection portal (in case it changes)
+X-   Implement local lift scheduler/scanner/processor
 -   How does the system identify local agents vs/ peer agents?
--   Implement local lift scheduler/scanner/processor
+-   Agents table keeps track of each agent's latest connection portal (in case it changes)
 -  
 - System now ready for single-site use/deployment?
 - 

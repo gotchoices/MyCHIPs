@@ -6,6 +6,7 @@
 const Path = require('path')
 const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop, Crypto } = require('./common')
 var log = testLog(__filename)
+var crypto = new Crypto(log)
 var { host, user2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
 var schema = Schema
 var interTest = {}
@@ -42,8 +43,7 @@ describe("Establish test user on separate DB", function() {
   })
 
   it("Build User Key", function(done) {
-    Crypto.init(log)
-    Crypto.generate((keyPair, private, public) => {	//log.debug('key1:', public)
+    crypto.generate((keyPair, private, public) => {	//log.debug('key1:', public)
       interTest.uKey2 = public
       interTest.rKey2 = JSON.stringify(private)		//Stash private key in user's comment
       done()

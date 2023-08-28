@@ -11,6 +11,7 @@
 
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify} = require('./common')
 var log = testLog(__filename)
+var crypto = new Crypto(log)
 const PeerCont = require("../../lib/peer2peer")
 const PeerNoise = require("../../lib/peernoise")
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
@@ -26,14 +27,14 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   var seqO = reuse ? 2 : 1
   
   const getSignature = function(db, user, seq, done) {
-    let sql = sSql('t.json, u.user_cmt', user, seq)	//;log.debug('sql:', sql)
+    let sql = sSql('t.json_core, u.user_cmt', user, seq)	//;log.debug('sql:', sql)
     db.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)				//;log.debug("row:", row)
         , key = row.user_cmt				//;log.debug("key:", key)
-        , serial = Stringify(row.json)			//;log.debug('JSON:', serial.slice(0,40))
+        , message = Stringify(row.json_core)		//;log.debug('JSON:', message.slice(0,40))
 
-      assert.ok(row.json)
-      Crypto.sign(key, serial, sign => {
+      assert.ok(row.json_core)
+      crypto.sign(key, message, sign => {
         let textSign = Buffer.from(sign).toString('base64url')
         assert.ok(textSign)			//;log.debug('sign:', textSign)
         interTest.sign = textSign
@@ -137,13 +138,23 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
+  it("Make a real UUID for the proposed tally", function(done) {
+    let uuid = mkUuid(cidO, agent0)
+      , sql = uSql('tally_uuid = %L', uuid, userO, seqO)
+//log.debug("Sql:", sql)
+    dbO.query(sql, (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.tally_uuid, uuid)
+      done()
+    })
+  })
+
   it("Generate tally signature", function(done) {
     getSignature(dbO, userO, seqO, done)
   })
 
   it("Originator approves, signs the proposed tally", function(done) {
-    let uuid = mkUuid(cidO, agent0)		//Make a real UUID for this user/tally
-      , sql = uSql('tally_uuid = %L, request = %L, hold_sig = %L', uuid, 'offer', interTest.sign, userO, seqO)
+    let sql = uSql('request = %L, hold_sig = %L', 'offer', interTest.sign, userO, seqO)
       , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbO.query(sql, (err, res) => { if (err) done(err)

@@ -5,6 +5,7 @@
 //- 
 const { dbConf, testLog, Format, Bus, assert, dbClient, Crypto } = require('./common')
 var log = testLog(__filename)
+var crypto = new Crypto(log)
 var { host, user0, user1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('./def-users')
 var interTest = {}
 
@@ -17,8 +18,7 @@ describe("Establish test users", function() {
 
   it("Build User Keys", function(done) {
     let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
-    Crypto.init(log)
-    Crypto.generate((keyPair, private, public) => {	//log.debug('key0:', private)
+    crypto.generate((keyPair, private, public) => {	//log.debug('key0:', private)
       assert.ok(keyPair.publicKey)
       assert.ok(keyPair.privateKey)
       assert.ok(public.x)
@@ -27,7 +27,7 @@ describe("Establish test users", function() {
       interTest.rKey0 = JSON.stringify(private)		//Stash private key in user's comment
       _done()
     })
-    Crypto.generate((keyPair, private, public) => {	//log.debug('key1:', public)
+    crypto.generate((keyPair, private, public) => {	//log.debug('key1:', public)
       interTest.uKey1 = public
       interTest.rKey1 = JSON.stringify(private)
       _done()
