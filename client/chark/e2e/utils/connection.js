@@ -17,7 +17,7 @@ export const getUrl = (user_id) => {
 
         if (res && res.rows && res.rows.length >= 1) {
           let ticket = res.rows[0]
-          let url = `https://mychips.org/connect?host\\\=${ticket.host}\\\&port\\\=${ticket.port}\\\&token\\\=${ticket.token}\\\&user\\\=${'p1000'}`;
+          let url = `https://mychips.org/connect?host\\\=${ticket.host}\\\&port\\\=${ticket.port}\\\&token\\\=${ticket.token}\\\&user\\\=${user_id}`;
           console.log('url', url)
           return resolve(url);
         }

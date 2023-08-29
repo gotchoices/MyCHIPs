@@ -21,7 +21,6 @@ const tallyUri = new Set(['tally', 'mychips.org/tally'])
 
 const HomeScreen = (props) => {
   const { connectSocket, wm } = useSocket();
-  const navigation = useNavigation();
   const { ticket } = props.route?.params ?? {};
   const { user } = useCurrentUser();
   const { personal, setPersonal } = useProfile();
@@ -106,39 +105,10 @@ const HomeScreen = (props) => {
 
   function requestProposedTally(ticket) {
     setTallyProcess(ticket);
-    console.log("THIS IS TRIGGERRED WHEN SCANNED", JSON.stringify(ticket));
-    navigation.navigate("DraftTally", ticket);
-    // onShowUpdateCert();
-
-    return;
-    const spec = {
-      view: 'mychips.ticket_process',
-      params: [ticket],
-    }
-
-    Toast.show({
-      type: 'info',
-      text1: 'Processing tally ticket...',
-    });
-
-    wm.request('_process_tally', 'select', spec, (data, err) => {
-      if (err) {
-        Toast.show({
-          type: 'error',
-          text1: err.message ?? 'Error processing tally ticket.',
-        })
-      } else if (data?.[0]?.ticket_process) {
-        Toast.show({
-          type: 'success',
-          text1: 'Tally ticket processed.'
-        })
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Tally ticket process failed.'
-        })
-      }
-    });
+    // Needed to add the timeout if the app is already opened for deep link to work
+    setTimeout(() => {
+      props.navigation.navigate("DraftTally", ticket);
+    }, 100)
   }
 
   function startProcessTally(partCert) {

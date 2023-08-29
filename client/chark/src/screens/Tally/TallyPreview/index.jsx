@@ -370,6 +370,7 @@ const TallyPreview = (props) => {
             title="Offer"
             onPress={onOffer}
             style={styles.shareButton}
+            testID="offerBtn"
           />
 
           <CustomButton
@@ -377,6 +378,7 @@ const TallyPreview = (props) => {
             title="Accept"
             onPress={onAccept}
             style={{ marginLeft: 10 }}
+            testID="acceptBtn"
           />
 
           <CustomButton
@@ -420,6 +422,7 @@ function CustomButton(props) {
       disabled={props.disabled ?? false}
       onPress={props.onPress}
       style={props.style ?? {}}
+      testID={props?.testID}
     />
   )
 }
