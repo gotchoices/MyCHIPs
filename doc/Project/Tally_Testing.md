@@ -2,10 +2,10 @@
 Aug 2023
 
 ## Project Background:
-The [MyCHIPs 1.x protocol](../learn-protocol) defines a series of messages that pass back 
+The [MyCHIPs 1.x protocol](../learn-protocol.md) defines a series of messages that pass back 
 and forth between two parties (Originator and Subject) as they establish a Tally relationship.
 
-There are established [tests](../work-testing) for running the schema through its expected uses.
+There are established [tests](../work-testing.md) for running the schema through its expected uses.
 Specifically, the file "sch-tally.js" attempts to test each valid state transition.
 The file "tally.js" launches instances of the peer-to-peer server and actually simulates a tally being established between two users.
 
