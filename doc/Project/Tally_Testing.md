@@ -28,8 +28,8 @@ This project is meant to:
 - Run the tally chain: npx mocha impexp testusers user2 tally
 - Download the MyCHIPs mobile app
 - Sign up for test account on mychips.net
-- Run the tally negotiation sequence with another user to see how tallys get started
-- Hypothesise possible edge cases:
+- Run the tally negotiation sequence with another user to see how tallies get started
+- Hypothesize possible edge cases:
   - What types of things can go wrong during tally negotiation, for example:
   - Network connection disrupted
   - One user offline
