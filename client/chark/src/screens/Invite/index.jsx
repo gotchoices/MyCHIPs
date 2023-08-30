@@ -11,6 +11,10 @@ import CustomTextInput from '../../components/CustomTextInput';
 import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAssets';
 import FloatingActionButton from '../../components/FloadingActionButton';
 import useProfile from '../../hooks/useProfile';
+import BottomSheetModal from '../../components/BottomSheetModal';
+import CommentContent from './CommentContent';
+import LimitContent from './LimitContent';
+import SuccessContent from './SuccessContent';
 
 const Header_Height = 160;
 
@@ -47,6 +51,10 @@ const TallyInvite = (props) => {
   const { wm, ws, tallyNegotiation } = useSocket();
   const { triggerInviteFetch } = useInvite();
   const { filter } = useProfile();
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [tallyItem, setTallyItem] = useState({});
 
   useEffect(() => {
     if (ws) {
@@ -67,16 +75,21 @@ const TallyInvite = (props) => {
   const newTemplate = () => {
     const payload = {
       contract: { terms: 'Some Terms' },
-      comment: 'Test: ' + new Date(),
+      comment: tallyItem.comment ?? 'Test: ' + new Date(),
+      tally_type: tallyItem.tally_type,
       hold_terms: {
         call: 30,
-      }, part_terms: {
+        limit: tallyItem.tally_type === 'foil' ? tallyItem.limit : null
+      },
+      part_terms: {
         call: 30,
+        limit: tallyItem.tally_type === 'stock' ? tallyItem.limit : null
       },
     }
 
     createTemplate(wm, payload).then((data) => {
       console.log("CREATE_RESULT ==> ", JSON.stringify(data));
+      setShowSuccess(true);
       fetchTemplates()
     }).catch(err => {
       Toast.show({
@@ -162,48 +175,95 @@ const TallyInvite = (props) => {
   });
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
-        <Text style={styles.h1}>Working Tallies</Text>
-        <View style={[styles.row, { marginVertical: 22 }]}>
-          <Text style={styles.title}>{getFilterResult('title', ' | ')}</Text>
-          <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
-            <FilterSecondIcon />
-            <Text style={styles.filterText}>Filters</Text>
-          </TouchableOpacity>
-        </View>
-        <CustomTextInput
-          placeholder="Search"
-          value={searchValue}
-          onChangeText={setSearchValue}
-          leadingIcon={<SearchIcon size={16} />}
-        />
-      </Animated.View>
+    <>
+      <View style={styles.container}>
+        <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
+          <Text style={styles.h1}>Working Tallies</Text>
+          <View style={[styles.row, { marginVertical: 22 }]}>
+            <Text style={styles.title}>{getFilterResult('title', ' | ')}</Text>
+            <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
+              <FilterSecondIcon />
+              <Text style={styles.filterText}>Filters</Text>
+            </TouchableOpacity>
+          </View>
+          <CustomTextInput
+            placeholder="Search"
+            value={searchValue}
+            onChangeText={setSearchValue}
+            leadingIcon={<SearchIcon size={16} />}
+          />
+        </Animated.View>
 
-      <Animated.FlatList
-        bounces={false}
-        ListHeaderComponent={<View style={{ height: Header_Height, marginTop: 12 }} />}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: colors.white }}
-        data={filteredData}
-        renderItem={renderItem}
-        refreshing={loading}
-        onRefresh={() => fetchTemplates()}
-        keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
-        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-        scrollEventThrottle={2}
-        ListEmptyComponent={loading ? <></> : <EmptyContent />}
-        onScroll={Animated.event(
-          [{
-            nativeEvent: { contentOffset: { y: scrollY } }
-          }],
-          {
-            useNativeDriver: false,
-          }
-        )}
-        progressViewOffset={120}
-      />
-      <FloatingActionButton onPress={newTemplate} />
-    </View>
+        <Animated.FlatList
+          bounces={false}
+          ListHeaderComponent={<View style={{ height: Header_Height, marginTop: 8 }} />}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: colors.white }}
+          data={filteredData}
+          renderItem={renderItem}
+          refreshing={loading}
+          onRefresh={() => fetchTemplates()}
+          keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
+          ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+          scrollEventThrottle={2}
+          ListEmptyComponent={loading ? <></> : <EmptyContent />}
+          onScroll={Animated.event(
+            [{
+              nativeEvent: { contentOffset: { y: scrollY } }
+            }],
+            {
+              useNativeDriver: false,
+            }
+          )}
+          progressViewOffset={150}
+        />
+        <FloatingActionButton onPress={() => setShowCommentModal(true)} />
+      </View>
+      <BottomSheetModal
+        isVisible={showCommentModal}
+        onClose={() => setShowCommentModal(false)}
+      >
+        <CommentContent
+          onNext={(item) => {
+            setTallyItem({ ...tallyItem, ...item })
+            setShowCommentModal(false);
+            setShowLimitModal(true);
+          }}
+          onDismiss={() => {
+            setShowCommentModal(false);
+          }}
+        />
+      </BottomSheetModal>
+
+      <BottomSheetModal
+        isVisible={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+      >
+        <LimitContent
+          onNext={(item) => {
+            setTallyItem({ ...tallyItem, ...item })
+            setShowLimitModal(false);
+            newTemplate();
+          }}
+          onDismiss={() => {
+            setShowLimitModal(false);
+          }}
+        />
+      </BottomSheetModal>
+
+      <BottomSheetModal
+        isVisible={showSuccess}
+        onClose={() => setShowSuccess(false)}
+      >
+        <SuccessContent
+          onDone={() => {
+            setShowSuccess(false)
+          }}
+          onDismiss={() => {
+            setShowSuccess(false);
+          }}
+        />
+      </BottomSheetModal>
+    </>
   );
 }
 
@@ -256,7 +316,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#636363',
     alignSelf: 'center',
-  }
+  },
 })
 
 export default TallyInvite;

@@ -41,8 +41,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
       if (_tally) {
         setTally(_tally);
         // Stock (Partner) Foil (Start)
-        console.log("TYPE_OF_TALLY ==> ", JSON.stringify(_tally?.tally_type));
-        console.log("PART_CERT ==> ", JSON.stringify(_tally?.part_cert));
+        console.log("TALLY ==> ", JSON.stringify(_tally));
 
         setTallyType(_tally.tally_type);
         setContract(_tally.contract?.rid ?? '');

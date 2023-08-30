@@ -6,6 +6,7 @@ import ICSettings from '../../assets/svg/ic_setting.svg';
 import ICScan from '../../assets/svg/ic_scanner.svg';
 import ICInvite from '../../assets/svg/ic_invite.svg';
 import ICHome from '../../assets/svg/ic_home.svg';
+import ICClose from '../../assets/svg/ic_close.svg';
 import { IconWrapper } from './SvgAssets/SvgAssets';
 
 
@@ -48,4 +49,5 @@ const icons = {
   "scan": (args) => <IconWrapper IconComponent={ICScan} {...args} />,
   "invite": (args) => <IconWrapper IconComponent={ICInvite} {...args} />,
   "settings": (args) => <IconWrapper IconComponent={ICSettings} {...args} />,
+  "close": (args) => <IconWrapper IconComponent={ICClose} {...args} />
 }
