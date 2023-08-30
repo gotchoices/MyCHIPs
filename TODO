@@ -1,11 +1,10 @@
 TODO:
 
-X- Are exchange rates / CHIP inflator working?
--  
 - Tally/chit signatures
 X-  What happens if I try to create a signed chit issued by the other party?
 X-  Make regression tests use real keys on tallies
 X-  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
+-  Are tallies signed in the app passing the validation in lib/tally.js?
 -  Can/should we validate tally signatures in the DB anywhere?
 -  
 - Refactor chit chains to use base64url for chain hash (instead of hex)

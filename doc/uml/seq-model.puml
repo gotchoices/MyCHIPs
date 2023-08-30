@@ -1,0 +1,23 @@
+@startuml
+!include common.puml
+$title(Atomic Model)
+actor "User" as user
+control "Control Layer" as control
+database "User DB" as userDB
+control "User Agent" as userAgent
+control "Peer Agent" as peerAgent
+
+user	->>	control:	Request state change\nvia JSON API
+control	->>	userDB:		SQL change request
+userDB	->>	userAgent:	Async notify agent\nof request
+userAgent ->>	peerAgent:	Send message to peer\n(MyCHIPs protocol)
+userAgent ->>	userDB:		Complete state change
+
+note over userDB: This may propagate other state changes, messages, notifications
+
+peerAgent ->>	userAgent:	Receive/parse message
+userAgent ->>	userDB:		Request state change
+userDB	->>	control:	Notify of change
+control	->>	user:		UI notifies user
+
+@enduml

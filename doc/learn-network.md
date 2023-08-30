@@ -58,7 +58,7 @@ Each listens for connections from other agents
 (i.e. other instances of itself, or similarly functioning software).
 It will also initiate connections with other agents for the purpose of executing transactions.
 
-An gent transmits and listens on a public interface.
+An agent transmits and listens on a public interface.
 It processes requests, interprets state transitions, and then transmits changes of state
 back to the database instance, ideally over an internal, higher speed interface.
 
@@ -77,13 +77,40 @@ trading away), and inviting other users to share a trading connection (issuing
 peer tickets).
 
 Ideally, the user client will be implemented as a standalone phone app (rather
-than an SPA).  This should provide much better security for stored keys and 
-the like.  Hopefully, the client app and client SPA can utilize the same API
+than an SPA).  This should provide much better security for storing/accessing signing keys.
+Hopefully, the client app and client SPA can utilize the same API
 for communicating with the user server.
 
+### System Structure
+When you put it all together, it looks like this:
+
+![seq-model](uml/seq-model.svg)
+
+Most actions are initiated by a user requesting some change of state in the database.
+Such a state change typically involves notifying a peer as well as making a change to the local state.
+
+These transitions need to happen in an orderly and transactional way.
+So this implementation takes advantage of the [transactional nature](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-transaction/#:~:text=A%20PostgreSQL%20transaction%20is%20atomic,valid%20and%20follow%20predefined%20rules.) of PostgreSQL.
+Much more than just a data store, MyCHIPs uses the database as a complete transactional model.
+
+Requests to change state are queued up and sent to the database.
+But the database is configured to change state only if the change still seems valid at the time.
+This provides better handling in case a particular message is lost or repeated, or if some other state transaction has just happened that would invalidate the current request.
+
+These code modules the interplay between updating the local model and communicating changes to peers:
+- [Tally Protocol](../lib/tally.js)
+- [Chit Protocol](../lib/chit.js)
+- [Route Protocol](../lib/route.js)
+- [Lift Protocol](../lib/lift.js)
+
+Each one has a "local" section to handle changes initiated at the local level
+and a "remote" section to handle changes coming from remote peers.
+
+There are also separate log files for each level of the protocol to better facilitate debugging.
+
 ### Admin Portal
-This is actually a separate SPA that communicates through the user server
-mentioned above.
+This is actually a separate SPA (Single Page Application) that communicates through the 
+user server mentioned above.
 
 It allows the site administrator to control various settings and functions of 
 the backend database.  Examples include establishing user accounts and issuing 
