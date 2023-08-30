@@ -1,12 +1,12 @@
 export default {
   keyTag: 'connectKey',
   chipsToDollar: 7.86,
-}
+};
 
 export const dateFormats = {
   date: 'YYYY-MM-DD',
-  dateTime: 'YYYY-MM-DD hh:mm a'
-}
+  dateTime: 'YYYY-MM-DD hh:mm a',
+};
 
 export const colors = {
   white: '#FFF',
@@ -29,24 +29,28 @@ export const colors = {
   snow: '#fbf9f9',
   mustardBrown: '#ce8805',
   orangeRed: '#ff4d4f',
+
+  connected: '#23C320',
+  connecting: '#FFB422',
+  disconnected: '#D95656',
 };
 
 export const qrType = {
   tally: 'tally',
   connect: 'connect',
-}
+};
 
 export const keyServices = {
   publicKey: 'public_key',
   privateKey: 'private_key',
-}
+};
 
 export const connectsObj = {
-  "email": { label: "Email", link: "mailto:" },
-  "phone": { label: "Phone Number", link: "tel:" },
-  "cell": { label: "Cell Number", link: "tel:" },
-  "web": { label: "Website", link: "https://" },
-}
+  email: {label: 'Email', link: 'mailto:'},
+  phone: {label: 'Phone Number', link: 'tel:'},
+  cell: {label: 'Cell Number', link: 'tel:'},
+  web: {label: 'Website', link: 'https://'},
+};
 
 export const localStorage = {
   TallyPictures: 'TallyPictures',
