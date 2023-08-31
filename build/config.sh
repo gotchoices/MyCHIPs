@@ -2,6 +2,7 @@
 
 if [[ "$1" =~ ^dev(elop)?$ ]]; then
   export MYCHIPS_ROOTDIR="$(git rev-parse --show-toplevel)"
+  export MYCHIPS_ROOTNAME="$(basename $MYCHIPS_ROOTDIR)"
   export MYCHIPS_DEVDIR=/usr/local/devel
   export MYCHIPS_DEBUG=debug
 else

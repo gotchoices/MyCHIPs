@@ -86,7 +86,7 @@ in the editing pane to generate a connection ticket for that user.  This
 displays a QR code by default, but there are also links there to copy/paste a 
 URL into a browser to connect to the User (as opposed to admin) UI.
 
-### Development Docker Mode
+### Docker Development Mode
 There is also a build profile for running a development docker instance that can be launched as follows:
 ```
   npm run docker-dev

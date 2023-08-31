@@ -4,7 +4,7 @@
 ARG version=18
 FROM node:${version}
 RUN apt-get update; \
-	apt-get install -y postgresql-client; \
+	apt-get install -y postgresql-client tcllib tcl-dev; \
 	apt-get install -y openssl; \
 	apt-get install -y bash less iputils-ping; \
 	apt-get install -y busybox; busybox --install -s

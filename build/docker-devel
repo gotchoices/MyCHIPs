@@ -9,7 +9,7 @@ FROM fedora:${version}
 
 RUN	dnf update -y; \
 	dnf install -y nodejs postgresql; \
-	dnf install -y make ruby rubygem-pg rubygem-tk tcllib; \
+	dnf install -y make ruby rubygem-pg rubygem-tk tcllib tcl-devel; \
 	dnf install -y net-tools iputils traceroute; \
 	dnf install -y busybox; busybox --install -s
 

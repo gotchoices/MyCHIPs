@@ -10,7 +10,7 @@ version: '3.7'
 services:
   mychips:
     image: gotchoices/mychips:18
-    command: bash -c "PATH=$${PATH}:${MYCHIPS_DEVDIR}/node_modules/.bin npm start"
+    command: bash -c "PATH=$${PATH}:${MYCHIPS_DEVDIR}/node_modules/.bin npm run develop && npm start"
     container_name: $MYCHIPS_HOST
     hostname: $MYCHIPS_HOST
     build:

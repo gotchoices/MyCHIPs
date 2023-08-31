@@ -31,6 +31,14 @@ appdir="$(realpath "$mydir/..")"
 devdir="$(realpath "$appdir/..")"
 #echo "mydir:$mydir appdir:$appdir devdir:$devdir"; #exit 0
 
+#Make sure we have a node_modules installed (docker will need this checked)
+if ! cd $appdir; then
+  echo "Can't find mychips folder"
+fi
+if [ ! -d node_modules ]; then
+  npm install
+fi
+
 for m in wylib wyseman wyclif wyselib; do
   if [ ! -d $devdir/$m ]; then
     echo "Warning: can't find source code for module: $m"
@@ -60,12 +68,6 @@ fi
 if ! cd $appdir/schema; then
   echo "Can't find mychips/schema folder"
 fi
-make dev			#;cd $appdir
-
-# Check if any projects under the client folder also have a bin/develop script
-#for proj in $(ls $appdir/client/*/bin/develop); do
-#  echo "Running client project develop script: $proj"
-#  dir=$(dirname $proj)
-#  cd $dir					; pwd
-#  ./develop
-#done
+if [ ! -f /.dockerenv ]; then	#Disable as schema may not yet exist
+  make dev			#;cd $appdir
+fi
