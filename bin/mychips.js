@@ -28,6 +28,7 @@ var opts = Args(require('../lib/config'))
   .alias('s','scheduler').default('scheduler',	false)	//Run master scheduler
   .alias('m','model')    .default('model',	false)	//Run agent-based modeler
   .alias('a','agentKey')				//Each peer server runs with a specific agent key
+  .alias('t','test')     .default('false').boolean('test')	//Do less strict validity checking
   .argv
 
 //log.debug("opts:", opts)
@@ -106,7 +107,11 @@ if (Boolean(opts.agentKey)) {		//Create socket server for peer-to-peer communica
   var peerCont
   let log = Log('peer')
     , openPeerCont = (host, port, keys) => {		//Launch peer module
-        peerCont = new PeerCont({host, port, keys, log, poll: true}, {
+        peerCont = new PeerCont({
+          host, port, keys, log,
+          poll: true,
+          test: opts.test
+        }, {
           host: opts.dbHost,
           database:opts.dbName,
           user: opts.dbAdmin, 
