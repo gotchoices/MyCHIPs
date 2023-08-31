@@ -15,11 +15,6 @@ const TemplateItem = (props) => {
   const { wm } = useSocket();
   const partCert = item.part_cert;
 
-
-  useEffect(() => {
-    console.log("EACH_ITEM_LOG ==> ", JSON.stringify(item));
-  }, [item]);
-
   const onView = () => {
     props.onItemSelected(item);
     return;

@@ -17,9 +17,9 @@ import CenteredModal from './components/CenteredModal';
 
 const ServIcon = () => {
   const ServerStatus = {
-    connected: 'Server Connected',
-    connecting: 'Connecting Server...',
-    disconnected: 'Server Disconnected',
+    connected: 'Connected',
+    connecting: 'Connecting',
+    disconnected: 'Disconnected',
   };
 
   const {status} = useSocket();
@@ -51,7 +51,7 @@ const ServIcon = () => {
 
   return (
     <>
-      <View>
+      <View >
         <TouchableWithoutFeedback
           testID="serverIcon"
           onPress={() => setIsModalVisible(true)}>
@@ -70,21 +70,21 @@ const ServIcon = () => {
 
 /*
 export default class ServIcon extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {server: null}
+constructor(props) {
+  super(props)
+  this.state = {server: null}
 
-    props.wm.request('_main', 'connect', {stay: true}, addr => {
+  props.wm.request('_main', 'connect', {stay: true}, addr => {
 console.log('Connection address:', addr)
-      this.setState({server: addr})
-    })
-  }
+    this.setState({server: addr})
+  })
+}
 
-  render() {return (
-    <View>
-      <Text>Server:{this.props.connecting ? ' Connecting...' : this.state.server}</Text>
-    </View>
-  )}
+render() {return (
+  <View>
+    <Text>Server:{this.props.connecting ? ' Connecting...' : this.state.server}</Text>
+  </View>
+)}
 }
 */
 
