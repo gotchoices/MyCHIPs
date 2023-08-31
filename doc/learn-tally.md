@@ -722,8 +722,12 @@ In JSON format, the certificate would look like this
 (properties shown as arrays can be a single object or an array):
 ```
 CHIPCert: {
-  cid,
-  agent,
+  chad: {
+    cid,
+    agent,
+    host,
+    port
+  },
   type,
   name:        [{name, given, prefer, aka}],
   connect:     [{spec, type, comment}],

@@ -85,7 +85,7 @@ function InviteStackScreen() {
   return (
     <InviteProvider >
       <InviteStack.Navigator>
-        <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} testID="inviteBottom" />
+        <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} />
         <InviteStack.Screen
           name="FilterScreen"
           component={FilterScreen}
@@ -198,7 +198,7 @@ function App() {
                     name="InviteScreen"
                     component={InviteStackScreen}
                     options={{
-                      tabBarTestID: "inviteTestID",
+                      tabBarTestID: "inviteBtn",
                       tabBarIcon: (props) => (
                         <CustomIcon name="invite" {...{ ...props, size: 26 }} />
                       )

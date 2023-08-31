@@ -48,7 +48,7 @@ export const insertChit = (wm, payload) => {
   return request(wm, '_chit_insert' + random(), 'insert', spec);
 }
 
-export const updateChitRequest = (wm, args) => {
+export const updateChitState = (wm, args) => {
   const data = {
     request: args.request,
   };
@@ -58,6 +58,23 @@ export const updateChitRequest = (wm, args) => {
     view: 'mychips.chits_v_me',
     where: {
       chit_uuid: args.chit_uuid,
+    },
+  }
+
+  return request(wm, '_chit_refuse' + random(), 'update', spec)
+}
+
+export const updateChitDetails = (wm, args) => {
+  const data = args?.data;
+
+  const spec = {
+    fields: data,
+    view: 'mychips.chits_v_me',
+    where: {
+      chit_ent: args?.chit_ent,
+      chit_idx: args?.chit_idx,
+      chit_seq: args?.chit_seq,
+      chit_uuid: args?.chit_uuid,
     },
   }
 

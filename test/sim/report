@@ -12,26 +12,29 @@ if [ -z "$nodes" ]; then
 fi
   
 case $report in
-    xlifts)		#External lifts
-      query="select first,path,status,lift_margin,lift_reward,lift_min,lift_max from mychips.routes_v_lifts order by 3";;
-
-    xpaths)		#External pathways
-      query="select first,last,length,path,lift_min,lift_margin,lift_max,lift_reward,status,dest_chid from mychips.routes_v_paths where status = 'good'";;
-
-    paths)		#Local paths
-      query="select first,last,length,path,lift_min,lift_max,bang,lift_margin,lift_reward from mychips.tallies_v_paths where corein and fora and forz";;
-
-    routes)
-      query="select route_ent,route_addr,dest_chad,status,step,lift_min,lift_margin,lift_max,lift_reward from mychips.routes_v where status = 'good'";;
+    tallies)
+      query="select tally_ent ent,tally_seq seq,tally_type typ,hold_cid,hold_agent,part_cid,part_agent,net,target tgt, status, tally_uuid from mychips.tallies_v";;
 
     chits)
-      query="select chit_ent,chit_seq,chit_idx,chit_type,chit_guid,units,status,state from mychips.chits_v";;
+      query="select chit_ent ent,chit_seq seq,chit_idx idx,chit_type typ,chit_uuid,units,status,state from mychips.chits_v";;
 
-    tallies)
-      query="select tally_ent,tally_seq,partner,tally_type,units,units_gc,units_pc,target,bound,reward,clutch from mychips.tallies_v";;
+    edges)
+      query="select tally_ent,tally_seq,tally_type,type,inp,out,min,max,uuid,canlift from mychips.tallies_v_net";;
+
+    paths)		#Local paths
+      query="select out_cid,top_cid,bot_cid,inp_cid,edges,min,max,bang,circuit,path from mychips.tallies_v_paths where segment";;
+
+    routes)
+      query="select rid,status,min,max,dst_cid,dst_agent,via_cid,vip_cid,req_cid,step,status from mychips.routes_v where status = 'good'";;
+
+    xpaths)		#External pathways
+      query="select out_cid,top_cid,bot_cid,inp_cid,min,max,status,circuit from mychips.routes_v_paths where status = 'good'";;
+
+    xlifts)		#External lifts (circuit pathways)
+      query="select out_cid,top_cid,bot_cid,inp_cid,min,max,status,circuit from mychips.routes_v_paths where status = 'good' and circuit";;
 
     lifts)
-      query="select lift_guid,lift_seq,request,status,units,circular,path,dest_chid,dest_host,signature from mychips.lifts_v";;
+      query="select lift_uuid,lift_seq,request,status,units,circuit,find,signature from mychips.lifts_v";;
 
     *)
       echo "Unknown report: $report"
@@ -40,4 +43,4 @@ case $report in
 esac
 
 echo "./simdock q $nodes \"$query\" $@"
-./simdock q "$nodes" "$query" "$@"
+./simdock q "$nodes" "$query $@"

@@ -89,7 +89,7 @@ const TallyEditView = (props) => {
         {
           hasPartCert ? <></> :
             <CustomButton
-              title="Update Contract"
+              title="Update Certificate"
               onPress={props.onUpdateContract}
               textColor={colors.blue}
               style={styles.showPDF}

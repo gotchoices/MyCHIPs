@@ -16,18 +16,17 @@ var host = 'localhost'
 var agent0 = Buffer.from('P'+port0).toString('base64url')
 var agent1 = Buffer.from('Q'+port1).toString('base64url')
 var agent2 = Buffer.from(aKey2).toString('base64url')
-var uKey0 = {kty: 'TEST', n: Buffer.from('X'+user0).toString('base64url')}
-var uKey1 = {kty: 'TEST', n: Buffer.from('Y'+user1).toString('base64url')}
-var uKey2 = {kty: 'TEST', n: Buffer.from('Z'+user2).toString('base64url')}
 var aCon0 = {host, port: port0, keys:{publicKey:aKey0}}
 var aCon1 = {host, port: port1, keys:{publicKey:aKey1}}
 var aCon2 = {host, port: port2, keys:{publicKey:aKey2}}
+//var uKey0 = {kty: 'TEST', n: Buffer.from('X'+user0).toString('base64url')}
+//var uKey1 = {kty: 'TEST', n: Buffer.from('Y'+user1).toString('base64url')}
+//var uKey2 = {kty: 'TEST', n: Buffer.from('Z'+user2).toString('base64url')}
 
 module.exports = {
   host, 
   cid0, cid1, cid2,
   user0, user1, user2, user3,
-  uKey0, uKey1, uKey2,
   port0, port1, port2,
   agent0, agent1, agent2,
   aCon0, aCon1, aCon2,

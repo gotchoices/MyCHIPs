@@ -7,15 +7,16 @@ herein, the reader is advised to read the
 other sections of the [Documentation Folder](/doc/README.md) of this
 source distribution.
 
-- [Refining the CHIP Economic Model](CHIP_Definition.md)
 - [Referee Server](Referee_Server.md)
 - [Protocol Retries](Protocol_Retries.md)
+- [Tally Testing](Tally_Testing.md)
 - [Chit Consensus](Chit_Consensus.md)
 - [Agent-based Model Simulator](Agent_Model.md) (Needs more work)
 - [User Interface for Editing Contracts](Contract_UI.md)
-- [Lift Protocol Analysis](Lift_Protocol.md) (BYU Graduate Program)
+- [Lift Protocol Analysis](Lift_Protocol.md) (Done, BYU Masters)
 - [State Processing Refinements](State_Machine.md) (In process)
 - [Mobile User Application](MyCHIPs_Mobile.md) (In process)
 - [Network Visualizer](Network_Visualizer.md) (Done)
 - [Schema Version Control](Schema_Versions.md) (Done)
 - [Peer Communication Protocol](Peer_Communication.md) (Done)
+- [Refining the CHIP Economic Model](CHIP_Definition.md)(In process)

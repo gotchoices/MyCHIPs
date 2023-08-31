@@ -4,10 +4,12 @@
 //TODO:
 //- 
 const Path = require('path')
-const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop } = require('./common')
+const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop, Crypto } = require('./common')
 var log = testLog(__filename)
-var { host, user2, uKey2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
+var crypto = new Crypto(log)
+var { host, user2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
 var schema = Schema
+var interTest = {}
 
 describe("Establish test user on separate DB", function() {
   var db
@@ -40,9 +42,17 @@ describe("Establish test user on separate DB", function() {
     })
   })
 
+  it("Build User Key", function(done) {
+    crypto.generate((keyPair, private, public) => {	//log.debug('key1:', public)
+      interTest.uKey2 = public
+      interTest.rKey2 = JSON.stringify(private)		//Stash private key in user's comment
+      done()
+    })
+  })
+  
   it("Initialize test user on db 2", function(done) {
-    let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, peer_psig=%L'
-      , f1 = Format(fields, host, port2, agent2, uKey2)
+    let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, peer_psig=%L, user_cmt=%L'
+      , f1 = Format(fields, host, port2, agent2, interTest.uKey2, interTest.rKey2)
       , sql = `begin;
         delete from base.ent where ent_num > 1002;
         delete from mychips.tallies;

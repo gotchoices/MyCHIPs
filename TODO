@@ -1,30 +1,25 @@
 TODO:
 
-X- Abandoning base58
-X-  Refactor contracts to use base64url
-X-  Modify instructions
-X-  Modify docker scripts
-- Refactor chit chains to use base64url (instead of hex)
-- Can/should we use python module for base64url in postgresql?
--  
-- Are exchange rates / CHIP inflator working?
--  
 - Tally/chit signatures
 X-  What happens if I try to create a signed chit issued by the other party?
--  Can I validate tally signatures coming in from the UI
--  Can/should I validate tally signatures in the DB?
+X-  Make regression tests use real keys on tallies
+X-  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
+-  Are tallies signed in the app passing the validation in lib/tally.js?
+-  Can/should we validate tally signatures in the DB anywhere?
+-  
+- Refactor chit chains to use base64url for chain hash (instead of hex)
+- Should we use python module for base64url in postgresql?
 -  
 - Properly detect MYCHIPS_ROOTNAME for docker-dev (git rev-parse --show-toplevel)
 -  
 - Refactor document server to return contracts
 -  in json format
 -  in pdf format
--  pdf's are cached by server
+-  pdf's are cached by server?
 -  Contract report launches pdf's of documents clicked in strdoc report
 - 
 - Add reset and submit buttons for Trading Variables report (in user's language)
 - 
-
 - Tally protocol support
 -  Can fully execute a signed tally with a partner (get last step working)
 -  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
@@ -161,9 +156,9 @@ X-  Can/should we change chit units to be stored internally with sign relative t
 - Server process: mychips.js
 X-   Can launch an agent server for each locally defined agent
 X-   Where/how to build/store agent private keys (pki folder?)
--   Agents table keeps track of each agent's latest connection portal (in case it changes)
+X-   Implement local lift scheduler/scanner/processor
 -   How does the system identify local agents vs/ peer agents?
--   Implement local lift scheduler/scanner/processor
+-   Agents table keeps track of each agent's latest connection portal (in case it changes)
 -  
 - System now ready for single-site use/deployment?
 - 

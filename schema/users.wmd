@@ -61,7 +61,6 @@ mychips.users_v:
     items: 
     - {left: user_ent, not: true, oper: isnull}
     - {left: ent_inact, not: true, oper: 'true'}
-    - {left: ent_type, oper: '=', entry: p}
   subviews: [base.addr_v, base.comm_v, base.file_v]
   export: user
   launch:

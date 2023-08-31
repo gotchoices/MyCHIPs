@@ -5,7 +5,8 @@
 //- 
 import Vue from 'vue'
 import Wylib from 'wylib'
-import AppURNet from './urnet.vue'
+import URNet from './urnet.vue'
+import TabEdit from 'wyclif/src/wysegi/tabedit.vue'
 Vue.config.productionTip = false
 
 const Template = `
@@ -16,9 +17,15 @@ const Template = `
 new Vue({
   el: '#app',
   template: Template,
-  components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-urnet': AppURNet},
+  components: {'wylib-app': Wylib.Application, 'wylib-launch': Wylib.Launcher, 'app-urnet': URNet, 'wc-tabedit': TabEdit},
   data() { return {
-    state:      {curTab: 'users', tabs: {users:{}, agents: {}, conts:{}, urnet:{}, creds:{}, config:{}}},
+    state: {
+      curTab: 'users',
+      tabs: {
+        users:{}, agents: {}, conts:{}, urnet:{}, creds:{}, config:{},
+        db: {windows: [{posted: true, client: {dbView: 'wm.table_pub', loaded: true}}]}
+      }
+    },
     tag:	'mychips_admin',
     title:	'MyCHIPs Admin',
     dbConf:	['mychips_admin','wylib'],
@@ -30,6 +37,7 @@ new Vue({
       {tag: 'creds',  view: 'mychips.creds_v', title: 'Cert Scoring'},
       {tag: 'config', view: 'base.parm_v', title: 'Settings'},
       {tag: 'urnet',  component: 'app-urnet', title: 'Network'},
+      {tag: 'db', component: 'wc-tabedit', title: 'Database'},
     ],
   }},
   computed: {

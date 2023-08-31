@@ -7,7 +7,7 @@ tabtext mychips.tallies_v_net	{Tally Lift Edges}	{A view showing a single link b
   {min		{Minimum Lift}		{Minimum number of units possible to lift on this link without reward cost applicable}}
   {max		{Maximum Lift}		{Maximum number of units possible to lift on this link with possible costs applicable}}
   {margin	{Lift Margin}		{The fee ratio we can expect to move any lift transaction along this link}}
-  {type		{Tally Type}		{Type (stock or foil) of the tally for this link}}
+  {type		{Lift Type}		{The direction (lift or drop) a lift will occur on this network edge}}
   {sign		{Link Sign}		{Whether will accrue positive or negative on this tally (based on stock or foil)}}
   {part		{Partner ID}		{Local ID (or null if foreign peer) of the partner entity}}
   {inv		{Inverted}		{True if the link is a tally with a foreign peer and it is being considered for a drop (reverse lift)}}

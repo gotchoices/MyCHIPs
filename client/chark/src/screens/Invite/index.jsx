@@ -86,9 +86,8 @@ const TallyInvite = (props) => {
         limit: tallyItem.tally_type === 'stock' ? tallyItem.limit : null
       },
     }
-
+    
     createTemplate(wm, payload).then((data) => {
-      console.log("CREATE_RESULT ==> ", JSON.stringify(data));
       setShowSuccess(true);
       fetchTemplates()
     }).catch(err => {

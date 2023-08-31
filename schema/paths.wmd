@@ -1,0 +1,20 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+---
+mychips.tallies_v_net:
+  fields:
+  - [min,		ent,	6]
+  - [max,		ent,	6]
+  - [inp,		ent,	6]
+  - [out,		ent,	6]
+  - [uuid,		ent,	40]
+  display: [tally_ent, tally_seq, tally_type, status, inp, out, uuid, min, max, canlift]
+
+mychips.tallies_v_paths:
+  fields:
+  - [min,		ent,	6]
+  - [max,		ent,	6]
+  - [inp,		ent,	6]
+  - [out,		ent,	6]
+  - [uuid,		ent,	40]
+  display: [tally_ent, tally_seq, tally_type, status, inp, out, uuid, min, max, canlift]

@@ -38,7 +38,7 @@ By doing it this way, you are able to edit/change things in the Wyatt code
 and the changes will be immediately accessible to the next run of MyCHIPs.
   
 **Beware:** If you do "npm install" of any kind in the mychips folder, it will
-reinstall the support libraries into node_modules so you won't be running those
+reinstall the support libraries (from npmjs.org) into node_modules so you won't be running those
 out of the source folders anymore.  You will have to run "npm develop" again to
 clean them out (and restart the server).
 
@@ -62,6 +62,14 @@ This will also build a few more items in the database for tracking the state
 of the schema (so it knows which objects need to be rebuilt at any given time).
 So it may generate errors on the first run if your schema was 
 instantiated by MyCHIPs (as opposed to this manual build method).
+
+### Schema Browser
+There is a web-based schema browser available.
+To access it:
+- launch the server with the "-w" option;
+- launch a web ui to a similar URL as the admin console with "/wysegi.html" at the end
+- You'll need to export your admin key from the admin UI and then import it into the WyseGI app
+- You should now be browsing the data dictionary
 
 ### Working on Wylib
 
@@ -104,6 +112,8 @@ Go to the working admin console, click the server button near the top right, sel
 your connection key and then "Export keys" from the menu.  This should export
 your key to your Downloads folder.  Then go to the Wysegi UI and import that
 same key into the server connection dialog.
+
+There is also a similar tool available now in a tab of the admin web UI.
 
 ### Database Logging:
 
