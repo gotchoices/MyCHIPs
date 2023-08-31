@@ -41,7 +41,7 @@ function query {
 
 case $command in
   spa)		# Launch mychips with only SPA server capabilities
-    { $appdir/bin/localcerts -b web && $appdir/bin/mychips.js -a "" "$@" ; } 1>$ofile.out 2>$ofile.err
+    { $appdir/bin/localcerts -b web && $appdir/bin/agents check && $appdir/bin/mychips.js -a "" "$@" ; } 1>$ofile.out 2>$ofile.err
     ;;
 
   peer)
