@@ -12,24 +12,9 @@
 #    export PATH="$PATH:$HOME/devel/node_modules/.bin"
 #
 
-realpath() {			#OSX doesn't have a realpath
-   [ "$1" = "" ] && return 1
-   local dir=$(dirname "$1")
-   local file=$(basename "$1")
-   local last=$(pwd)
-   [ -d "$dir" ] && cd $dir || return 1
-   if [ -d "$file" ]; then
-     cd $file && pwd || return 1
-   else
-     echo `pwd`/$file | sed 's/\/\//\//g'
-   fi
-   cd $last
-}
-
-mydir="$(dirname $BASH_SOURCE)"		#Where this script is
-appdir="$(realpath "$mydir/..")"
-devdir="$(realpath "$appdir/..")"
-#echo "mydir:$mydir appdir:$appdir devdir:$devdir"; #exit 0
+appdir="$(git rev-parse --show-toplevel)"		#MyCHIPs home directory
+devdir="$(dirname "$appdir")"
+#echo "appdir:$appdir devdir:$devdir"; exit 0
 
 #Make sure we have a node_modules installed (docker will need this checked)
 if ! cd $appdir; then
