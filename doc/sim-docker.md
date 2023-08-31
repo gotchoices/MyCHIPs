@@ -54,10 +54,10 @@ The devel container can also backup and restore all your databases to a named
 profile (see command examples below). This allows you to save a certain state
 for later analysis or debugging.
 
-Before starting, note that the simulator runs docker containers in development mode by default.
-This means they will be accessing the live filesystem as described in [this section](work-hacking.md).
-It is also important that "npm install" has run once, under Linux, in this filesystem, creating node_modules.
-So if you are on a Mac or Windows, you will need to launch a development docker at least once as follows:
+Before starting, note that the simulator runs docker containers in development mode by default (see develop option in config.dock).
+In this mode, MyCHIPs processes will be accessing the live filesystem as described in [this section](work-hacking.md).
+It is also important that "npm install" has run at least once, under Linux, in this filesystem, creating node_modules.
+So if you are on a Mac or Windows, you may need to launch a development docker at least once as follows:
 ```
   npm run docker-dev
 ```
@@ -110,16 +110,17 @@ and include whatever settings you want to modify from the config.dock in
 this folder.  Some good things to focus on include:
 ```
   modelwins, peerwins, spawins #X,Y screen coordinates of logging xterms
-  modversion                   #Which agent-based modeler to use (2 or 3)
-  logoffset                    #How xterms are tiled on the screen
-  browser                      #Only firefox/chrome tested for now
-  logwin                       #If you want to use xterm instead of logwin
-  newusers                     #How many users to create on each site
-  sites                        #How many sites to launch on simulation runs
-  userargs                     #Additional command line switches to docker
-                               run command.  For example, you could make each
-                               container's bash run your preferred settings:
-  userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )	#Custom bashrc, key mappings
+  modversion           #Which agent-based modeler to use (2 or 3)
+  logoffset            #How xterms are tiled on the screen
+  browser              #Only firefox/chrome tested for now
+  logwin               #If you want to use xterm instead of logwin
+  newusers             #How many users to create on each site
+  develop              #Run in development mode (true) or production mode (false)
+  sites                #How many sites to launch on simulation runs
+  userargs             #Additional command line switches to docker
+                        run command.  For example, you could make each
+                        container's bash run your preferred settings:
+  userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )	#Custom shell settings
 ```
 
 If you have made changes, shut things down using:
@@ -314,6 +315,18 @@ There are a few examples of this in the sim/sample folder.
   ./simdock dropdb all            #Drop all databases (run this prior to a restore)
   ./simdock restore all profile1  #Restore all DB's from a folder called profile1
 ```
+
+## Simulator in Production Mode
+This mode is experimental.
+It allows the docker containers to run without accessing the local source code.
+This is one step toward facilitating larger-scale simulations in the cloud.
+
+In this mode, it is not necessary to have a node_modules (npm install) in the main repo directory.
+Each of the docker containers will have its own such resource.
+
+Note that the version of software running in production containers will be whatever was present when the docker images were first built.
+If you update to a later version of the repository, you may want to remove the mychips docker containers and let them get rebuilt with the current version.
+
 
 ## Development on Modeler 3 with Typescript
 Simdock should be capable of running with modeler versions 2 or 3.
