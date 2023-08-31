@@ -24,7 +24,7 @@ This project is meant to:
 - Hopefully, engage long-term to enhance the backend server in other areas as well
 
 ## Strategy:
-- Clone the MyCHIPs repo
+- Clone the MyCHIPs repo (Use the "dev" branch!)
 - Run test suite: npm test
 - Run the tally chain: npx mocha impexp testusers user2 tally
 - Download the MyCHIPs mobile app
