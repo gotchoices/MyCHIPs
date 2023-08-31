@@ -1,29 +1,25 @@
 ### Docker Test Instance
 
 This is a quick and simple way to launch MyCHIPs for simple testing and evaluation.
-You will need docker and node/npm installed on your system.
-Also, this is easier on Mac and perhaps Windows as docker under Linux 
+This is easier on Mac (and perhaps Windows) than on Linux because docker under Linux 
 has certain additional [permission issues](https://docs.docker.com/engine/install/linux-postinstall/).
+
+You will need node/npm installed and docker running on your host system.
 
 To launch a single server/database pair in development mode:
 ```
-  npm run docker-dev
+  npm run docker
 ```
-This will take a while on first run as it has to build images.  It should be 
-faster on subsequent runs.  Once containers are launched, it will run until you 
-interrupt it with a CTRL-C.  You can then use this to stop and remove the
-containers:
+This will probably take a while on first run as it has to build images.
+It should be faster on subsequent runs.
+Once containers are launched, it will run until you interrupt it with a CTRL-C.
+You can also use this command to stop and remove the containers:
 ```
   npm run docker-stop
 ```
-Beware, the container needs to mount the mychips main directory.
-If this is not called "mychips" (i.e. MyCHIPs) make sure you set the environment 
-variable MYCHIPS_ROOTNAME as needed by build/compose-dev.yml.
-
-The server is configured from the files build/config-dev.env and
-build/compose-dev.yaml.  Keep in mind, the hostname you choose for the 
-MyCHIPs server will have to resolve to your system.  For testing, you can solve 
-this with a line in /etc/hosts (or C:\Windows\System32\drivers\etc\hosts.)
+The server is configured from the file build/config.sh for either a production or development run-time profile.
+The hostname specified there for the MyCHIPs server (mychips0) will have to resolve to your system.
+For testing, you can solve this with a line in /etc/hosts (or C:\Windows\System32\drivers\etc\hosts) as follows:
 ```
   127.0.0.1	mychips0
 ```
@@ -90,35 +86,21 @@ in the editing pane to generate a connection ticket for that user.  This
 displays a QR code by default, but there are also links there to copy/paste a 
 URL into a browser to connect to the User (as opposed to admin) UI.
 
-### Development Docker Caveats
-In order to allow development work, the compose-dev.yaml file totally
-ignores the static copy of the mychips app built into the image
-(in the /app directory).
-Instead it mounts a live copy of the host systems mychips filesystem on the container.
+### Development Docker Mode
+There is also a build profile for running a development docker instance that can be launched as follows:
+```
+  npm run docker-dev
+```
+This is more useful if you want to modify the server code.
 
-Specifically, it mounts whatever directory you have *mychips installed in*
-on /usr/local/devel.  This implies that anything else you have installed in the same
-folder is also accessible to the container.  This is so you can install the
-WyattERP suite parallel to mychips (rather than running out of node_modules).
-This allows you to work on those packages and have the changes seen immediately in
-your running container.
+In this case, the docker container will not use the version of the MyCHIPs it was built with (in the container's /app folder).
+Rather, it will use the MYCHIPS_ROOTNAME variable (defined in build/config.sh) to mount the local repo folder on the docker container at the spot defined by MYCHIPS_DEVDIR.
+The container will run the server out of that folder so changes you make to the source code will be used by the container.
 
-See [this section](work-hacking.md) for more on how to do this.
+In order to use the development method, you will need to also install the WyattERP support libraries as explained in [this section](work-hacking.md).
 
-This compose file also draws site certificates and the like from the mychips/pki folder
+Note: this method also draws site certificates and the like from the mychips/pki folder
 (not local/docker/pki).
-
-### Production Docker Container
-There is also a build profile for running a production docker instance that
-can be launched as follows:
-```
-  npm run docker
-```
-This is not currently well tested.  Hopefully that will become better developed in the 
-future so one can run a development server under docker.
-
-If you experiment with this version, note that keys/certificates are accessed from
-the folder: test/local/docker/pki.
 
 <br>[Next - Native Installation](use-native.md)
 <br>[Back to Index](README.md#contents)

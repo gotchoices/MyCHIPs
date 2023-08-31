@@ -1,5 +1,12 @@
 TODO:
 
+- Simulator
+X-  Update docker compose methods and documents for mac-only runs
+-  realpath not found on mac
+-  How to run bin/develop if only mac available (in docker container?)
+-  How to run simulator not in development mode (from native image mychips /app dir)
+-  
+
 - Tally/chit signatures
 X-  What happens if I try to create a signed chit issued by the other party?
 X-  Make regression tests use real keys on tallies
