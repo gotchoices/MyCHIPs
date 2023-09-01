@@ -12,20 +12,20 @@
 //- Add real QR scanner screen
 //- Read QR connection ticket (framework for other types)
 //- Can launch from deep link to connection ticket
-//- 
+//-
 
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, SafeAreaView } from 'react-native';
-import { NavigationContainer, getStateFromPath } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import PolyfillCrypto from 'react-native-webview-crypto'
+import React, {useEffect, useRef, useState} from 'react';
+import {View, Text, StyleSheet, Image, SafeAreaView} from 'react-native';
+import {NavigationContainer, getStateFromPath} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import PolyfillCrypto from 'react-native-webview-crypto';
 import Toast from 'react-native-toast-message';
 import notifee from '@notifee/react-native';
 import qs from 'query-string';
 
-import ServIcon from './src/servicon'
-import Invite from './src/screens/Invite'
+import ServIcon from './src/servicon';
+import Invite from './src/screens/Invite';
 import Home from './src/screens/Home';
 import Scanner from './src/screens/Scanner';
 import TallyPreview from './src/screens/Tally/TallyPreview';
@@ -41,7 +41,7 @@ import InviteProvider from './src/components/InviteProvider';
 import MessageTextProvider from './src/components/MessageTextProvider';
 import TradingVariables from './src/screens/Tally/TradingVariables';
 
-import { handleNotification } from './src/utils/notification';
+import {handleNotification} from './src/utils/notification';
 import ShareTally from './src/screens/ShareTally';
 import ChitHistory from './src/screens/Tally/ChitHistory';
 import ImportKeyScreen from './src/screens/ImportKeyScreen';
@@ -53,28 +53,65 @@ import PaymentDetail from './src/screens/Tally/PaymentDetail';
 import FilterScreen from './src/screens/Filter';
 import DraftTally from './src/screens/Tally/DraftTally';
 import RequestDetail from './src/screens/Tally/RequestDetail';
+import {colors} from './src/config/constants';
 
 const HomeStack = createNativeStackNavigator();
 
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-      <HomeStack.Screen name="DraftTally" component={DraftTally} options={{ title: 'Draft Tally' }} />
-      <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
-      <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
-      <HomeStack.Screen name='ChitHistory' component={ChitHistory} options={{ title: 'Chit History' }} />
-      <HomeStack.Screen name='ChitDetail' component={ChitDetail} options={{ title: 'Chit Detail' }} />
-      <HomeStack.Screen name='TradingVariables' component={TradingVariables} options={{ title: 'Trading Variables' }} />
-      <HomeStack.Screen name='PaymentDetail' component={PaymentDetail} options={{ title: 'Payment Detail' }} />
-      <HomeStack.Screen name='RequestDetail' component={RequestDetail} options={{ title: 'Request Detail' }} />
+      <HomeStack.Screen
+        name="Home"
+        component={Home}
+        options={{headerShown: false}}
+      />
+      <HomeStack.Screen
+        name="DraftTally"
+        component={DraftTally}
+        options={{title: 'Draft Tally'}}
+      />
+      <HomeStack.Screen
+        name="TallyReport"
+        component={TallyReport}
+        options={{headerShown: false}}
+      />
+      <HomeStack.Screen
+        name="OpenTallyEdit"
+        component={EditOpenTally}
+        options={{title: 'Open Tally'}}
+      />
+      <HomeStack.Screen
+        name="ChitHistory"
+        component={ChitHistory}
+        options={{title: 'Chit History'}}
+      />
+      <HomeStack.Screen
+        name="ChitDetail"
+        component={ChitDetail}
+        options={{title: 'Chit Detail'}}
+      />
+      <HomeStack.Screen
+        name="TradingVariables"
+        component={TradingVariables}
+        options={{title: 'Trading Variables'}}
+      />
+      <HomeStack.Screen
+        name="PaymentDetail"
+        component={PaymentDetail}
+        options={{title: 'Payment Detail'}}
+      />
+      <HomeStack.Screen
+        name="RequestDetail"
+        component={RequestDetail}
+        options={{title: 'Request Detail'}}
+      />
     </HomeStack.Navigator>
   );
 }
 
-function ReceiveScreen({ navigation }) {
+function ReceiveScreen({navigation}) {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       <Text>Receive Screen</Text>
     </View>
   );
@@ -83,9 +120,13 @@ function ReceiveScreen({ navigation }) {
 const InviteStack = createNativeStackNavigator();
 function InviteStackScreen() {
   return (
-    <InviteProvider >
+    <InviteProvider>
       <InviteStack.Navigator>
-        <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} />
+        <InviteStack.Screen
+          name="Invite"
+          component={Invite}
+          options={{headerShown: false}}
+        />
         <InviteStack.Screen
           name="FilterScreen"
           component={FilterScreen}
@@ -94,9 +135,21 @@ function InviteStackScreen() {
             headerShadowVisible: false,
           }}
         />
-        <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }} />
-        <InviteStack.Screen name="TallyShare" component={ShareTally} options={{ title: 'Share Tally', headerShadowVisible: false }} />
-        <InviteStack.Screen name="TallyContract" component={TallyContract} options={{ title: 'Tally Contract' }} />
+        <InviteStack.Screen
+          name="TallyPreview"
+          component={TallyPreview}
+          options={{title: 'Tally Preview'}}
+        />
+        <InviteStack.Screen
+          name="TallyShare"
+          component={ShareTally}
+          options={{title: 'Share Tally', headerShadowVisible: false}}
+        />
+        <InviteStack.Screen
+          name="TallyContract"
+          component={TallyContract}
+          options={{title: 'Tally Contract'}}
+        />
       </InviteStack.Navigator>
     </InviteProvider>
   );
@@ -107,16 +160,28 @@ function SettingStackScreen() {
   return (
     <SettingStack.Navigator>
       <SettingStack.Screen name="Setting" component={Setting} />
-      <SettingStack.Screen name="Profile" component={Profile} options={{ title: 'Profile' }} />
-      <SettingStack.Screen name="ProfileEdit" component={ProfileEdit} options={{ title: 'Edit Profile' }} />
-      <SettingStack.Screen name="ImportKey" component={ImportKeyScreen} options={{ title: 'Import Key' }} />
+      <SettingStack.Screen
+        name="Profile"
+        component={Profile}
+        options={{title: 'Profile'}}
+      />
+      <SettingStack.Screen
+        name="ProfileEdit"
+        component={ProfileEdit}
+        options={{title: 'Edit Profile'}}
+      />
+      <SettingStack.Screen
+        name="ImportKey"
+        component={ImportKeyScreen}
+        options={{title: 'Import Key'}}
+      />
     </SettingStack.Navigator>
   );
 }
 
 const Tab = createBottomTabNavigator();
 const linking = {
-  prefixes: ["mychips://", "https://mychips.org"],
+  prefixes: ['mychips://', 'https://mychips.org'],
   getStateFromPath: (path, options) => {
     const parsed = qs.parseUrl(path);
     const newPath = parsed.url === '/tally' ? '/connect' : path;
@@ -132,7 +197,7 @@ const linking = {
           TallyPreview: {
             path: 'tally-preview/:tally_seq',
           },
-        }
+        },
       },
     },
   },
@@ -140,10 +205,11 @@ const linking = {
 
 function App() {
   const navigationRef = useRef();
+  const [showNotification, setShowNotification] = useState(true);
 
   useEffect(() => {
     return notifee.onForegroundEvent(event => {
-      console.log(event, 'event')
+      console.log(event, 'event');
       handleNotification({
         ...event,
         navigationRef,
@@ -152,7 +218,7 @@ function App() {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{flex: 1}}>
       <NavigationContainer linking={linking} ref={navigationRef}>
         <UserProvider>
           <SocketProvider>
@@ -162,14 +228,15 @@ function App() {
               <PolyfillCrypto />
 
               <ProfileProvider>
-                <Tab.Navigator screenOptions={{ headerShown: false, tabBarShowLabel: false }}>
+                <Tab.Navigator
+                  screenOptions={{headerShown: false, tabBarShowLabel: false}}>
                   <Tab.Screen
                     name="Tally"
                     component={HomeStackScreen}
                     options={{
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="home" {...{ ...props, size: 24 }} />
-                      )
+                      tabBarIcon: props => (
+                        <CustomIcon name="home" {...{...props, size: 24}} />
+                      ),
                     }}
                   />
 
@@ -177,9 +244,9 @@ function App() {
                     name="Receive"
                     component={ReceiveScreen}
                     options={{
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="receive" {...{ ...props, size: 26 }} />
-                      )
+                      tabBarIcon: props => (
+                        <CustomIcon name="receive" {...{...props, size: 26}} />
+                      ),
                     }}
                   />
 
@@ -188,9 +255,9 @@ function App() {
                     component={Scanner}
                     options={{
                       unmountOnBlur: true,
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="scan" {...{ ...props, size: 23 }} />
-                      )
+                      tabBarIcon: props => (
+                        <CustomIcon name="scan" {...{...props, size: 23}} />
+                      ),
                     }}
                   />
 
@@ -198,10 +265,15 @@ function App() {
                     name="InviteScreen"
                     component={InviteStackScreen}
                     options={{
-                      tabBarTestID: "inviteBtn",
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="invite" {...{ ...props, size: 26 }} />
-                      )
+                      tabBarTestID: 'inviteBtn',
+                      tabBarIcon: props => (
+                        <View>
+                          {showNotification && (
+                            <View style={styles.notificationCircle} />
+                          )}
+                          <CustomIcon name="invite" {...{...props, size: 26}} />
+                        </View>
+                      ),
                     }}
                   />
 
@@ -209,9 +281,9 @@ function App() {
                     name="Settings"
                     component={SettingStackScreen}
                     options={{
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="settings" {...{ ...props, size: 25 }} />
-                      )
+                      tabBarIcon: props => (
+                        <CustomIcon name="settings" {...{...props, size: 25}} />
+                      ),
                     }}
                   />
                 </Tab.Navigator>
@@ -227,8 +299,8 @@ function App() {
 }
 
 setTimeout(() => {
-  console.log("W:", window)
-}, 1000)
+  console.log('W:', window);
+}, 1000);
 
 const styles = StyleSheet.create({
   global: {
@@ -246,6 +318,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flex: 1,
   },
+  notificationCircle: {
+    top: -3,
+    right: 0,
+    width: 10,
+    height: 10,
+    zIndex: 999,
+    borderRadius: 10,
+    position: 'absolute',
+    backgroundColor: colors.red,
+  },
   button: {
     //    position: 'absolute',
     //    padding: 10,
@@ -255,7 +337,6 @@ const styles = StyleSheet.create({
     //    shadowRadius: 10,
     //    shadowOpacity: 0.35,
   },
-})
+});
 
 export default App;
-
