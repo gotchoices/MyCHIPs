@@ -27,6 +27,8 @@ const EditOpenTally = (props) => {
   const { messageText } = useMessageText();
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
+  const hasPartCert = !!tally?.part_cert;
+  const hasHoldCert = !!tally?.hold_cert;
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
@@ -36,7 +38,7 @@ const EditOpenTally = (props) => {
   const fetchTally = () => {
     setLoading(true);
     fetchTallies(wm, {
-      fields: ['bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net'],
+      fields: ['bound', 'reward', 'clutch', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'net', 'hold_cert'],
       where: {
         tally_ent,
         tally_seq,
@@ -136,6 +138,10 @@ const EditOpenTally = (props) => {
     });
   }
 
+  const onViewCertificate = (data) => {
+    props.navigation.navigate("TallyCertificate", { data: { ...data } });
+  }
+
   return (
     <ScrollView
       refreshControl={
@@ -171,10 +177,27 @@ const EditOpenTally = (props) => {
             <Button
               title="Show PDF"
               textColor={colors.blue}
-              style={{ marginTop: 12, backgroundColor: colors.white }}
+              style={styles.showPDF}
               onPress={showPDF}
             />
 
+            {
+              hasPartCert ? <Button
+                title="View Partner Certificate"
+                onPress={() => onViewCertificate({ title: "Partner Certificate", data: tally?.part_cert })}
+                textColor={colors.blue}
+                style={styles.showPDF}
+              /> : <></>
+            }
+
+            {
+              hasHoldCert ? <Button
+                title="View Holder Certificate"
+                onPress={() => onViewCertificate({ title: "Holder Certificate", data: tally?.hold_cert })}
+                textColor={colors.blue}
+                style={styles.showPDF}
+              /> : <></>
+            }
           </View>
         </View>
 
@@ -273,6 +296,10 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 14,
     color: 'black',
+  },
+  showPDF: {
+    marginTop: 12,
+    backgroundColor: colors.white
   }
 })
 
