@@ -1,5 +1,13 @@
 TODO:
 
+X- Simulator
+X-  Update docker compose methods and documents for mac-only runs
+X-  realpath not found on mac
+X-  How to run bin/develop if only mac available (in docker container?)
+X-  How to run simulator not in development mode (from native image mychips /app dir)
+X-  Can run server in test mode (allowing invalid signatures)
+X- Properly detect MYCHIPS_ROOTNAME for docker-dev (git rev-parse --show-toplevel)
+
 - Tally/chit signatures
 X-  What happens if I try to create a signed chit issued by the other party?
 X-  Make regression tests use real keys on tallies
@@ -10,7 +18,6 @@ X-  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
 - Refactor chit chains to use base64url for chain hash (instead of hex)
 - Should we use python module for base64url in postgresql?
 -  
-- Properly detect MYCHIPS_ROOTNAME for docker-dev (git rev-parse --show-toplevel)
 -  
 - Refactor document server to return contracts
 -  in json format
@@ -65,11 +72,11 @@ X-  Grab hyperlinks, launch tally view
 -  Move test/local under local/test?
 
 - User registration page refinements:
--  Email confirmation code, enter on page, rather than emailing link? (low priority)
 X-  Page Includes links to Android APK and Apple testflight
--  Can view terms of Service page?
+X-  Can view terms of Service page?
+X-  Make QR code part of inline html rather than an attachment (so it shows correctly in outlook)
+-  Email confirmation code, enter on page, rather than emailing link? (low priority)
 -  Fix document server also running on 443 (request by hash?)
--  Make QR code part of inline html rather than an attachment (so it shows correctly in outlook)
 -  Can configure env for using an external SMTP service (mailgun, sendgrid, etc)
 - 
 - Chit consensus

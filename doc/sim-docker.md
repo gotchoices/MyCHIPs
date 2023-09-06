@@ -1,7 +1,7 @@
 ## MyCHIPs Simulations
 The folder test/sim contains several different iterations of simulators.
-The main idea is to launch the production server program multiple numbers of times
-along with a number of bot processes that attempt to act like human beings might
+The objective is to launch the production server program multiple numbers of times
+along with a number of bot processes (agent-based modelers) that attempt to act like human beings might
 an economy of CHIP traders.
 
 The simulations are helpful in creating data sets for analyzing the MyCHIPs
@@ -14,7 +14,7 @@ script where, instead of running on
 separate virtual machines, all processes are launched as docker containers.
 Most functionality is wrapped inside the test/sim/simdock script.
 
-Simdock has less memory overhead than the earlier simnet implementation so a 
+Simdock has lower memory overhead than the earlier simnet implementation so a 
 single system can simulate more sites.  Still, it is
 quite CPU intensive so things can run slow if you are modeling a larger network.
 
@@ -54,9 +54,26 @@ The devel container can also backup and restore all your databases to a named
 profile (see command examples below). This allows you to save a certain state
 for later analysis or debugging.
 
-To get started, run the following commands (from the test/sim directory):
+Before starting, note that the simulator runs docker containers in development mode by default (see develop option in config.dock).
+In this mode, MyCHIPs processes will be accessing the live filesystem as described in [this section](work-hacking.md).
+It is also important that "npm install" has run at least once, under Linux, in this filesystem, creating node_modules.
+So if you are on a Mac or Windows, you may need to launch a development docker at least once as follows:
 ```
-  export PATH="$(pwd)/../../node_modules/.bin:$PATH"
+  npm run docker-dev
+```
+Then you can stop the container with:
+```
+  npm run docker-stop
+```
+Make sure a node_modules folder got created in the mychips folder.
+If you are running natively under Linux, you may be able to do this to accomplish roughly the same thing:
+```
+  npm install
+  npm run develop
+```
+
+To get the simulator started, run the following commands from the test/sim directory:
+```
   export NODE_DEBUG=debug
   ./simdock startup
 ```
@@ -69,15 +86,19 @@ database for each site.
 This step also includes opening a bunch of xterms (or the local logwin script 
 for Mac) on your screen to view the logfiles.  NOTE: MacOS is discontinuing 
 support of tcl/tk (wish) so even if you have it, it may be unstable.
-If you are having a problem with 
-logwin on Mac, try installing wish from [homebrew](https://brew.sh/).
-
-Also make sure your new wish is in your path:
+If you are having a problem with logwin on Mac (log windows not showing up), try 
+installing wish from [homebrew](https://brew.sh/).
 ```
   brew install tcl-tk
 ```
 
-If things still don't work right (like your screen is smaller than 1920 pixels,
+Also make sure your new wish is in your path.
+Try runninig "wish" from a shell window and see if it launches a small window to your screen.
+This is an Xwindows-based program so if you are on Mac, you will need xQuartz installed.
+For Windows, you will need a similar X server.
+If you disable logging windows in the config.dock file, you won't have to worry about this, but you will need to find another way to monitor process log files.
+
+If log windows still don't work right (like your screen is smaller than 1920 pixels,
 for example) now is a good time to check out the configuration file: config.dock.
 
 If you want to change configuration items, make a similar file in the "local" 
@@ -89,16 +110,17 @@ and include whatever settings you want to modify from the config.dock in
 this folder.  Some good things to focus on include:
 ```
   modelwins, peerwins, spawins #X,Y screen coordinates of logging xterms
-  modversion                   #Which agent-based modeler to use (2 or 3)
-  logoffset                    #How xterms are tiled on the screen
-  browser                      #Only firefox/chrome tested for now
-  logwin                       #If you want to use xterm instead of logwin
-  newusers                     #How many users to create on each site
-  sites                        #How many sites to launch on simulation runs
-  userargs                     #Additional command line switches to docker
-                               run command.  For example, you could make each
-                               container's bash run your preferred settings:
-  userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )	#Custom bashrc, key mappings
+  modversion           #Which agent-based modeler to use (2 or 3)
+  logoffset            #How xterms are tiled on the screen
+  browser              #Only firefox/chrome tested for now
+  logwin               #If you want to use xterm instead of logwin
+  newusers             #How many users to create on each site
+  develop              #Run in development mode (true) or production mode (false)
+  sites                #How many sites to launch on simulation runs
+  userargs             #Additional command line switches to docker
+                        run command.  For example, you could make each
+                        container's bash run your preferred settings:
+  userargs=( '-v' "$HOME/.bashrc:/root/.bashrc" )	#Custom shell settings
 ```
 
 If you have made changes, shut things down using:
@@ -106,9 +128,7 @@ If you have made changes, shut things down using:
 ```
   ./simdock shutdown
 ```
-
-And then start it back up again with:
-
+Wait for all containers to fully stop and then start it back up again with:
 ```
   ./simdock startup
 ```
@@ -131,9 +151,9 @@ a prior version of the database or MyCHIPs schema.  If you don't have any
 important test cases in there, you can safely remove the pgdata folder with all
 its contents.  For example:
 ```
-  rm -r local/ds0/pgdata
+  rm -r local/ds0/pgdata		#Do for each site (ds0..dsN)
 ```
-Now try restarting the simulation and see if the containers can rebuild the
+Now try starting up again and see if the containers can rebuild the
 databases from scratch (takes a while).
 
 Next, you will need to put some aliases in your /etc/hosts (or other DNS
@@ -152,14 +172,13 @@ local IP. For example:
 ```
 
 OK, now make sure you have a browser (firefox,chrome) window running and do:
-
 ```
   ./simdock tickets
 ```
 
 This should generate connection tickets for each of the running SPA servers
 and launch a browser tab for the admin console of each, using the applicable
-ticket. At this point, you may well get a security warning because you are
+ticket. At this point, you may well get a security warning (or worse) because you are
 connecting via https to a node with a self-signed CA. Look for a CA
 certificate in:
 
@@ -190,7 +209,7 @@ also do:
 
 to launch a single admin console (to site 2 in this case).
 
-The most useful view in the admin console is found in the *Network* tab where you
+The most useful view in the admin console for simulations is found in the *Network* tab where you
 can see a visual representation of the users on each site.  Unfortunately, we
 haven't created any yet, so do that now:
 ```
@@ -296,6 +315,18 @@ There are a few examples of this in the sim/sample folder.
   ./simdock dropdb all            #Drop all databases (run this prior to a restore)
   ./simdock restore all profile1  #Restore all DB's from a folder called profile1
 ```
+
+## Simulator in Production Mode
+This mode is experimental.
+It allows the docker containers to run without accessing the local source code.
+This is one step toward facilitating larger-scale simulations in the cloud.
+
+In this mode, it is not necessary to have a node_modules (npm install) in the main repo directory.
+Each of the docker containers will have its own such resource.
+
+Note that the version of software running in production containers will be whatever was present when the docker images were first built.
+If you update to a later version of the repository, you may want to remove the mychips docker containers and let them get rebuilt with the current version.
+
 
 ## Development on Modeler 3 with Typescript
 Simdock should be capable of running with modeler versions 2 or 3.

@@ -23,13 +23,19 @@ const TallyCertificate = (props) => {
     });
   }, []);
 
-  return <ScrollView contentContainerStyle={styles.container}>
+  return <ScrollView
+    style={styles.container}
+    contentContainerStyle={styles.contentContainer}
+  >
     {renderKeyValue(data?.data)}
   </ScrollView>
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  contentContainer: {
     padding: 16,
     margin: 16,
     backgroundColor: 'white'

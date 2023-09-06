@@ -1,0 +1,44 @@
+/* General styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  max-width: 80px; /* You can adjust the width */
+  height: auto;
+  margin-right: 20px;
+}
+
+.content {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+/* Media Queries */
+@media only screen and (max-width: 600px) {
+  .container {
+    padding: 10px;
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  .logo {
+    max-width: 60px; /* Adjust smaller size for mobile */
+  }
+}

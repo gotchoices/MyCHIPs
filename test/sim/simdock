@@ -8,8 +8,8 @@
 #Initialize
 #-------------------------------------------------------------------------------
 this="$(basename ${BASH_SOURCE})"
-mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"
-source $mypath/config.dock
+mypath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";	#echo "mypath:$mypath"; exit 0
+source $mypath/config.dock				#Default configuration
 checkContext						#Check docker context
 
 pargs=()						#Will hold positional arguments
@@ -28,22 +28,15 @@ done
 set -- "${pargs[@]}"					#Restore positional arguments
 command="$1"; shift
 
-mychips="$mypath"					#Get our bearings in the filesystem
-mysim=""
-while [[ $path != / ]]; do				#Find first bin dir above me
-  if find "$mychips" -maxdepth 1 -mindepth 1 -type d -name bin | grep -q .; then
-    break
-  fi
-  mysim="$(basename $mychips)/${mysim}"			#Find simulation directory
-  mychips="$(cd $mychips/.. && pwd)"
-done
+mychips="$(git rev-parse --show-toplevel)"		#Repo main directory
+mysim="${mypath#$mychips/}"
 
-if [ "$(basename "$mychips")" != "mychips" ]; then
-  echo "Can't find mychips main directory"
+#echo "cwd:$(pwd) mychips:$mychips mypath:$mypath mysim:$mysim sites:$sites"; exit 0
+if ! cd $mychips; then
+  echo "Can't find main directory: $mychips"
   exit 1
 fi
 maxsite=$(expr $sites - 1)
-#echo "cwd:$(pwd) mychips:$mychips mysim:$mysim sites:$sites"; exit 0
 
 mkdir -p $pkidir				#Make sure certificates can be built
 if [ ! -f $pkidir/local.conf ]; then
@@ -56,6 +49,16 @@ if [ ! -f $pkidir/local.conf ]; then
 	stateOrProvinceName="NA"
 	countryName="NA"
 	EOF
+fi
+
+#Will mount development dirs or not?
+#-------------------------------------------------------------------------------
+if $develop; then			echo "Development mode"
+  devmount=(-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips")
+  devmount+=(-v "$locdir/pki:/usr/local/devel/mychips/pki/local")
+else					echo "Production mode"
+  devmount=(-v "$mypath:/app/test/sim" -w "/app")
+  devmount+=(-v "$locdir/pki:/app/pki/local")
 fi
 
 #Prepare if we will run our local logfile viewer
@@ -165,13 +168,14 @@ function start_spa {
   local spaname="spa$n"
   local spaxport=$(expr $spaports + $n)
   local wsxport=$(expr $wsports + $n)
-  if ! run mychips --name $spaname -p ${wsxport}:1025 -p ${spaxport}:1024 \
-  	-v "$machtmp:/var/tmp/mychips" \
-  	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
-  	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
-  	-e "NODE_DEBUG=$NODE_DEBUG" \
-  	-e "SITE=$n" \
-  	-- ${mysim}sim-c.sh spa; then
+  local cmd=(run mychips --name $spaname -p "${wsxport}:1025" -p "${spaxport}:1024")
+        cmd+=(-v "$machtmp:/var/tmp/mychips")
+        cmd+=("${devmount[@]}")
+        cmd+=(-e "NODE_DEBUG=$NODE_DEBUG")
+        cmd+=(-e "SITE=$n")
+        cmd+=(-- "${mysim}/sim-c.sh" spa)
+#echo "cmd:${cmd[@]}"; exit 0
+  if ! "${cmd[@]}"; then
     echo "Failed starting MyCHIPs SPA server"; return
   fi
 }
@@ -186,13 +190,13 @@ function start_peer {
 echo "start_peer mach:$mach NODE_DEBUG:$NODE_DEBUG"
 
   local peername="peer$n"
-  if ! run mychips --name $peername \
-  	-v "$machtmp:/var/tmp/mychips" \
-  	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
-  	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
-  	-e "NODE_DEBUG=$NODE_DEBUG" \
-  	-e "SITE=$n" \
-  	-- ${mysim}sim-c.sh peer; then
+  local cmd=(run mychips --name "$peername")
+        cmd+=(-v "$machtmp:/var/tmp/mychips")
+        cmd+=("${devmount[@]}")
+        cmd+=(-e "NODE_DEBUG=$NODE_DEBUG")
+        cmd+=(-e "SITE=$n")
+        cmd+=(-- "${mysim}/sim-c.sh" peer)
+  if ! "${cmd[@]}"; then
     echo "Failed starting MyCHIPs peer server"; return
   fi
 }
@@ -207,14 +211,14 @@ function start_model {
 #echo "start_model mach:$mach version:$modversion @:$@"
 
   local modname="model$n"
-  if ! run mychips --name $modname \
-  	-v "$machtmp:/var/tmp/mychips" \
-  	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
-  	-v "$locdir/pki:/usr/local/devel/mychips/pki/local" \
-  	-e "NODE_DEBUG=$NODE_DEBUG" \
-  	-e "SITE=$n" \
-  	-e "MYCHIPS_DDHOST=mongo" \
-  	-- ${mysim}sim-c.sh model $(encode -m $modversion "$@"); then
+  local cmd=(run mychips --name "$modname")
+  	cmd+=(-v "$machtmp:/var/tmp/mychips")
+        cmd+=("${devmount[@]}")
+  	cmd+=(-e "NODE_DEBUG=$NODE_DEBUG")
+  	cmd+=(-e "SITE=$n")
+  	cmd+=(-e "MYCHIPS_DDHOST=mongo")
+  	cmd+=(-- ${mysim}/sim-c.sh model "$(encode -m $modversion "$@")")
+  if ! "${cmd[@]}"; then
     echo "Failed starting MyCHIPs Agent-based Modeler"; return
   fi
 }
@@ -265,10 +269,12 @@ function start_mongo {
 #Launch an OS shell to perform database development tasks
 #-------------------------------------------------------------------------------
 function start_devel {
-  if ! run devel \
-  	-v "$locdir/devel:/var/tmp/mychips" \
-  	-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips" \
-  	-- tail -f /dev/null; then
+  local cmd=(run devel)
+  	cmd+=(-v "$locdir/devel:/var/tmp/mychips")
+        cmd+=("${devmount[@]}")
+  	cmd+=(-- tail -f /dev/null)
+#echo "cmd:${cmd[@]}"; exit 0
+  if ! "${cmd[@]}"; then
     echo "Failed starting development shell"; return
   fi
 }
@@ -326,9 +332,9 @@ function start_log {
     y=$(expr $y + 22)			#Mac kludge: why does wish place differently than xterm?
   fi
   local geom="+$(expr $x + \( $n \* $xoff \))+$(expr $y + \( $n \* $yoff \))"
-#echo "start_log n:$n mach:$mach geom:$geom cmd:$cmd"
+#echo "start_log n:$n m:$mach g:$geom v:$logviewer cmd:$cmd"
   if [ "$logviewer" = logwin ]; then
-    wish logwin -geometry "$geom" -- $cmd &		#2>/dev/null (probably)
+    wish ${mypath}/logwin -geometry "$geom" -- $cmd &		#2>/dev/null (probably)
   
   elif [ "$logviewer" = xterm ] && which xterm >/dev/null; then
     xterm -T "$mach: $log" -geometry "$geom" -e /bin/bash -l -c "$cmd" &
@@ -376,7 +382,7 @@ function remote {
 
   cmdstrg="SITE=$SITE NODE_DEBUG=$NODE_DEBUG wsports=$wsports spaports=$spaports \
     newusers=$newusers admin=$admin dbname='$dbname' \
-    ${mysim}sim-c.sh $cmd $(encode "$@")"
+    ${mysim}/sim-c.sh $cmd $(encode "$@")"
 #echo "docker exec devel bash -c '$cmdstrg'"
   docker exec devel bash -c "$cmdstrg"
 }

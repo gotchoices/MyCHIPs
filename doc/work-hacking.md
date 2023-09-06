@@ -1,43 +1,30 @@
 ## Working on the Software
 
 ### WyattERP Hacking
-If you will be working on any of the Wyatt-ERP source code:
-
-You will need to run the "npm develop" script.  This will remove the four 
-Wyatt modules out of mychips/node_modules.
-- Wylib
-  A library that runs in a browser-based UI client to interface with a 
-  Wyseman-baserd backend server.
-- Wyseman
-  Provides the server side of the API to communicate with Wylib-based apps.
-  Includes a schema management application for tracking and deploying
-  changes and updates to the PostgreSQL database schema.
-  Also provides non-web (JS, Ruby, Dart) client-side modules.
-- Wyselib
-  A library of schema objects to implement a basic ERP.
-  More specialized apps can be built on top of this base schema.
-- Wyclif
-  Generic support modules for building the server-side of an application.
-
-**The develop script will expect to find these four modules installed in folders 
-at the same level as the mychips folder.**
-
-So you will have to check these out from github, for example:
+If you will be working on any of the Wyatt-ERP source code, you will need to check out copies of the WyattERP support libraries as follows:
 ```
-    cd devel
+    cd MyCHIPs/..
     git clone https://github.com/gotchoices/wylib.git
     git clone https://github.com/gotchoices/wyseman.git
     git clone https://github.com/gotchoices/wyselib.git
     git clone https://github.com/gotchoices/wyclif.git
 ```
-The develop script will run an "npm install" at one level above mychips (in devel)
-which will build an npm_modules folder there and make the required modules 
-accessible to MyCHIPs.
-  
-By doing it this way, you are able to edit/change things in the Wyatt code
+By default, any running of "npm install" will install versions of these package in node_modules, which is not what we want here.
+
+We will run the "npm develop" command (or bin/develop) to configure MyCHIPs to access these libraries from local source rather than from npmjs.org.
+
+Specifically, bin/develop will remove the four WyattERP modules out of mychips/node_modules.
+It will then move to the folder above MyCHIPs and install each of the libraries like so:
+```
+   npm install wyseman/		#for example
+```
+So it expects to find these four modules installed in folders at the same level as the MyCHIPs folder.
+This installation process will also create a node_modules folder above MyCHIPs which will be accessed by MyCHIPs as regards these packages.
+
+Once set up in this way, you are able to edit/change things in the Wyatt code
 and the changes will be immediately accessible to the next run of MyCHIPs.
   
-**Beware:** If you do "npm install" of any kind in the mychips folder, it will
+**Beware:** If you do "npm install" or "npm update" in the mychips folder, it will
 reinstall the support libraries (from npmjs.org) into node_modules so you won't be running those
 out of the source folders anymore.  You will have to run "npm develop" again to
 clean them out (and restart the server).

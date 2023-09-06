@@ -9,18 +9,6 @@ import useMessageText from "../../../../hooks/useMessageText";
 import useSocket from "../../../../hooks/useSocket";
 import HelpText from "../../../../components/HelpText";
 
-const certLabel = {
-  chad: "Custoner ID and Server",
-  date: "Tally Updated Date",
-  file: "Your Profile Picture",
-  type: "User Type",
-  name: "Your Name",
-  place: "Your Addresses",
-  public: "Your Public Key",
-  connect: "Your contact details such as; Phone, Email, and Website",
-  identity: "Your birth details containing; date, place, state, country and so on."
-}
-
 export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }) => {
   // tallyCurrentHoldCert is certificate that user has selected for tally
   // User currenct certificate

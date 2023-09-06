@@ -13,17 +13,20 @@ You can check your current version with:
 ```
   node -v
 ```
-If you need to upgrade, a quick and easy way is:
+If you need to upgrade, one pretty easy way is:
 ```
   sudo npm install -g n
   sudo n stable
 ```
-Note: if you are developing on a Mac or Windows machine, this is not referring to the 
+Important: if you are developing on a Mac or Windows machine, these steps are not referring to the 
 software on your native host, but rather on the Linux environment where the server will run.
 That environment will have to be one of:
 - Native Linux on a dedicated server
 - Native Linux in a VM (VirtualBox, cloud, etc)
-- Docker (should install software versions correctly on its own)
+- Docker (which install correct software versions on its own)
+
+If you're only going to be running things in docker (like the simulator) and not the native
+installed version, you can skip the parts having to do with node (including "npm install").
 
 Now clone the MyCHIPs source code from the [github repository](github.com/gotchoices/mychips).
 If the folder gets created as "MyCHIPs" (because you copied the github clone link) rather than 
@@ -31,13 +34,14 @@ If the folder gets created as "MyCHIPs" (because you copied the github clone lin
 ```
   git clone https://github.com/gotchoices/mychips
   cd mychips
-  npm install				#Install all dependencies
+  npm install				#Install dependencies (run on Linux)
 ```
 Now that the software is installed, you have 3 basic options to give it a try.
 Note: the docker methods will require docker engine >= 20.10.10.
 - [Docker Test Instance](use-docker.md):
   This is probably the easiest option and should work on Linux, Mac or Windows.
-  It will help if you are already familiar with [Docker](http://docker.com).
+  But it is not going to get you to a production server.
+  It will also help if you are already familiar with [Docker](http://docker.com).
   For Windows users, here are some known issues to be aware of:
   - Make sure docker [can mount your windows volumes](https://docs.docker.com/docker-for-windows/#shared-drives).
   - The "npm run docker" command will make use of the unixy "pwd" command (see inside package.json scripts).

@@ -7,8 +7,7 @@
 #        agents new
 #        agents list
 #        agents rm <agentpub>
-mydir="$(dirname $BASH_SOURCE)"				#Where this script is
-appdir="$(realpath "$mydir/..")"
+appdir="$(git rev-parse --show-toplevel)"		#MyCHIPs home directory
 keydir="$appdir/pki/local"
 bindir="$appdir/bin"
 default="false"
