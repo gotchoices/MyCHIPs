@@ -118,7 +118,6 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
                   onItemClick(newValue, key);
                 }}
               />
-
               <HelpText
                 label={langObj?.title ?? ''}
                 helpText={langObj?.help}
