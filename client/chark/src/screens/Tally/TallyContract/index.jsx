@@ -107,13 +107,7 @@ const TallyContract = (props) => {
         uri: `https://docs.google.com/gview?embedded=true&url=${contract}`
       }}
     />
-    {/* <Button
-      title='Share'
-      onPress={onShare}
-      style={{ paddingHorizontal: 12, margin: 12 }}
-      disabled={downloading}
-    /> */}
-
+    
 <FloatingActionButton onPress={onShare} type='share'  disabled={downloading}/>
   </View>
 }
