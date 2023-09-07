@@ -8,6 +8,7 @@ import useSocket from '../../../hooks/useSocket';
 import { getContract } from '../../../services/tally';
 
 import Button from '../../../components/Button';
+import FloatingActionButton from '../../../components/FloadingActionButton';
 
 const TallyContract = (props) => {
   const { tally_seq } = props.route?.params ?? {};
@@ -106,12 +107,14 @@ const TallyContract = (props) => {
         uri: `https://docs.google.com/gview?embedded=true&url=${contract}`
       }}
     />
-    <Button
+    {/* <Button
       title='Share'
       onPress={onShare}
       style={{ paddingHorizontal: 12, margin: 12 }}
       disabled={downloading}
-    />
+    /> */}
+
+<FloatingActionButton onPress={onShare} type='share'  disabled={downloading}/>
   </View>
 }
 
