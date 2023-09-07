@@ -53,6 +53,7 @@ import PaymentDetail from './src/screens/Tally/PaymentDetail';
 import FilterScreen from './src/screens/Filter';
 import DraftTally from './src/screens/Tally/DraftTally';
 import RequestDetail from './src/screens/Tally/RequestDetail';
+import TallyCertificate from './src/screens/Tally/TallyCertificate';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -68,6 +69,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name='TradingVariables' component={TradingVariables} options={{ title: 'Trading Variables' }} />
       <HomeStack.Screen name='PaymentDetail' component={PaymentDetail} options={{ title: 'Payment Detail' }} />
       <HomeStack.Screen name='RequestDetail' component={RequestDetail} options={{ title: 'Request Detail' }} />
+      <InviteStack.Screen name="TallyCertificate" component={TallyCertificate} options={{ title: 'Tally Certificate' }} />
     </HomeStack.Navigator>
   );
 }
@@ -97,6 +99,7 @@ function InviteStackScreen() {
         <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }} />
         <InviteStack.Screen name="TallyShare" component={ShareTally} options={{ title: 'Share Tally', headerShadowVisible: false }} />
         <InviteStack.Screen name="TallyContract" component={TallyContract} options={{ title: 'Tally Contract' }} />
+        <InviteStack.Screen name="TallyCertificate" component={TallyCertificate} options={{ title: 'Tally Certificate' }} />
       </InviteStack.Navigator>
     </InviteProvider>
   );

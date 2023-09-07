@@ -4,35 +4,35 @@ import { colors } from "../../../../config/constants";
 import Button from "../../../../components/Button";
 import CheckBox from "@react-native-community/checkbox";
 import useProfile from "../../../../hooks/useProfile";
-
-const certLabel = {
-  chad: "Custoner ID and Server",
-  date: "Tally Updated Date",
-  file: "Your Profile Picture",
-  type: "User Type",
-  name: "Your Name",
-  place: "Your Addresses",
-  public: "Your Public Key",
-  connect: "Your contact details such as; Phone, Email, and Website",
-  identity: "Your birth details containing; date, place, state, country and so on."
-}
+import { useUser } from "../../../../hooks/useLanguage";
+import useMessageText from "../../../../hooks/useMessageText";
+import useSocket from "../../../../hooks/useSocket";
+import HelpText from "../../../../components/HelpText";
 
 export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }) => {
+  // tallyCurrentHoldCert is certificate that user has selected for tally
+  // User currenct certificate
+  const { wm } = useSocket();
   const { personal } = useProfile();
   const [tallyCert, setTallyCert] = useState({ ...tallyCurrentHoldCert ?? {} });
   const [userCert, setUserCert] = useState({});
 
+  useUser(wm);
+  const { messageText } = useMessageText();
+  const certificateLang = messageText?.users?.cert?.values;
+
+
   useEffect(() => {
     const cert = personal?.cert;
-    console.log("DEFAULT_CERT ==> ", JSON.stringify(cert));
     if (cert) {
       setTallyCert(recentCert => {
         return {
           ...recentCert,
           chad: recentCert?.chad ?? cert?.chad,
           date: recentCert?.date ?? cert?.date,
-          file: recentCert?.file ?? cert?.file,
           name: recentCert?.nam ?? cert?.name,
+          public: recentCert?.public ?? cert?.public,
+          type: recentCert?.type ?? cert?.type,
         }
       });
       setUserCert(cert);
@@ -44,12 +44,27 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
   }
 
   const isMandatory = (key) => {
-    if (key === 'chad' || key === 'date' || key === 'name' || key === 'file') {
+    if (key === 'chad' || key === 'date' || key === 'name' || key === 'public' || key === 'type') {
       return true;
     } else {
       return false;
     }
   }
+
+  const onRestoreCert = () => {
+    const cert = personal?.cert;
+    setTallyCert(recentCert => {
+      return {
+        ...tallyCurrentHoldCert,
+        chad: recentCert?.chad ?? cert?.chad,
+        date: recentCert?.date ?? cert?.date,
+        name: recentCert?.nam ?? cert?.name,
+        public: recentCert?.public ?? cert?.public,
+        type: recentCert?.type ?? cert?.type,
+      }
+    });
+  }
+
   const onItemClick = (value, key) => {
     if (isMandatory(key)) {
       return;
@@ -62,6 +77,11 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
     });
   }
 
+  function findLanguageValue(value) {
+    return certificateLang?.find(item => item.value === value);
+  }
+
+
   return <View style={styles.modalBackgroud}>
     <View style={styles.divider} >
       <Text style={styles.title}>Select Infomation to Include in Tally</Text>
@@ -69,6 +89,11 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
     <View style={styles.content}>
       {
         Object.keys(userCert).map((key, index) => {
+          const langObj = findLanguageValue(key);
+
+          if (isMandatory(key)) {
+            return <View key={`${key}${index}`} />
+          }
           if (userCert?.[key]) {
             return <View
               key={`${key}${index}`}
@@ -81,7 +106,11 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
                   onItemClick(newValue, key);
                 }}
               />
-              <Text style={styles.label}>{certLabel[key]}</Text>
+              <HelpText
+                label={langObj?.title ?? ''}
+                helpText={langObj?.help}
+                style={styles.label}
+              />
             </View>
           }
           return <View key={`${key}${index}`} />
@@ -96,8 +125,13 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
           textColor={colors.black100}
         />
         <Button
+          style={styles.restore}
+          title="Restore"
+          onPress={onRestoreCert}
+        />
+        <Button
           style={styles.update}
-          title="Continue"
+          title="Update"
           onPress={onUpdate}
         />
       </View>
@@ -149,14 +183,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cancel: {
-    marginEnd: 7,
     flex: 1,
     backgroundColor: 'transparent',
+    borderRadius: 12
+  },
+  restore: {
+    marginStart: 7,
+    flex: 1,
     borderRadius: 12
   },
   update: {
     marginStart: 7,
     flex: 1,
+    backgroundColor: 'green',
+    borderColor: 'green',
     borderRadius: 12
   }
 })

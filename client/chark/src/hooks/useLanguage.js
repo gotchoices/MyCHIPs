@@ -101,6 +101,7 @@ export const useExchange = (wm) => {
 export const useUser = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
+
   useEffect(() => {
     if (!messageText?.users) {
       wm.register('user_lang' + Math.random(), 'mychips.users_v_me', (data, err) => {
@@ -108,9 +109,9 @@ export const useUser = (wm) => {
           addTextsToState('users', data.col, setMessageText)
         }
       })
-    }
-  }, [])
-
+   }
+  }, []);
+  
   return messageText?.users ?? {};
 }
 

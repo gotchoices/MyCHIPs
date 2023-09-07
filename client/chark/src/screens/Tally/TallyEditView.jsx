@@ -31,6 +31,8 @@ const TallyEditView = (props) => {
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
   const hasPartCert = !!tally?.part_cert;
+  const hasHoldCert = !!tally?.hold_cert;
+  const isCertUpdateable = tally?.status === 'draft';
 
   return (
     <View>
@@ -87,13 +89,30 @@ const TallyEditView = (props) => {
         />
 
         {
-          hasPartCert ? <></> :
-            <CustomButton
-              title="Update Certificate"
-              onPress={props.onUpdateContract}
-              textColor={colors.blue}
-              style={styles.showPDF}
-            />
+          isCertUpdateable ? <CustomButton
+            title="Update Certificate"
+            onPress={props.onUpdateContract}
+            textColor={colors.blue}
+            style={styles.showPDF}
+          /> : <></>
+        }
+
+        {
+          hasPartCert ? <CustomButton
+            title="View Partner Certificate"
+            onPress={() => props.onViewCertificate({ title: 'Partner Certificate', data: tally?.part_cert })}
+            textColor={colors.blue}
+            style={styles.showPDF}
+          /> : <></>
+        }
+
+        {
+          hasHoldCert ? <CustomButton
+            title="View Holder Certificate"
+            onPress={() => props.onViewCertificate({ title: 'Holder Certificate', data: tally?.hold_cert })}
+            textColor={colors.blue}
+            style={styles.showPDF}
+          /> : <></>
         }
       </View>
 

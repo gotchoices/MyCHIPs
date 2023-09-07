@@ -72,21 +72,20 @@ const TallyInvite = (props) => {
   }
 
   //Create a new template
-  const newTemplate = () => {
+  const newTemplate = (item) => {
     const payload = {
       contract: { terms: 'Some Terms' },
-      comment: tallyItem.comment ?? 'Test: ' + new Date(),
-      tally_type: tallyItem.tally_type,
+      comment: item.comment ?? 'Test: ' + new Date(),
+      tally_type: item.tally_type,
       hold_terms: {
         call: 30,
-        limit: tallyItem.tally_type === 'foil' ? tallyItem.limit : null
+        limit: item.tally_type === 'foil' ? item.limit : null
       },
       part_terms: {
         call: 30,
-        limit: tallyItem.tally_type === 'stock' ? tallyItem.limit : null
+        limit: item.tally_type === 'stock' ? item.limit : null
       },
     }
-    
     createTemplate(wm, payload).then((data) => {
       setShowSuccess(true);
       fetchTemplates()
@@ -239,9 +238,8 @@ const TallyInvite = (props) => {
       >
         <LimitContent
           onNext={(item) => {
-            setTallyItem({ ...tallyItem, ...item })
             setShowLimitModal(false);
-            newTemplate();
+            newTemplate({ ...tallyItem, ...item });
           }}
           onDismiss={() => {
             setShowLimitModal(false);
