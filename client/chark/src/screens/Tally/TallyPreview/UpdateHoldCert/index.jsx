@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { StyleSheet, Text, View } from "react-native"
+import { ScrollView, StyleSheet, Text, View } from "react-native"
 import { colors } from "../../../../config/constants";
 import Button from "../../../../components/Button";
 import CheckBox from "@react-native-community/checkbox";
@@ -30,7 +30,7 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
           ...recentCert,
           chad: recentCert?.chad ?? cert?.chad,
           date: recentCert?.date ?? cert?.date,
-          name: recentCert?.nam ?? cert?.name,
+          name: recentCert?.name ?? cert?.name,
           public: recentCert?.public ?? cert?.public,
           type: recentCert?.type ?? cert?.type,
         }
@@ -77,6 +77,23 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
     });
   }
 
+  const addSubItem = (value, key, boolValue) => {
+    setTallyCert(recentCert => {
+      const recentData = [...recentCert?.[key]];
+      const index = recentData.findIndex(item => JSON.stringify(item) === JSON.stringify(value));
+
+      if (!boolValue) {
+        recentData?.splice(index, 1);
+      } else {
+        recentData?.push(value);
+      }
+      return {
+        ...recentCert,
+        [key]: recentData.length === 0 ? null : recentData
+      }
+    });
+  }
+
   function findLanguageValue(value) {
     return certificateLang?.find(item => item.value === value);
   }
@@ -87,36 +104,66 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
       <Text style={styles.title}>Select Infomation to Include in Tally</Text>
     </View>
     <View style={styles.content}>
-      {
-        Object.keys(userCert).map((key, index) => {
-          const langObj = findLanguageValue(key);
+      <ScrollView
+        style={{ flex: 1 }}
+      >
+        {
+          // tallyCert is cert selected by user for tally
+          // userCert is all user cert available but not for tally
+          Object.keys(userCert).map((key, index) => {
+            const langObj = findLanguageValue(key);
+            const data = userCert?.[key];
 
-          if (isMandatory(key)) {
+            if (isMandatory(key)) {
+              return <View key={`${key}${index}`} />
+            }
+            if (data) {
+              return <View
+                key={`${key}${index}`}
+              >
+                <View
+                  style={styles.contractItem}
+                >
+                  {
+                    (!Array.isArray(data) && <CheckBox
+                      disabled={isMandatory(key)}
+                      value={tallyCert?.[key] !== null && tallyCert?.[key] !== undefined}
+                      onValueChange={(newValue) => {
+                        onItemClick(newValue, key);
+                      }}
+                    />)
+                  }
+                  <HelpText
+                    label={langObj?.title ?? ''}
+                    helpText={langObj?.help}
+                    style={styles.label}
+                  />
+                </View>
+                {
+                  (Array.isArray(data)) && data?.map((d, index) => {
+                    return <View
+                      key={`${d}${index}`}
+                      style={{ flexDirection: 'row', paddingHorizontal: 8, alignItems: 'center', paddingVertical: 16 }}
+                    >
+                      <CheckBox
+                        disabled={isMandatory(key)}
+                        value={tallyCert?.[key]?.map(cert => JSON.stringify(cert))?.includes(JSON.stringify(d))}
+                        onValueChange={(newValue) => {
+                          addSubItem(d, key, newValue);
+                        }}
+                      />
+                      <Text>
+                        {d.comment ?? d.address}
+                      </Text>
+                    </View>
+                  })
+                }
+              </View>
+            }
             return <View key={`${key}${index}`} />
-          }
-          if (userCert?.[key]) {
-            return <View
-              key={`${key}${index}`}
-              style={styles.contractItem}
-            >
-              <CheckBox
-                disabled={isMandatory(key)}
-                value={tallyCert?.[key] !== null && tallyCert?.[key] !== undefined}
-                onValueChange={(newValue) => {
-                  onItemClick(newValue, key);
-                }}
-              />
-              <HelpText
-                label={langObj?.title ?? ''}
-                helpText={langObj?.help}
-                style={styles.label}
-              />
-            </View>
-          }
-          return <View key={`${key}${index}`} />
-        })
-      }
-
+          })
+        }
+      </ScrollView>
       <View style={styles.row}>
         <Button
           title="Cancel"
@@ -148,8 +195,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   content: {
+    flex: 1,
     paddingHorizontal: 24,
-    alignItems: 'flex-start',
   },
   row: {
     flexDirection: 'row',
@@ -157,11 +204,8 @@ const styles = StyleSheet.create({
   },
   contractItem: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingVertical: 8,
-    borderBottomColor: colors.gray100,
-    borderBottomWidth: 1,
+    backgroundColor: colors.brightgray,
   },
   title: {
     fontSize: 16,
@@ -172,7 +216,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'inter',
     marginStart: 12,
-    flex: 1,
   },
   divider: {
     minWidth: "100%",

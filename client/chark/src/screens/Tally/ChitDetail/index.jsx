@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, RefreshControl } from "react-native";
 import { colors } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
-import { fetchChitHistory, updateChitRequest } from "../../../services/tally";
+import { fetchChitHistory, updateChitState } from "../../../services/tally";
 import Button from "../../../components/Button";
 import { round } from "../../../utils/common";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
@@ -61,7 +61,7 @@ const ChitDetail = (props) => {
         {
           text: 'Ok',
           onPress: () => {
-            updateChitRequest(
+            updateChitState(
               wm,
               {
                 request: 'good',
@@ -93,7 +93,7 @@ const ChitDetail = (props) => {
         {
           text: 'Yes',
           onPress: () => {
-            updateChitRequest(
+            updateChitState(
               wm,
               {
                 request: 'void',
