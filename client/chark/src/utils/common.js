@@ -1,7 +1,7 @@
 export const round = (value, decimals) => {
   const temp = parseFloat(value + `e+${decimals}`);
   const result = Math.round(temp) + `e-${decimals}`;
-  return parseFloat(result);
+  return parseFloat(result).toFixed(decimals);
 }
 
 export const random = (number = 10) => {

@@ -22,6 +22,7 @@ const LimitContent = (props) => {
       placeholder='My Limit'
       style={styles.textInput}
       keyboardType="number-pad"
+      returnKeyType="done"
     />
     <Button
       title='Next'
