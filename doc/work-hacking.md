@@ -50,14 +50,6 @@ of the schema (so it knows which objects need to be rebuilt at any given time).
 So it may generate errors on the first run if your schema was 
 instantiated by MyCHIPs (as opposed to this manual build method).
 
-### Schema Browser
-There is a web-based schema browser available.
-To access it:
-- launch the server with the "-w" option;
-- launch a web ui to a similar URL as the admin console with "/wysegi.html" at the end
-- You'll need to export your admin key from the admin UI and then import it into the WyseGI app
-- You should now be browsing the data dictionary
-
 ### Working on Wylib
 
 Enter development mode as described [above](#wyatterp-hacking)
@@ -86,7 +78,6 @@ This allows you to run the SPA out of port 3000 (rather than 8000).
 However, this may not always work right if you are making changes to the
 control layer (actions/reports) code.
 
-
 ### Browsing the Database Schema
 Launch the mychips server with the -w switch:
 ```
@@ -100,7 +91,7 @@ your connection key and then "Export keys" from the menu.  This should export
 your key to your Downloads folder.  Then go to the Wysegi UI and import that
 same key into the server connection dialog.
 
-There is also a similar tool available now in a tab of the admin web UI.
+Note: there is also a similar tool available now in the Database tab of the admin web UI.
 
 ### Database Logging:
 
