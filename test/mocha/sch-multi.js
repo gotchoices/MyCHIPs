@@ -1,4 +1,4 @@
-//Test certain multi-table views in the schema
+//Test certain multi-table views in the schema; Run only after impexp
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
