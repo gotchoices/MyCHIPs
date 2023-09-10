@@ -8,8 +8,8 @@ import Button from "../../../components/Button";
 import CenteredModal from "../../../components/CenteredModal";
 import { UpdateHoldCert } from "../TallyPreview/UpdateHoldCert";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import CheckBox from "@react-native-community/checkbox";
 import { TallyTrainingIcon } from "../../Invite/TemplateItem/TallyTrailingIcon";
+import useProfile from "../../../hooks/useProfile";
 
 const DraftTally = (props) => {
   const tallyProcess = props.route?.params ?? {};
@@ -17,6 +17,7 @@ const DraftTally = (props) => {
   const [updateCertVisible, setUpdateCertVisible] = useState(false);
   const [data, setData] = useState([]);
   const { wm } = useSocket();
+  const { personal } = useProfile();
 
   useEffect(() => {
     if (wm) {
@@ -54,6 +55,15 @@ const DraftTally = (props) => {
       setData(_data);
       setLoading(false);
     });
+  }
+
+  const sendMyFullCertificate = () => {
+    const partCert = personal?.cert;
+    if (partCert) {
+      startProcessingTally(partCert)
+    } else {
+      Toast.show({ type: "error", text1: "Failed to process tally try again!" })
+    }
   }
 
   const onShowUpdateCert = () => {
@@ -173,15 +183,20 @@ const DraftTally = (props) => {
         alignSelf: 'flex-start',
         paddingBottom: 18,
         fontSize: 18,
+        color: 'black'
+      }}>
+        What personal contact information will you disclose to your partner for this tally?
+      </Text>
+
+      <Text style={{
+        alignSelf: 'flex-start',
+        paddingBottom: 18,
+        fontSize: 18,
         fontWeight: 'bold',
         color: 'black'
       }}>
-        Customize your cetificate to establish connection
+        Use certificate from below tallies.
       </Text>
-      <Button
-        title="Customize"
-        onPress={onShowUpdateCert}
-      />
     </View>
   }
 
@@ -194,6 +209,17 @@ const DraftTally = (props) => {
         keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         renderItem={renderItem}
+      />
+    </View>
+    <View style={{ backgroundColor: 'white', padding: 24 }}>
+      <Button
+        title="Send my full certificate"
+        onPress={sendMyFullCertificate}
+      />
+      <View style={{ height: 12 }} />
+      <Button
+        title="Customize New Certificate"
+        onPress={onShowUpdateCert}
       />
     </View>
     <CenteredModal

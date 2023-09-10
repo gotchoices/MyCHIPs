@@ -15,6 +15,8 @@ import BottomSheetModal from '../../components/BottomSheetModal';
 import CommentContent from './CommentContent';
 import LimitContent from './LimitContent';
 import SuccessContent from './SuccessContent';
+import useMessageText from '../../hooks/useMessageText';
+import { useHoldTermsText, useTallyText } from '../../hooks/useLanguage';
 
 const Header_Height = 160;
 
@@ -55,6 +57,10 @@ const TallyInvite = (props) => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [tallyItem, setTallyItem] = useState({});
+
+  useHoldTermsText(wm);
+  const { messageText } = useMessageText();
+  const draftLang = messageText?.terms_lang?.request?.values?.find(item => item.value === 'draft');
 
   useEffect(() => {
     if (ws) {
@@ -156,6 +162,7 @@ const TallyInvite = (props) => {
             tally_ent: item.tally_ent,
           });
         }}
+        draftLang={draftLang?.title ?? "Draft"}
       />
     )
   }

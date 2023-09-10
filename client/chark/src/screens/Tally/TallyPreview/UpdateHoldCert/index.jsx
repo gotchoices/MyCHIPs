@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
 import { colors } from "../../../../config/constants";
 import Button from "../../../../components/Button";
@@ -52,7 +52,10 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
   }
 
   const onRestoreCert = () => {
-    const cert = personal?.cert;
+    // const cert = personal?.cert;
+    setTallyCert({ ...userCert });
+
+    return;
     setTallyCert(recentCert => {
       return {
         ...tallyCurrentHoldCert,
@@ -178,7 +181,7 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
         />
         <Button
           style={styles.update}
-          title="Update"
+          title="Proceed"
           onPress={onUpdate}
         />
       </View>
