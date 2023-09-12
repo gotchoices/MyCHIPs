@@ -141,10 +141,8 @@ function {mychips.contract_formal(tcont jsonb, mat boolean = false)} {mychips.co
 raise notice 'tc2: % %', tcont, mat;
       if jsonb_typeof(tcont) = 'string' then
         source = trim(both '"' from tcont::text);
-      elsif tcont ? 'source' then
-        source = tcont->>'source';
       else
-        return null;
+        source = coalesce(tcont->>'source',tcont->>'rid');
       end if;
       if tcont ? 'host' then
         chost = tcont->>'host';
