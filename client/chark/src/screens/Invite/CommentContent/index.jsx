@@ -37,6 +37,7 @@ const CommentContent = (props) => {
       onChangeText={setComment}
       placeholder='Comments'
       style={styles.textInput}
+      returnKeyType="done"
     />
 
     <View style={styles.selectorParent}>

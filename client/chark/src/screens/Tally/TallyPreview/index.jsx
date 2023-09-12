@@ -347,6 +347,9 @@ const TallyPreview = (props) => {
             onUpdateContract={() => {
               onDisplayCertUpdate();
             }}
+            onViewCertificate={(data) => {
+              props.navigation.navigate("TallyCertificate", { data: { ...data } });
+            }}
           />
         </ScrollView>
 

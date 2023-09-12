@@ -57,7 +57,7 @@ const TemplateItem = (props) => {
                 : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}
             </Text>
             <TallyTrainingIcon status={item?.status} type={item?.tally_type} />
-          </View> : <Text style={styles.name}>Beginning template</Text>
+          </View> : <Text style={styles.name}>{props.draftLang}</Text>
         }
         <Text style={[styles.comment]} numberOfLines={1} ellipsizeMode='tail'>{item.comment}</Text>
       </View>

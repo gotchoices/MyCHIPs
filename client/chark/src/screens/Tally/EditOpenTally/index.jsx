@@ -42,6 +42,8 @@ const EditOpenTally = (props) => {
   const { messageText } = useMessageText();
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
+  const hasPartCert = !!tally?.part_cert;
+  const hasHoldCert = !!tally?.hold_cert;
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
@@ -66,6 +68,7 @@ const EditOpenTally = (props) => {
         "comment",
         "contract",
         "net",
+        'hold_cert',
       ],
       where: {
         tally_ent,
@@ -120,7 +123,7 @@ const EditOpenTally = (props) => {
   const setContractDetails = (data) => {
     try {
       const name = JSON.parse(data);
-      
+
       setContractName(name);
     } catch (e) {
       setContractName(data?.[0]?.name);
@@ -150,9 +153,8 @@ const EditOpenTally = (props) => {
       tally_seq: tally?.tally_seq,
       tally_ent,
       tally_uuid: tally?.tally_uuid,
-      part_name: `${partCert?.name?.first}${
-        partCert?.name?.middle ? " " + partCert?.name?.middle + " " : ""
-      } ${partCert?.name?.surname}`,
+      part_name: `${partCert?.name?.first}${partCert?.name?.middle ? " " + partCert?.name?.middle + " " : ""
+        } ${partCert?.name?.surname}`,
       digest: partCert?.file?.[0]?.digest,
       date: tally?.tally_date,
       net: tally?.net,
@@ -184,7 +186,11 @@ const EditOpenTally = (props) => {
         tally_seq,
       },
     });
-  };
+  }
+
+  const onViewCertificate = (data) => {
+    props.navigation.navigate("TallyCertificate", { data: { ...data } });
+  }
 
   return (
     <ScrollView
@@ -219,78 +225,96 @@ const EditOpenTally = (props) => {
           <Button
             title="Show PDF"
             textColor={colors.blue}
-            style={{ marginTop: 12, backgroundColor: colors.white }}
+            style={styles.showPDF}
             onPress={showPDF}
           />
-        </View>
 
-        <View style={styles.container}>
-          <View style={styles.detailControl}>
-            <HelpText
-              label={tallyText?.hold_terms?.title ?? ""}
-              helpText={tallyText?.hold_terms?.help}
-              style={styles.label}
-            />
-            {holdTermsText?.map((holdTerm, index) => {
-              return (
-                <View
-                  key={`${holdTerm?.value}${index}`}
-                  style={{ marginVertical: 10 }}
-                >
-                  <HelpText
-                    label={holdTerm?.title ?? ""}
-                    helpText={holdTerm?.help}
-                    style={styles.h5}
-                  />
+          {
+            hasPartCert ? <Button
+              title="View Partner Certificate"
+              onPress={() => onViewCertificate({ title: "Partner Certificate", data: tally?.part_cert })}
+              textColor={colors.blue}
+              style={styles.showPDF}
+            /> : <></>
+          }
 
-                  <Text style={styles.textInputStyle}>
-                    {tally.hold_terms?.[holdTerm?.value] ?? 0}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.container}>
-          <View style={styles.detailControl}>
-            <HelpText
-              label={tallyText?.part_terms?.title ?? ""}
-              helpText={tallyText?.part_terms?.help}
-              style={styles.headerText}
-            />
-            {partTermsText?.map((partTerm, index) => {
-              return (
-                <View
-                  key={`${partTerm?.value}${index}`}
-                  style={{ marginVertical: 10 }}
-                >
-                  <HelpText
-                    label={partTerm?.title ?? ""}
-                    helpText={partTerm?.help}
-                    style={styles.h5}
-                  />
-
-                  <Text style={styles.textInputStyle}>
-                    {tally.part_terms?.[partTerm?.value] ?? 0}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.container}>
-          <HelpText label={"Trading Variables"} style={styles.headerText} />
-
-          <Button
-            title="Show Trade"
-            style={{ borderRadius: 12, width: 120, marginTop: 12 }}
-            onPress={showTradingVariables}
-          />
+          {
+            hasHoldCert ? <Button
+              title="View Holder Certificate"
+              onPress={() => onViewCertificate({ title: "Holder Certificate", data: tally?.hold_cert })}
+              textColor={colors.blue}
+              style={styles.showPDF}
+            /> : <></>
+          }
         </View>
       </View>
-    </ScrollView>
+
+      <View style={styles.container}>
+        <View style={styles.detailControl}>
+          <HelpText
+            label={tallyText?.hold_terms?.title ?? ""}
+            helpText={tallyText?.hold_terms?.help}
+            style={styles.label}
+          />
+          {holdTermsText?.map((holdTerm, index) => {
+            return (
+              <View
+                key={`${holdTerm?.value}${index}`}
+                style={{ marginVertical: 10 }}
+              >
+                <HelpText
+                  label={holdTerm?.title ?? ""}
+                  helpText={holdTerm?.help}
+                  style={styles.h5}
+                />
+
+                <Text style={styles.textInputStyle}>
+                  {tally.hold_terms?.[holdTerm?.value] ?? 0}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.container}>
+        <View style={styles.detailControl}>
+          <HelpText
+            label={tallyText?.part_terms?.title ?? ""}
+            helpText={tallyText?.part_terms?.help}
+            style={styles.headerText}
+          />
+          {partTermsText?.map((partTerm, index) => {
+            return (
+              <View
+                key={`${partTerm?.value}${index}`}
+                style={{ marginVertical: 10 }}
+              >
+                <HelpText
+                  label={partTerm?.title ?? ""}
+                  helpText={partTerm?.help}
+                  style={styles.h5}
+                />
+
+                <Text style={styles.textInputStyle}>
+                  {tally.part_terms?.[partTerm?.value] ?? 0}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.container}>
+        <HelpText label={"Trading Variables"} style={styles.headerText} />
+
+        <Button
+          title="Show Trade"
+          style={{ borderRadius: 12, width: 120, marginTop: 12 }}
+          onPress={showTradingVariables}
+        />
+      </View>
+    </ScrollView >
   );
 };
 
@@ -324,8 +348,12 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 14,
-    color: "black",
+    color: 'black',
   },
-});
+  showPDF: {
+    marginTop: 12,
+    backgroundColor: colors.white
+  }
+})
 
 export default EditOpenTally;

@@ -56,7 +56,7 @@ const PaymentDetail = (props) => {
   }, [chit, conversionRate])
 
   const onMakePayment = () => {
-    const net = round((chit ?? 0) * 1000, 3)
+    const net = round((chit ?? 0) * 1000, 0);
 
     if (net < 0) {
       Alert.alert("Alert", "Can't input negative chit.");

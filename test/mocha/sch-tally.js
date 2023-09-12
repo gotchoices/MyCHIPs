@@ -116,7 +116,7 @@ log.debug("Sql:", sql)
   it("Agent receives alternative draft (H.offer -> P.offer)", function(done) {
     peerProfferGo(done)
   })
-/*  
+
   it("User request to promote tally to offer (P.offer -> P.offer.void)", function(done) {
     let sql = uSql(`request = 'void', hold_sig = null`, user0, 1)
       , dc = 2, _done = () => {if (!--dc) done()}

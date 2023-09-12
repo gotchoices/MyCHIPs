@@ -43,7 +43,7 @@ const ChistHistoryHeader = (props) => {
           <Text style={[styles.label, { fontWeight: 'bold' }]}>Balance</Text>
           <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 8 }]}>
             <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
-            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net ?? 0) / 1000, 3)}</Text>
+            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net  ?? 0) / 1000, 3)}</Text>
           </View>
           {conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
         </View>
