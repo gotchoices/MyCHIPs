@@ -35,6 +35,8 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  ,('routes', 'maxstep', 'int', 10, null, null, 'Do not propagate route queries that have already hopped this many nodes to get to us')
  ,('routes', 'maxquery', 'int', 10, null, null, 'The greatest number of new upstream routes to generate/maintain for each received query')
  ,('routes', 'autoquery', 'boolean', null, null, true, 'The number of times to retry discovering a pathway before giving up')
+
+ ,('paths', 'maxlen', 'int', 10, null, null, 'Only search for local pathways that are this long or shorter')
  
  ,('lifts', 'order', 'text', null, 'bang desc', null, 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
  ,('lifts', 'interval', 'int', 60, null,null, 'The number of seconds between sending requests to the database to process lifts')

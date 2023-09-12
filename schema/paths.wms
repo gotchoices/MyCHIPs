@@ -63,6 +63,16 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
 --  , -t.net_pc < 0			as canlift	-- Limit lifts to what we know (zero)
     from	t_for as t
 }
+#index {mychips_tallies_x_vnet_inside} mychips.tallies {
+#  create index mychips_tallies_x_vnet_inside on mychips.tallies (part_ent, status, net_pc)
+#    where -- part_ent notnull and
+#      (status = 'open' or (status = 'close' and net_pc != 0))	-- Match tallies_v.liftable
+#} {drop index if exists mychips.mychips_tallies_x_vnet_inside}
+#index {mychips_tallies_x_vnet_outside} mychips.tallies {
+#  create index mychips_tallies_x_vnet_outside on mychips.tallies(part_ent, status, net_pc)
+#    where part_ent isnull
+#      and (status = 'open' or (status = 'close' and net_pc != 0))	-- Match tallies_v.liftable
+#} {drop index if exists mychips.mychips_tallies_x_vnet_outside}
 
 # Recursive view of tallies to show pathways local to our system
 #----------------------------------------------------------------
@@ -106,7 +116,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
-    where	t.canlift
+    where	t.canlift and tp.edges <= base.parm('paths', 'maxlen', 10)
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
     , tpr.top, tpr.bot, tpr.circuit
