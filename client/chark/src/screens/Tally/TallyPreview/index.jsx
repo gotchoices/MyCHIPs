@@ -152,7 +152,7 @@ const TallyPreview = (props) => {
       const found = tallyContracts?.find((item) => item.rid === contract)
       if (found) {
         payload.contract = {
-          rid: found.rid,
+          source: found.rid,
         };
       }
     }

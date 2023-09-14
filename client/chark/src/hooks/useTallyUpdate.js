@@ -44,7 +44,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
         console.log("TALLY ==> ", JSON.stringify(_tally));
 
         setTallyType(_tally.tally_type);
-        setContract(_tally.contract?.rid ?? '');
+        setContract(_tally.contract?.source ?? '');
         setComment(_tally.comment ?? '');
         setHoldTerms({
           limit: _tally.hold_terms?.limit?.toString(),
