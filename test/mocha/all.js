@@ -35,6 +35,7 @@ require('./sch-tally.js')
 require('./sch-chit.js')
 
 require('./user2.js')		//Needed for testing on two DB's
+require('./sign-check.js')
 require('./tally.js')
 require('./chit.js')
 
