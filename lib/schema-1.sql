@@ -2729,10 +2729,8 @@ create function mychips.contract_formal(tcont jsonb, mat boolean = false) return
 raise notice 'tc2: % %', tcont, mat;
       if jsonb_typeof(tcont) = 'string' then
         source = trim(both '"' from tcont::text);
-      elsif tcont ? 'source' then
-        source = tcont->>'source';
       else
-        return null;
+        source = coalesce(tcont->>'source',tcont->>'rid');
       end if;
       if tcont ? 'host' then
         chost = tcont->>'host';
@@ -4974,6 +4972,89 @@ create function mychips.routes_v_updfunc() returns trigger language plpgsql secu
     return new;
   end;
 $$;
+create function mychips.tallies_node_path(tally uuid) returns table (
+   inp text, "out" text
+ , edges int, ath text[], uuids uuid[], ents text[], seqs int[], signs text[], min int, max int
+ , top text, bot text, circuit boolean
+ , margin numeric, reward numeric
+ , nodes int, bang int
+ , fori boolean, foro boolean, segment boolean
+ , path text[], at text[], pat text[]
+ , top_seq int, top_uuid uuid
+ , bot_seq int, bot_uuid uuid
+ , top_cid text, top_agent text, top_chad jsonb
+ , bot_cid text, bot_agent text, bot_chad jsonb
+ , out_cid text, out_agent text, out_chad jsonb
+ , inp_cid text, inp_agent text, inp_chad jsonb
+   
+ ) language sql as $$
+  with recursive tally_path (
+      inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
+      top, top_tseq, bot, bot_tseq, circuit
+    ) as (
+      select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], 
+             array[ti.tally_ent], array[ti.tally_seq], array[ti.sign],
+             ti.min, ti.margin, ti.max, ti.reward, 
+             ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
+    from	mychips.tallies_v_net ti
+    where	ti.uuid = tally	-- ti.canlift
+  union all
+    select tp.inp					as inp
+      , t.out						as out
+      , tp.edges + 1					as edges
+      , tp.ath || t.out					as ath
+      , tp.uuids || t.uuid				as uuids
+      , tp.ents || t.tally_ent				as ents
+      , tp.seqs || t.tally_seq				as seqs
+      , tp.signs || t.sign				as signs
+      , least(t.min, tp.min)				as min
+      , tp.margin + t.margin * (1 - tp.margin)		as margin	-- Aggregated margin
+
+      , case when t.min < tp.min then				-- Will charge only one reward in segment
+          least(t.max, tp.min)
+        else
+          least(t.min, tp.max) end			as max
+      , case when t.min < tp.min then t.reward
+        else tp.reward end				as reward	-- Only one reward
+      , t.tally_ent					as top
+      , t.tally_seq					as top_tseq
+      , tp.bot						as bot
+      , tp.bot_tseq					as bot_tseq
+      , coalesce(tp.inp = t.out, false)			as circuit
+
+    from	mychips.tallies_v_net t
+    join	tally_path	tp on tp.out = t.inp
+    		and not t.uuid = any(tp.uuids)
+    		and (t.out isnull or not t.out = any(tp.ath))
+    where	-- t.canlift and
+    		tp.edges <= base.parm('paths', 'maxlen', 10)
+  ) select tpr.inp, tpr.out
+    , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
+    , tpr.top, tpr.bot, tpr.circuit
+    , tpr.margin::numeric(8,6)
+    , tpr.reward::numeric(8,6)
+    , tpr.edges + 1			as nodes
+    , tpr.edges * tpr.min		as bang
+    , tpr.inp isnull			as fori
+    , tpr.out isnull			as foro
+    , tpr.inp isnull and tpr.out isnull	as segment
+    , tpr.inp || tpr.ath		as path
+    , tpr.ath[1:edges-1]		as at
+    , tpr.inp || tpr.ath[1:edges-1]	as pat
+
+    , tt.tally_seq as top_tseq, tt.tally_uuid as top_uuid
+    , bt.tally_seq as bot_tseq, bt.tally_uuid as bot_uuid
+
+    , tt.hold_cid as top_cid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
+    , bt.hold_cid as bot_cid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
+
+    , case when out isnull then tt.part_cid else tt.hold_cid end as out_cid, case when out isnull then tt.part_agent else tt.hold_agent end as out_agent, case when out isnull then tt.part_chad else tt.hold_chad end as out_chad
+    , case when inp isnull then bt.part_cid else bt.hold_cid end as inp_cid, case when inp isnull then bt.part_agent else bt.hold_agent end as inp_agent, case when inp isnull then bt.part_chad else bt.hold_chad end as inp_chad
+
+  from	tally_path tpr
+  join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
+  join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq
+$$;
 create trigger mychips_tallies_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 create view mychips.tallies_v_paths as with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
@@ -5013,7 +5094,7 @@ create view mychips.tallies_v_paths as with recursive tally_path (
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
-    where	t.canlift
+    where	t.canlift and tp.edges <= base.parm('paths', 'maxlen', 10)
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
     , tpr.top, tpr.bot, tpr.circuit
@@ -10122,6 +10203,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
   ('public','test','a','public','test','a','f','f'),
   ('public','test1','b','public','test1','b','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -10272,6 +10359,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
+  ('wm','language','col','wm','language','col','f','t'),
+  ('wm','language','fr_help','wm','language','fr_help','f','f'),
+  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
+  ('wm','language','fr_title','wm','language','fr_title','f','f'),
+  ('wm','language','help','wm','table_text','help','t','f'),
+  ('wm','language','language','wm','table_text','language','t','f'),
+  ('wm','language','obj','wm','language','obj','f','f'),
+  ('wm','language','sch','wm','language','sch','f','t'),
+  ('wm','language','sorter','wm','language','sorter','f','f'),
+  ('wm','language','tab','wm','language','tab','f','t'),
+  ('wm','language','tag','wm','language','tag','f','t'),
+  ('wm','language','title','wm','table_text','title','t','f'),
+  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
@@ -11592,6 +11692,8 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  ,('routes', 'maxstep', 'int', 10, null, null, 'Do not propagate route queries that have already hopped this many nodes to get to us')
  ,('routes', 'maxquery', 'int', 10, null, null, 'The greatest number of new upstream routes to generate/maintain for each received query')
  ,('routes', 'autoquery', 'boolean', null, null, true, 'The number of times to retry discovering a pathway before giving up')
+
+ ,('paths', 'maxlen', 'int', 10, null, null, 'Only search for local pathways that are this long or shorter')
  
  ,('lifts', 'order', 'text', null, 'bang desc', null, 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
  ,('lifts', 'interval', 'int', 60, null,null, 'The number of seconds between sending requests to the database to process lifts')
