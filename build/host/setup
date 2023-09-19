@@ -6,7 +6,7 @@
 # Prior to use, build a cloud server and get the hostname and IP number
 # Establish an ssh key for root on the server: ssh-copy-id root@Host_Name
 # Then run this script, which will connect and configure the machine
-# Usage: ./setup -i IP_Number Host_Name		#IP optional
+# Usage: ./setup -d -i IP_Number -h Host_Name	#IP optional
 csp_host=
 csp_ip=
 mychips_admin=admin
@@ -47,7 +47,8 @@ if [ -z "$csp_host" ]; then		#Hostname is first parameter
 fi
 
 if [ -z "$csp_ip" ]; then		#Need to fetch the IP number?
-  csp_ip="$(dig +short $csp_host)"
+#  csp_ip="$(dig +short $csp_host)"
+  csp_ip=$(ping -c 1 "$csp_host" | awk -F'[()]' '/PING/{print $2}')
 fi					#;echo "host:$csp_host ip:$csp_ip args:$*"; exit
 
 runit() {				echo "Running module: $1"
