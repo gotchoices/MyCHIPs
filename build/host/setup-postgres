@@ -1,16 +1,31 @@
 # Install PostgreSQL for MyCHIPs use
 # -------------------------------
+PG_VER="-13"
+KEY_URL="https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+REPO_URL="deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main"
+REPO_FILE="/etc/apt/sources.list.d/pgdg.list"
+GPG_FILE="/etc/apt/trusted.gpg.d/apt.postgresql.org.gpg"
 pg_conf=/etc/postgresql/
+
+if [ ! -f "$GPG_FILE" ]; then		#Does repo key exist
+  curl -s "$KEY_URL" | gpg --dearmor | tee "$GPG_FILE" >/dev/null
+fi
+
+if ! grep -q "$REPO_URL" "$REPO_FILE" 2>/dev/null; then		#Have repo aleady?
+  echo "$REPO_URL" | tee -a "$REPO_FILE"
+  apt-get update			#Update package database
+fi
 
 if [ ! -z $(which psql) ]; then
   pg_version=$(psql --version)
   echo "  Found installed postgres: $pg_version"
 else
+  DEBIAN_FRONTEND=noninteractive \
   apt-get -q install -y \
-    postgresql postgresql-contrib postgresql-pltcl postgresql-plpython3 \
-    libpq-dev tcl-dev tcllib
+    postgresql${PG_VER} postgresql-contrib${PG_VER} postgresql-pltcl${PG_VER} \
+    postgresql-plpython3${PG_VER} libpq-dev tcl-dev tcllib
   su -l postgres -c "psql postgres postgres -c 'create extension pltcl'"
-  su -l postgres -c "psql postgres postgres -c 'create extension plpython3'"
+  su -l postgres -c "psql postgres postgres -c 'create extension plpython3u'"
 #  systemctl enable postgresql
 #  systemctl start postgresql
 fi
