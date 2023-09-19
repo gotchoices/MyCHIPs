@@ -53,10 +53,10 @@ fi
 
 #Will mount development dirs or not?
 #-------------------------------------------------------------------------------
-if $develop; then			echo "Development mode"
+if $develop; then			#echo "Development mode"
   devmount=(-v "$mychips/..:/usr/local/devel" -w "/usr/local/devel/mychips")
   devmount+=(-v "$locdir/pki:/usr/local/devel/mychips/pki/local")
-else					echo "Production mode"
+else					#echo "Production mode"
   devmount=(-v "$mypath:/app/test/sim" -w "/app")
   devmount+=(-v "$locdir/pki:/app/pki/local")
 fi
