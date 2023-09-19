@@ -16,7 +16,7 @@ var opts = require('yargs')
   .alias('p','ddPort')     .default('ddPort',     process.env.MYCHIPS_DDPORT || '27017')
   .alias('a','agent')      .default('agent',      process.env.MYCHIPS_AGENT)
   .alias('m','model')      .default('model',    1)
-  .alias('i','interval')   .default('interval', 3000)
+  .alias('i','interval')   .default('interval', 2000)
   .argv
 
 const moduleFile = '../../lib/model' + opts.model + '.js'
