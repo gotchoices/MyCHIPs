@@ -5,7 +5,7 @@ import { colors } from '../../config/constants';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useInvite from '../../hooks/useInvite';
-import { createTemplate } from '../../services/tally';
+import { createTemplate, fetchContracts } from '../../services/tally';
 import TemplateItem from './TemplateItem';
 import CustomTextInput from '../../components/CustomTextInput';
 import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAssets';
@@ -57,6 +57,7 @@ const TallyInvite = (props) => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [tallyItem, setTallyItem] = useState({});
+  const [contract, setContract] = useState();
 
   useHoldTermsText(wm);
   const { messageText } = useMessageText();
@@ -67,6 +68,22 @@ const TallyInvite = (props) => {
       fetchTemplates();
     }
   }, [ws, triggerInviteFetch, filter, tallyNegotiation]);
+
+  useEffect(() => {
+    fetchContracts(wm, {
+      fields: ['name', 'language', 'host', 'rid'],
+      where: {
+        top: true,
+        name: 'Tally_Contract',
+      },
+    }).then((data) => {
+      if(data?.[0]) {
+        setContract(data[0])
+      }
+    }).catch(err => {
+      console.log('Error fetching contract', err.message)
+    })
+  }, [wm])
 
   const getFilterResult = (filterBy, separatedBy) => {
     const values = Object.values(filter);
@@ -79,8 +96,10 @@ const TallyInvite = (props) => {
 
   //Create a new template
   const newTemplate = (item) => {
+    const rid = contract?.rid ?? '';
+
     const payload = {
-      contract: { terms: 'Some Terms' },
+      contract: { source: rid },
       comment: item.comment ?? 'Test: ' + new Date(),
       tally_type: item.tally_type,
       hold_terms: {

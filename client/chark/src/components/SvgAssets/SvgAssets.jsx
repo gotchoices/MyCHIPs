@@ -1,26 +1,29 @@
 import React from 'react';
-import ICScannner from '../../../assets/svg/ic_scanner.svg';
+
+import ICAdd from '../../../assets/svg/ic_add.svg';
 import ICHome from '../../../assets/svg/ic_home.svg';
-import ICChitReceive from '../../../assets/svg/ic_chit_receive.svg';
-import ICInvite from '../../../assets/svg/ic_invite.svg';
-import ICSetting from '../../../assets/svg/ic_setting.svg';
 import ICChit from '../../../assets/svg/ic_chit.svg';
+import ICShare from '../../../assets/svg/ic_share.svg'
+import ICTimer from '../../../assets/svg/ic_timer.svg';
+import ICInvite from '../../../assets/svg/ic_invite.svg';
 import ICVisual from '../../../assets/svg/ic_visual.svg';
-import ICTabular from '../../../assets/svg/ic_tabular.svg';
 import ICFilter from '../../../assets/svg/ic_filter.svg';
 import ICSearch from '../../../assets/svg/ic_search.svg';
-import IMGProfile from '../../../assets/svg/img_profile.svg';
-import ICFilterSecond from '../../../assets/svg/ic_filter_second.svg';
-import ICArrowBackward from '../../../assets/svg/ic_arrow_backward.svg';
-import ICArrowForward from '../../../assets/svg/ic_arrow_forward.svg';
-import ICAdd from '../../../assets/svg/ic_add.svg';
+import ICSetting from '../../../assets/svg/ic_setting.svg';
+import ICTabular from '../../../assets/svg/ic_tabular.svg';
 import ICWarning from '../../../assets/svg/ic_warning.svg';
-import ICTimer from '../../../assets/svg/ic_timer.svg';
+import ICScannner from '../../../assets/svg/ic_scanner.svg';
+import IMGProfile from '../../../assets/svg/img_profile.svg';
+import ICSelected from '../../../assets/svg/ic_selected.svg';
 import ICSwitchKey from '../../../assets/svg/ic_switch_key.svg';
+import ICUnselected from '../../../assets/svg/ic_unselected.svg';
+import ICChitReceive from '../../../assets/svg/ic_chit_receive.svg';
+import ICFilterSecond from '../../../assets/svg/ic_filter_second.svg';
+import ICArrowForward from '../../../assets/svg/ic_arrow_forward.svg';
+import ICArrowBackward from '../../../assets/svg/ic_arrow_backward.svg';
 import ICSwitchSelected from '../../../assets/svg/ic_switch_selected.svg';
 import ICSwithUnselected from '../../../assets/svg/ic_switch_unselected.svg';
-import ICSelected from '../../../assets/svg/ic_selected.svg';
-import ICUnselected from '../../../assets/svg/ic_unselected.svg';
+
 import { colors } from '../../config/constants';
 
 
@@ -78,6 +81,13 @@ export const ChitIcon = (props) => {
 export const SettingIcon = (props) => {
   return <ICSetting
     color={props.color ?? colors.black100}
+  />
+}
+
+export const ShareIcon = (props) => {
+  return <ICShare
+    height={props.size ?? 24} width={props.size ?? 24}
+    color={props.color ?? colors.white}
   />
 }
 
