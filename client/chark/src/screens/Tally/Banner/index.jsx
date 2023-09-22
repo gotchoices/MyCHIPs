@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, Image } from 'react-native';
+import { View, StyleSheet, Text, Image, Dimensions } from 'react-native';
 
 import { colors } from '../../../config/constants';
 import useProfile from '../../../hooks/useProfile';
@@ -7,7 +7,7 @@ import useMessageText from '../../../hooks/useMessageText';
 
 import Header from '../Header';
 import Avatar from '../../../components/Avatar';
-import { AddIcon, ChitIcon, ProfileImage, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
+import { ChitIcon, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const Banner = (props) => {
   const { avatar, personal } = useProfile();
@@ -31,9 +31,12 @@ const Banner = (props) => {
       <View style={{ alignItems: 'center' }}>
         <View style={styles.balanceContainer}>
           <View style={styles.balance}>
+            <View style={styles.avatarWrapper}>
             <Avatar avatar={avatar} />
+            <Text style={styles.name}>{personal?.cas_name ?? ''}</Text>
+            </View>
 
-            <View style={{ alignItems: 'center', marginLeft: 5 }}>
+            <View style={styles.textWrapper}>
               <Text>Net CHIP balance</Text>
 
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -49,8 +52,6 @@ const Banner = (props) => {
               }
             </View>
           </View>
-
-          <Text>{personal?.cas_name ?? ''}</Text>
         </View>
       </View>
     </View>
@@ -62,6 +63,7 @@ const mychipsNet = {
   fontSize: 32,
   fontWeight: '500',
   color: colors.green,
+  maxWidth:Dimensions.get("window").width*0.5,
 }
 
 const styles = StyleSheet.create({
@@ -70,22 +72,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray700,
   },
   balanceContainer: {
-    borderRadius: 25,
-    maxWidth: '90%',
-    overflow: 'hidden',
     padding: 16,
+    maxHeight:200,
+    maxWidth: '90%',
+    borderRadius: 25,
+    overflow: 'hidden',
     backgroundColor: 'rgba(206, 204, 204, 0.75)',
   },
   balance: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent:'space-between'
   },
   mychipsNet,
   mychipsNetNeg: {
     ...mychipsNet,
     color: colors.red,
-  }
+  },
+  name:{paddingTop:10},
+  avatarWrapper:{paddingRight: 10},
+  textWrapper: { alignItems: 'center', marginLeft: 5}
 });
 
 
 export default Banner;
+
+

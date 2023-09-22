@@ -23,6 +23,7 @@ import PolyfillCrypto from 'react-native-webview-crypto'
 import Toast from 'react-native-toast-message';
 import notifee from '@notifee/react-native';
 import qs from 'query-string';
+import { Provider } from 'react-redux';
 
 import ServIcon from './src/servicon'
 import Invite from './src/screens/Invite'
@@ -54,6 +55,8 @@ import FilterScreen from './src/screens/Filter';
 import DraftTally from './src/screens/Tally/DraftTally';
 import RequestDetail from './src/screens/Tally/RequestDetail';
 import TallyCertificate from './src/screens/Tally/TallyCertificate';
+
+import store from './src/redux/store';
 
 const HomeStack = createNativeStackNavigator();
 
@@ -155,77 +158,79 @@ function App() {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <NavigationContainer linking={linking} ref={navigationRef}>
-        <UserProvider>
-          <SocketProvider>
-            <MessageTextProvider>
-              <ServIcon />
+    <Provider store={store}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <NavigationContainer linking={linking} ref={navigationRef}>
+          <UserProvider>
+            <SocketProvider>
+              <MessageTextProvider>
+                <ServIcon />
 
-              <PolyfillCrypto />
+                <PolyfillCrypto />
 
-              <ProfileProvider>
-                <Tab.Navigator screenOptions={{ headerShown: false, tabBarShowLabel: false }}>
-                  <Tab.Screen
-                    name="Tally"
-                    component={HomeStackScreen}
-                    options={{
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="home" {...{ ...props, size: 24 }} />
-                      )
-                    }}
-                  />
+                <ProfileProvider>
+                  <Tab.Navigator screenOptions={{ headerShown: false, tabBarShowLabel: false }}>
+                    <Tab.Screen
+                      name="Tally"
+                      component={HomeStackScreen}
+                      options={{
+                        tabBarIcon: (props) => (
+                          <CustomIcon name="home" {...{ ...props, size: 24 }} />
+                        )
+                      }}
+                    />
 
-                  <Tab.Screen
-                    name="Receive"
-                    component={ReceiveScreen}
-                    options={{
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="receive" {...{ ...props, size: 26 }} />
-                      )
-                    }}
-                  />
+                    <Tab.Screen
+                      name="Receive"
+                      component={ReceiveScreen}
+                      options={{
+                        tabBarIcon: (props) => (
+                          <CustomIcon name="receive" {...{ ...props, size: 26 }} />
+                        )
+                      }}
+                    />
 
-                  <Tab.Screen
-                    name="Scan"
-                    component={Scanner}
-                    options={{
-                      unmountOnBlur: true,
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="scan" {...{ ...props, size: 23 }} />
-                      )
-                    }}
-                  />
+                    <Tab.Screen
+                      name="Scan"
+                      component={Scanner}
+                      options={{
+                        unmountOnBlur: true,
+                        tabBarIcon: (props) => (
+                          <CustomIcon name="scan" {...{ ...props, size: 23 }} />
+                        )
+                      }}
+                    />
 
-                  <Tab.Screen
-                    name="InviteScreen"
-                    component={InviteStackScreen}
-                    options={{
-                      tabBarTestID: "inviteBtn",
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="invite" {...{ ...props, size: 26 }} />
-                      )
-                    }}
-                  />
+                    <Tab.Screen
+                      name="InviteScreen"
+                      component={InviteStackScreen}
+                      options={{
+                        tabBarTestID: "inviteBtn",
+                        tabBarIcon: (props) => (
+                          <CustomIcon name="invite" {...{ ...props, size: 26 }} />
+                        )
+                      }}
+                    />
 
-                  <Tab.Screen
-                    name="Settings"
-                    component={SettingStackScreen}
-                    options={{
-                      tabBarIcon: (props) => (
-                        <CustomIcon name="settings" {...{ ...props, size: 25 }} />
-                      )
-                    }}
-                  />
-                </Tab.Navigator>
-              </ProfileProvider>
-            </MessageTextProvider>
+                    <Tab.Screen
+                      name="Settings"
+                      component={SettingStackScreen}
+                      options={{
+                        tabBarIcon: (props) => (
+                          <CustomIcon name="settings" {...{ ...props, size: 25 }} />
+                        )
+                      }}
+                    />
+                  </Tab.Navigator>
+                </ProfileProvider>
+              </MessageTextProvider>
 
-            <Toast />
-          </SocketProvider>
-        </UserProvider>
-      </NavigationContainer>
-    </SafeAreaView>
+              <Toast />
+            </SocketProvider>
+          </UserProvider>
+        </NavigationContainer>
+      </SafeAreaView>
+    </Provider>
   );
 }
 
