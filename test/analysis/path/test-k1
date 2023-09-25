@@ -11,8 +11,8 @@ function prompt() {
   read inp
 }
 
-psql $DB $DBUSER -f case-1.sql 
-#psql $DB $DBUSER -f cache-1.sql
+psql $DB $DBUSER -f case-k1.sql 
+#psql $DB $DBUSER -f cache-k1.sql
 psql $DB $DBUSER -c "select paths_missing()"
 
 while true; do

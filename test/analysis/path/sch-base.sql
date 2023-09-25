@@ -8,6 +8,7 @@ create table if not exists nodes (
 drop table if exists edges cascade;
 create table if not exists edges (
    eid		serial	primary key
+ , w		int
  , inp		text	not null references nodes on update cascade on delete cascade
  , out		text	not null references nodes on update cascade on delete cascade
 );

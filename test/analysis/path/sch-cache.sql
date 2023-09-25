@@ -128,7 +128,7 @@ create or replace function paths_search()
   begin
     with paths_old as (select * from paths)
   , edges_both as (
-      select * from edges union all
+      select eid, inp, out from edges union all
       select eid, out as inp, inp as out from edges
     )
   , paths_new as (
