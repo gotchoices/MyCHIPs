@@ -220,7 +220,7 @@ $$;
 
 -- Discover all pathways beginning from a specified node
 -- ----------------------------------------------------------------
-create or replace function path_find(start_node text, size int, max int = 10)
+create or replace function path_find(start_node text, end_node text, minw int, max int = 10)
 returns table (
   inp text, "out" text, ecnt int, ath text[], min int, circuit boolean, path text[]
 ) language sql as $$
@@ -230,11 +230,11 @@ returns table (
       select eid, out as inp, inp as out, -w as w from edges
   ),
   find_path (
-      inp, out, ecnt, ath, min, circuit
+      inp, out, ecnt, ath, min, circuit, found
     ) as (
-      select inp, out, 1, array[out], w, false
+      select inp, out, 1, array[out], w, false, false
     from	edges_both
-    where	w >= size
+    where	w >= minw
     and		inp = start_node
   union all
     select fp.inp				as inp
@@ -243,12 +243,14 @@ returns table (
       , fp.ath || e.out				as ath
       , least(fp.min, e.w)			as min
       , coalesce(fp.inp = e.out, false)		as circuit
+      , e.out = end_node			as found
 
     from	edges_both	e
     join	find_path	fp on fp.out = e.inp
     		and not e.out = any(fp.ath)
     where	fp.ecnt <= max
-    and		e.w >= size
+    and		e.w >= minw
+    and		not fp.found
   ) select p.inp, p.out, p.ecnt, p.ath, p.min, p.circuit
     , p.inp || p.ath		as path
 
