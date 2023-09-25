@@ -4,7 +4,7 @@
 : "${DBUSER:=admin}"
 
 ./dbcheck $DB
-cat sch-base.sql sch-cache.sql | psql $DB $USER
+cat sch-base.sql sch-cache.sql func-cache.sql | psql $DB $USER
 
 function prompt() {
   echo -n "${1} "
@@ -12,7 +12,7 @@ function prompt() {
 }
 
 psql $DB $DBUSER -f case-k1.sql 
-#psql $DB $DBUSER -f cache-k1.sql
+#psql $DB $DBUSER -f init-k1.sql
 psql $DB $DBUSER -c "select paths_missing()"
 
 while true; do
