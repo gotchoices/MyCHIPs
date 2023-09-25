@@ -1,0 +1,32 @@
+#/bin/bash
+#Make a large random data set
+: "${DB:=p2}"
+: "${DBUSER:=admin}"
+: "${nodes:=10}"
+: "${edges:=20}"
+
+./dbcheck $DB
+cat sch-base.sql sch-cache.sql | psql $DB $USER
+
+function prompt() {
+  echo -n "${1} "
+  read inp
+}
+
+psql $DB $DBUSER -c "select random_graph($nodes, $edges)"
+psql $DB $DBUSER -c "select paths_missing()"
+
+while true; do
+  prompt 'Next search:'
+  psql $DB $DBUSER -c "select paths_search()"
+
+  prompt 'Delete dups?'
+  if [ "$inp" != "n" ]; then
+    psql $DB $DBUSER -c "select delete_dups()"
+  fi
+
+  prompt 'Delete subs?'
+  if [ "$inp" != "n" ]; then
+    psql $DB $DBUSER -c "select delete_subs()"
+  fi
+done

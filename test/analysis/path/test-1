@@ -1,0 +1,26 @@
+#/bin/bash
+#Test with the first manually generated data set
+: "${DB:=p1}"
+: "${DBUSER:=admin}"
+
+./dbcheck $DB
+cat sch-base.sql sch-cache.sql | psql $DB $USER
+
+function prompt() {
+  echo -n "${1} "
+  read inp
+}
+
+psql $DB $DBUSER -f case-1.sql 
+#psql $DB $DBUSER -f cache-1.sql
+psql $DB $DBUSER -c "select paths_missing()"
+
+while true; do
+  prompt "Next search:"
+  psql $DB $DBUSER -c "select paths_search()"
+
+  prompt "Delete dups:"
+  psql $DB $DBUSER -c "select delete_dups()"
+  prompt "Delete subs:"
+  psql $DB $DBUSER -c "select delete_subs()"
+done

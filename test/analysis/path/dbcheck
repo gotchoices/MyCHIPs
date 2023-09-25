@@ -1,0 +1,12 @@
+#!/bin/bash
+#Make sure the named DB exists
+: "${DB:=postgres}"
+: "${DBUSER:=admin}"
+newdb="${1:-p}"
+
+gotit=$(psql $DB $DBUSER -A -t -c "select datname from pg_database where datname = '${newdb}';")
+#echo "gotit:$gotit"
+
+if [ -z "$gotit" ]; then
+  psql $DB $DBUSER -c "create database $newdb"
+fi
