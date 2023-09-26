@@ -1,17 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import talliesReducer from './tallySlice';
+import workingTalliesReducer from './workingTalliesSlice';
 import profileReducer from './profileSlice';
 import languageReducer from './languageSlice';
-import currencyReducer from './currencySlice';
 import currentUserReducer from './currentUserSlice';
 
 export default configureStore({
   reducer: {
     profile: profileReducer,
-    tallies: talliesReducer,
+    workingTallies: workingTalliesReducer,
     language: languageReducer,
-    currency: currencyReducer,
     currentUser: currentUserReducer,
   }
 })

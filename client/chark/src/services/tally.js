@@ -9,6 +9,7 @@ export const getTallyText = (wm) => {
  * @param {Object} args
  * @param {string[]} args.fields
  * @param {any} [args.where]
+ * @param {any} [args.order]
  */
 export const fetchTallies = (wm, args) => {
   const spec = {
@@ -18,6 +19,10 @@ export const fetchTallies = (wm, args) => {
 
   if (args.where) {
     spec.where = args.where;
+  }
+
+  if (args.order) {
+    spec.order= args.order;
   }
 
   return request(wm, 'tallies' + random(), 'select', spec);

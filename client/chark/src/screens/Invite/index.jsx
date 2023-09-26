@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from '../../config/constants';
-import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import useInvite from '../../hooks/useInvite';
 import { createTemplate, fetchContracts } from '../../services/tally';
@@ -17,7 +16,8 @@ import CommentContent from './CommentContent';
 import LimitContent from './LimitContent';
 import SuccessContent from './SuccessContent';
 import useMessageText from '../../hooks/useMessageText';
-import { useHoldTermsText, useTallyText } from '../../hooks/useLanguage';
+import { useHoldTermsText } from '../../hooks/useLanguage';
+import { fetchTemplates } from '../../redux/workingTalliesSlice';
 
 const Header_Height = 160;
 
@@ -48,9 +48,8 @@ const EmptyContent = () => {
 }
 
 const TallyInvite = (props) => {
-  const [data, setData] = useState([]);
+  const { fetching, tallies: data } = useSelector(state => state.workingTallies);
   const { searchValue, setSearchValue, filteredData } = useSearchData(data);
-  const [loading, setLoading] = useState(false);
   const { wm, ws, tallyNegotiation } = useSocket();
   const { triggerInviteFetch } = useInvite();
   const { filter } = useSelector(state => state.profile);
@@ -59,6 +58,7 @@ const TallyInvite = (props) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [tallyItem, setTallyItem] = useState({});
   const [contract, setContract] = useState();
+  const dispatch = useDispatch();
 
   useHoldTermsText(wm);
   const { messageText } = useMessageText();
@@ -66,7 +66,7 @@ const TallyInvite = (props) => {
 
   useEffect(() => {
     if (ws) {
-      fetchTemplates();
+      getTemplates();
     }
   }, [ws, triggerInviteFetch, filter, tallyNegotiation]);
 
@@ -114,7 +114,7 @@ const TallyInvite = (props) => {
     }
     createTemplate(wm, payload).then((data) => {
       setShowSuccess(true);
-      fetchTemplates()
+      getTemplates()
     }).catch(err => {
       Toast.show({
         type: 'error',
@@ -123,51 +123,9 @@ const TallyInvite = (props) => {
     })
   }
 
-  const fetchTemplates = () => {
+  const getTemplates = () => {
     const entry = getFilterResult('status', ' ');
-    setLoading(true);
-    const spec = {
-      fields: [
-        'tally_ent',
-        'tally_seq',
-        'contract',
-        'comment',
-        'tally_uuid',
-        'hold_terms',
-        'part_terms',
-        'tally_type',
-        'status',
-        'part_cid',
-        'part_cert',
-        'hold_cert',
-      ],
-      view: 'mychips.tallies_v_me',
-      where: { left: "status", oper: "in", entry: entry },
-      order: {
-        field: 'crt_date',
-        asc: false,
-      }
-    }
-
-    wm.request('_inv_ref' + random(), 'select', spec, (data, err) => {
-      const _data = data?.map(el => ({
-        tally_uuid: el.tally_uuid,
-        tally_ent: el.tally_ent,
-        id: el.tally_seq,
-        contract: el.contract,
-        comment: el.comment,
-        hold_terms: el.hold_terms,
-        part_terms: el.part_terms,
-        tally_type: el.tally_type,
-        status: el.status,
-        part_cid: el.part_cid,
-        part_cert: el.part_cert,
-        hold_cert: el.hold_cert,
-      }));
-
-      setData(_data);
-      setLoading(false);
-    });
+    dispatch(fetchTemplates({ wm, entry }))
   }
 
   const renderItem = ({ item, index }) => {
@@ -225,12 +183,12 @@ const TallyInvite = (props) => {
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: colors.white }}
           data={filteredData}
           renderItem={renderItem}
-          refreshing={loading}
-          onRefresh={() => fetchTemplates()}
+          refreshing={fetching}
+          onRefresh={() => getTemplates()}
           keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
           ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
           scrollEventThrottle={2}
-          ListEmptyComponent={loading ? <></> : <EmptyContent />}
+          ListEmptyComponent={fetching ? <></> : <EmptyContent />}
           onScroll={Animated.event(
             [{
               nativeEvent: { contentOffset: { y: scrollY } }
