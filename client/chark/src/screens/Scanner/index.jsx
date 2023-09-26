@@ -4,16 +4,12 @@ import { useCameraDevices, useFrameProcessor, Camera } from 'react-native-vision
 import { useScanBarcodes, BarcodeFormat, scanBarcodes } from 'vision-camera-code-scanner';
 import * as Keychain from 'react-native-keychain';
 
-import { parse } from '../../utils/query-string';
 import { colors, qrType } from '../../config/constants';
-import { query_user } from '../../utils/user';
 import useSocket from '../../hooks/useSocket';
-import useCurrentUser from '../../hooks/useCurrentUser';
 
 const Scanner = (props) => {
   const devices = useCameraDevices();
   const device = devices.back;
-  const { setUser } = useCurrentUser();
   const { connectSocket, disconnectSocket, wm, ws } = useSocket();
 
   const [hasPermission, setHasPermission] = useState(false);

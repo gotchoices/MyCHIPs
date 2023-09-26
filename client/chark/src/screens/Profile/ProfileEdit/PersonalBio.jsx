@@ -7,20 +7,21 @@ import {
   Keyboard,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from '../../../config/constants';
 import { request } from '../../../services/profile';
-import useCurrentUser from '../../../hooks/useCurrentUser';
-import useProfile from '../../../hooks/useProfile';
 import useSocket from '../../../hooks/useSocket';
 import useMessageText from '../../../hooks/useMessageText';
+import { setPersonal } from '../../../redux/profileSlice';
 
 import HelpTextInput from '../../../components/HelpTextInput';
 import Button from '../../../components/Button';
 
 const PersonalBio = (props) => {
-  const { user } = useCurrentUser();
-  const { personal, setPersonal } = useProfile();
+  const { user } = useSelector(state => state.currentUser);
+  const dispatch = useDispatch();
+  const { personal } = useSelector(state => state.profile);
   const { wm } = useSocket();
   const { messageText } = useMessageText();
   const user_ent = user?.curr_eid;
@@ -30,10 +31,10 @@ const PersonalBio = (props) => {
 
   const onChange = (field) => {
     return (value) => {
-      setPersonal({
+      dispatch(setPersonal({
         ...personal,
         [field]: value,
-      })
+      }));
     }
   }
 

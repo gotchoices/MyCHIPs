@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
+import { useSelector } from 'react-redux';
+
 import { colors } from "../../../../config/constants";
 import Button from "../../../../components/Button";
 import CheckBox from "@react-native-community/checkbox";
@@ -13,7 +15,7 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
   // tallyCurrentHoldCert is certificate that user has selected for tally
   // User currenct certificate
   const { wm } = useSocket();
-  const { personal } = useProfile();
+  const { personal } = useSelector(state => state.profile);
   const [tallyCert, setTallyCert] = useState({ ...tallyCurrentHoldCert ?? {} });
   const [userCert, setUserCert] = useState({});
 

@@ -2,22 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from '../../../../config/constants';
-import { request, getAddresses } from '../../../../services/profile';
+import { request } from '../../../../services/profile';
 import { random } from '../../../../utils/common';
-import useCurrentUser from '../../../../hooks/useCurrentUser';
-import useProfile from '../../../../hooks/useProfile';
 import useMessageText from '../../../../hooks/useMessageText';
 import useSocket from '../../../../hooks/useSocket';
+import { fetchAddresses } from '../../../../redux/profileSlice';
 
 import AddressInput from './AddressInput';
 import HelpText from '../../../../components/HelpText';
 import Button from '../../../../components/Button';
 
 const Address = (props) => {
-  const { addresses, setAddresses } = useProfile();
-  const { user } = useCurrentUser();
+  const dispatch = useDispatch();
+  const { addresses } = useSelector(state => state.profile);
+  const { user } = useSelector(state => state.currentUser);
   const { messageText } = useMessageText();
   const { wm } = useSocket();
   const addrFlatText = messageText?.addr_v_flat ?? {};
@@ -160,9 +161,7 @@ const Address = (props) => {
   }
 
   const updateAddressList = () => {
-    getAddresses(wm, user_ent).then((response) => {
-      setAddresses(response);
-    })
+    dispatch(fetchAddresses({ wm, user_ent }))
   }
 
   const getChangedInput = (address, field, value) => {

@@ -5,6 +5,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useSelector, useDispatch } from 'react-redux';
 
 import HelpText from '../../../components/HelpText';
 import Button from '../../../components/Button';
@@ -12,17 +13,14 @@ import Button from '../../../components/Button';
 import { colors } from '../../../config/constants';
 import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
-import useProfile from '../../../hooks/useProfile';
+import { setPreferredLanguage } from '../../../redux/profileSlice';
 
 const Language = (props) => {
   const [language, setLanguage] = useState('');
   const [languages, setLanguages] = useState([]);
   const { wm } = useSocket();
 
-  const {
-    preferredLanguage, 
-    setPreferredLanguage,
-  } = useProfile();
+  const { preferredLanguage } = useSelector(state => state.profile);
 
   useEffect(() => {
     wm.request(`language_ref_${random(1000)}`, 'select', {
@@ -44,10 +42,10 @@ const Language = (props) => {
   const onSave = () => {
     const found = languages.find((lang) => lang.code === language);
     if(found) {
-      setPreferredLanguage({
+      dispatch(setPreferredLanguage({
         name: found?.eng_name,
         code: found?.code,
-      });
+      }));
       AsyncStorage.setItem('preferredLanguage', JSON.stringify(found));
       wm.newLanguage(language);
       props.onCancel();

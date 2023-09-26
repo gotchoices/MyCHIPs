@@ -4,6 +4,7 @@ import talliesReducer from './tallySlice';
 import profileReducer from './profileSlice';
 import languageReducer from './languageSlice';
 import currencyReducer from './currencySlice';
+import currentUserReducer from './currentUserSlice';
 
 export default configureStore({
   reducer: {
@@ -11,5 +12,6 @@ export default configureStore({
     tallies: talliesReducer,
     language: languageReducer,
     currency: currencyReducer,
+    currentUser: currentUserReducer,
   }
 })

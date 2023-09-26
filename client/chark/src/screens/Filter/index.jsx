@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
-import { colors } from "../../config/constants";
-import { SelectedIcon, UnSelectedIcon } from "../../components/SvgAssets/SvgAssets";
-import useProfile from '../../hooks/useProfile';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSelector, useDispatch } from 'react-redux';
+
+import { colors } from "../../config/constants";
+import { setFilter } from "../../redux/profileSlice";
+import { SelectedIcon, UnSelectedIcon } from "../../components/SvgAssets/SvgAssets";
 
 const FilterItem = ({ args, onSelected }) => {
   const onPress = () => {
@@ -11,16 +13,17 @@ const FilterItem = ({ args, onSelected }) => {
   }
 
   return <View style={styles.row}>
-    <Text style={styles.title}>{args.title}</Text>
+    <Text style={styles.title}>{args?.title}</Text>
     <TouchableOpacity style={{ justifyContent: 'center' }} onPress={onPress}>
-      {args.selected ? <SelectedIcon /> : <UnSelectedIcon />}
+      {args?.selected ? <SelectedIcon /> : <UnSelectedIcon />}
     </TouchableOpacity>
   </View >
 }
 
 const FilterScreen = (props) => {
-  const { filter, setFilter } = useProfile();
+  const { filter } = useSelector(state => state.profile);
   const navigation = props.navigation;
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const addButtonToTopBar = () => {
@@ -49,17 +52,17 @@ const FilterScreen = (props) => {
       void: { title: "Voids", selected: false, status: 'void' },
     }
     AsyncStorage.setItem("filterData", JSON.stringify(resetFilter)).then(() => {
-      setFilter(resetFilter)
+      dispatch(setFilter(resetFilter))
     })
   }
 
   const onSelected = (args) => {
     const updatedData = {
       ...filter,
-      [args.status]: { ...args, selected: !args.selected }
+      [args.status]: { ...args, selected: !args?.selected }
     }
     AsyncStorage.setItem("filterData", JSON.stringify(updatedData)).then(() => {
-      setFilter(updatedData);
+      dispatch(setFilter(updatedData));
     })
   }
 

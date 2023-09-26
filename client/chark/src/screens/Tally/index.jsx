@@ -2,11 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet, FlatList, TouchableWithoutFeedback } from 'react-native';
 import { Buffer } from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useSelector } from 'react-redux';
 
 import useSocket from '../../hooks/useSocket';
-import useProfile from '../../hooks/useProfile';
 import { round } from '../../utils/common';
-import useCurrentUser from '../../hooks/useCurrentUser';;
 import { fetchTallies, fetchTallyFile } from '../../services/tally';
 import { getCurrency } from '../../services/user';
 import { useUserTalliesText } from '../../hooks/useLanguage';
@@ -17,8 +16,8 @@ import TallyHeader from './TallyHeader';
 
 const Tally = (props) => {
   const { wm, ws } = useSocket();
-  const { user } = useCurrentUser();
-  const { preferredCurrency } = useProfile();
+  const { user } = useSelector(state => state.currentUser);
+  const { preferredCurrency } = useSelector(state => state.profile);
   useUserTalliesText(wm);
 
   const [loading, setLoading] = useState(false);

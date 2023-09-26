@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { useSelector } from 'react-redux';
+
 import useSocket from "../../../hooks/useSocket";
 import TemplateItem from "../../Invite/TemplateItem";
 import { random } from "../../../utils/common";
@@ -17,7 +19,7 @@ const DraftTally = (props) => {
   const [updateCertVisible, setUpdateCertVisible] = useState(false);
   const [data, setData] = useState([]);
   const { wm } = useSocket();
-  const { personal } = useProfile();
+  const { personal } = useSelector(state => state.profile);
 
   useEffect(() => {
     if (wm) {

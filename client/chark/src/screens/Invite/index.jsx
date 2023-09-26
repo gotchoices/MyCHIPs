@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { useSelector } from 'react-redux';
+
 import { colors } from '../../config/constants';
 import { random } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
@@ -10,7 +12,6 @@ import TemplateItem from './TemplateItem';
 import CustomTextInput from '../../components/CustomTextInput';
 import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAssets';
 import FloatingActionButton from '../../components/FloadingActionButton';
-import useProfile from '../../hooks/useProfile';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import CommentContent from './CommentContent';
 import LimitContent from './LimitContent';
@@ -52,7 +53,7 @@ const TallyInvite = (props) => {
   const [loading, setLoading] = useState(false);
   const { wm, ws, tallyNegotiation } = useSocket();
   const { triggerInviteFetch } = useInvite();
-  const { filter } = useProfile();
+  const { filter } = useSelector(state => state.profile);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

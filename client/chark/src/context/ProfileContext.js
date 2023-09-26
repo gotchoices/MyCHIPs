@@ -19,15 +19,7 @@ const ProfileContext = createContext({
   setPreferredLanguage: (_) => {
     console.log('set preferred language')
   },
-  communications: [],
   personal: undefined,
-  addresses: [],
-  setCommunications: (_) => {
-    console.log('Set communication');
-  },
-  setAddress: (_) => {
-    console.log('Set address');
-  },
   setPersonal: (_) => {
     console.log('Set personal bio');
   },

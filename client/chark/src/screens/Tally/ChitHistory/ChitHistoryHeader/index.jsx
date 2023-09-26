@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native"
+import { useSelector } from 'react-redux';
+
 import { colors } from "../../../../config/constants";
 import { round } from "../../../../utils/common";
-import useProfile from "../../../../hooks/useProfile";
 import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
 import { formatDate } from "../../../../utils/format-date";
@@ -10,10 +11,9 @@ import Avatar from "../../../../components/Avatar";
 
 const ChistHistoryHeader = (props) => {
   const { part_name, cid, date, net, wm, avatar, totalBalance } = props.args ?? {};
-  const { preferredCurrency } = useProfile();
+  const { preferredCurrency } = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
-
 
   useEffect(() => {
     if (currencyCode) {
@@ -45,7 +45,7 @@ const ChistHistoryHeader = (props) => {
             <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
             <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net  ?? 0) / 1000, 3)}</Text>
           </View>
-          {conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
+          {!!conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
         </View>
         <Text style={styles.label}>{formatDate(date)}</Text>
       </View >

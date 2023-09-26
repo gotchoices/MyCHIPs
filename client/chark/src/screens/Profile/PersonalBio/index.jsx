@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 
 import { colors } from '../../../config/constants';
-import useProfile from '../../../hooks/useProfile';
 import useMessageText from '../../../hooks/useMessageText';
 
 import Header from '../Details/Header';
@@ -26,7 +26,7 @@ const Item = (props) => {
 
 
 const PersonalBio = (props) => {
-  const { personal } = useProfile();
+  const { personal } = useSelector(state => state.profile);
   const { messageText } = useMessageText();
   const userText = messageText?.users ?? {};
 

@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { TextEncoder, TextDecoder } from 'web-encoding';
 import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
-import { KeyConfig, SignConfig } from 'wyseman/lib/crypto';
+import { useSelector } from 'react-redux';
 
 import { isKeyStored, retrieveKey, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
 
 import CenteredModal from '../../../../components/CenteredModal';
 import ExportModal from '../ExportModal';
 import PassphraseModal from '../PassphraseModal';
-import { exportFile } from '../../../../utils/file-manager';
 import { createSignature, verifySignature } from '../../../../utils/message-signature';
 import { keyServices } from '../../../../config/constants';
 import { updatePublicKey } from '../../../../services/profile';
 import useSocket from '../../../../hooks/useSocket';
-import useCurrentUser from '../../../../hooks/useCurrentUser';
 
 const PostGenerate = (props) => {
   const encoder = new TextEncoder();
@@ -21,7 +19,7 @@ const PostGenerate = (props) => {
   const message = "My message is verified";
   const data = encoder.encode(message);
 
-  const { user } = useCurrentUser();
+  const { user } = useSelector(state => state.currentUser);
   const { wm } = useSocket();
 
   const user_ent = user?.curr_eid;

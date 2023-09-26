@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { View, StyleSheet, Button, Alert, Text, ScrollView } from "react-native"
 import DocumentPicker from 'react-native-document-picker';
+import { useSelector } from 'react-redux';
+
 import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
 import CenteredModal from "../../components/CenteredModal";
 import { decryptJSON } from "../../utils/file-manager";
@@ -16,7 +18,7 @@ const ImportKeyScreen = (props) => {
   const [passphraseModal, setPassphraseModal] = useState(false);
   const [privateKey, setPrivateKey] = useState(undefined);
   const [publicKey, setPublicKey] = useState(undefined);
-  const { user } = useCurrentUser();
+  const { user } = useSelector(state => state.currentUser);
   const { wm } = useSocket();
 
   const user_ent = user?.curr_eid;

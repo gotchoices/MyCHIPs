@@ -4,19 +4,17 @@ import {
   Text,
   TouchableWithoutFeedback,
   ScrollView,
-  Modal,
   Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from '../../../config/constants';
 import { request } from '../../../services/profile';
-import useCurrentUser from '../../../hooks/useCurrentUser';
-import useProfile from '../../../hooks/useProfile';
-import { getComm } from '../../../services/profile';
 import useSocket from '../../../hooks/useSocket';
 import useMessageText from '../../../hooks/useMessageText';
+import { fetchComm } from '../../../redux/profileSlice';
 
 import HelpText from '../../../components/HelpText';
 import CenteredModal from '../../../components/CenteredModal';
@@ -33,9 +31,10 @@ const communicationText = {
 
 let pkt = 1;
 const Comm = (props) => {
+  const dispatch = useDispatch();
   const profileType = props.profileType
-  const { user } = useCurrentUser();
-  const { communications, setCommunications } = useProfile();
+  const { user } = useSelector(state => state.currentUser);
+  const { communications } = useSelector(state => state.profile);
   const user_ent = user?.curr_eid;
   const [seqToRemove, setSeqToRemove] = useState([]);
   const [primary, setPrimary] = useState();
@@ -74,9 +73,9 @@ const Comm = (props) => {
   }, [keys, byKey]) 
 
   const updateCommunicationList = () => {
-    getComm(wm, user_ent).then((response) => {
-      setCommunications(response);
-    })
+    dispatch(fetchComm({
+      wm, user_ent
+    }))
   }
 
   const onItemChange = (key, value) => {
