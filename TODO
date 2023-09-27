@@ -1,12 +1,13 @@
 TODO:
 
 - Pathway Analysis
--  Stored SQL procedure for dynamic recursion of path based on single tally
--  Compare speed of this with tallies_v_paths (and on long paths)
--  Make cache table for segments
--  Make cache table for circuits
--  Make cache table for locals?  (Or can dynamic search work well enough for this?)
--  Can rebuild
+X-  Test cache table for pathways
+X-  Can dynamically search well enough for local linear lifts?
+-  Implement local search procedure based on single user/amount/limit
+-  Can/should we still cache local circuits?
+-  Review/refine receive/pay procedure for local linear lifts
+-  Define API for app
+-  Should we still be doing local clearing lifts on mychips.net (for now)?
 
 X- Simulator
 X-  Update docker compose methods and documents for mac-only runs
@@ -39,6 +40,7 @@ X-  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
 - Add reset and submit buttons for Trading Variables report (in user's language)
 - 
 - Tally protocol support
+-  Move QR codes to deep link format (no more JSON QR's)
 -  Can fully execute a signed tally with a partner (get last step working)
 -  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
 -  How to easily understand/view draft/offer tallies

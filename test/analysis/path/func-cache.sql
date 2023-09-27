@@ -222,7 +222,7 @@ $$;
 -- ----------------------------------------------------------------
 create or replace function path_find(start_node text, end_node text, minw int, max int = 10)
 returns table (
-  inp text, "out" text, ecnt int, ath text[], min int, circuit boolean, path text[]
+  inp text, "out" text, ecnt int, ath text[], min int, circuit boolean, found boolean, path text[]
 ) language sql as $$
   with recursive 
   edges_both as (
@@ -251,7 +251,7 @@ returns table (
     where	fp.ecnt <= max
     and		e.w >= minw
     and		not fp.found
-  ) select p.inp, p.out, p.ecnt, p.ath, p.min, p.circuit
+  ) select p.inp, p.out, p.ecnt, p.ath, p.min, p.circuit, p.found
     , p.inp || p.ath		as path
 
   from find_path p
