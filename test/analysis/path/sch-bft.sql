@@ -1,5 +1,6 @@
 -- HACK: node_path structure is work around for bug in pgsql involving nested arrays
-create or replace type node_path AS (
+drop type if exists node_path;
+create type node_path AS (
     node text,
     path text[]
 );
@@ -15,7 +16,7 @@ begin
     queue := array[row(start_node, array[start_node])::node_path]; -- Initialize with start node and its path
 
     while array_length(queue, 1) > 0 loop
-        RAISE NOTICE 'Queue: %', queue;
+--        RAISE NOTICE 'Queue: %', queue;
 
         current := queue[1];
         queue := queue[2:array_upper(queue, 1)]; 
@@ -61,7 +62,7 @@ begin
         select id, path, path[array_upper(path, 1)] into queue_id, current_path, current_node from queue order by id asc limit 1;
         delete from queue where id = queue_id;
 
-        RAISE NOTICE 'Path: % %', queue_id, current_path;
+--        RAISE NOTICE 'Path: % %', queue_id, current_path;
 
         -- Check both directions for edges
         for edge in (
@@ -88,7 +89,7 @@ end;
 $$;
 
 -- BFT Version which uses an insert statement at each level.  Returns ties at return level.
-create or replace function find_target_multi_via_bft(start_node text, target_node text, max_depth integer default 10)
+create or replace function find_target_multi_via_bft(start_node text, target_node text, minw integer default 0, max_depth integer default 10)
 returns table(path text[]) language plpgsql as $$
 declare
     depth integer := 1;
@@ -109,16 +110,16 @@ begin
     insert into levels(level, node, path) values (1, start_node, array[start_node]);
 
     while exists (select 1 from levels where level = depth) and depth <= max_depth loop
-        RAISE NOTICE '%: Path: %', depth, (select string_agg(array_to_string(cl.path, ','), ';  ') from levels cl where cl.level = depth);
+--        RAISE NOTICE '%: Path: %', depth, (select string_agg(array_to_string(cl.path, ','), ';  ') from levels cl where cl.level = depth);
 
         -- Insert neighbors into the next level if they haven't been visited
         insert into levels(level, node, path)
             select distinct depth + 1, e.target, array_append(cl.path, e.target)
             from levels cl
             join (
-                select out as source, inp as target from edges
+                select out as source, inp as target from edges where w >= minw
                 union all
-                select inp as source, out as target from edges
+                select inp as source, out as target from edges where w >= minw
             ) e on e.source = cl.node and e.target <> all(cl.path)
             where cl.level = depth;
 

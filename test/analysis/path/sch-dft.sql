@@ -1,9 +1,9 @@
 -- HACK: node_path structure is work around for bug in pgsql involving nested arrays
-drop type if exists node_path;
-create or replace type node_path AS (
-    node text,
-    path text[]
-);
+--drop type if exists node_path;
+--create or replace type node_path AS (
+--    node text,
+--    path text[]
+--);
 
 -- Version of Depth First Traversal (DFT) using array
 create or replace function find_target_array_via_dft(start_node text, target_node text)

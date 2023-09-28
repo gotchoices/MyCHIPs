@@ -1,0 +1,16 @@
+#/bin/bash
+#Make a large random data set
+: "${DB:=p2}"
+: "${DBUSER:=admin}"
+: "${nodes:=10}"
+: "${edges:=20}"
+
+./dbcheck $DB
+cat sch-base.sql sch-cache.sql func-cache.sql sch-dfs.sql sch-bft.sql | psql $DB $USER
+
+function prompt() {
+  echo -n "${1} "
+  read inp
+}
+
+psql $DB $DBUSER -c "select random_graph($nodes, $edges)"
