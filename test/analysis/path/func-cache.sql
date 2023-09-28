@@ -248,7 +248,7 @@ returns table (
     from	edges_both	e
     join	find_path	fp on fp.out = e.inp
     		and not e.out = any(fp.ath)
-    where	fp.ecnt <= max
+    where	fp.ecnt < max
     and		e.w >= minw
     and		not fp.found
   ) select p.inp, p.out, p.ecnt, p.ath, p.min, p.circuit, p.found
