@@ -4,7 +4,7 @@ create or replace type node_path AS (
     node text,
     path text[]
 );
-create or replace function find_target_via_dfs(start_node text, target_node text)
+create or replace function find_target_via_dft(start_node text, target_node text)
 returns text[] language plpgsql as $$
 declare
     edge record;
@@ -17,7 +17,7 @@ begin
         current := stack[array_upper(stack, 1)];
         stack := stack[1:array_upper(stack, 1) - 1]; 
 
-        RAISE NOTICE 'Current: %', current;
+        RAISE NOTICE 'Stack: %', stack;
 
         for edge in (
             select out node from edges where inp = current.node and out <> all(current.path)
@@ -37,8 +37,8 @@ begin
 end;
 $$;
 
--- Temp table version of DFS
-create or replace function find_target_via_dfs(start_node text, target_node text)
+-- Temp table version of DFT
+create or replace function find_target_via_dft(start_node text, target_node text)
 returns text[] language plpgsql as $$
 declare
     edge record;
@@ -88,9 +88,9 @@ begin
 end;
 $$;
 
+
 -- Version which uses an insert statement at each level.  Returns ties at return level.
--- WARNING: doesn't work; seems like the same bug (fetching the top of the path) which required the custom type in the array case
-create or replace function find_target_via_dfs(start_node text, target_node text)
+create or replace function find_target_via_dft(start_node text, target_node text)
 returns table(path text[]) language plpgsql as $$
 declare
     current_path text[];
@@ -102,31 +102,31 @@ begin
     create temporary sequence stack_id_seq;
     create temp table stack(
         id integer primary key default nextval('stack_id_seq'),
+        node text, -- HACK: work around for not being able to get top of path
         path text[]
     );
-    insert into stack(path) values (array[start_node]);
+    insert into stack(node, path) values (start_node, array[start_node]);
 
     while exists (select 1 from stack) loop
         -- Pop the latest path from the stack using the primary key for efficiency
-        select s.id, s.path into stack_id, current_path from stack s order by id desc limit 1;
-        current_node := current_path[array_upper(current_path, 1)];
+        select s.id, s.node, s.path into stack_id, current_node, current_path from stack s order by id desc limit 1;
         delete from stack where id = stack_id;
 
         RAISE NOTICE 'Current Path: %', current_path;
         RAISE NOTICE 'Current Node: %', current_node;
 
         -- Insert all paths from the current node that have not been visited into the stack
-        insert into stack(path)
-            select array_append(current_path, node)
+        insert into stack(node, path)
+            select node, array_append(current_path, node)
             from (
-                select out as node from edges where inp = current_node and out <> ALL(current_path)
+                select out as node from edges where inp = current_node and out <> all(current_path)
                 union all
-                select inp as node from edges where out = current_node and inp <> ALL(current_path)
+                select inp as node from edges where out = current_node and inp <> all(current_path)
             ) as _;
 
         -- If the target node is one of the new paths, return the path
-        if exists (select 1 from stack s where s.path[array_upper(s.path, 1)] = target_node) then
-            return query select s.path from stack s where s.path[array_upper(s.path, 1)] = target_node;
+        if exists (select 1 from stack s where s.node = target_node) then
+            return query select s.path from stack s where s.node = target_node;
         end if;
     end loop;
 
@@ -137,3 +137,4 @@ begin
     return query select null::text[] as path;  -- if target_node is not reached
 end;
 $$;
+
