@@ -1,4 +1,5 @@
 -- HACK: node_path structure is work around for bug in pgsql involving nested arrays
+drop type if exists node_path;
 create or replace type node_path AS (
     node text,
     path text[]
@@ -15,7 +16,7 @@ begin
     stack := array[row(start_node, array[start_node])::node_path]; -- Initialize with start node and its path
 
     while array_length(stack, 1) > 0 loop
-        RAISE NOTICE 'Stack: %', (select string_agg(array_to_string(path, ','), ';  ') from unnest(stack));
+        --RAISE NOTICE 'Stack: %', (select string_agg(array_to_string(path, ','), ';  ') from unnest(stack));
 
         current := stack[array_upper(stack, 1)];
         stack := stack[1:array_upper(stack, 1) - 1]; 
@@ -61,7 +62,7 @@ begin
         select id, path, path[array_upper(path, 1)] into stack_id, current_path, current_node from stack order by id desc limit 1;
         delete from stack where id = stack_id;
 
-        RAISE NOTICE 'Path: %', current_path;
+        --RAISE NOTICE 'Path: %', current_path;
 
         -- Check both directions for edges
         for edge in (
@@ -111,8 +112,7 @@ begin
         select s.id, s.node, s.path into stack_id, current_node, current_path from stack s order by id desc limit 1;
         delete from stack where id = stack_id;
 
-        RAISE NOTICE 'Current Path: %', current_path;
-        RAISE NOTICE 'Current Node: %', current_node;
+        --RAISE NOTICE 'Path: %', current_path;
 
         -- Insert all paths from the current node that have not been visited into the stack
         insert into stack(node, path)
