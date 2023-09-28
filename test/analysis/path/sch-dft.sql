@@ -1,10 +1,11 @@
--- Version of Depth First Traversal (DFT) using array
--- NOTE: node_path structure is work around for bug in pgsql involving nested arrays
+-- HACK: node_path structure is work around for bug in pgsql involving nested arrays
 create or replace type node_path AS (
     node text,
     path text[]
 );
-create or replace function find_target_via_dft(start_node text, target_node text)
+
+-- Version of Depth First Traversal (DFT) using array
+create or replace function find_target_array_via_dft(start_node text, target_node text)
 returns text[] language plpgsql as $$
 declare
     edge record;
@@ -14,10 +15,10 @@ begin
     stack := array[row(start_node, array[start_node])::node_path]; -- Initialize with start node and its path
 
     while array_length(stack, 1) > 0 loop
+        RAISE NOTICE 'Stack: %', (select string_agg(array_to_string(path, ','), ';  ') from unnest(stack));
+
         current := stack[array_upper(stack, 1)];
         stack := stack[1:array_upper(stack, 1) - 1]; 
-
-        RAISE NOTICE 'Stack: %', stack;
 
         for edge in (
             select out node from edges where inp = current.node and out <> all(current.path)
@@ -38,7 +39,7 @@ end;
 $$;
 
 -- Temp table version of DFT
-create or replace function find_target_via_dft(start_node text, target_node text)
+create or replace function find_target_table_via_dft(start_node text, target_node text)
 returns text[] language plpgsql as $$
 declare
     edge record;
@@ -57,12 +58,10 @@ begin
 
     while exists (select 1 from stack) loop
         -- Pop the latest path from the stack using the primary key for efficiency
-        select id, path into stack_id, current_path, current_node from stack order by id desc limit 1;
-        current_node := current_path[array_upper(current_path, 1)];
+        select id, path, path[array_upper(path, 1)] into stack_id, current_path, current_node from stack order by id desc limit 1;
         delete from stack where id = stack_id;
 
-        RAISE NOTICE 'Current Path: %', current_path;
-        RAISE NOTICE 'Next Node: %', current_node;
+        RAISE NOTICE 'Path: %', current_path;
 
         -- Check both directions for edges
         for edge in (
@@ -90,7 +89,7 @@ $$;
 
 
 -- Version which uses an insert statement at each level.  Returns ties at return level.
-create or replace function find_target_via_dft(start_node text, target_node text)
+create or replace function find_target_multi_via_dft(start_node text, target_node text)
 returns table(path text[]) language plpgsql as $$
 declare
     current_path text[];
@@ -102,7 +101,7 @@ begin
     create temporary sequence stack_id_seq;
     create temp table stack(
         id integer primary key default nextval('stack_id_seq'),
-        node text, -- HACK: work around for not being able to get top of path
+        node text, -- last node in path (for efficiency?)
         path text[]
     );
     insert into stack(node, path) values (start_node, array[start_node]);
@@ -127,6 +126,7 @@ begin
         -- If the target node is one of the new paths, return the path
         if exists (select 1 from stack s where s.node = target_node) then
             return query select s.path from stack s where s.node = target_node;
+            exit;
         end if;
     end loop;
 
