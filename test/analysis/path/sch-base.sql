@@ -13,6 +13,9 @@ create table if not exists edges (
  , out		text	not null references nodes on update cascade on delete cascade
 );
 
+create index if not exists edges_inp_idx on edges (inp) include (out);
+create index if not exists edges_out_idx on edges (out) include (inp);
+
 -- Create random graph data set
 -- Usage: select random_graph(nodes, edges)
 -- ----------------------------------------------------------------
