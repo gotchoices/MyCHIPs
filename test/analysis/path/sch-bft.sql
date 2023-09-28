@@ -61,7 +61,7 @@ begin
         select id, path, path[array_upper(path, 1)] into queue_id, current_path, current_node from queue order by id asc limit 1;
         delete from queue where id = queue_id;
 
-        RAISE NOTICE 'Path: %', current_path;
+        RAISE NOTICE 'Path: % %', queue_id, current_path;
 
         -- Check both directions for edges
         for edge in (
@@ -88,57 +88,54 @@ end;
 $$;
 
 -- BFT Version which uses an insert statement at each level.  Returns ties at return level.
-create or replace function find_target_multi_via_bft(start_node text, target_node text)
+create or replace function find_target_multi_via_bft(start_node text, target_node text, max_depth integer default 10)
 returns table(path text[]) language plpgsql as $$
+declare
+    depth integer := 1;
 begin
     -- Create current and next level tables to simulate queue behavior
-    drop table if exists current_level;
-    drop table if exists next_level;
+    drop table if exists levels;
     drop sequence if exists bft_seq;
     create temp sequence bft_seq;
 
-    create temp table current_level(
-        id integer primary key default nextval('bft_seq'),
-        path text[]
-    );
-    create temp table next_level(
+    create temp table levels(
         id integer default nextval('bft_seq'),
+        level integer,
         node text, -- last node in path (for efficiency in finding)
         path text[],
-        primary key (node, id)
+        primary key (level, node, id) include (path)
     );
     
-    insert into current_level(path) values (array[start_node]);
+    insert into levels(level, node, path) values (1, start_node, array[start_node]);
 
-    while exists (select 1 from current_level) loop
-        RAISE NOTICE 'Path: %', (select string_agg(array_to_string(cl.path, ','), ';  ') from current_level cl);
+    while exists (select 1 from levels where level = depth) and depth <= max_depth loop
+        RAISE NOTICE '%: Path: %', depth, (select string_agg(array_to_string(cl.path, ','), ';  ') from levels cl where cl.level = depth);
 
         -- Insert neighbors into the next level if they haven't been visited
-        insert into next_level(node, path)
-            select distinct e.target, array_append(cl.path, e.target)
-            from current_level cl
+        insert into levels(level, node, path)
+            select distinct depth + 1, e.target, array_append(cl.path, e.target)
+            from levels cl
             join (
                 select out as source, inp as target from edges
                 union all
                 select inp as source, out as target from edges
-            ) e on e.source = cl.path[array_upper(cl.path, 1)] and e.target <> all(cl.path);
+            ) e on e.source = cl.node and e.target <> all(cl.path)
+            where cl.level = depth;
 
         -- If the target node is one of the new paths, return the path
-        if exists (select 1 from next_level q where q.node = target_node) then
-            return query select q.path from next_level q where q.node = target_node;
+        if exists (select 1 from levels q where q.level = depth and q.node = target_node) then
+            return query select q.path from levels q where q.level = depth and q.node = target_node;
             exit;
         end if;
 
-        -- Empty current level and swap next level into current
-        delete from current_level;
-        insert into current_level select nl.id, nl.path from next_level nl;
-        delete from next_level;
+        -- Clean up the current level
+        delete from levels where level = depth;
 
+        depth := depth + 1;
     end loop;
 
     -- Cleanup
-    drop table if exists current_level;
-    drop table if exists next_level;
+    drop table if exists levels;
     drop sequence if exists bft_seq;
 
     return query select null::text[] as path;  -- if target_node is not reached
