@@ -94,20 +94,16 @@ begin
     drop table if exists current_level;
     drop table if exists next_level;
 
-    create temp table current_level(node text, path text[]);
-    create temp table next_level(node text, path text[]);
+    create temp table current_level(node text primary key, path text[]);
+    create temp table next_level(node text primary key, path text[]);
     
     insert into current_level(node, path) values (start_node, array[start_node]);
 
+    <<outer_loop>>
     while exists (select 1 from current_level) loop
         -- Process each node in the current level
         for current_node, current_path in (select cl.node, cl.path from current_level cl) loop
             RAISE NOTICE 'Current Path: %', current_path;
-
-            -- If the target node is one of the new paths, return the path
-            if exists (select 1 from current_level q where q.node = target_node) then
-                return query select q.path from current_level q where q.node = target_node;
-            end if;
 
             -- Insert neighbors into the next level if they haven't been visited
             insert into next_level(node, path)
@@ -116,7 +112,15 @@ begin
                     select out as node from edges where inp = current_node and out <> all(current_path)
                     union all
                     select inp as node from edges where out = current_node and inp <> all(current_path)
-                ) as _;
+                ) as _
+                on conflict do nothing;
+
+            -- If the target node is one of the new paths, return the path
+            if exists (select 1 from next_level q where q.node = target_node) then
+                return query select q.path from next_level q where q.node = target_node;
+                exit outer_loop;
+            end if;
+
         end loop;
 
         -- Empty current level and swap next level into current
@@ -124,7 +128,7 @@ begin
         insert into current_level select * from next_level;
         delete from next_level;
 
-    end loop;
+    end loop outer_loop;
 
     -- Cleanup
     drop table if exists current_level;
