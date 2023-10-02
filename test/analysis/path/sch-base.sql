@@ -8,10 +8,14 @@ create table if not exists nodes (
 drop table if exists edges cascade;
 create table if not exists edges (
    eid		serial	primary key
- , w		int	not null default floor(random() * 100)
+ , w		int	not null default floor(random() * 200) - 100
  , inp		text	not null references nodes on update cascade on delete cascade
  , out		text	not null references nodes on update cascade on delete cascade
 );
+create or replace view edges_both as
+  select eid, inp, out, w, 1 as dir from edges
+  union all
+  select eid, out as inp, inp as out, -w as w, -1 as dir from edges;
 
 create index if not exists edges_inp_idx on edges (inp) include (out);
 create index if not exists edges_out_idx on edges (out) include (inp);

@@ -117,7 +117,7 @@ begin
             select distinct depth + 1, e.target, array_append(cl.path, e.target)
             from levels cl
             join (
-                select out as source, inp as target from edges where w >= minw
+                select out as source, inp as target from edges where w <= -minw
                 union all
                 select inp as source, out as target from edges where w >= minw
             ) e on e.source = cl.node and e.target <> all(cl.path)
@@ -140,5 +140,59 @@ begin
     drop sequence if exists bft_seq;
 
     return query select null::text[] as path;  -- if target_node is not reached
+end;
+$$;
+
+-- Optimized BFT Version one iteration faster that can also detect cycles
+create or replace function find_target_multi_via_bfto(start_node text, target_node text, minw integer default 0, max_depth integer default 10)
+returns table (
+  id integer,
+  level integer,
+  first text,
+  last text,
+  ath text[],
+  eids int[]
+) language plpgsql as $$
+  declare
+    depth integer := 1;
+  begin
+    drop table if exists levels;	-- Create current/next level table to simulate queue behavior
+    create temp table levels (
+        id serial,
+        level integer,
+        first text,
+        last text,
+        ath text[],
+        eids int[],
+        primary key (level, last, id) include (ath)
+    );
+    
+    insert into levels(level, first, last, ath, eids) values (1, start_node, start_node, '{}'::text[], '{}'::int[]);
+
+    while exists (select 1 from levels l where l.level = depth) and depth <= max_depth loop
+--        RAISE NOTICE '%: Path: %', depth, (select string_agg(array_to_string(cl.path, ','), ';  ') from levels cl where cl.level = depth);
+
+        -- If the target node is one of the new paths, return the path
+        if depth > 1 and exists (
+          select 1 from levels q where q.level = depth and q.last = target_node
+        ) then
+          return query select * from levels q where q.level = depth and q.last = target_node;
+          exit;
+        end if;
+
+        -- Insert neighbors into the next level if they haven't been visited
+        insert into levels(level, first, last, ath, eids)
+          select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
+          from levels cl
+          join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
+          where cl.level = depth and e.w >= minw;
+
+        -- Clean up the current level
+        delete from levels l where l.level = depth;
+
+        depth := depth + 1;
+    end loop;
+
+    drop table if exists levels;		-- Cleanup
 end;
 $$;
