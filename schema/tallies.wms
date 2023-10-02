@@ -575,7 +575,7 @@ $$;}
 function mychips.tallies_tf_change() {mychips} {
   returns trigger language plpgsql security definer as $$
     begin
-raise notice 'Admin tallies notify:%', TG_OP;
+-- raise notice 'Admin tallies notify:%', TG_OP;
       perform pg_notify('mychips_admin', format('{"target":"tallies", "oper":"%s", "time":"%s"}', TG_OP, transaction_timestamp()::text));
       return null;
     end;

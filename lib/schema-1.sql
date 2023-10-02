@@ -752,7 +752,7 @@ create function mychips.state_updater(recipe jsonb, tab text, fields text[], qfl
 $$;
 create function mychips.tallies_tf_change() returns trigger language plpgsql security definer as $$
     begin
-raise notice 'Admin tallies notify:%', TG_OP;
+
       perform pg_notify('mychips_admin', format('{"target":"tallies", "oper":"%s", "time":"%s"}', TG_OP, transaction_timestamp()::text));
       return null;
     end;
@@ -4972,10 +4972,10 @@ create function mychips.routes_v_updfunc() returns trigger language plpgsql secu
     return new;
   end;
 $$;
-create function mychips.tallies_node_path(tally uuid) returns table (
+create function mychips.tallies_find_paths(bot_node text, top_node text = '', size int = 0, max_dep int = 10) returns table (
    inp text, "out" text
  , edges int, ath text[], uuids uuid[], ents text[], seqs int[], signs text[], min int, max int
- , top text, bot text, circuit boolean
+ , top text, bot text, circuit boolean, found boolean
  , margin numeric, reward numeric
  , nodes int, bang int
  , fori boolean, foro boolean, segment boolean
@@ -4990,14 +4990,15 @@ create function mychips.tallies_node_path(tally uuid) returns table (
  ) language sql as $$
   with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
-      top, top_tseq, bot, bot_tseq, circuit
+      top, top_tseq, bot, bot_tseq, circuit, found
     ) as (
       select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], 
              array[ti.tally_ent], array[ti.tally_seq], array[ti.sign],
              ti.min, ti.margin, ti.max, ti.reward, 
-             ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
+             ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false, false
     from	mychips.tallies_v_net ti
-    where	ti.uuid = tally	-- ti.canlift
+    where	ti.inp = bot_node		-- Path starts here
+    and		ti.canlift and coalesce(ti.max,size) >= size
   union all
     select tp.inp					as inp
       , t.out						as out
@@ -5021,16 +5022,18 @@ create function mychips.tallies_node_path(tally uuid) returns table (
       , tp.bot						as bot
       , tp.bot_tseq					as bot_tseq
       , coalesce(tp.inp = t.out, false)			as circuit
+      , t.out = coalesce(top_node,'')			as found
 
     from	mychips.tallies_v_net t
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
-    where	-- t.canlift and
-    		tp.edges <= base.parm('paths', 'maxlen', 10)
+    where	canlift and coalesce(tp.max, size) >= size
+    and		tp.edges < max_dep
+    and		not tp.found
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
-    , tpr.top, tpr.bot, tpr.circuit
+    , tpr.top, tpr.bot, tpr.circuit, tpr.found
     , tpr.margin::numeric(8,6)
     , tpr.reward::numeric(8,6)
     , tpr.edges + 1			as nodes
@@ -5054,6 +5057,48 @@ create function mychips.tallies_node_path(tally uuid) returns table (
   from	tally_path tpr
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
   join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq
+$$;
+create function mychips.tallies_find_path(bot_node text, top_node text = '', size int = 0, max_dep int = 10) returns table (level int,bot text,bot_seq int,top text,top_seq int,ath text[],uuids uuid[]) language plpgsql as $$
+  declare
+    depth int = 1;
+  begin
+    drop table if exists queue;
+    create temp table queue (
+      id	serial,
+      level int,bot text,bot_seq int,top text,top_seq int,ath text[],uuids uuid[],
+      primary key (level, top, id) include (ath)
+    );
+    
+    insert into queue(level, bot, top, ath, uuids) values (1, bot_node, top_node, '{}'::text[], '{}'::uuid[]);
+
+    while exists (select 1 from queue q where q.level = depth) and depth <= max_dep loop
+
+
+      if depth > 1 and exists (        -- If the target node is one of the new paths, return the path
+        select 1 from queue q where q.level = depth and q.top = top_node
+      ) then
+        return query select q.level, q.bot, q.bot_seq, q.top, q.top_seq, q.ath, q.uuids
+        from queue q where q.level = depth and q.top = top_node;
+        exit;
+      end if;
+
+
+      insert into queue (level, bot, bot_seq, top, top_seq, ath, uuids)
+        select depth + 1,
+          q.bot, coalesce(q.bot_seq, e.tally_seq), 
+          e.out, e.tally_seq,
+          q.ath || e.out, 
+          q.uuids || e.uuid
+        from queue q
+        join mychips.tallies_v_net e on e.inp = q.top and e.out <> all(q.ath)
+        where q.level = depth and coalesce(e.max, size) >= size;
+
+      delete from queue q where q.level = depth;
+      depth := depth + 1;
+    end loop;
+
+    drop table if exists queue;
+  end;
 $$;
 create trigger mychips_tallies_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 create view mychips.tallies_v_paths as with recursive tally_path (
@@ -5298,7 +5343,7 @@ create function mychips.chits_v_me_updfunc() returns trigger language plpgsql se
     return new;
   end;
 $$;
-create function mychips.lift_local(maxNum int = 1) returns jsonb language plpgsql security definer as $$
+create function mychips.lift_clear_local(maxNum int = 1) returns jsonb language plpgsql security definer as $$
     declare
       status	jsonb = '{"done": 0}';
       prec	record;
@@ -5385,6 +5430,34 @@ raise notice 'Lift notice:% %', channel, jret::text;
         perform pg_notify(channel, jret::text);
       end if;
       return true;
+    end;
+$$;
+create function mychips.lift_pay_local(from_id text, to_id text, units int) returns jsonb language plpgsql security definer as $$
+    declare
+    begin
+raise notice 'LP0:% % %', maxNum, min_units, ord_by;
+
+
+raise notice 'LP1 tstr:% el0:%', tstr, oarr[1];
+
+
+
+raise notice 'LL2 orders:%', orders;
+
+
+
+
+
+
+
+raise notice 'LL3 rows:% min:% tstr:%', rows, min_units, tstr;
+
+
+
+
+
+
+
     end;
 $$;
 create trigger mychips_lifts_v_tr_ins instead of insert on mychips.lifts_v for each row execute procedure mychips.lifts_v_insfunc();
@@ -5478,7 +5551,7 @@ create trigger mychips_routes_v_tr_upd instead of update on mychips.routes_v for
 create trigger json_cert_tf_ii instead of insert on json.cert for each row execute procedure json.cert_tf_ii();
 create trigger mychips_chits_v_me_tr_ins instead of insert on mychips.chits_v_me for each row execute procedure mychips.chits_v_me_insfunc();
 create trigger mychips_chits_v_me_tr_upd instead of update on mychips.chits_v_me for each row execute procedure mychips.chits_v_me_updfunc();
-create function mychips.lift_dist(maxNum int = 1) returns int language plpgsql as $$
+create function mychips.lift_clear_dist(maxNum int = 1) returns int language plpgsql as $$
     declare
       prec	record;
       tstr	text;
@@ -11697,7 +11770,7 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  
  ,('lifts', 'order', 'text', null, 'bang desc', null, 'An order-by clause to describe how to prioritize lifts when selecting them from the pathways view.  The first result of the query will be the first lift performed.')
  ,('lifts', 'interval', 'int', 60, null,null, 'The number of seconds between sending requests to the database to process lifts')
- ,('lifts', 'limit', 'int', 1, null, null, 'The maximum number of lifts the database may perform per request cycle')
+ ,('lifts', 'limit', 'int', 0, null, null, 'The maximum number of lifts the database may perform per request cycle')
  ,('lifts', 'minimum', 'int', 10000, null, null, 'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
 
  ,('chip', 'interval', 'text', null, '12 * * * *', null, 'CRON scheduling specification for when to update chip exchange value')

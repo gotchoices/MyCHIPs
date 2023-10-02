@@ -3,8 +3,8 @@ TODO:
 - Pathway Analysis
 X-  Test cache table for pathways
 X-  Can dynamically search well enough for local linear lifts?
--  Implement local search procedure based on single user/amount/limit
--  Can/should we still cache local circuits?
+X-  Implement local search procedure based on single user/amount/limit
+X-  Can/should we still cache local circuits (no)?
 -  Review/refine receive/pay procedure for local linear lifts
 -  Define API for app
 -  Should we still be doing local clearing lifts on mychips.net (for now)?
