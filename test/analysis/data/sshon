@@ -1,0 +1,31 @@
+#!/bin/bash
+#Execute a query or an arbitrary command line on a remote system
+#Usage: cat query.sql |./sshon
+#       ./sshon ps
+#       TARGET=user@system.com ./sshon date
+
+: ${TARGET:="admin@mychips.net"}	#If TARGET not already set
+
+# Check for minimum number of arguments (at least one command to run)
+if [ "$#" -lt 1 ]; then
+  set -- psql mychips admin
+fi
+
+# Initialize an empty command string
+CMD=""
+
+# Loop through each argument
+for arg in "$@"; do
+  # Use printf to safely escape quotes and backslashes within each argument
+  # Append each escaped argument to the command string, wrapped in quotes
+  CMD+="$(printf "%q " "$arg")"
+done
+
+# Remove trailing space
+CMD=${CMD% }
+
+# Encode the command string in Base64
+ENCODED_CMD=$(echo -n "$CMD" | base64)
+
+# Execute the command on the remote system
+ssh $TARGET "CMD=\"$(echo $ENCODED_CMD | base64 --decode)\"; eval \$CMD"
