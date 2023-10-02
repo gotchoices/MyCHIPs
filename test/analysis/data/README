@@ -1,1 +1,5 @@
 Various scripts/queries for analyzing/debugging the database state
+
+Can run native on your server or via ssh as follows:
+
+cat query.sql |./sshon
