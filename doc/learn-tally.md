@@ -495,11 +495,9 @@ This is called an "out-of-band" communication and it is necessary because these 
 any direct connection that can be trusted on-network.
 
 The actual payment will be accomplished by way of a [linear lift](learn-protocol.md#credit-lifts-explained).
-The invoice (issued from recipient to payor) should include:
+The invoice (issued from recipient to payor) should [include](learn-message.md#external-formats):
   - The recipient CHIP ID (possibly [obscured](learn-users.md#obscured-cid))
   - Recipient agent key
-  - Recipient agent portal
-  - Transaction type
   - The amount due
   - A reference field (order or merchandise number, for example)
   - Optional comments
@@ -513,7 +511,7 @@ If successful, a linear lift can be initiated to complete the payment.
 This is an example of a typical consumer payment where there is not a shared tally between 
 the payor and the recipient
 
-- The vendor displays a generic invoice QR code as described in the [Invoicing section](#invoicing).
+- The vendor displays a generic invoice QR code as described in the [Invoicing section](#invoicing-overview).
   - This can be custom generated for the transaction; or
   - It can be generic (a printed decal with no amount or reference field)
 - The customer scans the invoice into his MyCHIPs app.
@@ -718,7 +716,7 @@ The CHIP certificate contains:
   - Information for addressing the entity's CHIP account
   - Information about the entity's identity
 ```
-In JSON format, the certificate would look like this
+In JSON format, the certificate would look something like this
 (properties shown as arrays can be a single object or an array):
 ```
 CHIPCert: {

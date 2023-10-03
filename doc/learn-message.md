@@ -381,9 +381,9 @@ Lift state transition messages are as follows:
   The referee should replace this signature with its own signature (and not transmit it further).
   However, if the lift is approved, the referee must keep the originator signature in its own database to prove that it acted only upon approval by the originator.
 
-### Import/Export Formats
+### External Formats
 In addition to real-time, dynamic messages, certain objects may be transmitted
-over other media or in other ways.  For example, a site may issue to a user a connection
+over other media or in other ways.  For example, a site may issue a user a connection
 ticket containing a one-time token and other connection information.  Users can issue
 tally invitations to each other.  And users may have to export keys or other data and
 then re-import that data on another device or platform.
@@ -392,6 +392,10 @@ In these various instances, data may often be represented as either a JSON recor
 as a URI.  Data may also be represented as text or as a QR code.  Ideally a MyCHIPs
 mobile app should be able to scan a QR code containing any applicable record
 and know what to do with it.
+
+Furthermore, any scanner should be able to scan a QR code that contains a deep link URI.
+If the user does not have an applicable app installed, he will be directed to the mychips.org
+(or applicable) website where further instructions will be available about how to proceed.
 
 - *Connection Ticket:* Issued by Chip Service Provider  
   URI:'https://HOST:HTTP_PORT/user.html?&port=WS_PORT&token=TOKEN$%user=USER'  
@@ -416,6 +420,24 @@ and know what to do with it.
       host: AGENT_HOST_ADDRESS,
       port: AGENT_HOST_PORT,
     }
+  }}
+```
+
+- *Invoice:* Payment request or invitation
+  URI: 'https://mychips.org/invoice?chad={cid:w,agent:x,host:y,port:z}...'
+  URI: 'https://mychips.org/invoice?base64EncodedJSON'
+  JSON:
+```
+  {invoice: {
+    chad: {
+      cid: USER_CHIP_ID,
+      agent: USERS_AGENT_PUBLIC_KEY
+    }
+    units: 123456,
+    date: <invoice date>,
+    ref: {arbitrary-payee-specific-json-data},
+    memo: 'Human-readable comment',
+    hint: [array of agents who know me]
   }}
 ```
 
