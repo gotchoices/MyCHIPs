@@ -1,6 +1,7 @@
 #Views to parse locally held tallies into traversable lift pathways
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
+def BigInt 9223372036854775807
 
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------
@@ -24,7 +25,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , false					as inv
-  , t.net_pc < t.bound				as canlift
+  , t.bound - t.net_pc				as canlift
     from	t_loc as t
     join 	t_loc as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
 
@@ -41,7 +42,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , false					as inv
-  , t.net_pc < t.bound				as canlift
+  , t.bound - t.net_pc				as canlift
     from	t_for as t
 
   union select 			-- Tallies with foreign peers, lifting toward them
@@ -51,16 +52,13 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
   , 0 as target, 0 as bound
   , 0 as reward, 0 as margin				-- Assume zero costs from other side
   , -t.net_pc as net_pc
-  , null					as min	-- Nulls because other side of 
---  , t.net_pc					as min	-- tally is in charge of these
-  , null					as max
---  , t.net_pc					as max
+  , expr($BigInt)				as min	-- Other side of tally is in charge of these
+  , expr($BigInt)				as max
   , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
   , case when t.tally_type = 'foil' then 1 else -1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
   , true					as inv
-  , true					as canlift	-- Let the other side limit lifts
---  , -t.net_pc < 0			as canlift	-- Limit lifts to what we know (zero)
+  , expr($BigInt)				as canlift	-- Let the other side limit lifts
     from	t_for as t
 }
 #index {mychips_tallies_x_vnet_inside} mychips.tallies {
@@ -87,7 +85,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
              ti.min, ti.margin, ti.max, ti.reward, 
              ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
     from	mychips.tallies_v_net ti
-    where	ti.canlift
+    where	ti.canlift > 0
   union all
     select tp.inp					as inp
       , t.out						as out
@@ -116,7 +114,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
-    where	t.canlift and tp.edges <= base.parm('paths', 'maxlen', 10)
+    where	t.canlift > 0 and tp.edges <= base.parm('paths', 'maxlen', 10)
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
     , tpr.top, tpr.bot, tpr.circuit

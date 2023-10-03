@@ -37,7 +37,7 @@ mychips.users_v mychips.tallies_v_net
              ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false, false
     from	mychips.tallies_v_net ti
     where	ti.inp = bot_node		-- Path starts here
-    and		ti.canlift and coalesce(ti.max,size) >= size
+    and		ti.canlift > 0 and coalesce(ti.max,size) >= size
   union all
     select tp.inp					as inp
       , t.out						as out
@@ -67,7 +67,7 @@ mychips.users_v mychips.tallies_v_net
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
-    where	canlift and coalesce(tp.max, size) >= size
+    where	canlift > 0 and coalesce(tp.max, size) >= size
     and		tp.edges < max_dep
     and		not tp.found
   ) select tpr.inp, tpr.out
