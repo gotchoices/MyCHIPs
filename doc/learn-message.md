@@ -424,8 +424,8 @@ If the user does not have an applicable app installed, he will be directed to th
 ```
 
 - *Invoice:* Payment request or invitation
-  URI: 'https://mychips.org/invoice?chad={cid:w,agent:x,host:y,port:z}...'
-  URI: 'https://mychips.org/invoice?base64EncodedJSON'
+  URI: 'https://mychips.org/invoice?chad={cid:w,agent:x,host:y,port:z}...'  
+  URI: 'https://mychips.org/invoice?base64EncodedJSON'  
   JSON:
 ```
   {invoice: {

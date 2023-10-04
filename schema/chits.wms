@@ -266,7 +266,7 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
         elsif (not new.request isnull) and (new.request is distinct from old.request) then
             dirty = true;
         end if;
-raise notice 'Chit update:% send:%', dirty, new.chain_send;
+--raise notice 'Chit update:% send:%', dirty, new.chain_send;
         if dirty then				-- Communicate chit message
           perform mychips.chit_notify_agent(new);
         end if;

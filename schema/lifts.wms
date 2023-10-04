@@ -35,6 +35,7 @@ table mychips.lifts {mychips mychips.tallies} {
   , request	text		constraint "!mychips.lifts:IVR" check(request isnull or request in ('init','seek','call','relay','found','term','check','good','void'))
   , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','init','seek','call','found','pend','good','void'))
   , tallies	uuid[]		not null
+  , signs	int[]		not null default '{}'::int[] check (array_length(tallies,1) = array_length(signs,1))
   , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
   , circuit	boolean		not null default true
 
@@ -58,6 +59,7 @@ function mychips.lifts_tf_bi() {mychips.lift_json(mychips.lifts) mychips.j2h(jso
   returns trigger language plpgsql security definer as $$
     declare
       trec	record;
+      i		int;
     begin
         if new.lift_uuid isnull then
           new.lift_uuid = uuid_generate_v4();	-- Random, agent can change it on init phase
@@ -70,6 +72,14 @@ function mychips.lifts_tf_bi() {mychips.lift_json(mychips.lifts) mychips.j2h(jso
           if new.life isnull then
             new.life = base.parm('lifts', 'life', '2 minutes'::text)::interval;
           end if;
+        end if;
+        
+        if array_length(new.signs,1) != array_length(new.tallies,1) then
+          for i in array_lower(new.tallies,1) .. array_upper(new.tallies,1) loop
+            if new.signs[i] is null then
+              new.signs[i] = -1;
+            end if;
+          end loop;
         end if;
 
         new.digest = mychips.j2h(mychips.lift_json(new));
@@ -132,17 +142,22 @@ function {mychips.lift_chitcheck(lf mychips.lifts)} {mychips.lifts} {
       uuid	uuid;
       stat	text = case when lf.status = 'good' then 'good' else 'pend' end;
       rows	int;
+      i		int;
+      sign	int;
     begin
 
---raise notice 'Chit check:% uuid:% seq:% stat:%', lf.units, lf.lift_uuid, lf.lift_seq, stat;
-      foreach uuid in array lf.tallies loop
---raise notice '  tally uuid:%', uuid;
+raise notice 'Chit check:% uuid:% seq:% stat:%', lf.units, lf.lift_uuid, lf.lift_seq, stat;
+      for i in array_lower(lf.tallies,1) .. array_upper(lf.tallies,1) loop
+        uuid = lf.tallies[i];
+        sign = coalesce(lf.signs[i], -1);
+raise notice '  tally uuid:%', uuid;
         for trec in select * from mychips.tallies where tally_uuid = uuid order by tally_type loop
---raise notice '    %-%: % %-%', trec.tally_ent, trec.tally_seq, trec.tally_type, lf.lift_uuid, lf.lift_seq;
-          insert into mychips.chits (chit_ent, chit_seq, chit_type,
-            chit_uuid, lift_seq, chit_date, status, units
-          ) values (trec.tally_ent, trec.tally_seq, 'lift',
-            lf.lift_uuid, lf.lift_seq, lf.lift_date, stat, -lf.units);
+raise notice '    %-%: % %-%', trec.tally_ent, trec.tally_seq, trec.tally_type, lf.lift_uuid, lf.lift_seq;
+          insert into mychips.chits (
+            chit_ent, chit_seq, chit_type, chit_uuid, lift_seq, chit_date, units, status
+          ) values (
+            trec.tally_ent, trec.tally_seq, 'lift', lf.lift_uuid, lf.lift_seq, lf.lift_date, lf.units * sign, stat
+          );
 
           get diagnostics rows = ROW_COUNT; if rows < 1 then
             raise exception '!mychips.lifts:CIF';
@@ -424,10 +439,11 @@ raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
     end;
 $$;}
 
-# Query the database for possible internal lifts, initiating one or more if needed
+# Query the database for possible internal clearing lifts, initiating one or more if needed
+# Potentially very slow--should not be used when the DB has more than a few users
 #----------------------------------------------------------------
-function {mychips.lift_clear_local(maxNum int = 1)} {mychips.tallies_v_paths base.parm_v} {
-  returns jsonb language plpgsql security definer as $$
+function {mychips.lift_loc_clr(maxNum int = 1)} {mychips.tallies_v_paths base.parm_v} {
+  returns jsonb language plpgsql as $$
     declare
       status	jsonb = '{"done": 0}';
       prec	record;			-- Paths
@@ -435,71 +451,106 @@ function {mychips.lift_clear_local(maxNum int = 1)} {mychips.tallies_v_paths bas
       tstr	text;
       tarr	text[];
       oarr	text[];
-      lift_id	uuid;
       min_units	int default base.parm('lifts','minimum',1);		-- Only do lifts of this size or bigger
       ord_by	text default base.parm('lifts','order','bang desc'::text);	-- How to prioritize lifts to perform
       count	int default 0;
       rows	int;
     begin
-raise notice 'LL0:% % %', maxNum, min_units, ord_by;
+--raise notice 'LC0:% % %', maxNum, min_units, ord_by;
       foreach tstr in array regexp_split_to_array(ord_by, ',') loop
         oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
-raise notice 'LL1 tstr:% el0:%', tstr, oarr[1];
+--raise notice 'LC1 tstr:% el0:%', tstr, oarr[1];
         tarr = array_append(tarr, quote_ident(oarr[1]) || case when oarr[2] = 'desc' then ' desc' else '' end);
       end loop;
       orders = array_to_string(tarr, ', ');
-raise notice 'LL2 orders:%', orders;
+--raise notice 'LC2 orders:%', orders;
 
       while count < maxNum loop			-- Search for internal lifts
-        tstr = 'select uuids, min
+        tstr = 'select uuids, signs, min
           from mychips.tallies_v_paths where circuit and margin <= 0 and 
           min >= $1 order by ' || orders || ' limit 1';
         execute tstr into prec using min_units;		-- Look for the highest priority lift to execute
         get diagnostics rows = ROW_COUNT;
-raise notice 'LL3 rows:% min:% tstr:%', rows, min_units, tstr;
+--raise notice 'LC3 rows:% min:% tstr:%', rows, min_units, tstr;
         if rows < 1 then exit; end if;
 
-        insert into mychips.lifts (lift_type, circuit, status, units, tallies)
-          values ('in', true, 'good', prec.min, prec.uuids);
+        insert into mychips.lifts (lift_type, circuit, status, units, tallies, signs)
+          values ('in', true, 'good', prec.min, prec.uuids, prec.signs);
         count = count + 1;
       end loop;
     return jsonb_set(status, '{done}', count::text::jsonb);
     end;
 $$;}
 
-# Attempt a local linear lift between the specified users
+# Query the database for possible internal clearing lifts for a specified user
+# Faster due to use of more focused search
 #----------------------------------------------------------------
-function {mychips.lift_pay_local(from_id text, to_id text, units int)} {mychips.tallies_find_path(text,text,int,int)} {
-  returns jsonb language plpgsql security definer as $$
+function {mychips.lift_loc_clr_user(id text, maxNum int = 1)} {
+  mychips.tallies_find_paths(text,text,int,int) base.parm_v
+} {
+  returns jsonb language plpgsql as $$
     declare
+      status	jsonb = '{"done": 0}';
+      prec	record;			-- Paths
+      orders	text default 'bang desc';
+      tstr	text;
+      tarr	text[];
+      oarr	text[];
+      min_units	int default base.parm('lifts','minimum',1);		-- Only do lifts of this size or bigger
+      ord_by	text default base.parm('lifts','order','bang desc'::text);	-- How to prioritize lifts to perform
+      count	int default 0;
+      rows	int;
     begin
-raise notice 'LP0:% % %', maxNum, min_units, ord_by;
---      foreach tstr in array regexp_split_to_array(ord_by, ',') loop
---        oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
-raise notice 'LP1 tstr:% el0:%', tstr, oarr[1];
---        tarr = array_append(tarr, quote_ident(oarr[1]) || case when oarr[2] = 'desc' then ' desc' else '' end);
---      end loop;
---      orders = array_to_string(tarr, ', ');
-raise notice 'LL2 orders:%', orders;
+raise notice 'LCU0:% % %', maxNum, min_units, ord_by;
+      foreach tstr in array regexp_split_to_array(ord_by, ',') loop
+        oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
+raise notice 'LCU1 tstr:% el0:%', tstr, oarr[1];
+        tarr = array_append(tarr, quote_ident(oarr[1]) || case when oarr[2] = 'desc' then ' desc' else '' end);
+      end loop;
+      orders = array_to_string(tarr, ', ');
+raise notice 'LCU2 orders:%', orders;
 
---      while count < maxNum loop			-- Search for internal lifts
---        tstr = 'select uuids, min
---          from mychips.tallies_v_paths where circuit and margin <= 0 and 
---          min >= $1 order by ' || orders || ' limit 1';
---        execute tstr into prec using min_units;		-- Look for the highest priority lift to execute
---        get diagnostics rows = ROW_COUNT;
-raise notice 'LL3 rows:% min:% tstr:%', rows, min_units, tstr;
---        if rows < 1 then exit; end if;
---
---        insert into mychips.lifts (lift_type, circuit, status, units, tallies)
---          values ('in', true, 'good', prec.min, prec.uuids);
---        count = count + 1;
---      end loop;
---    return jsonb_set(status, '{done}', count::text::jsonb);
+      while count < maxNum loop			-- Search for internal lifts
+        tstr = 'select uuids, signs, min
+          from mychips.tallies_find_paths($2) where circuit and margin <= 0 and 
+          min >= $1 order by ' || orders || ' limit 1';
+        execute tstr into prec using min_units, id;		-- Look for the highest priority lift to execute
+        get diagnostics rows = ROW_COUNT;
+raise notice 'LCU3 rows:% min:% tstr:%', rows, min_units, tstr;
+        if rows < 1 then exit; end if;
+
+        insert into mychips.lifts (lift_type, circuit, status, units, tallies, signs)
+          values ('in', true, 'good', prec.min, prec.uuids, prec.signs);
+        count = count + 1;
+      end loop;
+      update mychips.users set _lift_check = current_timestamp;
+    return jsonb_set(status, '{done}', count::text::jsonb);
     end;
 $$;}
 
-# Attempt a circular distributed lift
+# Attempt a local linear payment lift between the specified users
+#----------------------------------------------------------------
+function {mychips.lift_loc_pay(from_id text, to_id text, units int)} {
+  mychips.tallies_find_path(text,text,int,int)
+} {
+  returns boolean language plpgsql security definer as $$
+    declare
+      prec	record;			-- Paths
+    begin
+raise notice 'LP0:% % %', from_id, to_id, units;
+
+      select into prec uuids, signs
+        from mychips.tallies_find_path(from_id, to_id, units) limit 1;
+      if found then
+        insert into mychips.lifts (lift_type, circuit, status, units, tallies, signs)
+          values ('in', true, 'good', units, prec.uuids, prec.signs);
+        return true;
+      end if;
+      return false;
+    end;
+$$;}
+
+# Attempt a circular distributed lift (outdated, needs rework)
 #----------------------------------------------------------------
 function {mychips.lift_clear_dist(maxNum int = 1)} {mychips.lifts_v mychips.routes_v_paths mychips.users_v} {
   returns int language plpgsql as $$

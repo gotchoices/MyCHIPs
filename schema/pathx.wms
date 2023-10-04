@@ -13,7 +13,7 @@ mychips.users_v mychips.tallies_v_net
 } {
  returns table (
    inp text, "out" text
- , edges int, ath text[], uuids uuid[], ents text[], seqs int[], signs text[], min int, max int
+ , edges int, ath text[], uuids uuid[], ents text[], seqs int[], signs int[], min int, max int
  , top text, bot text, circuit boolean, found boolean
  , margin numeric, reward numeric
  , nodes int, bang int
@@ -100,28 +100,27 @@ $$;}
 
 # Discover shortest liftable pathway from bot to top by breadth-first iterative search
 #----------------------------------------------------------------
-set tab_list {level int bot text bot_seq int top text top_seq int ath text\[\] uuids uuid\[\]}
+set tab_list {level int bot text bot_seq int top text top_seq int ath text\[\] uuids uuid\[\] signs int\[\]}
 set tab_pairs [lmap {k v} $tab_list {string cat "$k $v"}]	;#puts "T:$tab_pairs"
 set tab_fields [dict keys [dict create {*}$tab_list]]		;#puts "F:$tab_fields"
-
 function {mychips.tallies_find_path(bot_node text, top_node text = '', size int = 0, max_dep int = 10)} {
-mychips.users_v mychips.tallies_v_net
+  mychips.users_v mychips.tallies_v_net
 } {
  returns table (eval(join $tab_pairs ,)) language plpgsql as $$
   declare
     depth int = 1;
   begin
-    drop table if exists queue;	-- Create current/next level table to simulate queue behavior
     create temp table queue (
       id	serial,
       eval(join $tab_pairs ,),
       primary key (level, top, id) include (ath)
     );
     
-    insert into queue(level, bot, top, ath, uuids) values (1, bot_node, top_node, '{}'::text[], '{}'::uuid[]);
+    insert into queue(level, bot, top, ath, uuids, signs) 
+      values (1, bot_node, bot_node, '{}'::text[], '{}'::uuid[], '{}'::int[]);
 
     while exists (select 1 from queue q where q.level = depth) and depth <= max_dep loop
---raise notice '%: Path: %', depth, (select string_agg(array_to_string(cl.path, ','), ';  ') from levels cl where cl.level = depth);
+raise notice '%: b:% ath:%', depth, bot_node, (select string_agg(array_to_string(q.ath, ','), ';  ') from queue q where q.level = depth);
 
       if depth > 1 and exists (        -- If the target node is one of the new paths, return the path
         select 1 from queue q where q.level = depth and q.top = top_node
@@ -132,12 +131,13 @@ mychips.users_v mychips.tallies_v_net
       end if;
 
         -- Insert neighbors into the next level if they haven't been visited
-      insert into queue (level, bot, bot_seq, top, top_seq, ath, uuids)
+      insert into queue (level, bot, bot_seq, top, top_seq, ath, uuids, signs)
         select depth + 1,
           q.bot, coalesce(q.bot_seq, e.tally_seq), 
           e.out, e.tally_seq,
           q.ath || e.out, 
-          q.uuids || e.uuid
+          q.uuids || e.uuid,
+          q.signs || e.sign
         from queue q
         join mychips.tallies_v_net e on e.inp = q.top and e.out <> all(q.ath)
         where q.level = depth and coalesce(e.max, size) >= size;

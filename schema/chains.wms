@@ -40,7 +40,7 @@ function {mychips.chain_consense(ch mychips.chits, ta mychips.tallies)} {
       select into crec * from mychips.chits	-- Find the current end of chain
         where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq
           and chain_idx notnull order by chain_idx desc limit 1;
-raise notice 'Cons T:%-%-% Conf:% Iss:% Units:% Ex:%', ta.tally_ent,ta.tally_seq,ta.tally_type,ta.chain_conf,ch.issuer,ch.units,crec.chain_idx;
+--raise notice 'Cons T:%-%-% Conf:% Iss:% Units:% Ex:%', ta.tally_ent,ta.tally_seq,ta.tally_type,ta.chain_conf,ch.issuer,ch.units,crec.chain_idx;
 
       if found then				-- Already have a chain
         nextIdx = greatest(crec.chain_idx + 1, 1);
@@ -49,7 +49,7 @@ raise notice 'Cons T:%-%-% Conf:% Iss:% Units:% Ex:%', ta.tally_ent,ta.tally_seq
         nextIdx = 1;				-- This will be the first
         prevHash = ta.digest;			-- Begin with hash of the tally
       end if;
-raise notice 'Cons CH: Ix:% nextIdx:% prev:%', ch.chain_idx, nextIdx, prevHash;
+--raise notice 'Cons CH: Ix:% nextIdx:% prev:%', ch.chain_idx, nextIdx, prevHash;
 
       if ch.chain_idx isnull then		-- Use given index
         ch.chain_idx = nextIdx;			-- or our own computed one
@@ -63,14 +63,14 @@ raise notice 'Cons CH: Ix:% nextIdx:% prev:%', ch.chain_idx, nextIdx, prevHash;
         if ch.issuer != ta.tally_type then	-- chit issued by stock
 
           if ch.chain_hash = propHash then	-- did the stock compute the endhash correctly?
-raise notice 'Ack with Stock hash:%', ch.chain_hash;
+--raise notice 'Ack with Stock hash:%', ch.chain_hash;
             ch.chain_send = jsonb_build_object(	-- We are in a trigger handler, update send flag
               'index',	nextIdx,
               'chain',	ch.chain_hash
             );
 
           else					-- stock's hash doesn't look right
-raise notice 'Notify Stock of chits %-% hash:%', propIdx, nextIdx, ch.chain_hash;
+--raise notice 'Notify Stock of chits %-% hash:%', propIdx, nextIdx, ch.chain_hash;
             select into jrec jsonb_agg(json) from (	-- List sequence of chits the stock evidently has wrong
               select json from mychips.chits_v where chain_idx between propIdx and nextIdx
                 and chit_ent = ch.chit_ent and chit_seq = ch.chit_seq order by chain_idx
@@ -81,25 +81,25 @@ raise notice 'Notify Stock of chits %-% hash:%', propIdx, nextIdx, ch.chain_hash
           end if;	-- agree with stock's hash
         end if;		-- chit issued by stock
         ratchet = true;					-- will mark new end of chain
-raise notice 'Chain FOIL: idx:% hash:% prv:%', ch.chain_idx, ch.chain_hash, ch.chain_prev;
+--raise notice 'Chain FOIL: idx:% hash:% prv:%', ch.chain_idx, ch.chain_hash, ch.chain_prev;
 
       else		-- we hold the stock, must conform to foil
         ch.chain_prev = prevHash;
         ch.chain_hash = mychips.j2h(mychips.chit_json_h(ch, ta));
 --raise notice 'H:%', mychips.chit_json_h(ch, ta);
         if ch.issuer != ta.tally_type then	-- If foil issued this chit
-raise notice 'Got foil chit conf:% idx:% hash:%', ta.chain_conf, ch.chain_idx, propHash;
+--raise notice 'Got foil chit conf:% idx:% hash:%', ta.chain_conf, ch.chain_idx, propHash;
           if ch.chain_hash != propHash then	-- Does our hash disagree with what the foil sent?
-raise notice 'Request chits from foil since:% hash:%', ta.chain_conf, ch.chain_hash;
+--raise notice 'Request chits from foil since:% hash:%', ta.chain_conf, ch.chain_hash;
             ch.chain_prev = null;		-- Don't link the chit until we get an ack from foil
             ch.chain_idx = null;
           else					-- We agree with foil's hash
             ratchet = true;			-- Will move confirmation pointer forward
           end if;
         else					-- We (stock) issued this chit
-raise notice 'Assume chit placement at X:% Conf:%', ch.chain_idx, ta.chain_conf;
+--raise notice 'Assume chit placement at X:% Conf:%', ch.chain_idx, ta.chain_conf;
         end if;
-raise notice 'Chain STOCK: idx:% hash:% prv:%', ch.chain_idx, ch.chain_hash, ch.chain_prev;
+--raise notice 'Chain STOCK: idx:% hash:% prv:%', ch.chain_idx, ch.chain_hash, ch.chain_prev;
 
 --        elsif ch.chain_idx >= 1 and ch.chain_idx <= nextIdx then	-- There are existing chits in our way; stock must conform
 --          update mychips.chits set chain_idx = chain_idx + 1,		-- Bump chits that are in my way
@@ -236,7 +236,7 @@ function {mychips.chain_notify_agent(ch mychips.chits)} {mychips.chits} {
             'uuid',	ch.chit_uuid
           )
         );
-raise notice 'Chain notice:% Cmd:% E:% Cid:%', channel, cmd, ch.chit_ent, trec.part_chad->>'cid';
+--raise notice 'Chain notice:% Cmd:% E:% Cid:%', channel, cmd, ch.chit_ent, trec.part_chad->>'cid';
         perform pg_notify(channel, jrec::text);
         return true;
     end;
