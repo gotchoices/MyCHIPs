@@ -37,7 +37,7 @@ const TallyEditView = (props) => {
 
   return (
     <View>
-      <TallyReviewView tally={tally} />
+      <CommonTallyView tally={tally} />
 
       <View style={styles.detailControl}>
         <HelpText
