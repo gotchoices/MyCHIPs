@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, ScrollView, View, TextInput, ActivityIndicator, Text, Alert } from "react-native"
+import { useSelector } from 'react-redux';
+
 import { colors } from "../../../config/constants";
 import Button from "../../../components/Button";
 import useProfile from "../../../hooks/useProfile";
@@ -14,7 +16,7 @@ import HelpText from "../../../components/HelpText";
 const PaymentDetail = (props) => {
   const { tally_uuid, chit_seq, tally_type } = props.route?.params;
   const { wm } = useSocket();
-  const { preferredCurrency } = useProfile();
+  const { preferredCurrency } = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
 

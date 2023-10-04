@@ -1,15 +1,16 @@
 import React, { useEffect } from "react"
 import { Modal, View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { KeyConfig } from "wyseman/lib/crypto";
+import { useSelector } from 'react-redux';
+
 import useSocket from "../../../../hooks/useSocket";
-import useCurrentUser from "../../../../hooks/useCurrentUser";
 import { storePrivateKey, storePublicKey } from "../../../../utils/keychain-store";
 import { updatePublicKey } from "../../../../services/profile";
 
 export const GenerateKeysDialog = ({ visible, onDismiss, onKeySaved, onError }) => {
   const subtle = window.crypto.subtle;
   const { wm } = useSocket();
-  const { user } = useCurrentUser();
+  const { user } = useSelector(state => state.currentUser);
   const user_ent = user?.curr_eid;
 
   const storeKeys = (publicKey, privateKey) => {

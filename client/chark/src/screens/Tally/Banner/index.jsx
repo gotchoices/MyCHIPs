@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, Text, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, Dimensions } from 'react-native';
+import { useSelector } from 'react-redux';
 
 import { colors } from '../../../config/constants';
-import useProfile from '../../../hooks/useProfile';
 import useMessageText from '../../../hooks/useMessageText';
 
 import Header from '../Header';
@@ -10,7 +10,7 @@ import Avatar from '../../../components/Avatar';
 import { ChitIcon, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
 
 const Banner = (props) => {
-  const { avatar, personal } = useProfile();
+  const { avatar, personal } = useSelector(state => state.profile)
   const { messageText } = useMessageText();
   const userTallyText = messageText?.userTallies ?? {};
 

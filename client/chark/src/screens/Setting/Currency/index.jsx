@@ -2,20 +2,22 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View, findNodeHandle } from "react-native"
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSelector, useDispatch } from 'react-redux';
 
 import Button from '../../../components/Button';
 import HelpText from "../../../components/HelpText";
 
 import { colors } from '../../../config/constants';
 import useSocket from "../../../hooks/useSocket";
-import useProfile from "../../../hooks/useProfile";
 import { getCurrency } from '../../../services/currency';
+import { setPreferredCurrency } from '../../../redux/profileSlice';
 
 const Currency = (props) => {
   const [currency, setCurrency] = useState('');
   const [currencies, setCurrencies] = useState([]);
   const { wm } = useSocket();
-  const { preferredCurrency, setPreferredCurrency } = useProfile();
+  const { preferredCurrency } = useSelector(state => state.profile);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     getCurrency(wm).then((data) => {
@@ -30,20 +32,20 @@ const Currency = (props) => {
 
   const onSave = () => {
     if(currency === '') {
-      setPreferredCurrency({
+      dispatch(setPreferredCurrency({
         name: '',
         code: '',
-      })
+      }))
       AsyncStorage.setItem("preferredCurrency", JSON.stringify({ cur_name: '', cur_code: '' }));
       props.onCancel();
       return;
     }
     const found = currencies.find((cur) => cur.cur_code === currency);
     if (found) {
-      setPreferredCurrency({
+      dispatch(setPreferredCurrency({
         name: found?.cur_name,
         code: found?.cur_code,
-      })
+      }))
       AsyncStorage.setItem("preferredCurrency", JSON.stringify(found));
       props.onCancel();
     }

@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useId } from 'react';
 import { View, Linking } from 'react-native'
 import qs from 'query-string';
 import Toast from 'react-native-toast-message';
+import { useSelector } from 'react-redux';
 
 import Tally from '../Tally';
 
 import { parse } from '../../utils/query-string';
 import { getLinkHost } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
-import useCurrentUser from '../../hooks/useCurrentUser';
+import { setPersonal } from '../../redux/profileSlice';
+
 import CenteredModal from '../../components/CenteredModal';
 import UpdateCID from '../UpdateCID';
-import useProfile from '../../hooks/useProfile';
-import { useId } from 'react';
 import { UpdateHoldCert } from '../Tally/TallyPreview/UpdateHoldCert';
-import { useNavigation } from '@react-navigation/native';
 
 const connectionUri = new Set(['connect', 'mychips.org/connect'])
 const tallyUri = new Set(['tally', 'mychips.org/tally'])
@@ -22,8 +21,8 @@ const tallyUri = new Set(['tally', 'mychips.org/tally'])
 const HomeScreen = (props) => {
   const { connectSocket, wm } = useSocket();
   const { ticket } = props.route?.params ?? {};
-  const { user } = useCurrentUser();
-  const { personal, setPersonal } = useProfile();
+  const { user } = useSelector(state => state.currentUser);
+  const { personal } = useSelector(state => state.profile);
 
   const [visible, setVisible] = useState(false);
   const [updateCertVisible, setUpdateCertVisible] = useState(false);
@@ -96,10 +95,10 @@ const HomeScreen = (props) => {
   }
   const onSuccess = (cid) => {
     console.log("CID ==> ", cid);
-    setPersonal({
+    dispatch(setPersonal({
       ...personal,
       cid: cid,
-    });
+    }))
     dismissUpdateDialog();
   }
 

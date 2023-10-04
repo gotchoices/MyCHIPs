@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as Keychain from 'react-native-keychain';
 import notifee, { AndroidImportance } from '@notifee/react-native'
 import { Linking } from 'react-native'
+import { useDispatch } from 'react-redux';
 
 const wm = require('../wyseman')
 import Connect, { headers } from '../connect';
 import SocketContext from '../context/SocketContext';
-import useCurrentUser from '../hooks/useCurrentUser';
 import { query_user } from '../utils/user';
 import { random, getLinkHost } from '../utils/common';
+import { setUser } from '../redux/currentUserSlice';
 
 const initialConnectionBackoff = 1000;
 const maxConnectionBackoff = 11000;
@@ -19,8 +20,8 @@ const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
   const [status, setStatus] = useState('Disconnected');
   const [tallyNegotiation, setTallyNegotiation] = useState(undefined);
+  const dispatch = useDispatch();
 
-  const { setUser } = useCurrentUser();
   const connectTimeout = useRef();
   const connectionBackoffRef = useRef(initialConnectionBackoff); // for exponential backoff 
 
@@ -90,7 +91,7 @@ const SocketProvider = ({ children }) => {
 
         // Query user and set it on the global context
         query_user(wm).then((data) => {
-          setUser(data?.[0]);
+          dispatch(setUser(data?.[0]));
         })
 
         if(cb) {

@@ -1,32 +1,42 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet, FlatList, TouchableWithoutFeedback } from 'react-native';
-import { Buffer } from 'buffer';
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useSelector, useDispatch } from 'react-redux';
 
 import useSocket from '../../hooks/useSocket';
-import useProfile from '../../hooks/useProfile';
 import { round } from '../../utils/common';
-import useCurrentUser from '../../hooks/useCurrentUser';;
-import { fetchTallies, fetchTallyFile } from '../../services/tally';
 import { getCurrency } from '../../services/user';
 import { useUserTalliesText } from '../../hooks/useLanguage';
-import { localStorage } from '../../config/constants';
+import { fetchOpenTallies, fetchImagesByDigest as fetchImages } from '../../redux/openTalliesSlice';
 
 import TallyItem from './TallyItem';
 import TallyHeader from './TallyHeader';
 
 const Tally = (props) => {
-  const { wm, ws } = useSocket();
-  const { user } = useCurrentUser();
-  const { preferredCurrency } = useProfile();
+  const { wm } = useSocket();
+  const dispatch = useDispatch();
+  const { preferredCurrency } = useSelector(state => state.profile);
+  const { imageFetchTrigger, tallies: tallies, imagesByDigest, fetching } = useSelector(state => state.openTallies);
   useUserTalliesText(wm);
 
-  const [loading, setLoading] = useState(false);
-  const [tallies, setTallies] = useState([]);
   const [conversionRate, setConversionRate] = useState(0);
-  const [imagesByDigest, setImagesByDigest] = useState({})  // will be as {[digest]: 'base64'}
 
   const currencyCode = preferredCurrency.code;
+
+  const fetchTallies = () => {
+    if(wm) {
+      dispatch(fetchOpenTallies({ wm }))
+    }
+  }
+
+  useEffect(() => {
+    fetchTallies();
+  }, [wm])
+
+  useEffect(() => {
+    if(wm) {
+      dispatch(fetchImages({ wm }))
+    }
+  }, [wm, imageFetchTrigger])
 
   useEffect(() => {
     if (currencyCode) {
@@ -37,12 +47,6 @@ const Tally = (props) => {
       })
     }
   }, [currencyCode])
-
-  useEffect(() => {
-    if (ws) {
-      _fetchTallies()
-    }
-  }, [ws, user?.curr_eid])
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
@@ -60,41 +64,6 @@ const Tally = (props) => {
 
     return 0;
   }, [totalNet, conversionRate])
-
-
-  const _fetchTallies = () => {
-    setLoading(true);
-    fetchTallies(wm, {
-      fields: ['tally_seq', 'tally_ent', 'net', 'tally_type', 'part_chad', 'part_cert'],
-      where: {
-        status: 'open',
-      }
-    }).then(data => {
-      if (data) {
-        setTallies(data);
-
-        const hashes = [];
-        for(let tally of data) {
-          const digest = tally?.part_cert?.file?.[0]?.digest;
-          const tally_seq = tally?.tally_seq;
-
-          if(digest) {
-            hashes.push({
-              tally_seq,
-              digest,
-            });
-          }
-        }
-
-        // Fetch images by digest
-        fetchImagesByDigest(wm, hashes, setImagesByDigest).catch(console.log)
-      }
-    }).catch(err => {
-      console.log('Error fetching tallies', err)
-    }).finally(() => {
-      setLoading(false);
-    })
-  }
 
   const onItemPress = ({ tally_seq, tally_ent }) => {
     return () => {
@@ -115,7 +84,7 @@ const Tally = (props) => {
       <View style={[styles.item, index === tallies?.length - 1 ? styles.itemLast : null]}>
         <TallyItem
           tally={item}
-          image={imagesByDigest[item?.part_cert?.file?.[0]?.digest]}
+          image={imagesByDigest?.[item?.part_cert?.file?.[0]?.digest]}
           conversionRate={conversionRate} 
           currency={preferredCurrency?.code}
         />
@@ -139,57 +108,10 @@ const Tally = (props) => {
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}
       keyExtractor={(_, index) => index}
-      refreshing={loading}
-      onRefresh={_fetchTallies}
+      refreshing={fetching}
+      onRefresh={fetchTallies}
     />
   )
-}
-
-async function fetchImagesByDigest(wm, hashes, setImagesByDigest) {
-  const promises = [];
-
-  let imagesByDigest = {};
-  try {
-    const storageValue = await AsyncStorage.getItem(localStorage.TallyPictures);
-    imagesByDigest = JSON.parse(storageValue ?? {});
-  } catch(err) {
-    imagesByDigest = {};
-  }
-
-  for(let hash of hashes) {
-    if(hash.digest in imagesByDigest) {
-      continue;
-    }
-
-    promises.push(fetchTallyFile(wm, hash.digest, hash.tally_seq));
-  }
-
-  try {
-    const files = await Promise.all(promises);
-
-    for(let file of files) {
-      const fileData = file?.[0]?.file_data;
-      const file_fmt = file?.[0]?.file_fmt;
-      const digest = file?.[0]?.digest;
-
-      if(fileData) {
-        const base64 = Buffer.from(fileData).toString('base64')
-        const image = `data:${file_fmt};base64,${base64}`;
-        imagesByDigest[digest] = image;
-      }
-    }
-
-    await AsyncStorage.setItem(localStorage.TallyPictures, JSON.stringify(imagesByDigest));
-
-    setImagesByDigest(prev => {
-      return {
-        ...prev,
-        ...imagesByDigest
-      }
-    })
-  } catch(err) {
-    throw err;
-  }
 }
 
 const styles = StyleSheet.create({

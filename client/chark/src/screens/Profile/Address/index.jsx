@@ -1,15 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 
 import { colors } from '../../../config/constants';
-import useProfile from '../../../hooks/useProfile';
 import useMessageText from '../../../hooks/useMessageText';
 
 import AddressItem from './AddressItem';
 import Header from '../Details/Header';
 
 const Address = (props) => {
-  const { addresses } = useProfile();
+  const { addresses } = useSelector(state => state.profile);
   const { messageText } = useMessageText();
   const addrVText = messageText?.addr_v ?? {};
   const addrFlatText = messageText?.addr_v_flat ?? {};

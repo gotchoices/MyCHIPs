@@ -24,7 +24,7 @@ export const getComm = (wm, user_ent) => {
     }
   }
 
-  return request(wm, '_comm_ref', 'select', spec);
+  return request(wm, '_comm_ref' + random(1000), 'select', spec);
 }
 
 export const getPersonal = (wm, user_ent) => {
@@ -159,7 +159,7 @@ export const getFile = (wm, user_ent) => {
     },
   }
 
-  return request(wm, 'get_image' + random(), 'select', spec);
+  return request(wm, 'get_image' + random(1000), 'select', spec);
 }
 
 export const updateCID = (wm, args) => {

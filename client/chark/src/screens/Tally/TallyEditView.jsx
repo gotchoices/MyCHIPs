@@ -11,6 +11,7 @@ import useMessageText from '../../hooks/useMessageText';
 import CommonTallyView from '../Tally/CommonTallyView';
 import HelpText from '../../components/HelpText';
 import CustomButton from '../../components/Button';
+import TallyReviewView from '../TallyReview/TallyReviewView';
 
 const TallyEditView = (props) => {
   const tally = props.tally;

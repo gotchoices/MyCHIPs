@@ -1,15 +1,21 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import talliesReducer from './tallySlice';
+import workingTalliesReducer from './workingTalliesSlice';
 import profileReducer from './profileSlice';
 import languageReducer from './languageSlice';
-import currencyReducer from './currencySlice';
+import currentUserReducer from './currentUserSlice';
+import openTalliesReducer from './openTalliesSlice';
 
 export default configureStore({
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    immutableCheck: false,
+    serializableCheck: false,
+  }),
   reducer: {
     profile: profileReducer,
-    tallies: talliesReducer,
+    workingTallies: workingTalliesReducer,
     language: languageReducer,
-    currency: currencyReducer,
+    currentUser: currentUserReducer,
+    openTallies: openTalliesReducer,
   }
 })

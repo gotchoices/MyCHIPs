@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,14 +6,12 @@ import {
   Text,
 } from 'react-native';
 import { Buffer } from 'buffer';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
-
-import useCurrentUser from '../../hooks/useCurrentUser';
-import useProfile from '../../hooks/useProfile';
+import { uploadAvatar, fetchComm, fetchAddresses } from '../../redux/profileSlice';
 import { useCommunication, useUser, useAddressV, useAddressVFlat } from '../../hooks/useLanguage';
-import { getComm, getAddresses, uploadImage } from '../../services/profile';
 
 import Avatar from './Avatar';
 import Details from './Details';
@@ -22,18 +20,9 @@ import Address from './Address';
 import Spinner from '../../components/Spinner';
 
 const Profile = (props) => {
-  const [loadingAvatar, setLoadingAvatar] = useState(false);
   const { wm } = useSocket();
-
-  const {
-    avatar,
-    setAvatar,
-    communications,
-    personal,
-    setPersonal,
-    setCommunications,
-    setAddresses,
-  } = useProfile();
+  const dispatch = useDispatch();
+  const { avatar, loadingAvatar, communications, personal }  = useSelector(state => state.profile);
 
   // Registering necessary text hooks for current language
   const commText = useCommunication(wm);
@@ -41,18 +30,13 @@ const Profile = (props) => {
   useAddressVFlat(wm);
   useUser(wm);
 
-  const { user } = useCurrentUser();
+  const { user } = useSelector(state => state.currentUser);
   const user_ent = user?.curr_eid;
 
   useEffect(() => {
-    getComm(wm, user_ent).then(data => {
-      setCommunications(data);
-    })
-
-    getAddresses(wm, user_ent).then(data => {
-      setAddresses(data);
-    })
-  }, [])
+    dispatch(fetchComm({ wm, user_ent }))
+    dispatch(fetchAddresses({ wm, user_ent }))
+  }, [wm, user_ent])
 
   const emails = useMemo(() => {
     return communications.filter((comm) => {
@@ -84,17 +68,7 @@ const Profile = (props) => {
       file_cmt: 'Profile',
     };
 
-    setLoadingAvatar(true);
-    uploadImage(wm, payload)
-      .then((response) => {
-        if(response?.file_data64) {
-          setAvatar(`data:${response.fmt};base64,${response.file_data64}`);
-        }
-      })
-      .catch(err => console.log('error', err))
-      .finally(() => {
-        setLoadingAvatar(false);
-      })
+    dispatch(uploadAvatar({ wm, payload }))
   }
 
   return (

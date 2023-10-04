@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, TouchableWithoutFeedback, Text, StyleSheet, Image, Platform, NativeModules, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useSelector } from 'react-redux';
 
 import { colors } from '../../config/constants';
-import useCurrentUser from '../../hooks/useCurrentUser';
-import useProfile from '../../hooks/useProfile';
 import { languageMap } from '../../utils/language';
 import useSocket from '../../hooks/useSocket';
 import { useExchange } from '../../hooks/useLanguage';
@@ -31,23 +29,11 @@ const Setting = (props) => {
   const [isLangModalVisible, setIsLangModalVisible] = useState(false);
   const [isSelectCurrencyVisible, setIsSelectCurrencyVisible] = useState(false);
 
+  const { avatar } = useSelector(state => state.profile);
   const { wm } = useSocket();
   const exchange = useExchange(wm)
 
-  const { user } = useCurrentUser();
-  const user_ent = user?.curr_eid;
-  const {
-    personal,
-    preferredLanguage,
-    preferredCurrency,
-    avatar,
-  } = useProfile();
-
-  // useEffect(() => {
-  //   getPersonal(wm, user_ent).then(data => {
-  //     setPersonal(data);
-  //   });
-  // }, [])
+  const { preferredCurrency, preferredLanguage, personal } = useSelector(state => state.profile)
 
   const onProfilePress = () => {
     props.navigation.navigate('Profile');
