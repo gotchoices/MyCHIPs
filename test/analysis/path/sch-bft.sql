@@ -196,3 +196,156 @@ returns table (
     drop table if exists levels;		-- Cleanup
 end;
 $$;
+
+-- Optimized BFT Version one iteration faster that can also detect cycles
+create or replace function find_target_multi_via_bfto(start_node text, target_node text, minw integer default 0, max_depth integer default 10)
+returns table (
+  id integer,
+  level integer,
+  first text,
+  last text,
+  ath text[],
+  eids int[]
+) language plpgsql as $$
+  declare
+    depth integer := 1;
+  begin
+    drop table if exists levels;	-- Create current/next level table to simulate queue behavior
+    create temp table levels (
+        id serial,
+        level integer,
+        first text,
+        last text,
+        ath text[],
+        eids int[],
+        primary key (level, last, id) include (ath)
+    );
+    
+    insert into levels(level, first, last, ath, eids) values (1, start_node, start_node, '{}'::text[], '{}'::int[]);
+
+    while exists (select 1 from levels l where l.level = depth) and depth <= max_depth loop
+--        RAISE NOTICE '%: Path: %', depth, (select string_agg(array_to_string(cl.path, ','), ';  ') from levels cl where cl.level = depth);
+
+        -- If the target node is one of the new paths, return the path
+        if depth > 1 and exists (
+          select 1 from levels q where q.level = depth and q.last = target_node
+        ) then
+          return query select * from levels q where q.level = depth and q.last = target_node;
+          exit;
+        end if;
+
+        -- Insert neighbors into the next level if they haven't been visited
+        insert into levels(level, first, last, ath, eids)
+          select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
+          from levels cl
+          join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
+          where cl.level = depth and e.w >= minw;
+
+        -- Clean up the current level
+        delete from levels l where l.level = depth;
+
+        depth := depth + 1;
+    end loop;
+
+    drop table if exists levels;		-- Cleanup
+end;
+$$;
+
+create or replace function array_reverse(a anyarray) 
+    returns anyarray language sql as $$
+    select array(
+        select a[i] from generate_subscripts(a, 1) as s (i) order by i desc
+    );
+$$
+
+-- Bidirectional BFT
+create or replace function find_target_bidi_bft(source_node text, target_node text, minw integer default 0, max_depth integer default 10)
+returns table (
+  first text,
+  last text,
+  ath text[],
+  eids int[]
+) language plpgsql as $$
+  declare
+    depth integer := 1;
+  begin
+    drop table if exists source_levels;	-- Create current/next level table to simulate queue behavior
+    create temp table source_levels (
+        id serial,
+        level integer,
+        first text,
+        last text,
+        ath text[],
+        eids int[],
+        primary key (level, last, id)
+    );
+    cluster source_levels using source_levels_pkey;
+    drop table if exists target_levels;	-- Create current/next level table to simulate queue behavior
+    create temp table target_levels (
+        id serial,
+        level integer,
+        first text,
+        last text,
+        ath text[],
+        eids int[],
+        primary key (level, last, id)
+    );
+    cluster target_levels using target_levels_pkey;
+    
+    insert into source_levels(level, first, last, ath, eids) values (1, source_node, source_node, '{}'::text[], '{}'::int[]);
+    insert into target_levels(level, first, last, ath, eids) values (1, target_node, target_node, '{}'::text[], '{}'::int[]);
+
+    while exists (select 1 from source_levels l where l.level = depth) 
+        and exists (select 1 from target_levels l where l.level = depth) 
+        and depth <= max_depth loop
+        RAISE NOTICE '%: Source: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from source_levels cl where cl.level = depth);
+        RAISE NOTICE '%: Target: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from target_levels cl where cl.level = depth);
+
+        -- Look for intersection of prior iteration
+        if depth > 1 then
+            return query select s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath), s.eids || array_reverse(t.eids)
+                    from source_levels s 
+                    join target_levels t on t.last = s.last
+                    where s.level = depth and t.level = depth;
+            if found then
+                exit;
+            end if;
+        end if;
+
+        -- Insert neighbors into source and target sets if they haven't been visited
+        insert into source_levels(level, first, last, ath, eids)
+          select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
+          from source_levels cl
+          join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
+          where cl.level = depth and e.w >= minw;
+
+        -- Clean up the current level - source
+        delete from source_levels l where l.level = depth;
+
+        -- Look for intersection with source step
+        return query select s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath), s.eids || array_reverse(t.eids)
+                from source_levels s 
+                join target_levels t on t.last = s.last
+                where s.level = depth + 1 and t.level = depth;
+        if found then
+            RAISE NOTICE '%.5: Source: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from source_levels cl where cl.level = depth + 1);
+            exit;
+        end if;
+
+        insert into target_levels(level, first, last, ath, eids)
+          select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
+          from target_levels cl
+          join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
+          where cl.level = depth and e.w < minw;
+
+        -- Clean up the current level - target
+        delete from target_levels l where l.level = depth;
+
+        depth := depth + 1;
+    end loop;
+
+    -- Cleanup
+    drop table if exists source_levels;
+    drop table if exists target_levels;
+end;
+$$;
