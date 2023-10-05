@@ -256,7 +256,7 @@ create or replace function array_reverse(a anyarray)
     select array(
         select a[i] from generate_subscripts(a, 1) as s (i) order by i desc
     );
-$$
+$$;
 
 -- Bidirectional BFT
 create or replace function find_target_bidi_bft(source_node text, target_node text, minw integer default 0, max_depth integer default 10)

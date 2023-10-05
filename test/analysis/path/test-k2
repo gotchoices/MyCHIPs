@@ -6,7 +6,7 @@
 : "${edges:=20}"
 
 ./dbcheck $DB
-cat sch-base.sql sch-cache.sql func-cache.sql | psql $DB $USER
+cat sch-base.sql sch-cache.sql func-cache.sql | psql $DB $DBUSER
 
 function prompt() {
   echo -n "${1} "
