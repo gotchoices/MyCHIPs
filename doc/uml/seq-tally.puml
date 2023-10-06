@@ -38,7 +38,7 @@ else Want to counter
 
 else Refuse terms
  subj	->>	subjDB:		Mark tally as refused
- subjDB ->>	propDB:		Send accepted tally
+ subjDB ->>	propDB:		Send rejected tally
  propDB	->>	prop:		Store and notify user
 end
 
