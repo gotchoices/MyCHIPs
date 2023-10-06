@@ -5,7 +5,7 @@ dir="$(basename $(pwd))"
 stddeps="template all.m4"
 
 if [ -z "$1" ]; then			#If no args given
-  set -- index.html privacy.html nokey.html connect tally
+  set -- index.html privacy.html nokey.html connect tally pay
 fi
 
 while [ ! -z "$1" ]; do

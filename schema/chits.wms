@@ -289,7 +289,7 @@ function {mychips.chit_state(isdebit boolean, status text, request text)} {mychi
       case when isdebit then 'A.' else 'L.' end ||
       status ||
       case when request isnull then '' else '.' || request end;
-$$;}
+$$;} -grant mychips
 
 # Compute core chit json that will be signed/validated
 #----------------------------------------------------------------
@@ -305,7 +305,7 @@ function {mychips.chit_json_c(ch mychips.chits, ta mychips.tallies)} {mychips.ch
       'ref',		ch.reference,
       'memo',		ch.memo
     ))
-$$;}
+$$;} -grant mychips
 
 # Compute chit json to be hashed for chit chains
 #----------------------------------------------------------------
@@ -316,7 +316,7 @@ function {mychips.chit_json_h(ch mychips.chits, ta mychips.tallies)} {mychips.ch
       'prior',		ch.chain_prev,
       'signed',		ch.signature
     ))
-$$;}
+$$;} -grant mychips
 
 # Compute chit json to be passed in dialogs
 #----------------------------------------------------------------
@@ -328,7 +328,7 @@ function {mychips.chit_json_r(ch mychips.chits, ta mychips.tallies)} {mychips.ch
       'index',		ch.chain_idx,
       'chain',		ch.chain_hash
     ))
-$$;}
+$$;} -grant mychips
 
 # Base view of chits
 #----------------------------------------------------------------

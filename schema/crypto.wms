@@ -43,7 +43,7 @@ function {mychips.j2s(inp jsonb)} {mychips plpy} {
 #    plpy.notice('j2s:', obj)
     s = json.dumps(obj, separators=(',',':'), sort_keys=True)
     return s
-$$;}
+$$;} -grant public
 
 # Serialize JSON in a deterministic way and hash it
 #----------------------------------------------------------------
@@ -59,14 +59,14 @@ function {mychips.j2h(input jsonb)} {mychips plpy} {
 #    plpy.notice('j2h:', serial)
     hash = hashlib.sha256(serial.encode('utf-8'))
     return hash.digest()
-$$;}
+$$;} -grant public
 
 # Encode to base64 variant RFC4648 S5
 #----------------------------------------------------------------
 function {mychips.ba2b64v(input bytea)} {mychips} {
   returns text language sql immutable as $$
     select translate(encode(input, 'base64'), E'/+=\n', '_-');
-$$;}
+$$;} -grant public
 
 # Decode base64 variant RFC4648 S5
 #----------------------------------------------------------------
@@ -77,7 +77,7 @@ function {mychips.b64v2ba(input text)} {mychips} {
         '=', mod(4 - mod(char_length(input)::numeric, 4.0)::int, 4)	-- Pad to modulo 4 length
       ), 'base64'
     )
-$$;}
+$$;} -grant public
 
 # Encode binary data as base58 - Obsolete?
 #----------------------------------------------------------------
@@ -96,7 +96,7 @@ function {mychips.ba2b58(input bytea)} {mychips plpy} {
         num, rem = divmod(num, 58)
         encoding = alphabet[rem] + encoding
       return encoding
-$$;}
+$$;} -grant public
 
 # Decode base58 to binary - Obsolete?
 #----------------------------------------------------------------
@@ -113,7 +113,7 @@ function {mychips.b582ba(input text)} {mychips} {
     for char in input:
       num = num * 58 + alphabet.index(char)
     return num.to_bytes((num.bit_length() + 7) // 8, 'big')
-$$;}
+$$;} -grant public
 
 #Can't find good v8 support for Fedora
 #other plv8 {} {create extension "plv8"} {drop extension if exists "plv8"}

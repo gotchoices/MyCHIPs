@@ -287,7 +287,7 @@ function {mychips.tally_json(te mychips.tallies)} {mychips.tallies} {
          'terms',	te.part_terms
        )
     )
-$$;}
+$$;} -grant mychips
 
 # Compute current state of a tally, based on its various fields
 #----------------------------------------------------------------
@@ -302,7 +302,7 @@ function {mychips.tally_state(status text, request text, hold_sig text, part_sig
       status ||
       case when request isnull then '' else '.' || request end;
     end;
-$$;}
+$$;} -grant mychips
 
 # Base view of tallies
 #----------------------------------------------------------------

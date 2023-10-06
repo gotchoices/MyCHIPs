@@ -1,24 +1,12 @@
 TODO:
 
 - Pathway Analysis
-X-  Test cache table for pathways
-X-  Can dynamically search well enough for local linear lifts?
-X-  Implement local search procedure based on single user/amount/limit
-X-  Can/should we still cache local circuits (no)?
-X-  Review/refine receive/pay procedure for local linear lifts
-X-  Define API for app
-X-  Build  function for generating local payment lift
-X-  Build functions for generating local clearing lifts by user
-X-  Regression tests work again
--  Turn back on clearing lift generator on mychips.net
--  
--  Build control report for issuing payment request invoice
--  Test in web UI
+X-  Build control report for issuing payment request invoice
+X-  Test in web UI
 -  Build ticket for IW to implement invoice generator
 -  Build query/function with user permission for seeking available paths
 -  Build query/function with user permission for inserting linear lift request
 -  
-
 X- Simulator
 X-  Update docker compose methods and documents for mac-only runs
 X-  realpath not found on mac
