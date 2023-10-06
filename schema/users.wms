@@ -18,6 +18,7 @@ schema mychips {} -grant mychips
 other lockdown {mychips} {
   revoke all on schema public from public;
   grant all on schema public to subst($mychips::adminuser);
+  revoke execute on all functions in schema mychips from public;
 } {
   grant create, usage on schema public to public;
 }
@@ -49,6 +50,7 @@ table mychips.users {base.ent mychips.agents} {
   , peer_named	text
   
   , user_cmt	varchar
+  , _lift_check	timestamp	not null default current_timestamp
   , _last_tally	int		not null default 0
     eval(s $glob::stamps)
 }

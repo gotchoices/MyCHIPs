@@ -12,6 +12,7 @@ tabtext mychips.lifts	{Lifts}		{Contains a record for each group of chits in a s
   {request	{Request}		{The state transition algorithm for lifts responds to transition requests entered into this field.}}
   {status	{Status}		{The status field indicates what has been done and what needs to happen next, if anything}}
   {tallies	{Tallies}		{An array of the tally global ID's in between the users/peers in our local segment path}}
+  {signs	{Lift/Drops}		{An array of integers showing whether the lift will be from stock-to-foil (-1) or from foil-to-stock (1)}}
   {circuit	{Circuit User}		{For circular lifts, this is the bottom local user in our local segment.  It will be the entity to complete the circle.  For linear lifts, this field is null.}}
   {units	{Units}			{The amount of the lift transaction, as measured in milli-CHIPs (1/1,000)}}
   {lift_date	{Lift Date}		{The date/time the lift was originated}}

@@ -61,12 +61,12 @@ describe("Peer-to-peer lift testing", function() {
   })
 
   it("Search/create new circuit lift request", function(done) {
-    let sql = `select mychips.lift_dist();`
+    let sql = `select mychips.lift_clear_dist();`
       , dc = 5, _done = () => {if (!--dc) done()}	//_done's to be done
 //log.debug("Sql:", sql)
     dbL.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("Q res:", res.rows[0])
       let row = getRow(res, 0)
-      assert.equal(row.lift_dist, 1)
+      assert.equal(row.lift_clear_dist, 1)
       _done()
     })
     busL.register('pl', (msg) => {		//log.debug("L msg:", msg)

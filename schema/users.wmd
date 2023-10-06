@@ -75,6 +75,13 @@ mychips.users_v_me:
       {tag: curr, input: ent, special: scm, data: currency},
       {tag: format, input: pdm, values: [html, json]}
     ]}
+  - name: invoice
+    render: html
+    options:
+    - {tag: units, input: text}
+    - {tag: ref, input: text}
+    - {tag: memo, input: text}
+    - {tag: format, input: pdm, values: [qr, link, json]}
 
 mychips.users_v_flat:
   display: [id, user_cid, std_name, bill_addr, bill_city, bill_state]

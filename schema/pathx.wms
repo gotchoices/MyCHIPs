@@ -13,10 +13,10 @@ mychips.users_v mychips.tallies_v_net
 } {
  returns table (
    inp text, "out" text
- , edges int, ath text[], uuids uuid[], ents text[], seqs int[], signs int[], min int, max int
+ , edges int, ath text[], uuids uuid[], ents text[], seqs int[], signs int[], min bigint, max bigint
  , top text, bot text, circuit boolean, found boolean
  , margin numeric, reward numeric
- , nodes int, bang int
+ , nodes int, bang bigint
  , fori boolean, foro boolean, segment boolean
  , path text[], at text[], pat text[]
  , top_seq int, top_uuid uuid

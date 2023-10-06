@@ -490,18 +490,18 @@ function {mychips.lift_loc_clr_user(id text, maxNum int = 1)} {
 } {
   returns jsonb language plpgsql as $$
     declare
-      status	jsonb = '{"done": 0}';
+      status	jsonb = jsonb_build_object('done', 0, 'id', id);
       prec	record;			-- Paths
-      orders	text default 'bang desc';
+      orders	text = 'bang desc';
       tstr	text;
       tarr	text[];
       oarr	text[];
-      min_units	int default base.parm('lifts','minimum',1);		-- Only do lifts of this size or bigger
-      ord_by	text default base.parm('lifts','order','bang desc'::text);	-- How to prioritize lifts to perform
-      count	int default 0;
+      min_units	int = base.parm('lifts','minimum',1);		-- Only do lifts of this size or bigger
+      ord_by	text = base.parm('lifts','order','bang desc'::text);	-- How to prioritize lifts to perform
+      count	int = 0;
       rows	int;
     begin
-raise notice 'LCU0:% % %', maxNum, min_units, ord_by;
+raise notice 'LCU0:% % % %', maxNum, min_units, ord_by, id;
       foreach tstr in array regexp_split_to_array(ord_by, ',') loop
         oarr = regexp_split_to_array(btrim(tstr), E'\\s+');
 raise notice 'LCU1 tstr:% el0:%', tstr, oarr[1];
@@ -523,22 +523,41 @@ raise notice 'LCU3 rows:% min:% tstr:%', rows, min_units, tstr;
           values ('in', true, 'good', prec.min, prec.uuids, prec.signs);
         count = count + 1;
       end loop;
-      update mychips.users set _lift_check = current_timestamp;
+      update mychips.users set _lift_check = current_timestamp where user_ent = id;
     return jsonb_set(status, '{done}', count::text::jsonb);
     end;
 $$;}
 
+# Try to do a clearing lift for the next queued user
+#----------------------------------------------------------------
+function {mychips.lift_next_user(maxNum int = 1)} {
+  mychips.lift_loc_clr_user(text,int)
+} {
+  returns jsonb language plpgsql as $$
+    declare
+      trec	record;
+    begin
+      select into trec user_ent,_lift_check,crt_date from mychips.users u where exists (
+        select 1 from mychips.tallies_v where tally_ent = u.user_ent and liftable
+      ) order by _lift_check,crt_date limit 1;
+      if found then
+        return mychips.lift_loc_clr_user(trec.user_ent, maxNum);
+      else
+        return null;
+      end if;
+    end;
+$$;}
+  
 # Attempt a local linear payment lift between the specified users
 #----------------------------------------------------------------
 function {mychips.lift_loc_pay(from_id text, to_id text, units int)} {
   mychips.tallies_find_path(text,text,int,int)
 } {
-  returns boolean language plpgsql security definer as $$
+  returns boolean language plpgsql as $$
     declare
       prec	record;			-- Paths
     begin
 raise notice 'LP0:% % %', from_id, to_id, units;
-
       select into prec uuids, signs
         from mychips.tallies_find_path(from_id, to_id, units) limit 1;
       if found then

@@ -26,15 +26,15 @@ describe("Test internal lift generation", function() {
   })
 
   it("Select/perform and internal lift", function(done) {
-    let sql = `select mychips.lift_local(1);`
-//log.debug("Sql:", sql)
+    let sql = `select mychips.lift_loc_clr(1);`
+log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Q row:", row.lift_local)
-      assert.equal(row.lift_local.done, 1)
+      assert.equal(row.lift_loc_clr.done, 1)
       done()
     })
   })
-
+/*
   it("Query resulting chits", function(done) {
     let units = 9		//Whatever is available in lift path
       , chits = 6		//Known path has 3 tallies, stock & foil

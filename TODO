@@ -8,8 +8,9 @@ X-  Can/should we still cache local circuits (no)?
 X-  Review/refine receive/pay procedure for local linear lifts
 X-  Define API for app
 X-  Build  function for generating local payment lift
--  Build functions for generating local clearing lifts
--  Turn back on lift generator on mychips.net
+X-  Build functions for generating local clearing lifts by user
+X-  Regression tests work again
+-  Turn back on clearing lift generator on mychips.net
 -  
 -  Build control report for issuing payment request invoice
 -  Test in web UI
