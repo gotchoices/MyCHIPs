@@ -261,14 +261,16 @@ $$;
 -- Bidirectional BFT
 create or replace function find_target_bidi_bft(source_node text, target_node text, minw integer default 0, max_depth integer default 10)
 returns table (
-  first text,
-  last text,
-  ath text[],
-  eids int[]
+    slevel int,
+    tlevel int,
+    first text,
+    last text,
+    ath text[],
+    eids int[]
 ) language plpgsql as $$
-  declare
+declare
     depth integer := 1;
-  begin
+begin
     drop table if exists source_levels;	-- Create current/next level table to simulate queue behavior
     create temp table source_levels (
         id serial,
@@ -295,18 +297,18 @@ returns table (
     insert into source_levels(level, first, last, ath, eids) values (1, source_node, source_node, '{}'::text[], '{}'::int[]);
     insert into target_levels(level, first, last, ath, eids) values (1, target_node, target_node, '{}'::text[], '{}'::int[]);
 
-    while exists (select 1 from source_levels l where l.level = depth) 
-        and exists (select 1 from target_levels l where l.level = depth) 
+    while exists (select 1 from source_levels l where l.level = depth)
+        or exists (select 1 from target_levels l where l.level = depth) -- as long as we're making progress on one side or the other
         and depth <= max_depth loop
-        RAISE NOTICE '%: Source: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from source_levels cl where cl.level = depth);
-        RAISE NOTICE '%: Target: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from target_levels cl where cl.level = depth);
+        --RAISE NOTICE '%: Source: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from source_levels cl where cl.level = depth);
+        --RAISE NOTICE '%: Target: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from target_levels cl where cl.level = depth);
 
         -- Look for intersection of prior iteration
         if depth > 1 then
-            return query select s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath), s.eids || array_reverse(t.eids)
+            return query 
+                select s.level, t.level, s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath) || t.first, s.eids || array_reverse(t.eids)
                     from source_levels s 
-                    join target_levels t on t.last = s.last
-                    where s.level = depth and t.level = depth;
+                    join target_levels t on t.last = s.last;
             if found then
                 exit;
             end if;
@@ -314,32 +316,28 @@ returns table (
 
         -- Insert neighbors into source and target sets if they haven't been visited
         insert into source_levels(level, first, last, ath, eids)
-          select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
-          from source_levels cl
-          join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
-          where cl.level = depth and e.w >= minw;
+            select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
+                from source_levels cl
+                join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
+                where cl.level = depth and e.w >= minw;
 
-        -- Clean up the current level - source
-        delete from source_levels l where l.level = depth;
-
-        -- Look for intersection with source step
-        return query select s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath), s.eids || array_reverse(t.eids)
-                from source_levels s 
-                join target_levels t on t.last = s.last
-                where s.level = depth + 1 and t.level = depth;
         if found then
-            RAISE NOTICE '%.5: Source: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from source_levels cl where cl.level = depth + 1);
-            exit;
+            -- Look for intersection with source step
+            return query 
+                select s.level, t.level, s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath) || t.first, s.eids || array_reverse(t.eids)
+                    from source_levels s 
+                    join target_levels t on t.last = s.last;
+            if found then
+                --RAISE NOTICE '%.5: Source: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from source_levels cl where cl.level = depth + 1);
+                exit;
+            end if;
         end if;
 
         insert into target_levels(level, first, last, ath, eids)
-          select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
-          from target_levels cl
-          join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
-          where cl.level = depth and e.w < minw;
-
-        -- Clean up the current level - target
-        delete from target_levels l where l.level = depth;
+            select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
+                from target_levels cl
+                join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
+                where cl.level = depth and e.w < minw;
 
         depth := depth + 1;
     end loop;
