@@ -152,7 +152,7 @@ If the debtor wants to close the tally sooner, he will have to figure out how to
 
 Now we can derive the following state diagram to describe the tally protocol from the perspective of a single entity:
 
-[![state-tally](uml/state-tally.svg)](uml/state-tally-minimal.svg)
+[![state-tally](uml/state-tally-minimal.svg)](uml/state-tally-minimal.svg)
 
 ### UI Interpretation of Tally States
 The tally state is a combination of [type, status and request](learn-message.md#state-codes).
