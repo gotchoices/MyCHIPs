@@ -308,7 +308,8 @@ begin
             return query 
                 select s.level, t.level, s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath) || t.first, s.eids || array_reverse(t.eids)
                     from source_levels s 
-                    join target_levels t on t.last = s.last;
+                    join target_levels t on t.last = s.last
+                    where s.level = depth and t.level = depth;
             if found then
                 exit;
             end if;
@@ -326,18 +327,23 @@ begin
             return query 
                 select s.level, t.level, s.first, t.first, s.ath[1:array_upper(s.ath, 1) - 1] || array_reverse(t.ath) || t.first, s.eids || array_reverse(t.eids)
                     from source_levels s 
-                    join target_levels t on t.last = s.last;
+                    join target_levels t on t.last = s.last
+                    where s.level = depth + 1 and t.level = depth;
             if found then
                 --RAISE NOTICE '%.5: Source: %', depth, (select string_agg(cl.first || ',' || array_to_string(cl.ath, ','), ';  ') from source_levels cl where cl.level = depth + 1);
                 exit;
             end if;
         end if;
 
+        delete from source_levels where level = depth;
+
         insert into target_levels(level, first, last, ath, eids)
             select distinct depth + 1, cl.first, e.out, cl.ath || e.out, cl.eids || e.eid
                 from target_levels cl
                 join edges_both e on e.inp = cl.last and e.out <> all(cl.ath)
                 where cl.level = depth and e.w < minw;
+
+        delete from target_levels where level = depth;
 
         depth := depth + 1;
     end loop;
