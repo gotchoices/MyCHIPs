@@ -47,7 +47,7 @@ function {mychips.contract_json(c mychips.contracts)} {mychips.contracts} {
       , 'text',		c.text
       , 'sections',	c.sections
     ))
-$$;}
+$$;} -grant mychips
 
 #Basic view
 #----------------------------------------------------------------
@@ -127,7 +127,7 @@ function {mychips.contract_mat(contract jsonb)} {mychips.contracts_v} {
     end loop;
     return newObj;
   end;
-$$;}
+$$;} -grant mychips
 
 # Return the contract associated with the contract field from a tally
 #----------------------------------------------------------------
@@ -158,7 +158,7 @@ raise notice 'tc2: % % %', chost, source, found;
       end if;
       return rcont;
     end;
-$$;}
+$$;} -grant mychips
 
 # Update contracts in an orderly way (should really do this in the permissioned view)
 #----------------------------------------------------------------
