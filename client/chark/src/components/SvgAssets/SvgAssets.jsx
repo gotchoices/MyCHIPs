@@ -25,11 +25,11 @@ import ICSwitchSelected from "../../../assets/svg/ic_switch_selected.svg";
 import ICSwithUnselected from "../../../assets/svg/ic_switch_unselected.svg";
 
 import ICSwap from "../../../assets/svg/swap.svg";
-
 import ICUpArrow from "../../../assets/svg/ic_up_arrow.svg";
 import ICDownArrow from "../../../assets/svg/ic_down_arrow.svg";
 import ICLeftArrow from "../../../assets/svg/ic_left_arrow.svg";
 import ICRightArrow from "../../../assets/svg/ic_right_arrow.svg";
+import ICNotification from '../../../assets/svg/ic_notification.svg';
 
 import { colors } from "../../config/constants";
 
@@ -72,7 +72,9 @@ export const ArrowForwardIcon = ({ color }) => (
   <ICArrowForward color={color ?? "#EAEAEA"} />
 );
 
-export const VisualIcon = () => <ICVisual />;
+export const VisualIcon = () => <ICVisual color={colors.black} />
+
+export const NotificationIcon = () => <ICNotification color={colors.black} />
 
 export const SearchIcon = ({ size }) => (
   <ICSearch height={size ?? 18} width={size ?? 18} />

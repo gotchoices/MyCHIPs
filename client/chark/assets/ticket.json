@@ -1,1 +1,9 @@
-{"ticket":{"token":"312fdb23e7a654519f3f6e7e1d882c4b","expires":"2022-12-14T05:53:30.000Z","host":"lux1.batemans.org","port":1025,"user":"p1011"}}
+{
+  "ticket": {
+    "token": "6508e6d0ed1049c54f1872044942782a",
+    "expires": "2023-09-23T17:23:11.000Z",
+    "host": "mychips.net",
+    "port": 1025,
+    "user": "p1056"
+  }
+}
