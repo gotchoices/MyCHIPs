@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   TextInput,
+  TouchableWithoutFeedback,
+  Button,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import moment from 'moment'
+
+import HelpText from '../../components/HelpText';
+import TallyReviewView from '../TallyReview/TallyReviewView';
+import CertificateInformation from './CertificateInformation';
+
+import EyeIcon from '../../../assets/svg/eye_icon.svg';
 import { colors } from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
-
-import CommonTallyView from '../Tally/CommonTallyView';
-import HelpText from '../../components/HelpText';
-import CustomButton from '../../components/Button';
-import TallyReviewView from '../TallyReview/TallyReviewView';
 
 const TallyEditView = (props) => {
   const tally = props.tally;
@@ -33,42 +38,66 @@ const TallyEditView = (props) => {
   const partTermsText = messageText?.terms_lang?.part_terms?.values;
   const hasPartCert = !!tally?.part_cert;
   const hasHoldCert = !!tally?.hold_cert;
-  const isCertUpdateable = tally?.status === 'draft';
+
+  const partName= Object.values((tally.part_cert?.name ?? {})).join(' ')
+  const partChipAddress = hasPartCert ? `${tally.part_cert?.chad?.cid ?? ''}-${tally.part_cert?.chad?.agent ?? ''}` : '';
+  const partEmail = useMemo(() => {
+    if(hasPartCert) {
+      const found = (tally.part_cert?.connect ?? []).find(connect => connect.media === 'email')
+      return found?.address ?? ''
+    }
+
+    return '';
+  }, [hasPartCert, tally.part_cert?.connect])
+
+  const holdName= Object.values((tally.hold_cert ?.name ?? {})).join(' ')
+  const holdChipAddress = hasHoldCert ? `${tally.hold_cert?.chad?.cid ?? ''}-${tally.hold_cert?.chad?.agent ?? ''}` : '';
+  const holdEmail = useMemo(() => {
+    if(hasHoldCert) {
+      const found = (tally.hold_cert?.connect ?? []).find(connect => connect.media === 'email')
+      return found?.address ?? ''
+    }
+
+    return '';
+  }, [hasHoldCert, tally.hold_cert?.connect])
+
+
+  const onViewCertificate= (data) => {
+    return () => props.navigation.navigate("TallyCertificate", { data });
+  }
 
   return (
-    <View>
-      <CommonTallyView tally={tally} />
+    <View style={{ paddingHorizontal: 10 }}>
+      <TallyReviewView 
+        tallyType={tallyType}
+        setTallyType={setTallyType}
+        partTerms={partTerms}
+        holdTerms={holdTerms}
+        partCert={tally?.part_cert ?? {}}
+        holdCert={tally?.hold_cert ?? {}}
+        onHoldTermsChange={onHoldTermsChange}
+        onPartTermsChange={onPartTermsChange}
+      />
 
       <View style={styles.detailControl}>
-        <HelpText
-          label={talliesText?.tally_type?.title ?? ''}
-          helpText={talliesText?.tally_type?.help}
-          style={styles.headerText}
-        />
+        <View style={styles.contractLabel}>
+          <HelpText
+            label={talliesText?.contract?.title ?? ''}
+            helpText={talliesText?.contract?.help}
+          />
 
-        <Picker
-          mode="dropdown"
-          selectedValue={tallyType}
-          style={styles.input}
-          onValueChange={(item) => {
-            setTallyType(item)
-          }}
+        <TouchableWithoutFeedback
+          onPress={props.onViewContract}
+          style={{ marginBottom: 8 }}
         >
-          <Picker.Item label="Stock" value="stock" />
-          <Picker.Item label="Foil" value="foil" />
-        </Picker>
-      </View>
+          <EyeIcon style={{ marginLeft: 8, marginBottom: 8 }}/>
+        </TouchableWithoutFeedback>
 
-      <View style={styles.detailControl}>
-        <HelpText
-          label={talliesText?.contract?.title ?? ''}
-          helpText={talliesText?.contract?.help}
-          style={styles.headerText}
-        />
+        </View>
 
         <Picker
           mode="dropdown"
-          style={styles.input}
+          style={{ backgroundColor: colors.gray5 }}
           selectedValue={contract}
           onValueChange={(item) => {
             setContract(item)
@@ -82,151 +111,32 @@ const TallyEditView = (props) => {
           }
         </Picker>
 
-        <CustomButton
-          title="Show PDF"
-          onPress={props.onViewContract}
-          textColor={colors.blue}
-          style={styles.showPDF}
-        />
+        {hasPartCert && (
+            <CertificateInformation
+              title={'Partner Certificate Information'}
+              name={partName}
+              chipAddress={partChipAddress}
+              email={partEmail}
+              onViewDetails={onViewCertificate({ title: 'Partner Certificate', ...(tally?.part_cert ?? {} ) })}
+            />
+        )}
 
-        {
-          isCertUpdateable ? <CustomButton
-            title="Update Certificate"
-            onPress={props.onUpdateContract}
-            textColor={colors.blue}
-            style={styles.showPDF}
-          /> : <></>
-        }
+        {!!tally?.hold_cert && (
+            <CertificateInformation
+              title={'My Certificate Information'}
+              name={holdName}
+              chipAddress={holdChipAddress}
+              email={holdEmail}
+              onViewDetails={onViewCertificate({ title: 'My Certificate', ...(tally?.hold_cert ?? {} ) })}
+            />
+        )}
 
-        {
-          hasPartCert ? <CustomButton
-            title="View Partner Certificate"
-            onPress={() => props.onViewCertificate({ title: 'Partner Certificate', data: tally?.part_cert })}
-            textColor={colors.blue}
-            style={styles.showPDF}
-          /> : <></>
-        }
-
-        {
-          hasHoldCert ? <CustomButton
-            title="View Holder Certificate"
-            onPress={() => props.onViewCertificate({ title: 'Holder Certificate', data: tally?.hold_cert })}
-            textColor={colors.blue}
-            style={styles.showPDF}
-          /> : <></>
-        }
-      </View>
-
-      <View style={styles.detailControl}>
-        <HelpText
-          label={talliesText?.hold_terms?.title ?? ''}
-          helpText={talliesText?.hold_terms?.help}
-          style={styles.headerText}
-        />
-
-        {
-          holdTermsText?.map((holdTerm, index) => {
-            return <View key={`${holdTerm?.value}${index}`} style={{ marginVertical: 10 }}>
-              <HelpText
-                label={holdTerm?.title ?? ''}
-                helpText={holdTerm?.help}
-                style={styles.h5}
-              />
-
-              <TextInput
-                keyboardType='numeric'
-                style={styles.input}
-                value={holdTerms?.[holdTerm?.value]}
-                // value={holdTerms?.limit}
-                onChangeText={onHoldTermsChange(holdTerm?.value)}
-              />
-            </View>
-          })
-        }
-
-        {/*  <View style={{ marginVertical: 10 }}>
-          <CustomText as="h5">
-            Limit
-          </CustomText>
-
-          <TextInput
-            keyboardType='numeric'
-            style={styles.input}
-            value={holdTerms?.limit}
-            onChangeText={onHoldTermsChange('limit')}
-          />
-        </View>
-
-        <View>
-          <CustomText as="h5">
-            Call
-          </CustomText>
-
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={holdTerms?.call}
-            onChangeText={onHoldTermsChange('call')}
-          />
-        </View> */}
-      </View>
-
-      <View style={styles.detailControl}>
-        <HelpText
-          label={talliesText?.part_terms?.title ?? ''}
-          helpText={talliesText?.part_terms?.help}
-          style={styles.headerText}
-        />
-        {
-          partTermsText?.map((partTerm, index) => {
-            return <View key={`${partTerm?.value}${index}`} style={{ marginVertical: 10 }}>
-              <HelpText
-                label={partTerm?.title ?? ''}
-                helpText={partTerm?.help}
-                style={styles.h5}
-              />
-
-              <TextInput
-                keyboardType='numeric'
-                style={styles.input}
-                value={partTerms?.[partTerm?.value]}
-                onChangeText={onPartTermsChange(partTerm?.value)}
-              />
-            </View>
-          })
-        }
-        {/* <View style={{ marginVertical: 10 }}>
-          <CustomText as="h5">
-            Limit
-          </CustomText>
-
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={partTerms?.limit}
-            onChangeText={onPartTermsChange('limit')}
-          />
-        </View>
-
-        <View>
-          <CustomText as="h5">
-            Call
-          </CustomText>
-
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={partTerms?.call}
-            onChangeText={onPartTermsChange('call')}
-          />
-        </View> */}
       </View>
 
       <View style={styles.detailControl}>
         <HelpText
           label={talliesText?.comment?.title ?? ''}
           helpText={talliesText?.comment?.help}
-          style={styles.headerText}
         />
 
         <TextInput
@@ -237,6 +147,27 @@ const TallyEditView = (props) => {
           onChangeText={setComment}
         />
       </View>
+
+      <View style={styles.detailControl}>
+        <HelpText
+          label={talliesText?.tally_uuid?.title ?? ''}
+          helpText={talliesText?.tally_uuid?.help}
+        />
+
+        <Text style={styles.inputValue}>
+          {tally.tally_uuid}
+        </Text>
+      </View>
+
+      <View style={styles.detailControl}>
+        <HelpText
+          label={talliesText?.tally_date?.title ?? ''}
+          helpText={talliesText?.tally_date?.help}
+        />
+        <Text style={styles.inputValue}>
+          {moment(tally.tally_date).format('MM/DD/YYYY,hh:mm')} 
+        </Text>
+      </View>
     </View>
   )
 }
@@ -245,9 +176,35 @@ const styles = StyleSheet.create({
   detailControl: {
     marginVertical: 10
   },
+  contractLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   input: {
     padding: 10,
-    backgroundColor: colors.gray100,
+    borderColor: colors.gray,
+    borderWidth: 1,
+    borderRadius: 5,
+    backgroundColor: colors.white,
+  },
+  certInfoWrapper: {
+    backgroundColor: '#f2f2f2',
+    borderWidth: 1,
+    borderColor: '#dfdfdf',
+    borderRadius: 8,
+    padding: 16,
+  },
+  certInfo: {
+    marginBottom: 12,
+  },
+  certInfoLabel: {
+    fontSize: 11,
+    marginBottom: 0,
+    color: '#636363',
+  },
+  certOtherDetails: {
+    color: '#155CEF',
+    textDecorationLine: 'underline',
   },
   comment: {
     textAlignVertical: 'top',
@@ -269,6 +226,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: 'bold',
   },
+  inputValue: {
+    color: 'black',
+    fontSize: 12,
+  }
 })
 
 export default TallyEditView;
+

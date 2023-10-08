@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import { fetchTallies } from '../services/tally';
-import { Platform } from 'react-native';
 
 const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
   const [refreshing, setRefreshing] = useState(false);
@@ -18,6 +17,13 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     call: undefined,
   });
   const [comment, setComment] = useState(comment);
+  const [initialFields, setInitialFields] = useState({
+    comment: '',
+    contract: '',
+    holdLimit: undefined,
+    partLimit: undefined,
+  })
+
 
   useEffect(() => {
     if (wm) {
@@ -39,20 +45,29 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }).then(data => {
       const _tally = data?.[0];
       if (_tally) {
-        setTally(_tally);
-        // Stock (Partner) Foil (Start)
-        console.log("TALLY ==> ", JSON.stringify(_tally));
 
+        const contract = _tally.contract?.source ?? '';
+        const comment = _tally.comment ?? '';
+        const holdLimit = _tally.hold_terms?.limit?.toString();
+        const partLimit = _tally.part_terms?.limit?.toString();
+
+        setTally(_tally);
         setTallyType(_tally.tally_type);
-        setContract(_tally.contract?.source ?? '');
-        setComment(_tally.comment ?? '');
+        setContract(contract);
+        setComment(comment);
         setHoldTerms({
-          limit: _tally.hold_terms?.limit?.toString(),
+          limit: holdLimit,
           call: _tally.hold_terms?.call?.toString(),
         })
         setPartTerms({
-          limit: _tally.part_terms?.limit?.toString(),
+          limit: partLimit,
           call: _tally.part_terms?.call?.toString(),
+        })
+        setInitialFields({
+          comment,
+          contract,
+          holdLimit,
+          partLimit,
         })
       }
     }).finally(() => {
@@ -96,6 +111,8 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     setContract,
     fetchTally,
     setTally,
+    initialFields,
+    setInitialFields,
   }
 }
 

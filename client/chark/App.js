@@ -9,7 +9,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native';
-import { NavigationContainer, getStateFromPath } from '@react-navigation/native';
+import { NavigationContainer, getStateFromPath, DefaultTheme } from '@react-navigation/native';
 import PolyfillCrypto from 'react-native-webview-crypto'
 import Toast from 'react-native-toast-message';
 import notifee from '@notifee/react-native';
@@ -48,6 +48,14 @@ const linking = {
   },
 };
 
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background:'white'
+  },
+};
+
 function App() {
   const navigationRef = useRef();
 
@@ -64,7 +72,7 @@ function App() {
   return (
     <Provider store={store}>
       <SafeAreaView style={{ flex: 1 }}>
-        <NavigationContainer linking={linking} ref={navigationRef}>
+        <NavigationContainer linking={linking} ref={navigationRef} theme={theme}>
           <SocketProvider>
             <MessageTextProvider>
               <ServIcon />

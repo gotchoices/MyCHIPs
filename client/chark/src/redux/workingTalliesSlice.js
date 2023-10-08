@@ -5,6 +5,8 @@ import { fetchTallies } from '../services/tally';
 const initialState = {
   fetching: false,
   tallies: [],
+  hashes: [],
+  imageFetchTrigger: 1,
 };
 
 export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', async (args) => {
@@ -22,8 +24,8 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
       'part_cid',
       'part_cert',
       'hold_cert',
+      'json',
     ];
-    console.log(args.entry, 'args entry')
 
     const data = await fetchTallies(args.wm, {
       fields,
@@ -34,20 +36,46 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
       }
     })
 
-    return data?.map(el => ({
-      tally_uuid: el.tally_uuid,
-      tally_ent: el.tally_ent,
-      id: el.tally_seq,
-      contract: el.contract,
-      comment: el.comment,
-      hold_terms: el.hold_terms,
-      part_terms: el.part_terms,
-      tally_type: el.tally_type,
-      status: el.status,
-      part_cid: el.part_cid,
-      part_cert: el.part_cert,
-      hold_cert: el.hold_cert,
-    }));
+    const hashes = []
+    const tallies = data?.map(el => {
+      const partDigest = el?.part_cert?.file?.[0]?.digest;
+      const holdDigest = el?.hold_cert?.file?.[0]?.digest;
+      const tally_seq = el?.tally_seq;
+
+      if(partDigest) {
+        hashes.push({
+          digest: partDigest,
+          tally_seq,
+        })
+      }
+
+      if(holdDigest) {
+        hashes.push({
+          digest: holdDigest,
+          tally_seq,
+        })
+      }
+
+      return {
+        tally_uuid: el.tally_uuid,
+        tally_ent: el.tally_ent,
+        id: el.tally_seq,
+        contract: el.contract,
+        comment: el.comment,
+        hold_terms: el.hold_terms,
+        part_terms: el.part_terms,
+        tally_type: el.tally_type,
+        status: el.status,
+        part_cid: el.part_cid,
+        part_cert: el.part_cert,
+        hold_cert: el.hold_cert,
+      }
+    });
+
+    return {
+      tallies,
+      hashes,
+    }
 
   } catch(err) {
     console.log(err, 'err err err')
@@ -69,7 +97,9 @@ export const workingTalliesSlice = createSlice({
         state.fetching = true;
       })
       .addCase(fetchTemplates.fulfilled, (state, action) => {
-        state.tallies = action.payload;
+        state.tallies = action.payload.tallies;
+        state.hashes = action.payload.hashes;
+        state.imageFetchTrigger = state.imageFetchTrigger + 1;
         state.fetching = false;
       })
       .addCase(fetchTemplates.rejected, (state, action) => {

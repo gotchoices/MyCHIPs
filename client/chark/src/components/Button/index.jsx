@@ -17,7 +17,7 @@ const Button = (props) => {
       testID={props.testID ?? ''}
     >
       <View
-        style={[props.style, styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
+        style={[styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
       >
         <Text
           style={[styles.title, { color: props.textColor ?? colors.white }, props.disabled ? styles.titleDisabled : {}]}

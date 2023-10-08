@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
+  Text,
 } from 'react-native';
 
 import { colors, keyServices } from '../../../config/constants';
@@ -28,6 +29,10 @@ import { retrieveKey } from '../../../utils/keychain-store';
 import { GenerateKeysDialog } from './GenerateKeysDialog';
 import { UpdateHoldCert } from './UpdateHoldCert';
 import CenteredModal from '../../../components/CenteredModal';
+import IconButton from '../../../components/IconButton';
+import TickIcon from '../../../../assets/svg/tick.svg';
+import CrossIcon from '../../../../assets/svg/cross.svg';
+import ShareIcon from '../../../../assets/svg/ic_share.svg';
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -56,7 +61,9 @@ const TallyPreview = (props) => {
     setTallyType,
     setContract,
     fetchTally,
-    setTally
+    setTally,
+    initialFields,
+    setInitialFields,
   } = useTallyUpdate(wm, tally_seq, tally_ent);
 
   useEffect(() => {
@@ -187,6 +194,19 @@ const TallyPreview = (props) => {
         },
       });
 
+      setInitialFields({
+        ...initialFields,
+        comment,
+        holdLimit: holdTermsData?.limit,
+        partLimit: partTermsData?.limit,
+        contract: payload.contract?.source ? payload.contract.source : initialFields.contract,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Tally updated successfully',
+      });
+
       setTriggerInviteFetch(c => {
         return c + 1;
       });
@@ -287,6 +307,17 @@ const TallyPreview = (props) => {
       .catch(ex => console.log("Exception ==> ", ex))
   }
 
+  const onCancel = () => {
+    props.navigation.navigate('Invite');
+  }
+
+  const isDirty = (
+    initialFields.comment !== comment ||
+    initialFields.contract !== contract ||
+    initialFields.holdLimit != holdTerms?.limit ||
+    initialFields.partLimit != partTerms?.limit
+  );
+
   if (loading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -306,11 +337,72 @@ const TallyPreview = (props) => {
   }
 
   const hasPartCert = !!tally?.part_cert;
-  const canUpdate = !hasPartCert || ['offer', 'draft'].includes(tally.status);
   const canShare = !hasPartCert && tally.status === 'draft';
   const canOffer = hasPartCert && tally.status === 'draft';
   const canAccept = hasPartCert && tally.status === 'offer';
-  const canRefuse = hasPartCert && tally.status === 'offer';
+  //const canRefuse = hasPartCert && tally.status === 'offer';
+
+  const action = () => {
+    if(isDirty) {
+      return (
+        <View style={{ marginTop: 15, flexDirection: 'row', justifyContent: 'space-between' }}>
+          <IconButton 
+            onPress={onCancel}
+          >
+            <CrossIcon width={50} height={50} />
+          </IconButton>
+
+          <IconButton 
+            onPress={onUpdate}
+            disabled={updating}
+          >
+            <TickIcon width={50} height={50} />
+          </IconButton>
+        </View>
+      )
+    }
+
+    if(canShare) {
+      return (
+        <View style={{ padding: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
+          <IconButton 
+            onPress={onCancel}
+          >
+            <CrossIcon width={50} height={50} />
+          </IconButton>
+
+
+          <IconButton 
+            style={{ width: 50, height: 50, backgroundColor: colors.blue, padding: 10, borderRadius: 25, justifyContent: 'center'}}
+            onPress={onShare}
+          >
+            <ShareIcon />
+          </IconButton>
+        </View>
+      )
+    }
+
+
+    if(canOffer) {
+      return (
+        <Button
+          title="Send Modifications"
+          onPress={onOffer}
+          textColor={colors.white}
+          style={{ backgroundColor: colors.yellow, borderColor: colors.yellow, borderRadius: 18, height: 45, justifyContent: 'center' }}
+        />
+      )
+    }
+
+    if(canAccept) {
+      return (
+        <Button
+          title="Accept"
+          onPress={onAccept}
+        />
+      )
+    }
+  }
 
   return (
     <>
@@ -343,7 +435,7 @@ const TallyPreview = (props) => {
             setTallyType={setTallyType}
             setContract={setContract}
             onViewContract={onViewContract}
-            tallyContracts={tallyContracts}
+             tallyContracts={tallyContracts}
             onUpdateContract={() => {
               onDisplayCertUpdate();
             }}
@@ -351,8 +443,28 @@ const TallyPreview = (props) => {
               props.navigation.navigate("TallyCertificate", { data: { ...data } });
             }}
           />
+          
+          {action()}
         </ScrollView>
 
+
+        {false && (
+          <View style={{ margin: 10, padding: 10 }}>
+            <Button
+              title="Send Modifications"
+              onPress={onOffer}
+              style={{ borderRadius: 18, backgroundColor: colors.yellow, borderColor: colors.yellow }}
+            />
+          </View>
+        )}
+
+        {updating && (
+          <View style={{ position: 'absolute', bottom: 25, left: '35%' }}>
+            <Text style={{ borderRadius: 10, paddingHorizontal: 15, paddingVertical: 5, color: colors.black, borderColor: colors.gray5, borderWidth: 1 }}>Updating...</Text>
+          </View>
+        )}
+        
+        {/* }
         <View style={styles.actions}>
           <CustomButton
             show={canUpdate}
@@ -391,6 +503,7 @@ const TallyPreview = (props) => {
             style={styles.refuse}
           />
         </View>
+      {*/}
       </KeyboardAvoidingView>
       <GenerateKeysDialog
         visible={showDialog}
@@ -416,23 +529,10 @@ const TallyPreview = (props) => {
   )
 }
 
-function CustomButton(props) {
-  if (!props.show) return null;
-
-  return (
-    <Button
-      title={props.title}
-      disabled={props.disabled ?? false}
-      onPress={props.onPress}
-      style={props.style ?? {}}
-      testID={props?.testID}
-    />
-  )
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 15,
   },
   contentContainer: {
     backgroundColor: 'white',
@@ -477,7 +577,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'white',
     padding: 10,
-  }
+  },
 })
 
 export default TallyPreview;
