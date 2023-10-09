@@ -2,7 +2,7 @@
 #Usage: docker image build --build-arg version=4.2.3 ...
 #Usage: docker image build --build-arg ...
 
-ARG version
+ARG version=4.2.3
 
 FROM mongo:${version}
 
