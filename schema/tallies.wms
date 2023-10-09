@@ -157,12 +157,6 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
         new = mychips.tally_certs(new);
       end if;
       
-      -- If we changed anything on the tally, drop the partner signature
-      if part_sig notnull and
-        not eval(samelist tally_uuid tally_type tally_date version comment contract hold_cert part_cert hold_terms part_terms) then
-          new.part_sig = null;
-      end if;
-
 -- raise notice 'TPU: %:% %->%', old.tally_ent, old.tally_seq, old.status, new.status;
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
