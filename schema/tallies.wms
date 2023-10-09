@@ -133,7 +133,7 @@ trigger mychips_tallies_tr_seq {} {
 function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(mychips.tallies) mychips.j2h(jsonb)} {
   returns trigger language plpgsql security definer as $$
     begin
-      if not new.request isnull then		-- check for legal state transition requests
+      if new.request notnull then		-- check for legal state transition requests
         if not (
           new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
           new.request = 'open' and old.status = 'offer'
@@ -157,6 +157,13 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
         new = mychips.tally_certs(new);
       end if;
       
+      -- If we changed anything on the tally, drop the partner signature
+      if part_sig notnull and
+        not eval(samelist tally_uuid tally_type tally_date version comment contract hold_cert part_cert hold_terms part_terms) then
+          new.part_sig = null;
+      end if;
+
+-- raise notice 'TPU: %:% %->%', old.tally_ent, old.tally_seq, old.status, new.status;
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));	-- Generate record digest
@@ -168,6 +175,14 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
           null;
         else
           raise exception '!mychips.tallies:IST % %', old.status, new.status;
+        end if;
+
+      else						-- Status not changing, but
+--raise notice 'SNC: %-% %->%', old.tally_ent, old.tally_seq, old.status, new.status;
+        if old.part_sig notnull and      -- If we changed anything on the tally, drop the partner signature, and revert to draft
+          not eval(samelist tally_uuid tally_type tally_date version comment contract hold_cert part_cert hold_terms part_terms) then
+            new.part_sig = null;
+            new.status = 'draft';
         end if;
       end if;
       new.bound = greatest(new.target, new.bound);
