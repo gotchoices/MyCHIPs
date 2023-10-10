@@ -654,6 +654,7 @@ create function mychips.b582ba(input text) returns bytea language plpython3u imm
       num = num * 58 + alphabet.index(char)
     return num.to_bytes((num.bit_length() + 7) // 8, 'big')
 $$;
+grant execute on function mychips.b582ba(text) to public;
 create function mychips.b64v2ba(input text) returns bytea language sql immutable as $$
     select decode(
       translate(input, '_-','/+') || repeat(
@@ -661,6 +662,7 @@ create function mychips.b64v2ba(input text) returns bytea language sql immutable
       ), 'base64'
     )
 $$;
+grant execute on function mychips.b64v2ba(text) to public;
 create function mychips.ba2b58(input bytea) returns text language plpython3u immutable as $$
     if input is None:
       return None
@@ -676,15 +678,18 @@ create function mychips.ba2b58(input bytea) returns text language plpython3u imm
         encoding = alphabet[rem] + encoding
       return encoding
 $$;
+grant execute on function mychips.ba2b58(bytea) to public;
 create function mychips.ba2b64v(input bytea) returns text language sql immutable as $$
     select translate(encode(input, 'base64'), E'/+=\n', '_-');
 $$;
+grant execute on function mychips.ba2b64v(bytea) to public;
 create function mychips.chit_state(isdebit boolean, status text, request text) returns text immutable language sql as $$
     select
       case when isdebit then 'A.' else 'L.' end ||
       status ||
       case when request isnull then '' else '.' || request end;
 $$;
+grant execute on function mychips.chit_state(boolean,text,text) to mychips_1;
 create table mychips.creds (
 name	text
   , func	text	default 'p' constraint "!mychips.creds:BCF" check(func in ('a','p','mt','re'))
@@ -704,6 +709,7 @@ create function mychips.j2h(input jsonb) returns bytea language plpython3u immut
     hash = hashlib.sha256(serial.encode('utf-8'))
     return hash.digest()
 $$;
+grant execute on function mychips.j2h(jsonb) to public;
 create function mychips.j2s(inp jsonb) returns text language plpython3u immutable as $$
     import json
     if isinstance(inp,str):		#JSON gets passed into python as a string
@@ -714,11 +720,13 @@ create function mychips.j2s(inp jsonb) returns text language plpython3u immutabl
     s = json.dumps(obj, separators=(',',':'), sort_keys=True)
     return s
 $$;
+grant execute on function mychips.j2s(jsonb) to public;
 create function mychips.lift_state(status text, request text) returns text stable language sql as $$
     select
       status ||
       case when request isnull then '' else '.' || request end;
 $$;
+grant execute on function mychips.lift_state(text,text) to mychips_1;
 create function mychips.route_sorter(status text, expired boolean) returns int stable language plpgsql as $$
     begin return case
       when status = 'good' and not expired	then	0
@@ -729,12 +737,14 @@ create function mychips.route_sorter(status text, expired boolean) returns int s
       else						5 end;
     end;
 $$;
+grant execute on function mychips.route_sorter(text,boolean) to mychips_1;
 create function mychips.route_state(status text, expired boolean) returns text stable language plpgsql as $$
     begin return
       status ||
       case when status in ('pend','open') and expired then '.X' else '' end;
     end;
 $$;
+grant execute on function mychips.route_state(text,boolean) to mychips_1;
 create function mychips.state_updater(recipe jsonb, tab text, fields text[], qflds text[] default null) returns text immutable language plpgsql as $$
     declare
       lrec	record;
@@ -769,6 +779,7 @@ create function mychips.tally_state(status text, request text, hold_sig text, pa
       case when request isnull then '' else '.' || request end;
     end;
 $$;
+grant execute on function mychips.tally_state(text,text,text,text) to mychips_1;
 create function mychips.users_tf_change() returns trigger language plpgsql security definer as $$
     begin
 
@@ -946,6 +957,7 @@ create function mychips.creds_cert(cert jsonb) returns int language sql as $$
     from              mychips.creds      r
     left join json.flatten(cert) c	on c.name = r.name
 $$;
+grant execute on function mychips.creds_cert(jsonb) to mychips_1;
 create view mychips.creds_v as select 
     * from mychips.creds;
 grant select on table mychips.creds_v to mychips_1;
@@ -1995,6 +2007,7 @@ create function mychips.contract_json(c mychips.contracts) returns jsonb stable 
       , 'sections',	c.sections
     ))
 $$;
+grant execute on function mychips.contract_json(mychips.contracts) to mychips_1;
 create index mychips_contracts_x_rid on mychips.contracts (mychips.ba2b64v(digest));
 create table mychips.users (
 user_ent	text		primary key references base.ent on update cascade on delete cascade
@@ -2749,6 +2762,7 @@ raise notice 'tc2: % % %', chost, source, found;
       return rcont;
     end;
 $$;
+grant execute on function mychips.contract_formal(jsonb,boolean) to mychips_1;
 create function mychips.contract_mat(contract jsonb) returns jsonb language plpgsql as $$
     declare
       newObj		jsonb = contract;
@@ -2777,6 +2791,7 @@ create function mychips.contract_mat(contract jsonb) returns jsonb language plpg
     return newObj;
   end;
 $$;
+grant execute on function mychips.contract_mat(jsonb) to mychips_1;
 create trigger mychips_contracts_tr_bi before insert on mychips.contracts for each row execute procedure mychips.contracts_tf_bi();
 create function mychips.contracts_v_insfunc() returns trigger language plpgsql security definer as $$
   declare
@@ -2878,6 +2893,7 @@ create function mychips.tally_json(te mychips.tallies) returns jsonb stable lang
        )
     )
 $$;
+grant execute on function mychips.tally_json(mychips.tallies) to mychips_1;
 create table mychips.tally_tries (
 ttry_ent	text	      , primary key (ttry_ent, ttry_seq)
   , ttry_seq	int	      , foreign key (ttry_ent, ttry_seq) references mychips.tallies on update cascade on delete cascade
@@ -3170,6 +3186,7 @@ create function mychips.lift_json(lf mychips.lifts) returns jsonb stable languag
      , 'ref',		lf.referee
     )
 $$;
+grant execute on function mychips.lift_json(mychips.lifts) to mychips_1;
 create function mychips.lifts_tf_notify() returns trigger language plpgsql security definer as $$
     declare
         dirty	boolean default false;
@@ -3369,6 +3386,7 @@ create function mychips.chit_cstate(ch mychips.chits, ta mychips.tallies) return
       when ch.request = 'good' then			'Linking'
       else						'Pending' end
 $$;
+grant execute on function mychips.chit_cstate(mychips.chits,mychips.tallies) to mychips_1;
 create function mychips.chit_json_c(ch mychips.chits, ta mychips.tallies) returns jsonb stable language sql as $$
     select jsonb_strip_nulls(jsonb_build_object(
       'tally',		ta.tally_uuid,
@@ -3381,6 +3399,7 @@ create function mychips.chit_json_c(ch mychips.chits, ta mychips.tallies) return
       'memo',		ch.memo
     ))
 $$;
+grant execute on function mychips.chit_json_c(mychips.chits,mychips.tallies) to mychips_1;
 create index mychips_chits_x_chit_date on mychips.chits (chit_date);
 create index mychips_chits_x_chit_type on mychips.chits (chit_type);
 create index mychips_chits_x_chit_uuid on mychips.chits (chit_uuid);
@@ -3492,6 +3511,7 @@ create function mychips.chit_json_h(ch mychips.chits, ta mychips.tallies) return
       'signed',		ch.signature
     ))
 $$;
+grant execute on function mychips.chit_json_h(mychips.chits,mychips.tallies) to mychips_1;
 create function mychips.chit_json_r(ch mychips.chits, ta mychips.tallies) returns jsonb stable language sql as $$
     select mychips.chit_json_c(ch, ta) || jsonb_strip_nulls(jsonb_build_object(
       'digest',		ch.digest,
@@ -3500,6 +3520,7 @@ create function mychips.chit_json_r(ch mychips.chits, ta mychips.tallies) return
       'chain',		ch.chain_hash
     ))
 $$;
+grant execute on function mychips.chit_json_r(mychips.chits,mychips.tallies) to mychips_1;
 create trigger mychips_lifts_tr_ai after insert on mychips.lifts for each row execute procedure mychips.lifts_tf_ai();
 create trigger mychips_lifts_tr_bu before update on mychips.lifts for each row execute procedure mychips.lifts_tf_bu();
 create function mychips.tally_certs(ta mychips.tallies) returns mychips.tallies language plpgsql security definer as $$
@@ -3588,6 +3609,7 @@ create function mychips.token_valid(tok text, cert jsonb = null) returns boolean
       return true;
     end;
 $$;
+grant execute on function mychips.token_valid(text,jsonb) to mychips_1;
 create function mychips.users_v_me_updfunc() returns trigger language plpgsql security definer as $$
   begin
     update mychips.users_v set user_hid = new.user_hid,peer_cid = new.peer_cid,peer_psig = new.peer_psig,peer_named = new.peer_named,user_cmt = new.user_cmt,mod_by = session_user,mod_date = current_timestamp where user_ent = old.user_ent returning user_ent into new.user_ent;
@@ -3622,7 +3644,7 @@ create view mychips.chits_v as select
     ;
 create function mychips.tallies_tf_bu() returns trigger language plpgsql security definer as $$
     begin
-      if not new.request isnull then		-- check for legal state transition requests
+      if new.request notnull then		-- check for legal state transition requests
         if not (
           new.request in ('void','draft','offer') and old.status in ('void', 'draft', 'offer') or
           new.request = 'open' and old.status = 'offer'
@@ -3646,6 +3668,7 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
         new = mychips.tally_certs(new);
       end if;
       
+
       if new.status != old.status then			-- Check for valid state transitions
         if new.status = 'open' and old.status = 'offer' then
           new.digest = mychips.j2h(mychips.tally_json(new));
@@ -3657,6 +3680,14 @@ create function mychips.tallies_tf_bu() returns trigger language plpgsql securit
           null;
         else
           raise exception '!mychips.tallies:IST % %', old.status, new.status;
+        end if;
+
+      else						-- Status not changing, but
+
+        if old.part_sig notnull and      -- If we changed anything on the tally, drop the partner signature, and revert to draft
+          not ((new.tally_uuid is not distinct from old.tally_uuid) and (new.tally_type is not distinct from old.tally_type) and (new.tally_date is not distinct from old.tally_date) and (new.version is not distinct from old.version) and (new.comment is not distinct from old.comment) and (new.contract is not distinct from old.contract) and (new.hold_cert is not distinct from old.hold_cert) and (new.part_cert is not distinct from old.part_cert) and (new.hold_terms is not distinct from old.hold_terms) and (new.part_terms is not distinct from old.part_terms)) then
+            new.part_sig = null;
+            new.status = 'draft';
         end if;
       end if;
       new.bound = greatest(new.target, new.bound);
@@ -7046,7 +7077,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','users_v_me','graph.format','eng','Graph Format','How to return the graph report data'),
   ('mychips','users_v_me','graph.format.html','eng','html','Return HTML fragment that contains the report'),
   ('mychips','users_v_me','graph.format.url','eng','url','Return an url link to a web page containing the report'),
-  ('mychips','users_v_me','INV','eng','Payment Invoice','Follow link to make a payment to this entity'),
+  ('mychips','users_v_me','INV','eng','Payment Invoice','Follow link to make a payment to the entity'),
   ('mychips','users_v_me','invoice','eng','Request Payment','Create a QR code or link to request payment to someone'),
   ('mychips','users_v_me','invoice.format','eng','Format','Determines which type of invoice is generated'),
   ('mychips','users_v_me','invoice.format.json','eng','json','Return invoice as JSON object'),
@@ -10341,12 +10372,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendor_agents','mychips','tallies_v_sum','vendor_agents','f','f'),
   ('mychips','users_v_tallysum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
-  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
-  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -10497,19 +10522,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
-  ('wm','language','col','wm','language','col','f','t'),
-  ('wm','language','fr_help','wm','language','fr_help','f','f'),
-  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
-  ('wm','language','fr_title','wm','language','fr_title','f','f'),
-  ('wm','language','help','wm','table_text','help','t','f'),
-  ('wm','language','language','wm','table_text','language','t','f'),
-  ('wm','language','obj','wm','language','obj','f','f'),
-  ('wm','language','sch','wm','language','sch','f','t'),
-  ('wm','language','sorter','wm','language','sorter','f','f'),
-  ('wm','language','tab','wm','language','tab','f','t'),
-  ('wm','language','tag','wm','language','tag','f','t'),
-  ('wm','language','title','wm','table_text','title','t','f'),
-  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),

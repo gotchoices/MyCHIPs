@@ -17,7 +17,7 @@ function {mychips.chit_cstate(ch mychips.chits, ta mychips.tallies)} {mychips.ch
       when ch.chain_send notnull then			'Notify'
       when ch.request = 'good' then			'Linking'
       else						'Pending' end
-$$;}
+$$;} -grant mychips
 
 # Attempt to link a chit into our chain in a way that agrees with our partner
 #----------------------------------------------------------------

@@ -45,4 +45,4 @@ function {mychips.creds_cert(cert jsonb)} {mychips.creds json.flatten(jsonb)} {
       
     from              mychips.creds      r
     left join json.flatten(cert) c	on c.name = r.name
-$$;}
+$$;} -grant mychips

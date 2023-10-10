@@ -4,7 +4,7 @@ const WebCrypto = require('crypto').webcrypto;
 const Subtle = WebCrypto.subtle
 const sinon = require('sinon');
 
-const TallyCrypto = require('../../lib/crypto.js')
+const TallyCrypto = require('../../../lib/crypto.js')
 
 const fakeKeyObject = {
   "publicKey": {

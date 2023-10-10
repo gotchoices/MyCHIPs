@@ -11,7 +11,7 @@ while [ ! -z "$1" ]; do
 done
 
 if [ -z "$files" ]; then
-  files="*.html connect tally *.svg *.css chip.json fetchCPI value.html assets"
+  files="*.html connect tally pay *.svg *.css chip.json fetchCPI value.html assets"
 fi
 
 dest=$MYCHIPS_ORG_WEB_DEPLOY

@@ -101,7 +101,7 @@ tabtext mychips.users_v_me	{Current User}		{A view containing only the current u
   }}
 } -messages {
   {GCH	{Getting CHIP Value}	{An error occurred trying to fetch the current estimated CHIP value}}
-  {INV		{Payment Invoice}	{Follow link to make a payment to this entity}}
+  {INV		{Payment Invoice}	{Follow link to make a payment to the entity}}
   {graph 			{Tally Graph}		{Generate a visual graph of the user's tally relationships and balances}}
     {graph.format 		{Graph Format}		{How to return the graph report data}}
       {graph.format.html	{html}			{Return HTML fragment that contains the report}}

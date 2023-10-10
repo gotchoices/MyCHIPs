@@ -179,5 +179,5 @@ function {mychips.token_valid(tok text, cert jsonb = null)} {mychips.tokens_v} {
       end if;
       return true;
     end;
-$$;}
+$$;} -grant mychips
 

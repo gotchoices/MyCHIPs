@@ -81,7 +81,7 @@ function {mychips.route_state(status text, expired boolean)} {mychips} {
       status ||
       case when status in ('pend','open') and expired then '.X' else '' end;
     end;
-$$;}
+$$;} -grant mychips
 
 # Compute a route's need to be refreshed/replaced
 #----------------------------------------------------------------
@@ -95,7 +95,7 @@ function {mychips.route_sorter(status text, expired boolean)} {mychips} {
       when status = 'pend' and expired		then	4
       else						5 end;
     end;
-$$;}
+$$;} -grant mychips
 
 # Base view of pathway routes
 #----------------------------------------------------------------

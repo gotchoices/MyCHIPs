@@ -18,8 +18,10 @@
     "mychips": "mychips.js"
   },
   "scripts": {
-    "test": "mocha test/mocha/all.js",
-    "test-coverage": "nyc mocha test/mocha/all.js",
+    "test": "npm-run-all test:*",
+    "test-coverage": "nyc npm run test",
+    "test:unit": "mocha test/regression/unit/all.js",
+    "test:regression": "mocha test/mocha/all.js",
     "dev-hot": "webpack-dev-server --mode development --hot --config build/webpack.config",
     "dev-build": "webpack --mode development --watch --progress --config build/webpack.config",
     "build": "webpack --mode production --config build/webpack.config",
