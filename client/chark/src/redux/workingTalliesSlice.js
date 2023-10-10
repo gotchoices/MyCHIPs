@@ -25,6 +25,7 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
       'part_cert',
       'hold_cert',
       'json',
+      'state',
     ];
 
     const data = await fetchTallies(args.wm, {
@@ -69,6 +70,7 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
         part_cid: el.part_cid,
         part_cert: el.part_cert,
         hold_cert: el.hold_cert,
+        state: el.state,
       }
     });
 

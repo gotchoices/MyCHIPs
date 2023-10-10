@@ -54,12 +54,16 @@ const EmptyContent = () => {
 
 const TallyInvite = (props) => {
   const { fetching, tallies: data, imageFetchTrigger } = useSelector(state => state.workingTallies);
-  const { imagesByDigest } = useSelector(state => state.avatar);
   const { searchValue, setSearchValue, filteredData } = useSearchData(data);
   const { wm, ws, tallyNegotiation } = useSocket();
   const [accepting, setAccepting] = useState(false);
   const [offering, setOffering] = useState(false);
   const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
+
+  /*
+    * fromOffer: used to navigate after offering tally from tally preview 
+    */
+  const { fromOffer } = props.route?.params ?? {}; 
 
   const { triggerInviteFetch } = useInvite();
   const { filter } = useSelector(state => state.profile);
@@ -67,6 +71,12 @@ const TallyInvite = (props) => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showTemplateSuccess, setShowTemplateSuccess] = useState(false)
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false)
+  const [showOfferSuccess, setShowOfferSuccess] = useState({
+    show: false,
+    offerTo: '',
+    tally_ent: null,
+    tally_seq: null,
+  })
   const [tallyItem, setTallyItem] = useState({});
   const [contract, setContract] = useState();
   const dispatch = useDispatch();
@@ -106,6 +116,17 @@ const TallyInvite = (props) => {
       dispatch(fetchImagesByDigest({ wm, status: 'working' }))
     }
   }, [wm, imageFetchTrigger])
+
+  useEffect(() => {
+    if(fromOffer) {
+      setShowOfferSuccess({
+        show: fromOffer.show ?? false,
+        offerTo: fromOffer.offerTo ?? '',
+        tally_ent: fromOffer.tally_ent ?? null,
+        tally_seq: fromOffer.tally_seq ?? null,
+      })
+    }
+  }, [fromOffer])
 
   const getFilterResult = (filterBy, separatedBy) => {
     const values = Object.values(filter);
@@ -173,17 +194,20 @@ const TallyInvite = (props) => {
     * @param {number} args.tally_seq
     * @param {number} args.tally_uuid
     */
-  const onOffer = async ({ tally_uuid, tally_ent, tally_seq }) => {
+  const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name }) => {
     setOffering(true);
     offerTally(wm, {
       tally_uuid,
       tally_ent,
       tally_seq,
     }).then(() => {
-      Toast.show({
-        type: 'success',
-        text1: 'Offer is processed.',
+      setShowOfferSuccess({
+        show: true,
+        offerTo: name,
+        tally_ent,
+        tally_seq,
       });
+      resetNegotiationData();
     }).catch(err => {
       Toast.show({
         type: 'error',
@@ -236,10 +260,11 @@ const TallyInvite = (props) => {
         template={item}
         navigation={props.navigation}
         onItemSelected={item => {
+          const state = item?.state;
           const hasPartCert = !!item?.part_cert;
-          const canShare = !hasPartCert && item.status === 'draft';
-          const canOffer = hasPartCert && item.status === 'draft';
-          const canAccept = hasPartCert && item.status === 'offer';
+          const canShare = !hasPartCert && state === 'draft';
+          const canOffer = hasPartCert && state === 'draft';
+          const canAccept = state === 'P.offer';
           const first = item.part_cert?.name?.first;
           const middle = item.part_cert?.name?.middle;
           const surname = item.part_cert?.name?.surname;
@@ -297,6 +322,32 @@ const TallyInvite = (props) => {
 
   const onTallyOpenDone = () => {
     props.navigation.navigate('Home');
+  }
+
+  const onDismissOfferSuccess = () => {
+    props.navigation.setParams({
+      fromOffer: null,
+    })
+    setShowOfferSuccess({
+      show: false,
+      offerTo: '',
+      tally_ent: null,
+      tally_seq: null,
+    })
+  }
+
+  const onDoneOfferSuccess = () => {
+    const tally_ent = showOfferSuccess?.tally_ent;
+    const tally_seq = showOfferSuccess?.tally_seq;
+
+    onDismissOfferSuccess();
+
+    if(tally_ent && tally_seq) {
+      props.navigation.navigate('TallyPreview', {
+        tally_seq,
+        tally_ent,
+      });
+    }
   }
 
   const scrollY = new Animated.Value(0);
@@ -403,6 +454,18 @@ const TallyInvite = (props) => {
           message="Your tally is now open"
           onDone={onTallyOpenDone}
           onDismiss={() => setShowAcceptSuccess(false)}
+        />
+      </BottomSheetModal>
+
+      <BottomSheetModal
+        isVisible={showOfferSuccess.show}
+        onClose={onDismissOfferSuccess}
+      >
+        <SuccessContent
+          buttonTitle="View"
+          message={`Sending tally offer to ${showOfferSuccess?.offerTo}`}
+          onDone={onDoneOfferSuccess}
+          onDismiss={onDismissOfferSuccess}
         />
       </BottomSheetModal>
 

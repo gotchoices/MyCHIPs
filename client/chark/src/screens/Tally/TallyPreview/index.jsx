@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -173,7 +173,7 @@ const TallyPreview = (props) => {
       },
     }
 
-    wm.request('_tpt_ref', 'update', spec, (data, err) => {
+    wm.request('_tpt_ref' + Math.random(), 'update', spec, (data, err) => {
       setUpdating(false);
       if (err) {
         return Toast.show({
@@ -183,15 +183,7 @@ const TallyPreview = (props) => {
       }
 
       setTally({
-        ...tally,
-        hold_terms: {
-          ...(tally?.hold_terms ?? {}),
-          ...holdTermsData
-        },
-        part_terms: {
-          ...(tally?.part_terms ?? {}),
-          ...partTermsData,
-        },
+        ...data,
       });
 
       setInitialFields({
@@ -219,11 +211,15 @@ const TallyPreview = (props) => {
       tally_ent,
       tally_seq,
     }).then(() => {
-      Toast.show({
-        type: 'success',
-        text1: 'Offer is processed.',
-      });
-      props.navigation.goBack();
+      const partName= Object.values((tally.part_cert?.name ?? {})).join(' ')
+      props.navigation.navigate('Invite', {
+        fromOffer: {
+          show: true,
+          offerTo: partName,
+          tally_ent: tally?.tally_ent,
+          tally_seq: tally?.tally_seq,
+        }
+      })
     }).catch(err => {
       Toast.show({
         type: 'error',
@@ -312,6 +308,7 @@ const TallyPreview = (props) => {
   }
 
   const isDirty = (
+    initialFields.tallyType !== tallyType ||
     initialFields.comment !== comment ||
     initialFields.contract !== contract ||
     initialFields.holdLimit != holdTerms?.limit ||
@@ -336,16 +333,17 @@ const TallyPreview = (props) => {
     )
   }
 
+  const state = tally.state;
   const hasPartCert = !!tally?.part_cert;
-  const canShare = !hasPartCert && tally.status === 'draft';
-  const canOffer = hasPartCert && tally.status === 'draft';
-  const canAccept = hasPartCert && tally.status === 'offer';
-  //const canRefuse = hasPartCert && tally.status === 'offer';
+  const canShare = !hasPartCert && state === 'draft';
+  const canOffer = hasPartCert && state === 'draft';
+  const canAccept = hasPartCert && state === 'P.offer';
+  //const canRefuse = hasPartCert && state === 'offer';
 
   const action = () => {
-    if(isDirty) {
+    if(isDirty && state !== 'H.offer') {
       return (
-        <View style={{ marginTop: 15, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={styles.changedAction}>
           <IconButton 
             onPress={onCancel}
           >
@@ -364,7 +362,7 @@ const TallyPreview = (props) => {
 
     if(canShare) {
       return (
-        <View style={{ padding: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={styles.changedAction}>
           <IconButton 
             onPress={onCancel}
           >
@@ -443,67 +441,17 @@ const TallyPreview = (props) => {
               props.navigation.navigate("TallyCertificate", { data: { ...data } });
             }}
           />
-          
-          {action()}
         </ScrollView>
 
-
-        {false && (
-          <View style={{ margin: 10, padding: 10 }}>
-            <Button
-              title="Send Modifications"
-              onPress={onOffer}
-              style={{ borderRadius: 18, backgroundColor: colors.yellow, borderColor: colors.yellow }}
-            />
-          </View>
-        )}
+        <View style={styles.actions}>
+          {action()}
+        </View>
 
         {updating && (
           <View style={{ position: 'absolute', bottom: 25, left: '35%' }}>
             <Text style={{ borderRadius: 10, paddingHorizontal: 15, paddingVertical: 5, color: colors.black, borderColor: colors.gray5, borderWidth: 1 }}>Updating...</Text>
           </View>
         )}
-        
-        {/* }
-        <View style={styles.actions}>
-          <CustomButton
-            show={canUpdate}
-            title={updating ? 'Updating...' : 'Update'}
-            disabled={updating}
-            onPress={onUpdate}
-          />
-
-          <CustomButton
-            show={canShare}
-            title="Share"
-            onPress={onShare}
-            style={styles.shareButton}
-          />
-
-          <CustomButton
-            show={canOffer}
-            title="Offer"
-            onPress={onOffer}
-            style={styles.shareButton}
-            testID="offerBtn"
-          />
-
-          <CustomButton
-            show={canAccept}
-            title="Accept"
-            onPress={onAccept}
-            style={{ marginLeft: 10 }}
-            testID="acceptBtn"
-          />
-
-          <CustomButton
-            show={canRefuse}
-            title="Refuse"
-            onPress={onRefuse}
-            style={styles.refuse}
-          />
-        </View>
-      {*/}
       </KeyboardAvoidingView>
       <GenerateKeysDialog
         visible={showDialog}
@@ -538,6 +486,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     margin: 10,
     padding: 10,
+    paddingBottom: 20,
   },
   toolbar: {
     flexDirection: 'row',
@@ -573,10 +522,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   actions: {
-    margin: 10,
+    marginHorizontal: 10,
+    paddingHorizontal: 10,
+  },
+  changedAction: {
+    marginTop: 5,
     flexDirection: 'row',
-    backgroundColor: 'white',
-    padding: 10,
+    justifyContent: 'space-between',
   },
 })
 

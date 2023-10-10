@@ -33,7 +33,8 @@ const TemplateItem = (props) => {
                 ? `${partCert?.name}`
                 : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`}
             </Text>
-            <TallyTrainingIcon status={item?.status} type={item?.tally_type} />
+
+            <TallyTrainingIcon state={item?.state} hasPartCert={!!item?.part_cert} />
           </View> : <Text style={styles.name}>{props.draftLang}</Text>
         }
         <Text style={[styles.comment]} numberOfLines={1} ellipsizeMode='tail'>{item.comment}</Text>

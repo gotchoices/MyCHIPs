@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
   },
   btnDisabled: {
     backgroundColor: colors.lightgray,
+    borderColor: colors.lightgray,
   },
   title: {
     textTransform: 'uppercase',

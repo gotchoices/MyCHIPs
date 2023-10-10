@@ -20,6 +20,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
   const [initialFields, setInitialFields] = useState({
     comment: '',
     contract: '',
+    tallyType: '',
     holdLimit: undefined,
     partLimit: undefined,
   })
@@ -37,7 +38,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }
 
     fetchTallies(wm, {
-      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig', 'hold_cert'],
+      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig', 'hold_cert', 'state'],
       where: {
         tally_ent,
         tally_seq,
@@ -46,6 +47,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
       const _tally = data?.[0];
       if (_tally) {
 
+        const tallyType = _tally.tally_type ?? '';
         const contract = _tally.contract?.source ?? '';
         const comment = _tally.comment ?? '';
         const holdLimit = _tally.hold_terms?.limit?.toString();
@@ -68,6 +70,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
           contract,
           holdLimit,
           partLimit,
+          tallyType,
         })
       }
     }).finally(() => {
