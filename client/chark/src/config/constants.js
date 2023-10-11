@@ -16,11 +16,14 @@ export const colors = {
   black100: '#344054',
   green: '#147013',
   blue: '#2196F3',
+  blue2: '#1570EF',
   red: '#FA2E69',
   gray100: '#F2F4F7',
   gray300: '#636363',
   gray500: '#667085',
   gray700: '#475467',
+  gray5: '#F2F2F2',
+  gray6: '#8A8A8A',
   lightgray: '#d9d9d9',
   dimgray: '#686868',
   quicksilver: '#9f9f9f',
@@ -29,10 +32,13 @@ export const colors = {
   snow: '#fbf9f9',
   mustardBrown: '#ce8805',
   orangeRed: '#ff4d4f',
+  gray: '#BBBBBB',
+  yellow: '#FFB422',
 
   connected: '#23C320',
   connecting: '#FFB422',
   disconnected: '#D95656',
+
 };
 
 export const qrType = {

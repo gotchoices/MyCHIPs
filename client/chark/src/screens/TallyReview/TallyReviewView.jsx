@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Dimensions, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { useSelector } from 'react-redux';
 
 import Avatar from "../../components/Avatar";
 import { colors } from "../../config/constants";
@@ -13,153 +14,123 @@ import {
   RightArrowIcon,
 } from "../../components/SvgAssets/SvgAssets";
 
-const TallyReviewView = () => {
-  const [avatar, setAvatar] = useState("");
+const TallyReviewView = (props) => {
+  const { imagesByDigest } = useSelector(state => state.avatar);
+  const partDigest = props.partCert?.file?.[0]?.digest;
+  const holdDigest = props.holdCert?.file?.[0]?.digest;
+  const tallyType = props.tallyType;
+  const partImage = imagesByDigest[partDigest];
+  const holdImage = imagesByDigest[holdDigest];
+  const holdLimit = props.holdTerms?.limit
+  const partLimit = props.partTerms?.limit
 
-  const [partTerm, setPartTerm] = useState("");
-  const [holdTerm, setHoldTerm] = useState("");
+  const onSwitchClick = () => {
+    props.setTallyType((prev) => {
+      const switchTally = {
+        'foil': 'stock',
+        'stock': 'foil',
+      }
 
-  const [isSwappedView, setIsSwappedView] = useState(false);
+      return switchTally[prev];
+    })
+  }
 
   return (
     <View style={styles.main}>
       <View style={styles.rowWrapper}>
         <View style={styles.leftIcon}>
-          <HelpText label="Risk" style={styles.leftText} />
+          <HelpText label="Risk" style={[styles.leftText, styles.leftTopText]} />
           <DownArrowIcon />
         </View>
 
-        <>
-          {isSwappedView ? (
-            <View style={styles.topCenterWrapper}>
-              <HelpText
-                helpText="help"
-                label="Stock"
-                style={styles.headerText}
-              />
+        <View style={styles.topCenterWrapper}>
+          <HelpText
+            helpText="help"
+            label="Foil"
+            style={styles.headerText}
+          />
 
-              <View style={styles.circle}>
-                <Avatar style={styles.circle} avatar={avatar} />
-              </View>
-            </View>
-          ) : (
-            <View style={styles.topCenterWrapper}>
-              <HelpText
-                helpText="help"
-                label="Foil"
-                style={styles.headerText}
-              />
-
-              <View style={styles.circle}>
-                <Avatar style={styles.circle} avatar={avatar} />
-              </View>
-            </View>
-          )}
-        </>
+          <View style={styles.circle}>
+            <Avatar style={styles.circle} avatar={tallyType === 'foil' ? holdImage : partImage} />
+          </View>
+        </View>
 
         <View style={styles.rightIcon}>
-          <HelpText label="Credit" style={styles.rightText} />
+          <HelpText label="Credit" style={[styles.rightText, styles.rightTopText]} />
           <LeftArrowIcon />
         </View>
       </View>
 
       <View style={styles.midView}>
         <View style={styles.rowWrapper}>
-          {isSwappedView ? (
-            <TextInput
-              value={partTerm}
-              style={styles.input}
-              placeholder="partTerm"
-              onChangeText={setPartTerm}
-            />
-          ) : (
-            <TextInput
-              value={holdTerm}
-              style={styles.input}
-              placeholder="holdTerm"
-              onChangeText={setHoldTerm}
-            />
-          )}
+          <TextInput
+            value={tallyType === 'foil' ? holdLimit : partLimit}
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={tallyType === 'foil' ? props.onHoldTermsChange('limit') : props.onPartTermsChange('limit')}
+          />
 
           <HelpText helpText="help" label="Limit" style={styles.midText} />
 
-          {isSwappedView ? (
-            <TextInput
-              value={holdTerm}
-              style={styles.input}
-              placeholder="holdTerm"
-              onChangeText={setHoldTerm}
-            />
-          ) : (
-            <TextInput
-              value={partTerm}
-              style={styles.input}
-              placeholder="partTerm"
-              onChangeText={setPartTerm}
-            />
-          )}
+          <TextInput
+            value={tallyType === 'stock' ? holdLimit : partLimit}
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={tallyType === 'stock' ? props.onHoldTermsChange('limit') : props.onPartTermsChange('limit')}
+          />
         </View>
       </View>
 
       <View style={styles.rowWrapper}>
         <View style={styles.leftIcon}>
           <RightArrowIcon />
-          <HelpText label="Credit" style={styles.leftText} />
+          <HelpText label="Credit" style={[styles.leftText, styles.leftBottomText]} />
         </View>
 
-        <>
-          {isSwappedView ? (
-            <View style={styles.bottomCenterWrapper}>
-              <View style={styles.circle}>
-                <Avatar style={styles.circle} avatar={avatar} />
-              </View>
-              <HelpText
-                helpText="help"
-                label="Foil"
-                style={styles.headerText}
-              />
-            </View>
-          ) : (
-            <View style={styles.bottomCenterWrapper}>
-              <View style={styles.circle}>
-                <Avatar style={styles.circle} avatar={avatar} />
-              </View>
+        <View style={styles.bottomCenterWrapper}>
+          <View style={styles.circle}>
+            <Avatar style={styles.circle} avatar={tallyType === 'stock' ? holdImage : partImage} />
+          </View>
 
-              <HelpText
-                helpText="help"
-                label="Stock"
-                style={styles.headerText}
-              />
-            </View>
-          )}
-        </>
+          <HelpText
+            helpText="help"
+            label="Stock"
+            style={styles.headerText}
+          />
+        </View>
 
         <View style={styles.rightIcon}>
           <UpArrowIcon />
-          <HelpText label="Risk" style={styles.rightText} />
+          <HelpText label="Risk" style={[styles.rightText, styles.rightBottomText]} />
         </View>
       </View>
 
       <View style={styles.absoluteView}>
-        <TouchableOpacity onPress={()=>setIsSwappedView(!isSwappedView)}>
-        <SwapIcon />
+        <TouchableOpacity onPress={onSwitchClick}>
+          <SwapIcon />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
+const arrowText = {
+  color: 'black',
+  fontSize:12,
+  fontWeight: "500",
+};
+
 const styles = StyleSheet.create({
   main: {
-    flex:1,
-    margin: 20,
+    flex: 1,
+    //marginTop: 20,
     paddingTop:20,
     marginHorizontal: 40,
     alignItems: "center",
   },
   circle: {
-    height: 100,
-    width: 100,
+    height: 80,
+    width: 80,
     borderRadius: 50,
     backgroundColor: colors.gray700,
   },
@@ -187,17 +158,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   rowWrapper: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   midView: {
+    marginVertical: -30,
     marginRight: 40,
   },
   input: {
     width: "30%",
+    //height: 24,
     padding: 10,
     borderRadius: 5,
     borderWidth: 0.5,
@@ -217,18 +189,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   leftText: {
-    fontSize:12,
+    ...arrowText,
     marginRight: 50,
-    fontWeight: "500",
   },
   rightText: {
-    fontSize:12,
+    ...arrowText,
     marginLeft: 50,
-    fontWeight: "500",
+  },
+  leftTopText: {
+    marginBottom: -20,
+    width: '50%',
+  },
+  leftBottomText: {
+    marginTop: -20,
+    width: '70%',
+  },
+  rightTopText: {
+    marginBottom: -20,
+    width: '70%',
+  },
+  rightBottomText: {
+    marginTop: -18,
+    width: '50%',
   },
   absoluteView: {
     top: 0,
-    right: 20,
+    right: -20,
     position: "absolute",
   },
 });

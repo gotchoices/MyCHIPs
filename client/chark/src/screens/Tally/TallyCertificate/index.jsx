@@ -1,85 +1,87 @@
-import React, { useEffect } from "react"
+import React, { useMemo, useEffect } from "react"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
-import { colors } from "../../../config/constants";
 
-const renderKeyValue = (data) => {
-  return Object.keys(data).map((key) => {
-    const value = data[key];
-    return (
-      <View key={key} style={styles.row}>
-        <Text style={styles.title}>{key}: </Text>
-        <Text style={styles.subtitle}>{JSON.stringify(value, null, 2)}</Text>
-      </View>
-    );
-  });
-};
+import HelpText from '../../../components/HelpText';
+import { colors } from "../../../config/constants";
 
 const TallyCertificate = (props) => {
   const { data } = props.route?.params ?? {};
 
   useEffect(() => {
-    console.log("DATA ==> ", JSON.stringify(data?.data));
     props.navigation.setOptions({
       title: data?.title ?? "Tally Certificate",
     });
   }, []);
 
-  return <ScrollView
-    style={styles.container}
-    contentContainerStyle={styles.contentContainer}
-  >
-    {
-      Object.keys(data?.data).map((key) => {
-        const detail = data?.data?.[key];
-        if (Array.isArray(detail) && detail.length !== 0) {
-          return <View>
-            <Text style={styles.title}>{key}</Text>
-            {
-              detail?.map((item) => {
-                return <Text style={styles.subtitle}>{JSON.stringify(item)}</Text>
-              })
-            }
-          </View>
-        }
-        return <View>
-          <Text style={styles.title}>{key}</Text>
-          <Text style={styles.subtitle}>{JSON.stringify(detail)}</Text>
-        </View>
-      })
-    }
-    {/* {renderKeyValue(data?.data)} */}
-  </ScrollView>
+  const name = Object.values((data?.name ?? {})).join(' ')
+  const cid = data?.chad?.cid;
+  const agent = data?.chad?.agent;
+  const email = useMemo(() => {
+    const found = (data?.connect ?? []).find(connect => connect.media === 'email')
+    return found?.address ?? ''
+  }, [data?.connect])
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
+      <View style={styles.detailControl}>
+        <HelpText
+          label={'Formal Name'}
+        />
+        
+        <Text style={styles.text}>
+          {name}
+        </Text>
+      </View>
+
+      <View style={styles.detailControl}>
+        <HelpText
+          label={'CID'}
+        />
+        
+        <Text style={styles.text}>
+          {cid}
+        </Text>
+      </View>
+
+      <View style={styles.detailControl}>
+        <HelpText
+          label={'Email'}
+        />
+        
+        <Text style={styles.text}>
+          {email}
+        </Text>
+      </View>
+
+      <View style={styles.detailControl}>
+        <HelpText
+          label={'Agent'}
+        />
+        
+        <Text style={styles.text}>
+          {agent}
+        </Text>
+      </View>
+    </ScrollView>
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    margin: 20,
   },
-  contentContainer: {
-    padding: 16,
-    margin: 16,
-    backgroundColor: 'white'
+  detailControl: {
+    marginBottom: 10,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginVertical: 5,
-    paddingHorizontal: 6,
-    paddingVertical: 8,
-    backgroundColor: colors.gray700,
-    color: colors.white,
+  text: {
+    color: colors.black,
+    fontSize: 14,
+    fontFamily: 'inter',
   },
-  subtitle: {
-    fontSize: 16,
-    marginVertical: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 8,
-    backgroundColor: colors.gray100,
-    marginBottom: 6,
-  },
-  row: {
-    flexDirection: 'row'
-  }
 });
 
 export default TallyCertificate;
