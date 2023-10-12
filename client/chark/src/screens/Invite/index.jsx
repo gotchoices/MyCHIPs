@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import useInvite from '../../hooks/useInvite';
-import { createTemplate, fetchContracts } from '../../services/tally';
+import { createTemplate, fetchContracts, acceptTally, offerTally } from '../../services/tally';
 import TemplateItem from './TemplateItem';
 import CustomTextInput from '../../components/CustomTextInput';
 import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAssets';
@@ -14,10 +14,15 @@ import FloatingActionButton from '../../components/FloadingActionButton';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import CommentContent from './CommentContent';
 import LimitContent from './LimitContent';
-import SuccessContent from './SuccessContent';
+import SuccessContent from '../../components/SuccessContent';
+import { GenerateKeysDialog } from '../Tally/TallyPreview/GenerateKeysDialog';
+import TallyEntryModal from './TallyEntryModal';
+
 import useMessageText from '../../hooks/useMessageText';
 import { useHoldTermsText } from '../../hooks/useLanguage';
 import { fetchTemplates } from '../../redux/workingTalliesSlice';
+import { fetchImagesByDigest } from '../../redux/avatarSlice';
+import { createSignature, verifySignature } from '../../utils/message-signature';
 
 const Header_Height = 160;
 
@@ -48,17 +53,37 @@ const EmptyContent = () => {
 }
 
 const TallyInvite = (props) => {
-  const { fetching, tallies: data } = useSelector(state => state.workingTallies);
+  const { fetching, tallies: data, imageFetchTrigger } = useSelector(state => state.workingTallies);
   const { searchValue, setSearchValue, filteredData } = useSearchData(data);
   const { wm, ws, tallyNegotiation } = useSocket();
+  const [accepting, setAccepting] = useState(false);
+  const [offering, setOffering] = useState(false);
+  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
+
+  /*
+    * fromOffer: used to navigate after offering tally from tally preview 
+    */
+  const { fromOffer } = props.route?.params ?? {}; 
+
   const { triggerInviteFetch } = useInvite();
   const { filter } = useSelector(state => state.profile);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showTemplateSuccess, setShowTemplateSuccess] = useState(false)
+  const [showAcceptSuccess, setShowAcceptSuccess] = useState(false)
+  const [showOfferSuccess, setShowOfferSuccess] = useState({
+    show: false,
+    offerTo: '',
+    tally_ent: null,
+    tally_seq: null,
+  })
   const [tallyItem, setTallyItem] = useState({});
   const [contract, setContract] = useState();
   const dispatch = useDispatch();
+  const [negotiationData, setNegotiationData] = useState({
+    showModal: false,
+    data: undefined,
+  });
 
   useHoldTermsText(wm);
   const { messageText } = useMessageText();
@@ -85,6 +110,23 @@ const TallyInvite = (props) => {
       console.log('Error fetching contract', err.message)
     })
   }, [wm])
+
+  useEffect(() => {
+    if(wm) {
+      dispatch(fetchImagesByDigest({ wm, status: 'working' }))
+    }
+  }, [wm, imageFetchTrigger])
+
+  useEffect(() => {
+    if(fromOffer) {
+      setShowOfferSuccess({
+        show: fromOffer.show ?? false,
+        offerTo: fromOffer.offerTo ?? '',
+        tally_ent: fromOffer.tally_ent ?? null,
+        tally_seq: fromOffer.tally_seq ?? null,
+      })
+    }
+  }, [fromOffer])
 
   const getFilterResult = (filterBy, separatedBy) => {
     const values = Object.values(filter);
@@ -113,7 +155,7 @@ const TallyInvite = (props) => {
       },
     }
     createTemplate(wm, payload).then((data) => {
-      setShowSuccess(true);
+      setShowTemplateSuccess(true);
       getTemplates()
     }).catch(err => {
       Toast.show({
@@ -128,6 +170,89 @@ const TallyInvite = (props) => {
     dispatch(fetchTemplates({ wm, entry }))
   }
 
+  const onNeogitationModalClose = () => {
+    setNegotiationData({
+      showModal: false,
+      data: undefined,
+    })
+  }
+
+  const showGenerateKey = () => {
+    setShowGenerateKeyDialog(true)
+  }
+
+  const resetNegotiationData = () => {
+    setNegotiationData({
+      showModal: false,
+      data: undefined,
+    })
+  }
+
+  /**
+    * @param {object} args
+    * @param {number} args.tally_ent
+    * @param {number} args.tally_seq
+    * @param {number} args.tally_uuid
+    */
+  const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name }) => {
+    setOffering(true);
+    offerTally(wm, {
+      tally_uuid,
+      tally_ent,
+      tally_seq,
+    }).then(() => {
+      setShowOfferSuccess({
+        show: true,
+        offerTo: name,
+        tally_ent,
+        tally_seq,
+      });
+      resetNegotiationData();
+    }).catch(err => {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+      });
+    }).finally(() => {
+      setOffering(false)
+    })
+  }
+
+  /**
+    * @param {object} args
+    * @param {number} args.tally_ent
+    * @param {number} args.tally_seq
+    * @param {string} args.signature
+    * @param {string} args.json
+    */
+  const onAccept = async ({ tally_ent, tally_seq, json }) => {
+    setAccepting(true);
+    createSignature(JSON.stringify(json)).then(signature => {
+      return acceptTally(
+        wm, { tally_ent, tally_seq, signature },
+      );
+    }).then((result) => {
+      setShowAcceptSuccess(true);
+      resetNegotiationData();
+    }).catch(err => {
+      const { isKeyAvailable, message } = err;
+      if (isKeyAvailable === false) {
+        Alert.alert(
+          "Create Keys",
+          "Seems like there is no key to create signature please continue to create one and accept tally.",
+          [
+            { text: "Cancel" },
+            { text: "Continue", onPress: showGenerateKey }
+          ]
+        );
+      } else {
+        Alert.alert("Error", message || err);
+      }
+    }).finally(() => {
+      setAccepting(false);
+    });
+  }
+
   const renderItem = ({ item, index }) => {
     return (
       <TemplateItem
@@ -135,6 +260,43 @@ const TallyInvite = (props) => {
         template={item}
         navigation={props.navigation}
         onItemSelected={item => {
+          const state = item?.state;
+          const hasPartCert = !!item?.part_cert;
+          const canShare = !hasPartCert && state === 'draft';
+          const canOffer = hasPartCert && state === 'draft';
+          const canAccept = state === 'P.offer';
+          const first = item.part_cert?.name?.first;
+          const middle = item.part_cert?.name?.middle;
+          const surname = item.part_cert?.name?.surname;
+          const name = item.part_cert?.type === 'o'
+              ? `${item.part_cert?.name}`
+              : `${first}${middle ? ' ' + middle: '' }${surname ? ' ' + surname : ''}`
+          const limit = item.part_terms?.limit ?? 0;
+          const holdDigest = item.hold_cert?.file?.[0]?.digest;
+          const partDigest = item.part_cert?.file?.[0]?.digest;
+          const tally_uuid = item?.tally_uuid;
+
+          if(canOffer || canAccept) {
+            setNegotiationData({
+              showModal: true,
+              data: {
+                name,
+                limit,
+                canShare,
+                canOffer,
+                canAccept,
+                partDigest,
+                holdDigest,
+                tally_uuid,
+                json: item.json,
+                tally_seq: item.id,
+                tallyType: item.tally_type,
+                tally_ent: item.tally_ent,
+              }
+            });
+            return;
+          }
+
           props.navigation.navigate('TallyPreview', {
             tally_seq: item.id,
             tally_ent: item.tally_ent,
@@ -147,6 +309,45 @@ const TallyInvite = (props) => {
 
   const onFilter = () => {
     props.navigation.navigate("FilterScreen");
+  }
+
+  const onReview = (tally_seq, tally_ent) => {
+    props.navigation.navigate('TallyPreview', {
+      tally_seq,
+      tally_ent,
+    });
+
+    resetNegotiationData();
+  }
+
+  const onTallyOpenDone = () => {
+    props.navigation.navigate('Home');
+  }
+
+  const onDismissOfferSuccess = () => {
+    props.navigation.setParams({
+      fromOffer: null,
+    })
+    setShowOfferSuccess({
+      show: false,
+      offerTo: '',
+      tally_ent: null,
+      tally_seq: null,
+    })
+  }
+
+  const onDoneOfferSuccess = () => {
+    const tally_ent = showOfferSuccess?.tally_ent;
+    const tally_seq = showOfferSuccess?.tally_seq;
+
+    onDismissOfferSuccess();
+
+    if(tally_ent && tally_seq) {
+      props.navigation.navigate('TallyPreview', {
+        tally_seq,
+        tally_ent,
+      });
+    }
   }
 
   const scrollY = new Animated.Value(0);
@@ -201,6 +402,7 @@ const TallyInvite = (props) => {
         />
         <FloatingActionButton onPress={() => setShowCommentModal(true)} />
       </View>
+
       <BottomSheetModal
         isVisible={showCommentModal}
         onClose={() => setShowCommentModal(false)}
@@ -233,18 +435,66 @@ const TallyInvite = (props) => {
       </BottomSheetModal>
 
       <BottomSheetModal
-        isVisible={showSuccess}
-        onClose={() => setShowSuccess(false)}
+        isVisible={showTemplateSuccess}
+        onClose={() => setShowTemplateSuccess(false)}
       >
         <SuccessContent
-          onDone={() => {
-            setShowSuccess(false)
-          }}
-          onDismiss={() => {
-            setShowSuccess(false);
-          }}
+          message="Your tally has been created"
+          onDone={() => setShowTemplateSuccess(false)}
+          onDismiss={() => setShowTemplateSuccess(false)}
         />
       </BottomSheetModal>
+
+      <BottomSheetModal
+        isVisible={showAcceptSuccess}
+        onClose={() => setShowAcceptSuccess(false)}
+      >
+        <SuccessContent
+          buttonTitle="View"
+          message="Your tally is now open"
+          onDone={onTallyOpenDone}
+          onDismiss={() => setShowAcceptSuccess(false)}
+        />
+      </BottomSheetModal>
+
+      <BottomSheetModal
+        isVisible={showOfferSuccess.show}
+        onClose={onDismissOfferSuccess}
+      >
+        <SuccessContent
+          buttonTitle="View"
+          message={`Sending tally offer to ${showOfferSuccess?.offerTo}`}
+          onDone={onDoneOfferSuccess}
+          onDismiss={onDismissOfferSuccess}
+        />
+      </BottomSheetModal>
+
+      <BottomSheetModal
+        isVisible={negotiationData.showModal}
+        onClose={onNeogitationModalClose}
+      >
+        <TallyEntryModal
+          onNeogitationModalClose={onNeogitationModalClose}
+          negotiationData={negotiationData}
+          onReview={onReview}
+          onOffer={onOffer}
+          onAccept={onAccept}
+          accepting={accepting}
+          offering={offering}
+        />
+      </BottomSheetModal>
+
+      <GenerateKeysDialog
+        visible={showGenerateKeyDialog}
+        onDismiss={() => setShowGenerateKeyDialog(false)}
+        onError={(err) => {
+          Alert.alert("Error", err);
+        }}
+        onKeySaved={() => {
+          Alert.alert("Success", "Key is generated successfully now you can accept tally.");
+        }}
+      />
+
     </>
   );
 }

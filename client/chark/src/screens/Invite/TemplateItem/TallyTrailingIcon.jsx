@@ -5,18 +5,19 @@ import Tooltip from "react-native-walkthrough-tooltip";
 
 export const TallyTrainingIcon = (props) => {
   const [isVisible, setIsVisible] = useState(false);
-  // const tallyContent = tallyContents[props.status];
-  const tallyContent = () => {
-    const status = props.status;
-    const type = props.type;
 
-    if (status === 'offer' && type === 'stock') {
-      return timer;
-    } else if (status === 'offer' && type === 'foil') {
+  const tallyContent = () => {
+    const state = props.state;
+    const hasPartCert = props.hasPartCert;
+
+    if(state === 'P.offer') {
       return warning;
-    } else if (status === 'draft') {
+    } else if(state === 'H.offer') {
+      return timer;
+    } else if(state === 'draft' && hasPartCert) {
       return warning;
     }
+
     return null;
   }
   const onPress = () => {
@@ -57,9 +58,4 @@ const styles = StyleSheet.create({
 
 const warning = { icon: <WarningIcon size={16} />, message: "Your prospective partner is waiting for you to act on this tally" };
 const timer = { icon: <TimerIcon size={16} />, message: "You are waiting on someone else before the tally is complete" }
-
-const tallyContents = {
-  "draft": warning,
-  "offer": timer,
-}
 

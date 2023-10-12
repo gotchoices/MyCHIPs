@@ -8,30 +8,24 @@ import {
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 
-import useSocket from "../../hooks/useSocket";
-import { round } from "../../utils/common";
-import { getCurrency } from "../../services/user";
-import { useUserTalliesText } from "../../hooks/useLanguage";
-import {
-  fetchOpenTallies,
-  fetchImagesByDigest as fetchImages,
-} from "../../redux/openTalliesSlice";
-import { colors, localStorage } from "../../config/constants";
+import useSocket from '../../hooks/useSocket';
+import { round } from '../../utils/common';
+import { getCurrency } from '../../services/user';
+import { useUserTalliesText } from '../../hooks/useLanguage';
+import { fetchOpenTallies } from '../../redux/openTalliesSlice';
+import { fetchImagesByDigest as fetchImages } from '../../redux/avatarSlice';
 
 import TallyItem from "./TallyItem";
 import TallyHeader from "./TallyHeader";
 import PayModal from "../Pay";
+import { colors } from "../../config/constants";
 
 const Tally = (props) => {
-  const { wm } = useSocket();
+  const { wm, tallyNegotiation } = useSocket();
   const dispatch = useDispatch();
-  const { preferredCurrency } = useSelector((state) => state.profile);
-  const {
-    imageFetchTrigger,
-    tallies: tallies,
-    imagesByDigest,
-    fetching,
-  } = useSelector((state) => state.openTallies);
+  const { preferredCurrency } = useSelector(state => state.profile);
+  const { imageFetchTrigger, tallies: tallies, /*imagesByDigest,*/ fetching } = useSelector(state => state.openTallies);
+  const { imagesByDigest } = useSelector(state => state.avatar);
   useUserTalliesText(wm);
 
   const [conversionRate, setConversionRate] = useState(0);
@@ -50,11 +44,11 @@ const Tally = (props) => {
 
   useEffect(() => {
     fetchTallies();
-  }, [wm]);
+  }, [wm, dispatch, fetchOpenTallies])
 
   useEffect(() => {
-    if (wm) {
-      dispatch(fetchImages({ wm }));
+    if(wm) {
+      dispatch(fetchImages({ wm, status: 'open' }))
     }
   }, [wm, imageFetchTrigger]);
 

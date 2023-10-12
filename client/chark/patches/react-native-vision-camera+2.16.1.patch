@@ -1113,7 +1113,7 @@ index 7fdf962..0c5807c 100644
        default:
          break
 diff --git a/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorPlugin.h b/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorPlugin.h
-index 9408774..9966f98 100644
+index 9408774..5fdcbe8 100644
 --- a/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorPlugin.h	
 +++ b/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorPlugin.h	
 @@ -53,7 +53,7 @@ objc_name : NSObject<FrameProcessorPluginBase>
@@ -1121,7 +1121,7 @@ index 9408774..9966f98 100644
  @implementation objc_name (FrameProcessorPlugin)                                    \
                                                                                      \
 -+(void)load                                                                          \
-+__attribute__((constructor)) static void VISION_CONCAT(initialize_, objc_name)()                                                                    \
++__attribute__((constructor)) static void VISION_CONCAT(initialize_, objc_name)()                                                                       \
  {                                                                                   \
    [FrameProcessorPluginRegistry addFrameProcessorPlugin:@"__" @ #name callback:^id(Frame* frame, NSArray<id>* args) {    \
      return [objc_name callback:frame withArgs:args];                               \
@@ -1481,33 +1481,6 @@ index 5067d64..b4ba23e 100644
 -
 -
  } // namespace vision
-diff --git a/node_modules/react-native-vision-camera/ios/Parsers/AVCaptureColorSpace+descriptor.swift b/node_modules/react-native-vision-camera/ios/Parsers/AVCaptureColorSpace+descriptor.swift
-index 13a403b..a351b3f 100644
---- a/node_modules/react-native-vision-camera/ios/Parsers/AVCaptureColorSpace+descriptor.swift
-+++ b/node_modules/react-native-vision-camera/ios/Parsers/AVCaptureColorSpace+descriptor.swift
-@@ -18,6 +18,13 @@ extension AVCaptureColorSpace {
-         throw EnumParserError.unsupportedOS(supportedOnOS: "14.1")
-       }
-       return
-+    case "appleLog":
-+        if #available(iOS 17, *) {
-+          self = .appleLog
-+        } else {
-+          throw EnumParserError.unsupportedOS(supportedOnOS: "17")
-+        }
-+        return
-     case "p3-d65":
-       self = .P3_D65
-       return
-@@ -33,6 +40,8 @@ extension AVCaptureColorSpace {
-     switch self {
-     case .HLG_BT2020:
-       return "hlg-bt2020"
-+    case .appleLog:
-+       return "appleLog"
-     case .P3_D65:
-       return "p3-d65"
-     case .sRGB:
 diff --git a/node_modules/react-native-vision-camera/ios/React Utils/MakeJSIRuntime.h b/node_modules/react-native-vision-camera/ios/React Utils/MakeJSIRuntime.h
 deleted file mode 100644
 index a428c01..0000000

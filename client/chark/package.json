@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "develop": "bin/develop",
     "build": "bin/build",
-    "test:android": "bin/test-e2e"
+    "test:android": "bin/test-e2e",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
@@ -26,7 +27,6 @@
     "base64url": "^3.0.1",
     "buffer": "^6.0.3",
     "moment": "^2.29.4",
-    "patch-package": "^8.0.0",
     "prop-types": "^15.8.1",
     "query-string": "^8.1.0",
     "react": "18.1.0",

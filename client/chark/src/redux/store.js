@@ -5,6 +5,7 @@ import profileReducer from './profileSlice';
 import languageReducer from './languageSlice';
 import currentUserReducer from './currentUserSlice';
 import openTalliesReducer from './openTalliesSlice';
+import avatarReducer from './avatarSlice';
 
 export default configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
@@ -17,5 +18,6 @@ export default configureStore({
     language: languageReducer,
     currentUser: currentUserReducer,
     openTallies: openTalliesReducer,
+    avatar: avatarReducer,
   }
 })

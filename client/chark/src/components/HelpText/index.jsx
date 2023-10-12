@@ -49,19 +49,25 @@ const HelpText = (props) => {
 
 const styles = StyleSheet.create({
   labelWrapper: {
-    flexDirection: 'row',
+    marginBottom: 5,
     alignItems: 'center',
-    marginBottom: 8,
+    flexDirection: 'row',
   },
   label: {
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '500',
+    fontFamily: 'inter',
   },
 });
 
 HelpText.propTypes = {
   label: PropTypes.string.isRequired,
   helpText: PropTypes.string,
-  style: PropTypes.object,
+  style: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.arrayOf(PropTypes.object)
+  ]),
+
 }
 
 export default HelpText;
