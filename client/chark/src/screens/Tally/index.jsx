@@ -1,6 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { View, StyleSheet, FlatList, TouchableWithoutFeedback } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  TouchableWithoutFeedback,
+  Dimensions,
+} from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 
 import useSocket from '../../hooks/useSocket';
 import { round } from '../../utils/common';
@@ -9,8 +15,10 @@ import { useUserTalliesText } from '../../hooks/useLanguage';
 import { fetchOpenTallies } from '../../redux/openTalliesSlice';
 import { fetchImagesByDigest as fetchImages } from '../../redux/avatarSlice';
 
-import TallyItem from './TallyItem';
-import TallyHeader from './TallyHeader';
+import TallyItem from "./TallyItem";
+import TallyHeader from "./TallyHeader";
+import PayModal from "../Pay";
+import { colors } from "../../config/constants";
 
 const Tally = (props) => {
   const { wm, tallyNegotiation } = useSocket();
@@ -24,11 +32,15 @@ const Tally = (props) => {
 
   const currencyCode = preferredCurrency.code;
 
+  const [tally, setTally] = useState();
+
+  const [isVisible,setIsVisible]= useState(false)
+
   const fetchTallies = () => {
-    if(wm) {
-      dispatch(fetchOpenTallies({ wm }))
+    if (wm) {
+      dispatch(fetchOpenTallies({ wm }));
     }
-  }
+  };
 
   useEffect(() => {
     fetchTallies();
@@ -38,101 +50,120 @@ const Tally = (props) => {
     if(wm) {
       dispatch(fetchImages({ wm, status: 'open' }))
     }
-  }, [wm, imageFetchTrigger])
+  }, [wm, imageFetchTrigger]);
 
   useEffect(() => {
     if (currencyCode) {
-      getCurrency(wm, currencyCode).then(data => {
-        setConversionRate(parseFloat(data?.rate ?? 0));
-      }).catch(err => {
-        // TODO
-      })
+      getCurrency(wm, currencyCode)
+        .then((data) => {
+          setConversionRate(parseFloat(data?.rate ?? 0));
+        })
+        .catch((err) => {
+          // TODO
+        });
     }
-  }, [currencyCode])
+  }, [currencyCode]);
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
-      return acc + (Number(current?.net ?? 0));
-    }, 0)
+      return acc + Number(current?.net ?? 0);
+    }, 0);
 
     return round(total / 1000, 3);
-  }, [tallies])
+  }, [tallies]);
 
   const totalNetDollar = useMemo(() => {
-    if(conversionRate) {
+    if (conversionRate) {
       const total = totalNet * conversionRate;
       return round(total, 2);
     }
 
     return 0;
-  }, [totalNet, conversionRate])
+  }, [totalNet, conversionRate]);
 
-  const onItemPress = ({ tally_seq, tally_ent }) => {
-    return () => {
-      props.navigation.navigate('OpenTallyEdit', {
-        tally_seq,
-        tally_ent,
-      });
-    }
-  }
+  const onItemPress = ({ tally}) => {
+
+    setTally(tally);
+
+    setIsVisible(true)
+
+  };
+
 
   const renderItem = ({ item, index }) => (
     <TouchableWithoutFeedback
-      onPress={onItemPress({
-        tally_seq: item.tally_seq,
-        tally_ent: item.tally_ent,
-      })}
+      onPress={()=>{onItemPress({
+tally:item
+      })}}
     >
-      <View style={[styles.item, index === tallies?.length - 1 ? styles.itemLast : null]}>
+      <View
+        style={[
+          styles.item,
+          index === tallies?.length - 1 ? styles.itemLast : null,
+        ]}
+      >
         <TallyItem
           tally={item}
           image={imagesByDigest?.[item?.part_cert?.file?.[0]?.digest]}
-          conversionRate={conversionRate} 
+          conversionRate={conversionRate}
           currency={preferredCurrency?.code}
         />
       </View>
     </TouchableWithoutFeedback>
   );
 
-
   return (
-    <FlatList
-      ListHeaderComponent={
-        <TallyHeader
-          totalNet={totalNet}
-          totalNetDollar={totalNetDollar}
-          currencyCode={preferredCurrency.code}
-          navigation={props.navigation}
-        />
-      }
-      contentContainerStyle={styles.contentContainer}
-      data={tallies}
-      renderItem={renderItem}
-      showsVerticalScrollIndicator={false}
-      keyExtractor={(_, index) => index}
-      refreshing={fetching}
-      onRefresh={fetchTallies}
-    />
-  )
-}
+    <View>
+      <FlatList
+        ListHeaderComponent={
+          <TallyHeader
+            totalNet={totalNet}
+            totalNetDollar={totalNetDollar}
+            currencyCode={preferredCurrency.code}
+            navigation={props.navigation}
+          />
+        }
+        ListFooterComponent={<View style={styles.footer} />}
+        contentContainerStyle={styles.contentContainer}
+        data={tallies}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        keyExtractor={(_, index) => index}
+        refreshing={fetching}
+        onRefresh={fetchTallies}
+      />
+
+
+      <PayModal
+        tally={tally}
+        visible={isVisible}
+        navigation={props.navigation}
+        onClose={()=>setIsVisible(false)}
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 16,
+    backgroundColor: colors.white,
   },
   item: {
-    paddingVertical: 18,
-    borderBottomWidth: 2,
-    borderBottomColor: '#E4E7EC',
     width: "90%",
-    alignSelf: 'center',
+    paddingVertical: 18,
+    alignSelf: "center",
+    borderBottomWidth: 1,
     paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF'
+    borderBottomColor: colors.lightgray,
   },
   itemLast: {
     borderBottomWidth: 0,
-  }
+  },
+  footer: {
+    backgroundColor: colors.white,
+    height: Dimensions.get("window").height*0.3,
+  },
 });
-
 
 export default Tally;

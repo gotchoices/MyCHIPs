@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "develop": "bin/develop",
     "build": "bin/build",
-    "test:android": "bin/test-e2e"
+    "test:android": "bin/test-e2e",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",

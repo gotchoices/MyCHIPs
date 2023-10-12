@@ -1,100 +1,109 @@
-import React from 'react';
-import { View, StyleSheet, Text, Dimensions } from 'react-native';
-import { useSelector } from 'react-redux';
+import React from "react";
+import { View, StyleSheet, Text, Dimensions } from "react-native";
+import { useSelector } from "react-redux";
 
-import { colors } from '../../../config/constants';
-import useMessageText from '../../../hooks/useMessageText';
+import { colors } from "../../../config/constants";
+import useMessageText from "../../../hooks/useMessageText";
 
-import Header from '../Header';
-import Avatar from '../../../components/Avatar';
-import { ChitIcon, VisualIcon } from '../../../components/SvgAssets/SvgAssets';
+import Header from "../Header";
+import Avatar from "../../../components/Avatar";
+import {
+  ChitIcon,
+  NotificationIcon,
+  VisualIcon,
+} from "../../../components/SvgAssets/SvgAssets";
 
 const Banner = (props) => {
-  const { avatar, personal } = useSelector(state => state.profile)
+  const { avatar, personal } = useSelector((state) => state.profile);
   const { messageText } = useMessageText();
   const userTallyText = messageText?.userTallies ?? {};
 
   const navigateToReport = () => {
-    props.navigation?.navigate?.('TallyReport')
-  }
+    props.navigation?.navigate?.("TallyReport");
+  };
 
   const isNetNegative = props.totalNet < 0;
 
   return (
     <View style={styles.container}>
       <Header
-        icon={<VisualIcon />}
-        title={userTallyText?.tallies?.title ?? ''}
+        leftIcon={<VisualIcon />}
+        title="My CHIPs"
         onClick={navigateToReport}
+        rightIcon={<NotificationIcon />}
       />
 
-      <View style={{ alignItems: 'center' }}>
+      <View style={{ alignItems: "center", justifyContent: "center" }}>
         <View style={styles.balanceContainer}>
           <View style={styles.balance}>
             <View style={styles.avatarWrapper}>
-            <Avatar avatar={avatar} />
-            <Text style={styles.name}>{personal?.cas_name ?? ''}</Text>
-            </View>
-
-            <View style={styles.textWrapper}>
-              <Text>Net CHIP balance</Text>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                {/* <Image source={isNetNegative ? mychipsNeg : mychips} /> */}
-                <ChitIcon color={isNetNegative ? colors.red : colors.green} />
-                <Text style={isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet}>
-                  {props.totalNet}
-                </Text>
-              </View>
-
-              {
-                !!props.currencyCode && <Text>{props.totalNetDollar} {props.currencyCode}</Text>
-              }
+              <Avatar avatar={avatar} />
+              <Text style={styles.name}>{personal?.cas_name ?? ""}</Text>
             </View>
           </View>
         </View>
       </View>
+
+      <View style={styles.textWrapper}>
+        {!!props.currencyCode && (
+          <Text style={styles.amount}>
+            {props.totalNetDollar} {props.currencyCode}
+          </Text>
+        )}
+
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <ChitIcon color={isNetNegative ? colors.red : colors.green} />
+          <Text
+            style={isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet}
+          >
+            {props.totalNet}
+          </Text>
+        </View>
+      </View>
     </View>
-  )
-}
+  );
+};
 
 const mychipsNet = {
   marginLeft: 5,
   fontSize: 32,
-  fontWeight: '500',
+  fontWeight: "500",
   color: colors.green,
-  maxWidth:Dimensions.get("window").width*0.5,
-}
+  maxWidth: Dimensions.get("window").width * 0.5,
+};
 
 const styles = StyleSheet.create({
   container: {
-    height: 265,
-    backgroundColor: colors.gray700,
+    marginHorizontal: 10,
   },
   balanceContainer: {
     padding: 16,
-    maxHeight:200,
-    maxWidth: '90%',
+    maxWidth: "90%",
     borderRadius: 25,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(206, 204, 204, 0.75)',
+    overflow: "hidden",
   },
   balance: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent:'space-between'
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   mychipsNet,
   mychipsNetNeg: {
     ...mychipsNet,
     color: colors.red,
   },
-  name:{paddingTop:10},
-  avatarWrapper:{paddingRight: 10},
-  textWrapper: { alignItems: 'center', marginLeft: 5}
+  name: { paddingTop: 15, fontSize: 16, fontWeight: "600" },
+  avatarWrapper: { marginTop:20},
+  textWrapper: {
+    marginBottom:-15,
+    marginRight: 10,
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+  },
+  amount: {
+    fontSize: 16,
+    color: colors.gray300,
+  },
 });
 
-
 export default Banner;
-
-

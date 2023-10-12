@@ -9,7 +9,15 @@ import CustomText from '../../../components/CustomText';
 const Header = (props) => {
   return (
     <View style={styles.header}>
-      <CustomText as="h2" style={styles.headerText}>
+      <TouchableWithoutFeedback
+        onPress={props.onClick}
+      >
+        <View>
+          {props.leftIcon}
+        </View>
+      </TouchableWithoutFeedback>
+
+      <CustomText as="h3" style={styles.headerText}>
         {props.title}
       </CustomText>
 
@@ -17,7 +25,7 @@ const Header = (props) => {
         onPress={props.onClick}
       >
         <View>
-          {props.icon}
+          {props.rightIcon}
         </View>
       </TouchableWithoutFeedback>
     </View>
@@ -32,7 +40,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerText: {
-    color: colors.white,
+    color: colors.gray300,
   },
 });
 

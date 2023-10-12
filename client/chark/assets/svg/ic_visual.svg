@@ -1,33 +1,14 @@
-<svg width="54" height="54" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <g filter="url(#filter0_d_61_23536)">
-    <circle cx="27" cy="23" r="22.5" stroke="white" shape-rendering="crispEdges" />
-  </g>
-  <circle cx="15.6226" cy="15.3884" r="4.12261" stroke="white" />
-  <circle cx="28.2894" cy="35.3843" r="3.11571" stroke="white" />
-  <circle cx="38.2322" cy="16.4802" r="3.11571" stroke="white" />
-  <circle cx="28.4835" cy="22.8421" r="2.24611" stroke="white" />
-  <circle cx="28.2414" cy="13.0207" r="2.52072" stroke="white" />
-  <circle cx="18.5369" cy="27.71" r="1.2392" stroke="white" />
-  <circle cx="36.9926" cy="28.6635" r="2.52072" stroke="white" />
-  <line x1="19.6591" y1="17.4616" x2="26.2643" y2="21.5756" stroke="white" />
-  <line x1="28.4995" y1="25.0217" x2="28.1965" y2="31.9914" stroke="white" />
-  <line x1="28.5" y1="15" x2="28.5" y2="21" stroke="white" />
-  <line x1="30.4886" y1="24.2494" x2="34.6694" y2="26.8748" stroke="white" />
-  <line x1="30.5916" y1="21.2691" x2="35.4249" y2="18.4708" stroke="white" />
-  <line x1="19.9343" y1="26.851" x2="26.0396" y2="23.7984" stroke="white" />
-  <defs>
-    <filter id="filter0_d_61_23536" x="0" y="0" width="54" height="54" filterUnits="userSpaceOnUse"
-      color-interpolation-filters="sRGB">
-      <feFlood flood-opacity="0" result="BackgroundImageFix" />
-      <feColorMatrix in="SourceAlpha" type="matrix"
-        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-      <feOffset dy="4" />
-      <feGaussianBlur stdDeviation="2" />
-      <feComposite in2="hardAlpha" operator="out" />
-      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_61_23536" />
-      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_61_23536" result="shape" />
-    </filter>
-  </defs>
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="7" cy="11" r="2.5" fill="white" stroke="#636363"/>
+<circle cx="13" cy="7" r="1.5" fill="white" stroke="#636363"/>
+<circle cx="13.5" cy="13.5" r="1" fill="white" stroke="#636363"/>
+<circle cx="9.5" cy="18.5" r="1" fill="white" stroke="#636363"/>
+<circle cx="15" cy="19" r="1.5" fill="white" stroke="#636363"/>
+<circle cx="19.5" cy="10.5" r="2" fill="white" stroke="#636363"/>
+<path d="M12.5 13L9 11.5" stroke="#636363"/>
+<path d="M13.5 12.5L13 8.5" stroke="#636363"/>
+<path d="M14.5 13L18 11.5" stroke="#636363"/>
+<path d="M14 14.5L14.5 17.5" stroke="#636363"/>
+<path d="M13 14L10 18" stroke="#636363"/>
+<circle cx="13" cy="13" r="12" stroke="#636363" stroke-width="2"/>
 </svg>
-  
