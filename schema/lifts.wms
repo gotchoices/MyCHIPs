@@ -486,7 +486,7 @@ $$;}
 # Faster due to use of more focused search
 #----------------------------------------------------------------
 function {mychips.lift_loc_clr_user(id text, maxNum int = 1)} {
-  mychips.tallies_find_paths(text,text,int,int) base.parm_v
+  mychips.paths_find(text,text,int,int) base.parm_v
 } {
   returns jsonb language plpgsql as $$
     declare
@@ -512,7 +512,7 @@ raise notice 'LCU2 orders:%', orders;
 
       while count < maxNum loop			-- Search for internal lifts
         tstr = 'select uuids, signs, min
-          from mychips.tallies_find_paths($2) where circuit and margin <= 0 and 
+          from mychips.paths_find($2) where circuit and margin <= 0 and 
           min >= $1 order by ' || orders || ' limit 1';
         execute tstr into prec using min_units, id;		-- Look for the highest priority lift to execute
         get diagnostics rows = ROW_COUNT;
@@ -551,7 +551,7 @@ $$;}
 # Attempt a local linear payment lift between the specified users
 #----------------------------------------------------------------
 function {mychips.lift_loc_pay(from_id text, to_id text, units int)} {
-  mychips.tallies_find_path(text,text,int,int)
+  mychips.path_find(text,text,int,int)
 } {
   returns boolean language plpgsql as $$
     declare
@@ -559,7 +559,7 @@ function {mychips.lift_loc_pay(from_id text, to_id text, units int)} {
     begin
 raise notice 'LP0:% % %', from_id, to_id, units;
       select into prec uuids, signs
-        from mychips.tallies_find_path(from_id, to_id, units) limit 1;
+        from mychips.path_find(from_id, to_id, units) limit 1;
       if found then
         insert into mychips.lifts (lift_type, circuit, status, units, tallies, signs)
           values ('in', true, 'good', units, prec.uuids, prec.signs);

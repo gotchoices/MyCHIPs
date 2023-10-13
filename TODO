@@ -3,10 +3,34 @@ TODO:
 - Pathway Analysis
 X-  Build control report for issuing payment request invoice
 X-  Test in web UI
--  Build ticket for IW to implement invoice generator
--  Build query/function with user permission for seeking available paths
+X-  Build query/function with user permission for seeking available paths
 -  Build query/function with user permission for inserting linear lift request
 -  
+- Add reset and submit buttons for Trading Variables report (in user's language)
+- 
+- Refactor chit chains to use base64url for chain hash (instead of hex)
+- Should we use python module for base64url in postgresql?
+-  
+- Chit consensus
+-  Why is one chit still left in pending state after tests?
+-  Update existing code to honor chain state (honor how?)
+-    Only _process commands if in appropriate cstate?
+-  Existing regression tests still work
+-  Notify user (or admin?) when a consensus reached on a tally/chit?
+-    So we don't have to timeout in tests
+-  Commit
+-  
+- Make test for chits that cross in transit
+-  Make adjustable delay before received chit processed
+-  Test attempts a range of possible delays
+-  
+-  Stock can request arbitrary chain query message (is this needed?)
+-  Stock requeues any stray chits found after upd packet
+-  All regression tests pass
+-  Comment out PG notices
+-  Simulation still works
+-  Commit/merge to master
+-   
 X- Simulator
 X-  Update docker compose methods and documents for mac-only runs
 X-  realpath not found on mac
@@ -22,27 +46,23 @@ X- Properly detect MYCHIPS_ROOTNAME for docker-dev (git rev-parse --show-topleve
 X-  What happens if I try to create a signed chit issued by the other party?
 X-  Make regression tests use real keys on tallies
 X-  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
+-  App needs to sign tally in both directions
 -  Are tallies signed in the app passing the validation in lib/tally.js?
 -  Can/should we validate tally signatures in the DB anywhere?
 -  
-- Refactor chit chains to use base64url for chain hash (instead of hex)
-- Should we use python module for base64url in postgresql?
--  
--  
-- Refactor document server to return contracts
+- Refactor document server to return contracts (before multi-system lifts will work)
 -  in json format
 -  in pdf format
 -  pdf's are cached by server?
 -  Contract report launches pdf's of documents clicked in strdoc report
 - 
-- Add reset and submit buttons for Trading Variables report (in user's language)
-- 
 - Tally protocol support
--  Move QR codes to deep link format (no more JSON QR's)
+X-  Move QR codes to deep link format (no more JSON QR's)
 -  Can fully execute a signed tally with a partner (get last step working)
 -  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
 -  How to easily understand/view draft/offer tallies
--  Can sent a voluntary payment chit on a tally
+X-  Can sent a voluntary payment chit on a tally
+-  Digitally sign chits
 -  
 - Language Support
 -  Integrate/find missing language tags for app
