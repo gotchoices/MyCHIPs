@@ -383,7 +383,7 @@ Lift state transition messages are as follows:
 
 ### External Formats
 In addition to real-time, dynamic messages, certain objects may be transmitted
-over other media or in other ways.  For example, a site may issue a user a connection
+over alternate media or in other ways.  For example, a site may issue a user a connection
 ticket containing a one-time token and other connection information.  Users can issue
 tally invitations to each other.  And users may have to export keys or other data and
 then re-import that data on another device or platform.
@@ -397,19 +397,32 @@ Furthermore, any scanner should be able to scan a QR code that contains a deep l
 If the user does not have an applicable app installed, he will be directed to the mychips.org
 (or applicable) website where further instructions will be available about how to proceed.
 
-- *Connection Ticket:* Issued by Chip Service Provider  
-  URI:'https://HOST:HTTP_PORT/user.html?&port=WS_PORT&token=TOKEN$%user=USER'  
+Each function will involve a particular keyword as follows:
+- ticket:	Connection ticket
+- invite:	Invitation to tally
+- pay:		Invoice for payment 
+- conkey:	Connection key
+- signkey:	Signing key
+- user:		Import/export user record
+- tally:	Import/export tally record
+
+The associated data formats are as follows:
+
+- *User Connection Ticket:* Issued by Chip Service Provider  
+  Web URI:'https://HOST:HTTP_PORT/user.html?&port=WS_PORT&token=TOKEN$%user=USER'  
+  LINK: 'https://mychips.org/ticket?host=HOST%port=PORT%user=USER%token=TOKEN'  
   JSON:  
-  ```{ticket: {
-    token: TOKEN,
+  ```
+  {ticket: {
     host: HOST,
     port: WS_PORT,
     user: USER,
+    token: TOKEN,
     expires: EXPIRATION_DATE
   }}```
 
 - *Tally Invitation:* Issued from one user to another  
-  URI: 'https://mychips.org/tally?token=TOKEN&chad={cid:w,agent:x,host:y,port:z}'  
+  LINK: 'https://mychips.org/invite?token=TOKEN&chad={cid:w,agent:x,host:y,port:z}'  
   JSON:
 ```
   {invite: {
@@ -424,11 +437,11 @@ If the user does not have an applicable app installed, he will be directed to th
 ```
 
 - *Invoice:* Payment request or invitation
-  URI: 'https://mychips.org/pay?chad={cid:w,agent:x,host:y,port:z}...'  
-  URI: 'https://mychips.org/pay?base64EncodedJSON'  
+  LINK: 'https://mychips.org/pay?chad={cid:w,agent:x,host:y,port:z}...'  
+  LINK: 'https://mychips.org/pay?base64EncodedJSON'  
   JSON:
 ```
-  {invoice: {
+  {pay: {
     chad: {
       cid: USER_CHIP_ID,
       agent: USERS_AGENT_PUBLIC_KEY
@@ -444,7 +457,7 @@ If the user does not have an applicable app installed, he will be directed to th
 - *Connection Key(s):* For backup/restore and sharing to another device  
   JSON (unencrypted, not recommended):
 ```
-  {connect: {
+  {conkey: {
     kty: "EC",				//Example data
     crv: "P-256",
     x: "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
@@ -453,7 +466,7 @@ If the user does not have an applicable app installed, he will be directed to th
 ```
   JSON (encrypted):
 ```
-  {connect: {
+  {conkey: {
     s: SALT,
     i: INITIALIZATION_VECTOR,
     d: ENCRYPTED_DATA (should decrypt to serialized JWK key as above)
@@ -463,13 +476,13 @@ If the user does not have an applicable app installed, he will be directed to th
 - *Signing Key(s):* For backup/restore and sharing to another device  
   JSON (unencrypted, not recommended):
 ```
-  {sign: {
+  {signkey: {
     // jwk key data properties as above //
   }}
 ```
   JSON (encrypted):
 ```
-  {sign: {
+  {signkey: {
     // Encrypted key properties as above //
   }}
 ```
