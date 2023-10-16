@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-native.md">Next</a>
+</div>
+
 ### Docker Test Instance
 
 This is a quick and simple way to launch MyCHIPs for simple testing and evaluation.
@@ -102,5 +107,7 @@ In order to use the development method, you will need to also install the WyattE
 Note: this method also draws site certificates and the like from the mychips/pki folder
 (not local/docker/pki).
 
-<br>[Next - Native Installation](use-native.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-native.md">Next</a>
+</div>

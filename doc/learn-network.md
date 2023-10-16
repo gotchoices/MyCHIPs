@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-noise.md">Next</a>
+</div>
+
 ## The MyCHIPs Network
 
 ### General Topology
@@ -246,5 +251,7 @@ In summary, a site can carry on a variety of different types of network traffic 
 - Custom Integrations
   User integrations (such as commercial users working in concert with other software) may well communicate directly with the SQL database.
 
-<br>[Next - Hacking](work-noise.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-noise.md">Next</a>
+</div>

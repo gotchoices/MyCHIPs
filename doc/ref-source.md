@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="ref-bugs.md">Next</a>
+</div>
+
 ## Brief description of what is in the various folders:
 
 ### bin
@@ -65,5 +70,7 @@ sites and servers in docker containers to simulate a real network.  This
 can be used in conjunction with the agent-based model to create distributed 
 data sets for testing and validation.
 
-<br>[Next - Known Issues](ref-bugs.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="ref-bugs.md">Next</a>
+</div>

@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="sim-local.md">Next</a>
+</div>
+
 ## Network Simulation
 
 The network simulation (try 2) is implemented by the test/sim/simnet script to launch various 
@@ -99,5 +104,7 @@ Keep in mind, these servers are running with self-signed certificates.  You
 will have to import the web-ca.crt certificate into your browser (and/or os)
 in order to access the admin console without a security warning.
 
-<br>[Next - Local Simulation](sim-local.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="sim-local.md">Next</a>
+</div>

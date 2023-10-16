@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-lift.md">Next</a>
+</div>
+
 ## Tally Contracts
 
 ### General
@@ -192,5 +197,7 @@ The Tally Contract itself whould then be structured something like this:
   Ethics
 ```
 
-<br>[Next - The Credit Lift](learn-lift.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-lift.md">Next</a>
+</div>

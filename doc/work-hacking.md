@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="work-testing.md">Next</a>
+</div>
+
 ## Working on the Software
 
 ### WyattERP Hacking
@@ -103,5 +108,7 @@ have to edit pgsql/data/postgresql.conf and set the following:
 Consult your local installation for the particular postgres logfile location.
 (Something like /var/lib/pgsql/data/log).
 
-<br>[Next - Testing Environment](work-testing.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="work-testing.md">Next</a>
+</div>

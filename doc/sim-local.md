@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="sim-agent.md">Next</a>
+</div>
+
 ## Local Simulation
 
 This was the first attempt at MyCHIPs simulation.
@@ -22,5 +27,7 @@ This consists of two scripts, both located in the test/sim directory:
   Launches a terminal window to monitor each of the servers created from the 
   simlocal command.
 
-<br>[Next - Agent Based Model](sim-agent.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="sim-agent.md">Next</a>
+</div>

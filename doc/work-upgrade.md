@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="ref-faq.md">Next</a>
+</div>
+
 ## Upgrading the Software
 
 As with any software service, it becomes necessary from time to time to install
@@ -96,5 +101,7 @@ So we will need a way to:
     they can at least answer port traffic, even if they have to wait some
     seconds for the new schema to become available for their queries.
 
-<br>[Next - FAQ](ref-faq.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="ref-faq.md">Next</a>
+</div>

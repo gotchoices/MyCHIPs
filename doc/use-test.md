@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-pki.md">Next</a>
+</div>
+
 ## Testing the Server
 - Now we will add some sample test data to the database:
   Edit the settings file to set IP number of the test machine your database is
@@ -57,5 +62,8 @@
 ## Unit Testing
 The software also comes with a suite of regression tests explained [here](work-testing.md).
 
-<br>[Next - System Certificates](use-pki.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-pki.md">Next</a>
+</div>
+

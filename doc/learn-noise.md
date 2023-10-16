@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-protocol.md">Next</a>
+</div>
+
 ## Peer to Peer Connections
 
 ### Tally Request
@@ -103,5 +108,7 @@ and the 256 bit keys provided for by libsodium.
 This provides for a fairly short public key which will be welcome in producing [managable URI's](learn-users.md#chip-addresses).
 If/when libsodium may determine that current computing speeds justify a longer key, that change should propagate into MyCHIPs.
 
-<br>[Next - State Protocol](learn-protocol.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-protocol.md">Next</a>
+</div>

@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="ref-source.md">Next</a>
+</div>
+
 ## Frequently Asked Questions
 
 ### Introduction
@@ -212,5 +217,7 @@ Certain site locations may only be known to their immediate trading partners.
 These design choices were not made out of ignorance nor merely to be different.
 Rather, they exist to accomplish very specific, critical, strategic performance objectives.
 
-<br>[Next - Source Tree](ref-source.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="ref-source.md">Next</a>
+</div>

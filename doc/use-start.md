@@ -1,5 +1,9 @@
-### Getting Started
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-docker.md">Next</a>
+</div>
 
+### Getting Started
 First, make (or get into) a folder to work in:
 ```
     mkdir devel; cd devel			#For example
@@ -71,5 +75,7 @@ Note: the docker methods will require docker engine >= 20.10.10.
   possible (though not well tested) to run on a Linux host.
   Not much testing has been done on Windows but it may work with some effort.
 
-<br>[Next - Docker Test Instance](use-docker.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-docker.md">Next</a>
+</div>

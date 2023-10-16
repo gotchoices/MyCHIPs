@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-test.md">Next</a>
+</div>
+
 ## Connecting the Admin UI
 (The harder way)  
 Once you have a MyCHIPs server running, you can try connecting to the 
@@ -78,5 +83,7 @@ https://<hostname>:8000/admin.html
   See the documentation in the wylib package for more detailed information on 
   how connection keys work.
 
-<br>[Next - Testing The Server](use-test.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-test.md">Next</a>
+</div>

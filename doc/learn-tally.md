@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-contract.md">Next</a>
+</div>
+
 ## Tallies
 
 A tally is, at its essence, a contract between two parties.  Using the tally, the parties
@@ -531,7 +536,7 @@ the payor and the recipient
   reference number and recognize the purchase as complete.
   
 ### Establishing a Tally
-Version 1.0 of the tally protocol is described formally [here](learn-protocol.md#tally-protocol).
+The tally protocol is described more formally [here](learn-protocol.md#tally-protocol).
 In addition to this higher-level negotiation of the tally record itself, peer sites need to 
 open a channel over which they can communicate securely.
 That process is discussed [here](learn-noise.md).
@@ -936,5 +941,8 @@ move your latest valid index number forward (but not back) to that number.
 
 See [this section](learn-lift.md#lift-states) for more on treatment of chits that belong to a lift transaction.
 
-<br>[Next - Tally Contracts](learn-contract.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-contract.md">Next</a>
+</div>
+

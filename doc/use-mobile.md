@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="sim-docker.md">Next</a>
+</div>
+
 ## User Mobile Application
 
 ### General
@@ -354,5 +359,7 @@ Best advice for an application developer is:
 - Insert additional logging commands where you need more information about what is going on;
 - There are also logging commands you can uncomment in the SPI clients that will show up in the browser debug console;
 
-<br>[Next - Simulations](sim-docker.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="sim-docker.md">Next</a>
+</div>

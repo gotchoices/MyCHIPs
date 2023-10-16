@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="work-hacking.md">Next</a>
+</div>
+
 ## Data Message and File Formats
 Feb 2022; Copyright MyCHIPs.org
 
@@ -513,5 +518,7 @@ using a JSON array rather than a JSON object.  (See example in test/mocha/users.
 Also, in contexts where the type of the record is already clearly know, the 
 top-level named property can be omitted and the inner record can stand alone.
 
-<br>[Next - Hacking](work-hacking.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="work-hacking.md">Next</a>
+</div>

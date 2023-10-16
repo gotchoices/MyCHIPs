@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-tally.md">Next</a>
+</div>
+
 ## Users and Identities
 
 As discussed [previously](learn-general.md#money-as-credit), MyCHIPs implements
@@ -193,5 +198,7 @@ This provides several benefits:
   later as long as it communicates to a finite set of trading partners where the
   new portal is for future connections.
 
-<br>[Next - The Tally](learn-tally.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-tally.md">Next</a>
+</div>

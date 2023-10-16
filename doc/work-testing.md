@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="work-upgrade.md">Next</a>
+</div>
+
 ## Testing Environment
 
 ### Mocha Tests
@@ -75,5 +80,7 @@ When fixing bugs in MyCHIPs, please observe the following workflow pattern:
   - Repeat the entire test suite regularly as you work to make sure you don't break something else in the process.
   - Make sure the entire test suite passes before you submit a pull request (or push/merge).
 
-<br>[Next - Upgrade Strategy](work-upgrade.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="work-upgrade.md">Next</a>
+</div>

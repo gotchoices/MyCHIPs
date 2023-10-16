@@ -1,9 +1,23 @@
 TODO:
 
+- Tally negotiation
+-  Review tally negotiation documentation
+X-   Break out lift background from protocol document
+-   Add agent ack to tallies (users sign, then agents sign)
+-   Can recover from unknown states (H.offer.open)
+-   Update close procedure
+-  
+-  App needs to sign tally in both directions
+-  Are tallies signed in the app passing the validation in lib/tally.js?
+-  Can/should we validate tally signatures in the DB anywhere?
+-  
 - Pathway Analysis
 X-  Build control report for issuing payment request invoice
 X-  Test in web UI
 X-  Build query/function with user permission for seeking available paths
+-  Redo tallies_v_net to be holder-centric (rather than parter-centric)
+-  Regression tests still run
+-  How does one sign a linear lift?
 -  Build query/function with user permission for inserting linear lift request
 -  
 - Add reset and submit buttons for Trading Variables report (in user's language)
@@ -12,6 +26,7 @@ X-  Build query/function with user permission for seeking available paths
 - Should we use python module for base64url in postgresql?
 -  
 - Chit consensus
+-  How to repair broken chits on mychips.net
 -  Why is one chit still left in pending state after tests?
 -  Update existing code to honor chain state (honor how?)
 -    Only _process commands if in appropriate cstate?
@@ -42,14 +57,6 @@ X- Properly detect MYCHIPS_ROOTNAME for docker-dev (git rev-parse --show-topleve
 - Can/should I be able to specify an outbound tally?
 - How to initiate an internal linear lift to a given destination?
 
-- Tally/chit signatures
-X-  What happens if I try to create a signed chit issued by the other party?
-X-  Make regression tests use real keys on tallies
-X-  Validate tally signatures coming in from the UI or peers (in lib/tally.js)
--  App needs to sign tally in both directions
--  Are tallies signed in the app passing the validation in lib/tally.js?
--  Can/should we validate tally signatures in the DB anywhere?
--  
 - Refactor document server to return contracts (before multi-system lifts will work)
 -  in json format
 -  in pdf format

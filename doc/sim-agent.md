@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn.md">Next</a>
+</div>
+
 ## Agent-Based Modeling
 
 In conjunction with the various iterations of the simulation environments, several
@@ -79,5 +84,8 @@ Lifts:
   - Output queries necessary to populate database of links/pathways
   - Respond to such queries
 
-<br>[Next - Learning About the Software](learn.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn.md">Next</a>
+</div>
+

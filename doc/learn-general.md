@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-users.md">Next</a>
+</div>
+
 ## Learning MyCHIPs
 
 ### A Complex Problem
@@ -187,5 +192,7 @@ Strangers can trade indirectly by rippling value through the network--but only
 if they are trustworthy enough to maintain their own local connections of 
 trust.
 
-<br>[Next - Support Libraries](work-hacking.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-users.md">Next</a>
+</div>

@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-admin.md">Next</a>
+</div>
+
 ## Regular Linux Installation
 
 The MyCHIPs core model is implemented in PostgreSQL so you will have to install that package.
@@ -125,5 +130,7 @@ MyCHIPs/nodemailer will sign messages with [DKIM](https://dkim.org), which will 
 It may also be helpful to publish [DMARK](https://dmarc.org/overview/)
 and [SPF](https://open-spf.org) records for your site.
 
-<br>[Next - Connecting the Admin UI](use-admin.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-admin.md">Next</a>
+</div>

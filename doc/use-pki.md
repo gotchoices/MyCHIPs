@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-mobile.md">Next</a>
+</div>
+
 ## Public Key Infrastructure
 
 The pki folder contains recipes for creating self-signed certificates.
@@ -79,5 +84,7 @@ A default agent is identified by a symbolic link in the pki/local folder called 
 
 In addition to a CHIP ID, each user must be assigned an agent ID (peer_agent field) in the mychips.users_v view.
 
-<br>[Next - Mobile Application](use-mobile.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="use-mobile.md">Next</a>
+</div>

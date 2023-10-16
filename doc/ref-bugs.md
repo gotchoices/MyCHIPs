@@ -1,3 +1,5 @@
+<br>[Back to Index](README.md#contents)
+
 ## Bugs and Problems
 
 This file is for tracking identified, unsolved problems with the general 

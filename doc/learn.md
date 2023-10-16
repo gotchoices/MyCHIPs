@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-general.md">Next</a>
+</div>
+
 ## Learning MyCHIPs
 
 For a more general understanding of the MyCHIPs alorithm, please read
@@ -8,5 +13,7 @@ the final chapters in
 
 And please proceed to the more technical explanations that follow here:
 
-<br>[Next - A Complex Problem](learn-general.md)
-<br>[Back to Index](README.md#contents)
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="learn-general.md">Next</a>
+</div>

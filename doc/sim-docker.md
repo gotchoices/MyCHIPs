@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: space-between;">
+  <a href="README.md#contents">Back to Index</a>
+  <a href="sim-network.md">Next</a>
+</div>
+
 ## MyCHIPs Simulations
 The folder test/sim contains several different iterations of simulators.
 The objective is to launch the production server program multiple numbers of times
@@ -351,6 +356,3 @@ You can control which modeler version is invoked in test/sim/local/config.dock:
 ```
 
 There is also more extensive documentation for modeler 3 [here](/lib/model3/doc/README.md).
-
-<br>[Next - Network Simulation](sim-network.md)
-<br>[Back to Index](README.md#contents)
