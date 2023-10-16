@@ -32,7 +32,6 @@ const Scanner = (props) => {
   const qrCode = barcodes?.[0]?.displayValue;
 
   useEffect(() => {
-    console.log(qrCode, 'qr')
     if(qrCode) {
       if(qrCode.startsWith(connectionLink)) {
         const obj = parse(qrCode);
