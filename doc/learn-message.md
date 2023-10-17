@@ -142,6 +142,7 @@ The *object* property for the tally is defined as follows:
   - **foil**: The [CHIP ID](learn-users.md#chip-addresses) of the customer/employer/client.
   - **stock**: the CHIP ID of the provider/employee/vendor.
   - **uuid**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier) for this particular tally.
+  - **counter**: The number of times the tally was counter-offered during negotiation (default 0).
   - **comment**: Any comments to the tally the parties have agreed to include.
   - **created**: Date/time the tally was created
   - **contract**: A reference to a digital contract containing the general terms and conditions for the tally.  Can be the document digest, or an object containing:
@@ -149,9 +150,13 @@ The *object* property for the tally is defined as follows:
     - **digest**: Base 64 hash of the contract
   - **terms**: An object containing [credit variables](learn-tally.md#credit-terms)
   - **signed**:
-    - **digest**: A string hash of the rest of the tally in a standard serialized format
+    - **digest**: A string hash of the tally (absent 'signed') in a standard serialized format
     - **foil**: The digital signature of the hash by the foil holder (client)
     - **stock**: The digital signature of the hash by the stock holder (vendor)
+    - **acked**:
+      - **digest**: A string hash of the tally (absen 'acked') in a standard serialized format
+      - **foil**: The digital signature of the hash by the foil holder (client)
+      - **stock**: The digital signature of the hash by the stock holder (vendor)
 
 Tally state transition messages are as follows:
 - *DB->Agent, Agent->Agent;* **Initiate Tally Connection**;

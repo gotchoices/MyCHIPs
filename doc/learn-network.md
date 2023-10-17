@@ -4,12 +4,46 @@
 </div>
 
 ## The MyCHIPs Network
+[![MyCHIPs Site](uml/scaling.svg)](uml/scaling.svg)
 
-### General Topology
-This diagram shows the basic parts of a single site, which represents one
-or more logical nodes, or entities:
+### Network Assumptions
+MyCHIPs assumes a network of peer entities who become interconnected through voluntary credit relationships they establish with each other.
+Such an entity could be an individual person or it could be a legal organization such as a corporation or a partnership (i.e. a group of people).
+The term *user* is also used to be roughly synonymous with entity (with a possible bias toward human entities).
 
-[![System Design](uml/scaling.svg)](uml/scaling.svg)
+Entities should quantify the degree to which they trust the peer entities they connect with.
+When that trust is greater than zero (i.e. [credit terms](learn-tally.md#credit-terms) are offered), one should be prepared to possibly lose (or exert an effort to collect) the amount of value quantified in the trust.
+For example, if I extend you 10 CHIPs of credit, I must recognize the possibility that you may fail to uphold your promise.
+In that case, I may lose the promised value, or have to rely on collateral if such is a part of the particular credit agreement.
+
+Although this limited risk from trading parters is a necessary part of the system, people should not be exposed to indirect risks.
+For example, if I (A) share a tally with you (B), and you also share a tally with a third entity (C), I don't want to have to rely on your trust of C.
+C may hurt you.  But I don't want C to be able to hurt me.
+
+So the assumptions in a distributed network are that contracts and obligations exist only between two immediately connected peer entities.
+The instrument for documenting and enforcing that connection is the [Tally](learn-tally.md).
+
+### Sites and Nodes
+When reasoning about lifts and other MyCHIPs transactions, it is sometimes easiest to think of entities as individual, independent nodes
+in a giant [graph network](https://en.wikipedia.org/wiki/Graph_theory).
+
+While this works pretty well in most cases, it is important to remember the implementation reality:
+Individual entity accounts must be hosted on a server that can maintain a network presence at all times--even when a user's mobile device might be turned off.
+And these servers will most likely host more than one user.
+
+This introduces the notion of a *site* which typically represents a single database of users surrounded by a possible cluster of process and control-layer support servers.
+
+The term *server* may be used sometimes as roughly synonymous with *site.*
+The term *node* will get used in a more generic way, possibly referring to an entity, a site, or a set of users (a <i>segment</i>) within a site, depending on the context.
+For purposes of the distributed lift algorithm, we will use the following more formal definition of a node:
+
+A node is one of the following:
+- A single [trading entity](learn-network#trading-entity) connected to one or more other nodes by way of tallies; or
+- A group of trading entities which appear as a single unit (black box) according to the following critera:
+  - The group are served by a single [agent](learn-users.md#agent-key);
+  - The group are connected to one or more other nodes by way of tallies
+  - The group can accept pathway discovery requests from downstream nodes
+  - and can propagate pathway discovery requests to upsstream nodes.
 
 ### Trading entity
 An entity is a person or a company who establishes itself on the network for

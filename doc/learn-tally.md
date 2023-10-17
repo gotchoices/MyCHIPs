@@ -543,33 +543,32 @@ That process is discussed [here](learn-noise.md).
 In the case of a first-time tally, these two levels are more tightly coupled.
 
 A MyCHIPs server should not normally accept a connection from anyone it doesn't already know about.
-So if two parties want to create a tally between them, one of the parties will have to issue a tally ticket to the other.
+So if two parties want to create a tally between them, one of the parties will have to issue a tally invitation to the other.
 Like an invoice, this information must be passed out-of-band.
 
 The process is conducted according to the following example.
 
-- User A3 will build a suggested tally and then request from his host system a ticket associated with that tally.
+- User A3 will build a proposed tally and then request his host system to generate an invitation associated with that tally.
   This authorizes a peer site to establish a connection, absent pre-shared key information.
-  It will also trigger site A to proffer the tally when the connection is made.
   
-- The ticket will be disclosed to User B1, via a reliable out-of-band pathway.
+- The invitation will be disclosed to User B1, via a reliable out-of-band pathway.
   For example, User B1 may scan a QR code on User A3's mobile device or User A3 may email or text the code to User B1.
 
 <p align="center"><img src="figures/Lifts-6.jpg" width="400" title="Example Network"></p>
 
-- The ticket contains:
+- The invitation contains:
   - User A3's [CHIP address](learn-users.md#chip-addresses)(CHAD), indicating how/where to
     connect with Site A on behalf of user A3.
   - An expiring, one-time token, authorizing connection without any other key information.
     The token will internally specify that it is for establishing a new tally;
   - The token expiration date/time;
 
-- Once in possession of the connection ticket,
-  Site B connects (on behalf of B1) to site A.
+- Once in possession of the connection token,
+  Site B connects via nose protocol (on behalf of B1) to site A.
   It sends a structure encrypted with the site A's public agent key, containing
-    - The connection ticket;
-      - B1's CHIP Certificate, added into the ticket;
-    - The public key of the site B agent (inherent in establishingn the NPF connection);
+    - The connection token;
+      - B1's CHIP Certificate, added into the invitation;
+    - The public key of the site B agent (inherent in establishing oisethe  connection);
 
   If site A can decrypt the message, and the token is still valid, it will:
     - Finalize opening of the connection (including agent key exchange);
@@ -585,11 +584,11 @@ The process is conducted according to the following example.
 
 For a real-world example, let's consider the case of a commercial account like a retailer or restaurant:
 
-- The Vendor displays or transmits a ticket QR code, containing the connection ticket;
-- The customer scans the ticket using his app;
+- The Vendor displays or transmits an invitation QR code, containing the connection token;
+- The customer scans the invitation using his app;
 - The customer's host agent contacts the Vendor's host agent system at the specified port
   and presents the connection token;
-  The vendor's system must prove its authenticity via the public agent key it supplied in the ticket;
+  The vendor's system must prove its authenticity via the public agent key it supplied in the invitation;
 - The customer proves authenticity simply by possessing the token;
 - The customer system provides the [customer's certificate](#entity-certificates).
 - The vendor's system will complete the draft tally (or a clone of it when the token is meant to handle multiple connections).
@@ -622,8 +621,8 @@ CHIP certificate.  The certificate has several purposes:
     entity and create the approprate database record (or properly recognize that it
     already exists).
 
-During a transaction involving a connection ticket, there is a point where the subject
-entity presents the ticket, along with its own certificate.  In the original design, 
+During a transaction involving a connection token, there is a point where the subject
+entity presents the token, along with its own certificate.  In the original design, 
 the intent was that the proffering system would decide whether it already has a valid DB
 record for the peer or if it should add a new record.  This turns out to be one of the 
 trickiest parts of the protocol.
@@ -939,7 +938,7 @@ In general, if you get a chit that already agrees with what you have on the
 chain, send an Ack back.  If you get an Ack through a certain index number
 move your latest valid index number forward (but not back) to that number.
 
-See [this section](learn-lift.md#lift-states) for more on treatment of chits that belong to a lift transaction.
+See [this section](old-lift.md#lift-states) for more on treatment of chits that belong to a lift transaction.
 
 <div style="display: flex; justify-content: space-between;">
   <a href="README.md#contents">Back to Index</a>

@@ -6,39 +6,43 @@ database "Originator DB" as propDB
 database "Subject DB" as subjDB
 actor "Subject" as subj
 
-prop	->>	propDB:		Create void tally & ticket
+prop	->>	propDB:		Create draft tally & ticket
 note over propDB
   Ticket may be one-time or reusable for multiple peers
 end note
 prop	-[#red]>> subj:		Communicate ticket to subject peer via QR code (out-of-band)
+subj	->>	subj:		Select Certificate\ninfo to disclose
 subj	->>	subjDB:		Request to connect via ticket
 subjDB	->>	propDB:		Is this a known or local agent?\nConnect w/ticket or known key,\nprovide subject certificate
 propDB	->	propDB:		Construct/complete draft tally
 propDB	->>	prop:		Present for review
-prop	->>	propDB:		Accept/sign tally
+prop	->>	propDB:		Sign/Offer tally
 propDB	->>	subjDB:		Send proposed, signed tally
-subjDB	->	subjDB:		Enter draft tally,\ncheck for local partner
+subjDB	->	subjDB:		Store tally locally,\ncheck for local partner
 subjDB	->>	subj:		Present tally for review
 loop until satisfied
- subj	->>	subjDB:		Modify tally terms
+ subj	->>	subjDB:		Modify tally terms\n(invalidates partner signature)
 end loop
 
 alt Terms agreeable
- subj	->>	subjDB:		Accept/sign tally
+ subj	->>	subjDB:		Accept/sign tally\n(if no changes made)
  subjDB ->>	propDB:		Send accepted tally
  propDB	->>	prop:		Store and notify user
 
 else Want to counter
- subj	->>	subjDB:		Counter offer
+ subj	->>	subjDB:		Sign modified counter-offer
  subjDB	->>	propDB:		Send proposed tally
  propDB	->>	prop:		Present for review
  prop	->>	propDB:		Accept/sign tally
+ propDB	->>	propDB:		Agent ack-signs tally
  propDB	->>	subjDB:		Send accepted tally
- subjDB	->>	subj:		Store and notify user
+ subjDB	->>	subjDB:		Agent ack-signs tally
+ subjDB	->>	subj:		Notify user
+ subjDB	->>	propDB:		Agent sends ack-signed tally
 
 else Refuse terms
- subj	->>	subjDB:		Mark tally as refused
- subjDB ->>	propDB:		Send accepted tally
+ subj	->>	subjDB:		Request to void tally
+ subjDB ->>	propDB:		Send refusal message
  propDB	->>	prop:		Store and notify user
 end
 

@@ -6,7 +6,7 @@
 ## MyCHIPs Protocol Description 1.3 (working draft)
 May 2022; Copyright MyCHIPs.org
 
-### Overview ([TL;DR](#network-assumptions "Skip to the meat"))
+### Overview ([TL;DR](#protocol-layers "Skip to the meat"))
 As the project began, it was difficult to attempt a top-down design of the system.
 
 I had a basic, intuitive idea about how sites and nodes should communicate with each other,
@@ -19,7 +19,7 @@ In conjunction with the agent-model simulator, I could generate random data sets
 And with the network visualizer, I could now actually see what a network might evolve into and what type of scenarios the protocol would have to handle.
 
 As I went, I produced documents like those included here for
-[tallies](learn-tally.md) and [lifts](learn-lift.md)
+[tallies](learn-tally.md) and [lifts](old-lift.md)
 to help me make sense of what I needed to code.
 Those still serve as a helpful reference for the prototype implementation.
 
@@ -35,40 +35,8 @@ This document is an attempt to more formally describe a refined protocol with th
 The goal is to prepare the way for a further revision of the codebase to bring it into line with this improved protocol.
 Hopefully this will serve as a clear enough description that any eventual implementation can interoperate with any other.
 
-### Network Assumptions
-MyCHIPs assumes a network of peer entities who become interconnected through voluntary credit relationships they establish with each other.
-Such an entity could be an individual person or it could be a legal organization such as a corporation or a partnership (i.e. a group of people).
-The term *user* is also used to be roughly synonymous with entity (with a possible bias toward human entities).
-
-Entities should quantify the degree to which they trust the peer entities they connect with.
-When that trust is greater than zero (i.e. [credit terms](learn-tally.md#credit-terms) are offered), one should be prepared to possibly lose (or exert an effort to collect) the amount of value quantified in the trust.
-For example, if I extend you 10 CHIPs of credit, I must recognize the possibility that you may fail to uphold your promise.
-In that case, I may lose the promised value, or have to rely on collateral if such is a part of the particular credit agreement.
-
-Although this limited risk from trading parters is a necessary part of the system, people should not be exposed to indirect risks.
-For example, if I (A) share a tally with you (B), and you also share a tally with a third entity (C), I don't want to have to rely on your trust of C.
-C may hurt you.  But I don't want C to be able to hurt me.
-
-So the assumptions in a distributed network are that contracts and obligations exist only between two immediately connected peer entities.
-The instrument for documenting and enforcing that connection is the [Tally](learn-tally.md).
-
-### Sites and Nodes
-When reasoning about lifts and other MyCHIPs transactions, it is sometimes easiest to think of entities as individual, independent nodes
-in a giant [graph network](https://en.wikipedia.org/wiki/Graph_theory).
-
-While this works pretty well in most cases, it is important to remember the implementation reality:
-Individual entity accounts must be hosted on a server that can maintain a network presence at all times--even when a user's mobile device might be turned off.
-And these servers will most likely host more than one user.
-
-[![MyCHIPs Site](uml/scaling.svg)](uml/scaling.svg)
-
-This introduces the notion of a *site* which typically represents a single database of users surrounded by a possible cluster of process and control-layer support servers.
-
-The term *node* will get used in a more generic way, possibly referring to an entity, a site, or a set of users (a <i>segment</i>) within a site, depending on the context.
-The term *server* may be used sometimes as roughly synonymous with *site.*
-
 ### Protocol Layers
-This document is defining the model state level **protocol** whereby nodes communicate with each other to:
+This document defines the model state level **protocol** whereby nodes communicate with each other to:
 - Establish tallies (formalized trading relationships) between entities
 - Send value via direct Chits on a single tally
 - Discover potential lift pathways through the network
@@ -82,28 +50,30 @@ At a lower level, sites will communicate with each other over an encrypted secur
 [Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail [here](/doc/learn-noise.md).
 
 ### State Processing
-The protocol is implemented as a state transition model.  This is important because in a
-distributed network, nodes are apt to go offline from time to time and network connections may
-not always be reliable.
+The protocol is implemented as a state transition model.
+This is important because in a distributed network, nodes are apt to go offline from time to time 
+and network connections may not always be reliable.
 
-End users will be running software on their mobile devices.
+End-users will likely be running software on mobile devices.
 Those devices will communicate with a user service control-layer process which will in turn communicated with the model inside the database.
 The database will communicate with a agent process which will communicate with other peer agent processes.
 
 If/when a message is lost in all of this, the system should:
 - Stay in a consistent state until the message gets through or is rightly abandoned;
-- Enforce the need to re-transmit the message as necessary;
+- Re-transmit the message as necessary;
 - Tolerate multiple messages getting through, or messages coming through late or at an unexpected time.
+- Reasonably recover from errant states and/or data loss
+- Eventually bring associated parties into consensus
 
 ### Tally Use Cases
-A tally is established when two parties decide to formalize a relationship of trust between them using the MyCHIPs protocol.
+A tally is established when two parties decide to formalize an existing relationship of trust using the MyCHIPs protocol.
 
 ![use-tally](uml/use-tally.svg)
 
 These use-cases are explained as follows::
 - **Be My Vendor**:
   The User reaches out to a potential trading Partner and asks if he would like to establish a tally.
-  This must always happen via some communication channel outside the MyCHIPs protocol.
+  This must happen via some communication channel outside the MyCHIPs protocol.
   We will call this “[out-of-band communication](https://en.wikipedia.org/wiki/Out-of-band_data).”
   Examples include meeting in-person, email, teleconference or a traditional web connection.
   In this case, the User is suggesting he hold the [Foil](learn-tally.md#tally-parts) of the tally and the Partner will hold the [Stock](learn-tally.md#tally-parts).
@@ -113,7 +83,7 @@ These use-cases are explained as follows::
 - **Be My Client**:
   This is really identical in all respects to the previous case, except the User is suggesting he be the Vendor (the Stock holder) and the Partner will be the Client (the Foil holder).
 - **Transaction**:
-  Once established, the tally will serve as a foundation for payments (pledges of credit).
+  Once established, the tally will serve as a ledger for recording payments (pledges of credit).
   It will maintain and track a total balance owed in one direction or the other.
   And it constitutes a signed digital contract indicating the [terms and conditions](learn-tally.md#credit-terms) by which the two parties have agreed to conduct their trades.
   The tally balance is modified by entering individual atomic transactions called [chits](https://www.dictionary.com/browse/chit).
@@ -123,16 +93,16 @@ These use-cases are explained as follows::
   These should not violate the formal terms and conditions of the tally (i.e. those digitally signed by both parties).
   But they will clearly affect how the system will operate the tally.
   
-  Settings are modeled as a special kind of chit that transmits no value--only information.
+  Settings are modeled as a special kind of chit that transmits no value--just information.
   This will facilitate verifying that each end of the tally contains the same information about settings.
 
   Users can make the following tally settings:
   - Adjust/change lift [trading variables](learn-lifts.md#trading-variables).
     Although these seem to be solely the business of the user's host service, the partner site needs to know certain aspects in order to properly estimate lift lading capacity.
   - Request a tally to be closed, once it's balance reaches zero.
-    While this can be done at any time, a debtor may still not have an obligation to pay down a debt any faster than specified in the previously signed credit terms.
-  - Specify a <i>call date</i> or when the other partner is expected to pay its balance down to zero.
-  - Change one's own agent address.
+    While this request can be made at any time, a debtor would still not have an obligation to pay down a debt any faster than specified in previously agreed-to credit terms.
+  - Specify a <i>call date</i> or when the other partner is expected to pay its balance down to zero or a specified target level.
+  - Change one's own agent address, agent IP number and/or agent port (not yet implemented).
   
 ### Tally Protocol
 The steps to establish a tally are shown in the following sequence diagram.
@@ -145,7 +115,7 @@ As mentioned, transactions and settings are carried out as chits, which get adde
 More on chits [below](#chit-use-cases).
 
 When one of the partners wishes to end the trading relationship, he can do so by the steps in the following sequence diagram.
-If the creditor wants to close the tally and is willing to forfeit his balance owed, he can simply gift the balance back to the debtor.
+If the creditor wants to close the tally and is willing to forfeit his balance owed, he can simply send the balance back to the debtor.
 The tally, marked as "closing," will then close automatically.
 
 ![seq-tally-close](uml/seq-tally-close.svg)

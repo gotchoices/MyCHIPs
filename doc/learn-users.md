@@ -158,7 +158,7 @@ then carry out the connection.
 
 It is unclear (at the time of this writing) whether this notation will be useful.
 But the most likely scenario would be when specifing a
-[linear lift](learn-lifts.md#linear-lifts) payment.  The point would be to expect
+[linear lift](old-lift.md#linear-lifts) payment.  The point would be to expect
 some peer site along the way to recognize the username and domain address and
 already know the correct agent key and port number.
 
