@@ -56,7 +56,7 @@ const HomeScreen = (props) => {
 
       if (connectionUri.has(host)) {
         const obj = parse(url);
-        connect({ ticket: obj });
+        connect({ connect: obj });
       } else if (tallyUri.has(host)) {
         const parsed = parseTallyInvitation(url);
         requestProposedTally(parsed)

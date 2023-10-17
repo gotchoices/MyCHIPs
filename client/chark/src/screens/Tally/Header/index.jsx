@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 Header.propTypes = {
   title: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
-  icon: PropTypes.any.isRequired,
+  icon: PropTypes.any,
 }
 
 export default Header;
