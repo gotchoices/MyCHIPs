@@ -10,3 +10,4 @@ test/sim/local
 .sync.ffs_db
 .DS_Store
 .nyc_output/
+.vs

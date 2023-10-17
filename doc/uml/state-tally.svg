@@ -1,1 +1,404 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="990px" preserveAspectRatio="none" style="width:994px;height:990px;background:#FFFFFF;" version="1.1" viewBox="0 0 994 990" width="994px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="143" x="418.75" y="23.5352">Tally State Diagram</text><!--cluster working--><g id="cluster_working"><path d="M435,174.4883 L942,174.4883 A12.5,12.5 0 0 1 954.5,186.9883 L954.5,190.4883 L422.5,190.4883 L422.5,186.9883 A12.5,12.5 0 0 1 435,174.4883 " fill="#E8E8EA" style="stroke:#E8E8EA;stroke-width:1.0;"/><rect fill="none" height="118" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="532" x="422.5" y="174.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="422.5" x2="954.5" y1="190.4883" y2="190.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="38" x="669.5" y="186.9585">working</text></g><!--cluster liftable--><g id="cluster_liftable"><path d="M95,696.4883 L348,696.4883 A12.5,12.5 0 0 1 360.5,708.9883 L360.5,712.4883 L82.5,712.4883 L82.5,708.9883 A12.5,12.5 0 0 1 95,696.4883 " fill="#E8E8EA" style="stroke:#E8E8EA;stroke-width:1.0;"/><rect fill="none" height="269" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="278" x="82.5" y="696.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="82.5" x2="360.5" y1="712.4883" y2="712.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="30" x="206.5" y="708.9585">liftable</text></g><g id="working.draft"><rect fill="#E8E8EA" height="53" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="164" x="607.5" y="213.9883"/><line style="stroke:#202024;stroke-width:0.5;" x1="607.5" x2="771.5" y1="234.9883" y2="234.9883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="22" x="678.5" y="227.4585">draft</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="107" x="612.5" y="248.4585">Status: draft, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="144" x="612.5" y="259.4585">User: can modify, sign, delete</text></g><g id="working.void"><rect fill="#E8E8EA" height="53" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="125" x="447" y="213.9883"/><line style="stroke:#202024;stroke-width:0.5;" x1="447" x2="572" y1="234.9883" y2="234.9883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="20" x="499.5" y="227.4585">void</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="105" x="452" y="248.4585">Status: void, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="83" x="452" y="259.4585">User: can modify</text></g><g id="liftable.open"><rect fill="#E8E8EA" height="64" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="149" x="147" y="726.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="147" x2="296" y1="747.4883" y2="747.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="209.5" y="739.9585">open</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="109" x="152" y="760.9585">Status: open, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="129" x="152" y="771.9585">Must have both signatures</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="117" x="152" y="782.9585">User: can request close</text></g><g id="liftable.close"><rect fill="#E8E8EA" height="53" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="131" x="165" y="896.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="165" x2="296" y1="917.4883" y2="917.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="217.5" y="909.9585">close</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="111" x="170" y="930.9585">Status: close, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="170" y="941.9585">Non-zero balance</text></g><g id="pOfferVoid"><rect fill="#E8E8EA" height="53" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="131" x="356" y="397.9883"/><line style="stroke:#202024;stroke-width:0.5;" x1="356" x2="487" y1="418.9883" y2="418.9883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="55" x="394" y="411.4585">P.offer.void</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="111" x="361" y="432.4585">Status: offer, Req: void</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="361" y="443.4585">Agent: Attention!</text></g><g id="BOfferOpen"><rect fill="#E8E8EA" height="53" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="135" x="7" y="397.9883"/><line style="stroke:#202024;stroke-width:0.5;" x1="7" x2="142" y1="418.9883" y2="418.9883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="59" x="45" y="411.4585">B.offer.open</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="115" x="12" y="432.4585">Status: offer, Req: open</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="12" y="443.4585">Agent: Attention!</text></g><g id="DraftOffer"><rect fill="#E8E8EA" height="64" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="144" x="522.5" y="392.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="522.5" x2="666.5" y1="413.4883" y2="413.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="47" x="571" y="405.9585">draft.offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="113" x="527.5" y="426.9585">Status: draft, Req: offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="124" x="527.5" y="437.9585">Must have user signature</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="527.5" y="448.9585">Agent: Attention!</text></g><g id="pOffer"><rect fill="#E8E8EA" height="64" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="184" x="120.5" y="208.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="120.5" x2="304.5" y1="229.4883" y2="229.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="32" x="196.5" y="221.9585">P.offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="107" x="125.5" y="242.9585">Status: offer, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="94" x="125.5" y="253.9585">Peer signature only</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="164" x="125.5" y="264.9585">User: can accept, refuse, counter</text></g><g id="hOffer"><rect fill="#E8E8EA" height="64" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="127" x="337" y="551.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="337" x2="464" y1="572.4883" y2="572.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="33" x="384" y="564.9585">H.offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="107" x="342" y="585.9585">Status: offer, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="95" x="342" y="596.9585">User signature only</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="93" x="342" y="607.9585">User waits for peer</text></g><g id="closed"><rect fill="#E8E8EA" height="53" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="137" x="423" y="896.4883"/><line style="stroke:#202024;stroke-width:0.5;" x1="423" x2="560" y1="917.4883" y2="917.4883"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="100" x="441.5" y="909.9585">close (zero balance)</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="117" x="428" y="930.9585">Status: closed, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="75" x="428" y="941.9585">Balance is zero</text></g><ellipse cx="450.5" cy="53.4883" fill="#222222" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><!--link *start to draft--><g id="link_*start_draft"><path d="M460.24,57.2683 C477.71,62.5283 515.14,75.1083 542.5,93.4883 C591.31,126.2683 637.72,176.7183 664.89,208.8983 " fill="none" id="*start-to-draft" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="667.79,212.3483,665.0666,202.8835,664.575,208.5189,658.9396,208.0274,667.79,212.3483" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="633" y="113.9585">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="608.5" y="124.9585">User or system</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="73" x="610" y="135.9585">drafts new tally</text></g><!--link *start to pOffer--><g id="link_*start_pOffer"><path d="M442.85,60.4383 C414.84,82.2083 316.41,158.7183 257.67,204.3783 " fill="none" id="*start-to-pOffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="254.01,207.2283,263.5681,204.853,257.9545,204.1556,258.6519,198.5419,254.01,207.2283" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="453.5" y="102.9585">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="134" x="399.5" y="113.9585">Receive new proposed tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="428.5" y="124.9585">[valid signature]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="47" x="443" y="135.9585">/Act: offer</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="53" x="440" y="146.9585">Notify user</text></g><!--link working to DraftOffer--><g id="link_working_DraftOffer"><path d="M937.8087,292.5092 C937.7124,292.7265 937.615,292.9433 937.5166,293.1596 C937.3198,293.5922 937.1187,294.0228 936.9133,294.4511 C936.0918,296.1643 935.2012,297.8411 934.2358,299.4667 C932.305,302.718 930.075,305.7645 927.5,308.4883 C918.37,318.1483 768.05,367.7283 672.53,398.5483 " fill="none" id="working-to-DraftOffer" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="668.04,399.9983,677.835,401.0266,672.7961,398.4558,675.367,393.4168,668.04,399.9983" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="935.5" y="325.9585">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="75" x="911.5" y="336.9585">User signs tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="924" y="347.9585">[valid cert]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="69" x="914.5" y="358.9585">/Request offer</text></g><!--link draft to draft--><g id="link_draft_draft"><path d="M771.78,222.2383 C791.7,223.6283 806.5,229.7083 806.5,240.4883 C806.5,250.0883 794.76,255.9683 778.12,258.1183 " fill="none" id="draft-to-draft" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="773.28,258.5983,782.6254,261.7068,778.2564,258.1135,781.8497,253.7445,773.28,258.5983" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="854.5" y="226.9585">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="104" x="815.5" y="237.9585">Ticketed tally request</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="79" x="828" y="248.9585">[Have peer cert]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="110" x="812.5" y="259.9585">/Act: ticket; Notify user</text></g><!--link pOfferVoid to void--><g id="link_pOfferVoid_void"><path d="M445.16,397.5683 C453.7,387.2183 462.87,374.8383 469.5,362.4883 C484.85,333.9183 495.73,298.3983 502.24,273.2483 " fill="none" id="pOfferVoid-to-void" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="503.42,268.5583,497.3297,276.2984,502.1905,273.4048,505.0841,278.2655,503.42,268.5583" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="505.5" y="331.4585">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="88" x="489.5" y="342.4585">Req:void detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="88" x="489.5" y="353.4585">/Transmit Act:void</text></g><!--link pOffer to pOfferVoid--><g id="link_pOffer_pOfferVoid"><path d="M222.03,272.8483 C231.64,299.7883 248.91,338.0483 275.5,362.4883 C287.4,373.4283 319.21,387.1983 350.11,398.8883 " fill="none" id="pOffer-to-pOfferVoid" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="354.45,400.5083,347.4275,393.6029,349.7684,398.7527,344.6185,401.0935,354.45,400.5083" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="296.5" y="331.4585">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="278.5" y="342.4585">Refuses tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="67" x="276.5" y="353.4585">/Request void</text></g><!--link pOffer to DraftOffer--><g id="link_pOffer_DraftOffer"><path d="M282.51,272.9383 C304.88,284.7983 328.91,299.5683 348.5,316.4883 C367.95,333.2783 362.04,348.3683 383.5,362.4883 C429.79,392.9283 451.37,376.7883 504.5,392.4883 C508.44,393.6483 512.46,394.8883 516.52,396.1583 " fill="none" id="pOffer-to-DraftOffer" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="521.03,397.5883,513.6616,391.0532,516.2642,396.0758,511.2417,398.6784,521.03,397.5883" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="409" y="325.9585">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="62" x="391.5" y="336.9585">Modifies tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="384.5" y="347.9585">[valid signature]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="69" x="388" y="358.9585">/Request offer</text></g><!--link pOffer to BOfferOpen--><g id="link_pOffer_BOfferOpen"><path d="M155.56,272.8483 C138.43,284.6183 120.91,299.3583 108.5,316.4883 C92.41,338.7083 83.73,368.8483 79.18,391.4683 " fill="none" id="pOffer-to-BOfferOpen" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="78.29,396.1583,83.8958,388.0604,79.221,391.2457,76.0357,386.5709,78.29,396.1583" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="134" y="325.9585">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="62" x="116.5" y="336.9585">Accepts tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="109.5" y="347.9585">[valid signature]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="71" x="112" y="358.9585">/Request open</text></g><!--link BOfferOpen to open--><g id="link_BOfferOpen_open"><path d="M85.91,451.2683 C111.78,509.6783 174.94,652.3383 205.04,720.3083 " fill="none" id="BOfferOpen-to-open" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="207.06,724.8683,207.0657,715.0194,205.032,720.298,199.7533,718.2643,207.06,724.8683" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="177.5" y="575.4585">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="88" x="161.5" y="586.4585">req:open detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="92" x="159.5" y="597.4585">/Transmit Act:open</text></g><!--link DraftOffer to hOffer--><g id="link_DraftOffer_hOffer"><path d="M555.71,456.8783 C523.46,482.9783 477.59,520.1083 444.08,547.2183 " fill="none" id="DraftOffer-to-hOffer" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="440.4,550.1983,449.9131,547.6485,444.2876,547.0539,444.8821,541.4284,440.4,550.1983" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="532.5" y="495.9585">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="515.5" y="506.9585">Req:offer detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="515.5" y="517.9585">/Transmit Act:offer</text></g><!--link hOffer to open--><g id="link_hOffer_open"><path d="M368.08,615.8183 C337.26,645.6083 290.93,690.3883 258.64,721.5983 " fill="none" id="hOffer-to-open" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="255.06,725.0483,264.3015,721.6431,258.6452,721.5631,258.7252,715.9068,255.06,725.0483" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="382" y="654.9585">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="125" x="332.5" y="665.9585">Receive peer acceptance</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="49" x="370.5" y="676.9585">/Act: open</text></g><!--link hOffer to void--><g id="link_hOffer_void"><path d="M464.3,577.6283 C536.3,568.1083 648.12,539.9283 684.5,456.4883 C695.87,430.4183 696.34,418.3483 684.5,392.4883 C680.74,384.2683 595.57,312.8183 545.46,271.2083 " fill="none" id="hOffer-to-void" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="541.89,268.2483,546.2465,277.0812,545.7323,271.4478,551.3657,270.9336,541.89,268.2483" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="732.5" y="416.4585">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="101" x="695" y="427.4585">Receive peer refusal</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="104" x="693.5" y="438.4585">/Act: void; Notify user</text></g><!--link hOffer to pOffer--><g id="link_hOffer_pOffer"><path d="M336.52,552.4983 C298.9,531.2683 254.19,499.0083 230.5,456.4883 C199.57,400.9683 201.73,324.6083 206.71,279.4183 " fill="none" id="hOffer-to-pOffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="207.28,274.4883,202.2516,282.9568,206.6933,279.4537,210.1963,283.8955,207.28,274.4883" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="271.5" y="416.4585">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="105" x="232" y="427.4585">Receive modified tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="106" x="231.5" y="438.4585">/Act: offer; Notify user</text></g><!--link void to pOffer--><g id="link_void_pOffer"><path d="M446.83,240.4883 C407.47,240.4883 355.87,240.4883 311.11,240.4883 " fill="none" id="void-to-pOffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="306.36,240.4883,315.36,244.4883,311.36,240.4883,315.36,236.4883,306.36,240.4883" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="362.75" y="211.9585">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="105" x="323.25" y="222.9585">Receive modified tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="106" x="322.75" y="233.9585">/Act: offer; Notify user</text></g><!--link open to close--><g id="link_open_close"><path d="M157.12,790.6983 C146.41,798.8583 136.77,808.7383 130.5,820.4883 C120.88,838.5283 120.13,848.8683 130.5,866.4883 C137.4,878.2083 147.77,887.6383 159.26,895.1483 " fill="none" id="open-to-close" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="163.32,897.6683,157.7759,889.5281,159.0696,895.035,153.5627,896.3288,163.32,897.6683" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="27" x="168.5" y="835.4585">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="101" x="131.5" y="846.4585">Issues close/call chit</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="60" x="152" y="857.4585">/Set to close</text></g><!--link open to close--><g id="link_open_close"><path d="M231.37,790.8483 C233.89,800.2783 236.24,810.7183 237.5,820.4883 C240.11,840.7683 238.78,846.0883 237.5,866.4883 C237.02,874.0583 236.19,882.1783 235.25,889.8083 " fill="none" id="open-to-close-1" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="234.64,894.5783,239.7642,886.1674,235.283,889.6198,231.8307,885.1386,234.64,894.5783" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="259.5" y="829.9585">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="65" x="240" y="840.9585">Receive peer</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="66" x="239.5" y="851.9585">close request</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="51" x="247" y="862.9585">/Act: close</text></g><!--link close to closed--><g id="link_close_closed"><path d="M296.36,922.9883 C332.91,922.9883 378.5,922.9883 416.42,922.9883 " fill="none" id="close-to-closed" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="421.41,922.9883,412.41,918.9883,416.41,922.9883,412.41,926.9883,421.41,922.9883" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#000000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="18" x="350.5" y="894.4585">DB:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="90" x="314.5" y="905.4585">(No explicit action)</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="89" x="315" y="916.4585">[Tally sum is zero]</text></g><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="142" x="419.25" y="980.1563">Fri Feb 10 23:38:34 MST 2023</text><!--SRC=[dPHDRziu48Rl_1NJ8e2ZXPozUu42oURGFJGjqdGlJG-qH5j4AT8LAMUpY_tl7Gv9YPJZ5kZ9flZouV2TZrTIDsfi1JIcxus-EeozOkp2IQV4vGDNwXa-Eku4t4g-7tXVCKlBrn-kp6udXgkZaUrhu1OEx_twRrmcoKsKc8FG9BaXoNjS9aaxy9qBCbBS-ZMfs2fA_EchHXahIE5F_-bN4V5aXgzIx-4_1f13IKp_veqfLl-7_Hy9IkuStogH8wQG_P_vynm6_PiGoOtCYBJpDjlfYXr2mEM_OZ2mvOhhHbGpksLi5PnlXUDIMJOR31jAocWtGF0QxiMtJNXLeRhU2-tmnpdybKQ_OcpEmHaAlRXGlK2PyvHHoEr4ePSMidUZTT3neu3HuWShznhF3Q9KlN3PQifv7Z9-YtU5N1Ig5oWKtPbezQZK9FY4qI6KQ-XDAtVFDOLQOnwKS8AnOva1lymnSNj9OJ4pProdevFYWyWD0gFLyxmvatdJY0E-OH0xjBJ67XwrGzjPzzEhkfoslAhSVEBIMTYP0Gx2mysYTkP443bkpzdU6jVDDzWac9ynY6-ZG7N88siMcQPrVaCIt1czphid7csNPzkJmrvo4mw1jE0XKxkvWMihVT70C2fXD-ppRrzW_Vd2L-sNzHj8TN91oalwNfDJQ95zjaxqZvf45hHu0kUdQ9KetaDFcTAPC7wZlXUDaEYPFtSOp85Y9K1zv0eBQ_AnlcvSpEkZlZCEIupwgc9f8cOX5nrs6hU7skAQHWmEWmbveKkgr47P6vPEq1CUPFCL-oI6dP9Rl_Mbu0M13HI-8-qVKCIVJJ2ygztwcs9JfOlQhGzkGrznF8e6xwjNg_h1R_VI4TtlLbFRPMuK8x9muvuQALa1I8HaGg2TmivR-yxtlHJsJFvWOUyfkXZ21VgQ6l_dP3nQ5ID_CjIKL3GK4xMXhsSDZRZinHEkMpeGCqHlcuaBNgohReAbmbf4HtK5gJUeYCBeymqSqXIwWG8ynIsgf-Wqej40vIf3-IEBkZpb_hY7-v3_Dg-ckMaNy6Cizrz2_v0SvcrMLcby5XK5VrcBDHCsVsyG2qqdNOZwet3WJDYh9buATSaxiVTH1qaQ1RCJaHYsruFSTovLr3Id8_RsfbvTtXaG_noKRB22UEDdT8KrIdF6ZdqQvVZcLJo-HX8ENlOT]--></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="1435px" preserveAspectRatio="none" style="width:996px;height:1435px;background:#FFFFFF;" version="1.1" viewBox="0 0 996 1435" width="996px" zoomAndPan="magnify"><defs/><g><rect fill="#FFFFFF" height="27.6094" id="_title" style="stroke:none;stroke-width:1.0;" width="142" x="420" y="5"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="132" x="425" y="24.5332">Tally State Diagram</text><!--MD5=[932510f84763d6405ab56e4a2265926e]
+cluster working--><g id="cluster_working"><path d="M439.5,189.6094 L944.5,189.6094 A12.5,12.5 0 0 1 957,202.1094 L957,213.4453 L427,213.4453 L427,202.1094 A12.5,12.5 0 0 1 439.5,189.6094 " fill="#E8E8EA" style="stroke:#E8E8EA;stroke-width:1.0;"/><rect fill="none" height="131" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="530" x="427" y="189.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="427" x2="957" y1="213.4453" y2="213.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="39" x="672.5" y="205.0283">working</text></g><!--MD5=[434d6044c2588cbe8ba7a06cfdde95dc]
+cluster liftable--><g id="cluster_liftable"><path d="M248.5,1107.6094 L500.5,1107.6094 A12.5,12.5 0 0 1 513,1120.1094 L513,1131.4453 L236,1131.4453 L236,1120.1094 A12.5,12.5 0 0 1 248.5,1107.6094 " fill="#E8E8EA" style="stroke:#E8E8EA;stroke-width:1.0;"/><rect fill="none" height="302" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="277" x="236" y="1107.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="236" x2="513" y1="1131.4453" y2="1131.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="31" x="359" y="1123.0283">liftable</text></g><g id="working.draft"><rect fill="#E8E8EA" height="61.5078" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="163" x="610.5" y="232.1094"/><line style="stroke:#202024;stroke-width:0.5;" x1="610.5" x2="773.5" y1="255.9453" y2="255.9453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="23" x="680.5" y="248.5283">draft</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="107" x="615.5" y="272.3643">Status: draft, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="143" x="615.5" y="286.2002">User: can modify, sign, delete</text></g><g id="working.void"><rect fill="#E8E8EA" height="61.5078" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="124" x="451" y="232.1094"/><line style="stroke:#202024;stroke-width:0.5;" x1="451" x2="575" y1="255.9453" y2="255.9453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="20" x="503" y="248.5283">void</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="104" x="456" y="272.3643">Status: void, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="82" x="456" y="286.2002">User: can modify</text></g><g id="liftable.open"><rect fill="#E8E8EA" height="75.3438" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="148" x="258" y="1139.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="258" x2="406" y1="1163.4453" y2="1163.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="24" x="320" y="1156.0283">open</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="108" x="263" y="1179.8643">Status: open, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="128" x="263" y="1193.7002">Must have both signatures</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="116" x="263" y="1207.5361">User: can request close</text></g><g id="liftable.close"><rect fill="#E8E8EA" height="61.5078" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="130" x="318" y="1331.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="318" x2="448" y1="1355.4453" y2="1355.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="370" y="1348.0283">close</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="110" x="323" y="1371.8643">Status: close, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="86" x="323" y="1385.7002">Non-zero balance</text></g><g id="pOfferVoid"><rect fill="#E8E8EA" height="61.5078" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="132" x="359" y="438.1094"/><line style="stroke:#202024;stroke-width:0.5;" x1="359" x2="491" y1="461.9453" y2="461.9453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="56" x="397" y="454.5283">P.offer.void</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="112" x="364" y="478.3643">Status: offer, Req: void</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="80" x="364" y="492.2002">Agent: Attention!</text></g><g id="BOfferOpen"><rect fill="#E8E8EA" height="61.5078" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="136" x="7" y="438.1094"/><line style="stroke:#202024;stroke-width:0.5;" x1="7" x2="143" y1="461.9453" y2="461.9453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="61" x="44.5" y="454.5283">B.offer.open</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="116" x="12" y="478.3643">Status: offer, Req: open</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="80" x="12" y="492.2002">Agent: Attention!</text></g><g id="DraftOffer"><rect fill="#E8E8EA" height="75.3438" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="143" x="526.5" y="431.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="526.5" x2="669.5" y1="455.4453" y2="455.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="573" y="448.0283">draft.offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="115" x="531.5" y="471.8643">Status: draft, Req: offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="123" x="531.5" y="485.7002">Must have user signature</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="80" x="531.5" y="499.5361">Agent: Attention!</text></g><g id="pOffer"><rect fill="#E8E8EA" height="75.3438" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="184" x="121" y="225.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="121" x2="305" y1="249.4453" y2="249.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="33" x="196.5" y="242.0283">P.offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="108" x="126" y="265.8643">Status: offer, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="93" x="126" y="279.7002">Peer signature only</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="164" x="126" y="293.5361">User: can accept, refuse, counter</text></g><g id="hOffer"><rect fill="#E8E8EA" height="75.3438" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="128" x="509" y="609.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="509" x2="637" y1="633.4453" y2="633.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="34" x="556" y="626.0283">H.offer</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="108" x="514" y="649.8643">Status: offer, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="94" x="514" y="663.7002">User signature only</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="95" x="514" y="677.5361">User waits for peer</text></g><g id="closed"><rect fill="#E8E8EA" height="61.5078" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="136" x="574" y="1331.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="574" x2="710" y1="1355.4453" y2="1355.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="100" x="592" y="1348.0283">close (zero balance)</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="116" x="579" y="1371.8643">Status: closed, Req: null</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="75" x="579" y="1385.7002">Balance is zero</text></g><g id="sendack"><rect fill="#E8E8EA" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="122" x="271" y="787.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="271" x2="393" y1="811.4453" y2="811.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="44" x="310" y="804.0283">send ack</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="102" x="276" y="827.8643">Status: ack, Req: ack</text></g><g id="waitack"><rect fill="#E8E8EA" height="50" rx="12.5" ry="12.5" style="stroke:#202024;stroke-width:0.5;" width="121" x="271.5" y="954.6094"/><line style="stroke:#202024;stroke-width:0.5;" x1="271.5" x2="392.5" y1="978.4453" y2="978.4453"/><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="41" x="311.5" y="971.0283">wait ack</text><text fill="#000033" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="101" x="276.5" y="994.8643">Status: ack, Req: null</text></g><ellipse cx="452" cy="54.6094" fill="#222222" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><!--MD5=[98967d72ce6cf1fee1a27daeddde0c85]
+link *start to draft--><g id="link_*start_draft"><path d="M461.78,57.7494 C480.48,62.1994 522.05,73.7994 551,94.6094 C601.87,131.1694 645.68,190.0694 670.43,227.3994 " fill="none" id="*start-to-draft" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="673.36,231.8394,671.7576,222.1218,670.613,227.6616,665.0731,226.517,673.36,231.8394" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="649" y="121.0283">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="74" x="625" y="134.8643">User or system</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="624" y="148.7002">drafts new tally</text></g><!--MD5=[a843d81587e846b1f84799ee78e823b8]
+link *start to pOffer--><g id="link_*start_pOffer"><path d="M444.85,61.7894 C417.56,85.3594 318.58,170.8894 259.12,222.2594 " fill="none" id="*start-to-pOffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="255.27,225.5894,264.7012,222.7517,259.0602,222.3284,259.4836,216.6874,255.27,225.5894" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="462" y="107.0283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="135" x="407" y="120.8643">Receive new proposed tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="436.5" y="134.7002">[valid signature]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="449.5" y="148.5361">/Act: offer</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="53" x="448" y="162.3721">Notify user</text></g><!--MD5=[f93311f55d9ef408d52e14ba6e31305b]
+link working to DraftOffer--><g id="link_working_DraftOffer"><path d="M939.8713,320.8541 C939.8194,320.9711 939.7672,321.0879 939.7147,321.2046 C938.8745,323.0718 937.9609,324.9027 936.9675,326.6817 C934.9808,330.2398 932.675,333.5906 930,336.6094 C921.02,346.7494 769.51,404.3494 674.31,439.8694 " fill="none" id="working-to-DraftOffer" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="669.53,441.6494,679.3599,442.2609,674.2163,439.9063,676.5709,434.7628,669.53,441.6494" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="938" y="357.0283">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="74" x="914" y="370.8643">User signs tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="926" y="384.7002">[valid cert]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="70" x="916" y="398.5361">/Request offer</text></g><!--MD5=[c062f63624191a0da7aca53a7050afab]
+link draft to draft--><g id="link_draft_draft"><path d="M773.66,242.8094 C793.63,244.3094 808.5,251.0794 808.5,263.1094 C808.5,274.1094 796.08,280.7094 778.69,282.9094 " fill="none" id="draft-to-draft" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="773.66,283.4094,783.0142,286.4913,778.635,282.9104,782.2159,278.5313,773.66,283.4094" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="857" y="247.0283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="102" x="818.5" y="260.8643">Ticketed tally request</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="78" x="830.5" y="274.7002">[Have peer cert]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="110" x="814.5" y="288.5361">/Act: ticket; Notify user</text></g><!--MD5=[32fa2ebd6d599e34ead6e35ca840f245]
+link pOfferVoid to void--><g id="link_pOfferVoid_void"><path d="M449.44,437.9594 C457.46,426.9894 465.88,414.1994 472,401.6094 C488.1,368.4994 499.27,327.7894 505.85,299.2894 " fill="none" id="pOfferVoid-to-void" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="507.02,294.1194,501.1139,302.0009,505.9051,298.9935,508.9125,303.7847,507.02,294.1194" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="54" x="510.5" y="364.0283">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="494" y="377.8643">Req:void detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="494" y="391.7002">/Transmit Act:void</text></g><!--MD5=[6b9e9182ae89892674723abc43fbc571]
+link pOffer to pOfferVoid--><g id="link_pOffer_pOfferVoid"><path d="M222.58,300.7194 C232.18,331.1194 249.67,373.7494 278,401.6094 C284.26,407.7694 319.64,423.8394 354.13,438.6394 " fill="none" id="pOffer-to-pOfferVoid" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="358.76,440.6294,352.0444,433.4251,354.1591,438.6719,348.9124,440.7865,358.76,440.6294" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="299" y="364.0283">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="280.5" y="377.8643">Refuses tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="66" x="279" y="391.7002">/Request void</text></g><!--MD5=[08dacb9f37a0c3215fcb43a00c7a1b37]
+link pOffer to DraftOffer--><g id="link_pOffer_DraftOffer"><path d="M290.03,300.7894 C310.92,312.9294 332.56,327.7194 350,344.6094 C371.52,365.4494 361.67,384.1194 386,401.6094 C431.69,434.4594 455.49,414.2194 509,431.6094 C513.11,432.9494 517.3,434.3794 521.51,435.8894 " fill="none" id="pOffer-to-DraftOffer" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="526.45,437.6894,519.3472,430.8666,521.7481,435.9887,516.6261,438.3897,526.45,437.6894" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="412" y="357.0283">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="62" x="394" y="370.8643">Modifies tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="387" y="384.7002">[valid signature]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="70" x="390" y="398.5361">/Request offer</text></g><!--MD5=[cc50ebd3c42bc55b4d513d732813f8e9]
+link pOffer to BOfferOpen--><g id="link_pOffer_BOfferOpen"><path d="M152.41,300.6294 C136.33,312.8594 120.31,327.7294 109,344.6094 C91.24,371.1094 82.71,406.6794 78.64,432.8494 " fill="none" id="pOffer-to-BOfferOpen" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="77.88,437.9494,83.1497,429.6289,78.6091,433.0028,75.2352,428.4623,77.88,437.9494" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="135" y="357.0283">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="63" x="116.5" y="370.8643">Accepts tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="76" x="110" y="384.7002">[valid signature]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="70" x="113" y="398.5361">/Request open</text></g><!--MD5=[d7859a7fe21f56f2f78dc00185c22074]
+link BOfferOpen to sendack--><g id="link_BOfferOpen_sendack"><path d="M97.58,500.1194 C146.72,565.4094 262.78,719.6294 310.72,783.3294 " fill="none" id="BOfferOpen-to-sendack" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="313.78,787.3894,311.58,777.7894,310.78,783.3894,305.18,782.5894,313.78,787.3894" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="54" x="253.5" y="638.0283">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="88" x="236.5" y="651.8643">req:open detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="91" x="235" y="665.7002">/Transmit Act:open</text></g><!--MD5=[e86374a8b4b43ff786cd666e0d7700f5]
+link DraftOffer to hOffer--><g id="link_DraftOffer_hOffer"><path d="M592.76,507.0094 C588.71,535.4994 583.11,574.9194 578.91,604.5294 " fill="none" id="DraftOffer-to-hOffer" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="578.19,609.5694,583.4091,601.2171,578.8891,604.6185,575.4877,600.0985,578.19,609.5694" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="54" x="607.5" y="549.0283">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="91" x="589" y="562.8643">Req:offer detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="91" x="589" y="576.7002">/Transmit Act:offer</text></g><!--MD5=[46ba694557be4f44c3f652d36dc2bc52]
+link hOffer to sendack--><g id="link_hOffer_sendack"><path d="M518.91,684.7994 C474.33,715.0494 412.09,757.2694 371.92,784.5294 " fill="none" id="hOffer-to-sendack" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="367.62,787.4494,377.3124,785.7009,371.756,784.6398,372.817,779.0833,367.62,787.4494" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="524.5" y="727.0283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="124" x="475" y="740.8643">Receive peer acceptance</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="512" y="754.7002">/Act: open</text></g><!--MD5=[d5d583d9dafd86b63dd4d4520088065c]
+link hOffer to void--><g id="link_hOffer_void"><path d="M637.07,624.3494 C657.32,614.0894 677.42,599.5994 689,579.6094 C721.98,522.6894 713.33,491.8994 687,431.6094 C683.24,422.9994 599.36,344.2594 549.46,297.8694 " fill="none" id="hOffer-to-void" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="545.63,294.3094,549.479,303.375,549.2848,297.7215,554.9383,297.5273,545.63,294.3094" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="751" y="460.0283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="101" x="713" y="473.8643">Receive peer refusal</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="105" x="711" y="487.7002">/Act: void; Notify user</text></g><!--MD5=[e7c045274f428f72e469ee4dfcada223]
+link hOffer to pOffer--><g id="link_hOffer_pOffer"><path d="M508.69,639.8694 C429.11,628.3994 296.15,596.1994 231,506.6094 C188.18,447.7394 194.88,358.1494 203.82,305.9394 " fill="none" id="hOffer-to-pOffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="204.69,300.9994,199.1841,309.1655,203.8194,305.923,207.0619,310.5584,204.69,300.9994" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="274" y="460.0283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="104" x="234.5" y="473.8643">Receive modified tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="109" x="232" y="487.7002">/Act: offer; Notify user</text></g><!--MD5=[0545aa1bcab47bbb6a638ba8079c13c5]
+link void to pOffer--><g id="link_void_pOffer"><path d="M450.57,263.1094 C409.96,263.1094 356.18,263.1094 310.06,263.1094 " fill="none" id="void-to-pOffer" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="305.05,263.1094,314.05,267.1094,310.05,263.1094,314.05,259.1094,305.05,263.1094" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="365.5" y="229.5283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="104" x="326" y="243.3643">Receive modified tally</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="109" x="323.5" y="257.2002">/Act: offer; Notify user</text></g><!--MD5=[ee1d7c1c42d4d00a925c60694c507726]
+link sendack to waitack--><g id="link_sendack_waitack"><path d="M332,837.9594 C332,867.5294 332,917.3894 332,949.1194 " fill="none" id="sendack-to-waitack" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="332,954.4294,336,945.4294,332,949.4294,328,945.4294,332,954.4294" style="stroke:#008000;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="388.5" y="880.0283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="136" x="333" y="893.8643">Received acknowledgement</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="68" x="367" y="907.7002">[received ack]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="357.5" y="921.5361">/Transmit Act: ack</text></g><!--MD5=[578b79290ca9203aa857eee52acb3095]
+link waitack to open--><g id="link_waitack_open"><path d="M332,1004.9694 C332,1037.2994 332,1094.8594 332,1134.2294 " fill="none" id="waitack-to-open" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="332,1139.4194,336,1130.4194,332,1134.4194,328,1130.4194,332,1139.4194" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#FF0000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="54" x="348" y="1047.0283">DB Trigger:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="84" x="333" y="1060.8643">Req:ack detected</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="48" x="351" y="1074.7002">[valid ack]</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="50" x="350" y="1088.5361">/Act: open</text></g><!--MD5=[8f429cfedb3a3b3b4f08e2b8cbb78e3d]
+link open to close--><g id="link_open_close"><path d="M299.36,1214.8794 C293.06,1223.9994 287.37,1234.1794 284,1244.6094 C276.21,1268.7194 271.57,1279.5394 284,1301.6094 C290.98,1314.0094 301.68,1324.1394 313.49,1332.3094 " fill="none" id="open-to-close" style="stroke:#008000;stroke-width:1.0;"/><polygon fill="#008000" points="317.89,1335.2294,312.6072,1326.9172,313.7254,1332.4625,308.1801,1333.5806,317.89,1335.2294" style="stroke:#008000;stroke-width:1.0;"/><text fill="#008000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="26" x="322" y="1264.0283">User:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="100" x="285" y="1277.8643">Issues close/call chit</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="60" x="305" y="1291.7002">/Set to close</text></g><!--MD5=[8f429cfedb3a3b3b4f08e2b8cbb78e3d]
+link open to close--><g id="link_open_close"><path d="M371.93,1214.6994 C379.32,1223.6894 385.97,1233.8494 390,1244.6094 C399.8,1270.7594 397.08,1302.4994 392.45,1326.3194 " fill="none" id="open-to-close-1" style="stroke:#0000FF;stroke-width:1.0;"/><polygon fill="#0000FF" points="391.44,1331.2694,397.1813,1323.267,392.4535,1326.3732,389.3473,1321.6454,391.44,1331.2694" style="stroke:#0000FF;stroke-width:1.0;"/><text fill="#0000FF" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="25" x="417.5" y="1257.0283">Peer:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="64" x="398" y="1270.8643">Receive peer</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="66" x="397" y="1284.7002">close request</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="52" x="404" y="1298.5361">/Act: close</text></g><!--MD5=[81ac61b32fe79fe384823f5ed7d24f41]
+link close to closed--><g id="link_close_closed"><path d="M448.02,1362.6094 C484.73,1362.6094 530.73,1362.6094 568.71,1362.6094 " fill="none" id="close-to-closed" style="stroke:#FF0000;stroke-width:1.0;"/><polygon fill="#FF0000" points="573.78,1362.6094,564.78,1358.6094,568.78,1362.6094,564.78,1366.6094,573.78,1362.6094" style="stroke:#FF0000;stroke-width:1.0;"/><text fill="#000000" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="17" x="502.5" y="1329.0283">DB:</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="89" x="466.5" y="1342.8643">(No explicit action)</text><text fill="#333333" font-family="Helvetica" font-size="11" lengthAdjust="spacing" textLength="87" x="467.5" y="1356.7002">[Tally sum is zero]</text></g><rect fill="#FFFFFF" height="12.5781" style="stroke:none;stroke-width:1.0;" width="154" x="414" y="1414.6094"/><text fill="#888888" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="154" x="414" y="1424.9902">Mon Oct 16 23:17:05 MDT 2023</text><!--MD5=[2b9af98e7a6596fb04e24a6f643641cb]
+@startuml
+!include common.puml
+
+$title(Tally State Diagram)
+state "P.offer.void" as pOfferVoid
+state "B.offer.open" as BOfferOpen
+state "draft.offer" as DraftOffer
+'state "open.close" as OpenClose
+state working {
+  state "draft" as draft
+  state "void" as void
+}
+state liftable {
+  state "open" as open
+  state "close" as close
+}
+state "P.offer" as pOffer
+state "H.offer" as hOffer
+state "close (zero balance)" as closed
+state "send ack" as sendack
+state "wait ack" as waitack
+
+'State details
+pOfferVoid : Status: offer, Req: void
+pOfferVoid : Agent: Attention!
+
+BOfferOpen : Status: offer, Req: open
+BOfferOpen : Agent: Attention!
+
+DraftOffer : Status: draft, Req: offer
+DraftOffer : Must have user signature
+DraftOffer : Agent: Attention!
+
+'OpenClose : Status: open, Req: close
+'OpenClose : Agent: Attention!
+
+draft : Status: draft, Req: null
+draft : User: can modify, sign, delete
+
+void : Status: void, Req: null
+void : User: can modify
+
+pOffer : Status: offer, Req: null
+pOffer : Peer signature only
+pOffer : User: can accept, refuse, counter
+
+hOffer : Status: offer, Req: null
+hOffer : User signature only
+hOffer : User waits for peer
+
+sendack : Status: ack, Req: ack
+
+waitack : Status: ack, Req: null
+
+open : Status: open, Req: null
+open : Must have both signatures
+open : User: can request close
+
+close : Status: close, Req: null
+close : Non-zero balance
+
+closed : Status: closed, Req: null
+closed : Balance is zero
+
+'State transition rules:
+[*] -[$user]-> draft : $trans($user,User or system\ndrafts new tally)
+[*] -[$peer]-> pOffer : $trans($peer,Receive new proposed tally,valid signature,Act: offer\nNotify user)
+working -[$user]-> DraftOffer : $trans($user,User signs tally,valid cert,Request offer)
+
+draft -[$peer]-> draft : $trans($peer,Ticketed tally request,Have peer cert, Act: ticket; Notify user)
+pOfferVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:void)
+
+pOffer -[$user]-> pOfferVoid : $trans($user,Refuses tally, '', Request void)
+pOffer -[$user]-> DraftOffer : $trans($user,Modifies tally,valid signature, Request offer)
+pOffer -[$user]-> BOfferOpen : $trans($user,Accepts tally,valid signature, Request open)
+
+BOfferOpen -[$db]-> sendack : $trans($db,req:open detected,'',Transmit Act:open)
+
+DraftOffer -[$db]-> hOffer : $trans($db,Req:offer detected,,Transmit Act:offer)
+
+hOffer -[$peer]-> sendack : $trans($peer, Receive peer acceptance, '', Act: open)
+hOffer -[$peer]-> void : $trans($peer,Receive peer refusal, '', Act: void; Notify user)
+hOffer -[$peer]-> pOffer : $trans($peer,Receive modified tally, '', Act: offer; Notify user)
+void -[$peer]-> pOffer : $trans($peer,Receive modified tally,'', Act: offer; Notify user)
+
+sendack -[$user]-> waitack : $trans($peer,Received acknowledgement,received ack, Transmit Act: ack)
+
+waitack -[$db]-> open : $trans($db,Req:ack detected,valid ack, Act: open)
+
+open -[$user]-> close : $trans($user, Issues close/call chit, '', Set to close)
+open -[$peer]-> close : $trans($peer,Receive peer\nclose request, '', Act: close)
+close -right[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
+
+'closed - -> [*]
+
+@enduml
+
+@startuml
+
+
+
+skinparam backgroundColor fff
+skinparam stereotypeCBackgroundColor 27d
+
+
+
+
+
+
+skinparam circledCharacter {
+  radius 8
+  fontSize 11
+  fontName Helvetica
+}
+
+skinparam class {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  attributeFontColor 333
+  attributeFontSize 11
+  attributeIconSize 11
+}
+
+skinparam actor {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam participant {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam collections {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam SequenceBox{
+    backgroundColor e0e0e0
+  borderColor cccccc
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam interface {
+    backgroundColor 4af
+  borderColor 27d
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+skinparam component {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+skinparam queue {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+skinparam usecase {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam activity {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+}
+
+skinparam sequence {
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+
+  lifeLineBorderColor 4af
+  lifeLineBackgroundColor e0e0e0
+}
+
+
+
+
+skinparam state {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+    arrowColor 000
+  arrowFontName Helvetica
+  arrowFontColor 333
+  arrowFontSize 11
+  startColor 4af
+  endColor 27d
+}
+
+skinparam note {
+    backgroundColor e8e8ea
+  borderColor 202024
+    fontColor 003
+  fontName Helvetica
+  fontSize 11
+  stereotypeFontColor 333
+  stereotypeFontSize 11
+}
+
+
+
+
+
+
+
+
+  title Tally State Diagram
+  footer Mon Oct 16 23:17:05 MDT 2023
+state "P.offer.void" as pOfferVoid
+state "B.offer.open" as BOfferOpen
+state "draft.offer" as DraftOffer
+state working {
+  state "draft" as draft
+  state "void" as void
+}
+state liftable {
+  state "open" as open
+  state "close" as close
+}
+state "P.offer" as pOffer
+state "H.offer" as hOffer
+state "close (zero balance)" as closed
+state "send ack" as sendack
+state "wait ack" as waitack
+
+pOfferVoid : Status: offer, Req: void
+pOfferVoid : Agent: Attention!
+
+BOfferOpen : Status: offer, Req: open
+BOfferOpen : Agent: Attention!
+
+DraftOffer : Status: draft, Req: offer
+DraftOffer : Must have user signature
+DraftOffer : Agent: Attention!
+
+
+draft : Status: draft, Req: null
+draft : User: can modify, sign, delete
+
+void : Status: void, Req: null
+void : User: can modify
+
+pOffer : Status: offer, Req: null
+pOffer : Peer signature only
+pOffer : User: can accept, refuse, counter
+
+hOffer : Status: offer, Req: null
+hOffer : User signature only
+hOffer : User waits for peer
+
+sendack : Status: ack, Req: ack
+
+waitack : Status: ack, Req: null
+
+open : Status: open, Req: null
+open : Must have both signatures
+open : User: can request close
+
+close : Status: close, Req: null
+close : Non-zero balance
+
+closed : Status: closed, Req: null
+closed : Balance is zero
+
+[*] -[#green]-> draft : <font color=green>User:\nUser or system\ndrafts new tally
+[*] -[#blue]-> pOffer : <font color=blue>Peer:\nReceive new proposed tally\n[valid signature]\n/Act: offer\nNotify user
+working -[#green]-> DraftOffer : <font color=green>User:\nUser signs tally\n[valid cert]\n/Request offer
+
+draft -[#blue]-> draft : <font color=blue>Peer:\nTicketed tally request\n[Have peer cert]\n/Act: ticket; Notify user
+pOfferVoid -[#red]-> void : <font color=red>DB Trigger:\nReq:void detected\n/Transmit Act:void
+
+pOffer -[#green]-> pOfferVoid : <font color=green>User:\nRefuses tally\n/Request void
+pOffer -[#green]-> DraftOffer : <font color=green>User:\nModifies tally\n[valid signature]\n/Request offer
+pOffer -[#green]-> BOfferOpen : <font color=green>User:\nAccepts tally\n[valid signature]\n/Request open
+
+BOfferOpen -[#red]-> sendack : <font color=red>DB Trigger:\nreq:open detected\n/Transmit Act:open
+
+DraftOffer -[#red]-> hOffer : <font color=red>DB Trigger:\nReq:offer detected\n/Transmit Act:offer
+
+hOffer -[#blue]-> sendack : <font color=blue>Peer:\nReceive peer acceptance\n/Act: open
+hOffer -[#blue]-> void : <font color=blue>Peer:\nReceive peer refusal\n/Act: void; Notify user
+hOffer -[#blue]-> pOffer : <font color=blue>Peer:\nReceive modified tally\n/Act: offer; Notify user
+void -[#blue]-> pOffer : <font color=blue>Peer:\nReceive modified tally\n/Act: offer; Notify user
+
+sendack -[#green]-> waitack : <font color=blue>Peer:\nReceived acknowledgement\n[received ack]\n/Transmit Act: ack
+
+waitack -[#red]-> open : <font color=red>DB Trigger:\nReq:ack detected\n[valid ack]\n/Act: open
+
+open -[#green]-> close : <font color=green>User:\nIssues close/call chit\n/Set to close
+open -[#blue]-> close : <font color=blue>Peer:\nReceive peer\nclose request\n/Act: close
+close -right[#red]-> closed : <font color=black>DB:\n(No explicit action)\n[Tally sum is zero]
+
+
+@enduml
+
+PlantUML version 1.2022.7(Mon Aug 22 11:01:30 MDT 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: Cp1252
+Language: en
+Country: US
+--></g></svg>

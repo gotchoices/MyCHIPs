@@ -17,6 +17,8 @@ state liftable {
 state "P.offer" as pOffer
 state "H.offer" as hOffer
 state "close (zero balance)" as closed
+state "send ack" as sendack
+state "wait ack" as waitack
 
 'State details
 pOfferVoid : Status: offer, Req: void
@@ -46,6 +48,10 @@ hOffer : Status: offer, Req: null
 hOffer : User signature only
 hOffer : User waits for peer
 
+sendack : Status: ack, Req: ack
+
+waitack : Status: ack, Req: null
+
 open : Status: open, Req: null
 open : Must have both signatures
 open : User: can request close
@@ -68,14 +74,18 @@ pOffer -[$user]-> pOfferVoid : $trans($user,Refuses tally, '', Request void)
 pOffer -[$user]-> DraftOffer : $trans($user,Modifies tally,valid signature, Request offer)
 pOffer -[$user]-> BOfferOpen : $trans($user,Accepts tally,valid signature, Request open)
 
-BOfferOpen -[$db]-> open : $trans($db,req:open detected,'',Transmit Act:open)
+BOfferOpen -[$db]-> sendack : $trans($db,req:open detected,'',Transmit Act:open)
 
 DraftOffer -[$db]-> hOffer : $trans($db,Req:offer detected,,Transmit Act:offer)
 
-hOffer -[$peer]-> open : $trans($peer, Receive peer acceptance, '', Act: open)
+hOffer -[$peer]-> sendack : $trans($peer, Receive peer acceptance, '', Act: open)
 hOffer -[$peer]-> void : $trans($peer,Receive peer refusal, '', Act: void; Notify user)
 hOffer -[$peer]-> pOffer : $trans($peer,Receive modified tally, '', Act: offer; Notify user)
 void -[$peer]-> pOffer : $trans($peer,Receive modified tally,'', Act: offer; Notify user)
+
+sendack -[$user]-> waitack : $trans($peer,Received acknowledgement,received ack, Transmit Act: ack)
+
+waitack -[$db]-> open : $trans($db,Req:ack detected,valid ack, Act: open)
 
 open -[$user]-> close : $trans($user, Issues close/call chit, '', Set to close)
 open -[$peer]-> close : $trans($peer,Receive peer\nclose request, '', Act: close)
