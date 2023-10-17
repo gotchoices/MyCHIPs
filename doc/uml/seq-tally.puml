@@ -31,7 +31,7 @@ alt Terms agreeable
 
 else Want to counter
  subj	->>	subjDB:		Sign modified counter-offer
- subjDB	->>	propDB:		Send proposed tally
+ subjDB	->>	propDB:		Update revision count\nsend proposed tally
  propDB	->>	prop:		Present for review
  prop	->>	propDB:		Accept/sign tally
  propDB	->>	propDB:		Agent ack-signs tally
