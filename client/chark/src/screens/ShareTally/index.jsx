@@ -56,11 +56,12 @@ const ShareTally = (props) => {
   }, [tally_id])
 
   const qrData = useMemo(() => {
-    return JSON.stringify({
-      type: qrType.tally,
-      ticket: tallyObj?.ticket,
-    });
-  }, [tallyObj?.ticket])
+    return JSON.stringify({ invite: tallyObj?.invite ?? {} });
+    //return JSON.stringify({
+      //type: qrType.tally,
+      //ticket: tallyObj?.invite,
+    //});
+  }, [tallyObj?.invite])
 
   const changeTab = (tab) => {
     return () => {

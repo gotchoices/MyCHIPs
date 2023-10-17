@@ -54,7 +54,7 @@ const ServIcon = () => {
       </View>
 
       <CenteredModal isVisible={isModalVisible} onClose={onCancel}>
-        <TokenDebug onCancel={onCancel} />
+        <TokenDebug onCancel={onCancel} setIsModalVisible={setIsModalVisible} />
       </CenteredModal>
     </>
   );

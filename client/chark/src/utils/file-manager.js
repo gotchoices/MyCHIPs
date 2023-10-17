@@ -96,7 +96,7 @@ export const encryptJSON = async (jsonString, passphrase) => {
     const ciphertext = await subtle.encrypt({ name: "AES-GCM", iv }, key, data);
     // NOTE: Key may change in future.
     const encryptedData = JSON.stringify({
-      sign: {
+      signkey: {
         s: Buffer.from(salt).toString('hex'),
         i: Buffer.from(iv).toString('hex'),
         d: Buffer.from(ciphertext).toString('base64')
@@ -112,7 +112,7 @@ export const encryptJSON = async (jsonString, passphrase) => {
 export const decryptJSON = async (encryptedString, passphrase) => {
   return new Promise((resolve, reject) => {
     try {
-      let { s, i, d } = JSON.parse(encryptedString).sign;
+      let { s, i, d } = JSON.parse(encryptedString).signkey;
       const salt = Buffer.from(s, 'hex');
       const iv = Buffer.from(i, 'hex');
       const data = Buffer.from(d, 'base64');

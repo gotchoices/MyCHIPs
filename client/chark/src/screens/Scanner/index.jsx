@@ -8,7 +8,7 @@ import { colors, qrType } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import { parse } from '../../utils/query-string';
 
-const connectionLink = 'https://mychips.org/connect'
+const connectionLink = 'https://mychips.org/ticket'
 
 const Scanner = (props) => {
   const devices = useCameraDevices();
@@ -41,11 +41,11 @@ const Scanner = (props) => {
           setIsActive(false);
           const parsedCode = JSON.parse(qrCode);
           console.log("PARSED_CODE ==> ", parsedCode);
-          if(parsedCode?.type === qrType.tally) {
+          if(parsedCode?.invite) {
             requestTally(parsedCode);
-          } else if (parsedCode?.sign) {
+          } else if (parsedCode?.signkey) {
             props.navigation.navigate("Settings", {screen: "ImportKey", params: parsedCode});
-          }else {
+          } else {
             processConnect(parsedCode);
           }
         } catch(err) {
@@ -58,9 +58,7 @@ const Scanner = (props) => {
 
     // Request Tally
     function requestTally(parsed) {
-      props.navigation.navigate('Home', {
-        ticket: parsed?.ticket,
-      });
+      props.navigation.navigate('Home', parsed);
     }
 
     // Process the connection
@@ -102,7 +100,7 @@ const Scanner = (props) => {
     }
 
     connectSocket({
-      connect: ticket,
+      ticket,
     }, (err, connected) => {
       if(err) {
         setIsActive(true);

@@ -129,12 +129,12 @@ const SocketProvider = ({ children }) => {
     })
   }
 
-  const connectSocket = (ticket, cb = null) => {
-    if (ticket) {
+  const connectSocket = (connectionObj, cb = null) => {
+    if (connectionObj) {
       clearTimeout(connectTimeout.current);
       console.log('Resetting generic password for the new connection')
       Keychain.resetGenericPassword();
-      let creds = Object.assign({}, ticket.connect)
+      let creds = Object.assign({}, connectionObj.ticket)
       credConnect(creds, cb)
     } else {
       Keychain.getGenericPassword().then((credentials) => {
