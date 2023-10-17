@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { StyleSheet, Text, ActivityIndicator, Modal, View, Button, TextInput, Alert } from 'react-native';
-import { useCameraDevices, useFrameProcessor, Camera } from 'react-native-vision-camera';
-import { useScanBarcodes, BarcodeFormat, scanBarcodes } from 'vision-camera-code-scanner';
+import { useCameraDevices, Camera } from 'react-native-vision-camera';
+import { useScanBarcodes, BarcodeFormat } from 'vision-camera-code-scanner';
 import * as Keychain from 'react-native-keychain';
 
 import { colors, qrType } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
+import { parse } from '../../utils/query-string';
+
+const connectionLink = 'https://mychips.org/connect'
 
 const Scanner = (props) => {
   const devices = useCameraDevices();
@@ -30,39 +33,46 @@ const Scanner = (props) => {
 
   useEffect(() => {
     if(qrCode) {
-      try {
-        setIsActive(false);
-        const parsedCode = JSON.parse(qrCode);
-        console.log("PARSED_CODE ==> ", parsedCode);
-        if(parsedCode?.type === qrType.tally) {
-          requestTally(parsedCode);
-        } else if (parsedCode?.sign) {
-          props.navigation.navigate("Settings", {screen: "ImportKey", params: parsedCode});
-        }else {
-          processConnect(parsedCode);
-        }
-
-        // Request Tally
-        function requestTally(parsed) {
-          props.navigation.navigate('Home', {
-            ticket: parsed?.ticket,
-          });
-        }
-
-        // Process the connection
-        function processConnect(parsed) {
-          if(parsed?.ticket && parsed?.ticket?.user) {
-            connect({ ticket: parsed.ticket })
-          } else if(parsed?.ticket) {
-            setTempQrCode(parsed.ticket);
-            setIsModalVisible(true);
+      if(qrCode.startsWith(connectionLink)) {
+        const obj = parse(qrCode);
+        connect({ connect: obj });
+      } else {
+        try {
+          setIsActive(false);
+          const parsedCode = JSON.parse(qrCode);
+          console.log("PARSED_CODE ==> ", parsedCode);
+          if(parsedCode?.type === qrType.tally) {
+            requestTally(parsedCode);
+          } else if (parsedCode?.sign) {
+            props.navigation.navigate("Settings", {screen: "ImportKey", params: parsedCode});
+          }else {
+            processConnect(parsedCode);
           }
+        } catch(err) {
+          console.log(err.message)
         }
+      }
 
-      } catch(err) {
-        console.log(err.message)
+
+    }
+
+    // Request Tally
+    function requestTally(parsed) {
+      props.navigation.navigate('Home', {
+        ticket: parsed?.ticket,
+      });
+    }
+
+    // Process the connection
+    function processConnect(parsed) {
+      if(parsed?.connect && parsed?.connect?.user) {
+        connect({ connect: parsed.connect})
+      } else if(parsed?.connect) {
+        setTempQrCode(parsed.connect);
+        setIsModalVisible(true);
       }
     }
+
   }, [qrCode, setIsActive])
 
   /**
@@ -72,7 +82,8 @@ const Scanner = (props) => {
    * @param {boolean} [args.needUsername]
   */
   const connect = (args) => {
-    let ticket = args?.ticket;
+    console.log(args, 'args')
+    let ticket = args?.connect;
     const username = args?.username?.trim();
 
     if(!ticket) {
@@ -91,7 +102,7 @@ const Scanner = (props) => {
     }
 
     connectSocket({
-      ticket,
+      connect: ticket,
     }, (err, connected) => {
       if(err) {
         setIsActive(true);

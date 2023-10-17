@@ -138,6 +138,8 @@ const RequestDetail = (props) => {
       });
   };
 
+  const addReference = () => {};
+
   const updateRequest = () => {
     const net = round((chit ?? 0) * 1000, 3);
 
@@ -174,76 +176,6 @@ const RequestDetail = (props) => {
       });
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} />
-      </View>
-    );
-  }
-
-  // <ScrollView
-  //   style={styles.container}
-  //   contentContainerStyle={styles.contentContainer}
-  // >
-  //   <HelpText
-  //     label={memoText?.title ?? ''}
-  //     helpText={memoText?.help ?? ''}
-  //     style={styles.headerText}
-  //   />
-  //   <TextInput
-  //     style={styles.input}
-  //     placeholder="Memo"
-  //     value={memo}
-  //     onChangeText={setMemo}
-  //   />
-
-  //   <HelpText
-  //     label={referenceText?.title ?? ''}
-  //     helpText={referenceText?.help ?? ''}
-  //     style={styles.headerText}
-  //   />
-  //   <TextInput
-  //     style={styles.input}
-  //     placeholder="Reference"
-  //     value={reference}
-  //     onChangeText={setReference}
-  //   />
-
-  //   <HelpText
-  //     label={netText?.title ?? ''}
-  //     helpText={netText?.help ?? ''}
-  //     style={styles.headerText}
-  //   />
-  //   <TextInput
-  //     style={styles.input}
-  //     placeholder="Enter amount"
-  //     keyboardType="number-pad"
-  //     value={chit}
-  //     onChangeText={setChit}
-  //   />
-  //   {
-  //     currencyCode && totalNetDollar ?
-  //       <Text style={{ fontWeight: '500' }}>{currencyCode} {totalNetDollar}</Text> :
-  //       <></>
-  //   }
-  //   {
-  //     editDetails ?
-  //       <Button
-  //         style={{ marginTop: 24, }}
-  //         title="Update Request"
-  //         onPress={updateRequest}
-  //         disabled={disabled}
-  //       /> :
-  //       <Button
-  //         style={{ marginTop: 16, }}
-  //         title="Request Payment"
-  //         onPress={onMakePayment}
-  //         disabled={disabled}
-  //       />
-  //   }
-  // </ScrollView>
-
   return (
     <ScrollView
       style={styles.container}
@@ -267,7 +199,7 @@ const RequestDetail = (props) => {
             </View>
 
             {currencyCode && chit ? (
-              <View style={styles.row}>
+              <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
                 <ChitIcon color={colors.black} height={18} width={12} />
                 <Text style={[styles.text,{marginLeft:10}]}>{chit}</Text>
               </View>
@@ -292,7 +224,7 @@ const RequestDetail = (props) => {
             </View>
 
             {currencyCode && usd ? (
-              <View style={styles.row}>
+                <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
                 <Text style={styles.text}>
                   {usd} {currencyCode}
                 </Text>
@@ -326,6 +258,10 @@ const RequestDetail = (props) => {
           value={reference}
           onChangeText={setReference}
         />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={addReference}>
+        <Text style={styles.link}>Add Reference</Text>
       </TouchableOpacity>
 
       <View style={styles.buttonView}>
@@ -405,8 +341,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   row: {
+    width:200,
+    paddingRight:20,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent:'center'
   },
   text: {
     fontWeight: "500",
@@ -416,6 +355,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 60,
     top: 40,
+  },
+  link: {
+    color: colors.blue,
+    alignSelf: "flex-end",
+    textDecorationStyle: "solid",
+    textDecorationLine: "underline",
   },
 });
 
