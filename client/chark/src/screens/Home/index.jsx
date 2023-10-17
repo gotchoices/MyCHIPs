@@ -15,12 +15,12 @@ import CenteredModal from '../../components/CenteredModal';
 import UpdateCID from '../UpdateCID';
 import { UpdateHoldCert } from '../Tally/TallyPreview/UpdateHoldCert';
 
-const connectionUri = new Set(['connect', 'mychips.org/connect'])
-const tallyUri = new Set(['tally', 'mychips.org/tally'])
+const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
+const tallyUri = new Set(['invite', 'mychips.org/invite'])
 
 const HomeScreen = (props) => {
   const { connectSocket, wm } = useSocket();
-  const { ticket } = props.route?.params ?? {};
+  const { invite } = props.route?.params ?? {};
   const { user } = useSelector(state => state.currentUser);
   const { personal } = useSelector(state => state.profile);
 
@@ -45,10 +45,10 @@ const HomeScreen = (props) => {
   }, [user, personal])
 
   useEffect(() => {
-    if (ticket) {
-      requestProposedTally(ticket)
+    if (invite) {
+      requestProposedTally(invite)
     }
-  }, [ticket?.token])
+  }, [invite?.token])
 
   useEffect(() => {
     const handleLink = (url) => {
@@ -56,7 +56,7 @@ const HomeScreen = (props) => {
 
       if (connectionUri.has(host)) {
         const obj = parse(url);
-        connect({ connect: obj });
+        connect({ ticket: obj });
       } else if (tallyUri.has(host)) {
         const parsed = parseTallyInvitation(url);
         requestProposedTally(parsed)
@@ -102,11 +102,11 @@ const HomeScreen = (props) => {
     dismissUpdateDialog();
   }
 
-  function requestProposedTally(ticket) {
-    setTallyProcess(ticket);
+  function requestProposedTally(invite) {
+    setTallyProcess(invite);
     // Needed to add the timeout if the app is already opened for deep link to work
     setTimeout(() => {
-      props.navigation.navigate("DraftTally", ticket);
+      props.navigation.navigate("DraftTally", invite);
     }, 100)
   }
 

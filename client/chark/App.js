@@ -29,7 +29,7 @@ const linking = {
   prefixes: ["mychips://", "https://mychips.org"],
   getStateFromPath: (path, options) => {
     const parsed = qs.parseUrl(path);
-    const newPath = parsed.url === '/tally' ? '/connect' : path;
+    const newPath = parsed.url === '/invite' ? '/ticket' : path;
     return getStateFromPath(newPath, options);
   },
   config: {
@@ -37,7 +37,7 @@ const linking = {
       Tally: {
         screens: {
           Home: {
-            path: 'connect',
+            path: 'ticket',
           },
           TallyPreview: {
             path: 'tally-preview/:tally_seq',

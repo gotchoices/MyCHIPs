@@ -26,10 +26,12 @@ const TokenDebug = (props) => {
 
   const connect = (ticket) => {
     connectSocket(ticket);
+    props.setIsModalVisible(false);
   }
 
   const connectWithToken = () => {
     connect(ticket);
+    props.setIsModalVisible(false);
   }
 
   const connectWithKey = () => {
@@ -74,6 +76,7 @@ const TokenDebug = (props) => {
 
 TokenDebug.propTypes = {
   onCancel: PropTypes.func.isRequired,
+  setIsModalVisible: PropTypes.func.isRequired,
 }
 
 export default TokenDebug;
