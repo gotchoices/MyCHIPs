@@ -2,6 +2,8 @@
 !include common.puml
 
 $title(Direct Chit States)
+state "T.repair" as tRepair
+state "L.rejected" as lRejected
 state "L.pend.good (and Hold.pend.good)" as lPendGood
 state "L.pend" as lPend
 state "L.pend.void" as lPendVoid
@@ -18,6 +20,8 @@ state good {
 }
 
 'State details:
+lRejected: Status: rejected, Req: null
+
 lPend: Liability: Open invoice from peer
 lPend: Status: pend, Req: null
 lPend: User: Attention!
@@ -64,10 +68,13 @@ liftVoid : Type: lift\nStatus: void
 
 'State transition rules:
 [*] -right[$user]-> aDraftPend : $trans($user,Creates draft chit\nvalue --> self)
-[*] -left[$peer]-> lPend : $trans($peer,Receive invoice,'',Act:pend; Notify user)
+[*] -left[$peer]-> lPend : $trans($peer,Receive invoice,Acked Tally,Act:pend; Notify user)
+[*] -left[$peer]-> tRepair : $trans($peer,Receive invoice,Missing or unAcked Tally,Request Act:get tally)
 [*] -[$user]-> lPendGood : $trans($user,Creates signed chit\nvalue->partner)
 [*] -[$peer]-> aGood : $trans($peer,Receive asset chit\nvalue->holder, Valid signature, Act:good; Notify user)
 
+tRepair -[$peer]-> lPend : $trans($peer,Receive tally,Valid Acks,Reconstruct Tally; Act:pend; Notify user)
+tRepair -[$peer]-> lRejected : $trans($peer,Receive tally,Invalid Acks,Transmit Reject Act:reject chit)
 aDraftPend -[$db]-> aPend : $trans($db,Req:pend detected,'',Transmit invoice Act:pend)
 'aPend --> aDraftPend : $trans(Timeout,No reply from peer)
 aPend -[$peer]-> aVoid : $trans($peer,Receive refusal,'',Act:void; Notify user)
