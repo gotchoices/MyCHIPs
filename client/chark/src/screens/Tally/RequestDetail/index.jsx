@@ -138,6 +138,8 @@ const RequestDetail = (props) => {
       });
   };
 
+  const addReference = () => {};
+
   const updateRequest = () => {
     const net = round((chit ?? 0) * 1000, 3);
 
@@ -258,6 +260,10 @@ const RequestDetail = (props) => {
         />
       </TouchableOpacity>
 
+      <TouchableOpacity onPress={addReference}>
+        <Text style={styles.link}>Add Reference</Text>
+      </TouchableOpacity>
+
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
@@ -346,6 +352,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 60,
     top: 40,
+  },
+  link: {
+    color: colors.blue,
+    alignSelf: "flex-end",
+    textDecorationStyle: "solid",
+    textDecorationLine: "underline",
   },
 });
 
