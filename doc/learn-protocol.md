@@ -125,7 +125,68 @@ In the normal course of time, payment should be made by the debtor by way of a l
 
 If the debtor wants to close the tally sooner, he will have to figure out how to provide value sufficient to zero the balance.
 
-Now we can derive the following state diagram to describe the tally protocol from the perspective of a single entity:
+From these sequences, we will derive the following set of tally states (which follow [this format](learn-message.md#state-codes)):
+- **draft**: The user is in full control of the tally to update, delete or "share."
+  The user (originator) may share (invite a subject user to) the actual tally or a clone of the tally.
+  Sharing the tally does not imply actually sending it anywhere--only an invitation token is sent.
+  The tally uuid is considered temporary/disposable.
+  If/when a subject connects using the invitation, that message will cause the state to transition to P.draft.
+
+- **P.draft**: The subject has processed an invitation to this tally.
+  It now contains the peer certificate information disclosed by the subject.
+  Terms and conditions can still be freely edited by the originator.
+  The tally data has still not been sent anywhere.
+  The user would ideally be prohibited from sharing the tally but the consequences of doing so are not dire (the old subject is out and a new subject would be able to respond to the new invitation).
+
+- **draft.offer**: The originator has requested that the tally be offered to the subject.
+  The originator should supply an authorized signature and a fresh, unique uuid with the request.
+  Entering this state should alert the originator's agent.
+  The agent will:
+  - Validate the originator's signature
+  - Transmit the tally offer to the subject
+  - Notify the model to transition to H.offer
+
+- **H.offer**: The tally has been signed by the Holder (originator) and transmitted to the Partner (subject)
+  Ideally, no editing by the user should be allowed.
+  However, it should be reasonable to allow the user to void this tally--particularly after a long time has passed.
+  If/when the duly signed/countersign tally is receieved from the subject, we will move to B.agree.
+  If/when a signed counteroffer is receieved from the subject, we will promote to P.offer.
+  
+- **P.offer**: This state can be entered ex-nihilo upon reception of a tally that is duly signed by the peer.
+  In this case, we take on the subject role and are being offered a tally.
+  TODO: can I edit this in its 'offer' state or only demote it back to draft?
+  If the user supplies a signature and sets the request to 'agree', we go to B.offer.agree.
+  
+- **P.offer.void**: The user has requested to reject this tally.
+  The agent is alerted by this state, the rejection message is sent and upon success, we enter void.
+
+- **void**: Tallies in this state have possibly been shared before and so may contain data that are known to other peers.
+  Users should still be able to clone a void tally (or any tally, for that matter) for an invitation.
+  But a void tally should not be shared as it could still be revived by receiving a duly signed version of the tally from a peer.
+
+- **B.offer.agree**: The user has requested to agree with the tally.
+  The agent is alerted and will:
+  - Affix its own agent ack to the tally,
+  - transmit the tally, signed by itself and both parties
+  - Upon success, move to H.agree.
+
+- **H.agree**: We have a duly signed tally, also acked by our agent, but we can't be sure the other side is open yet so don't yet allow trading.
+  If/when we receive an ack from the partner agent, we will move to open.
+  
+- **B.agree**: We have a duly signed tally but we can't be sure the other side is open yet, so don't yet allow trading.
+  If/when we receive an ack from the partner agent, we will move to open.
+
+- **open**: The tally contains both parties signatures and both agents acks.  It is open for trading.
+  A tally can be created ex-nihilo to open state if it is received from a peer and is duly signed by both parties and both agents.
+  Either party can also apply a closing chit, which will mark the tally for closing.
+
+- **C.open**: One or more parties has recorded a closing chit on the tally.
+  If/when the system finds the tally balance at zero, the tally will move to close.
+  
+- **close**: The tally is fully closed.
+  No further trading should occur, but full consensus transactions may/should continue.
+
+Now we can define the following state diagram to describe the tally protocol from the perspective of a single entity:
 
 [![state-tally](uml/state-tally.svg)](uml/state-tally.svg)
 

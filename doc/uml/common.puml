@@ -9,7 +9,7 @@
     !$src = "Peer"
   !elseif $src == $db
     !$color = "red"
-    !$src = "DB Trigger"
+    !$src = "Agent"
   !elseif $src == $user
     !$color = "green"
     !$src = "User"

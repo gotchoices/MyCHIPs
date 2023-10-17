@@ -74,12 +74,12 @@ Previous to 2022, the states of subsystem objects (tallies, chits, routes, lifts
 arbitrarily named.
 Moving to protocol >= 1.0 they utilize a state format encoded as follows:
 
-  - type.status.request (tallies, chits)
+  - phase.status.request (tallies, chits)
   - status.freshness (routes)
   - status.request (lifts)
 
 where "status" indicates the current status of the object record.
-The state might also start with a "type" which is simply there to differentiate states that may
+The state might also start with an optional "phase" which is simply there to differentiate states that may
 be distinct, but share a common status.
 For example a chit might be pending in several different states, but we need to know the
 difference between a chit from our user and a chit to our user.

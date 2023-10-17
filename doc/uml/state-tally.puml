@@ -3,40 +3,45 @@
 
 $title(Tally State Diagram)
 state "P.offer.void" as pOfferVoid
-state "B.offer.open" as BOfferOpen
-state "draft.offer" as DraftOffer
-'state "open.close" as OpenClose
+state "B.offer.agree" as BOfferAgree
+state "draft.offer" as draftOffer
 state working {
+  state "P.draft" as pDraft
   state "draft" as draft
   state "void" as void
 }
-state liftable {
+state tradable {
   state "open" as open
-  state "close" as close
+  state "C.open" as cOpen
 }
 state "P.offer" as pOffer
 state "H.offer" as hOffer
-state "close (zero balance)" as closed
+state "H.agree" as hAgree
+state "B.agree" as bAgree
+state "close" as close
 
 'State details
+P : Entry
+H : Entry
 pOfferVoid : Status: offer, Req: void
-pOfferVoid : Agent: Attention!
+pOfferVoid : Agent: Action needed
 
-BOfferOpen : Status: offer, Req: open
-BOfferOpen : Agent: Attention!
-
-DraftOffer : Status: draft, Req: offer
-DraftOffer : Must have user signature
-DraftOffer : Agent: Attention!
-
-'OpenClose : Status: open, Req: close
-'OpenClose : Agent: Attention!
+BOfferAgree : Status: offer, Req: agree
+BOfferAgree : Agent: Action needed
 
 draft : Status: draft, Req: null
-draft : User: can modify, sign, delete
+draft : User: can modify, delete, invite
+
+pDraft : Status: draft, Req: null
+pDraft : Contains partner certificate
+pDraft : User: can modify, delete, offer
+
+draftOffer : Status: draft, Req: offer
+draftOffer : Has only user signature
+draftOffer : Agent: Action needed
 
 void : Status: void, Req: null
-void : User: can modify
+void : User: can modify, clone
 
 pOffer : Status: offer, Req: null
 pOffer : Peer signature only
@@ -46,41 +51,52 @@ hOffer : Status: offer, Req: null
 hOffer : User signature only
 hOffer : User waits for peer
 
+hAgree : Status: agree, Req: null
+hAgree : Has user signature
+
+bAgree : Status: agree, Req: null
+bAgree : Has both signatures
+bAgree : Has also local agent ack
+
 open : Status: open, Req: null
 open : Must have both signatures
 open : User: can request close
 
+cOpen : Status: open, Req: null
+cOpen : Closing chit present
+cOpen : Can trade, waiting for zero
+
 close : Status: close, Req: null
 close : Non-zero balance
 
-closed : Status: closed, Req: null
-closed : Balance is zero
+close : Status: close, Req: null
+close : Balance is zero
 
 'State transition rules:
-[*] -[$user]-> draft : $trans($user,User or system\ndrafts new tally)
-[*] -[$peer]-> pOffer : $trans($peer,Receive new proposed tally,valid signature,Act: offer\nNotify user)
-working -[$user]-> DraftOffer : $trans($user,User signs tally,valid cert,Request offer)
+H -left[$user]-> draft : $trans($user,User (or system)\ndrafts new tally)
+P -[$peer]-> pOffer : $trans($peer,Receive proposed tally,valid signature,Act: offer\nNotify user)
+draft -[$peer]-> pDraft : $trans($peer,Receive subject ticket,valid cert,Notify user)
+pDraft -[$user]-> draftOffer : $trans($user,User signs tally,valid sig/certs,Request offer)
 
-draft -[$peer]-> draft : $trans($peer,Ticketed tally request,Have peer cert, Act: ticket; Notify user)
 pOfferVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:void)
 
 pOffer -[$user]-> pOfferVoid : $trans($user,Refuses tally, '', Request void)
-pOffer -[$user]-> DraftOffer : $trans($user,Modifies tally,valid signature, Request offer)
-pOffer -[$user]-> BOfferOpen : $trans($user,Accepts tally,valid signature, Request open)
+pOffer -[$user]-> draftOffer : $trans($user,Modifies tally,valid signature, Request offer)
+pOffer -[$user]-> BOfferAgree : $trans($user,Accepts tally,valid signature, Request agree)
 
-BOfferOpen -[$db]-> open : $trans($db,req:open detected,'',Transmit Act:open)
+BOfferAgree -[$db]-> hAgree : $trans($db,Req:agree detected,'',Transmit Act:agree)
+hAgree -[$peer]-> open : $trans($peer, Receive peer ack, '', Act: open)
 
-DraftOffer -[$db]-> hOffer : $trans($db,Req:offer detected,,Transmit Act:offer)
+draftOffer -[$db]-> hOffer : $trans($db,Req:offer detected,,Transmit Act:offer)
 
-hOffer -[$peer]-> open : $trans($peer, Receive peer acceptance, '', Act: open)
+hOffer -[$peer]-> bAgree : $trans($peer, Receive peer acceptance, '', Act: agree\nAlso transmit ack /Act: open)
+bAgree -[$peer]-> open : $trans($peer, Receive peer acceptance, '', Act: open)
+
 hOffer -[$peer]-> void : $trans($peer,Receive peer refusal, '', Act: void; Notify user)
 hOffer -[$peer]-> pOffer : $trans($peer,Receive modified tally, '', Act: offer; Notify user)
 void -[$peer]-> pOffer : $trans($peer,Receive modified tally,'', Act: offer; Notify user)
 
-open -[$user]-> close : $trans($user, Issues close/call chit, '', Set to close)
-open -[$peer]-> close : $trans($peer,Receive peer\nclose request, '', Act: close)
-close -right[$db]-> closed : $trans(DB,'(No explicit action)',Tally sum is zero)
-
-'closed --> [*]
+open -right[$user]-> cOpen : $trans($user, Issues close/call chit, '', Set closing flag)
+cOpen --> close : $trans(Internal,'(No explicit action)',Tally sum hit zero)
 
 @enduml
