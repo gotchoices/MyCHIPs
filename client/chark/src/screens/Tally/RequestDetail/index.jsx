@@ -199,7 +199,7 @@ const RequestDetail = (props) => {
             </View>
 
             {currencyCode && chit ? (
-              <View style={styles.row}>
+              <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
                 <ChitIcon color={colors.black} height={18} width={12} />
                 <Text style={[styles.text,{marginLeft:10}]}>{chit}</Text>
               </View>
@@ -224,7 +224,7 @@ const RequestDetail = (props) => {
             </View>
 
             {currencyCode && usd ? (
-              <View style={styles.row}>
+                <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
                 <Text style={styles.text}>
                   {usd} {currencyCode}
                 </Text>
@@ -341,8 +341,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   row: {
+    width:200,
+    paddingRight:20,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent:'center'
   },
   text: {
     fontWeight: "500",
