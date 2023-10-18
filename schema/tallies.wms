@@ -304,9 +304,10 @@ function {mychips.tally_state(status text, request text, hold_sig text, part_sig
   returns text immutable language plpgsql as $$
     begin return
       case when status = 'offer' then
-             case when hold_sig isnull and not part_sig isnull then	'P.'
-                  when part_sig isnull and not hold_sig isnull then	'H.'
-                  else 'B.' end
+        case when hold_sig notnull and part_sig notnull then	'B.'
+             when hold_sig notnull and part_sig isnull then	'H.'
+             when hold_sig isnull  and part_sig notnull then	'P.'
+             else '' end
            else '' end ||
       status ||
       case when request isnull then '' else '.' || request end;
