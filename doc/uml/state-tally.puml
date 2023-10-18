@@ -3,6 +3,7 @@
 
 $title(Tally State Diagram)
 state "P.offer.void" as pOfferVoid
+state "P.offer.draft" as pOfferDraft
 state "B.offer.agree" as BOfferAgree
 state "draft.offer" as draftOffer
 state working {
@@ -26,6 +27,9 @@ H : Entry
 pOfferVoid : Status: offer, Req: void
 pOfferVoid : Agent: Action needed
 
+pOfferDraft : Status: offer, Req: draft
+pOfferDraft : Agent: Action needed
+
 BOfferAgree : Status: offer, Req: agree
 BOfferAgree : Agent: Action needed
 
@@ -45,7 +49,7 @@ void : User: can modify, clone
 
 pOffer : Status: offer, Req: null
 pOffer : Peer signature only
-pOffer : User: can accept, refuse, counter
+pOffer : User: can accept, refuse, revise
 
 hOffer : Status: offer, Req: null
 hOffer : User signature only
@@ -73,15 +77,18 @@ close : Status: close, Req: null
 close : Balance is zero
 
 'State transition rules:
-H -left[$user]-> draft : $trans($user,User (or system)\ndrafts new tally)
+H -[$user]-> draft : $trans($user,User (or system)\ndrafts new tally)
 P -[$peer]-> pOffer : $trans($peer,Receive proposed tally,valid signature,Act: offer\nNotify user)
 draft -[$peer]-> pDraft : $trans($peer,Receive subject ticket,valid cert,Notify user)
 pDraft -[$user]-> draftOffer : $trans($user,User signs tally,valid sig/certs,Request offer)
 
+pOffer -[$user]-> pOfferVoid : $trans($user,Refuses tally, '', Request void)
 pOfferVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:void)
 
-pOffer -[$user]-> pOfferVoid : $trans($user,Refuses tally, '', Request void)
-pOffer -[$user]-> draftOffer : $trans($user,Modifies tally,valid signature, Request offer)
+'pOffer -[$user]-> draftOffer : $trans($user,Modifies tally,valid signature, Request offer)
+pOffer -[$user]-> pOfferDraft : $trans($user,Will revise tally,valid signature, Request draft)
+pOfferDraft -[$db]-> pDraft : $trans($db,Req:draft detected,'',Transmit Act:draft)
+
 pOffer -[$user]-> BOfferAgree : $trans($user,Accepts tally,valid signature, Request agree)
 
 BOfferAgree -[$db]-> hAgree : $trans($db,Req:agree detected,'',Transmit Act:agree)
@@ -97,6 +104,6 @@ hOffer -[$peer]-> pOffer : $trans($peer,Receive modified tally, '', Act: offer; 
 void -[$peer]-> pOffer : $trans($peer,Receive modified tally,'', Act: offer; Notify user)
 
 open -right[$user]-> cOpen : $trans($user, Issues close/call chit, '', Set closing flag)
-cOpen --> close : $trans(Internal,'(No explicit action)',Tally sum hit zero)
+cOpen -right-> close : $trans(Internal,'(No explicit action)',Tally sum hit zero)
 
 @enduml
