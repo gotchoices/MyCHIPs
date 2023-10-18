@@ -153,10 +153,6 @@ The *object* property for the tally is defined as follows:
     - **digest**: A string hash of the tally (absent 'signed') in a standard serialized format
     - **foil**: The digital signature of the hash by the foil holder (client)
     - **stock**: The digital signature of the hash by the stock holder (vendor)
-    - **acked**:
-      - **digest**: A string hash of the tally (absen 'acked') in a standard serialized format
-      - **foil**: The digital signature of the hash by the foil holder (client)
-      - **stock**: The digital signature of the hash by the stock holder (vendor)
 
 Tally state transition messages are as follows:
 - *DB->Agent, Agent->Agent;* **Initiate Tally Connection**;

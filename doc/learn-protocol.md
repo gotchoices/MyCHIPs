@@ -149,32 +149,28 @@ From these sequences, we will derive the following set of tally states (which fo
 - **H.offer**: The tally has been signed by the Holder (originator) and transmitted to the Partner (subject)
   Ideally, no editing by the user should be allowed.
   However, it should be reasonable to allow the user to void this tally--particularly after a long time has passed.
-  If/when the duly signed/countersign tally is receieved from the subject, we will move to B.agree.
+  If/when the duly signed/countersign tally is receieved from the subject, we will move to open.
   If/when a signed counteroffer is receieved from the subject, we will promote to P.offer.
   
 - **P.offer**: This state can be entered ex-nihilo upon reception of a tally that is duly signed by the peer.
   In this case, we take on the subject role and are being offered a tally.
-  TODO: can I edit this in its 'offer' state or only demote it back to draft?
-  If the user supplies a signature and sets the request to 'agree', we go to B.offer.agree.
+  If the user supplies a signature and sets the request to 'open', we go to B.offer.open.
   
 - **P.offer.void**: The user has requested to reject this tally.
   The agent is alerted by this state, the rejection message is sent and upon success, we enter void.
+
+- **P.offer.draft**: The user has requested to revise this tally.
+  The agent is alerted by this state, the revision message is sent and upon success, we enter draft.
 
 - **void**: Tallies in this state have possibly been shared before and so may contain data that are known to other peers.
   Users should still be able to clone a void tally (or any tally, for that matter) for an invitation.
   But a void tally should not be shared as it could still be revived by receiving a duly signed version of the tally from a peer.
 
-- **B.offer.agree**: The user has requested to agree with the tally.
+- **B.offer.open**: The user has requested to accept and open the tally.
   The agent is alerted and will:
-  - Affix its own agent ack to the tally,
-  - transmit the tally, signed by itself and both parties
-  - Upon success, move to H.agree.
-
-- **H.agree**: We have a duly signed tally, also acked by our agent, but we can't be sure the other side is open yet so don't yet allow trading.
-  If/when we receive an ack from the partner agent, we will move to open.
-  
-- **B.agree**: We have a duly signed tally but we can't be sure the other side is open yet, so don't yet allow trading.
-  If/when we receive an ack from the partner agent, we will move to open.
+  - Transmit the tally, signed by both parties
+  - Upon success, move to open
+  - Initiate the chit consensus protocol to assure the tallies are consensed.
 
 - **open**: The tally contains both parties signatures and both agents acks.  It is open for trading.
   A tally can be created ex-nihilo to open state if it is received from a peer and is duly signed by both parties and both agents.
