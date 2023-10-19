@@ -126,7 +126,6 @@ const TallyPreview = (props) => {
   // Update returns success but still not updating hold_cert
   const onUpdateCert = (cert) => {
     onDismissCertUpdate();
-    console.log("NEW_UPDATE_VALUE ==> ", typeof cert);
     updateHoldCert(wm, {
       hold_cert: cert,
       tally_ent,
@@ -433,7 +432,8 @@ const TallyPreview = (props) => {
             setTallyType={setTallyType}
             setContract={setContract}
             onViewContract={onViewContract}
-             tallyContracts={tallyContracts}
+            tallyContracts={tallyContracts}
+            navigation={props.navigation}
             onUpdateContract={() => {
               onDisplayCertUpdate();
             }}

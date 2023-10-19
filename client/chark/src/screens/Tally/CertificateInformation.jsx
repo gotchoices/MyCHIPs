@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
     marginVertical: 10
   },
   certInfoWrapper: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: colors.gray5,
     borderWidth: 1,
-    borderColor: '#dfdfdf',
+    borderColor: colors.gray7,
     borderRadius: 8,
     padding: 16,
   },
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     fontFamily: 'inter',
   },
   certValue: {
-    color: 'black',
+    color: colors.black,
     fontSize: 12,
     fontWeight: '500',
     fontFamily: 'inter',
@@ -93,10 +93,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 11,
     marginBottom: 0,
-    color: '#636363',
+    color: colors.gray300,
   },
   certOtherDetails: {
-    color: '#155CEF',
+    color: colors.blue3,
     textDecorationLine: 'underline',
   },
 })
