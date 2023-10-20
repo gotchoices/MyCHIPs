@@ -43,7 +43,7 @@ const ServIcon = () => {
 
   return (
     <>
-      <View style={{ backgroundColor: colors.white }}>
+      <View style={styles.main}>
         <TouchableWithoutFeedback
           testID="serverIcon"
           onPress={() => setIsModalVisible(true)}>
@@ -69,12 +69,12 @@ const styles = StyleSheet.create({
     backgroundColor: color,
   }),
   wrapper: {
-    padding: 10,
-    paddingHorizontal: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    top: 0,
+    right: 20,
+    zIndex: 999,
+    position: 'absolute',
   },
+  main: {backgroundColor: colors.white, height: 10},
 });
 
 export default ServIcon;

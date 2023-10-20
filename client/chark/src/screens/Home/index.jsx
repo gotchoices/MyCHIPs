@@ -145,7 +145,7 @@ const HomeScreen = (props) => {
 
   return (
     <>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, marginTop:-10 }}>
         <Tally navigation={props.navigation} />
       </View>
       <CenteredModal
