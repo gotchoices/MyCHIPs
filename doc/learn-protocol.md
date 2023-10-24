@@ -154,19 +154,19 @@ From these sequences, we will derive the following set of tally states (which fo
   
 - **P.offer**: This state can be entered ex-nihilo upon reception of a tally that is duly signed by the peer.
   In this case, we take on the subject role and are being offered a tally.
-  If the user supplies a signature and sets the request to 'open', we go to B.offer.open.
+  If the user supplies a signature and sets the request to 'open', we go to offer.open.
   
-- **P.offer.void**: The user has requested to reject this tally.
+- **offer.void**: The user has requested to reject this tally.
   The agent is alerted by this state, the rejection message is sent and upon success, we enter void.
 
-- **P.offer.draft**: The user has requested to revise this tally.
+- **offer.draft**: The user has requested to revise this tally.
   The agent is alerted by this state, the revision message is sent and upon success, we enter draft.
 
 - **void**: Tallies in this state have possibly been shared before and so may contain data that are known to other peers.
   Users should still be able to clone a void tally (or any tally, for that matter) for an invitation.
   But a void tally should not be shared as it could still be revived by receiving a duly signed version of the tally from a peer.
 
-- **B.offer.open**: The user has requested to accept and open the tally.
+- **offer.open**: The user has requested to accept and open the tally.
   The agent is alerted and will:
   - Transmit the tally, signed by both parties
   - Upon success, move to open
