@@ -2,9 +2,9 @@
 !include common.puml
 
 $title(Tally State Diagram)
-state "P.offer.void" as pOfferVoid
-state "P.offer.draft" as pOfferDraft
-state "B.offer.open" as BOfferOpen
+state "offer.void" as offerVoid
+state "offer.draft" as offerDraft
+state "offer.open" as offerOpen
 state "draft.offer" as draftOffer
 state working {
   state "P.draft" as pDraft
@@ -22,14 +22,14 @@ state "close" as close
 'State details
 P : Entry
 H : Entry
-pOfferVoid : Status: offer, Req: void
-pOfferVoid : Agent: Action needed
+offerVoid : Status: offer, Req: void
+offerVoid : Agent: Action needed
 
-pOfferDraft : Status: offer, Req: draft
-pOfferDraft : Agent: Action needed
+offerDraft : Status: offer, Req: draft
+offerDraft : Agent: Action needed
 
-BOfferOpen : Status: offer, Req: open
-BOfferOpen : Agent: Action needed
+offerOpen : Status: offer, Req: open
+offerOpen : Agent: Action needed
 
 draft : Status: draft, Req: null
 draft : User: can modify, delete, invite
@@ -73,15 +73,15 @@ P -[$peer]-> pOffer : $trans($peer,Receive proposed tally,valid signature,Act: o
 draft -[$peer]-> pDraft : $trans($peer,Receive subject ticket,valid cert,Notify user)
 pDraft -[$user]-> draftOffer : $trans($user,User signs tally,valid sig/certs,Request offer)
 
-pOffer -[$user]-> pOfferVoid : $trans($user,Refuses tally, '', Request void)
-pOfferVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:void)
+pOffer -[$user]-> offerVoid : $trans($user,Refuses tally, '', Request void)
+offerVoid -[$db]-> void : $trans($db,Req:void detected,'',Transmit Act:void)
 
-pOffer -[$user]-> pOfferDraft : $trans($user,Will revise tally,valid signature, Request draft)
-pOfferDraft -[$db]-> pDraft : $trans($db,Req:draft detected,'',Transmit Act:draft)
+pOffer -[$user]-> offerDraft : $trans($user,Will revise tally,valid signature, Request draft)
+offerDraft -[$db]-> pDraft : $trans($db,Req:draft detected,'',Transmit Act:draft)
 
-pOffer -[$user]-> BOfferOpen : $trans($user,Accepts tally,valid signature, Request open)
+pOffer -[$user]-> offerOpen : $trans($user,Accepts tally,valid signature, Request open)
 
-BOfferOpen -[$db]-> open : $trans($db,Req:agree detected,'',Transmit Act:open)
+offerOpen -[$db]-> open : $trans($db,Req:agree detected,'',Transmit Act:open)
 
 draftOffer -[$db]-> hOffer : $trans($db,Req:offer detected,,Transmit Act:offer)
 

@@ -5,11 +5,11 @@ X-  Review tally negotiation documentation
 X-   Break out lift background from protocol document
 X-   Update close procedure
 X-   Review chit consensus
--   Fix tally_state to detect error states?
--   Make tallies editable only in draft mode (adjust regression tests)
--   Scan any hand notes 2021-2022
+X-   Make tallies editable only in draft mode (adjust regression tests)
+-   Regression test for: opened tally doesn't register to other side
 -   Can we fire chit consensus at end of tally open to ack tally?
 -   Can recover from unknown tally states (H.offer.open)
+-   Scan any hand notes 2021-2022
 -  
 -  App needs to sign tally in both directions
 -  Are tallies signed in the app passing the validation in lib/tally.js?

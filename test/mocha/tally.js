@@ -16,7 +16,7 @@ const PeerCont = require("../../lib/peer2peer")
 const PeerNoise = require("../../lib/peernoise")
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
-var {stateField, uSql, sSql, save, rest} = require('./def-tally')
+var {uSql, sSql, save, rest} = require('./def-tally')
 var interTest = {}			//Pass values from one test to another
 
 //Establish tally between two users
@@ -123,7 +123,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
     busO.register('po', (msg) => {	//;log.debug("msg:", msg)
       assert.equal(msg.entity, userO)	//Originator is prompted to sign the tally
-      assert.equal(msg.state, 'draft')
+      assert.equal(msg.state, 'P.draft')
       assert.equal(msg.sequence, seqO)
       let tally = msg.object		///log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
         , stock = tally.stock
@@ -203,7 +203,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'void')
       assert.equal(row.status, 'offer')
-      assert.equal(row.state, 'P.offer.void')
+      assert.equal(row.state, 'offer.void')
       _done()
     })
     busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
@@ -228,7 +228,31 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     getSignature(dbS, userS, 1, done)
   })
 
-  it("Subject counters the proposed tally", function(done) {
+  it("Subject will revise the proposed tally", function(done) {
+    let sql = uSql('request = %L', 'draft', userS, 1)
+      , dc = 3, _done = () => {if (!--dc) done()}
+//log.debug("Sql:", sql)
+    dbS.query(sql, (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.request, 'draft')
+      assert.equal(row.status, 'offer')
+      assert.equal(row.state, 'offer.draft')
+      _done()
+    })
+    busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userO)		//Originator is sent a notification only
+      assert.equal(msg.state, 'H.offer')
+      assert.equal(msg.reason, 'draft')		//Noting the subject is re-drafting
+      _done()
+    })
+    busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userS)		//Subject is notified of draft mode
+      assert.equal(msg.state, 'P.draft')
+      _done()
+    })
+  })
+
+  it("Subject counters with revised tally", function(done) {
     let sql = uSql('request = %L, hold_sig = %L', 'offer', interTest.sign, userS, 1)
       , dc = 3, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
@@ -269,7 +293,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'open')
       assert.equal(row.status, 'offer')
-      assert.equal(row.state, 'B.offer.open')
+      assert.equal(row.state, 'offer.open')
       _done()
     })
     busO.register('po', (msg) => {		//Originator is sent the acceptance
@@ -290,7 +314,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
   })
 
-//Obsolete
+//Obsolete: move to chit testing
 //  it("Simulate non-zero tally balance", function(done) {
 //    let dc = 2, _done = () => {if (!--dc) done()}
 //    dbO.query(uSql('units_c = 1', userO, seqO), (e, res) => { if (e) done(e); _done()})
@@ -299,7 +323,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 //  it("Subject requests to close the proposed tally", function(done) {
 //    let sql = uSql('request = %L', 'close', userS, 1)
 //      , dc = 3, _done = () => {if (!--dc) done()}
-////log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
 //    dbS.query(sql, (err, res) => { if (err) done(err)
 //      let row = getRow(res, 0)			//;log.debug("row:", row)
 //      assert.equal(row.request, 'close')
