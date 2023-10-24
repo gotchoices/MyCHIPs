@@ -201,11 +201,10 @@ Each [state](learn-message.md#status-and-states) has implications for the user i
   - establish a connection to our site
   - affix his certificate
   - transmit the tally back to us
-  
+
   At this point, the tally still appears on our site as draft status, but it has partner information filled out.
   In order to complete the invitation process, we need to request the status be promoted to offer.
   But before doing so, we may review the partner's certificate information, the credit terms, and make sure we are still good to go ahead.
-  
 - void:
   The tally has been rejected at some point.
   The user doesn't normally want to see it appear again (although even a void tally could be re-offered or used as a template) if the user has a way to access it.
@@ -322,7 +321,7 @@ Manual chits (transactions or settings) may originate from either end of the tal
 
 ![use-cons](uml/use-cons.svg)
 
-When chits are created as part of a distributed lift, validating signatures will normally propagate around the lift circuit in the downstream (foil to stock) direction.
+When chits are created as part of a distributed lift, validating signatures will propagate around the lift circuit in the downstream (typically foil to stock) direction.
 So the foil holder on any given tally will usually get the signature before the stock holder.
 As they attempt to reach consensus on chit order, the signature will naturally get shared with the stock.
 

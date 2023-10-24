@@ -40,7 +40,7 @@ else Can't reconcile/accept received chits
   foil		->>	client:		Report error to user
 end
 
-alt Does foil still have any valid, unlinked chits
+alt Does stock still have any valid, unlinked chits
   stock		->>	foil:		Requeue/retry regular\nchit transmission to foil\n(return to top of diagram)
 end
 

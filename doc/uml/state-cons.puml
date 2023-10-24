@@ -30,11 +30,11 @@ linked: Chain Seq <= Chain Conf
 
 'State transition rules:
 stock -[$user]-> unlinked: $trans($user, User creates new\nvalid direct chit(s),'')
-stock -[$db]-> unlinked: $trans($db, Site creates new\nvalid lift chit(s),'')
+stock --> unlinked: $trans(Internal, Site creates new\nvalid lift chit(s),'')
 stock -[$peer]-> linked: $trans($peer,Receive new chit\nfrom foil Act:new,'Can reconcile endHash', 'Conform to chain\nRatchet ackHash = newHash')
 stock -[$peer]-> notify: $trans($peer,Receive new chit\nfrom foil Act:new,'Cannot reconcile endHash','Queue message request for\nchits from last confirm Act:req\nApply specified chain Seq')
 
-unlinked -[$db]-> linking: $trans($db,Detected new valid chit(s),'','Add to chain provisionally\nGenerate proposed\nendHash:propHash Act:new')
+unlinked --> linking: $trans(Internal,Detected new valid chit(s),'','Add to chain provisionally\nGenerate proposed\nendHash:propHash Act:new')
 linking -[$db]-> pending: $trans($db,Detect queued message,'','Send chit to foil Act:new')
 
 notify -[$db]-> pending: $trans($db,Detect queued message,'','Request update from Foil\nAct:req')

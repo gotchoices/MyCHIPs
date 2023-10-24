@@ -25,12 +25,12 @@ notify: Chain Seq > Chain Conf
 notify: Queued message: upd
 
 'State transition rules:
-foil -[$db]-> unlinked: $trans($db, Site creates new\nvalid lift chit,'')
+foil --> unlinked: $trans(Internal, Site creates new\nvalid lift chit,'')
 foil -[$user]-> unlinked: $trans($user, User creates new\nvalid direct chit,'')
 foil -[$peer]-> notify: $trans($peer,Received new chit from stock,'Agree with proposed hash', 'Add chit to chain\nendHash = propHash\nQueue message Act:upd\nNo missing chits = ACK')
 foil -[$peer]-> notify: $trans($peer,Received new chit from stock,'Disagree with proposed hash', 'Add chit to chain\nendHash = newHash\nQueue message Act:upd\nSend missing chits = NACK')
 
-unlinked -[$db]-> linking: $trans($db,Detected new valid chit(s),'', 'Add to chain\nGenerate endHash\n Act:new')
+unlinked --> linking: $trans(Internal,Detected new valid chit(s),'', 'Add to chain\nGenerate endHash\n Act:new')
 linking -[$db]-> linked: $trans($db,Detect chit needs sending,'', 'Send queued message to Stock\nSend new chit Act:new\nRatchet ackHash = newHash')
 notify -[$db]-> linked: $trans($db,Detect queued message,'', 'Send queued message to Stock\nRatchet ackHash = newHash')
 
