@@ -332,6 +332,25 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
+  it("Subject attempts to accept tally with a bad signature", function(done) {
+    let sql = uSql('request = %L, hold_sig = %L', 'open', 'Invalid signature', userS, 1)
+      , dc = 2, _done = () => {if (!--dc) done()}
+//log.debug("Sql:", sql)
+    dbS.query(sql, (err, res) => {
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.request, 'open')
+      assert.equal(row.status, 'offer')
+      assert.equal(row.state, 'offer.open')
+      _done()
+    })
+    busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
+      assert.equal(msg.entity, userS)		//Subject is notified
+      assert.equal(msg.reason, 'open')		//Attempt to open
+      assert.equal(msg.state, 'P.offer')	//Still stuck in offer state
+      _done()
+    })
+  })
+
 //Obsolete: move to chit testing
 //  it("Simulate non-zero tally balance", function(done) {
 //    let dc = 2, _done = () => {if (!--dc) done()}

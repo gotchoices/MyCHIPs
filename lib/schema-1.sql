@@ -4561,7 +4561,7 @@ create function mychips.tally_process(msg jsonb, recipe jsonb) returns text lang
           ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
           update mychips.tallies set request = null, mod_date = current_timestamp, mod_by = session_user,
-            status = coalesce(recipe->'upsert'->>'status','offer'),
+            status = coalesce(recipe->'upsert'->>'status','offer'), tally_type = tallyType,
             version = (obj->>'version')::int, contract = obj->'agree', comment = obj->>'note',
             hold_sig = obj->'sign'->>(tallyType::text), part_sig = obj->'sign'->>(notType::text),
             hold_terms = hold->'terms', part_terms = part->'terms',
@@ -4572,7 +4572,7 @@ create function mychips.tally_process(msg jsonb, recipe jsonb) returns text lang
       end if;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
-        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_cert, part_sig}');
+        qstrg = mychips.state_updater(recipe, 'mychips.tallies', '{status, part_cert, part_sig, hold_sig}');
 
         execute qstrg || ' tally_ent = $1 and tally_seq = $2' using trec.tally_ent, trec.tally_seq;
         acted = true;
