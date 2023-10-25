@@ -136,10 +136,12 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
   returns trigger language plpgsql security definer as $$
     begin
       if new.request notnull then		-- check for legal state transition requests
-        if not (
-          old.status in ('void', 'draft', 'offer') and new.request in ('void','draft','offer')
-          or old.status = 'offer' and new.request = 'open'
-        ) then raise exception '!mychips.tallies:IST % %', old.status, new.request;
+        if old.status in ('void', 'draft', 'offer') and new.request in ('void','draft','offer') then
+          null;
+        elsif old.status = 'offer' and new.request = 'open' and new.hold_sig notnull and new.part_sig notnull then
+          null;
+        else
+          raise exception '!mychips.tallies:IST % %', old.status, new.request;
         end if;
       end if;
 

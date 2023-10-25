@@ -3656,10 +3656,12 @@ create view mychips.chits_v as select
 create function mychips.tallies_tf_bu() returns trigger language plpgsql security definer as $$
     begin
       if new.request notnull then		-- check for legal state transition requests
-        if not (
-          old.status in ('void', 'draft', 'offer') and new.request in ('void','draft','offer')
-          or old.status = 'offer' and new.request = 'open'
-        ) then raise exception '!mychips.tallies:IST % %', old.status, new.request;
+        if old.status in ('void', 'draft', 'offer') and new.request in ('void','draft','offer') then
+          null;
+        elsif old.status = 'offer' and new.request = 'open' and new.hold_sig notnull and new.part_sig notnull then
+          null;
+        else
+          raise exception '!mychips.tallies:IST % %', old.status, new.request;
         end if;
       end if;
 
@@ -9977,25 +9979,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_net','target','mychips','tallies','target','f','f'),
   ('mychips','tallies_v_net','type','mychips','tallies_v_net','type','f','f'),
   ('mychips','tallies_v_net','uuid','mychips','tallies_v_net','uuid','f','f'),
-  ('mychips','tallies_v_netn','bound','mychips','tallies','bound','f','f'),
-  ('mychips','tallies_v_netn','canlift','mychips','tallies_v_netn','canlift','f','f'),
-  ('mychips','tallies_v_netn','inp','mychips','tallies_v_netn','inp','f','f'),
-  ('mychips','tallies_v_netn','inv','mychips','tallies_v_netn','inv','f','f'),
-  ('mychips','tallies_v_netn','margin','mychips','tallies_v_netn','margin','f','f'),
-  ('mychips','tallies_v_netn','max','mychips','tallies_v_netn','max','f','f'),
-  ('mychips','tallies_v_netn','min','mychips','tallies_v_netn','min','f','f'),
-  ('mychips','tallies_v_netn','net_pc','mychips','tallies','net_pc','f','f'),
-  ('mychips','tallies_v_netn','out','mychips','tallies_v_netn','out','f','f'),
-  ('mychips','tallies_v_netn','part','mychips','tallies_v_netn','part','f','f'),
-  ('mychips','tallies_v_netn','part_ent','mychips','tallies','part_ent','f','f'),
-  ('mychips','tallies_v_netn','reward','mychips','tallies','reward','f','f'),
-  ('mychips','tallies_v_netn','sign','mychips','tallies_v_netn','sign','f','f'),
-  ('mychips','tallies_v_netn','tally_ent','mychips','tallies','tally_ent','f','t'),
-  ('mychips','tallies_v_netn','tally_seq','mychips','tallies','tally_seq','f','t'),
-  ('mychips','tallies_v_netn','tally_type','mychips','tallies','tally_type','f','f'),
-  ('mychips','tallies_v_netn','target','mychips','tallies','target','f','f'),
-  ('mychips','tallies_v_netn','type','mychips','tallies_v_netn','type','f','f'),
-  ('mychips','tallies_v_netn','uuid','mychips','tallies_v_netn','uuid','f','f'),
   ('mychips','tallies_v_paths','at','mychips','tallies_v_paths','at','f','f'),
   ('mychips','tallies_v_paths','ath','mychips','tallies_v_paths','ath','f','f'),
   ('mychips','tallies_v_paths','bang','mychips','tallies_v_paths','bang','f','f'),

@@ -314,6 +314,24 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
   })
 
+  it("Restore proffered tallies", function(done) {
+    let dc = sites, _done = () => {if (!--dc) done()}
+    dbO.query(rest('Hoffer'), (e) => {if (e) done(e); else _done()})
+    if (sites > 1) dbS.query(rest('Hoffer'), (e) => {if (e) done(e); _done()})
+  })
+
+  it("Subject attempts to accept tally without a signature", function(done) {
+    let sql = uSql('request = %L', 'open',  userS, 1)
+//log.debug("Sql:", sql)
+    dbS.query(sql, (err, res) => {
+      assert.ok(err)				//;log.debug("err:", err, err.message)
+      assert.ok(err.message)
+      let [code, from, to] = err.message.split(' ')
+      assert.equal(code, '!mychips.tallies:IST')
+      done()
+    })
+  })
+
 //Obsolete: move to chit testing
 //  it("Simulate non-zero tally balance", function(done) {
 //    let dc = 2, _done = () => {if (!--dc) done()}
