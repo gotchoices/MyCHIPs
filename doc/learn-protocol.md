@@ -125,7 +125,13 @@ In the normal course of time, payment should be made by the debtor by way of a l
 
 If the debtor wants to close the tally sooner, he will have to figure out how to provide value sufficient to zero the balance.
 
-From these sequences, we will derive the following set of tally states (which follow [this format](learn-message.md#state-codes)):
+From these sequences, we will first derive the following simplified and conceptual diagram of tally states:
+[![state-tally](uml/state-tally-simp.svg)](uml/state-tally-simp.svg)
+
+This flow does not really consider the consequences of attempting to change state locally when the remote peer can not be reached to communicate the change.
+By adding additional intermediate states each time the local user requests a change of state, we can track separately when the synchronization message has reached the other side.
+
+We will thus derive the following full set of tally states (which follow [this format](learn-message.md#state-codes)):
 - **draft**: The user is in full control of the tally to update, delete or "share."
   The user (originator) may share (invite a subject user to) the actual tally or a clone of the tally.
   Sharing the tally does not imply actually sending it anywhere--only an invitation token is sent.

@@ -1,0 +1,45 @@
+@startuml
+!include common.puml
+
+$title(Tally State Overview)
+
+state Syncable {
+  state Negotiating {
+    state TheirCourt {
+      state Waiting
+      state Abandoned
+    }
+    state OurCourt {
+      state Voided
+      state Reviewing
+      state Drafting
+    }
+  }
+  state Tradable {
+    state Open
+    state Closing
+  }
+}
+state Closed
+
+[*] -right-> Reviewing: Offer Received
+[*] --> Drafting: NewTally
+
+Reviewing --> Voided: Reject / Send Rejection
+Drafting --> Waiting: Approve / Send Offer
+
+Reviewing --> Open: Approve/Send Approval
+Reviewing --> Drafting: Revise / Send Revising
+
+TheirCourt --> Reviewing: Receive Offer
+TheirCourt --> Open: Receive Approval
+
+Waiting --> Abandoned: Receive Rejection
+
+Open -right-> Closing: Observe Closing
+
+Closing -right-> Closed: Observe Zero
+
+Syncable --> Syncable: OutOfSync
+
+@enduml
