@@ -349,26 +349,30 @@ The goal of the consensus protocol is then to:
 The simplest case is when one side generates a chit and that chit gets completely propagated and linked on both ends before anything else happens on the tally.
 Unfortunately, real life will probably involve several other more messy scenarios:
 1. One or more valid chits get generated on both ends of the tally and are transmitted at about the same time.
-  Both stock and tally will have linked these chits already and think they have a valid end hash.
+  Both stock and foil will have linked these chits already and could think they have a valid end hash.
   The stock will have to comport to the foil's version of things and reorder its chain accordingly.
   So it should only keep a *provisional* end hash (propHash) until the foil acknowledges it.
 2. The network between stock and foil is disrupted during normal chit message transmission.
   The packet handling system is built to correctly detect this and use retries to eventually get the packets through sometime later when connectivity is reestablished.
   The state of a chit should remain pending (i.e. not yet good) until the transmitting node successfully connects with the other side's agent.
   As a result, this scenario should devolve into scenario 1 once connectivity is finally restored.
-3. A network packet is correctly transmitted to the other side but then lost somehow.
+3. A network packet is correctly transmitted to the other side's agent but is then lost somehow.
   This could happen if the agent process loses connection to the database at just the wrong time.
   This probably would not be detected until someone tries to add another chit to the chain.
   Then it would be evident to one side that it has a stray, valid chit that is not part of the other side's chain.
   - If the stock lost a chit, it should become evident next time the foil sends a list of activitiy since the last acknowledged checkpoint.
   - If the foil lost a chit, the stock should find it has a leftover valid chit after conforming to the foil.
     It can then just resend that chit through the normal chit protocol.
-The system should be tolerant of a packet for the same chit (same tally and chit uuid) arriving two or more times.
+4. Scenario 3 can be extended to a case where a DB becomes corrupted or lost and has to be restored from an older backup.
+  In this case, chits are likely to be missing or very possibly the tally itself could be missing or not yet in open status.
+  The consensus protocol should be operable even on a tally with zero chits and should be able to restore a valid tally based on information supplied from the partner.
+The system should also be tolerant of a packet for the same chit (same tally and chit uuid) arriving two or more times.
 This is accomplished by only processing state transitions if the chit is currently in the expected state.
 
 It may seem a little confusing to determine whether the consensus protocol is really a tally thing or a chit thing.
-It is centered around chits.
+It is mostly oriented around chits.
 But it is really the two halves of the tally that are (or are not) fully consensed at any given time.
+So this must necessarily also include the signed portions of the tally itself.
 
 Visualize it this way:
 Chaining status is a sub-state of a good chit and consensus is a sub-state of an open tally.
@@ -382,9 +386,9 @@ Chaining status is a sub-state of a good chit and consensus is a sub-state of an
 
 In addition to the three basic chit substates shown above, it will be important to know if/when consensus messages have been successfully sent to the other side.
 We will do this by queing messages and only completing state transition after the message has been sent.
-This will allow for more graceful error recovery when a process server crashes or is restarted.
+This will allow for more graceful error recovery when an agent server crashes or is restarted.
 
-We can now derive the following state diagram to describe the consensus sub-states from the perspective of a single side.
+We will now derive the following state diagram to describe the consensus sub-states from the perspective of a single side.
 First, the states associated with the foil:
 
 [![state-cons](uml/state-conf.svg)](uml/state-conf.svg)

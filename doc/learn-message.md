@@ -164,7 +164,7 @@ Tally state transition messages are as follows:
     - token: connection code
     - cert: CHIP certificate of the subject peer who will receive the tally
 
-- *DB->Agent:* **Request Agent to Send a Tally**: ***action***: pend  
+- *DB->Agent:* **Request Agent to Send a Tally**: ***action***: offer  
   The DB requests the agent to send the contained tally proposal to the requester or intended partner.
 
 - *Agent->Agent:* **Sending a Tally Offer**: ***action***: offer  
@@ -176,17 +176,17 @@ Tally state transition messages are as follows:
 - *Agent->Agent:* **Refusing a Tally Offer**: ***action***: void  
   A peer agent is indicating that the referenced tally has been refused by its user.
 
+- *DB->Agent:* **Request Agent to Revise Tally**: ***action***: draft  
+  The DB requests the agent to tell the prospective partner that we are revising the tally.
+
+- *Agent->Agent:* **Revise a Tally Offer**: ***action***: draft  
+  A peer agent is indicating that the referenced tally has been reset to draft by its user with the intent to revise it.
+
 - *DB->Agent:* **Request Agent to Accept Tally**: ***action***: open  
   The DB requests the agent to tell the prospective partner of the contained, signed tally "I accept."
 
 - *Agent->Agent:* **Accepting a Draft Tally Offer**: ***action***: open  
   A peer agent is transmitting a tally that has been accepted and signed by its user.
-
-- *DB->Agent:* **Request Agent to Notify of Tally Close Request**: ***action***: close  
-  The DB requests the agent to tell the partner of the current tally that it has been marked by our user to be closed upon attaining a zero balance.
-
-- *Agent->Agent:* **Marking a Tally for Closing**: ***action***: close  
-  A peer agent is indicating that the referenced tally has been marked for closure by its user.
 
 ### Chit Messages
 Property: **target**: chit

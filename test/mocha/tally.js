@@ -237,19 +237,41 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(row.request, 'draft')
       assert.equal(row.status, 'offer')
       assert.equal(row.state, 'offer.draft')
+      assert.equal(row.tally_type, 'foil')
       _done()
     })
-    busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
+    busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object)
       assert.equal(msg.entity, userO)		//Originator is sent a notification only
       assert.equal(msg.state, 'H.offer')
       assert.equal(msg.reason, 'draft')		//Noting the subject is re-drafting
+      assert.equal(msg.object?.revision, 1)
       _done()
     })
-    busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
+    busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object)
       assert.equal(msg.entity, userS)		//Subject is notified of draft mode
       assert.equal(msg.state, 'P.draft')
+      assert.equal(msg.object?.revision, 2)
       _done()
     })
+  })
+
+  it("Subject revises draft tally", function(done) {
+    let cmt = 'Revised offer'
+      , type = 'stock'
+      , sql = uSql('comment = %L, tally_type = %L', cmt, type, userS, 1)
+log.debug("Sql:", sql)
+    dbS.query(sql, (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.strictEqual(row.request, null)
+      assert.equal(row.status, 'draft')
+      assert.equal(row.tally_type, type)
+      assert.equal(row.comment, cmt)
+      done()
+    })
+  })
+  
+  it("Generate tally signature", function(done) {
+    getSignature(dbS, userS, 1, done)
   })
 
   it("Subject counters with revised tally", function(done) {
@@ -266,11 +288,13 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
       assert.equal(msg.entity, userO)		//Originator is sent the rejection
       assert.equal(msg.state, 'P.offer')
+      assert.equal(msg.object?.revision, 2)
       _done()
     })
     busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
       assert.equal(msg.entity, userS)		//Subject is notified of open
       assert.equal(msg.state, 'H.offer')
+      assert.equal(msg.object?.revision, 2)
       _done()
     })
   })

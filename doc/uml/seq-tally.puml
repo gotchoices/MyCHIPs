@@ -13,7 +13,7 @@ end note
 prop	-[#red]>> subj:		Communicate ticket to subject peer via QR code (out-of-band)
 subj	->>	subj:		Select Certificate\ninfo to disclose
 subj	->>	subjDB:		Request to connect via ticket
-subjDB	->>	propDB:		Is this a known or local agent?\nConnect w/ticket or known key,\nprovide subject certificate
+subjDB	->>	propDB:		Is this a known or local agent?\nConnect w/ticket or known key,\nattach subject certificate
 propDB	->	propDB:		Construct/complete draft tally
 propDB	->>	prop:		Present for review
 prop	->>	propDB:		Sign/Offer tally
@@ -28,17 +28,18 @@ alt Terms agreeable
  subj	->>	subjDB:		Accept/sign tally\n(if no changes made)
  subjDB ->>	propDB:		Send accepted tally
  propDB	->>	prop:		Store and notify user
+ propDB -[#violet]>>	propDB:		Initiate consensus ack sequence
+ propDB -[#violet]>>	subjDB:		(Transmit consensus ack/nack)
 
 else Want to counter
  subj	->>	subjDB:		Sign modified counter-offer
  subjDB	->>	propDB:		Update revision count\nsend proposed tally
  propDB	->>	prop:		Present for review
  prop	->>	propDB:		Accept/sign tally
- propDB	->>	propDB:		Agent ack-signs tally
  propDB	->>	subjDB:		Send accepted tally
- subjDB	->>	subjDB:		Agent ack-signs tally
  subjDB	->>	subj:		Notify user
- subjDB	->>	propDB:		Agent sends ack-signed tally
+ subjDB -[#violet]>>	subjDB:		Initiate consensus ack sequence
+ subjDB -[#violet]>>	propDB:		(Transmit consensus ack/nack)
 
 else Refuse terms
  subj	->>	subjDB:		Request to void tally

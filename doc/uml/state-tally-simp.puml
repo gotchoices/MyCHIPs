@@ -25,11 +25,11 @@ state Closed
 [*] -right-> Reviewing: Offer Received
 [*] --> Drafting: NewTally
 
-Reviewing --> Voided: Reject / Send Rejection
-Drafting --> Waiting: Approve / Send Offer
+Reviewing --> Voided: Reject\nSend Rejection
+Drafting --> Waiting: Approve\nSend Offer
 
 Reviewing --> Open: Approve/Send Approval
-Reviewing --> Drafting: Revise / Send Revising
+Reviewing --> Drafting: Revise\nSend Revising
 
 TheirCourt --> Reviewing: Receive Offer
 TheirCourt --> Open: Receive Approval
