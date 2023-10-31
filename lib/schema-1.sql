@@ -4338,12 +4338,6 @@ create view mychips.tallies_v_me as select
     from	mychips.tallies_v t
     where	t.tally_ent = base.user_id(session_user);
 
-    create rule mychips_tallies_v_me_update_mo as on update to mychips.tallies_v_me
-        where old.status = 'offer'
-        do instead update mychips.tallies_v set hold_sig = new.hold_sig, request = new.request where tally_ent = old.tally_ent and tally_seq = old.tally_seq;
-    create rule mychips_tallies_v_me_update_md as on update to mychips.tallies_v_me
-        where old.status = 'draft'
-        do instead update mychips.tallies_v set tally_type = new.tally_type, comment = new.comment, contract = new.contract, hold_terms = new.hold_terms, part_terms = new.part_terms, target = new.target, reward = new.reward, clutch = new.clutch, bound = new.bound, hold_cert = new.hold_cert, part_sig = new.part_sig, hold_sig = new.hold_sig, request = new.request where tally_ent = old.tally_ent and tally_seq = old.tally_seq;
     create rule mychips_tallies_v_me_denull as on delete to mychips.tallies_v_me do instead nothing;
     create rule mychips_tallies_v_me_delete as on delete to mychips.tallies_v_me
         where old.status = 'draft'
@@ -4459,8 +4453,11 @@ create view mychips.tallies_v_sum as select
   group by 1;
 create function mychips.tallies_v_updfunc() returns trigger language plpgsql security definer as $$
   begin
-    if old.status in ('void','draft') then
+    if old.status = 'draft' then
       update mychips.tallies set tally_type = new.tally_type,comment = new.comment,contract = new.contract,hold_terms = new.hold_terms,part_terms = new.part_terms,target = new.target,reward = new.reward,clutch = new.clutch,bound = new.bound,hold_cert = new.hold_cert,part_sig = new.part_sig,hold_sig = new.hold_sig,request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
+    returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
+    elsif old.status = 'offer' then
+      update mychips.tallies set hold_sig = new.hold_sig,request = new.request,crt_by = session_user,mod_by = session_user,crt_date = current_timestamp,mod_date = current_timestamp where tally_ent = old.tally_ent and tally_seq = old.tally_seq
     returning tally_ent,tally_seq into new.tally_ent, new.tally_seq;
     end if;
     select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
@@ -5176,7 +5173,7 @@ create function mychips.routes_v_updfunc() returns trigger language plpgsql secu
     return new;
   end;
 $$;
-create trigger mychips_tallies_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
+create trigger mychips_tallies_v_me_tr_upd instead of update on mychips.tallies_v_me for each row execute procedure mychips.tallies_v_updfunc();
 create view mychips.tallies_v_paths as with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
       top, top_tseq, bot, bot_tseq, circuit
@@ -5243,6 +5240,7 @@ create view mychips.tallies_v_paths as with recursive tally_path (
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
   join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq;
 create trigger mychips_tallies_v_tr_ins instead of insert on mychips.tallies_v for each row execute procedure mychips.tallies_v_insfunc();
+create trigger mychips_tallies_v_tr_upd instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
 create function mychips.tally_notices() returns int language plpgsql as $$
     declare
         trec		mychips.tallies;

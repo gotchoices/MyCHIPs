@@ -1,5 +1,5 @@
 {
- "hash": "JJ2PCk2/WaTon53MLzqK6kEi9bXF3TlSj/P10NVQxhk=",
+ "hash": "nAu0MNpCND7s3CFzA3XJYvIJc5iwRpoupCCOoQ30yDo=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -5927,7 +5927,7 @@
    "col_data": [
     "nat,json,mychips.tallies_v,json"
    ],
-   "create": "eJzNVMtuwyAQPCdfsbe0leUfiPotiJh1jIQhYZdY+fsCxo80rZQ0l/pizyyeHYa1G4+SES4aB+ivTadPVLM0RiOJi+gRJAGhwYZhC/Hi+iPfW+/6zd0LwLk4dOhxw5m/CrQMn3CQhHUg9EKrN0Ii7axI+H2/zS81oxMfDE5OxNqJCCcVF4jeJU/OwoiB3Y/Gs+ZsBpxRNbHkQNHLzrUt+t28RDnQlhilmkTvd0bI0EUVQfoYJSwO9QQr8HgOSFz4CY2d1yEkFwuWVpUq4fmmGvH+uVDU66EoL1t+PpTRMV9PWLa/EBU0ru/HradKQYm27GWz8COsxoQZfU/rjDNRwUl6vikuRBVt+CPybCGBdC6D9Go+lgRicxO46abWGVRwcMFOC/Nz8dKg57WVhIuTZRAmWP3HCVFogzFlPFT8lH8fj/WZW8edtseHm2TdR5r8cQaLaPrvfJd9McYvxmjEhQ==",
+   "create": "eJyNkE0SgjAMhddwiuz8WXABxrN0Kn1KZ0qrTYDx9paKij8LuukkL3n5kiZCC2iwGKm7Na29cCXaOQtWg+pAmonh0AiVlJ5U+/yfYuiKnwaSLI4tIgrJ+ZuCFzrQUTOqnhGVNVsGsw1eTfGuLnNT8yCJvcOTRC1JlIHvnZuAgieTmFK1hP/UJpD1LNCGfJDW+nO9dkj2XTMkG77WpeBMxaKl57TtxkR9ks2rZMEzm04H/LadnZZnm1zfsfZmVhnXDzXF9R1/QqFJ",
    "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWK0nMyclMLY4vi89NtQYAR6QPug=="
   },
   {
@@ -5975,7 +5975,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJx1UluOwjAM/OcU/kACVhEXQJylCqmbRmrTYjug3n6dplBY2K9mZvyYZuIIrSA0KToJQ4R+cm0Y+Si26wJydavSWGd1fwBCSRQZhIL3SNDZ6JP1CGM3er52wOgSBZmgxiZErbAM2+0G4II+RP0ChAaGrj6yWEkMIcJ+dxtCvTO7mmwjuwNIi6UUQFdnc3886RqBfJ4qmUaEM0S8H1fCuKHvMcoiLEjZKGTdShdoWvVTCVLPi7ISZrQkb9pKGLHkUZ7bMzCEd0v1whVgXJfEtY+tMzCXIcVH2XwuLhySvJrIuHjg4F8dKCwdK/+A6uGakOVpYkbGaddlUpKRWYOuEiOZfqi/sLl2vvgzaJ6kl1dJ6HWK7ce55T8R7i0SLtmUBHLYK7b61wUxXt9UxXPo5Y2F6NcpZu0IUYaXtLP4ArXiNA9BXROacmbsUEN/dMIPNDT0n+/8i/e3RR/ev+wt5rOSsbo4bbbb0y9nQzdx",
+   "create": "eJztVG1ugzAM/b9T+EelblPUC1Q7C0qDCZFCoLazitvPIXS0ayftAPtF3nv+eNgBR2gFocvJSRgTDLPrw8QHsTEG5OazyVNb1Nc3IJRMiUEoeI8E0SafrUeY4uT5HIHRZQoyQ4tdSBphGXa7F4AT+pD0CRA6GGN7YLGSGT5g35LtZA/SYw0A0IbF0g8nWlygnOdG5gk1NeHlsBHGjcOASVZhRcomIes2ukLTq4tGkAZelY0wkyW50zbCiCWP8t29AEN4sdSuXAXGxSyuv3ZdgDmNOV3DlnN14ZDk1kTB1QMHf+tAYc3Y+CtUD+eMLN8mFmScZp1mJRmZdb1NZiQzjO0TtsQug/8A3SLp8BoJg1axw7Sk/CbCpUfCdTd1A2XFG7b61hUxnu9UxcvS680KyW9VzJYRkow32y7iDdSI41IEIz/crrHrkP56u/5n+/tstU3o6pkxon5Q10x4h47G4fHP8cT7XaMH70/6VvNFKVhdHF92u+MXUCOyow==",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1itJzMnJTC2OL4svLUgBqdPQtAYAFVET2Q=="
   },
   {
@@ -6349,20 +6349,20 @@
   },
   {
    "obj_typ": "trigger",
-   "obj_nam": "mychips_tallies_tr_upd",
+   "obj_nam": "mychips_tallies_v_me_tr_upd",
    "obj_ver": 1,
    "module": "mychips",
    "min_rel": 1,
    "max_rel": 1,
    "deps": [
-    "mychips.tallies_v",
+    "mychips.tallies_v_me",
     "mychips.tallies_v_updfunc()"
    ],
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJxljDsOgCAQRK8ypTZewMMYsgxKoixZwc/txcLKavKS90aMrhDF4jzTsN2yxLxPxa1rZFubavaIaS90HhrQ8A00fe7wuQeCGuhkgekJXpTazGwq9NX4D97vUJN0/fgACq40BQ==",
-   "drop": "eJxLKcovUCgpykxPTy1SyExTSK3ILC4pVsitTM7ILCiOL0nMyclMBdJF8aUFKQr5eTAZPZhMmTUAdSsaFg=="
+   "create": "eJxtzEEOgzAMRNGreEk3vQCHsSJnApEgjhynhdsTFpVYdDnSfyOG4CC3vCww2k9Zc23sYdsyGn94B7txr5FyaY4QSRONeSstP/B+AkpqhCArmX4JB6SPuJoKYjf8MeMv9SLTa74Ay5I3PA==",
+   "drop": "eJxLKcovUCgpykxPTy1SyExTSK3ILC4pVsitTM7ILCiOL0nMyclMLY4vi89NjS8pii8tSFHIz4NJ6yFLWwMAV5YdTQ=="
   },
   {
    "obj_typ": "view",
@@ -6399,6 +6399,23 @@
    "col_data": [],
    "create": "eJxljDkOwzAQA7/CMmnygTxGENaULcDRGtQqx+9jF0njggCLmTExBxGq80zh8bGlbj1FXtfKnp4plGrr2BfME7wclwp4+9G3P43iArMtkL/AN23s8U1unIZ4Fo52Gc0u1/sXgeU07g==",
    "drop": "eJxLKcovUCgpykxPTy1SyExTSK3ILC4pVsitTM7ILCiOL0nMyclMLY4viy8pis/MK1bIz4PJ6cHlrAGsQxrs"
+  },
+  {
+   "obj_typ": "trigger",
+   "obj_nam": "mychips_tallies_v_tr_upd",
+   "obj_ver": 1,
+   "module": "mychips",
+   "min_rel": 1,
+   "max_rel": 1,
+   "deps": [
+    "mychips.tallies_v",
+    "mychips.tallies_v_updfunc()"
+   ],
+   "delta": [],
+   "grants": [],
+   "col_data": [],
+   "create": "eJxlzDsOgzAQhOGrTJk0XCCHsaz1GCyB11qv87g9UISGcqTvHzFGJ9zKPNOw/WQprQeP61rYwzu4hdESSu3OmKAZxzwTrX89XRpZDYyywPQDfinjkM1UmIbxHpzfeVR5PF87e/o02g==",
+   "drop": "eJxLKcovUCgpykxPTy1SyExTSK3ILC4pVsitTM7ILCiOL0nMyclMLY4viy8pii8tSFHIz4PJ6cHlrAGsRhrr"
   },
   {
    "obj_typ": "function",

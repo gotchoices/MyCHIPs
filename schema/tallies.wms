@@ -390,26 +390,6 @@ view mychips.tallies_v {
   {mychips.tallies_v json}
 }
 
-# Custom update function; Only allow updates of regular fields for draft tally
-#----------------------------------------------------------------
-define updEnd {
-  where eval(fld_list_eq $tallies::tallies_pk old { and })
-    returning eval(join $tallies::tallies_pk ,) into eval(fld_list $tallies::tallies_pk new);
-}
-function {mychips.tallies_v_updfunc()} {mychips.tallies_v} {
- returns trigger language plpgsql security definer as $$
-  begin
-    if old.status in ('void','draft') then
-      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up $glob::stampin) updEnd()
-    end if;
-    select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
-    return new;
-  end;
-$$;}
-trigger mychips_tallies_tr_upd {} {
-    instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
-}
-
 # User view of tallies
 #----------------------------------------------------------------
 view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select 
@@ -417,13 +397,36 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
     from	mychips.tallies_v t
     where	t.tally_ent = base.user_id(session_user);
 
-    eval(rule_update mychips.tallies_v_me mychips.tallies_v $tallies::tallies_v_up_mo $tallies::tallies_pk {old.status = 'offer'} {} _mo);
-    eval(rule_update mychips.tallies_v_me mychips.tallies_v $tallies::tallies_v_up $tallies::tallies_pk {old.status = 'draft'} {} _md);
     eval(rule_delete mychips.tallies_v_me mychips.tallies $tallies::tallies_pk {old.status = 'draft'});
 } -grant {
     {tally	{s} {s i u} {d}}
 } -native {
   {mychips.tallies_v json}
+}
+
+# Custom update function; Only allow updates of regular fields for draft tally
+#----------------------------------------------------------------
+define updEnd {
+  where eval(fld_list_eq $tallies::tallies_pk old { and })
+    returning eval(join $tallies::tallies_pk ,) into eval(fld_list $tallies::tallies_pk new)
+}
+function {mychips.tallies_v_updfunc()} {mychips.tallies_v} {
+ returns trigger language plpgsql security definer as $$
+  begin
+    if old.status = 'draft' then
+      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up $glob::stampin) updEnd();
+    elsif old.status = 'offer' then
+      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up_mo $glob::stampin) updEnd();
+    end if;
+    select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
+    return new;
+  end;
+$$;}
+trigger mychips_tallies_v_tr_upd {} {
+    instead of update on mychips.tallies_v for each row execute procedure mychips.tallies_v_updfunc();
+}
+trigger mychips_tallies_v_me_tr_upd {} {
+    instead of update on mychips.tallies_v_me for each row execute procedure mychips.tallies_v_updfunc();
 }
 
 # General routine to build update query string
