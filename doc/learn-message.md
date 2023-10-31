@@ -145,12 +145,12 @@ The *object* property for the tally is defined as follows:
   - **counter**: The number of times the tally was counter-offered during negotiation (default 0).
   - **comment**: Any comments to the tally the parties have agreed to include.
   - **created**: Date/time the tally was created
-  - **contract**: A reference to a digital contract containing the general terms and conditions for the tally.  Can be the document digest, or an object containing:
+  - **agree**: A reference to a digital contract containing the general terms and conditions for the tally.  Can be the document resource ID hash, or an object containing:
     - **host**: Web address of Issuer/author guaranteed to have authoritative copy of the contract
-    - **digest**: Base 64 hash of the contract
+    - **source**: Base 64v hash of the contract
   - **terms**: An object containing [credit variables](learn-tally.md#credit-terms)
   - **signed**:
-    - **digest**: A string hash of the tally (absent 'signed') in a standard serialized format
+    - **hash**: The SHA-256 hash of the tally (absent 'signed') in a standard serialized format and converted to base64v
     - **foil**: The digital signature of the hash by the foil holder (client)
     - **stock**: The digital signature of the hash by the stock holder (vendor)
 
@@ -205,9 +205,9 @@ The *object* property for the chit is defined as follows:
     - To specify a tally call date, use the property 'call'.
     - To specify a tally call date, use the property 'call'.
   - **memo**: A human-readable description or comment about the transaction.
-  - **digest**: A string hash of the rest of the chit in a standard serialized format
+  - **hash**: The SHA-256 hash of the rest of the chit in a standard serialized format, rendered in base64v
   - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor
-  - **digest**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information about use of this property.
+  - **chain**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information about use of this property.
 
 Chit state transition messages are as follows:
 
@@ -265,7 +265,7 @@ Chain messages then contain an object with some or all of the following properti
 - **action**: = chain
 - **sub**: The chaining subcommand
 - **tally**: The uuid of the tally the message pertains to
-- **hash**: The hash at the end of the chain
+- **hash**: The hash at the end of the chain in base64v format
 - **index**: The index of the last chit in the chain
 - **chits**: An array of chits from a section of the chain
 

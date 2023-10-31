@@ -72,7 +72,7 @@ table mychips.tallies {mychips mychips.users tally_side} {
   , hold_sets	jsonb		not null default '{}'
   , part_sets	jsonb		not null default '{}'
   , chain_conf	int		not null default 0
-  , chain_stat	text		not null default 'con' check (chain_stat in ('con','prob','req','err','pend'))
+  , chain_stat	text		not null default 'non' check (chain_stat in ('non','aff','pen','con','err'))
   , _last_chit	int		not null default 0
 
     eval(s $glob::stamps)
@@ -319,7 +319,13 @@ $$;} -grant mychips
 # Base view of tallies
 #----------------------------------------------------------------
 #define uSign {case when te.tally_type = 'stock' then (%1) else -(%1) end}
-view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.agents_v mychips.tally_state(mychips.tallies) mychips.tally_json(mychips.tallies) mychips.j2h(jsonb)} {select 
+view mychips.tallies_v {
+  mychips.tallies mychips.chits_v mychips.users_v mychips.agents_v 
+  mychips.tally_state(mychips.tallies) 
+  mychips.tally_json(mychips.tallies)
+  mychips.ba2b64v(bytea)
+  mychips.j2h(jsonb)
+} {select 
     eval(fld_list $tallies::tallies_se	te)
   , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
   , ua.agent_host			as hold_host
@@ -335,7 +341,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
   , not te.part_ent is null						as inside
   , mychips.tally_state(te)		as state
   , mychips.tally_state(te) = any(array['P.offer']) as action
-  , te.status = 'open' or (te.status = 'close' and net_pc != 0)		as liftable
+  , te.status = 'open'					as liftable
 
   , coalesce(cg.chits, 0)				as chits
   , coalesce(cg.chits, 0) + coalesce(ce.chits, 0)	as chits_p
@@ -348,7 +354,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
   , mychips.tally_json(te) as json_core
   , mychips.tally_json(te) || jsonb_build_object(
       'sign',		json_build_object(
-        'digest',	te.digest,
+        'hash',		mychips.ba2b64v(te.digest),
         'stock',	case when te.tally_type = 'stock' then te.hold_sig else te.part_sig end,
         'foil',		case when te.tally_type = 'stock' then te.part_sig else te.hold_sig end
       )
@@ -361,7 +367,7 @@ view mychips.tallies_v {mychips.tallies mychips.chits_v mychips.users_v mychips.
       'clutch',		te.clutch,
       'bound',		te.bound
     )		as policy
-  , cc.digest		as ack_hash
+  , mychips.ba2b64v(cc.digest)		as ack_hash
 
     from	mychips.tallies	te
     left join	mychips.agents_v ua on ua.agent = te.hold_agent

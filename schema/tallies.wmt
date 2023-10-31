@@ -11,6 +11,7 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   }}
   {tally_date	{Tally Date}		{The date and time this tally was initiated between the parties}}
   {version	{Version}		{A number indicating the format standard this tally adheres to}}
+  {revision	{Revision}		{Count of the number of times the tally was revised/counter-offered during negotiation}}
   {comment	{Comment}		{Any notes the user might want to enter regarding this tally}}
   {contract	{Contract}		{The Resouce ID of the contract governing this tally (or a json record more fully specifying it)} {
     {name	{Name}			{The tag name of the governing contract}}
@@ -51,7 +52,7 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   }}
   {status	{Status}		{Current status of the tally record} {
     {void	{Void}			{The tally has been abandoned before being affirmed by both parties}}
-    {draft	{Draft}			{The tally have bee suggested by one party but not yet accepted by the other party}}
+    {draft	{Draft}			{The tally has been suggested by one party but not yet accepted by the other party}}
     {open	{Open}			{The tally is affirmed by both parties and can be used for trading chits}}
     {close	{Close}			{No further trading can occur on this tally}}
   }}
@@ -63,8 +64,14 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {part_cid	{Partner CID}		{Cached value of partner's CHIP identify from the holder certificate}}
   {hold_agent	{Holder Agent}		{Cached value of holder's agent from the holder certificate}}
   {part_agent	{Partner Agent}		{Cached value of partner's agent from the holder certificate}}
-  {chain_conf	{Chain Confirmed}	{The index of the last chit in the chain that has been confirmed with the partner peer}}
-  {chain_stat	{Chain Status}		{The consensus status of the chit chain related to this tally}}
+  {chain_conf	{Chain Confirmed}	{The index of the last chit in the chain that has been confirmed with the partner peer (or zero for none)}}
+  {chain_stat	{Chain Status}		{The consensus status of the tally} {
+    {non	{None}			{There is not yet any known consensus between the tally halves}}
+    {aff	{Affirmed}		{The tally foil has chained all known chits and affirmed the ending checksum to the stock}}
+    {pen	{Pending}		{The tally stock as chained all know chits and as suggested an ending checksum to the foil}}
+    {con	{Consensed}		{The end of chain checksum has been confirmed by the other party}}
+    {err	{Error}			{The tally has encountered an irreconcilable error trying to consense with the other side}}
+  }}
   {_last_chit	{Last Chit}		{Used internally to create new chit record index numbers}}
 } $glob::stampt] -messages {
   {VER		{Bad Tally Version}	{Tally version must be 1 or greater}}

@@ -1,13 +1,25 @@
 TODO:
 
+X- Refactor chit chains to use base64url for chain hash (instead of hex)
+
 - Tally negotiation
 X-  Review tally negotiation documentation
 X-   Break out lift background from protocol document
 X-   Update close procedure
 X-   Review chit consensus
 X-   Make tallies editable only in draft mode (adjust regression tests)
+X-   Define tally chain_cons possible values
+X-   Fully review/understand chit consensus code
+X-   Set tally chain_cons to unconsensed state on default
+-   Foil sets tally to consensed when end of chain computed
+-   Stock sets tally to consensed when end of chain agrees with foil
+-   Stock can retry if/when consensus not yet reached
+-   Stock can request hash check at any time
 -   Regression test for: opened tally doesn't register to other side
+-   Test for chaning tally_type during negotiation
 -   Can we fire chit consensus at end of tally open to ack tally?
+-    If we are the first to open tally, we mark as unconsensed, wait for consensus ack
+-    If we respond to tally open, we mark as consensed, initiate consensus ack
 -   Can recover from unknown tally states (H.offer.open)
 -   Scan any hand notes 2021-2022
 -  
@@ -19,15 +31,12 @@ X-   Make tallies editable only in draft mode (adjust regression tests)
 X-  Build control report for issuing payment request invoice
 X-  Test in web UI
 X-  Build query/function with user permission for seeking available paths
--  Redo tallies_v_net to be holder-centric (rather than parter-centric)
+-  Redo tallies_v_net to be holder-centric (rather than partner-centric)
 -  Regression tests still run
 -  How does one sign a linear lift?
 -  Build query/function with user permission for inserting linear lift request
 -  
 - Add reset and submit buttons for Trading Variables report (in user's language)
-- 
-- Refactor chit chains to use base64url for chain hash (instead of hex)
-- Should we use python module for base64url in postgresql?
 -  
 - Chit consensus
 -  How to repair broken chits on mychips.net

@@ -66,7 +66,7 @@ A contract is represented as a JSON object with the following properties:
     treated differently from all the other properties.  When computing the hash, 
     the rid property is removed, the object is serialized using a deterministic 
     algorithm, and then run through the SHA256 hash routine.  The hash is
-    encoded using base58btc format and then added back into the document object.
+    encoded using base64url format and then added back into the document object.
 
   - published:  
     A date indicating when this contract version was published by the author.

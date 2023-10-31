@@ -37,6 +37,7 @@ require('./sch-chit.js')
 require('./user2.js')		//Needed for testing on two DB's
 require('./tally.js')
 require('./chit.js')
+require('./chain.js')
 
 require('./sch-path.js')
 require('./sch-route.js')

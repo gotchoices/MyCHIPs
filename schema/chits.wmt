@@ -29,10 +29,10 @@ tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit
     {good	{Good}			{The holder requests the chit be moved to good status}}
     {void	{Void}			{The holder requests the chit be moved to void status}}
   }}
-  {chain_idx	{Chain Index}		{Chits are stored in a hash-chain to prevent them from being altered later.  This indicates the order of the chit records in the hash chain.}}
+  {chain_idx	{Chain Index}		{Indicates the order of the chit records in the hash chain.  First chit is numbered as 1}}
   {chain_send	{Chain Send}		{Holds missing chain information to be communicated to the partner about chit consensus}}
   {chain_prev	{Chain Previous}	{A copy of the hash from the previous chit in the hash chain}}
-  {chain_hash	{Chain Hash}		{A hash of the current chit record, including the previous record's hash so as to form a hash chain}}
+  {chain_dgst	{Chain Digest}		{A hash digest of the current chit record, including the previous record's hash so as to form a hash chain}}
   {lift_seq	{Lift Sequence}		{If a chit is part of a lift transaction, this indicates which tally record the chits belong to.  There can be more than one lift record per lift in some cases.}}
 } $glob::stampt] -messages {
   {BRQ		{Bad Chit Request}	{Not a valid value for a chit request}}

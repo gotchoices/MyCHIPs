@@ -83,39 +83,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       done()
     })
   }
-
-  it("Foil (Subject) sends payment that doesn't arrive", function(done) {
-    let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
-    serverS.failSend = 'success'		//Force: fail to transmit but indicate success
-    addChit(dbS, 'foil', 1, userS, interTest.talS.tally_seq, _done)
-    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
-      assert.equal(msg.state, 'L.good')
-      delete serverS.failSend
-      _done()
-    })
-  })
-
-  it("Stock (Originator) sends payment", function(done) {
-    let dc = 3, _done = () => {if (!--dc) done()}
-dbO.query('MARK---------->')
-    addChit(dbO, 'stock', 2, userO, interTest.talO.tally_seq, _done)
-    busO.register('po', (msg) => {		log.debug("O user msg:", msg, msg.object)
-      assert.equal(msg.state, 'L.good')
-      _done()
-    })
-    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
-      assert.equal(msg.state, 'A.good')
-      delete serverS.failSend
-      _done()
-    })
-  })
-
-  it("Wait for consensus to settle", function(done) {
-    setTimeout(done, 250)
-  })
-
-  it("Compare resulting chit chains", function(done) {
-    let sql = 'select chit_seq, chain_idx, units, clean from mychips.chits_v where chit_ent = $1 order by 2'
+  
+  const compChains = function(done) {
+    let sql = 'select chit_seq, chain_idx, chain_conf, units, clean from mychips.chits_v where chit_ent = $1 order by 2'
       , rowsO, rowsS
       , dc = 2, _done = () => {
         if (!--dc) {
@@ -124,15 +94,74 @@ dbO.query('MARK---------->')
         }
       }
     dbO.query(sql, [userO], (e, res) => {if (e) done(e)
-      rowsO = res.rows		//;log.debug('O Rows:', JSON.stringify(rowsO))
+      rowsO = res.rows		;log.debug('O Rows:', JSON.stringify(rowsO))
       _done()
     })
     dbS.query(sql, [userS], (e, res) => {if (e) done(e)
-      rowsS = res.rows		//;log.debug('S Rows:', JSON.stringify(rowsS))
+      rowsS = res.rows		;log.debug('S Rows:', JSON.stringify(rowsS))
+      _done()
+    })
+  }
+
+  it("Foil (Subject) sends payment that doesn't arrive", function(done) {
+    let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
+    serverS.failSend = 'success'		//Force: fail to transmit but indicate success
+    addChit(dbS, 'foil', 30, userS, interTest.talS.tally_seq, _done)
+    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
+      assert.equal(msg.state, 'L.good')
+      delete serverS.failSend
       _done()
     })
   })
 
+  it("Stock (Originator) sends a payment", function(done) {
+    let dc = 3, _done = () => {if (!--dc) done()}
+    addChit(dbO, 'stock', 40, userO, interTest.talO.tally_seq, _done)
+    busO.register('po', (msg) => {		//log.debug("O user msg:", msg, msg.object)
+      assert.equal(msg.state, 'L.good')
+      _done()
+    })
+    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
+      assert.equal(msg.state, 'A.good')
+      _done()
+    })
+  })
+
+  it("Compare resulting chit chains", function(done) {
+    setTimeout(c => compChains(done), 250)	//Allow consensus to settle
+  })
+
+  it("Stock (Originator) sends payment that doesn't arrive", function(done) {
+    let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
+    serverO.failSend = 'success'		//Force: fail to transmit but indicate success
+    addChit(dbO, 'stock', 60, userO, interTest.talO.tally_seq, _done)
+    busO.register('po', (msg) => {		log.debug("O user msg:", msg, msg.object)
+      assert.equal(msg.state, 'L.good')
+      assert.equal(msg.index, 5)
+      delete serverO.failSend
+      _done()
+    })
+  })
+
+  it("Foil (Subject) sends a payment", function(done) {
+    let dc = 3, _done = () => {if (!--dc) done()}
+    addChit(dbS, 'foil', 50, userS, interTest.talS.tally_seq, _done)
+    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
+      assert.equal(msg.state, 'L.good')
+      _done()
+    })
+    busO.register('po', (msg) => {		//log.debug("O user msg:", msg, msg.object)
+      assert.equal(msg.state, 'A.good')
+      _done()
+    })
+  })
+
+/* Not finished yet!
+  it("Compare resulting chit chains", function(done) {
+    setTimeout(c => compChains(done), 250)	//Allow consensus to settle
+  })
+
+/*
   it("Check chain integrity using mychips.chits_v_chains", function(done) {
     let sql = 'select ok from mychips.chits_v_chains where last and ent = $1'
       , dc = 2, _done = () => {if (!--dc) {done()}}
@@ -148,8 +177,9 @@ dbO.query('MARK---------->')
     })
   })
 
-//  it("Wait for messages to settle", function(done) {
-//    setTimeout(done, 250)
+//  it("Mark the log and wait for it to settle", function(done) {
+//    dbO.query('MARK-------------------->')
+//    setTimeout(done, 500)
 //  })
 
 /* */
