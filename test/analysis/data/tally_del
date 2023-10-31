@@ -1,0 +1,19 @@
+#!/bin/bash
+#Deletes both halves of all tallies owned by partner1
+#or deletes both halves of all tallies owned by partner1 and shared with partner2
+
+if [ -z "$1" ]; then
+  echo 'Usage: tally_del partner1 <partner2>'
+  exit 1
+fi
+p1="$1"
+p2="$2"
+
+if [ -z "$p2" ]; then
+  sub="select distinct tally_uuid from mychips.tallies where tally_ent = '$p1'"
+else
+  sub="select distinct tally_uuid from mychips.tallies where tally_ent = '$p1' and part_ent = '$p2'"
+fi
+
+#echo "$sub"
+echo "delete from mychips.tallies where tally_uuid in ($sub);"
