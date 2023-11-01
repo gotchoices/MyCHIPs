@@ -174,6 +174,7 @@ const TallyEditView = (props) => {
 
 const styles = StyleSheet.create({
   detailControl: {
+    marginTop:20,
     marginVertical: 10
   },
   contractLabel: {
