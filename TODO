@@ -1,16 +1,14 @@
 TODO:
 
-X- Refactor chit chains to use base64url for chain hash (instead of hex)
-
 - Tally negotiation
 X-  Review tally negotiation documentation
-X-   Break out lift background from protocol document
-X-   Update close procedure
-X-   Review chit consensus
-X-   Make tallies editable only in draft mode (adjust regression tests)
-X-   Define tally chain_cons possible values
-X-   Fully review/understand chit consensus code
-X-   Set tally chain_cons to unconsensed state on default
+X-   Should we be sending chits in consensus packets or on their own (retries)
+-   Refactor chit consensus to handle three chit sources separately
+-   Get current regressions fully working
+-   Test for case where both sides have backlog of unchained chits
+-   Implement a tally consensus query/reply message
+-   Is tally consensus state field useful?
+-   
 -   Foil sets tally to consensed when end of chain computed
 -   Stock sets tally to consensed when end of chain agrees with foil
 -   Stock can retry if/when consensus not yet reached

@@ -3747,10 +3747,10 @@ create function mychips.chain_consense(ch mychips.chits, ta mychips.tallies) ret
       ratchet	boolean = false;
       jrec	jsonb;
     begin
-      select into crec * from mychips.chits	-- Find the current end-of-chain chit
+      select into crec * from mychips.chits	-- Find our current end-of-chain chit
         where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq
           and chain_idx notnull order by chain_idx desc limit 1;
-raise notice 'Cons T:%-%-% Conf:% Iss:% Units:% Ex:% d:%', ta.tally_ent,ta.tally_seq,ta.tally_type,ta.chain_conf,ch.issuer,ch.units,crec.chain_idx,propChit.chain_dgst;
+raise notice 'Cons T:%-%-% Conf:% Iss:% Units:% Ex:% d:% rq:%', ta.tally_ent,ta.tally_seq,ta.tally_type,ta.chain_conf,ch.issuer,ch.units,crec.chain_idx,propChit.chain_dgst, ch.request;
 
       if found then				-- Already have a chain
         nextIdx = greatest(crec.chain_idx + 1, 1);
@@ -3759,7 +3759,7 @@ raise notice 'Cons T:%-%-% Conf:% Iss:% Units:% Ex:% d:%', ta.tally_ent,ta.tally
         nextIdx = 1;
         prevDgst = ta.digest;
       end if;
-
+raise notice 'Cons CH: Idx:% nextIdx:% prev:%', ch.chain_idx, nextIdx, prevDgst;
 
       if ch.chain_idx isnull then		-- Use given index
         ch.chain_idx = nextIdx;
@@ -3798,14 +3798,15 @@ raise notice 'Cons FOIL: idx:% hash:% prv:% S:%', ch.chain_idx, ch.chain_dgst, c
       else		-- we hold the stock, must conform to foil
         ch.chain_prev = prevDgst;
         compDgst = mychips.j2h(mychips.chit_json_h(ch, ta));
-
+raise notice 's H:% d:% :%:%', mychips.chit_json_h(ch, ta), compDgst, ch.issuer, ch.request;
 
         if ch.issuer = 'stock' then		-- If stock issued this chit
-          ch.chain_dgst = compDgst;
 
+          ch.chain_dgst = compDgst;
+raise notice 'Provisional chit at X:% Conf:%', ch.chain_idx, ta.chain_conf;
 
         elsif compDgst = ch.chain_dgst then	-- Does our hash agree with what the foil sent?
-
+raise notice 'Good foil chit conf:% idx:% hash:%', ta.chain_conf, ch.chain_idx, ch.chain_dgst;
           ratchet = true;
 
         elsif propChit.chain_idx = 1 then		-- Is this first link
@@ -3813,7 +3814,7 @@ raise notice 'Cons FOIL: idx:% hash:% prv:% S:%', ch.chain_idx, ch.chain_dgst, c
           ratchet = true;
 
         elsif propChit.chain_idx = ta.chain_conf + 1 then		-- Is this next on our confirmed chain
-
+raise notice 'Conform chit conf:% idx:% hash:%', ta.chain_conf, ch.chain_idx, ch.chain_dgst;
           ch.chain_prev = (select chain_dgst from mychips.chits
             where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq and chain_idx = ch.chain_idx - 1);
           ratchet = true;
@@ -3832,7 +3833,7 @@ raise notice 'Cons FOIL: idx:% hash:% prv:% S:%', ch.chain_idx, ch.chain_dgst, c
           ch.chain_send = jsonb_build_object('chits',	jrec);
         end if;
 
-raise notice 'Cons STOCK: idx:% hash:% prv:% S:%', ch.chain_idx, ch.chain_dgst, ch.chain_prev, ch.chain_send;
+
       end if;
 
 
@@ -3894,7 +3895,7 @@ create function mychips.chit_process(msg jsonb, recipe jsonb) returns text langu
 
       select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;
       curState = crec.state;
-raise notice 'Chitproc cid:% E:% F:% state:% recipe:%', cid, trec.tally_ent, found, curState, recipe;
+raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, curState, recipe;
       if not found then
         curState = 'null';
       end if;
@@ -4108,7 +4109,7 @@ create function mychips.chits_tf_bi() returns trigger language plpgsql security 
       ta	mychips.tallies;
     begin
       select into ta * from mychips.tallies where tally_ent = new.chit_ent and tally_seq = new.chit_seq;
-      if not found or ta.digest isnull then		-- Can we find the valid tally the chit belongs to?
+      if not found or ta.status != 'open' or ta.digest isnull then	-- Can we find the valid tally the chit belongs to?
         raise exception '!mychips.chits:LIT %-%-%', ta.tally_ent, ta.tally_seq, ta.tally_type;
         return null;
       end if;
@@ -5173,7 +5174,6 @@ create function mychips.routes_v_updfunc() returns trigger language plpgsql secu
     return new;
   end;
 $$;
-create trigger mychips_tallies_v_me_tr_upd instead of update on mychips.tallies_v_me for each row execute procedure mychips.tallies_v_updfunc();
 create view mychips.tallies_v_paths as with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
       top, top_tseq, bot, bot_tseq, circuit

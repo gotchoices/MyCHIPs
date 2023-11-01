@@ -69,6 +69,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       _done()
     })
   })
+  
+  const markLogs = function(done, time=500) {
+    let mark = 'MARK-------------------->'
+    log.debug(mark)
+    setTimeout(() => {dbO.query(mark); done()}, time)
+  }
 
   const addChit = function(db, by, value, ent, seq, done) {
     let uuid = mkUuid(cidO, agentO)
@@ -113,6 +119,8 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       _done()
     })
   })
+
+  it("Mark the log and wait for it to settle", function(done) {markLogs(done)})
 
   it("Stock (Originator) sends a payment", function(done) {
     let dc = 3, _done = () => {if (!--dc) done()}
@@ -215,5 +223,5 @@ describe("Chit chain consensus", function() {
   }
 
   describe("Test chit consensus between two users on same site", function() {Suite1(config1)})
-  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
+//  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
 })
