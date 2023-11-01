@@ -72,7 +72,7 @@ function mychips.chits_tf_bi() {mychips.tallies mychips.chit_goodcheck(mychips.c
       ta	mychips.tallies;
     begin
       select into ta * from mychips.tallies where tally_ent = new.chit_ent and tally_seq = new.chit_seq;
-      if not found or ta.digest isnull then		-- Can we find the valid tally the chit belongs to?
+      if not found or ta.status != 'open' or ta.digest isnull then	-- Can we find the valid tally the chit belongs to?
         raise exception '!mychips.chits:LIT %-%-%', ta.tally_ent, ta.tally_seq, ta.tally_type;
         return null;
       end if;
@@ -420,7 +420,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
 
       select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;
       curState = crec.state;
-raise notice 'Chitproc cid:% E:% F:% state:% recipe:%', cid, trec.tally_ent, found, curState, recipe;
+raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, curState, recipe;
       if not found then
         curState = 'null';		-- Special code for when the specified chit doesn't exist yet
       end if;
