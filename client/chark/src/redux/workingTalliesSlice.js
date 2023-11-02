@@ -91,6 +91,16 @@ export const workingTalliesSlice = createSlice({
   name: 'workingTallies',
   initialState: initialState,
   reducers: {
+    updateTally: (state, action) => {
+      const updated = action.payload;
+      const foundIndex = state.tallies.findIndex(tally => (
+        tally.tally_ent === updated.tally_ent && tally.tally_seq === updated.tally_seq
+      ))
+
+      if(foundIndex >= 0) {
+        state.tallies[foundIndex] = updated;
+      }
+    }
   },
 
   extraReducers: (builder) => {
@@ -111,3 +121,7 @@ export const workingTalliesSlice = createSlice({
 });
 
 export default workingTalliesSlice.reducer;
+
+export const {
+  updateTally,
+} = workingTalliesSlice.actions; 

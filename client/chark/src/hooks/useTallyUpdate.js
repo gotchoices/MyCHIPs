@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import { fetchTallies } from '../services/tally';
+import useSocket from '../hooks/useSocket';
 
 const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
+  const { tallyNegotiation } = useSocket();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
@@ -27,10 +29,10 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
 
 
   useEffect(() => {
-    if (wm) {
+    if (wm || (tallyNegotiation?.reason === 'draft' && tallyNegotiation?.state === 'P.draft')) {
       fetchTally();
     }
-  }, [wm, tally_seq, tally_ent, tallyState])
+  }, [wm, tally_seq, tally_ent, tallyState, tallyNegotiation])
 
   const fetchTally = (_refreshing = false) => {
     if (_refreshing) {
@@ -38,7 +40,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }
 
     fetchTallies(wm, {
-      fields: ['tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig', 'hold_cert', 'state'],
+      fields: ['tally_ent', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig', 'hold_cert', 'state'],
       where: {
         tally_ent,
         tally_seq,

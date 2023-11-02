@@ -256,3 +256,25 @@ export const updateHoldCert = (wm, args) => {
 
   return request(wm, '_update_hold_cert_' + random(), 'update', spec);
 }
+
+/**
+ * @param {Object} - args
+ * @param {string[]} - args.tally_ent
+ * @param {string[]} - args.tally_seq
+ */
+export const reviseTally = (wm, args) => {
+  const fields = {
+    request: 'draft',
+  };
+
+  const spec = {
+    fields,
+    view: 'mychips.tallies_v_me',
+    where: {
+      tally_ent: args.tally_ent,
+      tally_seq: args.tally_seq,
+    },
+  }
+
+  return request(wm, '_tally_revise' + random(), 'update', spec)
+}

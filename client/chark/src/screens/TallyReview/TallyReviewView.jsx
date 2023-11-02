@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View, Text } from "react-native";
 import { useSelector } from 'react-redux';
 
 import Avatar from "../../components/Avatar";
@@ -23,6 +23,7 @@ const TallyReviewView = (props) => {
   const holdImage = imagesByDigest[holdDigest];
   const holdLimit = props.holdTerms?.limit
   const partLimit = props.partTerms?.limit
+  const canEdit = props.canEdit ?? true;
 
   const onSwitchClick = () => {
     props.setTallyType((prev) => {
@@ -64,6 +65,7 @@ const TallyReviewView = (props) => {
       <View style={styles.midView}>
         <View style={styles.rowWrapper}>
           <TextInput
+            editable={canEdit}
             value={tallyType === 'foil' ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
@@ -73,6 +75,7 @@ const TallyReviewView = (props) => {
           <HelpText helpText="help" label="Limit" style={styles.midText} />
 
           <TextInput
+            editable={canEdit}
             value={tallyType === 'stock' ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}

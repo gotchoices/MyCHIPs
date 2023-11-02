@@ -261,9 +261,8 @@ const TallyInvite = (props) => {
         navigation={props.navigation}
         onItemSelected={item => {
           const state = item?.state;
-          const hasPartCert = !!item?.part_cert;
-          const canShare = !hasPartCert && state === 'draft';
-          const canOffer = hasPartCert && state === 'draft';
+          const canShare = state === 'draft';
+          const canOffer = state === 'P.draft';
           const canAccept = state === 'P.offer';
           const first = item.part_cert?.name?.first;
           const middle = item.part_cert?.name?.middle;

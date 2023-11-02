@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Text,
 } from "react-native";
+import { useSelector, useDispatch } from 'react-redux';
 
 import { colors, keyServices } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
@@ -23,7 +24,7 @@ import Button from "../../../components/Button";
 import Spinner from "../../../components/Spinner";
 import TallyEditView from "../TallyEditView";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import { offerTally, acceptTally, refuseTally } from "../../../services/tally";
+import { offerTally, acceptTally, refuseTally, reviseTally } from "../../../services/tally";
 import {
   createSignature,
   verifySignature,
@@ -39,8 +40,9 @@ import ShareIcon from "../../../../assets/svg/ic_share.svg";
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
-  const { wm } = useSocket();
+  const { wm, tallyNegotiation } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
+  const dispatch = useDispatch();
 
   const [showDialog, setShowDialog] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -184,9 +186,7 @@ const TallyPreview = (props) => {
         });
       }
 
-      setTally({
-        ...data,
-      });
+      setTally(data);
 
       setInitialFields({
         ...initialFields,
@@ -232,6 +232,20 @@ const TallyPreview = (props) => {
           text1: err.message,
         });
       });
+  };
+
+  const onRevise = () => {
+    reviseTally(wm, {
+      tally_ent,
+      tally_seq,
+    }).then((data) => {
+      setTally(data)
+    }).catch((err) => {
+      Toast.show({
+        type: "error",
+        text1: err.message,
+      });
+    });
   };
 
   const onAccept = async () => {
@@ -337,10 +351,9 @@ const TallyPreview = (props) => {
   }
 
   const state = tally.state;
-  const hasPartCert = !!tally?.part_cert;
-  const canShare = !hasPartCert && state === "draft";
-  const canOffer = hasPartCert && state === "draft";
-  const canAccept = hasPartCert && state === "P.offer";
+  const canShare = state === "draft";
+  const canOffer = state === "P.draft";
+  const canAccept = state === "P.offer";
   //const canRefuse = hasPartCert && state === 'offer';
 
   const action = () => {
@@ -380,24 +393,38 @@ const TallyPreview = (props) => {
 
     if (canOffer) {
       return (
-        <Button
-          title="Send Modifications"
-          onPress={onOffer}
-          textColor={colors.white}
-          style={{
-            backgroundColor: colors.yellow,
-            borderColor: colors.yellow,
-            borderRadius: 18,
-            height: 45,
-            justifyContent: "center",
-          }}
-        />
+        <>
+          <Button
+            title="Offer"
+            onPress={onOffer}
+            textColor={colors.white}
+            style={styles.fullActionButton(colors.yellow)}
+          />
+        </>
       );
     }
 
     if (canAccept) {
-      return <Button title="Accept" onPress={onAccept} />;
+      return (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', position: 'absolute', bottom: 5 }}>
+          <Button
+            title="Revise"
+            onPress={onRevise}
+            textColor={colors.white}
+            style={[styles.fullActionButton(colors.yellow), { width: '48%' }]}
+          />
+
+          <Button
+            title="Accept"
+            onPress={onAccept}
+            textColor={colors.white}
+            style={[styles.fullActionButton(colors.blue), { width: '48%' }]}
+          />
+        </View>
+      )
     }
+
+    return null;
   };
 
   return (
@@ -408,7 +435,7 @@ const TallyPreview = (props) => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <ScrollView
-          style={styles.container}
+          style={styles.scrollView}
           contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -489,6 +516,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 15,
   },
+  scrollView: {
+    paddingBottom: 15,
+    marginBottom: 55,
+  },
   contentContainer: {
     backgroundColor: "white",
     margin: 10,
@@ -557,7 +588,15 @@ const styles = StyleSheet.create({
     borderRadius: 35,
     justifyContent: "center",
   }),
-  tickButton:{backgroundColor:colors.white,height:30,width:30,justifyContent:'center',alignItems:'center'}
+  tickButton:{backgroundColor:colors.white,height:30,width:30,justifyContent:'center',alignItems:'center'},
+  fullActionButton: (backgroundColor) => ({
+    marginBottom: 5,
+    backgroundColor,
+    borderColor: backgroundColor,
+    borderRadius: 18,
+    height: 45,
+    justifyContent: "center",
+  })
 });
 
 export default TallyPreview;
