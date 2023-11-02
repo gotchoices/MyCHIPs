@@ -21,7 +21,7 @@ const LimitContent = (props) => {
       onChangeText={setLimit}
       placeholder='My Limit'
       style={styles.textInput}
-      keyboardType="number-pad"
+      keyboardType="numeric"
       returnKeyType="done"
     />
     <Button
@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     position: 'absolute',
     marginVertical: 24,
+    marginBottom:40,
   },
   close: {
     alignSelf: 'flex-end',
