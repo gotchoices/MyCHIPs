@@ -148,13 +148,11 @@ const styles = StyleSheet.create({
   },
   bottomCenterWrapper: {
     height: 100,
-    marginTop: 50,
     alignItems: "center",
     justifyContent: "center",
   },
   topCenterWrapper: {
     height: 100,
-    marginBottom: 50,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -164,7 +162,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   midView: {
-    marginVertical: -30,
     marginRight: 40,
   },
   input: {
