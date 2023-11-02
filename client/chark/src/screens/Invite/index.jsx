@@ -357,8 +357,7 @@ const TallyInvite = (props) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.h1}>Working Tallies</Text>
-          <View style={[styles.row, { marginVertical: 22 }]}>
-            <Text style={styles.title}>{getFilterResult('title', ' | ')}</Text>
+          <View style={[styles.row, { marginVertical: 22, justifyContent: 'flex-end' }]}>
             <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
               <FilterSecondIcon />
               <Text style={styles.filterText}>Filters</Text>

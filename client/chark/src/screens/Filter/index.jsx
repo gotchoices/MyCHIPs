@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSelector, useDispatch } from 'react-redux';
@@ -25,32 +25,48 @@ const FilterScreen = (props) => {
   const navigation = props.navigation;
   const dispatch = useDispatch();
 
+  const hasFilterChanged = useMemo(() => {
+    const isOfferSelected = filter?.offer?.selected === true;
+    const isDraftSelected = filter?.draft?.selected === true;
+    const isVoidSelected = filter?.void?.selected === true;
+
+    if(!isOfferSelected || !isDraftSelected || !isVoidSelected) {
+      return true;
+    }
+
+    return false;
+  }, [filter])
+
   useEffect(() => {
     const addButtonToTopBar = () => {
       navigation.setOptions({
         headerRight: () => (
-          <TouchableOpacity onPress={onClear} style={{ marginRight: 16 }}>
+          <TouchableOpacity onPress={onReset} style={{ marginRight: 16 }}>
             <Text style={styles.reset}>Reset</Text>
           </TouchableOpacity>
         ),
       });
     };
-    addButtonToTopBar();
+
+    if(hasFilterChanged) {
+      addButtonToTopBar();
+    }
 
     return () => {
       navigation.setOptions({
         headerRight: undefined,
       });
     };
-  }, [navigation]);
+  }, [navigation, hasFilterChanged]);
 
 
-  const onClear = () => {
+  const onReset = () => {
     const resetFilter = {
-      offer: { title: "Offers", selected: false, status: 'offer' },
-      draft: { title: "Drafts", selected: false, status: 'draft' },
-      void: { title: "Voids", selected: false, status: 'void' },
+      offer: { title: "Offers", selected: true, status: 'offer' },
+      draft: { title: "Drafts", selected: true, status: 'draft' },
+      void: { title: "Voids", selected: true, status: 'void' },
     }
+
     AsyncStorage.setItem("filterData", JSON.stringify(resetFilter)).then(() => {
       dispatch(setFilter(resetFilter))
     })
@@ -68,8 +84,6 @@ const FilterScreen = (props) => {
 
   if (filter) {
     return <View style={styles.container}>
-      <Text style={styles.display}>Display</Text>
-
       <View style={styles.divider} />
 
       <FilterItem args={filter.offer} onSelected={onSelected} />
