@@ -34,7 +34,10 @@ Button.propTypes = {
   textColor: PropTypes.string,
   onPress: PropTypes.func.isRequired,
   testID: PropTypes.string,
-  style: PropTypes.object,
+  style: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.arrayOf(PropTypes.object)
+  ]),
 }
 
 const styles = StyleSheet.create({

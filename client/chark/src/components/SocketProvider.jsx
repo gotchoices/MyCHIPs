@@ -81,6 +81,8 @@ const SocketProvider = ({ children }) => {
               uuid: data?.object?.uuid,
               sequence: data?.sequence,
               state: data?.state,
+              reason: data?.reason,
+              entity: data?.entity,
             })
           }
         })
