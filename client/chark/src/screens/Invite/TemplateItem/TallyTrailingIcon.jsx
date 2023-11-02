@@ -10,12 +10,10 @@ export const TallyTrainingIcon = (props) => {
     const state = props.state;
     const hasPartCert = props.hasPartCert;
 
-    if(state === 'P.offer') {
+    if(['P.offer', 'P.draft'].includes(state)) {
       return warning;
     } else if(state === 'H.offer') {
       return timer;
-    } else if(state === 'draft' && hasPartCert) {
-      return warning;
     }
 
     return null;

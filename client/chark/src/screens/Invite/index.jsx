@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
+import { View, Text, StyleSheet,FlatList, TouchableOpacity, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -255,15 +255,15 @@ const TallyInvite = (props) => {
 
   const renderItem = ({ item, index }) => {
     return (
+      <View style={{marginHorizontal:15}}>
       <TemplateItem
         testID={`tally-${index}`}
         template={item}
         navigation={props.navigation}
         onItemSelected={item => {
           const state = item?.state;
-          const hasPartCert = !!item?.part_cert;
-          const canShare = !hasPartCert && state === 'draft';
-          const canOffer = hasPartCert && state === 'draft';
+          const canShare = state === 'draft';
+          const canOffer = state === 'P.draft';
           const canAccept = state === 'P.offer';
           const first = item.part_cert?.name?.first;
           const middle = item.part_cert?.name?.middle;
@@ -304,6 +304,7 @@ const TallyInvite = (props) => {
         }}
         draftLang={draftLang?.title ?? "Draft"}
       />
+      </View>
     )
   }
 
@@ -350,21 +351,12 @@ const TallyInvite = (props) => {
     }
   }
 
-  const scrollY = new Animated.Value(0);
-  const diffClampScrollY = Animated.diffClamp(scrollY, 0, Header_Height);
-  const headerY = diffClampScrollY.interpolate({
-    inputRange: [0, Header_Height],
-    outputRange: [0, -Header_Height],
-    extrapolate: 'clamp'
-  });
-
   return (
     <>
       <View style={styles.container}>
-        <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
+        <View style={styles.header}>
           <Text style={styles.h1}>Working Tallies</Text>
-          <View style={[styles.row, { marginVertical: 22 }]}>
-            <Text style={styles.title}>{getFilterResult('title', ' | ')}</Text>
+          <View style={[styles.row, { marginVertical: 22, justifyContent: 'flex-end' }]}>
             <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
               <FilterSecondIcon />
               <Text style={styles.filterText}>Filters</Text>
@@ -376,28 +368,17 @@ const TallyInvite = (props) => {
             onChangeText={setSearchValue}
             leadingIcon={<SearchIcon size={16} />}
           />
-        </Animated.View>
+        </View>
 
-        <Animated.FlatList
-          bounces={false}
+        <FlatList
           ListHeaderComponent={<View style={{ height: Header_Height, marginTop: 8 }} />}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: colors.white }}
           data={filteredData}
           renderItem={renderItem}
           refreshing={fetching}
           onRefresh={() => getTemplates()}
           keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
           ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-          scrollEventThrottle={2}
           ListEmptyComponent={fetching ? <></> : <EmptyContent />}
-          onScroll={Animated.event(
-            [{
-              nativeEvent: { contentOffset: { y: scrollY } }
-            }],
-            {
-              useNativeDriver: false,
-            }
-          )}
           progressViewOffset={150}
         />
         <FloatingActionButton onPress={() => setShowCommentModal(true)} />

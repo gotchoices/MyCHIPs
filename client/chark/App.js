@@ -61,7 +61,6 @@ function App() {
 
   useEffect(() => {
     return notifee.onForegroundEvent(event => {
-      console.log(event, 'event')
       handleNotification({
         ...event,
         navigationRef,

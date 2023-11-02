@@ -31,6 +31,7 @@ const TallyEditView = (props) => {
   const setTallyType = props.setTallyType;
   const setContract = props.setContract;
   const tallyContracts = props.tallyContracts ?? [];
+  const canEdit = tally.state === 'draft' || tally.state === 'P.draft';
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
@@ -77,6 +78,7 @@ const TallyEditView = (props) => {
         holdCert={tally?.hold_cert ?? {}}
         onHoldTermsChange={onHoldTermsChange}
         onPartTermsChange={onPartTermsChange}
+        canEdit={canEdit}
       />
 
       <View style={styles.detailControl}>
@@ -95,21 +97,28 @@ const TallyEditView = (props) => {
 
         </View>
 
-        <Picker
-          mode="dropdown"
-          style={{ backgroundColor: colors.gray5 }}
-          selectedValue={contract}
-          onValueChange={(item) => {
-            setContract(item)
-          }}
-        >
-          <Picker.Item label="Select contract" />
-          {
-            tallyContracts.map((tallyContract) => (
-              <Picker.Item key={tallyContract.name} label={tallyContract.title} value={tallyContract.rid} />
-            ))
-          }
-        </Picker>
+        {canEdit ? (
+          <Picker
+            mode="dropdown"
+            style={{ backgroundColor: colors.gray5 }}
+            selectedValue={contract}
+            enabled={canEdit}
+            onValueChange={(item) => {
+              setContract(item)
+            }}
+          >
+            <Picker.Item label="Select contract" />
+            {
+              tallyContracts.map((tallyContract) => (
+                <Picker.Item key={tallyContract.name} label={tallyContract.title} value={tallyContract.rid} />
+              ))
+            }
+          </Picker>
+        ): (
+          <Text style={styles.inputValue}>
+            {contract}
+          </Text>
+        )}
 
         {hasPartCert && (
             <CertificateInformation
@@ -139,13 +148,20 @@ const TallyEditView = (props) => {
           helpText={talliesText?.comment?.help}
         />
 
-        <TextInput
-          multiline
-          numberOfLines={4}
-          value={comment}
-          style={[styles.input, styles.comment]}
-          onChangeText={setComment}
-        />
+        {canEdit ? (
+          <TextInput
+            multiline
+            numberOfLines={4}
+            value={comment}
+            editable={canEdit}
+            style={[styles.input, styles.comment]}
+            onChangeText={setComment}
+          />
+        ): (
+          <Text style={styles.inputValue}>
+            {comment || 'N/A'}
+          </Text>
+        )}
       </View>
 
       <View style={styles.detailControl}>
@@ -174,6 +190,7 @@ const TallyEditView = (props) => {
 
 const styles = StyleSheet.create({
   detailControl: {
+    marginTop:20,
     marginVertical: 10
   },
   contractLabel: {
