@@ -6,7 +6,7 @@
 // User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
 //- 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs } = require('./common')
 var log = testLog(__filename)
 const PeerCont = require("../../lib/peer2peer")
 var defTally = require('./def-tally')
@@ -70,12 +70,6 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
   
-  const markLogs = function(done, time=500) {
-    let mark = 'MARK-------------------->'
-    log.debug(mark)
-    setTimeout(() => {dbO.query(mark); done()}, time)
-  }
-
   const addChit = function(db, by, value, ent, seq, done) {
     let uuid = mkUuid(cidO, agentO)
       , request = 'good'
@@ -120,8 +114,6 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
-  it("Mark the log and wait for it to settle", function(done) {markLogs(done)})
-
   it("Stock (Originator) sends a payment", function(done) {
     let dc = 3, _done = () => {if (!--dc) done()}
     addChit(dbO, 'stock', 40, userO, interTest.talO.tally_seq, _done)
@@ -152,24 +144,29 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   it("Foil (Subject) sends a payment", function(done) {
-    let dc = 3, _done = () => {if (!--dc) done()}
-    addChit(dbS, 'foil', 50, userS, interTest.talS.tally_seq, _done)
-    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
-      assert.equal(msg.state, 'L.good')
+    let units = 50
+      , dc = 4, _done = () => {if (!--dc) done()}
+    addChit(dbS, 'foil', units, userS, interTest.talS.tally_seq, _done)
+    busS.register('po', (msg) => {		log.debug("S user msg:", msg, msg.object)
+      if (msg.object?.units == 60) {		//Subject will get 2 messages
+        assert.equal(msg.state, 'A.good')	//chit from previous test
+      } else {
+        assert.equal(msg.state, 'L.good')	//from this test
+        assert.equal(msg.object?.units, units)
+      }
       _done()
     })
-    busO.register('po', (msg) => {		//log.debug("O user msg:", msg, msg.object)
+    busO.register('po', (msg) => {		log.debug("O user msg:", msg, msg.object)
       assert.equal(msg.state, 'A.good')
+      assert.equal(msg.object?.units, units)
       _done()
     })
   })
 
-/* Not finished yet!
   it("Compare resulting chit chains", function(done) {
     setTimeout(c => compChains(done), 250)	//Allow consensus to settle
   })
 
-/*
   it("Check chain integrity using mychips.chits_v_chains", function(done) {
     let sql = 'select ok from mychips.chits_v_chains where last and ent = $1'
       , dc = 2, _done = () => {if (!--dc) {done()}}
@@ -185,11 +182,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
-//  it("Mark the log and wait for it to settle", function(done) {
-//    dbO.query('MARK-------------------->')
-//    setTimeout(done, 500)
-//  })
-
+//  it("Mark the log files", function(done) {markLogs(dbO, log, done)})
 /* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let things flush out before closing
@@ -223,5 +216,5 @@ describe("Chit chain consensus", function() {
   }
 
   describe("Test chit consensus between two users on same site", function() {Suite1(config1)})
-//  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
+  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
 })

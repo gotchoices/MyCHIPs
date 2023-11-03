@@ -3,8 +3,10 @@
 $title(Foil Chit Consensus States)
 
 state foil {
-  state "Unlinked" as unlinked
-  state "Linking" as linking
+  state "Chit Protocol" as chit {
+    state "Unlinked" as unlinked
+    state "Linking" as linking
+  }
   state "Linked" as linked
   state "Notify" as notify
 }
@@ -12,29 +14,29 @@ state "Foil Consensus" as foil
 
 'State details:
 error: Can't Consense
-unlinked: Chain Seq is null
-linked: Chain Seq not null
-linked: Chain Seq <= Chain Conf
-linking: Chit local issue
-linking: Chain Seq not null
-linking: Chain Seq > Chain Conf
+unlinked: Chain Index is null
+linked: Chain Index not null
+linked: Chain Index <= Chain Conf
+linking: Chit locally known
+linking: Chain Index not null
+linking: Chain Index > Chain Conf
 linking: Chit not yet sent
-notify: Chit remote issue
-notify: Chain Seq not null
-notify: Chain Seq > Chain Conf
+notify: Chit remotely known
+notify: Chain Index not null
+notify: Chain Index > Chain Conf
 notify: Queued message: upd
 
 'State transition rules:
+foil -[$user]-> unlinked: $trans($user, User signs/creates\nvalid direct chit,'')
 foil --> unlinked: $trans(Internal, Site creates new\nvalid lift chit,'')
-foil -[$user]-> unlinked: $trans($user, User creates new\nvalid direct chit,'')
-foil -[$peer]-> notify: $trans($peer,Received new chit from stock,'Agree with proposed hash', 'Add chit to chain\nendHash = propHash\nQueue message Act:upd\nNo missing chits = ACK')
-foil -[$peer]-> notify: $trans($peer,Received new chit from stock,'Disagree with proposed hash', 'Add chit to chain\nendHash = newHash\nQueue message Act:upd\nSend missing chits = NACK')
+foil -[$peer]-> notify: $trans($peer,Received new chit\nfrom stock Act:new,'Agree with proposed hash', 'Add chit to chain\nendHash = propHash\nQueue message Act:upd\nNo missing chits = ACK')
+foil -[$peer]-> notify: $trans($peer,Received new chit\nfrom stock Act:new,'Disagree with proposed hash', 'Add chit to chain\nendHash = newHash\nQueue message Act:upd\nSend missing chits = NACK')
 
-unlinked --> linking: $trans(Internal,Detected new valid chit(s),'', 'Add to chain\nGenerate endHash\n Act:new')
-linking -[$db]-> linked: $trans($db,Detect chit needs sending,'', 'Send queued message to Stock\nSend new chit Act:new\nRatchet ackHash = newHash')
-notify -[$db]-> linked: $trans($db,Detect queued message,'', 'Send queued message to Stock\nRatchet ackHash = newHash')
+unlinked --> linking: $trans(Internal,Detected new valid chit,'', 'Add to chain\nGenerate endHash\nQueue message Act:new')
+linking -[$db]-> linked: $trans($db,Detect chit to send,'', 'Send chit to Stock\nSend new chit Act:new\nRatchet ackHash = newHash')
+notify -[$db]-> linked: $trans($db,Detect queued message,'', 'Send message to Stock\nRatchet ackHash = newHash')
 
-foil -[$peer]-> foil: $trans($peer,Receive update request\nfrom Stock Act:req,'', 'Send all chits since ackHash\n(or specified index)\nand also new endHash')
+'foil -[$peer]-> foil: $trans($peer,Receive update request\nfrom Stock Act:req,'', 'Send all chits since ackHash\n(or specified index)\nand also new endHash')
 foil -[$peer]-> error: $trans($peer,Receive error report\nfrom Stock Act:err,'', 'Notify my local user of error')
 
 @enduml

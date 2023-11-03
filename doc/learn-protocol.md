@@ -366,7 +366,12 @@ Unfortunately, real life will probably involve several other more messy scenario
 4. Scenario 3 can be extended to a case where a DB becomes corrupted or lost and has to be restored from an older backup.
   In this case, chits are likely to be missing or very possibly the tally itself could be missing or not yet in open status.
   The consensus protocol should be operable even on a tally with zero chits and should be able to restore a valid tally based on information supplied from the partner.
-The system should also be tolerant of a packet for the same chit (same tally and chit uuid) arriving two or more times.
+5. Finally, it should be possible to generate a chit at an application level and share it with a trading partner even without being connected to the network.
+  This could be done out of band, via a QR code or deep link.
+  Both apps would have a copy of the chit, but neither server would yet have it.
+  First app to regain connectivity would share the chit with its agent and it would then be up to the agents to come to consensus.
+
+This reminds us the system must be tolerant of a packet for the same chit (same tally and chit uuid) arriving two or more times.
 This is accomplished by only processing state transitions if the chit is currently in the expected state.
 
 It may seem a little confusing to determine whether the consensus protocol is really a tally thing or a chit thing.
@@ -396,15 +401,15 @@ First, the states associated with the foil:
 States for the foil are pretty straightforward.
 It mainly needs to track new good chits, link them into its chain, and reliably inform the Stock about the latest end hash.
 
-For the Stock, it is a little more complicated.
-It must be able to conform to information it receives from the foil.
+For the Stock, it is slightly more complicated.
+It must be able to conform to the chaining order it receives from the foil.
 It can't really consider itself fully settled until receiving proper confirmation from the foil.
-And it may need to ask the foil for any chits it has overlooked or not yet received.
+And if it finds itself in possession of valid chits the foil hasn't chained yet, it will have to queue them for retransmission under the regular chit protocol.
 
 [![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
 
 ### Route Discovery Protocol
-Readers not already familiar with credit lifts, should fully understand [this section](learn-lift.md) before proceeding.
+Readers not already familiar with credit lifts, should fully understand [the section on lifts](learn-lift.md) before proceeding.
 
 As mentioned there, a database has knowledge of *local* segments that have capacity for a potential credit lift.
 But it also needs a way to cooperate with *foreign* peer sites to initiate lifts or participate in their lifts.

@@ -3,27 +3,31 @@ TODO:
 - Tally negotiation
 X-  Review tally negotiation documentation
 X-   Should we be sending chits in consensus packets or on their own (retries)
--   Refactor chit consensus to handle three chit sources separately
--   Get current regressions fully working
--   Test for case where both sides have backlog of unchained chits
--   Implement a tally consensus query/reply message
--   Is tally consensus state field useful?
--   
--   Foil sets tally to consensed when end of chain computed
--   Stock sets tally to consensed when end of chain agrees with foil
--   Stock can retry if/when consensus not yet reached
--   Stock can request hash check at any time
--   Regression test for: opened tally doesn't register to other side
--   Test for chaning tally_type during negotiation
--   Can we fire chit consensus at end of tally open to ack tally?
--    If we are the first to open tally, we mark as unconsensed, wait for consensus ack
--    If we respond to tally open, we mark as consensed, initiate consensus ack
--   Can recover from unknown tally states (H.offer.open)
--   Scan any hand notes 2021-2022
--  
--  App needs to sign tally in both directions
+X-   Test for tally offer -> offer (legal, but now represents re-transmission)
+X-   Does the request get cleared?
+X-   Test for chit good -> good (needed for re-transmission)
+X-   Refactor chit consensus to handle three chit sources separately
+X-   Get current regressions fully working
+-  Test for changing tally_type during negotiation
+-  Regression test for: opened tally doesn't register to other side
+-  Can recover from unknown tally states (H.offer.open)
+-  Can we fire chit consensus at end of tally open to ack tally?
+-   If we are the first to open tally, we mark as unconsensed, wait for consensus ack
+-   If we respond to tally open, we mark as consensed, initiate consensus ack
+-  App signs tally in both directions
 -  Are tallies signed in the app passing the validation in lib/tally.js?
 -  Can/should we validate tally signatures in the DB anywhere?
+
+- Chit consensus
+-  Rename ack -> ack nck uck
+-  Test for case where both sides have backlog of unchained chits
+-  Implement a tally consensus query/reply message
+-  Is tally consensus state field useful?
+-  Foil sets tally to consensed when end of chain computed
+-  Stock sets tally to consensed when end of chain agrees with foil
+-  Stock can retry if/when consensus not yet reached
+-  Stock can request hash check at any time?
+-  Scan any hand notes 2021-2022
 -  
 - Pathway Analysis
 X-  Build control report for issuing payment request invoice

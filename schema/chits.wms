@@ -37,7 +37,7 @@ table mychips.chits {mychips.tallies mychips.lifts tally_side} {
   , memo	text
   , digest	bytea		
   , signature	text		constraint "!mychips.chits:GDS" check(status != 'good' or 
-                                  (request isnull and not signature isnull) or 
+                                  (signature notnull) or 
                                   (request isnull and chit_type = 'lift'))
 
 -- Values used internally to track state, required actions
@@ -104,7 +104,7 @@ function mychips.chits_tf_bi() {mychips.tallies mychips.chit_goodcheck(mychips.c
         new.status = 'pend';
         return mychips.chit_goodcheck(new, ta);	-- Need chit to be chained before we transmit it
 
-      elsif new.status = 'good' then		-- A signed chit can come in from a peer marked as good (but not from our user via chits_v_me)
+      elsif new.status in ('good','chain') then	-- A fully signed chit can come in from a user/peer marked as good
         return mychips.chit_goodcheck(new, ta);	-- May double-check certain chits (will check in goodcheck)
       end if;
       return new;
@@ -127,25 +127,30 @@ function mychips.chits_tf_bu() {mychips.chit_goodcheck(mychips.chits,mychips.tal
         return null;
       end if;
 
-      if new.status != old.status then			-- Check for valid state transitions
+      if new.status != old.status then		-- Check for valid state transitions
         if not (
           new.status in ('draft','pend') and old.status in ('draft','pend') or
           new.status = 'pend' and old.status = 'void' or
           new.status in ('void','good') and old.status = 'pend' or
-          new.status = 'reproc'				-- Re-processing chain index
+          new.status = 'chain'				-- Re-processing chain index
         ) then raise exception '!mychips.chits:IST % %', old.status, new.status;
         end if;
       end if;
 
-      if new.request = 'pend' then		-- User is drafting/re-drafting
+      if new.request = 'pend' and old.status in ('draft','void') then	-- drafting/re-drafting
         new.status = 'draft';
-      elsif new.request = 'good' then		-- User is sending good pledge
-        new.status = 'pend';
+      elsif new.request = 'good' and old.status = 'pend' then		-- sending good pledge
         return mychips.chit_goodcheck(new, ta);
-      elsif new.status = 'good' and old.status != 'good' then	-- Received good chit
-        return mychips.chit_goodcheck(new, ta);
-      elsif new.status = 'reproc' then		-- Need to reorder this chit in the chain
-        new.status = 'good';
+      elsif new.request = 'void' and old.status = 'pend' then		-- refusing invoice
+        null;
+      elsif new.request = 'good' and old.status = 'good' then		-- resending
+        null;
+      elsif new.request notnull then
+        raise exception '!mychips.chits:ISR % %', old.status, new.request;
+      end if;
+
+      if (new.status = 'good' and old.status != 'good')		-- Received good chit
+          or new.status = 'chain' then				-- Or processing chain consensus chit
         return mychips.chit_goodcheck(new, ta);
       end if;
       return new;
@@ -201,7 +206,9 @@ function {mychips.chit_goodcheck(ch mychips.chits, ta mychips.tallies)} {
         raise exception '!mychips.chits:MIS %-%', ch.chit_ent, ch.chit_seq;
       end if;
       
-      if ch.chain_prev notnull then return ch; end if;		-- Already processed/chained this chit
+      if ch.status != 'chain' and ch.chain_prev notnull then 
+        return ch; 				-- Already processed/chained this chit
+      end if;
 
       if ch.chit_type = 'set' then			-- Apply tally settings
         settings = ch.reference;
@@ -263,7 +270,7 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
     begin
         if TG_OP = 'INSERT' and not new.request isnull then
             dirty = true;
-        elsif (not new.request isnull) and (new.request is distinct from old.request) then
+        elsif (new.request notnull) and (new.request is distinct from old.request) then
             dirty = true;
         end if;
         if dirty then				-- Communicate chit message
@@ -427,6 +434,9 @@ raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, cu
 
       if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
 --raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+        if curState != 'null' and (recipe->'clear')::boolean then	-- Clear local request on failure
+          update mychips.chits set request = null where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+        end if;
         return curState;
       end if;
 

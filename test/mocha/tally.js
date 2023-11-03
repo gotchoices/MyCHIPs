@@ -9,7 +9,7 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify} = require('./common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify, markLogs} = require('./common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
 const PeerCont = require("../../lib/peer2peer")
@@ -338,6 +338,30 @@ log.debug("Sql:", sql)
     if (sites > 1) dbS.query(save(saveName), (e) => {if (e) done(e); _done()})
   })
 
+  it("Resend an open tally", function(done) {
+    let sql = uSql('request = %L', 'open', userS, 1)
+log.debug("Sql:", sql)
+    dbS.query(sql, (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.request, 'open')
+      assert.equal(row.status, 'open')
+      assert.equal(row.state, 'open.open')
+      done()
+    })
+  })
+
+  it("Wait for status to settle", function(done) {setTimeout(done, 250)})
+
+  it("Verify request flag got reset", function(done) {
+    let sql = `select request,state from mychips.tallies_v where tally_ent = $1 and tally_seq = $2;`
+    dbS.query(sql, [userS, 1], (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("S row:", row)
+      assert.strictEqual(row.request, null)
+      assert.equal(row.state, 'open')
+      done()
+    })
+  })
+
   it("Restore proffered tallies", function(done) {
     let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(rest('Hoffer'), (e) => {if (e) done(e); else _done()})
@@ -351,7 +375,7 @@ log.debug("Sql:", sql)
       assert.ok(err)				//;log.debug("err:", err, err.message)
       assert.ok(err.message)
       let [code, from, to] = err.message.split(' ')
-      assert.equal(code, '!mychips.tallies:IST')
+      assert.equal(code, '!mychips.tallies:ISR')
       done()
     })
   })
@@ -421,6 +445,7 @@ log.debug("Sql:", sql)
 //    })
 //  })
 
+//  it("Mark the log files", function(done) {markLogs(dbO, log, done)})
 /* */
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let everything flush out before closing

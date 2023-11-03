@@ -88,4 +88,6 @@ liftPend -right-> liftVoid : Lift fails
 liftPend --> liftGood : Lift committed
 'liftGood --> liftLink : Lift chit linked
 
+good --> good : Re-transmit chit\nError recovery\nchit consensus
+
 @enduml

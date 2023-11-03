@@ -84,6 +84,12 @@ log.debug("Taking down docker PG")
     })
   },
 
+  markLogs: function(db, log, done, time=500) {	//Enter a visible marker in DB and server logs
+    let mark = 'MARK-------------------->'
+    log.debug(mark)
+    setTimeout(() => {db.query(mark); done()}, time)
+  },
+
   saveRest: function (tag, tab, func='save') {	//save or restore a table
     return Format('select wm.table_%s(%L,%L);', func, tab, tag)
   },

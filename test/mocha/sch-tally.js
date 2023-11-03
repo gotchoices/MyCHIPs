@@ -90,7 +90,7 @@ describe("Test tally state transitions", function() {
       assert.ok(!!obj)
       assert.ok(!!obj.uuid)			//A tally attached
       interTest.m = msg				//Save original tally object
-log.debug("Object:", msg.object)
+//log.debug("Object:", msg.object)
       _done()
     })
   })
@@ -175,6 +175,27 @@ log.debug("Object:", msg.object)
     dbA.query(rest('void'), (e) => {if (e) done(e); else done()})
   })
   it("Agent receives alternative draft (void -> P.offer)", function(done) {peerProfferGo(done)})
+
+  it("Save peerProffer tally record for later testing", function(done) {
+    dbA.query(save('Poffer'), (e) => {if (e) done(e); else done()})
+  })
+  
+  it("User tries to re-offer tally (P.offer -> offer.offer)", function(done) {
+    let sql = uSql(`request = 'offer'`, interTest.t.tally_ent, interTest.t.tally_seq)
+      , dc = 2, _done = () => {if (!--dc) done()}
+//log.debug("Sql:", sql)
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
+      let row = getRow(res, 0)
+      assert.equal(row.state, 'offer.offer')
+      _done()
+    })
+    busA.register('pa', (msg) => {		//Listen for message to agent process
+//log.debug("sign:", msg.object.sign)
+      assert.equal(msg.target, 'tally')
+      assert.equal(msg.action, 'offer')
+      _done()
+    })
+  })
 
   it("Save peerProffer tally record for later testing", function(done) {
     dbA.query(save('Poffer'), (e) => {if (e) done(e); else done()})
@@ -269,7 +290,7 @@ log.debug("Object:", msg.object)
   })
 
   it("User request to accept draft (P.offer -> offer.open)", function(done) {
-    let sql = uSql(`request = 'open', hold_sig = '${cid0 + ' signature'}'`, interTest.t.tally_ent, interTest.t.tally_seq)	//Force chips cache to non-zero
+    let sql = uSql(`request = 'open', hold_sig = '${cid0 + ' signature'}'`, interTest.t.tally_ent, interTest.t.tally_seq)
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql M:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
@@ -299,6 +320,22 @@ log.debug("Object:", msg.object)
 
   it("Save open tally record for later chit testing", function(done) {
     dbA.query(save('open'), (e) => {if (e) done(e); else done()})
+  })
+
+  it("User request to resend good tally (open -> open.open)", function(done) {
+    let sql = uSql(`request = 'open'`, interTest.t.tally_ent, interTest.t.tally_seq)
+      , dc = 2, _done = () => {if (!--dc) done()}
+log.debug("Sql M:", sql)
+    dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
+      let row = getRow(res, 0)
+      assert.equal(row.state, 'open.open')
+      _done()
+    })
+    busA.register('pa', (msg) => {		//Listen for message to agent process
+      assert.equal(msg.target, 'tally')
+      assert.equal(msg.action, 'open')
+      _done()
+    })
   })
 
 /* */

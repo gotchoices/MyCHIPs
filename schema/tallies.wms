@@ -139,10 +139,10 @@ function mychips.tallies_tf_bu() {mychips.user_cert(text) mychips.tally_certs(my
       if new.request notnull then		-- check for legal state transition requests
         if old.status in ('void', 'draft', 'offer') and new.request in ('void','draft','offer') then
           null;
-        elsif old.status = 'offer' and new.request = 'open' and new.hold_sig notnull and new.part_sig notnull then
+        elsif old.status in ('offer','open') and new.request = 'open' and new.hold_sig notnull and new.part_sig notnull then
           null;
         else
-          raise exception '!mychips.tallies:IST % %', old.status, new.request;
+          raise exception '!mychips.tallies:ISR % %', old.status, new.request;
         end if;
       end if;
 
@@ -478,8 +478,12 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         curState = trec.state;
         uid = trec.tally_ent;			-- Will need to enter new tally
       end if;
+
       if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
 --raise notice 'Z:% C:%', jsonb_build_array(curState), recipe->'context';
+        if curState != 'null' and (recipe->'clear')::boolean then	-- Clear local request on failure
+          update mychips.tallies set request = null where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
+        end if;
         return curState;
       end if;
 

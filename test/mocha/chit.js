@@ -6,7 +6,7 @@
 // User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
 //- 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('./common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs } = require('./common')
 var log = testLog(__filename)
 const PeerCont = require("../../lib/peer2peer")
 var defTally = require('./def-tally')
@@ -233,9 +233,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
-  it("Wait for consensus to settle", function(done) {
-    setTimeout(done, 250)
-  })
+  it("Wait for consensus to settle", function(done) {setTimeout(done, 250)})
 
   it("Verify chit consensus in DB", function(done) {
     let sql = `select tally_ent,tally_seq,tally_type,state,chits,chain_conf,ack_hash from mychips.tallies_v where tally_type = $1`
@@ -265,7 +263,33 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(defTally.save(saveName), (e) => {if (e) done(e); _done()})
   })
 
+  it("Resend good chit", function(done) {
+    let uuid = interTest.chitS.uuid
+      , sql = uSql('request = %L', 'good', userS, uuid)
+//log.debug("Sql:", sql)
+    dbS.query(sql, (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("Row:", dc, e, row)
+      assert.equal(row.state, 'L.good.good')
+      done()
+    })
+  })
+
+  it("Wait for state to settle", function(done) {setTimeout(done, 250)})
+
+  it("Verify chit request field cleared", function(done) {
+    let uuid = interTest.chitS.uuid
+      , sql = `select request,state from mychips.chits_v where chit_ent = $1 and chit_uuid = $2;`
+//log.debug("Sql:", sql)
+    dbS.query(sql, [userS, uuid], (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("O row:", row)
+      assert.strictEqual(row.request, null)
+      assert.equal(row.state, 'L.good')
+      done()
+    })
+  })
+
 /* */
+//  it("Mark the log files", function(done) {markLogs(dbO, log, done)})
   after('Disconnect from test database', function(done) {
     setTimeout(()=>{		//Let things flush out before closing
       dbO.disconnect()

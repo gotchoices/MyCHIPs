@@ -13,6 +13,7 @@ state working {
 }
 state tradable {
   state "open" as open
+  state "open.open" as openOpen
   state "C.open" as cOpen
 }
 state "P.offer" as pOffer
@@ -41,6 +42,9 @@ pDraft : User: can modify, delete, offer
 draftOffer : Status: draft, Req: offer
 draftOffer : Has only user signature
 draftOffer : Agent: Action needed
+
+openOpen : Status: open, Req: open
+openOpen : Agent: Action needed
 
 void : Status: void, Req: null
 void : User: can modify, clone
@@ -85,7 +89,7 @@ offerOpen -[$db]-> open : $trans($db,Req:agree detected,'',Transmit Act:open)
 
 draftOffer -[$db]-> hOffer : $trans($db,Req:offer detected,,Transmit Act:offer)
 
-hOffer -[$peer]-> open : $trans($peer, Receive peer acceptance, '', Act: open\nAlso transmit ack /Act: open)
+hOffer -[$peer]-> open : $trans($peer, Receive fully signed tally, 'Tally is valid', Act: open\nAlso transmit ack /Act: open)
 
 hOffer -[$peer]-> void : $trans($peer,Receive peer refusal, '', Act: void; Notify user)
 hOffer -[$peer]-> pOffer : $trans($peer,Receive modified tally, '', Act: offer; Notify user)
@@ -93,5 +97,8 @@ void -[$peer]-> pOffer : $trans($peer,Receive modified tally,'', Act: offer; Not
 
 open -right[$user]-> cOpen : $trans($user, Issues close/call chit, '', Set closing flag)
 cOpen -right-> close : $trans(Internal,'(No explicit action)',Tally sum hit zero)
+
+tradable -right-> openOpen : Consensus check
+openOpen -right[$db]-> open : Re-transmit tally
 
 @enduml

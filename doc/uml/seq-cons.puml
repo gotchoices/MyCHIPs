@@ -6,42 +6,38 @@ database "Stock DB" as stock
 database "Foil DB" as foil
 actor "Foil Holder" as client
 
-alt Stock originates/validates chit
-  vendor	->>	stock:		Apply validating signature to chit
-  stock		->>	foil:		Transmit new valid Chit\nwith validating signature\nProposed endHash: propHash
-  foil		->>	foil:		Add/link new valid chit
-
-  alt Foil agrees with stock's proposed endhash
-    foil		->>	foil:		Ratchet forward\nackHash = propHash
-    foil		->>	stock:		Acknowledge propHash
-    stock		->>	stock:		Ratchet forward\nackHash = propHash
-    note over stock: DONE
-  end
-
-else Foil originates/validates chit
+alt Foil validates chit
   client	->>	foil:		Apply validating signature to chit
   foil		->>	stock:		Transmit new valid Chit\nwith validating signature\nAnd new endHash
 
   alt Stock agrees with new endHash
-    stock		->>	stock:		Ratchet forward\nackHash = endHash
-    note over stock: DONE
+    stock	->>	stock:		Ratchet forward\nackHash = endHash
+  else Stock disagrees, has different end of chain
+    stock	->>	stock:		Conform to Foil chain\nRequeue/send bumped and/or\nunchained chits as new
   end
   
-  stock		->>	foil:		Compare my list of unlinked chits
-end
+else Stock validates chit
+  vendor	->>	stock:		Apply validating signature to chit
+  stock		->>	foil:		Transmit new valid Chit\nwith validating signature\nAnd proposed endHash: propHash
+  foil		->>	foil:		Add/link new valid chit\nat end of chain
 
-foil		->>	stock:		Send chits since last ackHash\nand new endHash
+  alt Foil agrees with stock's proposed endHash
+    foil	->>	foil:		Ratchet forward\nackHash = propHash
+    foil	->>	stock:		Acknowledge propHash was correct
+    stock	->>	stock:		Ratchet forward\nackHash = propHash
+
+  else Foil disagrees with stock's proposed endHash
+    foil	->>	stock:		Send chits since last ackHash\nand correct endHash
+
+    alt Can chain/reconcile received chits and confirm endHash
+      stock	->>	stock:		Conform to Foil chain\nRequeue/send bumped and/or\nunchained chits as new
+    else Can't chain/reconcile received chits
+      stock	->>	vendor:		Report error to user
+      stock	->>	foil:		Report error
+      foil	->>	client:		Report error to user
+    end
+  end
+
+end
     
-alt All newly received chits are valid
-  stock		->>	stock:		Apply chits\nRatchet forward\nackHash = endHash
-else Can't reconcile/accept received chits
-  stock		->>	vendor:		Report error to user
-  stock		->>	foil:		Report error
-  foil		->>	client:		Report error to user
-end
-
-alt Does stock still have any valid, unlinked chits
-  stock		->>	foil:		Requeue/retry regular\nchit transmission to foil\n(return to top of diagram)
-end
-
 @enduml

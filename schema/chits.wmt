@@ -41,6 +41,7 @@ tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit
   {BST		{Bad Chit Status}	{Not a valid value the status field}}
   {BLL		{Bad Lift Sequence}	{Only lift chits should include a lift sequence number}}
   {CUU		{Chit Not Unique}	{Chit UUID must be unique to each tally}}
+  {ISR		{Illegal State Request}	{The requested state transition is not allowed}}
   {IST		{Illegal State Change}	{The executed state transition is not allowed}}
   {LIT		{Link Invalid Tally}	{Attempted to link chit to invalid tally}}
   {ILI		{Illegal Chit Issuer}	{User attempted to execute a good chit issued by the partner}}
