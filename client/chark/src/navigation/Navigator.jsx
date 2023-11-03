@@ -1,36 +1,38 @@
-import React, { useEffect } from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect } from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { View, Text } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 import useSocket from '../hooks/useSocket';
 import { fetchAvatar, fetchPersonalAndCurrency, getPreferredLanguage, getFilter } from '../redux/profileSlice';
 import { colors } from '../config/constants';
 
-import Invite from '../screens/Invite'
-import Home from '../screens/Home';
-import Scanner from '../screens/Scanner';
-import TallyPreview from '../screens/Tally/TallyPreview';
-import EditOpenTally from '../screens/Tally/EditOpenTally';
-import TallyReport from '../screens/Tally/TallyReport';
-import Setting from '../screens/Setting';
-import Profile from '../screens/Profile';
-import ProfileEdit from '../screens/Profile/ProfileEdit';
-import InviteProvider from '../components/InviteProvider';
-import TradingVariables from '../screens/Tally/TradingVariables';
-import CustomIcon from '../components/CustomIcon';
+import Invite from "../screens/Invite";
+import Home from "../screens/Home";
+import Scanner from "../screens/Scanner";
+import TallyPreview from "../screens/Tally/TallyPreview";
+import EditOpenTally from "../screens/Tally/EditOpenTally";
+import TallyReport from "../screens/Tally/TallyReport";
+import Setting from "../screens/Setting";
+import Profile from "../screens/Profile";
+import ProfileEdit from "../screens/Profile/ProfileEdit";
+import InviteProvider from "../components/InviteProvider";
+import TradingVariables from "../screens/Tally/TradingVariables";
+import CustomIcon from "../components/CustomIcon";
 
-import ShareTally from '../screens/ShareTally';
-import ChitHistory from '../screens/Tally/ChitHistory';
-import ImportKeyScreen from '../screens/ImportKeyScreen';
-import ChitDetail from '../screens/Tally/ChitDetail';
-import TallyContract from '../screens/Tally/TallyContract';
-import PaymentDetail from '../screens/Tally/PaymentDetail';
-import FilterScreen from '../screens/Filter';
-import DraftTally from '../screens/Tally/DraftTally';
-import RequestDetail from '../screens/Tally/RequestDetail';
-import TallyCertificate from '../screens/Tally/TallyCertificate';
+import ShareTally from "../screens/ShareTally";
+import ChitHistory from "../screens/Tally/ChitHistory";
+import ImportKeyScreen from "../screens/ImportKeyScreen";
+import ChitDetail from "../screens/Tally/ChitDetail";
+import TallyContract from "../screens/Tally/TallyContract";
+import PaymentDetail from "../screens/Tally/PaymentDetail";
+import FilterScreen from "../screens/Filter";
+import DraftTally from "../screens/Tally/DraftTally";
+import RequestDetail from "../screens/Tally/RequestDetail";
+import TallyCertificate from "../screens/Tally/TallyCertificate";
+import Receive from "../screens/Recieve";
+import ReceiveShareTally from "../screens/ReceiveTallyShare";
 
 const screenOptions = {
   headerTitleAlign: 'center',
@@ -51,27 +53,60 @@ const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-      <HomeStack.Screen name="DraftTally" component={DraftTally} options={{ title: 'Customize New Certificate' }} />
-      <HomeStack.Screen name="TallyReport" component={TallyReport} options={{ headerShown: false }} />
-      <HomeStack.Screen name="OpenTallyEdit" component={EditOpenTally} options={{ title: 'Open Tally' }} />
-      <HomeStack.Screen name='ChitHistory' component={ChitHistory} options={{ title: 'Chit History' }} />
-      <HomeStack.Screen name='ChitDetail' component={ChitDetail} options={{ title: 'Chit Detail' }} />
-      <HomeStack.Screen name='TradingVariables' component={TradingVariables} options={{ title: 'Trading Variables' }} />
-      <HomeStack.Screen name='PaymentDetail' component={PaymentDetail} options={{ title: 'Payment Detail' }} />
-      <HomeStack.Screen name='RequestDetail' component={RequestDetail} options={{ title: 'Request Detail' }} />
-      <InviteStack.Screen name="TallyCertificate" component={TallyCertificate} options={{ title: 'Tally Certificate' }} />
+      <HomeStack.Screen
+        name="Home"
+        component={Home}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="DraftTally"
+        component={DraftTally}
+        options={{ title: "Customize New Certificate" }}
+      />
+      <HomeStack.Screen
+        name="TallyReport"
+        component={TallyReport}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="OpenTallyEdit"
+        component={EditOpenTally}
+        options={{ title: "Open Tally" }}
+      />
+      <HomeStack.Screen
+        name="ChitHistory"
+        component={ChitHistory}
+        options={{ title: "Chit History" }}
+      />
+      <HomeStack.Screen
+        name="ChitDetail"
+        component={ChitDetail}
+        options={{ title: "Chit Detail" }}
+      />
+      <HomeStack.Screen
+        name="TradingVariables"
+        component={TradingVariables}
+        options={{ title: "Trading Variables" }}
+      />
+      <HomeStack.Screen
+        name="PaymentDetail"
+        component={PaymentDetail}
+        options={{ title: "Payment Detail" }}
+      />
+      <HomeStack.Screen
+        name="RequestDetail"
+        component={RequestDetail}
+        options={{ title: "Request Detail" }}
+      />
+      <InviteStack.Screen
+        name="TallyCertificate"
+        component={TallyCertificate}
+        options={{ title: "Tally Certificate" }}
+      />
     </HomeStack.Navigator>
   );
 }
 
-function ReceiveScreen({ navigation }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Receive Screen</Text>
-    </View>
-  );
-}
 
 const InviteStack = createNativeStackNavigator();
 function InviteStackScreen() {
@@ -83,16 +118,42 @@ function InviteStackScreen() {
           name="FilterScreen"
           component={FilterScreen}
           options={{
-            title: 'Filters',
+            title: "Filters",
             headerShadowVisible: false,
           }}
         />
-        <InviteStack.Screen name="TallyPreview" component={TallyPreview} options={{ title: 'Tally Preview' }} />
-        <InviteStack.Screen name="TallyShare" component={ShareTally} options={{ title: 'Share Tally', headerShadowVisible: false }} />
-        <InviteStack.Screen name="TallyContract" component={TallyContract} options={{ title: 'Tally Contract' }} />
-        <InviteStack.Screen name="TallyCertificate" component={TallyCertificate} options={{ title: 'Tally Certificate' }} />
+        <InviteStack.Screen
+          name="TallyPreview"
+          component={TallyPreview}
+          options={{ title: "Tally Preview" }}
+        />
+        <InviteStack.Screen
+          name="TallyShare"
+          component={ShareTally}
+          options={{ title: "Share Tally", headerShadowVisible: false }}
+        />
+        <InviteStack.Screen
+          name="TallyContract"
+          component={TallyContract}
+          options={{ title: "Tally Contract" }}
+        />
+        <InviteStack.Screen
+          name="TallyCertificate"
+          component={TallyCertificate}
+          options={{ title: "Tally Certificate" }}
+        />
       </InviteStack.Navigator>
     </InviteProvider>
+  );
+}
+
+const ReceiveStack = createNativeStackNavigator();
+function ReceiveStackScreen() {
+  return (
+    <ReceiveStack.Navigator>
+      <ReceiveStack.Screen name="Receive" component={Receive} />
+      <ReceiveStack.Screen name="ShareTally" component={ReceiveShareTally} />
+    </ReceiveStack.Navigator>
   );
 }
 
@@ -101,45 +162,60 @@ function SettingStackScreen() {
   return (
     <SettingStack.Navigator>
       <SettingStack.Screen name="Setting" component={Setting} />
-      <SettingStack.Screen name="Profile" component={Profile} options={{ title: 'Profile' }} />
-      <SettingStack.Screen name="ProfileEdit" component={ProfileEdit} options={{ title: 'Edit Profile' }} />
-      <SettingStack.Screen name="ImportKey" component={ImportKeyScreen} options={{ title: 'Import Key' }} />
+      <SettingStack.Screen
+        name="Profile"
+        component={Profile}
+        options={{ title: "Profile" }}
+      />
+      <SettingStack.Screen
+        name="ProfileEdit"
+        component={ProfileEdit}
+        options={{ title: "Edit Profile" }}
+      />
+      <SettingStack.Screen
+        name="ImportKey"
+        component={ImportKeyScreen}
+        options={{ title: "Import Key" }}
+      />
     </SettingStack.Navigator>
   );
 }
 
 const Navigator = () => {
-  const { user } = useSelector(state => state.currentUser);
+  const { user } = useSelector((state) => state.currentUser);
   const user_ent = user?.curr_eid;
   const { wm } = useSocket();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchAvatar({ wm, user_ent }))
-    dispatch(fetchPersonalAndCurrency({ wm, user_ent }))
-    dispatch(getPreferredLanguage(wm))
-    dispatch(getFilter())
-  }, [wm, user_ent, fetchAvatar])
+    dispatch(fetchAvatar({ wm, user_ent }));
+    dispatch(fetchPersonalAndCurrency({ wm, user_ent }));
+    dispatch(getPreferredLanguage(wm));
+    dispatch(getFilter());
+  }, [wm, user_ent, fetchAvatar]);
 
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false, tabBarShowLabel: false }}>
+    <Tab.Navigator
+      screenOptions={{ headerShown: false, tabBarShowLabel: false }}
+    >
       <Tab.Screen
         name="Tally"
         component={HomeStackScreen}
         options={{
           tabBarIcon: (props) => (
             <CustomIcon name="home" {...{ ...props, size: 24 }} />
-          )
+          ),
         }}
       />
 
       <Tab.Screen
         name="Receive"
-        component={ReceiveScreen}
+        component={ReceiveStackScreen}
         options={{
+          title: "Receive",
           tabBarIcon: (props) => (
             <CustomIcon name="receive" {...{ ...props, size: 26 }} />
-          )
+          ),
         }}
       />
 
@@ -150,7 +226,7 @@ const Navigator = () => {
           unmountOnBlur: true,
           tabBarIcon: (props) => (
             <CustomIcon name="scan" {...{ ...props, size: 23 }} />
-          )
+          ),
         }}
       />
 
@@ -161,7 +237,7 @@ const Navigator = () => {
           tabBarTestID: "inviteBtn",
           tabBarIcon: (props) => (
             <CustomIcon name="invite" {...{ ...props, size: 26 }} />
-          )
+          ),
         }}
       />
 
@@ -171,11 +247,11 @@ const Navigator = () => {
         options={{
           tabBarIcon: (props) => (
             <CustomIcon name="settings" {...{ ...props, size: 25 }} />
-          )
+          ),
         }}
       />
     </Tab.Navigator>
-  )
-}
+  );
+};
 
 export default Navigator;
