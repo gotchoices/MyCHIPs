@@ -10,8 +10,7 @@
     "lint": "eslint .",
     "develop": "bin/develop",
     "build": "bin/build",
-    "test:android": "bin/test-e2e",
-    "postinstall": "patch-package"
+    "test:android": "bin/test-e2e"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
@@ -31,7 +30,6 @@
     "query-string": "^8.1.0",
     "react": "18.1.0",
     "react-native": "0.70.6",
-    "patch-package": "^6.5.0",
     "react-native-biometrics": "^3.0.1",
     "react-native-crypto-js": "^1.0.0",
     "react-native-document-picker": "^9.0.1",

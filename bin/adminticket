@@ -43,7 +43,7 @@ db.query(q, [id], (err, res) => {
       if (webWSPort) ticket.port = webWSPort
       
       if (argv.q) {
-        tickText = `https://mychips.org/connect?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
+        tickText = `https://mychips.org/ticket?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else if (argv.Q) {
         tickText = `https://${ticket.host}:${webPort}/${spaName}.html?host=${ticket.host}&port=${ticket.port}&token=${ticket.token}&user=${id}`
       } else {
