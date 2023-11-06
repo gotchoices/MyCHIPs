@@ -61,7 +61,6 @@ const styles = StyleSheet.create({
     borderColor: colors.lightgray,
   },
   title: {
-    textTransform: 'uppercase',
     fontSize: 12,
   },
   titleDisabled: {

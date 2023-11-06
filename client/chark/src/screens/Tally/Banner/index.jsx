@@ -22,6 +22,10 @@ const Banner = (props) => {
     props.navigation?.navigate?.("TallyReport");
   };
 
+  const navigateToNotification =()=>{
+    props.navigation?.navigate?.("Notification");
+  }
+
   const isNetNegative = props.totalNet < 0;
 
   return (
@@ -30,6 +34,8 @@ const Banner = (props) => {
         leftIcon={<VisualIcon />}
         title="My CHIPs"
         onClick={navigateToReport}
+
+        onNavigateToNotification={navigateToNotification}
         rightIcon={<NotificationIcon />}
       />
 
