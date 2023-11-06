@@ -33,6 +33,8 @@ import RequestDetail from "../screens/Tally/RequestDetail";
 import TallyCertificate from "../screens/Tally/TallyCertificate";
 import Receive from "../screens/Recieve";
 import ReceiveShareTally from "../screens/ReceiveTallyShare";
+import NotificationScreen from "../screens/Notification/NotificationScreen";
+
 
 const screenOptions = {
   headerTitleAlign: 'center',
@@ -97,6 +99,11 @@ function HomeStackScreen() {
         name="RequestDetail"
         component={RequestDetail}
         options={{ title: "Request Detail" }}
+      />
+        <HomeStack.Screen
+        name="Notification"
+        component={NotificationScreen}
+        options={{ title: "Notification" }}
       />
       <InviteStack.Screen
         name="TallyCertificate"

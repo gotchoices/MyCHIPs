@@ -22,7 +22,7 @@ const Header = (props) => {
       </CustomText>
 
       <TouchableWithoutFeedback
-        onPress={props.onClick}
+        onPress={props.onNavigateToNotification}
       >
         <View>
           {props.rightIcon}
@@ -48,6 +48,7 @@ Header.propTypes = {
   title: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
   icon: PropTypes.any,
+  onNavigateToNotification: PropTypes.func.isRequired,
 }
 
 export default Header;
