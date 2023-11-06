@@ -4,6 +4,8 @@ import NavigationItem from "../NotificationItem";
 import { colors } from "../../../config/constants";
 
 const NotificationScreen = () => {
+
+    //DUMMY DATA - Needs discussion
   const notificationItem = [
     {
       id: 0,

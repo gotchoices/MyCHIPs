@@ -7,6 +7,8 @@ import { colors } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
 
 const NavigationItem = (props) => {
+// Dummy data used for UI Purpose - needs discussion
+
   const notification = props.notification;
 
   const TallyView = () => {
