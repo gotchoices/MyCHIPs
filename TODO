@@ -1,14 +1,20 @@
 TODO:
 
+- Chit consensus
+-  Rename ack -> ack nak req syn err
+-  Implement error state in chit consensus
+-  Test for case where both sides have backlog of unchained chits
+-  Is tally consensus state field useful?
+-   Foil sets tally to consensed when end of chain computed
+-   Stock sets tally to consensed when end of chain agrees with foil
+-  Stock can retry if/when consensus not yet reached
+-  Stock can request hash check at any time?
+-  
+
 - Tally negotiation
-X-  Review tally negotiation documentation
-X-   Should we be sending chits in consensus packets or on their own (retries)
-X-   Test for tally offer -> offer (legal, but now represents re-transmission)
-X-   Does the request get cleared?
-X-   Test for chit good -> good (needed for re-transmission)
-X-   Refactor chit consensus to handle three chit sources separately
-X-   Get current regressions fully working
+X-  Test for network failure and retry during tally state transition
 -  Test for changing tally_type during negotiation
+-  Implement a tally consensus query/reply message
 -  Regression test for: opened tally doesn't register to other side
 -  Can recover from unknown tally states (H.offer.open)
 -  Can we fire chit consensus at end of tally open to ack tally?
@@ -17,18 +23,8 @@ X-   Get current regressions fully working
 -  App signs tally in both directions
 -  Are tallies signed in the app passing the validation in lib/tally.js?
 -  Can/should we validate tally signatures in the DB anywhere?
-
-- Chit consensus
--  Rename ack -> ack nck uck
--  Test for case where both sides have backlog of unchained chits
--  Implement a tally consensus query/reply message
--  Is tally consensus state field useful?
--  Foil sets tally to consensed when end of chain computed
--  Stock sets tally to consensed when end of chain agrees with foil
--  Stock can retry if/when consensus not yet reached
--  Stock can request hash check at any time?
--  Scan any hand notes 2021-2022
 -  
+
 - Pathway Analysis
 X-  Build control report for issuing payment request invoice
 X-  Test in web UI
@@ -38,6 +34,7 @@ X-  Build query/function with user permission for seeking available paths
 -  How does one sign a linear lift?
 -  Build query/function with user permission for inserting linear lift request
 -  
+- Scan any hand notes 2021-2022
 - Add reset and submit buttons for Trading Variables report (in user's language)
 -  
 - Chit consensus

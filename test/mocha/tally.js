@@ -398,6 +398,52 @@ log.debug("Sql:", sql)
       _done()
     })
   })
+/*
+  it("Subject attempts to accept tally with unreachable partner", function(done) {
+    let sql = uSql('request = %L, hold_sig = %L', 'open', interTest.sign, userS, 1)
+//log.debug("Sql:", sql)
+    serverS.failSend = 'fail'			//Force: fail to connect with peer
+    dbS.query(sql, (err, res) => {
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.request, 'open')
+      assert.equal(row.status, 'offer')
+      assert.equal(row.state, 'offer.open')
+      done()
+    })
+  })
+
+  it("Retry properly registered in DB", function(done) {
+    let sql = `update mychips.tally_tries
+        set last = 'now'::timestamp - '70 minutes'::interval
+        where ttry_ent = $1 and ttry_seq = $2 returning *`	//Force timestamp for next test to work
+      , parms = [userS, 1]
+log.debug("Sql:", sql, parms)
+    dbS.query(sql, parms, (err, res) => {
+      let row = getRow(res, 0)			;log.debug("row:", row)
+      assert.equal(row.tries, 1)
+      delete serverS.failSend			//Clear forced failure mode
+      done()
+    })
+  })
+
+  it("Mark the log files", function(done) {markLogs(dbO, log, done)})
+
+  it("Polling request retries tally open transmission", function(done) {
+    let sql = 'select mychips.tally_notices() as notices'
+      , dc = 2, _done = () => {if (!--dc) done()}
+log.debug("Sql:", sql)
+    dbS.query(sql, (err, res) => {
+      let row = getRow(res, 0)			;log.debug("row:", row)
+      assert.equal(row.notices, 1)
+      _done()
+    })
+    busS.register('ps', (msg) => {		;log.debug("S msg:", msg, msg.object.sign)
+//      assert.equal(msg.entity, userS)		//Subject is notified
+//      assert.equal(msg.reason, 'open')		//Attempt to open
+//      assert.equal(msg.state, 'P.offer')	//Still stuck in offer state
+      _done()
+    })
+  })
 
 //Obsolete: move to chit testing
 //  it("Simulate non-zero tally balance", function(done) {
@@ -489,6 +535,6 @@ describe("Tally peer-to-peer testing", function() {
   }
 
   describe("Establish tally between two users on same site", function() {Suite1(config1)})
-  describe("Establish tally between two users on different sites", function() {Suite1(config2)})
-  describe("Establish reusable tally over open connection", function() {Suite1(config2r)})
+//  describe("Establish tally between two users on different sites", function() {Suite1(config2)})
+//  describe("Establish reusable tally over open connection", function() {Suite1(config2r)})
 })

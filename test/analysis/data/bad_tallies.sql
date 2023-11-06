@@ -5,6 +5,7 @@ select
   array_agg(tally_ent) as ents,
   array_agg(tally_type) as types,
   array_agg(status) as stats,
+  array_agg(state) as states,
   count(*)
   
   from mychips.tallies_v
