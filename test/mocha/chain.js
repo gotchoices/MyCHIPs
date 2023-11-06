@@ -216,5 +216,5 @@ describe("Chit chain consensus", function() {
   }
 
   describe("Test chit consensus between two users on same site", function() {Suite1(config1)})
-//  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
+  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
 })

@@ -322,5 +322,5 @@ describe("Chit testing", function() {
   }
 
   describe("Test chits between two users on same site", function() {Suite1(config1)})
-//  describe("Test chits between two users on different sites", function() {Suite1(config2)})
+  describe("Test chits between two users on different sites", function() {Suite1(config2)})
 })

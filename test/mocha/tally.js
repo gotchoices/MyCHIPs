@@ -398,7 +398,7 @@ log.debug("Sql:", sql)
       _done()
     })
   })
-/*
+
   it("Subject attempts to accept tally with unreachable partner", function(done) {
     let sql = uSql('request = %L, hold_sig = %L', 'open', interTest.sign, userS, 1)
 //log.debug("Sql:", sql)
@@ -535,6 +535,6 @@ describe("Tally peer-to-peer testing", function() {
   }
 
   describe("Establish tally between two users on same site", function() {Suite1(config1)})
-//  describe("Establish tally between two users on different sites", function() {Suite1(config2)})
-//  describe("Establish reusable tally over open connection", function() {Suite1(config2r)})
+  describe("Establish tally between two users on different sites", function() {Suite1(config2)})
+  describe("Establish reusable tally over open connection", function() {Suite1(config2r)})
 })
