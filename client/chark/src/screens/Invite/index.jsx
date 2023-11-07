@@ -194,13 +194,16 @@ const TallyInvite = (props) => {
     * @param {number} args.tally_seq
     * @param {number} args.tally_uuid
     */
-  const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name }) => {
+  const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name, json }) => {
     setOffering(true);
-    offerTally(wm, {
-      tally_uuid,
-      tally_ent,
-      tally_seq,
-    }).then(() => {
+    createSignature(JSON.stringify(json)).then(signature => {
+      return offerTally(wm, {
+        tally_uuid,
+        tally_ent,
+        tally_seq,
+        signature,
+      })
+    }).then((result) => {
       setShowOfferSuccess({
         show: true,
         offerTo: name,
@@ -209,10 +212,19 @@ const TallyInvite = (props) => {
       });
       resetNegotiationData();
     }).catch(err => {
-      Toast.show({
-        type: 'error',
-        text1: err.message,
-      });
+      const { isKeyAvailable, message } = err;
+      if (isKeyAvailable === false) {
+        Alert.alert(
+          "Create Keys",
+          "Seems like there is no key to create signature please continue to create one and accept tally.",
+          [
+            { text: "Cancel" },
+            { text: "Continue", onPress: showGenerateKey }
+          ]
+        );
+      } else {
+        Alert.alert("Error", message || err);
+      }
     }).finally(() => {
       setOffering(false)
     })
