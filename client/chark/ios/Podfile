@@ -22,23 +22,19 @@ production = ENV["PRODUCTION"] == "1"
 target 'chark' do
   config = use_native_modules!
 
-
   flags = get_default_flags()
 
   use_react_native!(
     :path => config[:reactNativePath],
-
     :production => production,
     :hermes_enabled => flags[:hermes_enabled],
     :fabric_enabled => flags[:fabric_enabled],
     :flipper_configuration => FlipperConfiguration.enabled,
-
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
   target 'charkTests' do
     inherit! :complete
-
   end
 
   post_install do |installer|
