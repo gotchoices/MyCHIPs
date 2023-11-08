@@ -57,6 +57,7 @@ const NavigationItem = (props) => {
 
         <View style={styles.buttonView}>
           <Button
+          fontSize={10}
             textColor="blue"
             title="View Cert"
             onPress={()=>{}}
@@ -64,6 +65,7 @@ const NavigationItem = (props) => {
           />
 
           <Button
+              fontSize={10}
             title="Accept"
             onPress={()=>{}}
             style={styles.button}
@@ -109,10 +111,12 @@ const styles = StyleSheet.create({
     borderColor: "blue",
     borderRadius: 40,
     marginBottom: 3,
+    height:25,
     alignItems: "center",
     justifyContent: "center",
   },
   secondaryButton: {
+    height:25,
     backgroundColor: "white",
     borderColor: "blue",
     borderRadius: 40,

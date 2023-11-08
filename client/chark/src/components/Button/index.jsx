@@ -20,7 +20,7 @@ const Button = (props) => {
         style={[styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
       >
         <Text
-          style={[styles.title, { color: props.textColor ?? colors.white }, props.disabled ? styles.titleDisabled : {}]}
+          style={[styles.title, { color: props.textColor ?? colors.white, fontSize: props.fontSize ?? 12 , lineHeight: props.fontSize ?? 12}, props.disabled ? styles.titleDisabled : {}]}
         >
           {props.title}
         </Text>
@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.blue,
     alignItems: 'center',
+    justifyContent:"center",
     paddingHorizontal: 6,
-    paddingVertical: 8,
     backgroundColor: colors.blue,
     shadowColor: colors.black,
     shadowOpacity: 0.5,

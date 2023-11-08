@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet,FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet,FlatList, TouchableOpacity, Alert, TouchableHighlight } from 'react-native';
 import Toast from 'react-native-toast-message';
+import SwipeableFlatList from 'react-native-swipeable-list';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from '../../config/constants';
@@ -267,7 +268,7 @@ const TallyInvite = (props) => {
 
   const renderItem = ({ item, index }) => {
     return (
-      <View style={{marginHorizontal:15}}>
+      <View style={styles.itemView}>
       <TemplateItem
         testID={`tally-${index}`}
         template={item}
@@ -363,12 +364,35 @@ const TallyInvite = (props) => {
     }
   }
 
+  const renderRightAction = (item) => {
+    return (
+      <View style={styles.row}>
+        <TouchableHighlight
+          activeOpacity={0.6}
+          onPress={() => {}}
+          underlayColor={colors.red}
+          style={[
+            styles.rightActions,
+            { backgroundColor: colors.red },
+          ]}>
+            <Text style={{color:colors.white}}>void</Text>
+
+        </TouchableHighlight>
+
+      
+      </View>
+    );
+  };
+
   return (
     <>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.h1}>Working Tallies</Text>
-          <View style={[styles.row, { marginVertical: 22, justifyContent: 'flex-end' }]}>
+          <View style={[styles.row, { marginTop: 22, justifyContent: 'space-between' }]}>
+
+            <Text style={[styles.filterText,{fontSize:16}]}>Drafts</Text>
+
             <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
               <FilterSecondIcon />
               <Text style={styles.filterText}>Filters</Text>
@@ -382,11 +406,18 @@ const TallyInvite = (props) => {
           />
         </View>
 
-        <FlatList
+        <SwipeableFlatList
           ListHeaderComponent={<View style={{ height: Header_Height, marginTop: 8 }} />}
           data={filteredData}
           renderItem={renderItem}
+          contentContainerStyle={styles.contentContainerStyle}
           refreshing={fetching}
+          maxSwipeDistance={90}
+          shouldBounceOnMount={true}
+          showsVerticalScrollIndicator={false}
+          renderQuickActions={({ item }) =>
+          renderRightAction(item)
+        }
           onRefresh={() => getTemplates()}
           keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
           ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
@@ -507,8 +538,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
+  contentContainerStyle: {
+    marginTop:20,
+    backgroundColor:colors.white
+  },
   filterContainer: {
     borderWidth: 1,
+    height:30,
     borderColor: colors.white100,
     backgroundColor: colors.white200,
     flexDirection: 'row',
@@ -542,6 +578,25 @@ const styles = StyleSheet.create({
     color: '#636363',
     alignSelf: 'center',
   },
+  rightActions: {
+    width: 80,
+    borderRadius:2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  row: {
+    height:60,
+    marginRight:18,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  itemView:{
+    height:70,
+    marginHorizontal:18,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    backgroundColor:colors.white
+  }
 })
 
 export default TallyInvite;
