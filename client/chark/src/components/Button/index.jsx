@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent:"center",
     paddingHorizontal: 6,
-    paddingVertical:15,
+    paddingVertical:8,
     backgroundColor: colors.blue,
     shadowColor: colors.black,
     shadowOpacity: 0.5,
