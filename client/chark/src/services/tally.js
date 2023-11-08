@@ -91,12 +91,13 @@ export const updateChitDetails = (wm, args) => {
  * @param {string[]} - args.tally_uuid
  * @param {string[]} - args.tally_ent
  * @param {string[]} - args.tally_seq
+ * @param {string[]} - args.signature
  */
 export const offerTally = (wm, args) => {
   const fields = {
     tally_uuid: args.tally_uuid,
     request: 'offer',
-    hold_sig: 'Signature ' + args.tally_ent,
+    hold_sig: args.signature,
   };
 
   const spec = {
@@ -115,11 +116,12 @@ export const offerTally = (wm, args) => {
  * @param {Object} - args
  * @param {string[]} - args.tally_ent
  * @param {string[]} - args.tally_seq
+ * @param {string} - args.signature
  */
 export const acceptTally = (wm, args) => {
   const fields = {
     request: 'open',
-    hold_sig: args.signature,// 'Signature ' + args.tally_ent,
+    hold_sig: args.signature,
   };
 
   const spec = {

@@ -47,7 +47,6 @@ const TallyPreview = (props) => {
   const [showDialog, setShowDialog] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [sig, setSig] = useState(undefined);
-  const [json, setJson] = useState(undefined);
   const [tallyContracts, setTallyContracts] = useState([]);
   const [updateCert, setUpdateCert] = useState(false);
 
@@ -87,10 +86,6 @@ const TallyPreview = (props) => {
   const onDismissCertUpdate = () => {
     setUpdateCert(false);
   };
-
-  useEffect(() => {
-    setJson(tally?.json);
-  }, [tally]);
 
   // Fetch tally text
   useTallyText(wm);
@@ -210,11 +205,20 @@ const TallyPreview = (props) => {
   };
 
   const onOffer = () => {
-    offerTally(wm, {
-      tally_uuid: tally.tally_uuid,
-      tally_ent,
-      tally_seq,
-    })
+    if(!tally?.json) {
+      Alert.alert('Tally cannot be signed');
+      return;
+    }
+
+    createSignature(JSON.stringify(tally.json))
+      .then((signature) => {
+        return offerTally(wm, {
+          tally_uuid: tally.tally_uuid,
+          tally_ent,
+          tally_seq,
+          signature,
+        })
+      })
       .then(() => {
         const partName = Object.values(tally.part_cert?.name ?? {}).join(" ");
         props.navigation.navigate("Invite", {
@@ -227,10 +231,16 @@ const TallyPreview = (props) => {
         });
       })
       .catch((err) => {
-        Toast.show({
-          type: "error",
-          text1: err.message,
-        });
+        const { isKeyAvailable, message } = err;
+        if (isKeyAvailable === false) {
+          Alert.alert(
+            "Create Keys",
+            "Seems like there is no key to create signature please continue to create one and offer tally.",
+            [{ text: "Cancel" }, { text: "Continue", onPress: showGenerateKey }]
+          );
+        } else {
+          Alert.alert("Error", message || err);
+        }
       });
   };
 
@@ -249,11 +259,11 @@ const TallyPreview = (props) => {
   };
 
   const onAccept = async () => {
-    if (!json) {
+    if (!tally?.json) {
       Alert.alert("Tally can not be signed");
       return;
     }
-    createSignature(JSON.stringify(json))
+    createSignature(JSON.stringify(tally.json))
       .then((signature) => {
         setSig(signature);
         return acceptTally(wm, { tally_ent, tally_seq, signature });
@@ -312,7 +322,7 @@ const TallyPreview = (props) => {
 
   const onVerify = async () => {
     const creds = await retrieveKey(keyServices.publicKey);
-    verifySignature(sig, JSON.stringify(json), creds.password)
+    verifySignature(sig, JSON.stringify(tally.json), creds.password)
       .then((verified) => {
         if (verified) {
           console.log("Verified Successfully");
@@ -487,6 +497,7 @@ const TallyPreview = (props) => {
           </View>
         )}
       </KeyboardAvoidingView>
+
       <GenerateKeysDialog
         visible={showDialog}
         onDismiss={dismissGenerateKey}
