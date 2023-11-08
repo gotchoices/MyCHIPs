@@ -57,7 +57,7 @@ const NavigationItem = (props) => {
 
         <View style={styles.buttonView}>
           <Button
-          fontSize={10}
+            textStyle={styles.text}
             textColor="blue"
             title="View Cert"
             onPress={()=>{}}
@@ -65,7 +65,7 @@ const NavigationItem = (props) => {
           />
 
           <Button
-              fontSize={10}
+            textStyle={styles.text}
             title="Accept"
             onPress={()=>{}}
             style={styles.button}
@@ -107,22 +107,24 @@ const myChipsNet = {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "blue",
-    borderColor: "blue",
-    borderRadius: 40,
-    marginBottom: 3,
     height:25,
+    marginBottom: 3,
+    borderRadius: 40,
+    paddingVertical:0,
+    borderColor: "blue",
     alignItems: "center",
+    backgroundColor: "blue",
     justifyContent: "center",
   },
   secondaryButton: {
     height:25,
-    backgroundColor: "white",
-    borderColor: "blue",
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
     marginBottom: 3,
+    borderRadius: 40,
+    paddingVertical:0,
+    borderColor: "blue",
+    alignItems: "center",
+    backgroundColor: "white",
+    justifyContent: "center",
   },
   container: {
     flexDirection: "row",
@@ -171,6 +173,9 @@ const styles = StyleSheet.create({
   },
   buttonView:{
     marginLeft:10
+  },
+  text:{
+    fontSize:10
   }
 });
 
