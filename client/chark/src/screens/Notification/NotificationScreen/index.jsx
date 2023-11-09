@@ -74,8 +74,8 @@ const NotificationScreen = () => {
 const styles = StyleSheet.create({
   main: {
     flex:1,
+    paddingVertical: 15,
     paddingHorizontal: 20,
-    // paddingVertical: 15,
   },
   item: {
     paddingVertical: 18,
