@@ -234,14 +234,16 @@ function getTitleAndMessage(args) {
       message: 'Tally has been revised',
     },
     'H.offer_draft': {
-      title: 'Tally opened',
-      message: 'Tally has been opened',
+      title: 'Tally revised',
+      message: 'Tally has been revised',
     },
     'open_open': {
       title: 'Tally opened',
       message: 'Tally has been opened',
     },
   };
+
+  const tally_key = `${args.state}_${args.reason}`
 
   switch(args.target) {
     case 'tally':
