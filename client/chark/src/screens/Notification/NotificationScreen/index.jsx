@@ -31,6 +31,22 @@ const NotificationScreen = () => {
       amount: "32 USD",
       totalAmount: "12.01",
     },
+    {
+      id: 4,
+      name: "Harold Law",
+      status: "Tally Request",
+      time: "45 min",
+      amount: "32 USD",
+      totalAmount: "12.01",
+    },
+    {
+      id: 5,
+      name: "Jason Bourne",
+      status: "You Paid",
+      time: "4 months",
+      amount: "32 USD",
+      totalAmount: "12.01",
+    },
   ];
 
   return (
@@ -59,7 +75,7 @@ const styles = StyleSheet.create({
   main: {
     flex:1,
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    // paddingVertical: 15,
   },
   item: {
     paddingVertical: 18,

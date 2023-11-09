@@ -184,10 +184,16 @@ async function onDisplayNotification(data) {
     importance: AndroidImportance.HIGH,
   });
 
+  const { title, message } = getTitleAndMessage({
+    target: data.target,
+    state: data.state,
+    reason: data.reason,
+  })
+
   // Display a notification
   await notifee.displayNotification({
-    title: 'Tally process',
-    body: data?.object?.comment ?? '',
+    title: title,
+    body: message ?? '',
     data: {
       type: 'tally-preview',
       tally_seq: data.sequence?.toString(),
@@ -201,6 +207,55 @@ async function onDisplayNotification(data) {
       },
     },
   });
+}
+
+/**
+  * @param {Object} args - Notification data
+  * @param {string} args.reason - Argument obj
+  * @param {string} args.target - Argument obj
+  * @param {string} args.state - Argument obj
+  */
+function getTitleAndMessage(args) {
+  const state_reason_Map = {
+    'P.draft_valid': {
+      title: 'Receive subject ticket',
+      message: 'Subject has scanned and added a valid certificate',
+    },
+    'H.offer_offer': {
+      title: 'Tally offered',
+      message: 'You have offered a tally',
+    },
+    'P.offer_offer': {
+      title: 'Tally offered',
+      message: 'You have been offered a tally',
+    },
+    'P.draft_draft': {
+      title: 'Tally revised',
+      message: 'Tally has been revised',
+    },
+    'H.offer_draft': {
+      title: 'Tally opened',
+      message: 'Tally has been opened',
+    },
+    'open_open': {
+      title: 'Tally opened',
+      message: 'Tally has been opened',
+    },
+  };
+
+  switch(args.target) {
+    case 'tally':
+      return {
+        title: state_reason_Map[tally_key]?.title ?? 'Notification',
+        message: state_reason_Map[tally_key]?.message ?? ''
+      }
+
+    default: 
+      return {
+        title: 'Notification',
+        message: 'You have got a notification',
+      }
+  }
 }
 
 export default SocketProvider;
