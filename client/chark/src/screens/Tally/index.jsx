@@ -44,7 +44,7 @@ const Tally = (props) => {
 
   useEffect(() => {
     fetchTallies();
-  }, [wm, dispatch, fetchOpenTallies])
+  }, [wm, dispatch, fetchOpenTallies, tallyNegotiation])
 
   useEffect(() => {
     if(wm) {

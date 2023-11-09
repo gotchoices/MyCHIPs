@@ -29,8 +29,7 @@ export const GenerateKeysDialog = ({ visible, onDismiss, onKeySaved, onError }) 
     }).then(() => {
       onKeySaved();
     }).catch(err => {
-      console.log("EXCEPTION ==> ", err);
-      onError(err);
+      onError(err.message);
     }).finally(onDismiss);
   }
 
@@ -43,7 +42,7 @@ export const GenerateKeysDialog = ({ visible, onDismiss, onKeySaved, onError }) 
         const priKey = await subtle.exportKey('jwk', currentKeyPair.privateKey);
         storeKeys(pubKey, priKey);
       } catch (err) {
-        onError(err)
+        onError(err.message)
       } finally {
         onDismiss();
       }

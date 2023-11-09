@@ -1,6 +1,7 @@
 import * as Keychain from 'react-native-keychain';
 import ReactNativeBiometrics, { BiometryTypes } from 'react-native-biometrics'
 import { keyServices } from '../config/constants';
+import DeviceInfo from 'react-native-device-info';
 
 const rnBiometrics = new ReactNativeBiometrics()
 
@@ -14,6 +15,11 @@ const isBiometricsAvailable = () => {
         //   promptMessage: 'Confirm biometrics to store keys'
         // });
       } else if (error === 'BIOMETRIC_ERROR_NONE_ENROLLED') {
+
+        if(DeviceInfo.isEmulator()) { 
+        return { success: true }
+        }
+
         throw new Error('Biometrics not enrolled')
       } else {
         throw new Error('Biometrics not supported')
@@ -31,14 +37,25 @@ export const storePrivateKey = (key) => {
     .then(result => {
       const { success, error } = result;
       if (success) {
-        return Keychain.setGenericPassword('private_key', key, {
+        let options = {
           service: keyServices.privateKey,
-          accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE, // all 
-          accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, // ios
-          authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS, // ios
-          securityLevel: Keychain.SECURITY_LEVEL.SECURE_SOFTWARE, // requires for the key to be stored in the Android Keystore
-          storage: Keychain.STORAGE_TYPE.RSA, //Encryption with biometrics.
-        });
+        }
+
+        if(!DeviceInfo.isEmulator()) {
+          const _options = {
+            accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE, // all 
+            accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, // ios
+            authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS, // ios
+            securityLevel: Keychain.SECURITY_LEVEL.SECURE_SOFTWARE, // requires for the key to be stored in the Android Keystore
+            storage: Keychain.STORAGE_TYPE.RSA, //Encryption with biometrics.
+          }
+
+          options = {
+            ...options,
+            ..._options,
+          }
+        }
+        return Keychain.setGenericPassword('private_key', key, options);
       } else {
         console.log('err', error)
       }
