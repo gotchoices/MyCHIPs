@@ -20,7 +20,7 @@ const Button = (props) => {
         style={[styles.btn, props.style ?? {}, props.disabled ? styles.btnDisabled : {}]}
       >
         <Text
-          style={[styles.title, { color: props.textColor ?? colors.white }, props.disabled ? styles.titleDisabled : {}]}
+          style={[styles.title, props.textStyle ?? {}, { color: props.textColor ?? colors.white,}, props.disabled ? styles.titleDisabled : {}]}
         >
           {props.title}
         </Text>
@@ -38,6 +38,10 @@ Button.propTypes = {
     PropTypes.object,
     PropTypes.arrayOf(PropTypes.object)
   ]),
+  textStyle: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.arrayOf(PropTypes.object)
+  ]),
 }
 
 const styles = StyleSheet.create({
@@ -45,8 +49,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.blue,
     alignItems: 'center',
+    justifyContent:"center",
     paddingHorizontal: 6,
-    paddingVertical: 8,
+    paddingVertical:8,
     backgroundColor: colors.blue,
     shadowColor: colors.black,
     shadowOpacity: 0.5,

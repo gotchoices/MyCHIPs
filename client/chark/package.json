@@ -45,6 +45,7 @@
     "react-native-share": "^9.0.1",
     "react-native-svg": "^12.5.0",
     "react-native-svg-transformer": "^1.0.0",
+    "react-native-swipeable-list": "^0.1.2",
     "react-native-toast-message": "^2.1.5",
     "react-native-vector-icons": "^9.2.0",
     "react-native-view-shot": "^3.5.0",
