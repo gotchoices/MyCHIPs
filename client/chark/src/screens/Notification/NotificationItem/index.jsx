@@ -107,7 +107,7 @@ const myChipsNet = {
 
 const styles = StyleSheet.create({
   button: {
-    height:25,
+    height:23,
     marginBottom: 3,
     borderRadius: 40,
     paddingVertical:0,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   secondaryButton: {
-    height:25,
+    height:23,
     marginBottom: 3,
     borderRadius: 40,
     paddingVertical:0,
@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   container: {
+    height:50,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
