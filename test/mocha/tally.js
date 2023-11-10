@@ -426,18 +426,16 @@ log.debug("Sql:", sql, parms)
     })
   })
 
-  it("Mark the log files", function(done) {markLogs(dbO, log, done)})
-
   it("Polling request retries tally open transmission", function(done) {
     let sql = 'select mychips.tally_notices() as notices'
       , dc = 2, _done = () => {if (!--dc) done()}
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => {
-      let row = getRow(res, 0)			;log.debug("row:", row)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.notices, 1)
       _done()
     })
-    busS.register('ps', (msg) => {		;log.debug("S msg:", msg, msg.object.sign)
+    busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
 //      assert.equal(msg.entity, userS)		//Subject is notified
 //      assert.equal(msg.reason, 'open')		//Attempt to open
 //      assert.equal(msg.state, 'P.offer')	//Still stuck in offer state

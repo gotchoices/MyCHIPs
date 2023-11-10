@@ -1,7 +1,11 @@
 TODO:
 
 - Chit consensus
--  Rename ack -> ack nak req syn err
+X-  Attempt to move all chain-related data into a sub-property (chitcon1 branch)
+-  Rename ack -> ack nak req syn err?
+-  Test: multiple chits on both sides before network restored
+-  Test: stock loses some/all of its chits
+-  Test: foil loses some/all of its chits
 -  Implement error state in chit consensus
 -  Test for case where both sides have backlog of unchained chits
 -  Is tally consensus state field useful?
@@ -12,7 +16,6 @@ TODO:
 -  
 
 - Tally negotiation
-X-  Test for network failure and retry during tally state transition
 -  Test for changing tally_type during negotiation
 -  Implement a tally consensus query/reply message
 -  Regression test for: opened tally doesn't register to other side

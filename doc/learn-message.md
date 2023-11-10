@@ -207,7 +207,8 @@ The *object* property for the chit is defined as follows:
   - **memo**: A human-readable description or comment about the transaction.
   - **hash**: The SHA-256 hash of the rest of the chit in a standard serialized format, rendered in base64v
   - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor
-  - **chain**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information about use of this property.
+  - **index**: the chain index computed (or suggested) for this chit.  See [below](#consensus-messages) for more information.
+  - **chain**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information.
 
 Chit state transition messages are as follows:
 

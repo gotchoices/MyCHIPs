@@ -18,7 +18,7 @@ namespace eval chits {
     def chits_pk	{chit_ent chit_seq chit_idx}
     def chits_v_up	{request signature units reference memo}
     def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_uuid chit_type issuer]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type issuer $glob::stampfn chit_date chain_send chain_idx chain_dgst chain_prev lift_seq status digest]
+    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type issuer $glob::stampfn chit_date chain_msg chain_idx chain_dgst chain_prev lift_seq status digest]
     def chits_v_me_in	[lremove $chits_v_in chit_ent]
 }
 
@@ -46,7 +46,7 @@ table mychips.chits {mychips.tallies mychips.lifts tally_side} {
   , chain_dgst	bytea
   , chain_prev	bytea
   , chain_idx	int	      check (chain_idx >= 0), unique(chit_ent, chit_seq, chain_idx)
-  , chain_send	jsonb
+  , chain_msg	jsonb
   , lift_seq	int           , foreign key (chit_uuid, lift_seq) references mychips.lifts (lift_uuid, lift_seq) on update cascade on delete cascade
   , constraint "!mychips.chits:BLL" check (chit_type = 'lift' and not lift_seq isnull or chit_type != 'lift' and lift_seq isnull)
     eval(s $glob::stamps)
@@ -278,8 +278,8 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
           perform mychips.chit_notify_agent(new);
         end if;
 
-        if new.chain_send notnull then		-- Communicate consensus message
-raise notice 'Chain notify:%-%-% S:%', new.chit_ent,new.chit_seq,new.chit_idx, new.chain_send;
+        if new.chain_msg notnull then		-- Communicate consensus message
+raise notice 'Chain notify:%-%-% S:%', new.chit_ent,new.chit_seq,new.chit_idx, new.chain_msg;
           perform mychips.chain_notify_agent(new);
         end if;
         return new;
@@ -339,8 +339,11 @@ function {mychips.chit_json_r(ch mychips.chits, ta mychips.tallies)} {
     select mychips.chit_json_c(ch, ta) || jsonb_strip_nulls(jsonb_build_object(
       'hash',		mychips.ba2b64v(ch.digest),
       'signed',		ch.signature,
-      'index',		ch.chain_idx,
-      'chain',		mychips.ba2b64v(ch.chain_dgst)
+      'chain',		jsonb_strip_nulls(jsonb_build_object(
+        'index',	ch.chain_idx,
+        'hash',		mychips.ba2b64v(ch.chain_dgst),
+        'conf',		case when ta.tally_type = 'stock' then ta.chain_conf else null end
+      ))
     ))
 $$;} -grant mychips
 
@@ -401,7 +404,6 @@ view mychips.chits_v_me {mychips.chits_v mychips.tallies_v_me} {select
 function {mychips.chit_process(msg jsonb, recipe jsonb)} {
   mychips.users_v
   mychips.chits_v
-  mychips.b64v2ba(text)
   mychips.chain_process(jsonb,jsonb)
 } {
   returns text language plpgsql as $$
@@ -445,13 +447,12 @@ raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, cu
         if curState = 'null' then			-- Need to do insert
           insert into mychips.chits (
             chit_ent,chit_seq,chit_uuid,chit_type,chit_date,status,
-            signature,issuer,units,reference,memo,chain_dgst,chain_idx		--,chain_prev
+            signature,issuer,units,reference,memo,chain_msg
           ) values (
             trec.tally_ent, trec.tally_seq, uuid, obj->>'type', (obj->>'date')::timestamptz,
             coalesce(recipe->'upsert'->>'status','pend'),
             obj->>'signed', (obj->>'by')::tally_side, (obj->>'units')::bigint, 
-            obj->'ref', obj->>'memo', 
-            mychips.b64v2ba(obj->>'chain'), (obj->>'index')::int		--, (obj->>'prior')::bytea
+            obj->'ref', obj->>'memo', obj->'chain'
           ) returning chit_ent, chit_seq, chit_idx, chain_dgst into crec;
 --raise notice '  post-insert:% % %', trec.tally_type, obj->'index', crec;
         else						-- Chit already exists, do update
@@ -459,7 +460,7 @@ raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, cu
             issuer = (obj->>'by')::tally_side, units = (obj->>'units')::bigint,
             status = coalesce(recipe->'upsert'->>'status','pend'),
             reference = obj->'ref', memo = obj->>'memo', 
-            chain_dgst = mychips.b64v2ba(obj->>'chain'), chain_idx = (obj->>'index')::int,
+            chain_msg = obj->'chain',
             request = null, mod_date = current_timestamp, mod_by = session_user
             where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
 

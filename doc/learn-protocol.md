@@ -340,14 +340,15 @@ But it is an important additional mechanism that makes sure the stock and foil k
 The consensus rules are pretty simple.
 Both stock and foil have the duty (and natural incentive) to recognize, accept and store a duly signed and valid chit received from the other.
 But the foil is responsible to choose the order chits will be linked into the chain.
-The stock must conform to that order.
+Generally, the stock should just conform to that order.
 
 The goal of the consensus protocol is then to:
-- order (link) all valid chits linked into a [hash-chained](https://en.wikipedia.org/wiki/Hash_chain) list; and
-- verify that the stock and foil both have an identical chained list of valid chits.
+- order (link) all valid chits linked into a [hash-chained](https://en.wikipedia.org/wiki/Hash_chain) list;
+- verify that the stock and foil both have an identical chained list of valid chits;
+- allow either party to recover from lost or corrupt data.
 
 The simplest case is when one side generates a chit and that chit gets completely propagated and linked on both ends before anything else happens on the tally.
-Unfortunately, real life will probably involve several other more messy scenarios:
+Unfortunately, real life can involve several other more messy scenarios:
 1. One or more valid chits get generated on both ends of the tally and are transmitted at about the same time.
   Both stock and foil will have linked these chits already and could think they have a valid end hash.
   The stock will have to comport to the foil's version of things and reorder its chain accordingly.
