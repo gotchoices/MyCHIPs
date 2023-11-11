@@ -318,6 +318,7 @@ log.debug("Sql:", sql)
       assert.equal(row.request, 'open')
       assert.equal(row.status, 'offer')
       assert.equal(row.state, 'offer.open')
+      assert.strictEqual(row.chain_conf, null)
       _done()
     })
     busO.register('po', (msg) => {		//Originator is sent the acceptance
@@ -340,7 +341,7 @@ log.debug("Sql:", sql)
 
   it("Resend an open tally", function(done) {
     let sql = uSql('request = %L', 'open', userS, 1)
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.request, 'open')
@@ -353,11 +354,12 @@ log.debug("Sql:", sql)
   it("Wait for status to settle", function(done) {setTimeout(done, 250)})
 
   it("Verify request flag got reset", function(done) {
-    let sql = `select request,state from mychips.tallies_v where tally_ent = $1 and tally_seq = $2;`
+    let sql = `select request,state,chain_conf from mychips.tallies_v where tally_ent = $1 and tally_seq = $2;`
     dbS.query(sql, [userS, 1], (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("S row:", row)
       assert.strictEqual(row.request, null)
       assert.equal(row.state, 'open')
+      assert.equal(row.chain_conf, 0)
       done()
     })
   })
@@ -436,9 +438,9 @@ log.debug("Sql:", sql, parms)
       _done()
     })
     busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
-//      assert.equal(msg.entity, userS)		//Subject is notified
-//      assert.equal(msg.reason, 'open')		//Attempt to open
-//      assert.equal(msg.state, 'P.offer')	//Still stuck in offer state
+      assert.equal(msg.entity, userS)		//Subject is notified
+      assert.equal(msg.reason, 'open')		//Attempt to open
+      assert.equal(msg.state, 'open')
       _done()
     })
   })

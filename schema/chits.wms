@@ -102,7 +102,7 @@ function mychips.chits_tf_bi() {mychips.tallies mychips.chit_goodcheck(mychips.c
           raise exception '!mychips.chits:ILI %-%', new.chit_ent, new.chit_seq;
         end if;
         new.status = 'pend';
-        return mychips.chit_goodcheck(new, ta);	-- Need chit to be chained before we transmit it
+--        return mychips.chit_goodcheck(new, ta);	-- Need chit to be chained before we transmit it
 
       elsif new.status in ('good','chain') then	-- A fully signed chit can come in from a user/peer marked as good
         return mychips.chit_goodcheck(new, ta);	-- May double-check certain chits (will check in goodcheck)
@@ -140,7 +140,9 @@ function mychips.chits_tf_bu() {mychips.chit_goodcheck(mychips.chits,mychips.tal
       if new.request = 'pend' and old.status in ('draft','void') then	-- drafting/re-drafting
         new.status = 'draft';
       elsif new.request = 'good' and old.status = 'pend' then		-- sending good pledge
-        return mychips.chit_goodcheck(new, ta);
+        null;
+--raise notice 'R:good';
+--        return mychips.chit_goodcheck(new, ta);
       elsif new.request = 'void' and old.status = 'pend' then		-- refusing invoice
         null;
       elsif new.request = 'good' and old.status = 'good' then		-- resending
@@ -279,7 +281,7 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
         end if;
 
         if new.chain_msg notnull then		-- Communicate consensus message
-raise notice 'Chain notify:%-%-% S:%', new.chit_ent,new.chit_seq,new.chit_idx, new.chain_msg;
+--raise notice 'Chain notify:%-%-% O:% S:%', new.chit_ent,new.chit_seq,new.chit_idx, TG_OP, new.chain_msg;
           perform mychips.chain_notify_agent(new);
         end if;
         return new;
@@ -338,13 +340,25 @@ function {mychips.chit_json_r(ch mychips.chits, ta mychips.tallies)} {
   returns jsonb stable language sql as $$
     select mychips.chit_json_c(ch, ta) || jsonb_strip_nulls(jsonb_build_object(
       'hash',		mychips.ba2b64v(ch.digest),
-      'signed',		ch.signature,
+      'signed',		ch.signature
+    ))
+$$;} -grant mychips
+
+# Compute chit json for chaining consensus dialogs
+#----------------------------------------------------------------
+function {mychips.chit_json_o(ch mychips.chits, ta mychips.tallies)} {
+  mychips.ba2b64v(bytea)
+  mychips.tallies
+  mychips.chits
+} {
+  returns jsonb stable language sql as $$
+    select jsonb_build_object(
       'chain',		jsonb_strip_nulls(jsonb_build_object(
         'index',	ch.chain_idx,
         'hash',		mychips.ba2b64v(ch.chain_dgst),
-        'conf',		case when ta.tally_type = 'stock' then ta.chain_conf else null end
+        'conf',		ta.chain_conf
       ))
-    ))
+    )
 $$;} -grant mychips
 
 # Base view of chits
@@ -358,6 +372,7 @@ view mychips.chits_v {
   mychips.chit_cstate(mychips.chits,mychips.tallies)
   mychips.chit_json_h(mychips.chits,mychips.tallies)
   mychips.chit_json_r(mychips.chits,mychips.tallies)
+  mychips.chit_json_o(mychips.chits,mychips.tallies)
   mychips.j2h(jsonb)
 } {select 
     eval(fld_list $chits::chits_se	ch)
@@ -376,6 +391,7 @@ view mychips.chits_v {
   , mychips.chit_state(isdebit(), ch.status, ch.request) = any(array['L.pend']) as action
   , mychips.chit_json_c(ch, te)					as json_core
   , mychips.chit_json_r(ch, te)					as json
+  , mychips.chit_json_o(ch, te)					as chain
   , mychips.j2h(mychips.chit_json_h(ch, te))			as hash_v
   , mychips.j2h(mychips.chit_json_h(ch, te)) = coalesce(ch.chain_dgst,'') as clean
 
@@ -406,7 +422,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
   mychips.chits_v
   mychips.chain_process(jsonb,jsonb)
 } {
-  returns text language plpgsql as $$
+  returns jsonb language plpgsql as $$
     declare
       cid	text	= msg->'to'->>'cid';
       agent	text	= msg->'to'->>'agent';
@@ -429,7 +445,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
 
       select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;
       curState = crec.state;
-raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, curState, recipe;
+--raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, curState, recipe;
       if not found then
         curState = 'null';		-- Special code for when the specified chit doesn't exist yet
       end if;
@@ -439,7 +455,7 @@ raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, cu
         if curState != 'null' and (recipe->'clear')::boolean then	-- Clear local request on failure
           update mychips.chits set request = null where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
         end if;
-        return curState;
+        return to_jsonb(curState);
       end if;
 
       if recipe ? 'upsert' then
@@ -469,13 +485,13 @@ raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, cu
       end if;
 
       if recipe ? 'update' then			-- There's an update key in the recipe
-        qstrg = mychips.state_updater(recipe, 'mychips.chits', '{status, signature}');
+        qstrg = mychips.state_updater(recipe, 'mychips.chits', '{status, signature, chain_msg}');
 --raise notice 'chit_process SQL:% % % %', qstrg, crec.chit_ent, crec.chit_seq, crec.chit_idx;
         execute qstrg || ' chit_ent = $1 and chit_seq = $2 and chit_idx = $3' using crec.chit_ent, crec.chit_seq, crec.chit_idx;
         delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
       end if;
 
-      select into crec chit_ent,chit_seq,chit_idx,chit_uuid,state,action,json from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+      select into crec chit_ent,chit_seq,chit_idx,chit_uuid,state,status,action,json,chain from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
       if crec.action or (crec.state is distinct from curState) then	-- Also notify if changed state
         jrec = jsonb_build_object(
           'target',	'chit',
@@ -490,8 +506,11 @@ raise notice 'Chitproc %:% F:% state:% recipe:%', trec.tally_ent, cid, found, cu
 --Fixme: Should this return the whole jrec?
         perform pg_notify('mychips_user', crec.json::text);		-- Simulations use this
       end if;
-      return crec.state;
---      return crec.json;
+      return jsonb_build_object(
+        'status',	crec.status,
+        'object',	crec.json,
+        'chain',	crec.chain
+      );
     end;
 $$;}
 

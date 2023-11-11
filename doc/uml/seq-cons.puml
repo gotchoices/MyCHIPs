@@ -1,43 +1,70 @@
 @startuml
 !include common.puml
 $title(Chit Chain Consensus Protocol)
-actor "Stock Holder" as vendor
-database "Stock DB" as stock
-database "Foil DB" as foil
-actor "Foil Holder" as client
+actor "Chit Issuer" as issuer
+database "Issuer Model" as issModel
+database "Subject Model" as subModel
+'actor "Foil Holder" as client
 
-alt Foil validates chit
-  client	->>	foil:		Apply validating signature to chit
-  foil		->>	stock:		Transmit new valid Chit\nwith validating signature\nAnd new endHash
+alt Want to consense regarding new chit
+  issuer	->>	issModel:	Issuer applies validating\nsignature to chit
+  issModel	->>	issModel:	Add chit to local chain\ncalculate new endIdx, endHash
+  issModel	->>	subModel:	Transmit upd chain message\nalong with new valid chit\nto subject
+else Want to check specified checkpoint (which may be 0)
+  issModel	->>	subModel:	Transmit upd chain message\ninclude endIdx, endHash
+end
 
-  alt Stock agrees with new endHash
-    stock	->>	stock:		Ratchet forward\nackHash = endHash
-  else Stock disagrees, has different end of chain
-    stock	->>	stock:		Conform to Foil chain\nRequeue/send bumped and/or\nunchained chits as new
+alt Command upd contains no chits
+  subModel	->>	subModel:	Compare local hash\at specified index
+  alt Hash matches
+    subModel	->>	issModel:	Send ack with index, hash
+  else hash doesn't match
+    subModel	->>	issModel:	Send nak with index, local hash
   end
+
+else We hold the foil
+  subModel	->>	subModel:	Enter chit(s) at end of local chain
+  alt Were chits targeted at end of our chain and hash agrees
+    subModel	->>	issModel:	Send ack
+  else Or were there other non-confirmed chits we have locally
+    subModel	->>	issModel:	Send upd with our\nextra local chits
+  else No extra chits but hash doesn't agree
+    subModel	->>	issModel:	Send nak
+  end
+  subModel	->>	subModel:	Are chits targeted for end of our chain?
   
-else Stock validates chit
-  vendor	->>	stock:		Apply validating signature to chit
-  stock		->>	foil:		Transmit new valid Chit\nwith validating signature\nAnd proposed endHash: propHash
-  foil		->>	foil:		Add/link new valid chit\nat end of chain
+else We hold the stock
+  subModel	->>	subModel:	Merge chits at specified\nlocations bumping as needed
+  alt Does our new endHash agree
+    subModel	->>	issModel:	Send ack
+  else
+    subModel	->>	issModel:	Send nak
+  end
+  subModel	->>	issModel:	Send upd with any chits\nthat got bumped in merge
+end
 
-  alt Foil agrees with stock's proposed endHash
-    foil	->>	foil:		Ratchet forward\nackHash = propHash
-    foil	->>	stock:		Acknowledge propHash was correct
-    stock	->>	stock:		Ratchet forward\nackHash = propHash
+alt Ack handling
+  subModel	->>	issModel:	Send ack
+  alt Does specified hash match our local values
+    issModel	->>	issModel:	Set confIdx = endIdx\n(ratchet confirmed)
+  end
+  issModel	->>	subModel:	Send upd with any\nchits beyond confIdx
 
-  else Foil disagrees with stock's proposed endHash
-    foil	->>	stock:		Send chits since last ackHash\nand correct endHash
-
-    alt Can chain/reconcile received chits and confirm endHash
-      stock	->>	stock:		Conform to Foil chain\nRequeue/send bumped and/or\nunchained chits as new
-    else Can't chain/reconcile received chits
-      stock	->>	vendor:		Report error to user
-      stock	->>	foil:		Report error
-      foil	->>	client:		Report error to user
+else Nak handling
+  subModel	->>	issModel:	Send nak
+  issModel	->>	issModel:	Re-evaluate my chain\nthrough specified index
+  alt Is some portion of my chain corrupt/invalid?
+    issModel	->>	issModel:	Set local confIdx back\nto end of valid chits
+    issModel	->>	subModel:	Send req for all chits\nhigher than confIdx
+  else
+    alt Foil holder
+      issModel	->>	issModel:	Enter error state\nCan't consense with stock
+    else Stock holder
+      issModel	->>	issModel:	Set confIdx back by factor
+      issModel	->>	subModel:	Send req for all chits\nbeyond new confIdx
     end
   end
-
+  
 end
-    
+
 @enduml

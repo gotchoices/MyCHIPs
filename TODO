@@ -1,28 +1,34 @@
 TODO:
 
 - Chit consensus
+X-  Branch chitcon2: Redefine chit consensus method around 4 basic messages
+X-  Amend docs with new messages
+X-  Step back through regression tests, applying new logic
+X-  tally tests work
+X-  chit tests work
+-  chain tests work
+-  
+- Prior chit consensus TODO's (still relevant?):
 X-  Attempt to move all chain-related data into a sub-property (chitcon1 branch)
--  Rename ack -> ack nak req syn err?
+X-  Rename ack -> ack nak req syn err?
 -  Test: multiple chits on both sides before network restored
 -  Test: stock loses some/all of its chits
 -  Test: foil loses some/all of its chits
 -  Implement error state in chit consensus
 -  Test for case where both sides have backlog of unchained chits
 -  Is tally consensus state field useful?
--   Foil sets tally to consensed when end of chain computed
--   Stock sets tally to consensed when end of chain agrees with foil
 -  Stock can retry if/when consensus not yet reached
 -  Stock can request hash check at any time?
--  
+X-  Should a chit go to 'good' status locally, not waiting for peer transmission?
 
 - Tally negotiation
 -  Test for changing tally_type during negotiation
--  Implement a tally consensus query/reply message
+X-  Implement a tally consensus query/reply message
 -  Regression test for: opened tally doesn't register to other side
 -  Can recover from unknown tally states (H.offer.open)
--  Can we fire chit consensus at end of tally open to ack tally?
--   If we are the first to open tally, we mark as unconsensed, wait for consensus ack
--   If we respond to tally open, we mark as consensed, initiate consensus ack
+X-  Can we fire chit consensus at end of tally open to ack tally?
+X-   If we are the first to open tally, we mark as unconsensed, wait for consensus ack
+X-   If we respond to tally open, we mark as consensed, initiate consensus ack
 -  App signs tally in both directions
 -  Are tallies signed in the app passing the validation in lib/tally.js?
 -  Can/should we validate tally signatures in the DB anywhere?

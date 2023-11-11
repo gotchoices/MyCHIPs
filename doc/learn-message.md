@@ -207,8 +207,10 @@ The *object* property for the chit is defined as follows:
   - **memo**: A human-readable description or comment about the transaction.
   - **hash**: The SHA-256 hash of the rest of the chit in a standard serialized format, rendered in base64v
   - **signed**: The digital signature of the hash by the grantor, whether Client or Vendor
-  - **index**: the chain index computed (or suggested) for this chit.  See [below](#consensus-messages) for more information.
-  - **chain**: the new endHash computed as a result of adding the present valid, signed chit (if applicable).  See [below](#consensus-messages) for more information.
+  - **chain**: An initial consensus packet, part of the [consensus protocol](#consensus-messages) which rides along with the chit message for convenience
+    - **index**: The chain index computed or suggested for this chit.
+    - **hash**: The new endHash computed as a result of adding this chit.
+    - **conf**: The last confirmed chain index.
 
 Chit state transition messages are as follows:
 
@@ -237,30 +239,33 @@ between the stock and foil about the order and integrity of chits recorded on th
 
 This can be thought of as a set of sub-states a tally can be in while its main state is open (and/or closing).
 For example, a stock can be said to be *consensed* or *not yet consensed* with its foil counterpart.
-But we can also think of consensus as an extension of the chit protocol because individual chits can either be
-*linked* into the chit chain or *not yet linked*.
+And we will think of the tally record itself as the initial 'chit zero' or starting block of the chain.
 
-This makes it difficult to attribute a single, granular consensus state to tally.
+We can also think of consensus as an extension of the chit protocol because individual chits can either be
+*linked* into the chit chain or *not yet linked*.
+This makes it challenging to attribute a single, granular consensus state to tally.
 A tally can have some chits linked, others in the process of being linked and still others needing to be linked.
 
-So for purposes of [negotiating consensus](lean-protocol.md#chit-chain-consensus), we will define a substate that is applicable to individual chits.
+For purposes of [negotiating consensus](lean-protocol.md#chit-chain-consensus), we will define a substate that is applicable to individual chits.
 A foil will be considered *in consensus* when every good chit has been linked into its chain.
 A stock will be considered *in consensus* when every good chit has been linked into its chain and the resulting end hash has been confirmed with the foil.
 
-Since attaining consensus is the result of hash-chaining chits, we will utilize the chit message handling module (i.e. property target = chit).
+Since attaining consensus is primarily the result of hash-chaining chits, we will utilize the chit message handling module (i.e. property target = chit).
 Consensus messages specify the property action = 'chain' which means
 "Hand this message to the consensus processing module."
 
 The [consensus state machine](learn-protocol.md#chit-chain-consensus) references the following message sub-commands:
-- **new**: (virtual) Foil sends valid chit, accompanied by new endHash
-- **new**: (virtual) Stock sends valid chit, accompanied by proposed endHash (propHash)
-- **req**: Stock requests chits since last acknowledged endHash (ackHash) or some other starting point in the chain.
-- **upd**: Foil sends latest ending hash (ackHash) as well as an optional list of potentially unknown chits.  If the chit list is empty, this implies an ACK (acknowledge) of some prior provisional endHash the stock may have sent.
-- **err**: An error occurred while attempting to reconcile with a specified update packet.
+- **upd**: (virtual) Stock/foil sends valid chit, accompanied by additional chaining record.
+- **upd**: (explicit) Sender includes an index and hash and an optional list of chits.
+Attaching chits tells the partner to merge them into its chain.
+The recipient is then expected to acknowledge (ack or nak) the specified hash at the specified index (assumed to be the end of any new chits added).
+- **req**: Sender requests a specified number of chits starting at the specified index.
+- **ack**: Sender acknowledges the specified hash to be accurate for the specified index.
+- **nak**: Sender disagrees with some prior assertion of the partner and instead finds the specified hash to be correct for the specified index.
 
-The first two actions are directly correlated with the sending of a chit--a message already occuring within the chit subsystem.
-So these actions are accomplished simply by populating the additional <i>chain</i> property in the applicable chit message.
-The latter three will encode the desired command into the property *sub*.
+The first action is directly correlated with the sending of a chit--a message already occuring within the chit subsystem.
+It is accomplished simply by populating the additional <i>chain</i> property in the applicable chit message.
+The latter four will encode the desired command into the property *sub*.
 
 Chain messages then contain an object with some or all of the following properties:
 - **action**: = chain
@@ -269,6 +274,7 @@ Chain messages then contain an object with some or all of the following properti
 - **hash**: The hash at the end of the chain in base64v format
 - **index**: The index of the last chit in the chain
 - **chits**: An array of chits from a section of the chain
+- **conf**: The largest index known to be confirmed by the other side
 
 ### Route Messages
 Property: **target**: route

@@ -309,9 +309,8 @@ Notice the states for setting chits are shown right along with regular transacti
 
 ### Chit Chain Consensus
 The last step in the diagram above refers to a consensus process.
-This is a sub-protocol by which the stock and foil agree upon the order and content of chits entered onto their copies of the tally.
-Chit order may not be particularly important from a theoretical standpoint.
-But content certainly is.
+This is a sub-protocol by which the stock and foil agree upon the content of the tally, including the substance and order of the chits appended to it.
+Chit order may not be particularly important from a theoretical standpoint but content certainly is.
 MyCHIPs uses a storage mechanism called a [hash chain](https://en.wikipedia.org/wiki/Hash_chain) to assure consistency in both.
 
 Each chit contains a hash of its other contents.
@@ -320,8 +319,8 @@ This hash is useful for detecting if anything in the chit has changed (something
 Each chit also contains a copy of the hash for the chit preceeding it in a sequential chain.
 In this way, the hash of the latest chit can be compared with the same point in the chain on the other end of the tally.
 
-This *chit chain* can be thought of as a tiny blockchain, known only to the two entities who share the tally.
-When the data is kept this way, it is very easy for the two partners to verify that they have identical information, just by comparing the hash they hold for the last consensed chit on the chain.
+This *chit chain* can be thought of as a tiny blockchain, known only to the two entities who share the tally with the tally record itself being the first block on the chain.
+When the data is kept this way, it is easier for the two partners to verify that they have identical information, just by comparing the hash they hold for the last consensed chit on the chain.
 
 Manual chits (transactions or settings) may originate from either end of the tally at any time.
 
@@ -331,20 +330,56 @@ When chits are created as part of a distributed lift, validating signatures will
 So the foil holder on any given tally will usually get the signature before the stock holder.
 As they attempt to reach consensus on chit order, the signature will naturally get shared with the stock.
 
-The following diagram shows the sequence of events for the two basic use cases.
-Keep in mind, this activity is going on as part of the normal chit creation/transmission process described above (and/or in the later lift section).
+This activity is going on as part of the normal chit creation/transmission process described above (and/or in the later lift section).
 But it is an important additional mechanism that makes sure the stock and foil keep consistent versions of all chit information that gets appended to the tally.
+
+We will accomplish the consensus algorithm with four basic messages defined more particularly [here](learn-message.md#consensus-messages).
+The messages are handled as follows:
+- When new chits are added locally:
+  - Add the chit to local chain, calculate new endIdx, endHash
+  - Send upd to partner with new chit, index, hash
+  - Wait; confIdx will lag behind endIdx
+
+- When upd command is received:
+  - If no chits were included, return ack/nak on specified chit
+  - Otherwise, merge the supplied chits:
+    Foil (ordering authority):
+    - Add new chits at end of our chain
+    - Does supplied index, hash agree with our new end of chain?
+    - If so, send ack
+    - If not, send upd with chits from stock's confIdx+1 through prior endIdx (before this upd)
+    Stock (conformer):
+    - Merge included chits at specified indexes
+    - Bump/unchain any chits that may be in their way
+    - Does supplied index, hash agree with our new end of chain?
+    - If so, send ack
+    - If not, send nak
+    - Send upd with any chits that got bumped
+
+- When ack received:
+  - If specified hash matches our hash at specified index, ratchet confIdx = index
+  - If I have more chits beyond confIdx, send upd with those chits
+
+- When nak received:
+  - Re-validate my entire chain up through specified index
+  - Is any portion of my chain invalid?
+  - If so, set confIdx back to end of valid, send req for all chits after that
+  - Otherwise:
+    Foil: Enter error state, can not consense with stock
+    Stock: set confIdx back by x (10%?) and send req for all chits beyond that
+
+These procedures are shown in the following sequence diagram:
 
 ![seq-cons](uml/seq-cons.svg)
 
-The consensus rules are pretty simple.
-Both stock and foil have the duty (and natural incentive) to recognize, accept and store a duly signed and valid chit received from the other.
-But the foil is responsible to choose the order chits will be linked into the chain.
-Generally, the stock should just conform to that order.
+Both stock and foil have a duty (and a natural incentive) to recognize, accept and store a duly signed and valid chit received from the other.
+But the foil is ultimately responsible to choose the order chits will be linked into the chain.
+If there is disagreement, the stock must conform to that order.
 
 The goal of the consensus protocol is then to:
-- order (link) all valid chits linked into a [hash-chained](https://en.wikipedia.org/wiki/Hash_chain) list;
-- verify that the stock and foil both have an identical chained list of valid chits;
+- verify the two halves of the base tally are the same;
+- order (link) all valid chits linked into a [hash-chain](https://en.wikipedia.org/wiki/Hash_chain);
+- verify that the stock and foil both have an identical chain of valid chits;
 - allow either party to recover from lost or corrupt data.
 
 The simplest case is when one side generates a chit and that chit gets completely propagated and linked on both ends before anything else happens on the tally.
@@ -372,11 +407,17 @@ Unfortunately, real life can involve several other more messy scenarios:
   Both apps would have a copy of the chit, but neither server would yet have it.
   First app to regain connectivity would share the chit with its agent and it would then be up to the agents to come to consensus.
 
-This reminds us the system must be tolerant of a packet for the same chit (same tally and chit uuid) arriving two or more times.
+This reminds us, the system must be tolerant of a packet for the same chit (same tally and chit uuid) arriving two or more times.
 This is accomplished by only processing state transitions if the chit is currently in the expected state.
 
+Chits are ultimately identified by their UUID.
+When merging a new set of chits into an existing chain, the system should assume that if it already has a chit with a given UUID, it should not accept a new chit with the same UUID but different contents.
+This will guard against the case where a rogue or confused entity/agent creates and signs two different chits with the same UUID.
+In other words, the chain merge algorithm can record chits to obtain consensus but it should not replace a chit it already has.
+In this particular failure pattern, if one side has the original chit and the other side gets ahold of a new or corrupt chit with the same UUID, this should result in a failure state which will call for human intervention to resolve.
+
 It may seem a little confusing to determine whether the consensus protocol is really a tally thing or a chit thing.
-It is mostly oriented around chits.
+It seems mostly oriented around chits.
 But it is really the two halves of the tally that are (or are not) fully consensed at any given time.
 So this must necessarily also include the signed portions of the tally itself.
 
@@ -394,19 +435,22 @@ In addition to the three basic chit substates shown above, it will be important 
 We will do this by queing messages and only completing state transition after the message has been sent.
 This will allow for more graceful error recovery when an agent server crashes or is restarted.
 
+OBSOLETE:
 We will now derive the following state diagram to describe the consensus sub-states from the perspective of a single side.
 First, the states associated with the foil:
-
 [![state-cons](uml/state-conf.svg)](uml/state-conf.svg)
 
+OBSOLETE:
 States for the foil are pretty straightforward.
 It mainly needs to track new good chits, link them into its chain, and reliably inform the Stock about the latest end hash.
 
+OBSOLETE:
 For the Stock, it is slightly more complicated.
 It must be able to conform to the chaining order it receives from the foil.
 It can't really consider itself fully settled until receiving proper confirmation from the foil.
 And if it finds itself in possession of valid chits the foil hasn't chained yet, it will have to queue them for retransmission under the regular chit protocol.
 
+OBSOLETE:
 [![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
 
 ### Route Discovery Protocol

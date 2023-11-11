@@ -71,7 +71,7 @@ table mychips.tallies {mychips mychips.users tally_side} {
   				constraint "!mychips.tallies:PAI" check (not (status = 'open' and part_agent isnull))
   , hold_sets	jsonb		not null default '{}'
   , part_sets	jsonb		not null default '{}'
-  , chain_conf	int		not null default 0
+  , chain_conf	int		-- not null default 0
   , chain_stat	text		not null default 'non' check (chain_stat in ('non','aff','pen','con','err'))
   , _last_chit	int		not null default 0
 
@@ -449,7 +449,7 @@ $$;}
 # Process tally state transitions requested by the peer server process
 #----------------------------------------------------------------
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
-  returns text language plpgsql as $$
+  returns jsonb language plpgsql as $$
     declare
       cid	text = msg->'to'->>'cid';
       agent	text = msg->'to'->>'agent';
@@ -484,7 +484,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         if curState != 'null' and (recipe->'clear')::boolean then	-- Clear local request on failure
           update mychips.tallies set request = null where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         end if;
-        return curState;
+        return to_jsonb(curState);
       end if;
 
       if recipe ? 'upsert' then		-- If inserting/updating from object
@@ -502,12 +502,12 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
         if curState = 'null' then			-- Will need to do insert
           insert into mychips.tallies (
             tally_ent,tally_uuid,tally_type,tally_date,version,contract,status,comment,
-            hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert
+            hold_sig,part_sig,hold_terms,part_terms,hold_cert,part_cert,chain_conf
           ) values (
             uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, 
             obj->'agree', coalesce(recipe->'upsert'->>'status','offer'),
             obj->>'note', obj->'sign'->>(tallyType::text), obj->'sign'->>(notType::text), 
-            hold->'terms', part->'terms', hold->'cert', part->'cert'
+            hold->'terms', part->'terms', hold->'cert', part->'cert', (recipe->'upsert'->'chain_conf')::int
           ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
           update mychips.tallies set request = null, mod_date = current_timestamp, mod_by = session_user,
@@ -516,7 +516,7 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
             contract = obj->'agree', comment = obj->>'note',
             hold_sig = obj->'sign'->>(tallyType::text), part_sig = obj->'sign'->>(notType::text),
             hold_terms = hold->'terms', part_terms = part->'terms',
-            hold_cert = hold->'cert', part_cert = part->'cert'
+            hold_cert = hold->'cert', part_cert = part->'cert', chain_conf = (recipe->'upsert'->'chain_conf')::int
           where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
         end if;
         acted = true;
@@ -538,7 +538,10 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 
 --raise notice '  At end, tally % %', trec.tally_ent, trec.tally_seq;
       trec = mychips.tally_notify_user(trec.tally_ent, trec.tally_seq, msg->>'action');
-      return trec.state;
+      return jsonb_build_object(
+        'status',	trec.status,
+        'object',	trec.json
+      );
     end;
 $$;}
 
@@ -550,7 +553,7 @@ function {mychips.tally_notify_user(ent text, seq int, reason text = 'valid')} {
       trec	record;
       jrec	jsonb;
     begin
-      select into trec tally_ent,tally_seq,state,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
+      select into trec tally_ent,tally_seq,state,status,action,json from mychips.tallies_v where tally_ent = ent and tally_seq = seq;
 --raise notice 'Tally user notify: mu_% %', trec.tally_ent, trec.json->'uuid';
       jrec = jsonb_build_object(
         'target',	'tally',
