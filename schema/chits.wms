@@ -344,7 +344,7 @@ function {mychips.chit_json_r(ch mychips.chits, ta mychips.tallies)} {
     ))
 $$;} -grant mychips
 
-# Compute chit json for chaining consensus dialogs
+# Compute chit json for chaining record
 #----------------------------------------------------------------
 function {mychips.chit_json_o(ch mychips.chits, ta mychips.tallies)} {
   mychips.ba2b64v(bytea)
@@ -353,11 +353,21 @@ function {mychips.chit_json_o(ch mychips.chits, ta mychips.tallies)} {
 } {
   returns jsonb stable language sql as $$
     select jsonb_build_object(
-      'chain',		jsonb_strip_nulls(jsonb_build_object(
-        'index',	ch.chain_idx,
-        'hash',		mychips.ba2b64v(ch.chain_dgst),
-        'conf',		ta.chain_conf
-      ))
+      'index',	ch.chain_idx,
+      'hash',	mychips.ba2b64v(ch.chain_dgst),
+      'conf',	ta.chain_conf
+    )
+$$;} -grant mychips
+
+# Compute chit json for chaining consensus dialogs
+#----------------------------------------------------------------
+function {mychips.chit_json_x(ch mychips.chits, ta mychips.tallies)} {
+  mychips.chit_json_r(mychips.chits,mychips.tallies)
+  mychips.chit_json_o(mychips.chits,mychips.tallies)
+} {
+  returns jsonb stable language sql as $$
+    select mychips.chit_json_r(ch, ta) || jsonb_build_object(
+      'chain',	mychips.chit_json_o(ch, ta)
     )
 $$;} -grant mychips
 
@@ -373,6 +383,7 @@ view mychips.chits_v {
   mychips.chit_json_h(mychips.chits,mychips.tallies)
   mychips.chit_json_r(mychips.chits,mychips.tallies)
   mychips.chit_json_o(mychips.chits,mychips.tallies)
+  mychips.chit_json_x(mychips.chits,mychips.tallies)
   mychips.j2h(jsonb)
 } {select 
     eval(fld_list $chits::chits_se	ch)
@@ -392,6 +403,7 @@ view mychips.chits_v {
   , mychips.chit_json_c(ch, te)					as json_core
   , mychips.chit_json_r(ch, te)					as json
   , mychips.chit_json_o(ch, te)					as chain
+  , mychips.chit_json_x(ch, te)					as json_chain
   , mychips.j2h(mychips.chit_json_h(ch, te))			as hash_v
   , mychips.j2h(mychips.chit_json_h(ch, te)) = coalesce(ch.chain_dgst,'') as clean
 

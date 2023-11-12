@@ -107,9 +107,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
     serverS.failSend = 'success'		//Force: fail to transmit but indicate success
     addChit(dbS, 'foil', 30, userS, interTest.talS.tally_seq, _done)
-    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
+    busS.register('po', (msg) => {		//log.debug("S user 3:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
-      delete serverS.failSend
+      assert.equal(msg.index, 3)
       _done()
     })
   })
@@ -117,28 +117,31 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   it("Stock (Originator) sends a payment", function(done) {
     let dc = 3, _done = () => {if (!--dc) done()}
     addChit(dbO, 'stock', 40, userO, interTest.talO.tally_seq, _done)
-    busO.register('po', (msg) => {		//log.debug("O user msg:", msg, msg.object)
+    busO.register('po', (msg) => {		//log.debug("O user 4:", msg, msg.object)
+      assert.equal(msg.index, 3)		//at the wrong index, pre-consensus
       assert.equal(msg.state, 'L.good')
+      assert.equal(msg.object?.units, 40)
       _done()
     })
-    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
+    busS.register('po', (msg) => {		//log.debug("S user 4:", msg, msg.object)
+      assert.equal(msg.index, 4)
       assert.equal(msg.state, 'A.good')
+      assert.equal(msg.object?.units, 40)
       _done()
     })
   })
 
   it("Compare resulting chit chains", function(done) {
-    setTimeout(c => compChains(done), 250)	//Allow consensus to settle
+    setTimeout(c => compChains(done), 500)	//Allow consensus to settle
   })
 
   it("Stock (Originator) sends payment that doesn't arrive", function(done) {
     let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
     serverO.failSend = 'success'		//Force: fail to transmit but indicate success
     addChit(dbO, 'stock', 60, userO, interTest.talO.tally_seq, _done)
-    busO.register('po', (msg) => {		//log.debug("O user msg:", msg, msg.object)
+    busO.register('po', (msg) => {		log.debug("O user msg:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
       assert.equal(msg.index, 5)
-      delete serverO.failSend
       _done()
     })
   })
@@ -146,7 +149,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 it("Mark the log files", function(done) {markLogs(dbO, log, done)})
   it("Foil (Subject) sends a payment", function(done) {
     let units = 50
-      , dc = 4, _done = () => {if (!--dc) done()}
+      , dc = 3, _done = () => {if (!--dc) done()}
     addChit(dbS, 'foil', units, userS, interTest.talS.tally_seq, _done)
     busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
       if (msg.object?.units == 60) {		//Subject will get 2 messages
@@ -163,11 +166,11 @@ it("Mark the log files", function(done) {markLogs(dbO, log, done)})
       _done()
     })
   })
-/*
+
   it("Compare resulting chit chains", function(done) {
     setTimeout(c => compChains(done), 500)	//Allow consensus to settle
   })
-
+/*
   it("Stock/foil send multiple payments that don't arrive", function(done) {
     let dc = 8, _done = () => {if (!--dc) done()}	//dc _done's to be done
     serverO.failSend = 'success'
@@ -178,12 +181,10 @@ it("Mark the log files", function(done) {markLogs(dbO, log, done)})
     addChit(dbO, 'stock', 110, userO, interTest.talO.tally_seq, _done)
     busO.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
-      delete serverO.failSend
       _done()
     })
     busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
-      delete serverS.failSend
       _done()
     })
   })

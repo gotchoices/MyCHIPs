@@ -172,6 +172,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(rest('pend'), (e) => {if (e) done(e); _done()})
   })
 
+it("Mark the log files", function(done) {markLogs(dbO, log, done)})
   it("Subject accepts/pays Originator's invoice", function(done) {
     let uuid = interTest.chitS.uuid
       , signed = cidS + ' signature'

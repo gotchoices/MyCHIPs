@@ -6,7 +6,7 @@
 #- Approved by our local user; created/update in chit_process (stock & foil)
 #- Chits added/modified as part of this consensus model; chain_process (stock only)
 #Since chain_consense is executed in trigger space, we need to take care not to cause
-#further triggers (by inserting/updating) chits in that routine.
+#further triggers (by inserting/upd'ating) chits in that routine.
 #TODO:
 #- How/where do we detect the consensus error state?
 #- Make a query that can find/restart stalled chain activity (call periodically)
@@ -32,18 +32,17 @@ function {mychips.chain_consense(ch mychips.chits, ta mychips.tallies)} {
   mychips.chits_v
   mychips.chit_json_h(mychips.chits,mychips.tallies)
   mychips.chit_json_r(mychips.chits,mychips.tallies)
+  mychips.chit_json_x(mychips.chits,mychips.tallies)
   mychips.ba2b64v(bytea)
   mychips.j2h(jsonb)
 } {
   returns mychips.chits language plpgsql as $$
     declare
-      crec	record;
+      crec	mychips.chits;
       msg	jsonb = ch.chain_msg;		-- Remember incoming message
-      chain	jsonb = msg->'chain';
-      propIdx	int = chain->'index';		-- Suggested chaining index
-      propConf	int = chain->'conf';		-- Last confirmed end of chain
-      propDgst	bytea = mychips.b64v2ba(chain->>'hash');
---      compDgst	bytea;				-- Locally computed digest
+      propIdx	int = (msg->>'index')::int;	-- Suggested chaining index
+      propConf	int = (msg->>'conf')::int;	-- Last confirmed end of chain
+      propDgst	bytea = mychips.b64v2ba(msg->>'hash');
       prevDgst	bytea;				-- Hash from previous chit
       nextIdx	int;				-- Next index in our chain
       ratchet	boolean = false;		-- Roll our confirmation pointer forward
@@ -71,15 +70,27 @@ raise notice 'Cons T:%-%-% Conf:% Iss:% Units:% eX:% pX:% pD:% M:%', ta.tally_en
         ch.chain_idx = nextIdx;			-- Link at end of our chain
         ch.chain_prev = prevDgst;
         ch.chain_dgst = mychips.j2h(mychips.chit_json_h(ch, ta));
-raise notice 'l C:% d:%', mychips.chit_json_h(ch, ta), ch.chain_dgst;
+raise notice 'l X:% C:% d:%', ch.chain_idx, mychips.chit_json_h(ch, ta), ch.chain_dgst;
+
+-- Update/insert from chain_process function below
+-- --------------------------------------------------------------
+      elsif msg->>'cmd' isnull then
+        ch.chain_idx = coalesce(ch.chain_idx, propIdx, nextIdx);
+        select into ch.chain_prev chain_dgst from mychips.chits
+          where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq and chain_idx = ch.chain_idx - 1;
+        ch.chain_dgst = mychips.j2h(mychips.chit_json_h(ch, ta));
+raise notice 'x C:% d:%', mychips.chit_json_h(ch, ta), ch.chain_dgst;
+        update mychips.chits set chain_idx = null, chain_prev = null, chain_dgst = null	-- Bump any chit in our way
+          where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq
+            and chit_idx != ch.chit_idx and chain_idx = ch.chain_idx;
 
 -- Foil holder gets good chit from stock partner
 -- --------------------------------------------------------------
-      elsif msg->>'cmd' = 'upd' and ta.tally_type = 'foil' then		-- we choose chit order
+      elsif msg->>'cmd' = 'new' and ta.tally_type = 'foil' then		-- we choose chit order
         ch.chain_prev = prevDgst;
         ch.chain_idx = nextIdx;
         ch.chain_dgst = mychips.j2h(mychips.chit_json_h(ch, ta));
-raise notice 'f C:% d:%', mychips.chit_json_h(ch, ta), ch.chain_dgst;
+raise notice 'f X:% C:% d:%', ch.chain_idx, mychips.chit_json_h(ch, ta), ch.chain_dgst;
 
         if propDgst = ch.chain_dgst and propIdx = ch.chain_idx then	-- stock got it right
 raise notice 'Ack with Stock hash:%', ch.chain_dgst;
@@ -92,15 +103,15 @@ raise notice 'Ack with Stock hash:%', ch.chain_dgst;
 
         else					-- stock's hash doesn't look right
 raise notice 'Notify Stock %-%-% hash:%', propConf, propIdx, nextIdx, ch.chain_dgst;
-          select into jrec jsonb_agg(json) from (	-- List sequence of chits the stock evidently has wrong
-            select json from mychips.chits_v where
+          select into jrec jsonb_agg(json_chain) from (		-- List chits the stock has wrong
+            select json_chain from mychips.chits_v where
               chain_idx between least(propConf+1, ta.chain_conf+1, propIdx) and ch.chain_idx-1
               and chit_ent = ch.chit_ent and chit_seq = ch.chit_seq order by chain_idx
           ) s;
           ch.chain_msg = jsonb_build_object(		-- We are in a trigger handler, update send flag
             'cmd',	'upd',
-            'index',	ch.chain_idx,
-            'hash',	mychips.ba2b64v(ch.chain_dgst),
+--            'index',	ch.chain_idx,
+--            'hash',	mychips.ba2b64v(ch.chain_dgst),
             'chits',	jrec || mychips.chit_json_r(ch,ta)	-- Include the present chit
           );
         end if;	-- agree with stock's hash
@@ -109,7 +120,7 @@ raise notice 'Cons FOIL: idx:% hash:% prv:% M:%', ch.chain_idx, ch.chain_dgst, c
 
 -- Stock holder:
 -- --------------------------------------------------------------
-      elsif msg->>'cmd' = 'upd' and ta.tally_type = 'stock' then	-- we conform to foil
+      elsif msg->>'cmd' = 'new' and ta.tally_type = 'stock' then	-- we conform to foil
 raise notice 's C:% d:%', mychips.chit_json_h(ch, ta), ch.chain_dgst;
 
         if propIdx = nextIdx then		-- Incoming chit will fit right at the end
@@ -120,7 +131,7 @@ raise notice 'At end conf:% idx:% D:% P:%', ta.chain_conf, ch.chain_idx, ch.chai
 
         elsif propIdx < nextIdx and propIdx > ta.chain_conf then	-- Chit overlaps unconfirmed chits
           ch.chain_idx = propIdx;
-          if prop_idx = 1 then			-- First link of chain
+          if propIdx = 1 then			-- First link of chain
             ch.chain_prev = ta.digest;
           else					-- Regular non-first link
             select into ch.chain_prev chain_dgst from mychips.chits
@@ -128,26 +139,33 @@ raise notice 'At end conf:% idx:% D:% P:%', ta.chain_conf, ch.chain_idx, ch.chai
 raise notice 'Conform conf:% idx:% D:% P:%', ta.chain_conf, ch.chain_idx, ch.chain_dgst, ch.chain_prev;
 --raise notice 'P:% F:% Li:% C:% %-%', ch.chain_prev, found, ch.chain_idx-1, ta.chain_conf, ch.chit_ent, ch.chit_seq;
           end if;
+          ch.chain_dgst = mychips.j2h(mychips.chit_json_h(ch, ta));
 
-          update mychips.chits set		-- Move any chit in our way to end of chain
-            chain_idx = nextIdx,
-            chain_prev = prevDgst,
-            chain_dgst = mychips.j2h(mychips.chit_json_h(mychips.chits, ta)),
-            chain_msg = jsonb_build_object(
-              'cmd',		'upd',
-              'index',	chain_idx,
-              'hash',		mychips.ba2b64v(chain_dgst)
-            )
-            where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq and chit_seq != ch.chit_idx
-            and chain_idx = ch.chain_idx;
+--raise notice 'i:% n:% D:% pD:%', ch.chain_idx, nextIdx, ch.chain_dgst, prevDgst;
+          select into crec * from mychips.chits where chit_ent = ch.chit_ent and chit_seq = ch.chit_seq and chit_idx != ch.chit_idx and chain_idx = ch.chain_idx;
+          if found then			-- Move the chit in our way to end of chain
+            crec.chain_idx = nextIdx;
+            crec.chain_prev = case when nextIdx = ch.chain_idx + 1 then ch.chain_dgst else prevDgst end;
+            crec.chain_dgst = mychips.j2h(mychips.chit_json_h(crec, ta));
+            update mychips.chits set
+              chain_idx = crec.chain_idx, chain_prev = crec.chain_prev, chain_dgst = crec.chain_dgst,
+              chain_msg = jsonb_build_object(
+                'cmd',		'upd',
+--                'index',	crec.chain_idx,
+--                'hash',		mychips.ba2b64v(crec.chain_dgst),
+                'chits',	jsonb_build_array(mychips.chit_json_x(crec, ta))
+              )
+              where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
 if found then raise notice 'Bumped:% -> %', ch.chain_idx, nextIdx; end if;
+          end if;	-- Found conflict
+          
         else					-- No good place to put this chit
           ch.chain_idx = null;
           ch.chain_prev = null;
+          ch.chain_dgst = null;
         end if;
-        ch.chain_dgst = mychips.j2h(mychips.chit_json_h(ch, ta));
 
-        if ch.chain_dgst = propDgst then
+        if ch.chain_dgst = propDgst then	-- If our end of chain hash agrees
           ch.chain_msg = jsonb_build_object(	-- Send ack
             'cmd',	'ack',
             'index',	ch.chain_idx,
@@ -167,10 +185,11 @@ if found then raise notice 'Bumped:% -> %', ch.chain_idx, nextIdx; end if;
           );
         end if;
 raise notice 'Cons STOCK: idx:% hash:% prv:% M:%', ch.chain_idx, ch.chain_dgst, ch.chain_prev, ch.chain_msg;
-      end if;	-- tally type
+      end if;	-- command/tally type
 
       if ratchet then				-- Move chain_conf forward
-        update mychips.tallies set chain_conf = propIdx where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq;
+raise notice 'R:%-% C:%', ch.chit_ent, ch.chit_seq, propIdx;
+        update mychips.tallies set chain_conf = propIdx where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq and chain_conf < propIdx;
       end if;
 
       if ch.status = 'chain' then
@@ -184,9 +203,10 @@ $$;}
 # Process chit chain messages as requested by the peer server process
 #----------------------------------------------------------------
 function {mychips.chain_process(msg jsonb, recipe jsonb)} {
-  mychips.chits
+  mychips.chain_notify_agent(mychips.chits,jsonb)
   mychips.ba2b64v(bytea)
   mychips.b64v2ba(text)
+  mychips.chits
 } {
   returns jsonb language plpgsql as $$
     declare
@@ -200,6 +220,7 @@ function {mychips.chain_process(msg jsonb, recipe jsonb)} {
       trec	record;		-- Holds associated tally
       jrec	jsonb;
       qrec	record;
+      ch	mychips.chits;
     begin
 --raise notice 'Chainproc cid:% msg:% recipe:%', cid, msg, recipe;
       select into trec tally_ent, tally_seq, tally_type, chain_conf, digest from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
@@ -225,45 +246,43 @@ raise notice 'Ack index:%', index;
           select into crec chit_ent, chit_seq, chit_idx, chain_dgst, chain_idx, state from mychips.chits_v
             where chit_ent = trec.tally_ent and chit_seq = trec.tally_seq and chain_idx = index;
           if index > 0 and not found then return null; end if;
---raise notice ' ack C:%-% A:%', crec.chit_ent, crec.chit_seq, index;
-          if mychips.ba2b64v(crec.chain_dgst) = (obj->>'hash') and crec.chain_idx = index then
-            update mychips.tallies set chain_conf = index where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq;
+raise notice ' ack C:%-% eX:% h:%', crec.chit_ent, crec.chit_seq, crec.chain_dgst, mychips.b64v2ba(obj->>'hash');
+          if crec.chain_dgst = mychips.b64v2ba(obj->>'hash') then
+            update mychips.tallies set chain_conf = index where tally_ent = trec.tally_ent and tally_seq = trec.tally_seq and chain_conf < index;
           end if;
         end if;
 
 -- Upd Processor ---------------------------------------------
       elsif cmd = 'upd' and (obj->>'chits') notnull then
 raise notice 'Chain upd:%', obj->'chits';
-        for qrec in select * from (	-- Compare chits the foil sent us
+        for qrec in select * from (		-- Compare chits the foil sent us
             select jsonb_array_elements(obj->'chits') as j
-          ) jc left join (        	-- to all we have on stock end
+          ) jc left join (        		-- to all we have on this end
             select * from mychips.chits
               where chit_ent = trec.tally_ent and chit_seq = trec.tally_seq
               and status = 'good' 		-- and chain_idx > trec.chain_conf
           ) c on c.digest = mychips.b64v2ba(jc.j->>'hash')
           order by jc.j->'chain'->'index'
         loop
-raise notice '  chain upd:% D:% J:%', qrec.chain_idx, qrec.digest, qrec.j;
-
           index = (qrec.j->'chain'->'index')::int;
+raise notice '  upd:% X:% D:% J:%', qrec.chain_idx, index, qrec.digest, qrec.j;
 
           if qrec.chain_idx = index then	-- We already have this chit OK
 raise notice 'OK % %=%', qrec.j->'units', qrec.chain_idx, index;
             continue;
           end if;
 
---          update mychips.chits set chain_idx = null where chit_ent = trec.tally_ent and chit_seq = trec.tally_seq and chain_idx = index;	-- Bump any provisionally linked chit in our way
-          if qrec.chit_ent isnull then		-- We are missing this chit which the foil has
+          if qrec.chit_ent isnull then		-- We are missing a chit the other side has
 raise notice 'ADD % @:% M:%', qrec.j->'units', index, qrec.j->'chain';
             insert into mychips.chits (
               chit_ent,chit_seq,chit_uuid,chit_date,status,
-              signature,issuer,units,reference,memo,chain_msg		-- chain_dgst,chain_idx
+              signature,issuer,units,reference,memo,chain_msg
             ) values (
               trec.tally_ent, trec.tally_seq, (qrec.j->>'uuid')::uuid,
               (qrec.j->>'date')::timestamptz, 'chain',
               qrec.j->>'signed', (qrec.j->>'by')::tally_side, (qrec.j->>'units')::bigint, 
-              qrec.j->'ref', qrec.j->>'memo', qrec.j->'chain'		-- mychips.b64v2ba(qrec.j->'chain'->>'hash'), index
-            ) returning * into crec;
+              qrec.j->'ref', qrec.j->>'memo', qrec.j->'chain'
+            ) returning * into ch;
             didit = true;
 
           else		-- Otherwise, we just need to apply the foil's version of the chain index
@@ -273,25 +292,45 @@ raise notice 'INDEX % %->% M:%', qrec.j->'units', qrec.chain_idx, index, qrec.j-
               chain_msg = qrec.j->'chain',
               chain_prev = null, status = 'chain'
               where chit_ent = qrec.chit_ent and chit_seq = qrec.chit_seq and chit_idx = qrec.chit_idx
-              returning * into crec;
+              returning * into ch;
             didit = true;
           end if;
---          ratchet = true;
         end loop;
+
+raise notice 'Done upd:% X:% D:% O:% Q:%', didit, ch.chain_idx, ch.chain_dgst, obj, qrec;
         if didit then
+raise notice 'A: ch:% b:% c:%', ch.chain_dgst, mychips.b64v2ba(qrec.j->'chain'->>'hash'), obj->'hash';
+--          if ch.chain_dgst = mychips.b64v2ba(obj->>'hash') then		-- Ending hash agrees
+          if ch.chain_dgst = mychips.b64v2ba(qrec.j->'chain'->>'hash') then	-- Ending hash agrees
+            perform mychips.chain_notify_agent(ch, jsonb_build_object(
+              'cmd',	'ack',
+              'index',	ch.chain_idx,
+              'hash',	mychips.ba2b64v(ch.chain_dgst)
+            ));
+raise notice 'B:%-% C:%', ch.chit_ent, ch.chit_seq, ch.chain_idx;
+            update mychips.tallies set chain_conf = ch.chain_idx where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq and chain_conf < ch.chain_idx;
+raise notice 'b:%', found;
+raise notice 'b:%', (select chain_conf from mychips.tallies where tally_ent = ch.chit_ent and tally_seq = ch.chit_seq);
+          else
+            perform mychips.chain_notify_agent(ch, jsonb_build_object(
+              'cmd',	'nak',
+              'index',	obj->'index'
+            ));
+          end if;
+
           for qrec in select * from mychips.chits where status = 'good' and chain_idx isnull loop
 raise notice 'Stray: %-%-% %', qrec.chit_ent, qrec.chit_seq, qrec.chit_idx, qrec.units;
           end loop;
         end if;
         
-      end if;
+      end if;		-- Update
       return to_jsonb('OK'::text);
     end;
 $$;}
 
 # Notify the peer server process about chit chain messages that need to go out
 #----------------------------------------------------------------
-function {mychips.chain_notify_agent(ch mychips.chits)} {mychips.chits} {
+function {mychips.chain_notify_agent(ch mychips.chits, msg jsonb = null)} {mychips.chits} {
   returns boolean language plpgsql security definer as $$
     declare
         channel	text	= 'mychips_agent';
@@ -308,7 +347,7 @@ function {mychips.chain_notify_agent(ch mychips.chits)} {mychips.chits} {
           'action',	'chain',
           'to',		trec.part_chad,
           'from',	trec.hold_chad,
-          'object',	'{"cmd":"upd"}'::jsonb || ch.chain_msg || jsonb_build_object(
+          'object',	coalesce(msg, ch.chain_msg) || jsonb_build_object(
             'tally',	trec.tally_uuid,
             'uuid',	ch.chit_uuid
           )

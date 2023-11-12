@@ -24,7 +24,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   var serverO, serverS
   var busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
-  var seqO = reuse ? 2 : 1
+  var seqS = 1, seqO = reuse ? 2 : 1
   
   const getSignature = function(db, user, seq, done) {
     let sql = sSql('t.json_core, u.user_cmt', user, seq)	//;log.debug('sql:', sql)
@@ -259,7 +259,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     let cmt = 'Revised offer'
       , type = 'stock'
       , sql = uSql('comment = %L, tally_type = %L', cmt, type, userS, 1)
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.strictEqual(row.request, null)
@@ -333,6 +333,23 @@ log.debug("Sql:", sql)
     })
   })
 
+  it("Wait for consensus to settle", function(done) {setTimeout(done, 250)})
+
+  it("Verify chain confirmation initialized", function(done) {
+    let sql = `select state,chain_conf from mychips.tallies_v where tally_ent = $1 and tally_seq = $2;`
+      , dc = 2, _done = () => {if (!--dc) done()}
+    dbO.query(sql, [userO, seqO], (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("O row:", row)
+      assert.equal(row.chain_conf, 0)
+      _done()
+    })
+    dbS.query(sql, [userS, seqS], (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("S row:", row)
+      assert.equal(row.chain_conf, 0)
+      _done()
+    })
+  })
+
   if (saveName) it("Save open tallies for later chit test", function(done) {
     let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(save(saveName), (e) => {if (e) done(e); _done()})
@@ -355,7 +372,7 @@ log.debug("Sql:", sql)
 
   it("Verify request flag got reset", function(done) {
     let sql = `select request,state,chain_conf from mychips.tallies_v where tally_ent = $1 and tally_seq = $2;`
-    dbS.query(sql, [userS, 1], (e, res) => {if (e) done(e)
+    dbS.query(sql, [userS, seqS], (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("S row:", row)
       assert.strictEqual(row.request, null)
       assert.equal(row.state, 'open')
@@ -423,7 +440,6 @@ log.debug("Sql:", sql, parms)
     dbS.query(sql, parms, (err, res) => {
       let row = getRow(res, 0)			;log.debug("row:", row)
       assert.equal(row.tries, 1)
-      delete serverS.failSend			//Clear forced failure mode
       done()
     })
   })

@@ -6,7 +6,9 @@ X-  Amend docs with new messages
 X-  Step back through regression tests, applying new logic
 X-  tally tests work
 X-  chit tests work
--  chain tests work
+X-  Basic chain tests work
+-  Call functions for common procedures
+-  Advanced chain tests work
 -  
 - Prior chit consensus TODO's (still relevant?):
 X-  Attempt to move all chain-related data into a sub-property (chitcon1 branch)
