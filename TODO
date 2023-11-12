@@ -7,12 +7,13 @@ X-  Step back through regression tests, applying new logic
 X-  tally tests work
 X-  chit tests work
 X-  Basic chain tests work
--  Call functions for common procedures
+X-  Call functions for common procedures
 -  Advanced chain tests work
 -  
 - Prior chit consensus TODO's (still relevant?):
 X-  Attempt to move all chain-related data into a sub-property (chitcon1 branch)
 X-  Rename ack -> ack nak req syn err?
+X-  Should a chit go to 'good' status locally, not waiting for peer transmission?
 -  Test: multiple chits on both sides before network restored
 -  Test: stock loses some/all of its chits
 -  Test: foil loses some/all of its chits
@@ -21,7 +22,6 @@ X-  Rename ack -> ack nak req syn err?
 -  Is tally consensus state field useful?
 -  Stock can retry if/when consensus not yet reached
 -  Stock can request hash check at any time?
-X-  Should a chit go to 'good' status locally, not waiting for peer transmission?
 
 - Tally negotiation
 -  Test for changing tally_type during negotiation
