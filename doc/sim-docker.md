@@ -49,7 +49,7 @@ entities meet each other and exchange information outside the MyCHIPs network.
 It is not a part of the production software but is used only as part of the
 simulation.
 
-There is also a "devel" container which contains a Fedora Linux instance primarily
+There is also a "devel" container which contains a Linux instance primarily
 used for development tasks such as updating the database schema in between runs
 of the simulation (say, in the case where you have made schema programming
 changes). You can launch a shell on the devel container to examine the
@@ -76,6 +76,12 @@ If you are running natively under Linux, you may be able to do this to accomplis
   npm install
   npm run develop
 ```
+Keep in mind, the node_modules folder just created will be accessed by the running mychips server
+under the client OS in the docker container.  It will also be accessed by node.js utilities (like wyseman)
+running on the devel container.  If these are different operating systems (like Fedora and Ubuntu) certain
+binary packages (like node-tcl) may not be compatible across the two systems.  In this case, certain
+maintence tasks (like rebuilding the database) could be a problem.  The current docker scripts use
+Ubuntu in both cases to avoid this issue.
 
 To get the simulator started, run the following commands from the test/sim directory:
 ```

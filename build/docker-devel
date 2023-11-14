@@ -1,18 +1,27 @@
 # Build docker OS image optimized for MyCHIPs development maintenance
 # This image should be capable of rebuilding mychips/schema and/or
 # issuing psql commands to a running postgres database.
-# Currently loading node version 16
 #Usage: docker image build .
 
-ARG version=35
-FROM fedora:${version}
-
-RUN	dnf update -y; \
-	dnf install -y nodejs postgresql; \
-	dnf install -y make ruby rubygem-pg rubygem-tk tcllib tcl-devel; \
-	dnf install -y net-tools iputils traceroute; \
-	dnf install -y busybox; busybox --install -s
-
+#ARG version=35
+#FROM fedora:${version}
+#
+#RUN	dnf update -y; \
+#	dnf install -y nodejs postgresql; \
+#	dnf install -y make ruby rubygem-pg rubygem-tk tcllib tcl-devel; \
+#	dnf install -y net-tools iputils traceroute; \
+#	dnf install -y busybox; busybox --install -s
+#
 #Install later node version:
 #	npm install -g n; \
 #	n install 16
+
+ARG version=18
+FROM node:${version}
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y; \
+    apt-get install -y nodejs npm postgresql; \
+    apt-get install -y make ruby-full libpq-dev tk8.6-dev tcl-dev; \
+    apt-get install -y net-tools iputils-ping traceroute; \
+    apt-get install -y busybox; busybox --install -s

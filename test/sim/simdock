@@ -374,7 +374,7 @@ function stop_logs {
   stop log all "$@"
 }
 
-#Call the simulation script function in sim-c.sh from within the devel container
+#Call the simulation script function in sim-c.sh from within the remote container
 #-------------------------------------------------------------------------------
 function remote {
   local cmd="${1:-dbcheck}"; shift
@@ -383,8 +383,8 @@ function remote {
   cmdstrg="SITE=$SITE NODE_DEBUG=$NODE_DEBUG wsports=$wsports spaports=$spaports \
     newusers=$newusers admin=$admin dbname='$dbname' \
     ${mysim}/sim-c.sh $cmd $(encode "$@")"
-#echo "docker exec devel bash -c '$cmdstrg'"
-  docker exec devel bash -c "$cmdstrg"
+#echo "docker exec $remcont bash -c '$cmdstrg'"
+  docker exec $remcont bash -c "$cmdstrg"
 }
 
 #Run a command on one or many containers
@@ -434,7 +434,7 @@ echo "Building docker image: $fullname"
     docker network create $netname
   fi
 
-  start_devel
+  if [[ $remcont = 'devel' ]]; then start_devel; fi
   start_mongo
   if [[ $1 != '-n' ]]; then	#Suppress launching sites
     start sites
@@ -465,7 +465,7 @@ function shutdown {
   stop_logs mychips
   stop_logs pg
   stop mongo
-  stop devel
+  if [[ $remcont = 'devel' ]]; then stop devel; fi
 }
 
 #Query the mongo database
