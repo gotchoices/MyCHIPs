@@ -1,7 +1,6 @@
 #Views to parse locally held tallies into traversable lift pathways
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-def BigInt 9223372036854775807
 
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
 #----------------------------------------------------------------

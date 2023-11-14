@@ -12,6 +12,7 @@ const Stringify = require('json-stable-stringify')
 const Uuid = require('uuid')
 const assert = require('assert');
 const Bus = require('../bus')
+const PeerCont = require("../../lib/peer2peer")
 const Crypto = require('../../lib/crypto.js')
 const DBName = process.env.MyCHIPS_TESTDB ?? "mychipsTestDB"
 const dockName = 'mychipsTestPG'
@@ -141,6 +142,31 @@ log.debug("Taking down docker PG")
 //    }, (e,out,err) => {
 //      if (e) done(e); done()
 //    })
+  },
+
+  peerTest: function(aConf, dConf) {		//Make a peer server with failure test modes
+    let serv = new PeerCont(aConf, dConf)
+      , oldTransmit = serv.peerTransmit.bind(serv)
+      , newTransmit = function(msg, successCB, failureCB) {
+this.log.debug("Test peerTransmit", msg.from.cid, '->', msg.to.cid, msg.to.agent)
+          if (this.failSend) {				//Force transmission failure
+            let c0 = this.failSend.charAt()
+            if (c0 == 's' && successCB) successCB()	//Indicate success without sending
+            if (c0 == 'f' && failureCB) failureCB()	//Indicate failure as though peer not reach
+this.log.debug("Generated error: suppressing send!", this.failSend)
+            if (this.failCount && this.failCount > 1) {
+
+              this.failCount--				//;this.log.debug("FailCount", this.failCount)
+            } else {
+              delete this.failSend			//Clear failure mode
+              delete this.failCount
+            }
+          } else {
+            return oldTransmit(msg, successCB, failureCB)
+          }
+        }
+    serv.peerTransmit = newTransmit		//Replace original method
+    return serv
   },
 
   queryJson: function(fileBase, db, sql, done, rows = 1, write = false) {

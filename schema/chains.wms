@@ -152,11 +152,11 @@ raise notice 'Ack with Stock hash:%', ch.chain_dgst;
         else					-- stock's hash doesn't look right
 raise notice 'Notify Stock %-%-% hash:%', propConf, propIdx, nextIdx, ch.chain_dgst;
           select into jrec jsonb_agg(json_chain) from (		-- List chits the stock has wrong
-            select json_chain from mychips.chits_v where
+            select json_chain from mychips.chits_v where status = 'good' and
               chain_idx between least(propConf+1, ta.chain_conf+1, propIdx) and ch.chain_idx-1
               and chit_ent = ch.chit_ent and chit_seq = ch.chit_seq order by chain_idx
           ) s;
-          ch.chain_msg = mychips.msg_upd(jrec || mychips.chit_json_r(ch,ta));	-- Include the present chit
+          ch.chain_msg = mychips.msg_upd(jrec || mychips.chit_json_x(ch,ta));	-- Include the present chit
         end if;		-- agree with stock's hash
 raise notice 'Cons FOIL: idx:% hash:% prv:% M:%', ch.chain_idx, ch.chain_dgst, ch.chain_prev, ch.chain_msg;
 
@@ -230,16 +230,19 @@ function {mychips.chain_process(msg jsonb, recipe jsonb)} {
       agent	text	= msg->'to'->>'agent';
       obj	jsonb	= msg->'object';
       cmd	text	= obj->>'cmd';
+      obDgst	bytea	= mychips.b64v2ba(obj->>'hash');
+      jcDgst	bytea;
       index	int4;
       didit	boolean = false;
-      crec	record;		-- Holds chit record(s)
-      trec	record;		-- Holds associated tally
+      crec	record;			-- Holds chits_v record
+      trec	mychips.tallies;	-- Holds associated tally
       jrec	jsonb;
       qrec	record;
       ch	mychips.chits;
     begin
 --raise notice 'Chainproc cid:% msg:% recipe:%', cid, msg, recipe;
-      select into trec tally_ent, tally_seq, tally_type, chain_conf, digest from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
+      select into trec * from mychips.tallies
+        where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid and status = 'open';
       if not found then return null; end if;
 raise notice 'Chainproc T:%-% cid:% conf:% cmd:% R:%', trec.tally_ent, trec.tally_seq, cid, trec.chain_conf, cmd, recipe;
 
@@ -255,15 +258,15 @@ raise notice 'Chainproc T:%-% cid:% conf:% cmd:% R:%', trec.tally_ent, trec.tall
         index = obj->>'index';
 raise notice 'Ack index:%', index;
         if index = 0 then		-- Special case for tally, block 0
-          if mychips.ba2b64v(trec.digest) = (obj->>'hash') then
+          if trec.digest = obDgst then
             perform mychips.chain_ratchet(trec.tally_ent, trec.tally_seq, index);
           end if;
         else
           select into crec chit_ent, chit_seq, chit_idx, chain_dgst, chain_idx, state from mychips.chits_v
             where chit_ent = trec.tally_ent and chit_seq = trec.tally_seq and chain_idx = index;
           if index > 0 and not found then return null; end if;
-raise notice ' ack C:%-% eX:% h:%', crec.chit_ent, crec.chit_seq, crec.chain_dgst, mychips.b64v2ba(obj->>'hash');
-          if crec.chain_dgst = mychips.b64v2ba(obj->>'hash') then
+raise notice ' ack C:%-% eX:% h:%', crec.chit_ent, crec.chit_seq, crec.chain_dgst, obDgst;
+          if crec.chain_dgst = obDgst then
             perform mychips.chain_ratchet(trec.tally_ent, trec.tally_seq, index);
           end if;
         end if;
@@ -278,12 +281,14 @@ raise notice 'Chain upd:%', obj->'chits';
               where chit_ent = trec.tally_ent and chit_seq = trec.tally_seq
               and status = 'good' 		-- and chain_idx > trec.chain_conf
           ) c on c.digest = mychips.b64v2ba(jc.j->>'hash')
-          order by jc.j->'chain'->'index'
+          order by jc.j->'chain'->>'index' asc nulls last, c.chain_idx, c.chit_idx
         loop
           index = (qrec.j->'chain'->'index')::int;
-raise notice '  upd:% X:% D:% J:%', qrec.chain_idx, index, qrec.digest, qrec.j;
+          jcDgst = mychips.b64v2ba(qrec.j->'chain'->>'hash');
+raise notice '  upd: eX:% mX:% D:% J:%', qrec.chain_idx, index, qrec.digest, qrec.j;
+          if index isnull then continue; end if;	-- Bad info in update 
 
-          if qrec.chain_idx = index then	-- We already have this chit OK
+          if qrec.chain_idx = index and qrec.digest = jcDgst then 	-- We already have this chit OK?
 raise notice 'OK % %=%', qrec.j->'units', qrec.chain_idx, index;
             continue;
           end if;
@@ -301,7 +306,7 @@ raise notice 'ADD % @:% M:%', qrec.j->'units', index, qrec.j->'chain';
             ) returning * into ch;
             didit = true;
 
-          else		-- Otherwise, apply the partner's version of the chain index
+          elsif index notnull then		-- Otherwise, apply the partner's version of the chain index
 raise notice 'INDEX % %->% M:%', qrec.j->'units', qrec.chain_idx, index, qrec.j->'chain';
             update mychips.chits set
               chain_msg = qrec.j->'chain',
@@ -314,23 +319,28 @@ raise notice 'INDEX % %->% M:%', qrec.j->'units', qrec.chain_idx, index, qrec.j-
 
 raise notice 'Done upd:% X:% D:% O:% Q:%', didit, ch.chain_idx, ch.chain_dgst, obj, qrec;
         if didit then
-raise notice 'A: ch:% b:% c:%', ch.chain_dgst, mychips.b64v2ba(qrec.j->'chain'->>'hash'), obj->'hash';
-          if ch.chain_dgst = mychips.b64v2ba(qrec.j->'chain'->>'hash') then	-- Ending hash agrees
+--raise notice 'A: ch:% b:% c:%', ch.chain_dgst, jcDgst, obj->'hash';
+          if ch.chain_dgst = jcDgst then	-- Ending hash agrees
 
-raise notice 'B:%-% C:%', ch.chit_ent, ch.chit_seq, ch.chain_idx;
+--raise notice 'B:%-% C:%', ch.chit_ent, ch.chit_seq, ch.chain_idx;
             perform mychips.chain_notify_agent(ch, mychips.msg_ack(ch.chain_idx, ch.chain_dgst));
             perform mychips.chain_ratchet(ch.chit_ent, ch.chit_seq, ch.chain_idx);
           else
             perform mychips.chain_notify_agent(ch, mychips.msg_nak((obj->'index')::int));
           end if;
 
-          for qrec in select * from mychips.chits where status = 'good' and chain_idx isnull loop
-raise notice 'Stray: %-%-% %', qrec.chit_ent, qrec.chit_seq, qrec.chit_idx, qrec.units;
-          end loop;
-        end if;
-        
+          with updated as (		-- Any chits still left unchained?
+            update mychips.chits set status = 'chain'
+            where status = 'good' and chain_msg isnull and chain_idx isnull
+            and chit_ent = ch.chit_ent and chit_seq = ch.chit_seq returning *
+          ) select jsonb_agg(mychips.chit_json_x(u.*, trec)) into jrec from updated u;
+          if found and jrec notnull then
+raise notice 'Strays: %-%-% M:%', ch.chit_ent, ch.chit_seq, ch.chit_idx, jrec;
+            perform mychips.chain_notify_agent(ch, mychips.msg_upd(jrec));
+          end if;	-- found strays
+        end if;		-- Did insert/updates
       end if;		-- Update
-      return to_jsonb('OK'::text);
+      return to_jsonb(true);
     end;
 $$;}
 

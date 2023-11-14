@@ -97,7 +97,7 @@ describe("Test chit state transitions", function() {
       , msg = {to: {cid, agent}, object: interTest.chit}
     interTest.pSql = (logic, uuid) => {
       if (uuid) {msg.object.uuid = uuid}
-      return Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+      return Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
     }
   })
 
@@ -106,7 +106,7 @@ describe("Test chit state transitions", function() {
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.state, 'A.pend')
+      assert.equal(row.cs?.status, 'pend')
       done()
     })
   })
@@ -120,7 +120,7 @@ describe("Test chit state transitions", function() {
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)				//;log.debug("row:", row)
-      assert.equal(row.state, 'A.void')
+      assert.equal(row.cs?.status, 'void')
       done()
     })
   })
@@ -156,11 +156,11 @@ describe("Test chit state transitions", function() {
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)				//;log.debug("row:", row)
-      assert.equal(row.state, 'A.good')
+      assert.equal(row.cs?.status, 'good')
       done()
     })
   })
@@ -172,11 +172,11 @@ describe("Test chit state transitions", function() {
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("A row:", row)
-      assert.equal(row.state, 'A.good')
+      assert.equal(row.cs?.status, 'good')
       done()
     })
   })
@@ -229,11 +229,11 @@ describe("Test chit state transitions", function() {
       , logic = {context: ['null','L.void','L.pend'], upsert: {status: 'pend'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.state, 'L.pend')
+      assert.equal(row.cs?.status, 'pend')
       interTest.chit = object			//Now dealing with this chit
       done()
     })
@@ -265,7 +265,7 @@ describe("Test chit state transitions", function() {
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.state, 'L.void')
+      assert.equal(row.cs?.status, 'void')
       done()
     })
   })
@@ -278,11 +278,11 @@ describe("Test chit state transitions", function() {
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.state, 'A.good')
+      assert.equal(row.cs?.status, 'good')
       done()
     })
   })
@@ -312,7 +312,7 @@ describe("Test chit state transitions", function() {
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.state, 'L.good')
+      assert.equal(row.cs?.status, 'good')
       done()
     })
   })
@@ -367,11 +367,11 @@ describe("Test chit state transitions", function() {
   it("Agent transmits settings, confirms change to good (L.pend.good -> L.good)", function(done) {
     let msg = {to: interTest.from, object: interTest.chit}
       , logic = {context: ['L.pend.good'], update: {status: 'good'}}
-      , sql = Format(`select mychips.chit_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.state, 'L.good')
+      assert.equal(row.cs?.status, 'good')
       done()
     })
 //    busA.register('pa', (msg) => {		log.debug('BusA:', msg, msg.to, msg.from)

@@ -352,11 +352,11 @@ function {mychips.chit_json_o(ch mychips.chits, ta mychips.tallies)} {
   mychips.chits
 } {
   returns jsonb stable language sql as $$
-    select jsonb_build_object(
+    select jsonb_strip_nulls(jsonb_build_object(
       'index',	ch.chain_idx,
       'hash',	mychips.ba2b64v(ch.chain_dgst),
       'conf',	ta.chain_conf
-    )
+    ))
 $$;} -grant mychips
 
 # Compute chit json for chaining consensus dialogs

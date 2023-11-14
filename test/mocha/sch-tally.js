@@ -99,11 +99,11 @@ describe("Test tally state transitions", function() {
     let logic = {context: ['draft.offer'], update: {status: 'offer'}}
       , { cid, agent } = interTest.m.from
       , msg = {to: {cid, agent}, object: interTest.m.object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'H.offer')
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", res.row)
+      assert.equal(row.ts?.status, 'offer')
       done()
     })
   })
@@ -118,11 +118,11 @@ describe("Test tally state transitions", function() {
       , logic = {context: ['null','void','H.offer','P.offer'], upsert: true}
       , { cid, agent } = interTest.m.from
       , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'P.offer')
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.ts?.status, 'offer')
       done()
     })
   }
@@ -152,11 +152,11 @@ describe("Test tally state transitions", function() {
     let logic = {context: ['offer.void'], update: {status: 'void'}}
       , { cid, agent } = interTest.m.from
       , msg = {to: {cid, agent}, object: interTest.m.object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'void')
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.ts?.status, 'void')
       done()
     })
   })
@@ -222,11 +222,11 @@ describe("Test tally state transitions", function() {
     let logic = {context: ['offer.draft'], update: {status: 'draft'}}
       , { cid, agent } = interTest.m.from
       , msg = {to: {cid, agent}, object: interTest.m.object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'P.draft')
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.ts?.status, 'draft')
       done()
     })
   })
@@ -257,11 +257,11 @@ describe("Test tally state transitions", function() {
       , logic = {context: ['H.offer'], update: {status: 'void'}}
       , { cid, agent } = interTest.m.from
       , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'void')
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.ts?.status, 'void')
       done()
     })
   })
@@ -276,11 +276,11 @@ describe("Test tally state transitions", function() {
       , logic = {context: ['H.offer'], upsert: true, update: {status: 'open'}}
       , { cid, agent } = interTest.m.from
       , msg = {to: {cid, agent}, object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'open')
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.ts?.status, 'open')
       done()
     })
   })
@@ -309,11 +309,11 @@ describe("Test tally state transitions", function() {
     let logic = {context: ['offer.open'], update: {status: 'open'}}
       , { cid, agent } = interTest.m.from
       , msg = {to: {cid, agent}, object: interTest.m.object}
-      , sql = Format(`select mychips.tally_process(%L,%L) as state;`, msg, logic)
+      , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
-    dbA.query(sql, null, (e, res) => { if (e) done(e)	//;log.debug("res:", res.rows[0])
-      let row = getRow(res, 0)
-      assert.equal(row.state, 'open')
+    dbA.query(sql, null, (e, res) => { if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
+      assert.equal(row.ts?.status, 'open')
       done()
     })
   })
@@ -325,7 +325,7 @@ describe("Test tally state transitions", function() {
   it("User request to resend good tally (open -> open.open)", function(done) {
     let sql = uSql(`request = 'open'`, interTest.t.tally_ent, interTest.t.tally_seq)
       , dc = 2, _done = () => {if (!--dc) done()}
-log.debug("Sql M:", sql)
+//log.debug("Sql M:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
       let row = getRow(res, 0)
       assert.equal(row.state, 'open.open')

@@ -10,3 +10,4 @@ namespace eval base {
 }
 
 #define unitMultiplier 1000
+set BigInt 9223372036854775807

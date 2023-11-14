@@ -57,6 +57,8 @@ tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each ch
   {action	{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
   {json_core	{JSON Core}		{A JSON representation of the parts of the chit transaction that will be digitally hashed and signed}}
   {json		{JSON}			{A JSON representation of the chit transaction, including the digital hash}}
+  {chain	{Chain Message}		{Chit chaining consensus data}}
+  {json_chain	{JSON w Chain}		{A JSON representation of the chit used for consensus messages}}
   {hash_v	{Computed Digest}	{A version of the hash digest computed from scratch each time it is fetched (to be compared to the stored version)}}
   {clean	{Clean}			{Indicates that the stored hash matches the computed hash.  This is an indication that the record has not been tampered with.}}
   {cstate	{Consensus State}	{The state of the chit as defined for the consensus algorithm}}

@@ -9,10 +9,9 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify, markLogs} = require('./common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify, peerTest, markLogs} = require('./common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
-const PeerCont = require("../../lib/peer2peer")
 const PeerNoise = require("../../lib/peernoise")
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
@@ -58,8 +57,8 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   before('Launch two peer servers', function(done) {
-    serverO = new PeerCont(aConO, dbcSO)		//Smith
-    serverS = new PeerCont(aConS, dbcSS)		//Madison
+    serverO = new peerTest(aConO, dbcSO)		//Smith
+    serverS = new peerTest(aConS, dbcSS)		//Madison
     done()
   })
 

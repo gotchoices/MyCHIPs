@@ -6,9 +6,8 @@
 // User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
 //- 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs } = require('./common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, peerTest, markLogs } = require('./common')
 var log = testLog(__filename)
-const PeerCont = require("../../lib/peer2peer")
 var defTally = require('./def-tally')
 var defChit = require('./def-chit')
 var {uSql, save, rest} = require('./def-chit')
@@ -35,8 +34,8 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
 
   before('Launch two peer servers', function(done) {
-    serverO = new PeerCont(aConO, dbcSO)
-    serverS = new PeerCont(aConS, dbcSS)
+    serverO = new peerTest(aConO, dbcSO)
+    serverS = new peerTest(aConS, dbcSS)
     done()
   })
 
@@ -139,14 +138,13 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
     serverO.failSend = 'success'		//Force: fail to transmit but indicate success
     addChit(dbO, 'stock', 60, userO, interTest.talO.tally_seq, _done)
-    busO.register('po', (msg) => {		log.debug("O user msg:", msg, msg.object)
+    busO.register('po', (msg) => {		//log.debug("O user msg:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
       assert.equal(msg.index, 5)
       _done()
     })
   })
 
-it("Mark the log files", function(done) {markLogs(dbO, log, done)})
   it("Foil (Subject) sends a payment", function(done) {
     let units = 50
       , dc = 3, _done = () => {if (!--dc) done()}
@@ -170,26 +168,28 @@ it("Mark the log files", function(done) {markLogs(dbO, log, done)})
   it("Compare resulting chit chains", function(done) {
     setTimeout(c => compChains(done), 500)	//Allow consensus to settle
   })
-/*
+
   it("Stock/foil send multiple payments that don't arrive", function(done) {
     let dc = 8, _done = () => {if (!--dc) done()}	//dc _done's to be done
-    serverO.failSend = 'success'
     serverS.failSend = 'success'
+    serverS.failCount = 2
     addChit(dbS, 'foil', 70, userS, interTest.talS.tally_seq, _done)
     addChit(dbS, 'foil', 80, userS, interTest.talS.tally_seq, _done)
+
+    serverO.failSend = 'success'
+    serverO.failCount = 2
     addChit(dbO, 'stock', 100, userO, interTest.talO.tally_seq, _done)
     addChit(dbO, 'stock', 110, userO, interTest.talO.tally_seq, _done)
-    busO.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
+    busO.register('po', (msg) => {		log.debug("O user m7:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
       _done()
     })
-    busS.register('po', (msg) => {		//log.debug("S user msg:", msg, msg.object)
+    busS.register('po', (msg) => {		log.debug("S user m7:", msg, msg.object)
       assert.equal(msg.state, 'L.good')
       _done()
     })
   })
-/*
-it("Mark the log files", function(done) {markLogs(dbO, log, done)})
+
   it("Stock (Originator) sends a payment", function(done) {
     let dc = 3, _done = () => {if (!--dc) done()}
     addChit(dbO, 'stock', 90, userO, interTest.talO.tally_seq, _done)
@@ -206,7 +206,7 @@ it("Mark the log files", function(done) {markLogs(dbO, log, done)})
   it("Compare resulting chit chains", function(done) {
     setTimeout(c => compChains(done), 500)	//Allow consensus to settle
   })
-/*
+
   it("Check chain integrity using mychips.chits_v_chains", function(done) {
     let sql = 'select ok from mychips.chits_v_chains where last and ent = $1'
       , dc = 2, _done = () => {if (!--dc) {done()}}
@@ -256,5 +256,5 @@ describe("Chit chain consensus", function() {
   }
 
   describe("Test chit consensus between two users on same site", function() {Suite1(config1)})
-//  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
+  describe("Test chit consensus between two users on different sites", function() {Suite1(config2)})
 })

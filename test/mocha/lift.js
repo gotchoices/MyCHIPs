@@ -63,9 +63,9 @@ describe("Peer-to-peer lift testing", function() {
   it("Search/create new circuit lift request", function(done) {
     let sql = `select mychips.lift_clear_dist();`
       , dc = 5, _done = () => {if (!--dc) done()}	//_done's to be done
-//log.debug("Sql:", sql)
-    dbL.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("Q res:", res.rows[0])
-      let row = getRow(res, 0)
+log.debug("Sql:", sql)
+    dbL.query(sql, null, (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("Q row:", row)
       assert.equal(row.lift_clear_dist, 1)
       _done()
     })
@@ -88,21 +88,21 @@ describe("Peer-to-peer lift testing", function() {
           rr as (select uuids from mychips.routes_v_paths where foro and edges = 1 and inp_cid = %L)
           insert into mychips.lifts (lift_type, circuit, request, units, tallies, find)
           select 'org', true, 'init', %s, rr.uuids, %L from rr returning *;`, cidd, units, find)
-      , dc = 8, _done = () => {if (!--dc) done()}	//_done's to be done
+      , dc = 4, _done = () => {if (!--dc) done()}	//_done's to be done
 //log.debug("Sql:", sql)
-    dbR.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
-      let row = getRow(res, 0)
+    dbR.query(sql, null, (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			//;log.debug("R row:", row)
       assert.equal(row.request, 'init')
       assert.equal(row.status, 'draft')
       _done()
     })
     busL.register('pl', (msg) => {		//log.debug("L msg:", msg)
-      assert.equal(msg.target, 'tallies')	//Capture events (2) when tallies/totals udpated
+      assert.equal(msg.target, 'tallies')	//Capture event when tallies/totals udpated
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })
     busR.register('pr', (msg) => {		//log.debug("R msg:", msg)
-      assert.equal(msg.target, 'tallies')	//Six updates on remote site
+      assert.equal(msg.target, 'tallies')	//Two updates on remote site
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })

@@ -1,36 +1,27 @@
 TODO:
 
 - Chit consensus
-X-  Branch chitcon2: Redefine chit consensus method around 4 basic messages
-X-  Amend docs with new messages
-X-  Step back through regression tests, applying new logic
-X-  tally tests work
-X-  chit tests work
-X-  Basic chain tests work
-X-  Call functions for common procedures
--  Advanced chain tests work
--  
-- Prior chit consensus TODO's (still relevant?):
 X-  Attempt to move all chain-related data into a sub-property (chitcon1 branch)
-X-  Rename ack -> ack nak req syn err?
-X-  Should a chit go to 'good' status locally, not waiting for peer transmission?
--  Test: multiple chits on both sides before network restored
--  Test: stock loses some/all of its chits
--  Test: foil loses some/all of its chits
--  Implement error state in chit consensus
--  Test for case where both sides have backlog of unchained chits
+X-  Existing regression tests still work
+X-  Why is one chit still left in pending state after tests?
+-  Advanced chain tests work:
+X-   multiple chits on both sides before network restored
+-   stock loses some/all of its chits
+-   foil loses some/all of its chits
+-   Implement error state?
 -  Is tally consensus state field useful?
 -  Stock can retry if/when consensus not yet reached
 -  Stock can request hash check at any time?
+-  How to repair broken chits on mychips.net
+-  Update existing code to honor chain state (honor how?)
+-   Only _process commands if in appropriate cstate?
+-  Notify user (or admin?) when a consensus reached on a tally/chit?
+-    So we don't have to timeout in tests
 
 - Tally negotiation
 -  Test for changing tally_type during negotiation
-X-  Implement a tally consensus query/reply message
 -  Regression test for: opened tally doesn't register to other side
 -  Can recover from unknown tally states (H.offer.open)
-X-  Can we fire chit consensus at end of tally open to ack tally?
-X-   If we are the first to open tally, we mark as unconsensed, wait for consensus ack
-X-   If we respond to tally open, we mark as consensed, initiate consensus ack
 -  App signs tally in both directions
 -  Are tallies signed in the app passing the validation in lib/tally.js?
 -  Can/should we validate tally signatures in the DB anywhere?
@@ -47,16 +38,6 @@ X-  Build query/function with user permission for seeking available paths
 -  
 - Scan any hand notes 2021-2022
 - Add reset and submit buttons for Trading Variables report (in user's language)
--  
-- Chit consensus
--  How to repair broken chits on mychips.net
--  Why is one chit still left in pending state after tests?
--  Update existing code to honor chain state (honor how?)
--    Only _process commands if in appropriate cstate?
--  Existing regression tests still work
--  Notify user (or admin?) when a consensus reached on a tally/chit?
--    So we don't have to timeout in tests
--  Commit
 -  
 - Make test for chits that cross in transit
 -  Make adjustable delay before received chit processed
