@@ -21,7 +21,7 @@ FROM node:${version}
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y; \
-    apt-get install -y nodejs npm postgresql; \
-    apt-get install -y make ruby-full libpq-dev tk8.6-dev tcl-dev; \
+    apt-get install -y nodejs npm postgresql postgresql-client; \
+    apt-get install -y make ruby-full libpq-dev tcl tcllib tcl-dev tk8.6-dev; \
     apt-get install -y net-tools iputils-ping traceroute; \
     apt-get install -y busybox; busybox --install -s
