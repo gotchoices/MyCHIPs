@@ -11,7 +11,20 @@ tabtext mychips.tallies_v_net	{Tally Lift Edges}	{A view showing a single link b
   {sign		{Link Sign}		{Whether will accrue positive or negative on this tally (based on stock or foil)}}
   {part		{Partner ID}		{Local ID (or null if foreign peer) of the partner entity}}
   {inv		{Inverted}		{True if the link is a tally with a foreign peer and it is being considered for a drop (reverse lift)}}
-  {canlift	{Can Lift}		{True if there is lift capacity on this tally}}
+  {canlift	{Can Lift}		{Indicates the lift capacity on this tally}}
+}
+
+tabtext mychips.tallies_v_lift	{Tally Lift Edges}	{A view showing a single link between entities hypothetially eligible for a lift} {
+  {uuid		{Tally UUID}		{Unique Id of the tally associated with this link}}
+  {inp		{Input Node ID}		{The source user ID (or null if foreign peer) the lift is from}}
+  {out		{Output Node ID}	{The destination user ID (or null if foreign peer) the lift will go to}}
+  {min		{Minimum Lift}		{Minimum number of units possible to lift on this link without reward cost applicable}}
+  {max		{Maximum Lift}		{Maximum number of units possible to lift on this link with possible costs applicable}}
+  {margin	{Lift Margin}		{The fee ratio we can expect to move any lift transaction along this link}}
+  {type		{Lift Type}		{The direction (lift or drop) a lift will occur on this network edge}}
+  {sign		{Link Sign}		{Whether will accrue positive or negative on this tally (based on stock or foil)}}
+  {part		{Partner ID}		{Local ID (or null if foreign peer) of the partner entity}}
+  {inv		{Inverted}		{True if the link is a tally with a foreign peer and it is being considered for a drop (reverse lift)}}
 }
 
 tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathways between local entities, based on the tallies they have in place} {

@@ -1,55 +1,46 @@
 TODO:
 
-- Chit consensus
-X-  Attempt to move all chain-related data into a sub-property (chitcon1 branch)
-X-  Existing regression tests still work
-X-  Why is one chit still left in pending state after tests?
--  Advanced chain tests work:
-X-   multiple chits on both sides before network restored
--   stock loses some/all of its chits
--   foil loses some/all of its chits
--   Implement error state?
--  Is tally consensus state field useful?
--  Stock can retry if/when consensus not yet reached
--  Stock can request hash check at any time?
--  How to repair broken chits on mychips.net
--  Update existing code to honor chain state (honor how?)
--   Only _process commands if in appropriate cstate?
--  Notify user (or admin?) when a consensus reached on a tally/chit?
--    So we don't have to timeout in tests
-
-- Tally negotiation
--  Test for changing tally_type during negotiation
--  Regression test for: opened tally doesn't register to other side
--  Can recover from unknown tally states (H.offer.open)
--  App signs tally in both directions
--  Are tallies signed in the app passing the validation in lib/tally.js?
--  Can/should we validate tally signatures in the DB anywhere?
--  
-
 - Pathway Analysis
 X-  Build control report for issuing payment request invoice
 X-  Test in web UI
 X-  Build query/function with user permission for seeking available paths
--  Redo tallies_v_net to be holder-centric (rather than partner-centric)
+X-  Redo tallies_v_net to be holder-centric (rather than partner-centric)
+-  Migrate tallies_v_lift into schema
+-  Can safely remove tallies_v_net?
 -  Regression tests still run
+-  Make tests for setting tally trading variables
+-  Variables register correctly on both ends of the tally
 -  How does one sign a linear lift?
 -  Build query/function with user permission for inserting linear lift request
--  
+
+- Chit consensus
+-  Advanced chain tests work:
+-   tally loses its open status
+-   tally loses some/all of its chits
+-   Test/implement error state?
+-  Is tally consensus state field useful (not currently being updated)?
+-  Tally will retry if/when consensus not yet reached
+-  Tally can request hash check at any time?
+-  Can repair broken chits on mychips.net?
+-  Update existing code to honor chain state (honor how?)
+-   Only _process commands if in appropriate cstate?
+-  Notify user (or admin?) when a consensus reached on a tally/chit?
+-   So we don't have to timeout in regression tests
+- App is signing chits
+- Validate chits in lib/chit.js
+-  Comment out PG consensus notices
+-  Simulation still works
+-  Commit/merge to master
+
+- Tally negotiation
+-  App signs tally in both directions
+-  Test for changing tally_type during negotiation
+-  Can recover from unknown tally states (H.offer.open)
+-  Can/should we validate tally signatures in the DB anywhere?
+
 - Scan any hand notes 2021-2022
 - Add reset and submit buttons for Trading Variables report (in user's language)
 -  
-- Make test for chits that cross in transit
--  Make adjustable delay before received chit processed
--  Test attempts a range of possible delays
--  
--  Stock can request arbitrary chain query message (is this needed?)
--  Stock requeues any stray chits found after upd packet
--  All regression tests pass
--  Comment out PG notices
--  Simulation still works
--  Commit/merge to master
--   
 X- Simulator
 X-  Update docker compose methods and documents for mac-only runs
 X-  realpath not found on mac
