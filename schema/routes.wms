@@ -311,11 +311,11 @@ function {mychips.routes_find(base record, dest jsonb, currStep int, avoid text)
         from tp					-- overlaid by those that already  exist
         left join mychips.routes_v r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq
                                     and r.dst_cid = tp.find_cid and r.dst_agent = tp.find_agent
-        where	tp.fori and tp.foro and tp.foro
+        where	tp.fori and tp.foro
         and	(avoid isnull or not (avoid = any(tp.at)))			-- If we've already found a local path
         and	not (tp.out_cid = tp.find_cid and tp.out_agent = tp.find_agent)	-- If we're already connected to this peer directly
-        order by 1,r.rid,tp.top,tp.top_tseq limit maxQuery loop
-        
+        order by 1,r.rid,tp.top,tp.top_tseq limit maxQuery
+      loop
         jtmp = mychips.route_pop(lrec, currStep);
         forward = forward + (jtmp->'forward')::int;
         lading = coalesce(jtmp->'lading', lading);
@@ -373,13 +373,13 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
         if recipe->'query' then			-- If there a query flag in the recipe object
           maxStep = base.parm('routes', 'maxstep', expr($routes::routes_maxstep));
 
-          if not dest.id isnull then			-- Is the destination a local user?
+          if dest.id notnull then			-- Is the destination a local user?
             select into path inp,out,min,max,margin,reward from mychips.tallies_v_paths		-- Do we have a direct path to him?
               where bot = base.tally_ent and bot_tseq = base.tally_seq and top = dest.id
                 order by margin, min desc limit 1;		-- Try to pick one with good capacity
---raise notice '  Loc found: % %', found, currStep;
+--raise notice '  Loc found: % % %-%', found, currStep, path.min, path.max;
 
-            if found or  currStep <= maxStep then	-- See if there are any indirect, external routes we should also search
+            if found or currStep <= maxStep then	-- See if there are any indirect, external routes we should also search
               retObj = mychips.routes_find(base, find, currStep, dest.id);
             end if;	-- currStep <
 
@@ -412,7 +412,7 @@ function {mychips.route_process(msg jsonb, recipe jsonb)} {mychips.routes_v mych
 
 --raise notice ' state:% recipe:%', curState, recipe;
           if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-raise notice 'RZ:% C:%', jsonb_build_array(curState), recipe->'context';
+--raise notice 'RZ:% C:%', jsonb_build_array(curState), recipe->'context';
             return to_jsonb(curState);
           end if;
 
@@ -474,15 +474,15 @@ $$;}
 
 # Check for possible new linear routes from an entity to a specified destination peer
 #----------------------------------------------------------------
-function {mychips.route_linear(ent text, dest jsonb)} {mychips.routes mychips.tallies_v_net mychips.routes_find(record,jsonb,int,text)} {
+function {mychips.route_linear(ent text, dest jsonb)} {mychips.routes mychips.tallies_v_edg mychips.routes_find(record,jsonb,int,text)} {
   returns jsonb language plpgsql as $$
     declare
       trec	record;
       results	jsonb = '[]';
     begin
       for trec in select distinct inp as tally_ent, bot_tseq as tally_seq
-        from	mychips.tallies_v_net where inp = ent loop
-raise notice 'Route Linear check: %:%', trec.inp, dest;
+        from	mychips.tallies_v_edg where inp = ent loop
+--raise notice 'Route Linear check: %:%', trec.inp, dest;
              results = results || mychips.routes_find(trec, dest, 0, null);
       end loop;
       return results;

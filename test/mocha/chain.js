@@ -1,4 +1,5 @@
-//Test chit consensus between peers; Run only after tally, chit
+//Test chit consensus between peers; run
+//After: chit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB or two different DBs:

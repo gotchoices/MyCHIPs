@@ -44,8 +44,8 @@ require('./sch-route.js')
 require('./route.js')
 
 require('./sch-lift.js')
-require('./lift-in.js')
 require('./lift.js')
+require('./lift-in.js')
 
 require('./contract.js')
 require('./language.js')

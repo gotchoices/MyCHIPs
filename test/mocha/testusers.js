@@ -1,4 +1,5 @@
-//Setup sample users for tests; Run after impexp and before tally tests
+//Setup sample users for tests; Run
+//After: impexp
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:

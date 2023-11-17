@@ -1,4 +1,5 @@
-//Test internal lift; run after sch-lift
+//Test internal lift; run
+//After: sch-lift
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
@@ -20,21 +21,21 @@ describe("Test internal lift generation", function() {
   it("Delete any existing lifts and lift chits, set costs -> zero", function(done) {
     let sql = `delete from mychips.chits where chit_type = 'lift';
                delete from mychips.lifts;
-               update mychips.tallies set clutch = 0;`
+               update mychips.tallies set reward = 0, clutch = 0, hold_sets='{}'::jsonb, part_sets='{}'::jsonb;`
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {done(e)})
   })
 
-  it("Select/perform and internal lift", function(done) {
+  it("Select/perform an internal lift", function(done) {
     let sql = `select mychips.lift_loc_clr(1);`
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Q row:", row.lift_local)
       assert.equal(row.lift_loc_clr.done, 1)
       done()
     })
   })
-/*
+
   it("Query resulting chits", function(done) {
     let units = 9		//Whatever is available in lift path
       , chits = 6		//Known path has 3 tallies, stock & foil

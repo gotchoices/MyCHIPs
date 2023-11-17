@@ -1,4 +1,5 @@
-//Test lift schema at a basic level; run after sch-route
+//Test lift schema at a basic level; run
+//After: sch-route
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // Agent <-> DB <-> Agent

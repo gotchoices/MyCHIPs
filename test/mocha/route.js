@@ -1,4 +1,5 @@
-//Test route communications (lib/route.js); Run only after sch-route user2
+//Test route communications (lib/route.js); Run 
+//After: sch-route user2
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two (nearly/three) systems
@@ -17,7 +18,7 @@ const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, a
 const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
 var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
 var userListenR = 'mu_' + user0
-var tallySql = `insert into mychips.tallies (tally_ent, tally_type, tally_uuid, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
+var tallySql = `insert into mychips.tallies (tally_ent, tally_type, tally_uuid, contract, hold_cert, part_cert, hold_sig, part_sig, part_sets, status) values (%L,%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
 var agree = {domain:"mychips.org", name:"test", version:1}
 var {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
@@ -92,18 +93,19 @@ describe("Initialize DB2 tally/path test data", function() {
        , certB = {chad:{cid:cidb, agent:agent0, host, port:port0}}
        , certX = {chad:{cid:cidx, agent:agent0, host, port:port0}}
        , sig = 'Valid Signature'
+       , pSet = {target: 10, bound: 10}
      let dat = [
-        {id:user0, type:'stock', uuid:uuidD, hCert:certD, pCert:cert3},
-        {id:user1, type:'foil',  uuid:uuidU, hCert:certU, pCert:cert0},
-        {id:user2, type:'foil',  uuid:uuid1, hCert:certX, pCert:certB},
-        {id:user3, type:'stock', uuid:uuid1, hCert:certB, pCert:certX},
-        {id:user0, type:'foil',  uuid:uuid2, hCert:certD, pCert:certX},
-        {id:user2, type:'stock', uuid:uuid2, hCert:certX, pCert:certD},
-        {id:user3, type:'foil',  uuid:uuidB, hCert:certB, pCert:cert2}]
+        {id:user0, type:'stock', uuid:uuidD, hCert:certD, pCert:cert3, pSet},
+        {id:user1, type:'foil',  uuid:uuidU, hCert:certU, pCert:cert0, pSet},
+        {id:user2, type:'foil',  uuid:uuid1, hCert:certX, pCert:certB, pSet},
+        {id:user3, type:'stock', uuid:uuid1, hCert:certB, pCert:certX, pSet},
+        {id:user0, type:'foil',  uuid:uuid2, hCert:certD, pCert:certX, pSet},
+        {id:user2, type:'stock', uuid:uuid2, hCert:certX, pCert:certD, pSet},
+        {id:user3, type:'foil',  uuid:uuidB, hCert:certB, pCert:cert2, pSet}]
       , dc = dat.length, _done = () => {if (!--dc) done()}
     dat.forEach(d => {
-      let { id, type, uuid, hCert, pCert, hSig, pSig } = d
-        , sql = Format(tallySql, id, type, uuid, agree, hCert, pCert, sig, sig)
+      let { id, type, uuid, hCert, pCert, hSig, pSig, pSet } = d
+        , sql = Format(tallySql, id, type, uuid, agree, hCert, pCert, sig, sig, pSet)
 //log.debug("Sql:", sql)
       dbR.query(sql, (e, res) => {if (e) done(e)
         assert.equal(res.rowCount, 1)

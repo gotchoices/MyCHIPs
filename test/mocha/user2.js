@@ -1,4 +1,5 @@
-//Setup a sample user on a separate db; Run before 2-db tally tests
+//Setup a sample user on a separate db; Run
+//After: testusers
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:

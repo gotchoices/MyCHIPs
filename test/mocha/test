@@ -1,0 +1,60 @@
+#!/bin/bash
+#Run specified tests after first running all necessary prerequisite tests
+
+# Function to append '.js' extension if missing
+add_js_extension_if_missing() {
+    local file=$1
+    if [[ $file != *.js ]]; then
+        echo "$file.js"
+    else
+        echo "$file"
+    fi
+}
+
+# Function to parse dependencies from a file
+parse_dependencies() {
+    local file=$1
+    grep -oP '(?<=//After: ).*' "$file" | tr ' ' '\n' | sed 's/^\s*//;s/\s*$//' | sort -u
+}
+
+# Function to add or reorder a dependency in the list
+add_or_reorder_dependency() {
+    local dep=$1
+
+    tests=("${tests[@]/$dep}")		# Remove dependency if it already exists in the list
+    tests=("$dep" "${tests[@]}")	# Add dependency at the start of the list
+}
+
+# Function to recursively add dependencies to the list at the correct position
+add_dependencies() {
+    local test_file=$1
+    local deps=($(parse_dependencies "$test_file"))
+
+    for dep in "${deps[@]}"; do
+        dep=$(add_js_extension_if_missing "$dep")
+        add_or_reorder_dependency "$dep"
+        add_dependencies "$dep"
+    done
+}
+
+# Array to hold all tests including dependencies
+declare -a tests=()
+
+# Main loop for adding tests and their dependencies
+for test_file in "$@"; do
+    test_file=$(add_js_extension_if_missing "$test_file")
+    if [[ -f "$test_file" ]]; then
+        add_or_reorder_dependency "$test_file"
+        add_dependencies "$test_file"
+    else
+        echo "File $test_file does not exist"
+        exit 1
+    fi
+done
+
+# Remove duplicates while preserving order (should be redundant now, but kept as a safeguard)
+tests=($(echo "${tests[@]}" | tr ' ' '\n' | awk '!seen[$0]++'))
+
+# Call Mocha with the final list of tests
+echo npx mocha "${tests[@]}"
+npx mocha "${tests[@]}"

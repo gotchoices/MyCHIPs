@@ -1,4 +1,5 @@
-//Test lift communications (lib/lift.js); Run only after route, sch-lift
+//Test lift communications (lib/lift.js); Run
+//After: route sch-lift
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates lift across 2 (or three) systems (see doc/uml/test-paths.svg)
@@ -62,19 +63,19 @@ describe("Peer-to-peer lift testing", function() {
 
   it("Search/create new circuit lift request", function(done) {
     let sql = `select mychips.lift_clear_dist();`
-      , dc = 5, _done = () => {if (!--dc) done()}	//_done's to be done
-log.debug("Sql:", sql)
+      , dc = 3, _done = () => {if (!--dc) done()}	//_done's to be done
+//log.debug("Sql:", sql)
     dbL.query(sql, null, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("Q row:", row)
+      let row = getRow(res, 0)			;log.debug("Q row:", row)
       assert.equal(row.lift_clear_dist, 1)
       _done()
     })
-    busL.register('pl', (msg) => {		//log.debug("L msg:", msg)
-      assert.equal(msg.target, 'tallies')	//Capture events (2) when tallies/totals udpated
+    busL.register('pl', (msg) => {		//log.debug("La msg:", msg)
+      assert.equal(msg.target, 'tallies')	//Event when tallies/totals udpated
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })
-    busR.register('pr', (msg) => {		//log.debug("R msg:", msg)
+    busR.register('pr', (msg) => {		//log.debug("Ra msg:", msg)
       assert.equal(msg.target, 'tallies')	//Two updates on remote site
       assert.equal(msg.oper, 'UPDATE')
       _done()
@@ -90,18 +91,18 @@ log.debug("Sql:", sql)
           select 'org', true, 'init', %s, rr.uuids, %L from rr returning *;`, cidd, units, find)
       , dc = 4, _done = () => {if (!--dc) done()}	//_done's to be done
 //log.debug("Sql:", sql)
-    dbR.query(sql, null, (e, res) => {if (e) done(e)
+    dbR.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("R res:", res)
       let row = getRow(res, 0)			//;log.debug("R row:", row)
       assert.equal(row.request, 'init')
       assert.equal(row.status, 'draft')
       _done()
     })
-    busL.register('pl', (msg) => {		//log.debug("L msg:", msg)
+    busL.register('pl', (msg) => {		//log.debug("Lb msg:", msg)
       assert.equal(msg.target, 'tallies')	//Capture event when tallies/totals udpated
       assert.equal(msg.oper, 'UPDATE')
       _done()
     })
-    busR.register('pr', (msg) => {		//log.debug("R msg:", msg)
+    busR.register('pr', (msg) => {		//log.debug("Rb msg:", msg)
       assert.equal(msg.target, 'tallies')	//Two updates on remote site
       assert.equal(msg.oper, 'UPDATE')
       _done()

@@ -1,4 +1,5 @@
-//Test tally schema at a basic level; run after impexp, testusers
+//Test tally schema at a basic level; run
+//After: impexp testusers
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // User <-> DB <-> Agent

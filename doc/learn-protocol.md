@@ -10,7 +10,7 @@ May 2022; Copyright MyCHIPs.org
 As the project began, it was difficult to attempt a top-down design of the system.
 
 I had a basic, intuitive idea about how sites and nodes should communicate with each other,
-and what types of messages they would send back and forth, but I didn't really understand it
+and what types of messages they would send back and forth, but I didn't understand it
 in a formal enough way to create a detailed description of the protocol.
 Instead, I jumped in and started coding.
 
@@ -81,7 +81,7 @@ These use-cases are explained as follows::
   In the moment of exchange, the User will owe value to the Partner.
   In other words, the Partner will have lent money to the User.
 - **Be My Client**:
-  This is really identical in all respects to the previous case, except the User is suggesting he be the Vendor (the Stock holder) and the Partner will be the Client (the Foil holder).
+  This is identical in all respects to the previous case, except the User is suggesting he be the Vendor (the Stock holder) and the Partner will be the Client (the Foil holder).
 - **Transaction**:
   Once established, the tally will serve as a ledger for recording payments (pledges of credit).
   It will maintain and track a total balance owed in one direction or the other.
@@ -128,7 +128,7 @@ If the debtor wants to close the tally sooner, he will have to figure out how to
 From these sequences, we will first derive the following simplified and conceptual diagram of tally states:
 [![state-tally](uml/state-tally-simp.svg)](uml/state-tally-simp.svg)
 
-This flow does not really consider the consequences of attempting to change state locally when the remote peer can not be reached to communicate the change.
+This flow does not consider the consequences of attempting to change state locally when the remote peer can not be reached to communicate the change.
 By adding additional intermediate states each time the local user requests a change of state, we can track separately when the synchronization message has reached the other side.
 
 We will thus derive the following full set of tally states (which follow [this format](learn-message.md#state-codes)):
@@ -418,7 +418,7 @@ In this particular failure pattern, if one side has the original chit and the ot
 
 It may seem a little confusing to determine whether the consensus protocol is really a tally thing or a chit thing.
 It seems mostly oriented around chits.
-But it is really the two halves of the tally that are (or are not) fully consensed at any given time.
+But it is the two halves of the tally that are (or are not) fully consensed at any given time.
 So this must necessarily also include the signed portions of the tally itself.
 
 Visualize it this way:
@@ -447,16 +447,17 @@ It mainly needs to track new good chits, link them into its chain, and reliably 
 OBSOLETE:
 For the Stock, it is slightly more complicated.
 It must be able to conform to the chaining order it receives from the foil.
-It can't really consider itself fully settled until receiving proper confirmation from the foil.
+It can't consider itself fully settled until receiving proper confirmation from the foil.
 And if it finds itself in possession of valid chits the foil hasn't chained yet, it will have to queue them for retransmission under the regular chit protocol.
 
 OBSOLETE:
 [![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
 
 ### Route Discovery Protocol
-Readers not already familiar with credit lifts, should fully understand [the section on lifts](learn-lift.md) before proceeding.
+Readers not already familiar with credit lifts, can refer to [this section on lifts](learn-lift.md)
+for figures and background that will be referred to below.
 
-As mentioned there, a database has knowledge of *local* segments that have capacity for a potential credit lift.
+A site database has knowledge of *local* segments that have capacity for a potential credit lift.
 But it also needs a way to cooperate with *foreign* peer sites to initiate lifts or participate in their lifts.
 
 Each site needs to know whether a potential external route might exist where:
@@ -464,7 +465,7 @@ Each site needs to know whether a potential external route might exist where:
 - for circular lifts: the lift will return to us via the bottom of the segment (C1->B3); or
 - for linear lifts: the lift will arrive at the desired destination entity (Xn);
 
-In our scenario, site B doesn't really need to know many details about the route--just whether one or more such paths exist.
+In our scenario, site B doesn't need to know many details about the route--just whether one or more such paths exist.
 The route may pass through many other sites on its way back to C1.
 In fact, it may pass through some sites more than once, traversing multiple segments.
 
@@ -473,7 +474,7 @@ The lift will be committed (or canceled) in a single, atomic transaction on beha
 
 Route discovery requests can be initiated in two ways:
 - Manually by a user/entity; or
-- By an [autonomous process](https://en.wikipedia.org/wiki/Cron) acting as *agent* on behalf of the entity or the site.
+- By an automated scheduler running as part of the agent process.
 
 ![use-route](uml/use-route.svg)
 
@@ -516,7 +517,7 @@ The second role is shown in the following sequence diagram:
 
 ![Routing Relay](uml/seq-route.svg "Responding to route queries")
 
-A node responding to a query from downstream really has four possible outcomes:
+A node responding to a query from downstream has four possible outcomes:
 - The destination node is found on a segment connected to this incoming request;
 - There is no pathway possible because there are no upstream tallies with foreign peers;
 - One or more pathways are possible through existing, known routes;
@@ -546,7 +547,7 @@ Node B will be considered the destination of the lift.
 
 <p align="center"><img src="figures/Lifts-1.jpg" width="500" title="Visualizing a lift"></p>
 
-For a linear lift, just imagine the tally between A and B does not (or need not) exist.
+For a linear lift, imagine the tally between A and B does not (or need not) exist.
 
 #### Proposal
 
@@ -601,7 +602,7 @@ Node A proposes the lift to node D because:
   Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more wanted ones in their place
   (or they all know the lift is expired and the chits can now be ignored).
   But if part of the network had a problem part-way through the lift, some nodes might be left in an indeterminate state.
-  They are committed to the lift, but they don't have the required signature to complete so they really don't know for sure if the lift should go through or not.
+  They are committed to the lift, but they don't have the required signature to complete so they don't know for sure if the lift should go through or not.
 
   Participating nodes can consult their local clock and get a pretty good idea of when the lift should have timed out.
   If this time is exceeded, they can reach out to the referee node to ask the status of the lift.

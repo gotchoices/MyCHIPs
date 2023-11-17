@@ -1,4 +1,5 @@
-//Test tally initialization sequence; Run only after impexp, testusers, user2
+//Test tally initialization sequence; run
+//After: user2
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB or two different DBs:

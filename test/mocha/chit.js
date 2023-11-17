@@ -1,4 +1,5 @@
-//Test chits between peers; Run only after impexp, testusers, user2, tally
+//Test chits between peers; run 
+//After: tally
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates two users connected through a single DB or two different DBs:

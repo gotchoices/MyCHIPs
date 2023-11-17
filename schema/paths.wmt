@@ -14,7 +14,7 @@ tabtext mychips.tallies_v_net	{Tally Lift Edges}	{A view showing a single link b
   {canlift	{Can Lift}		{Indicates the lift capacity on this tally}}
 }
 
-tabtext mychips.tallies_v_lift	{Tally Lift Edges}	{A view showing a single link between entities hypothetially eligible for a lift} {
+tabtext mychips.tallies_v_edg	{Tally Lift Edges}	{A view showing a single link between entities hypothetially eligible for a lift} {
   {uuid		{Tally UUID}		{Unique Id of the tally associated with this link}}
   {inp		{Input Node ID}		{The source user ID (or null if foreign peer) the lift is from}}
   {out		{Output Node ID}	{The destination user ID (or null if foreign peer) the lift will go to}}

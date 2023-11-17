@@ -1,4 +1,5 @@
-//Test chit schema at a basic level; run after sch-tally
+//Test chit schema at a basic level; run
+//After: sch-tally
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // User <-> DB <-> Agent

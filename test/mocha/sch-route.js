@@ -1,4 +1,5 @@
-//Test route schema at a basic level; run after sch-path
+//Test route schema at a basic level; run
+//After: sch-path
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // User <-> DB <-> Agent
@@ -120,7 +121,7 @@ describe("Test route state transitions", function() {
       assert.deepStrictEqual(msg.from, {cid:cid3, agent:agent1, host, port:port1})
       assert.deepStrictEqual(msg.to,   {cid:cidd, agent:agent2, host, port:port2})
       let obj = msg.object			//;log.debug("A obj:", obj, "L:", obj.lading)
-      assert.deepStrictEqual(obj.lading, {min:4,max:5,margin:0.003994,reward:0.015000})
+      assert.deepStrictEqual(obj.lading, {min:4,max:5,margin:0.005985,reward:0.015000})
       assert.equal(obj.tally.length, 36)
       _done()
     })
@@ -158,6 +159,7 @@ describe("Test route state transitions", function() {
 
   it("Add two more possible external up-routes", function(done) {
      let units = 10, stat = 'open', sig = 'Valid'
+       , sets = {target: 5, bound: 6}
        , cidA = 'cid_A', cidB = 'cid_B'
        , aCert = {chad:{cid:cidA, agent:agent0, host, port:port0}}
        , bCert = {chad:{cid:cidB, agent:agent0, host, port:port0}}
@@ -165,15 +167,17 @@ describe("Test route state transitions", function() {
        t0 as (select * from mychips.tallies where tally_ent = %L and tally_type = 'stock'),
        t2 as (select * from mychips.tallies where tally_ent = %L and tally_type = 'stock')
      insert into mychips.tallies
-      (tally_ent, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status)
-      select t0.tally_ent, t0.tally_type, t0.contract, t0.hold_cert, %L, t0.hold_sig, %L, %L from t0
+      (tally_ent, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status, part_sets)
+      select t0.tally_ent, t0.tally_type, t0.contract, t0.hold_cert, %L, t0.hold_sig, %L, %L, %L from t0
      union
-      select t2.tally_ent, t2.tally_type, t2.contract, t2.hold_cert, %L, t2.hold_sig, %L, %L from t2
-     returning *`, user0, user2, aCert, sig, stat, bCert, sig, stat)
+      select t2.tally_ent, t2.tally_type, t2.contract, t2.hold_cert, %L, t2.hold_sig, %L, %L, %L from t2
+     returning *`, user0, user2, aCert, sig, stat, sets, bCert, sig, stat, sets)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res)
-      let row = getRow(res, 0, 2)		//;log.debug("A row:", row)
+      let row = getRow(res, 0, 2)			//;log.debug("A row:", row)
 //      assert.equal(row.part_cid, cidB)
+      assert.equal(row.part_sets?.target, sets.target)
+      assert.equal(row.part_sets?.bound, sets.bound)
       done()
     })
   })
@@ -207,7 +211,7 @@ describe("Test route state transitions", function() {
         , state = row.state			//;log.debug("A state:", state)
       assert.equal(state.action, 'good')	//;log.debug("A lading:", state.lading)
       assert.equal(state.forward, 1)
-      assert.deepStrictEqual(state.lading, {"max":9,"min":7,"margin":0.001999,"reward":0.02})
+      assert.deepStrictEqual(state.lading, {"max":9,"min":7,"margin":0.002997,"reward":0.02})
       _done()
     })
     busA.register('pa', (msg) => {		//log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)
@@ -244,7 +248,7 @@ describe("Test route state transitions", function() {
           , state = row.state			//;log.debug("A state:", state)
       assert.equal(state.action, 'good')	//;log.debug("A lading:", state.lading)
       assert.equal(state.forward, 2)		//new queries sent along
-      assert.deepStrictEqual(state.lading, {"max":7,"min":5,"margin":0.002997,"reward":0.02})
+      assert.deepStrictEqual(state.lading, {"max":7,"min":5,"margin":0.00499,"reward":0.02})
       _done()
     })
     busA.register('pa', (msg) => {		//log.debug("A msg:", msg, "T:", msg.to, "F:", msg.from)

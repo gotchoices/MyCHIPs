@@ -1,4 +1,5 @@
-//Test local pathway schema at a basic level; run after impexp
+//Test local pathway schema at a basic level; run
+//After: sch-tally
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This will build a network of tallies as follows: (see doc/uml/test-paths.svg)
@@ -149,17 +150,27 @@ describe("Initialize tally/path test data", function() {
     buildem (x.fId, x.fCid, x.fCert, x.fSig, y.fId, y.fCid, y.fCert, y.fSig, users+3, users*2+6)
   })
 
-  it("Check view tallies_v_net", function(done) {
+//  it("Check view tallies_v_net", function(done) {
+//    let sql = `update mychips.tallies set target = 3, bound = 7;
+//               select json_agg(s) as json from (select tally_ent,tally_seq,tally_type,inv,inp,out,target,bound,net_pc,min,max,sign
+//               from mychips.tallies_v_net order by 1,2,3,4) s;`
+//    queryJson('tallies_v_net', db, sql, done, 2)
+//  })
+
+  it("Check view tallies_v_edg", function(done) {
     let sql = `update mychips.tallies set target = 3, bound = 7;
                select json_agg(s) as json from (select tally_ent,tally_seq,tally_type,inv,inp,out,target,bound,net_pc,min,max,sign
-               from mychips.tallies_v_net order by 1,2,3,4) s;`
-    queryJson('tallies_v_net', db, sql, done, 2)
+               from mychips.tallies_v_edg order by 1,2,3,4) s;`
+    queryJson('tallies_v_edg', db, sql, done, 2)
   })
 
   it("Check view tallies_v_paths", function(done) {
-    let sql = `
-        update mychips.tallies set reward = 0.02, clutch = 0.04 where tally_type = 'foil';
-        update mychips.tallies set reward = 0.04, clutch = 0.001 where tally_type = 'stock';
+    let fsets = {reward: 0.02, clutch: 0.04}		//Update both settings and cache
+      , ssets = {reward: 0.04, clutch: 0.001}
+      , tSql = 'update mychips.tallies set hold_sets = %L, part_sets = %L, reward = %L, clutch = %L where tally_type = %L'
+      , fSql = `${Format(tSql, fsets, ssets, fsets.reward, fsets.clutch, 'foil')}`
+      , sSql = `${Format(tSql, ssets, fsets, ssets.reward, ssets.clutch, 'stock')}`
+      , sql = `${fSql}; ${sSql};
         select json_agg(s) as json from (
           select inp,out,circuit,min,max,bang,reward,margin,ath
             from mychips.tallies_v_paths where min > 0 and edges > 1 order by path) s;`

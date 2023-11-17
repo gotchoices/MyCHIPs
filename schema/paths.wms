@@ -3,11 +3,11 @@
 #----------------------------------------------------------------
 
 # View showing a single entry for each credit relationship (for lift algorithm, pathway views)
-#OBSOLETE: (use tallies_v_lift instead)
+#OBSOLETE: (use tallies_v_edg instead)
 #----------------------------------------------------------------
 view mychips.tallies_v_net {mychips.tallies_v} {with
   t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
-    from mychips.tallies_v where liftable and not part_ent isnull
+    from mychips.tallies_v where liftable and part_ent notnull
   ),
   t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
     from mychips.tallies_v where liftable and part_ent isnull
@@ -76,7 +76,7 @@ view mychips.tallies_v_net {mychips.tallies_v} {with
 
 # View showing one entry for each tally capable of a lift
 #----------------------------------------------------------------
-view mychips.tallies_v_lift {mychips.tallies_v} {with
+view mychips.tallies_v_edg {mychips.tallies_v} {with
   t_all as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
   ,  coalesce((part_sets->'clutch')::float, 0) as p_clutch
     from mychips.tallies_v where liftable
@@ -95,7 +95,7 @@ view mychips.tallies_v_lift {mychips.tallies_v} {with
   , p_clutch					as margin
   , t.net_pc
   , greatest(t.target - t.net_pc, 0)		as min
-  , t.bound - t.net_pc				as max
+  , greatest(t.target, t.bound) - t.net_pc	as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
@@ -110,7 +110,7 @@ view mychips.tallies_v_lift {mychips.tallies_v} {with
   , t.clutch					as margin
   , -t.net_pc					as net_pc
   , greatest(p_target + t.net_pc, 0)		as min
-  , t.bound + t.net_pc				as max
+  , greatest(p_target, p_bound) + t.net_pc	as max
   , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
   , case when t.tally_type = 'foil' then 1 else -1 end as sign
   , case when t.part_ent isnull then t.part_addr else null end	as part
@@ -121,7 +121,7 @@ view mychips.tallies_v_lift {mychips.tallies_v} {with
 # Recursive view of tallies to show pathways local to our system
 #----------------------------------------------------------------
 define xif {case when %3 isnull then %1.part_%2 else %1.hold_%2 end}
-view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
+view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_edg} {
   with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
       top, top_tseq, bot, bot_tseq, circuit
@@ -130,8 +130,8 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
              array[ti.tally_ent], array[ti.tally_seq], array[ti.sign],
              ti.min, ti.margin, ti.max, ti.reward, 
              ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
-    from	mychips.tallies_v_net ti
-    where	ti.canlift > 0
+    from	mychips.tallies_v_edg ti
+    where	ti.max > 0
   union all
     select tp.inp					as inp
       , t.out						as out
@@ -156,11 +156,11 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_net} {
       , tp.bot_tseq					as bot_tseq
       , coalesce(tp.inp = t.out, false)			as circuit
 
-    from	mychips.tallies_v_net t
+    from	mychips.tallies_v_edg t
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
-    where	t.canlift > 0 and tp.edges <= base.parm('paths', 'maxlen', 10)
+    where	t.max > 0 and tp.edges <= base.parm('paths', 'maxlen', 10)
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
     , tpr.top, tpr.bot, tpr.circuit
@@ -225,7 +225,7 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
   from	mychips.routes_v	r
   join	mychips.tallies_v_paths	tp on tp.top = r.via_ent and tp.top_tseq = r.via_tseq and tp.foro
 } -native {
-  {mychips.tallies_v_net min max margin}
+  {mychips.tallies_v_edg min max margin}
   {mychips.tallies reward}
 }
 

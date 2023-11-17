@@ -5,9 +5,10 @@ X-  Build control report for issuing payment request invoice
 X-  Test in web UI
 X-  Build query/function with user permission for seeking available paths
 X-  Redo tallies_v_net to be holder-centric (rather than partner-centric)
--  Migrate tallies_v_lift into schema
--  Can safely remove tallies_v_net?
--  Regression tests still run
+X-  Widen lift pathways from 3 to > 4
+X-  Migrate tallies_v_edg into schema
+X-  Can safely remove tallies_v_net?
+X-  Regression tests still run
 -  Make tests for setting tally trading variables
 -  Variables register correctly on both ends of the tally
 -  How does one sign a linear lift?
