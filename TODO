@@ -1,20 +1,28 @@
 TODO:
 
-- Pathway Analysis
-X-  Build control report for issuing payment request invoice
-X-  Test in web UI
-X-  Build query/function with user permission for seeking available paths
-X-  Redo tallies_v_net to be holder-centric (rather than partner-centric)
-X-  Widen lift pathways from 3 to > 4
-X-  Migrate tallies_v_edg into schema
-X-  Can safely remove tallies_v_net?
-X-  Regression tests still run
--  Make tests for setting tally trading variables
--  Variables register correctly on both ends of the tally
--  How does one sign a linear lift?
+- Local linear lifts
+-  How does the user sign a linear lift?
+-  How to initiate an internal linear lift to a given destination?
 -  Build query/function with user permission for inserting linear lift request
+-  Can/should I be able to specify an outbound tally?
+
+- Tally negotiation
+-  App signs tally in both directions
+-  Test for changing tally_type during negotiation
+-  Can recover from unknown tally states (H.offer.open)
+-  Can/should we validate tally signatures in the DB anywhere?
+-  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
+
+- Scan any hand notes 2021-2022
+- Add reset and submit buttons for Trading Variables report (in user's language)
 
 - Chit consensus
+- App is signing chits
+- Validate chits in lib/chit.js
+- Simulation still works
+- Commit/merge to master
+-  Make tests for setting tally trading variables
+-  Variables register correctly on both ends of the tally
 -  Advanced chain tests work:
 -   tally loses its open status
 -   tally loses some/all of its chits
@@ -27,50 +35,15 @@ X-  Regression tests still run
 -   Only _process commands if in appropriate cstate?
 -  Notify user (or admin?) when a consensus reached on a tally/chit?
 -   So we don't have to timeout in regression tests
-- App is signing chits
-- Validate chits in lib/chit.js
--  Comment out PG consensus notices
--  Simulation still works
--  Commit/merge to master
 
-- Tally negotiation
--  App signs tally in both directions
--  Test for changing tally_type during negotiation
--  Can recover from unknown tally states (H.offer.open)
--  Can/should we validate tally signatures in the DB anywhere?
-
-- Scan any hand notes 2021-2022
-- Add reset and submit buttons for Trading Variables report (in user's language)
+- Language Support
+-  Integrate/find missing language tags for app
 -  
-X- Simulator
-X-  Update docker compose methods and documents for mac-only runs
-X-  realpath not found on mac
-X-  How to run bin/develop if only mac available (in docker container?)
-X-  How to run simulator not in development mode (from native image mychips /app dir)
-X-  Can run server in test mode (allowing invalid signatures)
-X- Properly detect MYCHIPS_ROOTNAME for docker-dev (git rev-parse --show-toplevel)
-- Test lift_dist() function
-- Can/should I be able to specify an outbound tally?
-- How to initiate an internal linear lift to a given destination?
-
 - Refactor document server to return contracts (before multi-system lifts will work)
 -  in json format
 -  in pdf format
 -  pdf's are cached by server?
 -  Contract report launches pdf's of documents clicked in strdoc report
-- 
-- Tally protocol support
-X-  Move QR codes to deep link format (no more JSON QR's)
--  Can fully execute a signed tally with a partner (get last step working)
--  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
--  How to easily understand/view draft/offer tallies
-X-  Can sent a voluntary payment chit on a tally
--  Digitally sign chits
--  
-- Language Support
--  Integrate/find missing language tags for app
--  
-X- Can we serve user photos from the document server?
 -  Can fetch photos for local partners?
 -  Re-implement document server to include contracts and photos (by hash only)
 -   Any user can get his partners' documents from his site (UI API)
@@ -85,10 +58,10 @@ X- Can we serve user photos from the document server?
 -  App displays my partners' primary photo
 -  In mychips schema, make a trigger to prevent modifying/deleting a file referenced from a tally
 -
-- App functionality for managing keys:
+- App functionality for storing/managing keys:
 X-   Create signing key
--   Import key from file, QR
--   Export key to file, QR
+-   Import key from file, cloud, QR
+-   Export key to file, cloud, QR
 
 - Visual Balance Sheet report enhancements (not urgent)
 X- Can view report in WebView in Chark
@@ -106,33 +79,10 @@ X-  Grab hyperlinks, launch tally view
 -  Move test/local under local/test?
 
 - User registration page refinements:
-X-  Page Includes links to Android APK and Apple testflight
-X-  Can view terms of Service page?
-X-  Make QR code part of inline html rather than an attachment (so it shows correctly in outlook)
 -  Email confirmation code, enter on page, rather than emailing link? (low priority)
 -  Fix document server also running on 443 (request by hash?)
 -  Can configure env for using an external SMTP service (mailgun, sendgrid, etc)
 - 
-- Chit consensus
--  Why is one chit still left in pending state after tests?
--  Update existing code to honor chain state (honor how?)
--    Only _process commands if in appropriate cstate?
--  Existing regression tests still work
--  Notify user (or admin?) when a consensus reached on a tally/chit?
--    So we don't have to timeout in tests
--  Commit
--  
-- Make test for chits that cross in transit
--  Make adjustable delay before received chit processed
--  Test attempts a range of possible delays
--  
--  Stock can request arbitrary chain query message (is this needed?)
--  Stock requeues any stray chits found after upd packet
--  All regression tests pass
--  Comment out PG notices
--  Simulation still works
--  Commit/merge to master
--   
 - Distributed lifts (interim, pre-1.0 functionality):
 -  Distributed lifts work with model2/model3?
 -  Do some lifts fail (when they should) in the simulation?
@@ -146,34 +96,13 @@ X-  Make QR code part of inline html rather than an attachment (so it shows corr
 -   If we have an internal path to the destination, pay with local lift (simple)
 -   Else, if we have a possible route, queue up as a distributed lift.
 - 
-- Chark App Integration:
--  Document method for debugging server certificate
--  
 -  New user process:
-X-  User can sign up for new account
-X-   User can download app (android and IOS)
-X-   User stepped through connection phase
-X-   Can connect by scanning connection QR
-X-   Can connect by following deep link
--   User prompted to complete minimum required profile data
+-  User prompted to complete minimum required profile data
 -  Language display:
 -   Test/demonstrate drawing language data from backend
 -   All language data coming from backend
 -   Populate more languages (Spanish & Nepali)
--  Tally Initiation:
-X-   User can create draft tally
-X-   User can create multiple draft tallies
--   Draft tallies may contain different details, including user certificate
--   If tally is generated not from a draft, it uses default certificate data
--   User can generate tally invitations from draft or default
--   User can share tally invitation via text, email, scan, print, pdf, etc
--   User can share tallyinvitation as a QR or deep link
--  Tally recipient:
--   User can view/evaluate tally invitations from deep link and QR
--   User can reject tally invitation
--   User can modify and counter offer (share) tally invitation
--   User can accept tally invitation
--   Accepted tally is digitally signed by both parties
+- 
 -  Chits:
 -   User can send unsolicited chit on any open tally
 -   User can send payment request chit on any open tally
@@ -181,11 +110,10 @@ X-   User can create multiple draft tallies
 -   User can respond to received payment request chit
 -   User can reject, modify, or accept payment request chit
 - 
-- 
 - Misc Cleanups:
-- Correctly assess lading on lift push through foreign tally (we now know parter's limit/bound)
--  Merge local null min with route lading correctly
--  Should all xxx_process functions return text or JSON (routes need JSON)?
+X- Correctly assess lading on lift push through foreign tally (we now know parter's limit/bound)
+X-  Merge local null min with route lading correctly
+X-  Should all xxx_process functions return text or JSON (routes need JSON)?
 -  Why do some routes get stuck in draft mode (See RZ notice)?
 -  Should the "tally" property of a route message be in the message, not the object (since it should change at each hop)?
 -  Ditto for "step" property of a route message

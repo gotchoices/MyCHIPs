@@ -26,12 +26,12 @@ describe("Test internal lift generation", function() {
     dbA.query(sql, null, (e, res) => {done(e)})
   })
 
-  it("Select/perform an internal lift", function(done) {
-    let sql = `select mychips.lift_loc_clr(1);`
+  it("Perform an internal clearing lift", function(done) {
+    let sql = `select mychips.lift_loc_clr(1) as lift;`
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("Q row:", row.lift_local)
-      assert.equal(row.lift_loc_clr.done, 1)
+      assert.equal(row.lift?.done, 1)
       done()
     })
   })
@@ -45,6 +45,16 @@ describe("Test internal lift generation", function() {
     dbA.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chits, chits)
+      done()
+    })
+  })
+
+  it("Perform an internal payment lift", function(done) {
+    let sql = `select mychips.lift_loc_pay('p1003','p1000',2) as lift;`
+log.debug("Sql:", sql)
+    dbA.query(sql, null, (e, res) => {if (e) done(e)
+      let row = getRow(res, 0)			;log.debug("Q row:", row.lift)
+      assert.ok(row.lift)
       done()
     })
   })
