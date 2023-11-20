@@ -3,7 +3,7 @@
 #or show both halves of all tallies owned by partner1 and shared with partner2
 
 if [ -z "$1" ]; then
-  echo 'Usage: tally_list partner1 <partner2>'
+  echo 'Usage: tally_show partner1 <partner2>'
   exit 1
 fi
 p1="$1"
@@ -16,4 +16,4 @@ else
 fi
 
 #echo "$sub"
-echo "select tally_ent,tally_seq,tally_type,part_ent,tally_uuid,status,state from mychips.tallies_v where tally_uuid in ($sub) order by 1,2;"
+echo "select tally_ent,tally_seq,tally_type,part_ent,tally_uuid,net_pc,state from mychips.tallies_v where tally_uuid in ($sub) order by 1,2;"

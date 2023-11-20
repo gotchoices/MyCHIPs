@@ -1,0 +1,10 @@
+#!/bin/bash
+#Show both halves of a tally of a given UUID
+
+if [ -z "$1" ]; then
+  echo 'Usage: tally_by_uuid uuid'
+  exit 1
+fi
+uuid="$1"
+
+echo select tally_ent te,tally_seq ts,part_ent,contract,status,request,state,net_pc from mychips.tallies_v where tally_uuid = \'$uuid\';

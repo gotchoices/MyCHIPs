@@ -1,0 +1,11 @@
+#!/bin/bash
+#Show all chits on a specified tally
+
+if [ -z "$2" ]; then
+  echo 'Usage: tally_chits entity sequence'
+  exit 1
+fi
+ent="$1"
+seq="$2"
+
+echo select chit_ent,chit_seq,chit_idx,units from mychips.chits_v where chit_ent = \'$ent\' and chit_seq = $seq ;
