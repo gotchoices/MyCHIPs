@@ -247,7 +247,7 @@ const TallyPreview = (props) => {
   };
 
   const onRevise = () => {
-  return setShowSwapIcon(true)
+   setShowSwapIcon(true)
     
     reviseTally(wm, {
       tally_ent,
