@@ -50,6 +50,8 @@ const TallyPreview = (props) => {
   const [tallyContracts, setTallyContracts] = useState([]);
   const [updateCert, setUpdateCert] = useState(false);
 
+  const [showSwapIcon, setShowSwapIcon] = useState(false);
+
   const {
     loading,
     refreshing,
@@ -245,6 +247,8 @@ const TallyPreview = (props) => {
   };
 
   const onRevise = () => {
+  return setShowSwapIcon(true)
+    
     reviseTally(wm, {
       tally_ent,
       tally_seq,
@@ -259,6 +263,8 @@ const TallyPreview = (props) => {
   };
 
   const onAccept = async () => {
+    setShowSwapIcon(false)
+    
     if (!tally?.json) {
       Alert.alert("Tally can not be signed");
       return;
@@ -301,6 +307,8 @@ const TallyPreview = (props) => {
   };
 
   const onRefuse = () => {
+    setShowSwapIcon(false)
+
     refuseTally(wm, {
       tally_ent,
       tally_seq,
@@ -321,6 +329,8 @@ const TallyPreview = (props) => {
   };
 
   const onVerify = async () => {
+    setShowSwapIcon(false)
+
     const creds = await retrieveKey(keyServices.publicKey);
     verifySignature(sig, JSON.stringify(tally.json), creds.password)
       .then((verified) => {
@@ -416,7 +426,7 @@ const TallyPreview = (props) => {
 
     if (canAccept) {
       return (
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', position: 'absolute', bottom: 5 }}>
+        <View style={styles.buttonWrapper}>
           <Button
             title="Revise"
             onPress={onRevise}
@@ -454,6 +464,7 @@ const TallyPreview = (props) => {
         >
           <TallyEditView
             tally={tally}
+            showSwapIcon={showSwapIcon}
             tallyType={tallyType}
             contract={contract}
             holdTerms={holdTerms}
@@ -607,7 +618,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     height: 45,
     justifyContent: "center",
-  })
+  }),
+  buttonWrapper:{ flexDirection: 'row', justifyContent: 'space-between', position: 'absolute', bottom: 5, right:20, left:20 }
 });
 
 export default TallyPreview;
