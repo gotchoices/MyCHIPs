@@ -1,14 +1,19 @@
 {
   "applinks": {
     "details": [
-    {
-      "appIDs": [ "6849Q7KVP5.org.mychips.mychips"],
-      "components": [
-        {
-          "/": "/connect/*"
-        }
-      ]
-    }
+      {
+        "appIDs": [
+          "6849Q7KVP5.org.mychips.mychips"
+        ],
+        "components": [
+          {
+            "/": "/ticket/*"
+          },
+          {
+            "/": "/invite/*"
+          }
+        ]
+      }
     ]
   }
 }
