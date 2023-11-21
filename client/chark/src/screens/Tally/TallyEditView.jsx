@@ -33,6 +33,8 @@ const TallyEditView = (props) => {
   const tallyContracts = props.tallyContracts ?? [];
   const canEdit = tally.state === 'draft' || tally.state === 'P.draft';
 
+  const showSwapIcon = props.showSwapIcon ?? false;
+
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
   const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
@@ -70,6 +72,7 @@ const TallyEditView = (props) => {
   return (
     <View style={{ paddingHorizontal: 10 }}>
       <TallyReviewView 
+        canSwap={showSwapIcon}
         tallyType={tallyType}
         setTallyType={setTallyType}
         partTerms={partTerms}

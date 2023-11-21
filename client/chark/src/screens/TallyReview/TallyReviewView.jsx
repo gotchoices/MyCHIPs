@@ -108,11 +108,13 @@ const TallyReviewView = (props) => {
         </View>
       </View>
 
+{props.canSwap &&
       <View style={styles.absoluteView}>
         <TouchableOpacity onPress={onSwitchClick}>
           <SwapIcon />
         </TouchableOpacity>
       </View>
+}
     </View>
   );
 };
