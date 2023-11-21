@@ -11,7 +11,7 @@ while [ ! -z "$1" ]; do
 done
 
 if [ -z "$files" ]; then
-  files="*.html ticket invite pay *.svg *.css chip.json fetchCPI value.html assets"
+  files="*.html ticket invite pay *.svg *.css chip.json fetchCPI value.html assets .well-known"
 fi
 
 dest=$MYCHIPS_ORG_WEB_DEPLOY
@@ -21,7 +21,4 @@ else
   echo "Deploying $files to $dest"
   cd $mydir
   scp -r $files $dest
-  
-  echo "Make sure assetlinks.json is published if any change is necessary:"
-  echo "  Command: scp assetlinks.json $MYCHIPS_ORG_WEB_DEPLOY/.well-known"
 fi

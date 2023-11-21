@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "details": [
+    {
+      "appIDs": [ "6849Q7KVP5.org.mychips.mychips"],
+      "components": [
+        {
+          "/": "/connect/*"
+        }
+      ]
+    }
+    ]
+  }
+}
