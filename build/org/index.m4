@@ -27,11 +27,11 @@ define(CONTENT,`
           `Original system concept',
           `Read from Got Choices, The Book, where a CHIP-based system was first proposed.'
         )
-        LINK_BLOCK(ri-presentation-line, https://youtu.be/bl_lUW3VX5o,
+        LINK_BLOCK(ri-presentation-line, https://rumble.com/v3x4nia-mychips-kyle-storey-masters-thesis-defense.html,
           `A Mathematical Proof for MyCHIPs Credit Lifts',
           `See Kyle Storey defend his Masters Thesis proving important properties of the credit lift algorithm.'
         )
-        LINK_BLOCK(ri-presentation-line, https://youtu.be/iT3A_7N5ydA,
+        LINK_BLOCK(ri-presentation-line, https://rumble.com/v3x4yx6-mychips-at-the-crypto-commons.html,
           `Presentation at the Collaborative Finance Conference',
           `The GotChoices Foundation presents on the MyCHIPs lift algorithm at the Commons Hub in Austria, Spring 2023.'
         )
