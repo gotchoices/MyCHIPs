@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import NavigationItem from "../NotificationItem";
 import { colors } from "../../../config/constants";
+import NavigationComponent from "../NotificationComponent";
 
 const NotificationScreen = () => {
 
@@ -62,7 +63,12 @@ const NotificationScreen = () => {
                   index === notificationItem?.length - 1 ? styles.itemLast : null,
               ]}
             >
-              <NavigationItem notification={item} />
+
+          <NavigationComponent/>
+          
+              {/*
+              to be changed later
+              <NavigationItem notification={item} /> */}
             </View>
           );
         }}
@@ -74,7 +80,9 @@ const NotificationScreen = () => {
 const styles = StyleSheet.create({
   main: {
     flex:1,
-    paddingVertical: 15,
+
+paddingTop:5,
+    paddingBottom:15,
     paddingHorizontal: 20,
   },
   item: {

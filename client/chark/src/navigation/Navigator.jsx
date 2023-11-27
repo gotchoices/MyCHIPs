@@ -158,7 +158,7 @@ const ReceiveStack = createNativeStackNavigator();
 function ReceiveStackScreen() {
   return (
     <ReceiveStack.Navigator>
-      <ReceiveStack.Screen name="Receive" component={Receive} />
+      <ReceiveStack.Screen name="Request" component={Receive} />
       <ReceiveStack.Screen name="ShareTally" component={ReceiveShareTally} />
     </ReceiveStack.Navigator>
   );
@@ -216,10 +216,10 @@ const Navigator = () => {
       />
 
       <Tab.Screen
-        name="Receive"
+        name="Request"
         component={ReceiveStackScreen}
         options={{
-          title: "Receive",
+          title: "Request",
           tabBarIcon: (props) => (
             <CustomIcon name="receive" {...{ ...props, size: 26 }} />
           ),
