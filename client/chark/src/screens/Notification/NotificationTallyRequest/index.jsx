@@ -58,7 +58,8 @@ const myChipsNet = {
 
 const styles = StyleSheet.create({
   button: {
-    height: 23,
+    width:50,
+    height: 25,
     marginBottom: 3,
     borderRadius: 40,
     paddingVertical: 0,
@@ -69,6 +70,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     height: 23,
+    width:50,
     marginBottom: 3,
     borderRadius: 40,
     paddingVertical: 0,

@@ -63,10 +63,10 @@ const NotificationScreen = () => {
                 index === notificationItem?.length - 1 ? styles.itemLast : null,
               ]}
             >
-              {item.status === "You Paid" ? (
-                <NotificationTallyOffer />
-              ) : (
+              {item.status === "Tally Request" ? (
                 <NotificationTallyRequest />
+              ) : (
+                <NotificationTallyOffer />
               )}
 
               {/*
