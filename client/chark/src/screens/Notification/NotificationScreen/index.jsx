@@ -1,12 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet, FlatList } from "react-native";
 import NavigationItem from "../NotificationItem";
 import { colors } from "../../../config/constants";
-import NavigationComponent from "../NotificationComponent";
+import NotificationTallyOffer from "../NotificationTallyOffer";
+import NotificationTallyRequest from "../NotificationTallyRequest";
 
 const NotificationScreen = () => {
-
-    //DUMMY DATA - Needs discussion
+  //DUMMY DATA - Needs discussion
   const notificationItem = [
     {
       id: 0,
@@ -55,17 +55,20 @@ const NotificationScreen = () => {
       <FlatList
         data={notificationItem}
         keyExtractor={(item) => item.id}
-        renderItem={({ item,index }) => {
+        renderItem={({ item, index }) => {
           return (
             <View
               style={[
                 styles.item,
-                  index === notificationItem?.length - 1 ? styles.itemLast : null,
+                index === notificationItem?.length - 1 ? styles.itemLast : null,
               ]}
             >
+              {item.status === "You Paid" ? (
+                <NotificationTallyOffer />
+              ) : (
+                <NotificationTallyRequest />
+              )}
 
-          <NavigationComponent/>
-          
               {/*
               to be changed later
               <NavigationItem notification={item} /> */}
@@ -79,10 +82,10 @@ const NotificationScreen = () => {
 
 const styles = StyleSheet.create({
   main: {
-    flex:1,
+    flex: 1,
 
-paddingTop:5,
-    paddingBottom:15,
+    paddingTop: 5,
+    paddingBottom: 15,
     paddingHorizontal: 20,
   },
   item: {

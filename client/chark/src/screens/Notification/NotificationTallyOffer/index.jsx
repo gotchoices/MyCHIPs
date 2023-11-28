@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 import Avatar from "../../../components/Avatar";
 import { colors } from "../../../config/constants";
 
-const NavigationComponent = (props) => {
+const NotificationTallyOffer = (props) => {
   // Dummy data used for UI Purpose - needs discussion
 
   return (
@@ -66,4 +66,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NavigationComponent;
+export default NotificationTallyOffer;
