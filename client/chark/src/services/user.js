@@ -30,3 +30,14 @@ export const getTallyReport = (wm) => {
 
   return request(wm, `visual_balance_${random()}`, 'action', spec)
 }
+
+export const getUserCert = (wm) => {
+  const spec = {
+    fields: ['user_ent', 'cert'],
+    view: 'mychips.users_v_me',
+  }
+
+  return request(wm, `_user_ref_${random(1000)}`, 'select', spec).then(response => {
+    return response?.[0]?.cert;
+  })
+}

@@ -9,7 +9,7 @@ import { request } from '../../../../services/profile';
 import { random } from '../../../../utils/common';
 import useMessageText from '../../../../hooks/useMessageText';
 import useSocket from '../../../../hooks/useSocket';
-import { fetchAddresses } from '../../../../redux/profileSlice';
+import { fetchAddresses, setUserChangeTrigger } from '../../../../redux/profileSlice';
 
 import AddressInput from './AddressInput';
 import HelpText from '../../../../components/HelpText';
@@ -149,6 +149,10 @@ const Address = (props) => {
       });
       Keyboard.dismiss();
       updateAddressList();
+
+      dispatch(
+        setUserChangeTrigger()
+      );
     }).catch(err => {
       Toast.show({
         type: 'error',

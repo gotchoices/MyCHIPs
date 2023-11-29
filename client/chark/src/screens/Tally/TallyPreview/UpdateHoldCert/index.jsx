@@ -16,7 +16,7 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
   // User currenct certificate
   const { wm } = useSocket();
   const { personal } = useSelector(state => state.profile);
-  const [tallyCert, setTallyCert] = useState({ ...tallyCurrentHoldCert ?? {} });
+  const [tallyCert, setTallyCert] = useState({ ...(tallyCurrentHoldCert ?? {}) });
   const [userCert, setUserCert] = useState({});
 
   useUser(wm);

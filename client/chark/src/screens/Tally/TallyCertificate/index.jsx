@@ -2,6 +2,8 @@ import React, { useMemo, useEffect } from "react"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
 
 import HelpText from '../../../components/HelpText';
+import DefaultCertificate from './DefaultCertificate';
+
 import { colors } from "../../../config/constants";
 
 const TallyCertificate = (props) => {
@@ -14,8 +16,8 @@ const TallyCertificate = (props) => {
   }, []);
 
   const name = Object.values((data?.name ?? {})).join(' ')
-  const cid = data?.chad?.cid;
-  const agent = data?.chad?.agent;
+  const cid = data?.chad?.cid ?? '';
+  const agent = data?.chad?.agent ?? '';
   const email = useMemo(() => {
     const found = (data?.connect ?? []).find(connect => connect.media === 'email')
     return found?.address ?? ''
@@ -26,45 +28,12 @@ const TallyCertificate = (props) => {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      <View style={styles.detailControl}>
-        <HelpText
-          label={'Formal Name'}
-        />
-        
-        <Text style={styles.text}>
-          {name}
-        </Text>
-      </View>
-
-      <View style={styles.detailControl}>
-        <HelpText
-          label={'CID'}
-        />
-        
-        <Text style={styles.text}>
-          {cid}
-        </Text>
-      </View>
-
-      <View style={styles.detailControl}>
-        <HelpText
-          label={'Email'}
-        />
-        
-        <Text style={styles.text}>
-          {email}
-        </Text>
-      </View>
-
-      <View style={styles.detailControl}>
-        <HelpText
-          label={'Agent'}
-        />
-        
-        <Text style={styles.text}>
-          {agent}
-        </Text>
-      </View>
+      <DefaultCertificate
+        name={name}
+        cid={cid}
+        email={email}
+        agent={agent}
+      />
     </ScrollView>
   )
 }

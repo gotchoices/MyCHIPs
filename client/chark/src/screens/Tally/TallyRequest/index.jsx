@@ -1,191 +1,122 @@
-import { StyleSheet, View, Text, Dimensions } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from 'react'
+import { View, StyleSheet } from 'react-native';
 
-import Button from "../../../components/Button";
-import Avatar from "../../../components/Avatar";
-import { colors } from "../../../config/constants";
-import useSocket from "../../../hooks/useSocket";
-import { useTallyText } from "../../../hooks/useLanguage";
-import { fetchTallies } from "../../../services/tally";
-import { useSelector } from "react-redux";
-import { formatRandomString } from "../../../utils/format-string";
-import CustomIcon from "../../../components/CustomIcon";
+import RequestStart from './RequestStart';
+import Certificates from './Certificates';
+import CustomCertificate from './CustomCertificate';
 
 const TallyRequest = (props) => {
-  const { tally_seq, tally_ent } = props;
-  const { wm } = useSocket();
-  const tallyText = useTallyText(wm);
+  const invite = props.route?.params ?? {};
 
-  const [tally, setTally] = useState();
-  const [target, setTarget] = useState("");
-  const [bound, setBound] = useState("");
-  const [reward, setReward] = useState("");
-  const [clutch, setClutch] = useState("");
+  const [tallyInfo, setTallyInfo] = useState(undefined);
+  const [visibility, setVisibility] = useState({
+    requestStart: true,
+    certificateOptions: false,
+    customCertificate: false,
+    myCertificate: false,
+    needCustom: true,
+  })
 
-  const [contractName, setContractName] = useState("");
+  const showCorrespondingView = (view, needCustom = false) => {
+    switch(view) {
+      case 'certificateOptions':
+        setVisibility({
+          requestStart: false,
+          certificateOptions: true,
+          customCertificate: false,
+          myCertificate: false,
+          needCustom,
+        })
+        break;
+      case 'customCertificate':
+        setVisibility({
+          requestStart: false,
+          certificateOptions: false,
+          customCertificate: true,
+          myCertificate: false,
+          needCustom,
+        })
+        break;
+      //case 'myCertificate':
+        //setVisibility({
+          //requestStart: false,
+          //certificateOptions: false,
+          //customCertificate: false,
+          //myCertificate: true,
+          //needCustom: false,
+        //})
+        break;
+      default:
+        break;
+    }
+  }
 
-  const {
-    imageFetchTrigger,
-    tallies: tallies,
-    imagesByDigest,
-    fetching,
-  } = useSelector((state) => state.openTallies);
+  const onStart = () => {
+    showCorrespondingView('certificateOptions');
+  }
 
-  useEffect(() => {
-    fetchTally();
-  }, [tally_seq, tally_ent]);
+  const onItemPressed = (tally_ent, tally_seq) => {
+    //showCorrespondingView('myCertificate');
+    setTallyInfo({ tally_ent, tally_seq })
+    showCorrespondingView('customCertificate', false);
+  }
 
-  const fetchTally = () => {
-    fetchTallies(wm, {
-      fields: [
-        "bound",
-        "reward",
-        "clutch",
-        "tally_seq",
-        "tally_uuid",
-        "tally_date",
-        "status",
-        "hold_terms",
-        "part_terms",
-        "part_cert",
-        "tally_type",
-        "comment",
-        "contract",
-        "net",
-        "hold_cert",
-      ],
-      where: {
-        tally_ent,
-        tally_seq,
-      },
-    })
-      .then((data) => {
-        if (data?.length) {
-          const _tally = data?.[0];
+  const onCustomPressed = () => {
+    showCorrespondingView('customCertificate', true);
+  }
 
-          setTally(_tally);
-          setTarget((_tally?.target ?? "").toString());
-          setBound((_tally?.bound ?? "").toString());
-          setReward((_tally?.reward ?? "").toString());
-          setClutch((_tally?.clutch ?? "").toString());
-        }
-      })
-      .catch((e) => {
-        console.log("ERROR===>", e);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-  const onViewPartnerCertificate = () => {};
-
-  const onChoose = () => {};
-
-  const partCert = tally?.part_cert;
+  const onCertificateDone = () => {
+    showCorrespondingView('myCertificate');
+  }
 
   return (
-    <View style={styles.main}>
-      <CustomIcon
-        name="close"
-        size={16}
-        onPress={props.onClose}
-        style={styles.close}
-      />
-      <View style={styles.center}>
-        <Avatar
-          style={styles.profileImage}
-          avatar={imagesByDigest?.[tally?.part_cert?.file?.[0]?.digest]}
+    <View style={styles.container}>
+      {visibility.requestStart && (
+        <RequestStart
+          onStart={onStart}
+          name={invite?.chad?.cid}
+          agent={invite?.chad?.agent ?? ''}
+          navigation={props.navigation}
         />
+      )}
 
-        <Text style={[styles.topSub, { marginTop: 4 }]}>
-          {partCert?.chad?.cid}:{formatRandomString(partCert?.chad?.agent)}
-        </Text>
+      {visibility.certificateOptions && (
+        <Certificates 
+          onCustomPressed={onCustomPressed}
+          onItemPressed={onItemPressed}
+          tally_ent={tallyInfo?.tally_ent}
+          tally_seq={tallyInfo?.tally_seq}
+        />
+      )}
 
-        <Text style={styles.bottomSheetTitle}>
-          {partCert?.type === "o"
-            ? `${partCert?.name}`
-            : `${partCert?.name?.first}${
-                partCert?.name?.middle ? " " + partCert?.name?.middle + " " : ""
-              } ${partCert?.name?.surname}`}
-        </Text>
+      {visibility.customCertificate && (
+        <CustomCertificate 
+          invite={invite}
+          onDone={onCertificateDone}
+          tally_ent={tallyInfo?.tally_ent}
+          tally_seq={tallyInfo?.tally_seq}
+          needCustom={visibility.needCustom}
+          showCorrespondingView={showCorrespondingView}
+        />
+      )}
 
-        <Text style={[styles.bottomSheetSub, { marginTop: 4 }]}>
-          Wants to start a Tally with you
-        </Text>
-      </View>
-
-      <Button
-        textColor="blue"
-        title="View Partner Certificate"
-        onPress={onViewPartnerCertificate}
-        style={styles.secondaryButton}
-      />
-
-      <Button
-        title="Choose Certificate"
-        onPress={onChoose}
-        style={styles.button}
-      />
+    {/*}
+    {visibility.myCertificate && (
+        <MyCertificate 
+          sendCertificate={sendCertificate}
+          showCorrespondingView={showCorrespondingView}
+        />
+      )}
+    {*/}
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
-  main: { paddingHorizontal: 20, flex: 2, backgroundColor: "white" },
-  center: {
+  container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  close: {
-    position: "absolute",
-    top: 80,
-    left: 30,
-    height: 24,
-    width: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  secondaryButton: {
-    backgroundColor: "white",
-    borderColor: "blue",
-    width: "100%",
-    borderRadius: 40,
-    height: 45,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: "blue",
-    borderColor: "blue",
-    width: "100%",
-    borderRadius: 40,
-    height: 45,
-    marginBottom: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bottomSheetTitle: {
-    fontSize: 24,
-    fontWeight: "500",
-    fontFamily: "inter",
-    color: colors.black,
-  },
-  bottomSheetSub: {
-    fontSize: 18,
-    fontWeight: "500",
-    color: "#636363",
-    fontFamily: "inter",
-    paddingBottom: 30,
-  },
-  topSub: {
-    fontSize: 14,
-    color: "#636363",
-    fontFamily: "inter",
-    paddingBottom: 30,
-  },
-});
+    padding: 20,
+  }
+})
 
 export default TallyRequest;

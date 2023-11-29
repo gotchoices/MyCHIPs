@@ -280,3 +280,16 @@ export const reviseTally = (wm, args) => {
 
   return request(wm, '_tally_revise' + random(), 'update', spec)
 }
+
+/**
+ * @param {Object} - args
+ * @param {string[]} - args.data
+ */
+export const processTicket = (wm, ticketPayload) => {
+  const spec = {
+    view: 'mychips.ticket_process',
+    params: [ticketPayload],
+  }
+
+  return request(wm, '_process_tally' + random(), 'select', spec);
+}

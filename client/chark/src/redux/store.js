@@ -6,6 +6,7 @@ import languageReducer from './languageSlice';
 import currentUserReducer from './currentUserSlice';
 import openTalliesReducer from './openTalliesSlice';
 import avatarReducer from './avatarSlice';
+import certificateTalliesReducer  from './certificateTalliesSlice';
 
 export default configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
@@ -19,5 +20,6 @@ export default configureStore({
     currentUser: currentUserReducer,
     openTallies: openTalliesReducer,
     avatar: avatarReducer,
+    certificateTallies: certificateTalliesReducer,
   }
 })

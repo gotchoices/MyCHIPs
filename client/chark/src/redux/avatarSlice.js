@@ -15,16 +15,17 @@ const initialState = {
   */
 export const fetchImagesByDigest = createAsyncThunk('openTallies/fetchImagesByDigest', async (args, { getState }) => {
   const state = getState();
-  let tallies = [];
   const imagesByDigestState = state.avatar?.imagesByDigest ?? {};
+  let hashes = [];
 
   if(args.status === 'open') {
-    tallies = state.openTallies;
+    const tallies = state.openTallies;
+    hashes = tallies.hashes ?? [];
   } else if(args.status === 'working') {
-    tallies = state.workingTallies;
+    const tallies = state.workingTallies;
+    hashes = tallies.hashes ?? [];
   }
 
-  const hashes = tallies.hashes ?? [];
   const promises = [];
 
   let _imagesByDigest = {};

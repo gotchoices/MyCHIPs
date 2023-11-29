@@ -4,7 +4,6 @@ import { keyServices } from '../config/constants';
 import DeviceInfo from 'react-native-device-info';
 
 const rnBiometrics = new ReactNativeBiometrics()
-
 const isBiometricsAvailable = () => {
   return rnBiometrics.isSensorAvailable()
     .then((result) => {

@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, StyleSheet, TextInput, TouchableWithoutFeedback } from 'react-native';
+import PropTypes from 'prop-types'
 
 import { FilterIcon, SearchIcon } from '../../../components/SvgAssets/SvgAssets';
 import { colors } from '../../../config/constants';
 
-const Search = () => {
+const Search = (props) => {
   const onFilter = () => {
     console.log('filter pressed')
   }
@@ -15,7 +16,7 @@ const Search = () => {
         <SearchIcon />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search Partners"
+          placeholder={props.title ?? 'Search'}
         />
       </View>
 
@@ -53,5 +54,8 @@ const styles = StyleSheet.create({
   }
 });
 
+Search.propTypes = {
+  title: PropTypes.string,
+}
 
 export default Search;
