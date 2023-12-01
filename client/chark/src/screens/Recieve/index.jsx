@@ -140,7 +140,7 @@ const Receive = (props) => {
             </View>
 
             {currencyCode && usd ? (
-               <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
+               <View style={[styles.row,{alignSelf:'flex-end',marginRight:0}]}>
                 <Text style={styles.text}>
                   {usd} {currencyCode}
                 </Text>
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   row: {
-    width:200,
+    width:220,
     paddingRight:20,
     flexDirection: "row",
     alignItems: "center",
