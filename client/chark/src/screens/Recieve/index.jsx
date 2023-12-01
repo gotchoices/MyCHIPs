@@ -182,7 +182,7 @@ const Receive = (props) => {
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
-          title={"Receive"}
+          title={"Request"}
           onPress={onMakePayment}
           disabled={disabled}
         />
