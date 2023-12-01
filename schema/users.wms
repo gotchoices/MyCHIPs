@@ -27,7 +27,7 @@ namespace eval users {
     def users_pk	{user_ent}
     def users_v_up	{user_host user_port user_stat user_hid peer_cid peer_agent peer_psig peer_named user_cmt}
     def users_v_in	[concat $users_pk $users_v_up]
-    def users_v_up_me	{user_hid peer_cid peer_psig peer_named user_cmt}
+    def users_v_up_me	{user_hid peer_cid peer_psig peer_named user_cmt born_date country tax_id}
     def users_se	[concat $users_v_in crt_by crt_date mod_by]
     def ent_se		[concat $base::ent_pk $base::ent_v_in ent_num std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
