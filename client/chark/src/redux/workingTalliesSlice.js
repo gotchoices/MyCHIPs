@@ -7,6 +7,8 @@ const initialState = {
   tallies: [],
   hashes: [],
   imageFetchTrigger: 1,
+  // For detecting any change on working tally to trigger asynchronous change that depend on the tally 
+  tallyChangeTrigger: undefined,
 };
 
 export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', async (args) => {
@@ -80,7 +82,6 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
     }
 
   } catch(err) {
-    console.log(err, 'err err err')
     throw err;
   }
 
@@ -99,6 +100,16 @@ export const workingTalliesSlice = createSlice({
 
       if(foundIndex >= 0) {
         state.tallies[foundIndex] = updated;
+      }
+    },
+    setTallyChangeTrigger: (state, action) => {
+      const { tally_ent, tally_seq } = action.payload;
+      const trigger = state.tallyChangeTrigger?.trigger ?? 1;
+
+      state.tallyChangeTrigger = {
+        tally_ent,
+        tally_seq,
+        trigger: trigger + 1,
       }
     }
   },
@@ -124,4 +135,5 @@ export default workingTalliesSlice.reducer;
 
 export const {
   updateTally,
+  setTallyChangeTrigger,
 } = workingTalliesSlice.actions; 

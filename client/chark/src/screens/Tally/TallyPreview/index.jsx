@@ -18,6 +18,7 @@ import useInvite from "../../../hooks/useInvite";
 import { useHoldTermsText, useTallyText } from "../../../hooks/useLanguage";
 import useTallyUpdate from "../../../hooks/useTallyUpdate";
 import { fetchContracts, updateHoldCert } from "../../../services/tally";
+import { setTallyChangeTrigger } from '../../../redux/workingTalliesSlice';
 
 import CustomText from "../../../components/CustomText";
 import Button from "../../../components/Button";
@@ -40,7 +41,7 @@ import ShareIcon from "../../../../assets/svg/ic_share.svg";
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
-  const { wm, tallyNegotiation } = useSocket();
+  const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
   const dispatch = useDispatch();
 
@@ -49,8 +50,6 @@ const TallyPreview = (props) => {
   const [sig, setSig] = useState(undefined);
   const [tallyContracts, setTallyContracts] = useState([]);
   const [updateCert, setUpdateCert] = useState(false);
-
-  const [showSwapIcon, setShowSwapIcon] = useState(false);
 
   const {
     loading,
@@ -185,6 +184,16 @@ const TallyPreview = (props) => {
 
       setTally(data);
 
+      // Check for CustomCertificate.jsx for the trigger changes
+      if(data.state === 'draft') {
+        dispatch(
+          setTallyChangeTrigger({
+            tally_ent,
+            tally_seq,
+          })
+        )
+      }
+
       setInitialFields({
         ...initialFields,
         comment,
@@ -247,8 +256,6 @@ const TallyPreview = (props) => {
   };
 
   const onRevise = () => {
-   setShowSwapIcon(true)
-    
     reviseTally(wm, {
       tally_ent,
       tally_seq,
@@ -263,8 +270,6 @@ const TallyPreview = (props) => {
   };
 
   const onAccept = async () => {
-    setShowSwapIcon(false)
-    
     if (!tally?.json) {
       Alert.alert("Tally can not be signed");
       return;
@@ -307,8 +312,6 @@ const TallyPreview = (props) => {
   };
 
   const onRefuse = () => {
-    setShowSwapIcon(false)
-
     refuseTally(wm, {
       tally_ent,
       tally_seq,
@@ -329,8 +332,6 @@ const TallyPreview = (props) => {
   };
 
   const onVerify = async () => {
-    setShowSwapIcon(false)
-
     const creds = await retrieveKey(keyServices.publicKey);
     verifySignature(sig, JSON.stringify(tally.json), creds.password)
       .then((verified) => {
@@ -464,7 +465,6 @@ const TallyPreview = (props) => {
         >
           <TallyEditView
             tally={tally}
-            showSwapIcon={showSwapIcon}
             tallyType={tallyType}
             contract={contract}
             holdTerms={holdTerms}

@@ -46,6 +46,7 @@ Button.propTypes = {
 
 const styles = StyleSheet.create({
   btn: {
+    borderRadius: 40,
     borderWidth: 1,
     borderColor: colors.blue,
     alignItems: 'center',

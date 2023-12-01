@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableWithoutFeedback,
-  Button,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import moment from 'moment'
@@ -32,8 +31,6 @@ const TallyEditView = (props) => {
   const setContract = props.setContract;
   const tallyContracts = props.tallyContracts ?? [];
   const canEdit = tally.state === 'draft' || tally.state === 'P.draft';
-
-  const showSwapIcon = props.showSwapIcon ?? false;
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
@@ -72,7 +69,6 @@ const TallyEditView = (props) => {
   return (
     <View style={{ paddingHorizontal: 10 }}>
       <TallyReviewView 
-        canSwap={showSwapIcon}
         tallyType={tallyType}
         setTallyType={setTallyType}
         partTerms={partTerms}

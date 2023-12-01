@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useId } from 'react';
-import { View, Linking } from 'react-native'
+import { View, Linking, Modal } from 'react-native'
 import qs from 'query-string';
 import Toast from 'react-native-toast-message';
 import { useSelector } from 'react-redux';
@@ -26,7 +26,6 @@ const HomeScreen = (props) => {
 
   const [visible, setVisible] = useState(false);
   const [updateCertVisible, setUpdateCertVisible] = useState(false);
-
   const [tallyProcess, setTallyProcess] = useState(undefined);
 
   const connect = (ticket) => {
@@ -103,15 +102,12 @@ const HomeScreen = (props) => {
   }
 
   function requestProposedTally(invite) {
-    setTallyProcess(invite);
-    // Needed to add the timeout if the app is already opened for deep link to work
     setTimeout(() => {
-      props.navigation.navigate("DraftTally", invite);
+      props.navigation.navigate("TallyRequest", invite);
     }, 100)
   }
 
   function startProcessTally(partCert) {
-    console.log("DATA IS HERE ==> ", JSON.stringify({ ...tallyProcess, part_cert: partCert }));
     const spec = {
       view: 'mychips.ticket_process',
       params: [{ ...tallyProcess, part_cert: partCert }],
@@ -148,6 +144,7 @@ const HomeScreen = (props) => {
       <View style={{ flex: 1, marginTop:-10 }}>
         <Tally navigation={props.navigation} />
       </View>
+
       <CenteredModal
         isVisible={visible}
         onClose={dismissUpdateDialog}

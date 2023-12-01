@@ -14,7 +14,7 @@ import { colors } from '../../../config/constants';
 import { request } from '../../../services/profile';
 import useSocket from '../../../hooks/useSocket';
 import useMessageText from '../../../hooks/useMessageText';
-import { fetchComm } from '../../../redux/profileSlice';
+import { fetchComm, setUserChangeTrigger } from '../../../redux/profileSlice';
 
 import HelpText from '../../../components/HelpText';
 import CenteredModal from '../../../components/CenteredModal';
@@ -112,7 +112,7 @@ const Comm = (props) => {
         const spec = {
           fields: {
             comm_type: profileType,
-            comm_spec: item?.comm_spec
+            comm_spec: item?.comm_spec,
           },
           view: 'mychips.comm_v_me',
           where: {
@@ -166,7 +166,11 @@ const Comm = (props) => {
       });
       updateCommunicationList();
       setSeqToRemove([]);
+      dispatch(
+        setUserChangeTrigger()
+      );
     }).catch((err) => {
+      console.log({err})
       Toast.show({
         type: 'error',
         text1: err.message,

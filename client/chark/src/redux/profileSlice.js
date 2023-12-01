@@ -20,6 +20,8 @@ const initialState = {
   personal: undefined,
   addresses: [],
   filter: {},
+  // For detecting any change on user to trigger asynchronous change that depend on the tally 
+  userChangeTrigger: 1,
 };
 
 export const fetchAvatar = createAsyncThunk('profile/fetchAvatar', async (args) => {
@@ -180,6 +182,10 @@ export const profileSlice = createSlice({
     setFilter: (state, action) => {
       state.filter = action.payload;
     },
+    setUserChangeTrigger: (state, action) => {
+      const trigger = state.userChangeTrigger ?? 1;
+      state.userChangeTrigger = trigger + 1;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -225,6 +231,7 @@ export const {
   setAddress,
   setPersonal,
   setFilter,
+  setUserChangeTrigger,
 } = profileSlice.actions;
 
 export default profileSlice.reducer;

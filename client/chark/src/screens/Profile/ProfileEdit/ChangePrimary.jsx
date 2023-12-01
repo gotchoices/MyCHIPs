@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
   View,
@@ -12,12 +13,14 @@ import Toast from 'react-native-toast-message';
 import Button from '../../../components/Button';
 
 import { colors } from '../../../config/constants';
+import { setUserChangeTrigger } from '../../../redux/profileSlice';
 
 const ChangePrimary = (props) => {
   const items = props.items;
   const rowField = props.rowField;
   const primaryField = props.primaryField;
   const seqField = props.seqField;
+  const dispatch = useDispatch();
 
   const [loading, setLoading] = useState(false);
 
@@ -29,6 +32,9 @@ const ChangePrimary = (props) => {
         text1: 'Changes saved successfully.',
         position: 'bottom',
       });
+      dispatch(
+        setUserChangeTrigger()
+      );
     }).finally(() => {
       setLoading(false);
       props.onCancel();

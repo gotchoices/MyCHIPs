@@ -13,7 +13,7 @@ import { colors } from '../../../config/constants';
 import { request } from '../../../services/profile';
 import useSocket from '../../../hooks/useSocket';
 import useMessageText from '../../../hooks/useMessageText';
-import { setPersonal } from '../../../redux/profileSlice';
+import { setPersonal, setUserChangeTrigger } from '../../../redux/profileSlice';
 
 import HelpTextInput from '../../../components/HelpTextInput';
 import Button from '../../../components/Button';
@@ -53,7 +53,10 @@ const PersonalBio = (props) => {
       view: 'mychips.users_v_me',
     }
 
-    request(wm, '_tax_ref', 'update', spec).then(() => {
+    request(wm, '_tax_ref', 'update', spec).then((res) => {
+      dispatch(
+        setUserChangeTrigger()
+      );
       Keyboard.dismiss();
     }).catch(err => {
       Toast.show({
@@ -63,11 +66,6 @@ const PersonalBio = (props) => {
       });
 
     }).finally(() => {
-      Toast.show({
-        type: 'success',
-        messageText1: 'Changes saved successfully.',
-        position: 'bottom',
-      });
       setUpdating(false);
     })
   }

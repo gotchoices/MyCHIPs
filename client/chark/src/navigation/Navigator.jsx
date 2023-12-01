@@ -34,6 +34,7 @@ import TallyCertificate from "../screens/Tally/TallyCertificate";
 import Receive from "../screens/Recieve";
 import ReceiveShareTally from "../screens/ReceiveTallyShare";
 import NotificationScreen from "../screens/Notification/NotificationScreen";
+import TallyRequest from "../screens/Tally/TallyRequest";
 
 
 const screenOptions = {
@@ -64,6 +65,11 @@ function HomeStackScreen() {
         name="DraftTally"
         component={DraftTally}
         options={{ title: "Customize New Certificate" }}
+      />
+      <HomeStack.Screen
+        name="TallyRequest"
+        component={TallyRequest}
+        options={{ headerShown: false }}
       />
       <HomeStack.Screen
         name="TallyReport"
