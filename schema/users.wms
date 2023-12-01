@@ -174,22 +174,22 @@ view mychips.users_v_flat {mychips.users_v base.addr_v_flat base.comm_v_flat} {s
 
 # Birth records should only be written once
 # -----------------------------------------------------------------
-function base.addr_tf_birth() {base.addr} {
-  returns trigger language plpgsql security definer as $$
-    begin
-      if session_user = 'subst($mychips::adminuser)' then
-        return new;
-      end if;
-      if old.addr_type = 'birth' then
-        raise exception '!mychips.users:BRM %', old.addr_ent;
-        return null;
-      end if;
-      return new;
-    end;
-$$;}
-trigger base_addr_tr_birth {} {
-    before update on base.addr for each row execute procedure base.addr_tf_birth();
-}
+#function base.addr_tf_birth() {base.addr} {
+#  returns trigger language plpgsql security definer as $$
+#    begin
+#      if session_user = 'subst($mychips::adminuser)' then
+#        return new;
+#      end if;
+#      if old.addr_type = 'birth' then
+#        raise exception '!mychips.users:BRM %', old.addr_ent;
+#        return null;
+#      end if;
+#      return new;
+#    end;
+#$$;}
+#trigger base_addr_tr_birth {} {
+#    before update on base.addr for each row execute procedure base.addr_tf_birth();
+#}
 
 # View limited to the user's own user record
 #----------------------------------------------------------------
