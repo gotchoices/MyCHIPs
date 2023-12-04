@@ -387,10 +387,10 @@ view mychips.chits_v {
   mychips.j2h(jsonb)
 } {select 
     eval(fld_list $chits::chits_se	ch)
-  , te.hold_cid
-  , te.part_cid
+  , te.hold_cid,	te.part_cid
   , te.tally_type
   , te.tally_uuid
+  , te.net_c as net_c, te.net_pc as net_pc
   , te.chain_conf
 
   , uSign(ch.units)							as net
@@ -503,13 +503,16 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
         delete from mychips.chit_tries where ctry_ent = crec.chit_ent and ctry_seq = crec.chit_seq and ctry_idx = crec.chit_idx;
       end if;
 
-      select into crec chit_ent,chit_seq,chit_idx,chit_uuid,state,status,action,json,chain from mychips.chits_v where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
+      select into crec chit_ent,chit_seq,chit_idx,chit_uuid,state,status,action,json,chain,net_c,net_pc from mychips.chits_v
+        where chit_ent = crec.chit_ent and chit_seq = crec.chit_seq and chit_idx = crec.chit_idx;
       if crec.action or (crec.state is distinct from curState) then	-- Also notify if changed state
         jrec = jsonb_build_object(
           'target',	'chit',
           'entity',	crec.chit_ent,
           'sequence',	crec.chit_seq,
           'index',	crec.chit_idx,
+          'net',	cred.net_c,
+          'pend',	cred.net_pc,
           'state',	crec.state,
           'object',	crec.json
         );
