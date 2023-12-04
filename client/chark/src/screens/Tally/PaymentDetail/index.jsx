@@ -8,6 +8,7 @@ import {
   Text,
   Alert,
   TouchableOpacity,
+  Keyboard,
 } from "react-native";
 import { useSelector } from "react-redux";
 
@@ -96,6 +97,7 @@ const PaymentDetail = (props) => {
   };
 
   const onMakePayment = () => {
+    Keyboard.dismiss();
     const net = round((chit ?? 0) * 1000, 0);
 
     if (net < 0) {
@@ -141,6 +143,7 @@ const PaymentDetail = (props) => {
   return (
     <ScrollView
       style={styles.container}
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}
     >
       <View style={styles.centerWrapper}>
@@ -253,6 +256,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   amount: {
+    width: 80,
     paddingLeft: 10,
     fontSize: 26,
     paddingVertical: 20,

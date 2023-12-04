@@ -20,6 +20,7 @@ const SocketProvider = ({ children }) => {
   const [ws, setWs] = useState();
   const [status, setStatus] = useState('Disconnected');
   const [tallyNegotiation, setTallyNegotiation] = useState(undefined);
+  const [chitTrigger, setChitTrigger] = useState(undefined);
   const dispatch = useDispatch();
 
   const connectTimeout = useRef();
@@ -76,14 +77,11 @@ const SocketProvider = ({ children }) => {
         wm.listen(`${listenId}-${user}`, user, data => {
           console.log('notification data', data, 'NOTIFICATION DATA')
           onDisplayNotification(data);
+          const payload = notificationTriggerPayload(data);
           if(data?.target === 'tally') {
-            setTallyNegotiation({
-              uuid: data?.object?.uuid,
-              sequence: data?.sequence,
-              state: data?.state,
-              reason: data?.reason,
-              entity: data?.entity,
-            })
+            setTallyNegotiation(payload);
+          } else if(data?.target === 'chit') {
+            setChitTrigger(payload);
           }
         })
 
@@ -167,6 +165,7 @@ const SocketProvider = ({ children }) => {
       connectSocket,
       disconnectSocket,
       tallyNegotiation,
+      chitTrigger,
     }}>
       {children}
     </SocketContext.Provider>
@@ -257,6 +256,30 @@ function getTitleAndMessage(args) {
         title: 'Notification',
         message: 'You have got a notification',
       }
+  }
+}
+
+function notificationTriggerPayload(data) {
+  switch(data?.target) {
+      case 'tally':
+        return {
+          uuid: data?.object?.uuid,
+          sequence: data?.sequence,
+          state: data?.state,
+          reason: data?.reason,
+          entity: data?.entity,
+        }
+
+      case 'chit':
+        return {
+          tally_ent: data.entity,
+          tally_seq: data.sequence,
+          tally_uuid: data.object?.tally,
+          hash: data.object?.hash,
+        }
+
+      default:
+        break;
   }
 }
 
