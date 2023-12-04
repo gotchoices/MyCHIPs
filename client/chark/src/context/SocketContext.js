@@ -5,6 +5,7 @@ const SocketContext = createContext({
   wm: undefined,
   status: 'Server Disconnected',
   tallyNegotiation: undefined,
+  chitTrigger: undefined,
   connectSocket: (ticket) => {
     console.log('Connect socket');
   },

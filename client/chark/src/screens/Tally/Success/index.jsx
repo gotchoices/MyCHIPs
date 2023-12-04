@@ -29,7 +29,7 @@ const SuccessModal = (props) => {
 
 SuccessModal.propTypes = {
     onClose: PropTypes.func.isRequired,
-  onDismiss: PropTypes.func.isRequired,
+  onDismiss: PropTypes.func,
 }
 
 const styles = StyleSheet.create({

@@ -12,7 +12,7 @@ import useSocket from '../../hooks/useSocket';
 import { round } from '../../utils/common';
 import { getCurrency } from '../../services/user';
 import { useUserTalliesText } from '../../hooks/useLanguage';
-import { fetchOpenTallies } from '../../redux/openTalliesSlice';
+import { fetchOpenTallies, fetchTallyOnChitTransferred } from '../../redux/openTalliesSlice';
 import { fetchImagesByDigest as fetchImages } from '../../redux/avatarSlice';
 
 import TallyItem from "./TallyItem";
@@ -21,7 +21,7 @@ import PayModal from "../Pay";
 import { colors } from "../../config/constants";
 
 const Tally = (props) => {
-  const { wm, tallyNegotiation } = useSocket();
+  const { wm, tallyNegotiation, chitTrigger } = useSocket();
   const dispatch = useDispatch();
   const { preferredCurrency } = useSelector(state => state.profile);
   const { imageFetchTrigger, tallies: tallies, /*imagesByDigest,*/ fetching } = useSelector(state => state.openTallies);
@@ -63,6 +63,18 @@ const Tally = (props) => {
         });
     }
   }, [currencyCode]);
+
+  useEffect(() => {
+    console.log(chitTrigger, 'chit trigger')
+    if(chitTrigger) {
+      dispatch(
+        fetchTallyOnChitTransferred({
+          wm,
+          ...chitTrigger,
+        })
+      )
+    }
+  }, [chitTrigger])
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
