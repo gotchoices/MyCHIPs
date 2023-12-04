@@ -810,16 +810,28 @@ A tally may contain any number of sequential chits.
 Chits are transmitted in the following format:
 ```
 chit: {
-  tally: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
-  uuid: "2d5d4167-dcdf-5743-861c-e6ae1e62bbb8",
-  type: "tran",				//or "lift"
+  by: <issuer>,				//stock or foil
   date: <creation date/time>,
+  type: "tran",				//or "lift"
+  uuid: "2d5d4167-dcdf-5743-861c-e6ae1e62bbb8",
+  tally: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
   units: 432123,			//milli-CHIPs
-  for: <External invoice number or other reference or comment>,
+  ref: <External invoice number or other reference or comment>,
+  memo: <Human readable comments>,
   digest: <Hash of the rest of the chit>,
-  signed: <Pledgor's signature>
+  sign: <Pledgor's signature>
 }
 ```
+The date property in tallies and chits should be formatted according to ISO 8601 and show the time in UTC format with exactly 3 digits of fractional seconds as follows:
+```
+   2023-11-17T21:55:54.065
+```
+This will assure that digital hashes and signatures can be produced in a predictable way.
+
+To sign a tally or chit, an application can produce a json object according as shown, but omitting the 'digest' and 'sign' properties.
+Null values should also be omitted from the object.
+Then it is serialized using a deterministic algorithm compatible with the "json-stable-stringify" node.js package.
+The serialized string is hashed using SHA-256 and the resulting hash is signed using the user's private key.
 
 ### Pathways
 The admin tool includes a network visualization tool that shows all users local
