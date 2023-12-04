@@ -86,7 +86,7 @@ describe("Test chit state transitions", function() {
       assert.equal(obj.by, 'foil')
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
-      assert.ok(!obj.signed)
+      assert.ok(!obj.sign)
       interTest.chit = obj			//Save original chit object
       interTest.from = msg.from			//And info about our user
       _done()
@@ -153,7 +153,7 @@ describe("Test chit state transitions", function() {
 
   it("Peer accepts invoice chit (A.pend -> A.good)", function(done) {
     let cmt = 'A modified comment'
-      , object = Object.assign({}, interTest.chit, {for:cmt, signed: cid1 + ' signature'})
+      , object = Object.assign({}, interTest.chit, {for:cmt, sign: cid1 + ' signature'})
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
@@ -169,7 +169,7 @@ describe("Test chit state transitions", function() {
   it("Agent receives good, signed chit (<start> -> A.good)", function(done) {
     let uuid = mkUuid(cid1, agent1, 'chit')
       , units = 987654
-      , object = Object.assign({}, interTest.chit, {uuid, units, signed: cid1 + ' signature'})
+      , object = Object.assign({}, interTest.chit, {uuid, units, sign: cid1 + ' signature'})
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
@@ -217,7 +217,7 @@ describe("Test chit state transitions", function() {
       assert.equal(obj.type, 'tran')
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
-      assert.equal(obj.signed, signature)
+      assert.equal(obj.sign, signature)
       _done()
     })
   })
@@ -275,7 +275,7 @@ describe("Test chit state transitions", function() {
     let uuid = mkUuid(cid1, agent1, 'chit')
       , by = 'foil'
       , units = 32500
-      , object = Object.assign({}, interTest.chit, {uuid, by, units, signed: cid1 + ' signature'})
+      , object = Object.assign({}, interTest.chit, {uuid, by, units, sign: cid1 + ' signature'})
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
       , { cid, agent } = interTest.from
       , msg = {to: {cid, agent}, object}
@@ -357,7 +357,7 @@ describe("Test chit state transitions", function() {
       assert.equal(obj.by, by)
       assert.equal(obj.type, 'set')
       assert.equal(obj.uuid, uuid)
-      assert.equal(obj.signed, signature)
+      assert.equal(obj.sign, signature)
 
       interTest.from = msg.from			//For next test
       interTest.chit = obj

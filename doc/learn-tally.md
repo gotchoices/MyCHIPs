@@ -822,9 +822,9 @@ chit: {
   sign: <Pledgor's signature>
 }
 ```
-The date property in tallies and chits should be formatted according to ISO 8601 and show the time in UTC format with exactly 3 digits of fractional seconds as follows:
+The date property in tallies and chits should be formatted according to ISO 8601 including a time zone and showing exactly 3 digits of fractional seconds as follows:
 ```
-   2023-11-17T21:55:54.065
+   2023-12-04T16:50:34.707-07:00
 ```
 This will assure that digital hashes and signatures can be produced in a predictable way.
 

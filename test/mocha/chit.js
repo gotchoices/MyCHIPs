@@ -98,7 +98,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(obj.tally, interTest.talO.tally_uuid)
       assert.equal(obj.memo, memo)
       assert.equal(obj.uuid, uuid)
-      assert.ok(!obj.signed)
+      assert.ok(!obj.sign)
       interTest.chitS = obj
       _done()
     })
@@ -107,7 +107,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       let obj = msg.object
       assert.deepStrictEqual(obj.ref, ref)
       assert.equal(obj.units, value)
-      assert.ok(!obj.signed)
+      assert.ok(!obj.sign)
       interTest.chitO = obj
       _done()
     })
@@ -133,20 +133,20 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
     busS.register('ps', (msg) => {		//log.debug("S user msg:", msg)
       assert.equal(msg.state, 'L.void')
-      assert.ok(!msg.object.signed)
+      assert.ok(!msg.object.sign)
       _done()
     })
     busO.register('po', (msg) => {		//log.debug("O user msg:", msg)
       assert.equal(msg.state, 'A.void')
-      assert.ok(!msg.object.signed)
+      assert.ok(!msg.object.sign)
       _done()
     })
   })
 
   it("Originator modifies/resubmits refused invoice", function(done) {
     let uuid = interTest.chitS.uuid
-      , signed = cidO + ' signature'
-      , sql = uSql('request = %L, signature = %L', 'pend', signed, userO, uuid)
+      , sign = cidO + ' signature'
+      , sql = uSql('request = %L, signature = %L', 'pend', sign, userO, uuid)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
@@ -157,12 +157,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
     busS.register('ps', (msg) => {		//log.debug("S user msg:", msg)
       assert.equal(msg.state, 'L.pend')
-      assert.ok(msg.object.signed)
+      assert.ok(msg.object.sign)
       _done()
     })
     busO.register('po', (msg) => {		//log.debug("O user msg:", msg)
       assert.equal(msg.state, 'A.pend')
-      assert.ok(msg.object.signed)
+      assert.ok(msg.object.sign)
       _done()
     })
   })
@@ -175,8 +175,8 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   it("Subject accepts/pays Originator's invoice", function(done) {
     let uuid = interTest.chitS.uuid
-      , signed = cidS + ' signature'
-      , sql = uSql('request = %L, signature = %L', 'good', signed, userS, uuid)
+      , sign = cidS + ' signature'
+      , sql = uSql('request = %L, signature = %L', 'good', sign, userS, uuid)
       , dc = 3, _done = (x) => {if (!--dc) done()}
 //log.debug("Sql:", dc, sql)
     dbS.query(sql, (e, res) => {if (e) done(e)
@@ -187,12 +187,12 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
     busS.register('ps', (msg) => {		//log.debug("S User msg:", dc, msg, msg.object)
       assert.equal(msg.state, 'L.good')
-      assert.ok(msg.object.signed)
+      assert.ok(msg.object.sign)
       _done('s')
     })
     busO.register('po', (msg) => {		//log.debug("O User msg1:", dc, msg, msg.object)
       assert.equal(msg.state, 'A.good')
-      assert.ok(msg.object.signed)
+      assert.ok(msg.object.sign)
       _done('o')
     })
   })
@@ -204,9 +204,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , value = 99123
       , ref = {z: 'Partial refund'}
       , request = 'good'
-      , signed = cidO + ' signature'
+      , sign = cidO + ' signature'
       , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, reference, request, signature)
-          values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L) returning *`, userO, seq, uuid, by, value, ref, request, signed)
+          values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L) returning *`, userO, seq, uuid, by, value, ref, request, sign)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
@@ -225,7 +225,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.deepStrictEqual(obj.ref, ref)
       assert.equal(obj.units, value)
       assert.equal(obj.uuid, uuid)
-      assert.ok(obj.signed)
+      assert.ok(obj.sign)
       _done()
     })
     busO.register('po', (msg) => {		//log.debug("O user msg:", msg, msg.object)

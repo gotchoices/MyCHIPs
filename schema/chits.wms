@@ -30,7 +30,7 @@ table mychips.chits {mychips.tallies mychips.lifts tally_side} {
 -- Values directly contained in the external chit representation
   , chit_uuid	uuid		not null, constraint "!mychips.chits:CUU" unique (chit_ent,chit_seq,chit_uuid)
   , chit_type	text		not null default 'tran' constraint "!mychips.chits:BCT" check(chit_type in ('lift','tran','set'))
-  , chit_date	timestamptz	not null default current_timestamp
+  , chit_date	timestamptz(3)	not null default current_timestamp
   , issuer	tally_side	not null default 'foil'
   , units	bigint		constraint "!mychips.chits:CUN" check(units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
   , reference	jsonb
@@ -327,7 +327,7 @@ function {mychips.chit_json_h(ch mychips.chits, ta mychips.tallies)} {
     select mychips.chit_json_c(ch, ta) || jsonb_strip_nulls(jsonb_build_object(
       'index',		ch.chain_idx,
       'prior',		mychips.ba2b64v(ch.chain_prev),
-      'signed',		ch.signature
+      'sign',		ch.signature
     ))
 $$;} -grant mychips
 
@@ -340,7 +340,7 @@ function {mychips.chit_json_r(ch mychips.chits, ta mychips.tallies)} {
   returns jsonb stable language sql as $$
     select mychips.chit_json_c(ch, ta) || jsonb_strip_nulls(jsonb_build_object(
       'hash',		mychips.ba2b64v(ch.digest),
-      'signed',		ch.signature
+      'sign',		ch.signature
     ))
 $$;} -grant mychips
 
@@ -479,12 +479,12 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
           ) values (
             trec.tally_ent, trec.tally_seq, uuid, obj->>'type', (obj->>'date')::timestamptz,
             coalesce(recipe->'upsert'->>'status','pend'),
-            obj->>'signed', (obj->>'by')::tally_side, (obj->>'units')::bigint, 
+            obj->>'sign', (obj->>'by')::tally_side, (obj->>'units')::bigint, 
             obj->'ref', obj->>'memo', obj->'chain'
           ) returning chit_ent, chit_seq, chit_idx, chain_dgst into crec;
 --raise notice '  post-insert:% % %', trec.tally_type, obj->'index', crec;
         else						-- Chit already exists, do update
-          update mychips.chits set signature = obj->>'signed', 
+          update mychips.chits set signature = obj->>'sign', 
             issuer = (obj->>'by')::tally_side, units = (obj->>'units')::bigint,
             status = coalesce(recipe->'upsert'->>'status','pend'),
             reference = obj->'ref', memo = obj->>'memo', 
@@ -511,8 +511,8 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
           'entity',	crec.chit_ent,
           'sequence',	crec.chit_seq,
           'index',	crec.chit_idx,
-          'net',	cred.net_c,
-          'pend',	cred.net_pc,
+          'net',	crec.net_c,
+          'pend',	crec.net_pc,
           'state',	crec.state,
           'object',	crec.json
         );

@@ -34,7 +34,7 @@ table mychips.tallies {mychips mychips.users tally_side} {
 -- Values directly contained in the external tally representation
   , tally_uuid	uuid		not null
   , tally_type	tally_side	not null default 'stock'
-  , tally_date	timestamptz	not null default current_timestamp
+  , tally_date	timestamptz(3)	not null default current_timestamp
   , version	int		not null default 1 constraint "!mychips.tallies:VER" check (version > 0)
   , revision	int		not null default 1 constraint "!mychips.tallies:REV" check (revision > 0)
   , comment	text

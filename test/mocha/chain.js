@@ -73,9 +73,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   const addChit = function(db, by, value, ent, seq, done) {
     let uuid = mkUuid('cid', 'agent', Math.random().toString())
       , request = 'good'
-      , signed = 'Signature'
+      , sign = 'Signature'
       , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, request, signature)
-          values (%L, %s, %L, 'tran', %L, %s, %L, %L) returning *`, ent, seq, uuid, by, value, request, signed)
+          values (%L, %s, %L, 'tran', %L, %s, %L, %L) returning *`, ent, seq, uuid, by, value, request, sign)
 //log.debug("addChit Sql:", sql)
     db.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("addChit row:", row)

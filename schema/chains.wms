@@ -301,7 +301,7 @@ function {mychips.chain_process(msg jsonb, recipe jsonb)} {
             ) values (
               trec.tally_ent, trec.tally_seq, (qrec.j->>'uuid')::uuid,
               (qrec.j->>'date')::timestamptz, 'chain',
-              qrec.j->>'signed', (qrec.j->>'by')::tally_side, (qrec.j->>'units')::bigint, 
+              qrec.j->>'sign', (qrec.j->>'by')::tally_side, (qrec.j->>'units')::bigint, 
               qrec.j->'ref', qrec.j->>'memo', qrec.j->'chain'
             ) returning * into ch;
             didit = true;
