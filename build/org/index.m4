@@ -35,6 +35,10 @@ define(CONTENT,`
           `Presentation at the Collaborative Finance Conference',
           `The GotChoices Foundation presents on the MyCHIPs lift algorithm at the Commons Hub in Austria, Spring 2023.'
         )
+        LINK_BLOCK(ri-presentation-line, https://rumble.com/v3ypf06-utah-bitcoin-community-presentation.html,
+          `Presentation to the Utah Bitcoin Community',
+          `The GotChoices Foundation gives a presentation geared toward cryptocurrency enthusiasts, October 2023.'
+        )
         LINK_BLOCK(ri-fingerprint-line, privacy.html, 
           `Privacy Policy', 
           `How your data is treated.'
