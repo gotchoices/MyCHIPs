@@ -4,9 +4,16 @@ import { View, Text, StyleSheet } from "react-native";
 import Avatar from "../../../components/Avatar";
 import Button from "../../../components/Button";
 import { colors } from "../../../config/constants";
+import { useSelector } from "react-redux";
 
 const NavigationTallyRequest = (props) => {
-  // Dummy data used for UI Purpose - needs discussion
+  const { tally } = props;
+
+  const { imagesByDigest } = useSelector((state) => state.avatar);
+
+  const partCert = tally.part_cert;
+  const digest = partCert?.file?.[0]?.digest;
+  const avatar = imagesByDigest[digest];
 
   const ActionView = () => {
     return (
@@ -35,10 +42,12 @@ const NavigationTallyRequest = (props) => {
 
   return (
     <View style={styles.container}>
-      <Avatar style={styles.avatar} avatar={props.image} />
+      <Avatar style={styles.avatar} avatar={avatar} />
 
       <View style={{ flex: 1 }}>
-        <Text style={styles.name}>Harold Law</Text>
+        <Text style={styles.name}>
+          {tally.part_cert?.name?.first + " " + tally.part_cert?.name?.surname}
+        </Text>
         <Text style={[styles.description, { marginTop: 4 }]}>
           Tally Request
         </Text>
@@ -78,6 +87,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "white",
     justifyContent: "center",
+    marginRight: 10,
   },
   container: {
     height: 50,
@@ -126,7 +136,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   buttonView: {
-    marginLeft: 10,
+    marginRight: -10,
+    flexDirection: "row",
+    alignItems: "center",
   },
   text: {
     fontSize: 10,
