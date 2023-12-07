@@ -6,7 +6,7 @@ import NotificationTallyRequest from "../NotificationTallyRequest";
 import { fetchTallies } from "../../../services/tally";
 import useSocket from "../../../hooks/useSocket";
 
-const NotificationScreen = () => {
+const NotificationScreen = (props) => {
   const { wm } = useSocket();
 
   const [loading, setLoading] = useState(true);
@@ -20,21 +20,20 @@ const NotificationScreen = () => {
   const fetchTally = () => {
     fetchTallies(wm, {
       fields: [
-        "bound",
-        "reward",
-        "clutch",
-        "tally_seq",
-        "tally_uuid",
-        "tally_date",
-        "status",
-        "hold_terms",
-        "part_terms",
-        "part_cert",
-        "tally_type",
-        "comment",
-        "contract",
-        "net",
-        "hold_cert",
+        'tally_ent',
+        'tally_seq',
+        'contract',
+        'comment',
+        'tally_uuid',
+        'hold_terms',
+        'part_terms',
+        'tally_type',
+        'status',
+        'part_cid',
+        'part_cert',
+        'hold_cert',
+        'json',
+        'state',
       ],
       where: ["action true"],
     })
@@ -70,7 +69,7 @@ const NotificationScreen = () => {
                 index === actionTallies?.length - 1 ? styles.itemLast : null,
               ]}
             >
-              <NotificationTallyRequest tally={item} />
+              <NotificationTallyRequest tally={item}  navigation={props.navigation} />
             </View>
           );
         }}

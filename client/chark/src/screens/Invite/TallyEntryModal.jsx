@@ -51,12 +51,14 @@ const TallyEntryModal = (props) => {
         </View>
       </View>
       
+      {props.shouldShowReview &&
       <Button
         title="Review"
         onPress={() => props.onReview(negotiationData?.data?.tally_seq, negotiationData?.data?.tally_ent)}
         textColor={colors.blue}
         style={{ marginBottom: 5, borderRadius: 40, backgroundColor: colors.white }}
       />
+    }
 
       {negotiationData.data?.canAccept && (
         <Button

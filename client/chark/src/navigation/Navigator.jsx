@@ -4,9 +4,14 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { View, Text } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
-import useSocket from '../hooks/useSocket';
-import { fetchAvatar, fetchPersonalAndCurrency, getPreferredLanguage, getFilter } from '../redux/profileSlice';
-import { colors } from '../config/constants';
+import useSocket from "../hooks/useSocket";
+import {
+  fetchAvatar,
+  fetchPersonalAndCurrency,
+  getPreferredLanguage,
+  getFilter,
+} from "../redux/profileSlice";
+import { colors } from "../config/constants";
 
 import Invite from "../screens/Invite";
 import Home from "../screens/Home";
@@ -36,18 +41,17 @@ import ReceiveShareTally from "../screens/ReceiveTallyShare";
 import NotificationScreen from "../screens/Notification/NotificationScreen";
 import TallyRequest from "../screens/Tally/TallyRequest";
 
-
 const screenOptions = {
-  headerTitleAlign: 'center',
+  headerTitleAlign: "center",
   headerShadowVisible: false,
   headerTintColor: colors.gray300,
   headerTitleStyle: {
     color: colors.gray300,
     fontSize: 18,
-    fontFamily: 'inter',
-    fontWeight: '500',
-  } 
-}
+    fontFamily: "inter",
+    fontWeight: "500",
+  },
+};
 
 const Tab = createBottomTabNavigator();
 
@@ -106,10 +110,15 @@ function HomeStackScreen() {
         component={RequestDetail}
         options={{ title: "Request Detail" }}
       />
-        <HomeStack.Screen
+      <HomeStack.Screen
         name="Notification"
         component={NotificationScreen}
         options={{ title: "Notification" }}
+      />
+      <HomeStack.Screen
+        name="TallyPreview"
+        component={TallyPreview}
+        options={{ title: "Tally Preview" }}
       />
       <InviteStack.Screen
         name="TallyCertificate"
@@ -120,13 +129,16 @@ function HomeStackScreen() {
   );
 }
 
-
 const InviteStack = createNativeStackNavigator();
 function InviteStackScreen() {
   return (
-    <InviteProvider >
+    <InviteProvider>
       <InviteStack.Navigator screenOptions={screenOptions}>
-        <InviteStack.Screen name="Invite" component={Invite} options={{ headerShown: false }} />
+        <InviteStack.Screen
+          name="Invite"
+          component={Invite}
+          options={{ headerShown: false }}
+        />
         <InviteStack.Screen
           name="FilterScreen"
           component={FilterScreen}

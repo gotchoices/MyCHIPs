@@ -498,6 +498,7 @@ const TallyInvite = (props) => {
         onClose={onNeogitationModalClose}
       >
         <TallyEntryModal
+          shouldShowReview
           onNeogitationModalClose={onNeogitationModalClose}
           negotiationData={negotiationData}
           onReview={onReview}
