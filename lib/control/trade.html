@@ -5,8 +5,8 @@ X- Bug on increment target, jumps to bound
 X- Reset should also reset credLimit
 X- Reward/clutch turn red, display danger! when negative
 X- Dragging limit not reliable
-- Implement context helps (?)
-- Make taps disappear when at 0
+X- Implement context helps (?)
+X- Make taps disappear when at 0
 - 
 -->
 <html lang="en">
@@ -19,9 +19,6 @@ X- Dragging limit not reliable
       font-size: 18px;
       text-anchor: left;
     }
-    #reportTitle {
-      font-size: 24px;
-    }
     #svgContainer {
       width: 100%;
       position: relative;
@@ -33,10 +30,9 @@ X- Dragging limit not reliable
       display: block;
       margin: 0 auto;
     }
-    #reportTitle {
-/*      position: absolute;*/
-      top: 10px;
-      left: 10px;
+    #status {
+      height: 3em;
+      font-size: 10pt;
     }
     #ranges {
       display: flex;
@@ -126,7 +122,7 @@ X- Dragging limit not reliable
 </head>
 <body>
   <div id="svgContainer">
-    <p id="reportTitle">Trading Variables</p>
+    <p id="status"></p>
     <svg id="reportSVG">
       <defs>
         <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
@@ -186,17 +182,18 @@ var directData = [
 var settingsObj = {
   target: {label: 'Target', dir:-1, value: 0, min:  0, max: 100, step: 1,    dig:0},
   bound:  {label: 'Bound',  dir: 1, value: 0, min:  0, max: 100, step: 1,    dig:0},
-  clutch: {label: 'Clutch', dir: 0, value: 0, min: -1, max:   1, step: 0.01, dig:2},
-  reward: {label: 'Reward', dir: 0, value: 0, min: -1, max:   1, step: 0.01, dig:2}
+  reward: {label: 'Reward', dir: 0, value: 0, min: -1, max:   1, step: 0.01, dig:2, arr:'lift'},
+  clutch: {label: 'Clutch', dir: 0, value: 0, min: -1, max:   1, step: 0.01, dig:2, arr:'drop'}
 }
 var settingsData = Object.keys(settingsObj).map(k => Object.assign(settingsObj[k], {id: k}))
 var setPointData = settingsData.filter(e => e.dir)
   .map(e => {e.anchor = e.dir > 0 ? 'start' : 'end'; return e})
 
-var liftArrowData = [
-  {id:'liftin',  label: 'Lifts In',  x:0, y:takeArrow, dir:1,  tap:0, xTap:graphX/4*1, fill:'yellow'},
-  {id:'liftout', label: 'Lifts Out', x:0, y:giveArrow, dir:-1, tap:0, xTap:graphX/4*3, fill:'orange'}
-]
+var liftArrowObj = {
+  lift: {label: 'Lifts In',  x:0, y:takeArrow, dir:1,  tap:0, xTap:graphX/4*1, fill:'yellow'},
+  drop: {label: 'Lifts Out', x:0, y:giveArrow, dir:-1, tap:0, xTap:graphX/4*3, fill:'orange'}
+}
+var liftArrowData = Object.keys(liftArrowObj).map(k => Object.assign(liftArrowObj[k], {id: k}))
 var buttonData = [
   {id:'reset',  label: 'Reset',  call: reset},
   {id:'submit', label: 'Submit', call: submit}
@@ -205,7 +202,7 @@ var buttonData = [
 const svg = d3.select("#reportSVG")			//Basic SVG settings
     .attr("viewBox", [xMin, yMin, svgWid, svgHei])
 //    .attr("width", svgWid).attr("height", svgHei)
-//.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 v${graphY} h${graphX} v${-graphY} h${-graphX}`))	//Outline for debug
+.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 v${graphY} h${graphX} v${-graphY} h${-graphX}`))	//Outline for debug
     
 svg.select('#arrow')			//Add attributes to arrow marker
   .attr('viewBox', [0, 0, markerWidth, markerHeight])
@@ -299,24 +296,36 @@ const paintMisc = function () {
 
 const paintArrows = function () {
   svg.selectAll(".liftArrow")
-  .data(liftArrowData)
-  .join('g').attr("class", "liftArrow")
-  .attr("transform", d => `translate(${d.x},${d.y})`)
-  .call(s => {
-    s.append("text").attr("class", "arrowText")
-      .attr("x", graphX/2).attr("y", "-1.35em")
-      .attr("text-anchor", "middle")
-      .text(d => d.label)
-  })
+  .data(liftArrowData, d => d.id)
+  .join(
+    enter => {
+      return enter.append('g')
+        .attr("class", "liftArrow")
+        .attr("transform", d => `translate(${d.x},${d.y})`)
+        .call(s => {
+          s.append("text").attr("class", "arrowText")
+            .attr("x", graphX/2).attr("y", "-1.35em")
+            .attr("text-anchor", "middle")
+            .text(d => d.label)
+        })
+    },
+    update => {
+      return update.call(s => {
+        s.attr("transform", d => `translate(${d.x},${d.y})`)
+        .select(".arrowText").text(d => d.label)
+      })
+    },
+    exit => exit.remove()
+  )
   .selectAll("path")
   .data(d => [d])
-  .join("path").lower()
+  .join("path")		//.lower()
     .attr("transform", d => {
       let xOff = d.dir > 0 ? 0 : graphX + entWidth * 2
 //      return `translate(${xOff},0) scale(${d.dir})`
       return `translate(${xOff},0) scale(${d.dir}, 1)`
     })
-    .attr("d", d => {
+    .attr("d", d => {				//console.log("D:", d)
       let tapRad = arrowWid / 2
         , tapSize = Math.abs(arrowWid * d.tap)
         , bigArc = tapRad + tapSize
@@ -326,19 +335,22 @@ const paintArrows = function () {
         , arrowJot = shaft * arrowSize
         , arrowTip = shaft / 2 + arrowJot
         , xTap = d.dir > 0 ? entWidth * 1.5 - arrowTip : right - entWidth * 1.5 - arrowTip
-        , yOut = entHeight - d.y
+        , yOut = graphY - tapRad - arrowWid / 2 - d.y
         , arc1 = d.tap >= 0
              ? `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${bigArc}`
              : `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}`
         , arc2 = d.tap >= 0
              ? `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${-tapRad}`
              : `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${-bigArc}`
-      return `M 0 ${-arrowWid/2} h ${right - arrowTip}
-          v ${-arrowJot} l ${arrowTip} ${arrowTip} l ${-arrowTip} ${arrowTip} v ${-arrowJot}
-          h ${d.tap >= 0 ? -xTap - tapRad : -xTap + tapRad}
+        , tapLines = d.tap ? `
           ${arc1}
           v ${yOut} h ${-tapSize} v${-yOut}
           ${arc2}
+        ` : ''
+      return `M 0 ${-arrowWid/2} h ${right - arrowTip}
+          v ${-arrowJot} l ${arrowTip} ${arrowTip} l ${-arrowTip} ${arrowTip} v ${-arrowJot}
+          h ${d.tap >= 0 ? -xTap - tapRad : -xTap + tapRad}
+          ${tapLines}
           H 0 l ${tail/2} ${-tail/2} Z`
     })
     .attr("stroke-width", 1)
@@ -388,7 +400,8 @@ function checkBound(ev, d) {		//Target always <= bound
 
 const dragSets = d3.drag()		//Drag function called by set points
   .on("start", function (ev, d) {
-      d3.select(this).classed("active", true);
+    updateStatus(d.help)
+    d3.select(this).classed("active", true);
   })
   .on("drag", function (ev, d) {	//console.log("drag:", ev, d)
     let { target, bound } = settingsObj
@@ -408,6 +421,7 @@ const dragSets = d3.drag()		//Drag function called by set points
     if (boundTimer) clearInterval(boundTimer)
     boundTimer = null
     updateSetting(d, parseFloat(d.value))
+    updateStatus()
   })
 
 const setPoints = svg.selectAll(".setpoint")
@@ -440,6 +454,10 @@ function paintSets() {				//console.log('ps:')
   .text(d => d.value)
 }
 
+function updateStatus(msg = '') {
+  d3.select('#status').text(msg)
+}
+
 function setLimit(limit) {		//Set new credit limit
   let { target, bound } = settingsObj
     , digs = Math.max(Math.floor(Math.log10(limit))-2, 0)
@@ -459,7 +477,10 @@ function fetchData(cb) {		//Grab tally data from server
       d3.select('#reportTitle').text(msg.trade.title)
     settingsData.forEach(el => {		//Settings titles
       let id = el.id				//;console.log('Set:', id)
-      if (col[id]) el.label = col[id].title
+      if (col[id]) {
+        el.label = col[id].title
+        el.help = col[id].help
+      }
       if (row[id]) updateSetting(el, row[id], null, null, false)
       if (id = 'bound' && el.value > credLimit)
         setLimit(nextLogValue(el.value))
@@ -507,10 +528,16 @@ const settings = setCont.selectAll('.rangeArea')
         .attr('min', d => d.min).attr('max', d => d.max).attr('step', d => d.step)
         .attr('height', '150px')
         .on('input', (e,d) => updateSetting(d, e.target.value))
+        .on('mousedown', (e, d) => updateStatus(d.help))
+        .on('mouseup', () => updateStatus())
     s.append('button').attr('class','upButton').text('+')
       .on('click', (e,d) => updateSetting(d, null, 1))
+      .on('mousedown', (e, d) => updateStatus(d.help))
+      .on('mouseup', () => updateStatus())
     s.append('button').attr('class','dnButton').text('-')
       .on('click', (e,d) => updateSetting(d, null, -1))
+      .on('mousedown', (e, d) => updateStatus(d.help))
+      .on('mouseup', () => updateStatus())
   })
 
 function rounder(value, precision) {		//console.log("R:", value, typeof value)
@@ -542,6 +569,8 @@ function updateSetting(d, value, step, manual, check = true) {	//console.log('Up
     paintSets()
   } else {
     d3.select(`#${d.id}_rng`).property('value', d.value)
+    liftArrowObj[d.arr].tap = d.value	//associate with lift arrow
+    paintArrows()
   }
 }
 

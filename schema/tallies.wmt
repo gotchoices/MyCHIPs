@@ -38,10 +38,10 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {part_sets	{Partner Settings}	{The current terms the partner has asserted on the tally}}
   {digest	{Digest Hash}		{A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.}}
 
-  {target	{Target Balance}	{The ideal total of units the lift administrator should attempt to accumulate when conducting lifts.  Lifts/drops beyond this value may be subject to margin costs.}}
-  {reward	{Buy Margin}		{A cost associated with a lift/drop through this tally, which would result in an accumulation of value for the holder in excess of the target value.  Zero means no cost.  A positive percentage indicates a cost, or disincentive to trade.  For example, 0.01 means a 1% cost for doing a lift.  A negative number means the tally owner will give up some value in order to get lifts/drops done.}}
-  {clutch	{Sell Margin}		{A cost associated with a lift/drop through this tally, which would result in a loss of value for the holder.  Zero means no cost.  A value of 1 will effectively prevent further trading in that direction.}}
-  {bound	{Trade Limit}		{The maximum amount of value the stock/foil owner is willing to accumulate on this tally}}
+  {target	{Target Balance}	{The ideal balance to accumulate when conducting lifts.  Lifts/drops beyond this value may be subject to margin costs.}}
+  {reward	{Buy Margin}		{A cost for lifts to go above the target value (0.01 = 1%).  Positive indicates a cost, or disincentive.  Negative means the holder will lose value!}}
+  {clutch	{Sell Margin}		{A cost for lifts to go below a zero balance (0.01 = 1%).  Set to 1 to effectively prevent such trades.  Negative means the holder will lose value!}}
+  {bound	{Trade Limit}		{The maximum amount of value the tally holder is willing to accrue from lifts}}
 
   {request	{Request}		{Requested next status for the tally} {
     {{}		{None}			{Nothing to request for status change}}
@@ -148,8 +148,8 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
       {trade.format.html	{html}			{Return HTML fragment that contains the report}}
       {trade.format.url		{url}			{Return an url link to a web page containing the report}}
     {trade.direct 		{Direct Chits}		{Path showing direct tally payments}}
-    {trade.liftin 		{Incoming Lifts}	{Path showing credit lifts from the partner}}
-    {trade.liftout 		{Outgoing Lifts}	{Path showing credit lifts to the partner}}
+    {trade.lift 		{Incoming Lifts}	{Path showing credit lifts from the partner}}
+    {trade.drop 		{Outgoing Lifts}	{Path showing credit lifts to the partner}}
     {trade.reset 		{Restore Settings}	{Reset display to what is current in the tally}}
     {trade.submit 		{Apply Settings}	{Save the current settings to become operable in the tally}}
   {file 			{Document File}		{Fetch any partner file attachements the referenced tally}}
