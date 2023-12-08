@@ -1,77 +1,75 @@
-import React from "react";
-import { View, StyleSheet, FlatList } from "react-native";
-import NavigationItem from "../NotificationItem";
-import { colors } from "../../../config/constants";
-import NotificationTallyOffer from "../NotificationTallyOffer";
-import NotificationTallyRequest from "../NotificationTallyRequest";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 
-const NotificationScreen = () => {
-  //DUMMY DATA - Needs discussion
-  const notificationItem = [
-    {
-      id: 0,
-      name: "Harold Law",
-      status: "Tally Request",
-      time: "45 min",
-      amount: "32 USD",
-      totalAmount: "12.01",
-    },
-    {
-      id: 1,
-      name: "Brad Collins",
-      status: "Paid You",
-      time: "2 months",
-      amount: "32 USD",
-      totalAmount: "12.01",
-    },
-    {
-      id: 2,
-      name: "Jason Bourne",
-      status: "You Paid",
-      time: "4 months",
-      amount: "32 USD",
-      totalAmount: "12.01",
-    },
-    {
-      id: 4,
-      name: "Harold Law",
-      status: "Tally Request",
-      time: "45 min",
-      amount: "32 USD",
-      totalAmount: "12.01",
-    },
-    {
-      id: 5,
-      name: "Jason Bourne",
-      status: "You Paid",
-      time: "4 months",
-      amount: "32 USD",
-      totalAmount: "12.01",
-    },
-  ];
+import { colors } from "../../../config/constants";
+import NotificationTallyRequest from "../NotificationTallyRequest";
+import { fetchTallies } from "../../../services/tally";
+import useSocket from "../../../hooks/useSocket";
+
+const NotificationScreen = (props) => {
+  const { wm } = useSocket();
+
+  const [loading, setLoading] = useState(true);
+
+  const [actionTallies, setActionTallies] = useState();
+
+  useEffect(() => {
+    fetchTally();
+  }, []);
+
+  const fetchTally = () => {
+    fetchTallies(wm, {
+      fields: [
+        'tally_ent',
+        'tally_seq',
+        'contract',
+        'comment',
+        'tally_uuid',
+        'hold_terms',
+        'part_terms',
+        'tally_type',
+        'status',
+        'part_cid',
+        'part_cert',
+        'hold_cert',
+        'json',
+        'state',
+      ],
+      where: ["action true"],
+    })
+      .then((data) => {
+        setActionTallies(data);
+      })
+      .catch((e) => {
+        console.log("ERROR===>", e);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size={"large"} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.main}>
       <FlatList
-        data={notificationItem}
+        data={actionTallies}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => {
           return (
             <View
               style={[
                 styles.item,
-                index === notificationItem?.length - 1 ? styles.itemLast : null,
+                index === actionTallies?.length - 1 ? styles.itemLast : null,
               ]}
             >
-              {item.status === "Tally Request" ? (
-                <NotificationTallyRequest />
-              ) : (
-                <NotificationTallyOffer />
-              )}
-
-              {/*
-              to be changed later
-              <NavigationItem notification={item} /> */}
+              <NotificationTallyRequest tally={item}  navigation={props.navigation} />
             </View>
           );
         }}
