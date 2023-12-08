@@ -1,20 +1,12 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Pull tally values from DB
-X-  Auto-set max graph range
-X-  Auto-set min/max/step from tally values
-X- Style/place reset/submit buttons
-X- Language for buttons: Reset, Submit
-X- Submit generates hyperlink
-X- Get rid of range for target, bound
-X- Make ranges work for reward, clutch
-- Bug on increment target, jumps to bound
-- Reset should also reset credLimit
-- 
-- Make taps disappear when at 0
-- Reward/clutch turn red, display danger! when negative
+X- Bug on increment target, jumps to bound
+X- Reset should also reset credLimit
+X- Reward/clutch turn red, display danger! when negative
+X- Dragging limit not reliable
 - Implement context helps (?)
+- Make taps disappear when at 0
 - 
 -->
 <html lang="en">
@@ -59,13 +51,11 @@ X- Make ranges work for reward, clutch
       align-items: start;
       padding: 2px;
       font-size: 14px;
-/*  border: 1px green solid; */
     }
     .rangeArea .labWrap {
       width: 100%;
       grid-column: 1 / span 2;
       grid-row: 1;
-/*  border: 1px yellow solid; */
     }
     .rangeArea .inpBox {
       width: 90%;
@@ -87,6 +77,7 @@ X- Make ranges work for reward, clutch
       grid-column: 1;
       margin: 10px;
       border-radius: 8px;
+      border-width: 1px;
       font-size: 14pt;
     }
     .rangeArea button.upButton {
@@ -135,7 +126,7 @@ X- Make ranges work for reward, clutch
 </head>
 <body>
   <div id="svgContainer">
-    <p id="reportTitle">Trading Variable Settings</p>
+    <p id="reportTitle">Trading Variables</p>
     <svg id="reportSVG">
       <defs>
         <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
@@ -262,7 +253,7 @@ const entities = svg.selectAll(".entity")
   })
   .call(s => {
     s.append("text").attr("id", d => d.id).attr("class","entText")
-      .attr("x", "0.25em").attr("y", "1em")
+      .attr("x", "0.25em").attr("y", "1.6em")
       .text(d => d.label)
   })
 
@@ -285,7 +276,7 @@ const direct = svg.selectAll(".direct")
       .text(d => d.label)
   })
 
-const buttons = d3.select("#buttons")		;console.log('B:', buttons.nodes())
+const buttons = d3.select("#buttons")		//;console.log('B:', buttons.nodes())
 buttons.selectAll('input')
   .data(buttonData)
   .join('input')
@@ -379,15 +370,17 @@ function checkBound(ev, d) {		//Target always <= bound
   } else if (d.value < credLimit / 3 && credLimit > minCredLimit) {
     dir = -1				//;console.log('G: decrease')
   }
-  if (dir && !boundTimer) {
-    boundTimer = setInterval(() => {
-      let newLimit = nextLogValue(credLimit, dir)
-      if (newLimit >= d.value - 1)
-        setLimit(nextLogValue(credLimit, dir))
-      paintAxis()
-      paintSets()
-    }, timerInt)
-  } else {
+  if (dir) {				//In a dragging zone
+    if (!boundTimer) {			//console.log('SI:', d.id, boundTimer)
+      boundTimer = setInterval(() => {
+        let newLimit = nextLogValue(credLimit, dir)	//;console.log('I1:', credLimit)
+        if (newLimit >= d.value - 1)
+          setLimit(nextLogValue(credLimit, dir))	//;console.log('I2:', credLimit)
+        paintAxis()
+        paintSets()
+      }, timerInt)
+    }
+  } else {				//console.log('CI:', d.id)
     if (boundTimer) clearInterval(boundTimer)
     boundTimer = null
   }
@@ -414,7 +407,7 @@ const dragSets = d3.drag()		//Drag function called by set points
     d3.select(this).classed("active", false);
     if (boundTimer) clearInterval(boundTimer)
     boundTimer = null
-    updateSetting(d)
+    updateSetting(d, parseFloat(d.value))
   })
 
 const setPoints = svg.selectAll(".setpoint")
@@ -450,7 +443,7 @@ function paintSets() {				//console.log('ps:')
 function setLimit(limit) {		//Set new credit limit
   let { target, bound } = settingsObj
     , digs = Math.max(Math.floor(Math.log10(limit))-2, 0)
-    , step = Math.pow(10, digs)		;console.log('Nd:', digs, 'St:', step)
+    , step = Math.pow(10, digs)		//;console.log('Nd:', digs, 'St:', step)
   credLimit = limit
   target.step = bound.step = step
   target.dig = bound.digs = -digs
@@ -467,7 +460,7 @@ function fetchData(cb) {		//Grab tally data from server
     settingsData.forEach(el => {		//Settings titles
       let id = el.id				//;console.log('Set:', id)
       if (col[id]) el.label = col[id].title
-      if (row[id]) updateSetting(el, row[id])
+      if (row[id]) updateSetting(el, row[id], null, null, false)
       if (id = 'bound' && el.value > credLimit)
         setLimit(nextLogValue(el.value))
     })
@@ -520,16 +513,16 @@ const settings = setCont.selectAll('.rangeArea')
       .on('click', (e,d) => updateSetting(d, null, -1))
   })
 
-function rounder(value, precision) {
+function rounder(value, precision) {		//console.log("R:", value, typeof value)
   if (precision >= 0) {
-    return Number(value).toFixed(precision)
+    return Number(Number(value).toFixed(precision))
   } else {
     let scale = Math.pow(10, -precision)
     return Math.round(value / scale) * scale
   }
 }
 
-function updateSetting(d, value, step, manual) {	//console.log('Update:', d, value, step, manual)
+function updateSetting(d, value, step, manual, check = true) {	//console.log('Update:', d, value, step, manual)
   if (value)
     d.value = value
   if (step) {
@@ -545,7 +538,7 @@ function updateSetting(d, value, step, manual) {	//console.log('Update:', d, val
   }
   if (d.dir) {
     let { target, bound } = settingsObj
-    if (target.value > bound.value) target.value = bound.value
+    if (check && (target.value > bound.value)) target.value = bound.value
     paintSets()
   } else {
     d3.select(`#${d.id}_rng`).property('value', d.value)
@@ -570,6 +563,7 @@ function submit() {
 
 function reset() {		//console.log('Reset!')
   fetchData(() => {
+    setLimit(nextLogValue(settingsObj.bound.value))
     paintMisc()
     paintArrows()
     paintAxis()
