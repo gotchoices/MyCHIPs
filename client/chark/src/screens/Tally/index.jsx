@@ -12,7 +12,7 @@ import useSocket from '../../hooks/useSocket';
 import { round } from '../../utils/common';
 import { getCurrency } from '../../services/user';
 import { useUserTalliesText } from '../../hooks/useLanguage';
-import { fetchOpenTallies, fetchTallyOnChitTransferred } from '../../redux/openTalliesSlice';
+import { fetchOpenTallies, updateTallyOnChitTransferred } from '../../redux/openTalliesSlice';
 import { fetchImagesByDigest as fetchImages } from '../../redux/avatarSlice';
 
 import TallyItem from "./TallyItem";
@@ -65,13 +65,9 @@ const Tally = (props) => {
   }, [currencyCode]);
 
   useEffect(() => {
-    console.log(chitTrigger, 'chit trigger')
     if(chitTrigger) {
       dispatch(
-        fetchTallyOnChitTransferred({
-          wm,
-          ...chitTrigger,
-        })
+        updateTallyOnChitTransferred(chitTrigger)
       )
     }
   }, [chitTrigger])

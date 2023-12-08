@@ -11,3 +11,11 @@ export const random = (number = 10) => {
 export const getLinkHost = (url) => {
   return url?.split('?')?.[0]?.split('://')?.[1] ?? '';
 }
+
+export const isNil = (value) => {
+  if(value === undefined || value === null)  {
+    return true;
+  }
+
+  return false;
+}

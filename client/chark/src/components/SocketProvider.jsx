@@ -276,6 +276,8 @@ function notificationTriggerPayload(data) {
           tally_seq: data.sequence,
           tally_uuid: data.object?.tally,
           hash: data.object?.hash,
+          net: data?.net,
+          pend: data?.pend,
         }
 
       default:
