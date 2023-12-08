@@ -47,48 +47,52 @@ X- Make ranges work for reward, clutch
       left: 10px;
     }
     #ranges {
-/*      width: 100%; */
       display: flex;
       padding: 10px;
       justify-content: space-between;
     }
     .rangeArea {
-      width: 25%;
+      width: 24%;
       display: grid;
-      grid-template-columns: auto auto;
-      grid-template-rows: auto auto 1fr 1fr;
-      gap: 10px
+      grid-template-columns: auto 30px;
+      grid-template-rows: 2.5em auto 70px 70px;
       align-items: start;
       padding: 2px;
       font-size: 14px;
+/*  border: 1px green solid; */
     }
     .rangeArea .labWrap {
-      grid-column: 1;
+      width: 100%;
+      grid-column: 1 / span 2;
       grid-row: 1;
+/*  border: 1px yellow solid; */
     }
-    .rangeArea input[type=number] {
-      grid-column: 1;
+    .rangeArea .inpBox {
+      width: 90%;
+      grid-column: 1 / span 2;
       grid-row: 2;
       text-align: right;
     }
     .rangeWrap {
-      width: 20px;
-      height: 150px;
-      transform: rotate(-90deg) translateX(-150px) translateY(-2px);
-      transform-origin: 0px 0px;
-      grid-column: 2;
-      grid-row: 1 / span 4;
-    }
-    .rangeWrap input[type=range] {
       width: 150px;
       height: 20px;
+      transform: rotate(270deg) translateX(-130px) translateY(0px);
+      transform-origin: 8px 0px;
+      grid-column: 2;
+      grid-row: 3 / span 2;
+    }
+    .rangeArea button {
+      width: 80%;
+      height: 80%;
+      grid-column: 1;
+      margin: 10px;
+      border-radius: 8px;
+      font-size: 14pt;
     }
     .rangeArea button.upButton {
-      grid-column: 1;
       grid-row: 3;
     }
     .rangeArea button.dnButton {
-      grid-column: 1;
       grid-row: 4;
     }
     #buttons {
@@ -106,8 +110,8 @@ X- Make ranges work for reward, clutch
       cursor: pointer;
     }
     .handle {
-      fill: #ddd;
-      stroke: #88f;
+      fill: #eef;
+      stroke: #66f;
       stroke-width: 1;
       cursor: pointer;
     }
@@ -142,7 +146,6 @@ X- Make ranges work for reward, clutch
       </defs>
     </svg>
   </div>
-
   <div id="ranges">
   </div>
   <div id="buttons">
@@ -150,7 +153,7 @@ X- Make ranges work for reward, clutch
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8" type="text/javascript"></script>
-<!---
+<!--- Local debug:
 <script src="d3.js" charset="utf-8" type="text/javascript"></script>
 --->
 
@@ -160,7 +163,7 @@ const markerHeight	= 8
 const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
 const timerInt		= 500
 var minCredLimit	= 10
-var graphX		= 300		//Graphing space
+var graphX		= 280			//Graphing space
 var graphY		= 140
 var border		= 4
 var entRad		= 5			//Entity corner radius
@@ -171,7 +174,7 @@ var arrowWid		= 20
 var dirArrow		= 45
 var takeArrow		= 75
 var giveArrow		= 115
-var handle		= 30
+var handle		= 40
 var scaleY		= 20
 //var Arrow		= 60
 var arrowSize		= 0.20
@@ -459,7 +462,8 @@ function fetchData(cb) {		//Grab tally data from server
     , dataURL = pageURL.replace(/trade.html$/,'trade.json')	//;console.log('Fetch:', dataURL)
   fetch(dataURL).then(resp => resp.json()).then(data => {	//;console.log(' data:', data)
     let {row, col, msg} = data
-    d3.select('#reportTitle').text(msg?.trade?.title)
+    if (msg.trade && msg.trade.title)
+      d3.select('#reportTitle').text(msg.trade.title)
     settingsData.forEach(el => {		//Settings titles
       let id = el.id				//;console.log('Set:', id)
       if (col[id]) el.label = col[id].title
@@ -473,15 +477,15 @@ function fetchData(cb) {		//Grab tally data from server
     })
     directData.forEach(el => {
       let id = el.id, tag = 'trade.' + id
-      if (msg[tag]) el.label = msg[tag]?.title
+      if (msg[tag]) el.label = msg[tag].title
     })
     buttonData.forEach(el => {
       let id = el.id, tag = 'trade.' + id
-      if (msg[tag]) el.label = msg[tag]?.title
+      if (msg[tag]) el.label = msg[tag].title
     })
     liftArrowData.forEach(el => {
       let id = el.id, tag = 'trade.' + id
-      if (msg[tag]) el.label = msg[tag]?.title
+      if (msg[tag]) el.label = msg[tag].title
     })
     if (cb) cb()
   })
