@@ -3,6 +3,7 @@ import { View, StyleSheet, Text, Dimensions } from "react-native";
 import { useSelector } from "react-redux";
 
 import { colors } from "../../../config/constants";
+import { isNil } from "../../../utils/common";
 import useMessageText from "../../../hooks/useMessageText";
 
 import Header from "../Header";
@@ -16,7 +17,6 @@ import {
 const Banner = (props) => {
   const { avatar, personal } = useSelector((state) => state.profile);
   const { messageText } = useMessageText();
-  const userTallyText = messageText?.userTallies ?? {};
 
   const navigateToReport = () => {
     props.navigation?.navigate?.("TallyReport");
@@ -27,6 +27,7 @@ const Banner = (props) => {
   }
 
   const isNetNegative = props.totalNet < 0;
+  const hasPendingTotal = !isNil(props.totalPendingNet) && props.totalPendingNet != 0.000
 
   return (
     <View style={styles.container}>
@@ -51,9 +52,9 @@ const Banner = (props) => {
       </View>
 
       <View style={styles.textWrapper}>
-        {!!props.currencyCode && (
-          <Text style={styles.amount}>
-            {props.totalNetDollar} {props.currencyCode}
+        {hasPendingTotal && (
+          <Text style={styles.pending}>
+            {props.totalPendingNet} pending
           </Text>
         )}
 
@@ -65,6 +66,13 @@ const Banner = (props) => {
             {props.totalNet}
           </Text>
         </View>
+
+        {!!props.currencyCode && (
+          <Text style={styles.amount}>
+            {props.totalNetDollar} {props.currencyCode}
+          </Text>
+        )}
+
       </View>
     </View>
   );
@@ -76,13 +84,19 @@ const mychipsNet = {
   fontWeight: "500",
   color: colors.green,
   maxWidth: Dimensions.get("window").width * 0.5,
+  fontFamily: 'inter',
 };
+
+const font = {
+  fontFamily: 'inter',
+}
 
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 10,
   },
   balanceContainer: {
+    ...font,
     padding: 16,
     maxWidth: "90%",
     borderRadius: 25,
@@ -98,7 +112,7 @@ const styles = StyleSheet.create({
     ...mychipsNet,
     color: colors.red,
   },
-  name: { paddingTop: 15, fontSize: 16, fontWeight: "600" },
+  name: { ...font, paddingTop: 15, fontSize: 16, fontWeight: "600" },
   avatarWrapper: { marginTop:20},
   textWrapper: {
     marginBottom:-15,
@@ -107,9 +121,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   amount: {
+    ...font,
     fontSize: 16,
     color: colors.gray300,
   },
+  pending: {
+    ...font,
+    fontSize: 12,
+  }
 });
 
 export default Banner;

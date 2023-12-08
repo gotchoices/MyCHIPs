@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
+import stringify from 'json-stable-stringify';
 
 import { useSelector } from "react-redux";
 import Avatar from "../../../components/Avatar";
@@ -94,7 +95,8 @@ const NavigationTallyRequest = (props) => {
   const onAccept = async ({ tally_ent, tally_seq, json }) => {
     setAccepting(true);
 
-    createSignature(JSON.stringify(json))
+    const _json = stringify(json);
+    createSignature(_json)
       .then((signature) => {
         return acceptTally(wm, { tally_ent, tally_seq, signature });
       })
@@ -122,9 +124,9 @@ const NavigationTallyRequest = (props) => {
   const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name, json }) => {
     setOffering(true);
     
-    createSignature(JSON.stringify(json))
+    const _json = stringify(json);
+    createSignature(_json)
       .then((signature) => {
-        console.log(tally_uuid, tally_ent, tally_seq, signature);
         return offerTally(wm, {
           tally_uuid,
           tally_ent,

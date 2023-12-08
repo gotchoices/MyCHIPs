@@ -251,6 +251,12 @@ function getTitleAndMessage(args) {
         message: state_reason_Map[tally_key]?.message ?? ''
       }
 
+    case 'chit':
+      return {
+        title: 'Chit',
+        message: 'Chit payment has been made',
+      }
+
     default: 
       return {
         title: 'Notification',
