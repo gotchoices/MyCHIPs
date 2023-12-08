@@ -80,6 +80,14 @@ const Tally = (props) => {
     return round(total / 1000, 3);
   }, [tallies]);
 
+  const totalPendingNet = useMemo(() => {
+    let total = tallies.reduce((acc, current) => {
+      return acc + Number(current?.net_pc ?? 0);
+    }, 0);
+
+    return round(total / 1000, 3);
+  }, [tallies]);
+
   const totalNetDollar = useMemo(() => {
     if (conversionRate) {
       const total = totalNet * conversionRate;
@@ -126,6 +134,7 @@ tally:item
         ListHeaderComponent={
           <TallyHeader
             totalNet={totalNet}
+            totalPendingNet={totalPendingNet}
             totalNetDollar={totalNetDollar}
             currencyCode={preferredCurrency.code}
             navigation={props.navigation}

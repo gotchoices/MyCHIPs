@@ -3,6 +3,7 @@ import { View, Text, StyleSheet,FlatList, TouchableOpacity, Alert, TouchableHigh
 import Toast from 'react-native-toast-message';
 import SwipeableFlatList from 'react-native-swipeable-list';
 import { useSelector, useDispatch } from 'react-redux';
+import stringify from 'json-stable-stringify';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
@@ -197,7 +198,8 @@ const TallyInvite = (props) => {
     */
   const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name, json }) => {
     setOffering(true);
-    createSignature(JSON.stringify(json)).then(signature => {
+    const _json = stringify(json);
+    createSignature(_json).then(signature => {
       return offerTally(wm, {
         tally_uuid,
         tally_ent,
@@ -240,7 +242,8 @@ const TallyInvite = (props) => {
     */
   const onAccept = async ({ tally_ent, tally_seq, json }) => {
     setAccepting(true);
-    createSignature(JSON.stringify(json)).then(signature => {
+    const _json = stringify(json);
+    createSignature(_json).then(signature => {
       return acceptTally(
         wm, { tally_ent, tally_seq, signature },
       );

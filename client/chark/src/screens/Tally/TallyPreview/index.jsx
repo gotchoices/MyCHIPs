@@ -11,6 +11,7 @@ import {
   Text,
 } from "react-native";
 import { useSelector, useDispatch } from 'react-redux';
+import stringify from 'json-stable-stringify';
 
 import { colors, keyServices } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
@@ -221,7 +222,8 @@ const TallyPreview = (props) => {
       return;
     }
 
-    createSignature(JSON.stringify(tally.json))
+    const json = stringify(tally.json)
+    createSignature(json)
       .then((signature) => {
         return offerTally(wm, {
           tally_uuid: tally.tally_uuid,
@@ -274,7 +276,8 @@ const TallyPreview = (props) => {
       Alert.alert("Tally can not be signed");
       return;
     }
-    createSignature(JSON.stringify(tally.json))
+    const json = stringify(tally.json)
+    createSignature(json)
       .then((signature) => {
         setSig(signature);
         return acceptTally(wm, { tally_ent, tally_seq, signature });

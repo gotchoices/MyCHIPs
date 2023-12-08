@@ -100,9 +100,11 @@ const PayModal = (props) => {
         props.onClose()
 
         props.navigation.navigate("PaymentDetail", {
+          chit_ent: props.tally?.tally_ent,
           tally_uuid: props.tally?.tally_uuid,
           chit_seq: props.tally.tally_seq,
           tally_type: props.tally?.tally_type,
+          chad: props.tally?.hold_chad,
         });
       };
     

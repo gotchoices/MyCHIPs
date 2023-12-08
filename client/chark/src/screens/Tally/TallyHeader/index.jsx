@@ -7,6 +7,7 @@ const TallyHeader = (props) => {
   return <View>
     <Banner
       totalNet={props.totalNet}
+      totalPendingNet={props.totalPendingNet}
       totalNetDollar={props.totalNetDollar}
       navigation={props.navigation}
       currencyCode={props.currencyCode}
