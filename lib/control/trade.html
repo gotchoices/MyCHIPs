@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Bug on increment target, jumps to bound
-X- Reset should also reset credLimit
-X- Reward/clutch turn red, display danger! when negative
-X- Dragging limit not reliable
-X- Implement context helps (?)
-X- Make taps disappear when at 0
+- Ranges don't drag on mobile
+- Reset seems erratic on mobile
 - 
 -->
 <html lang="en">
@@ -18,6 +14,7 @@ X- Make taps disappear when at 0
       font-family: sans-serif;
       font-size: 18px;
       text-anchor: left;
+      overflow: hidden;
     }
     #svgContainer {
       width: 100%;
@@ -66,6 +63,7 @@ X- Make taps disappear when at 0
       transform-origin: 8px 0px;
       grid-column: 2;
       grid-row: 3 / span 2;
+/*      touch-action: none; */
     }
     .rangeArea button {
       width: 80%;
@@ -86,6 +84,7 @@ X- Make taps disappear when at 0
       display: flex;
       padding: 10px;
       justify-content: space-between;
+      user-select: none;
     }
     #buttons input {
       flex-grow: 1;
@@ -202,7 +201,7 @@ var buttonData = [
 const svg = d3.select("#reportSVG")			//Basic SVG settings
     .attr("viewBox", [xMin, yMin, svgWid, svgHei])
 //    .attr("width", svgWid).attr("height", svgHei)
-.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 v${graphY} h${graphX} v${-graphY} h${-graphX}`))	//Outline for debug
+//.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 v${graphY} h${graphX} v${-graphY} h${-graphX}`))	//Outline for debug
     
 svg.select('#arrow')			//Add attributes to arrow marker
   .attr('viewBox', [0, 0, markerWidth, markerHeight])
@@ -528,16 +527,16 @@ const settings = setCont.selectAll('.rangeArea')
         .attr('min', d => d.min).attr('max', d => d.max).attr('step', d => d.step)
         .attr('height', '150px')
         .on('input', (e,d) => updateSetting(d, e.target.value))
-        .on('mousedown', (e, d) => updateStatus(d.help))
-        .on('mouseup', () => updateStatus())
+        .on('mousedown touchstart', (e, d) => updateStatus(d.help))
+        .on('mouseup touchend', () => updateStatus())
     s.append('button').attr('class','upButton').text('+')
       .on('click', (e,d) => updateSetting(d, null, 1))
-      .on('mousedown', (e, d) => updateStatus(d.help))
-      .on('mouseup', () => updateStatus())
+      .on('mousedown touchstart', (e, d) => updateStatus(d.help))
+      .on('mouseup touchend', () => updateStatus())
     s.append('button').attr('class','dnButton').text('-')
       .on('click', (e,d) => updateSetting(d, null, -1))
-      .on('mousedown', (e, d) => updateStatus(d.help))
-      .on('mouseup', () => updateStatus())
+      .on('mousedown touchstart', (e, d) => updateStatus(d.help))
+      .on('mouseup touchend', () => updateStatus())
   })
 
 function rounder(value, precision) {		//console.log("R:", value, typeof value)
@@ -597,6 +596,13 @@ function reset() {		//console.log('Reset!')
     paintArrows()
     paintAxis()
     paintSets()
+
+/*    d3.selectAll('.inpRange').on('touchmove', function(event) {
+      event.preventDefault();
+    }); */
+    d3.selectAll('button').on('contextmenu', function(event) {
+      event.preventDefault();
+    });
   })
 }
 
