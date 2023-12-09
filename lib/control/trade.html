@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
 TODO:
+X- Reset seems erratic on mobile
 - Ranges don't drag on mobile
-- Reset seems erratic on mobile
 - 
 -->
 <html lang="en">
@@ -480,7 +480,8 @@ function fetchData(cb) {		//Grab tally data from server
         el.label = col[id].title
         el.help = col[id].help
       }
-      if (row[id]) updateSetting(el, row[id], null, null, false)
+      if (row[id] !== null && row[id] !== undefined)
+        updateSetting(el, row[id], null, null, false)
       if (id = 'bound' && el.value > credLimit)
         setLimit(nextLogValue(el.value))
     })
@@ -549,7 +550,7 @@ function rounder(value, precision) {		//console.log("R:", value, typeof value)
 }
 
 function updateSetting(d, value, step, manual, check = true) {	//console.log('Update:', d, value, step, manual)
-  if (value)
+  if (value !== null && value !== undefined)
     d.value = value
   if (step) {
     d.value = parseFloat(d.value) + parseFloat(d.step) * step
