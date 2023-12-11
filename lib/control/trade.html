@@ -2,8 +2,7 @@
 <!--
 TODO:
 X- Reset seems erratic on mobile
-- Ranges don't drag on mobile
-- 
+- Enable ranges for target, bound?
 -->
 <html lang="en">
 <head>
@@ -40,7 +39,7 @@ X- Reset seems erratic on mobile
     .rangeArea {
       width: 24%;
       display: grid;
-      grid-template-columns: auto 30px;
+      grid-template-columns: 30px auto;
       grid-template-rows: 2.5em auto 70px 70px;
       align-items: start;
       padding: 2px;
@@ -57,19 +56,19 @@ X- Reset seems erratic on mobile
       grid-row: 2;
       text-align: right;
     }
-    .rangeWrap {
-      width: 150px;
-      height: 20px;
+    .inpRange {
       transform: rotate(270deg) translateX(-130px) translateY(0px);
       transform-origin: 8px 0px;
-      grid-column: 2;
+    }
+    .rangeWrap {
+      grid-column: 1;
       grid-row: 3 / span 2;
 /*      touch-action: none; */
     }
     .rangeArea button {
       width: 80%;
       height: 80%;
-      grid-column: 1;
+      grid-column: 2;
       margin: 10px;
       border-radius: 8px;
       border-width: 1px;
