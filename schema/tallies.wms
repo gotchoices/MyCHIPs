@@ -53,6 +53,7 @@ table mychips.tallies {mychips mychips.users tally_side} {
   , bound	bigint		not null default 0 constraint "!mychips.tallies:BND" check (bound >= 0)
   , reward	float		not null default 0 constraint "!mychips.tallies:RWD" check (reward >= -1 and reward <= 1)
   , clutch	float		not null default 0 constraint "!mychips.tallies:CLT" check (clutch >= -1 and clutch <= 1)
+  			      , constraint "!mychips.tallies:RCV" check (reward + clutch >= 0)
 
 -- Values used internally to track state, required actions
   , request	text		constraint "!mychips.tallies:IVR" check(request is null or request in ('void','draft','offer','open'))

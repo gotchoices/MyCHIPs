@@ -80,10 +80,11 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {PCM		{Bad Partner Certificate}	{An open tally must contain a partner certificate}}
   {USM		{Bad User Signature}	{An open tally must contain a user signature}}
   {PSM		{Bad Partner Signature}	{An open tally must contain a partner signature}}
-  {TGT		{Illegal Target}	{Lift target must be less than or equal to the maximum lift amount}}
-  {BND		{Illegal Bound}		{Maximum lift boundary must be greater or equal to zero}}
-  {RWD		{Illegal Reward}	{Lift reward must be between -1 and 1}}
-  {CLT		{Illegal Clutch}	{Lift clutch must be between -1 and 1}}
+  {TGT		{Invalid Target}	{Lift target must be less than or equal to the maximum lift amount}}
+  {BND		{Invalid Bound}		{Maximum lift boundary must be greater or equal to zero}}
+  {RWD		{Bad Reward Margin}	{Lift reward must be between -1 and 1}}
+  {CLT		{Bad Clutch Margin}	{Lift clutch must be between -1 and 1}}
+  {RCV		{Bad Reward/Clutch}	{If one of reward or clutch is negative, the other must be at least as large positive}}
   {IVR		{Invalid Request}	{Tally request value is not valid}}
   {IVS		{Invalid Status}	{Tally status value is not valid}}
   {NSP		{Same Partner ID}	{Tally partner must be a separate entity}}
