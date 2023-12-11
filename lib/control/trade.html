@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Reset seems erratic on mobile
 - Enable ranges for target, bound?
 -->
 <html lang="en">
@@ -567,6 +566,9 @@ function updateSetting(d, value, step, manual, check = true) {	//console.log('Up
     if (check && (target.value > bound.value)) target.value = bound.value
     paintSets()
   } else {
+    let { reward, clutch } = settingsObj
+      , illegal = (reward.value + clutch.value < 0)
+    d3.select('#submit').property('disabled', illegal)
     d3.select(`#${d.id}_rng`).property('value', d.value)
     liftArrowObj[d.arr].tap = d.value	//associate with lift arrow
     paintArrows()
