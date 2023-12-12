@@ -11,6 +11,7 @@ import SuccessContent from "../../../components/SuccessContent";
 import { acceptTally, offerTally } from "../../../services/tally";
 import { createSignature } from "../../../utils/message-signature";
 import BottomSheetModal from "../../../components/BottomSheetModal";
+import { GenerateKeysDialog } from "../../Tally/TallyPreview/GenerateKeysDialog";
 
 const NavigationTallyRequest = (props) => {
   const { tally } = props;
@@ -20,6 +21,8 @@ const NavigationTallyRequest = (props) => {
   const [accepting, setAccepting] = useState(false);
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
+  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
+  
 
   const [negotiationData, setNegotiationData] = useState({
     showModal: false,
@@ -48,7 +51,9 @@ const NavigationTallyRequest = (props) => {
   const name =
     tally.part_cert?.type === "o"
       ? `${tally.part_cert?.name}`
-      : `${first}${middle ? " " + middle : ""}${surname ? " " + surname : ""}`;
+      : `${first}${middle ? " " + middle : ""}${
+          surname ? " " + surname : ""
+        }`;
   const limit = tally.part_terms?.limit ?? 0;
   const holdDigest = tally.hold_cert?.file?.[0]?.digest;
   const partDigest = tally.part_cert?.file?.[0]?.digest;
@@ -96,11 +101,13 @@ const NavigationTallyRequest = (props) => {
 
     createSignature(JSON.stringify(json))
       .then((signature) => {
+      
         return acceptTally(wm, { tally_ent, tally_seq, signature });
       })
       .then((result) => {
-        setShowAcceptSuccess(true);
+        onNegotiationModalClose()
         resetNegotiationData();
+        setShowAcceptSuccess(true);
       })
       .catch((err) => {
         const { isKeyAvailable, message } = err;
@@ -108,7 +115,10 @@ const NavigationTallyRequest = (props) => {
           Alert.alert(
             "Create Keys",
             "Seems like there is no key to create signature please continue to create one and accept tally.",
-            [{ text: "Cancel" }, { text: "Continue", onPress: showGenerateKey }]
+            [
+              { text: "Cancel" },
+              { text: "Continue", onPress: showGenerateKey },
+            ]
           );
         } else {
           Alert.alert("Error", message || err);
@@ -119,12 +129,17 @@ const NavigationTallyRequest = (props) => {
       });
   };
 
-  const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name, json }) => {
+  const onOffer = async ({
+    tally_uuid,
+    tally_ent,
+    tally_seq,
+    name,
+    json,
+  }) => {
     setOffering(true);
-    
     createSignature(JSON.stringify(json))
       .then((signature) => {
-        console.log(tally_uuid, tally_ent, tally_seq, signature);
+
         return offerTally(wm, {
           tally_uuid,
           tally_ent,
@@ -133,6 +148,10 @@ const NavigationTallyRequest = (props) => {
         });
       })
       .then((result) => {
+
+        onNegotiationModalClose()
+        setOffering(false);
+
         resetNegotiationData();
 
         setShowOfferSuccess({
@@ -141,7 +160,6 @@ const NavigationTallyRequest = (props) => {
           tally_ent,
           tally_seq,
         });
-
       })
       .catch((err) => {
         const { isKeyAvailable, message } = err;
@@ -149,7 +167,10 @@ const NavigationTallyRequest = (props) => {
           Alert.alert(
             "Create Keys",
             "Seems like there is no key to create signature please continue to create one and accept tally.",
-            [{ text: "Cancel" }, { text: "Continue", onPress: showGenerateKey }]
+            [
+              { text: "Cancel" },
+              { text: "Continue", onPress: showGenerateKey },
+            ]
           );
         } else {
           Alert.alert("Error", message || err);
@@ -192,6 +213,7 @@ const NavigationTallyRequest = (props) => {
           tally_ent: tally.tally_ent,
         },
       });
+      
       return;
     }
 
@@ -204,8 +226,6 @@ const NavigationTallyRequest = (props) => {
   const ActionView = () => {
     return (
       <View style={styles.price}>
-        <Text style={[styles.description, { marginBottom: 5 }]}>45 min</Text>
-
         <View style={styles.buttonView}>
           <Button
             title="Review"
@@ -216,8 +236,8 @@ const NavigationTallyRequest = (props) => {
           />
 
           <Button
-            title="Accept"
-            style={styles.button}
+            title={canAccept ? "Accept" : "Offer" }
+            style={styles.button( canOffer)}
             textStyle={styles.text}
             onPress={onAcceptPressed}
           />
@@ -227,7 +247,7 @@ const NavigationTallyRequest = (props) => {
   };
 
   return (
-    <>
+
       <View style={styles.container}>
         <Avatar style={styles.avatar} avatar={avatar} />
 
@@ -239,20 +259,27 @@ const NavigationTallyRequest = (props) => {
         </View>
 
         <ActionView />
-      </View>
+
+        <GenerateKeysDialog
+        visible={showGenerateKeyDialog}
+        onDismiss={() => setShowGenerateKeyDialog(false)}
+        onError={(err) => {
+          Alert.alert("Error", err);
+        }}
+        onKeySaved={() => {
+          Alert.alert("Success", "Key is generated successfully now you can accept tally.");
+        }}
+      />
 
       <BottomSheetModal
-        isVisible={negotiationData.showModal}
-        onClose={onNegotiationModalClose}
+        isVisible={showAcceptSuccess}
+        onClose={() => setShowAcceptSuccess(false)}
       >
-        <TallyEntryModal
-          onOffer={onOffer}
-          onReview={onReview}
-          onAccept={onAccept}
-          offering={offering}
-          accepting={accepting}
-          negotiationData={negotiationData}
-          onNeogitationModalClose={onNegotiationModalClose}
+        <SuccessContent
+          buttonTitle="View"
+          message="Your tally is now open"
+          onDone={onTallyOpenDone}
+          onDismiss={() => setShowAcceptSuccess(false)}
         />
       </BottomSheetModal>
 
@@ -265,21 +292,29 @@ const NavigationTallyRequest = (props) => {
           onDone={onDoneOfferSuccess}
           onDismiss={onDismissOfferSuccess}
           message={`Sending tally offer to ${showOfferSuccess.offerTo}`}
-        />
+          />
       </BottomSheetModal>
 
       <BottomSheetModal
-        isVisible={showAcceptSuccess}
-        onClose={() => setShowAcceptSuccess(false)}
+        isVisible={negotiationData.showModal}
+        onClose={onNegotiationModalClose}
       >
-        <SuccessContent
-          buttonTitle="View"
-          onDone={onTallyOpenDone}
-          message="Your tally is now open"
-          onDismiss={() => setShowAcceptSuccess(false)}
+        <TallyEntryModal
+          onOffer={onOffer}
+          onReview={onReview}
+          onAccept={onAccept}
+          offering={offering}
+          shouldShowReview={false}
+          accepting={accepting}
+          negotiationData={negotiationData}
+          onNeogitationModalClose={()=>onNegotiationModalClose()}
         />
-      </BottomSheetModal>
-    </>
+        </BottomSheetModal>
+      </View>
+
+
+
+
   );
 };
 
@@ -291,26 +326,26 @@ const myChipsNet = {
 };
 
 const styles = StyleSheet.create({
-  button: {
+  button: ( canOffer) => ({
     width: 50,
     height: 25,
     marginBottom: 3,
     borderRadius: 40,
     paddingVertical: 0,
-    borderColor: "blue",
+    borderColor:  canOffer ? colors.yellow : colors.blue,
     alignItems: "center",
-    backgroundColor: "blue",
+    backgroundColor:  canOffer ? colors.yellow : colors.blue,
     justifyContent: "center",
-  },
+  }),
   secondaryButton: {
     height: 23,
     width: 50,
     marginBottom: 3,
     borderRadius: 40,
     paddingVertical: 0,
-    borderColor: "blue",
+    borderColor: colors.blue,
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: colors.white,
     justifyContent: "center",
     marginRight: 10,
   },
