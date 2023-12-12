@@ -315,7 +315,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   it("Subject accepts the proposed tally", function(done) {
     let sql = uSql('request = %L, hold_sig = %L', 'open', interTest.sign, userS, 1)
       , dc = 3, _done = () => {if (!--dc) done()}
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			;log.debug("row:", row)
       assert.equal(row.request, 'open')
