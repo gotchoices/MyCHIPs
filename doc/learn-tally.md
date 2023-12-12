@@ -782,7 +782,7 @@ tally: {
   version: 1,
   uuid: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
   date: <Begin date of contract>,
-  note: <Additional Comments>,
+  memo: <Additional Comments>,
   stock: {
     cert: <CHIP Certificate>,
     terms: <Credit Terms>

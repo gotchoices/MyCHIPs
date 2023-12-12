@@ -279,7 +279,7 @@ function {mychips.tally_json(te mychips.tallies)} {mychips.tallies} {
        'revision',	te.revision,
        'uuid',		te.tally_uuid,
        'date',		te.tally_date,
-       'comment',	te.comment,
+       'memo',		te.comment,
        'agree',		te.contract,
        te.tally_type,	json_build_object(
          'cert',	te.hold_cert,
@@ -507,14 +507,14 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
           ) values (
             uid, uuid, tallyType, (obj->>'date')::timestamptz, (obj->>'version')::int, 
             obj->'agree', coalesce(recipe->'upsert'->>'status','offer'),
-            obj->>'note', obj->'sign'->>(tallyType::text), obj->'sign'->>(notType::text), 
+            obj->>'memo', obj->'sign'->>(tallyType::text), obj->'sign'->>(notType::text), 
             hold->'terms', part->'terms', hold->'cert', part->'cert', (recipe->'upsert'->'chain_conf')::int
           ) returning tally_ent, tally_seq into trec;
         else						-- Tally already exists, do an update
           update mychips.tallies set request = null, mod_date = current_timestamp, mod_by = session_user,
             status = coalesce(recipe->'upsert'->>'status','offer'), tally_type = tallyType,
             version = (obj->>'version')::int, revision = (obj->>'revision')::int, 
-            contract = obj->'agree', comment = obj->>'note',
+            contract = obj->'agree', comment = obj->>'memo',
             hold_sig = obj->'sign'->>(tallyType::text), part_sig = obj->'sign'->>(notType::text),
             hold_terms = hold->'terms', part_terms = part->'terms',
             hold_cert = hold->'cert', part_cert = part->'cert', chain_conf = (recipe->'upsert'->'chain_conf')::int
