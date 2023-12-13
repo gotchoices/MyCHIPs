@@ -40,7 +40,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     }
 
     fetchTallies(wm, {
-      fields: ['tally_ent', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json', 'hold_sig', 'hold_cert', 'state'],
+      fields: ['tally_ent', 'tally_seq', 'tally_uuid', 'tally_date', 'status', 'hold_terms', 'part_terms', 'part_cert', 'tally_type', 'comment', 'contract', 'json_core', 'hold_sig', 'hold_cert', 'state'],
       where: {
         tally_ent,
         tally_seq,

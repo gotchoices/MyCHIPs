@@ -7,6 +7,13 @@ import { keyServices } from "../config/constants";
 
 const subtle = window.crypto.subtle;
 
+function base64ToBase64url(base64) {
+  return base64
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+
 export const createSignature = (message) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -22,7 +29,8 @@ export const createSignature = (message) => {
           }
         })
         .then(pvtKey => subtle.sign(SignConfig, pvtKey, data))
-        .then(signature => resolve(Buffer.from(signature).toString('base64')))
+        .then(signature => Buffer.from(signature).toString('base64'))
+        .then(base64 => resolve(base64ToBase64url(base64)))
         .catch(ex => reject(ex));
     } catch (ex) {
       reject(ex);
