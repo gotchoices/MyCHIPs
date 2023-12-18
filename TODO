@@ -1,23 +1,23 @@
 TODO:
 
 - Local linear lifts
+X-  Document framework for interrim route/lift model
 -  How does the user sign a linear lift?
 -  How to initiate an internal linear lift to a given destination?
 -  Build query/function with user permission for inserting linear lift request
 -  Can/should I be able to specify an outbound tally?
 
 - Tally negotiation
--  App signs tally in both directions
+-  App signs tally in both directions (test)
 -  Test for changing tally_type during negotiation
 -  Can recover from unknown tally states (H.offer.open)
 -  Can/should we validate tally signatures in the DB anywhere?
 -  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
 
 - Scan any hand notes 2021-2022
-- Add reset and submit buttons for Trading Variables report (in user's language)
 
 - Chit consensus
-- App is signing chits
+X- App is signing chits
 - Validate chits in lib/chit.js
 - Simulation still works
 - Commit/merge to master
@@ -38,6 +38,18 @@ TODO:
 
 - Language Support
 -  Integrate/find missing language tags for app
+
+-  Trigger to prevent delete/update of files/contracts referenced in tallies
+-  App displays my partners' primary photo
+-  In mychips schema, make a trigger to prevent modifying/deleting a file referenced from a tally
+-
+- App functionality for storing/managing keys:
+X-   Create signing key
+-   Import key from file, cloud, QR
+-   Export key to file, cloud, QR
+
+- Deploy single-site beta release!
+
 -  
 - Refactor document server to return contracts (before multi-system lifts will work)
 -  in json format
@@ -54,15 +66,6 @@ TODO:
 -    Assumption is that requester has the agent key for the tally
 -    Document is returned, encrypted using requester's agent key
 -   
--  Trigger to prevent delete/update of files/contracts referenced in tallies
--  App displays my partners' primary photo
--  In mychips schema, make a trigger to prevent modifying/deleting a file referenced from a tally
--
-- App functionality for storing/managing keys:
-X-   Create signing key
--   Import key from file, cloud, QR
--   Export key to file, cloud, QR
-
 - Visual Balance Sheet report enhancements (not urgent)
 X- Can view report in WebView in Chark
 X-  Grab hyperlinks, launch tally view
@@ -83,7 +86,7 @@ X-  Grab hyperlinks, launch tally view
 -  Fix document server also running on 443 (request by hash?)
 -  Can configure env for using an external SMTP service (mailgun, sendgrid, etc)
 - 
-- Distributed lifts (interim, pre-1.0 functionality):
+- Distributed lifts
 -  Distributed lifts work with model2/model3?
 -  Do some lifts fail (when they should) in the simulation?
 -  How do lift records get marked to void? (implement agent timeouts?)
@@ -104,8 +107,8 @@ X-  Grab hyperlinks, launch tally view
 -   Populate more languages (Spanish & Nepali)
 - 
 -  Chits:
--   User can send unsolicited chit on any open tally
--   User can send payment request chit on any open tally
+X-   User can send unsolicited chit on any open tally
+X-   User can send payment request chit on any open tally
 -   Users receive notification when chit is received
 -   User can respond to received payment request chit
 -   User can reject, modify, or accept payment request chit
@@ -129,8 +132,6 @@ X-   Implement local lift scheduler/scanner/processor
 -   How does the system identify local agents vs/ peer agents?
 -   Agents table keeps track of each agent's latest connection portal (in case it changes)
 -  
-- System now ready for single-site use/deployment?
-- 
 - Admin UI tab for editing local agents?
 - How to mark agents as local (and is it needed to determine local agents)?
 - 
@@ -148,10 +149,6 @@ X-   Implement local lift scheduler/scanner/processor
 - Allow users to change their agent (setting chit)
 - Server now ready for distributed use?
 - 
-- Mobile:
--  Create dart Wyseman client module
--  How to invoke it from flutter app (pull from node_modules)
-- 
 
 General roadmap:
 X- Public Proof-of-Concept release
@@ -162,11 +159,11 @@ X- Implement encrypted peer-to-peer communications using noise protocol
 *- Integrate improved protocol into source code (in process)
 *- Write unit tests to validate protocol state transitions (in process)
 *- Make Flutter app usable with basic functionality (in process)
-- Implement digital signatures for tallies, chits, contracts, lifts
-- Harden database schema, nothing accessible except user-based views/functions
+*- Implement digital signatures for tallies, chits, contracts, lifts
+*- Harden database schema, nothing accessible except user-based views/functions
 - Docker-based production server
 - ***** Initial production rollout *****
-- Enhance flutter app features
+- Enhance mobile app features
 - Improve/expand agent modeling
 - Async email/text notifications
 - Tally confirmations
@@ -197,22 +194,18 @@ X- Implement loopback on local node for unencrypted mode
 -   Implement message retries
 - 
 - Mobile App
-X-   Dart API can connect to wyseman on user ticket
--   App can scan user ticket as a QR
--   App can eat ticket contained in text message, email, other
--   App can build/encrypt/store signing key
--   Controller receives/stores users signing public key
--   App/controller can build/negotiate/commit/sign user tally tickets
--   App facilitates selection of tally parameters
--   App/controller can browse/select/print tally contracts
--   App/controller/model can send local chits
--   App/controller/model can send local invoices
+X-   App can scan user ticket as a QR
+X-   App can eat ticket contained in text message, email, other
+X-   App can build/encrypt/store signing key
+X-   Controller receives/stores users signing public key
+X-   App/controller can build/negotiate/commit/sign user tally tickets
+X-   App facilitates selection of tally parameters
+X-   App/controller can browse/select/print tally contracts
+X-   App/controller/model can send local chits
+X-   App/controller/model can send local invoices
 -   App/controller can scan for linear (non-direct) lifts/payments
 -   App/controller can initiate for linear (non-direct) invoices/payments
 -   App/controller can display/modify trading parameters
-- 
-- Generate scheduler for initiating local lifts
-- *** Could now do a MyCHIPs.com rollout with local-only services ***
 - 
 - Code referee server module
 -   Does this use Postgres or something else (nosql?)
@@ -232,9 +225,6 @@ X-   Dart API can connect to wyseman on user ticket
 - Server:
 -   Generate scheduler for initiating distributed lifts
 -   
-- *** Could now do a rollout with distributed lifts ***
--   
-
 Some general tasks by level of expertise required (redundant)
 - Low Level: (code validation)
 *-   Write unit tests, which become part of the integrated test suite. 

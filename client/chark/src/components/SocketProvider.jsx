@@ -251,6 +251,12 @@ function getTitleAndMessage(args) {
         message: state_reason_Map[tally_key]?.message ?? ''
       }
 
+    case 'chit':
+      return {
+        title: 'Chit',
+        message: 'Chit payment has been made',
+      }
+
     default: 
       return {
         title: 'Notification',
@@ -276,6 +282,8 @@ function notificationTriggerPayload(data) {
           tally_seq: data.sequence,
           tally_uuid: data.object?.tally,
           hash: data.object?.hash,
+          net: data?.net,
+          pend: data?.pend,
         }
 
       default:

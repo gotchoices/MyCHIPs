@@ -11,31 +11,34 @@ import {
   Keyboard,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { v5 as uuidv5 } from 'uuid';
+import stringify from 'json-stable-stringify';
+import moment from 'moment';
 
 import { colors } from "../../../config/constants";
 import Button from "../../../components/Button";
-import useProfile from "../../../hooks/useProfile";
 import { getCurrency } from "../../../services/user";
 import useSocket from "../../../hooks/useSocket";
 import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
 import { useTallyLanguage } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
-import HelpText from "../../../components/HelpText";
+
+import { createSignature } from "../../../utils/message-signature";
 
 import { ChitIcon, SwapIcon } from "../../../components/SvgAssets/SvgAssets";
 import BottomSheetModal from "../../../components/BottomSheetModal";
 import SuccessModal from "../Success";
 
 const PaymentDetail = (props) => {
-  const { tally_uuid, chit_seq, tally_type } = props.route?.params;
+  const { chit_ent, tally_uuid, chit_seq, tally_type, chad } = props.route?.params;
   const { wm } = useSocket();
   const { preferredCurrency } = useSelector((state) => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
 
   const [memo, setMemo] = useState();
-  const [reference, setReference] = useState();
+  const [reference, setReference] = useState({});
   const [chit, setChit] = useState();
 
   const [usd, setUSD] = useState();
@@ -96,7 +99,7 @@ const PaymentDetail = (props) => {
     setChit(0);
   };
 
-  const onMakePayment = () => {
+  const onMakePayment = async () => {
     Keyboard.dismiss();
     const net = round((chit ?? 0) * 1000, 0);
 
@@ -105,31 +108,56 @@ const PaymentDetail = (props) => {
       return;
     }
     setDisabled(true);
-    const payload = {
-      reference: JSON.stringify(reference),
-      memo: memo,
-      status: "open",
-      signature: "Signature",
-      issuer: tally_type,
-      request: "good",
-      units: net,
-      tally_uuid,
-      chit_seq,
-    };
-    console.log("LOG_DATA ==> ", JSON.stringify(payload));
 
-    insertChit(wm, payload)
-      .then((result) => {
-        console.log("RESULT ==> ", result);
-        setShowSuccess(true);
-      })
-      .catch((err) => {
-        console.log("ERROR ==> ", err);
-        Alert.alert("Error", JSON.stringify(err));
-      })
-      .finally(() => {
-        setDisabled(false);
-      });
+    const _chad = `chip://${chad.cid}:${chad.agent}`
+    const date = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+    const uuid = uuidv5(date + Math.random(), uuidv5(_chad, uuidv5.URL));
+    const referenceJson = JSON.stringify({});
+
+    const chitJson = {
+      uuid,
+      date,
+      memo,
+      units: net,
+      by: tally_type,
+      type: "tran",
+      tally: tally_uuid,
+      ref: reference,
+    }
+
+    try {
+      const json = stringify(chitJson);
+      const signature = await createSignature(json)
+
+      const payload = {
+        chit_ent,
+        chit_seq,
+        memo,
+        chit_date: date,
+        signature,
+        units: net,
+        request: "good",
+        issuer: tally_type,
+        reference: referenceJson,
+      };
+
+      await insertChit(wm, payload)
+      setShowSuccess(true);
+    } catch(err) {
+      console.log({err})
+      const { isKeyAvailable } = err;
+      if (isKeyAvailable === false) {
+        Alert.alert(
+          "Create Keys",
+          "Seems like there is no key to create signature please continue to create one and offer tally.",
+          [{ text: "Cancel" }, { text: "Continue", onPress: () => {}}]
+        );
+      } else {
+        Alert.alert("Error", err.message ?? 'Error making payment');
+      }
+    } finally {
+      setDisabled(false);
+    }
   };
 
   if (loading) {
@@ -219,8 +247,8 @@ const PaymentDetail = (props) => {
         <TextInput
           ref={ref}
           placeholder="Message"
-          value={reference}
-          onChangeText={setReference}
+          value={memo}
+          onChangeText={setMemo}
         />
       </TouchableOpacity>
 

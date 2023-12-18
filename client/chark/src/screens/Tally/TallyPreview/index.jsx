@@ -11,6 +11,7 @@ import {
   Text,
 } from "react-native";
 import { useSelector, useDispatch } from 'react-redux';
+import stringify from 'json-stable-stringify';
 
 import { colors, keyServices } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
@@ -216,12 +217,13 @@ const TallyPreview = (props) => {
   };
 
   const onOffer = () => {
-    if(!tally?.json) {
+    if(!tally?.json_core) {
       Alert.alert('Tally cannot be signed');
       return;
     }
 
-    createSignature(JSON.stringify(tally.json))
+    const message = stringify(tally.json_core)
+    createSignature(message)
       .then((signature) => {
         return offerTally(wm, {
           tally_uuid: tally.tally_uuid,
@@ -270,11 +272,12 @@ const TallyPreview = (props) => {
   };
 
   const onAccept = async () => {
-    if (!tally?.json) {
+    if (!tally?.json_core) {
       Alert.alert("Tally can not be signed");
       return;
     }
-    createSignature(JSON.stringify(tally.json))
+    const message = stringify(tally.json_core)
+    createSignature(message)
       .then((signature) => {
         setSig(signature);
         return acceptTally(wm, { tally_ent, tally_seq, signature });
@@ -333,7 +336,7 @@ const TallyPreview = (props) => {
 
   const onVerify = async () => {
     const creds = await retrieveKey(keyServices.publicKey);
-    verifySignature(sig, JSON.stringify(tally.json), creds.password)
+    verifySignature(sig, JSON.stringify(tally.json_core), creds.password)
       .then((verified) => {
         if (verified) {
           console.log("Verified Successfully");

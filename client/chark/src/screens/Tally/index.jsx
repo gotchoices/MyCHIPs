@@ -12,7 +12,7 @@ import useSocket from '../../hooks/useSocket';
 import { round } from '../../utils/common';
 import { getCurrency } from '../../services/user';
 import { useUserTalliesText } from '../../hooks/useLanguage';
-import { fetchOpenTallies, fetchTallyOnChitTransferred } from '../../redux/openTalliesSlice';
+import { fetchOpenTallies, updateTallyOnChitTransferred } from '../../redux/openTalliesSlice';
 import { fetchImagesByDigest as fetchImages } from '../../redux/avatarSlice';
 
 import TallyItem from "./TallyItem";
@@ -65,13 +65,9 @@ const Tally = (props) => {
   }, [currencyCode]);
 
   useEffect(() => {
-    console.log(chitTrigger, 'chit trigger')
     if(chitTrigger) {
       dispatch(
-        fetchTallyOnChitTransferred({
-          wm,
-          ...chitTrigger,
-        })
+        updateTallyOnChitTransferred(chitTrigger)
       )
     }
   }, [chitTrigger])
@@ -79,6 +75,14 @@ const Tally = (props) => {
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
       return acc + Number(current?.net ?? 0);
+    }, 0);
+
+    return round(total / 1000, 3);
+  }, [tallies]);
+
+  const totalPendingNet = useMemo(() => {
+    let total = tallies.reduce((acc, current) => {
+      return acc + Number(current?.net_pc ?? 0);
     }, 0);
 
     return round(total / 1000, 3);
@@ -130,6 +134,7 @@ tally:item
         ListHeaderComponent={
           <TallyHeader
             totalNet={totalNet}
+            totalPendingNet={totalPendingNet}
             totalNetDollar={totalNetDollar}
             currencyCode={preferredCurrency.code}
             navigation={props.navigation}

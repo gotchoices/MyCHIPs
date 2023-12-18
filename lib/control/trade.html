@@ -1,28 +1,7 @@
 <!DOCTYPE html>
 <!--
 TODO:
-X- Data contains info for arrow orientation (dir = 1 or -1)
-X- Arrowheads render in correct direction
-X- How to scale in only X (mirror?)
-X- Integrate into report generator, view in wylib
-- Pull tally values from DB
-- Pull language data from DB
-- Add reset/submit buttons
-- 
-- Refinements:
-- Make taps disappear when at 0
-- Adjust target/bound if credit limit reduced below them
-- Can click on target/bound to input number
-- Paint arrows different colors in free/charge/NA zones; or:
--   otherwise label free/charge zones
-- Reward/clutch turn red, display danger! when negative
-- Where to display/adjust call time?
-- Implement context helps (?)
-- Optimize calls to repaint
-- Optimize styles >> CSS
-- 
-- Review css styles
-- 
+- Enable ranges for target, bound?
 -->
 <html lang="en">
 <head>
@@ -30,19 +9,15 @@ X- Integrate into report generator, view in wylib
   <title>Trading Variable Settings</title>
   <style>
     html, body {
-/*      padding: 0; */
-/*      margin: 0; */
       font-family: sans-serif;
       font-size: 18px;
       text-anchor: left;
-    }
-    #reportTitle {
-      font-size: 24px;
+      overflow: hidden;
+      user-select: none;
     }
     #svgContainer {
       width: 100%;
       position: relative;
-/*      padding: 2px; */
       margin: 2px;
     }
     #reportSVG {
@@ -51,33 +26,77 @@ X- Integrate into report generator, view in wylib
       display: block;
       margin: 0 auto;
     }
-    #reportTitle {
-/*      position: absolute;*/
-      top: 10px;
-      left: 10px;
+    #status {
+      height: 3em;
+      font-size: 10pt;
     }
     #ranges {
-/*      width: 100%; */
       display: flex;
+      padding: 10px;
       justify-content: space-between;
     }
     .rangeArea {
-        width: 49%;
+      width: 24%;
+      display: grid;
+      grid-template-columns: 30px auto;
+      grid-template-rows: 2.5em auto 70px 70px;
+      align-items: start;
+      padding: 2px;
+      font-size: 14px;
     }
-    .rangeRow {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      height: 1.5em;
-    }
-    .rangeArea input[type=number] {
-      width: 10ch;
-    }
-    .rangeArea .slider {
+    .rangeArea .labWrap {
       width: 100%;
+      grid-column: 1 / span 2;
+      grid-row: 1;
+    }
+    .rangeArea .inpBox {
+      width: 90%;
+      grid-column: 1 / span 2;
+      grid-row: 2;
+      text-align: right;
+    }
+    .inpRange {
+      transform: rotate(270deg) translateX(-130px) translateY(0px);
+      transform-origin: 8px 0px;
+    }
+    .rangeWrap {
+      grid-column: 1;
+      grid-row: 3 / span 2;
+/*      touch-action: none; */
+    }
+    .rangeArea button {
+      width: 80%;
+      height: 80%;
+      grid-column: 2;
+      margin: 10px;
+      border-radius: 8px;
+      border-width: 1px;
+      font-size: 14pt;
+    }
+    .rangeArea button.upButton {
+      grid-row: 3;
+    }
+    .rangeArea button.dnButton {
+      grid-row: 4;
+    }
+    #buttons {
+      display: flex;
+      padding: 10px;
+      justify-content: space-between;
+    }
+    #buttons input {
+      flex-grow: 1;
+      height: 2em;
+      margin: 0 10px;
     }
     .setpoint {
-      font-size: 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .handle {
+      fill: #eef;
+      stroke: #66f;
+      stroke-width: 1;
       cursor: pointer;
     }
     .entity {
@@ -92,12 +111,15 @@ X- Integrate into report generator, view in wylib
     .limitText {
       font-size: 10px;
     }
+    .warning {
+      background-color: red;
+    }
     
   </style>
 </head>
 <body>
   <div id="svgContainer">
-    <p id="reportTitle">Trading Variable Settings</p>
+    <p id="status"></p>
     <svg id="reportSVG">
       <defs>
         <marker id="arrow" stroke="inherit" fill="inherit" orient="auto-start-reverse" markerUnits="userSpaceOnUse"/>
@@ -108,26 +130,14 @@ X- Integrate into report generator, view in wylib
       </defs>
     </svg>
   </div>
-
   <div id="ranges">
-    <div class="rangeArea">
-      <div class="rangeRow">
-        <p>Clutch:</p>
-          <input type="number" id="clutchBox" value="0" min="-1" max="1" step="0.01"/>
-      </div>
-      <input type="range" class="slider" id="clutchRange" value="0" min="-1" max="1" step="0.01"/>
-    </div>
-    <div class="rangeArea">
-      <div class="rangeRow">
-        <p>Reward:</p>
-          <input type="number" id="rewardBox" value="0" min="-1" max="1" step="0.01"/>
-      </div>
-      <input type="range" class="slider" id="rewardRange" value="0" min="-1" max="1" step="0.01"/>
-    </div>
+  </div>
+  <div id="buttons">
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.js" charset="utf-8" type="text/javascript"></script>
-<!---
+<!--- Local debug:
 <script src="d3.js" charset="utf-8" type="text/javascript"></script>
 --->
 
@@ -135,46 +145,61 @@ X- Integrate into report generator, view in wylib
 const markerWidth	= 12			//Link arrowhead marker
 const markerHeight	= 8
 const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
-//const Pi2		= Math.PI / 2
-var graphX		= 300		//Graphing space
+const timerInt		= 500
+var minCredLimit	= 10
+var graphX		= 280			//Graphing space
 var graphY		= 140
 var border		= 4
-var entRad		= 5
-var entTop		= 20
+var entRad		= 5			//Entity corner radius
+var entTop		= 30
 var entWidth		= 40
 var entHeight		= graphY - entTop
 var arrowWid		= 20
-var dirArrow		= 40
-var takeArrow		= 70
-var giveArrow		= 110
+var dirArrow		= 45
+var takeArrow		= 75
+var giveArrow		= 115
+var handle		= 40
+var scaleY		= 20
 //var Arrow		= 60
 var arrowSize		= 0.20
 var svgWid		= graphX + entWidth * 3 + border * 2
-var svgHei		= graphY + entTop + border * 2
+var svgHei		= graphY + scaleY + handle + border * 2
 var xMin		= -entWidth - border
 var yMin		= -border
-var credLimit		= 1000
+var credLimit		= minCredLimit
+var boundTimer		= null
 
 var entityData = [
-  {name: 'Me', x:graphX, y:entTop},
-  {name: 'Partner', x:-entWidth, y:entTop}
+  {id: 'hold', label: 'Me',      x:graphX,    y:entTop},
+  {id: 'part', label: 'Partner', x:-entWidth, y:entTop}
 ]
 var directData = [
-  {x: 0, y:dirArrow}
+  {id:'direct', label:'Direct', x: 0, y:dirArrow}
 ]
-var setPointData = [
-  {name: 'Target', dir:-1, value: 250, anchor:'end'},
-  {name: 'Bound',  dir:1,  value: 500, anchor:'start'}
-]
-var liftArrowData = [
-  {name: 'Lifts In',  x:0, y:takeArrow, dir:1,  tap:0, xTap:graphX/4*1, fill:'yellow'},
-  {name: 'Lifts Out', x:0, y:giveArrow, dir:-1, tap:0, xTap:graphX/4*3, fill:'orange'}
+var settingsObj = {
+  target: {label: 'Target', dir:-1, value: 0, min:  0, max: 100, step: 1,    dig:0},
+  bound:  {label: 'Bound',  dir: 1, value: 0, min:  0, max: 100, step: 1,    dig:0},
+  reward: {label: 'Reward', dir: 0, value: 0, min: -1, max:   1, step: 0.01, dig:2, arr:'lift'},
+  clutch: {label: 'Clutch', dir: 0, value: 0, min: -1, max:   1, step: 0.01, dig:2, arr:'drop'}
+}
+var settingsData = Object.keys(settingsObj).map(k => Object.assign(settingsObj[k], {id: k}))
+var setPointData = settingsData.filter(e => e.dir)
+  .map(e => {e.anchor = e.dir > 0 ? 'start' : 'end'; return e})
+
+var liftArrowObj = {
+  lift: {label: 'Lifts In',  x:0, y:takeArrow, dir:1,  tap:0, xTap:graphX/4*1, fill:'yellow'},
+  drop: {label: 'Lifts Out', x:0, y:giveArrow, dir:-1, tap:0, xTap:graphX/4*3, fill:'orange'}
+}
+var liftArrowData = Object.keys(liftArrowObj).map(k => Object.assign(liftArrowObj[k], {id: k}))
+var buttonData = [
+  {id:'reset',  label: 'Reset',  call: reset},
+  {id:'submit', label: 'Submit', call: submit}
 ]
 
 const svg = d3.select("#reportSVG")			//Basic SVG settings
     .attr("viewBox", [xMin, yMin, svgWid, svgHei])
 //    .attr("width", svgWid).attr("height", svgHei)
-.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 v${graphY} h${graphX} v${-graphY} h${-graphX}`))	//Outline for debug
+//.call(s=>s.append("g").append("path").attr("stroke","#8F8").attr("fill","none").attr("d",`M0,0 v${graphY} h${graphX} v${-graphY} h${-graphX}`))	//Outline for debug
     
 svg.select('#arrow')			//Add attributes to arrow marker
   .attr('viewBox', [0, 0, markerWidth, markerHeight])
@@ -185,11 +210,6 @@ svg.select('#arrow')			//Add attributes to arrow marker
 const xScale = d3.scaleLinear().range([0, graphX])
 const graphBox = svg.append("g").attr("class", "scale")
   .attr("transform", `translate(0, ${graphY})`)
-  .call(s => s.append("text")
-    .attr("x", "-1em").attr("y", "2.2em")
-    .attr("text-anchor", "end").attr("fill", "green")
-    .text("Balance:")
-  )
 
 const paintAxis = function () {
   xScale.domain([0, credLimit])
@@ -199,19 +219,18 @@ const paintAxis = function () {
   )
   .selectAll(".limitText").data([credLimit])
   .join(ent => ent.append("text").attr("class","limitText")
-    .attr("x", graphX).attr("y", "1.6em")
+    .attr("x", graphX).attr("y", "1.9em")
     .attr("fill", "green").attr("opacity", 1)
     .style("cursor", "pointer")
-    .on("click", () => {
-       const newLimit = prompt("Enter new credit limit", credLimit);
-       if(newLimit && newLimit > 0) {
-         credLimit = newLimit
-         paintAxis()
-         paintSets()
-       }
-    })
   )
   .text(() => credLimit)
+}
+
+function clip(text, maxLength) {
+  if (text.length > maxLength) {
+    return text.slice(0, maxLength) + '...'
+  }
+  return text
 }
 
 const entities = svg.selectAll(".entity")
@@ -227,9 +246,9 @@ const entities = svg.selectAll(".entity")
       .attr("fill", "lightblue")
   })
   .call(s => {
-    s.append("text")
-      .attr("x", "0.25em").attr("y", "1em")
-      .text(d => d.name)
+    s.append("text").attr("id", d => d.id).attr("class","entText")
+      .attr("x", "0.25em").attr("y", "1.6em")
+      .text(d => d.label)
   })
 
 const direct = svg.selectAll(".direct")
@@ -248,29 +267,62 @@ const direct = svg.selectAll(".direct")
     s.append("text").attr("class","arrowText")
       .attr("x", graphX/2).attr("y", "-0.25em")
       .attr("text-anchor", "middle")
-      .text("Direct")
+      .text(d => d.label)
   })
+
+const buttons = d3.select("#buttons")		//;console.log('B:', buttons.nodes())
+buttons.selectAll('input')
+  .data(buttonData)
+  .join('input')
+  .attr('type', 'button')
+  .attr('id', d => d.id)
+  .attr('value', d => d.label)
+  .on('click', (e, d) => d.call())
+
+const paintMisc = function () {
+  entities.select(".entText").data(entityData)
+    .text(d => clip(d.label, entWidth / 6))
+  direct.select(".arrowText").data(directData)
+    .text(d => d.label)
+  buttons.selectAll("input").data(buttonData)
+    .property('value', d => d.label)
+  settings.data(settingsData)
+    .select(".labWrap")
+    .text(d => d.label)
+}
 
 const paintArrows = function () {
   svg.selectAll(".liftArrow")
-  .data(liftArrowData)
-  .join('g').attr("class", "liftArrow")
-  .attr("transform", d => `translate(${d.x},${d.y})`)
-  .call(s => {
-    s.append("text").attr("class", "arrowText")
-      .attr("x", graphX/2).attr("y", "-1.35em")
-      .attr("text-anchor", "middle")
-      .text(d => d.name)
-  })
+  .data(liftArrowData, d => d.id)
+  .join(
+    enter => {
+      return enter.append('g')
+        .attr("class", "liftArrow")
+        .attr("transform", d => `translate(${d.x},${d.y})`)
+        .call(s => {
+          s.append("text").attr("class", "arrowText")
+            .attr("x", graphX/2).attr("y", "-1.35em")
+            .attr("text-anchor", "middle")
+            .text(d => d.label)
+        })
+    },
+    update => {
+      return update.call(s => {
+        s.attr("transform", d => `translate(${d.x},${d.y})`)
+        .select(".arrowText").text(d => d.label)
+      })
+    },
+    exit => exit.remove()
+  )
   .selectAll("path")
   .data(d => [d])
-  .join("path").lower()
+  .join("path")		//.lower()
     .attr("transform", d => {
       let xOff = d.dir > 0 ? 0 : graphX + entWidth * 2
 //      return `translate(${xOff},0) scale(${d.dir})`
       return `translate(${xOff},0) scale(${d.dir}, 1)`
     })
-    .attr("d", d => {
+    .attr("d", d => {				//console.log("D:", d)
       let tapRad = arrowWid / 2
         , tapSize = Math.abs(arrowWid * d.tap)
         , bigArc = tapRad + tapSize
@@ -280,47 +332,93 @@ const paintArrows = function () {
         , arrowJot = shaft * arrowSize
         , arrowTip = shaft / 2 + arrowJot
         , xTap = d.dir > 0 ? entWidth * 1.5 - arrowTip : right - entWidth * 1.5 - arrowTip
-        , yOut = entHeight - d.y
+        , yOut = graphY - tapRad - arrowWid / 2 - d.y
         , arc1 = d.tap >= 0
              ? `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${bigArc}`
              : `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${tapRad}`
         , arc2 = d.tap >= 0
              ? `a ${tapRad} ${tapRad} 0 0 0 ${-tapRad} ${-tapRad}`
              : `a ${bigArc} ${bigArc} 0 0 1 ${bigArc} ${-bigArc}`
-      return `M 0 ${-arrowWid/2} h ${right - arrowTip}
-          v ${-arrowJot} l ${arrowTip} ${arrowTip} l ${-arrowTip} ${arrowTip} v ${-arrowJot}
-          h ${d.tap >= 0 ? -xTap - tapRad : -xTap + tapRad}
+        , tapLines = d.tap ? `
           ${arc1}
           v ${yOut} h ${-tapSize} v${-yOut}
           ${arc2}
+        ` : ''
+      return `M 0 ${-arrowWid/2} h ${right - arrowTip}
+          v ${-arrowJot} l ${arrowTip} ${arrowTip} l ${-arrowTip} ${arrowTip} v ${-arrowJot}
+          h ${d.tap >= 0 ? -xTap - tapRad : -xTap + tapRad}
+          ${tapLines}
           H 0 l ${tail/2} ${-tail/2} Z`
     })
     .attr("stroke-width", 1)
     .attr("stroke", "grey").attr("fill", d => d.fill)
 }
 
-function checkTarget() {
-  let targ = setPointData[0]
-    , boun = setPointData[1]
-  if (targ.x > boun.x) {
-    targ.x = boun.x
-    targ.value = xScale.invert(targ.x).toFixed(3)
+function nextLogValue(val, dir = 1) {	//Adjust scale max: 10, 25, 50, 100 ...
+  if (val <= 0) return 10
+  let powTen = Math.floor(Math.log10(val))
+    , scaled = val / Math.pow(10, powTen)	//console.log('Next:', dir, val, powTen, scaled)
+
+  if (dir > 0) {
+    if (scaled < 2.5) scaled = 2.5
+    else if (scaled < 5) scaled = 5
+    else scaled = 10
+  } else if (dir < 0) {
+    if (scaled > 5) scaled = 5
+    else if (scaled > 2.5) scaled = 2.5
+    else if (scaled > 1) scaled = 1
+    else scaled = 0.5
+  }					//;console.log('N:', scaled, powTen, scaled * Math.pow(10, powTen))
+  return scaled * Math.pow(10, powTen)
+}
+
+function checkBound(ev, d) {		//Target always <= bound
+  let dir = 0
+  if (ev.x > graphX + handle/2) {
+    dir = 1				//;console.log('G: increase')
+  } else if (d.value < credLimit / 3 && credLimit > minCredLimit) {
+    dir = -1				//;console.log('G: decrease')
+  }
+  if (dir) {				//In a dragging zone
+    if (!boundTimer) {			//console.log('SI:', d.id, boundTimer)
+      boundTimer = setInterval(() => {
+        let newLimit = nextLogValue(credLimit, dir)	//;console.log('I1:', credLimit)
+        if (newLimit >= d.value - 1)
+          setLimit(nextLogValue(credLimit, dir))	//;console.log('I2:', credLimit)
+        paintAxis()
+        paintSets()
+      }, timerInt)
+    }
+  } else {				//console.log('CI:', d.id)
+    if (boundTimer) clearInterval(boundTimer)
+    boundTimer = null
   }
 }
 
 const dragSets = d3.drag()		//Drag function called by set points
   .on("start", function (ev, d) {
-      d3.select(this).raise().classed("active", true);
+    updateStatus(d.help)
+    d3.select(this).classed("active", true);
   })
   .on("drag", function (ev, d) {	//console.log("drag:", ev, d)
+    let { target, bound } = settingsObj
     d.x = ev.x < 0 ? 0 :
           ev.x > graphX ? graphX : ev.x
-    checkTarget()
+    if (target.x > bound.x) {
+      target.x = bound.x
+      target.value = xScale.invert(target.x).toFixed(3)
+    }
     d.value = xScale.invert(d.x).toFixed(3)
+    
+    if (d.id === 'bound') checkBound(ev, d)
     paintSets()
   })
   .on("end", function (ev, d) {
     d3.select(this).classed("active", false);
+    if (boundTimer) clearInterval(boundTimer)
+    boundTimer = null
+    updateSetting(d, parseFloat(d.value))
+    updateStatus()
   })
 
 const setPoints = svg.selectAll(".setpoint")
@@ -329,18 +427,19 @@ const setPoints = svg.selectAll(".setpoint")
   .attr("text-anchor", d => d.anchor)
   .call(s => {
     s.append("path")
-      .attr("d", d => `M ${d.dir * 30} ${12} H 0 v ${graphY - 4}`)
+      .attr("d", d => `M ${d.dir * 30} ${12} H 0 v ${graphY + handle/2}`)
       .attr("stroke", "blue").attr("stroke-width", 1).attr("fill","none")
-  })
-  .call(s => {
+    s.append("rect")
+      .attr("class", "handle")
+      .attr("x", d => (d.dir < 0 ? -handle : 0)).attr("y", graphY + scaleY).attr("rx", 4)
+      .attr("width", handle).attr("height", handle)
     s.append("text")
       .attr("x", 0).attr("y", "1em")
-      .text(d => d.name)
+      .text(d => d.label)
   })
   .call(dragSets)
 
-function paintSets() {
-console.log('ps:')
+function paintSets() {				//console.log('ps:')
   setPoints.attr("transform", d => {
     d.x = xScale(d.value)
     return `translate(${d.x}, 0)`
@@ -352,47 +451,164 @@ console.log('ps:')
   .text(d => d.value)
 }
 
-document.getElementById("rewardRange").oninput = function() {
-  document.getElementById("rewardBox").value = this.value;
-  liftArrowData[0].tap = this.value
-  paintArrows()
-}
-document.getElementById("rewardBox").oninput = function() {
-  document.getElementById("rewardRange").value = this.value;
-  liftArrowData[0].tap = this.value
-  paintArrows()
-}
-document.getElementById("clutchRange").oninput = function() {
-  document.getElementById("clutchBox").value = this.value;
-  liftArrowData[1].tap = this.value
-  paintArrows()
-}
-document.getElementById("clutchBox").oninput = function() {
-  document.getElementById("clutchRange").value = this.value;
-  liftArrowData[1].tap = this.value
-  paintArrows()
+function updateStatus(msg = '') {
+  d3.select('#status').text(msg)
 }
 
-function fetchData() {		//Grab tally data from server
+function setLimit(limit) {		//Set new credit limit
+  let { target, bound } = settingsObj
+    , digs = Math.max(Math.floor(Math.log10(limit))-2, 0)
+    , step = Math.pow(10, digs)		//;console.log('Nd:', digs, 'St:', step)
+  credLimit = limit
+  target.step = bound.step = step
+  target.dig = bound.digs = -digs
+  target.max = bound.max = limit
+}
+
+function fetchData(cb) {		//Grab tally data from server
   let pageURL = ((window || {}).location || {}).href
-    , dataURL = pageURL.replace(/trade.html$/,'trade.json')
-console.log('Fetch:', dataURL)
-  fetch(dataURL).then(resp => resp.json()).then(data => {
-console.log(' data:', data)
-//    userData = data
-//    userData.tallies.forEach(tally => {
-//      tally.x = (Math.random()-0.5) * svgWid
-//      tally.y = (Math.random()-0.5) * svgHei
-//    })
-//    repaint()
+    , dataURL = pageURL.replace(/trade.html$/,'trade.json')	//;console.log('Fetch:', dataURL)
+  fetch(dataURL).then(resp => resp.json()).then(data => {	//;console.log(' data:', data)
+    let {row, col, msg} = data
+    if (msg.trade && msg.trade.title)
+      d3.select('#reportTitle').text(msg.trade.title)
+    settingsData.forEach(el => {		//Settings titles
+      let id = el.id				//;console.log('Set:', id)
+      if (col[id]) {
+        el.label = col[id].title
+        el.help = col[id].help
+      }
+      if (row[id] !== null && row[id] !== undefined)
+        updateSetting(el, row[id], null, null, false)
+      if (id = 'bound' && el.value > credLimit)
+        setLimit(nextLogValue(el.value))
+    })
+    entityData.forEach(el => {
+      let id = el.id
+      if (row[id]) el.label = row[id]
+    })
+    directData.forEach(el => {
+      let id = el.id, tag = 'trade.' + id
+      if (msg[tag]) el.label = msg[tag].title
+    })
+    buttonData.forEach(el => {
+      let id = el.id, tag = 'trade.' + id
+      if (msg[tag]) el.label = msg[tag].title
+    })
+    liftArrowData.forEach(el => {
+      let id = el.id, tag = 'trade.' + id
+      if (msg[tag]) el.label = msg[tag].title
+    })
+    if (cb) cb()
   })
 }
 
-fetchData()
-paintArrows()
-paintAxis()
-paintSets()
+const setCont = d3.select('#ranges')
+const settings = setCont.selectAll('.rangeArea')
+  .data(settingsData)
+  .join('div').attr('id',d => d.id).attr('class', 'rangeArea')
+  
+  .call(s => {
+    s.append('div').attr('class','labWrap')
+      .text(d => d.label)
+    
+    s.append('input').attr('class','inpBox').attr('type', 'number')
+      .attr('id', d => d.id + '_inp')
+      .attr('value', d => d.value)
+      .attr('min', d => d.min).attr('max', d => d.max).attr('step', d => d.step)
+      .on('input', (e,d) => updateSetting(d, e.target.value, null, true))
+    
+    let ww = s.append('div').attr('class', 'rangeWrap')
+    ww.filter(d => !d.dir)
+      .append('input').attr('class','inpRange').attr('type', 'range')
+        .attr('id', d => d.id + '_rng')
+        .attr('value', d => d.value)
+        .attr('min', d => d.min).attr('max', d => d.max).attr('step', d => d.step)
+        .attr('height', '150px')
+        .on('input', (e,d) => updateSetting(d, e.target.value))
+        .on('mousedown touchstart', (e, d) => updateStatus(d.help))
+        .on('mouseup touchend', () => updateStatus())
+    s.append('button').attr('class','upButton').text('+')
+      .on('click', (e,d) => updateSetting(d, null, 1))
+      .on('mousedown touchstart', (e, d) => updateStatus(d.help))
+      .on('mouseup touchend', () => updateStatus())
+    s.append('button').attr('class','dnButton').text('-')
+      .on('click', (e,d) => updateSetting(d, null, -1))
+      .on('mousedown touchstart', (e, d) => updateStatus(d.help))
+      .on('mouseup touchend', () => updateStatus())
+  })
 
+function rounder(value, precision) {		//console.log("R:", value, typeof value)
+  if (precision >= 0) {
+    return Number(Number(value).toFixed(precision))
+  } else {
+    let scale = Math.pow(10, -precision)
+    return Math.round(value / scale) * scale
+  }
+}
+
+function updateSetting(d, value, step, manual, check = true) {	//console.log('Update:', d, value, step, manual)
+  if (value !== null && value !== undefined)
+    d.value = value
+  if (step) {
+    d.value = parseFloat(d.value) + parseFloat(d.step) * step
+    d.value = Math.max(d.min, Math.min(d.max, d.value))
+  }
+  if (manual) {
+    d3.select(`#${d.id}_inp`).classed('warning', d.value < 0)
+  } else {
+    d.value = rounder(d.value, d.dig)
+    d3.select(`#${d.id}_inp`).property('value', d.value)
+   .classed('warning', d.value < 0)
+  }
+  if (d.dir) {
+    let { target, bound } = settingsObj
+    if (check && (target.value > bound.value)) target.value = bound.value
+    paintSets()
+  } else {
+    let { reward, clutch } = settingsObj
+      , illegal = (reward.value + clutch.value < 0)
+    d3.select('#submit').property('disabled', illegal)
+    d3.select(`#${d.id}_rng`).property('value', d.value)
+    liftArrowObj[d.arr].tap = d.value	//associate with lift arrow
+    paintArrows()
+  }
+}
+
+function submit() {
+  let url = `https://mychips.org/trade?`
+    , vals = {}
+    , buildQuery = function(v) {
+        let params = new URLSearchParams()
+        for (const [key, value] of Object.entries(v)) {
+          params.append(key, value)
+        }
+        return params.toString()
+      }
+  settingsData.forEach(s => {
+    vals[s.id] = s.value
+  })				//;console.log('Submit:', url + buildQuery(vals))
+  window.open(url + buildQuery(vals), '_self')
+}
+
+function reset() {		//console.log('Reset!')
+  fetchData(() => {
+    setLimit(nextLogValue(settingsObj.bound.value))
+    paintMisc()
+    paintArrows()
+    paintAxis()
+    paintSets()
+
+/*    d3.selectAll('.inpRange').on('touchmove', function(event) {
+      event.preventDefault();
+    }); */
+    d3.selectAll('button').on('contextmenu', function(event) {
+      event.preventDefault();
+    });
+  })
+}
+
+reset()
 </script>
 </body>
 </html>

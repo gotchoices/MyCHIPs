@@ -3,54 +3,60 @@
   <a href="learn-message.md">Next</a>
 </div>
 
-## MyCHIPs Protocol Description 1.3 (working draft)
-May 2022; Copyright MyCHIPs.org
+## MyCHIPs Protocol Description 1.4 (working draft)
+Nov 2023; Copyright MyCHIPs.org
 
 ### Overview ([TL;DR](#protocol-layers "Skip to the meat"))
-As the project began, it was difficult to attempt a top-down design of the system.
-
+As the project began, it was impossible to imagine a comprehensive top-down design for the system.
 I had a basic, intuitive idea about how sites and nodes should communicate with each other,
 and what types of messages they would send back and forth, but I didn't understand it
 in a formal enough way to create a detailed description of the protocol.
 Instead, I jumped in and started coding.
 
-While that is probably not the most widely accepted approach, it did give me a working prototype of a MyCHIPs site, albeit not yet secure.
+While that is probably not the most inspiring approach, it did give me a working prototype of a MyCHIPs site, albeit not yet secure.
 In conjunction with the agent-model simulator, I could generate random data sets.
 And with the network visualizer, I could now actually see what a network might evolve into and what type of scenarios the protocol would have to handle.
 
-As I went, I produced documents like those included here for
-[tallies](learn-tally.md) and [lifts](old-lift.md)
-to help me make sense of what I needed to code.
-Those still serve as a helpful reference for the prototype implementation.
+As I went, I produced documents like [this](old-lift.md) to help make sense of what I needed to do.
+These still serve as a helpful reference and so remain included for the present.
 
-Next came the DSR study, which revealed some security/liveness flaws in the way I had designed and implemented the protocol.
-The intermediate BYU results (as of Summer 2021) indicate that the addition of the referee will now allow a distributed lift that is acceptably live and secure.
+Next came the DSR study, which revealed some security/liveness flaws in the way the (version 0) protocol was conceived.
 
+As of Summer 2021, the preliminary results from the BYU study indicated that the addition of the referee would allow a distributed lift that is acceptably live and secure.
+This triggered the rework of the protocol to version 1.x.
 Admittedly, the referee is a compromise from the original goal of a fully distributed system.
-But it is still highly decentralized, and its main role is so nodes can achieve consensus about when a pending lift should expire.
-Thankfully, the referee doesn't need to know anything about individual entities' balances, keys, or other sensitive data.
-So all other functions are still fully distributed.
+But it is still highly decentralized, and the referee's primary role is one of time-keeping so it is a reasonable compromise to achieve safety and liveness.
 
-This document is an attempt to more formally describe a refined protocol with the help of UML sequence and state diagrams.
-The goal is to prepare the way for a further revision of the codebase to bring it into line with this improved protocol.
-Hopefully this will serve as a clear enough description that any eventual implementation can interoperate with any other.
+Now in 2023, a working mobile application is on the horizon and a beta release of the backend seems imminent.
+Much progress has been made in the way tallies and chits are negotiated between stock and foil.
+
+More importantly, there have been breakthroughs in the way routes are discovered through the network.
+Current testing indicates that routes can be discovered very efficiently in real-time.
+This largely eliminates the need for caching of routes as implemented in the 1.x protocol.
+Furthermore, there are early indications that the referee may be dispensed with again, in favor of a more fully distributed consensus pattern.
+
+These developments trigger the jump to 1.4 protocol definition with the following goals:
+- Tally/chit protocols have improved consensus and error recovery
+- Route discovery is no longer a separate protocol layer but is instead incorporated into the first phase of the lift layer
+- This new lift protocol is moved to an independent external library
+- The lift protocol should remain flexible enough to support multiple methods:
+  - Local lift (all parties are on a single site)
+  - Refereed lift (referee rules on the timeout)
+  - Ring voting/consensus (majority rules on timeout)
+  - Other future methods as they may evolve
 
 ### Protocol Layers
 This document defines the model state level **protocol** whereby nodes communicate with each other to:
-- Establish tallies (formalized trading relationships) between entities
-- Send value via direct Chits on a single tally
-- Discover potential lift pathways through the network
-- Execute distributed lifts across the network
-
-In addition, we will cover the following which might be considered as sub-protocols:
-- Gaining consensus between two entities sharing a tally as to the order of chits on the tally
-- Communicating with a Referee nominated to call time on a lift transaction
+- Establish and maintain tallies (formalized trading relationships) between entities
+- Send value and adjust settings via direct Chits on a single tally
+- Obtain and maintain consensus as to the content of tallies/chits
+- Discover and execute local and distributed lifts across the network
 
 At a lower level, sites will communicate with each other over an encrypted secure connection which uses
-[Noise Protocol](http://noiseprotocol.org) and is discussed in some more detail [here](/doc/learn-noise.md).
+[Noise Protocol](http://noiseprotocol.org) and is discussed in more detail [here](/doc/learn-noise.md).
 
 ### State Processing
-The protocol is implemented as a state transition model.
+The tally/chit protocol is implemented as a state transition model.
 This is important because in a distributed network, nodes are apt to go offline from time to time 
 and network connections may not always be reliable.
 
@@ -435,25 +441,35 @@ In addition to the three basic chit substates shown above, it will be important 
 We will do this by queing messages and only completing state transition after the message has been sent.
 This will allow for more graceful error recovery when an agent server crashes or is restarted.
 
-OBSOLETE:
-We will now derive the following state diagram to describe the consensus sub-states from the perspective of a single side.
-First, the states associated with the foil:
-[![state-cons](uml/state-conf.svg)](uml/state-conf.svg)
+It *is* possible to define distinct states for a chit within the consensus algorithm.
+However, it is not particularly useful so no state diagrams are presented here.
+It is enough that each node remain aware of any chit marked as good, and keep communicating with the other half (according to the sequences shown above) of the tally until a chain index is successfully recorded and acknowledged for that chit.
 
-OBSOLETE:
-States for the foil are pretty straightforward.
-It mainly needs to track new good chits, link them into its chain, and reliably inform the Stock about the latest end hash.
+### Interrim Lift Protocol
+Starting with version protocol 1.5, it is intended to offload the route discover and lift
+negotiation protocol to an [external library](https://github.com/gotchoices/ChipNet).
+This should facilitate several objectives:
+- Increase site bandwidth and scalability
+- Facilitate multiple MyCHIPs-compatible implementations
+- Support multiple options for assessing lift validity/timeout
 
-OBSOLETE:
-For the Stock, it is slightly more complicated.
-It must be able to conform to the chaining order it receives from the foil.
-It can't consider itself fully settled until receiving proper confirmation from the foil.
-And if it finds itself in possession of valid chits the foil hasn't chained yet, it will have to queue them for retransmission under the regular chit protocol.
+While ChipNET is being developed, this implementation will continue toward a deployable
+codebase that works on a single site.
+This means support for local route discovery and local clearing and payment lifts in a way that, from the application's perspective,
+will not have to change once fully distributed lifts are possible.
 
-OBSOLETE:
-[![state-cons](uml/state-cons.svg)](uml/state-cons.svg)
+Consider the following use cases:
+- The user asks if a linear route exists to a specified user/tally
+- The agent asks if a circular route exists involving specified up-stream and down-stream tallies
 
-### Route Discovery Protocol
+In each case, a process should be able to call a local procedure to initiate this search.
+For interrium, local-only implementation, this is a stored procedure in the database which returns a list of possible routes that meet the specfied criteria.
+Each route specifies an up-stream tally and a data structure that will be delivered to the lift routine.
+
+The system shall also present a procedure for invoking a lift.
+In the local implementation, this is accomplished by creating and signing an 'org' type lift record.
+
+### Route Discovery Protocol OBSOLETE
 Readers not already familiar with credit lifts, can refer to [this section on lifts](learn-lift.md)
 for figures and background that will be referred to below.
 
@@ -533,7 +549,7 @@ So each route should be uniquely identifiable.
 In addition to knowing the tally UUID the query came in on, a querying node should supply a route ID.
 This route ID will be returned with subsequent updates so the node knows which route to update.
 
-### Lift Protocol
+### Lift Protocol OBSOLETE
 Once a site has discovered one or more viable external routes, it can proceed to propose an actual lift.
 The proposal is sent out via an upstream foreign peer at the top of the subject segment.
 This use diagram shows five possible phases of the resulting lift:

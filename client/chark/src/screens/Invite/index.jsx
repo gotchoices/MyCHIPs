@@ -3,39 +3,56 @@ import { View, Text, StyleSheet,FlatList, TouchableOpacity, Alert, TouchableHigh
 import Toast from 'react-native-toast-message';
 import SwipeableFlatList from 'react-native-swipeable-list';
 import { useSelector, useDispatch } from 'react-redux';
+import stringify from 'json-stable-stringify';
 
-import { colors } from '../../config/constants';
-import useSocket from '../../hooks/useSocket';
-import useInvite from '../../hooks/useInvite';
-import { createTemplate, fetchContracts, acceptTally, offerTally } from '../../services/tally';
-import TemplateItem from './TemplateItem';
-import CustomTextInput from '../../components/CustomTextInput';
-import { FilterSecondIcon, SearchIcon } from '../../components/SvgAssets/SvgAssets';
-import FloatingActionButton from '../../components/FloadingActionButton';
-import BottomSheetModal from '../../components/BottomSheetModal';
-import CommentContent from './CommentContent';
-import LimitContent from './LimitContent';
-import SuccessContent from '../../components/SuccessContent';
-import { GenerateKeysDialog } from '../Tally/TallyPreview/GenerateKeysDialog';
-import TallyEntryModal from './TallyEntryModal';
+import { colors } from "../../config/constants";
+import useSocket from "../../hooks/useSocket";
+import useInvite from "../../hooks/useInvite";
+import {
+  createTemplate,
+  fetchContracts,
+  acceptTally,
+  offerTally,
+  refuseTally,
+} from "../../services/tally";
+import TemplateItem from "./TemplateItem";
+import CustomTextInput from "../../components/CustomTextInput";
+import {
+  FilterSecondIcon,
+  SearchIcon,
+} from "../../components/SvgAssets/SvgAssets";
+import FloatingActionButton from "../../components/FloadingActionButton";
+import BottomSheetModal from "../../components/BottomSheetModal";
+import CommentContent from "./CommentContent";
+import LimitContent from "./LimitContent";
+import SuccessContent from "../../components/SuccessContent";
+import { GenerateKeysDialog } from "../Tally/TallyPreview/GenerateKeysDialog";
+import TallyEntryModal from "./TallyEntryModal";
 
-import useMessageText from '../../hooks/useMessageText';
-import { useHoldTermsText } from '../../hooks/useLanguage';
-import { fetchTemplates } from '../../redux/workingTalliesSlice';
-import { fetchImagesByDigest } from '../../redux/avatarSlice';
-import { createSignature, verifySignature } from '../../utils/message-signature';
+import useMessageText from "../../hooks/useMessageText";
+import { useHoldTermsText } from "../../hooks/useLanguage";
+import { fetchTemplates } from "../../redux/workingTalliesSlice";
+import { fetchImagesByDigest } from "../../redux/avatarSlice";
+import {
+  createSignature,
+  verifySignature,
+} from "../../utils/message-signature";
+import { request } from "../../services/request";
+import { random } from "../../utils/common";
 
 const Header_Height = 160;
 
 const useSearchData = (initialData) => {
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [filteredData, setFilteredData] = useState(initialData);
 
   useEffect(() => {
     if (searchValue) {
       const filtered = initialData.filter((item) => {
         const userName = item.part_cert?.name;
-        const name = `${userName?.first}${userName?.middle ? ' ' + userName?.middle + ' ' : ''} ${userName?.surname}`
+        const name = `${userName?.first}${
+          userName?.middle ? " " + userName?.middle + " " : ""
+        } ${userName?.surname}`;
         return name.toLowerCase().includes(searchValue.toLowerCase());
       });
       setFilteredData(filtered);
@@ -48,36 +65,53 @@ const useSearchData = (initialData) => {
 };
 
 const EmptyContent = () => {
-  return <View style={{ flex: 1, alignItems: 'center', alignContent: 'center' }}>
-    <Text>No Tallies Found with the status.</Text>
-  </View>
-}
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        alignContent: "center",
+      }}
+    >
+      <Text>No Tallies Found with the status.</Text>
+    </View>
+  );
+};
 
 const TallyInvite = (props) => {
-  const { fetching, tallies: data, imageFetchTrigger } = useSelector(state => state.workingTallies);
-  const { searchValue, setSearchValue, filteredData } = useSearchData(data);
+  const { fetching, tallies: data, imageFetchTrigger } = useSelector(
+    (state) => state.workingTallies
+  );
+
+  const { searchValue, setSearchValue, filteredData } = useSearchData(
+    data
+  );
   const { wm, ws, tallyNegotiation } = useSocket();
   const [accepting, setAccepting] = useState(false);
   const [offering, setOffering] = useState(false);
-  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
+  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(
+    false
+  );
 
   /*
-    * fromOffer: used to navigate after offering tally from tally preview 
-    */
-  const { fromOffer } = props.route?.params ?? {}; 
+   * fromOffer: used to navigate after offering tally from tally preview
+   */
+  const { fromOffer } = props.route?.params ?? {};
 
   const { triggerInviteFetch } = useInvite();
-  const { filter } = useSelector(state => state.profile);
+  const { filter } = useSelector((state) => state.profile);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [showTemplateSuccess, setShowTemplateSuccess] = useState(false)
-  const [showAcceptSuccess, setShowAcceptSuccess] = useState(false)
+  const [showTemplateSuccess, setShowTemplateSuccess] = useState(
+    false
+  );
+  const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
   const [showOfferSuccess, setShowOfferSuccess] = useState({
     show: false,
-    offerTo: '',
+    offerTo: "",
     tally_ent: null,
     tally_seq: null,
-  })
+  });
   const [tallyItem, setTallyItem] = useState({});
   const [contract, setContract] = useState();
   const dispatch = useDispatch();
@@ -88,7 +122,9 @@ const TallyInvite = (props) => {
 
   useHoldTermsText(wm);
   const { messageText } = useMessageText();
-  const draftLang = messageText?.terms_lang?.request?.values?.find(item => item.value === 'draft');
+  const draftLang = messageText?.terms_lang?.request?.values?.find(
+    (item) => item.value === "draft"
+  );
 
   useEffect(() => {
     if (ws) {
@@ -98,149 +134,167 @@ const TallyInvite = (props) => {
 
   useEffect(() => {
     fetchContracts(wm, {
-      fields: ['name', 'language', 'host', 'rid'],
+      fields: ["name", "language", "host", "rid"],
       where: {
         top: true,
-        name: 'Tally_Contract',
+        name: "Tally_Contract",
       },
-    }).then((data) => {
-      if(data?.[0]) {
-        setContract(data[0])
-      }
-    }).catch(err => {
-      console.log('Error fetching contract', err.message)
     })
-  }, [wm])
+      .then((data) => {
+        if (data?.[0]) {
+          setContract(data[0]);
+        }
+      })
+      .catch((err) => {
+        console.log("Error fetching contract", err.message);
+      });
+  }, [wm]);
 
   useEffect(() => {
-    if(wm) {
-      dispatch(fetchImagesByDigest({ wm, status: 'working' }))
+    if (wm) {
+      dispatch(fetchImagesByDigest({ wm, status: "working" }));
     }
-  }, [wm, imageFetchTrigger])
+  }, [wm, imageFetchTrigger]);
 
   useEffect(() => {
-    if(fromOffer) {
+    if (fromOffer) {
       setShowOfferSuccess({
         show: fromOffer.show ?? false,
-        offerTo: fromOffer.offerTo ?? '',
+        offerTo: fromOffer.offerTo ?? "",
         tally_ent: fromOffer.tally_ent ?? null,
         tally_seq: fromOffer.tally_seq ?? null,
-      })
+      });
     }
-  }, [fromOffer])
+  }, [fromOffer]);
 
   const getFilterResult = (filterBy, separatedBy) => {
     const values = Object.values(filter);
     const selectedValues = values.filter((item) => item.selected);
-    const entry = selectedValues.length === 0
-      ? values.map((item) => item?.[filterBy]).join(separatedBy)
-      : selectedValues.map((item) => item?.[filterBy]).join(separatedBy);
+    const entry =
+      selectedValues.length === 0
+        ? values.map((item) => item?.[filterBy]).join(separatedBy)
+        : selectedValues
+            .map((item) => item?.[filterBy])
+            .join(separatedBy);
     return entry;
-  }
+  };
 
   //Create a new template
   const newTemplate = (item) => {
-    const rid = contract?.rid ?? '';
+    const rid = contract?.rid ?? "";
 
     const payload = {
       contract: { source: rid },
-      comment: item.comment ?? 'Test: ' + new Date(),
+      comment: item.comment ?? "Test: " + new Date(),
       tally_type: item.tally_type,
       hold_terms: {
         call: 30,
-        limit: item.tally_type === 'foil' ? item.limit : null
+        limit: item.tally_type === "foil" ? item.limit : null,
       },
       part_terms: {
         call: 30,
-        limit: item.tally_type === 'stock' ? item.limit : null
+        limit: item.tally_type === "stock" ? item.limit : null,
       },
-    }
-    createTemplate(wm, payload).then((data) => {
-      setShowTemplateSuccess(true);
-      getTemplates()
-    }).catch(err => {
-      Toast.show({
-        type: 'error',
-        text1: err?.message ?? 'Error creating new template',
+    };
+    createTemplate(wm, payload)
+      .then((data) => {
+        setShowTemplateSuccess(true);
+        getTemplates();
+      })
+      .catch((err) => {
+        Toast.show({
+          type: "error",
+          text1: err?.message ?? "Error creating new template",
+        });
       });
-    })
-  }
+  };
 
   const getTemplates = () => {
-    const entry = getFilterResult('status', ' ');
-    dispatch(fetchTemplates({ wm, entry }))
-  }
+    const entry = getFilterResult("status", " ");
+    dispatch(fetchTemplates({ wm, entry }));
+  };
 
   const onNeogitationModalClose = () => {
     setNegotiationData({
       showModal: false,
       data: undefined,
-    })
-  }
+    });
+  };
 
   const showGenerateKey = () => {
-    setShowGenerateKeyDialog(true)
-  }
+    setShowGenerateKeyDialog(true);
+  };
 
   const resetNegotiationData = () => {
     setNegotiationData({
       showModal: false,
       data: undefined,
-    })
-  }
+    });
+  };
 
   /**
-    * @param {object} args
-    * @param {number} args.tally_ent
-    * @param {number} args.tally_seq
-    * @param {number} args.tally_uuid
-    */
-  const onOffer = async ({ tally_uuid, tally_ent, tally_seq, name, json }) => {
+   * @param {object} args
+   * @param {number} args.tally_ent
+   * @param {number} args.tally_seq
+   * @param {number} args.tally_uuid
+   */
+  const onOffer = async ({
+    tally_uuid,
+    tally_ent,
+    tally_seq,
+    name,
+    json,
+  }) => {
     setOffering(true);
-    createSignature(JSON.stringify(json)).then(signature => {
+    const _json = stringify(json);
+    createSignature(_json).then(signature => {
       return offerTally(wm, {
         tally_uuid,
         tally_ent,
         tally_seq,
         signature,
       })
-    }).then((result) => {
-      setShowOfferSuccess({
-        show: true,
-        offerTo: name,
-        tally_ent,
-        tally_seq,
+      .then((result) => {
+        setShowOfferSuccess({
+          show: true,
+          offerTo: name,
+          tally_ent,
+          tally_seq,
+        });
+        resetNegotiationData();
+      })
+      .catch((err) => {
+        const { isKeyAvailable, message } = err;
+        if (isKeyAvailable === false) {
+          Alert.alert(
+            "Create Keys",
+            "Seems like there is no key to create signature please continue to create one and accept tally.",
+            [
+              { text: "Cancel" },
+              { text: "Continue", onPress: showGenerateKey },
+            ]
+          );
+        } else {
+          Alert.alert("Error", message || err);
+        }
+      })
+      .finally(() => {
+        setOffering(false);
       });
-      resetNegotiationData();
-    }).catch(err => {
-      const { isKeyAvailable, message } = err;
-      if (isKeyAvailable === false) {
-        Alert.alert(
-          "Create Keys",
-          "Seems like there is no key to create signature please continue to create one and accept tally.",
-          [
-            { text: "Cancel" },
-            { text: "Continue", onPress: showGenerateKey }
-          ]
-        );
-      } else {
-        Alert.alert("Error", message || err);
-      }
-    }).finally(() => {
-      setOffering(false)
     })
-  }
+  };
 
   /**
-    * @param {object} args
-    * @param {number} args.tally_ent
-    * @param {number} args.tally_seq
-    * @param {string} args.signature
-    * @param {string} args.json
-    */
+   * @param {object} args
+   * @param {number} args.tally_ent
+   * @param {number} args.tally_seq
+   * @param {string} args.signature
+   * @param {string} args.json
+   */
   const onAccept = async ({ tally_ent, tally_seq, json }) => {
     setAccepting(true);
-    createSignature(JSON.stringify(json)).then(signature => {
+    const _json = stringify(json);
+    createSignature(_json).then(signature => {
       return acceptTally(
         wm, { tally_ent, tally_seq, signature },
       );
@@ -269,86 +323,89 @@ const TallyInvite = (props) => {
   const renderItem = ({ item, index }) => {
     return (
       <View style={styles.itemView}>
-      <TemplateItem
-        testID={`tally-${index}`}
-        template={item}
-        navigation={props.navigation}
-        onItemSelected={item => {
-          const state = item?.state;
-          const canShare = state === 'draft';
-          const canOffer = state === 'P.draft';
-          const canAccept = state === 'P.offer';
-          const first = item.part_cert?.name?.first;
-          const middle = item.part_cert?.name?.middle;
-          const surname = item.part_cert?.name?.surname;
-          const name = item.part_cert?.type === 'o'
-              ? `${item.part_cert?.name}`
-              : `${first}${middle ? ' ' + middle: '' }${surname ? ' ' + surname : ''}`
-          const limit = item.part_terms?.limit ?? 0;
-          const holdDigest = item.hold_cert?.file?.[0]?.digest;
-          const partDigest = item.part_cert?.file?.[0]?.digest;
-          const tally_uuid = item?.tally_uuid;
+        <TemplateItem
+          testID={`tally-${index}`}
+          template={item}
+          navigation={props.navigation}
+          onItemSelected={(item) => {
+            const state = item?.state;
+            const canShare = state === "draft";
+            const canOffer = state === "P.draft";
+            const canAccept = state === "P.offer";
+            const first = item.part_cert?.name?.first;
+            const middle = item.part_cert?.name?.middle;
+            const surname = item.part_cert?.name?.surname;
+            const name =
+              item.part_cert?.type === "o"
+                ? `${item.part_cert?.name}`
+                : `${first}${middle ? " " + middle : ""}${
+                    surname ? " " + surname : ""
+                  }`;
+            const limit = item.part_terms?.limit ?? 0;
+            const holdDigest = item.hold_cert?.file?.[0]?.digest;
+            const partDigest = item.part_cert?.file?.[0]?.digest;
+            const tally_uuid = item?.tally_uuid;
 
-          if(canOffer || canAccept) {
-            setNegotiationData({
-              showModal: true,
-              data: {
-                name,
-                limit,
-                canShare,
-                canOffer,
-                canAccept,
-                partDigest,
-                holdDigest,
-                tally_uuid,
-                json: item.json,
-                tally_seq: item.id,
-                tallyType: item.tally_type,
-                tally_ent: item.tally_ent,
-              }
+            if (canOffer || canAccept) {
+              setNegotiationData({
+                showModal: true,
+                data: {
+                  name,
+                  limit,
+                  canShare,
+                  canOffer,
+                  canAccept,
+                  partDigest,
+                  holdDigest,
+                  tally_uuid,
+                  json: item.json,
+                  tally_seq: item.id,
+                  tallyType: item.tally_type,
+                  tally_ent: item.tally_ent,
+                },
+              });
+              return;
+            }
+
+            props.navigation.navigate("TallyPreview", {
+              tally_seq: item.id,
+              tally_ent: item.tally_ent,
             });
-            return;
-          }
-
-          props.navigation.navigate('TallyPreview', {
-            tally_seq: item.id,
-            tally_ent: item.tally_ent,
-          });
-        }}
-        draftLang={draftLang?.title ?? "Draft"}
-      />
+          }}
+          draftLang={draftLang?.title ?? "Draft"}
+        />
       </View>
-    )
-  }
+    );
+  };
 
   const onFilter = () => {
     props.navigation.navigate("FilterScreen");
-  }
+  };
 
   const onReview = (tally_seq, tally_ent) => {
-    props.navigation.navigate('TallyPreview', {
+    props.navigation.navigate("TallyPreview", {
       tally_seq,
       tally_ent,
     });
 
     resetNegotiationData();
-  }
+  };
 
   const onTallyOpenDone = () => {
-    props.navigation.navigate('Home');
-  }
+    props.navigation.navigate("Home");
+  };
 
   const onDismissOfferSuccess = () => {
     props.navigation.setParams({
       fromOffer: null,
-    })
+    });
     setShowOfferSuccess({
       show: false,
-      offerTo: '',
+      offerTo: "",
       tally_ent: null,
       tally_seq: null,
-    })
-  }
+    });
+  };
 
   const onDoneOfferSuccess = () => {
     const tally_ent = showOfferSuccess?.tally_ent;
@@ -356,30 +413,78 @@ const TallyInvite = (props) => {
 
     onDismissOfferSuccess();
 
-    if(tally_ent && tally_seq) {
-      props.navigation.navigate('TallyPreview', {
+    if (tally_ent && tally_seq) {
+      props.navigation.navigate("TallyPreview", {
         tally_seq,
         tally_ent,
       });
     }
-  }
+  };
+
+  const onRefuse = (item) => {
+    refuseTally(wm, item)
+      .then(() => {
+        Toast.show({
+          type: "success",
+          text1: "Tally refused.",
+        });
+        props.navigation.goBack();
+      })
+      .catch((err) => {
+        Toast.show({
+          type: "error",
+          text1: err.message,
+        });
+      });
+  };
+
+  const deleteDraftTallies = (item) => {
+    const spec = {
+      view: "mychips.tallies_v_me",
+      where: {
+        tally_ent: item.tally_ent,
+        tally_seq: item.tally_seq,
+      },
+    };
+
+    return request(wm, "delete_tally" + random(), "delete", spec)
+      .then((res) => {
+        Toast.show({
+          type: "success",
+          text1: "Tally deleted.",
+        });
+        getTemplates();
+      })
+      .catch((err) =>
+        Toast.show({
+          type: "error",
+          text1: err?.message ?? "Error deleting the tally",
+        })
+      );
+  };
+
+  const onDeleteTally = (item) => {
+    if (item.status === "draft") {
+      return deleteDraftTallies(item);
+    }
+
+    return onRefuse(item);
+  };
 
   const renderRightAction = (item) => {
     return (
       <View style={styles.row}>
         <TouchableHighlight
           activeOpacity={0.6}
-          onPress={() => {}}
+          onPress={() => onDeleteTally(item)}
           underlayColor={colors.red}
           style={[
             styles.rightActions,
             { backgroundColor: colors.red },
-          ]}>
-            <Text style={{color:colors.white}}>void</Text>
-
+          ]}
+        >
+          <Text style={{ color: colors.white }}>void</Text>
         </TouchableHighlight>
-
-      
       </View>
     );
   };
@@ -389,11 +494,20 @@ const TallyInvite = (props) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.h1}>Working Tallies</Text>
-          <View style={[styles.row, { marginTop: 22, justifyContent: 'space-between' }]}>
+          <View
+            style={[
+              styles.row,
+              { marginTop: 22, justifyContent: "space-between" },
+            ]}
+          >
+            <Text style={[styles.filterText, { fontSize: 16 }]}>
+              Drafts
+            </Text>
 
-            <Text style={[styles.filterText,{fontSize:16}]}>Drafts</Text>
-
-            <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
+            <TouchableOpacity
+              style={styles.filterContainer}
+              onPress={onFilter}
+            >
               <FilterSecondIcon />
               <Text style={styles.filterText}>Filters</Text>
             </TouchableOpacity>
@@ -407,7 +521,9 @@ const TallyInvite = (props) => {
         </View>
 
         <SwipeableFlatList
-          ListHeaderComponent={<View style={{ height: Header_Height, marginTop: 8 }} />}
+          ListHeaderComponent={
+            <View style={{ height: Header_Height, marginTop: 8 }} />
+          }
           data={filteredData}
           renderItem={renderItem}
           contentContainerStyle={styles.contentContainerStyle}
@@ -415,16 +531,20 @@ const TallyInvite = (props) => {
           maxSwipeDistance={90}
           shouldBounceOnMount={true}
           showsVerticalScrollIndicator={false}
-          renderQuickActions={({ item }) =>
-          renderRightAction(item)
-        }
+          renderQuickActions={({ item }) => renderRightAction(item)}
           onRefresh={() => getTemplates()}
-          keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
-          ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+          keyExtractor={(item, index) =>
+            `${item?.tally_uuid}${index}`
+          }
+          ItemSeparatorComponent={() => (
+            <View style={{ height: 16 }} />
+          )}
           ListEmptyComponent={fetching ? <></> : <EmptyContent />}
           progressViewOffset={150}
         />
-        <FloatingActionButton onPress={() => setShowCommentModal(true)} />
+        <FloatingActionButton
+          onPress={() => setShowCommentModal(true)}
+        />
       </View>
 
       <BottomSheetModal
@@ -433,7 +553,7 @@ const TallyInvite = (props) => {
       >
         <CommentContent
           onNext={(item) => {
-            setTallyItem({ ...tallyItem, ...item })
+            setTallyItem({ ...tallyItem, ...item });
             setShowCommentModal(false);
             setShowLimitModal(true);
           }}
@@ -516,13 +636,15 @@ const TallyInvite = (props) => {
           Alert.alert("Error", err);
         }}
         onKeySaved={() => {
-          Alert.alert("Success", "Key is generated successfully now you can accept tally.");
+          Alert.alert(
+            "Success",
+            "Key is generated successfully now you can accept tally."
+          );
         }}
       />
-
     </>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -532,72 +654,72 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     color: colors.gray300,
-    fontFamily: 'inter'
+    fontFamily: "inter",
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   contentContainerStyle: {
-    marginTop:20,
-    backgroundColor:colors.white
+    marginTop: 20,
+    backgroundColor: colors.white,
   },
   filterContainer: {
     borderWidth: 1,
-    height:30,
+    height: 30,
     borderColor: colors.white100,
     backgroundColor: colors.white200,
-    flexDirection: 'row',
+    flexDirection: "row",
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 3,
-    justifyContent: 'center',
-    alignItems: 'center'
+    justifyContent: "center",
+    alignItems: "center",
   },
   filterText: {
     fontSize: 12,
-    color: '#636363',
+    color: "#636363",
     marginStart: 4,
-    fontFamily: 'inter',
+    fontFamily: "inter",
   },
   header: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     top: 0,
     height: Header_Height,
     backgroundColor: colors.white,
     zIndex: 1000,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 16,
   },
   h1: {
     fontSize: 18,
-    fontFamily: 'inter',
-    fontWeight: '500',
-    color: '#636363',
-    alignSelf: 'center',
+    fontFamily: "inter",
+    fontWeight: "500",
+    color: "#636363",
+    alignSelf: "center",
   },
   rightActions: {
     width: 80,
-    borderRadius:2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   row: {
-    height:60,
-    marginRight:18,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    height: 60,
+    marginRight: 18,
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
-  itemView:{
-    height:70,
-    marginHorizontal:18,
+  itemView: {
+    height: 70,
+    marginHorizontal: 18,
     backgroundColor: colors.white,
-    justifyContent: 'center',
-    backgroundColor:colors.white
-  }
-})
+    justifyContent: "center",
+    backgroundColor: colors.white,
+  },
+});
 
 export default TallyInvite;
