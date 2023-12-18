@@ -422,7 +422,7 @@ view mychips.tallies_v_me {mychips.tallies_v base.user_id(text)} {select
 
     eval(rule_delete mychips.tallies_v_me mychips.tallies $tallies::tallies_pk {old.status = 'draft'});
 } -grant {
-    {tally	{s} {s i u} {d}}
+    {tally	{s} {s i u d}}
 } -native {
   {mychips.tallies_v json}
 }

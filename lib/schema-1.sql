@@ -2828,23 +2828,25 @@ lift_uuid	uuid
   , lift_seq	int	      , primary key (lift_uuid, lift_seq)
 
 
+  , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
   , request	text		constraint "!mychips.lifts:IVR" check(request isnull or request in ('init','seek','call','relay','found','term','check','good','void'))
   , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','init','seek','call','found','pend','good','void'))
   , tallies	uuid[]		not null
   , signs	int[]		not null default '{}'::int[] check (array_length(tallies,1) = array_length(signs,1))
-  , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
-  , circuit	boolean		not null default true
 
 
   , units	bigint		not null
-  , lift_date	timestamptz	not null default current_timestamp
+  , lift_date	timestamptz(3)	not null default current_timestamp
   , life	interval	not null default '2 minutes'
   , find	jsonb
   , origin	jsonb
   , referee	jsonb
 
-  , digest	bytea		
+
+  , circuit	boolean		not null default true
+  , digest	bytea
   , signature	text
+
     
   , crt_date    timestamptz	not null default current_timestamp
   , mod_date    timestamptz	not null default current_timestamp
@@ -4487,10 +4489,9 @@ create view mychips.tallies_v_me as select
         where old.status = 'draft'
         do instead delete from mychips.tallies where tally_ent = old.tally_ent and tally_seq = old.tally_seq;
 grant select on table mychips.tallies_v_me to tally_1;
-grant select on table mychips.tallies_v_me to tally_2;
 grant insert on table mychips.tallies_v_me to tally_2;
 grant update on table mychips.tallies_v_me to tally_2;
-grant delete on table mychips.tallies_v_me to tally_3;
+grant delete on table mychips.tallies_v_me to tally_2;
 create view mychips.tallies_v_net as with
   t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
     from mychips.tallies_v where liftable and part_ent notnull

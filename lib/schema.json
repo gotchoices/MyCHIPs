@@ -1,5 +1,5 @@
 {
- "hash": "YqCTnZNl6Hqjfa7YV3aeeeCVfA5hbhwqLFpt6JPa/Pc=",
+ "hash": "+mbgpm6Nqhfr/Lo/H+ajDuqqX5C3Cj3XvtSWdRDS2MI=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -4196,7 +4196,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJy1U02P1DAMPae/wuylrTRaCY6D+AFcAXFBaJSmbidsmnQdZ0VB/Hfy0c6HGBYJxBzG6nP8/PLsKELJCCw7gzAt6qhnf2/0wB6aKsVDCLoX6a8C2EGGPD4KbVlA/u1gJj1JWuABF2hORefDbVXlYsLHgJ4F41cWQjnrmWQkgrsXV633bz++uwN1RPXQrDWgvQ3GgCM4IRaaWlvN9a72iA8xKGlMDIRGLjEOLtg+RkaaUjYRxjg6l9Anp/u6bbMyz5KDX4VZx5Cb9TjIYBjqnuTANTyr+P2muHAVeaVwd1vmJm/GHG7I4nhQo8/2f/p8VlY069H6NIfLzFnz9x/1fp+zRRc0kkguB4N25GOzUu9etvAGrjKZN+LteeC8zPhbc6Lbf7Dmw2bNiexinBdYGWj0wNFYxrgZoTSpoFl0zhmU9oYMpoDrmoVothedHtOOXnuWm/Vx4wXrKS6RnGb+9iuZCkRoo6zt0FaMyW+kJ2luGPEKJm0Do6/z8UHbXnzxznb501ESdAEQDkiIK5KhXo/pfXQLoxTiNOW4T1T8r9KDK45QuUgC/uIuk+v/pTx175by/q2c8MZAPHqvnT0Ej7Te1Sr00EmP95ERmpRJxS04C2HOcpT0SvZ40tgt4r/wV+3rnwUAq2M=",
+   "create": "eJy1lEuP0zAQx8/upxj2kkSKVgJuRXwArruIC0KV40xSU8fOjscrAuK740fThygPCZFDRpnHf35jT6sIJSOw7AzCtKi9nv290QN7qDfJ7kLQvUivDUAL2eXxSWjLAvLTwkx6krTAAReoT0Xn5GazORfzMqNg/MJCWMdggzHQ4yCDYagITQXKWc8kYwe4e3HFtH334f0dqD2qQ30SA+2ziCO48FmoK22rtnI0xncSbppMQfgU0POR4bfNHtZmx5qLVidPaaQ5NvGIh2iUNKa0lEu0gwu2j5aRphRNgtGOziXvs9P9SuZZcvC/PJye5MB/OJ7HlbhoFbxS2N7GXPFmzOYGFsdEjT4vwcdPZ7LCrEfr0zZcRs7M375X222OFi6oJZFcdgbtyPv6KN2+bOAtXEWybvSvuxMiuxedHtPiXSPkW+/jGgvWU7wTOc38tX7d/IyjAhHauCJr3lqPaQKkZ2luzPAKJm0Do69y+qBtLz57Z7v86SgxXTgIByTEo6fQK00qaBadcwalvXFSTAFzaq/HtJ3dwihPJxzvksqvJukBFFEqYyfHxeR/O/bk+n8pT927pfwFWDnhjZk8eq+d3QWPdDwWq9BDJz3eR0WoUyQVN+AshDnjKOmV7PHE2C3iv+hvmjc/AMtQq+k=",
    "drop": "eJxLKcovUChJTMpJVchMU0ityCwuKVbIrUzOyCwo1svJTCsptgYA7AoNNQ=="
   },
   {
@@ -6027,7 +6027,7 @@
     "view:mychips.tallies_v_me|tally|2|select",
     "view:mychips.tallies_v_me|tally|2|insert",
     "view:mychips.tallies_v_me|tally|2|update",
-    "view:mychips.tallies_v_me|tally|3|delete"
+    "view:mychips.tallies_v_me|tally|2|delete"
    ],
    "col_data": [
     "nat,json,mychips.tallies_v,json"
@@ -6593,7 +6593,9 @@
    "deps": [
     "base.pop_role(text)",
     "base.priv",
-    "mychips.chits_v_me"
+    "mychips.chits_v_me",
+    "mychips.contracts_v",
+    "mychips.users_v_me"
    ],
    "delta": [],
    "grants": [],
