@@ -189,7 +189,7 @@ const RequestDetail = (props) => {
               <TextInput
                 style={styles.amount}
                 placeholder="0.00"
-                keyboardType="number-pad"
+                keyboardType="numeric"
                 value={usd}
                 onChangeText={(text) => {
                   setUSD(text);
@@ -214,7 +214,7 @@ const RequestDetail = (props) => {
               <TextInput
                 style={styles.amount}
                 placeholder="0.00"
-                keyboardType="number-pad"
+                keyboardType="numeric"
                 value={chit}
                 onChangeText={(text) => {
                   setChit(text);
