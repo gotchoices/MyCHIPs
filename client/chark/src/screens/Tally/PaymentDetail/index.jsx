@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   ScrollView,
@@ -182,7 +182,7 @@ const PaymentDetail = (props) => {
               <TextInput
                 style={styles.amount}
                 placeholder="0.00"
-                keyboardType="number-pad"
+                keyboardType="numeric"
                 value={usd}
                 onChangeText={(text) => {
                   setUSD(text);
@@ -207,7 +207,7 @@ const PaymentDetail = (props) => {
               <TextInput
                 style={styles.amount}
                 placeholder="0.00"
-                keyboardType="number-pad"
+                keyboardType="numeric"
                 value={chit}
                 onChangeText={(text) => {
                   setChit(text);

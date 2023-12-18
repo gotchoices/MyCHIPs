@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet,FlatList, TouchableOpacity, Alert, TouchableHighlight } from 'react-native';
-import Toast from 'react-native-toast-message';
-import SwipeableFlatList from 'react-native-swipeable-list';
-import { useSelector, useDispatch } from 'react-redux';
-import stringify from 'json-stable-stringify';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  TouchableHighlight,
+} from "react-native";
+import Toast from "react-native-toast-message";
+import SwipeableFlatList from "react-native-swipeable-list";
+import { useSelector, useDispatch } from "react-redux";
+import stringify from "json-stable-stringify";
 
 import { colors } from "../../config/constants";
 import useSocket from "../../hooks/useSocket";
@@ -39,6 +47,7 @@ import {
 } from "../../utils/message-signature";
 import { request } from "../../services/request";
 import { random } from "../../utils/common";
+import { GenerateKeysAlertModal } from "../../components/GenerateKeyAlertModal";
 
 const Header_Height = 160;
 
@@ -105,6 +114,7 @@ const TallyInvite = (props) => {
   const [showTemplateSuccess, setShowTemplateSuccess] = useState(
     false
   );
+  const [showKeyModal, setShowKeyModal] = useState(false);
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
   const [showOfferSuccess, setShowOfferSuccess] = useState({
     show: false,
@@ -221,10 +231,6 @@ const TallyInvite = (props) => {
     });
   };
 
-  const showGenerateKey = () => {
-    setShowGenerateKeyDialog(true);
-  };
-
   const resetNegotiationData = () => {
     setNegotiationData({
       showModal: false,
@@ -247,41 +253,34 @@ const TallyInvite = (props) => {
   }) => {
     setOffering(true);
     const _json = stringify(json);
-    createSignature(_json).then(signature => {
+    createSignature(_json).then((signature) => {
       return offerTally(wm, {
         tally_uuid,
         tally_ent,
         tally_seq,
         signature,
       })
-      .then((result) => {
-        setShowOfferSuccess({
-          show: true,
-          offerTo: name,
-          tally_ent,
-          tally_seq,
+        .then((result) => {
+          setShowOfferSuccess({
+            show: true,
+            offerTo: name,
+            tally_ent,
+            tally_seq,
+          });
+          resetNegotiationData();
+        })
+        .catch((err) => {
+          const { isKeyAvailable, message } = err;
+          if (isKeyAvailable === false) {
+            return setShowKeyModal(true);
+          } else {
+            Alert.alert("Error", message || err);
+          }
+        })
+        .finally(() => {
+          setOffering(false);
         });
-        resetNegotiationData();
-      })
-      .catch((err) => {
-        const { isKeyAvailable, message } = err;
-        if (isKeyAvailable === false) {
-          Alert.alert(
-            "Create Keys",
-            "Seems like there is no key to create signature please continue to create one and accept tally.",
-            [
-              { text: "Cancel" },
-              { text: "Continue", onPress: showGenerateKey },
-            ]
-          );
-        } else {
-          Alert.alert("Error", message || err);
-        }
-      })
-      .finally(() => {
-        setOffering(false);
-      });
-    })
+    });
   };
 
   /**
@@ -294,31 +293,26 @@ const TallyInvite = (props) => {
   const onAccept = async ({ tally_ent, tally_seq, json }) => {
     setAccepting(true);
     const _json = stringify(json);
-    createSignature(_json).then(signature => {
-      return acceptTally(
-        wm, { tally_ent, tally_seq, signature },
-      );
-    }).then((result) => {
-      setShowAcceptSuccess(true);
-      resetNegotiationData();
-    }).catch(err => {
-      const { isKeyAvailable, message } = err;
-      if (isKeyAvailable === false) {
-        Alert.alert(
-          "Create Keys",
-          "Seems like there is no key to create signature please continue to create one and accept tally.",
-          [
-            { text: "Cancel" },
-            { text: "Continue", onPress: showGenerateKey }
-          ]
-        );
-      } else {
-        Alert.alert("Error", message || err);
-      }
-    }).finally(() => {
-      setAccepting(false);
-    });
-  }
+    createSignature(_json)
+      .then((signature) => {
+        return acceptTally(wm, { tally_ent, tally_seq, signature });
+      })
+      .then((result) => {
+        setShowAcceptSuccess(true);
+        resetNegotiationData();
+      })
+      .catch((err) => {
+        const { isKeyAvailable, message } = err;
+        if (isKeyAvailable === false) {
+          return setShowKeyModal(true);
+        } else {
+          Alert.alert("Error", message || err);
+        }
+      })
+      .finally(() => {
+        setAccepting(false);
+      });
+  };
 
   const renderItem = ({ item, index }) => {
     return (
@@ -613,6 +607,7 @@ const TallyInvite = (props) => {
         />
       </BottomSheetModal>
 
+
       <BottomSheetModal
         isVisible={negotiationData.showModal}
         onClose={onNeogitationModalClose}
@@ -628,6 +623,22 @@ const TallyInvite = (props) => {
           offering={offering}
         />
       </BottomSheetModal>
+
+      <GenerateKeysAlertModal
+        visible={showKeyModal}
+        onDismiss={() => setShowKeyModal(false)}
+        onError={(err) => {
+          Alert.alert("Error", err);
+        }}
+        onKeySaved={() => {
+          setShowKeyModal(false);
+          Alert.alert(
+            "Success",
+            "Key is generated successfully now you can accept tally."
+          );
+        }}
+      />
+
 
       <GenerateKeysDialog
         visible={showGenerateKeyDialog}
