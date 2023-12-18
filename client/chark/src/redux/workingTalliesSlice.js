@@ -61,6 +61,7 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
 
       return {
         tally_uuid: el.tally_uuid,
+        tally_seq: el.tally_seq,
         tally_ent: el.tally_ent,
         id: el.tally_seq,
         contract: el.contract,
