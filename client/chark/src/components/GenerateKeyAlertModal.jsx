@@ -107,7 +107,7 @@ export const GenerateKeysAlertModal = ({
               <View style={styles.iconWrapper}>
                 <WarningIcon size={50} />
               </View>
-              <Text style={[styles.font,{fontSize:17, fontWeight:'700', paddingBottom:20}]}>
+              <Text style={[styles.font,{fontSize:17, fontWeight:'700',textAlign:'center', paddingBottom:20}]}>
                 Generating a new key is a destructive action.
               </Text>
 
@@ -190,5 +190,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  font: { fontWeight: "500",textAlign:'center',paddingBottom:10 },
+  font: { fontWeight: "500",paddingBottom:10 },
 });
