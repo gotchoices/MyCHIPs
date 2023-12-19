@@ -107,26 +107,33 @@ export const GenerateKeysAlertModal = ({
               <View style={styles.iconWrapper}>
                 <WarningIcon size={50} />
               </View>
-              <Text style={styles.font}>
-                Generating a new key is a destructive action. When you
-                open a tally it is signed with a key and needs that
-                key to operate. It’s recommended to export and save
-                your keys before you generate new ones.
+              <Text style={[styles.font,{fontSize:17, fontWeight:'700', paddingBottom:20}]}>
+                Generating a new key is a destructive action.
+              </Text>
+
+                <Text style={styles.font}>
+                 When you open a tally it is signed with a key and needs that key to operate. 
+                </Text>
+                
+                <Text style={styles.font}>
+                It’s recommended to export and save your keys before you generate new ones.
               </Text>
 
               <View style={styles.buttonWrapper}>
-                <Button
-                  title={"Cancel"}
-                  onPress={onDismiss}
+              <Button
+                  title={"I understand"}
+                  onPress={generateKeys}
                   textColor={colors.blue2}
                   style={styles.secondaryButton}
                 />
 
                 <Button
-                  title={"I understand"}
-                  onPress={generateKeys}
+                  title={"Cancel"}
+                  onPress={onDismiss}
                   style={styles.button}
                 />
+
+   
               </View>
             </>
           )}
@@ -183,5 +190,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  font: { fontWeight: "500", fontSize: 14 },
+  font: { fontWeight: "500",textAlign:'center',paddingBottom:10 },
 });
