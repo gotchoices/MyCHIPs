@@ -169,12 +169,14 @@ const CustomCertificate = (props) => {
 
       setProcessingTicket(true);
       try {
-        await processTicket(wm, ticketPayload);
+        const test = await processTicket(wm, ticketPayload);
+        console.log(test, 'test')
         Toast.show({
           type: 'success',
           text1: 'Tally ticket processed.'
         });
       } catch(err) {
+        console.log(err, 'err')
         Toast.show({
           type: 'error',
           text1: err.message ?? 'Tally ticket process failed.'

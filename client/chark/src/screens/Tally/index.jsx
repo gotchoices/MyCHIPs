@@ -98,11 +98,8 @@ const Tally = (props) => {
   }, [totalNet, conversionRate]);
 
   const onItemPress = ({ tally}) => {
-
     setTally(tally);
-
     setIsVisible(true)
-
   };
 
 
@@ -150,12 +147,12 @@ tally:item
         onRefresh={fetchTallies}
       />
 
-
       <PayModal
         tally={tally}
         visible={isVisible}
         navigation={props.navigation}
         onClose={()=>setIsVisible(false)}
+        conversionRate={conversionRate}
       />
     </View>
   );

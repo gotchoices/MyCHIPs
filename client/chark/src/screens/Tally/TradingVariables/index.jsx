@@ -12,6 +12,18 @@ const TradingVariables = (props) => {
   const windowHeight = Dimensions.get('window').height;
   const [trade, setTrade] = useState('');
 
+  /*
+  {
+    reference: {
+      target: 0,
+      bound: 2,
+      reward: 0,
+      clutch: 0,
+    }
+  units: null
+  }
+    */
+
   useEffect(() => {
     fetchTradingVariables(wm, { tally_seq }).then((data) => {
       setTrade(data);

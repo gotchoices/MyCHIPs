@@ -4,10 +4,10 @@ import {
   ScrollView,
   View,
   TextInput,
-  ActivityIndicator,
   Text,
   Alert,
   TouchableOpacity,
+  Keyboard,
 } from "react-native";
 import { useSelector } from "react-redux";
 
@@ -28,6 +28,7 @@ import SuccessModal from "../Success";
 
 const RequestDetail = (props) => {
   const { tally_uuid, chit_seq, tally_type, editDetails } = props.route?.params;
+  console.log(editDetails, 'edit')
   const { wm } = useSocket();
   const { preferredCurrency } = useSelector((state) => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
@@ -35,9 +36,7 @@ const RequestDetail = (props) => {
   const editNetValue = Math.abs?.(editDetails?.net);
 
   const [memo, setMemo] = useState(editDetails?.memo ?? "");
-  const [reference, setReference] = useState(
-    editDetails?.reference ? JSON.parse(editDetails?.reference) : ""
-  );
+  const [reference, setReference] = useState({});
   const [chit, setChit] = useState(
     editNetValue ? editNetValue?.toString() : ""
   );
@@ -106,11 +105,21 @@ const RequestDetail = (props) => {
     const net = round((chit ?? 0) * 1000, 0);
 
     if (net < 0) {
-      Alert.alert("Alert", "Can't input negative chit.");
-      return;
+      return Toast.show({
+        type: 'error',
+        text1: "Can't input negative chit.",
+      });
+    }
+
+    if(net == 0) {
+      return Toast.show({
+        type: 'error',
+        text1: 'Please provide an amount',
+      });
     }
 
     setDisabled(true);
+    Keyboard.dismiss();
     const payload = {
       reference: JSON.stringify(reference),
       memo: memo,
@@ -137,8 +146,6 @@ const RequestDetail = (props) => {
         setDisabled(false);
       });
   };
-
-  const addReference = () => {};
 
   const updateRequest = () => {
     const net = round((chit ?? 0) * 1000, 3);
@@ -179,6 +186,7 @@ const RequestDetail = (props) => {
   return (
     <ScrollView
       style={styles.container}
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}
     >
        <View style={styles.centerWrapper}>
@@ -256,13 +264,15 @@ const RequestDetail = (props) => {
           ref={ref}
           placeholder="Message"
           value={reference}
-          onChangeText={setReference}
+          onChangeText={setMemo}
         />
       </TouchableOpacity>
 
+      {/*}
       <TouchableOpacity onPress={addReference}>
         <Text style={styles.link}>Add Reference</Text>
       </TouchableOpacity>
+      {*/}
 
       <View style={styles.buttonView}>
         <Button
@@ -293,10 +303,12 @@ const RequestDetail = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 50,
+    paddingTop: 50,
+    paddingBottom: 10,
     backgroundColor: colors.white,
   },
   amount: {
+    width: 80,
     paddingLeft: 10,
     fontSize: 26,
     paddingVertical: 20,
@@ -322,14 +334,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   button: {
-    height: 45,
-    width: "100%",
-    borderRadius: 40,
-    marginBottom: 20,
-    borderColor: "blue",
+    borderColor: colors.blue,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "blue",
+    backgroundColor: colors.blue,
   },
   centerWrapper: {
     marginBottom: 30,

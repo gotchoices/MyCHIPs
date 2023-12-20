@@ -218,7 +218,7 @@ const TallyPreview = (props) => {
     });
   };
 
-  const onOffer = () => {
+  const onOffer = async () => {
     if(!tally?.json_core) {
       Alert.alert('Tally cannot be signed');
       return;
@@ -227,6 +227,7 @@ const TallyPreview = (props) => {
     const message = stringify(tally.json_core)
     createSignature(message)
       .then((signature) => {
+        setSig(signature);
         return offerTally(wm, {
           tally_uuid: tally.tally_uuid,
           tally_ent,
@@ -277,7 +278,7 @@ const TallyPreview = (props) => {
     const message = stringify(tally.json_core)
     createSignature(message)
       .then((signature) => {
-        setSig(signature);
+        //setSig(signature);
         return acceptTally(wm, { tally_ent, tally_seq, signature });
       })
       .then((result) => {
