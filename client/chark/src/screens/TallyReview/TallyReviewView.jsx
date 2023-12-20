@@ -1,6 +1,11 @@
 import React from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View, Text } from "react-native";
-import { useSelector } from 'react-redux';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { useSelector } from "react-redux";
 
 import Avatar from "../../components/Avatar";
 import { colors } from "../../config/constants";
@@ -15,49 +20,105 @@ import {
 } from "../../components/SvgAssets/SvgAssets";
 
 const TallyReviewView = (props) => {
-  const { imagesByDigest } = useSelector(state => state.avatar);
+  const { imagesByDigest } = useSelector((state) => state.avatar);
   const partDigest = props.partCert?.file?.[0]?.digest;
   const holdDigest = props.holdCert?.file?.[0]?.digest;
   const tallyType = props.tallyType;
   const partImage = imagesByDigest[partDigest];
   const holdImage = imagesByDigest[holdDigest];
-  const holdLimit = props.holdTerms?.limit
-  const partLimit = props.partTerms?.limit
+  const holdLimit = props.holdTerms?.limit;
+  const partLimit = props.partTerms?.limit;
   const canEdit = props.canEdit ?? true;
 
   const onSwitchClick = () => {
     props.setTallyType((prev) => {
       const switchTally = {
-        'foil': 'stock',
-        'stock': 'foil',
-      }
+        foil: "stock",
+        stock: "foil",
+      };
 
       return switchTally[prev];
-    })
-  }
+    });
+  };
+
+  const getStockText = () => {
+    if (tallyType === "stock") {
+      if (holdImage) {
+        return "Stock";
+      }
+    } else {
+      if (partImage) {
+        return "Stock";
+      }
+    }
+
+    return props.holdCert.chad.cid
+      ? props.holdCert.chad.cid
+      : props.partCert.chad.cid;
+  };
+
+  const getFoilText = () => {
+    if (tallyType === "foil") {
+      if (holdImage) {
+        return "Foil";
+      }
+    } else {
+      if (partImage) {
+        return "Foil";
+      }
+    }
+
+    return props.holdCert.chad.cid
+      ? props.holdCert.chad.cid
+      : props.partCert.chad.cid;
+  };
+
+  const getCID = () => {
+    if (props.holdCert.chad.cid) {
+      return (
+        props.holdCert.chad.cid + ":" + props.holdCert.chad.agent
+      );
+    }
+
+    return props.partCert.chad.cid + ":" + props.holdCert.chad.agent;
+  };
 
   return (
     <View style={styles.main}>
       <View style={styles.rowWrapper}>
         <View style={styles.leftIcon}>
-          <HelpText label="Risk" style={[styles.leftText, styles.leftTopText]} />
+          <HelpText
+            label="Risk"
+            style={[styles.leftText, styles.leftTopText]}
+          />
           <DownArrowIcon />
         </View>
 
         <View style={styles.topCenterWrapper}>
           <HelpText
-            helpText="help"
-            label="Foil"
+            helpText={getCID()}
+            label={getFoilText()}
             style={styles.headerText}
           />
 
-          <View style={styles.circle}>
-            <Avatar style={styles.circle} avatar={tallyType === 'foil' ? holdImage : partImage} />
-          </View>
+          {tallyType === "foil"
+            ? holdImage && (
+                <View style={styles.circle}>
+                  <Avatar style={styles.circle} avatar={holdImage} />
+                </View>
+              )
+            : partImage && (
+                <View style={styles.circle}>
+                  <Avatar style={styles.circle} avatar={partImage} />
+                </View>
+              )}
         </View>
 
         <View style={styles.rightIcon}>
-          <HelpText label="Credit" style={[styles.rightText, styles.rightTopText]} />
+          <HelpText
+            label="Credit"
+            style={[styles.rightText, styles.rightTopText]}
+          />
           <LeftArrowIcon />
         </View>
       </View>
@@ -66,20 +127,32 @@ const TallyReviewView = (props) => {
         <View style={styles.rowWrapper}>
           <TextInput
             editable={canEdit}
-            value={tallyType === 'foil' ? holdLimit : partLimit}
+            value={tallyType === "foil" ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
-            onChangeText={tallyType === 'foil' ? props.onHoldTermsChange('limit') : props.onPartTermsChange('limit')}
+            onChangeText={
+              tallyType === "foil"
+                ? props.onHoldTermsChange("limit")
+                : props.onPartTermsChange("limit")
+            }
           />
 
-          <HelpText helpText="help" label="Limit" style={styles.midText} />
+          <HelpText
+            helpText="help"
+            label="Limit"
+            style={styles.midText}
+          />
 
           <TextInput
             editable={canEdit}
-            value={tallyType === 'stock' ? holdLimit : partLimit}
+            value={tallyType === "stock" ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
-            onChangeText={tallyType === 'stock' ? props.onHoldTermsChange('limit') : props.onPartTermsChange('limit')}
+            onChangeText={
+              tallyType === "stock"
+                ? props.onHoldTermsChange("limit")
+                : props.onPartTermsChange("limit")
+            }
           />
         </View>
       </View>
@@ -87,24 +160,38 @@ const TallyReviewView = (props) => {
       <View style={styles.rowWrapper}>
         <View style={styles.leftIcon}>
           <RightArrowIcon />
-          <HelpText label="Credit" style={[styles.leftText, styles.leftBottomText]} />
+          <HelpText
+            label="Credit"
+            style={[styles.leftText, styles.leftBottomText]}
+          />
         </View>
 
         <View style={styles.bottomCenterWrapper}>
-          <View style={styles.circle}>
-            <Avatar style={styles.circle} avatar={tallyType === 'stock' ? holdImage : partImage} />
-          </View>
+          {tallyType === "stock"
+            ? holdImage && (
+                <View style={styles.circle}>
+                  <Avatar style={styles.circle} avatar={holdImage} />
+                </View>
+              )
+            : partImage && (
+                <View style={styles.circle}>
+                  <Avatar style={styles.circle} avatar={partImage} />
+                </View>
+              )}
 
           <HelpText
-            helpText="help"
-            label="Stock"
+            helpText={getCID()}
+            label={getStockText()}
             style={styles.headerText}
           />
         </View>
 
         <View style={styles.rightIcon}>
           <UpArrowIcon />
-          <HelpText label="Risk" style={[styles.rightText, styles.rightBottomText]} />
+          <HelpText
+            label="Risk"
+            style={[styles.rightText, styles.rightBottomText]}
+          />
         </View>
       </View>
 
@@ -120,8 +207,8 @@ const TallyReviewView = (props) => {
 };
 
 const arrowText = {
-  color: 'black',
-  fontSize:12,
+  color: "black",
+  fontSize: 12,
   fontWeight: "500",
 };
 
@@ -129,7 +216,7 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     //marginTop: 20,
-    paddingTop:20,
+    paddingTop: 20,
     marginHorizontal: 40,
     alignItems: "center",
   },
@@ -200,19 +287,19 @@ const styles = StyleSheet.create({
   },
   leftTopText: {
     marginBottom: -20,
-    width: '50%',
+    width: "50%",
   },
   leftBottomText: {
     marginTop: -20,
-    width: '70%',
+    width: "70%",
   },
   rightTopText: {
     marginBottom: -20,
-    width: '70%',
+    width: "70%",
   },
   rightBottomText: {
     marginTop: -18,
-    width: '50%',
+    width: "50%",
   },
   absoluteView: {
     top: 0,
