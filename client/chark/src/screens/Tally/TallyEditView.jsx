@@ -73,8 +73,8 @@ const TallyEditView = (props) => {
         setTallyType={setTallyType}
         partTerms={partTerms}
         holdTerms={holdTerms}
-        partCert={tally?.part_cert ?? {}}
-        holdCert={tally?.hold_cert ?? {}}
+        partCert={tally.part_cert ?? {}}
+        holdCert={tally.hold_cert ?? {}}
         onHoldTermsChange={onHoldTermsChange}
         onPartTermsChange={onPartTermsChange}
         canEdit={canEdit}
