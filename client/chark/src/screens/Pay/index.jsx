@@ -19,80 +19,26 @@ import { formatRandomString } from "../../utils/format-string";
 import { useSelector } from "react-redux";
 
 const PayModal = (props) => {
-    const {
-        imageFetchTrigger,
-        tallies: tallies,
-        imagesByDigest,
-        fetching,
-      } = useSelector((state) => state.openTallies);
+  const {
+    imagesByDigest,
+  } = useSelector((state) => state.openTallies);
 
-    const { wm } = useSocket();
-    const tallyText = useTallyText(wm);
-
-    const [tally, setTally] = useState();
-    const [target, setTarget] = useState("");
-    const [bound, setBound] = useState("");
-    const [reward, setReward] = useState("");
-    const [clutch, setClutch] = useState("");
-
-    (() => {
-        fetchTally();
-      }, [props.tally?.tally_seq, props.tally?.tally_ent]);
-    
-      const fetchTally = () => {
-        setLoading(true);
-        fetchTallies(wm, {
-          fields: [
-            "bound",
-            "reward",
-            "clutch",
-            "tally_seq",
-            "tally_uuid",
-            "tally_date",
-            "status",
-            "hold_terms",
-            "part_terms",
-            "part_cert",
-            "tally_type",
-            "comment",
-            "contract",
-            "net",
-            'hold_cert',
-          ],
-          where: {
-            tally_ent,
-            tally_seq,
-          },
-        })
-          .then((data) => {
-            if (data?.length) {
-              const _tally = data?.[0];
-    
-              setTally(_tally);
-              setTarget((_tally?.target ?? "").toString());
-              setBound((_tally?.bound ?? "").toString());
-              setReward((_tally?.reward ?? "").toString());
-              setClutch((_tally?.clutch ?? "").toString());
-            }
-          })
-          .catch((e) => {
-            console.log("ERROR===>", e);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      };
-
-
+  const { wm } = useSocket();
+  const tallyText = useTallyText(wm);
+  const partCert = props.tally?.part_cert;
+  const partName = partCert?.type === 'o'
+    ? `${partCert?.name}`
+    : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
+  const description = `${partCert?.chad?.cid}:${formatRandomString(partCert?.chad?.agent)}`
 
   const onViewTally = () => {
 
-      props.onClose()
+    props.onClose()
 
-      props.navigation.navigate('OpenTallyEdit', {
-       tally_seq: props.tally.tally_seq,
-       tally_ent:  props.tally.tally_ent,
-      });
+    props.navigation.navigate('OpenTallyEdit', {
+      tally_seq: props.tally.tally_seq,
+      tally_ent:  props.tally.tally_ent,
+    });
 
   }
 
@@ -119,7 +65,16 @@ const PayModal = (props) => {
       };
 
 
-      const partCert = props.tally?.part_cert;
+  const onViewPendingChits = () => {
+    props.onClose();
+
+    props.navigation.navigate('PendingChits', {
+      partName,
+      description,
+      tally_uuid: props?.tally?.tally_uuid,
+      conversionRate: props.conversionRate,
+    })
+  }
 
   return (
     <Modal visible={props.visible} transparent>
@@ -138,15 +93,17 @@ const PayModal = (props) => {
           <View style={styles.center}>
             <Avatar style={styles.profileImage} avatar={imagesByDigest?.[props.tally?.part_cert?.file?.[0]?.digest]} />
 
-            <Text style={styles.bottomSheetTitle}>{
-          partCert?.type === 'o'
-            ? `${partCert?.name}`
-            : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
-        }</Text>
-        <Text style={[styles.bottomSheetSub, { marginTop: 4 }]}>{partCert?.chad?.cid}:{formatRandomString(partCert?.chad?.agent)}</Text>
+            <Text style={styles.bottomSheetTitle}>{partName}</Text>
+        <Text style={[styles.bottomSheetSub, { marginTop: 4 }]}>{description}</Text>
           </View>
 
           <View style={{ flex: 1 }} />
+          <Button
+            textColor={colors.gray300}
+            title="Pending Chits"
+            onPress={onViewPendingChits}
+            style={styles.pendingChit}
+          />
           <Button
             textColor="blue"
             title="View Tally"
@@ -221,27 +178,14 @@ const styles = StyleSheet.create({
     fontFamily: "inter",
     paddingBottom:30,
   },
-
   secondaryButton: {
-    backgroundColor: "white",
-    borderColor: "blue",
-    width: "100%",
-    borderRadius: 40,
-    height: 45,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
+    backgroundColor: colors.white,
+    borderColor: colors.blue,
+    marginBottom: 10,
   },
-
   button: {
-    backgroundColor: "blue",
-    borderColor: "blue",
-    width: "100%",
-    borderRadius: 40,
-    height: 45,
-    marginBottom: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: colors.blue,
+    marginBottom: 10,
   },
   close: {
     alignSelf: "flex-end",
@@ -250,6 +194,13 @@ const styles = StyleSheet.create({
     width: 24,
     justifyContent: "center",
     alignItems: "center",
+  },
+  pendingChit: {
+    backgroundColor: colors.gray8,
+    borderColor: colors.gray9,
+    borderWidth: 1,
+    height: 45,
+    marginBottom: 10,
   },
 });
 

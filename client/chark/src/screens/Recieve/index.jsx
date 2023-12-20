@@ -8,19 +8,19 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { ChitIcon, SwapIcon } from "../../components/SvgAssets/SvgAssets";
 import Button from "../../components/Button";
 import { colors } from "../../config/constants";
 import { getCurrency } from "../../services/profile";
 import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
+import { receiveChit } from '../../services/chit';
 
 const Receive = (props) => {
   const [memo, setMemo] = useState("");
-  const [reference, setReference] = useState("");
   const [chit, setChit] = useState("");
   const [usd, setUSD] = useState();
 
@@ -77,10 +77,29 @@ const Receive = (props) => {
     setChit(0);
   };
 
-  const addReference = () => {};
+  const onReceive = async () => {
+    try {
+      Keyboard.dismiss();
+      setDisabled(true);
+      const invoice = await receiveChit(wm, {
+        memo,
+        ref: {},
+        units: chit,
+        format: ['json', 'link'],
+      })
 
-  const onMakePayment = () => {
-    props.navigation.navigate("ShareTally");
+      const json = invoice?.[0];
+      const link = invoice?.[1];
+
+      props.navigation.navigate('RequestShare', {
+        json,
+        link,
+      });
+    } catch(err) {
+      console.log({err})
+    } finally {
+      setDisabled(false);
+    }
   };
 
   if (loading) {
@@ -94,6 +113,7 @@ const Receive = (props) => {
   return (
     <ScrollView
       style={styles.container}
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}
     >
       <View style={styles.centerWrapper}>
@@ -170,20 +190,22 @@ const Receive = (props) => {
         <TextInput
           ref={ref}
           placeholder="Message"
-          value={reference}
-          onChangeText={setReference}
+          value={memo}
+          onChangeText={setMemo}
         />
       </TouchableOpacity>
 
+    {/*}
       <TouchableOpacity onPress={addReference}>
         <Text style={styles.link}>Add Reference</Text>
       </TouchableOpacity>
 
+    {*/}
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
           title={"Request"}
-          onPress={onMakePayment}
+          onPress={onReceive}
           disabled={disabled}
         />
       </View>
@@ -194,10 +216,11 @@ const Receive = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 50,
+    paddingTop: 50,
     backgroundColor: colors.white,
   },
   amount: {
+    width: 80,
     paddingLeft: 10,
     fontSize: 26,
     paddingVertical: 20,
@@ -207,7 +230,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
     backgroundColor: "white",
   },
   input: {

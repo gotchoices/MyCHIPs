@@ -38,6 +38,7 @@ export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies',
       hashes,
     };
   } catch(err) {
+    console.log({ err })
     throw err;
   }
 })

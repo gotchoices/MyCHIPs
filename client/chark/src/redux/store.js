@@ -7,6 +7,7 @@ import currentUserReducer from './currentUserSlice';
 import openTalliesReducer from './openTalliesSlice';
 import avatarReducer from './avatarSlice';
 import certificateTalliesReducer  from './certificateTalliesSlice';
+import chitsReducer  from './chitSlice';
 
 export default configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
@@ -21,5 +22,6 @@ export default configureStore({
     openTallies: openTalliesReducer,
     avatar: avatarReducer,
     certificateTallies: certificateTalliesReducer,
+    chit: chitsReducer,
   }
 })

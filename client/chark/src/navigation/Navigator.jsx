@@ -37,9 +37,11 @@ import DraftTally from "../screens/Tally/DraftTally";
 import RequestDetail from "../screens/Tally/RequestDetail";
 import TallyCertificate from "../screens/Tally/TallyCertificate";
 import Receive from "../screens/Recieve";
-import ReceiveShareTally from "../screens/ReceiveTallyShare";
 import NotificationScreen from "../screens/Notification/NotificationScreen";
 import TallyRequest from "../screens/Tally/TallyRequest";
+import PendingChits from "../screens/Tally/PendingChits";
+import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
+import RequestShare from "../screens/Recieve/RequestShare";
 
 const screenOptions = {
   headerTitleAlign: "center",
@@ -125,6 +127,16 @@ function HomeStackScreen() {
         component={TallyCertificate}
         options={{ title: "Tally Certificate" }}
       />
+      <HomeStack.Screen
+        name="PendingChits"
+        component={PendingChits}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="PendingChitDetail"
+        component={PendingChitDetail}
+        options={{ headerShown: false }}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -177,7 +189,7 @@ function ReceiveStackScreen() {
   return (
     <ReceiveStack.Navigator>
       <ReceiveStack.Screen name="Request" component={Receive} />
-      <ReceiveStack.Screen name="ShareTally" component={ReceiveShareTally} />
+      <ReceiveStack.Screen name="RequestShare" component={RequestShare} />
     </ReceiveStack.Navigator>
   );
 }
@@ -234,7 +246,7 @@ const Navigator = () => {
       />
 
       <Tab.Screen
-        name="Request"
+        name="RequestScreen"
         component={ReceiveStackScreen}
         options={{
           title: "Request",

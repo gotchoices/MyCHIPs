@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import { v5 as uuidv5 } from 'uuid';
 import stringify from 'json-stable-stringify';
 import moment from 'moment';
+import { Toast } from "react-native-toast-message/lib/src/Toast";
 
 import { colors } from "../../../config/constants";
 import Button from "../../../components/Button";
@@ -104,11 +105,20 @@ const PaymentDetail = (props) => {
     const net = round((chit ?? 0) * 1000, 0);
 
     if (net < 0) {
-      Alert.alert("Alert", "Can't input negative chit.");
-      return;
+      return Toast.show({
+        type: 'error',
+        text1: "Can't input negative chit.",
+      });
     }
-    setDisabled(true);
 
+    if (net == 0) {
+      return Toast.show({
+        type: 'error',
+        text1: 'Please provide an amount',
+      });
+    }
+
+    setDisabled(true);
     const _chad = `chip://${chad.cid}:${chad.agent}`
     const date = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ')
     const uuid = uuidv5(date + Math.random(), uuidv5(_chad, uuidv5.URL));
@@ -280,7 +290,8 @@ const PaymentDetail = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 50,
+    paddingTop: 50,
+    paddingBottom: 10,
     backgroundColor: colors.white,
   },
   amount: {
