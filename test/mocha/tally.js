@@ -266,6 +266,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(row.status, 'draft')
       assert.equal(row.tally_type, type)
       assert.equal(row.comment, cmt)
+      interTest.lastCmt = cmt
       done()
     })
   })
@@ -285,16 +286,18 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(row.state, 'draft.offer')
       _done()
     })
-    busO.register('po', (msg) => {		//;log.debug("O msg:", msg, msg.object.sign)
+    busO.register('po', (msg) => {		//;log.debug("O msg:", JSON.stringify(msg))
       assert.equal(msg.entity, userO)		//Originator is sent the rejection
       assert.equal(msg.state, 'P.offer')
       assert.equal(msg.object?.revision, 2)
+      assert.equal(msg.object?.memo, interTest.lastCmt)
       _done()
     })
-    busS.register('ps', (msg) => {		//;log.debug("S msg:", msg, msg.object.sign)
+    busS.register('ps', (msg) => {		//;log.debug("S msg:", JSON.stringify(msg))
       assert.equal(msg.entity, userS)		//Subject is notified of open
       assert.equal(msg.state, 'H.offer')
       assert.equal(msg.object?.revision, 2)
+      assert.equal(msg.object?.memo, interTest.lastCmt)
       _done()
     })
   })
@@ -312,7 +315,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   it("Subject accepts the proposed tally", function(done) {
     let sql = uSql('request = %L, hold_sig = %L', 'open', interTest.sign, userS, 1)
       , dc = 3, _done = () => {if (!--dc) done()}
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbS.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)			;log.debug("row:", row)
       assert.equal(row.request, 'open')

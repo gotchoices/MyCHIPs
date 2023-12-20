@@ -6,6 +6,8 @@ base::group_roles {
     mychips	{user_2 contract_1 tally_2 chit_2 mychips_1}
   } {
     mychips.chits_v_me
+    mychips.users_v_me
+    mychips.contracts_v
   }
 
 #Examples for full ERP access might include:

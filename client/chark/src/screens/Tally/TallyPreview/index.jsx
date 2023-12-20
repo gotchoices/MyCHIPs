@@ -39,6 +39,7 @@ import IconButton from "../../../components/IconButton";
 import TickIcon from "../../../../assets/svg/tick.svg";
 import CrossIcon from "../../../../assets/svg/cross.svg";
 import ShareIcon from "../../../../assets/svg/ic_share.svg";
+import { GenerateKeysAlertModal } from "../../../components/GenerateKeyAlertModal";
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -51,6 +52,7 @@ const TallyPreview = (props) => {
   const [sig, setSig] = useState(undefined);
   const [tallyContracts, setTallyContracts] = useState([]);
   const [updateCert, setUpdateCert] = useState(false);
+  const [showKeyModal, setShowKeyModal] = useState(false);
 
   const {
     loading,
@@ -247,11 +249,7 @@ const TallyPreview = (props) => {
       .catch((err) => {
         const { isKeyAvailable, message } = err;
         if (isKeyAvailable === false) {
-          Alert.alert(
-            "Create Keys",
-            "Seems like there is no key to create signature please continue to create one and offer tally.",
-            [{ text: "Cancel" }, { text: "Continue", onPress: showGenerateKey }]
-          );
+        return setShowKeyModal(true)
         } else {
           Alert.alert("Error", message || err);
         }
@@ -293,16 +291,13 @@ const TallyPreview = (props) => {
       .catch((err) => {
         const { isKeyAvailable, message } = err;
         if (isKeyAvailable === false) {
-          Alert.alert(
-            "Create Keys",
-            "Seems like there is no key to create signature please continue to create one and accept tally.",
-            [{ text: "Cancel" }, { text: "Continue", onPress: showGenerateKey }]
-          );
+          return setShowKeyModal(true)
         } else {
           Alert.alert("Error", message || err);
         }
       });
   };
+
   const showGenerateKey = () => {
     setShowDialog(true);
   };
@@ -513,6 +508,22 @@ const TallyPreview = (props) => {
         )}
       </KeyboardAvoidingView>
 
+
+      <GenerateKeysAlertModal
+        visible={showKeyModal}
+        onDismiss={() => setShowKeyModal(false)}
+        onError={(err) => {
+          Alert.alert("Error", err);
+        }}
+        onKeySaved={() => {
+          setShowKeyModal(false);
+          Alert.alert(
+            "Success",
+            "Key is generated successfully now you can accept tally."
+          );
+        }}
+      />
+
       <GenerateKeysDialog
         visible={showDialog}
         onDismiss={dismissGenerateKey}
@@ -526,6 +537,8 @@ const TallyPreview = (props) => {
           );
         }}
       />
+
+
       <CenteredModal isVisible={updateCert} onClose={onDismissCertUpdate}>
         <UpdateHoldCert
           onUpdateCert={onUpdateCert}

@@ -276,7 +276,7 @@ Chain messages then contain an object with some or all of the following properti
 - **chits**: An array of chits from a section of the chain
 - **conf**: The largest index known to be confirmed by the other side
 
-### Route Messages
+### Route Messages OBSOLETE
 Property: **target**: route
 
 The object property always contains:
@@ -311,7 +311,7 @@ Route state transition messages are as follows:
   An upstream peer is indicating that one or more routes are possible to the requested destination.
   A lading record is returned indicating a good (or best) approximation of what lift capacity will be available if requested.
 
-### Lift Messages
+### Lift Messages OBSOLETE
 Property: **target**: lift
 
 Any lift message may contain the following as applicable:

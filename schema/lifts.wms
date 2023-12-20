@@ -41,7 +41,7 @@ table mychips.lifts {mychips mychips.tallies} {
 
 -- Other components of signed tally
   , units	bigint		not null
-  , lift_date	timestamptz	not null default current_timestamp
+  , lift_date	timestamptz(3)	not null default current_timestamp
   , life	interval	not null default '2 minutes'
   , find	jsonb
   , origin	jsonb

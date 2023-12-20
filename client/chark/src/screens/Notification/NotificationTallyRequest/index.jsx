@@ -12,6 +12,7 @@ import SuccessContent from "../../../components/SuccessContent";
 import { acceptTally, offerTally } from "../../../services/tally";
 import { createSignature } from "../../../utils/message-signature";
 import BottomSheetModal from "../../../components/BottomSheetModal";
+import { GenerateKeysAlertModal } from "../../../components/GenerateKeyAlertModal";
 
 const NavigationTallyRequest = (props) => {
   const { tally } = props;
@@ -21,6 +22,9 @@ const NavigationTallyRequest = (props) => {
   const [accepting, setAccepting] = useState(false);
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
+  const [showKeyModal, setShowKeyModal] = useState(
+    false
+  );
 
   const [negotiationData, setNegotiationData] = useState({
     showModal: false,
@@ -107,11 +111,7 @@ const NavigationTallyRequest = (props) => {
       .catch((err) => {
         const { isKeyAvailable, message } = err;
         if (isKeyAvailable === false) {
-          Alert.alert(
-            "Create Keys",
-            "Seems like there is no key to create signature please continue to create one and accept tally.",
-            [{ text: "Cancel" }, { text: "Continue", onPress: showGenerateKey }]
-          );
+          return setShowKeyModal(true)
         } else {
           Alert.alert("Error", message || err);
         }
@@ -148,11 +148,7 @@ const NavigationTallyRequest = (props) => {
       .catch((err) => {
         const { isKeyAvailable, message } = err;
         if (isKeyAvailable === false) {
-          Alert.alert(
-            "Create Keys",
-            "Seems like there is no key to create signature please continue to create one and accept tally.",
-            [{ text: "Cancel" }, { text: "Continue", onPress: showGenerateKey }]
-          );
+          return setShowKeyModal(true)
         } else {
           Alert.alert("Error", message || err);
         }
@@ -281,6 +277,21 @@ const NavigationTallyRequest = (props) => {
           onDismiss={() => setShowAcceptSuccess(false)}
         />
       </BottomSheetModal>
+
+      <GenerateKeysAlertModal
+        visible={showKeyModal}
+        onDismiss={() => setShowKeyModal(false)}
+        onError={(err) => {
+          Alert.alert("Error", err);
+        }}
+        onKeySaved={() => {
+          setShowKeyModal(false);
+          Alert.alert(
+            "Success",
+            "Key is generated successfully now you can accept tally."
+          );
+        }}
+      />
     </>
   );
 };
