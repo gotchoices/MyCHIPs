@@ -4,6 +4,7 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  Text,
 } from "react-native";
 import { useSelector } from "react-redux";
 
@@ -42,35 +43,15 @@ const TallyReviewView = (props) => {
   };
 
   const getStockText = () => {
-    if (tallyType === "stock") {
-      if (holdImage) {
-        return "Stock";
-      }
-    } else {
-      if (partImage) {
-        return "Stock";
-      }
-    }
-
-    return props.holdCert.chad.cid
-      ? props.holdCert.chad.cid
-      : props.partCert.chad.cid;
+    return props.holdCert?.chad?.cid
+      ? props.holdCert.chad.cid + "..."
+      : props.partCert.chad.cid + "...";
   };
 
   const getFoilText = () => {
-    if (tallyType === "foil") {
-      if (holdImage) {
-        return "Foil";
-      }
-    } else {
-      if (partImage) {
-        return "Foil";
-      }
-    }
-
-    return props.holdCert.chad.cid
-      ? props.holdCert.chad.cid
-      : props.partCert.chad.cid;
+    return props.partCert?.chad?.cid
+      ? props.partCert.chad.cid + "..."
+      : props.holdCert.chad.cid + "...";
   };
 
   const getCID = () => {
@@ -85,41 +66,47 @@ const TallyReviewView = (props) => {
 
   return (
     <View style={styles.main}>
-      <View style={styles.rowWrapper}>
-        <View style={styles.leftIcon}>
-          <HelpText
-            label="Risk"
-            style={[styles.leftText, styles.leftTopText]}
-          />
-          <DownArrowIcon />
-        </View>
+      <View style={styles.wrapper}>
+        <View style={styles.rowWrapper}>
+          <View style={styles.leftIcon}>
+            <HelpText
+              label="Risk"
+              style={[styles.leftText, styles.leftTopText]}
+            />
+            <DownArrowIcon />
+          </View>
 
-        <View style={styles.topCenterWrapper}>
-          <HelpText
-            helpText={getCID()}
-            label={getFoilText()}
-            style={styles.headerText}
-          />
+          <View style={styles.topCenterWrapper}>
+            <HelpText
+              helpText={getCID()}
+              label={tallyType === "foil" ? "Foil" : "Stock"}
+              style={styles.headerText}
+            />
 
-          {tallyType === "foil"
-            ? holdImage && (
+            {tallyType === "foil" ? (
+              holdImage ? (
                 <View style={styles.circle}>
                   <Avatar style={styles.circle} avatar={holdImage} />
                 </View>
+              ) : (
+                <Text style={styles.boldText}>{getStockText()}</Text>
               )
-            : partImage && (
-                <View style={styles.circle}>
-                  <Avatar style={styles.circle} avatar={partImage} />
-                </View>
-              )}
-        </View>
+            ) : partImage ? (
+              <View style={styles.circle}>
+                <Avatar style={styles.circle} avatar={partImage} />
+              </View>
+            ) : (
+              <Text style={styles.boldText}>{getStockText()}</Text>
+            )}
+          </View>
 
-        <View style={styles.rightIcon}>
-          <HelpText
-            label="Credit"
-            style={[styles.rightText, styles.rightTopText]}
-          />
-          <LeftArrowIcon />
+          <View style={styles.rightIcon}>
+            <HelpText
+              label="Credit"
+              style={[styles.rightText, styles.rightTopText]}
+            />
+            <LeftArrowIcon />
+          </View>
         </View>
       </View>
 
@@ -157,41 +144,47 @@ const TallyReviewView = (props) => {
         </View>
       </View>
 
-      <View style={styles.rowWrapper}>
-        <View style={styles.leftIcon}>
-          <RightArrowIcon />
-          <HelpText
-            label="Credit"
-            style={[styles.leftText, styles.leftBottomText]}
-          />
-        </View>
+      <View style={styles.wrapper}>
+        <View style={styles.rowWrapper}>
+          <View style={styles.leftIcon}>
+            <RightArrowIcon />
+            <HelpText
+              label="Credit"
+              style={[styles.leftText, styles.leftBottomText]}
+            />
+          </View>
 
-        <View style={styles.bottomCenterWrapper}>
-          {tallyType === "stock"
-            ? holdImage && (
+          <View style={styles.bottomCenterWrapper}>
+            <HelpText
+              helpText={getCID()}
+              label={tallyType === "foil" ? "Stock" : "Foil"}
+              style={styles.headerText}
+            />
+
+            {tallyType === "stock" ? (
+              holdImage ? (
                 <View style={styles.circle}>
                   <Avatar style={styles.circle} avatar={holdImage} />
                 </View>
+              ) : (
+                <Text style={styles.boldText}>{getFoilText()}</Text>
               )
-            : partImage && (
-                <View style={styles.circle}>
-                  <Avatar style={styles.circle} avatar={partImage} />
-                </View>
-              )}
+            ) : partImage ? (
+              <View style={styles.circle}>
+                <Avatar style={styles.circle} avatar={partImage} />
+              </View>
+            ) : (
+              <Text style={styles.boldText}>{getFoilText()}</Text>
+            )}
+          </View>
 
-          <HelpText
-            helpText={getCID()}
-            label={getStockText()}
-            style={styles.headerText}
-          />
-        </View>
-
-        <View style={styles.rightIcon}>
-          <UpArrowIcon />
-          <HelpText
-            label="Risk"
-            style={[styles.rightText, styles.rightBottomText]}
-          />
+          <View style={styles.rightIcon}>
+            <UpArrowIcon />
+            <HelpText
+              label="Risk"
+              style={[styles.rightText, styles.rightBottomText]}
+            />
+          </View>
         </View>
       </View>
 
@@ -215,14 +208,13 @@ const arrowText = {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    //marginTop: 20,
     paddingTop: 20,
     marginHorizontal: 40,
     alignItems: "center",
   },
   circle: {
-    height: 80,
-    width: 80,
+    height: 70,
+    width: 70,
     borderRadius: 50,
     backgroundColor: colors.gray700,
   },
@@ -233,18 +225,19 @@ const styles = StyleSheet.create({
     color: colors.dimgray,
   },
   midText: {
-    marginTop: 10,
     fontWeight: "400",
     textAlign: "center",
     color: colors.dimgray,
   },
   bottomCenterWrapper: {
     height: 100,
+    marginBottom: -25,
     alignItems: "center",
     justifyContent: "center",
   },
   topCenterWrapper: {
     height: 100,
+    marginTop: -75,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -294,10 +287,12 @@ const styles = StyleSheet.create({
     width: "70%",
   },
   rightTopText: {
+    marginRight: -10,
     marginBottom: -20,
     width: "70%",
   },
   rightBottomText: {
+    marginRight: -15,
     marginTop: -18,
     width: "50%",
   },
@@ -305,6 +300,18 @@ const styles = StyleSheet.create({
     top: 0,
     right: -20,
     position: "absolute",
+  },
+  boldText: {
+    fontWeight: "700",
+    fontSize: 15,
+    textDecorationStyle:'solid',
+    textDecorationLine: "underline",
+  },
+  wrapper: {
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+
   },
 });
 
