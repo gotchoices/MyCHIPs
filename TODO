@@ -1,10 +1,21 @@
 TODO:
 
-- Local linear lifts
+- Local linear lifts:
 X-  Document framework for interrim route/lift model
--  How does the user sign a linear lift?
+X-  How does the user sign a linear lift?
+X-  Create schema for distributed payments table
+X-  Create user-privileged view for creating, updating payments
 -  How to initiate an internal linear lift to a given destination?
--  Build query/function with user permission for inserting linear lift request
+-    Scan invoice, build draft payment record, party=payee chad
+-    Set request = 'seek': This initiates search
+-    Search returns an array of candidate routes
+-    Set request = 'pend', play = route: This initiates lift
+-    Lift either completes status = good or fails, status = void
+-    User is notified
+-  Build regression tests for local lift payments
+-    Leave tests/infrastructure for distributed routes/lifts intact for now
+-    User view can see sent and received payments
+-  Make view for relay nodes to evaluate the effect of lifts
 -  Can/should I be able to specify an outbound tally?
 
 - Tally negotiation
@@ -12,6 +23,7 @@ X-  Document framework for interrim route/lift model
 -  Test for changing tally_type during negotiation
 -  Can recover from unknown tally states (H.offer.open)
 -  Can/should we validate tally signatures in the DB anywhere?
+-  Should tally.digest no longer be in the json.sign property?
 -  When a tally is cloned/invited, freshen the certificate info? (or at least, the agent)
 
 - Scan any hand notes 2021-2022

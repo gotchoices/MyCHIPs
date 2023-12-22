@@ -1,0 +1,29 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+tabtext mychips.pays	{Payments}	{Table of distributed payments to/from entities not directly connected by tallies} [concat {
+  {pay_ent	{Payment Entity}	{ID of the entity this payment pertains to}}
+  {pay_seq	{Payment Sequence}	{Unique integer assigned to this payment}}
+  {pay_disb	{Disbursement}		{A boolean indicating that this payment is from (not to) this entity}}
+  {pay_date	{Payment Date}		{The date and time this payment is effective}}
+  {party	{Other Party}		{A JSON structure describing the other party to this transaction}}
+  {units	{Units}			{The amount of the transaction, measured in milli-CHIPs (1/1000 of a CHIP)}}
+  {reference	{Reference}		{Any arbitrary JSON data about the transaction, meaningful to the parties.  May reference an invoice, a purchase order, a register, other document evidencing goods or services rendered, and a trading relationship between the parties.  For setting pays, this contains the settings being asserted.}}
+  {memo		{Memo}			{A human-readable text description, context or explanation for the transaction}}
+  {signature	{Signature}		{Digital signature of the party authorizing the transaction}}
+  {lift_uuid	{Lift UUID}		{The transaction ID for the initial lift record that carries out this transaction}}
+  {lift_seq	{Lift seq}		{Lift sequence number, should always be zero}}
+} $glob::stampt] -messages {
+  {PUN		{Bad Payment Units}	{Payment amount must be expressed as a positive integer}}
+  {GDS		{Signature Check}	{Payment records for the disburser must include a signature}}
+  {BRQ		{Bad Chit Request}	{Not a valid value for a pay request}}
+}
+
+tabtext mychips.pays_v {Payments}	{Standard view of distributed payments to/from entities not directly connected by tallies} {
+  {net		{Net Value}		{The pay amount expressed as a positive or negative number, depending on how it accrues to the holder of this half of the tally.}}
+  {state	{State}			{The state is used to track a transaction in process}}
+  {json_core	{JSON Core}		{A JSON representation of the parts of the pay transaction that will be digitally hashed and signed}}
+  {json		{JSON}			{A JSON representation of the pay transaction, including the digital hash}}
+}
+
+tabtext mychips.pays_v_me {Payments}	{View of the current user's distributed payments to/from entities not directly connected by tallies} {
+}

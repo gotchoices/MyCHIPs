@@ -32,12 +32,11 @@ table mychips.lifts {mychips mychips.tallies} {
   , lift_seq	int	      , primary key (lift_uuid, lift_seq)
 
 -- Internal management
+  , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
   , request	text		constraint "!mychips.lifts:IVR" check(request isnull or request in ('init','seek','call','relay','found','term','check','good','void'))
   , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','init','seek','call','found','pend','good','void'))
   , tallies	uuid[]		not null
   , signs	int[]		not null default '{}'::int[] check (array_length(tallies,1) = array_length(signs,1))
-  , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','rel'))
-  , circuit	boolean		not null default true
 
 -- Other components of signed tally
   , units	bigint		not null
@@ -47,8 +46,11 @@ table mychips.lifts {mychips mychips.tallies} {
   , origin	jsonb
   , referee	jsonb
 
-  , digest	bytea		
+-- Obsolete fields?
+  , circuit	boolean		not null default true
+  , digest	bytea
   , signature	text
+
     eval(s $glob::stamps)
 }
 #index {} mychips.lifts lift_date
