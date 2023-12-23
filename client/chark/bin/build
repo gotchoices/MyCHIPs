@@ -43,6 +43,21 @@ deploy_android() {
   fi
 }
 
+if [ -z "$APP_STORE_FILE" ]; then
+  read -p "Enter keystore filename: " APP_STORE_FILE
+  export APP_STORE_FILE
+fi
+
+if [ -z "$APP_STORE_PASSWORD" ]; then
+  read -p "Enter individual key password: " APP_STORE_PASSWORD
+  export APP_STORE_PASSWORD
+fi
+
+if [ -z "$APP_KEY_PASSWORD" ]; then
+  read -p "Enter individual key password: " APP_KEY_PASSWORD
+  export APP_KEY_PASSWORD
+fi
+
 if [ "$1" = "all" ]; then
   build_android;	build_ios;	deploy_ios
   path_android;		path_android;	deploy_android

@@ -228,19 +228,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        release {
-          def keystorePropertiesFile = rootProject.file("local.properties")
-          def keystoreProperties = new Properties()
-          if (keystorePropertiesFile.exists()) {
-            keystoreProperties.load(new FileInputStream(rootProject.file("local.properties")))
-              storeFile file(keystoreProperties['APP_STORE_FILE'])
-              storePassword keystoreProperties['APP_STORE_PASSWORD']
-              keyAlias keystoreProperties['APP_KEY_ALIAS']
-              keyPassword keystoreProperties['APP_KEY_PASSWORD']
-          } else {
-            println 'Could not find keystore properties file'
-          }
-        }        
+        release {            // Use environment variables or provide defaults
+            keyAlias System.getenv("APP_KEY_ALIAS") ?: "org.mychips.chark"
+            storeFile file(System.getenv("APP_STORE_FILE") ?: "release.keystore")
+            storePassword System.getenv("APP_STORE_PASSWORD") ?: "unknown"
+            keyPassword System.getenv("APP_KEY_PASSWORD") ?: "unknown"
+        }
     }
     buildTypes {
         debug {
