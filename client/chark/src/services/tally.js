@@ -192,7 +192,10 @@ export const fetchTradingVariables = (wm, payload) => {
     name: 'trade',
     view: 'mychips.tallies_v_me',
     data: {
-      key: payload.tally_seq
+      key: payload.tally_seq,
+      options: {
+        format: 'url',
+      }
     }
   }
 

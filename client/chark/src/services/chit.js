@@ -54,3 +54,15 @@ export const receiveChit = (wm, args) => {
   return request(wm, 'invoice' + random(), 'action', spec);
 }
 
+/**
+ * @param {Object} args
+ * @param {payload} args.payload
+ */
+export const insertChit = (wm, payload) => {
+  const spec = {
+    fields: payload,
+    view: 'mychips.chits_v_me',
+  };
+
+  return request(wm, '_chit_insert' + random(), 'insert', spec);
+}

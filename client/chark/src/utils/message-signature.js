@@ -2,7 +2,6 @@ import { KeyConfig, SignConfig } from "wyseman/lib/crypto";
 import { retrieveKey } from "./keychain-store";
 import { TextEncoder, TextDecoder } from 'web-encoding';
 import { Buffer } from "buffer";
-import PropTypes from 'prop-types';
 import { keyServices } from "../config/constants";
 
 const subtle = window.crypto.subtle;
@@ -37,9 +36,6 @@ export const createSignature = (message) => {
     }
   });
 }
-createSignature.prototype = {
-  message: PropTypes.string.isRequired,
-}
 
 export const verifySignature = (signature, message, publicKey) => {
   return new Promise(async (resolve, reject) => {
@@ -56,8 +52,3 @@ export const verifySignature = (signature, message, publicKey) => {
   });
 }
 
-verifySignature.prototype = {
-  signature: PropTypes.string.isRequired,
-  message: PropTypes.string.isRequired,
-  publicKey: PropTypes.string.isRequired,
-}

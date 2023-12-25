@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useDispatch } from 'react-redux';
 import {
   StyleSheet,
   ScrollView,
@@ -26,6 +27,7 @@ import { useTallyLanguage } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
 
 import { createSignature } from "../../../utils/message-signature";
+import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
 
 import { ChitIcon, SwapIcon } from "../../../components/SvgAssets/SvgAssets";
 import BottomSheetModal from "../../../components/BottomSheetModal";
@@ -37,6 +39,7 @@ const PaymentDetail = (props) => {
   const { preferredCurrency } = useSelector((state) => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
+  const dispatch = useDispatch();
 
   const [memo, setMemo] = useState();
   const [reference, setReference] = useState({});
@@ -59,6 +62,10 @@ const PaymentDetail = (props) => {
   const referenceText = messageText?.chits_lang?.reference;
   const memoText = messageText?.chits_lang?.memo;
   const netText = messageText?.chits_lang?.net;
+
+  const showCreateSignatureModal = () => {
+    dispatch(setShowCreateSignatureModal(true));
+  }
 
   useEffect(() => {
     if (currencyCode) {
@@ -154,13 +161,12 @@ const PaymentDetail = (props) => {
       await insertChit(wm, payload)
       setShowSuccess(true);
     } catch(err) {
-      console.log({err})
       const { isKeyAvailable } = err;
       if (isKeyAvailable === false) {
         Alert.alert(
           "Create Keys",
           "Seems like there is no key to create signature please continue to create one and offer tally.",
-          [{ text: "Cancel" }, { text: "Continue", onPress: () => {}}]
+          [{ text: "Cancel" }, { text: "Continue", onPress: showCreateSignatureModal }]
         );
       } else {
         Alert.alert("Error", err.message ?? 'Error making payment');
