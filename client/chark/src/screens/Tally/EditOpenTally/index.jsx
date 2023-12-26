@@ -68,6 +68,7 @@ const EditOpenTally = (props) => {
         "contract",
         "net",
         'hold_cert',
+        'hold_chad',
       ],
       where: {
         tally_ent,
@@ -94,7 +95,13 @@ const EditOpenTally = (props) => {
   };
 
   const showTradingVariables = () => {
-    props.navigation.navigate("TradingVariables", { tally_seq });
+    props.navigation.navigate("TradingVariables", {
+      tally_seq,
+      tally_ent,
+      tally_type: tally?.tally_type,
+      chad: tally?.hold_chad,
+      tally_uuid: tally?.tally_uuid,
+    });
   };
 
   const onSave = () => {

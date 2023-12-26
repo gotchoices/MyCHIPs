@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { View, Text } from "react-native";
+import { Alert } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 import useSocket from "../hooks/useSocket";
@@ -10,6 +10,7 @@ import {
   fetchPersonalAndCurrency,
   getPreferredLanguage,
   getFilter,
+  setShowCreateSignatureModal,
 } from "../redux/profileSlice";
 import { colors } from "../config/constants";
 
@@ -42,6 +43,7 @@ import TallyRequest from "../screens/Tally/TallyRequest";
 import PendingChits from "../screens/Tally/PendingChits";
 import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
 import RequestShare from "../screens/Recieve/RequestShare";
+import { GenerateKeysAlertModal } from '../components/GenerateKeyAlertModal';
 
 const screenOptions = {
   headerTitleAlign: "center",
@@ -220,6 +222,7 @@ function SettingStackScreen() {
 
 const Navigator = () => {
   const { user } = useSelector((state) => state.currentUser);
+  const { showCreateSignatureModal } = useSelector((state) => state.profile);
   const user_ent = user?.curr_eid;
   const { wm } = useSocket();
   const dispatch = useDispatch();
@@ -231,63 +234,85 @@ const Navigator = () => {
     dispatch(getFilter());
   }, [wm, user_ent, fetchAvatar]);
 
+  const onDismissSignatureModal = () => {
+    dispatch(setShowCreateSignatureModal(false))
+  }
+
+  const onKeySaved = () => {
+    dispatch(setShowCreateSignatureModal(false))
+    Alert.alert(
+      "Success",
+      "Key is generated successfully now you can accept tally."
+    );
+  }
+
   return (
-    <Tab.Navigator
-      screenOptions={{ headerShown: false, tabBarShowLabel: false }}
-    >
-      <Tab.Screen
-        name="Tally"
-        component={HomeStackScreen}
-        options={{
-          tabBarIcon: (props) => (
-            <CustomIcon name="home" {...{ ...props, size: 24 }} />
-          ),
-        }}
-      />
+    <>
+      <Tab.Navigator
+        screenOptions={{ headerShown: false, tabBarShowLabel: false }}
+      >
+        <Tab.Screen
+          name="Tally"
+          component={HomeStackScreen}
+          options={{
+            tabBarIcon: (props) => (
+              <CustomIcon name="home" {...{ ...props, size: 24 }} />
+            ),
+          }}
+        />
 
-      <Tab.Screen
-        name="RequestScreen"
-        component={ReceiveStackScreen}
-        options={{
-          title: "Request",
-          tabBarIcon: (props) => (
-            <CustomIcon name="receive" {...{ ...props, size: 26 }} />
-          ),
-        }}
-      />
+        <Tab.Screen
+          name="RequestScreen"
+          component={ReceiveStackScreen}
+          options={{
+            title: "Request",
+            tabBarIcon: (props) => (
+              <CustomIcon name="receive" {...{ ...props, size: 26 }} />
+            ),
+          }}
+        />
 
-      <Tab.Screen
-        name="Scan"
-        component={Scanner}
-        options={{
-          unmountOnBlur: true,
-          tabBarIcon: (props) => (
-            <CustomIcon name="scan" {...{ ...props, size: 23 }} />
-          ),
-        }}
-      />
+        <Tab.Screen
+          name="Scan"
+          component={Scanner}
+          options={{
+            unmountOnBlur: true,
+            tabBarIcon: (props) => (
+              <CustomIcon name="scan" {...{ ...props, size: 23 }} />
+            ),
+          }}
+        />
 
-      <Tab.Screen
-        name="InviteScreen"
-        component={InviteStackScreen}
-        options={{
-          tabBarTestID: "inviteBtn",
-          tabBarIcon: (props) => (
-            <CustomIcon name="invite" {...{ ...props, size: 26 }} />
-          ),
-        }}
-      />
+        <Tab.Screen
+          name="InviteScreen"
+          component={InviteStackScreen}
+          options={{
+            tabBarTestID: "inviteBtn",
+            tabBarIcon: (props) => (
+              <CustomIcon name="invite" {...{ ...props, size: 26 }} />
+            ),
+          }}
+        />
 
-      <Tab.Screen
-        name="Settings"
-        component={SettingStackScreen}
-        options={{
-          tabBarIcon: (props) => (
-            <CustomIcon name="settings" {...{ ...props, size: 25 }} />
-          ),
+        <Tab.Screen
+          name="Settings"
+          component={SettingStackScreen}
+          options={{
+            tabBarIcon: (props) => (
+              <CustomIcon name="settings" {...{ ...props, size: 25 }} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+      <GenerateKeysAlertModal
+        visible={showCreateSignatureModal}
+        onDismiss={onDismissSignatureModal}
+        onKeySaved={onKeySaved}
+        onError={(err) => {
+          Alert.alert("Error", err);
         }}
       />
-    </Tab.Navigator>
+    </>
   );
 };
 

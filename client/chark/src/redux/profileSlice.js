@@ -22,6 +22,8 @@ const initialState = {
   filter: {},
   // For detecting any change on user to trigger asynchronous change that depend on the tally 
   userChangeTrigger: 1,
+  // Displaying modal for creating a signature
+  showCreateSignatureModal: false,
 };
 
 export const fetchAvatar = createAsyncThunk('profile/fetchAvatar', async (args) => {
@@ -185,6 +187,9 @@ export const profileSlice = createSlice({
     setUserChangeTrigger: (state, action) => {
       const trigger = state.userChangeTrigger ?? 1;
       state.userChangeTrigger = trigger + 1;
+    },
+    setShowCreateSignatureModal: (state, action) => {
+      state.showCreateSignatureModal = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -232,6 +237,7 @@ export const {
   setPersonal,
   setFilter,
   setUserChangeTrigger,
+  setShowCreateSignatureModal,
 } = profileSlice.actions;
 
 export default profileSlice.reducer;
