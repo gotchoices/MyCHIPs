@@ -13,8 +13,8 @@ import RNFS from "react-native-fs";
 import useSocket from "../../../hooks/useSocket";
 import { getContract } from "../../../services/tally";
 
-import Button from "../../../components/Button";
 import FloatingActionButton from "../../../components/FloadingActionButton";
+import { useRef } from "react";
 
 const TallyContract = (props) => {
   const { tally_seq } = props.route?.params ?? {};
@@ -23,18 +23,7 @@ const TallyContract = (props) => {
   const [downloading, setDownloading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  /* useLayoutEffect(() => {
-    props.navigation.setOptions({
-      headerRight: () => (
-        <Button
-          title='Share'
-          onPress={onShare}
-          style={{ borderRadius: 20, paddingHorizontal: 12 }}
-          disabled={downloading}
-        />
-      ),
-    });
-  }, [props.navigation, downloading]); */
+  const webViewRef = useRef();
 
   useEffect(() => {
     const showPDF = async () => {
@@ -96,9 +85,7 @@ const TallyContract = (props) => {
 
   const renderLoading = () => {
     return (
-      <View
-        style={styles.center}
-      >
+      <View style={styles.center}>
         <ActivityIndicator size={"large"} />
       </View>
     );
@@ -114,9 +101,7 @@ const TallyContract = (props) => {
   return (
     <View style={styles.container}>
       {hasError ? (
-        <View
-          style={styles.center}
-        >
+        <View style={styles.center}>
           <Text style={{ fontSize: 14, fontWeight: "600" }}>
             Cannot load the content.
           </Text>
@@ -124,6 +109,7 @@ const TallyContract = (props) => {
       ) : contract ? (
         <View style={styles.webView}>
           <WebView
+            ref={webViewRef}
             style={styles.webView}
             scalesPageToFit={false}
             javaScriptEnabled={true}
@@ -135,6 +121,18 @@ const TallyContract = (props) => {
             source={{
               uri: `https://docs.google.com/gview?embedded=true&url=${contract}`,
             }}
+            onContentProcessDidTerminate={(syntheticEvent) => {
+              this.refs.webview.reload();
+            }}
+            onLoadEnd={(data) => {
+              const { nativeEvent } = data;
+              const { title } = nativeEvent;
+
+              if (!title.trim()) {
+                webViewRef.current?.stopLoading();
+                webViewRef.current?.reload();
+              }
+            }}
           />
 
           <FloatingActionButton
@@ -144,13 +142,7 @@ const TallyContract = (props) => {
           />
         </View>
       ) : (
-        <View
-          style={styles.center}
-        >
-          {renderLoading()}
-
-
-        </View>
+        <View style={styles.center}>{renderLoading()}</View>
       )}
     </View>
   );
@@ -165,13 +157,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  center:{
-    
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    
-  }
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 export default TallyContract;
