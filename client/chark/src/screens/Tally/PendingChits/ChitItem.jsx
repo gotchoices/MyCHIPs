@@ -6,10 +6,11 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import moment from 'moment';
 
-import Button from '../../../components/Button';
-import HelpText from '../../../components/HelpText';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
+import AcceptButton from './AcceptButton';
+import RejectButton from './RejectButton';
 
 import { colors } from '../../../config/constants';
 import { round } from '../../../utils/common';
@@ -21,7 +22,9 @@ const ChitItem = (props) => {
   const convertedNet = round(net_pc * props.conversionRate, 2);
 
   const onPress = () => {
-    //props.navigation.navigate('PendingChitDetail');
+    props.navigation.navigate('PendingChitDetail', {
+      chit: props.chit,
+    });
   }
 
   return (
@@ -55,19 +58,20 @@ const ChitItem = (props) => {
 
       <View style={styles.action}>
         <Text style={styles.time}>
-          {'45 min'}
+          {moment(props.chit.chit_date).fromNow(true)}
         </Text>
 
-        <Button 
-          title="Accept"
+        <AcceptButton
+          json={props.chit?.json_core}
+          chit_ent={props.chit?.chit_ent}
+          chit_uuid={props.chit?.chit_uuid}
           style={styles.btn}
-          onPress={() => {}}
         />
 
-        <Button 
-          title="Reject"
+        <RejectButton
+          chit_ent={props.chit?.chit_ent}
+          chit_uuid={props.chit?.chit_uuid}
           style={[styles.reject, styles.btn]}
-          onPress={() => {}}
         />
       </View>
     </View>

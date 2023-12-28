@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   View,
-  ScrollView,
   Text,
   TextInput,
   StyleSheet,
@@ -11,17 +11,47 @@ import Header from './Header';
 import HelpText from '../../../components/HelpText'
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 import SwapIcon from '../../../../assets/svg/swap.svg';
-import Button from '../../../components/Button';
+import AcceptButton from './AcceptButton';
+import RejectButton from './RejectButton';
 
 import { colors } from '../../../config/constants';
+import { getCurrencyRate } from '../../../redux/chipCurrencySlice';
+import useSocket from '../../../hooks/useSocket';
+import { round } from '../../../utils/common';
 
 const PendingChitDetail = (props) => {
+  const dispatch = useDispatch();
+  const { wm } = useSocket();
+  const { chit } = props.route.params ?? {};
+  const [memo, setMemo] = useState(chit?.memo ?? '');
+  const [swapped, setSwapped] = useState(false);
+
+  const { preferredCurrency } = useSelector((state) => state.profile);
+  const { conversionRate } = useSelector((state) => state.chipCurrency);
+  const net_pc = (chit.net_pc ?? 0) / 1000;
+  let convertedNet = 0;
+
+  if(conversionRate) {
+    convertedNet = round(conversionRate * net_pc, 2);
+  }
+
+  useEffect(() => {
+    dispatch(getCurrencyRate({
+      wm,
+      currencyCode: preferredCurrency.code,
+    }))
+  }, [preferredCurrency?.code])
+
   const onBack = () => {
-    props.navigation.navigate('PendingChits');
+    props.navigation.goBack();
   }
 
   const onSwap = () => {
-    console.los('swap')
+    setSwapped((prev) => !prev);
+  }
+
+  const onMemoChange = (text) => {
+    setMemo(text);
   }
 
   return (
@@ -37,30 +67,35 @@ const PendingChitDetail = (props) => {
       <View style={styles.body}>
         <View style={styles.netWrapper}>
           <View>
-            <View style={styles.net}>
-              <ChitIcon color={colors.black} height={53} width={26.5}/>
-              <Text style={styles.chip}>
-                12.01
-              </Text>
-            </View>
-
-            <Text style={styles.currency}>
-              32.68 USD
-            </Text>
+            {swapped ? (
+              <SwappedChip
+                net_pc={net_pc}
+                convertedNet={convertedNet}
+                code={preferredCurrency?.code}
+              />
+            ): (
+              <NonSwappedChip
+                net_pc={net_pc}
+                convertedNet={convertedNet}
+                code={preferredCurrency?.code}
+              />
+            )}
           </View>
 
-          <SwapIcon 
-            style={{ marginLeft: 12 }}
-            onPress={onSwap} 
-          />
+          {!!preferredCurrency?.code && (
+            <SwapIcon 
+              style={{ marginLeft: 12 }}
+              onPress={onSwap} 
+            />
+          )}
         </View>
 
         <TextInput
           multiline
           numberOfLines={6}
-          value={'tacos'}
+          value={memo}
           style={[styles.input, styles.comment]}
-          onChangeText={() => {}}
+          onChangeText={onMemoChange}
         />
 
         <View style={styles.reference}>
@@ -72,19 +107,58 @@ const PendingChitDetail = (props) => {
       </View>
 
       <View style={styles.action}>
-        <Button
-          title="Accept"
-          onPress={() => {}}
+        <AcceptButton
+          json={chit?.json_core}
+          chit_ent={chit?.chit_ent}
+          chit_uuid={chit?.chit_uuid}
         />
 
-        <Button
-          title="Reject"
+        <RejectButton
+          chit_ent={chit?.chit_ent}
+          chit_uuid={chit?.chit_uuid}
           style={styles.rejectBtn}
-          onPress={() => {}}
         />
       </View>
 
     </View>
+  )
+}
+
+function SwappedChip(props) {
+  return (
+    <>
+      {!!props.code && (
+        <Text style={styles.convertedRate}>
+          {props.convertedNet} {props.code}
+        </Text>
+      )}
+
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+        <ChitIcon color={colors.black} height={20} />
+        <Text style={styles.currency}>
+          {props.net_pc}
+        </Text>
+      </View>
+    </>
+  )
+}
+
+function NonSwappedChip(props) {
+  return (
+    <>
+      <View style={styles.net}>
+        <ChitIcon color={colors.black} height={53} width={26.5}/>
+        <Text style={styles.chipRate}>
+          {props.net_pc}
+        </Text>
+      </View>
+
+      {!!props.code && (
+        <Text style={styles.currency}>
+          {props.convertedNet} {props.code}
+        </Text>
+      )}
+    </>
   )
 }
 
@@ -118,14 +192,21 @@ const styles = StyleSheet.create({
   },
   currency: {
     ...font,
+    fontSize: 14,
     fontWeight: '400',
     alignSelf: 'flex-end',
-    fontSize: 14,
+    color: colors.black,
   },
-  chip: {
+  chipRate: {
     ...font,
     color: colors.black,
     fontSize: 45,
+    marginLeft: 5,
+  },
+  convertedRate: {
+    ...font,
+    color: colors.black,
+    fontSize: 35,
     marginLeft: 5,
   },
   input: {
@@ -143,10 +224,9 @@ const styles = StyleSheet.create({
     color: colors.gray300,
   },
   action: {
-    bottom: 0,
+    flex: 1,
+    justifyContent: 'flex-end',
     marginBottom: 28,
-    width: '100%',
-    position: 'absolute',
   },
   rejectBtn: {
     marginTop: 10,
