@@ -28,7 +28,6 @@ import SuccessModal from "../Success";
 
 const RequestDetail = (props) => {
   const { tally_uuid, chit_seq, tally_type, editDetails } = props.route?.params;
-  console.log(editDetails, 'edit')
   const { wm } = useSocket();
   const { preferredCurrency } = useSelector((state) => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);

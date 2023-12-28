@@ -50,7 +50,6 @@ export const receiveChit = (wm, args) => {
       options,
     }
   }
-  console.log(spec, 'spec')
   return request(wm, 'invoice' + random(), 'action', spec);
 }
 
@@ -65,4 +64,51 @@ export const insertChit = (wm, payload) => {
   };
 
   return request(wm, '_chit_insert' + random(), 'insert', spec);
+}
+
+/**
+ * @param {Object} - args
+ * @param {string[]} - args.chit_ent
+ * @param {string[]} - args.chit_uuid
+ * @param {string} - args.signature
+ */
+export const acceptChit = (wm, args) => {
+  const fields = {
+    request: 'good',
+    signature: args.signature,
+  };
+
+  const spec = {
+    fields,
+    view: 'mychips.chits_v_me',
+    where: {
+      chit_ent: args.chit_ent,
+      chit_uuid: args.chit_uuid,
+    },
+  }
+
+  return request(wm, 'accept_chit' + random(), 'update', spec)
+}
+
+/**
+ * @param {any} - wm
+ * @param {Object} - args
+ * @param {string[]} - args.chit_ent
+ * @param {string[]} - args.chit_uuid
+ */
+export const rejectChit = (wm, args) => {
+  const fields = {
+    request: 'void',
+  };
+
+  const spec = {
+    fields,
+    view: 'mychips.chits_v_me',
+    where: {
+      chit_ent: args.chit_ent,
+      chit_uuid: args.chit_uuid,
+    },
+  }
+
+  return request(wm, 'reject_chit' + random(), 'update', spec)
 }

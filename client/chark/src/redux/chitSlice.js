@@ -9,12 +9,13 @@ const initialState = {
 
 export const getChits = createAsyncThunk('chits/getChits', async (args) => {
   try {
-    const fields = ['net_pc', 'units', 'net', 'memo'];
+    const fields = ['chit_ent','chit_seq', 'chit_uuid', 'net_pc', 'units', 'net', 'memo', 'reference', 'json_core', 'chit_date'];
 
     const data = await fetchChits(args.wm, {
       fields,
       where: {
-        status: 'pend'
+        status: 'pend',
+        tally_uuid: args.tally_uuid,
       }
     })
 
@@ -28,9 +29,12 @@ export const getChits = createAsyncThunk('chits/getChits', async (args) => {
 
 
 export const chitsSlice = createSlice({
-  name: 'workingTallies',
+  name: 'chits',
   initialState: initialState,
   reducers: {
+    resetChits: (state, action) => {
+      state.chits = [];
+    }
   },
 
   extraReducers: (builder) => {
@@ -49,4 +53,8 @@ export const chitsSlice = createSlice({
 });
 
 export default chitsSlice.reducer;
+
+export const {
+  resetChits,
+} = chitsSlice.actions;
 

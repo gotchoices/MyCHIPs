@@ -5,6 +5,7 @@ import {
   Text,
   FlatList,
   StyleSheet,
+  RefreshControl,
   TouchableWithoutFeedback,
 } from 'react-native';
 
@@ -13,27 +14,27 @@ import ChitItem from './ChitItem';
 import HelpText from '../../../components/HelpText'
 
 import { colors } from '../../../config/constants';
-import { getChits } from '../../../redux/chitSlice';
+import { getChits, resetChits } from '../../../redux/chitSlice';
 import useSocket from '../../../hooks/useSocket';
 
 const PendingChits = (props) => {
   const dispatch = useDispatch();
   const { wm } = useSocket();
-  const { chits } = useSelector(state => state.chit)
-  const { user } = useSelector((state) => state.currentUser);
-  const user_ent = user?.curr_eid;
-  const {  tally_uuid, partName, description, conversionRate } = props.route?.params ?? {};
-  console.log(JSON.stringify(chits, null, 2), 'test')
+  const { fetching, chits } = useSelector(state => state.chit)
+  const { tally_uuid, partName, description, conversionRate } = props.route?.params ?? {};
 
-  useEffect(() => {
+  const fetchChits = () => {
     dispatch(
       getChits({
         wm,
         tally_uuid,
-        chit_ent: user_ent,
       })
     )
-  }, [])
+  }
+
+  useEffect(() => {
+    fetchChits();
+  }, [dispatch, getChits, wm, tally_uuid])
 
   const onBack = () => {
     props.navigation.navigate('Home')
@@ -66,16 +67,22 @@ const PendingChits = (props) => {
       </View>
 
       <FlatList
+        data={chits}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        keyExtractor={(_, index) => index}
         ListHeaderComponent={
           <HelpText
             label={'Pending Chits'}
             style={styles.listTitle}
           />
         }
-        data={chits}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(_, index) => index}
+        refreshControl={
+          <RefreshControl
+            refreshing={fetching}
+            onRefresh={fetchChits}
+          />
+        }
       />
     </View>
   )
