@@ -106,20 +106,23 @@ const PendingChitDetail = (props) => {
         </View>
       </View>
 
-      <View style={styles.action}>
-        <AcceptButton
-          json={chit?.json_core}
-          chit_ent={chit?.chit_ent}
-          chit_uuid={chit?.chit_uuid}
-        />
+      {chit?.state === 'L.pend' && (
+        <View style={styles.action}>
+          <AcceptButton
+            json={chit?.json_core}
+            chit_ent={chit?.chit_ent}
+            chit_seq={chit?.chit_seq}
+            chit_idx={chit?.chit_idx}
+          />
 
-        <RejectButton
-          chit_ent={chit?.chit_ent}
-          chit_uuid={chit?.chit_uuid}
-          style={styles.rejectBtn}
-        />
-      </View>
-
+          <RejectButton
+            chit_ent={chit?.chit_ent}
+            chit_seq={chit?.chit_seq}
+            chit_idx={chit?.chit_idx}
+            style={styles.rejectBtn}
+          />
+        </View>
+      )}
     </View>
   )
 }

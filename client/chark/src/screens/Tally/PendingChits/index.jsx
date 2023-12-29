@@ -19,7 +19,7 @@ import useSocket from '../../../hooks/useSocket';
 
 const PendingChits = (props) => {
   const dispatch = useDispatch();
-  const { wm } = useSocket();
+  const { wm, chitTrigger } = useSocket();
   const { fetching, chits } = useSelector(state => state.chit)
   const { tally_uuid, partName, description, conversionRate } = props.route?.params ?? {};
 
@@ -34,7 +34,7 @@ const PendingChits = (props) => {
 
   useEffect(() => {
     fetchChits();
-  }, [dispatch, getChits, wm, tally_uuid])
+  }, [dispatch, getChits, wm, tally_uuid, chitTrigger])
 
   const onBack = () => {
     props.navigation.navigate('Home')

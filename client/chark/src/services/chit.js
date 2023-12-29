@@ -68,8 +68,9 @@ export const insertChit = (wm, payload) => {
 
 /**
  * @param {Object} - args
- * @param {string[]} - args.chit_ent
- * @param {string[]} - args.chit_uuid
+ * @param {string} - args.chit_ent
+ * @param {string} - args.chit_seq
+ * @param {string} - args.chit_idx
  * @param {string} - args.signature
  */
 export const acceptChit = (wm, args) => {
@@ -83,7 +84,8 @@ export const acceptChit = (wm, args) => {
     view: 'mychips.chits_v_me',
     where: {
       chit_ent: args.chit_ent,
-      chit_uuid: args.chit_uuid,
+      chit_seq: args.chit_seq,
+      chit_idx: args.chit_idx,
     },
   }
 
@@ -93,8 +95,9 @@ export const acceptChit = (wm, args) => {
 /**
  * @param {any} - wm
  * @param {Object} - args
- * @param {string[]} - args.chit_ent
- * @param {string[]} - args.chit_uuid
+ * @param {string} - args.chit_ent
+ * @param {string} - args.chit_seq
+ * @param {string} - args.chit_idx
  */
 export const rejectChit = (wm, args) => {
   const fields = {
@@ -106,7 +109,8 @@ export const rejectChit = (wm, args) => {
     view: 'mychips.chits_v_me',
     where: {
       chit_ent: args.chit_ent,
-      chit_uuid: args.chit_uuid,
+      chit_seq: args.chit_seq,
+      chit_idx: args.chit_idx,
     },
   }
 
