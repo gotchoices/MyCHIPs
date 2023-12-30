@@ -9,7 +9,7 @@ const initialState = {
 
 export const getChits = createAsyncThunk('chits/getChits', async (args) => {
   try {
-    const fields = ['chit_ent','chit_seq', 'chit_uuid', 'net_pc', 'units', 'net', 'memo', 'reference', 'json_core', 'chit_date'];
+    const fields = ['chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 'net', 'memo', 'reference', 'json_core', 'chit_date', 'state'];
 
     const data = await fetchChits(args.wm, {
       fields,

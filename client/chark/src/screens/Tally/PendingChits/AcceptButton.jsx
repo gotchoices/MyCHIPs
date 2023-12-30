@@ -32,7 +32,8 @@ const AcceptButton = (props) => {
       await acceptChit(wm, {
         signature,
         chit_ent: props.chit_ent,
-        chit_uuid: props.chit_uuid,
+        chit_seq: props.chit_seq,
+        chit_idx: props.chit_idx,
       })
 
       Toast.show({
@@ -41,6 +42,7 @@ const AcceptButton = (props) => {
       });
 
     } catch(err) {
+      console.log(err, 'err')
       const { isKeyAvailable, message } = err;
       if (isKeyAvailable === false) {
         Alert.alert(
@@ -75,7 +77,8 @@ const styles = StyleSheet.create({
 AcceptButton.propTypes = {
   json: PropTypes.any.isRequired,
   chit_ent: PropTypes.string.isRequired,
-  chit_uuid: PropTypes.string.isRequired,
+  chit_seq: PropTypes.number.isRequired,
+  chit_idx: PropTypes.number.isRequired,
 }
 
 export default AcceptButton;

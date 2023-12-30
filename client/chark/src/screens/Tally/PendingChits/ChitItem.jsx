@@ -18,7 +18,7 @@ import { round } from '../../../utils/common';
 const ChitItem = (props) => {
   const isNegative = props.chit.net_pc < 0;
 
-  const net_pc = round((props?.chit?.net_pc ?? 0) / 1000, 3);
+  const net_pc = round((props?.chit?.net ?? 0) / 1000, 3);
   const convertedNet = round(net_pc * props.conversionRate, 2);
 
   const onPress = () => {
@@ -33,15 +33,17 @@ const ChitItem = (props) => {
         onPress={onPress}
       >
         <View style={styles.item}>
-          <View style={styles.description}>
-            <Text style={{ color: colors.black }}>
-              Charged you for 
-            </Text>
+          {props.chit?.state === 'L.pend' && (
+            <View style={styles.description}>
+              <Text style={{ color: colors.black }}>
+                Charged you for 
+              </Text>
 
-            <Text style={styles.memo}>
-              {' ' + (props.chit.memo ?? 'N/A')}
-            </Text>
-          </View>
+              <Text style={styles.memo}>
+                {' ' + (props.chit.memo ?? 'N/A')}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.chit}>
             <ChitIcon color={isNegative ? colors.red : colors.green} />
@@ -56,24 +58,28 @@ const ChitItem = (props) => {
         </View>
       </TouchableWithoutFeedback>
 
-      <View style={styles.action}>
-        <Text style={styles.time}>
-          {moment(props.chit.chit_date).fromNow(true)}
-        </Text>
+      {props.chit?.state === 'L.pend' && (
+        <View style={styles.action}>
+          <Text style={styles.time}>
+            {moment(props.chit.chit_date).fromNow(true)}
+          </Text>
 
-        <AcceptButton
-          json={props.chit?.json_core}
-          chit_ent={props.chit?.chit_ent}
-          chit_uuid={props.chit?.chit_uuid}
-          style={styles.btn}
-        />
+          <AcceptButton
+            json={props.chit?.json_core}
+            chit_ent={props.chit?.chit_ent}
+            chit_seq={props.chit?.chit_seq}
+            chit_idx={props.chit?.chit_idx}
+            style={styles.btn}
+          />
 
-        <RejectButton
-          chit_ent={props.chit?.chit_ent}
-          chit_uuid={props.chit?.chit_uuid}
-          style={[styles.reject, styles.btn]}
-        />
-      </View>
+          <RejectButton
+            chit_ent={props.chit?.chit_ent}
+            chit_seq={props.chit?.chit_seq}
+            chit_idx={props.chit?.chit_idx}
+            style={[styles.reject, styles.btn]}
+          />
+        </View>
+      )}
     </View>
   )
 }

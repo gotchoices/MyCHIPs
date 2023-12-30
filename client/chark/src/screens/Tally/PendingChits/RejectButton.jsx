@@ -16,7 +16,8 @@ const RejectButton = (props) => {
     try {
       await rejectChit(wm, {
         chit_ent: props.chit_ent,
-        chit_uuid: props.chit_uuid,
+        chit_seq: props.chit_seq,
+        chit_idx: props.chit_idx,
       })
 
       Toast.show({
@@ -45,7 +46,8 @@ const RejectButton = (props) => {
 
 RejectButton.propTypes = {
   chit_ent: PropTypes.string.isRequired,
-  chit_uuid: PropTypes.string.isRequired,
+  chit_seq: PropTypes.number.isRequired,
+  chit_idx: PropTypes.number.isRequired,
 }
 
 export default RejectButton;

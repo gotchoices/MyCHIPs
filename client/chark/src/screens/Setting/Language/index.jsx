@@ -19,6 +19,7 @@ const Language = (props) => {
   const [language, setLanguage] = useState('');
   const [languages, setLanguages] = useState([]);
   const { wm } = useSocket();
+  const dispatch = useDispatch();
 
   const { preferredLanguage } = useSelector(state => state.profile);
 
