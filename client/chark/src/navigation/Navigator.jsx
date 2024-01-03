@@ -44,6 +44,7 @@ import PendingChits from "../screens/Tally/PendingChits";
 import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
 import RequestShare from "../screens/Recieve/RequestShare";
 import { GenerateKeysAlertModal } from '../components/GenerateKeyAlertModal';
+import KeyManagement from '../screens/KeyManagement';
 
 const screenOptions = {
   headerTitleAlign: "center",
@@ -199,7 +200,7 @@ function ReceiveStackScreen() {
 const SettingStack = createNativeStackNavigator();
 function SettingStackScreen() {
   return (
-    <SettingStack.Navigator>
+    <SettingStack.Navigator screenOptions={screenOptions}>
       <SettingStack.Screen name="Setting" component={Setting} />
       <SettingStack.Screen
         name="Profile"
@@ -215,6 +216,11 @@ function SettingStackScreen() {
         name="ImportKey"
         component={ImportKeyScreen}
         options={{ title: "Import Key" }}
+      />
+      <SettingStack.Screen
+        name="KeyManagement"
+        component={KeyManagement}
+        options={{ title: "Key Management" }}
       />
     </SettingStack.Navigator>
   );

@@ -24,6 +24,8 @@ const initialState = {
   userChangeTrigger: 1,
   // Displaying modal for creating a signature
   showCreateSignatureModal: false,
+  publicKey: '',
+  privateKey: '',
 };
 
 export const fetchAvatar = createAsyncThunk('profile/fetchAvatar', async (args) => {
@@ -190,7 +192,13 @@ export const profileSlice = createSlice({
     },
     setShowCreateSignatureModal: (state, action) => {
       state.showCreateSignatureModal = action.payload;
-    }
+    },
+    setPublicKey: (state, action) => {
+      state.publicKey = action.payload;
+    },
+    setPrivateKey: (state, action) => {
+      state.privateKey = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -238,6 +246,8 @@ export const {
   setFilter,
   setUserChangeTrigger,
   setShowCreateSignatureModal,
+  setPublicKey,
+  setPrivateKey,
 } = profileSlice.actions;
 
 export default profileSlice.reducer;
