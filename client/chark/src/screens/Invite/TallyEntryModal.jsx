@@ -9,7 +9,8 @@ import Avatar from '../../components/Avatar';
 import HandshakeIcon from '../../../assets/svg/handshake.svg';
 import GreenTickIcon from '../../../assets/svg/green_tick.svg';
 import CustomIcon from "../../components/CustomIcon";
-
+import OfferButton from '../Tally/OfferButton';
+import AcceptButton from '../Tally/AcceptButton';
 
 const TallyEntryModal = (props) => {
   const negotiationData = props.negotiationData;
@@ -61,20 +62,18 @@ const TallyEntryModal = (props) => {
     }
 
       {negotiationData.data?.canAccept && (
-        <Button
-          title="Accept"
-          disabled={props.accepting}
-          onPress={() => props.onAccept(negotiationData.data)}
+        <AcceptButton
+          tally={negotiationData.data}
+          postOffer={props.postAccept}
           style={{ marginBottom: 5, borderRadius: 40 }}
         />
       )}
 
       {negotiationData.data?.canOffer && (
-        <Button
-          title="Offer"
-          disabled={props.offering}
-          onPress={() => props.onOffer(negotiationData.data)}
+        <OfferButton
+          tally={negotiationData.data}
           style={{ marginBottom: 5, borderRadius: 40, backgroundColor: colors.yellow, borderColor: colors.yellow }}
+          postOffer={props.postOffer}
         />
       )}
 
@@ -113,11 +112,7 @@ const styles = StyleSheet.create({
 })
 
 TallyEntryModal.propTypes = {
-  accepting: PropTypes.bool.isRequired,
-  offering: PropTypes.bool.isRequired,
   negotiationData: PropTypes.object.isRequired,
-  onOffer: PropTypes.func.isRequired,
-  onAccept: PropTypes.func.isRequired,
   onReview: PropTypes.func.isRequired,
   onNeogitationModalClose: PropTypes.func.isRequired,
 }
