@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 12,
+    fontWeight: '500',
   },
   titleDisabled: {
     color: colors.gray700,

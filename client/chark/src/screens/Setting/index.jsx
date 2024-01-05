@@ -95,8 +95,6 @@ const Setting = (props) => {
         </TouchableWithoutFeedback>
       </View>
 
-
-
       <View style={[styles.menu, { marginTop: 10 }]}>
         <View>
           <HelpText
@@ -127,22 +125,14 @@ const Setting = (props) => {
       </View>
 
       <View style={[styles.menu, { marginTop: 10 }]}>
-        <GenerateKey menuStyle={styles.menuTitle} />
-      </View>
-
-      <View style={[styles.menu, { marginTop: 10 }]}>
         <TouchableOpacity
           style={{ width: "100%" }}
           onPress={() => {
-            props.navigation.navigate("ImportKey");
+            props.navigation.navigate("KeyManagement");
           }}
         >
-          <Text style={styles.menuTitle}>Import Key</Text>
+          <Text style={styles.menuTitle}>Key Management</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={[styles.menu, { marginTop: 10 }]}>
-        <ExportKey menuStyle={styles.menuTitle} />
       </View>
 
       <CenteredModal
