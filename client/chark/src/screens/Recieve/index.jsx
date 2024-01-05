@@ -18,6 +18,7 @@ import { getCurrency } from "../../services/profile";
 import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
 import { receiveChit } from '../../services/chit';
+import { Toast } from "react-native-toast-message/lib/src/Toast";
 
 const Receive = (props) => {
   const [memo, setMemo] = useState("");
@@ -78,6 +79,22 @@ const Receive = (props) => {
   };
 
   const onReceive = async () => {
+    const net = round((chit ?? 0) * 1000, 0);
+
+    if (net< 0) {
+      return Toast.show({
+        type: 'error',
+        text1: "Can't input negative chit.",
+      });
+    }
+
+    if (net== 0) {
+      return Toast.show({
+        type: 'error',
+        text1: 'Please provide an amount',
+      });
+    }
+
     try {
       Keyboard.dismiss();
       setDisabled(true);
