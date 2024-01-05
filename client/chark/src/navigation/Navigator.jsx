@@ -140,7 +140,7 @@ function HomeStackScreen() {
         component={PendingChitDetail}
         options={{ headerShown: false }}
       />
-           <HomeStack.Screen
+      <HomeStack.Screen
         name="FilterTallyScreen"
         component={FilterTallyScreen}
         options={{ headerShown: true, headerTitle: 'Filters' }}

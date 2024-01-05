@@ -1,14 +1,16 @@
 import React, { useEffect, useMemo } from "react";
 import {
   View,
-  StyleSheet,
   Text,
+  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useSelector, useDispatch } from "react-redux";
+
 import { colors } from "../../../config/constants";
+import { useSelector, useDispatch } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   SelectedIcon,
   UnSelectedIcon,
@@ -36,8 +38,8 @@ const FilterItem = ({ args, onSelected }) => {
 const FilterTallyScreen = (props) => {
   const filter = useSelector((state) => state.profile.filterTally);
 
-  const navigation = props.navigation;
   const dispatch = useDispatch();
+  const navigation = props.navigation;
 
   const hasFilterChanged = useMemo(() => {
     const isRecentSelected = filter.recent.selected === true;
