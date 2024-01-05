@@ -10,6 +10,7 @@ import {
   fetchPersonalAndCurrency,
   getPreferredLanguage,
   getFilter,
+  getTallyListFilter,
   setShowCreateSignatureModal,
 } from "../redux/profileSlice";
 import { colors } from "../config/constants";
@@ -43,6 +44,7 @@ import TallyRequest from "../screens/Tally/TallyRequest";
 import PendingChits from "../screens/Tally/PendingChits";
 import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
 import RequestShare from "../screens/Recieve/RequestShare";
+import FilterTallyScreen from '../screens/Tally/FilterTallyList'
 import { GenerateKeysAlertModal } from '../components/GenerateKeyAlertModal';
 
 const screenOptions = {
@@ -139,6 +141,13 @@ function HomeStackScreen() {
         component={PendingChitDetail}
         options={{ headerShown: false }}
       />
+           <HomeStack.Screen
+        name="FilterTallyScreen"
+        component={FilterTallyScreen}
+        options={{ headerShown: true, headerTitle: 'Filters' }}
+      />
+
+
     </HomeStack.Navigator>
   );
 }
@@ -232,6 +241,7 @@ const Navigator = () => {
     dispatch(fetchPersonalAndCurrency({ wm, user_ent }));
     dispatch(getPreferredLanguage(wm));
     dispatch(getFilter());
+    dispatch(getTallyListFilter())
   }, [wm, user_ent, fetchAvatar]);
 
   const onDismissSignatureModal = () => {

@@ -20,6 +20,7 @@ const initialState = {
   personal: undefined,
   addresses: [],
   filter: {},
+  filterTally:{},
   // For detecting any change on user to trigger asynchronous change that depend on the tally 
   userChangeTrigger: 1,
   // Displaying modal for creating a signature
@@ -159,6 +160,31 @@ export const getFilter = createAsyncThunk('profile/getFilter', async () => {
   }
 })
 
+export const getTallyListFilter = createAsyncThunk('profile/getTallyListFilter', async () => {
+  const data = await AsyncStorage.getItem("filterTallyList")
+  if (data) {
+    let filterTally = {};
+    try {
+      filterTally = JSON.parse(data);
+    } catch (err) {
+      console.log(err.message)
+    }
+
+    return filterTally ?? {};
+  } else {
+    const filterTally = {
+      recent: { title: "Most Recent activity", selected: true, status: 'recent' },
+      ascending: { title: "Positive to Negative (assets to liabilities)", selected: false, status: 'ascending' },
+      descending: { title: "Negative to Positive (liabilities to assets)", selected: false, status: 'descending' },
+      absolute: { title: "Absolute value (highest to lowest)", selected: false, status: 'absolute' },
+      alphabetical: { title: "Alphabetical", selected: false, status: 'alphabetical' },
+    }
+
+    await AsyncStorage.setItem("filterTallyList", JSON.stringify(filterTally))
+    return filterTally;
+  }
+})
+
 export const profileSlice = createSlice({
   name: 'profile',
   initialState: initialState,
@@ -183,6 +209,9 @@ export const profileSlice = createSlice({
     },
     setFilter: (state, action) => {
       state.filter = action.payload;
+    },
+    setFilterTally: (state, action) => {
+      state.filterTally = action.payload;
     },
     setUserChangeTrigger: (state, action) => {
       const trigger = state.userChangeTrigger ?? 1;
@@ -225,6 +254,9 @@ export const profileSlice = createSlice({
       .addCase(getFilter.fulfilled, (state, action) => {
         state.filter = action.payload
       })
+      .addCase(getTallyListFilter.fulfilled, (state, action) => {
+        state.filterTally = action.payload
+      })
   },
 });
 
@@ -236,6 +268,7 @@ export const {
   setAddress,
   setPersonal,
   setFilter,
+  setFilterTally,
   setUserChangeTrigger,
   setShowCreateSignatureModal,
 } = profileSlice.actions;

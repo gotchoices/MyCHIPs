@@ -6,9 +6,7 @@ import { FilterIcon, SearchIcon } from '../../../components/SvgAssets/SvgAssets'
 import { colors } from '../../../config/constants';
 
 const Search = (props) => {
-  const onFilter = () => {
-    console.log('filter pressed')
-  }
+
 
   return (
     <View style={styles.container}>
@@ -19,12 +17,6 @@ const Search = (props) => {
           placeholder={props.title ?? 'Search'}
         />
       </View>
-
-      <TouchableWithoutFeedback onPress={onFilter}>
-        <View style={styles.filter}>
-          <FilterIcon />
-        </View>
-      </TouchableWithoutFeedback>
     </View>
   )
 }
