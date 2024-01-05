@@ -162,8 +162,10 @@ export const getFilter = createAsyncThunk('profile/getFilter', async () => {
 
 export const getTallyListFilter = createAsyncThunk('profile/getTallyListFilter', async () => {
   const data = await AsyncStorage.getItem("filterTallyList")
+  
   if (data) {
     let filterTally = {};
+
     try {
       filterTally = JSON.parse(data);
     } catch (err) {
@@ -181,6 +183,7 @@ export const getTallyListFilter = createAsyncThunk('profile/getTallyListFilter',
     }
 
     await AsyncStorage.setItem("filterTallyList", JSON.stringify(filterTally))
+
     return filterTally;
   }
 })
@@ -262,13 +265,13 @@ export const profileSlice = createSlice({
 
 export const {
   setAvatar,
-  setPreferredCurrency,
-  setPreferredLanguage,
-  setCommunications,
+  setFilter,
   setAddress,
   setPersonal,
-  setFilter,
   setFilterTally,
+  setCommunications,
+  setPreferredCurrency,
+  setPreferredLanguage,
   setUserChangeTrigger,
   setShowCreateSignatureModal,
 } = profileSlice.actions;
