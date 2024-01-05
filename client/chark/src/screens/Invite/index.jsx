@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Alert,
   TouchableHighlight,
@@ -11,7 +10,6 @@ import {
 import Toast from "react-native-toast-message";
 import SwipeableFlatList from "react-native-swipeable-list";
 import { useSelector, useDispatch } from "react-redux";
-import stringify from "json-stable-stringify";
 
 import { colors } from "../../config/constants";
 import useSocket from "../../hooks/useSocket";
@@ -19,8 +17,6 @@ import useInvite from "../../hooks/useInvite";
 import {
   createTemplate,
   fetchContracts,
-  acceptTally,
-  offerTally,
   refuseTally,
 } from "../../services/tally";
 import TemplateItem from "./TemplateItem";
@@ -41,10 +37,6 @@ import useMessageText from "../../hooks/useMessageText";
 import { useHoldTermsText } from "../../hooks/useLanguage";
 import { fetchTemplates } from "../../redux/workingTalliesSlice";
 import { fetchImagesByDigest } from "../../redux/avatarSlice";
-import {
-  createSignature,
-  verifySignature,
-} from "../../utils/message-signature";
 import { request } from "../../services/request";
 import { random } from "../../utils/common";
 import { GenerateKeysAlertModal } from "../../components/GenerateKeyAlertModal";
@@ -96,8 +88,6 @@ const TallyInvite = (props) => {
     data
   );
   const { wm, ws, tallyNegotiation } = useSocket();
-  const [accepting, setAccepting] = useState(false);
-  const [offering, setOffering] = useState(false);
   const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(
     false
   );
@@ -238,81 +228,21 @@ const TallyInvite = (props) => {
     });
   };
 
-  /**
-   * @param {object} args
-   * @param {number} args.tally_ent
-   * @param {number} args.tally_seq
-   * @param {number} args.tally_uuid
-   */
-  const onOffer = async ({
-    tally_uuid,
-    tally_ent,
-    tally_seq,
-    name,
-    json,
-  }) => {
-    setOffering(true);
-    const _json = stringify(json);
-    createSignature(_json).then((signature) => {
-      return offerTally(wm, {
-        tally_uuid,
-        tally_ent,
-        tally_seq,
-        signature,
-      })
-        .then((result) => {
-          setShowOfferSuccess({
-            show: true,
-            offerTo: name,
-            tally_ent,
-            tally_seq,
-          });
-          resetNegotiationData();
-        })
-        .catch((err) => {
-          const { isKeyAvailable, message } = err;
-          if (isKeyAvailable === false) {
-            return setShowKeyModal(true);
-          } else {
-            Alert.alert("Error", message || err);
-          }
-        })
-        .finally(() => {
-          setOffering(false);
-        });
+  const postOffer = () => {
+    const { tally_ent, tally_seq, name } = negotiationData?.data ?? {};
+    setShowOfferSuccess({
+      tally_ent,
+      tally_seq,
+      show: true,
+      offerTo: name,
     });
-  };
+    resetNegotiationData();
+  }
 
-  /**
-   * @param {object} args
-   * @param {number} args.tally_ent
-   * @param {number} args.tally_seq
-   * @param {string} args.signature
-   * @param {string} args.json
-   */
-  const onAccept = async ({ tally_ent, tally_seq, json }) => {
-    setAccepting(true);
-    const _json = stringify(json);
-    createSignature(_json)
-      .then((signature) => {
-        return acceptTally(wm, { tally_ent, tally_seq, signature });
-      })
-      .then((result) => {
-        setShowAcceptSuccess(true);
-        resetNegotiationData();
-      })
-      .catch((err) => {
-        const { isKeyAvailable, message } = err;
-        if (isKeyAvailable === false) {
-          return setShowKeyModal(true);
-        } else {
-          Alert.alert("Error", message || err);
-        }
-      })
-      .finally(() => {
-        setAccepting(false);
-      });
-  };
+  const postAccept= () => {
+    setShowAcceptSuccess(true);
+    resetNegotiationData();
+  }
 
   const renderItem = ({ item, index }) => {
     return (
@@ -352,7 +282,7 @@ const TallyInvite = (props) => {
                   partDigest,
                   holdDigest,
                   tally_uuid,
-                  json: item.json,
+                  json_core: item.json_core,
                   tally_seq: item.id,
                   tallyType: item.tally_type,
                   tally_ent: item.tally_ent,
@@ -617,10 +547,8 @@ const TallyInvite = (props) => {
           onNeogitationModalClose={onNeogitationModalClose}
           negotiationData={negotiationData}
           onReview={onReview}
-          onOffer={onOffer}
-          onAccept={onAccept}
-          accepting={accepting}
-          offering={offering}
+          postOffer={postOffer}
+          postAccept={postAccept}
         />
       </BottomSheetModal>
 

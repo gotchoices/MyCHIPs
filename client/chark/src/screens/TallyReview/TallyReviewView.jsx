@@ -45,23 +45,23 @@ const TallyReviewView = (props) => {
   const getStockText = () => {
     return props.holdCert?.chad?.cid
       ? props.holdCert.chad.cid + "..."
-      : props.partCert.chad.cid + "...";
+      : props.partCert?.chad?.cid + "...";
   };
 
   const getFoilText = () => {
     return props.partCert?.chad?.cid
       ? props.partCert.chad.cid + "..."
-      : props.holdCert.chad.cid + "...";
+      : props.holdCert?.chad?.cid + "...";
   };
 
   const getCID = () => {
-    if (props.holdCert.chad.cid) {
+    if (props.holdCert?.chad?.cid) {
       return (
-        props.holdCert.chad.cid + ":" + props.holdCert.chad.agent
+        props.holdCert.chad.cid + ":" + props.holdCert?.chad?.agent
       );
     }
 
-    return props.partCert.chad.cid + ":" + props.holdCert.chad.agent;
+    return props.partCert?.chad?.cid + ":" + props.holdCert?.chad?.agent;
   };
 
   return (
