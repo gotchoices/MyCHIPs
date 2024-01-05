@@ -1,50 +1,49 @@
-import React, { useEffect } from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Alert } from "react-native";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import useSocket from "../hooks/useSocket";
 import {
-  fetchAvatar,
-  fetchPersonalAndCurrency,
-  getPreferredLanguage,
   getFilter,
+  fetchAvatar,
   getTallyListFilter,
+  getPreferredLanguage,
+  fetchPersonalAndCurrency,
   setShowCreateSignatureModal,
 } from "../redux/profileSlice";
 import { colors } from "../config/constants";
 
-import Invite from "../screens/Invite";
 import Home from "../screens/Home";
+import Invite from "../screens/Invite";
 import Scanner from "../screens/Scanner";
-import TallyPreview from "../screens/Tally/TallyPreview";
-import EditOpenTally from "../screens/Tally/EditOpenTally";
-import TallyReport from "../screens/Tally/TallyReport";
 import Setting from "../screens/Setting";
 import Profile from "../screens/Profile";
-import ProfileEdit from "../screens/Profile/ProfileEdit";
-import InviteProvider from "../components/InviteProvider";
-import TradingVariables from "../screens/Tally/TradingVariables";
-import CustomIcon from "../components/CustomIcon";
-
-import ShareTally from "../screens/ShareTally";
-import ChitHistory from "../screens/Tally/ChitHistory";
-import ImportKeyScreen from "../screens/ImportKeyScreen";
-import ChitDetail from "../screens/Tally/ChitDetail";
-import TallyContract from "../screens/Tally/TallyContract";
-import PaymentDetail from "../screens/Tally/PaymentDetail";
-import FilterScreen from "../screens/Filter";
-import DraftTally from "../screens/Tally/DraftTally";
-import RequestDetail from "../screens/Tally/RequestDetail";
-import TallyCertificate from "../screens/Tally/TallyCertificate";
 import Receive from "../screens/Recieve";
-import NotificationScreen from "../screens/Notification/NotificationScreen";
+import FilterScreen from "../screens/Filter";
+import ShareTally from "../screens/ShareTally";
+import CustomIcon from "../components/CustomIcon";
+import ChitDetail from "../screens/Tally/ChitDetail";
+import DraftTally from "../screens/Tally/DraftTally";
+import TallyReport from "../screens/Tally/TallyReport";
+import ChitHistory from "../screens/Tally/ChitHistory";
+import TallyPreview from "../screens/Tally/TallyPreview";
+import ProfileEdit from "../screens/Profile/ProfileEdit";
+import ImportKeyScreen from "../screens/ImportKeyScreen";
 import TallyRequest from "../screens/Tally/TallyRequest";
 import PendingChits from "../screens/Tally/PendingChits";
-import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
+import InviteProvider from "../components/InviteProvider";
+import EditOpenTally from "../screens/Tally/EditOpenTally";
+import TallyContract from "../screens/Tally/TallyContract";
+import PaymentDetail from "../screens/Tally/PaymentDetail";
+import RequestDetail from "../screens/Tally/RequestDetail";
 import RequestShare from "../screens/Recieve/RequestShare";
 import FilterTallyScreen from '../screens/Tally/FilterTallyList'
+import TradingVariables from "../screens/Tally/TradingVariables";
+import TallyCertificate from "../screens/Tally/TallyCertificate";
+import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
+import NotificationScreen from "../screens/Notification/NotificationScreen";
 import { GenerateKeysAlertModal } from '../components/GenerateKeyAlertModal';
 
 const screenOptions = {
@@ -146,8 +145,6 @@ function HomeStackScreen() {
         component={FilterTallyScreen}
         options={{ headerShown: true, headerTitle: 'Filters' }}
       />
-
-
     </HomeStack.Navigator>
   );
 }

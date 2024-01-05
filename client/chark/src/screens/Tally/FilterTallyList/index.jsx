@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -141,30 +141,49 @@ const FilterTallyScreen = (props) => {
   };
 
   return (
-    <View style={styles.container}>
-      <FilterItem args={filter.recent} onSelected={onSelected} />
-      <View style={styles.divider} />
+    <View style={{ flex: 1 }}>
+      {filter ? (
+        <View style={styles.container}>
+          <FilterItem args={filter.recent} onSelected={onSelected} />
+          <View style={styles.divider} />
 
-      <FilterItem args={filter.ascending} onSelected={onSelected} />
-      <View style={styles.divider} />
+          <FilterItem
+            args={filter.ascending}
+            onSelected={onSelected}
+          />
+          <View style={styles.divider} />
 
-      <FilterItem args={filter.descending} onSelected={onSelected} />
-      <View style={styles.divider} />
+          <FilterItem
+            args={filter.descending}
+            onSelected={onSelected}
+          />
+          <View style={styles.divider} />
 
-      <FilterItem args={filter.absolute} onSelected={onSelected} />
-      <View style={styles.divider} />
+          <FilterItem
+            args={filter.absolute}
+            onSelected={onSelected}
+          />
+          <View style={styles.divider} />
 
-      <FilterItem
-        args={filter.alphabetical}
-        onSelected={onSelected}
-      />
-      <View style={styles.divider} />
+          <FilterItem
+            args={filter.alphabetical}
+            onSelected={onSelected}
+          />
+          <View style={styles.divider} />
+        </View>
+      ) : (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator />
+        </View>
+      )}
     </View>
   );
-
-  //   return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-  //     <ActivityIndicator />
-  //   </View>
 };
 
 const styles = StyleSheet.create({
