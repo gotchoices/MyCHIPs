@@ -90,28 +90,28 @@ const FilterTallyScreen = (props) => {
   const onReset = () => {
     const resetFilter = {
       recent: {
-        title: "Most Recent activity",
         selected: true,
         status: "recent",
+        title: "Most Recent activity",
       },
       ascending: {
-        title: "Positive to Negative (assets to liabilities)",
         selected: false,
         status: "ascending",
+        title: "Positive to Negative (assets to liabilities)",
       },
       descending: {
-        title: "Negative to Positive (liabilities to assets)",
         selected: false,
         status: "descending",
+        title: "Negative to Positive (liabilities to assets)",
       },
       absolute: {
-        title: "Absolute value (highest to lowest)",
         selected: false,
         status: "absolute",
+        title: "Absolute value (highest to lowest)",
       },
       alphabetical: {
-        title: "Alphabetical",
         selected: false,
+        title: "Alphabetical",
         status: "alphabetical",
       },
     };
@@ -195,33 +195,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   display: {
-    fontWeight: "400",
-    fontSize: 16,
     padding: 16,
+    fontSize: 16,
+    fontWeight: "400",
     fontFamily: "inter",
   },
   title: {
     fontSize: 14,
-    color: colors.black,
     fontWeight: "500",
+    color: colors.black,
     fontFamily: "inter",
   },
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
     paddingHorizontal: 24,
+    justifyContent: "space-between",
   },
   divider: {
     height: 1,
-    backgroundColor: "#ADADAD",
     width: "100%",
     marginVertical: 12,
+    backgroundColor: "#ADADAD",
   },
   reset: {
     fontSize: 14,
+    color: "#636363",
     fontWeight: "500",
     fontFamily: "inter",
-    color: "#636363",
   },
 });
 
