@@ -3,7 +3,7 @@
 #----------------------------------------------------------------
 #TODO:
 #- 
-require common.tcl glob.tcl ../trigview.tcl
+require common.tcl glob.tcl trigview.tcl
 module mychips
 
 namespace eval tokens {

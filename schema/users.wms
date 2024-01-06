@@ -52,6 +52,7 @@ table mychips.users {base.ent mychips.agents} {
   , user_cmt	varchar
   , _lift_check	timestamp	not null default current_timestamp
   , _last_tally	int		not null default 0
+  , _last_pay	int		not null default 0
     eval(s $glob::stamps)
 }
 
