@@ -55,7 +55,7 @@ const Tally = (props) => {
 
   const [isVisible, setIsVisible] = useState(false);
 
-  const [sortedTallies, setSortedTallies] = useState([]);
+  const [sortedTallies, setSortedTallies] = useState(tallies);
 
   const getTalliesAlphabetically = () => {
     const sortedArray = sortTalliesAlphabetically(tallies);
@@ -97,9 +97,19 @@ const Tally = (props) => {
     }
   };
 
+  useEffect(()=>{
+    fetchFilteredTallies()
+  },[filterTally])
+
+  const fetchTallies = () => {
+    if (wm) {
+      dispatch(fetchOpenTallies({ wm }));
+    }
+  };
+
   useEffect(() => {
-    fetchFilteredTallies();
-  }, [wm, dispatch, fetchOpenTallies, tallyNegotiation, filterTally]);
+    fetchTallies();
+  }, [wm, dispatch, fetchOpenTallies, tallyNegotiation])
 
   useEffect(() => {
     if (wm) {
@@ -193,7 +203,7 @@ const Tally = (props) => {
         }
         data={sortedTallies}
         renderItem={renderItem}
-        onRefresh={fetchFilteredTallies}
+        onRefresh={fetchTallies}
         keyExtractor={(_, index) => index}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
