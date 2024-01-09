@@ -8,17 +8,24 @@ import {
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 
-import useSocket from '../../hooks/useSocket';
-import { round } from '../../utils/common';
-import { getCurrency } from '../../services/user';
-import { useUserTalliesText } from '../../hooks/useLanguage';
-import { fetchOpenTallies, updateTallyOnChitTransferred } from '../../redux/openTalliesSlice';
-import { fetchImagesByDigest as fetchImages } from '../../redux/avatarSlice';
+import useSocket from "../../hooks/useSocket";
+import { round } from "../../utils/common";
+import { getCurrency } from "../../services/user";
+import { useUserTalliesText } from "../../hooks/useLanguage";
+import {
+  fetchOpenTallies,
+  updateTallyOnChitTransferred,
+} from "../../redux/openTalliesSlice";
+import { fetchImagesByDigest as fetchImages } from "../../redux/avatarSlice";
 
 import TallyItem from "./TallyItem";
 import TallyHeader from "./TallyHeader";
 import PayModal from "../Pay";
 import { colors } from "../../config/constants";
+import {
+  sortTallies,
+  sortTalliesAlphabetically,
+} from "../../utils/user";
 
 const connectionStatus = {
   connected: 'Connected',
@@ -29,9 +36,15 @@ const connectionStatus = {
 const Tally = (props) => {
   const { wm, tallyNegotiation, chitTrigger, status } = useSocket();
   const dispatch = useDispatch();
-  const { preferredCurrency } = useSelector(state => state.profile);
-  const { imageFetchTrigger, tallies: tallies, /*imagesByDigest,*/ fetching } = useSelector(state => state.openTallies);
-  const { imagesByDigest } = useSelector(state => state.avatar);
+  const { preferredCurrency, filterTally } = useSelector(
+    (state) => state.profile
+  );
+  const {
+    imageFetchTrigger,
+    tallies: tallies,
+    /*imagesByDigest,*/ fetching,
+  } = useSelector((state) => state.openTallies);
+  const { imagesByDigest } = useSelector((state) => state.avatar);
   useUserTalliesText(wm);
 
   const [conversionRate, setConversionRate] = useState(0);
@@ -40,7 +53,53 @@ const Tally = (props) => {
 
   const [tally, setTally] = useState();
 
-  const [isVisible,setIsVisible]= useState(false)
+  const [isVisible, setIsVisible] = useState(false);
+
+  const [sortedTallies, setSortedTallies] = useState(tallies);
+
+  const getTalliesAlphabetically = () => {
+    const sortedArray = sortTalliesAlphabetically(tallies);
+
+    setSortedTallies(sortedArray);
+  };
+
+  const getSortedTallies = (field, descending) => {
+    const sortedArray = sortTallies(tallies, field, descending);
+
+    setSortedTallies(sortedArray);
+  };
+
+  const fetchFilteredTallies = () => {
+    if (wm) {
+      const selectedKey = Object.keys(filterTally).find(
+        (key) => filterTally[key].selected === true
+      );
+
+      switch (selectedKey) {
+        case "absolute":
+          return getSortedTallies("mag_p", true);
+
+        case "ascending":
+          return getSortedTallies("net", true);
+
+        case "descending":
+          return getSortedTallies("net", false);
+
+        case "recent":
+          return getSortedTallies("tally_date", true);
+
+        case "alphabetical":
+          return getTalliesAlphabetically();
+
+        default:
+          return getSortedTallies("tally_date", true);
+      }
+    }
+  };
+
+  useEffect(()=>{
+    fetchFilteredTallies()
+  },[filterTally])
 
   const fetchTallies = () => {
     if (wm) {
@@ -53,8 +112,8 @@ const Tally = (props) => {
   }, [wm, dispatch, fetchOpenTallies, tallyNegotiation])
 
   useEffect(() => {
-    if(wm) {
-      dispatch(fetchImages({ wm, status: 'open' }))
+    if (wm) {
+      dispatch(fetchImages({ wm, status: "open" }));
     }
   }, [wm, imageFetchTrigger]);
 
@@ -71,12 +130,10 @@ const Tally = (props) => {
   }, [currencyCode]);
 
   useEffect(() => {
-    if(chitTrigger) {
-      dispatch(
-        updateTallyOnChitTransferred(chitTrigger)
-      )
+    if (chitTrigger) {
+      dispatch(updateTallyOnChitTransferred(chitTrigger));
     }
-  }, [chitTrigger])
+  }, [chitTrigger]);
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
@@ -103,17 +160,18 @@ const Tally = (props) => {
     return 0;
   }, [totalNet, conversionRate]);
 
-  const onItemPress = ({ tally}) => {
+  const onItemPress = ({ tally }) => {
     setTally(tally);
-    setIsVisible(true)
+    setIsVisible(true);
   };
-
 
   const renderItem = ({ item, index }) => (
     <TouchableWithoutFeedback
-      onPress={()=>{onItemPress({
-tally:item
-      })}}
+      onPress={() => {
+        onItemPress({
+          tally: item,
+        });
+      }}
     >
       <View
         style={[
@@ -143,24 +201,24 @@ tally:item
             navigation={props.navigation}
           />
         }
-        ListFooterComponent={<View style={styles.footer} />}
-        contentContainerStyle={styles.contentContainer}
-        data={tallies}
+        data={sortedTallies}
         renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
+        onRefresh={fetchTallies}
         keyExtractor={(_, index) => index}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+        ListFooterComponent={<View style={styles.footer} />}
         refreshing={
           // adding this condition as wm will not return anything unless connected
           status !== connectionStatus.connected ? false : fetching
         }
-        onRefresh={fetchTallies}
       />
 
       <PayModal
         tally={tally}
         visible={isVisible}
         navigation={props.navigation}
-        onClose={()=>setIsVisible(false)}
+        onClose={() => setIsVisible(false)}
         conversionRate={conversionRate}
       />
     </View>
@@ -185,7 +243,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     backgroundColor: colors.white,
-    height: Dimensions.get("window").height*0.3,
+    height: Dimensions.get("window").height * 0.3,
   },
 });
 
