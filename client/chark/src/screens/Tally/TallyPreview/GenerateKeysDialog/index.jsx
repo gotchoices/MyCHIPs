@@ -1,11 +1,11 @@
 import React, { useEffect } from "react"
 import { Modal, View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { KeyConfig } from "wyseman/lib/crypto";
 import { useSelector } from 'react-redux';
 
 import useSocket from "../../../../hooks/useSocket";
 import { storePrivateKey, storePublicKey } from "../../../../utils/keychain-store";
 import { updatePublicKey } from "../../../../services/profile";
+import { KeyConfig } from '../../../../config/constants';
 
 export const GenerateKeysDialog = ({ visible, onDismiss, onKeySaved, onError }) => {
   const subtle = window.crypto.subtle;

@@ -65,3 +65,9 @@ export const connectsObj = {
 export const localStorage = {
   TallyPictures: 'TallyPictures',
 };
+
+export const KeyConfig = {
+  name: 'ECDSA',
+  namedCurve: 'P-521',
+  hash: {name: 'SHA-384'}
+};

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View, Text, StyleSheet } from 'react-native';
-import { KeyConfig } from 'wyseman/lib/crypto';
 
 import Button from '../../components/Button';
 import SigningKeyWarning from '../../components/SigningKeyWarning';
 import BottomSheetModal from '../../components/BottomSheetModal';
 
 import useSocket from '../../hooks/useSocket';
-import { colors } from '../../config/constants';
+import { colors, KeyConfig } from '../../config/constants';
 import { updatePublicKey } from '../../services/profile';
 import { storePrivateKey, storePublicKey } from '../../utils/keychain-store';
 import { setPrivateKey, setPublicKey } from '../../redux/profileSlice';

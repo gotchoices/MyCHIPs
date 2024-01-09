@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
 import Button from './Button';
-import WarningIcon from '../../assets/svg/ic_warning.svg';
+import WarningIcon from '../../assets/svg/warning_icon.svg';
 
 import { colors } from '../config/constants';
 
