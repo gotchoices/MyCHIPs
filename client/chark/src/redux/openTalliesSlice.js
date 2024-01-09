@@ -14,7 +14,7 @@ const initialState = {
 export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies', async (args) => {
   try {
     const tallies = await fetchTallies(args.wm, {
-      fields: ['tally_uuid', 'tally_seq', 'tally_ent', 'net', 'tally_type', 'part_chad', 'part_cert', 'hold_chad', 'net_pc'],
+      fields: ['tally_uuid', 'tally_seq', 'tally_ent', 'net','mag_p','tally_date', 'tally_type', 'part_chad', 'part_cert', 'hold_chad', 'net_pc'],
       where: {
         status: 'open',
       }

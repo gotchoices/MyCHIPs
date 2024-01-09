@@ -8,24 +8,37 @@ import {
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 
-import useSocket from '../../hooks/useSocket';
-import { round } from '../../utils/common';
-import { getCurrency } from '../../services/user';
-import { useUserTalliesText } from '../../hooks/useLanguage';
-import { fetchOpenTallies, updateTallyOnChitTransferred } from '../../redux/openTalliesSlice';
-import { fetchImagesByDigest as fetchImages } from '../../redux/avatarSlice';
+import useSocket from "../../hooks/useSocket";
+import { round } from "../../utils/common";
+import { getCurrency } from "../../services/user";
+import { useUserTalliesText } from "../../hooks/useLanguage";
+import {
+  fetchOpenTallies,
+  updateTallyOnChitTransferred,
+} from "../../redux/openTalliesSlice";
+import { fetchImagesByDigest as fetchImages } from "../../redux/avatarSlice";
 
 import TallyItem from "./TallyItem";
 import TallyHeader from "./TallyHeader";
 import PayModal from "../Pay";
 import { colors } from "../../config/constants";
+import {
+  sortTallies,
+  sortTalliesAlphabetically,
+} from "../../utils/user";
 
 const Tally = (props) => {
   const { wm, tallyNegotiation, chitTrigger } = useSocket();
   const dispatch = useDispatch();
-  const { preferredCurrency } = useSelector(state => state.profile);
-  const { imageFetchTrigger, tallies: tallies, /*imagesByDigest,*/ fetching } = useSelector(state => state.openTallies);
-  const { imagesByDigest } = useSelector(state => state.avatar);
+  const { preferredCurrency, filterTally } = useSelector(
+    (state) => state.profile
+  );
+  const {
+    imageFetchTrigger,
+    tallies: tallies,
+    /*imagesByDigest,*/ fetching,
+  } = useSelector((state) => state.openTallies);
+  const { imagesByDigest } = useSelector((state) => state.avatar);
   useUserTalliesText(wm);
 
   const [conversionRate, setConversionRate] = useState(0);
@@ -34,21 +47,57 @@ const Tally = (props) => {
 
   const [tally, setTally] = useState();
 
-  const [isVisible,setIsVisible]= useState(false)
+  const [isVisible, setIsVisible] = useState(false);
 
-  const fetchTallies = () => {
+  const [sortedTallies, setSortedTallies] = useState([]);
+
+  const getTalliesAlphabetically = () => {
+    const sortedArray = sortTalliesAlphabetically(tallies);
+
+    setSortedTallies(sortedArray);
+  };
+
+  const getSortedTallies = (field, descending) => {
+    const sortedArray = sortTallies(tallies, field, descending);
+
+    setSortedTallies(sortedArray);
+  };
+
+  const fetchFilteredTallies = () => {
     if (wm) {
-      dispatch(fetchOpenTallies({ wm }));
+      const selectedKey = Object.keys(filterTally).find(
+        (key) => filterTally[key].selected === true
+      );
+
+      switch (selectedKey) {
+        case "absolute":
+          return getSortedTallies("mag_p", true);
+
+        case "ascending":
+          return getSortedTallies("net", true);
+
+        case "descending":
+          return getSortedTallies("net", false);
+
+        case "recent":
+          return getSortedTallies("tally_date", true);
+
+        case "alphabetical":
+          return getTalliesAlphabetically();
+
+        default:
+          return getSortedTallies("tally_date", true);
+      }
     }
   };
 
   useEffect(() => {
-    fetchTallies();
-  }, [wm, dispatch, fetchOpenTallies, tallyNegotiation])
+    fetchFilteredTallies();
+  }, [wm, dispatch, fetchOpenTallies, tallyNegotiation, filterTally]);
 
   useEffect(() => {
-    if(wm) {
-      dispatch(fetchImages({ wm, status: 'open' }))
+    if (wm) {
+      dispatch(fetchImages({ wm, status: "open" }));
     }
   }, [wm, imageFetchTrigger]);
 
@@ -65,12 +114,10 @@ const Tally = (props) => {
   }, [currencyCode]);
 
   useEffect(() => {
-    if(chitTrigger) {
-      dispatch(
-        updateTallyOnChitTransferred(chitTrigger)
-      )
+    if (chitTrigger) {
+      dispatch(updateTallyOnChitTransferred(chitTrigger));
     }
-  }, [chitTrigger])
+  }, [chitTrigger]);
 
   const totalNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
@@ -97,17 +144,18 @@ const Tally = (props) => {
     return 0;
   }, [totalNet, conversionRate]);
 
-  const onItemPress = ({ tally}) => {
+  const onItemPress = ({ tally }) => {
     setTally(tally);
-    setIsVisible(true)
+    setIsVisible(true);
   };
-
 
   const renderItem = ({ item, index }) => (
     <TouchableWithoutFeedback
-      onPress={()=>{onItemPress({
-tally:item
-      })}}
+      onPress={() => {
+        onItemPress({
+          tally: item,
+        });
+      }}
     >
       <View
         style={[
@@ -137,21 +185,21 @@ tally:item
             navigation={props.navigation}
           />
         }
-        ListFooterComponent={<View style={styles.footer} />}
-        contentContainerStyle={styles.contentContainer}
-        data={tallies}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(_, index) => index}
+        data={sortedTallies}
         refreshing={fetching}
-        onRefresh={fetchTallies}
+        renderItem={renderItem}
+        onRefresh={fetchFilteredTallies}
+        keyExtractor={(_, index) => index}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+        ListFooterComponent={<View style={styles.footer} />}
       />
 
       <PayModal
         tally={tally}
         visible={isVisible}
         navigation={props.navigation}
-        onClose={()=>setIsVisible(false)}
+        onClose={() => setIsVisible(false)}
         conversionRate={conversionRate}
       />
     </View>
@@ -176,7 +224,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     backgroundColor: colors.white,
-    height: Dimensions.get("window").height*0.3,
+    height: Dimensions.get("window").height * 0.3,
   },
 });
 
