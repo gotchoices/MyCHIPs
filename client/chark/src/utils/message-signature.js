@@ -1,8 +1,8 @@
-import { KeyConfig, SignConfig } from "wyseman/lib/crypto";
-import { retrieveKey } from "./keychain-store";
-import { TextEncoder, TextDecoder } from 'web-encoding';
+import { TextEncoder } from 'web-encoding';
 import { Buffer } from "buffer";
-import { keyServices } from "../config/constants";
+
+import { retrieveKey } from "./keychain-store";
+import { keyServices, KeyConfig } from "../config/constants";
 
 const subtle = window.crypto.subtle;
 
@@ -22,12 +22,12 @@ export const createSignature = (message) => {
         .then(creds => {
           if (creds) {
             console.log("PRIVATE KEY ==> ", creds.password);
-            return subtle.importKey('jwk', JSON.parse(creds.password), SignConfig, true, ['sign']);
+            return subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
           } else {
             throw { isKeyAvailable: false, message: "Create Keys!" };
           }
         })
-        .then(pvtKey => subtle.sign(SignConfig, pvtKey, data))
+        .then(pvtKey => subtle.sign(KeyConfig, pvtKey, data))
         .then(signature => Buffer.from(signature).toString('base64'))
         .then(base64 => resolve(base64ToBase64url(base64)))
         .catch(ex => reject(ex));
@@ -43,7 +43,7 @@ export const verifySignature = (signature, message, publicKey) => {
       const rawSignature = Buffer.from(signature, 'base64');
       const rawData = Buffer.from(message);
       subtle.importKey('jwk', JSON.parse(publicKey), KeyConfig, true, ['verify'])
-        .then(key => subtle.verify(SignConfig, key, rawSignature, rawData))
+        .then(key => subtle.verify(KeyConfig, key, rawSignature, rawData))
         .then(verified => resolve(verified))
         .catch(ex => reject(ex));
     } catch (ex) {

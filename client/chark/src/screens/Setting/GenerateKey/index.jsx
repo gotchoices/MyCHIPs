@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { KeyConfig } from 'wyseman/lib/crypto';
 
 import CenteredModal from '../../../components/CenteredModal';
 import PostGenerate from './PostGenerate';
 import Spinner from '../../../components/Spinner';
+
+import { KeyConfig } from '../../../config/constants';
 
 const GenerateKey = (props) => {
   const subtle = window.crypto.subtle;
