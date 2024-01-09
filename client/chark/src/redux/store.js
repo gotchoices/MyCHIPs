@@ -1,29 +1,23 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import rootReducer from './reducers';
 
-import workingTalliesReducer from './workingTalliesSlice';
-import profileReducer from './profileSlice';
-import languageReducer from './languageSlice';
-import currentUserReducer from './currentUserSlice';
-import openTalliesReducer from './openTalliesSlice';
-import avatarReducer from './avatarSlice';
-import certificateTalliesReducer  from './certificateTalliesSlice';
-import chitsReducer  from './chitSlice';
-import chipCurrencyReducer  from './chipCurrencySlice';
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+};
 
-export default configureStore({
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+const store = configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
     immutableCheck: false,
     serializableCheck: false,
   }),
-  reducer: {
-    profile: profileReducer,
-    workingTallies: workingTalliesReducer,
-    language: languageReducer,
-    currentUser: currentUserReducer,
-    openTallies: openTalliesReducer,
-    avatar: avatarReducer,
-    certificateTallies: certificateTalliesReducer,
-    chit: chitsReducer,
-    chipCurrency: chipCurrencyReducer,
-  },
+  reducer: persistedReducer,
 })
+
+export const persistor = persistStore(store);
+
+export default store;

@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import notifee from '@notifee/react-native';
 import qs from 'query-string';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react'
 
 import ServIcon from './src/servicon'
 import SocketProvider from './src/components/SocketProvider';
@@ -23,7 +24,7 @@ import Navigator from './src/navigation/Navigator';
 
 import { handleNotification } from './src/utils/notification';
 
-import store from './src/redux/store';
+import store, { persistor } from './src/redux/store';
 
 const linking = {
   prefixes: ["mychips://", "https://mychips.org"],
@@ -70,6 +71,8 @@ function App() {
 
   return (
     <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+
       <SafeAreaView style={{ flex: 1 }}>
         <NavigationContainer linking={linking} ref={navigationRef} theme={theme}>
           <SocketProvider>
@@ -85,6 +88,7 @@ function App() {
           </SocketProvider>
         </NavigationContainer>
       </SafeAreaView>
+      </PersistGate>
     </Provider>
   );
 }

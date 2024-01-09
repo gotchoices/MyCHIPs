@@ -20,8 +20,14 @@ import TallyHeader from "./TallyHeader";
 import PayModal from "../Pay";
 import { colors } from "../../config/constants";
 
+const connectionStatus = {
+  connected: 'Connected',
+  disconnect: 'Disconnected',
+  connecting: 'Connecting',
+};
+
 const Tally = (props) => {
-  const { wm, tallyNegotiation, chitTrigger } = useSocket();
+  const { wm, tallyNegotiation, chitTrigger, status } = useSocket();
   const dispatch = useDispatch();
   const { preferredCurrency } = useSelector(state => state.profile);
   const { imageFetchTrigger, tallies: tallies, /*imagesByDigest,*/ fetching } = useSelector(state => state.openTallies);
@@ -143,7 +149,10 @@ tally:item
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         keyExtractor={(_, index) => index}
-        refreshing={fetching}
+        refreshing={
+          // adding this condition as wm will not return anything unless connected
+          status !== connectionStatus.connected ? false : fetching
+        }
         onRefresh={fetchTallies}
       />
 

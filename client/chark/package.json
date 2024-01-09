@@ -58,6 +58,7 @@
     "react-native-webview": "^11.25.0",
     "react-native-webview-crypto": "^0.0.25",
     "react-redux": "^8.1.2",
+    "redux-persist": "^6.0.0",
     "uuid": "^9.0.1",
     "vision-camera-code-scanner": "^0.2.0",
     "web-encoding": "^1.1.5",
