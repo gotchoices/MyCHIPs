@@ -27,8 +27,14 @@ import {
   sortTalliesAlphabetically,
 } from "../../utils/user";
 
+const connectionStatus = {
+  connected: 'Connected',
+  disconnect: 'Disconnected',
+  connecting: 'Connecting',
+};
+
 const Tally = (props) => {
-  const { wm, tallyNegotiation, chitTrigger } = useSocket();
+  const { wm, tallyNegotiation, chitTrigger, status } = useSocket();
   const dispatch = useDispatch();
   const { preferredCurrency, filterTally } = useSelector(
     (state) => state.profile
@@ -186,13 +192,16 @@ const Tally = (props) => {
           />
         }
         data={sortedTallies}
-        refreshing={fetching}
         renderItem={renderItem}
         onRefresh={fetchFilteredTallies}
         keyExtractor={(_, index) => index}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
         ListFooterComponent={<View style={styles.footer} />}
+        refreshing={
+          // adding this condition as wm will not return anything unless connected
+          status !== connectionStatus.connected ? false : fetching
+        }
       />
 
       <PayModal

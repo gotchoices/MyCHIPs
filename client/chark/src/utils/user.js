@@ -41,7 +41,6 @@ export const sortTalliesAlphabetically = (tallies) => {
 
 export const sortTallies = (tallies, field, descending = false) => {
   const sorteTallies = tallies.slice().sort((a, b) => {
-
     const valueA =
       field === "tally_date"
         ? new Date(a[field])
