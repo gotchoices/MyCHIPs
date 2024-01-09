@@ -127,6 +127,7 @@ tabtext mychips.tallies_v {Tallies}	{Standard view containing an entry for each 
   {hold_port	{Holder Port}		{Port for connecting to the tally holder}}
   {part_port	{Partner Port}		{Port for connecting to the tally partner}}
   {net_p	{Net Pending}		{Tally CHIP total of confirmed and pending chits}}
+  {mag_p	{Magnitude}		{Tally CHIP total absolute value of confirmed and pending chits}}
 }
 
 tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertaining to the current user} {
