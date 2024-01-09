@@ -150,8 +150,17 @@ const RequestDetail = (props) => {
     const net = round((chit ?? 0) * 1000, 3);
 
     if (net < 0) {
-      Alert.alert("Alert", "Can't input negative chit.");
-      return;
+      return Toast.show({
+        type: 'error',
+        text1: "Can't input negative chit.",
+      });
+    }
+
+    if (net == 0) {
+      return Toast.show({
+        type: 'error',
+        text1: 'Please provide an amount',
+      });
     }
 
     updateChitDetails(wm, {

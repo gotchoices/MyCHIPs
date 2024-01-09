@@ -1,10 +1,11 @@
 TODO:
 
 - Local linear lifts:
-X-  Document framework for interrim route/lift model
-X-  How does the user sign a linear lift?
-X-  Create schema for distributed payments table
-X-  Create user-privileged view for creating, updating payments
+-  Testing:
+-    When I create a payment lift record, how does the uuids path get set?
+-    What tests in sch-pay.js?
+-    Is there also a pay.js for full local lifts?
+-    
 -  How to initiate an internal linear lift to a given destination?
 -    Scan invoice, build draft payment record, party=payee chad
 -    Set request = 'seek': This initiates search

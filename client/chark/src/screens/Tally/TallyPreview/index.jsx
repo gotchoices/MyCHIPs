@@ -10,8 +10,7 @@ import {
   KeyboardAvoidingView,
   Text,
 } from "react-native";
-import { useSelector, useDispatch } from 'react-redux';
-import stringify from 'json-stable-stringify';
+import { useDispatch } from 'react-redux';
 
 import { colors, keyServices } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
@@ -26,12 +25,7 @@ import Button from "../../../components/Button";
 import Spinner from "../../../components/Spinner";
 import TallyEditView from "../TallyEditView";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import { offerTally, acceptTally, refuseTally, reviseTally } from "../../../services/tally";
-import {
-  createSignature,
-  verifySignature,
-} from "../../../utils/message-signature";
-import { retrieveKey } from "../../../utils/keychain-store";
+import { refuseTally, reviseTally } from "../../../services/tally";
 import { GenerateKeysDialog } from "./GenerateKeysDialog";
 import { UpdateHoldCert } from "./UpdateHoldCert";
 import CenteredModal from "../../../components/CenteredModal";
@@ -40,6 +34,8 @@ import TickIcon from "../../../../assets/svg/tick.svg";
 import CrossIcon from "../../../../assets/svg/cross.svg";
 import ShareIcon from "../../../../assets/svg/ic_share.svg";
 import { GenerateKeysAlertModal } from "../../../components/GenerateKeyAlertModal";
+import AcceptButton from '../AcceptButton';
+import OfferButton from '../OfferButton';
 
 const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
@@ -49,7 +45,6 @@ const TallyPreview = (props) => {
 
   const [showDialog, setShowDialog] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const [sig, setSig] = useState(undefined);
   const [tallyContracts, setTallyContracts] = useState([]);
   const [updateCert, setUpdateCert] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -218,44 +213,6 @@ const TallyPreview = (props) => {
     });
   };
 
-  const onOffer = async () => {
-    if(!tally?.json_core) {
-      Alert.alert('Tally cannot be signed');
-      return;
-    }
-
-    const message = stringify(tally.json_core)
-    createSignature(message)
-      .then((signature) => {
-        setSig(signature);
-        return offerTally(wm, {
-          tally_uuid: tally.tally_uuid,
-          tally_ent,
-          tally_seq,
-          signature,
-        })
-      })
-      .then(() => {
-        const partName = Object.values(tally.part_cert?.name ?? {}).join(" ");
-        props.navigation.navigate("Invite", {
-          fromOffer: {
-            show: true,
-            offerTo: partName,
-            tally_ent: tally?.tally_ent,
-            tally_seq: tally?.tally_seq,
-          },
-        });
-      })
-      .catch((err) => {
-        const { isKeyAvailable, message } = err;
-        if (isKeyAvailable === false) {
-        return setShowKeyModal(true)
-        } else {
-          Alert.alert("Error", message || err);
-        }
-      });
-  };
-
   const onRevise = () => {
     reviseTally(wm, {
       tally_ent,
@@ -268,38 +225,6 @@ const TallyPreview = (props) => {
         text1: err.message,
       });
     });
-  };
-
-  const onAccept = async () => {
-    if (!tally?.json_core) {
-      Alert.alert("Tally can not be signed");
-      return;
-    }
-    const message = stringify(tally.json_core)
-    createSignature(message)
-      .then((signature) => {
-        //setSig(signature);
-        return acceptTally(wm, { tally_ent, tally_seq, signature });
-      })
-      .then((result) => {
-        Toast.show({
-          type: "success",
-          text1: "Tally accepted",
-        });
-        props.navigation.goBack();
-      })
-      .catch((err) => {
-        const { isKeyAvailable, message } = err;
-        if (isKeyAvailable === false) {
-          return setShowKeyModal(true)
-        } else {
-          Alert.alert("Error", message || err);
-        }
-      });
-  };
-
-  const showGenerateKey = () => {
-    setShowDialog(true);
   };
 
   const dismissGenerateKey = () => {
@@ -330,22 +255,29 @@ const TallyPreview = (props) => {
       });
   };
 
-  const onVerify = async () => {
-    const creds = await retrieveKey(keyServices.publicKey);
-    verifySignature(sig, JSON.stringify(tally.json_core), creds.password)
-      .then((verified) => {
-        if (verified) {
-          console.log("Verified Successfully");
-        } else {
-          console.log("Verified Failed");
-        }
-      })
-      .catch((ex) => console.log("Exception ==> ", ex));
-  };
-
   const onCancel = () => {
     props.navigation.navigate("Invite");
   };
+
+  const postOffer = () => {
+    const partName = Object.values(tally.part_cert?.name ?? {}).join(" ");
+    props.navigation.navigate("Invite", {
+      fromOffer: {
+        show: true,
+        offerTo: partName,
+        tally_ent: tally?.tally_ent,
+        tally_seq: tally?.tally_seq,
+      },
+    });
+  }
+
+  const postAccept = () => {
+    Toast.show({
+      type: "success",
+      text1: "Tally accepted",
+    });
+    props.navigation.goBack();
+  }
 
   const isDirty =
     initialFields.tallyType !== tallyType ||
@@ -414,10 +346,9 @@ const TallyPreview = (props) => {
     if (canOffer) {
       return (
         <>
-          <Button
-            title="Offer"
-            onPress={onOffer}
-            textColor={colors.white}
+          <OfferButton
+            tally={tally}
+            postOffer={postOffer}
             style={styles.fullActionButton(colors.yellow)}
           />
         </>
@@ -434,10 +365,9 @@ const TallyPreview = (props) => {
             style={[styles.fullActionButton(colors.yellow), { width: '48%' }]}
           />
 
-          <Button
-            title="Accept"
-            onPress={onAccept}
-            textColor={colors.white}
+          <AcceptButton
+            tally={tally}
+            postAccept={postAccept}
             style={[styles.fullActionButton(colors.blue), { width: '48%' }]}
           />
         </View>

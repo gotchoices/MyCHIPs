@@ -3,14 +3,14 @@
 #----------------------------------------------------------------
 #TODO:
 #- 
-require common.tcl glob.tcl ../trigview.tcl
+require common.tcl glob.tcl trigview.tcl
 module mychips
 
 namespace eval pays {
     def pays_pk		{pay_ent pay_seq}
-    def pays_v_up	{units memo reference}
+    def pays_v_up	{party units memo reference request}
     def pays_v_in	[concat $pays_pk $pays_v_up]
-    def pays_se		[concat $pays_v_in $glob::stampfn]
+    def pays_se		[concat $pays_v_in lift_uuid lift_seq $glob::stampfn]
 }
 
 # Record of a user's distributed payments
@@ -26,10 +26,10 @@ table mychips.pays {mychips.users base.ent mychips.lifts} {
   , units	bigint		not null constraint "!mychips.pays:PUN" check(units >= 0)
   , reference	jsonb
   , memo	text
-  , signature	text		constraint "!mychips.pays:GDS" check(signature notnull or (pay_disb and lift_uuid notnull))
+  , signature	text		constraint "!mychips.pays:GDS" check(case when pay_disb then lift_uuid isnull or signature notnull else signature isnull end)
 
 -- Internal management
---  , request	text		constraint "!mychips.pays:BRQ" check(request in ('seek','pend'))
+  , request	text		constraint "!mychips.pays:BRQ" check(request in ('find','pay'))
 --  , status	text		not null default 'draft' constraint "!mychips.pays:BST" check(status in ('draft','seek','pend','good'))
   , lift_uuid	uuid	      , foreign key (lift_uuid, lift_seq) references mychips.lifts on update cascade on delete cascade
   , lift_seq	int		not null default 0
@@ -37,9 +37,9 @@ table mychips.pays {mychips.users base.ent mychips.lifts} {
     eval(s $glob::stamps)
 }
 
-# Generate unique sequence number for new payments
+# Before inserting new payment
 #----------------------------------------------------------------
-function mychips.pays_tf_seq() {mychips.users base.curr_eid()} {
+function mychips.pays_tf_bi() {mychips.users base.curr_eid() mychips.pay_lift(mychips.pays)} {
   returns trigger language plpgsql security definer as $$
     begin
       if new.pay_ent isnull then
@@ -54,11 +54,50 @@ function mychips.pays_tf_seq() {mychips.users base.curr_eid()} {
         if not found then new.pay_seq = 1; end if;
 -- select into new.pay_seq coalesce(max(pay_seq),0)+1 from mychips.pays where pay_ent = new.pay_ent; -- Not safe for concurrent sessions
       end if;
+      if new.request notnull then
+        new = mychips.pay_lift(new);
+      end if;
+      return new;
     end;
 $$;}
-trigger mychips_pays_tr_seq {} {
-    before insert on mychips.pays for each row execute procedure mychips.pays_tf_seq();
+trigger mychips_pays_tr_bi {} {
+    before insert on mychips.pays for each row execute procedure mychips.pays_tf_bi();
 }
+
+# Before updating a payment
+#----------------------------------------------------------------
+function mychips.pays_tf_bu() {mychips.users base.curr_eid() mychips.pay_lift(mychips.pays)} {
+  returns trigger language plpgsql security definer as $$
+    begin
+      if new.request notnull and old.request isnull then
+        new = mychips.pay_lift(new);
+      end if;
+      return new;
+    end;
+$$;}
+trigger mychips_pays_tr_bu {} {
+    before update on mychips.pays for each row execute procedure mychips.pays_tf_bu();
+}
+
+# Build a lift record associated with this payment
+#----------------------------------------------------------------
+function {mychips.pay_lift(pay mychips.pays)} {mychips.pays mychips.lifts} {
+  returns mychips.pays language plpgsql security definer as $$
+    declare
+      lrec	mychips.lifts;
+      newStat	text = case
+          when pay.request = 'find' then 'seek'
+          when pay.request = 'pay' then 'pend'
+          else null
+        end;
+    begin
+      if newStat notnull then
+        insert into mychips.lifts (status) values (newStat) returning * into lrec;
+        pay.lift_uuid = lrec.lift_uuid;
+      end if;
+      return pay;
+    end;
+$$;}
 
 #Basic view
 #----------------------------------------------------------------
@@ -66,7 +105,9 @@ view mychips.pays_v {mychips.pays mychips.users_v mychips.lifts_v} {select
     eval(fld_list $pays::pays_se p)
   , u.peer_cid, u.peer_agent, u.std_name
   , case when p.pay_disb then -p.units else p.units end as net
-  , l.state
+  , coalesce(l.state, 'draft')	as state
+  , l.request			as lift_request
+  , l.status
   
   , jsonb_strip_nulls(jsonb_build_object(
        'date',	p.pay_date
@@ -79,18 +120,68 @@ view mychips.pays_v {mychips.pays mychips.users_v mychips.lifts_v} {select
       
     from	mychips.pays		p
     join	mychips.users_v		u	on u.user_ent = p.pay_ent
-    left join	mychips.lifts_v		l	on l.lift_uuid = p.lift_uuid and l.lift_seq = p.lift_seq
+    left join	mychips.lifts_v		l	on l.lift_uuid = p.lift_uuid and l.lift_seq = p.lift_seq;
 
     eval(trigview::insert mychips.pays_v mychips.pays $pays::pays_v_in $pays::pays_pk [concat $glob::stampin]);
     eval(trigview::update mychips.pays_v mychips.pays $pays::pays_v_up $pays::pays_pk $glob::stampup);
+    eval(rule_delete mychips.pays_v mychips.pays $pays::pays_pk {old.lift_uuid isnull});
 }
+
+# Custom insert function
+#----------------------------------------------------------------
+#define updEnd {
+#  where eval(fld_list_eq $tallies::tallies_pk old { and })
+#    returning eval(join $tallies::tallies_pk ,) into eval(fld_list $tallies::tallies_pk new)
+#}
+#function {mychips.pays_v_insfunc()} {mychips.pays_v} {
+# returns trigger language plpgsql security definer as $$
+#  begin
+#    if new.status notnull then
+#raise notice 'Make lift record';
+#    end if;
+#--    if old.status = 'draft' then
+#--      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up $glob::stampin) updEnd();
+#--    elsif old.status = 'offer' then
+#--      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up_mo $glob::stampin) updEnd();
+#--    end if;
+#--    select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
+#    return new;
+#  end;
+#$$;}
+#trigger mychips_pays_v_tr_ins {} {
+#    instead of insert on mychips.pays_v for each row execute procedure mychips.pays_v_insfunc();
+#}
+
+# Custom update function
+#----------------------------------------------------------------
+#define updEnd {
+#  where eval(fld_list_eq $tallies::tallies_pk old { and })
+#    returning eval(join $tallies::tallies_pk ,) into eval(fld_list $tallies::tallies_pk new)
+#}
+#function {mychips.pays_v_updfunc()} {mychips.pays_v} {
+# returns trigger language plpgsql security definer as $$
+#  begin
+#--    if old.status = 'draft' then
+#--      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up $glob::stampin) updEnd();
+#--    elsif old.status = 'offer' then
+#--      update mychips.tallies set eval(trigview::upfields $tallies::tallies_v_up_mo $glob::stampin) updEnd();
+#--    end if;
+#--    select into new * from mychips.tallies_v where tally_ent = new.tally_ent and tally_seq = new.tally_seq;
+#    return new;
+#  end;
+#$$;}
+#trigger mychips_pays_v_tr_upd {} {
+#    instead of update on mychips.pays_v for each row execute procedure mychips.pays_v_updfunc();
+#}
 
 # User-permissioned view
 #----------------------------------------------------------------
 view mychips.pays_v_me {mychips.pays_v base.curr_eid()} {select 
     p.*
     from	mychips.pays_v	p
-    where	p.pay_ent = base.curr_eid()
+    where	p.pay_ent = base.curr_eid();
+
+    eval(rule_delete mychips.pays_v_me mychips.pays $pays::pays_pk {old.lift_uuid isnull});
 } -grant {
     {pays	{s} {s i u} {d}}
 }

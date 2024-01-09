@@ -35,8 +35,6 @@ const HomeScreen = (props) => {
   useEffect(() => {
     const userId = user?.curr_eid;
     const cid = personal?.cid;
-    console.log("USER_ID ==> ", userId);
-    console.log("PERSONAL ==> ", cid);
 
     if (userId === cid && useId !== undefined && userId !== null && cid !== undefined && cid !== null) {
       showUpdateDialog();

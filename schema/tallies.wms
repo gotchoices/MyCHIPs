@@ -339,7 +339,7 @@ view mychips.tallies_v {
   , pa.agent_port			as part_port
 --  , te.part_cid ||':'|| pa.atsock	as part_full
   
-  , not te.part_ent is null						as inside
+  , not te.part_ent is null		as inside
   , mychips.tally_state(te)		as state
   , mychips.tally_state(te) = any(array['P.offer','P.draft']) as action
   , te.status = 'open'					as liftable
@@ -349,6 +349,7 @@ view mychips.tallies_v {
 
   , coalesce(cg.net, 0)					as net
   , coalesce(cg.net, 0) + coalesce(ce.net, 0)		as net_p
+  , abs(coalesce(cg.net, 0) + coalesce(ce.net, 0))	as mag_p
   
   , greatest(cg.latest, te.mod_date)			as latest
   

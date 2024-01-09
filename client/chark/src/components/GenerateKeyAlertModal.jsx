@@ -6,7 +6,6 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
-import { KeyConfig } from "wyseman/lib/crypto";
 import { useSelector } from "react-redux";
 import useSocket from "../hooks/useSocket";
 import { updatePublicKey } from "../services/profile";
@@ -15,7 +14,7 @@ import {
   storePublicKey,
 } from "../utils/keychain-store";
 import Button from "./Button";
-import { colors } from "../config/constants";
+import { colors, KeyConfig } from "../config/constants";
 import { WarningIcon } from "./SvgAssets/SvgAssets";
 
 export const GenerateKeysAlertModal = ({
