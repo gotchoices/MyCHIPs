@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { TouchableOpacity, Text, StyleSheet } from "react-native"
 import { TimerIcon, WarningIcon } from "../../../components/SvgAssets/SvgAssets"
 import Tooltip from "react-native-walkthrough-tooltip";
+import { colors } from "../../../config/constants";
 
 export const TallyTrainingIcon = (props) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -48,12 +49,12 @@ const styles = StyleSheet.create({
     maxWidth: 200,
   },
   touchable: {
-    paddingHorizontal: 8,
-    paddingBottom: 6,
-    paddingTop: 2,
+    top:-5,
+    right:-25,
+    position:'absolute',
   }
 });
 
-const warning = { icon: <WarningIcon size={16} />, message: "Your prospective partner is waiting for you to act on this tally" };
+const warning = { icon: <WarningIcon size={16} color={colors.red}/>, message: "Your prospective partner is waiting for you to act on this tally" };
 const timer = { icon: <TimerIcon size={16} />, message: "You are waiting on someone else before the tally is complete" }
 
