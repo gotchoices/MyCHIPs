@@ -43,16 +43,18 @@ const CertificateInformation = (props) => {
           </Text>
         </View>
 
-        <View style={styles.certInfo}>
-          <HelpText
-            label={'Email'}
-            style={styles.certInfoLabel}
-          />
+        {!!props.email && (
+          <View style={styles.certInfo}>
+            <HelpText
+              label={'Email'}
+              style={styles.certInfoLabel}
+            />
 
-          <Text style={styles.certValue}>
-            {props.email}
-          </Text>
-        </View>
+            <Text style={styles.certValue}>
+              {props.email}
+            </Text>
+          </View>
+        )}
 
         <TouchableWithoutFeedback onPress={props.onViewDetails}>
           <Text style={styles.certOtherDetails}>

@@ -195,7 +195,12 @@ const EditOpenTally = (props) => {
   }
 
   const onViewCertificate = (data) => {
-    props.navigation.navigate("TallyCertificate", { data: { ...data } });
+    props.navigation.navigate("TallyCertificate", {
+      title: '',
+      tally_ent,
+      tally_seq,
+      cert: data
+    });
   }
 
   return (

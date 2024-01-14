@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { fetchTallies } from '../services/tally';
 import useSocket from '../hooks/useSocket';
 
-const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
+const useTallyUpdate = (wm, tally_seq, tally_ent) => {
   const { tallyNegotiation } = useSocket();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ const useTallyUpdate = (wm, tally_seq, tally_ent, tallyState = undefined) => {
     if (wm || (tallyNegotiation?.reason === 'draft' && tallyNegotiation?.state === 'P.draft')) {
       fetchTally();
     }
-  }, [wm, tally_seq, tally_ent, tallyState, tallyNegotiation])
+  }, [wm, tally_seq, tally_ent, tallyNegotiation])
 
   const fetchTally = (_refreshing = false) => {
     if (_refreshing) {

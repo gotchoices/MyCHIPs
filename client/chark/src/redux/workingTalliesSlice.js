@@ -8,7 +8,17 @@ const initialState = {
   hashes: [],
   imageFetchTrigger: 1,
   // For detecting any change on working tally to trigger asynchronous change that depend on the tally 
-  tallyChangeTrigger: undefined,
+  certificateChangeTrigger: undefined,
+  place: {
+    byId: {},
+    ids: [],
+  },
+  birth: {},
+  state: {},
+  connect: {
+    byId: {},
+    ids: [],
+  },
 };
 
 export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', async (args) => {
@@ -105,16 +115,85 @@ export const workingTalliesSlice = createSlice({
         state.tallies[foundIndex] = updated;
       }
     },
-    setTallyChangeTrigger: (state, action) => {
-      const { tally_ent, tally_seq } = action.payload;
-      const trigger = state.tallyChangeTrigger?.trigger ?? 1;
+    setCertificateChangeTrigger: (state, action) => {
+      const { tally_ent, tally_seq, hold_cert = undefined} = action.payload;
+      const trigger = state.certificateChangeTrigger?.trigger ?? 1;
 
-      state.tallyChangeTrigger = {
+      const change = {
         tally_ent,
         tally_seq,
         trigger: trigger + 1,
       }
-    }
+
+      if(hold_cert) {
+        change.hold_cert = hold_cert;
+      }
+
+      state.certificateChangeTrigger = change;
+    },
+
+    setCertificate: (state, action) => {
+      const {
+        place = initialState.place,
+        birth = initialState.birth ,
+        state:_state = initialState.state,
+        connect = initialState.connect,
+      } = action.payload ?? {};
+
+      state.place = place;
+      state.birth = birth;
+      state.state = _state;
+      state.connect = connect;
+    },
+
+    /** 
+    * @param {string|number} action.id
+    * @param {boolean} action.selected
+    */
+    setPlace: (state, action) => {
+      const { id, selected } = action.payload
+      const data = state.place.byId[id]
+      if(data) {
+        state.place.byId[id].selected = selected;
+      }
+    },
+    /** 
+    * @param {boolean} action.selected
+    */
+    setBirth: (state, action) => {
+      const data = state.birth;
+      if(data) {
+        state.birth.selected = action.payload.selected;
+      }
+    },
+    /** 
+    * @param {boolean} action.selected
+    */
+    setState: (state, action) => {
+      const data = state.state;
+      if(data) {
+        state.state.selected = action.payload.selected;
+      }
+    },
+    /** 
+    * @param {string|number} action.id
+    * @param {boolean} action.selected
+    */
+    setConnect: (state, action) => {
+      const { id, selected } = action.payload;
+      const data = state.connect.byId[id]
+      if(data) {
+        state.connect.byId[id].selected = selected;
+      }
+    },
+
+    resetCertificate: (state) => {
+      state.place = initialState.place;
+      state.birth = initialState.birth;
+      state.state= initialState.state;
+      state.connect = initialState.connect;
+    },
+
   },
 
   extraReducers: (builder) => {
@@ -138,5 +217,11 @@ export default workingTalliesSlice.reducer;
 
 export const {
   updateTally,
-  setTallyChangeTrigger,
+  setCertificateChangeTrigger,
+  setCertificate,
+  setPlace,
+  setBirth,
+  setState,
+  setConnect,
+  resetCertificate,
 } = workingTalliesSlice.actions; 

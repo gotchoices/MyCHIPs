@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from 'react-redux';
 import {
   ScrollView,
   View,
@@ -10,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Text,
 } from "react-native";
-import { useDispatch } from 'react-redux';
 
 import { colors, keyServices } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
@@ -18,7 +18,6 @@ import useInvite from "../../../hooks/useInvite";
 import { useHoldTermsText, useTallyText } from "../../../hooks/useLanguage";
 import useTallyUpdate from "../../../hooks/useTallyUpdate";
 import { fetchContracts, updateHoldCert } from "../../../services/tally";
-import { setTallyChangeTrigger } from '../../../redux/workingTalliesSlice';
 
 import CustomText from "../../../components/CustomText";
 import Button from "../../../components/Button";
@@ -41,7 +40,7 @@ const TallyPreview = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
-  const dispatch = useDispatch();
+  const { certificateChangeTrigger } = useSelector(state => state.workingTallies);
 
   const [showDialog, setShowDialog] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -77,6 +76,32 @@ const TallyPreview = (props) => {
       setTallyContracts(data);
     });
   }, []);
+
+  useEffect(() => {
+    const needCertUpdate = (
+      tally_ent && tally_seq &&
+      certificateChangeTrigger?.tally_ent == tally_ent && 
+      certificateChangeTrigger?.tally_seq == tally_seq &&
+      certificateChangeTrigger?.trigger &&
+      certificateChangeTrigger?.hold_cert 
+    )
+
+    if(needCertUpdate) {
+      setTally((prev) => {
+        return {
+          ...prev,
+          hold_cert: certificateChangeTrigger.hold_cert,
+        }
+      });
+    }
+  }, [
+    tally_ent,
+    tally_seq,
+    certificateChangeTrigger?.tally_ent,
+    certificateChangeTrigger?.tally_seq,
+    certificateChangeTrigger?.trigger,
+    certificateChangeTrigger?.hold_cert,
+  ])
 
   const onDisplayCertUpdate = () => {
     setUpdateCert(true);
@@ -181,16 +206,6 @@ const TallyPreview = (props) => {
       }
 
       setTally(data);
-
-      // Check for CustomCertificate.jsx for the trigger changes
-      if(data.state === 'draft') {
-        dispatch(
-          setTallyChangeTrigger({
-            tally_ent,
-            tally_seq,
-          })
-        )
-      }
 
       setInitialFields({
         ...initialFields,
@@ -409,11 +424,6 @@ const TallyPreview = (props) => {
             navigation={props.navigation}
             onUpdateContract={() => {
               onDisplayCertUpdate();
-            }}
-            onViewCertificate={(data) => {
-              props.navigation.navigate("TallyCertificate", {
-                data: { ...data },
-              });
             }}
           />
         </ScrollView>

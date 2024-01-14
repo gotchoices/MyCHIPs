@@ -9,6 +9,7 @@ import useProfile from "../../../../hooks/useProfile";
 import { useUser } from "../../../../hooks/useLanguage";
 import useMessageText from "../../../../hooks/useMessageText";
 import useSocket from "../../../../hooks/useSocket";
+import { updateHoldCert } from "../../../../services/tally";
 import HelpText from "../../../../components/HelpText";
 
 export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }) => {
@@ -42,6 +43,11 @@ export const UpdateHoldCert = ({ onDismiss, onUpdateCert, tallyCurrentHoldCert }
   }, [personal])
 
   const onUpdate = () => {
+    updateHoldCert(wm, {
+      tally_ent: 'p1036',
+      tally_seq: 144,
+      hold_cert: tallyCert,
+    })
     onUpdateCert(tallyCert);
   }
 

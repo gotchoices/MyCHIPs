@@ -91,7 +91,7 @@ const TallyRequest = (props) => {
 
       {visibility.customCertificate && (
         <CustomCertificate 
-          invite={invite}
+          cert={invite}
           onDone={onCertificateDone}
           tally_ent={tallyInfo?.tally_ent}
           tally_seq={tallyInfo?.tally_seq}

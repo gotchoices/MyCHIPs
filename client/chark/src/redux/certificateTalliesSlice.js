@@ -19,7 +19,7 @@ const initialState = {
   },
 };
 
-const createCertificateState = (cert) => {
+export const createCertificateState = (cert) => {
   const places = cert?.place ?? [];
   const _birth = cert?.identity?.birth ?? {};
   const connects = cert?.connect ?? [];
