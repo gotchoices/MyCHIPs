@@ -1,41 +1,289 @@
-import React, { useMemo, useEffect } from "react"
-import { ScrollView, StyleSheet, Text, View } from "react-native"
+import 'react-native-get-random-values';
+import React, { useState, useMemo, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import isEqual from 'lodash.isequal';
+import differenceWith from 'lodash.differencewith';
+import { v4 as uuid } from 'uuid';
+import { View, ScrollView, StyleSheet } from 'react-native'
+import Toast from 'react-native-toast-message';
 
-import HelpText from '../../../components/HelpText';
+import Button from '../../../components/Button';
 import DefaultCertificate from './DefaultCertificate';
+import CustomCertificateSelection from '../../../components/CustomCertificateSelection';
 
-import { colors } from "../../../config/constants";
+import { colors } from '../../../config/constants';
+import useSocket from '../../../hooks/useSocket';
+import { updateHoldCert } from '../../../services/tally';
+import { setCertificate, resetCertificate, setConnect, setBirth, setPlace, setState, setCertificateChangeTrigger } from '../../../redux/workingTalliesSlice';
 
 const TallyCertificate = (props) => {
-  const { data } = props.route?.params ?? {};
+  const { title, cert, tally_ent, tally_seq, state: tallyState} = props.route?.params ?? {};
+  const dispatch = useDispatch();
+  const { wm } = useSocket();
+
+  const [updating, setUpdating] = useState(false);
+  const { personal } = useSelector(state => state.profile);
+  const { place, state, birth, connect } = useSelector(state => state.workingTallies)
+
+  useEffect(() => {
+    const {
+      place,
+      birth,
+      state,
+      connect,
+    } = createCertificateState(personal?.cert, cert)
+
+    dispatch(
+      setCertificate({
+        place,
+        birth,
+        state,
+        connect,
+      })
+    )
+
+    return () => {
+      dispatch(resetCertificate());
+    }
+  }, [cert, personal?.cert])
 
   useEffect(() => {
     props.navigation.setOptions({
-      title: data?.title ?? "Tally Certificate",
+      title: title ?? "Tally Certificate",
     });
   }, []);
 
-  const name = Object.values((data?.name ?? {})).join(' ')
-  const cid = data?.chad?.cid ?? '';
-  const agent = data?.chad?.agent ?? '';
+  const name = Object.values((cert?.name ?? {})).join(' ')
+  const cid = cert?.chad?.cid ?? '';
+  const agent = cert?.chad?.agent ?? '';
   const email = useMemo(() => {
-    const found = (data?.connect ?? []).find(connect => connect.media === 'email')
+    const found = (cert?.connect ?? []).find(connect => connect.media === 'email')
     return found?.address ?? ''
-  }, [data?.connect])
+  }, [cert?.connect])
+
+  const onPlaceChange = (id) => {
+    return (value) => {
+      dispatch(
+        setPlace({ id, selected: value})
+      )
+    }
+  }
+
+  const onBirthChange = (selected) => {
+    dispatch(
+      dispatch(
+        setBirth({ selected })
+      )
+    )
+  }
+
+  const onStateChange = (selected) => {
+    dispatch(
+      setState({ selected })
+    )
+  }
+
+  const onConnectChange = (id) => {
+    return (value) => {
+      dispatch(
+        setConnect({ id, selected: value })
+      )
+    }
+  }
+
+  const updateCertificate = async () => {
+    if(cert) {
+      if(!personal?.cert) {
+        return Toast.show({
+          type: 'error',
+          text1: 'Certificate not found'
+        });
+      }
+
+      const _place = [];
+      const _connect = [];
+      let _state = {};
+      let _birth = {};
+
+      for(let id of place.ids) {
+        const pl = place.byId[id];
+        if(pl && pl.selected) {
+          const { selected, ...rest } = pl;
+          _place.push(rest);
+        }
+      }
+
+      for(let id of connect.ids) {
+        const conn = connect.byId[id];
+        if(conn && conn.selected) {
+          const { selected, ...rest } = conn;
+          _connect.push(rest);
+        }
+      }
+
+      if(state?.selected) {
+        _state = state.data;
+      }
+
+      if(birth?.selected) {
+        _birth = birth.data;
+      }
+
+      const hold_cert = {
+        ...(personal.cert ?? {}),
+        place: _place,
+        connect: _connect,
+        identity: {
+          birth: _birth,
+          state: _state,
+        },
+      }
+
+      setUpdating(true);
+      try {
+        const tally = await updateHoldCert(wm, {
+          tally_ent,
+          tally_seq,
+          hold_cert,
+        });
+
+        // Check for CustomCertificate.jsx for the trigger changes
+        dispatch(
+          setCertificateChangeTrigger({
+            tally_ent,
+            tally_seq,
+            hold_cert: tally.hold_cert,
+          })
+        )
+        Toast.show({
+          type: 'success',
+          text1: 'Certificate updated'
+        });
+      } catch(err) {
+        Toast.show({
+          type: 'error',
+          text1: err.message ?? 'Error updating certificate'
+        })
+      } finally {
+        setUpdating(false);
+      }
+    }
+  }
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
+    {tallyState === 'draft' ? (
+      <View>
+        <CustomCertificateSelection
+          place={place}
+          chad={cert?.chad}
+          date={cert?.date}
+          birth={birth}
+          state={state}
+          connect={connect}
+          onBirthChange={onBirthChange}
+          onPlaceChange={onPlaceChange}
+          onStateChange={onStateChange}
+          onConnectChange={onConnectChange}
+        />
+        
+      <Button
+        title="Save"
+        disabled={updating}
+        onPress={updateCertificate}
+      />
+      </View>
+    ): (
       <DefaultCertificate
         name={name}
         cid={cid}
         email={email}
         agent={agent}
       />
+    )}
+
     </ScrollView>
   )
+}
+
+
+function createCertificateState(userCert, tallyCert) {
+  const places = userCert?.place ?? [];
+  const tallyPlaces = tallyCert?.place ?? [];
+
+  const _birth = userCert?.identity?.birth ?? {};
+  const tallyBirth = tallyCert?.identity?.birth ?? {};
+
+  const connects = userCert?.connect ?? [];
+  const tallyConnects = tallyCert?.connect ?? [];
+
+  const _state = userCert?.identity?.state ?? {};
+  const tallyState = tallyCert?.identity?.state ?? {};
+
+  const remainingPlaces = differenceWith(places, tallyPlaces, isEqual);
+  const remainingConnects = differenceWith(connects, tallyConnects, isEqual);
+
+  let birth = {};
+  let state = {};
+  const place = { byId: {}, ids: [] };
+  const connect = { byId: {}, ids: [] };
+
+  remainingPlaces.forEach((pl, index) => {
+    const id = uuid();
+    place.byId[id] = { selected: false, ...pl }
+    place.ids.push(id);
+  });
+
+  tallyPlaces.forEach((pl)=> {
+    const id = uuid();
+    place.byId[id] = { selected: true, ...pl }
+    place.ids.push(id);
+  });
+
+  tallyConnects.forEach((conn)=> {
+    const id = uuid();
+    connect.byId[id] = { selected: true, ...conn }
+    connect.ids.push(id);
+  })
+
+  remainingConnects.forEach((conn)=> {
+    const id = uuid();
+    connect.byId[id] = { selected: false, ...conn }
+    connect.ids.push(id);
+  })
+
+  if(_state) {
+    let selected = false;
+    if(tallyState && isEqual(_state, tallyState)) {
+      selected = true;
+    }
+    state = {
+      selected,
+      data: _state,
+    }
+  }
+
+  if(_birth) {
+    let selected = false;
+    if(tallyBirth && isEqual(_birth, tallyBirth)) {
+      selected = true;
+    }
+
+    birth = {
+      selected,
+      data: _birth
+    }
+  }
+
+  return {
+    place,
+    birth,
+    connect,
+    state,
+  }
 }
 
 const styles = StyleSheet.create({

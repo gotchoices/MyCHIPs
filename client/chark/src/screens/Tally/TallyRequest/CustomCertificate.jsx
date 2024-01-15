@@ -11,10 +11,10 @@ import {
 
 import Header from './Header';
 import Button from '../../../components/Button';
-import CustomCertificateItem from './CustomCertificateItem';
 import HelpText from '../../../components/HelpText';
 import BackIcon from '../../../../assets/svg/ic_back.svg';
 import Spinner from '../../../components/Spinner';
+import CustomCertificateSelection from '../../../components/CustomCertificateSelection';
 
 import { colors } from '../../../config/constants';
 import {
@@ -32,7 +32,7 @@ const CustomCertificate = (props) => {
   const tally_ent = props.tally_ent;
   const tally_seq = props.tally_seq;
   const { fetchingSingle, certificate, place, birth, state, connect } = useSelector(state => state.certificateTallies);
-  const { tallyChangeTrigger } = useSelector(state => state.workingTallies);
+  const { certificateChangeTrigger } = useSelector(state => state.workingTallies);
   const { userChangeTrigger } = useSelector(state => state.profile);
   const { wm } = useSocket();
 
@@ -44,9 +44,9 @@ const CustomCertificate = (props) => {
     // Refetch if the draft tally is changed 
     const needRefetch = (
       tally_ent && tally_seq &&
-      tallyChangeTrigger?.tally_ent == tally_ent && 
-      tallyChangeTrigger?.tally_seq == tally_seq &&
-      tallyChangeTrigger?.trigger
+      certificateChangeTrigger?.tally_ent == tally_ent && 
+      certificateChangeTrigger?.tally_seq == tally_seq &&
+      certificateChangeTrigger?.trigger
     )
 
     if((tally_ent && tally_seq) || needRefetch) {
@@ -70,9 +70,9 @@ const CustomCertificate = (props) => {
     tally_ent,
     tally_seq,
     props.needCustom,
-    tallyChangeTrigger?.tally_ent,
-    tallyChangeTrigger?.tally_seq,
-    tallyChangeTrigger?.trigger,
+    certificateChangeTrigger?.tally_ent,
+    certificateChangeTrigger?.tally_seq,
+    certificateChangeTrigger?.trigger,
     userChangeTrigger,
   ])
 
@@ -115,7 +115,7 @@ const CustomCertificate = (props) => {
   }
 
   const sendCertificate = async () => {
-    if(props.invite) {
+    if(props.cert) {
       if(!certificate) {
         return Toast.show({
           type: 'error',
@@ -163,14 +163,13 @@ const CustomCertificate = (props) => {
       }
 
       const ticketPayload = {
-        ...props.invite,
+        ...props.cert,
         part_cert,
       }
 
       setProcessingTicket(true);
       try {
-        const test = await processTicket(wm, ticketPayload);
-        console.log(test, 'test')
+        await processTicket(wm, ticketPayload);
         Toast.show({
           type: 'success',
           text1: 'Tally ticket processed.'
@@ -221,108 +220,18 @@ const CustomCertificate = (props) => {
           </TouchableWithoutFeedback>
 
 
-          {!!place.ids.length && (
-            <View style={styles.certDetail}>
-              <HelpText
-                style={styles.label}
-                label={'Place'}
-              />
-              
-              {place.ids.map((id, index) => (
-                <CustomCertificateItem 
-                  key={index}
-                  type="place"
-                  data={place.byId[id]}
-                  selected={place.byId[id]?.selected}
-                  onCheckBoxChange={onPlaceChange(id)}
-                />
-              ))}
-            </View>
-          )}
-
-          {!!birth?.data && (
-            <View style={styles.certDetail}>
-              <HelpText
-                style={styles.label}
-                label={'Birth'}
-              />
-              
-              <CustomCertificateItem 
-                type="birth"
-                data={birth?.data}
-                selected={birth?.selected}
-                onCheckBoxChange={onBirthChange}
-              />
-            </View>
-          )}
-
-          {!!connect.ids.length && (
-            <View style={styles.certDetail}>
-              <HelpText
-                style={styles.label}
-                label={'Connect'}
-              />
-              
-              {connect.ids?.map?.((id, index) => (
-                <CustomCertificateItem 
-                  key={index}
-                  type="connect"
-                  data={connect.byId[id]}
-                  selected={connect.byId[id]?.selected}
-                  onCheckBoxChange={onConnectChange(id)}
-                />
-              ))}
-            </View>
-          )}
-
-          {!!state.data && (
-            <View style={styles.certDetail}>
-              <HelpText
-                style={styles.label}
-                label={'State'}
-              />
-              
-              <CustomCertificateItem 
-                type="state"
-                data={state.data}
-                selected={state?.selected}
-                onCheckBoxChange={onStateChange}
-              />
-            </View>
-          )}
-
-          {!!certificate?.chad && (
-            <View style={styles.certDetail}>
-              <HelpText
-                style={styles.label}
-                label={'Chad'}
-              />
-              
-              <CustomCertificateItem 
-                type="chad"
-                data={certificate.chad}
-                disabled={true}
-                selected={true}
-              />
-            </View>
-          )}
-
-          {!!certificate?.date && (
-            <View style={styles.certDetail}>
-              <HelpText
-                style={styles.label}
-                label={'Date'}
-              />
-              
-              <CustomCertificateItem 
-                type="date"
-                data={{ date: certificate.date }}
-                disabled={true}
-                selected={true}
-              />
-            </View>
-          )}
-
+          <CustomCertificateSelection
+            place={place}
+            chad={certificate?.chad}
+            date={certificate?.date}
+            birth={birth}
+            state={state}
+            connect={connect}
+            onBirthChange={onBirthChange}
+            onPlaceChange={onPlaceChange}
+            onStateChange={onStateChange}
+            onConnectChange={onConnectChange}
+          />
         </View>
 
       </ScrollView>
@@ -387,17 +296,12 @@ const styles = StyleSheet.create({
   certDetail: {
     marginBottom: 16,
   },
-  sendCertificate: {
-    //width: '100%',
-    //position: 'absolute',
-    //bottom: 0,
-  }
 });
 
 CustomCertificate.propTypes = {
   onDone: PropTypes.func.isRequired,
   showCorrespondingView: PropTypes.func.isRequired,
-  invite: PropTypes.any.isRequired,
+  cert: PropTypes.any.isRequired,
   needCustom: PropTypes.bool.isRequired,
   tally_ent: PropTypes.oneOfType([
     PropTypes.string,

@@ -62,8 +62,14 @@ const TallyEditView = (props) => {
   }, [hasHoldCert, tally.hold_cert?.connect])
 
 
-  const onViewCertificate= (data) => {
-    return () => props.navigation.navigate("TallyCertificate", { data });
+  const onViewCertificate= (args) => {
+    return () => props.navigation.navigate("TallyCertificate", { 
+      title: args.title,
+      cert: args.cert,
+      state: tally.state,
+      tally_seq: tally.tally_seq,
+      tally_ent: tally.tally_ent,
+    });
   }
 
   return (
@@ -125,7 +131,7 @@ const TallyEditView = (props) => {
               name={partName}
               chipAddress={partChipAddress}
               email={partEmail}
-              onViewDetails={onViewCertificate({ title: 'Partner Certificate', ...(tally?.part_cert ?? {} ) })}
+              onViewDetails={onViewCertificate({ title: 'Partner Certificate', cert: tally?.part_cert ?? {} })}
             />
         )}
 
@@ -135,7 +141,7 @@ const TallyEditView = (props) => {
               name={holdName}
               chipAddress={holdChipAddress}
               email={holdEmail}
-              onViewDetails={onViewCertificate({ title: 'My Certificate', ...(tally?.hold_cert ?? {} ) })}
+              onViewDetails={onViewCertificate({ title: 'My Certificate', cert: tally?.hold_cert ?? {} } )}
             />
         )}
 
