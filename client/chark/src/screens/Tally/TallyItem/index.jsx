@@ -19,6 +19,8 @@ const TallyItem = (props) => {
     ? `${partCert?.name}`
     : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
 
+  const hasPendingChit = !!tally?.net_pc && net != pendingNet;
+
   return (
     <View style={styles.container}>
 
@@ -32,7 +34,7 @@ const TallyItem = (props) => {
       </View>
 
       <View style={styles.price}>
-        {!!tally?.net_pc && (
+        {hasPendingChit && (
           <Text style={styles.pending}>
             {pendingNet}
           </Text>
