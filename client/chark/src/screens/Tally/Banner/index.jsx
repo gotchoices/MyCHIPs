@@ -35,7 +35,11 @@ const Banner = (props) => {
 
   const isNetNegative = props.totalNet < 0;
   const hasPendingTotal =
-    !isNil(props.totalPendingNet) && props.totalPendingNet != 0.0;
+    !isNil(props.totalPendingNet) && 
+    (
+      props.totalPendingNet != 0.0 &&
+      props.totalPendingNet != props.totalNet // If pending net and total net are equal, then the tally does not have pending chits
+    );
 
     const onFilter = () => {
       props.navigation.navigate("FilterTallyScreen");
