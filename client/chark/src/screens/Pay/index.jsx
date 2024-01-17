@@ -42,27 +42,27 @@ const PayModal = (props) => {
 
   }
 
-      const onPay = () => {
-        props.onClose()
+  const onPay = () => {
+    props.onClose()
 
-        props.navigation.navigate("PaymentDetail", {
-          chit_ent: props.tally?.tally_ent,
-          tally_uuid: props.tally?.tally_uuid,
-          chit_seq: props.tally.tally_seq,
-          tally_type: props.tally?.tally_type,
-          chad: props.tally?.hold_chad,
-        });
-      };
-    
-      const onRequest = () => {
-        props.onClose()
+    props.navigation.navigate("PaymentDetail", {
+      chit_ent: props.tally?.tally_ent,
+      tally_uuid: props.tally?.tally_uuid,
+      chit_seq: props.tally.tally_seq,
+      tally_type: props.tally?.tally_type,
+      chad: props.tally?.hold_chad,
+    });
+  };
 
-        props.navigation.navigate("RequestDetail", {
-          tally_uuid: props.tally?.tally_uuid,
-          chit_seq: props.tally?.tally_seq,
-          tally_type: props.tally?.tally_type,
-        });
-      };
+  const onRequest = () => {
+    props.onClose()
+
+    props.navigation.navigate("RequestDetail", {
+      tally_uuid: props.tally?.tally_uuid,
+      chit_seq: props.tally?.tally_seq,
+      tally_type: props.tally?.tally_type,
+    });
+  };
 
 
   const onViewPendingChits = () => {
@@ -75,6 +75,8 @@ const PayModal = (props) => {
       conversionRate: props.conversionRate,
     })
   }
+
+  const hasPendingChits = !!props.tally?.net_pc && !!props.tally?.net && (props.tally.net_pc != props.tally.net);
 
   return (
     <Modal visible={props.visible} transparent>
@@ -98,12 +100,14 @@ const PayModal = (props) => {
           </View>
 
           <View style={{ flex: 1 }} />
-          <Button
-            textColor={colors.gray300}
-            title="Pending Chits"
-            onPress={onViewPendingChits}
-            style={styles.pendingChit}
-          />
+          {hasPendingChits && (
+            <Button
+              textColor={colors.gray300}
+              title="Pending Chits"
+              onPress={onViewPendingChits}
+              style={styles.pendingChit}
+            />
+          )}
           <Button
             textColor="blue"
             title="View Tally"
