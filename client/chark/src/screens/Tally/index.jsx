@@ -98,6 +98,12 @@ const Tally = (props) => {
   };
 
   useEffect(()=>{
+    if(tallies){
+      fetchFilteredTallies()
+    }
+  },[tallies])
+
+  useEffect(()=>{
     fetchFilteredTallies()
   },[filterTally])
 
