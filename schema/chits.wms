@@ -32,7 +32,7 @@ table mychips.chits {mychips.tallies mychips.lifts tally_side} {
   , chit_type	text		not null default 'tran' constraint "!mychips.chits:BCT" check(chit_type in ('lift','tran','set'))
   , chit_date	timestamptz(3)	not null default current_timestamp
   , issuer	tally_side	not null default 'foil'
-  , units	bigint		constraint "!mychips.chits:CUN" check(units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
+  , units	bigint		constraint "!mychips.chits:CUN" check(units notnull and units >= 0 and chit_type in ('lift','tran') or units isnull and chit_type = 'set')
   , reference	jsonb
   , memo	text
   , digest	bytea		
