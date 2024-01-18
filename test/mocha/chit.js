@@ -84,7 +84,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.request, request)
       assert.deepStrictEqual(row.reference, ref)
-      assert.equal(row.net_p, value)
+      assert.equal(row.net_p, 0)
       assert.equal(row.net_g, 0)
       assert.ok(!row.chain_prv)
       assert.ok(!row.chain_idx)

@@ -395,7 +395,7 @@ view mychips.chits_v {
 
   , uSign(ch.units)							as net
   , case when ch.status = 'good' then uSign(ch.units) else 0 end	as net_g
-  , case when ch.status = 'void' then 0 else uSign(ch.units) end	as net_p
+  , case when ch.status in ('good','pend') then uSign(ch.units) else 0 end	as net_p
 
   , mychips.chit_cstate(ch, te)					as cstate
   , mychips.chit_state(isdebit(), ch.status, ch.request)	as state

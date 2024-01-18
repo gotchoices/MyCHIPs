@@ -68,7 +68,7 @@ describe("Test chit state transitions", function() {
       assert.equal(row.units, value)
       assert.equal(row.status,'draft')
       assert.equal(row.request,'pend')
-      assert.equal(row.net_p, value)
+      assert.equal(row.net_p, 0)
       assert.equal(row.net_g, 0)
       assert.equal(row.tally_type, 'stock')
       assert.equal(row.action, false)
