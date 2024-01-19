@@ -30,7 +30,7 @@ const Banner = (props) => {
   };
 
   const navigateToNotification = () => {
-    props.navigation?.navigate?.("Notification");
+    props.navigation?.navigate?.("Activity");
   };
 
   const isNetNegative = props.totalNet < 0;

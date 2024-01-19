@@ -43,9 +43,9 @@ import FilterTallyScreen from '../screens/Tally/FilterTallyList'
 import TradingVariables from "../screens/Tally/TradingVariables";
 import TallyCertificate from "../screens/Tally/TallyCertificate";
 import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
-import NotificationScreen from "../screens/Notification/NotificationScreen";
 import { GenerateKeysAlertModal } from '../components/GenerateKeyAlertModal';
 import KeyManagement from '../screens/KeyManagement';
+import Activity from '../screens/Activity';
 
 const screenOptions = {
   headerTitleAlign: "center",
@@ -65,7 +65,7 @@ const HomeStack = createNativeStackNavigator();
 
 function HomeStackScreen() {
   return (
-    <HomeStack.Navigator>
+    <HomeStack.Navigator screenOptions={screenOptions}>
       <HomeStack.Screen
         name="Home"
         component={Home}
@@ -117,9 +117,9 @@ function HomeStackScreen() {
         options={{ title: "Request Detail" }}
       />
       <HomeStack.Screen
-        name="Notification"
-        component={NotificationScreen}
-        options={{ title: "Notification" }}
+        name="Activity"
+        component={Activity}
+        options={{ title: "Activity" }}
       />
       <HomeStack.Screen
         name="TallyPreview"
