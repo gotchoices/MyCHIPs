@@ -9,6 +9,7 @@ export const useTallyText = (wm) => {
     if (!messageText?.tallies) {
       wm.register('tally_lang' + Math.random(), 'mychips.tallies', (data, err) => {
         if (data) {
+          console.log(JSON.stringify(data, null, 2), 'DATA DICT')
           addTextsToState('tallies', data.col, setMessageText)
         }
       })

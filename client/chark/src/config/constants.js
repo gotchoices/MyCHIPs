@@ -28,6 +28,7 @@ export const colors = {
   gray7: '#DFDFDF',
   gray8: '#EDEDED',
   gray9: '#BDBDBD',
+  gray10: '#9B9B9B',
   lightgray: '#d9d9d9',
   dimgray: '#686868',
   quicksilver: '#9f9f9f',
