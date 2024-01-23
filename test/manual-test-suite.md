@@ -39,6 +39,3 @@
 |                      |                           |                                                        | Homepage             |                              |                                                        |
 |                      |                           |                                                        |                      |                              | Pending chit display is gone on User-A without refresh |
 |                      |                           |                                                        |                      |                              | Chit value updated without refresh                     |
-
-
-
