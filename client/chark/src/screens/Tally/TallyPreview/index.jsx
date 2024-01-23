@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   ScrollView,
   View,
@@ -35,8 +35,10 @@ import ShareIcon from "../../../../assets/svg/ic_share.svg";
 import { GenerateKeysAlertModal } from "../../../components/GenerateKeyAlertModal";
 import AcceptButton from '../AcceptButton';
 import OfferButton from '../OfferButton';
+import { fetchOpenTallies } from "../../../redux/openTalliesSlice";
 
 const TallyPreview = (props) => {
+  const dispatch = useDispatch()
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
   const { setTriggerInviteFetch } = useInvite();
@@ -78,6 +80,8 @@ const TallyPreview = (props) => {
   }, []);
 
   useEffect(() => {
+    dispatch(fetchOpenTallies({ wm: wm }));
+
     const needCertUpdate = (
       tally_ent && tally_seq &&
       certificateChangeTrigger?.tally_ent == tally_ent && 
