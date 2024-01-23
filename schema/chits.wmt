@@ -49,7 +49,7 @@ tabtext mychips.chits	{Chits}		{Contains an entry for each transaction of credit
   {CUN		{Bad Chit Units}	{Transactional chits must have a unit value.  Settings chits must not.}}
 }
 
-tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
+tabtext mychips.chits_v {Chits}		{Standard view containing an entry for each chit, which is a transmission of value between two trading partners on a single tally.} {
   {net		{Net Value}		{The chit amount expressed as a positive or negative number, depending on how it accrues to the holder of this half of the tally.}}
   {net_g	{Good Value}		{The net value of this chit that has been duly signed and so is considered binding.}}
   {net_p	{Pending Value}		{The net value of this chit that when it has not yet been signed.  A value here indicates it is still pending and not final.}}
@@ -65,6 +65,10 @@ tabtext mychips.chits_v {Chits}			{Standard view containing an entry for each ch
 }
 
 tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user} {
+} -messages {
+  {pending	{Pending Chits}		{Chits that are proposed but not yet approved}}
+  {asset	{Asset}			{A chit issued by your partner to pay you}}
+  {liability	{Liability}		{A chit issued by you to pay your partner}}
 }
 
 tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {
