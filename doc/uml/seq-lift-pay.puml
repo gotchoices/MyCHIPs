@@ -1,0 +1,59 @@
+@startuml
+!include common.puml
+$title(Payment Lift Discovery and Execution)
+actor "User" as user
+database "Payor Model" as orgDB
+control "Payor Agent" as orgAgent
+control "ChipNet" as chipNet
+control "ChipSync" as chipSync
+collections "Upstream Sites" as upSites
+
+user		->>	orgDB:		Request payment lift to named peer\nrequest=init
+orgDB		->>	orgAgent:		Notify payor's agent
+
+alt Can't verify user's signature
+  orgAgent	->>	orgDB:		Mark payment as void
+  orgDB	->>	user:		Notify user  
+  note over orgAgent,orgDB: Exit
+else User's signature is good
+  orgAgent	->>	orgDB:		Agent signs lift record\nrequest=route
+end
+
+alt Payee agent is local to our site\nand a suitable local route is found
+  orgDB	->>	orgDB:		Generate/commit local chits\nCommit lift
+  orgDB	->>	user:		Notify user  
+  note over orgAgent,orgDB: Exit
+end
+
+orgAgent	->>	chipNet:	Launch routing session
+chipNet		<->	upSites:	ChipNet negotiates pathway
+
+alt ChipNet can't find suitable route
+
+  chipNet	->>	orgAgent:	No route possible
+  orgAgent	->>	orgAgent:	Void lift record
+  orgAgent	->>	user:		Notify user  
+  note over orgAgent,orgDB: Exit
+
+else  
+  chipNet	->>	orgAgent:	Suitable route found
+end
+
+orgAgent	->>	orgAgent:	Select optimal plan
+orgAgent	->>	chipSync:	Launch lift transaction
+chipSync	->>	orgAgent:	Time to build provisional chits
+chipSync	<->	upSites:	ChipSync negotiates lift
+
+alt Lift succeeds
+
+  chipSync	->>	orgAgent:	Lift succeeded
+  orgAgent	->>	orgAgent:	Record/commit provisional chits
+
+else  
+  chipSync	->>	orgAgent:	Lift failed
+  orgAgent	->>	orgAgent:	Void provisional chits
+end
+
+orgAgent	->>	user:		Notify user  
+  
+@enduml

@@ -309,9 +309,10 @@ To help track this, a lift record will be marked by one of the following types:
 - **org**: A distributed lift that was originated on this system.
 - **rel**: A distributed lift which originated on some other system.
 
-Lift records also have a state which is one of the following:
-- **route**: The user or system is considering a lift.
-	Detecting this state, the agent should initiate route discovery for the intended lift.
+Lift records also have a set of defined status/requests as follows:
+- **draft**: The lift record has been created but no route or lift has been sought yet.
+
+- **route**: The system is checking for a possible route for the lift.
 
 - **init**: The user or system has marked the lift to begin.
 	This should trigger action to either complete the lift locally or to 
@@ -319,8 +320,10 @@ Lift records also have a state which is one of the following:
 
 - **seek**: The lift, originated on this system, has been propagated to externally and we are waiting for it to find its destination.
 
+- **call**: The lift, originated on this system, is awaiting the referee's authorization.
+
 - **found**: The target of a distributed lift was found on the local system.
-	Will notify the agent of the intended terminus user.
+	We should notify the agent of the intended terminus user.
 
 - **term**: The terminus agent has been notified of the lift.
 

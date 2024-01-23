@@ -1,0 +1,23 @@
+#!/bin/bash
+#Launch a web browser on a document and automatically reload when it changes
+
+# Check if an argument was provided
+FILE_TO_WATCH="README.md"
+if [ ! -z "$1" ]; then
+  FILE_TO_WATCH="$1"
+fi
+
+# Check if the file exists
+if [ ! -f "$FILE_TO_WATCH" ]; then
+    echo "File not found: $FILE_TO_WATCH"
+    exit 1
+fi
+
+# Check if live-server is installed, if not, install it
+if ! npm list -g | grep -q live-server; then
+    echo "You must first instsll live-server (with npm, brew, etc)"
+    exit 1
+fi
+
+# Start live-server
+live-server --browser="Google Chrome" --wait=500 "$FILE_TO_WATCH" &

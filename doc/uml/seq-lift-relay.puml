@@ -1,0 +1,54 @@
+@startuml
+!include common.puml
+$title(Lift Relay and Terminus Response)
+actor "User" as user
+control "Downstream Agent" as dnAgent
+control "Local Agent" as relAgent
+database "Local Model" as relDB
+control "ChipNet" as chipNet
+control "ChipSync" as chipSync
+collections "Upstream Sites" as upSites
+
+dnAgent		->>	relAgent:	Routing query from below
+relAgent	->>	relAgent:	Parse packet as necessary for SQL query
+relAgent	->>	relDB:		Query local DB for:\nedge/segment candidates\nand any existing state object\nfor the specified session
+relDB		->>	relAgent:	Return results
+relAgent	->>	chipNet:	Hand off packet to ChipNet
+chipNet		<->	upSites:	ChipNet negotiates pathway
+chipNet		->>	relAgent:	Update to local state object
+relAgent	->>	relDB:		Store session state
+
+note over relAgent, chipSync:		Respond with sequence above as needed\nto resolve routing
+
+dnAgent		->>	relAgent:	Receive transaction\nrecord update
+relAgent	->>	chipSync:	Hand off packet to ChipSync
+
+chipSync	->>	relAgent:	Request transaction state
+relAgent	<->	relDB:		Fetch transaction state
+relAgent	->>	chipSync:	Give transaction state
+chipSync	->>	chipSync:	Validate packet
+
+alt Next step: promise
+  chipSync	->>	relAgent:	Should we proceed to promise?
+  
+  alt Yes, promising
+    relAgent	->>	relDB:		Build conditional chits
+    relAgent	->>	chipSync:	Respond affirmatively
+  else
+    relAgent	->>	chipSync:	Respond negatively
+  end
+
+else Next step: commit
+  chipSync	->>	relAgent:	Time to commit
+  relAgent	->>	relDB:		Commit provisional chits
+
+else Next step: abort/rollback
+  chipSync	->>	relAgent:	Abort lift
+  relAgent	->>	relDB:		Void provisional chits
+
+end
+
+chipSync	->>	upSites:	Propagate update records
+relAgent	->>	user:		Notify user
+
+@enduml

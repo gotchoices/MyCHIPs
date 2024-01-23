@@ -9,8 +9,8 @@ node "Foreign Peer\nAgent" as forPeer
 node "Up-stream Partner\nAgent" as upPart
 node "Down-stream Partner\nAgent" as downPart
 
-usecase "I Need a Linear Route\nto a Foreign Peer" as findLinear
-usecase "My User Needs a\nCircuit Route" as findCircuit
+usecase "I Need a Linear Route\nto a Specified Peer" as findLinear
+usecase "My User Needs a\nCircular Clearing Route" as findCircuit
 
 user		--	findLinear
 userAgent	--	findLinear

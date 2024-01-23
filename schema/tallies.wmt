@@ -13,7 +13,7 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {version	{Version}		{A number indicating the format standard this tally adheres to}}
   {revision	{Revision}		{Count of the number of times the tally was revised/counter-offered during negotiation}}
   {comment	{Comment}		{Any notes the user might want to enter regarding this tally}}
-  {contract	{Contract}		{The Resouce ID of the contract governing this tally (or a json record more fully specifying it)} {
+  {contract	{Contract}		{The Resource ID of the contract governing this tally (or a json record more fully specifying it)} {
     {name	{Name}			{The tag name of the governing contract}}
     {host	{Host}			{The host site of the author of the governing contract (default: mychips.org)}}
     {source	{Resource}		{The Resource ID of the governing contract}}

@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Check if an argument was provided
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 filename[.puml]"
+    exit 1
+fi
+
+FILE_TO_WATCH=$1
+
+# Add .puml extension if not present
+if [[ ! $FILE_TO_WATCH == *".puml" ]]; then
+    FILE_TO_WATCH="$FILE_TO_WATCH.puml"
+fi
+BASE_FILE="${FILE_TO_WATCH%.puml}"	#;echo "base:$BASE_FILE"
+FILE_TO_BUILD="$BASE_FILE".svg
+COMMAND_TO_RUN="plantuml -tsvg $FILE_TO_WATCH"
+
+build_svg_if_needed() {
+
+  # Check if SVG file exists and is newer than the PUML file
+  if [ ! -f "$FILE_TO_BUILD" ] || [ "$FILE_TO_WATCH" -nt "$FILE_TO_BUILD" ]; then
+    echo "Building initial SVG..."
+    $COMMAND_TO_RUN
+  fi
+}
+
+# Check if the file exists
+if [ ! -f "$FILE_TO_WATCH" ]; then
+    echo "File not found: $FILE_TO_WATCH"
+    exit 1
+fi
+
+# Call the function to build SVG if needed
+build_svg_if_needed
+
+# Check if live-server is installed, if not, install it
+if ! npm list -g | grep -q live-server; then
+    echo "Installing live-server"
+    sudo npm install -g live-server
+fi
+
+# Start live-server
+live-server --browser="Google Chrome" --wait=500 "$FILE_TO_BUILD" &
+
+# Using fswatch to monitor the file
+fswatch -o "$FILE_TO_WATCH" | while read f
+do
+    echo "Detected changes in $FILE_TO_WATCH. Executing PlantUML..."
+    $COMMAND_TO_RUN
+    echo "PlantUML execution complete."
+done

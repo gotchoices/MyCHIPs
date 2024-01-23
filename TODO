@@ -1,23 +1,35 @@
 TODO:
 
 - Local linear lifts:
--  Testing:
--    When I create a payment lift record, how does the uuids path get set?
--    What tests in sch-pay.js?
--    Is there also a pay.js for full local lifts?
+X- Draft protocol 1.4
+X- Build regression tests for local lift payments
+X-   Leave tests/infrastructure for distributed routes/lifts intact for now
+-   request='route' generates async to origin.agent
+-   agent evaluate's payor's authorization signature
+-   agent signs the lift payment json
+-   agent sets status = 'route'
+-   this triggers local search for payee
+-   If pathway is found, execute lift manually, immediately, mark all chits
+-   Notify user of success
+-   If no pathway found, mark lift as failed (void?)
+-   Notify user of failure
+-   
+-   Make lifts_v_pay_me view -- user permissioned, my payments
+-   User view can see sent and received payments
+-   
+-   Clean up, remove pays.wm*
+-   
+X-    When I create a payment lift record, how does the uuids path get set?
+X-    What tests in sch-pay.js?
+-   Do we need a pay.js for full local lifts? (probably not)
 -    
--  How to initiate an internal linear lift to a given destination?
--    Scan invoice, build draft payment record, party=payee chad
--    Set request = 'seek': This initiates search
--    Search returns an array of candidate routes
--    Set request = 'pend', play = route: This initiates lift
--    Lift either completes status = good or fails, status = void
--    User is notified
--  Build regression tests for local lift payments
--    Leave tests/infrastructure for distributed routes/lifts intact for now
--    User view can see sent and received payments
+- Integrate with app:
+-   Scan invoice, build draft.route payment record, find=payee chad
+-   User is notified
+-   Wait for async completion/failure
+-   Is there a way to retry a failed payment?
 -  Make view for relay nodes to evaluate the effect of lifts
--  Can/should I be able to specify an outbound tally?
+X-  Can/should I be able to specify an outbound tally? (no, for now)
 
 - Tally negotiation
 -  App signs tally in both directions (test)

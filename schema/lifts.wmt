@@ -17,6 +17,13 @@ tabtext mychips.lifts	{Lifts}		{Contains a record for each group of chits in a s
   {units	{Units}			{The amount of the lift transaction, as measured in milli-CHIPs (1/1,000)}}
   {lift_date	{Lift Date}		{The date/time the lift was originated}}
   {life		{Lifetime}		{The amount of time before the lift will be considered expired by its arbiter referee}}
+  {payor_ent	{Payor Entity}		{Local entity ID that authorizes this lift as a payment}}
+  {payee_ent	{Payee Entity}		{Local entity ID of the recipient of this lift as a payment}}
+  {payor_auth	{Payor Authorization}	{Lift payment details} {
+    {ref	{Reference}		{Any arbitrary JSON data about the transaction, meaningful to the parties.  May reference an invoice, a purchase order, a register, other document evidencing goods or services rendered, and a trading relationship between the parties.}}
+    {memo	{Memo}			{Human-readable text description, context or explanation for the transaction}}
+    {sign	{Signature}		{Digital signature of the payor authorizing its agent to perform the lift}}
+  }}
   {find		{Destination}		{The JSON CHIP Address of the entity we are seeking at the end of the line for this lift.  For circular lifts, it is the foreign peer at the bottom of our local segment.}}
   {origin	{Origin}		{A JSON record describing information about how/where the lift originated.  Some parts encrypted for eyes of the destination agent only.}}
   {referee	{Referee}		{The JSON CHIP Address of the site who will decide when the lift has expired}}

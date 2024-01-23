@@ -1,0 +1,44 @@
+@startdot
+digraph lift {
+  label = "Lift Example Graph";
+    subgraph cluster_siteA {
+      label = "Site A";
+      userA0;
+      userA1;
+      userA2;
+      userA3;
+    }
+
+    subgraph cluster_siteB {
+      label = "Site B";
+      userB1;
+      userB2;
+      userB3;
+    }
+
+    subgraph cluster_siteC {
+      label = "Site C";
+      userC1;
+      userC2;
+    }
+
+    subgraph cluster_siteD {
+      label = "Site D";
+      userD1;
+    }
+
+    userA3 -> userA2;
+    userA2 -> userA1;
+    userA1 -> userA0;
+    userA0 -> userD1;
+
+    userC1 -> userA3;
+    userC2 -> userC1;
+    userD1 -> userC2;
+
+    userB2 -> userA2;
+    userB1 -> userA1;
+    userB3 -> userB1;
+    userD1 -> userB3;
+}
+@enddot

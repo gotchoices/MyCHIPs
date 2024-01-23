@@ -445,222 +445,68 @@ It *is* possible to define distinct states for a chit within the consensus algor
 However, it is not particularly useful so no state diagrams are presented here.
 It is enough that each node remain aware of any chit marked as good, and keep communicating with the other half (according to the sequences shown above) of the tally until a chain index is successfully recorded and acknowledged for that chit.
 
-### Interrim Lift Protocol
-Starting with version protocol 1.5, it is intended to offload the route discover and lift
-negotiation protocol to an [external library](https://github.com/gotchoices/ChipNet).
-This should facilitate several objectives:
+### Interim Lift Protocol
+Starting with version protocol 1.5, it is intended to offload both
+[route discovery](https://github.com/gotchoices/ChipNet)
+and [lift negotiation](https://github.com/gotchoices/ChipSync)
+to external libraries.
+This is in support of the following objectives:
 - Increase site bandwidth and scalability
-- Facilitate multiple MyCHIPs-compatible implementations
-- Support multiple options for assessing lift validity/timeout
+- Facilitate and encourage multiple MyCHIPs-compatible implementations
+- Support multiple methods for assessing lift validity/timeout
 
-While ChipNET is being developed, this implementation will continue toward a deployable
-codebase that works on a single site.
-This means support for local route discovery and local clearing and payment lifts in a way that, from the application's perspective,
-will not have to change once fully distributed lifts are possible.
+While ChipNet/ChipSync are being developed, this implementation will continue toward a 
+functional system that works only as a single site.
+This means support for local route discovery and local clearing and payment lifts in a way
+that, from the user's perspective, will not have to change once fully distributed lifts
+become possible.
 
-Consider the following use cases:
-- The user asks if a linear route exists to a specified user/tally
-- The agent asks if a circular route exists involving specified up-stream and down-stream tallies
+Readers not already familiar with credit lifts, can refer to [this section on lifts](learn-lift.md) for more background.
+It is also important to fully understand
+[ChipNet](https://github.com/gotchoices/ChipNet),
+[ChipSync](https://github.com/gotchoices/ChipSync), and their support libraries.
 
-In each case, a process should be able to call a local procedure to initiate this search.
-For interrium, local-only implementation, this is a stored procedure in the database which returns a list of possible routes that meet the specfied criteria.
-Each route specifies an up-stream tally and a data structure that will be delivered to the lift routine.
+### Route Discovery
+Before a lift can be performed, it is first necessary to discover whether there are
+willing partners available in the network able to perform the necessary transfers.
 
-The system shall also present a procedure for invoking a lift.
-In the local implementation, this is accomplished by creating and signing an 'org' type lift record.
-
-### Route Discovery Protocol OBSOLETE
-Readers not already familiar with credit lifts, can refer to [this section on lifts](learn-lift.md)
-for figures and background that will be referred to below.
-
-A site database has knowledge of *local* segments that have capacity for a potential credit lift.
-But it also needs a way to cooperate with *foreign* peer sites to initiate lifts or participate in their lifts.
-
-Each site needs to know whether a potential external route might exist where:
-- a lift can be initiated through the top of a given local segment (B1->A3); and
-- for circular lifts: the lift will return to us via the bottom of the segment (C1->B3); or
-- for linear lifts: the lift will arrive at the desired destination entity (Xn);
-
-In our scenario, site B doesn't need to know many details about the route--just whether one or more such paths exist.
-The route may pass through many other sites on its way back to C1.
-In fact, it may pass through some sites more than once, traversing multiple segments.
-
-Once site B has identified the local entities [B1,B2,B3] as a single segment with a known lift capacity, it can treat them as an integral *node* in the lift--almost as though it were a single entity.
-The lift will be committed (or canceled) in a single, atomic transaction on behalf of all the nodes belonging to the segment.
-
-Route discovery requests can be initiated in two ways:
-- Manually by a user/entity; or
-- By an automated scheduler running as part of the agent process.
+Consider the following:
 
 ![use-route](uml/use-route.svg)
 
-An entity would typically request a route because it intends to make a payment (linear lift) to some other entity.
-The payee entity's [CHIP address](learn-users.md#chip-addresses) might be obtained by scanning an invoice QR code or processing an object embedded in an email or text message.
-The payor's app would then send that information to his host site.
-His agent server process can then commence the discovery process for possible external routes to complete the intended lift.
+As shown, route discovery requests can be initiated in two ways:
+- Manually by a user/entity; or
+- By an automated scheduler running as part of the agent process.
 
-For a linear lift, each end of the lift may involve a *partial segment*.
-The payor segment may include zero or more other local entities upstream before the lift jumps to a foreign peer
-(for example: [C2, C1, (B3)]).
-The lift may pass through zero or more downstream local entities before reaching the payee
-(for example: [(B1), A3, A2]).
-Nodes along the way (relays) get the same experience whether the lift is circular or linear.
+A site containing multiple users in its database has knowledge of all the connections between its users. 
+In some limited cases, it might be able to find a suitable route within these local connections.
+More commonly, it will be necessary to obtain the cooperation of other sites to perform a meaningful lift.
+Discovery of suitable lift pathways is accomplished by the [chipNet module](https://github.com/gotchoices/ChipNet).
 
-Manual routing requests are handled as follows:
+In this implementation, route discovery will be modeled as the first stage (or state) of a lift and so will be incorporated into the lift protocol as described below.
 
-![Manual Routing](uml/seq-route-man.svg "Manually initiating a route search")
+### Lift Protocol
 
-As mentioned, an autonomous agent process is periodically scanning for liftable balances along local segments.
-Upon discovering a segment with a capacity for a lift, the system will check its database for external routes that might be used to complete the circuit.
+Let us first consider the use case of a user-initiated payment lift.
+The agent for this user will be considered the originator of the lift and will interact with other sites and modules as follows:
 
-![Automatic Routing](uml/seq-route-auto.svg "Automatic route scanning")
+![seq-lift-pay](uml/seq-lift-pay.svg)
 
-If a suitable route is not yet known, the agent will commence a search by creating one or more 
-draft route records in the local database.
-This causes the associated agent processes to propagate the query to their associated upstream partners.
+Note that an automatically generated request for a circular, or clearing lift will be quite similar except the agent itself may initiate (and authorize) the process (as opposed to the user).
 
-If previous successful searches have already been conducted but are too old to be reliable,
-the routes may be updated simply by resetting them to draft status again and the process will repeat.
+The originator has a unique role since it will initiate the process.
+The agent for the intended recipient of the lift will also have some unique tasks to perform.
+Participants in the middle mostly relay the lift information along and don't really need to concern themselves with whether it is a linear payment lift or a clearing lift.
+It will turn out the same for them either way.
 
-If previous searches have been inconclusive, the agent should similarly retry after a reasonable amount of time has passed.
-The database maintains a sorting algorithm internally to determine when to retry old routes and when to try creating new ones.
+The sequence for non-originator nodes is as follows:
 
-As mentioned, each site acts in two roles:
-- It may initiate upstream route queries necessary for conducting trades for local users; and
-- It may receive queries from downstream and act upon them.
+![seq-lift-relay](uml/seq-lift-relay.svg)
 
-The second role is shown in the following sequence diagram:
+In order to maintain an orderly transition through these sequences, the site model will maintain a lift record with the following states:
 
-![Routing Relay](uml/seq-route.svg "Responding to route queries")
-
-A node responding to a query from downstream has four possible outcomes:
-- The destination node is found on a segment connected to this incoming request;
-- There is no pathway possible because there are no upstream tallies with foreign peers;
-- One or more pathways are possible through existing, known routes;
-- Pathways may be possible but more upstream queries will be needed to find out.
-
-Now we can derive the following state diagram to describe the route discovery protocol from the perspective of a single site:
-
-[![state-route](uml/state-route.svg)](uml/state-route.svg)
-
-Routes may exist in a pending state for some time before a response comes back from upstream
-indicating whether to mark the route as good or bad.
-So each route should be uniquely identifiable.
-In addition to knowing the tally UUID the query came in on, a querying node should supply a route ID.
-This route ID will be returned with subsequent updates so the node knows which route to update.
-
-### Lift Protocol OBSOLETE
-Once a site has discovered one or more viable external routes, it can proceed to propose an actual lift.
-The proposal is sent out via an upstream foreign peer at the top of the subject segment.
-This use diagram shows five possible phases of the resulting lift:
-
-![use-lift](uml/use-lift.svg)
-
-Let's consider the simplified example lift circuit again.
-Remember, each node could represent a single user or a segment of users local to a particular site.
-We will consider node A as the lift originator.
-Node B will be considered the destination of the lift.
-
-<p align="center"><img src="figures/Lifts-1.jpg" width="500" title="Visualizing a lift"></p>
-
-For a linear lift, imagine the tally between A and B does not (or need not) exist.
-
-#### Proposal
-
-Proposals will travel counter-clockwise, <b>against</b> the normal flow of payments (the arrows).
-Node A proposes the lift to node D because:
-  - Node A contains a route record indicating that an external pathway exists (or has existed) leading from node D, upstream and eventually to node B; and
-    - it has capacity for a circular lift through an internal segment with D at the top (output) and B at the bottom (input); or
-    - it needs to transmit value from A to B (linear lift).
-
-  The lift proposal is a conditional contract of the form:
-  "If I send a specified value to you on this tally, you agree to send that same value along through another node you are connected to, with that value eventually reaching the intended destination."
-  - The proposal contains a time, indicating how long the lift proposal will *stay alive*.  After that, it will time out and will be considered "expired" (and therefore void).
-  - It also contains the identity of a proposed referee whose job it is to declare when the lift time has expired (or certify its successful completion).
-    The referee is typically a well known, reliable site that is reachable by any node on the network.
-    This identity record includes:
-    - Connection protocol (https, chip, other)
-    - Network connection address/port information
-  - It is each site's responsibility to decide for itself what referees are worthy of trust.
-    - For https protocol, a site should have already collected (out of band) a public key for each referee it intendes to rely on.
-    - For chip protol, the connection information is a standard [CHIP address](learn-users.md#chip-addresses) for which the public key is inherently known.
-      The local site should probably already share a tally with the referee site.
-      This binds the parties to the responsible behavior they expect from each other.
-  - If node D wants to participate in the lift, on the proposed terms, it indicates this by forwarding the proposal along to node C where the process repeats itself.
-  - This action makes the lift binding upon D, subject only to receipt of an authorizing signature, generated within the specified timeout, as judged by the named referee.
-  - If/when C receives the validating signature (by any means), D's obligation to C becomes valid and provable, regardless of whether D cooperates further in the transaction.
-    So every node has a natural incentive to cooperate in the second phase of the lift.
-    If they don't, they will lose value to their upstream connection without recapturing it from downstream.
-
-![seq-lift-prop](uml/seq-lift-prop.svg)
-
-#### Confirmation, Ratification, Commit
-  As long as a suitable route exists, the lift proposal will eventually reach its intended destination, or <i>terminus node</i>.
-  The terminus node will communicate a confirmation directly to the originator to indicate that the lift has successfully propagated through its intended circuit (or linear path) and is ready to commit.
-  The lift header contains a network address and port where the originator can be reached for this purpose.
-
-  Once the originator has obtained the confirmation, it can decide whether it wants to proceed to commit the lift.
-  But it can only do so if the time, originally set forth in the lift proposal, has not yet expired (in the sole judgement of the referee).
-  So the originator sends a message to the referee requesting permission to commit.
-
-  Depending solely on the time elapsed, the referee will answer either with an 
-  approval (good) or disapproval (void) message which
-  bear's the referee's digital signature.  The originator should now proceed to transmit
-  this record clockwise through the lift chain, starting with node B.
-  Node B will forward the signature to C, and so forth until all the nodes in the circuit have received 
-  the signature (whether good or void).
-  
-  Affixing a *good* signature will make make the applicable lift chits binding.
-  
-![seq-lift-conf](uml/seq-lift-conf.svg)
-
-#### Referee Queries
-  Assuming all the nodes stayed connected and responded correctly through the lift sequences above, everyone now has exchanged their excess credits and collected other, more wanted ones in their place
-  (or they all know the lift is expired and the chits can now be ignored).
-  But if part of the network had a problem part-way through the lift, some nodes might be left in an indeterminate state.
-  They are committed to the lift, but they don't have the required signature to complete so they don't know for sure if the lift should go through or not.
-
-  Participating nodes can consult their local clock and get a pretty good idea of when the lift should have timed out.
-  If this time is exceeded, they can reach out to the referee node to ask the status of the lift.
-  The referee will:
-  - answer that time is still running--no answer yet; or
-  - respond with a signed "void" message; or
-  - provide the "good" authorization signature.
-
-![seq-lift-ref](uml/seq-lift-ref.svg)
-
-Participating nodes can provide a greater degree of load distribution if, upon discovering a local timeout, they will take the following steps in order:
-- See if any other segments exist on our same database that are part of the same lift (same uuid but different sequence) and already have the signature;
-- Send a chit consensus check to the upstream peer to see if the signature has been received there;
-- Wait an amount of time *after* expected timeout that is proportional to how much time was left on the lift promise (before expiration) when you received it.
-  This should generally cause the terminus node (or a node closer to that end of the chain) to act first.
-- Request status directly from the originator (if query address has been supplied), who can answer in like fashion to the referee;
-- Request status from the referee directly;
-
-As long as connectivity can be maintained with a connected neighbor, the originator, or the referee, each node should be able to successfully complete the lift.
-If none of these can be reached, the lift commit/reject will block indefinitely until connectivity can be restored to someone with the signature.
-
-It [has been shown](../test/analysis/dsr/phase-1/results.md) that without a referee, the protocol is more vulnerable to potential safety and/or liveness issues.
-So it is important that sites maintain a list of trustworthy referees and their public keys.
-To support this function, a site willing to serve as referee must also support the following auxiliary protocol:
-
-![seq-ref-aux](uml/seq-ref-aux.svg)
-
-In general practice, it is expected that each host site will execute a tally with referee sites they expect to honor.
-Such tallies can contain contractual language expressing the referee's willingness to conduct its function with fidelity and good faith.
-This also supports the possibility of assessing fees in exchange for referee services where applicable.
-
-The Term of Service describes how long the referee promises to perform lifts.
-This will allow a service provider to discontinue service without breaking trust or losing reputation.
-
-#### Lift States
-We can now derive the following state diagram to describe the lift protocol from the perspective of a single node or segment:
-
+NEEDS REWORK:
 [![state-lift](uml/state-lift.svg)](uml/state-lift.svg)
-
-The referee lift state diagram is as follows:
-
-[![state-ref](uml/state-ref.svg)](uml/state-ref.svg)
 
 <div style="display: flex; justify-content: space-between;">
   <a href="README.md#contents">Back to Index</a>

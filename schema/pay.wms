@@ -1,0 +1,105 @@
+# Lift-based payments to and from other users
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+#TODO:
+#- 
+#require common.tcl glob.tcl trigview.tcl
+module mychips
+
+namespace eval pay {
+    def pay_pk		{lift_uuid lift_seq}
+    def pay_v_up	{find units payor_auth request}
+    def pay_v_in	[concat $pay_pk $pay_v_up payor_ent]
+    def pay_se		[concat $pay_v_in status state json origin payee_ent $glob::stampfn]
+}
+
+# Trigger to fire upon creation of payment type lifts
+#----------------------------------------------------------------
+function mychips.lifts_tf_bpiu() {mychips.lifts mychips.users_v} {
+  returns trigger language plpgsql security definer as $$
+    declare
+      trec	record;
+      i		int;
+    begin
+      if new.payor_ent notnull and new.origin isnull then
+        select into new.origin jsonb_build_object(		-- Build origin field if it doesn't exist
+          'cid',	peer_cid,
+          'agent',	peer_agent
+        ) from mychips.users_v where user_ent = new.payor_ent;
+      end if;
+
+      if new.find notnull and new.payee_ent isnull then		-- Is payee local to our system?
+        select into new.payee_ent user_ent from mychips.users_v
+          where peer_cid = new.find->>'cid' and peer_agent = new.find->>'agent';
+      end if;
+
+      return new;
+    end;
+$$;}
+trigger mychips_lifts_tr_bpiu {} {
+    before insert or update on mychips.lifts for each row when (new.lift_type = 'pay')
+      execute procedure mychips.lifts_tf_bpiu();
+}
+
+# Payments view
+#----------------------------------------------------------------
+view mychips.lifts_v_pay {mychips.users_v mychips.lifts_v} {select
+    eval(fld_list $pay::pay_se l)
+  
+    from	mychips.lifts_v		l;
+
+    eval(trigview::insert mychips.lifts_v_pay mychips.lifts $pay::pay_v_in $pay::pay_pk [concat lift_type 'pay' $glob::stampin]);
+    eval(trigview::update mychips.lifts_v_pay mychips.lifts $pay::pay_v_up $pay::pay_pk $glob::stampup);
+    eval(rule_delete mychips.lifts_v_pay mychips.lifts $pay::pay_pk {old.status = 'void'});
+}
+
+# Custom insert function
+#----------------------------------------------------------------
+#function {mychips.lifts_v_pay_insfunc()} {mychips.pays_v} {
+# returns trigger language plpgsql security definer as $$
+#  begin
+#raise notice 'LvP insfunc:%', new.request;
+#    insert into mychips.lifts ev#al(trigview::infields $pay::pay_v_in [concat {lift_type 'pay'} $glob::stampin]) returning lift_uuid, lift_seq into new.lift_uuid, new.lift_seq;
+#--    insert into mychips.lifts
+#--      (payor_ent, lift_type, units, payor_auth, request)
+#--    values
+#--      (new.payor_ent, 'org', new.units, new.payor_auth, new.request)
+#--    returning lift_uuid into new.lift_uuid;
+#    return new;
+#  end;
+#$$;}
+#trigger mychips_lifts_v_pay_ins {} {
+#    instead of insert on mychips.lifts_v_pay for each row execute procedure mychips.lifts_v_pay_insfunc();
+#}
+
+# Custom update function
+#----------------------------------------------------------------
+#function {mychips.pays_v_updfunc()} {mychips.pays_v} {
+# returns trigger language plpgsql security definer as $$
+#  begin
+#    if old.lift_uuid isnull and new.request notnull then
+#      insert into mychips.lifts (units, request) values (new.units, new.request) returning lift_uuid into new.lift_uuid;
+#    end if;
+#    update mychips.pays set ev#al(trigview::upfields [concat $pays::pays_v_up lift_uuid] $glob::stampin)
+#      where ev#al(fld_list_eq $pays::pays_pk old { and })
+#      returning ev#al(join $pays::pays_pk ,) into ev#al(fld_list $pays::pays_pk new);
+#
+#    select into new * from mychips.pays_v where pay_ent = new.pay_ent and pay_seq = new.pay_seq;
+#    return new;
+#  end;
+#$$;}
+#trigger mychips_pays_v_tr_upd {} {
+#    instead of update on mychips.pays_v for each row execute procedure mychips.pays_v_updfunc();
+#}
+
+# User-permissioned view
+#----------------------------------------------------------------
+#view mychips.pays_v_me {mychips.pays_v base.curr_eid()} {select 
+#    p.*
+#    from	mychips.pays_v	p
+#    where	p.pay_ent = base.curr_eid();
+#
+#    ev#al(rule_delete mychips.pays_v_me mychips.pays $pays::pays_pk {old.lift_uuid isnull});
+#} -grant {
+#    {pays	{s} {s i u} {d}}
+#}
