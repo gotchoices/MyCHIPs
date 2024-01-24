@@ -7,6 +7,7 @@ pki/local
 doc/.~lock*
 test/local
 test/sim/local
+.idea
 .sync.ffs_db
 .DS_Store
 .nyc_output/
