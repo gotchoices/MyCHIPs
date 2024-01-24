@@ -61,6 +61,8 @@ tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathway
   {top_uuid	{Top Tally ID}		{The identifier of the tally at the end (output) of this pathway}}
   {bot_tseq	{Bottom Tally Seq}	{The sequence number of the tally at the beginning (input) of this pathway}}
   {top_tseq	{Top Tally Seq}		{The sequence number of the tally at the end (output) of this pathway}}
+  {bot_inv	{Bottom Tally Invert}	{True if the lift will traverse the input tally in the reverse (drop) direction}}
+  {top_inv	{Top Tally Invert}	{True if the lift will traverse the output tally in the reverse (drop) direction}}
   {segment	{Lift Segment}		{The input and output nodes in the pathway are both foreign entities}}
   {ents		{Entities in Path}	{An array of the entity ID's in this pathway}}
 }
