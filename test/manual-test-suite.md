@@ -31,13 +31,11 @@
 |                      |                           |                                                        | Pending Chit Details |                              | Displays the pending chit value                        |
 |                      |                           |                                                        |                      |                              | Can switch between chits and currency                  |
 |                      |                           |                                                        |                      |                              | Is able to edit memo                                   |
-|                      |                           |                                                        |                      | Click accept                 |                                                        |
-|                      |                           | Async payment received notification                    |                      |                              | Async payment sent notification                        |
-|                      | Go to homepage            |                                                        |                      |                              | Pending chit is gone                                   |
-| Homepage             |                           |                                                        |                      | Go to homepage               |                                                        |
-|                      |                           | Pending chit display is gone on User-B without refresh | Homepage             |                              |                                                        |
-|                      |                           | Chit value updated without refresh                     |                      |                              | Pending chit display is gone on User-A without refresh |
+|                      |                           | Async payment received notification                    |                      | Click accept                 |                                                        |
+|                      | Go to homepage            |                                                        | Pending Chits        |                              | Navigates to Pending Chit page                         |
+| Homepage             |                           |                                                        |                      |                              | Async payment sent notification                        |
+|                      |                           | Pending chit display is gone on User-B without refresh |                      |                              | Pending chit is gone                                   |
+|                      |                           | Chit value updated without refresh                     |                      | Go to homepage               |                                                        |
+|                      |                           |                                                        | Homepage             |                              |                                                        |
+|                      |                           |                                                        |                      |                              | Pending chit display is gone on User-A without refresh |
 |                      |                           |                                                        |                      |                              | Chit value updated without refresh                     |
-
-
-
