@@ -1,0 +1,4 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+tabtext mychips.lifts_v_pay	{Payments}	{View of lift payments to/from entities not directly connected by tallies} {
+}

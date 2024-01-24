@@ -1,25 +1,27 @@
 TODO:
 
 - Local linear lifts:
-X- Draft protocol 1.4
 X- Build regression tests for local lift payments
 X-   Leave tests/infrastructure for distributed routes/lifts intact for now
--   request='route' generates async to origin.agent
+X-   request='route' generates async to origin.agent
+- Regression test that invokes agent code
+-   Include actual signature on payment request
 -   agent evaluate's payor's authorization signature
--   agent signs the lift payment json
 -   agent sets status = 'route'
--   this triggers local search for payee
--   If pathway is found, execute lift manually, immediately, mark all chits
+-   test route that succeeds on local search
+-   agent signs the lift payment record
+-   local lift chits committed
 -   Notify user of success
+-   Test route that fails
 -   If no pathway found, mark lift as failed (void?)
 -   Notify user of failure
 -   
 -   Make lifts_v_pay_me view -- user permissioned, my payments
 -   User view can see sent and received payments
 -   
--   Clean up, remove pays.wm*
 -   
-X-    When I create a payment lift record, how does the uuids path get set?
+X-   Clean up, remove pays.wm*
+X-    When I create a payment lift record, how does the uuid path get set?
 X-    What tests in sch-pay.js?
 -   Do we need a pay.js for full local lifts? (probably not)
 -    

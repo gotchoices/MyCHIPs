@@ -4,30 +4,12 @@
 // -----------------------------------------------------------------------------
 // User <-> DB
 //TODO:
-//- Test state transitions:
-//X-   Can create draft payment
-//-   draft -> draft.seek	Request seek for partner
-//-   Checks for internal agent, generates local search
-//-   Returns path options in payment record
-//-   state = seek (or find?)
-//-   User can pick route, initiate lift
-//-   Lift record is created, committed
-//-   payment record: status -> good or void
-//-   payment record created for recipient, populated with units, memo, ref
 //-   
-//- Future
-//-   Implement similar for distributed lifts
-//- 
-
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('./common')
 var log = testLog(__filename)
-//const { user0, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
 const { user0, user1, cid0, cid1, agent0, agent1 } = require('./def-users')
-//const { cidu, cidd, cidN } = require('./def-path')
-//var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3), cidb = cidN('B'), cidx = cidN('X')
 var userListen = 'mu_' + user0
 var agentListen = 'ma_' + agent0		//And his agent process
-//var {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
 
 procSql = function(msg, logic) {
@@ -53,9 +35,7 @@ describe("Test payment schema", function() {
   })
 
   it("Initialize DB", function(done) {
-    let sql = `begin;
-        delete from mychips.pays;
-        update mychips.users set _last_pay = 0; commit`
+    let sql = `delete from mychips.lifts;`
     dbU.query(sql, (e) => {if (e) done(e); done()})
   })
 
@@ -106,7 +86,7 @@ describe("Test payment schema", function() {
       _done()
     })
     busA.register('pa', (msg) => {		//Listen for message to agent process
-      assert.equal(msg.target, 'lift')		//;log.debug("A msg:", msg)
+      assert.equal(msg.target, 'lift')		;log.debug("A msg:", msg)
       assert.equal(msg.action, 'route')
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.ok(!!obj.lift)			//A tally attached
