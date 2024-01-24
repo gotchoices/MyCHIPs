@@ -79,7 +79,7 @@ describe("Test route state transitions", function() {
 
   it("Check view mychips.routes_v_paths", function(done) {
     let sql = `select json_agg(s) as json from (
-          select edges,pat,inp_cid,inp_agent,circuit from mychips.routes_v_paths order by path) s;`
+          select edges,pat,inp_cid,inp_agent,out_cid,out_agent,circuit from mychips.routes_v_paths order by path) s;`
     queryJson('routes_v_paths', dbA, sql, done)
   })
 

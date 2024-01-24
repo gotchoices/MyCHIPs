@@ -120,16 +120,17 @@ view mychips.tallies_v_edg {mychips.tallies_v} {with
 
 # Recursive view of tallies to show pathways local to our system
 #----------------------------------------------------------------
-define xif {case when %3 isnull then %1.part_%2 else %1.hold_%2 end}
+define tif {case when %2_inv then %1.part_%3 else %1.hold_%3 end}
+define bif {case when %2_inv then %1.hold_%3 else %1.part_%3 end}
 view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_edg} {
   with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
-      top, top_tseq, bot, bot_tseq, circuit
+      top, top_tseq, top_inv, bot, bot_tseq, bot_inv, circuit
     ) as (
       select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], 
              array[ti.tally_ent], array[ti.tally_seq], array[ti.sign],
              ti.min, ti.margin, ti.max, ti.reward, 
-             ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
+             ti.tally_ent, ti.tally_seq, ti.inv, ti.tally_ent, ti.tally_seq, ti.inv, false
     from	mychips.tallies_v_edg ti
     where	ti.max > 0
   union all
@@ -152,8 +153,10 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_edg} {
         else tp.reward end				as reward	-- Only one reward
       , t.tally_ent					as top
       , t.tally_seq					as top_tseq
+      , t.inv						as top_inv
       , tp.bot						as bot
       , tp.bot_tseq					as bot_tseq
+      , tp.bot_inv					as bot_inv
       , coalesce(tp.inp = t.out, false)			as circuit
 
     from	mychips.tallies_v_edg t
@@ -163,7 +166,7 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_edg} {
     where	t.max > 0 and tp.edges <= base.parm('paths', 'maxlen', 10)
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
-    , tpr.top, tpr.bot, tpr.circuit
+    , tpr.top, tpr.top_tseq, tpr.top_inv, tpr.bot, tpr.bot_tseq, tpr.bot_inv, tpr.circuit
     , tpr.margin::numeric(8,6)
     , tpr.reward::numeric(8,6)
     , tpr.edges + 1			as nodes
@@ -175,14 +178,14 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_edg} {
     , tpr.ath[1:edges-1]		as at
     , tpr.inp || tpr.ath[1:edges-1]	as pat
 
-    , tt.tally_seq as top_tseq, tt.tally_uuid as top_uuid
-    , bt.tally_seq as bot_tseq, bt.tally_uuid as bot_uuid
+    , tt.tally_uuid as top_uuid
+    , bt.tally_uuid as bot_uuid
 
     , tt.hold_cid as top_cid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
     , bt.hold_cid as bot_cid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
 
-    , xif(tt,cid,out) as out_cid, xif(tt,agent,out) as out_agent, xif(tt,chad,out) as out_chad
-    , xif(bt,cid,inp) as inp_cid, xif(bt,agent,inp) as inp_agent, xif(bt,chad,inp) as inp_chad
+    , tif(tt,top,cid) as out_cid, tif(tt,top,agent) as out_agent, tif(tt,top,chad) as out_chad
+    , bif(bt,bot,cid) as inp_cid, bif(bt,bot,agent) as inp_agent, bif(bt,bot,chad) as inp_chad
 
   from	tally_path tpr
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq

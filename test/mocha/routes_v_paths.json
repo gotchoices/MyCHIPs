@@ -7,8 +7,10 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_2",
+  "inp_cid": "cid_0",
   "inp_agent": "UTY1NDM1",
+  "out_cid": "cid_U",
+  "out_agent": "UDY1NDM0",
   "circuit": false
  },
  {
@@ -18,6 +20,8 @@
   ],
   "inp_cid": "cid_0",
   "inp_agent": "UTY1NDM1",
+  "out_cid": "cid_U",
+  "out_agent": "UDY1NDM0",
   "circuit": false
  },
  {
@@ -26,8 +30,10 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_0",
+  "inp_cid": "cid_1",
   "inp_agent": "UTY1NDM1",
+  "out_cid": "cid_U",
+  "out_agent": "UDY1NDM0",
   "circuit": false
  },
  {
@@ -39,8 +45,10 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_3",
+  "inp_cid": "cid_1",
   "inp_agent": "UTY1NDM1",
+  "out_cid": "cid_U",
+  "out_agent": "UDY1NDM0",
   "circuit": false
  },
  {
@@ -50,8 +58,10 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_1",
+  "inp_cid": "cid_2",
   "inp_agent": "UTY1NDM1",
+  "out_cid": "cid_U",
+  "out_agent": "UDY1NDM0",
   "circuit": false
  },
  {
@@ -62,8 +72,10 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_2",
+  "inp_cid": "cid_3",
   "inp_agent": "UTY1NDM1",
+  "out_cid": "cid_U",
+  "out_agent": "UDY1NDM0",
   "circuit": false
  },
  {
@@ -77,6 +89,8 @@
   ],
   "inp_cid": "cid_D",
   "inp_agent": "UjY1NDM2",
+  "out_cid": "cid_U",
+  "out_agent": "UDY1NDM0",
   "circuit": true
  }
 ]

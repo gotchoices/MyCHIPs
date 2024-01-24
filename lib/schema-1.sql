@@ -5367,12 +5367,12 @@ create function mychips.routes_v_updfunc() returns trigger language plpgsql secu
 $$;
 create view mychips.tallies_v_paths as with recursive tally_path (
       inp, out, edges, ath, uuids, ents, seqs, signs, min, margin, max, reward, 
-      top, top_tseq, bot, bot_tseq, circuit
+      top, top_tseq, top_inv, bot, bot_tseq, bot_inv, circuit
     ) as (
       select ti.inp, ti.out, 1, array[ti.out], array[ti.uuid], 
              array[ti.tally_ent], array[ti.tally_seq], array[ti.sign],
              ti.min, ti.margin, ti.max, ti.reward, 
-             ti.tally_ent, ti.tally_seq, ti.tally_ent, ti.tally_seq, false
+             ti.tally_ent, ti.tally_seq, ti.inv, ti.tally_ent, ti.tally_seq, ti.inv, false
     from	mychips.tallies_v_edg ti
     where	ti.max > 0
   union all
@@ -5395,8 +5395,10 @@ create view mychips.tallies_v_paths as with recursive tally_path (
         else tp.reward end				as reward	-- Only one reward
       , t.tally_ent					as top
       , t.tally_seq					as top_tseq
+      , t.inv						as top_inv
       , tp.bot						as bot
       , tp.bot_tseq					as bot_tseq
+      , tp.bot_inv					as bot_inv
       , coalesce(tp.inp = t.out, false)			as circuit
 
     from	mychips.tallies_v_edg t
@@ -5406,7 +5408,7 @@ create view mychips.tallies_v_paths as with recursive tally_path (
     where	t.max > 0 and tp.edges <= base.parm('paths', 'maxlen', 10)
   ) select tpr.inp, tpr.out
     , tpr.edges, tpr.ath, tpr.uuids, tpr.ents, tpr.seqs, tpr.signs, tpr.min, tpr.max
-    , tpr.top, tpr.bot, tpr.circuit
+    , tpr.top, tpr.top_tseq, tpr.top_inv, tpr.bot, tpr.bot_tseq, tpr.bot_inv, tpr.circuit
     , tpr.margin::numeric(8,6)
     , tpr.reward::numeric(8,6)
     , tpr.edges + 1			as nodes
@@ -5418,14 +5420,14 @@ create view mychips.tallies_v_paths as with recursive tally_path (
     , tpr.ath[1:edges-1]		as at
     , tpr.inp || tpr.ath[1:edges-1]	as pat
 
-    , tt.tally_seq as top_tseq, tt.tally_uuid as top_uuid
-    , bt.tally_seq as bot_tseq, bt.tally_uuid as bot_uuid
+    , tt.tally_uuid as top_uuid
+    , bt.tally_uuid as bot_uuid
 
     , tt.hold_cid as top_cid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
     , bt.hold_cid as bot_cid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
 
-    , case when out isnull then tt.part_cid else tt.hold_cid end as out_cid, case when out isnull then tt.part_agent else tt.hold_agent end as out_agent, case when out isnull then tt.part_chad else tt.hold_chad end as out_chad
-    , case when inp isnull then bt.part_cid else bt.hold_cid end as inp_cid, case when inp isnull then bt.part_agent else bt.hold_agent end as inp_agent, case when inp isnull then bt.part_chad else bt.hold_chad end as inp_chad
+    , case when top_inv then tt.part_cid else tt.hold_cid end as out_cid, case when top_inv then tt.part_agent else tt.hold_agent end as out_agent, case when top_inv then tt.part_chad else tt.hold_chad end as out_chad
+    , case when bot_inv then bt.hold_cid else bt.part_cid end as inp_cid, case when bot_inv then bt.hold_agent else bt.part_agent end as inp_agent, case when bot_inv then bt.hold_chad else bt.part_chad end as inp_chad
 
   from	tally_path tpr
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
@@ -10085,6 +10087,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_query','bot_agent','mychips','tallies_v_paths','bot_agent','f','f'),
   ('mychips','routes_v_query','bot_chad','mychips','tallies_v_paths','bot_chad','f','f'),
   ('mychips','routes_v_query','bot_cid','mychips','tallies_v_paths','bot_cid','f','f'),
+  ('mychips','routes_v_query','bot_inv','mychips','tallies_v_paths','bot_inv','f','f'),
   ('mychips','routes_v_query','bot_tseq','mychips','tallies_v_paths','bot_tseq','f','f'),
   ('mychips','routes_v_query','bot_uuid','mychips','tallies_v_paths','bot_uuid','f','f'),
   ('mychips','routes_v_query','circuit','mychips','tallies_v_paths','circuit','f','f'),
@@ -10123,6 +10126,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','routes_v_query','top_agent','mychips','tallies_v_paths','top_agent','f','f'),
   ('mychips','routes_v_query','top_chad','mychips','tallies_v_paths','top_chad','f','f'),
   ('mychips','routes_v_query','top_cid','mychips','tallies_v_paths','top_cid','f','f'),
+  ('mychips','routes_v_query','top_inv','mychips','tallies_v_paths','top_inv','f','f'),
   ('mychips','routes_v_query','top_tseq','mychips','tallies_v_paths','top_tseq','f','f'),
   ('mychips','routes_v_query','top_uuid','mychips','tallies_v_paths','top_uuid','f','f'),
   ('mychips','routes_v_query','uuids','mychips','tallies_v_paths','uuids','f','f'),
@@ -10332,6 +10336,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_paths','bot_agent','mychips','tallies_v_paths','bot_agent','f','f'),
   ('mychips','tallies_v_paths','bot_chad','mychips','tallies_v_paths','bot_chad','f','f'),
   ('mychips','tallies_v_paths','bot_cid','mychips','tallies_v_paths','bot_cid','f','f'),
+  ('mychips','tallies_v_paths','bot_inv','mychips','tallies_v_paths','bot_inv','f','f'),
   ('mychips','tallies_v_paths','bot_tseq','mychips','tallies_v_paths','bot_tseq','f','f'),
   ('mychips','tallies_v_paths','bot_uuid','mychips','tallies_v_paths','bot_uuid','f','f'),
   ('mychips','tallies_v_paths','circuit','mychips','tallies_v_paths','circuit','f','f'),
@@ -10361,6 +10366,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','tallies_v_paths','top_agent','mychips','tallies_v_paths','top_agent','f','f'),
   ('mychips','tallies_v_paths','top_chad','mychips','tallies_v_paths','top_chad','f','f'),
   ('mychips','tallies_v_paths','top_cid','mychips','tallies_v_paths','top_cid','f','f'),
+  ('mychips','tallies_v_paths','top_inv','mychips','tallies_v_paths','top_inv','f','f'),
   ('mychips','tallies_v_paths','top_tseq','mychips','tallies_v_paths','top_tseq','f','f'),
   ('mychips','tallies_v_paths','top_uuid','mychips','tallies_v_paths','top_uuid','f','f'),
   ('mychips','tallies_v_paths','uuids','mychips','tallies_v_paths','uuids','f','f'),

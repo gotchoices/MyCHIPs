@@ -26,8 +26,8 @@ describe("Language data dictionary tests", function() {
   it('Check for undocumented tables', function(done) {
     let sql = `select * from wm.table_data td where td_sch in (${SchemaList}) and not exists
       (select * from wm.table_text tt where tt.tt_sch = td.td_sch and tt.tt_tab = td.td_tab and tt.language = 'eng') order by 1,2`
-log.debug("Sql:", sql)
-    db.query(sql, (e, res) => {if (e) done(e)		;log.debug("rows:", res.rows ? JSON.stringify(res.rows) : null)
+//log.debug("Sql:", sql)
+    db.query(sql, (e, res) => {if (e) done(e)		//;log.debug("rows:", res.rows ? JSON.stringify(res.rows) : null)
       let objs = res.rows.map(el => (el.obj))
         , list = res.rows.length > 0 ? JSON.stringify(objs,null,2) : ''
       assert.equal(list, '')
