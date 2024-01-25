@@ -19,6 +19,7 @@ import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
 import { receiveChit } from '../../services/chit';
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { useTallyText } from "../../hooks/useLanguage";
 
 const Receive = (props) => {
   const [memo, setMemo] = useState("");
@@ -28,7 +29,10 @@ const Receive = (props) => {
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
 
-  const [isSwitched, setIsSwitched] = useState(false);
+  const [isSwitched, setIsSwitched] = useState(false); 
+   const {request,comment} = useTallyText();
+
+
 
   const ref = useRef("");
   const { wm } = useSocket();
@@ -206,7 +210,7 @@ const Receive = (props) => {
       >
         <TextInput
           ref={ref}
-          placeholder="Message"
+          placeholder={comment.title}
           value={memo}
           onChangeText={setMemo}
         />
@@ -221,7 +225,7 @@ const Receive = (props) => {
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
-          title={"Request"}
+          title={request.title}
           onPress={onReceive}
           disabled={disabled}
         />
