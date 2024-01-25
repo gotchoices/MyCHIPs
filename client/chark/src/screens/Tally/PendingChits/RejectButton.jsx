@@ -20,6 +20,8 @@ const RejectButton = (props) => {
         chit_idx: props.chit_idx,
       })
 
+      props?.postReject?.();
+
       Toast.show({
         type: "success",
         text1: 'Chit has been rejected',
@@ -48,6 +50,7 @@ RejectButton.propTypes = {
   chit_ent: PropTypes.string.isRequired,
   chit_seq: PropTypes.number.isRequired,
   chit_idx: PropTypes.number.isRequired,
+  postReject: PropTypes.func,
 }
 
 export default RejectButton;

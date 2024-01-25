@@ -36,10 +36,7 @@ const AcceptButton = (props) => {
         chit_idx: props.chit_idx,
       })
 
-      Toast.show({
-        type: "success",
-        text1: 'Chit has been accepted.',
-      });
+      props?.postAccept?.();
 
     } catch(err) {
       console.log(err, 'err')
@@ -79,6 +76,7 @@ AcceptButton.propTypes = {
   chit_ent: PropTypes.string.isRequired,
   chit_seq: PropTypes.number.isRequired,
   chit_idx: PropTypes.number.isRequired,
+  postAccept: PropTypes.func,
 }
 
 export default AcceptButton;

@@ -252,9 +252,31 @@ function getTitleAndMessage(args) {
       }
 
     case 'chit':
-      return {
-        title: 'Chit',
-        message: 'Chit payment has been made',
+      if(args.state === 'L.good') {
+        return {
+          title: 'Chit',
+          message: 'Chit accepted',
+        }
+      } else if(args.state === 'L.void') {
+        return {
+          title: 'Chit',
+          message: 'Chit rejected',
+        }
+      } else if(args.state === 'A.pend') {
+        return {
+          title: 'Chit',
+          message: 'Chit requested',
+        }
+      } else if(args.state === 'L.pend') {
+        return {
+          title: 'Chit',
+          message: 'There is a new chit request',
+        }
+      } else {
+        return {
+          title: 'Chit',
+          message: 'Chit processed',
+        }
       }
 
     default: 

@@ -151,7 +151,8 @@ const Tally = (props) => {
 
   const totalPendingNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
-      return acc + Number(current?.net_pc ?? 0);
+      const pending = current?.net != current?.net_pc ? current?.net_pc : 0;
+      return acc + Number(pending ?? 0);
     }, 0);
 
     return round(total / 1000, 3);

@@ -1,73 +1,87 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
 import NoActivity from './NoActivity';
 import TallyItem from './TallyItem';
+import ChitItem from '../Tally/PendingChits/ChitItem';
 
 import { colors } from '../../config/constants';
-import { fetchTallies } from '../../services/tally';
 import useSocket from '../../hooks/useSocket';
+import { getChits, getTallies } from '../../redux/activitySlice';
 
 const Activity = (props) => {
-  const { wm } = useSocket();
+  const { wm, chitTrigger, tallyNegotiation } = useSocket();
+  const dispatch = useDispatch();
 
-  const [loading, setLoading] = useState(true);
-
-  const [tallies, setTallies] = useState();
+  const { tallies, chits, fetchingTallies, fetchingChits } = useSelector(state => state.activity)
+  const activities = [...tallies, ...chits];
 
   useEffect(() => {
-    fetchTally();
-  }, []);
+    fetchChits();
+  }, [chitTrigger])
 
-  const postAccept = () => {
-    fetchTally();
-  }
+  useEffect(() => {
+    fetchTallies();
+  }, [tallyNegotiation])
 
-  const postOffer = () => {
-    fetchTally();
-  }
-
-  const fetchTally = async () => {
-    try {
-      const data = await fetchTallies(wm, {
-        fields: [
-          'tally_ent',
-          'tally_seq',
-          'contract',
-          'comment',
-          'tally_uuid',
-          'hold_terms',
-          'part_terms',
-          'tally_type',
-          'status',
-          'part_cid',
-          'part_cert',
-          'hold_cert',
-          'json_core',
-          'state',
-          'crt_date',
-        ],
-        where: ['action true'],
-      })
-
-      setTallies(data);
-
-    } catch(err) {
-      console.log('ERR>>>', err)
-    } finally {
-      setLoading(false);
-    }
+  const fetchTallies = async () => {
+    dispatch(getTallies({ wm }))
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} />
-      </View>
-    );
+  const fetchChits = async () => {
+    dispatch(getChits({ wm }))
+  };
+
+  const postTallyAccept = () => {
+    fetchTallies();
   }
 
-  if(!loading && !tallies?.length) {
+  const postTallyOffer = () => {
+    fetchTallies();
+  }
+
+  const postChitAccept = () => {
+    fetchChits();
+  }
+
+  const postChitReject = () => {
+    fetchChits();
+  }
+
+  const renderItem = ({ item }) => {
+    if(item.tally_ent) {
+      return (
+        <TallyItem 
+          tally={item}
+          navigation={props.navigation} 
+          postOffer={postTallyOffer}
+          postAccept={postTallyAccept}
+        />
+      )
+    } else if(item.chit_ent) {
+      return (
+        <ChitItem
+          chit={item}
+          navigation={props.navigation} 
+          conversionRate={0}
+          avatar={'test'}
+          postAccept={postChitAccept}
+          postReject={postChitReject}
+        />
+      )
+    }
+  }
+
+  //if (fetchingTallies) {
+    //return (
+      //<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        //<ActivityIndicator size={"large"} />
+      //</View>
+    //);
+  //}
+
+  if(!fetchingTallies && !activities?.length) {
     return (
       <View style={styles.noActivity}>
         <NoActivity />
@@ -78,16 +92,9 @@ const Activity = (props) => {
   return (
     <View style={styles.main}>
       <FlatList
-        data={tallies}
-        keyExtractor={(item) => item.tally_uuid}
-        renderItem={({ item }) => (
-          <TallyItem 
-            tally={item}
-            navigation={props.navigation} 
-            postOffer={postOffer}
-            postAccept={postAccept}
-          />
-        )}
+        data={activities}
+        keyExtractor={(item) => item.tally_uuid ?? item.chit_uuid}
+        renderItem={renderItem}
       />
     </View>
   );
