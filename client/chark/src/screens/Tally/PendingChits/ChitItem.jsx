@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
+import Avatar from '../../../components/Avatar';
 import AcceptButton from './AcceptButton';
 import RejectButton from './RejectButton';
 
@@ -16,7 +17,7 @@ import { colors } from '../../../config/constants';
 import { round } from '../../../utils/common';
 
 const ChitItem = (props) => {
-  const isNegative = props.chit.net_pc < 0;
+  const isNegative = props.chit.net < 0;
 
   const net_pc = round((props?.chit?.net ?? 0) / 1000, 3);
   const convertedNet = round(net_pc * props.conversionRate, 2);
@@ -32,29 +33,27 @@ const ChitItem = (props) => {
       <TouchableWithoutFeedback
         onPress={onPress}
       >
-        <View style={styles.item}>
-          {props.chit?.state === 'L.pend' && (
-            <View style={styles.description}>
-              <Text style={{ color: colors.black }}>
-                Charged you for 
-              </Text>
+        <View style={{ flexDirection: 'row', width: '75%' }}>
+          <Avatar style={styles.avatar} />
 
+          <View style={styles.item}>
+            <View style={styles.description}>
               <Text style={styles.memo}>
-                {' ' + (props.chit.memo ?? 'N/A')}
+                {(props.chit.memo ?? '')}
               </Text>
             </View>
-          )}
 
-          <View style={styles.chit}>
-            <ChitIcon color={isNegative ? colors.red : colors.green} />
-            <Text style={styles.pend(isNegative)}>
-              {net_pc}
+            <View style={styles.chit}>
+              <ChitIcon color={isNegative ? colors.red : colors.green} />
+              <Text style={styles.pend(isNegative)}>
+                {net_pc}
+              </Text>
+            </View>
+
+            <Text style={styles.currency}>
+              {convertedNet}
             </Text>
           </View>
-
-          <Text style={styles.currency}>
-            {convertedNet}
-          </Text>
         </View>
       </TouchableWithoutFeedback>
 
@@ -70,6 +69,7 @@ const ChitItem = (props) => {
             chit_seq={props.chit?.chit_seq}
             chit_idx={props.chit?.chit_idx}
             style={styles.btn}
+            postAccept={props?.postAccept}
           />
 
           <RejectButton
@@ -77,6 +77,7 @@ const ChitItem = (props) => {
             chit_seq={props.chit?.chit_seq}
             chit_idx={props.chit?.chit_idx}
             style={[styles.reject, styles.btn]}
+            postReject={props?.postReject}
           />
         </View>
       )}
@@ -95,9 +96,10 @@ const styles = StyleSheet.create({
     width: '100%',
     borderColor: colors.gray300,
     borderBottomWidth: 0.5,
+    paddingVertical: 10,
   },
   item: {
-    width: '75%',
+    //width: '75%',
     justifyContent: 'center',
   },
   description: {
@@ -140,12 +142,23 @@ const styles = StyleSheet.create({
   reject: {
     backgroundColor: colors.red,
     borderColor: colors.red,
-  }
+  },
+  avatar: {
+    marginRight: 8,
+    alignSelf: 'center',
+    height: 45,
+    width: 45,
+    borderRadius: 45 / 2,
+  },
 });
 
 ChitItem.propTypes = {
   chit: PropTypes.any.isRequired,
   navigation: PropTypes.any,
+  avatar: PropTypes.string,
+  conversionRate: PropTypes.number,
+  postAccept: PropTypes.func,
+  postReject: PropTypes.func,
 }
 
 export default ChitItem;

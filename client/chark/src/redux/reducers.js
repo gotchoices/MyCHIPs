@@ -9,7 +9,7 @@ import avatarReducer from './avatarSlice';
 import certificateTalliesReducer  from './certificateTalliesSlice';
 import chitsReducer  from './chitSlice';
 import chipCurrencyReducer  from './chipCurrencySlice';
-
+import activityReducer from './activitySlice';
 
 const rootReducer = combineReducers({
   profile: profileReducer,
@@ -21,6 +21,7 @@ const rootReducer = combineReducers({
   certificateTallies: certificateTalliesReducer,
   chit: chitsReducer,
   chipCurrency: chipCurrencyReducer,
+  activity: activityReducer,
 })
 
 export default rootReducer;

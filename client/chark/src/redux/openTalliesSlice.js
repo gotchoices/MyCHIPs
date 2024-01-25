@@ -61,14 +61,18 @@ export const openTalliesSlice = createSlice({
 
         if(foundIndex >= 0) {
           const tally = state.tallies[foundIndex];
-          state.tallies[foundIndex] = {
+          const update = {
             ...tally,
             net: payload.net,
           }
+          if(payload.pend) {
+            update.net_pc = payload.pend;
+          }
+
+          state.tallies[foundIndex] = update;
         }
       }
-        state.fetching = false;
-
+      state.fetching = false;
     }
   },
 
