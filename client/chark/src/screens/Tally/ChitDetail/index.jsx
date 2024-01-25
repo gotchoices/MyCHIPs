@@ -31,7 +31,7 @@ const ChitDetail = (props) => {
     fetchChitHistory(
       wm,
       {
-        fields: ['net', 'chain_idx', 'chain_hash', 'signature', 'clean', 'state', 'request', 'status', 'action', 'reference', 'memo'],
+        fields: ['net', 'chain_idx', 'signature', 'clean', 'state', 'request', 'status', 'action', 'reference', 'memo'],
         where: {
           chit_uuid,
           chit_ent,
@@ -46,7 +46,7 @@ const ChitDetail = (props) => {
         setChit(_data);
       }
     }).catch(ex => {
-      Alert.alert("Error", ex);
+      Alert.alert("Error", ex?.message ?? '');
     }).finally(() => setLoading(false))
   }
 
@@ -146,7 +146,6 @@ const ChitDetail = (props) => {
       }
     >
       <Text style={styles.text}>CHIT UUID: {chit_uuid}</Text>
-      <Text style={styles.text}>CHAIN HASH: {chit?.chain_hash?.type} {chit?.chain_hash?.data?.toString()}</Text>
       <Text style={styles.text}>SIGNATURE: {chit?.signature}</Text>
       <Text style={styles.text}>CLEAN: {chit?.clean?.toString()}</Text>
       <Text style={styles.text}>NET: {totalChitNet}</Text>
