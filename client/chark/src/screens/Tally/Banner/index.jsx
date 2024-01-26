@@ -20,9 +20,11 @@ import {
   NotificationIcon,
   VisualIcon,
 } from "../../../components/SvgAssets/SvgAssets";
+import UnreadIcon from '../../../../assets/svg/ic_unread.svg'
 
 const Banner = (props) => {
   const { avatar, personal } = useSelector((state) => state.profile);
+  const { hasNotification } = useSelector((state) => state.activity);
   const { messageText } = useMessageText();
 
   const navigateToReport = () => {
@@ -45,6 +47,16 @@ const Banner = (props) => {
       props.navigation.navigate("FilterTallyScreen");
     };
 
+
+  const Notification = () => {
+    return (
+      <View>
+        {hasNotification && <UnreadIcon style={{ position: 'absolute', zIndex: 1, left: -7, top: -4 }} /> }
+        <NotificationIcon />
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <Header
@@ -52,7 +64,7 @@ const Banner = (props) => {
         title="My CHIPs"
         onClick={navigateToReport}
         onNavigateToNotification={navigateToNotification}
-        rightIcon={<NotificationIcon />}
+        rightIcon={<Notification />}
       />
 
       <View

@@ -4,11 +4,39 @@ import { fetchChits } from '../services/chit';
 import { fetchTallies } from '../services/tally';
 
 const initialState = {
-  fetchingTallies: false,
-  fetchingChits: false,
+  fetchingTallies: true,
+  fetchingChits: true,
   chits: [],
   tallies: [],
+  hasNotification: false,
 };
+
+export const hasNotification = createAsyncThunk('activity/checkNotification', async (args) => {
+  try {
+    const tallyFields = ['tally_ent'];
+    const chitFields = ['chit_ent'];
+
+    const tally = await fetchTallies(args.wm, {
+      fields: tallyFields,
+      where: ['action true'],
+      limit: 1
+    })
+
+    const chit = await fetchChits(args.wm, {
+      fields: chitFields,
+      where: ['action true'],
+      limit: 1,
+    })
+
+    if(tally?.length || chit?.length) {
+      return true;
+    }
+
+    return false;
+  } catch(err) {
+    return false;
+  }
+})
 
 export const getTallies = createAsyncThunk('activity/getTallies', async (args) => {
   try {
@@ -53,6 +81,9 @@ export const activitySlice = createSlice({
   name: 'activity',
   initialState: initialState,
   reducers: {
+    setHasNotification: (state, action) => {
+      state.hasNotification = action.payload;
+    },
   },
 
   extraReducers: (builder) => {
@@ -77,8 +108,15 @@ export const activitySlice = createSlice({
       .addCase(getChits.rejected, (state, action) => {
         state.fetchingChits = false;
       })
+      .addCase(hasNotification.fulfilled, (state, action) => {
+        state.hasNotification = action.payload;
+      })
   },
 });
 
 export default activitySlice.reducer;
+
+export const {
+  setHasNotification,
+} = activitySlice.actions;
 

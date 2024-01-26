@@ -10,6 +10,7 @@ import SocketContext from '../context/SocketContext';
 import { query_user } from '../utils/user';
 import { random, getLinkHost } from '../utils/common';
 import { setUser } from '../redux/currentUserSlice';
+import { setHasNotification } from '../redux/activitySlice';
 
 const initialConnectionBackoff = 1000;
 const maxConnectionBackoff = 11000;
@@ -79,8 +80,10 @@ const SocketProvider = ({ children }) => {
           onDisplayNotification(data);
           const payload = notificationTriggerPayload(data);
           if(data?.target === 'tally') {
+            dispatch(setHasNotification(true));
             setTallyNegotiation(payload);
           } else if(data?.target === 'chit') {
+            dispatch(setHasNotification(true));
             setChitTrigger(payload);
           }
         })
