@@ -13,6 +13,7 @@ import {
   fetchPersonalAndCurrency,
   setShowCreateSignatureModal,
 } from "../redux/profileSlice";
+import { hasNotification } from "../redux/activitySlice";
 import { colors } from "../config/constants";
 
 import Home from "../screens/Home";
@@ -245,7 +246,8 @@ const Navigator = () => {
     dispatch(getPreferredLanguage(wm));
     dispatch(getFilter());
     dispatch(getTallyListFilter())
-  }, [wm, user_ent, fetchAvatar]);
+    dispatch(hasNotification({ wm }))
+  }, [wm, dispatch, user_ent, fetchAvatar]);
 
   const onDismissSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(false))

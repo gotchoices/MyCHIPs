@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
@@ -8,7 +8,7 @@ import ChitItem from '../Tally/PendingChits/ChitItem';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
-import { getChits, getTallies } from '../../redux/activitySlice';
+import { getChits, getTallies, setHasNotification } from '../../redux/activitySlice';
 
 const Activity = (props) => {
   const { wm, chitTrigger, tallyNegotiation } = useSocket();
@@ -25,6 +25,13 @@ const Activity = (props) => {
     fetchTallies();
   }, [tallyNegotiation])
 
+  useEffect(() => {
+    // Setting only afterh the tallies and chits have been fetched
+    if(!fetchingChits && !fetchingTallies) {
+      dispatch(setHasNotification(!!activities.length))
+    }
+  }, [activities?.length])
+
   const fetchTallies = async () => {
     dispatch(getTallies({ wm }))
   };
@@ -33,19 +40,11 @@ const Activity = (props) => {
     dispatch(getChits({ wm }))
   };
 
-  const postTallyAccept = () => {
+  const postTallyAction = () => {
     fetchTallies();
   }
 
-  const postTallyOffer = () => {
-    fetchTallies();
-  }
-
-  const postChitAccept = () => {
-    fetchChits();
-  }
-
-  const postChitReject = () => {
+  const postChitAction = () => {
     fetchChits();
   }
 
@@ -55,8 +54,8 @@ const Activity = (props) => {
         <TallyItem 
           tally={item}
           navigation={props.navigation} 
-          postOffer={postTallyOffer}
-          postAccept={postTallyAccept}
+          postOffer={postTallyAction}
+          postAccept={postTallyAction}
         />
       )
     } else if(item.chit_ent) {
@@ -66,8 +65,8 @@ const Activity = (props) => {
           navigation={props.navigation} 
           conversionRate={0}
           avatar={'test'}
-          postAccept={postChitAccept}
-          postReject={postChitReject}
+          postAccept={postChitAction}
+          postReject={postChitAction}
         />
       )
     }
