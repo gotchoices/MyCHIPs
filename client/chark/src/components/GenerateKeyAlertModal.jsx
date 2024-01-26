@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import { useSelector } from "react-redux";
 import useSocket from "../hooks/useSocket";
@@ -30,10 +31,29 @@ export const GenerateKeysAlertModal = ({
 
   const [isRequesting, setIsRequesting] = useState(false);
 
-  const closeModal=()=>{
+  const closeModal = () => {
     setIsRequesting(false);
-    onDismiss()
-  }
+    onDismiss();
+  };
+
+  const handleBackButtonClick = () => {
+    closeModal();
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener(
+      "hardwareBackPress",
+      handleBackButtonClick
+    );
+
+    return () => {
+      BackHandler.removeEventListener(
+        "hardwareBackPress",
+        handleBackButtonClick
+      );
+    };
+  }, []);
 
   const storeKeys = (publicKey, privateKey) => {
     updatePublicKey(wm, {
@@ -60,7 +80,6 @@ export const GenerateKeysAlertModal = ({
   const generateKeys = async () => {
     setIsRequesting(true);
     try {
-
       const keyPair = await subtle.generateKey(KeyConfig, true, [
         "sign",
         "verify",
@@ -106,20 +125,32 @@ export const GenerateKeysAlertModal = ({
               <View style={styles.iconWrapper}>
                 <WarningIcon size={50} />
               </View>
-              <Text style={[styles.font,{fontSize:17, fontWeight:'700',textAlign:'center', paddingBottom:20}]}>
+              <Text
+                style={[
+                  styles.font,
+                  {
+                    fontSize: 17,
+                    fontWeight: "700",
+                    textAlign: "center",
+                    paddingBottom: 20,
+                  },
+                ]}
+              >
                 Generating a new key is a destructive action.
               </Text>
 
-                <Text style={styles.font}>
-                 When you open a tally it is signed with a key and needs that key to operate. 
-                </Text>
-                
-                <Text style={styles.font}>
-                It’s recommended to export and save your keys before you generate new ones.
+              <Text style={styles.font}>
+                When you open a tally it is signed with a key and
+                needs that key to operate.
+              </Text>
+
+              <Text style={styles.font}>
+                It’s recommended to export and save your keys before
+                you generate new ones.
               </Text>
 
               <View style={styles.buttonWrapper}>
-              <Button
+                <Button
                   title={"I understand"}
                   onPress={generateKeys}
                   textColor={colors.blue2}
@@ -131,8 +162,6 @@ export const GenerateKeysAlertModal = ({
                   onPress={onDismiss}
                   style={styles.button}
                 />
-
-   
               </View>
             </>
           )}
@@ -189,5 +218,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  font: { fontWeight: "500",paddingBottom:10 },
+  font: { fontWeight: "500", paddingBottom: 10 },
 });
