@@ -1,14 +1,29 @@
-import React from 'react';
-import {
-  View,
-  Modal,
-  StyleSheet,
-} from 'react-native';
-import PropTypes from 'prop-types';
+import React, { useEffect } from "react";
+import { View, Modal, StyleSheet, BackHandler } from "react-native";
+import PropTypes from "prop-types";
 
-import { colors } from '../../config/constants';
+import { colors } from "../../config/constants";
 
 const CenteredModal = (props) => {
+  const handleBackButtonClick = () => {
+    props.onClose();
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener(
+      "hardwareBackPress",
+      handleBackButtonClick
+    );
+
+    return () => {
+      BackHandler.removeEventListener(
+        "hardwareBackPress",
+        handleBackButtonClick
+      );
+    };
+  }, []);
+
   return (
     <Modal
       animationType="slide"
@@ -17,23 +32,21 @@ const CenteredModal = (props) => {
       onRequestClose={props.onClose}
     >
       <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          {props.children}
-        </View>
+        <View style={styles.modalView}>{props.children}</View>
       </View>
     </Modal>
-  )
-}
+  );
+};
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   modalView: {
-    width: '92%',
-    height: '90%',
+    width: "92%",
+    height: "90%",
     paddingVertical: 20,
     backgroundColor: colors.white,
     borderRadius: 20,
@@ -41,17 +54,17 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 5
+    elevation: 5,
   },
 });
 
 CenteredModal.propTypes = {
   isVisible: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-}
+};
 
 export default CenteredModal;
