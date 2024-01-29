@@ -288,11 +288,16 @@ function {mychips.ticket_login(info jsonb)} {mychips.ticket_login(text)} {
       select into uid comm_ent from base.comm where comm_type = 'email'
         and not comm_inact and comm_spec = info->>'email';
       if found and info->>'reqType' = 'register' then
-        return null;			-- Should return a useful error here
+        return null;			-- Error, already have that email
       end if;
+
       select into uid id from mychips.users_v where ent_name = trim(info->>'ent_name')
           and (ent_type = 'o' and info->>'fir_name' isnull or fir_name = trim(info->>'fir_name'))
           and (born_date = (info->>'born_date')::date);
+      if found and info->>'reqType' = 'register' then
+        return null;			-- Error, already have same name/bday
+      end if;
+
       if not found then 
         if info->>'reqType' != 'register' or info->>'tos' != 'true' or info->>'ent_type' isnull then
           return null; 
