@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
-  Alert,
   TextInput,
   StyleSheet,
   ScrollView,
@@ -30,12 +29,11 @@ const Receive = (props) => {
   const [disabled, setDisabled] = useState(false);
 
   const [isSwitched, setIsSwitched] = useState(false); 
-   const {request,comment} = useTallyText();
-
-
-
+ 
   const ref = useRef("");
   const { wm } = useSocket();
+
+  const {request,comment} = useTallyText(wm);
 
   const { preferredCurrency } = useSelector((state) => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
@@ -210,22 +208,22 @@ const Receive = (props) => {
       >
         <TextInput
           ref={ref}
-          placeholder={comment.title}
+          placeholder={comment?.title ?? 'Comment'}
           value={memo}
           onChangeText={setMemo}
         />
       </TouchableOpacity>
 
-    {/*}
-      <TouchableOpacity onPress={addReference}>
-        <Text style={styles.link}>Add Reference</Text>
-      </TouchableOpacity>
 
-    {*/}
+      {/* <TouchableOpacity onPress={addReference}>
+        <Text style={styles.link}>Add Reference</Text>
+      </TouchableOpacity> */}
+
+
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
-          title={request.title}
+          title={request?.title ?? 'Request'}
           onPress={onReceive}
           disabled={disabled}
         />
