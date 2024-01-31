@@ -39,3 +39,42 @@
 |                      |                           |                                                        | Homepage             |                              |                                                        |
 |                      |                           |                                                        |                      |                              | Pending chit display is gone on User-A without refresh |
 |                      |                           |                                                        |                      |                              | Chit value updated without refresh                     |
+
+
+
+## Create Tally
+
+
+| User-A Page   | User-A Action                           | User-A Check                                  | User-B Page | User-B Action | User-B Check |
+| ------------- | --------------------------------------- | --------------------------------------------- | ----------- | ------------- | ------------ |
+| Homepage      | Click on Handshake Icon                 |                                               | Homepage    |               |              |
+| Working Tally | Click plus button                       |                                               |             |               |              |
+|               |                                         | Show new tally modal                          |             |               |              |
+|               | Insert comment and choose stock or foil |                                               |             |               |              |
+|               | Click next                              |                                               |             |               |              |
+|               | Insert tally limit                      |                                               |             |               |              |
+|               | Click next                              |                                               |             |               |              |
+|               |                                         | Show success modal                            |             |               |              |
+|               | Click done                              |                                               |             |               |              |
+|               |                                         | Draft tally was created with comments showing |             |               |              |
+|               | Click on newly created draft tally      |                                               |             |               |              |
+| Tally Preview |                                         |                                               |             |               |              |
+|               |                                         | Correct assignment of stock or foil           |             |               |              |
+|               |                                         | Can switch stock and foil using arrow icon    |             |               |              |
+|               |                                         | Can update certificate information            |             |               |              |
+|               |                                         | Can view contract pdf by clicking on eye icon |             |               |              |
+|               |                                         | Can update limit                              |             |               |              |
+|               | Click share button                      |                                               |             |               |              |
+| Share Tally   |                                         |                                               |             |               |              |
+|               |                                         | Can switch between QR code and link           |             |               |              |
+|               |                                         | Check that QR code and link share work        |             |               |              |
+|               | Share to User-B                         |                                               |             |               |              |
+|               |                                         |                                               |             |               |              |
+|               |                                         |                                               |             |               |              |
+|               |                                         |                                               |             |               |              |
+|               |                                         |                                               |             |               |              |
+|               |                                         |                                               |             |               |              |
+|               |                                         |                                               |             |               |              |
+
+
+
