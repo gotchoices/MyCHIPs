@@ -17,7 +17,7 @@ import { getCurrency } from "../../../services/user";
 import useSocket from "../../../hooks/useSocket";
 import { round } from "../../../utils/common";
 import { insertChit, updateChitDetails } from "../../../services/tally";
-import { useTallyLanguage } from "../../../hooks/useLanguage";
+import { useChitsMeText } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
 import HelpText from "../../../components/HelpText";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
@@ -52,12 +52,12 @@ const RequestDetail = (props) => {
   const ref = useRef("");
 
 
-  useTallyLanguage(wm);
+  useChitsMeText(wm);
   const { messageText } = useMessageText();
 
-  const referenceText = messageText?.chits_lang?.reference;
-  const memoText = messageText?.chits_lang?.memo;
-  const netText = messageText?.chits_lang?.net;
+  const referenceText = messageText?.col?.chits_v_me?.reference;
+  const memoText = messageText?.col?.chits_v_me?.memo;
+  const netText = messageText?.col?.chits_v_me?.net;
 
   useEffect(() => {
     if (currencyCode) {

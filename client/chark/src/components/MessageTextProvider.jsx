@@ -12,7 +12,7 @@ const initialTexts = {
   userTallies: null,
   asset_v: null,
   terms_lang: null,
-  chits_lang: null,
+  chits_v_me: null,
 }
 
 const MessageTextProvider = ({ children }) => {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
@@ -8,14 +8,30 @@ import ChitItem from '../Tally/PendingChits/ChitItem';
 
 import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
-import { getChits, getTallies, setHasNotification } from '../../redux/activitySlice';
+import { useChitsMeText } from '../../hooks/useLanguage';
+import { getCurrency } from '../../services/user';
+import { getChits, getTallies, setHasNotification, getGoodChits } from '../../redux/activitySlice';
 
 const Activity = (props) => {
   const { wm, chitTrigger, tallyNegotiation } = useSocket();
   const dispatch = useDispatch();
 
-  const { tallies, chits, fetchingTallies, fetchingChits } = useSelector(state => state.activity)
-  const activities = [...tallies, ...chits];
+  const [conversionRate, setConversionRate] = useState(0);
+
+  const { preferredCurrency } = useSelector((state) => state.profile);
+
+  const currencyCode = preferredCurrency.code;
+  const { tallies = [], chits = [], fetchingTallies, fetchingChits, goodChits = [] } = useSelector(state => state.activity)
+  const activities = useMemo(() => {
+    return [...tallies, ...chits];
+  }, [tallies, chits])
+
+  const allActivities = useMemo(() => {
+    return [...activities, ...goodChits]
+  }, [activities, goodChits])
+
+  // Register chits texts
+  useChitsMeText(wm);
 
   useEffect(() => {
     fetchChits();
@@ -26,11 +42,27 @@ const Activity = (props) => {
   }, [tallyNegotiation])
 
   useEffect(() => {
-    // Setting only afterh the tallies and chits have been fetched
+    dispatch(getGoodChits({ wm }));
+  }, [chitTrigger])
+
+  useEffect(() => {
+    // Setting only after the tallies and chits have been fetched
     if(!fetchingChits && !fetchingTallies) {
       dispatch(setHasNotification(!!activities.length))
     }
   }, [activities?.length])
+
+  useEffect(() => {
+    if (currencyCode) {
+      getCurrency(wm, currencyCode)
+        .then((data) => {
+          setConversionRate(parseFloat(data?.rate ?? 0));
+        })
+        .catch((err) => {
+          console.log("EXCEPTION ==> ", err);
+        })
+    }
+  }, [currencyCode]);
 
   const fetchTallies = async () => {
     dispatch(getTallies({ wm }))
@@ -63,7 +95,7 @@ const Activity = (props) => {
         <ChitItem
           chit={item}
           navigation={props.navigation} 
-          conversionRate={0}
+          conversionRate={conversionRate}
           avatar={'test'}
           postAccept={postChitAction}
           postReject={postChitAction}
@@ -80,7 +112,7 @@ const Activity = (props) => {
     //);
   //}
 
-  if(!fetchingTallies && !activities?.length) {
+  if(!fetchingTallies && !allActivities?.length) {
     return (
       <View style={styles.noActivity}>
         <NoActivity />
@@ -91,7 +123,7 @@ const Activity = (props) => {
   return (
     <View style={styles.main}>
       <FlatList
-        data={activities}
+        data={allActivities}
         keyExtractor={(item) => item.tally_uuid ?? item.chit_uuid}
         renderItem={renderItem}
       />
