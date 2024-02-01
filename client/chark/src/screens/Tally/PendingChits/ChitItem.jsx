@@ -8,19 +8,25 @@ import {
 import PropTypes from 'prop-types';
 import moment from 'moment';
 
-import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 import Avatar from '../../../components/Avatar';
 import AcceptButton from './AcceptButton';
 import RejectButton from './RejectButton';
+import ChitTypeText from './ChitTypeText';
+import HelpText from '../../../components/HelpText';
+import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 
 import { colors } from '../../../config/constants';
 import { round } from '../../../utils/common';
+import useMessageText from '../../../hooks/useMessageText';
 
 const ChitItem = (props) => {
   const isNegative = props.chit.net < 0;
+  const { messageText } = useMessageText()
 
   const net_pc = round((props?.chit?.net ?? 0) / 1000, 3);
   const convertedNet = round(net_pc * props.conversionRate, 2);
+
+  const chits_msg = messageText?.chits_v_me?.msg;
 
   const onPress = () => {
     props.navigation.navigate('PendingChitDetail', {
@@ -37,6 +43,13 @@ const ChitItem = (props) => {
           <Avatar style={styles.avatar} />
 
           <View style={styles.item}>
+            <View style={styles.chitType}>
+              <ChitTypeText
+                name={props.chit?.part_cid ?? ''}
+                state={props.chit?.state ?? ''}
+              />
+            </View>
+
             <View style={styles.description}>
               <Text style={styles.memo}>
                 {(props.chit.memo ?? '')}
@@ -57,30 +70,32 @@ const ChitItem = (props) => {
         </View>
       </TouchableWithoutFeedback>
 
-      {props.chit?.state === 'L.pend' && (
-        <View style={styles.action}>
-          <Text style={styles.time}>
-            {moment(props.chit.chit_date).fromNow(true)}
-          </Text>
+      <View style={styles.action}>
+        <Text style={styles.time}>
+          {moment(props.chit.chit_date).fromNow(true)}
+        </Text>
 
-          <AcceptButton
-            json={props.chit?.json_core}
-            chit_ent={props.chit?.chit_ent}
-            chit_seq={props.chit?.chit_seq}
-            chit_idx={props.chit?.chit_idx}
-            style={styles.btn}
-            postAccept={props?.postAccept}
-          />
+        {props.chit?.state === 'L.pend' && (
+          <>
+            <AcceptButton
+              json={props.chit?.json_core}
+              chit_ent={props.chit?.chit_ent}
+              chit_seq={props.chit?.chit_seq}
+              chit_idx={props.chit?.chit_idx}
+              style={styles.btn}
+              postAccept={props?.postAccept}
+            />
 
-          <RejectButton
-            chit_ent={props.chit?.chit_ent}
-            chit_seq={props.chit?.chit_seq}
-            chit_idx={props.chit?.chit_idx}
-            style={[styles.reject, styles.btn]}
-            postReject={props?.postReject}
-          />
-        </View>
-      )}
+            <RejectButton
+              chit_ent={props.chit?.chit_ent}
+              chit_seq={props.chit?.chit_seq}
+              chit_idx={props.chit?.chit_idx}
+              style={[styles.reject, styles.btn]}
+              postReject={props?.postReject}
+            />
+          </>
+        )}
+      </View>
     </View>
   )
 }
@@ -108,7 +123,6 @@ const styles = StyleSheet.create({
   },
   memo: {
     ...font,
-    fontWeight: '700',
     color: colors.black,
   },
   chit: {
@@ -146,9 +160,19 @@ const styles = StyleSheet.create({
   avatar: {
     marginRight: 8,
     alignSelf: 'center',
-    height: 45,
-    width: 45,
-    borderRadius: 45 / 2,
+    height: 60,
+    width: 60,
+    borderRadius: 60 / 2,
+  },
+  text: {
+    fontFamily: 'inter',
+    color: colors.black,
+  },
+  name: {
+    fontFamily: 'inter',
+    color: colors.black,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });
 

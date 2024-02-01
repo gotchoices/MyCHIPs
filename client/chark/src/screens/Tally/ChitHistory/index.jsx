@@ -55,6 +55,7 @@ const ChitHistory = (props) => {
       }
     ).then(data => {
       if (data?.length) {
+        console.log(data?.map(d => d.state))
         let runningBalance = 0;
         const chitsWithRunningBalance = data.map((item) => {
           runningBalance += item.net;

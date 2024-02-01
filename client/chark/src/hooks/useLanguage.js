@@ -129,17 +129,18 @@ export const useHoldTermsText = (wm) => {
   return messageText?.terms_lang ?? {};
 }
 
-export const useTallyLanguage = (wm) => {
+export const useChitsMeText = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    wm.register('chits_lang' + Math.random(), 'mychips.chits_v_me', (data, err) => {
-      console.log("CHITS_LANGUAGE ==> ", JSON.stringify(data?.col.reference));
-      if (data) {
-        addTextsToState('chits_lang', data?.col, setMessageText)
-      }
-    })
-  }, [])
+    if(!messageText?.chits_v_me) {
+      wm.register('chits_v_me' + Math.random(), 'mychips.chits_v_me', (data, err) => {
+        if (data) {
+          addTextsToState('chits_v_me', data, setMessageText)
+        }
+      })
+    }
+  }, [wm, setMessageText])
 
   return messageText ?? {};
 }

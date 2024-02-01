@@ -23,7 +23,7 @@ import { getCurrency } from "../../../services/user";
 import useSocket from "../../../hooks/useSocket";
 import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
-import { useTallyLanguage } from "../../../hooks/useLanguage";
+import { useChitsMeText } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
 
 import { createSignature } from "../../../utils/message-signature";
@@ -56,12 +56,12 @@ const PaymentDetail = (props) => {
 
   const ref = useRef("");
 
-  useTallyLanguage(wm);
+  useChitsMeText(wm);
   const { messageText } = useMessageText();
 
-  const referenceText = messageText?.chits_lang?.reference;
-  const memoText = messageText?.chits_lang?.memo;
-  const netText = messageText?.chits_lang?.net;
+  const referenceText = messageText?.chits_v_me?.reference;
+  const memoText = messageText?.chits_v_me?.memo;
+  const netText = messageText?.chits_v_me?.net;
 
   const showCreateSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(true));
