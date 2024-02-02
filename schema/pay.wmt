@@ -1,4 +1,10 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
-tabtext mychips.lifts_v_pay	{Payments}	{View of lift payments to/from entities not directly connected by tallies} {
+tabtext mychips.lifts_v_pay	{Payments}	{View of lift payments to/from entities not directly connected by tallies}
+
+tabtext mychips.lifts_v_pay_me	{My Payments}	{User view of lift payments to/from entities not directly connected by tallies} {
+  {id		{User ID}	{Local ID of the user this payment pertains to}}
+  {net		{Net}		{Net effect on the user's balance of this lift payment}}
+  {memo		{Memo}		{Notes about the payment}}
+  {reference	{Reference}	{Machine readable information pertaining to the payment}}
 }

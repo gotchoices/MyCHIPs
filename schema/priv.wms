@@ -3,11 +3,13 @@
 
 #Create permissioning role groups
 base::group_roles {
-    mychips	{user_2 contract_1 tally_2 chit_2 mychips_1}
+    mychips	{user_2 contract_1 tally_2 chit_2 mychips_1 lift_1}
   } {
     mychips.chits_v_me
     mychips.users_v_me
     mychips.contracts_v
+    mychips.lifts_v_me
+    mychips.lifts_v_pay_me
   }
 
 #Examples for full ERP access might include:

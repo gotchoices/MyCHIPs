@@ -8,7 +8,7 @@
 # completing or finding a cycle.
 #----------------------------------------------------------------
 define xif {case when %3 isnull then %1.part_%2 else %1.hold_%2 end}
-function {mychips.paths_find(bot_node text, top_node text = '', size int = 0, max_dep int = 10)} {
+function {mychips.paths_find(bot_node text, top_node text = '', size bigint = 0, max_dep int = 10)} {
 mychips.users_v mychips.tallies_v_edg
 } {
  returns table (
@@ -67,7 +67,7 @@ mychips.users_v mychips.tallies_v_edg
     join	tally_path	tp on tp.out = t.inp
     		and not t.uuid = any(tp.uuids)
     		and (t.out isnull or not t.out = any(tp.ath))
-    where	t.max > 0 and coalesce(tp.max, size) >= size
+    where	t.max > 0 and coalesce(tp.min, size) >= size
     and		tp.edges < max_dep
     and		not tp.found
   ) select tpr.inp, tpr.out
@@ -103,7 +103,7 @@ $$;}
 set tab_list {level int inp text bot text bot_seq int top text top_seq int \"out\" text ath text\[\] uuids uuid\[\] signs int\[\]}
 set tab_pairs [lmap {k v} $tab_list {string cat "$k $v"}]	;#puts "T:$tab_pairs"
 set tab_fields [dict keys [dict create {*}$tab_list]]		;#puts "F:$tab_fields"
-function {mychips.path_find(inp_node text, out_node text = '', size int = 0, max_dep int = 10)} {
+function {mychips.path_find(inp_node text, out_node text = '', size bigint = 0, max_dep int = 10)} {
   mychips.users_v mychips.tallies_v_edg
 } {
  returns table (eval(join $tab_pairs ,)) language plpgsql as $$
@@ -141,7 +141,7 @@ function {mychips.path_find(inp_node text, out_node text = '', size int = 0, max
           q.signs || e.sign
         from queue q
         join mychips.tallies_v_edg e on e.inp = q.out and e.out <> all(q.ath)
-        where q.level = depth and coalesce(e.max, size) >= size;
+        where q.level = depth and coalesce(e.min, size) >= size;
 
       delete from queue q where q.level = depth;        -- Clean up the current level
       depth := depth + 1;
@@ -152,7 +152,7 @@ function {mychips.path_find(inp_node text, out_node text = '', size int = 0, max
 $$;}
 
 function {mychips.paths_find_me(to_node text, size int = 0, max_dep int = 10)} {
-  mychips.paths_find(text,text,int,int) base.user_id(text)
+  mychips.paths_find(text,text,bigint,int) base.user_id(text)
 } {
  returns table (min int, edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
    security definer language sql as $$
@@ -162,7 +162,7 @@ function {mychips.paths_find_me(to_node text, size int = 0, max_dep int = 10)} {
 $$;} -grant mychips
 
 function {mychips.path_find_me(to_node text, size int = 0, max_dep int = 10)} {
-  mychips.path_find(text,text,int,int) base.user_id(text)
+  mychips.path_find(text,text,bigint,int) base.user_id(text)
 } {
  returns table (edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
    security definer language sql as $$

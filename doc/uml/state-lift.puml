@@ -3,70 +3,47 @@
 
 $title(Lift States)
 state "draft.init" as draftInit
-state "init.seek" as initSeek
-state "draft.relay" as draftRelay
-state "draft.found" as draftFound
-state "found.term" as foundTerm
-state signable {
-  state origin {
-    state seek
-    state "seek.check" as seekCheck
-    state "seek.call" as seekCall
-  }
-  state call
-  state "call.call" as callCall
-  state relay {
-    state pend
-    state "pend.check" as pendCheck
-  }
+state "init.exec" as initExec
+state "draft.part" as draftPart
+state "draft.find" as draftFind
+state "find.term" as findTerm
+state resolvable {
+  state exec
+  state part
+  state find
 }
 
 draftInit: Status: draft, Request: init
-initSeek: Status: init, Request: seek
-draftFound:  Status: draft, Request: found
-foundTerm:  Status: found, Request: term
-draftRelay:  Status: draft, Request: relay
-seek:  Status: seek, Request: null
-seekCheck:  Status: seek, Request: check
-seekCall:  Status: seek, Request: call
-call:  Status: call, Request: null
-callCall:  Status: call, Request: call
+initExec: Status: init, Request: exec
+'init:  Status: init, Request: null
+draftFind:  Status: draft, Request: find
+findTerm:  Status: find, Request: term
+draftPart:  Status: draft, Request: part
+exec:  Status: exec, Request: null
 good:  Status: good, Request: null
-pend:  Status: pend, Request: null
+part:  Status: part, Request: null
+find:  Status: find, Request: null
 void:  Status: void, Request: null
-pendCheck:  Status: pend, Request: check
-origin: Should not get affirmed but might get voided
-relay: Any non-originating node
 
 'State transition rules:
 [*] -[$user]-> draftInit: $trans($user,User initiates linear lift\nRequest:init,'')
 [*] --> draftInit: $trans(Agent,Automaton initiates circular lift\nRequest:init,'')
-draftInit -[$db]-> initSeek: $trans($db, init detected, '', Agent prepares Lift Object\nEncodes destination\nRequest:seek)
-initSeek -[$db]-> seek: $trans($db, seek detected,'',Send Upstream\nAction:promise\nAgent starts timer)
+'draftInit -[$db]-> init: $trans($db, init request detected, '', Agent prepares/signs Lift\nObject Encodes destination)
+draftInit -[$db]-> good: $trans($db, request->init, 'Internal route found', Execute lift locally)
+draftInit -[$db]-> initExec: $trans($db, request->init, 'Internal route impossible', Ask agent for external lift\nRequest:exec)
+initExec -[$db]-> exec: $trans($db, route detected,'',Task delegated to chipNet)
 
-seek -[$peer]-> seekCall: $trans($peer,'Receive confirm from\ndestination Action:terminus','', 'Circuit good, freshen route')
-seekCall -[$db]-> seek: $trans($db,Detect call, Change of mind, want to abort;\nwill await timeout)
-seekCall -[$db]-> call: $trans($db,Detect call, Want to proceed, Query referee\nRequest: commit\nAgent sets timer)
-call -right-> callCall: $trans(Agent, Local timeout, Still in call?, Request: call)
-callCall -left[$db]-> call: $trans($db,Detect call, Still calling, Query referee;\nAction: commit\nAgent sets timer)
+[*] -[$peer]-> [*]: $trans($peer,Receive Action:promise, Won't commit to lift)
+[*] -[$peer]-> draftPart: $trans($peer,Receive Action:promise,Will commit to lift, 'Store lift/chits; Request:part;\nForward Action: promise')
+[*] -[$peer]-> draftFind: $trans($peer,Receive Action:promise,Destination found locally, 'Store lift Request: term')
 
-seek --> seekCheck: $trans(Agent,Local timeout,Lift expired?, Request: check)
-seekCheck -[$db]-> seek: $trans($db,Detect check, Still seeking, Query referee;\nAction: check\nAgent starts timer)
+draftFind -[$db]-> findTerm: $trans($db,Detect find,'', Build draft lift\nNotify correct agent\nAction: find)
+findTerm -[$db]-> find: $trans($db,Detect term,'', Reply to originator\nBuild chits\nAction: terminus)
+draftPart -[$db]-> part: $trans($db,Detect part,'', Forward lift\nAction: promise)
 
-[*] -[$peer]-> [*]: $trans($peer,Receive Action:promise, Destination not found, Give no reply)
-[*] -[$peer]-> draftRelay: $trans($peer,Receive Action:promise,Route found for destination, 'Store lift Request:relay;\nForward Action: promise\nAgent sets timer')
-[*] -[$peer]-> draftFound: $trans($peer,Receive Action:promise,Destination found locally, 'Store lift Request: terminus\nAgent sets timer')
+[*] --> good: $trans(Agent, Call to local clearing\nlift function, Lift completes, Commit lift chits; Consense)
 
-draftFound -[$db]-> foundTerm: $trans($db,Detect found,'', Build draft lift\nNotify correct agent\nAction: found)
-foundTerm -[$db]-> pend: $trans($db,Detect terminus,'', Reply to originator\nBuild chits\nAction: terminus)
-draftRelay -[$db]-> pend: $trans($db,Detect relay,'', Forward lift\nAction: promise)
-
-pend --> pendCheck: $trans(Agent, Local timeout, Still pending, Request: check)
-pendCheck -[$db]-> pend: $trans($db, Detect check, Still pending, 'Query partner,\noriginator, referee\nin sequence\nAction: check')
-
-[*] --> good: $trans(Agent, Call to local lift function, Lift completes, Commit lift chits; Consense)
-
-signable -up[$peer]-> good: $trans($peer,Receive referee signature, Verified Valid, Commit lift chits; Consense)
-signable -[$peer]-> void: $trans($peer,Receive referee signature, Verified Void, Mark lift as void)
+resolvable -up[$peer]-> good: $trans($peer,Receive referee signature, Verified Valid, Commit lift chits; Consense)
+resolvable -[$peer]-> void: $trans($peer,Receive referee signature, Verified Void, Mark lift as void)
 
 @enduml

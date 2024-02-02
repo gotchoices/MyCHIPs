@@ -445,59 +445,62 @@ It *is* possible to define distinct states for a chit within the consensus algor
 However, it is not particularly useful so no state diagrams are presented here.
 It is enough that each node remain aware of any chit marked as good, and keep communicating with the other half (according to the sequences shown above) of the tally until a chain index is successfully recorded and acknowledged for that chit.
 
-### Interim Lift Protocol
-Starting with version protocol 1.5, it is intended to offload both
+### Lift Protocol
+Readers not already familiar with credit lifts, should become familiar with [this section on lifts](learn-lift.md) before proceeding.
+
+Starting with version protocol 1.5, we will offload to external libraries both
 [route discovery](https://github.com/gotchoices/ChipNet)
-and [lift negotiation](https://github.com/gotchoices/ChipSync)
-to external libraries.
-This is in support of the following objectives:
+and [lift negotiation](https://github.com/gotchoices/ChipSync).
+
+This should facilitate the following objectives:
 - Increase site bandwidth and scalability
-- Facilitate and encourage multiple MyCHIPs-compatible implementations
-- Support multiple methods for assessing lift validity/timeout
+- Encourage multiple MyCHIPs-compatible implementations
+- Support multiple methods (besides single referee) for assessing lift validity/timeout
 
 While ChipNet/ChipSync are being developed, this implementation will continue toward a 
-functional system that works only as a single site.
+functional system that works as a single site.
 This means support for local route discovery and local clearing and payment lifts in a way
 that, from the user's perspective, will not have to change once fully distributed lifts
 become possible.
 
-Readers not already familiar with credit lifts, can refer to [this section on lifts](learn-lift.md) for more background.
-It is also important to fully understand
-[ChipNet](https://github.com/gotchoices/ChipNet),
-[ChipSync](https://github.com/gotchoices/ChipSync), and their support libraries.
+Please refer to the separate documentation for
+[ChipNet](https://github.com/gotchoices/ChipNet) and
+[ChipSync](https://github.com/gotchoices/ChipSync) in order to better understand the following sections.
 
 ### Route Discovery
-Before a lift can be performed, it is first necessary to discover whether there are
-willing partners available in the network able to perform the necessary transfers.
+Before a lift can be performed, it is necessary to first discover whether there are
+willing partners available along a viable pathway to perform the necessary transfer.
 
-Consider the following:
+In prior versions, routes were discovered proactively and stored in a local routing table.
+When a lift was needed, it would be proposed via pathways deemed to be likely according to the cached routing information.
+Now, a routing request will only be issued when it is needed--as the first step in a lift process.
 
 ![use-route](uml/use-route.svg)
 
-As shown, route discovery requests can be initiated in two ways:
+Route discovery requests can be initiated in two ways:
 - Manually by a user/entity; or
 - By an automated scheduler running as part of the agent process.
 
 A site containing multiple users in its database has knowledge of all the connections between its users. 
-In some limited cases, it might be able to find a suitable route within these local connections.
+In some cases, it may be able to find a suitable lift route using only these local connections.
 More commonly, it will be necessary to obtain the cooperation of other sites to perform a meaningful lift.
-Discovery of suitable lift pathways is accomplished by the [chipNet module](https://github.com/gotchoices/ChipNet).
+Discovery of lift pathways is accomplished by the [chipNet module](https://github.com/gotchoices/ChipNet).
 
-In this implementation, route discovery will be modeled as the first stage (or state) of a lift and so will be incorporated into the lift protocol as described below.
+Upon finding one or more routes, ChipNet will return a structure containing these paths.
+The originator process will select the preferred route and continue on to execute the lift.
 
-### Lift Protocol
+### Lift Sequence
 
 Let us first consider the use case of a user-initiated payment lift.
-The agent for this user will be considered the originator of the lift and will interact with other sites and modules as follows:
+The agent for this user will originate the lift and will interact with other sites and modules as follows:
 
 ![seq-lift-pay](uml/seq-lift-pay.svg)
 
 Note that an automatically generated request for a circular, or clearing lift will be quite similar except the agent itself may initiate (and authorize) the process (as opposed to the user).
 
-The originator has a unique role since it will initiate the process.
-The agent for the intended recipient of the lift will also have some unique tasks to perform.
-Participants in the middle mostly relay the lift information along and don't really need to concern themselves with whether it is a linear payment lift or a clearing lift.
-It will turn out the same for them either way.
+The originator has a unique role in the process.
+The agent for the intended recipient of the lift will also have some unique tasks to perform such as unpacking transaction details and initializing the consensus voting process.
+Participants in the middle mostly relay the lift information along and don't really need to concern themselves with whether the lift performs a linear payment or a clearing function.
 
 The sequence for non-originator nodes is as follows:
 
@@ -505,7 +508,6 @@ The sequence for non-originator nodes is as follows:
 
 In order to maintain an orderly transition through these sequences, the site model will maintain a lift record with the following states:
 
-NEEDS REWORK:
 [![state-lift](uml/state-lift.svg)](uml/state-lift.svg)
 
 <div style="display: flex; justify-content: space-between;">

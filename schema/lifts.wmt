@@ -47,6 +47,11 @@ tabtext mychips.lifts_v {Lifts}		{Standard view containing an entry for each lif
   {remains	{Remains}		{The amount of time before expiration, the local lift record was created and then relayed along}}
 }
 
+tabtext mychips.lifts_v_me	{My Lifts}	{View showing users the net effect of individual lifts on their balances} {
+  {seqs		{Sequences}	{Sequence numbers of the tallies/chits involved in this lift}}
+  {idxs		{Indexes}	{Index numbers of the chits involved in this lift}}
+}
+
 tabtext mychips.lifts_v_dist {Distributed Lifts} {Standard view containing an entry for each lift with additional helpful derived fields applicable to distributed (not local) lifts} {
   {top_chad	{Top Address}		{CHIP address of the entity who holds the top (output) tally in the local segment for this lift}}
   {bot_chad	{Bottom Address}	{CHIP address of the entity who holds the bottom (input) tally in the local segment for this lift}}

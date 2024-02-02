@@ -42,6 +42,7 @@ end
 orgAgent	->>	orgAgent:	Select optimal plan
 orgAgent	->>	chipSync:	Launch lift transaction
 chipSync	->>	orgAgent:	Time to build provisional chits
+orgAgent	<->	orgDB:		Build provisional chits
 chipSync	<->	upSites:	ChipSync negotiates lift
 
 alt Lift succeeds

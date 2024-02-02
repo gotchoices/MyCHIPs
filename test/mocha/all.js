@@ -33,6 +33,7 @@ require('./models.js')		//Model2/3 require mongo instance
 
 require('./sch-tally.js')
 require('./sch-chit.js')
+require('./sch-pay.js')
 
 require('./user2.js')		//Needed for testing on two DB's
 require('./tally.js')
@@ -40,12 +41,13 @@ require('./chit.js')
 require('./chain.js')
 
 require('./sch-path.js')
-require('./sch-route.js')
-require('./route.js')
+//require('./sch-route.js')	//Obsolete
+//require('./route.js')		//Obsolete
 
-require('./sch-lift.js')
-require('./lift.js')
-require('./lift-in.js')
+//require('./sch-lift.js')	//Obsolete
+//require('./lift.js')		//Obsolete
+//require('./lift-in.js')	//Obsolete
+require('./pay.js')
 
 require('./contract.js')
 require('./language.js')
