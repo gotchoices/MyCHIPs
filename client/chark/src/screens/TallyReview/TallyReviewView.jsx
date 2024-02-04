@@ -54,14 +54,26 @@ const TallyReviewView = (props) => {
       : props.holdCert?.chad?.cid + "...";
   };
 
-  const getCID = () => {
+  const getStockCID = () => {
     if (props.holdCert?.chad?.cid) {
       return (
         props.holdCert.chad.cid + ":" + props.holdCert?.chad?.agent
       );
     }
 
-    return props.partCert?.chad?.cid + ":" + props.holdCert?.chad?.agent;
+    return (
+      props.partCert?.chad?.cid + ":" + props.partCert?.chad?.agent
+    );
+  };
+
+  const getFoilCID = () => {
+    if (props.partCert?.chad?.cid) {
+      return (
+        props.partCert?.chad?.cid + ":" + props.partCert?.chad?.agent
+      );
+    }
+
+    return props.holdCert.chad.cid + ":" + props.holdCert.chad.agent;
   };
 
   return (
@@ -78,7 +90,7 @@ const TallyReviewView = (props) => {
 
           <View style={styles.topCenterWrapper}>
             <HelpText
-              helpText={getCID()}
+              helpText={getStockCID()}
               label={tallyType === "foil" ? "Foil" : "Stock"}
               style={styles.headerText}
             />
@@ -113,6 +125,7 @@ const TallyReviewView = (props) => {
       <View style={styles.midView}>
         <View style={styles.rowWrapper}>
           <TextInput
+            placeholder={props.net ?? ""}
             editable={canEdit}
             value={tallyType === "foil" ? holdLimit : partLimit}
             keyboardType="numeric"
@@ -132,6 +145,7 @@ const TallyReviewView = (props) => {
 
           <TextInput
             editable={canEdit}
+            placeholder={props.amount ?? ""}
             value={tallyType === "stock" ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
@@ -156,7 +170,7 @@ const TallyReviewView = (props) => {
 
           <View style={styles.bottomCenterWrapper}>
             <HelpText
-              helpText={getCID()}
+              helpText={getFoilCID()}
               label={tallyType === "foil" ? "Stock" : "Foil"}
               style={styles.headerText}
             />
@@ -188,7 +202,7 @@ const TallyReviewView = (props) => {
         </View>
       </View>
 
-      {canEdit && (
+      {canEdit && props.setTallyType && (
         <View style={styles.absoluteView}>
           <TouchableOpacity onPress={onSwitchClick}>
             <SwapIcon />
@@ -304,14 +318,13 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: "700",
     fontSize: 15,
-    textDecorationStyle:'solid',
+    textDecorationStyle: "solid",
     textDecorationLine: "underline",
   },
   wrapper: {
     height: 100,
     alignItems: "center",
     justifyContent: "center",
-
   },
 });
 

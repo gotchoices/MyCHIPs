@@ -1,17 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Linking } from 'react-native';
-import HelpText from '../../../components/HelpText';
-import { colors, connectsObj, dateFormats } from '../../../config/constants';
-import useMessageText from '../../../hooks/useMessageText';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Linking,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import HelpText from "../../../components/HelpText";
+import {
+  colors,
+  connectsObj,
+  dateFormats,
+} from "../../../config/constants";
+import useMessageText from "../../../hooks/useMessageText";
 
-import Button from '../../../components/Button';
-import { round } from '../../../utils/common';
-import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
-import { formatDate } from '../../../utils/format-date';
-import Avatar from '../../../components/Avatar';
-import { fetchTallyFile } from '../../../services/tally';
-import useSocket from '../../../hooks/useSocket';
-import { Buffer } from 'buffer';
+import Button from "../../../components/Button";
+import { round } from "../../../utils/common";
+import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
+import { formatDate } from "../../../utils/format-date";
+
+import { fetchTallyFile } from "../../../services/tally";
+import useSocket from "../../../hooks/useSocket";
+import { Buffer } from "buffer";
+import TallyReviewView from "../../TallyReview/TallyReviewView";
+
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
@@ -20,7 +32,9 @@ const CommonTallyView = (props) => {
   const [avatar, setAvatar] = useState(undefined);
   const { wm } = useSocket();
 
-  const net = round((tally?.net ?? 0) / 1000, 3)
+  console.log(tally)
+
+  const net = round((tally?.net ?? 0) / 1000, 3);
   const talliesText = messageText?.tallies;
   const hasPartCert = !!tally?.part_cert;
   const hasNet = !!tally?.net;
@@ -34,19 +48,21 @@ const CommonTallyView = (props) => {
     const tally_seq = tally?.tally_seq;
 
     if (digest && wm) {
-      fetchTallyFile(wm, digest, tally_seq).then((data) => {
-        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
-        const fileData = data?.[0]?.file_data;
-        const file_fmt = data?.[0]?.file_fmt;
-        if (fileData) {
-          const base64 = Buffer.from(fileData).toString('base64')
-          setAvatar(`data:${file_fmt};base64,${base64}`);
-        }
-      }).catch(err => {
-        console.log("TALLY_FILE_ERROR ==> ", err)
-      })
+      fetchTallyFile(wm, digest, tally_seq)
+        .then((data) => {
+          console.log("TALLY_SEQ ==> ", JSON.stringify(data));
+          const fileData = data?.[0]?.file_data;
+          const file_fmt = data?.[0]?.file_fmt;
+          if (fileData) {
+            const base64 = Buffer.from(fileData).toString("base64");
+            setAvatar(`data:${file_fmt};base64,${base64}`);
+          }
+        })
+        .catch((err) => {
+          console.log("TALLY_FILE_ERROR ==> ", err);
+        });
     }
-  }, [wm, tally])
+  }, [wm, tally]);
 
   const handleLinkPress = (link) => {
     Linking.canOpenURL(link)
@@ -54,151 +70,202 @@ const CommonTallyView = (props) => {
         if (supported) {
           Linking.openURL(link);
         } else {
-          console.log('Cannot open URL: ', link);
+          console.log("Cannot open URL: ", link);
         }
       })
-      .catch((error) => console.log('Error occurred:', error));
+      .catch((error) => console.log("Error occurred:", error));
   };
 
   return (
     <View>
-      {
-        hasNet && <View style={styles.detailControl}>
-          <HelpText
-            label={'Tally Balance'}
-            style={styles.headerText}
-          />
+      {hasNet && (
+        <View style={styles.detailControl}>
+          <HelpText label={"Tally Balance"} style={styles.heading} />
           <View>
             <View style={styles.row}>
-              <ChitIcon color={isNetNegative ? colors.red : colors.green} height={14} width={14} />
-              <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
+              <ChitIcon
+                color={isNetNegative ? colors.red : colors.green}
+                height={14}
+                width={14}
+              />
+              <Text
+                style={
+                  isNetNegative
+                    ? styles.negativeText
+                    : styles.positiveText
+                }
+              >
                 {net}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', marginTop: 12 }}>
+
+            <View style={{ marginTop: 20, marginBottom: 30 }}>
+              <TallyReviewView
+                net={tally?.net}
+                tallyType={tally?.tally_type}
+                partTerms={tally?.part_terms}
+                holdTerms={tally?.hold_terms}
+                partCert={tally?.part_cert ?? {}}
+                holdCert={tally?.hold_cert ?? {}}
+                onHoldTermsChange={() => {}}
+                onPartTermsChange={() => {}}
+                canEdit={true}
+              />
+            </View>
+
+            <View style={{ flexDirection: "row", marginTop: 12 }}>
               <Button
-                title='Chit History'
+                title="Chit History"
                 onPress={props.onViewChitHistory}
                 style={{ borderRadius: 12, width: 120 }}
               />
 
               <Button
-                title='Pay'
+                title="Pay"
                 onPress={props.onPay}
-                style={{ borderRadius: 12, paddingHorizontal: 22, marginStart: 12 }}
+                style={{
+                  borderRadius: 12,
+                  paddingHorizontal: 22,
+                  marginStart: 12,
+                }}
               />
 
               <Button
-                title='Request'
+                title="Request"
                 onPress={props.onRequest}
-                style={{ borderRadius: 12, paddingHorizontal: 22, marginStart: 12 }}
+                style={{
+                  borderRadius: 12,
+                  paddingHorizontal: 22,
+                  marginStart: 12,
+                }}
               />
-
             </View>
           </View>
         </View>
-      }
-      {
-        hasPartCert && <View style={styles.detailControl}>
+      )}
+      {hasPartCert && (
+        <View style={styles.detailControl}>
           <HelpText
-            label={'Partner Details'}
-            style={styles.headerText}
+            label={"Partner Details"}
+            style={styles.heading}
           />
 
-          <Avatar avatar={avatar} style={{ height: 40, width: 40 }} />
+          <View style={styles.certInfoWrapper}>
+            <View style={styles.certInfo}>
+              <HelpText
+                label={userTallyText?.frm_name?.title ?? ""}
+                style={styles.certInfoLabel}
+              />
+              <Text style={styles.certValue}>
+                {partCert?.type === "o"
+                  ? `${partCert?.name}`
+                  : `${partCert?.name?.first}${
+                      partCert?.name?.middle
+                        ? " " + partCert?.name?.middle + " "
+                        : ""
+                    } ${partCert?.name?.surname}`}
+              </Text>
+            </View>
 
-          <View style={styles.detailControl}>
-            <HelpText
-              label={userTallyText?.frm_name?.title ?? ''}
-              helpText={userTallyText?.frm_name?.help}
-              style={styles.secondaryheader}
-            />
-            <Text>{
-              partCert?.type === 'o'
-                ? `${partCert?.name}`
-                : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
-            }</Text>
-          </View>
+            <View style={styles.certInfo}>
+              <HelpText
+                label={talliesText?.part_cid?.title ?? ""}
+                style={styles.certInfoLabel}
+              />
+              <Text style={styles.certValue}>
+                {partCert?.chad?.cid}
+              </Text>
+            </View>
 
-          <View style={styles.detailControl}>
-            <HelpText
-              label={talliesText?.part_cid?.title ?? ''}
-              helpText={talliesText?.part_cid?.help}
-              style={styles.secondaryheader}
-            />
-            <Text>{partCert?.chad?.cid}</Text>
-          </View>
+            <View style={styles.certInfo}>
+              <HelpText
+                label={talliesText?.part_agent?.title ?? ""}
+                style={styles.certInfoLabel}
+              />
+              <Text style={styles.certValue}>
+                {partCert?.chad?.agent}
+              </Text>
+            </View>
 
-          <View style={styles.detailControl}>
-            <HelpText
-              label={talliesText?.part_agent?.title ?? ''}
-              helpText={talliesText?.part_agent?.help}
-              style={styles.secondaryheader}
-            />
-            <Text>{partCert?.chad?.agent}</Text>
-          </View>
-
-          {
-            connects?.length > 0 && <View>
-              {
-                connects?.map((connect, index) => {
+            {connects?.length > 0 && (
+              <View>
+                {connects?.map((connect, index) => {
                   const media = connect.media;
                   let link = connectsObj[media];
-                  return <View key={`${connect?.address}${index}`} style={styles.detailControl}>
-                    <HelpText
-                      label={link?.label ?? media ?? ''}
-                      style={styles.secondaryheader}
-                    />
-                    <Text onPress={() => { handleLinkPress(link?.link + connect?.address) }}>{connect?.address}</Text>
-                  </View>
-                })
-              }
-            </View>
-          }
+                  return (
+                    <View
+                      key={`${connect?.address}${index}`}
+                      style={styles.certInfo}
+                    >
+                      <HelpText
+                        label={link?.label ?? media ?? ""}
+                        style={styles.certInfoLabel}
+                      />
+                      <Text
+                        style={styles.certValue}
+                        onPress={() => {
+                          handleLinkPress(
+                            link?.link + connect?.address
+                          );
+                        }}
+                      >
+                        {connect?.address}
+                      </Text>
+                    </View>
+                  );
+                })}
+
+                <TouchableOpacity onPress={() => props.onPartnerCertificate()}>
+                  <Text style={styles.certOtherDetails}>
+                    View other details
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
-      }
+      )}
 
       <View style={styles.detailControl}>
         <HelpText
-          label={talliesText?.tally_uuid?.title ?? ''}
+          label={talliesText?.tally_uuid?.title ?? ""}
           helpText={talliesText?.tally_uuid?.help}
-          style={styles.headerText}
+          style={styles.heading}
         />
-        <Text>
-          {tally.tally_uuid}
-        </Text>
+        <Text>{tally?.tally_uuid}</Text>
       </View>
 
       <View style={styles.detailControl}>
         <HelpText
-          label={talliesText?.tally_date?.title ?? ''}
+          label={talliesText?.tally_date?.title ?? ""}
           helpText={talliesText?.tally_date?.help}
-          style={styles.headerText}
+          style={styles.heading}
         />
         <Text>
           {/* {new Date(tally.tally_date).toLocaleString()} */}
-          {formatDate({ date: tally.tally_date, format: dateFormats.dateTime })}
+          {formatDate({
+            date: tally?.tally_date,
+            format: dateFormats.dateTime,
+          })}
         </Text>
       </View>
 
       <View style={styles.detailControl}>
         <HelpText
-          label={talliesText?.status?.title ?? ''}
+          label={talliesText?.status?.title ?? ""}
           helpText={talliesText?.status?.help}
-          style={styles.headerText}
+          style={styles.heading}
         />
 
-        <Text>
-          {tally.status}
-        </Text>
+        <Text>{tally?.status}</Text>
       </View>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   detailControl: {
-    marginVertical: 10
+    marginVertical: 10,
   },
   headerText: {
     color: colors.black,
@@ -207,27 +274,60 @@ const styles = StyleSheet.create({
   secondaryheader: {
     color: colors.black,
     fontSize: 13,
-    fontWeight: 'normal',
+    fontWeight: "normal",
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.black,
-    fontSize: 14
+    fontSize: 14,
   },
   image: {
     height: 14,
-    width: 14
+    width: 14,
   },
   positiveText: {
-    color: 'green'
+    color: "green",
   },
   negativeText: {
-    color: 'red',
+    color: "red",
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  }
-})
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  heading: {
+    fontWeight: "500",
+    fontSize: 12,
+    marginBottom: 0,
+    color: colors.gray300,
+  },
+  certInfoWrapper: {
+    backgroundColor: colors.gray5,
+    borderWidth: 1,
+    borderColor: colors.gray7,
+    borderRadius: 8,
+    padding: 16,
+  },
+  certInfo: {
+    marginBottom: 12,
+    fontFamily: "inter",
+  },
+  certValue: {
+    color: colors.black,
+    fontSize: 12,
+    fontWeight: "500",
+    fontFamily: "inter",
+  },
+  certInfoLabel: {
+    fontWeight: "500",
+    fontSize: 11,
+    marginBottom: 0,
+    color: colors.gray300,
+  },
+  certOtherDetails: {
+    color: colors.blue3,
+    textDecorationLine: "underline",
+  },
+});
 
 export default CommonTallyView;

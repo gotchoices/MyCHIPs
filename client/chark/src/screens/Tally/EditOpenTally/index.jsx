@@ -216,10 +216,11 @@ const EditOpenTally = (props) => {
             onViewChitHistory={onViewChitHistory}
             onPay={onPay}
             onRequest={onRequest}
+            onPartnerCertificate={()=>onViewCertificate({ title: "Partner Certificate", data: tally?.part_cert })}
           />
 
           <View style={styles.detailControl}>
-            <CustomText as="h4">Tally Type</CustomText>
+            <CustomText as="h5">Tally Type</CustomText>
             <Text style={styles.textInputStyle}>{tally.tally_type}</Text>
           </View>
 
@@ -227,7 +228,7 @@ const EditOpenTally = (props) => {
             <HelpText
               label={tallyText?.contract?.title ?? ""}
               helpText={tallyText?.contract?.help}
-              style={styles.label}
+              style={styles.h5}
             />
 
             {contractName && <Text>{contractName}</Text>}
@@ -240,14 +241,14 @@ const EditOpenTally = (props) => {
             onPress={showPDF}
           />
 
-          {
+          {/* {
             hasPartCert ? <Button
               title="View Partner Certificate"
               onPress={() => onViewCertificate({ title: "Partner Certificate", data: tally?.part_cert })}
               textColor={colors.blue}
               style={styles.showPDF}
             /> : <></>
-          }
+          } */}
 
           {
             hasHoldCert ? <Button
@@ -261,7 +262,6 @@ const EditOpenTally = (props) => {
       </View>
 
       <View style={styles.container}>
-        <View style={styles.detailControl}>
           <HelpText
             label={tallyText?.hold_terms?.title ?? ""}
             helpText={tallyText?.hold_terms?.help}
@@ -271,12 +271,11 @@ const EditOpenTally = (props) => {
             return (
               <View
                 key={`${holdTerm?.value}${index}`}
-                style={{ marginVertical: 10 }}
               >
                 <HelpText
                   label={holdTerm?.title ?? ""}
                   helpText={holdTerm?.help}
-                  style={styles.h5}
+                  style={styles.label}
                 />
 
                 <Text style={styles.textInputStyle}>
@@ -285,21 +284,19 @@ const EditOpenTally = (props) => {
               </View>
             );
           })}
-        </View>
+
       </View>
 
       <View style={styles.container}>
-        <View style={styles.detailControl}>
           <HelpText
             label={tallyText?.part_terms?.title ?? ""}
             helpText={tallyText?.part_terms?.help}
-            style={styles.headerText}
+            style={styles.label}
           />
           {partTermsText?.map((partTerm, index) => {
             return (
               <View
                 key={`${partTerm?.value}${index}`}
-                style={{ marginVertical: 10 }}
               >
                 <HelpText
                   label={partTerm?.title ?? ""}
@@ -313,11 +310,11 @@ const EditOpenTally = (props) => {
               </View>
             );
           })}
-        </View>
+   
       </View>
 
       <View style={styles.container}>
-        <HelpText label={"Trading Variables"} style={styles.headerText} />
+        <HelpText label={"Trading Variables"} style={styles.label} />
 
         <Button
           title="Show Trade"
@@ -333,6 +330,7 @@ const styles = StyleSheet.create({
   container: {
     margin: 10,
     padding: 10,
+    marginVertical:5,
     backgroundColor: colors.white,
   },
   detailControl: {
@@ -347,15 +345,18 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   textInputStyle: {
-    paddingHorizontal: 10,
-    paddingVertical: 16,
+    marginTop:5,
+    fontSize: 12,
     color: "black",
-    fontSize: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
     backgroundColor: colors.gray100,
   },
   label: {
-    fontSize: 14,
-    color: "black",
+    fontWeight: "500",
+    fontSize: 13,
+    marginBottom: 0,
+    color: colors.black,
   },
   headerText: {
     fontSize: 14,
@@ -364,7 +365,14 @@ const styles = StyleSheet.create({
   showPDF: {
     marginTop: 12,
     backgroundColor: colors.white
-  }
+  ,
+  h5: {
+    fontSize: 12,
+    marginBottom: 0,
+    fontWeight: "500",
+    color: colors.gray300,
+  },}
+
 })
 
 export default EditOpenTally;
