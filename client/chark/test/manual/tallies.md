@@ -1,7 +1,5 @@
-## Chit Transactions
-    This test assumes that User-A and User-B have successfully established an open tally with each other.
-
-- User-A request chit from User-B. User-B accepts chit.
+## Tallies
+    This is a tally creation test between two users who. User-A and User-B are unassociated with each other from the start.
 
 | User-A Page   | User-A Action                           | User-A Check                                  | User-B Page           | User-B Action              | User-B Check                                    |
 | ------------- | --------------------------------------- | --------------------------------------------- | --------------------- | -------------------------- | ----------------------------------------------- |
