@@ -7,7 +7,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'ADQom_kq3HOCIqtZfGI3FNuYIMcULRpbwP47PL2lr8E'
+    rid: 'll4_CN0ytGoEGCVbCV4zBButZ6qdVOJ4OePXTtYx1Qo'
     title: 'Defining a CHIP'
     text: >-
       MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of Value between willing parties.
@@ -25,7 +25,7 @@
         text: >-
           All transactions associated with this Tally shall be quantified exclusively in CHIPs, as defined herein, and not in any other unit of measure.
           For example, it is a breach of this covenant to produce a Pledge which the Parties understand to be measured in Dollars or Euros.
-          It is not a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs.
+          It is not necessarily a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs.
       -
         text: >-
           One CHIP is defined as having a value equal to:

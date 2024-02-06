@@ -11,38 +11,57 @@ const Readline = require('readline')
 const Yaml = require('yaml')
 var argv = require('yargs').argv		//;console.log("argv:", argv)
 
-const updateDigest = (file, findDigest, newDigest) => new Promise((resolve) => {
+const fs = require('fs');
+const fsPromises = fs.promises; // Node.js File System module with Promises API
+const readline = require('readline');
+const { once } = require('events'); // To wait for an event
+
+const updateDigest = async (file, findDigest, newDigest) => {
   let changed = false
     , tmpFile = file + '.tmp'
-  const readInterface = Readline.createInterface({
-    input: Fs.createReadStream(file),
-    output: Fs.createWriteStream(tmpFile),
-    console: false
-  });
+  
+  const readStream = fs.createReadStream(file)
+  const writeStream = fs.createWriteStream(tmpFile)
+  const readInterface = readline.createInterface({
+    input: readStream,
+    output: writeStream
+  })
 
-  readInterface.on('line', function(line) {
+  readInterface.on('line', (line) => {
     if (!changed && line.trim().startsWith('source:')) {
-      let oldDigest = line.match(/(source:\s*['"])(.+)(['"])/)[2]
-console.log('O:', oldDigest, 'N:', newDigest)
-      if (findDigest == oldDigest && newDigest != oldDigest) {
-        let updLine = line.replace(/(source:\s*['"]).+(['"])/, `$1${newDigest}$2`);
-        readInterface.output.write(updLine + '\n')		;console.log('Changed!')
+      let oldDigest = line.match(/(source:\s*['"])(.+)(['"])/)?.[2]
+      console.log('O:', oldDigest, 'N:', newDigest)
+      if ((findDigest === oldDigest || !findDigest && !oldDigest) && newDigest !== oldDigest) {
+        // Directly replace the line with the new source: value
+        let leading = line.match(/^( *)source:/)?.[1] || ''
+          , updLine = `${leading}source: "${newDigest}"`
+        
+        readInterface.output.write(updLine + '\n')
+        console.log('Changed!')
         changed = true
+      } else {
+        readInterface.output.write(line + '\n')
       }
     } else {
       readInterface.output.write(line + '\n')
     }
-  });
-
-  readInterface.on('close', function() {
-    if (changed)
-      Fs.renameSync(tmpFile, file)			//,console.log('Rename:', tmpFile)
-    else
-      Fs.unlinkSync(tmpFile)				//,console.log('Unlink:', tmpFile)
-//    resolve()
-    setTimeout(resolve, 500)
   })
-})
+
+  // Close the readline interface once all lines are processed
+  readInterface.on('close', () => {
+    writeStream.end()
+  })
+
+  // Wait for the stream to finish writing
+  await once(writeStream, 'finish')
+
+  // Perform the file operations asynchronously
+  if (changed) {
+    await fsPromises.rename(tmpFile, file)
+  } else {
+    await fsPromises.unlink(tmpFile)
+  }
+}
 
 const grabRID = function(name) {			//console.log("grab:", file)
   let file = name + '.yaml'
@@ -60,7 +79,7 @@ const processFiles = async () => {			//console.log("file:", file)
   
     for (let sec of contract?.sections) {
       let {name, source} = sec
-      if (name && source) {
+      if (name) {
         let fileRID = grabRID(name)		//;console.log('n:', name, 's:', source)
         if (fileRID != source) {
           console.log(file, ':\n  ', source, "-->", fileRID)

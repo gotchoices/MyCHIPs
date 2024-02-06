@@ -7,7 +7,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'nLhpZItW-ap184PPRGtyauJkV4iz7nvn7ZSD0s8vfGk'
+    rid: 'SgMhedRY-zj8MaPJkz_cz8Ajfmcg3JSvEq9vF3SuOss'
     title: 'Ethical Conduct'
     text: >-
       The credits, or Chits, under this Agreement constitute a Pledge of Value, measured in CHIPs, from the Issuer, to the Recipient, which shall be satisfied according to the terms established and cryptographically signed in the Tally.
@@ -16,7 +16,7 @@
       -
         title: 'Competency'
         text: >-
-          The Issuer is of such age and mental capacity to understand the obligations it is entering into.
+          The Issuer is of such age and mental capacity to understand the obligations the Issuer is entering into.
       -
         title: 'Informed Consent'
         text: >-
@@ -26,31 +26,31 @@
       -
         title: 'Dispute Resolution'
         text: >-
-          In the case of a dispute between the Parties over any associated transaction being resolved by legal remedy, the prevailing Party shall be entitled to collect actual incurred damages from the losing Party, plus all collection costs, including attorneys' fees.
+          In the case of a dispute between the Parties over any associated transaction that is resolved by legal remedy, the prevailing Party shall be entitled to collect actual actual damages incurred from the losing Party, plus all collection costs, including attorneys' fees.
       -
         title: 'Frivolous Claims'
         text: >-
-          Should any cause of action brought by one Party against the other be shown to be frivolous, or without basis, the penalty shall be increased to two times the actual incurred damages, plus all collection costs, including attorneys' fees.
+          Should any cause of action brought by one Party against the other be shown to be frivolous, or without basis, the penalty shall be increased to two times the actual damages incurred, plus all collection costs, including attorneys' fees.
       -
         title: 'Fraud'
         text: >-
-          When intentional fraud can be proven in such a dispute, the penalty shall be increased to three times the actual incurred damages, plus all collection costs, including attorneys' fees.
+          When intentional fraud can be proven in a dispute between the Parties, the penalty shall be increased to three times the actual damages incurred, plus all collection costs, including attorneys' fees.
       -
         title: 'Severability'
         text: >-
-          If any portion of this agreement is deemed to be unenforceable by any means, the remaining portions shall remain in full effect.
+          If any portion of this agreement is deemed to be unenforceable in any way, such portion shall be severed from the Agreement and the remaining portions shall remain in full force and effect.
       -
         title: 'Honor'
         text: >-
-          The debtor agrees to not excuse itself from honoring the agreement by reason of bankruptcy or similar recourse, even though prevailing law may allow it.
+          The debtor agrees to not excuse itself from honoring the Agreement by reason of bankruptcy or similar recourse, even though prevailing law may allow it.
       -
         title: 'Indemnity'
         text: >-
-          The Parties shall hold harmless MyCHIPs.org, its owners and affiliates, and all authors of and contributers to the MyCHIPs software and protocol for any loss related to its use.
+          The Parties shall hold harmless MyCHIPs.org, its owners and affiliates, and all authors of and contributors to the MyCHIPs software and protocol for any loss related to its use.
       -
         title: 'Chain of Honor'
         text: >-
           The obligations related to good faith and honesty made by the Parties also extend to other parties they may be indirectly connected to.
-          For example, it is a breach of this covenant to use your trading relationship under this Tally to defraud another party somewhere else on the MyCHIPs network.
+          For example, it is a breach of this covenant to use a trading relationship under this Tally to defraud another party somewhere else on the MyCHIPs network.
           Each Party agrees to cooperate with the other in the rectification of any fraud or loss that may occur in the course of trading on this Tally.
           This cooperation implies the assignment of contract rights, as applicable, so that any unduly harmed party may invoke the rights of each party along a chain of transactions in order to remedy a fraud or undue loss.

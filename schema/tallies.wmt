@@ -163,7 +163,7 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
     {agree.format 		{Agreement Format}	{How to return the tally agreement report data}}
       {agree.format.html	{html}			{Return HTML fragment that contains the report}}
       {agree.format.url		{url}			{Return an url link to a web page containing the report}}
-    {agree.data			{Tally Data}		{Parameters from the tally relevant to the Tally Agreement}}
+    {agree.data			{Tally Data}		{Parameters from the Tally relevant to the Tally Agreement are set forth below.  These parameters define the Parties and additional terms associated with their Tally Agreement.}}
     {agree.terms.foil		{Foil Terms}		{Terms set forth by Foil Holder and extended to Stock Holder}}
     {agree.terms.stock		{Stock Terms}		{Terms set forth by Stock Holder and extended to Foil Holder}}
     {agree.cert.foil		{Foil Certificate}	{Information identifying the Foil Holder}}

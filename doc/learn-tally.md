@@ -410,7 +410,7 @@ Client's (Foil) Trading Variables:
     This implies negative tally balance and so is normally accomplished through credit lifts.
     This can exceed (override) the Vendor's normal credit limit (dr_limit) agreed to 
     bilaterally in the tally, for the purpose of lifts.  A positive amount 
-    here constitutes value savings by the Client in the currency of the 
+    here constitutes value savings by the Client in the issue of the 
     Vendor--something the Vendor must accept in payment or as part of a future drop.
 
   - **Lift Limit**: (bound)	Default: Tally Debit Limit (dr_limit)  

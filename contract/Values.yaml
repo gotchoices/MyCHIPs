@@ -1,0 +1,36 @@
+#Copyright MyCHIPs.org; See license in root of this package
+# -----------------------------------------------------------------------------
+---
+  contract:
+    host: mychips.org
+    name: "Values"
+    version: 1
+    language: eng
+    published: '2024-02-05'
+    rid: 'S2JUVE7dOWRtkC_fKNRzgQV1odrDIp1_lz98CM3-rpg'
+    title: 'Community Values'
+    text: >-
+      The Parties agree with and strive to adhere to the MyCHIPS community values, which values include the following principles and beliefs:
+    sections:
+      -
+        title: 'Right to Associate'
+        text: >-
+          The Parties believe in the fundamental right to associate with persons, entities, and organizations of their choosing and according to their own private terms and conditions.
+          The Parties declare that this fundamental right is expressed, in part, in their ability to create private contracts and agreements that can be enforced against a breaching party
+          The Parties assert that the right to associate and set terms via private contracts is recognized in and protected by the constitutions of most, if not all, countries that have a written constitution.
+      -
+        title: 'Right to Engage in Private Transactions'
+        text: >-
+          The Parties believe that individuals, entities, and organizations have the right to engage in private transactions.
+          The Parties operate under the principle that their transactions on the MyCHIPS platform are private and not public as their Pledges of Value can only be satisfied through connections within the Parties' networks.
+      -
+        title: 'Not a Currency'
+        text: >-
+          The Parties do not view any Pledge of Value, CHIPs, or Chits as a currency and do not utilize them as such.
+          The Parties agree that all commitments made on the MyCHIPs platform are commitments to deliver future value, and that such are undertaken to allow for both Parties to provide value-for-value at differing points in time, manner, and place.
+          The Parties utilize labor as the foundation of their transactions as labor is inherently personal and belongs to the one supplying it.
+          The use of labor as the foundation for the transactions reflects the reality that the Parties are acting in a private network and only within their trusted set of connections.
+      -
+        title: 'Building Trusted Community'
+        text: >-
+          The Parties express that it is their intent and purpose to build their trusted community and network, and that the MyCHIPs platform provides a means for them to document and record their agreements and commitments, similar to how businesses offer and provide payment terms of net 30 for those they work with.

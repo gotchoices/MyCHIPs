@@ -7,15 +7,15 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'CBoYrdLxKpyk56Jy8sF_qzg4uLmC28aKOUSmd6CgzQE'
+    rid: 'J--xL3Oqbr0BKiQHeM8m4pEiqzw5ANFQfYP7c5sdXLQ'
     title: 'Credit Terms and Conditions'
     text: >-
-      When executing a Tally Agreement, the Parties each decide the amount of credit they will extend to the other Party.
-      They may also specify other terms and conditions that influence how and when the debt will be managed and/or satisfied.
+      When executing a Tally Agreement, the Parties each decide the limits of Pledges of Value they will accept from the other Party.
+      The Parties may also specify other terms and conditions that influence how and when the obligation will be satisfied.
       Those various parameters are together referred to as Credit Terms.
       Terms can be specified by the Vendor that will be applied to credit issued by the Client.
       Terms can also be specified by the Client that will be applied to credit issued by the Vendor, in such cases where the Tally develops a negative balance.
-      These Terms are incorporated into the Tally Data and become part of the agreement that is digitally signed by the Parties.
+      These Terms are incorporated into the Tally Data and become part of the Agreement that is digitally signed by the Parties.
       In such cases where a particular Credit Term is not explicitly included in the Tally Data, the default value for that term, as listed below, shall apply.
       These various credit terms are defined in the Tally Data object by the property name shown in parentheses and are interpreted as follows:
     sections:

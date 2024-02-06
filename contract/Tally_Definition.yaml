@@ -7,11 +7,12 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'X1Yk0xnrvPtvORtJB6wo27sVYOCZoCiLoBM2RbTzLss'
+    rid: 'Z2XFBa24t7apXjWaxxqrEEfTDgNnSUPZhshLCs1VmrY'
     title: 'What a Tally is and How it Works'
     text: >-
       Pledges of Value are tracked by means of a Tally.
       A Tally is an agreement between two willing Parties, normally stored as a digital electronic record, and by which the Parties document and enforce a series of Pledges of Value, called Chits, made between them.
+      These all constitute an enforceable agreement between the Parties to deliver certain value at a future point and in a manner agreed upon by the Parties.
     sections:
       -
         title: 'Signing Keys'
@@ -57,8 +58,8 @@
       -
         title: 'Authority to Pledge'
         text: >-
-          Neither Party may unilaterally add a Chit as Receiver, meaning a Chit that would grant value from the other Party to itself.
-          However, either Party may request such a Pledge from the other Party.
+          Neither Party may unilaterally authorize a Chit as Receiver, meaning a Chit that would grant value from the other Party to itself.
+          However, either Party may request such a Pledge from the other Party, with such request only becoming binding if it is duly signed by the Issuer.
           It just does not become binding until it is duly signed by the Issuer.
       -
         title: 'Net Credit'
@@ -70,7 +71,7 @@
       -
         title: 'Net Issuer and Recipient'
         text: >-
-          This indebtedness is credit, which can be thought of as a loan, a debt, or an IOU.
+          The net indebtedness referenced above is credit, which can also be thought of as a loan, a debt, or an IOU.
           At any given time, the indebted Party is referred to as the Net Issuer of credit or Net Debtor.
           The other Party is referred to as the Net Recipient of credit or Net Creditor.
       -
