@@ -115,18 +115,20 @@ export const useUser = (wm) => {
   return messageText?.users ?? {};
 }
 
-export const useHoldTermsText = (wm) => {
+export const useTalliesMeText = (wm) => {
   const { messageText, setMessageText } = useMessageText();
 
   useEffect(() => {
-    wm.register('terms_lang' + Math.random(), 'mychips.tallies_v_me', (data, err) => {
-      if (data) {
-        addTextsToState('terms_lang', data.col, setMessageText)
-      }
-    })
+    if(!messageText?.tallies_v_me) {
+      wm.register('tallies_v_me' + Math.random(), 'mychips.tallies_v_me', (data, err) => {
+        if (data) {
+          addTextsToState('tallies_v_me', data, setMessageText)
+        }
+      })
+    }
   }, [])
 
-  return messageText?.terms_lang ?? {};
+  return messageText?.tallies_v_me ?? {};
 }
 
 export const useChitsMeText = (wm) => {
@@ -142,7 +144,7 @@ export const useChitsMeText = (wm) => {
     }
   }, [wm, setMessageText])
 
-  return messageText ?? {};
+  return messageText?.chits_v_me ?? {};
 }
 
 function addTextsToState(field, texts, setState) {

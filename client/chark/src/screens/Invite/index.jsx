@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ import { GenerateKeysDialog } from "../Tally/TallyPreview/GenerateKeysDialog";
 import TallyEntryModal from "./TallyEntryModal";
 
 import useMessageText from "../../hooks/useMessageText";
-import { useHoldTermsText } from "../../hooks/useLanguage";
+import { useTalliesMeText } from "../../hooks/useLanguage";
 import { fetchTemplates } from "../../redux/workingTalliesSlice";
 import { fetchImagesByDigest } from "../../redux/avatarSlice";
 import { request } from "../../services/request";
@@ -120,11 +120,15 @@ const TallyInvite = (props) => {
     data: undefined,
   });
 
-  useHoldTermsText(wm);
+  useTalliesMeText(wm);
   const { messageText } = useMessageText();
-  const draftLang = messageText?.terms_lang?.request?.values?.find(
-    (item) => item.value === "draft"
-  );
+  const talliesColText = messageText?.tallies_v_me?.col;
+
+  const draftLang = useMemo(() => {
+    return talliesColText?.request?.values?.find(
+      (item) => item.value === "draft"
+    );
+  }, [talliesColText?.request?.values])
 
   useEffect(() => {
     if (ws) {
@@ -296,7 +300,7 @@ const TallyInvite = (props) => {
               tally_ent: item.tally_ent,
             });
           }}
-          draftLang={draftLang?.title ?? "Draft"}
+          draftLang={draftLang?.title ?? "draft"}
         />
       </View>
     );

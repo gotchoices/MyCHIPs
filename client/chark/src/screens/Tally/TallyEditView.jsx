@@ -33,11 +33,11 @@ const TallyEditView = (props) => {
   const canEdit = tally.state === 'draft' || tally.state === 'P.draft';
 
   const { messageText } = useMessageText();
-  const talliesText = messageText?.tallies;
-  const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
-  const partTermsText = messageText?.terms_lang?.part_terms?.values;
+
   const hasPartCert = !!tally?.part_cert;
   const hasHoldCert = !!tally?.hold_cert;
+
+  const talliesMeText = messageText?.tallies_v_me?.col;
 
   const partName= Object.values((tally.part_cert?.name ?? {})).join(' ')
   const partChipAddress = hasPartCert ? `${tally.part_cert?.chad?.cid ?? ''}-${tally.part_cert?.chad?.agent ?? ''}` : '';
@@ -89,8 +89,8 @@ const TallyEditView = (props) => {
       <View style={styles.detailControl}>
         <View style={styles.contractLabel}>
           <HelpText
-            label={talliesText?.contract?.title ?? ''}
-            helpText={talliesText?.contract?.help}
+            label={talliesMeText?.contract?.title ?? ''}
+            helpText={talliesMeText?.contract?.help}
           />
 
         <TouchableWithoutFeedback
@@ -126,31 +126,33 @@ const TallyEditView = (props) => {
         )}
 
         {hasPartCert && (
-            <CertificateInformation
-              title={'Partner Certificate Information'}
-              name={partName}
-              chipAddress={partChipAddress}
-              email={partEmail}
-              onViewDetails={onViewCertificate({ title: 'Partner Certificate', cert: tally?.part_cert ?? {} })}
-            />
+          <CertificateInformation
+            title={talliesMeText?.part_cert?.title ?? ''}
+            name={partName}
+            chipAddress={partChipAddress}
+            email={partEmail}
+            onViewDetails={onViewCertificate({ title: 'Partner Certificate', cert: tally?.part_cert ?? {} })}
+            certText={talliesMeText?.part_cert ?? {}}
+          />
         )}
 
         {!!tally?.hold_cert && (
-            <CertificateInformation
-              title={'My Certificate Information'}
-              name={holdName}
-              chipAddress={holdChipAddress}
-              email={holdEmail}
-              onViewDetails={onViewCertificate({ title: 'My Certificate', cert: tally?.hold_cert ?? {} } )}
-            />
+          <CertificateInformation
+            title={talliesMeText?.hold_cert?.title ?? ''}
+            name={holdName}
+            chipAddress={holdChipAddress}
+            email={holdEmail}
+            onViewDetails={onViewCertificate({ title: 'My Certificate', cert: tally?.hold_cert ?? {} } )}
+            certText={talliesMeText?.hold_cert ?? {}}
+          />
         )}
 
       </View>
 
       <View style={styles.detailControl}>
         <HelpText
-          label={talliesText?.comment?.title ?? ''}
-          helpText={talliesText?.comment?.help}
+          label={talliesMeText?.comment?.title ?? ''}
+          helpText={talliesMeText?.comment?.help}
         />
 
         {canEdit ? (
@@ -171,8 +173,8 @@ const TallyEditView = (props) => {
 
       <View style={styles.detailControl}>
         <HelpText
-          label={talliesText?.tally_uuid?.title ?? ''}
-          helpText={talliesText?.tally_uuid?.help}
+          label={talliesMeText?.tally_uuid?.title ?? ''}
+          helpText={talliesMeText?.tally_uuid?.help}
         />
 
         <Text style={styles.inputValue}>
@@ -182,8 +184,8 @@ const TallyEditView = (props) => {
 
       <View style={styles.detailControl}>
         <HelpText
-          label={talliesText?.tally_date?.title ?? ''}
-          helpText={talliesText?.tally_date?.help}
+          label={talliesMeText?.tally_date?.title ?? ''}
+          helpText={talliesMeText?.tally_date?.help}
         />
         <Text style={styles.inputValue}>
           {moment(tally.tally_date).format('MM/DD/YYYY,hh:mm')} 

@@ -12,7 +12,6 @@ import Avatar from '../../../components/Avatar';
 import AcceptButton from './AcceptButton';
 import RejectButton from './RejectButton';
 import ChitTypeText from './ChitTypeText';
-import HelpText from '../../../components/HelpText';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 
 import { colors } from '../../../config/constants';

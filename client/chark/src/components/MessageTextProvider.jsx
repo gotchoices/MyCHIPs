@@ -11,7 +11,6 @@ const initialTexts = {
   exchange: null,
   userTallies: null,
   asset_v: null,
-  terms_lang: null,
   chits_v_me: null,
 }
 

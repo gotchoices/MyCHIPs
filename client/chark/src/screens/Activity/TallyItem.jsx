@@ -132,9 +132,9 @@ const styles = StyleSheet.create({
   avatar: {
     marginRight: 8,
     alignSelf: 'center',
-    height: 45,
-    width: 45,
-    borderRadius: 45 / 2,
+    height: 60,
+    width: 60,
+    borderRadius: 60 / 2,
   },
   name: {
     ...font,

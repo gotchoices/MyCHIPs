@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import Avatar from "../../components/Avatar";
 import { colors } from "../../config/constants";
 import HelpText from "../../components/HelpText";
+import useMessageText from '../../hooks/useMessageText';
 
 import {
   SwapIcon,
@@ -30,6 +31,9 @@ const TallyReviewView = (props) => {
   const holdLimit = props.holdTerms?.limit;
   const partLimit = props.partTerms?.limit;
   const canEdit = props.canEdit ?? true;
+
+  const { messageText } = useMessageText();
+  const talliesMeText = messageText?.tallies_v_me?.col;
 
   const onSwitchClick = () => {
     props.setTallyType((prev) => {
@@ -82,7 +86,7 @@ const TallyReviewView = (props) => {
         <View style={styles.rowWrapper}>
           <View style={styles.leftIcon}>
             <HelpText
-              label="Risk"
+              label={talliesMeText?.risk?.title ?? 'risk_title'}
               style={[styles.leftText, styles.leftTopText]}
             />
             <DownArrowIcon />
@@ -114,7 +118,7 @@ const TallyReviewView = (props) => {
 
           <View style={styles.rightIcon}>
             <HelpText
-              label="Credit"
+              label={talliesMeText?.credit?.title ?? 'credit_title'}
               style={[styles.rightText, styles.rightTopText]}
             />
             <LeftArrowIcon />
@@ -163,7 +167,7 @@ const TallyReviewView = (props) => {
           <View style={styles.leftIcon}>
             <RightArrowIcon />
             <HelpText
-              label="Credit"
+              label={talliesMeText?.credit?.title ?? 'credit_title'}
               style={[styles.leftText, styles.leftBottomText]}
             />
           </View>
@@ -195,7 +199,7 @@ const TallyReviewView = (props) => {
           <View style={styles.rightIcon}>
             <UpArrowIcon />
             <HelpText
-              label="Risk"
+              label={talliesMeText?.risk?.title ?? 'risk_title'}
               style={[styles.rightText, styles.rightBottomText]}
             />
           </View>

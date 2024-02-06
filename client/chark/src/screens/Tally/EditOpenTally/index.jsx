@@ -15,7 +15,7 @@ import {
 } from "../../../services/tally";
 import useSocket from "../../../hooks/useSocket";
 import { colors } from "../../../config/constants";
-import { useHoldTermsText, useTallyText } from "../../../hooks/useLanguage";
+import { useTalliesMeText, useTallyText } from "../../../hooks/useLanguage";
 
 import Button from "../../../components/Button";
 import CommonTallyView from "../CommonTallyView";
@@ -37,10 +37,12 @@ const EditOpenTally = (props) => {
 
   const [contractName, setContractName] = useState("");
 
-  useHoldTermsText(wm);
+  useTalliesMeText(wm);
   const { messageText } = useMessageText();
-  const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
-  const partTermsText = messageText?.terms_lang?.part_terms?.values;
+  const talliesColText = messageText?.tallies_v_me?.col;
+  const holdTermsText = talliesColText?.hold_terms?.values;
+  const partTermsText = talliesColText?.part_terms?.values;
+
   const hasPartCert = !!tally?.part_cert;
   const hasHoldCert = !!tally?.hold_cert;
 

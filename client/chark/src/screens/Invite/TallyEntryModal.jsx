@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import { View, Text, StyleSheet } from 'react-native';
 
-import { colors } from '../../config/constants';
 import Button from '../../components/Button';
 import Avatar from '../../components/Avatar';
 import HandshakeIcon from '../../../assets/svg/handshake.svg';
@@ -12,9 +11,15 @@ import CustomIcon from "../../components/CustomIcon";
 import OfferButton from '../Tally/OfferButton';
 import AcceptButton from '../Tally/AcceptButton';
 
+import { colors } from '../../config/constants';
+import useMessageText from '../../hooks/useMessageText';
+
 const TallyEntryModal = (props) => {
   const negotiationData = props.negotiationData;
   const { imagesByDigest } = useSelector(state => state.avatar);
+  const { messageText } = useMessageText();
+
+  const talliesMeText = messageText?.tallies_v_me?.col;
 
   return (
     <View style={{ margin: 20 }}>
@@ -37,16 +42,12 @@ const TallyEntryModal = (props) => {
         </Text>
 
         <Text style={{ color: colors.gray6 }}>
-          Wants to start a tally 
-        </Text>
-
-        <Text style={{ color: colors.gray6 }}>
-          with you
+          {talliesMeText?.tally_start?.title ?? 'wants_to_start_a_tally_with_you'}
         </Text>
 
         <View style={styles.partLimit}>
           <Text style={{ marginRight: 5, color: colors.gray6 }}>
-            Part limit ${negotiationData.data?.limit} 
+            part_limit ${negotiationData.data?.limit} 
           </Text>
           <GreenTickIcon />
         </View>
@@ -54,7 +55,7 @@ const TallyEntryModal = (props) => {
       
       {props.shouldShowReview &&
       <Button
-        title="Review"
+        title={talliesMeText?.review?.title ?? 'review'}
         onPress={() => props.onReview(negotiationData?.data?.tally_seq, negotiationData?.data?.tally_ent)}
         textColor={colors.blue}
         style={{ marginBottom: 5, borderRadius: 40, backgroundColor: colors.white }}
