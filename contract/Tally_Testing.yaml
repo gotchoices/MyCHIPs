@@ -8,7 +8,7 @@
     language: eng
     top: true
     published: '2023-08-17'
-    rid: 'CqErXDOUwHJEUHi0LnJeoFBZmAhpDfar1jvb7aibNR4'
+    rid: 'iusuQ4MUjEF9a2pA8Jo9xcDxYpUgSWTIZll6cc8fBI0'
     title: 'Tally Testing and Evaluation Agreement'
     text: >-
       When invoked by a Tally, this Contract causes the resulting Agreement to be completely non-binding on the Parties regardless of the language that will follow.
@@ -18,4 +18,4 @@
     sections:
       -
         name: 'Tally_Contract'
-        source: "DSEeB8YQFoZ0WifArHaDX8cjAg2j7_purFylLEvdPGw"
+        source: "8vnqgdPYJdM4JnIHAbxjsDtecHKxOPIOu5XlO9efN4c"
