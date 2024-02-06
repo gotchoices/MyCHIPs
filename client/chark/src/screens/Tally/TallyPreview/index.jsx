@@ -12,10 +12,10 @@ import {
   Text,
 } from "react-native";
 
-import { colors, keyServices } from "../../../config/constants";
+import { colors } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
 import useInvite from "../../../hooks/useInvite";
-import { useHoldTermsText, useTallyText } from "../../../hooks/useLanguage";
+import { useTalliesMeText } from "../../../hooks/useLanguage";
 import useTallyUpdate from "../../../hooks/useTallyUpdate";
 import { fetchContracts, updateHoldCert } from "../../../services/tally";
 
@@ -24,7 +24,7 @@ import Button from "../../../components/Button";
 import Spinner from "../../../components/Spinner";
 import TallyEditView from "../TallyEditView";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import { refuseTally, reviseTally } from "../../../services/tally";
+import { reviseTally } from "../../../services/tally";
 import { GenerateKeysDialog } from "./GenerateKeysDialog";
 import { UpdateHoldCert } from "./UpdateHoldCert";
 import CenteredModal from "../../../components/CenteredModal";
@@ -116,8 +116,8 @@ const TallyPreview = (props) => {
   };
 
   // Fetch tally text
-  useTallyText(wm);
-  useHoldTermsText(wm);
+  const talliesMeText = useTalliesMeText(wm)
+  const talliesColText = talliesMeText?.col ?? {};
 
   const onShare = () => {
     const hold_limit = tally?.hold_terms?.limit;
@@ -254,26 +254,6 @@ const TallyPreview = (props) => {
     props.navigation.navigate("TallyContract", { tally_seq });
   };
 
-  const onRefuse = () => {
-    refuseTally(wm, {
-      tally_ent,
-      tally_seq,
-    })
-      .then(() => {
-        Toast.show({
-          type: "success",
-          text1: "Tally refused.",
-        });
-        props.navigation.goBack();
-      })
-      .catch((err) => {
-        Toast.show({
-          type: "error",
-          text1: err.message,
-        });
-      });
-  };
-
   const onCancel = () => {
     props.navigation.navigate("Invite");
   };
@@ -378,7 +358,7 @@ const TallyPreview = (props) => {
       return (
         <View style={styles.buttonWrapper}>
           <Button
-            title="Revise"
+            title={talliesColText?.revise?.title ?? 'revise_text'}
             onPress={onRevise}
             textColor={colors.white}
             style={[styles.fullActionButton(colors.yellow), { width: '48%' }]}

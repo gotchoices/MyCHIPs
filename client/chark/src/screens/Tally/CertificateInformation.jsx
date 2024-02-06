@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 
 import {
@@ -13,6 +13,15 @@ import HelpText from '../../components/HelpText';
 import { colors } from '../../config/constants';
 
 const CertificateInformation = (props) => {
+  const certText = props.certText;
+
+  const certValueText = useMemo(() => {
+    return certText?.values?.reduce((acc, curr) => {
+      acc[curr.value] = curr;
+      return acc;
+    }, {})
+  }, [certText?.values])
+
   return (
     <View style={styles.detailControl}>
       <HelpText
@@ -23,7 +32,8 @@ const CertificateInformation = (props) => {
       <View style={styles.certInfoWrapper}>
         <View style={styles.certInfo}>
           <HelpText
-            label={'Formal Name'}
+            label={certValueText?.part_name?.title ?? 'part_cert_name'}
+            helpText={certValueText?.name?.help?? ''}
             style={styles.certInfoLabel}
           />
 
@@ -34,7 +44,8 @@ const CertificateInformation = (props) => {
 
         <View style={styles.certInfo}>
           <HelpText
-            label={'Chip Address'}
+            label={certValueText?.chad?.title ?? 'part_chad'}
+            helpText={certValueText?.chad?.help}
             style={styles.certInfoLabel}
           />
 
@@ -46,7 +57,8 @@ const CertificateInformation = (props) => {
         {!!props.email && (
           <View style={styles.certInfo}>
             <HelpText
-              label={'Email'}
+              label={certValueText?.email?.title ?? 'partner_or_holder_email'}
+              helpText={certValueText?.email?.help}
               style={styles.certInfoLabel}
             />
 
@@ -58,7 +70,7 @@ const CertificateInformation = (props) => {
 
         <TouchableWithoutFeedback onPress={props.onViewDetails}>
           <Text style={styles.certOtherDetails}>
-            View other details
+            {certValueText?.other_details?.title ?? 'view_other_details'}
           </Text>
         </TouchableWithoutFeedback>
       </View>
@@ -109,6 +121,7 @@ CertificateInformation.prototype = {
   chipAddress: PropTypes.string.isRequired,
   email: PropTypes.string.isRequired,
   onViewDetails: PropTypes.func.isRequired,
+  certText: PropTypes.any.isRequired,
 }
 
 export default CertificateInformation;

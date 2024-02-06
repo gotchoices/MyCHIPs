@@ -14,14 +14,19 @@ import ChitItem from './ChitItem';
 import HelpText from '../../../components/HelpText'
 
 import { colors } from '../../../config/constants';
-import { getChits, resetChits } from '../../../redux/chitSlice';
+import { getChits } from '../../../redux/chitSlice';
 import useSocket from '../../../hooks/useSocket';
+import { useChitsMeText } from '../../../hooks/useLanguage';
 
 const PendingChits = (props) => {
   const dispatch = useDispatch();
   const { wm, chitTrigger } = useSocket();
   const { fetching, chits } = useSelector(state => state.chit)
   const { tally_uuid, partName, description, conversionRate } = props.route?.params ?? {};
+
+  // Register chits texts
+  const chitsMeText = useChitsMeText(wm);
+  const chitsMeMessageText = chitsMeText?.msg;
 
   const fetchChits = () => {
     dispatch(
@@ -73,7 +78,8 @@ const PendingChits = (props) => {
         keyExtractor={(_, index) => index}
         ListHeaderComponent={
           <HelpText
-            label={'Pending Chits'}
+            label={chitsMeMessageText?.pending?.title ?? ''}
+            helpText={chitsMeMessageText?.pending?.help}
             style={styles.listTitle}
           />
         }

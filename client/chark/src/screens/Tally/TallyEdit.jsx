@@ -29,8 +29,8 @@ const TallyEditView = (props) => {
 
   const { messageText } = useMessageText();
   const talliesText = messageText?.tallies;
-  const holdTermsText = messageText?.terms_lang?.hold_terms?.values;
-  const partTermsText = messageText?.terms_lang?.part_terms?.values;
+  const holdTermsText = messageText?.tallies_v_me?.col?.hold_terms?.values;
+  const partTermsText = messageText?.tallies_v_me?.col?.part_terms?.values;
   const hasPartCert = !!tally?.part_cert;
   const hasHoldCert = !!tally?.hold_cert;
   const isCertUpdateable = tally?.status === 'draft';

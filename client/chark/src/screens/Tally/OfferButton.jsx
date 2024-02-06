@@ -58,7 +58,7 @@ const OfferButton = (props) => {
 
   return (
     <Button
-      title="Offer"
+      title="offer"
       disabled={offering}
       onPress={onOffer}
       textColor={colors.white}

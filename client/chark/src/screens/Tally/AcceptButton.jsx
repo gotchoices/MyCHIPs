@@ -59,7 +59,7 @@ const AcceptButton = (props) => {
 
   return (
     <Button
-      title="Accept"
+      title="accept"
       onPress={onAccept}
       disabled={accepting}
       textColor={colors.white}
