@@ -7,7 +7,7 @@
     version: 1
     language: eng
     published: '2020-04-01'
-    rid: 'll4_CN0ytGoEGCVbCV4zBButZ6qdVOJ4OePXTtYx1Qo'
+    rid: 'ZB-fyPpDe_S5gPfz2tIAKCxvZMuXafyjsW6TWMawpZ4'
     title: 'Defining a CHIP'
     text: >-
       MyCHIPs is a standardized protocol to facilitate the documentation and exchange of Pledges of Value between willing parties.
@@ -17,16 +17,28 @@
       A Pledge accrues as a receivable asset to the Recipient and a payable liability to the Issuer just as with any open-account indebtedness that might be incurred in the ordinary course of business or commerce.
     sections:
       -
+        title: 'Subdivision'
         text: >-
           The amount of value represented in a Tally or a Chit is quantified in units of CHIPs.
           Internally, a MyCHIPs server is expected to record transactions in integer units of 1/1000th of a CHIP.
           User interfaces are expected to render values as decimal CHIPs with up to 3 digits after the decimal point, for example: 1234.567.
       -
+        title: 'Exclusive Use of the CHIP'
         text: >-
           All transactions associated with this Tally shall be quantified exclusively in CHIPs, as defined herein, and not in any other unit of measure.
-          For example, it is a breach of this covenant to produce a Pledge which the Parties understand to be measured in Dollars or Euros.
+          For example, it is a breach of this covenant to produce a Pledge of Value which the Parties understand to be measured in Dollars or Euros.
           It is not necessarily a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs.
+          Nor is it necessarily a breach to satisfy a Pledge of Value by payment in Dollars, or any other currency, where acceptable to the Parties.
       -
+        title: 'CHIP Estimates not Binding'
+        text: >-
+          Various methods may exist for estimating the value of a CHIP in terms of existing currencies.
+          For example, see https://chipcentral.net.
+          Such estimates may even be displayed via a software interface such as a mobile application.
+          But no estimate of the CHIP value shall be construed to bind a party to future payment by, or exchange into, in a particular currency at a particular rate.
+          Rather, Pledges of Value are to be interpreted solely according to the CHIP Definition below.
+      -
+        title: 'CHIP Definition'
         text: >-
           One CHIP is defined as having a value equal to:
         sections:
