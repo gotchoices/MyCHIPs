@@ -23,14 +23,14 @@
           Internally, a MyCHIPs server is expected to record transactions in integer units of 1/1000th of a CHIP.
           User interfaces are expected to render values as decimal CHIPs with up to 3 digits after the decimal point, for example: 1234.567.
       -
-        title: 'Exclusive Use of the CHIP'
+        title: 'Tally Denominated in CHIPs'
         text: >-
           All transactions associated with this Tally shall be quantified exclusively in CHIPs, as defined herein, and not in any other unit of measure.
           For example, it is a breach of this covenant to produce a Pledge of Value which the Parties understand to be measured in Dollars or Euros.
           It is not necessarily a breach to buy or sell Dollars, or any other currency, using this Tally and/or at a price denominated in CHIPs.
           Nor is it necessarily a breach to satisfy a Pledge of Value by payment in Dollars, or any other currency, where acceptable to the Parties.
       -
-        title: 'CHIP Estimates not Binding'
+        title: 'CHIP Estimates'
         text: >-
           Various methods may exist for estimating the value of a CHIP in terms of existing currencies.
           For example, see https://chipcentral.net.
