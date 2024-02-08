@@ -10,6 +10,7 @@ namespace eval pay {
     def pay_pk		{lift_uuid lift_seq}
     def pay_v_up	{find units payor_auth request}
     def pay_v_in	[concat $pay_pk $pay_v_up payor_ent lift_date]
+    def pay_v_me_in	[concat $pay_pk $pay_v_up lift_date]
     def pay_se		[concat $pay_v_in status state json origin payee_ent $glob::stampfn]
 }
 
@@ -60,6 +61,10 @@ view mychips.lifts_v_pay_me {mychips.lifts_v_pay base.curr_eid()} {select
   , p.lift_uuid
   , p.lift_seq
   , p.lift_date
+  , p.payor_auth
+  , p.find
+  , p.status
+  , p.request			as request
   , p.units			as units
   , -p.units			as net
   , p.payor_auth->'memo'	as memo
@@ -71,10 +76,20 @@ view mychips.lifts_v_pay_me {mychips.lifts_v_pay base.curr_eid()} {select
   , p.lift_uuid
   , p.lift_seq
   , p.lift_date
+  , p.payor_auth
+  , p.find
+  , p.status
+  , null::text			as request
   , p.units			as units
   , p.units			as net
   , p.payor_auth->'memo'	as memo
   , p.payor_auth->'ref'		as reference
     from	mychips.lifts_v_pay	p
     where	p.payee_ent = base.curr_eid()
-} -grant lift
+    
+    eval(trigview::insert mychips.lifts_v_pay_me mychips.lifts $pay::pay_v_me_in $pay::pay_pk [concat $glob::stampin {payor_ent session_user}]);
+    eval(trigview::update mychips.lifts_v_pay_me mychips.lifts $pay::pay_v_up $pay::pay_pk $glob::stampup);
+    eval(rule_delete mychips.lifts_v_pay_me mychips.lifts $pay::pay_pk {old.status = 'void'});
+} -grant {
+    {lift	s {s i u d}}
+}

@@ -1,24 +1,14 @@
 TODO:
 
 - Regression test that invokes agent code (pay.js)
-X-  Review lift state diagram
-X-   add parts for local lifts
-X-   modify for chipNet/chipSync
-X-  Modify code for local.init in lib/lift.js
-X-  In-fill lifts _process for local search
-X-  Call local search/lift routines
-X-  test route that succeeds on local search
-X-  local lift chits committed
-X-  Make lifts_v_pay_me view -- user permissioned, my payments
-X-  User view can see sent and received payments
-X-  Notify user of success
+X-  Make lifts_v_pay_me writable
+X-  Also test route that fails
+X-  If no pathway found, mark lift as failed (void?)
+X-  Notify user of failure
 -  Include actual user signature on payment request
 -  Agent signs lift: can we use crypto routine from tally.js?
 -  agent evaluate's payor's authorization signature
 -  agent signs the lift payment record
--  Also test route that fails
--  If no pathway found, mark lift as failed (void?)
--  Notify user of failure
 -   
 - Integrate with app:
 -  Scan invoice, build draft.route payment record, find=payee chad

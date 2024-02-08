@@ -40,7 +40,7 @@ table mychips.lifts {mychips mychips.tallies} {
   , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','pay','rel'))
   , request	text		constraint "!mychips.lifts:IVR" check(request isnull or request in ('init','exec','seek','call','relay','found','term','check','good','void'))
   , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','exec','init','seek','call','found','pend','good','void'))
-  , tallies	uuid[]		constraint "!mychips.lifts:ITL" check (status in ('draft', 'init') or tallies notnull)
+  , tallies	uuid[]		constraint "!mychips.lifts:ITL" check (status in ('draft', 'init', 'void') or tallies notnull)
   , signs	int[]		constraint "!mychips.lifts:ISL" check (array_length(tallies,1) = array_length(signs,1))
 
 -- Payment related data
@@ -107,11 +107,11 @@ trigger mychips_lifts_tr_bi {} {
 function mychips.lifts_tf_ai() {mychips.lift_chitcheck(mychips.lifts)} {
   returns trigger language plpgsql security definer as $$
     begin
-        if new.request = 'relay' or new.request = 'found'
-          or (new.lift_type = 'in' and new.status = 'good') then
-            return mychips.lift_chitcheck(new);
-        end if;
-        return new;
+--      if new.request = 'relay' or new.request = 'found' or (new.lift_type = 'in' and new.status = 'good') then
+      if new.tallies notnull then			-- Always on insert if edges specified
+        return mychips.lift_chitcheck(new);
+      end if;
+      return new;
     end;
 $$;}
 trigger mychips_lifts_tr_ai {} {
@@ -133,7 +133,7 @@ function mychips.lifts_tf_bu() {mychips.lift_chitcheck(mychips.lifts) mychips.ch
       end if;
 
       if new.status != old.status then
-        if new.status in ('good','init','seek') and old.tallies isnull or old.signs isnull then
+        if new.status in ('good','seek') then
           new = mychips.lift_chitcheck(new);
         end if;
         if new.status in ('good','void') then
@@ -193,7 +193,7 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v_dist} {
         lrec		record;			-- Lift view record
         rrec		record;			-- Retries
     begin
-raise notice 'Lift_notify R:%', lift.request;
+--raise notice 'Lift_notify R:%', lift.request;
 
       select into lrec json, payor_auth, circuit, find, origin, find_v, origin_v, referee_v,
         inp_chad, bot_chad, bot_tally,
@@ -201,7 +201,7 @@ raise notice 'Lift_notify R:%', lift.request;
         from mychips.lifts_v_dist
           where lift_uuid = lift.lift_uuid and lift_seq = lift.lift_seq;
 
-      if lift.request = 'init' then		-- Contact originator's agent
+      if lift.request in ('init','exec') then		-- Contact originator's agent
         channel = 'ma_' || (lrec.origin->>'agent');
         jmerge = jmerge || jsonb_build_object(
           'init', jsonb_build_object(
@@ -236,7 +236,7 @@ raise notice 'Lift_notify R:%', lift.request;
         , 'object',	lrec.json
       ) || jmerge;
 
-raise notice 'Lift notice:% %', channel, jret::text;
+--raise notice 'Lift notice:% %', channel, jret::text;
       if channel notnull then
         perform pg_notify(channel, jret::text);
       end if;
@@ -256,7 +256,7 @@ function mychips.lifts_tf_notify() {mychips.lifts} {
         elsif new.request notnull and new.request is distinct from old.request then
             dirty = true;
         end if;
-raise notice 'Lift update: %: %', dirty, new.request;
+--raise notice 'Lift update: %: %', dirty, new.request;
         if dirty then perform mychips.lift_notify(new); end if;
         return new;
     end;
@@ -375,8 +375,6 @@ function {mychips.lift_process(msg jsonb, recipe jsonb)} {
         seq		int		= msg->'sequence';		-- Lift record specifier
         uuid		uuid		= obj->>'lift';			-- Lift uuid
         units		bigint		= obj->>'units';		-- Lift amount
---        to_chad		jsonb		= msg->'to';
---        fr_chad		jsonb		= msg->'from';
         find		jsonb		= obj->'find';
         req		text		= 'relay';			-- Default request
         lrec		record;		-- Holds lift record(s)
@@ -385,7 +383,7 @@ function {mychips.lift_process(msg jsonb, recipe jsonb)} {
         qstrg		text;		-- Temporary string
         remain		interval;	-- Time remaining on lift
     begin
-raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
+--raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
 
       if recipe ? 'query' then			-- If there a query key in the recipe object
         remain = (obj->>'date')::timestamptz + (obj->>'life')::interval - current_timestamp;
@@ -398,8 +396,6 @@ raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
 
 -- Search for destination in our local tally paths (assumes a linear lift for now):
         select into qrec uuids,foro from mychips.tallies_v_paths where
---          bot_cid = to_chad->>'cid' and bot_agent = to_chad->>'agent' and
---          inp_cid = fr_chad->>'cid' and inp_agent = fr_chad->>'agent' and
           bot_uuid = (msg->>'tally')::uuid and fori and
           out_cid = find->>'cid' and out_agent = find->>'agent' and
           min >= units order by edges desc limit 1;
@@ -408,8 +404,6 @@ raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
 -- Fixme: Create sorter column for this (local min OK, route min OK, local edges longest)
         if not found then		-- Next, try searching upstream routes:
           select into qrec uuids, true as foro from mychips.routes_v_paths where
---            bot_cid = to_chad->>'cid' and bot_agent = to_chad->>'agent' and
---            inp_cid = fr_chad->>'cid' and inp_agent = fr_chad->>'agent' and
             bot_uuid = (msg->>'tally')::uuid and fori and
             dst_cid = find->>'cid' and dst_agent = find->>'agent' and
             path_min >= units order by route_min desc, edges desc limit 1;
@@ -429,7 +423,7 @@ raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
       end if;		--recipe ? 'query'
 
       if uuid notnull and seq notnull then	-- Explicit lift referenced for update
-raise notice ' find by seq:%-%', uuid, seq;
+--raise notice ' find by seq:%-%', uuid, seq;
         select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state
           from mychips.lifts_v l where l.lift_uuid = uuid and l.lift_seq = seq;
       else				-- Find lift by base tally
@@ -439,6 +433,7 @@ raise notice ' find by seq:%-%', uuid, seq;
             (l.bot_tally = (msg->>'tally')::uuid or l.top_tally = (msg->>'tally')::uuid);
       end if;
       if not found then return null; end if;	-- No lifts found to modify
+      curState = lrec.state;
 
       if recipe ? 'loop' then		-- Form complete loopback path to originator for circular lift
         find = recipe->'loop';
@@ -455,11 +450,11 @@ raise notice ' find by seq:%-%', uuid, seq;
       
       if recipe ? 'local' and			-- Check if the lift can be done locally
         lrec.payor_ent notnull and lrec.payee_ent notnull then
-raise notice 'Lift local check O:% E:% U:%', lrec.payor_ent, lrec.payee_ent, lrec.units;
+--raise notice 'Lift local check O:% E:% U:%', lrec.payor_ent, lrec.payee_ent, lrec.units;
         select into qrec uuids, signs
           from mychips.path_find(lrec.payor_ent, lrec.payee_ent, lrec.units) limit 1;
         if found then
-raise notice ' found U:% S:%', qrec.uuids, qrec.signs;
+--raise notice ' found U:% S:%', qrec.uuids, qrec.signs;
           update mychips.lifts_v set status = 'good', request = null, tallies = qrec.uuids, signs = qrec.signs
             where lift_uuid = lrec.lift_uuid and lift_seq = lrec.lift_seq
               returning state into curState;
@@ -470,11 +465,10 @@ raise notice ' found U:% S:%', qrec.uuids, qrec.signs;
       end if;
       
       if recipe ? 'update' then
-        if found then curState = lrec.state; else curState = 'null'; end if;
-raise notice 'Lift state:%', curState;
+--raise notice 'Lift state:%', curState;
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-raise notice 'Lift Z:% C:%', jsonb_build_array(curState), recipe->'context';
+--raise notice 'Lift Z:% C:%', jsonb_build_array(curState), recipe->'context';
           return to_jsonb(curState);
         end if;
 
@@ -482,9 +476,12 @@ raise notice 'Lift Z:% C:%', jsonb_build_array(curState), recipe->'context';
           '{status, request, origin, referee, find, lift_uuid, tallies, signature}', 
           case when recipe->'update' ? 'request' then '{}'::text[] else '{"request = null"}' end
         );
-raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
+--raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
         execute qstrg || ' lift_uuid = $1 and lift_seq = $2 
-          returning lift_uuid, lift_seq, state' into lrec using lrec.lift_uuid, lrec.lift_seq;
+          returning payor_ent, lift_uuid, lift_seq, request, status, state' into lrec using lrec.lift_uuid, lrec.lift_seq;
+        if lrec.request isnull then		-- report only status changes
+          perform mychips.lift_notify_user(lrec.payor_ent, lrec.lift_uuid, lrec.lift_seq);
+        end if;
         return to_jsonb(lrec.state);
       end if;		-- recipe ? 'update'
 
@@ -501,7 +498,7 @@ function {mychips.lift_notify_user(ent text, uuid uuid, seq int)} {mychips.lifts
       jrec	jsonb;
     begin
       select into lrec lift_uuid, lift_seq, units, payor_auth, state, json from mychips.lifts_v where lift_uuid = uuid and lift_seq = seq;
---raise notice 'Lift user notify: mu_% %', lrec.lift_uuid, lrec.lift_seq;
+--raise notice 'Lift user notify: mu_% % %', ent, lrec.lift_uuid, lrec.lift_seq;
       jrec = jsonb_build_object(
         'target',	'lift',
         'entity',	ent,
