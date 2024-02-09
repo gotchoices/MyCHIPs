@@ -20,8 +20,8 @@
   "scripts": {
     "test": "npm-run-all test:*",
     "test-coverage": "nyc npm run test",
-    "test:unit": "mocha test/regression/unit/all.js",
-    "test:regression": "mocha test/mocha/all.js",
+    "test:unit": "mocha test/auto/unit/all.js",
+    "test:misc": "mocha test/auto/misc/all.js",
     "dev-hot": "webpack-dev-server --mode development --hot --config build/webpack.config",
     "dev-build": "webpack --mode development --watch --progress --config build/webpack.config",
     "build": "webpack --mode production --config build/webpack.config",
