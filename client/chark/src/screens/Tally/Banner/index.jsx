@@ -88,13 +88,13 @@ const Banner = (props) => {
           onPress={onFilter}
         >
           <FilterSecondIcon />
-          <Text style={styles.filterText}>Filters</Text>
+          <Text style={styles.filterText}>filter_text</Text>
         </TouchableOpacity>
 
         <View style={styles.textWrapper}>
           {hasPendingTotal && (
             <Text style={styles.pending}>
-              {props.totalPendingNet} pending
+              {props.totalPendingNet} pending_text
             </Text>
           )}
 

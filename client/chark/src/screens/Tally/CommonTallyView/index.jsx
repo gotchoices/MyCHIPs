@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -23,25 +23,46 @@ import { fetchTallyFile } from "../../../services/tally";
 import useSocket from "../../../hooks/useSocket";
 import { Buffer } from "buffer";
 import TallyReviewView from "../../TallyReview/TallyReviewView";
-
+import CertificateInformation from '../CertificateInformation';
 
 const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
-  const userTallyText = messageText?.userTallies ?? {};
+  const userTallyText = messageText?.tallies_v_me?.col;
   const [avatar, setAvatar] = useState(undefined);
   const { wm } = useSocket();
-
-  console.log(tally)
 
   const net = round((tally?.net ?? 0) / 1000, 3);
   const talliesText = messageText?.tallies;
   const hasPartCert = !!tally?.part_cert;
+  const hasHoldCert = !!tally?.hold_cert;
   const hasNet = !!tally?.net;
   const isNetNegative = tally?.net < 0;
 
   const connects = tally?.part_cert?.connect;
   const partCert = tally?.part_cert;
+
+  const partName= Object.values((tally.part_cert?.name ?? {})).join(' ')
+  const partChipAddress = hasPartCert ? `${tally.part_cert?.chad?.cid ?? ''}-${tally.part_cert?.chad?.agent ?? ''}` : '';
+  const partEmail = useMemo(() => {
+    if(hasPartCert) {
+      const found = (tally.part_cert?.connect ?? []).find(connect => connect.media === 'email')
+      return found?.address ?? ''
+    }
+
+    return '';
+  }, [hasPartCert, tally.part_cert?.connect])
+
+  const holdName= Object.values((tally.hold_cert ?.name ?? {})).join(' ')
+  const holdChipAddress = hasHoldCert ? `${tally.hold_cert?.chad?.cid ?? ''}-${tally.hold_cert?.chad?.agent ?? ''}` : '';
+  const holdEmail = useMemo(() => {
+    if(hasHoldCert) {
+      const found = (tally.hold_cert?.connect ?? []).find(connect => connect.media === 'email')
+      return found?.address ?? ''
+    }
+
+    return '';
+  }, [hasHoldCert, tally.hold_cert?.connect])
 
   useEffect(() => {
     const digest = tally?.part_cert?.file?.[0]?.digest;
@@ -76,11 +97,21 @@ const CommonTallyView = (props) => {
       .catch((error) => console.log("Error occurred:", error));
   };
 
+  const onViewCertificate= (args) => {
+    return () => props.navigation.navigate("TallyCertificate", { 
+      title: args.title,
+      cert: args.cert,
+      state: tally.state,
+      tally_seq: tally.tally_seq,
+      tally_ent: tally.tally_ent,
+    });
+  }
+
   return (
     <View>
       {hasNet && (
         <View style={styles.detailControl}>
-          <HelpText label={"Tally Balance"} style={styles.heading} />
+          <HelpText label={"tally_balance_text"} style={styles.heading} />
           <View>
             <View style={styles.row}>
               <ChitIcon
@@ -115,13 +146,13 @@ const CommonTallyView = (props) => {
 
             <View style={{ flexDirection: "row", marginTop: 12 }}>
               <Button
-                title="Chit History"
+                title="chit_history_text"
                 onPress={props.onViewChitHistory}
                 style={{ borderRadius: 12, width: 120 }}
               />
 
               <Button
-                title="Pay"
+                title="pay_text"
                 onPress={props.onPay}
                 style={{
                   borderRadius: 12,
@@ -131,7 +162,7 @@ const CommonTallyView = (props) => {
               />
 
               <Button
-                title="Request"
+                title={userTallyText?.request?.title ?? ''}
                 onPress={props.onRequest}
                 style={{
                   borderRadius: 12,
@@ -143,87 +174,27 @@ const CommonTallyView = (props) => {
           </View>
         </View>
       )}
+
       {hasPartCert && (
-        <View style={styles.detailControl}>
-          <HelpText
-            label={"Partner Details"}
-            style={styles.heading}
-          />
+        <CertificateInformation
+          title={userTallyText?.part_cert?.title ?? ''}
+          name={partName}
+          chipAddress={partChipAddress}
+          email={partEmail}
+          onViewDetails={onViewCertificate({ title: 'Partner Certificate', cert: tally?.part_cert ?? {} })}
+          certText={userTallyText?.part_cert ?? {}}
+        />
+      )}
 
-          <View style={styles.certInfoWrapper}>
-            <View style={styles.certInfo}>
-              <HelpText
-                label={userTallyText?.frm_name?.title ?? ""}
-                style={styles.certInfoLabel}
-              />
-              <Text style={styles.certValue}>
-                {partCert?.type === "o"
-                  ? `${partCert?.name}`
-                  : `${partCert?.name?.first}${
-                      partCert?.name?.middle
-                        ? " " + partCert?.name?.middle + " "
-                        : ""
-                    } ${partCert?.name?.surname}`}
-              </Text>
-            </View>
-
-            <View style={styles.certInfo}>
-              <HelpText
-                label={talliesText?.part_cid?.title ?? ""}
-                style={styles.certInfoLabel}
-              />
-              <Text style={styles.certValue}>
-                {partCert?.chad?.cid}
-              </Text>
-            </View>
-
-            <View style={styles.certInfo}>
-              <HelpText
-                label={talliesText?.part_agent?.title ?? ""}
-                style={styles.certInfoLabel}
-              />
-              <Text style={styles.certValue}>
-                {partCert?.chad?.agent}
-              </Text>
-            </View>
-
-            {connects?.length > 0 && (
-              <View>
-                {connects?.map((connect, index) => {
-                  const media = connect.media;
-                  let link = connectsObj[media];
-                  return (
-                    <View
-                      key={`${connect?.address}${index}`}
-                      style={styles.certInfo}
-                    >
-                      <HelpText
-                        label={link?.label ?? media ?? ""}
-                        style={styles.certInfoLabel}
-                      />
-                      <Text
-                        style={styles.certValue}
-                        onPress={() => {
-                          handleLinkPress(
-                            link?.link + connect?.address
-                          );
-                        }}
-                      >
-                        {connect?.address}
-                      </Text>
-                    </View>
-                  );
-                })}
-
-                <TouchableOpacity onPress={() => props.onPartnerCertificate()}>
-                  <Text style={styles.certOtherDetails}>
-                    View other details
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
+      {!!tally?.hold_cert && (
+        <CertificateInformation
+          title={userTallyText?.hold_cert?.title ?? ''}
+          name={holdName}
+          chipAddress={holdChipAddress}
+          email={holdEmail}
+          onViewDetails={onViewCertificate({ title: 'My Certificate', cert: tally?.hold_cert ?? {} } )}
+          certText={userTallyText?.hold_cert ?? {}}
+        />
       )}
 
       <View style={styles.detailControl}>

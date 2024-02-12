@@ -429,7 +429,7 @@ const TallyInvite = (props) => {
             ]}
           >
             <Text style={[styles.filterText, { fontSize: 16 }]}>
-              Drafts
+              {draftLang?.title ?? ''}
             </Text>
 
             <TouchableOpacity
@@ -437,11 +437,11 @@ const TallyInvite = (props) => {
               onPress={onFilter}
             >
               <FilterSecondIcon />
-              <Text style={styles.filterText}>Filters</Text>
+              <Text style={styles.filterText}>filters_text</Text>
             </TouchableOpacity>
           </View>
           <CustomTextInput
-            placeholder="Search"
+            placeholder="search_text"
             value={searchValue}
             onChangeText={setSearchValue}
             leadingIcon={<SearchIcon size={16} />}

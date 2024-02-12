@@ -16,7 +16,6 @@ const ChitTypeText = (props) => {
 
   const chits_msg = messageText?.chits_v_me?.msg;
 
-
   return (
     <View>
       {props.state === 'L.pend' && (

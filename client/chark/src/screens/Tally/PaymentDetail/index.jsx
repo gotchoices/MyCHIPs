@@ -271,7 +271,7 @@ const PaymentDetail = (props) => {
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
-          title="Pay"
+          title="pay_lang"
           onPress={onMakePayment}
           disabled={disabled}
         />

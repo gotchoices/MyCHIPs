@@ -1,30 +1,27 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Modal,
-  Dimensions,
 } from "react-native";
 
 import PropTypes from "prop-types";
 import { colors } from "../../config/constants";
 import Button from "../../components/Button";
 import Avatar from "../../components/Avatar";
-import useSocket from "../../hooks/useSocket";
-import { useTallyText } from "../../hooks/useLanguage";
 import CustomIcon from "../../components/CustomIcon";
 import { formatRandomString } from "../../utils/format-string";
-import { useSelector } from "react-redux";
+import useMessageText from '../../hooks/useMessageText';
 
 const PayModal = (props) => {
   const {
     imagesByDigest,
   } = useSelector((state) => state.openTallies);
+  const { messageText } = useMessageText();
+  const talliesMeText = messageText?.tallies_v_me?.col;
 
-  const { wm } = useSocket();
-  const tallyText = useTallyText(wm);
   const partCert = props.tally?.part_cert;
   const partName = partCert?.type === 'o'
     ? `${partCert?.name}`
@@ -103,24 +100,24 @@ const PayModal = (props) => {
           {hasPendingChits && (
             <Button
               textColor={colors.gray300}
-              title="Pending Chits"
+              title={talliesMeText?.chits_p?.title ?? 'pending_chits'}
               onPress={onViewPendingChits}
               style={styles.pendingChit}
             />
           )}
           <Button
             textColor="blue"
-            title="View Tally"
+            title="view_tally"
             onPress={onViewTally}
             style={styles.secondaryButton}
           />
 
           <View style={{ flex: 1 }} />
-          <Button title="Pay" onPress={onPay} style={styles.button} />
+          <Button title="pay_text" onPress={onPay} style={styles.button} />
 
           <View style={{ flex: 1 }} />
           <Button
-            title="Request"
+            title={talliesMeText?.request?.title ?? 'request'}
             onPress={onRequest}
             style={styles.button}
           />

@@ -14,7 +14,7 @@ const Search = (props) => {
         <SearchIcon />
         <TextInput
           style={styles.searchInput}
-          placeholder={props.title ?? 'Search'}
+          placeholder={props.title ?? 'search_text'}
         />
       </View>
     </View>

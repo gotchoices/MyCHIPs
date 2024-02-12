@@ -33,7 +33,7 @@ const Receive = (props) => {
   const ref = useRef("");
   const { wm } = useSocket();
 
-  const {request,comment} = useTallyText(wm);
+  const { request, comment } = useTallyText(wm);
 
   const { preferredCurrency } = useSelector((state) => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
