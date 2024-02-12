@@ -124,7 +124,7 @@ const Activity = (props) => {
     <View style={styles.main}>
       <FlatList
         data={allActivities}
-        keyExtractor={(item) => item.tally_uuid ?? item.chit_uuid}
+        keyExtractor={(item) => item.chit_uuid ?? item.tally_uuid}
         renderItem={renderItem}
       />
     </View>

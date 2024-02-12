@@ -28,9 +28,19 @@ const ChitItem = (props) => {
   const chits_msg = messageText?.chits_v_me?.msg;
 
   const onPress = () => {
-    props.navigation.navigate('PendingChitDetail', {
-      chit: props.chit,
-    });
+    const chit = props?.chit;
+    if(chit?.state === 'L.pend') {
+      props.navigation.navigate('PendingChitDetail', {
+        chit: props.chit,
+      });
+    } else {
+      props.navigation.navigate('ChitDetail', {
+        chit_uuid: chit?.chit_uuid,
+        chit_ent: chit?.chit_ent,
+        chit_idx: chit?.chit_idx,
+        chit_seq: chit?.chit_seq,
+      });
+    }
   }
 
   return (

@@ -17,11 +17,14 @@ import Button from '../../components/Button';
 import useSocket from '../../hooks/useSocket';
 import { colors } from '../../config/constants';
 import { refuseTally } from '../../services/tally';
+import useMessageText from '../../hooks/useMessageText';
 
 const TallyItem = (props) => {
   const tally = props.tally;
   const { wm } = useSocket();
   const [rejecting, setRejecting] = useState(false);
+  const { messageText } = useMessageText();
+  const talliesMeText = messageText?.tallies_v_me?.col;
 
   const canOffer = tally.state === "P.draft";
   const canAccept = tally.state === "P.offer";
@@ -73,7 +76,7 @@ const TallyItem = (props) => {
           <View style={{ flex: 1, }}>
             <Text style={styles.name}>{partName}</Text>
             <Text style={[styles.description, { marginTop: 4 }]}>
-              Tally Request
+              {talliesMeText?.request?.title ?? ''}
             </Text>
           </View>
         </View>
@@ -101,7 +104,7 @@ const TallyItem = (props) => {
         )}
 
         <Button
-          title="Reject"
+          title="reject_text"
           onPress={onReject}
           disabled={rejecting}
           style={[styles.btn, styles.rejectBtn]}
