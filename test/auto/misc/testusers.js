@@ -1,10 +1,10 @@
-//Setup sample users for tests; Run
-//After: impexp
+//Setup sample users for tests; run
+//After: dbinit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { dbConf, testLog, Format, Bus, assert, dbClient, Crypto } = require('../common')
+const { DBName, Schema, dbConf, testLog, Format, Bus, assert, dbClient, Crypto, pgCheck, Data, importCheck, dropDB } = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
 var { host, user0, user1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('../def-users')
@@ -13,8 +13,30 @@ var interTest = {}
 describe("Establish test users", function() {
   var db
 
+  before('PostgreSQL check', function() {
+    return pgCheck(this)
+  })
+
   before('Connection to database', function(done) {
-    db = new dbClient(new dbConf(), () => {}, ()=>{done()})
+    this.timeout(10000)		//May take a while to build database
+    db = new dbClient(new dbConf(log,undefined,undefined,Schema), () => {}, done)
+  })
+
+  it('Delete any test users', function(done) {
+    db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
+  })
+
+  it("Import multiple entities", function(done) {
+    let file = Data('users.json')
+    importCheck(file, null, db, done, function(res, row) {
+log.debug('res:', res, 'row:', row)
+      assert.equal(row[0],'p1002'); 
+      done()
+    })
+  })
+
+  it('Delete org user', function(done) {
+    db.query("delete from base.ent where ent_type = $1;", ['o'] ,(err, res) => {done()})
   })
 
   it("Build User Keys", function(done) {

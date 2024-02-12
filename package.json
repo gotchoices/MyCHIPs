@@ -18,7 +18,7 @@
     "mychips": "mychips.js"
   },
   "scripts": {
-    "test": "npm-run-all test:*",
+    "test": "npm-run-all test:unit test:misc test:sys test:clean",
     "test-coverage": "nyc npm run test",
     "test:unit": "mocha test/auto/unit/all.js",
     "test:misc": "mocha test/auto/misc/all.js",

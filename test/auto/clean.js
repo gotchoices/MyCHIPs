@@ -1,7 +1,7 @@
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //Remove test DB and any running test dockers
-const { dropDB, DB2Name, pgCheck, pgCleanup } = require('./common')
+const { dropDB, DB2Name, pgCheck, dockCleanup } = require('./common')
 
 it('Delete test databases', function(done) {
   let dc = 2, _done = () => {if (!--dc) done()}		//dc _done's to be done
@@ -10,6 +10,9 @@ it('Delete test databases', function(done) {
 })
 
 it('Stop any docker postgres', function(done) {
-  pgCleanup(done)
+  dockCleanup(done)
+})
+it('Stop any docker mongo', function(done) {
+  dockCleanup(done, 'mongo')
 })
 /* */

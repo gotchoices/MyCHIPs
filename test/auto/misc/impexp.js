@@ -1,47 +1,37 @@
-//Test json import and export functions
+//Test json import and export functions; run
+//After: dbinit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
 const Fs = require('fs')
-const Path = require('path')
 const Stringify = require('json-stable-stringify')	//Predictable property order
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, importCheck, dropDB, dbClient, develop, pgCheck } = require('../common')
+const { dbConf, testLog, importCheck, dbClient, pgCheck, Data } = require('../common')
 var log = testLog(__filename)
-const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("JSON contact import/export", function() {
   var db
   before('PostgreSQL check', function() {
-    this.timeout(10000)
-    return pgCheck()
+    return pgCheck(this)
   })
   
-  before('Delete test database', function(done) {dropDB(done)})
-
-  before('Connect to (or create) test database', function(done) {
-    this.timeout(10000)		//May take a while to build database
-    db = new dbClient(dbConfig, (chan, data) => {}, done)
+  before('Connect to test database', function(done) {
+    db = new dbClient(new dbConf(), (chan, data) => {}, done)
   })
 
-//  before('Delete all test users if there are any', function(done) {
-//    db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
-//  })
-
-  it("Build development objects", function(done) {
-    this.timeout(5000)
-    develop(db, done)
+  before('Delete any test users', function(done) {
+    db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
   })
-  
+
   it("Import known user record", function(done) {
-    let file = Path.join(__dirname, 'user.json')
+    let file = Data('user.json')	//;log.debug('file:', file)
     importCheck(file, 'user', db, done, function(res, row) {
       assert.equal(row[0],'p1000'); done()
     })
   })
   it("Import self-identifying user record", function(done) {
-    let file = Path.join(__dirname, 'something.json')
+    let file = Data('something.json')
     importCheck(file, null, db, done, function(res, row) {
       assert.equal(row[0],'p1001'); done()
     })
@@ -52,14 +42,15 @@ describe("JSON contact import/export", function() {
   })
 
   it("Import multiple entities", function(done) {
-    let file = Path.join(__dirname, 'users.json')
+    let file = Data('users.json')
     importCheck(file, null, db, done, function(res, row) {
-log.debug('res:', res, 'row:', row)
+//log.debug('res:', res, 'row:', row)
       assert.equal(row[0],'p1002'); 
       done()
     })
   })
 
+/* */
   after('Disconnect from test database', function() {
     db.disconnect()
   })
@@ -68,12 +59,12 @@ log.debug('res:', res, 'row:', row)
 describe("JSON certificate import/export", function() {
   var db
 
-  before('Connect to (or create) test database', function(done) {
-    db = new dbClient(dbConfig, (chan, data) => {}, done)
+  before('Connect to test database', function(done) {
+    db = new dbClient(new dbConf(), (chan, data) => {}, done)
   })
 
   it("Import user certificate", function(done) {
-    let file = Path.join(__dirname, 'cert.json')
+    let file = Data('cert.json')
     importCheck(file, null, db, done, function(res, row) {
 //log.debug("Row:", row)
       assert.equal(row[0],'p1003')
@@ -82,7 +73,7 @@ describe("JSON certificate import/export", function() {
   })
 
   it("Export certificate and compare to original", function(done) {
-    let file = Path.join(__dirname, 'cert.json')
+    let file = Data('cert.json')
       , fileData = Fs.readFileSync(file)
       , fileObj = JSON.parse(fileData).cert
     delete fileObj.date
@@ -101,7 +92,7 @@ describe("JSON certificate import/export", function() {
   })
 
   it("Import tally", function(done) {
-    let file = Path.join(__dirname, 'tally.json')
+    let file = Data('tally.json')
     importCheck(file, 'tally', db, done, function(res, row) {
       assert.equal(row[0],'p1000')
       done()

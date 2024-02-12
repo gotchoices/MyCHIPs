@@ -4,8 +4,7 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const Path = require('path')
-const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop, Crypto } = require('../common')
+const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop, Crypto, Data } = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
 var { host, user2, port2, agent2, aCon2, cid2, db2Conf } = require('../def-users')
@@ -37,7 +36,7 @@ describe("Establish test user on separate DB", function() {
   })
 
   it("Import self-identifying user record", function(done) {
-    let file = Path.join(__dirname, 'something.json')
+    let file = Data('something.json')
     importCheck(file, null, db, done, function(res, row) {
       assert.equal(row[0],user2); done()
     })

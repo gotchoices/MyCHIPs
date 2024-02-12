@@ -1,16 +1,14 @@
 //Test language data dictionary; run only after impexp
-//After: impexp
+//After: dbinit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // TODO
 //- 
 const Fs = require('fs')
-const Path = require('path')
 const Child = require('child_process')
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, SchemaDir, dbClient } = require('../common')
+const { DBName, DBAdmin, testLog, SchemaDir, dbConf, dbClient, Data } = require('../common')
 var log = testLog(__filename)
-const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 const SchemaList = "'mychips','json'"
 const languages = ['fin', 'spa', 'nep', 'xyz']
 var missing = []
@@ -19,8 +17,7 @@ describe("Language data dictionary tests", function() {
   var db
   
   before('Connect to (or create) test database', function(done) {
-    this.timeout(4000)		//May take a while to build database
-    db = new dbClient(dbConfig, (chan, data) => {}, done)
+    db = new dbClient(new dbConf(log), () => {}, done)
   })
 
   it('Check for undocumented tables', function(done) {
@@ -90,7 +87,7 @@ log.debug("res:", res, 'rows:', rows.length)
         if (rows.length > 0) {			//If missing items found, create CSV file of results
           let format = require('@fast-csv/format').format
             , stream = format()
-            , file = Path.join(__dirname, `lang-${lang}.csv`)
+            , file = Data(`lang-${lang}.csv`)
             , writable = Fs.createWriteStream(file)
 log.debug("file:", file)
           stream.pipe(writable)
