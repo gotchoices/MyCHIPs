@@ -40,6 +40,7 @@ const EditOpenTally = (props) => {
   useTalliesMeText(wm);
   const { messageText } = useMessageText();
   const talliesColText = messageText?.tallies_v_me?.col;
+  const talliesMessageText = messageText?.tallies_v_me?.msg;
   const holdTermsText = talliesColText?.hold_terms?.values;
   const partTermsText = talliesColText?.part_terms?.values;
 
@@ -218,11 +219,15 @@ const EditOpenTally = (props) => {
             onViewChitHistory={onViewChitHistory}
             onPay={onPay}
             onRequest={onRequest}
-            onPartnerCertificate={()=>onViewCertificate({ title: "Partner Certificate", data: tally?.part_cert })}
+            navigation={props.navigation}
           />
 
           <View style={styles.detailControl}>
-            <CustomText as="h5">Tally Type</CustomText>
+            <HelpText
+              label={tallyText?.tally_type?.title ?? ""}
+              helpText={tallyText?.tally_type?.help}
+              style={styles.h5}
+            />
             <Text style={styles.textInputStyle}>{tally.tally_type}</Text>
           </View>
 
@@ -237,29 +242,12 @@ const EditOpenTally = (props) => {
           </View>
 
           <Button
-            title="Show PDF"
+            title="show_pdf"
             textColor={colors.blue}
             style={styles.showPDF}
             onPress={showPDF}
           />
 
-          {/* {
-            hasPartCert ? <Button
-              title="View Partner Certificate"
-              onPress={() => onViewCertificate({ title: "Partner Certificate", data: tally?.part_cert })}
-              textColor={colors.blue}
-              style={styles.showPDF}
-            /> : <></>
-          } */}
-
-          {
-            hasHoldCert ? <Button
-              title="View Holder Certificate"
-              onPress={() => onViewCertificate({ title: "Holder Certificate", data: tally?.hold_cert })}
-              textColor={colors.blue}
-              style={styles.showPDF}
-            /> : <></>
-          }
         </View>
       </View>
 
@@ -316,10 +304,14 @@ const EditOpenTally = (props) => {
       </View>
 
       <View style={styles.container}>
-        <HelpText label={"Trading Variables"} style={styles.label} />
+        <HelpText 
+          label={talliesMessageText?.trade?.title ?? ''} 
+          helpText={talliesMessageText?.trade?.help} 
+          style={styles.label}
+        />
 
         <Button
-          title="Show Trade"
+          title={talliesMessageText?.trade?.title ?? 'Show'} 
           style={{ borderRadius: 12, width: 120, marginTop: 12 }}
           onPress={showTradingVariables}
         />
