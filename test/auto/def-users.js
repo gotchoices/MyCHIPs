@@ -1,4 +1,4 @@
-const { Schema, DB2Name, dbConf } = require('../common')
+const { Schema, DB2Name, dbConf } = require('./common')
 const port0=65434
 const port1=65435
 const port2=65436

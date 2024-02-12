@@ -4,7 +4,7 @@
 const Net = require('net')
 const Path = require('path')
 const Child = require('child_process')
-const { testLog } = require('../common')
+const { testLog, RootDir } = require('../common')
 const DDHost = 'localhost'
 const DDPort = 27017
 const dockName = 'mychipsTestMongo'
@@ -18,15 +18,15 @@ log.debug("Found Mongo at:", DDHost, DDPort)
     done()
   })
   sock.on('error', e => {		//Can't connect to mongo
-//log.debug("checkMongo error:", e)
+log.debug("checkMongo error:", e)
     if (e.code != 'ECONNREFUSED') throw(e)
-    let buildDir = Path.join(__dirname, '../..', 'build')
+    let buildDir = Path.join(RootDir, 'build')
       , compFile = Path.join(buildDir, 'compose-mongo.yml')
-      , cmd = `docker-compose -p mongo -f ${compFile}`
+      , cmd = `docker-compose -p test-mongo -f ${compFile}`
       , env = Object.assign({MYCHIPS_DBHOST: dockName}, process.env)
 log.debug("Launching docker with compose:", cmd)
     Child.exec(cmd + ' up -d', {env}, (e,out,err) => {	//Try to launch one in docker
-//log.debug("Compose result:", e)
+log.debug("Compose result:", e)
       if (e && e.code == 127) throw "Can't find running mongo or docker-compose environment"
       if (!e) dockerMongoDown = cmd + ' down'
       done()
@@ -52,6 +52,8 @@ before('Check for running mongo', function(done) {
 require('./model2.js')
 require('./model3.js')
 
+/*
 after('Stop any docker mongo', function(done) {
   cleanupMongo(done)
 })
+/* */

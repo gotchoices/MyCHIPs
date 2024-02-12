@@ -5,13 +5,18 @@
 //- 
 const Fs = require('fs')
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, SchemaDir, dbClient, develop } = require('../common')
+const { DBName, DBAdmin, testLog, Schema, SchemaDir, dbClient, develop, pgCheck } = require('../common')
 var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("General schema checks", function() {
   var db
 
+  before('PostgreSQL check', function() {
+    this.timeout(10000)
+    return pgCheck()
+  })
+  
   before('Connect to (or create) test database', function(done) {
     this.timeout(10000)		//May take a while to build database
     db = new dbClient(dbConfig, (chan, data) => {}, done)

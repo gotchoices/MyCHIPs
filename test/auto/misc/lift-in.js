@@ -7,7 +7,7 @@
 //- 
 const { dbConf, testLog, assert, getRow, dbClient } = require('../common')
 var log = testLog(__filename)
-const { agent1 } = require('./def-users')
+const { agent1 } = require('../def-users')
 var interTest = {}			//Pass values from one test to another
 
 describe("Test internal lift generation", function() {

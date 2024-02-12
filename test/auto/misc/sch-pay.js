@@ -7,7 +7,7 @@
 //-   
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('../common')
 var log = testLog(__filename)
-const { user0, user1, cid0, cid1, agent0, agent1 } = require('./def-users')
+const { user0, user1, cid0, cid1, agent0, agent1 } = require('../def-users')
 var userListen = 'mu_' + user0
 var agentListen = 'ma_' + agent0		//And his agent process
 var interTest = {}			//Pass values from one test to another

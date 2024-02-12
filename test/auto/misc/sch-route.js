@@ -7,7 +7,7 @@
 //- 
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('../common')
 var log = testLog(__filename)
-const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
+const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2 } = require('../def-users')
 const { cidu, cidd, cidN } = require('./def-path')
 var cid1 = cidN(1), cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3), cida = cidN('A'), cidb = cidN('B'), cidx = cidN('X')
 var userListen = 'mu_' + user3

@@ -3,15 +3,23 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { dbClient, dbConf, testLog, Format, assert, getRow } = require('../common')
-const { host, agent0, port0 } = require('./def-users')
-const ModelCont = require('../../../lib/model1')
+const { dbClient, dbConf, testLog, Format, assert, getRow, pgCheck, LibDir } = require('../common')
+const { host, agent0, port0 } = require('../def-users')
+const ModelCont = require(LibDir + '/model1')
 var ahoy = 'o500'		//Give him agent@host:port info
 var log = testLog(__filename)
+
+require('../misc/impexp')
+require('../misc/testusers')
 
 describe("Test Agent-based modeler 1", function() {
   var db, modeler
 
+//  before('PostgreSQL check', function() {
+//    this.timeout(10000)
+//    return pgCheck()
+//  })
+  
   before('Make connection to database', function(done) {
     db = new dbClient(new dbConf(log), (chan, data) => {
     }, ()=>{log.info("Test DB connection established"); done()})

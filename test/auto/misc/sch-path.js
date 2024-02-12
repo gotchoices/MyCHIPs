@@ -12,7 +12,7 @@
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('../common')
 var log = testLog(__filename)
 //const Serialize = require("json-stable-stringify")
-const { host, port0, port1, port2, agent0, agent1, agent2 } = require('./def-users')
+const { host, port0, port1, port2, agent0, agent1, agent2 } = require('../def-users')
 const { cidu, cidd, cidN } = require('./def-path')
 var interTest = {}			//Pass values from one test to another
 var tallySql = `insert into mychips.tallies (tally_ent, tally_uuid, tally_date, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`

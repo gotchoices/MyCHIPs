@@ -12,16 +12,16 @@ const Stringify = require('json-stable-stringify')
 const Uuid = require('uuid')
 const assert = require('assert');
 const Bus = require('./bus')
-const PeerCont = require("../../lib/peer2peer")
-const Crypto = require('../../lib/crypto.js')
 const DBName = process.env.MyCHIPS_TESTDB ?? "mychipsTestDB"
-const dockName = 'mychipsTestPG'
 const devSqlFile = require.resolve('wyseman/lib/develop.sql')
 const { DBHost, DBPort, DBAdmin, Log } = require('../settings.js')
 const { dbClient } = require("wyseman")
-const Schema = Path.join(__dirname, '../..', 'lib', 'schema.json')
-const SchemaDir = Path.join(__dirname, '../..', 'schema')
-var dockerPgDown = null		//command to kill docker postgres
+const PeerCont = require("../../lib/peer2peer")
+const Crypto = require('../../lib/crypto.js')
+const RootDir = Path.join(__dirname, '../../')
+const LibDir = Path.join(RootDir, 'lib')
+const Schema = Path.join(LibDir, 'schema.json')
+const SchemaDir = Path.join(LibDir, 'schema')
 
 var testLog = function(fname) {		//Initiate a logging service for a mocha test file
     let base = Path.parse(fname).name
@@ -30,50 +30,97 @@ var testLog = function(fname) {		//Initiate a logging service for a mocha test f
   }
 var log = testLog(__filename)
 
+const dockName = 'mychipsTestPG'
+const buildDir = Path.join(__dirname, '../..', 'build')
+const pgDockCmd = `docker-compose -p test-pg -f ${Path.join(buildDir, 'compose-pg.yml')}`
+const pgDockEnv = Object.assign({MYCHIPS_DBHOST: dockName}, process.env)
+var pgDockDown
+var pgPromise
+
+// -----------------------------------------------------------------------------
+function pgCheck() {		//Make sure we have a Postgres running
+  if (!pgPromise) {
+    pgPromise = new Promise((resolve, reject) => {
+      let sock = Net.connect(DBPort, DBHost, () => {
+log.debug("Found Postgres at:", DBHost, DBPort)
+        sock.end()
+        resolve(true)
+      })
+      sock.on('error', e => {		log.debug("checkPG error:", e)
+        if (e.code != 'ECONNREFUSED')
+          reject(e)
+        else {
+log.debug("Launching docker with compose:", pgDockCmd)
+          Child.exec(pgDockCmd + ' up -d', {env: pgDockEnv}, (err,sto,ste) => {	//Launch docker
+log.debug("Compose result:", err)
+            if (err)
+              reject(err)
+            else setTimeout(() => {		//Give time for postgres to initialize
+log.debug("down: " + pgDockCmd + ' down')
+              resolve(true)
+            }, 4000)
+          })
+        }
+      })
+    })
+  }
+  return pgPromise
+}
+
+// -----------------------------------------------------------------------------
+function pgCleanup(done) {			//Take down docker postgres
+  Child.exec(pgDockCmd + ' down', (err,sto,ste) => {	//Attempt to run docker-compose
+    if (!err) log.debug("Stopped docker postgresql")
+    done()
+  })
+}
+
 module.exports={
   DBName,
   DB2Name: DBName + '2',
-  DBAdmin, DBHost, DBPort, Log, dbClient,
+  DBAdmin, DBHost, DBPort, Log, dbClient, RootDir, LibDir,
   Format, assert, Bus, testLog, Schema, SchemaDir, Crypto, Stringify,
+  pgCheck, pgCleanup,
 
   dbConf: function(log, listen, database = DBName, schema) {
     Object.assign(this, {database, user: DBAdmin, connect: true, log, listen, schema})
   },
 
-  checkPG: function(done) {		//Make sure we have a Postgres running
-    let sock = Net.connect(DBPort, DBHost, () => {
-log.debug("Found Postgres at:", DBHost, DBPort)
-      sock.end()
-      done()
-    })
-    sock.on('error', e => {		//Can't connect to postgres
-//log.debug("checkPG error:", e)
-      if (e.code != 'ECONNREFUSED') throw(e)
-      let buildDir = Path.join(__dirname, '../..', 'build')
-        , compFile = Path.join(buildDir, 'compose-pg.yml')
-        , cmd = `docker-compose -p pg -f ${compFile}`
-        , env = Object.assign({MYCHIPS_DBHOST: dockName}, process.env)
-log.debug("Launching docker with compose:", cmd)
-      Child.exec(cmd + ' up -d', {env}, (e,out,err) => {	//Try to launch one in docker
-log.debug("Compose result:", e)
-        if (e && e.code == 127) throw "Can't find running postgres or docker-compose environment"
-        if (!e) dockerPgDown = cmd + ' down'
-        done()
-      })
-    })
-  },
-
-  cleanupPG: function(done) {			//Take down docker postgres
-//log.debug("Docker down command:", dockerPgDown)
-    if (dockerPgDown) Child.exec(dockerPgDown, (err, out) => {
-log.debug("Taking down docker PG")
-      dockerPgDown = null
-      done()
-    })
-    else done()
-  },
+//  checkPG: function(done) {		//Make sure we have a Postgres running
+//    let sock = Net.connect(DBPort, DBHost, () => {
+//log.debug("Found Postgres at:", DBHost, DBPort)
+//      sock.end()
+//      done()
+//    })
+//    sock.on('error', e => {		//Can't connect to postgres
+////log.debug("checkPG error:", e)
+//      if (e.code != 'ECONNREFUSED') throw(e)
+//      let buildDir = Path.join(__dirname, '../..', 'build')
+//        , compFile = Path.join(buildDir, 'compose-pg.yml')
+//        , cmd = `docker-compose -p pg -f ${compFile}`
+//        , env = Object.assign({MYCHIPS_DBHOST: dockName}, process.env)
+//log.debug("Launching docker with compose:", cmd)
+//      Child.exec(cmd + ' up -d', {env}, (e,out,err) => {	//Try to launch one in docker
+//log.debug("Compose result:", e)
+//        if (e && e.code == 127) throw "Can't find running postgres or docker-compose environment"
+//        if (!e) dockerPgDown = cmd + ' down'
+//        done()
+//      })
+//    })
+//  },
+//
+//  cleanupPG: function(done) {			//Take down docker postgres
+////log.debug("Docker down command:", dockerPgDown)
+//    if (dockerPgDown) Child.exec(dockerPgDown, (err, out) => {
+//log.debug("Taking down docker PG")
+//      dockerPgDown = null
+//      done()
+//    })
+//    else done()
+//  },
 
   dropDB: function(done, dbName = DBName) {	//Destroy the test database
+log.debug('ZZZZ')
     let config = {database:'template1', user: DBAdmin, connect: true}
       , sql = Format('drop database if exists "%s";', dbName)
       , db = new dbClient(config, (chan, data) => {}, () => {

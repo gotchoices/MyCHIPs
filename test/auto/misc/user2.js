@@ -8,7 +8,7 @@ const Path = require('path')
 const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop, Crypto } = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
-var { host, user2, port2, agent2, aCon2, cid2, db2Conf } = require('./def-users')
+var { host, user2, port2, agent2, aCon2, cid2, db2Conf } = require('../def-users')
 var schema = Schema
 var interTest = {}
 

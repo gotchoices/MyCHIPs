@@ -7,7 +7,7 @@
 const { dbConf, testLog, Format, Bus, assert, dbClient, Crypto } = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
-var { host, user0, user1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('./def-users')
+var { host, user0, user1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('../def-users')
 var interTest = {}
 
 describe("Establish test users", function() {

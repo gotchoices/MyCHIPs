@@ -1,22 +1,19 @@
-//Test agent-based modeler at a simple level; run after impexp, testusers
+//Test agent-based modeler 3 at a simple level; run after impexp, testusers
 //Requires a running instance of mongodb
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
 const { dbClient, dbConf, testLog, Format, assert, getRow } = require('../common')
-const { host, agent0, port0 } = require('./def-users')
-const ModelCont = require('../../../lib/model2')
-//const docConfig = {
-//  host: 'localhost',
-//  port: 27017,
-//  database: 'mychips',
-//  user: 'admin'
-//}
+const { host, agent0, port0 } = require('../def-users')
+const ModelCont = require('../../../lib/model3')
 var ahoy = 'o500'		//Give him agent@host:port info
 var log = testLog(__filename)
 
-describe("Test Agent-based modeler 2", function() {
+//require('../misc/impexp')
+//require('../misc/testusers')
+
+describe("Test Agent-based modeler 3", function() {
   var db, modeler
 
   before('Make connection to database', function(done) {
@@ -34,7 +31,7 @@ describe("Test Agent-based modeler 2", function() {
   })
 
   it("Launch modeler", function(done) {
-    let opts = {runs: 10, interval: 100, vendor:0.10, client:0.10, agent:agent0, done}
+    let opts = {runs: 1, interval: 100, vendor:0.10, client:0.10, agent:agent0, done}
       , docConfig = {}
     this.timeout(10000)
     modeler = new ModelCont(new dbConf(log), docConfig, opts)

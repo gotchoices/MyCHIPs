@@ -3,19 +3,19 @@
 //Run all tests in order
 const { DBName, DB2Name, DBAdmin, dropDB, Schema, testLog, dbClient, checkPG, cleanupPG } = require('../common')
 var log = testLog(__filename)
-const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
+//const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
-before('Check for running postgres', function(done) {
-  this.timeout(10000)
-  checkPG(done)
-})
-before('Can connect to postgres (may create DB)', function(done) {
-  this.timeout(20000)
-  let db = new dbClient(dbConfig, (chan, data) => {}, () => {
-    db.disconnect()
-    done()
-  })
-})
+//before('Check for running postgres', function(done) {
+//  this.timeout(10000)
+//  checkPG(done)
+//})
+//before('Can connect to postgres (may create DB)', function(done) {
+//  this.timeout(20000)
+//  let db = new dbClient(dbConfig, (chan, data) => {}, () => {
+//    db.disconnect()
+//    done()
+//  })
+//})
 
 require('./schema.js')		//Builds development DB objects
 require('./sch-multi.js')	//Will disrupt users table contents
@@ -28,8 +28,8 @@ require('./peernoise.js')
 require('./impexp.js')		//Adds users needed for other tests
 require('./testusers.js')	//Run before sch-tally or tally
 
-require('./model1.js')
-require('./models.js')		//Model2/3 require mongo instance
+//require('./model1.js')
+//require('./models.js')		//Model2/3 require mongo instance
 
 require('./sch-tally.js')
 require('./sch-chit.js')
@@ -59,6 +59,6 @@ after('Delete test database', function(done) {
   dropDB(_done, DB2Name)
 })
 
-after('Stop any docker postgres', function(done) {
-  cleanupPG(done)
-})
+//after('Stop any docker postgres', function(done) {
+//  cleanupPG(done)
+//})

@@ -1,10 +1,17 @@
 TODO:
 
-- Regression test that invokes agent code (pay.js)
-X-  Make lifts_v_pay_me writable
-X-  Also test route that fails
-X-  If no pathway found, mark lift as failed (void?)
-X-  Notify user of failure
+- Automated testing:
+X-  Get sys suite running
+X-  Launcher for mongo working
+X-  Make cleanup suite test:clean (deletes databases, stops any docker containers)
+-  Get rid of old common/PG modules
+-  
+-  Review impexp
+-  Review testusers - Should I require() this in other tests?
+-  Split tests into: schema, integ, sys
+-  Can run suites independently or at once
+-  
+-  Payment testing:
 -  Include actual user signature on payment request
 -  Agent signs lift: can we use crypto routine from tally.js?
 -  agent evaluate's payor's authorization signature
@@ -16,7 +23,6 @@ X-  Notify user of failure
 -  Wait for async completion/failure
 -  Is there a way to retry a failed payment?
 - Make view for relay nodes to evaluate the effect of lifts
-X-  Can/should I be able to specify an outbound tally? (no, for now)
 
 - Tally negotiation
 -  App signs tally in both directions (test)

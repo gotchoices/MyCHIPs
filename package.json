@@ -22,6 +22,8 @@
     "test-coverage": "nyc npm run test",
     "test:unit": "mocha test/auto/unit/all.js",
     "test:misc": "mocha test/auto/misc/all.js",
+    "test:sys": "mocha test/auto/sys/all.js",
+    "test:clean": "mocha test/auto/clean.js",
     "dev-hot": "webpack-dev-server --mode development --hot --config build/webpack.config",
     "dev-build": "webpack --mode development --watch --progress --config build/webpack.config",
     "build": "webpack --mode production --config build/webpack.config",

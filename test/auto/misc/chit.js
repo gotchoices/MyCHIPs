@@ -12,7 +12,7 @@ var log = testLog(__filename)
 const PeerCont = require("../../../lib/peer2peer")
 var defTally = require('./def-tally')
 var {uSql, save, rest} = require('./def-chit')
-const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('./def-users')
+const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
 var interTest = {}			//Pass values from one test to another
 
 var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS, agentO, agentS, aConO, aConS, saveName}) {

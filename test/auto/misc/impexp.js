@@ -3,18 +3,21 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-
 const Fs = require('fs')
 const Path = require('path')
 const Stringify = require('json-stable-stringify')	//Predictable property order
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, importCheck, dropDB, dbClient, develop } = require('../common')
+const { DBName, DBAdmin, testLog, Schema, importCheck, dropDB, dbClient, develop, pgCheck } = require('../common')
 var log = testLog(__filename)
 const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
 
 describe("JSON contact import/export", function() {
   var db
-
+  before('PostgreSQL check', function() {
+    this.timeout(10000)
+    return pgCheck()
+  })
+  
   before('Delete test database', function(done) {dropDB(done)})
 
   before('Connect to (or create) test database', function(done) {
@@ -22,9 +25,9 @@ describe("JSON contact import/export", function() {
     db = new dbClient(dbConfig, (chan, data) => {}, done)
   })
 
-  before('Delete all test users if there are any', function(done) {
-    db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
-  })
+//  before('Delete all test users if there are any', function(done) {
+//    db.query("delete from base.ent where ent_num >= $1;", [100] ,(err, res) => {done()})
+//  })
 
   it("Build development objects", function(done) {
     this.timeout(5000)

@@ -7,7 +7,7 @@
 //- 
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('../common')
 var log = testLog(__filename)
-const { host, cid0, cid1, user0, user1, agent0, agent1, aKey0, aKey1 } = require('./def-users')
+const { host, cid0, cid1, user0, user1, agent0, agent1, aKey0, aKey1 } = require('../def-users')
 var userListen = 'mu_' + user0
 var agentListen = 'ma_' + agent0		//And his agent process
 var contract = {domain:"mychips.org", name:"standard", version:0.99}

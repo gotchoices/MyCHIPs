@@ -12,7 +12,7 @@
 const PeerCont = require("../../../lib/peer2peer")
 const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient } = require('../common')
 var log = testLog(__filename)
-const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('./def-users')
+const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
 const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
 var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
 var adminListen = 'mychips_admin'
