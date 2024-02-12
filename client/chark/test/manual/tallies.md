@@ -62,3 +62,71 @@
 
 
 
+
+## Tally Preview Page [Open Tally]
+
+
+| Page              | Action                       | Check                                                                            |
+| ----------------- | ---------------------------- | -------------------------------------------------------------------------------- |
+| Homepage          | Click on open tally          |                                                                                  |
+|                   | Click View Tally             |                                                                                  |
+| Tally Preview     |                              | Foil and stock are on the right user                                             |
+|                   |                              | Limit for stock and foil are correct                                             |
+|                   |                              | Cannot edit limit for stock and foil                                             |
+|                   |                              | Can view pdf version of contract                                                 |
+|                   |                              | Cannot edit contract                                                             |
+|                   |                              | Can view my certificate information                                              |
+|                   |                              | Can view partners certificate information                                        |
+|                   |                              | Shows comments (if any)                                                          |
+|                   |                              | All tool tips work (blue question marks)                                         |
+|                   | Click show trading variables |                                                                                  |
+| Trading variables |                              | Can view trading variables                                                       |
+|                   |                              | Can update trading variables                                                     |
+|                   | Go back                      |                                                                                  |
+| Tally Preview     |                              |                                                                                  |
+|                   | Click chit history           |                                                                                  |
+| Chit history      |                              | Chit history is shown in order of most recent transaction                        |
+|                   |                              | Accurate chit history numbers                                                    |
+|                   |                              | Aligns with the figma design                                                     |
+|                   | Click chit                   |                                                                                  |
+| Chit details page |                              | Show chit details: date, uuid, signature, net, reference, memo, status, state... |
+|                   | Go back                      |                                                                                  |
+| Chit history      |                              |                                                                                  |
+|                   | Go back                      |                                                                                  |
+| Tally Preview     |                              |                                                                                  |
+|                   | Click pay                    |                                                                                  |
+| Payment Details   |                              | Can change value                                                                 |
+|                   |                              | Can switch currency                                                              |
+|                   |                              | Can edit memo                                                                    |
+|                   | Go back                      |                                                                                  |
+| Payment Details   |                              |                                                                                  |
+|                   | Click request                |                                                                                  |
+|                   |                              | Can change value                                                                 |
+|                   |                              | Can switch currency                                                              |
+|                   |                              | Can edit memo                                                                    |
+
+
+## Tally Preview Page [Draft Tally]
+
+| Page            | Action                                           | Check                                                                     |
+| --------------- | ------------------------------------------------ | ------------------------------------------------------------------------- |
+| Working Tallies | Click draft tally                                |                                                                           |
+|                 |                                                  | Draft tallies are ordered by date created                                 |
+| Tally Preview   |                                                  | Foil and stock are on the right user                                      |
+|                 |                                                  | Limit for stock and foil are correct                                      |
+|                 |                                                  | Can edit limit for stock and foil                                         |
+|                 |                                                  | Can view pdf version of contract                                          |
+|                 |                                                  | Can edit contract                                                         |
+|                 |                                                  | Can view my certificate information                                       |
+|                 |                                                  | Can edit certificate information                                          |
+|                 |                                                  | Can edit comments                                                         |
+|                 |                                                  | All tool tips work (blue question marks)                                  |
+|                 | Edit draft tally                                 |                                                                           |
+|                 |                                                  | Bottom right share icon changes to check                                  |
+|                 | Click check icon                                 |                                                                           |
+|                 |                                                  | Bottom right icon changes from check to share                             |
+|                 | Go back                                          |                                                                           |
+| Working Tally   |                                                  | Draft tallies are still ordered by date created (Order should not change) |
+|                 | Click on same draft tally                        |                                                                           |
+|                 |                                                  | Saved changes are still there                                             |
+|                 | Repeat edit/save sequence for all editable items |                                                                           |
