@@ -73,7 +73,7 @@ const ChangePrimary = (props) => {
               onPress={props.onCancel}
             >
               <View style={{ borderColor: colors.blue, borderWidth: 1, paddingVertical: 7 }}>
-                <Text style={{ color: colors.blue, alignSelf: 'center' }}>Cancel</Text>
+                <Text style={{ color: colors.blue, alignSelf: 'center' }}>cancel_text</Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -83,7 +83,7 @@ const ChangePrimary = (props) => {
                 <Button
                   onPress={onSave}
                   disabled={loading}
-                  title="Save Changes"
+                  title="save_changes_text"
                 />
               </View>
             )
@@ -103,10 +103,10 @@ function Item(props) {
 
       {
         props.primary ? (
-          <Text style={styles.primary}>Primary</Text>
+          <Text style={styles.primary}>primary_text</Text>
         ) : (
           <TouchableOpacity onPress={() => props.onPrimaryChange(props.seq)}>
-            <Text style={styles.setPrimary}>Set as Primary</Text>
+            <Text style={styles.setPrimary}>set_as_primary_text</Text>
           </TouchableOpacity>
         )
       }

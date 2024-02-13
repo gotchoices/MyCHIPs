@@ -1,7 +1,10 @@
 {
   "name": "chark",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "private": true,
+  "chark": {
+    "versionCode": 3
+  },
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",

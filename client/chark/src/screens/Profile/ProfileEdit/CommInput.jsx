@@ -30,7 +30,7 @@ const CommInput = (props) => {
     >
       {
         item?.comm_prim ? (
-          <Text>Primary</Text>
+          <Text>primary_text</Text>
         ) : (
           <TouchableWithoutFeedback onPress={removeItem}>
             <Icon
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   primaryInput: {
-    width: '80%'
+    width: '78%'
   },
   inputRight: {
     backgroundColor: colors.antiflashwhite,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   primary: {
     color: colors.quicksilver,
-    width: '20%',
+    width: '22%',
   },
 });
 
