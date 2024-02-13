@@ -40,7 +40,7 @@ const PersonalBio = (props) => {
   return (
     <View style={styles.container}>
       <Header
-        title="Personal Bio"
+        title="personal_bio_text"
         onEditPress={onEditPress}
       />
 

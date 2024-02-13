@@ -251,7 +251,7 @@ const Comm = (props) => {
           <TouchableWithoutFeedback
             onPress={onPrimaryChangeClick}
           >
-            <Text style={{ color: colors.blue }}>Change Primary {communicationText[profileType]}</Text>
+            <Text style={{ color: colors.blue }}>change_primary_{communicationText[profileType]}</Text>
           </TouchableWithoutFeedback>
         </View>
 
@@ -276,13 +276,13 @@ const Comm = (props) => {
                 size={15}
                 color={colors.blue}
               />
-              <Text style={{ color: colors.blue, marginLeft: 6 }}>Add New</Text>
+              <Text style={{ color: colors.blue, marginLeft: 6 }}>add_new_text</Text>
             </View>
           </TouchableWithoutFeedback>
 
           <View style={{ marginTop: 8 }}>
             <Button
-              title="Save Changes"
+              title="save_changes_text"
               onPress={onSave}
               disabled={updating}
             />
@@ -295,7 +295,7 @@ const Comm = (props) => {
         onClose={() => {setIsModalVisible(false)}}
       >
         <ChangePrimary
-          title="Change Primary Email"
+          title="change_primary_email_text"
           rowField="comm_spec"
           seqField="comm_seq"
           primaryField="comm_prim"

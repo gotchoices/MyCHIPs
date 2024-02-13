@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 
 import com.android.build.OutputFile
+import groovy.json.JsonSlurper
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -129,6 +130,20 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
+def getVersionFromPackageJson() {
+    def jsonFile = new File("$rootDir/../package.json")
+    def jsonData = new JsonSlurper().parseText(jsonFile.text)
+
+    return jsonData["version"]
+}
+
+def getVersionCodeFromPackageJson() {
+    def jsonFile = new File("$rootDir/../package.json")
+    def jsonData = new JsonSlurper().parseText(jsonFile.text)
+
+    return jsonData["chark"]["versionCode"]
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
 
@@ -138,8 +153,8 @@ android {
         applicationId "org.mychips.chark"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "0.1.2"
+        versionCode getVersionCodeFromPackageJson()
+        versionName getVersionFromPackageJson()
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()

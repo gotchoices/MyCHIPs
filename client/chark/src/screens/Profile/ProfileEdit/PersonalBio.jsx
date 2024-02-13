@@ -74,7 +74,7 @@ const PersonalBio = (props) => {
     <ScrollView keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>Personal Bio</Text>
+          <Text style={styles.headerText}>personal_bio_text</Text>
         </View>
 
         <View style={styles.body}>
@@ -101,7 +101,7 @@ const PersonalBio = (props) => {
 
           <View style={{ marginTop: 24, marginBottom: 16 }}>
             <Button 
-              title="Save Changes"
+              title="save_changes_text"
               disabled={updating}
               onPress={onSave} 
             />
