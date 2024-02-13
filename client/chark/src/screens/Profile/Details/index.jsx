@@ -27,7 +27,7 @@ const Details = (props) => {
               {
                 props.primaryField && item[props.primaryField] && (
                   <Text style={styles.primary}>
-                    Primary
+                    primary_text
                   </Text>
                 )
               }
