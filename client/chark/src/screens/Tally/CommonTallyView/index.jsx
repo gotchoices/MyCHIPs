@@ -109,7 +109,7 @@ const CommonTallyView = (props) => {
                 holdCert={tally?.hold_cert ?? {}}
                 onHoldTermsChange={() => {}}
                 onPartTermsChange={() => {}}
-                canEdit={true}
+                canEdit={false}
               />
             </View>
 
