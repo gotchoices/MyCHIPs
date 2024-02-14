@@ -2,9 +2,10 @@
 // -----------------------------------------------------------------------------
 //Run all tests in order
 
-require('./peernoise.js')
-require('./peercomm.js')
+require('../schema/dbinit')
 
-require('./objectset.js')
-require('./crypto.js')
-require('./tally.js')
+require('./sch-multi.js')
+require('./sch-crypto.js')
+require('./contract.js')
+require('./impexp.js')
+require('./language.js')

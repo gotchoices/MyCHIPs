@@ -64,7 +64,6 @@ log.debug('Decoded:', decoded, string)
   })
     
 }
-  
 
 describe("Test crypto schema encoder functions", function() {
 

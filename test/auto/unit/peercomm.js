@@ -4,7 +4,7 @@
 const port1 = 55551
 const port2 = 55552
 const assert = require("assert");
-const PeerComm = require("../../lib/peercomm")
+const PeerComm = require("../../../lib/peercomm")
 const { testLog } = require('../common')
 const serv1 = "localhost:" + port1
 var log1 = testLog(__filename + '-1')		//Enable separate logging for each end

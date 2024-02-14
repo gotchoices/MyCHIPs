@@ -9,9 +9,6 @@ const ModelCont = require(LibDir + '/model1')
 var ahoy = 'o500'		//Give him agent@host:port info
 var log = testLog(__filename)
 
-require('../misc/impexp')
-require('../misc/testusers')
-
 describe("Test Agent-based modeler 1", function() {
   var db, modeler
 

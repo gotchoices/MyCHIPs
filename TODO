@@ -1,21 +1,18 @@
 TODO:
 
-- Automated testing:
-X-  Get sys suite running
-X-  Launcher for mongo working
-X-  Make cleanup suite test:clean (deletes databases, stops any docker containers)
-X-  Get rid of old common/PG modules
-X-  Review impexp
-X-  Review testusers - Should I require() this in other tests?
--  Split tests into: schema, integ, sys
--  Can run suites independently or at once
+- Cleanup testing:
+X-  Split independent schema tests out to schema folder
+X-  Any unit tests still in misc?
+X-  Can run suites independently or at once
 -  
--  Payment testing:
+- Payment testing:
 -  Include actual user signature on payment request
 -  Agent signs lift: can we use crypto routine from tally.js?
 -  agent evaluate's payor's authorization signature
 -  agent signs the lift payment record
 -   
+- Upgrade wylib to vue 3?
+-  
 - Integrate with app:
 -  Scan invoice, build draft.route payment record, find=payee chad
 -  User is notified

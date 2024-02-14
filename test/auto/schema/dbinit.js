@@ -9,9 +9,9 @@ var log = testLog(__filename)
 
 describe("Start with blank database", function() {
   var db
+
   before('PostgreSQL check', function() {
-    this.timeout(10000)
-    return pgCheck()
+    return pgCheck(this)
   })
   
   before('Delete test database', function(done) {dropDB(done)})
@@ -21,7 +21,7 @@ describe("Start with blank database", function() {
     db = new dbClient(new dbConf(log,undefined,undefined,Schema), (chan, data) => {}, done)
   })
 
-  it("Build development objects", function(done) {
+  it('Build development schema objects ("make run" in schema dir to undo)', function(done) {
     this.timeout(5000)
     develop(db, done)
   })

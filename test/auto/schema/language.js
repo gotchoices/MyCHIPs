@@ -20,6 +20,18 @@ describe("Language data dictionary tests", function() {
     db = new dbClient(new dbConf(log), () => {}, done)
   })
 
+  it('find columns with ambiguous inheritance', function(done) {
+    let sql = `select * from wm.column_ambig where not spec`
+//log.debug("Sql:", sql)
+    db.query(sql, (e, res) => {if (e) done(e)
+//log.debug("res:", res)
+      if (res?.rows?.length > 0)
+        log.debug("Ambiguous:", JSON.stringify(res?.rows,null,2))
+      assert.equal(res?.rows?.length, 0)
+      done()
+    })
+  })
+
   it('Check for undocumented tables', function(done) {
     let sql = `select * from wm.table_data td where td_sch in (${SchemaList}) and not exists
       (select * from wm.table_text tt where tt.tt_sch = td.td_sch and tt.tt_tab = td.td_tab and tt.language = 'eng') order by 1,2`

@@ -2,7 +2,7 @@
 // -----------------------------------------------------------------------------
 //Run all tests in order
 
-require('../misc/dbinit')
-require('../misc/testusers')
+require('../schema/dbinit')
+require('../proto/testusers')
 require('./model1.js')
 require('./models.js')		//Model2/3 require mongo instance
