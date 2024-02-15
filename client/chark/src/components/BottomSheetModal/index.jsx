@@ -1,21 +1,7 @@
-import React, { useEffect } from "react"
-import { BackHandler, Modal, StyleSheet, View } from "react-native"
+import React from "react"
+import { Modal, StyleSheet, View } from "react-native"
 
 const BottomSheetModal = (props) => {
-  const handleBackButtonClick=()=> {
-    props.onClose()
-    return true;
-  }
-
-
-  useEffect(() => {
-    BackHandler.addEventListener("hardwareBackPress", handleBackButtonClick);
-    
-    return () => {
-      BackHandler.removeEventListener("hardwareBackPress", handleBackButtonClick);
-    };
-},[])
-
   return <Modal
     transparent={true}
     animationType="slide"

@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
   StyleSheet,
   Text,
   ActivityIndicator,
-  BackHandler,
 } from "react-native";
 import { useSelector } from "react-redux";
 import useSocket from "../hooks/useSocket";
@@ -40,20 +39,6 @@ export const GenerateKeysAlertModal = ({
     closeModal();
     return true;
   };
-
-  useEffect(() => {
-    BackHandler.addEventListener(
-      "hardwareBackPress",
-      handleBackButtonClick
-    );
-
-    return () => {
-      BackHandler.removeEventListener(
-        "hardwareBackPress",
-        handleBackButtonClick
-      );
-    };
-  }, []);
 
   const storeKeys = (publicKey, privateKey) => {
     updatePublicKey(wm, {
@@ -108,6 +93,7 @@ export const GenerateKeysAlertModal = ({
       transparent={true}
       animationType="fade"
       onDismiss={onDismiss}
+      onRequestClose={closeModal}
     >
       <View style={styles.modalBackground}>
         <View style={styles.activityIndicatorWrapper}>

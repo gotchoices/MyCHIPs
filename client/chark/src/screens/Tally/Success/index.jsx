@@ -12,25 +12,6 @@ import PropTypes from "prop-types";
 import { colors } from "../../../config/constants";
 
 const SuccessModal = (props) => {
-  const handleBackButtonClick = () => {
-    props.onClose();
-    return true;
-  };
-
-  useEffect(() => {
-    BackHandler.addEventListener(
-      "hardwareBackPress",
-      handleBackButtonClick
-    );
-
-    return () => {
-      BackHandler.removeEventListener(
-        "hardwareBackPress",
-        handleBackButtonClick
-      );
-    };
-  }, []);
-
   return (
     <View style={styles.bottomSheetContainer}>
       <CustomIcon
