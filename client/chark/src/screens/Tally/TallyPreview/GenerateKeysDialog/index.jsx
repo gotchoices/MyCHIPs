@@ -33,20 +33,6 @@ export const GenerateKeysDialog = ({
     return true;
   };
 
-  useEffect(() => {
-    BackHandler.addEventListener(
-      "hardwareBackPress",
-      handleBackButtonClick
-    );
-
-    return () => {
-      BackHandler.removeEventListener(
-        "hardwareBackPress",
-        handleBackButtonClick
-      );
-    };
-  }, []);
-
   const storeKeys = (publicKey, privateKey) => {
     updatePublicKey(wm, {
       public_key: publicKey,
@@ -107,6 +93,7 @@ export const GenerateKeysDialog = ({
       transparent={true}
       animationType="fade"
       onDismiss={onDismiss}
+      onRequestClose={onDimiss}
     >
       <View style={styles.modalBackground}>
         <View style={styles.activityIndicatorWrapper}>

@@ -84,7 +84,7 @@ const GenerateKey = () => {
 
       <BottomSheetModal
         isVisible={showGenerateWarning}
-        onClose={null}
+        onClose={onGenerateCancel}
       >
         <SigningKeyWarning
           loading={generating}

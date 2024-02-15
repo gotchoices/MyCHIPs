@@ -1,29 +1,10 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { View, Modal, StyleSheet, BackHandler } from "react-native";
 import PropTypes from "prop-types";
 
 import { colors } from "../../config/constants";
 
 const CenteredModal = (props) => {
-  const handleBackButtonClick = () => {
-    props.onClose();
-    return true;
-  };
-
-  useEffect(() => {
-    BackHandler.addEventListener(
-      "hardwareBackPress",
-      handleBackButtonClick
-    );
-
-    return () => {
-      BackHandler.removeEventListener(
-        "hardwareBackPress",
-        handleBackButtonClick
-      );
-    };
-  }, []);
-
   return (
     <Modal
       animationType="slide"

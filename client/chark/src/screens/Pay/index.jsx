@@ -76,7 +76,7 @@ const PayModal = (props) => {
   const hasPendingChits = !!props.tally?.net_pc && !!props.tally?.net && (props.tally.net_pc != props.tally.net);
 
   return (
-    <Modal visible={props.visible} transparent>
+    <Modal visible={props.visible} transparent onRequestClose={props.onClose}>
       <View style={styles.modalWrapper}>
 
         <View style={styles.modalView}>

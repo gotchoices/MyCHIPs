@@ -41,7 +41,7 @@ const ImportKey = (props) => {
 
       <BottomSheetModal
         isVisible={showImportWarning}
-        onClose={null}
+        onClose={onImportCancel}
       >
         <SigningKeyWarning
           loading={false}
