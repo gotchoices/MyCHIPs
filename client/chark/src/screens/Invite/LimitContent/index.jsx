@@ -4,9 +4,34 @@ import Button from "../../../components/Button";
 import CustomIcon from "../../../components/CustomIcon";
 import PropTypes from 'prop-types';
 import { colors } from "../../../config/constants";
+import { round } from "../../../utils/common";
 
 const LimitContent = (props) => {
-  const [limit, setLimit] = useState();
+  const [limit, setLimit] = useState(0);
+
+   const checkValidInput = (textValue) => {
+    return textValue && /^[0-9]*(\.[0-9]{0,3})?$/.test(textValue);
+  };
+
+  const getValidAmount = (amount) => {
+    if (parseFloat(amount) > 0) {
+      return amount;
+    }
+
+    return 1.000
+  };
+
+  const calculateSendingAmount = (value) => {
+    const amount = getValidAmount(value);
+
+    if (amount && checkValidInput(amount)) {
+      return setLimit(amount);
+    }
+
+    return setLimit(
+     round(amount, 3)
+    );
+  };
 
   return (<View style={styles.bottomSheetContainer}>
     <CustomIcon
@@ -17,12 +42,14 @@ const LimitContent = (props) => {
     />
     <Text style={styles.bottomSheetTitle}>New Tally</Text>
     <TextInput
-      value={limit}
-      onChangeText={setLimit}
-      placeholder='My Limit'
-      style={styles.textInput}
-      keyboardType="numeric"
+      maxLength={9}
+      numberOfLines={1}
       returnKeyType="done"
+      keyboardType="numeric"
+      style={styles.textInput}
+      value={limit? limit : ''}
+      onChangeText={(text) => calculateSendingAmount(text)}
+   placeholder={limit? round(limit,3) : 'My limit'}
     />
     <Button
       title='Next'

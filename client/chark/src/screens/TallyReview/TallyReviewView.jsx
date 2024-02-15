@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   TextInput,
@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import Avatar from "../../components/Avatar";
 import { colors } from "../../config/constants";
 import HelpText from "../../components/HelpText";
-import useMessageText from '../../hooks/useMessageText';
+import useMessageText from "../../hooks/useMessageText";
 
 import {
   SwapIcon,
@@ -20,6 +20,7 @@ import {
   LeftArrowIcon,
   RightArrowIcon,
 } from "../../components/SvgAssets/SvgAssets";
+import { round } from "../../utils/common";
 
 const TallyReviewView = (props) => {
   const { imagesByDigest } = useSelector((state) => state.avatar);
@@ -28,12 +29,45 @@ const TallyReviewView = (props) => {
   const tallyType = props.tallyType;
   const partImage = imagesByDigest[partDigest];
   const holdImage = imagesByDigest[holdDigest];
-  const holdLimit = props.holdTerms?.limit;
-  const partLimit = props.partTerms?.limit;
   const canEdit = props.canEdit ?? true;
+
+  const [holdLimit, setHoldLimit] = useState(props.holdTerms?.limit);
+  const [partLimit, setPartLimit] = useState(props.partTerms?.limit);
 
   const { messageText } = useMessageText();
   const talliesMeText = messageText?.tallies_v_me?.col;
+
+  const checkValidInput = (textValue) => {
+    return textValue && /^[0-9]*(\.[0-9]{0,3})?$/.test(textValue);
+  };
+
+  const getValidAmount = (amount) => {
+    if (parseFloat(amount) > 0) {
+      return amount;
+    }
+
+    return 1.0;
+  };
+
+  const calculateAmount = (value) => {
+    const amount = getValidAmount(value);
+
+    if (amount && checkValidInput(amount)) {
+      return amount;
+    }
+
+    return round(amount, 3);
+  };
+
+  useEffect(() => {
+    if (holdLimit && partLimit) {
+      const hold = calculateAmount(holdLimit);
+      setHoldLimit(hold);
+
+      const part = calculateAmount(partLimit);
+      setPartLimit(part);
+    }
+  }, [holdLimit, partLimit]);
 
   const onSwitchClick = () => {
     props.setTallyType((prev) => {
@@ -86,7 +120,7 @@ const TallyReviewView = (props) => {
         <View style={styles.rowWrapper}>
           <View style={styles.leftIcon}>
             <HelpText
-              label={talliesMeText?.risk?.title ?? 'risk_title'}
+              label={talliesMeText?.risk?.title ?? "risk_title"}
               style={[styles.leftText, styles.leftTopText]}
             />
             <DownArrowIcon />
@@ -118,7 +152,7 @@ const TallyReviewView = (props) => {
 
           <View style={styles.rightIcon}>
             <HelpText
-              label={talliesMeText?.credit?.title ?? 'credit_title'}
+              label={talliesMeText?.credit?.title ?? "credit_title"}
               style={[styles.rightText, styles.rightTopText]}
             />
             <LeftArrowIcon />
@@ -129,16 +163,18 @@ const TallyReviewView = (props) => {
       <View style={styles.midView}>
         <View style={styles.rowWrapper}>
           <TextInput
+            maxLength={9}
             placeholder={props.net ?? ""}
             editable={canEdit}
             value={tallyType === "foil" ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
-            onChangeText={
+            onChangeText={async (text) => {
+              await calculateAmount(text);
               tallyType === "foil"
                 ? props.onHoldTermsChange("limit")
-                : props.onPartTermsChange("limit")
-            }
+                : props.onPartTermsChange("limit");
+            }}
           />
 
           <HelpText
@@ -148,16 +184,19 @@ const TallyReviewView = (props) => {
           />
 
           <TextInput
+            maxLength={9}
             editable={canEdit}
             placeholder={props.amount ?? ""}
             value={tallyType === "stock" ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
-            onChangeText={
+            onChangeText={(text) => {
+              calculateAmount(text);
+
               tallyType === "stock"
                 ? props.onHoldTermsChange("limit")
-                : props.onPartTermsChange("limit")
-            }
+                : props.onPartTermsChange("limit");
+            }}
           />
         </View>
       </View>
@@ -167,7 +206,7 @@ const TallyReviewView = (props) => {
           <View style={styles.leftIcon}>
             <RightArrowIcon />
             <HelpText
-              label={talliesMeText?.credit?.title ?? 'credit_title'}
+              label={talliesMeText?.credit?.title ?? "credit_title"}
               style={[styles.leftText, styles.leftBottomText]}
             />
           </View>
@@ -199,7 +238,7 @@ const TallyReviewView = (props) => {
           <View style={styles.rightIcon}>
             <UpArrowIcon />
             <HelpText
-              label={talliesMeText?.risk?.title ?? 'risk_title'}
+              label={talliesMeText?.risk?.title ?? "risk_title"}
               style={[styles.rightText, styles.rightBottomText]}
             />
           </View>
@@ -268,7 +307,7 @@ const styles = StyleSheet.create({
     marginRight: 40,
   },
   input: {
-    width: "30%",
+    width: "33%",
     //height: 24,
     padding: 10,
     borderRadius: 5,
@@ -277,13 +316,13 @@ const styles = StyleSheet.create({
     borderColor: colors.dimgray,
   },
   leftIcon: {
-    width: "30%",
+    width: "35%",
     marginLeft: 20,
     alignItems: "center",
     justifyContent: "center",
   },
   rightIcon: {
-    width: "30%",
+    width: "35%",
     marginRight: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -297,22 +336,24 @@ const styles = StyleSheet.create({
     marginLeft: 50,
   },
   leftTopText: {
+    marginLeft: -10,
     marginBottom: -20,
-    width: "50%",
+    width: "55%",
   },
   leftBottomText: {
+    marginLeft: -10,
     marginTop: -20,
-    width: "70%",
+    width: "80%",
   },
   rightTopText: {
-    marginRight: -10,
+    marginRight: -25,
     marginBottom: -20,
-    width: "70%",
+    width: "80%",
   },
   rightBottomText: {
-    marginRight: -15,
+    marginRight: -25,
     marginTop: -18,
-    width: "50%",
+    width: "55%",
   },
   absoluteView: {
     top: 0,
