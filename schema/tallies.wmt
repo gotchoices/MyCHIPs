@@ -144,6 +144,12 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {P.offer.offer {Tally Offer}		{This tally is offered to you by the other party}}
   {H.offer.draft {Tally Revised}	{The other party has marked the tally offer for revision}}
   {P.draft.draft {You Revised}		{You have marked the tally offer for revision}}
+  {sort		{Tally Order}		{Control the order in which tallies are listed}}
+  {sort.ddate	{Most Recent}		{Show tallies with recent activity at the top of the list}}
+  {sort.dbal	{Positive to Negative}	{Show biggest assets at the top, biggest liabilities at the bottom}}
+  {sort.abal	{Negative to Positive}	{Show biggest liabilities at the top, biggest assets at the bottom}}
+  {sort.mbal	{Largest to Smallest}	{Show biggest totals (asset or liability) at the top}}
+  {sort.dname	{Alphabetical}		{Sort alphabetically by partner name}}
   {open.open	{Tally Opened}		{The tally has been accepted by both parties and is ready for transactions}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
     {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}
@@ -176,11 +182,15 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
     {agree.cert.stock		{Stock Certificate}	{Information identifying the Stock Holder}}
     {agree.sign			{Agreed By}		{Digital signatures of the Parties}}
     {agree.other		{Other Data}		{More information in the Tally}}
-{launch.title		{Tallies}		{Peer Trading Relationships}}
+  {launch.title		{Tallies}		{Peer Trading Relationships}}
   {launch.instruct	{Basic Instructions}	{
     <p>Tallies are used to document and track trading agreements between partners.
     <p>You can propose a new tally from the action menu in the Editing pane.
   }}
+  {launch.pay		{Send Payment}			{Send a direct payment to this tally partner}}
+  {launch.request	{Request Payment}		{Request a direct payment from this tall partner}}
+  {launch.detail	{View Tally}			{See more details about this tally}}
+  {launch.chits		{Chit History}			{See past and pending chits on this tally}}
   {notify.draft		{Initiate Tally}		{Someone wants to engage with your invitation to open a MyCHIPs tally ledger}}
   {notify.P.offer	{Tally Offer}			{You have received an offer to open a MyCHIPs tally ledger}}
 }
