@@ -61,8 +61,8 @@ export const getTallies = createAsyncThunk('activity/getTallies', async (args) =
 export const getChits = createAsyncThunk('activity/getChits', async (args) => {
   try {
     const fields = [
-      'chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 
-      'net', 'memo', 'reference', 'json_core', 'chit_date', 'state'
+      'chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 'net',
+      'memo', 'reference', 'json_core', 'chit_date', 'state', 'issuer', 'tally_type',
     ];
 
     const data = await fetchChits(args.wm, {
@@ -82,6 +82,7 @@ export const getGoodChits = createAsyncThunk('activity/getGoodChits', async (arg
     const fields = [
       'chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 
       'net', 'memo', 'reference', 'json_core', 'chit_date', 'state', 'part_cid',
+      'issuer', 'tally_type',
     ];
 
     const data = await fetchChits(args.wm, {

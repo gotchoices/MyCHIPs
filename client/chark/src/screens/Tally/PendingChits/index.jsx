@@ -79,7 +79,7 @@ const PendingChits = (props) => {
         ListHeaderComponent={
           <HelpText
             label={chitsMeMessageText?.pending?.title ?? ''}
-            helpText={chitsMeMessageText?.pending?.help}
+            helpText={chitsMeMessageText?.pending?.help ?? ''}
             style={styles.listTitle}
           />
         }
