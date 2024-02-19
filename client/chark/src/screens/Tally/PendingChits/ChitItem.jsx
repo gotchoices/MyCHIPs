@@ -11,8 +11,8 @@ import moment from 'moment';
 import Avatar from '../../../components/Avatar';
 import AcceptButton from './AcceptButton';
 import RejectButton from './RejectButton';
-import ChitTypeText from './ChitTypeText';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
+import HelpText from '../../../components/HelpText';
 
 import { colors } from '../../../config/constants';
 import { round } from '../../../utils/common';
@@ -43,6 +43,17 @@ const ChitItem = (props) => {
     }
   }
 
+  let chitTypeLabel = '';
+  let chitTypeHelp = '';
+
+  if(props.chit.issuer === props.chit.tally_type) {
+    chitTypeLabel = chits_msg?.liability?.title ?? '';
+    chitTypeHelp = chits_msg?.liability?.help;
+  } else {
+    chitTypeLabel = chits_msg?.asset?.title ?? '';
+    chitTypeHelp = chits_msg?.asset?.help;
+  }
+
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback
@@ -53,9 +64,9 @@ const ChitItem = (props) => {
 
           <View style={styles.item}>
             <View style={styles.chitType}>
-              <ChitTypeText
-                name={props.chit?.part_cid ?? ''}
-                state={props.chit?.state ?? ''}
+              <HelpText
+                label={chitTypeLabel}
+                helpText={chitTypeHelp}
               />
             </View>
 

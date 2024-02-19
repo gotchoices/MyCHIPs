@@ -76,8 +76,11 @@ const SocketProvider = ({ children }) => {
         clearTimeout(connectTimeout.current);
         setWs(websocket);
         wm.listen(`${listenId}-${user}`, user, data => {
+          const talliesMsg = wm?.cache?.lang?.['mychips.tallies_v_me'] ?? {};
+          const chitsMsg = wm?.cache?.lang?.['mychips.chits_v_me'] ?? {};
+          const dataDict = { tallies_v_me: talliesMsg, chits_v_me: chitsMsg }
           console.log('notification data', data, 'NOTIFICATION DATA')
-          onDisplayNotification(data);
+          onDisplayNotification(data, dataDict);
           const payload = notificationTriggerPayload(data);
           if(data?.target === 'tally') {
             dispatch(setHasNotification(true));
@@ -175,7 +178,7 @@ const SocketProvider = ({ children }) => {
   )
 }
 
-async function onDisplayNotification(data) {
+async function onDisplayNotification(data, dataDict) {
   // Request permissions (required for iOS)
   await notifee.requestPermission()
   
@@ -187,6 +190,7 @@ async function onDisplayNotification(data) {
   });
 
   const { title, message } = getTitleAndMessage({
+    dataDict,
     target: data.target,
     state: data.state,
     reason: data.reason,
@@ -218,70 +222,28 @@ async function onDisplayNotification(data) {
   * @param {string} args.state - Argument obj
   */
 function getTitleAndMessage(args) {
-  const state_reason_Map = {
-    'P.draft_valid': {
-      title: 'Receive subject ticket',
-      message: 'Subject has scanned and added a valid certificate',
-    },
-    'H.offer_offer': {
-      title: 'Tally offered',
-      message: 'You have offered a tally',
-    },
-    'P.offer_offer': {
-      title: 'Tally offered',
-      message: 'You have been offered a tally',
-    },
-    'P.draft_draft': {
-      title: 'Tally revised',
-      message: 'Tally has been revised',
-    },
-    'H.offer_draft': {
-      title: 'Tally revised',
-      message: 'Tally has been revised',
-    },
-    'open_open': {
-      title: 'Tally opened',
-      message: 'Tally has been opened',
-    },
-  };
+  const talliesMsg = args.dataDict?.tallies_v_me?.msg ?? {};
+  const chitsMsg = args.dataDict?.chits_v_me?.col ?? {};
 
-  const tally_key = `${args.state}_${args.reason}`
+  const tally_key = `${args.state}.${args.reason}`
 
   switch(args.target) {
     case 'tally':
       return {
-        title: state_reason_Map[tally_key]?.title ?? 'Notification',
-        message: state_reason_Map[tally_key]?.message ?? ''
+        title: talliesMsg?.[tally_key]?.title ?? 'Notification',
+        message: talliesMsg?.[tally_key]?.help?? '',
       }
 
     case 'chit':
-      if(args.state === 'L.good') {
-        return {
-          title: 'Chit',
-          message: 'Chit accepted',
-        }
-      } else if(args.state === 'L.void') {
-        return {
-          title: 'Chit',
-          message: 'Chit rejected',
-        }
-      } else if(args.state === 'A.pend') {
-        return {
-          title: 'Chit',
-          message: 'Chit requested',
-        }
-      } else if(args.state === 'L.pend') {
-        return {
-          title: 'Chit',
-          message: 'There is a new chit request',
-        }
-      } else {
-        return {
-          title: 'Chit',
-          message: 'Chit processed',
-        }
-      }
+      const stateMap = {};
+      chitsMsg?.state?.values?.forEach(state => {
+        stateMap[state.value] = state;
+      });
 
+      return {
+        title: stateMap[args.state]?.title ?? 'Notification',
+        message: stateMap[args.state]?.help ?? ''
+      }
     default: 
       return {
         title: 'Notification',

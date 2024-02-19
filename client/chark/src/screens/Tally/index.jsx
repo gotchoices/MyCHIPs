@@ -11,7 +11,7 @@ import { useSelector, useDispatch } from "react-redux";
 import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
 import { getCurrency } from "../../services/user";
-import { useTalliesMeText } from "../../hooks/useLanguage";
+import { useTalliesMeText, useChitsMeText } from "../../hooks/useLanguage";
 import {
   fetchOpenTallies,
   updateTallyOnChitTransferred,
@@ -46,6 +46,7 @@ const Tally = (props) => {
   } = useSelector((state) => state.openTallies);
   const { imagesByDigest } = useSelector((state) => state.avatar);
   useTalliesMeText(wm);
+  useChitsMeText(wm);
 
   const [conversionRate, setConversionRate] = useState(0);
 
