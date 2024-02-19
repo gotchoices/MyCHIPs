@@ -54,10 +54,12 @@ tabtext mychips.chits_v {Chits}		{Standard view containing an entry for each chi
   {net_g	{Good Value}		{The net value of this chit that has been duly signed and so is considered binding.}}
   {net_p	{Pending Value}		{The net value of this chit that when it has not yet been signed.  A value here indicates it is still pending and not final.}}
   {state	{State}			{The state is used to track a transaction in process} {
-    {L.good	{Chit Payment}		{You have authorized the chit payment to the other party}}
-    {L.void	{Canceled Chit}		{You voided the chit}}
-    {A.pend	{Awaiting Chit}		{You await authorization of the chit by the other party}}
-    {L.pend	{Chit Requested}	{The chit awaits your authorization for payment}}
+    {A.good	{Asset Good}		{The chit pledged to you is binding on the other party}}
+    {A.pend	{Asset Pending}		{You await authorization of the chit by the other party}}
+    {A.void	{Asset Void}		{The chit pledged to you is canceled}}
+    {L.good	{Liability Good}	{You have authorized the chit pledge to the other party}}
+    {L.pend	{Liability Pending}	{The chit awaits your authorization signatue}}
+    {L.void	{Liability Void}	{The chit pledged by you is canceled}}
   }}
   {action	{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
   {json_core	{JSON Core}		{A JSON representation of the parts of the chit transaction that will be digitally hashed and signed}}
