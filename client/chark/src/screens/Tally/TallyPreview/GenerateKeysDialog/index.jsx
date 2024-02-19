@@ -93,7 +93,7 @@ export const GenerateKeysDialog = ({
       transparent={true}
       animationType="fade"
       onDismiss={onDismiss}
-      onRequestClose={onDimiss}
+      onRequestClose={onDismiss}
     >
       <View style={styles.modalBackground}>
         <View style={styles.activityIndicatorWrapper}>
