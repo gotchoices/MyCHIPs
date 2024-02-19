@@ -4,8 +4,8 @@ To generate a new language file:
 - Determine the 3-letter ISO code (xyz, for example) for the new language
 - Edit test/mocha/language.js to include the code in the languages array (line 14)
 - Make sure the last two tests are actually enabled in language.js (line 103)
-- Do: cd test/mocha; npx mocha impexp languages (the final test should show failures)
-- This should create CSV files in the mocha dir for any tags missing in the target language
+- Do: cd test/auto/schema; npx mocha dbinit languages (the final test should show failures)
+- This should create CSV files in the data dir for any tags missing in the target language
 - Open the newly created CSV file in a spreadsheet
 - Perform the translation, filling in title and help columns for all applicable tags
 - Make sure the file is saved back in CSV format

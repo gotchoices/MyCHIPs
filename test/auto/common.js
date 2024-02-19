@@ -21,7 +21,7 @@ const Crypto = require('../../lib/crypto.js')
 const RootDir = Path.join(__dirname, '../../')
 const LibDir = Path.join(RootDir, 'lib')
 const Schema = Path.join(LibDir, 'schema.json')
-const SchemaDir = Path.join(LibDir, 'schema')
+const SchemaDir = Path.join(LibDir, '../', 'schema')
 
 var testLog = function(fname) {		//Initiate a logging service for a mocha test file
     let base = Path.parse(fname).name

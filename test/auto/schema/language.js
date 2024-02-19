@@ -1,4 +1,4 @@
-//Test language data dictionary; run only after impexp
+//Test language data dictionary; run
 //After: dbinit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
@@ -92,16 +92,15 @@ log.debug("Sql:", sql)
       , where = `fr_lang = 'eng' and language = '${lang}' and (help isnull or title isnull)`
       , order = 'order by sch,tab,sorter'	//'order by sch, tab, type, col, tag'
       , sql = `select ${fields.join(',')} from wm.language where ${where} ${order}`
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
       db.query(sql, (e, res) => {if (e) done(e)
-        rows = res?.rows
-log.debug("res:", res, 'rows:', rows.length)
+        rows = res?.rows			//;log.debug("res:", res, 'rows:', rows.length)
         if (rows.length > 0) {			//If missing items found, create CSV file of results
           let format = require('@fast-csv/format').format
             , stream = format()
             , file = Data(`lang-${lang}.csv`)
             , writable = Fs.createWriteStream(file)
-log.debug("file:", file)
+//log.debug("file:", lang, file)
           stream.pipe(writable)
           stream.write(fields)			//Header row
           rows.forEach(row => {
@@ -119,7 +118,8 @@ log.debug("file:", file)
 
 /* Disable unless specifically checking for missing languge tags:
   it('Install languages', function(done) {
-    Child.exec("wyseman lang", {
+    this.timeout(3000)
+    Child.exec("npx wyseman lang", {
       cwd: SchemaDir,
       env: Object.assign({}, process.env, {MYCHIPS_DBNAME: DBName})
     }, (e,out,err) => {
@@ -131,7 +131,7 @@ log.debug("file:", file)
     checkLanguage(lang)
   })
 
-  it(`Reporting on missing language tags: ${missing}`, function(done) {
+  it('Reporting on missing language tags', function(done) {
 log.debug("Missing tags in:", missing)
     assert.equal(missing?.length, 0)
   })

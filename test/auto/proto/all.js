@@ -3,7 +3,7 @@
 //Run all tests in order
 
 require('../schema/dbinit.js')
-require('./testusers.js')	//Run before sch-tally or tally
+require('./testusers.js')
 
 require('./sch-tally.js')
 require('./sch-chit.js')
