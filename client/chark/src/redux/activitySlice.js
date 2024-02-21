@@ -10,6 +10,8 @@ const initialState = {
   goodChits: [],
   tallies: [],
   hasNotification: false,
+  imageFetchTrigger: 1,
+  hashes: [],
 };
 
 export const hasNotification = createAsyncThunk('activity/checkNotification', async (args) => {
@@ -51,7 +53,23 @@ export const getTallies = createAsyncThunk('activity/getTallies', async (args) =
       where: ['action true'],
     })
 
-    return data;
+    const hashes = [];
+    for(let tally of data) {
+      const digest = tally?.part_cert?.file?.[0]?.digest;
+      const tally_seq = tally?.tally_seq;
+
+      if(digest) {
+        hashes.push({
+          digest,
+          tally_seq,
+        })
+      }
+    }
+
+    return {
+      hashes,
+      tallies: data,
+    };
   } catch(err) {
     console.log({ err })
     throw err;
@@ -61,7 +79,7 @@ export const getTallies = createAsyncThunk('activity/getTallies', async (args) =
 export const getChits = createAsyncThunk('activity/getChits', async (args) => {
   try {
     const fields = [
-      'chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 'net',
+      'chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 'net', 'tally_uuid',
       'memo', 'reference', 'json_core', 'chit_date', 'state', 'issuer', 'tally_type',
     ];
 
@@ -82,7 +100,7 @@ export const getGoodChits = createAsyncThunk('activity/getGoodChits', async (arg
     const fields = [
       'chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 
       'net', 'memo', 'reference', 'json_core', 'chit_date', 'state', 'part_cid',
-      'issuer', 'tally_type',
+      'issuer', 'tally_type', 'tally_uuid',
     ];
 
     const data = await fetchChits(args.wm, {
@@ -115,7 +133,9 @@ export const activitySlice = createSlice({
         state.fetchingTallies = true;
       })
       .addCase(getTallies.fulfilled, (state, action) => {
-        state.tallies = action.payload;
+        state.tallies = action.payload.tallies;
+        state.hashes = action.payload.hashes;
+        state.imageFetchTrigger = state.imageFetchTrigger + 1;
         state.fetchingTallies = false;
       })
       .addCase(getTallies.rejected, (state, action) => {

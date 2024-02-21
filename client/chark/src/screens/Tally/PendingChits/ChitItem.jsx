@@ -60,7 +60,7 @@ const ChitItem = (props) => {
         onPress={onPress}
       >
         <View style={{ flexDirection: 'row', width: '75%' }}>
-          <Avatar style={styles.avatar} />
+          <Avatar style={styles.avatar} avatar={props.avatar} />
 
           <View style={styles.item}>
             <View style={styles.chitType}>

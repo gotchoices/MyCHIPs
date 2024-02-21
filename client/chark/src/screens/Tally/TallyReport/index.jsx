@@ -17,7 +17,7 @@ const TallyReport = (props) => {
   const [graph, setGraph] = useState();
   const { wm } = useSocket();
   const { messageText } = useMessageText();
-  const userTallyText = messageText?.userTallies ?? {};
+  const userTallyText = messageText?.tallies_v_me?.msg ?? {};
 
   useEffect(() => {
     getTallyReport(wm).then((data) => {
@@ -54,13 +54,12 @@ const TallyReport = (props) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Header
-          icon={<TabularIcon />}
-          title={userTallyText?.tallies?.title ?? ''}
-          onClick={navigateBalanceSheet}
-        />
-      </View>
+      <Header
+        leftIcon={<TabularIcon />}
+        title={userTallyText?.['launch.title']?.title ?? ''}
+        onClick={navigateBalanceSheet}
+        onNavigateToNotification={() => {}}
+      />
 
       {
         graph && (

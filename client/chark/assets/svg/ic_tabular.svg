@@ -1,13 +1,13 @@
 <svg width="54" height="54" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g filter="url(#filter0_d_61_23544)">
-    <circle cx="27" cy="23" r="22.5" stroke="white" shape-rendering="crispEdges" />
+    <circle cx="27" cy="23" r="22.5" stroke="#636363" shape-rendering="crispEdges" />
   </g>
-  <rect x="12.5" y="8.5" width="29" height="29" rx="4.5" stroke="white" />
-  <line x1="19.5" y1="8" x2="19.5" y2="38" stroke="white" />
-  <line x1="12" y1="14.5" x2="42" y2="14.5" stroke="white" />
-  <line x1="12" y1="20.5" x2="42" y2="20.5" stroke="white" />
-  <line x1="12" y1="26.5" x2="42" y2="26.5" stroke="white" />
-  <line x1="12" y1="31.5" x2="42" y2="31.5" stroke="white" />
+  <rect x="12.5" y="8.5" width="29" height="29" rx="4.5" stroke="#636363" />
+  <line x1="19.5" y1="8" x2="19.5" y2="38" stroke="#636363" />
+  <line x1="12" y1="14.5" x2="42" y2="14.5" stroke="#636363" />
+  <line x1="12" y1="20.5" x2="42" y2="20.5" stroke="#636363" />
+  <line x1="12" y1="26.5" x2="42" y2="26.5" stroke="#636363" />
+  <line x1="12" y1="31.5" x2="42" y2="31.5" stroke="#636363" />
   <defs>
     <filter id="filter0_d_61_23544" x="0" y="0" width="54" height="54" filterUnits="userSpaceOnUse"
       color-interpolation-filters="sRGB">

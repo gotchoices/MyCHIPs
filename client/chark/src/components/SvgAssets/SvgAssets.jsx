@@ -80,7 +80,7 @@ export const SearchIcon = ({ size }) => (
   <ICSearch height={size ?? 18} width={size ?? 18} />
 );
 
-export const TabularIcon = () => <ICTabular />;
+export const TabularIcon = () => <ICTabular width={32} height={32} />;
 
 export const FilterIcon = ({ size, color }) => (
   <ICFilter height={size ?? 12} width={size ?? 18} color={color ?? "#344054"} />

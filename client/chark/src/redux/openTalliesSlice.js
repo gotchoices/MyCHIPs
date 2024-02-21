@@ -7,8 +7,13 @@ const initialState = {
   fetching: false,
   tallies: [],
   hashes: [],
-  imagesByDigest: {}, // { [digest]: string }
   imageFetchTrigger: 1,
+  /**
+  * Contains partner digest by tally_uuid
+  * Chits by default do not contain image(image digest) and chits fall under tallies
+  * So, need to get the image of the chit from the tally
+  */
+  partnerDigestByTallies: {}, 
 };
 
 export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies', async (args) => {
@@ -20,10 +25,12 @@ export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies',
       }
     })
 
+    const partnerDigestByTallies = {};
     const hashes = [];
     for(let tally of tallies) {
       const digest = tally?.part_cert?.file?.[0]?.digest;
       const tally_seq = tally?.tally_seq;
+      partnerDigestByTallies[tally.tally_uuid] = digest;
 
       if(digest) {
         hashes.push({
@@ -36,6 +43,7 @@ export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies',
     return {
       tallies,
       hashes,
+      partnerDigestByTallies,
     };
   } catch(err) {
     console.log({ err })
@@ -85,6 +93,7 @@ export const openTalliesSlice = createSlice({
         state.tallies = action.payload.tallies;
         state.hashes = action.payload.hashes;
         state.imageFetchTrigger = state.imageFetchTrigger + 1;
+        state.partnerDigestByTallies = action.payload.partnerDigestByTallies;
         state.fetching = false;
       })
       .addCase(fetchOpenTallies.rejected, (state, action) => {

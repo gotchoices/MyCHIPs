@@ -24,6 +24,9 @@ export const fetchImagesByDigest = createAsyncThunk('openTallies/fetchImagesByDi
   } else if(args.status === 'working') {
     const tallies = state.workingTallies;
     hashes = tallies.hashes ?? [];
+  } else if(args.status === 'activity') {
+    const activity = state.activity;
+    hashes = activity.hashes ?? [];
   }
 
   const promises = [];
@@ -52,8 +55,6 @@ export const fetchImagesByDigest = createAsyncThunk('openTallies/fetchImagesByDi
       const file_fmt = file?.[0]?.file_fmt;
       const digest = file?.[0]?.digest;
 
-      console.log(digest, 'file')
-
       if(fileData) {
         const base64 = Buffer.from(fileData).toString('base64')
         const image = `data:${file_fmt};base64,${base64}`;
@@ -68,7 +69,6 @@ export const fetchImagesByDigest = createAsyncThunk('openTallies/fetchImagesByDi
       ..._imagesByDigest,
     }
   } catch(err) {
-    console.log(err, 'errrkjaskdjf')
     throw err;
   }
 })
