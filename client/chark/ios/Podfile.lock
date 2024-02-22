@@ -364,7 +364,7 @@ PODS:
     - React-Core
   - react-native-document-picker (9.0.1):
     - React-Core
-  - react-native-get-random-values (1.9.0):
+  - react-native-get-random-values (1.10.0):
     - React-Core
   - react-native-quick-base64 (2.0.5):
     - React-Core
@@ -451,6 +451,8 @@ PODS:
     - React-Core
   - RNCPicker (2.4.8):
     - React-Core
+  - RNDeviceInfo (10.11.0):
+    - React-Core
   - RNFS (2.20.0):
     - React-Core
   - RNImageCropPicker (0.38.1):
@@ -464,12 +466,12 @@ PODS:
     - TOCropViewController
   - RNKeychain (8.1.1):
     - React-Core
-  - RNNotifee (7.8.0):
+  - RNNotifee (7.7.1):
     - React-Core
-    - RNNotifee/NotifeeCore (= 7.8.0)
-  - RNNotifee/NotifeeCore (7.8.0):
+    - RNNotifee/NotifeeCore (= 7.7.1)
+  - RNNotifee/NotifeeCore (7.7.1):
     - React-Core
-  - RNReanimated (2.17.0):
+  - RNReanimated (2.13.0):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -587,6 +589,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFS (from `../node_modules/react-native-fs`)
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
@@ -720,6 +723,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/checkbox"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNImageCropPicker:
@@ -785,7 +790,7 @@ SPEC CHECKSUMS:
   React: bb3e06418d2cc48a84f9666a576c7b38e89cd7db
   React-bridging: 572502ec59c9de30309afdc4932e278214288913
   React-callinvoker: 6b708b79c69f3359d42f1abb4663f620dbd4dadf
-  React-Codegen: ae5360313e74862bbc6b036143c2963cb4892096
+  React-Codegen: 74e1cd7cee692a8b983c18df3274b5e749de07c8
   React-Core: b587d0a624f9611b0e032505f3d6f25e8daa2bee
   React-CoreModules: c6ff48b985e7aa622e82ca51c2c353c7803eb04e
   React-cxxreact: ade3d9e63c599afdead3c35f8a8bd12b3da6730b
@@ -796,7 +801,7 @@ SPEC CHECKSUMS:
   React-logger: 1623c216abaa88974afce404dc8f479406bbc3a0
   react-native-biometrics: 352e5a794bfffc46a0c86725ea7dc62deb085bdc
   react-native-document-picker: 2b8f18667caee73a96708a82b284a4f40b30a156
-  react-native-get-random-values: dee677497c6a740b71e5612e8dbd83e7539ed5bb
+  react-native-get-random-values: 384787fd76976f5aec9465aff6fa9e9129af1e74
   react-native-quick-base64: e657e9197e61b60a9dec49807843052b830da254
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-view-shot: 792829857bbb23a9c8acdad9a640554bdee397a3
@@ -816,11 +821,12 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60
   RNCCheckbox: 75255b03e604bbcc26411eb31c4cbe3e3865f538
   RNCPicker: 0bf8ef8f7800524f32d2bb2a8bcadd53eda0ecd1
+  RNDeviceInfo: bf8a32acbcb875f568217285d1793b0e8588c974
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNImageCropPicker: 648356d68fbf9911a1016b3e3723885d28373eda
   RNKeychain: ff836453cba46938e0e9e4c22e43d43fa2c90333
-  RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
-  RNReanimated: bec7736122a268883bdede07f1bf9cf4b40158db
+  RNNotifee: 05692d7bb42b6c718a3906aeb8431c48ff2e8097
+  RNReanimated: ce445c233a6ff5600223484a88ad5704945d972a
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
   RNShare: 12b65dcbbd4f71efca79e9b240b92797deef95c6
   RNSVG: 6adc5c52d2488a476248413064b7f2832e639057
@@ -834,4 +840,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 9e9c806a51d3e1667bdd5c0ce1ec27db888bd2f9
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.11.3
