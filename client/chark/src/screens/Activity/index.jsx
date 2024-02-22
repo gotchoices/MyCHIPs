@@ -11,6 +11,7 @@ import useSocket from '../../hooks/useSocket';
 import { useChitsMeText } from '../../hooks/useLanguage';
 import { getCurrency } from '../../services/user';
 import { getChits, getTallies, setHasNotification, getGoodChits } from '../../redux/activitySlice';
+import { fetchImagesByDigest } from '../../redux/avatarSlice';
 
 const Activity = (props) => {
   const { wm, chitTrigger, tallyNegotiation } = useSocket();
@@ -19,9 +20,12 @@ const Activity = (props) => {
   const [conversionRate, setConversionRate] = useState(0);
 
   const { preferredCurrency } = useSelector((state) => state.profile);
+  const { imagesByDigest } = useSelector((state) => state.avatar);
 
   const currencyCode = preferredCurrency.code;
-  const { tallies = [], chits = [], fetchingTallies, fetchingChits, goodChits = [] } = useSelector(state => state.activity)
+  const { tallies = [], chits = [], fetchingTallies, fetchingChits, goodChits = [], imageFetchTrigger } = useSelector(state => state.activity)
+  const { partnerDigestByTallies } = useSelector(state => state.openTallies)
+
   const activities = useMemo(() => {
     return [...tallies, ...chits];
   }, [tallies, chits])
@@ -64,6 +68,13 @@ const Activity = (props) => {
     }
   }, [currencyCode]);
 
+  // Fetch images(uses cache if already present)
+  useEffect(() => {
+    if (wm) {
+      dispatch(fetchImagesByDigest({ wm, status: "activity" }));
+    }
+  }, [wm, imageFetchTrigger]);
+
   const fetchTallies = async () => {
     dispatch(getTallies({ wm }))
   };
@@ -88,15 +99,19 @@ const Activity = (props) => {
           navigation={props.navigation} 
           postOffer={postTallyAction}
           postAccept={postTallyAction}
+          image={imagesByDigest?.[item?.part_cert?.file?.[0]?.digest]}
         />
       )
     } else if(item.chit_ent) {
+      const digest = partnerDigestByTallies?.[item?.tally_uuid];
+      const avatar = imagesByDigest?.[digest]
+
       return (
         <ChitItem
           chit={item}
           navigation={props.navigation} 
           conversionRate={conversionRate}
-          avatar={'test'}
+          avatar={avatar}
           postAccept={postChitAction}
           postReject={postChitAction}
         />

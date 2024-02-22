@@ -23,6 +23,8 @@ const PendingChits = (props) => {
   const { wm, chitTrigger } = useSocket();
   const { fetching, chits } = useSelector(state => state.chit)
   const { tally_uuid, partName, description, conversionRate } = props.route?.params ?? {};
+  const { imagesByDigest } = useSelector((state) => state.avatar);
+  const { partnerDigestByTallies } = useSelector(state => state.openTallies)
 
   // Register chits texts
   const chitsMeText = useChitsMeText(wm);
@@ -45,17 +47,23 @@ const PendingChits = (props) => {
     props.navigation.navigate('Home')
   }
 
-  const renderItem = ({ item, index }) => (
-    <TouchableWithoutFeedback onPress={()=>{}}>
-      <View>
-        <ChitItem
-          chit={item}
-          navigation={props.navigation}
-          conversionRate={conversionRate}
-        />
-      </View>
-    </TouchableWithoutFeedback>
-  );
+  const renderItem = ({ item, index }) => {
+    const digest = partnerDigestByTallies?.[item?.tally_uuid];
+    const avatar = imagesByDigest?.[digest]
+
+    return (
+      <TouchableWithoutFeedback onPress={()=>{}}>
+        <View>
+          <ChitItem
+            chit={item}
+            navigation={props.navigation}
+            conversionRate={conversionRate}
+            avatar={avatar}
+          />
+        </View>
+      </TouchableWithoutFeedback>
+    )
+  };
 
   return (
     <View style={styles.container}>

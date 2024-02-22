@@ -154,6 +154,7 @@ const TallyInvite = (props) => {
       });
   }, [wm]);
 
+  // Fetch images(uses cache if already present)
   useEffect(() => {
     if (wm) {
       dispatch(fetchImagesByDigest({ wm, status: "working" }));

@@ -71,7 +71,7 @@ const TallyItem = (props) => {
         onPress={onPress}
       >
         <View style={styles.item}>
-          <Avatar style={styles.avatar} />
+          <Avatar style={styles.avatar} avatar={props.image} />
 
           <View style={{ flex: 1, }}>
             <Text style={styles.name}>{partName}</Text>
@@ -181,6 +181,7 @@ TallyItem.propTypes = {
   navigation: PropTypes.any,
   postOffer: PropTypes.func,
   postAccept: PropTypes.func,
+  image: PropTypes.string,
 }
 
 export default TallyItem;
