@@ -21,6 +21,7 @@ const PayModal = (props) => {
   } = useSelector((state) => state.openTallies);
   const { messageText } = useMessageText();
   const talliesMeText = messageText?.tallies_v_me?.col;
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
 
   const partCert = props.tally?.part_cert;
   const partName = partCert?.type === 'o'
@@ -107,13 +108,17 @@ const PayModal = (props) => {
           )}
           <Button
             textColor="blue"
-            title="view_tally"
+            title={talliesMeMessageText?.['launch.detail']?.title ?? ''}
             onPress={onViewTally}
             style={styles.secondaryButton}
           />
 
           <View style={{ flex: 1 }} />
-          <Button title="pay_text" onPress={onPay} style={styles.button} />
+          <Button 
+            title={talliesMeMessageText?.['launch.pay']?.title ?? ''}
+            onPress={onPay}
+            style={styles.button} 
+          />
 
           <View style={{ flex: 1 }} />
           <Button

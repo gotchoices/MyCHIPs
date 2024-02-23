@@ -26,6 +26,7 @@ const Banner = (props) => {
   const { avatar, personal } = useSelector((state) => state.profile);
   const { hasNotification } = useSelector((state) => state.activity);
   const { messageText } = useMessageText();
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
 
   const navigateToReport = () => {
     props.navigation?.navigate?.("TallyReport");
@@ -88,7 +89,7 @@ const Banner = (props) => {
           onPress={onFilter}
         >
           <FilterSecondIcon />
-          <Text style={styles.filterText}>filter_text</Text>
+          <Text style={styles.filterText}>{talliesMeMessageText?.sort?.title ?? ''}</Text>
         </TouchableOpacity>
 
         <View style={styles.textWrapper}>

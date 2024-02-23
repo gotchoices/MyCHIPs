@@ -67,7 +67,7 @@ const Setting = (props) => {
         </Text>
 
         <Button
-          title="Edit profile"
+          title="edit_profile_text"
           onPress={onProfilePress}
         />
 
@@ -76,7 +76,7 @@ const Setting = (props) => {
       <View style={styles.menu}>
         <View>
           <Text style={styles.menuTitle}>
-            Language Preference
+            language_preference_text
           </Text>
 
           <Text style={styles.language}>
@@ -131,7 +131,7 @@ const Setting = (props) => {
             props.navigation.navigate("KeyManagement");
           }}
         >
-          <Text style={styles.menuTitle}>Key Management</Text>
+          <Text style={styles.menuTitle}>key_management_text</Text>
         </TouchableOpacity>
       </View>
 

@@ -29,6 +29,7 @@ const CommonTallyView = (props) => {
   const tally = props.tally;
   const { messageText } = useMessageText();
   const userTallyText = messageText?.tallies_v_me?.col;
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
   const [avatar, setAvatar] = useState(undefined);
   const { wm } = useSocket();
 
@@ -146,13 +147,13 @@ const CommonTallyView = (props) => {
 
             <View style={{ flexDirection: "row", marginTop: 12 }}>
               <Button
-                title="chit_history_text"
+                title={talliesMeMessageText?.['launch.chits']?.title ?? ''}
                 onPress={props.onViewChitHistory}
                 style={{ borderRadius: 12, width: 120 }}
               />
 
               <Button
-                title="pay_text"
+                title={talliesMeMessageText?.['launch.pay']?.title ?? ''}
                 onPress={props.onPay}
                 style={{
                   borderRadius: 12,
