@@ -1,11 +1,12 @@
 {
   "name": "chark",
-  "version": "0.1.2",
+  "version": "0.0.1",
   "private": true,
   "chark": {
     "versionCode": 3
   },
   "scripts": {
+    "prebuild:ios": "sh ios/version_ios.sh",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
@@ -14,7 +15,7 @@
     "develop": "bin/develop",
     "build": "bin/build",
     "test:android": "bin/test-e2e",
-    "postinstall": "patch-package"
+    "postinstall": "sh ios/version_ios.sh && patch-package"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
