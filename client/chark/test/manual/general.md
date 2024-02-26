@@ -123,7 +123,35 @@
 |                   | Click link tab               |                                                |
 |                   |                              | Show link                                      |
 |                   |                              | Able to share link                             |
-|                   |                              |                                                |
-|                   |                              |                                                |
+
+### Working Tally Page
 
 
+| Page          | Action                             | Check                                 |
+| ------------- | ---------------------------------- | ------------------------------------- |
+| Working Tally |                                    |                                       |
+|               | Click the plus icon                |                                       |
+|               |                                    | New tally modal                       |
+|               |                                    | Check comments input                  |
+|               |                                    | Check stock and foil input            |
+|               | Fill comments and foil icon        |                                       |
+|               | Click submit                       |                                       |
+|               |                                    | Limit input in modal                  |
+|               |                                    | Limit input can only input numbers    |
+|               | Input numbers                      |                                       |
+|               | Click submit                       |                                       |
+|               |                                    | Draft tally got created               |
+|               | Click on draft tally               |                                       |
+|               |                                    | Your limit is set                     |
+|               |                                    | Share icon in bottom left shows       |
+|               | Share without filling out limit    |                                       |
+|               |                                    | Error shows: fill out required fields |
+|               | Input partner limit                |                                       |
+|               | Click share button on bottom right |                                       |
+| Share page    |                                    |                                       |
+|               |                                    | Can share with QR code                |
+|               |                                    | Can share with link                   |
+
+
+
+### Key managaement
