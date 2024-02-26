@@ -152,9 +152,9 @@ export const getFilter = createAsyncThunk('profile/getFilter', async () => {
     return filter ?? {};
   } else {
     const filter = {
-      offer: { title: "Offers", selected: true, status: 'offer' },
-      draft: { title: "Drafts", selected: true, status: 'draft' },
-      void: { title: "Voids", selected: true, status: 'void' },
+      offer: { selected: true, status: 'offer' },
+      draft: { selected: true, status: 'draft' },
+      void: { selected: true, status: 'void' },
     }
 
     await AsyncStorage.setItem("filterData", JSON.stringify(filter))
@@ -170,6 +170,7 @@ export const getTallyListFilter = createAsyncThunk('profile/getTallyListFilter',
 
     try {
       filterTally = JSON.parse(data);
+      console.log(filterTally, 'asdkj')
     } catch (err) {
       console.log(err.message)
     }
@@ -177,11 +178,11 @@ export const getTallyListFilter = createAsyncThunk('profile/getTallyListFilter',
     return filterTally ?? {};
   } else {
     const filterTally = {
-      recent: { title: "Most Recent activity", selected: true, status: 'recent' },
-      ascending: { title: "Positive to Negative (assets to liabilities)", selected: false, status: 'ascending' },
-      descending: { title: "Negative to Positive (liabilities to assets)", selected: false, status: 'descending' },
-      absolute: { title: "Absolute value (highest to lowest)", selected: false, status: 'absolute' },
-      alphabetical: { title: "Alphabetical", selected: false, status: 'alphabetical' },
+      recent: { selected: true, status: 'recent' },
+      ascending: { selected: false, status: 'ascending' },
+      descending: { selected: false, status: 'descending' },
+      absolute: { selected: false, status: 'absolute' },
+      alphabetical: { selected: false, status: 'alphabetical' },
     }
 
     await AsyncStorage.setItem("filterTallyList", JSON.stringify(filterTally))

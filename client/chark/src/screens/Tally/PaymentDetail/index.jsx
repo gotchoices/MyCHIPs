@@ -59,6 +59,7 @@ const PaymentDetail = (props) => {
   useChitsMeText(wm);
   const { messageText } = useMessageText();
 
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
   const referenceText = messageText?.chits_v_me?.reference;
   const memoText = messageText?.chits_v_me?.memo;
   const netText = messageText?.chits_v_me?.net;
@@ -271,7 +272,7 @@ const PaymentDetail = (props) => {
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
-          title="pay_lang"
+          title={talliesMeMessageText?.['launch.pay']?.title ?? ''}
           onPress={onMakePayment}
           disabled={disabled}
         />

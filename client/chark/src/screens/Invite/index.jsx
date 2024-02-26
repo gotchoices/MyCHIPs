@@ -438,7 +438,7 @@ const TallyInvite = (props) => {
               onPress={onFilter}
             >
               <FilterSecondIcon />
-              <Text style={styles.filterText}>filters_text</Text>
+              <Text style={styles.filterText}>{talliesColText?.status?.title}</Text>
             </TouchableOpacity>
           </View>
           <CustomTextInput

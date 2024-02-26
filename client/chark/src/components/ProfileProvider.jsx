@@ -36,9 +36,9 @@ const ProfileProvider = ({ children }) => {
         }
       } else {
         const initialFilter = {
-          offer: { title: "Offers", selected: true, status: 'offer' },
-          draft: { title: "Drafts", selected: true, status: 'draft' },
-          void: { title: "Voids", selected: true, status: 'void' },
+          offer: { selected: true, status: 'offer' },
+          draft: { selected: true, status: 'draft' },
+          void: { selected: true, status: 'void' },
         }
         storeFilter(initialFilter)
       }
