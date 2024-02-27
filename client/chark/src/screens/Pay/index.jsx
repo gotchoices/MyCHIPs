@@ -122,7 +122,7 @@ const PayModal = (props) => {
 
           <View style={{ flex: 1 }} />
           <Button
-            title={talliesMeText?.request?.title ?? 'request'}
+            title={talliesMeMessageText?.['launch.request']?.title ?? 'request'}
             onPress={onRequest}
             style={styles.button}
           />

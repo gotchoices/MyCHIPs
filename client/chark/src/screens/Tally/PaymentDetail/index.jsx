@@ -44,6 +44,7 @@ const PaymentDetail = (props) => {
   const [memo, setMemo] = useState();
   const [reference, setReference] = useState({});
   const [chit, setChit] = useState();
+  const [inputWidth, setInputWidth] = useState(80);
 
   const [usd, setUSD] = useState();
 
@@ -177,6 +178,35 @@ const PaymentDetail = (props) => {
     }
   };
 
+  /**
+    * @param {string} type - chit or usd
+    */
+  const onAmountChange = (type) => {
+    /**
+      * @param {string} text - amount
+      */
+    return (text) => {
+      const regex = /(\..*){2,}/;
+      if(regex.test(text)) {
+        return;
+      }
+
+      const textLength = text.length;
+      setInputWidth(Math.max(Math.ceil(textLength * 20), 80))
+
+      if(type === 'chit') {
+        setChit(text);
+        totalNetDollar(text);
+      } else if(type === 'usd') {
+        setUSD(text);
+        totalChit(text);
+      }
+    }
+  }
+
+  const checkChipDecimalPlace = () => {
+  }
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -197,14 +227,12 @@ const PaymentDetail = (props) => {
             <View style={styles.row}>
               <Text style={styles.text}>USD</Text>
               <TextInput
-                style={styles.amount}
+                style={[styles.amount, { width: inputWidth }]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={usd}
-                onChangeText={(text) => {
-                  setUSD(text);
-                  totalChit(text);
-                }}
+                onChangeText={onAmountChange('usd')}
+                onBlur={checkChipDecimalPlace}
               />
             </View>
 
@@ -222,14 +250,12 @@ const PaymentDetail = (props) => {
             <View style={styles.row}>
               <ChitIcon color={colors.black} height={18} width={12} />
               <TextInput
-                style={styles.amount}
+                style={[styles.amount, { width: inputWidth }]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={chit}
-                onChangeText={(text) => {
-                  setChit(text);
-                  totalNetDollar(text);
-                }}
+                onChangeText={onAmountChange('chit')}
+                onBlur={checkChipDecimalPlace}
               />
             </View>
 
@@ -302,7 +328,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   amount: {
-    width: 80,
     paddingLeft: 10,
     fontSize: 26,
     paddingVertical: 20,

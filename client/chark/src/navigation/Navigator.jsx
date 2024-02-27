@@ -197,7 +197,7 @@ function InviteStackScreen() {
 const ReceiveStack = createNativeStackNavigator();
 function ReceiveStackScreen() {
   return (
-    <ReceiveStack.Navigator>
+    <ReceiveStack.Navigator screenOptions={screenOptions}>
       <ReceiveStack.Screen name="Request" component={Receive} />
       <ReceiveStack.Screen name="RequestShare" component={RequestShare} />
     </ReceiveStack.Navigator>
