@@ -1,0 +1,7 @@
+#Schema specific to chark mobile app
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+view mychips.chark {} {
+  select true as always
+}

@@ -1,0 +1,11 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for chark mobile app} {
+  {always	{Always}		{Always true}}
+} - message {
+  {filter	{Filter}	{Settings to control display of records in the list preview}}
+  {	{}	{}}
+  {	{}	{}}
+  {	{}	{}}
+}
