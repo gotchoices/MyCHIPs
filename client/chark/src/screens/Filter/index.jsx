@@ -5,15 +5,17 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { colors } from "../../config/constants";
 import { setFilter } from "../../redux/profileSlice";
+import useSocket from "../../hooks/useSocket";
+import { useTalliesMeText } from "../../hooks/useLanguage";
 import { SelectedIcon, UnSelectedIcon } from "../../components/SvgAssets/SvgAssets";
 
-const FilterItem = ({ args, onSelected }) => {
+const FilterItem = ({ args, onSelected, title }) => {
   const onPress = () => {
     onSelected(args)
   }
 
   return <View style={styles.row}>
-    <Text style={styles.title}>{args?.title}</Text>
+    <Text style={styles.title}>{title}</Text>
     <TouchableOpacity style={{ justifyContent: 'center' }} onPress={onPress}>
       {args?.selected ? <SelectedIcon /> : <UnSelectedIcon />}
     </TouchableOpacity>
@@ -24,6 +26,9 @@ const FilterScreen = (props) => {
   const { filter } = useSelector(state => state.profile);
   const navigation = props.navigation;
   const dispatch = useDispatch();
+  const { wm } = useSocket();
+  const talliesText = useTalliesMeText(wm);
+  const talliesMeText = talliesText?.col;
 
   const hasFilterChanged = useMemo(() => {
     const isOfferSelected = filter?.offer?.selected === true;
@@ -59,12 +64,19 @@ const FilterScreen = (props) => {
     };
   }, [navigation, hasFilterChanged]);
 
+  const statusText = useMemo(() => {
+    return talliesMeText?.status?.values?.reduce((acc, current) => {
+      acc[current?.value] = current;
+      return acc;
+    }, {})
+  }, [talliesMeText?.status?.values])
+
 
   const onReset = () => {
     const resetFilter = {
-      offer: { title: "Offers", selected: true, status: 'offer' },
-      draft: { title: "Drafts", selected: true, status: 'draft' },
-      void: { title: "Voids", selected: true, status: 'void' },
+      offer: { selected: true, status: 'offer' },
+      draft: { selected: true, status: 'draft' },
+      void: { selected: true, status: 'void' },
     }
 
     AsyncStorage.setItem("filterData", JSON.stringify(resetFilter)).then(() => {
@@ -86,13 +98,13 @@ const FilterScreen = (props) => {
     return <View style={styles.container}>
       <View style={styles.divider} />
 
-      <FilterItem args={filter.offer} onSelected={onSelected} />
+      <FilterItem args={filter.offer} onSelected={onSelected} title={statusText?.offer?.title ?? 'offer_text'} />
       <View style={styles.divider} />
 
-      <FilterItem args={filter.draft} onSelected={onSelected} />
+      <FilterItem args={filter.draft} onSelected={onSelected} title={statusText?.draft?.title ?? ''} />
       <View style={styles.divider} />
 
-      <FilterItem args={filter.void} onSelected={onSelected} />
+      <FilterItem args={filter.void} onSelected={onSelected} title={statusText?.void?.title ?? ''} />
       <View style={styles.divider} />
     </View>
   }

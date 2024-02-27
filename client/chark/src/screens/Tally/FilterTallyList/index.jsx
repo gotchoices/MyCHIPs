@@ -10,6 +10,7 @@ import {
 import { colors } from "../../../config/constants";
 import { useSelector, useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import useMessageText from '../../../hooks/useMessageText';
 
 import {
   SelectedIcon,
@@ -17,14 +18,14 @@ import {
 } from "../../../components/SvgAssets/SvgAssets";
 import { setFilterTally } from "../../../redux/profileSlice";
 
-const FilterItem = ({ args, onSelected }) => {
+const FilterItem = ({ args, onSelected, title }) => {
   const onPress = () => {
     onSelected(args);
   };
 
   return (
     <View style={styles.row}>
-      <Text style={styles.title}>{args?.title}</Text>
+      <Text style={styles.title}>{title}</Text>
       <TouchableOpacity
         style={{ justifyContent: "center" }}
         onPress={onPress}
@@ -37,6 +38,8 @@ const FilterItem = ({ args, onSelected }) => {
 
 const FilterTallyScreen = (props) => {
   const filter = useSelector((state) => state.profile.filterTally);
+  const { messageText } = useMessageText();
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg
 
   const dispatch = useDispatch();
   const navigation = props.navigation;
@@ -92,26 +95,21 @@ const FilterTallyScreen = (props) => {
       recent: {
         selected: true,
         status: "recent",
-        title: "Most Recent activity",
       },
       ascending: {
         selected: false,
         status: "ascending",
-        title: "Positive to Negative (assets to liabilities)",
       },
       descending: {
         selected: false,
         status: "descending",
-        title: "Negative to Positive (liabilities to assets)",
       },
       absolute: {
         selected: false,
         status: "absolute",
-        title: "Absolute value (highest to lowest)",
       },
       alphabetical: {
         selected: false,
-        title: "Alphabetical",
         status: "alphabetical",
       },
     };
@@ -146,30 +144,38 @@ const FilterTallyScreen = (props) => {
     <View style={{ flex: 1 }}>
       {filter ? (
         <View style={styles.container}>
-          <FilterItem args={filter.recent} onSelected={onSelected} />
+          <FilterItem 
+            args={filter.recent} 
+            onSelected={onSelected} 
+            title={talliesMeMessageText?.['sort.ddate']?.title ?? ''}
+          />
           <View style={styles.divider} />
 
           <FilterItem
             args={filter.ascending}
             onSelected={onSelected}
+            title={talliesMeMessageText?.['sort.dbal']?.title ?? ''}
           />
           <View style={styles.divider} />
 
           <FilterItem
             args={filter.descending}
             onSelected={onSelected}
+            title={talliesMeMessageText?.['sort.abal']?.title ?? ''}
           />
           <View style={styles.divider} />
 
           <FilterItem
             args={filter.absolute}
             onSelected={onSelected}
+            title={talliesMeMessageText?.['sort.mbal']?.title ?? ''}
           />
           <View style={styles.divider} />
 
           <FilterItem
             args={filter.alphabetical}
             onSelected={onSelected}
+            title={talliesMeMessageText?.['sort.dname']?.title ?? ''}
           />
           <View style={styles.divider} />
         </View>

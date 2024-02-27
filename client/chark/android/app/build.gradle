@@ -149,12 +149,24 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    defaultConfig {
+    def versionFile = file('version.properties')
+    if (versionFile.canRead()) {
+        def Properties versionProperties = new Properties();
+
+        versionProperties.load(new FileInputStream(versionFile))
+
+        def verCode = versionProperties['VERSION_CODE'].toInteger() +1;
+        def verName = versionProperties['VERSION_NAME']
+
+        versionProperties['VERSION_CODE'] = verCode.toString()
+        versionProperties.store(versionFile.newWriter(), null)
+
+ defaultConfig {
         applicationId "org.mychips.chark"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode getVersionCodeFromPackageJson()
-        versionName getVersionFromPackageJson()
+        versionCode verCode
+        versionName verName
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
@@ -186,7 +198,11 @@ android {
             }
         }
     }
-
+    }
+        else {
+          throw new GradleException("Could not read version.properties!")
+            }
+    
     if (isNewArchitectureEnabled()) {
         // We configure the NDK build only if you decide to opt-in for the New Architecture.
         externalNativeBuild {
