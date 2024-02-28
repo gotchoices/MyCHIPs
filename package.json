@@ -1,6 +1,6 @@
 {
   "name": "mychips",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Reference MyCHIPs server",
   "main": "lib/mychips.js",
   "preferGlobal": "true",
@@ -29,7 +29,6 @@
     "dev-build": "webpack --mode development --watch --progress --config build/webpack.config",
     "build": "webpack --mode production --config build/webpack.config",
     "build-schema": "cd schema; make schema",
-    "contract-hashes": "cd contract; ./hashes *.yaml",
     "profile": "webpack --config build/webpack.config --profile --json >/tmp/webpack-stats.json",
     "develop": "bin/develop",
     "dev-server": "bin/mychips.js --webPort=0",
@@ -45,7 +44,7 @@
     "docker-stop": "source build/config.sh && docker-compose -f build/compose-prod.yml down",
     "model": "test/sim/model -m 2",
     "builddb": "cd schema; make objects",
-    "preversion": "npm-run-all --parallel contract-hashes build-schema build tsc && git add -A",
+    "preversion": "npm-run-all --parallel build-schema build tsc && git add -A",
     "tsc": "cd lib && ../node_modules/typescript/bin/tsc"
   },
   "repository": {
