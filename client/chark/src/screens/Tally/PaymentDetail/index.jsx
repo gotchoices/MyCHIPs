@@ -61,9 +61,6 @@ const PaymentDetail = (props) => {
   const { messageText } = useMessageText();
 
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
-  const referenceText = messageText?.chits_v_me?.reference;
-  const memoText = messageText?.chits_v_me?.memo;
-  const netText = messageText?.chits_v_me?.net;
 
   const showCreateSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(true));
@@ -205,6 +202,23 @@ const PaymentDetail = (props) => {
   }
 
   const checkChipDecimalPlace = () => {
+    let newValue = '';
+    if(chit) {
+      const [precision, decimalPlace] = chit.split('.');
+      if(decimalPlace) {
+        const decimalLength = decimalPlace.length;
+        const remainingLength = Math.max(3 - decimalLength, 0);
+        newValue = chit + Array(remainingLength).fill('0').join('');
+        setChit(newValue)
+      } else {
+        newValue = precision + '.000'
+        setChit(newValue);
+      }
+    }
+
+    if(newValue) {
+      setInputWidth(Math.max(Math.ceil(newValue.length * 20), 80))
+    }
   }
 
   if (loading) {
