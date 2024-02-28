@@ -56,10 +56,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blue,
     shadowColor: colors.black,
     shadowOpacity: 0.5,
-    shadowRadius: 2,
+    shadowRadius: 1,
     shadowOffset: {
-      height: 1,
-      width: 1
+      height: 0.5,
+      width: 0.5
     }
   },
   btnDisabled: {
