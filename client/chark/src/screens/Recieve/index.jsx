@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import { ChitIcon, SwapIcon } from "../../components/SvgAssets/SvgAssets";
 import Button from "../../components/Button";
 import { colors } from "../../config/constants";
-import { getCurrency } from "../../services/profile";
+import { getCurrency } from "../../services/user";
 import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
 import { receiveChit } from '../../services/chit';
@@ -27,6 +27,7 @@ const Receive = (props) => {
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [inputWidth, setInputWidth] = useState(80);
 
   const [isSwitched, setIsSwitched] = useState(false); 
  
@@ -44,7 +45,6 @@ const Receive = (props) => {
       setLoading(true);
       getCurrency(wm, currencyCode)
         .then((data) => {
-       
           setConversionRate(parseFloat(data?.rate ?? 1));
         })
         .catch((err) => {
@@ -58,6 +58,7 @@ const Receive = (props) => {
 
   const totalNetDollar = (text) => {
     const convertedChit = parseInt(text);
+    console.log(conversionRate, convertedChit, 'askdjfadskj')
     if (conversionRate && convertedChit) {
       const total = convertedChit * conversionRate;
       const totalValue = round(total, 2);
@@ -121,6 +122,32 @@ const Receive = (props) => {
     }
   };
 
+  /**
+    * @param {string} type - chit or usd
+    */
+  const onAmountChange = (type) => {
+    /**
+      * @param {string} text - amount
+      */
+    return (text) => {
+      const regex = /(\..*){2,}/;
+      if(regex.test(text)) {
+        return;
+      }
+
+      const textLength = text.length;
+      setInputWidth(Math.max(Math.ceil(textLength * 20), 80))
+
+      if(type === 'chit') {
+        setChit(text);
+        totalNetDollar(text);
+      } else if(type === 'usd') {
+        setUSD(text);
+        totalChit(text);
+      }
+    }
+  }
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -141,14 +168,11 @@ const Receive = (props) => {
             <View style={styles.row}>
               <Text style={styles.text}>USD</Text>
               <TextInput
-                style={styles.amount}
+                style={[styles.amount, { width: inputWidth }]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={usd}
-                onChangeText={(text) => {
-                  setUSD(text);
-                  totalChit(text);
-                }}
+                onChangeText={onAmountChange('usd')}
               />
             </View>
 
@@ -166,15 +190,11 @@ const Receive = (props) => {
             <View style={styles.row}>
               <ChitIcon color={colors.black} height={18} width={12} />
               <TextInput
-                style={styles.amount}
+                style={[styles.amount, { width: inputWidth }]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={chit}
-                onChangeText={(text) => {
-                  setChit(text);
-       
-                  totalNetDollar(text);
-                }}
+                onChangeText={onAmountChange('chit')}
               />
             </View>
 
@@ -239,7 +259,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   amount: {
-    width: 80,
     paddingLeft: 10,
     fontSize: 26,
     paddingVertical: 20,

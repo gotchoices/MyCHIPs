@@ -123,7 +123,7 @@ console.log(props.tally?.part_cert?.file?.[0]?.digest)
 
           <View style={{ flex: 1 }} />
           <Button
-            title={talliesMeText?.request?.title ?? 'request'}
+            title={talliesMeMessageText?.['launch.request']?.title ?? 'request'}
             onPress={onRequest}
             style={styles.button}
           />
