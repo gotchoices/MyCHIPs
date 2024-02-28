@@ -64,6 +64,7 @@ export const GenerateKeysAlertModal = ({
 
   const generateKeys = async () => {
     setIsRequesting(true);
+    
     try {
       const keyPair = await subtle.generateKey(KeyConfig, true, [
         "sign",
