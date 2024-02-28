@@ -16,9 +16,8 @@ import { formatRandomString } from "../../utils/format-string";
 import useMessageText from '../../hooks/useMessageText';
 
 const PayModal = (props) => {
-  const {
-    imagesByDigest,
-  } = useSelector((state) => state.openTallies);
+  const { imagesByDigest } = useSelector((state) => state.avatar);
+
   const { messageText } = useMessageText();
   const talliesMeText = messageText?.tallies_v_me?.col;
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
@@ -76,6 +75,8 @@ const PayModal = (props) => {
 
   const hasPendingChits = !!props.tally?.net_pc && !!props.tally?.net && (props.tally.net_pc != props.tally.net);
 
+console.log(props.tally?.part_cert?.file?.[0]?.digest)
+
   return (
     <Modal visible={props.visible} transparent onRequestClose={props.onClose}>
       <View style={styles.modalWrapper}>
@@ -122,7 +123,7 @@ const PayModal = (props) => {
 
           <View style={{ flex: 1 }} />
           <Button
-            title={talliesMeText?.request?.title ?? 'request'}
+            title={talliesMeMessageText?.['launch.request']?.title ?? 'request'}
             onPress={onRequest}
             style={styles.button}
           />
@@ -179,10 +180,10 @@ const styles = StyleSheet.create({
   },
   bottomSheetSub: {
     fontSize: 12,
-    fontWeight: "500",
     color: "#636363",
-    fontFamily: "inter",
     paddingBottom:30,
+    fontWeight: "500",
+    fontFamily: "inter",
   },
   secondaryButton: {
     backgroundColor: colors.white,
@@ -194,19 +195,26 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   close: {
-    alignSelf: "flex-end",
-    backgroundColor: "white",
+     width: 24,
     height: 24,
-    width: 24,
-    justifyContent: "center",
+   alignSelf: "flex-end",
     alignItems: "center",
+    backgroundColor: "white",
+    justifyContent: "center",
   },
   pendingChit: {
-    backgroundColor: colors.gray8,
-    borderColor: colors.gray9,
-    borderWidth: 1,
     height: 45,
+    borderWidth: 1,
     marginBottom: 10,
+    borderColor: colors.gray9,
+    backgroundColor: colors.gray8,
+  },
+  profileImage:   {
+    width: 100,
+    height: 100,
+    marginRight: 8,
+    alignSelf: 'center',
+    borderRadius: 100 / 2,
   },
 });
 
