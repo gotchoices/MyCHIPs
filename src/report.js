@@ -3,13 +3,10 @@
 // -----------------------------------------------------------------------------
 // TODO:
 //- 
-import Vue from 'vue'
+import { createApp } from 'vue'
+import App from './report.vue'
 import Wylib from 'wylib'
-Vue.config.productionTip = false
-Vue.config.devtools = false
 
-new Vue({
-  el: '#app',
-  template: '<wylib-pop></wylib-pop>',
-  components: { 'wylib-pop': Wylib.Popup},
-})
+const app = createApp(App)
+app.component('wylib-pop', Wylib.Popup)
+app.mount('#app')

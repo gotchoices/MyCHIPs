@@ -1,10 +1,12 @@
 // webpack.config.js
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const { VueLoaderPlugin } = require('vue-loader')
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+const webpack = require('webpack')
 const path = require('path');
                 
-module.exports = {
+const webpackConfig = {
   entry: {
     admin:'./src/admin.js',
     user: './src/user.js',
@@ -17,12 +19,19 @@ module.exports = {
   },
   resolve: {
     alias: {
-      vue: 'vue/dist/vue.js'
+//      vue: '@vue/runtime-dom'
+      vue: path.resolve('./node_modules/vue/dist/vue.runtime.esm-bundler.js')	//See: https://github.com/vuejs/vue-cli/issues/4271
+//      vue: path.resolve('./node_modules/vue/dist/vue.esm-bundler.js')	//See: https://github.com/fengyuanchen/vue-feather/issues/8
     },
 //    mainFields: ['main', 'module']
   },
   plugins: [
     new VueLoaderPlugin(),
+    new webpack.DefinePlugin({		// Define Vue feature flags here
+      __VUE_OPTIONS_API__: JSON.stringify(true),
+      __VUE_PROD_DEVTOOLS__: JSON.stringify(true),
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(true),
+    })
   ],
   performance: {
     maxAssetSize: 2000000,
@@ -70,3 +79,11 @@ module.exports = {
        contentBase: 'pub'
    }
 }
+
+if (process.env.ANALYZE)
+  webpackConfig.plugins.push(new BundleAnalyzerPlugin({
+    analyzerHost: '0.0.0.0',
+    analyzerPort: 8882
+  }))
+
+module.exports = webpackConfig

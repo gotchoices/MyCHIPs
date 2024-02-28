@@ -81,7 +81,8 @@ export default {
       if (tag in this.state.nodes) {			//If we already have this node on the graph
         Object.assign(this.state.nodes[tag], node.state)	//Reassign properties
       } else {					//Make it from scratch with random placement
-        this.$set(this.state.nodes, tag, Object.assign(node.state, {tag}, this.randPoint()))
+//        this.$set(this.state.nodes, tag, Object.assign(node.state, {tag}, this.randPoint()))
+        this.state.nodes[tag] = Object.assign(node.state, {tag}, this.randPoint())
       }
       node.state = this.state.nodes[tag]		//Point to correct/updated state object
       if (!(tag in this.nodeData)) this.nodeData[tag] = {}
@@ -140,7 +141,10 @@ export default {
 
           this.putNode(tag, userNode)		//;console.log("Put:", tag)
           delete nodeStray[tag]
-          edges.forEach(edge => {this.$set(this.state.edges, edge.uuid, edge)})
+          edges.forEach(edge => {
+            this.state.edges[edge.uuid] = edge
+//            this.$set(this.state.edges, edge.uuid, edge)
+          })
         }
 
 //console.log("Nodes:", this.state.nodes)

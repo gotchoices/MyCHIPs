@@ -37,7 +37,7 @@ var sslAdmin = Credentials(opts.dbAdminKey, opts.dbAdminCert, opts.dbCA)	//Ignor
 var sslUser = Credentials(opts.dbUserKey, opts.dbUserCert, opts.dbCA)
 const pubDir = Path.join(__dirname, "..", "pub")
 
-log.debug("UI Ports:   ", opts.uiPort, opts.clifPort, opts.clifNP)
+log.debug("UI Ports:    ", opts.uiPort, opts.clifPort, opts.clifNP)
 log.debug("Agent Key In:", opts.agentKey)
 log.debug("Web Services:", opts.home, opts.httpPort, opts.httpsPort)
 log.debug("Database:    ", opts.dbHost, opts.dbName, opts.dbAdmin)

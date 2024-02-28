@@ -20,6 +20,9 @@ while [[ $# -gt 0 ]]; do
 done
 #echo "pwd:$(pwd) host:$host pkidir:$pkidir editor:$EDITOR"; exit 0
 
+if [ ${#pargs[@]} -eq 0 ]; then
+  echo "Error: Please specify certificate types to build" >&2; exit 1
+fi
 if [ -z "$host" ]; then
   echo "Error: Can't determine host name" >&2; exit 1
 fi
