@@ -58,7 +58,6 @@ const Receive = (props) => {
 
   const totalNetDollar = (text) => {
     const convertedChit = parseInt(text);
-    console.log(conversionRate, convertedChit, 'askdjfadskj')
     if (conversionRate && convertedChit) {
       const total = convertedChit * conversionRate;
       const totalValue = round(total, 2);
@@ -148,6 +147,26 @@ const Receive = (props) => {
     }
   }
 
+  const checkChipDecimalPlace = () => {
+    let newValue = '';
+    if(chit) {
+      const [precision, decimalPlace] = chit.split('.');
+      if(decimalPlace) {
+        const decimalLength = decimalPlace.length;
+        const remainingLength = Math.max(3 - decimalLength, 0);
+        newValue = chit + Array(remainingLength).fill('0').join('');
+        setChit(newValue)
+      } else {
+        newValue = precision + '.000'
+        setChit(newValue);
+      }
+    }
+
+    if(newValue) {
+      setInputWidth(Math.max(Math.ceil(newValue.length * 20), 80))
+    }
+  }
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -173,6 +192,7 @@ const Receive = (props) => {
                 keyboardType="numeric"
                 value={usd}
                 onChangeText={onAmountChange('usd')}
+                onBlur={checkChipDecimalPlace}
               />
             </View>
 
@@ -195,6 +215,7 @@ const Receive = (props) => {
                 keyboardType="numeric"
                 value={chit}
                 onChangeText={onAmountChange('chit')}
+                onBlur={checkChipDecimalPlace}
               />
             </View>
 

@@ -149,13 +149,13 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    def versionFile = file('version.properties')
+    def versionFile = file("$rootDir/../version.properties")
     if (versionFile.canRead()) {
         def Properties versionProperties = new Properties();
 
         versionProperties.load(new FileInputStream(versionFile))
 
-        def verCode = versionProperties['VERSION_CODE'].toInteger() +1;
+        def verCode = versionProperties['VERSION_CODE'].toInteger();
         def verName = versionProperties['VERSION_NAME']
 
         versionProperties['VERSION_CODE'] = verCode.toString()
