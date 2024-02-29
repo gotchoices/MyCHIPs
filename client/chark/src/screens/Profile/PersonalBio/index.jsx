@@ -28,7 +28,7 @@ const Item = (props) => {
 const PersonalBio = (props) => {
   const { personal } = useSelector(state => state.profile);
   const { messageText } = useMessageText();
-  const userText = messageText?.users ?? {};
+  const userText = messageText?.users_v_me?.col ?? {};
 
   const onEditPress = () => {
     props.navigation.navigate('ProfileEdit', {
