@@ -163,13 +163,6 @@ const GenerateExportModal = (props) => {
         </View>
         <View style={{ height: 24 }} />
 
-        {/* <Button
-          textColor={colors.white}
-          onPress={props.generateKey}
-          style={{backgroundColor:'red'}}
-          title={"Generate Key\nYour active keys will be lost."}
-        ></Button> */}
-
         <TouchableWithoutFeedback onPress={props.generateKey}>
           <View style={styles.secondaryButton}>
             <Text style={styles.title}>
