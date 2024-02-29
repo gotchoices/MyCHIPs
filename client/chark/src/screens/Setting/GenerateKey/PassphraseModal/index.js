@@ -35,10 +35,14 @@ const PassphraseModal = (props) => {
       <Text style={styles.title}>Export Key</Text>
 
       <Text style={styles.text}>
-        Your key will be encrypted with a passphrase. Store your
-        passphrase in a safe place. You will need it in order to use
-        the exported key.
+      {props.title? props.title:  'Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key.'}
       </Text>
+
+{props.subTitle &&
+      <Text style={styles.text}>
+      {props.subTitle}
+      </Text>
+}
 
       <TextInput
         style={styles.textInput}
