@@ -19,8 +19,9 @@ import {
 } from "../../redux/profileSlice";
 import CenteredModal from "../../components/CenteredModal";
 import ExportModal from "../Setting/GenerateKey/ExportModal";
-import GeneratePassphraseModal from "../Setting/GenerateKey/ImportPassphaseModal";
 import SuccessContent from "../../components/SuccessContent";
+import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
+import GenerateExportModal from "../Setting/GenerateKey/GenerateExportModal";
 
 const GenerateKey = () => {
   const subtle = window.crypto.subtle;
@@ -39,7 +40,7 @@ const GenerateKey = () => {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [passphraseModal, setPassphraseModal] = useState(false);
 
-  const [privateKey, setPrivateKeyValue] = useState(undefined);
+  const { privateKey } = useSelector((state) => state.profile);
 
   const user_ent = user?.curr_eid;
 
@@ -84,7 +85,6 @@ const GenerateKey = () => {
 
       dispatch(setPublicKey(strPublicKey));
       dispatch(setPrivateKey(strPrivateKey));
-      setPrivateKeyValue(strPrivateKey);
       setShowSuccess(true);
     } catch (err) {
       Alert.alert("Error", err.message);
@@ -117,7 +117,11 @@ const GenerateKey = () => {
         <SigningKeyWarning
           onAccept={() => {
             setShowGenerateWarning(false);
-            setPassphraseModal(true);
+            if (privateKey) {
+              setPassphraseModal(true);
+            } else {
+              onAccept();
+            }
           }}
           onCancel={onGenerateCancel}
           title="Generating a new key is a destructive action"
@@ -125,36 +129,42 @@ const GenerateKey = () => {
         />
       </BottomSheetModal>
 
+
+
+      <CenteredModal
+        isVisible={showKeyModal}
+        onClose={() => setShowKeyModal(false)}
+      >
+        <GenerateExportModal
+          privateKey={privateKey}
+          cancel={() => {
+            setPassphrase(undefined);
+            setShowKeyModal(false);
+          }}
+          generateKey={()=>{
+            setShowKeyModal(false);
+            onAccept()}}
+          passphrase={passphrase}
+        />
+      </CenteredModal>
+
       <CenteredModal
         isVisible={passphraseModal}
         onClose={() => {
           setPassphraseModal(false);
         }}
       >
-        <GeneratePassphraseModal
-          loading={generating}
+        <PassphraseModal
+        title='Please export your current key before generating a new one.'
+        subTitle='Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key.'
           onPassphraseConfirmed={(passphrase) => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
-            onAccept();
+            setShowKeyModal(true);
           }}
           cancel={() => {
             setPassphraseModal(false);
           }}
-        />
-      </CenteredModal>
-
-      <CenteredModal
-        isVisible={showKeyModal}
-        onClose={() => setShowKeyModal(false)}
-      >
-        <ExportModal
-          privateKey={privateKey}
-          cancel={() => {
-            setPassphrase(undefined);
-            setShowKeyModal(false);
-          }}
-          passphrase={passphrase}
         />
       </CenteredModal>
 
@@ -164,14 +174,12 @@ const GenerateKey = () => {
       >
         <SuccessContent
           message="New key has been generated"
-          onDone={() => {
-            setShowSuccess(false);
-            setShowKeyModal(true);
-          }}
-          onDismiss={() => {
-            setShowSuccess(false);
-            setShowKeyModal(true);
-          }}
+          onDone={() => 
+            setShowSuccess(false)
+          }
+          onDismiss={() => 
+            setShowSuccess(false)
+          }
         />
       </BottomSheetModal>
     </>
