@@ -24,7 +24,7 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'Place'}
+            label={'place_text'}
           />
           
           {place.ids.map((id, index) => (
@@ -43,7 +43,7 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'Birth'}
+            label={'birth_text'}
           />
           
           <CustomCertificateItem 
@@ -59,7 +59,7 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'Connect'}
+            label={'connect_text'}
           />
           
           {connect.ids?.map?.((id, index) => (
@@ -78,7 +78,7 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'State'}
+            label={'state_text'}
           />
           
           <CustomCertificateItem 
@@ -94,7 +94,7 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'Chad'}
+            label={'chad_text'}
           />
           
           <CustomCertificateItem 
@@ -110,7 +110,7 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'Date'}
+            label={'date_text'}
           />
           
           <CustomCertificateItem 

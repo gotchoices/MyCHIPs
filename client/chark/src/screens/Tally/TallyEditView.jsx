@@ -131,7 +131,7 @@ const TallyEditView = (props) => {
             name={partName}
             chipAddress={partChipAddress}
             email={partEmail}
-            onViewDetails={onViewCertificate({ title: 'Partner Certificate', cert: tally?.part_cert ?? {} })}
+            onViewDetails={onViewCertificate({ title: talliesMeText?.part_cert?.title ?? '', cert: tally?.part_cert ?? {} })}
             certText={talliesMeText?.part_cert ?? {}}
           />
         )}

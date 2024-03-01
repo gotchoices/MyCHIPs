@@ -12,6 +12,7 @@ import HelpTextInput from '../../../../components/HelpTextInput';
 
 const AddressInput = (props) => {
   const address = props.address;
+  const addressText = props.addressText;
 
   const onChange = (field) => {
     return (value) => {
@@ -42,7 +43,7 @@ const AddressInput = (props) => {
           <View style={{ width: '60%', marginRight: '3%' }}>
             <HelpTextInput
               inputStyle={styles.input}
-              label={'Address 1'}
+              label={addressText?.['place.address']?.title ?? ''}
               value={address.addr_spec ?? ''}
               onChange={onChange('addr_spec')}
             />
@@ -50,7 +51,7 @@ const AddressInput = (props) => {
 
           <View style={{ width: '37%' }}>
             <HelpTextInput
-              label={'City'}
+              label={addressText?.['place.city']?.title ?? ''}
               inputStyle={styles.input}
               value={address.city ?? ''}
               onChange={onChange('city')}
@@ -61,7 +62,7 @@ const AddressInput = (props) => {
         <View style={styles.row}>
           <View style={{ width: '32%', marginRight: '3%' }}>
             <HelpTextInput
-              label={'State'}
+              label={addressText?.['place.state']?.title ?? ''}
               inputStyle={styles.input}
               value={address.state ?? ''}
               onChange={onChange('state')}
@@ -71,7 +72,7 @@ const AddressInput = (props) => {
           <View style={{ width: '31%', marginRight: '3%' }}>
             <HelpTextInput
               inputStyle={styles.input}
-              label={'Postal Code'}
+              label={addressText?.['place.post']?.title ?? ''}
               value={address.pcode ?? ''}
               onChange={onChange('pcode')}
             />
@@ -80,7 +81,7 @@ const AddressInput = (props) => {
           <View style={{ width: '31%' }}>
             <HelpTextInput
               inputStyle={styles.input}
-              label={'Country'}
+              label={addressText?.['place.country']?.title ?? ''}
               value={address.country ?? ''}
               onChange={onChange('country')}
             />
@@ -138,6 +139,7 @@ AddressInput.propTypes = {
   onChange: PropTypes.func.isRequired,
   countries: PropTypes.array,
   onRemove: PropTypes.func,
+  addressText: PropTypes.object,
 }
 
 export default AddressInput;

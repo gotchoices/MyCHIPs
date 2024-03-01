@@ -8,22 +8,22 @@ const DefaultCertificate = (props) => {
   return (
     <View>
       <CertificateItem
-        label={'Formal Name'}
+        label={'formal_name_text'}
         value={props.name}
       />
 
       <CertificateItem
-        label={'CID'}
+        label={'cid_text'}
         value={props.cid}
       />
 
       <CertificateItem
-        label={'Email'}
+        label={'email_text'}
         value={props.email}
       />
 
       <CertificateItem
-        label={'Agent'}
+        label={'agent_text'}
         value={props.agent}
       />
     </View>
