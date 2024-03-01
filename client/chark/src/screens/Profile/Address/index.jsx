@@ -13,6 +13,8 @@ const Address = (props) => {
   const { messageText } = useMessageText();
   const addrVText = messageText?.addr_v ?? {};
   const addrFlatText = messageText?.addr_v_flat ?? {};
+  const usersMeText = messageText?.users_v_me?.col ?? {};
+  const birthAddressText = usersMeText?.cert?.values?.find((c) => c.value === 'identity.birth.place.address');
 
   const addressObj = useMemo(() => {
     const mail = [];
@@ -52,8 +54,8 @@ const Address = (props) => {
       items: addressObj?.physical ?? [],
     },
     {
-      title: 'Birth Address',
-      helpText: addrFlatText?.birth_addr?.help ?? '',
+      title: birthAddressText?.title ?? '',
+      helpText: birthAddressText?.help ?? '',
       items: addressObj?.birth?.length ? [addressObj?.birth?.[0]] : [],
     },
   ];

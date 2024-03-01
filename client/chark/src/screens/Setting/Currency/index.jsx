@@ -85,7 +85,7 @@ const Currency = (props) => {
         <View style={styles.action}>
           <View style={styles.actionItem}>
             <Button
-              title="Cancel"
+              title="cancel_text"
               style={styles.cancel}
               onPress={props.onCancel}
               textColor={colors.blue}
@@ -94,7 +94,7 @@ const Currency = (props) => {
 
           <View style={styles.actionItem}>
             <Button
-              title="Save changes"
+              title="save_changes_text"
               onPress={onSave}
             />
           </View>

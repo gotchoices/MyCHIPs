@@ -103,16 +103,16 @@ export const useUser = (wm) => {
 
 
   useEffect(() => {
-    if (!messageText?.users) {
-      wm.register('user_lang' + Math.random(), 'mychips.users_v_me', (data, err) => {
+    if (!messageText?.users_v_me) {
+      wm.register('users_v_me' + Math.random(), 'mychips.users_v_me', (data, err) => {
         if (data) {
-          addTextsToState('users', data.col, setMessageText)
+          addTextsToState('users_v_me', data, setMessageText)
         }
       })
    }
   }, []);
   
-  return messageText?.users ?? {};
+  return messageText?.users_v_me ?? {};
 }
 
 export const useTalliesMeText = (wm) => {

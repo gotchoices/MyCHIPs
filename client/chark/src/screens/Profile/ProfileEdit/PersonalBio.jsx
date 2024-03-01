@@ -25,7 +25,7 @@ const PersonalBio = (props) => {
   const { wm } = useSocket();
   const { messageText } = useMessageText();
   const user_ent = user?.curr_eid;
-  const userText = messageText?.users ?? {};
+  const userText = messageText?.users_v_me?.col ?? {};
 
   const [updating, setUpdating] = useState(false);
 

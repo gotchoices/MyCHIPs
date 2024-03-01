@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
@@ -22,6 +22,7 @@ const Address = (props) => {
   const { messageText } = useMessageText();
   const { wm } = useSocket();
   const addrFlatText = messageText?.addr_v_flat ?? {};
+  const usersMeText = messageText?.users_v_me?.col ?? {};
 
   const [updating, setUpdating] = useState(false);
   const [mail, setMail] = useState([]);
@@ -89,6 +90,13 @@ const Address = (props) => {
       }
     })
   }, [addresses])
+
+  const certText = useMemo(() => {
+    return usersMeText?.cert?.values?.reduce((acc, current) => {
+      acc[current.value] = current;
+      return acc;
+    }, {});
+  }, [usersMeText?.cert?.values])
 
   const onSave = () => {
     setUpdating(true);
@@ -263,6 +271,7 @@ const Address = (props) => {
         {
           mail?.map((_mail, index) => (
             <AddressInput
+              addressText={certText}
               key={_mail.addr_seq ?? index}
               address={_mail}
               onChange={onChange('mail', index)}
@@ -295,6 +304,7 @@ const Address = (props) => {
         {
           physical.map((_physical, index) => (
             <AddressInput
+              addressText={certText}
               key={_physical.addr_seq ?? index}
               address={_physical}
               onChange={onChange('phys', index)}
@@ -318,13 +328,14 @@ const Address = (props) => {
       <View style={styles.addressSection}>
         <View style={styles.header}>
           <HelpText
-            label={'Birth Address'}
+            label={certText?.['identity.birth.place.address']?.title ?? ''}
             helpText={undefined}
             style={styles.title}
           />
         </View>
 
         <AddressInput
+          addressText={certText}
           address={birth}
           onChange={onBirthChange}
         />
@@ -335,7 +346,7 @@ const Address = (props) => {
         <Button
           onPress={onSave}
           disabled={updating}
-          title="Save Changes"
+          title="save_changes_text"
         />
       </View>
     </ScrollView>
