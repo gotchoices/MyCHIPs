@@ -233,6 +233,7 @@ view mychips.comm_v_me {base.comm_v base.user_id(text)} {select
 #----------------------------------------------------------------
 view mychips.file_v_me {base.file_v base.user_id(text)} {select 
     f.*
+  , mychips.ba2b64v(f.file_hash) as digest
     from	base.file_v f where file_ent = base.user_id(session_user)
 } -grant {
     {user	s {s i u} {d}}
