@@ -295,3 +295,20 @@ export const processTicket = (wm, ticketPayload) => {
 
   return request(wm, '_process_tally' + random(), 'select', spec);
 }
+
+export const getHolderImage = (wm, digest) => {
+  const spec = {
+    fields: ['file_ent', 'file_fmt', 'file_data64'],
+    view: 'mychips.file_v_me',
+    where: {
+      digest: digest,
+    },
+  }
+
+  return request(wm, 'holder_image' + random(1000), 'select', spec).then((data) => {
+    if(data?.[0]) {
+      data[0].digest = digest;
+      return data;
+    }
+  });
+}

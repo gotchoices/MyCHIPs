@@ -60,6 +60,7 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
         hashes.push({
           digest: partDigest,
           tally_seq,
+          isHolder: false,
         })
       }
 
@@ -67,6 +68,7 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
         hashes.push({
           digest: holdDigest,
           tally_seq,
+          isHolder: true,
         })
       }
 
