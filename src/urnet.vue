@@ -43,6 +43,7 @@ export default {
   }},
 
   computed: {
+    id() {return 'urnet_' + this.$.uid},
     menu() {return [
       {tag: 'lenLoc',    min:1,   max:20,   step:0.10,  default:4,     lang: this.viewMeta?.msg?.lenLoc},
       {tag: 'lenFor',    min:1,   max:4,    step:0.10,  default:2,     lang: this.viewMeta?.msg?.lenFor},
@@ -94,7 +95,7 @@ export default {
         , fields = ['id', 'std_name', 'peer_cid', 'peer_agent', 'asset', 'assets', 'liab', 'liabs', 'net', 'latest', 'tallies']
         , spec = {view: View, fields, where, order: 1}
 
-      Wylib.Wyseman.request('urnet.peer.'+this._uid, 'select', spec, (users, err) => {
+      Wylib.Wyseman.request('pe_'+this.id, 'select', spec, (users, err) => {
         if (err) {console.err('Error:', err.message); return}
         let nodes = this.state.nodes
           , nodeStray = Object.assign({}, nodes)	//Track any nodes on our graph but no longer in the DB
@@ -150,11 +151,14 @@ export default {
 //console.log("Nodes:", this.state.nodes)
 //console.log("Will delete:", nodeStray, edgeStray)
         Object.keys(nodeStray).forEach(tag => {		//Delete anything on the SVG, not now in nodes
-          this.$delete(this.state.nodes, tag)
-          this.$delete(this.nodeData, tag)
+          delete this.state.nodes[tag]
+//          this.$delete(this.state.nodes, tag)
+          delete(this.nodeData[tag]
+//          this.$delete(this.nodeData, tag)
         })
         Object.keys(edgeStray).forEach(tag => {		//Same for edges
-          this.$delete(this.state.edges, tag)
+          delete this.state.edges[tag]
+//          this.$delete(this.state.edges, tag)
         })
 
 //console.log("Node Data:", this.nodeData)
@@ -261,7 +265,7 @@ export default {
     VisBSInit({d3})
 //console.log("URNet2 beforeMount:", this.state)    
 
-    Wylib.Wyseman.listen('urnet.async.'+this._uid, 'mychips_admin', dat => {
+    Wylib.Wyseman.listen('as_'+this.id, 'mychips_admin', dat => {
 //console.log("URnet async:", dat, dat.oper)
 
       if (dat.target == 'users' || dat.target == 'tallies')
