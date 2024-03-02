@@ -147,6 +147,22 @@ export const useChitsMeText = (wm) => {
   return messageText?.chits_v_me ?? {};
 }
 
+export const useCharkText = (wm) => {
+  const { messageText, setMessageText } = useMessageText();
+
+  useEffect(() => {
+    if(!messageText?.chark) {
+      wm.register('chark' + Math.random(), 'mychips.chark', (data, err) => {
+        if (data) {
+          addTextsToState('chark', data, setMessageText)
+        }
+      })
+    }
+  }, [wm, setMessageText])
+
+  return messageText?.chark ?? {};
+}
+
 function addTextsToState(field, texts, setState) {
   setState((prev) => {
     return {

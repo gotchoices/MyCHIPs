@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { localStorage } from '../config/constants';
-import { fetchTallyFile } from '../services/tally';
+import { fetchTallyFile, getHolderImage } from '../services/tally';
 
 const initialState = {
   imagesByDigest: {}, // { [digest]: string }
@@ -13,7 +13,7 @@ const initialState = {
   * @param {Object} - args
   * @param {tally} - args.tally
   */
-export const fetchImagesByDigest = createAsyncThunk('openTallies/fetchImagesByDigest', async (args, { getState }) => {
+export const fetchImagesByDigest = createAsyncThunk('avatar/fetchImagesByDigest', async (args, { getState }) => {
   const state = getState();
   const imagesByDigestState = state.avatar?.imagesByDigest ?? {};
   let hashes = [];
@@ -44,18 +44,26 @@ export const fetchImagesByDigest = createAsyncThunk('openTallies/fetchImagesByDi
       continue;
     }
 
-    promises.push(fetchTallyFile(args.wm, hash.digest, hash.tally_seq));
+    if(hash.isHolder) {
+      promises.push(getHolderImage(args.wm, hash.digest));
+    } else {
+      promises.push(fetchTallyFile(args.wm, hash.digest, hash.tally_seq));
+    }
   }
 
   try {
     const files = await Promise.all(promises);
 
     for(let file of files) {
-      const fileData = file?.[0]?.file_data;
+      const fileData = file?.[0]?.file_data ?? file?.[0]?.file_data64;
+      const fileData64 = file?.[0]?.file_data64;
       const file_fmt = file?.[0]?.file_fmt;
       const digest = file?.[0]?.digest;
 
-      if(fileData) {
+      if(fileData64) {
+        const image = `data:${file_fmt};base64,${fileData64}`;
+        _imagesByDigest[digest] = image;
+      } else if(fileData) {
         const base64 = Buffer.from(fileData).toString('base64')
         const image = `data:${file_fmt};base64,${base64}`;
         _imagesByDigest[digest] = image;
