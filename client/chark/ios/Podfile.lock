@@ -471,7 +471,7 @@ PODS:
     - RNNotifee/NotifeeCore (= 7.7.1)
   - RNNotifee/NotifeeCore (7.7.1):
     - React-Core
-  - RNReanimated (2.13.0):
+  - RNReanimated (2.17.0):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -509,10 +509,10 @@ PODS:
     - React-Core
   - SocketRocket (0.6.0)
   - TOCropViewController (2.6.1)
-  - vision-camera-code-scanner (0.2.0):
+  - vision-camera-code-scanner (0.2.1):
     - GoogleMLKit/BarcodeScanning
     - React-Core
-  - VisionCamera (2.15.2):
+  - VisionCamera (2.15.6):
     - React
     - React-callinvoker
     - React-Core
@@ -826,15 +826,15 @@ SPEC CHECKSUMS:
   RNImageCropPicker: 648356d68fbf9911a1016b3e3723885d28373eda
   RNKeychain: ff836453cba46938e0e9e4c22e43d43fa2c90333
   RNNotifee: 05692d7bb42b6c718a3906aeb8431c48ff2e8097
-  RNReanimated: ce445c233a6ff5600223484a88ad5704945d972a
+  RNReanimated: bec7736122a268883bdede07f1bf9cf4b40158db
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
   RNShare: 12b65dcbbd4f71efca79e9b240b92797deef95c6
   RNSVG: 6adc5c52d2488a476248413064b7f2832e639057
   RNVectorIcons: fcc2f6cb32f5735b586e66d14103a74ce6ad61f8
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
-  vision-camera-code-scanner: dda884a7f3ec8243a2a6d6489b91860648371bca
-  VisionCamera: 4cfd685b1e671fea4aa0400905ab397f0e972210
+  vision-camera-code-scanner: ea4c16d84f9715db8b33c7591a4db99e278e2d4b
+  VisionCamera: 970b76179a57e9dd9cf706a21da72689ee45d287
   Yoga: 99caf8d5ab45e9d637ee6e0174ec16fbbb01bcfc
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 

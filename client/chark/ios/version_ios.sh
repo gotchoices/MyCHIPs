@@ -1,11 +1,19 @@
 #!/bin/bash
 
-# Path to version.properties file
-versionFile="$PWD/version.properties"
+# Path to package.json file
+packageJson="$PWD/package.json"
 
-# Read version code and name from version.properties
-appVersionCode=$(grep '^VERSION_CODE=' "$versionFile" | cut -d'=' -f2)
-appVersionName=$(grep '^VERSION_NAME=' "$versionFile" | cut -d'=' -f2)
+# Read version code and name from package.json
+appVersionCode=$(grep -o '"chark":\s*{[^}]*"versionCode":\s*[0-9]\+' "$packageJson" | awk -F':' '{print $3}' | tr -d '[:space:]')
+appVersionName=$(grep -o '"version":\s*"[0-9]\+\.[0-9]\+\.[0-9]\+"' "$packageJson" | awk -F'"' '{print $4}')
+
+# If version code is empty, read from "versionCode" at the top level
+if [ -z "$appVersionCode" ]; then
+    appVersionCode=$(grep -o '"versionCode":\s*[0-9]\+' "$packageJson" | awk -F':' '{print $2}' | tr -d '[:space:]')
+fi
+
+echo "Version code: $appVersionCode"
+echo "Version name: $appVersionName"
 
 # Path to Info.plist file
 infoPlist="$PWD/ios/chark/Info.plist"
@@ -15,4 +23,4 @@ infoPlist="$PWD/ios/chark/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $appVersionName" "$infoPlist"
 
 # Print the appVersionName
-echo "$appVersionName"
+echo "Updated Info.plist with version code: $appVersionCode and version name: $appVersionName"

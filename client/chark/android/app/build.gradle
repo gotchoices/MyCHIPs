@@ -130,43 +130,24 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
-def getVersionFromPackageJson() {
-    def jsonFile = new File("$rootDir/../package.json")
-    def jsonData = new JsonSlurper().parseText(jsonFile.text)
+def packageJson = new File("${rootDir}/../package.json")
+def jsonSlurper = new JsonSlurper()
+def json = jsonSlurper.parse(packageJson)
+def verName = json.version
+def verCode = json.chark?.versionCode
 
-    return jsonData["version"]
-}
-
-def getVersionCodeFromPackageJson() {
-    def jsonFile = new File("$rootDir/../package.json")
-    def jsonData = new JsonSlurper().parseText(jsonFile.text)
-
-    return jsonData["chark"]["versionCode"]
-}
 
 android {
     ndkVersion rootProject.ext.ndkVersion
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    def versionFile = file("$rootDir/../version.properties")
-    if (versionFile.canRead()) {
-        def Properties versionProperties = new Properties();
-
-        versionProperties.load(new FileInputStream(versionFile))
-
-        def verCode = versionProperties['VERSION_CODE'].toInteger();
-        def verName = versionProperties['VERSION_NAME']
-
-        versionProperties['VERSION_CODE'] = verCode.toString()
-        versionProperties.store(versionFile.newWriter(), null)
-
- defaultConfig {
+    defaultConfig {
         applicationId "org.mychips.chark"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode verCode
         versionName verName
+        versionCode verCode
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
@@ -198,11 +179,7 @@ android {
             }
         }
     }
-    }
-        else {
-          throw new GradleException("Could not read version.properties!")
-            }
-    
+
     if (isNewArchitectureEnabled()) {
         // We configure the NDK build only if you decide to opt-in for the New Architecture.
         externalNativeBuild {

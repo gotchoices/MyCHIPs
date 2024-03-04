@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "chark": {
-    "versionCode": 3
+    "versionCode": 6
   },
   "scripts": {
     "prebuild:ios": "sh ios/version_ios.sh",
@@ -49,7 +49,6 @@
     "react-native-keychain": "^8.1.1",
     "react-native-qrcode-svg": "^6.1.2",
     "react-native-quick-base64": "^2.0.5",
-    "react-native-reanimated": "^2.13.0",
     "react-native-safe-area-context": "^4.4.1",
     "react-native-screens": "^3.18.2",
     "react-native-share": "^9.0.1",
@@ -59,14 +58,15 @@
     "react-native-toast-message": "^2.1.5",
     "react-native-vector-icons": "^9.2.0",
     "react-native-view-shot": "^3.5.0",
-    "react-native-vision-camera": "^2.15.2",
     "react-native-walkthrough-tooltip": "^1.4.0",
     "react-native-webview": "^11.25.0",
     "react-native-webview-crypto": "^0.0.25",
     "react-redux": "^8.1.2",
     "redux-persist": "^6.0.0",
     "uuid": "^9.0.1",
-    "vision-camera-code-scanner": "^0.2.0",
+    "react-native-vision-camera": "2.15.6",
+    "react-native-reanimated": "2.17.0",
+    "vision-camera-code-scanner": "github:jorgebrunetto/vision-camera-code-scanner",
     "web-encoding": "^1.1.5",
     "wyseman": "^1.1.10"
   },
