@@ -9,7 +9,6 @@ import { decryptJSON } from "../../utils/file-manager";
 import { useEffect } from "react";
 import { isKeyStored, storePrivateKey, storePublicKey } from "../../utils/keychain-store";
 import { updatePublicKey } from "../../services/profile";
-import useCurrentUser from "../../hooks/useCurrentUser";
 import useSocket from "../../hooks/useSocket";
 
 const ImportKeyScreen = (props) => {
