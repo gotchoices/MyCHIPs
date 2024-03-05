@@ -144,6 +144,7 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {P.offer.offer {Tally Offer}		{This tally is offered to you by the other party}}
   {H.offer.draft {Tally Revised}	{The other party has marked the tally offer for revision}}
   {P.draft.draft {You Revised}		{You have marked the tally offer for revision}}
+  {offer	{Offer Tally}		{Propose the tally to the partner}}
   {accept	{Accept Tally}		{Agree to the proposed tally}}
   {reject	{Reject Tally}		{Refuse the proposed tally}}
   {sort		{Tally Order}		{Control the order in which tallies are listed}}
