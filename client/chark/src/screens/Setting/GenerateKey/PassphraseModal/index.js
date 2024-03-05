@@ -38,11 +38,11 @@ const PassphraseModal = (props) => {
       {props.title? props.title:  'Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key.'}
       </Text>
 
-{props.subTitle &&
+    {props.subTitle &&
       <Text style={styles.text}>
       {props.subTitle}
       </Text>
-}
+    }
 
       <TextInput
         style={styles.textInput}
@@ -71,7 +71,7 @@ const PassphraseModal = (props) => {
         <Button
           style={{ width: "45%" }}
           onPress={onConfirmPassphrase}
-          title="Export"
+          title={props.buttonTitle?props.buttonTitle:"Export"}
         />
       </View>
     </View>
