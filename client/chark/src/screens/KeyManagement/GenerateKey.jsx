@@ -96,7 +96,7 @@ const GenerateKey = () => {
   return (
     <>
       <View style={{ marginTop: 30 }}>
-        <Text style={styles.generate}>Generate</Text>
+        <Text style={styles.generate}>generate_text</Text>
         <Text style={styles.description}>
           Generating a new key can be a destructive action. Remember
           to save your current active key by exporting it to a safe
@@ -105,7 +105,7 @@ const GenerateKey = () => {
 
         <Button
           style={{ marginTop: 16, width: "50%", height: 30 }}
-          title="Generate"
+          title="generate_text"
           onPress={onGenerateClick}
         />
       </View>

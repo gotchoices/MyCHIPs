@@ -32,7 +32,7 @@ const ProfileEdit = (props) => {
 
   if(profileType === 'personal') {
     return (
-      <PersonalBio />
+      <PersonalBio navigation={props.navigation} />
     )
   } 
 

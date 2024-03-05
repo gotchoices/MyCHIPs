@@ -16,11 +16,14 @@ import { colors, qrType } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import { request } from '../../services/request';
 import { random } from '../../utils/common';
+import useMessageText from '../../hooks/useMessageText';
 
 const ShareTally = (props) => {
   const tally_id = props.route?.params?.tally_id;
   const viewShotRef = useRef();
   const { wm } = useSocket();
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const [invite, setInvite] = useState();
   const [activeTab, setActiveTab] = useState('qr');
@@ -113,7 +116,7 @@ const ShareTally = (props) => {
         >
           <View style={[styles.tabItem, activeTab === 'qr' ? styles.activeTab : {}]}>
             <Text style={[styles.tabText, activeTab === 'qr' ? styles.activeText : {}]}>
-              QR Code
+              {charkText?.qr?.title}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -123,7 +126,7 @@ const ShareTally = (props) => {
         >
           <View style={[styles.tabItem, activeTab === 'link' ? styles.activeTab : {}]}>
             <Text style={[styles.tabText, activeTab === 'link' ? styles.activeText : {}]}>
-              Link
+              {charkText?.link?.title}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -169,7 +172,7 @@ const ShareTally = (props) => {
           onPress={onShare}
         >
           <View style={styles.share}>
-            <Text style={{ color: colors.white, fontWeight: 'bold', fontSize: 16 }}>Share</Text>
+            <Text style={{ color: colors.white, fontWeight: 'bold', fontSize: 16 }}>{charkText?.share?.title}</Text>
           </View>
         </TouchableOpacity>
 

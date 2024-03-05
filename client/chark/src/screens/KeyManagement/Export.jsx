@@ -12,7 +12,7 @@ import { keyServices } from '../../config/constants';
 import { retrieveKey } from '../../utils/keychain-store';
 import { setPrivateKey } from '../../redux/profileSlice';
 
-const Export = () => {
+const Export = (props) => {
   const dispatch = useDispatch();
   const [passphrase, setPassphrase] = useState(undefined);
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -40,14 +40,14 @@ const Export = () => {
   return (
     <>
       <View style={{ marginTop: 30 }}>
-        <Text style={styles.exportText}>Export</Text>
+        <Text style={styles.exportText}>{props.exportText}</Text>
         <Text style={styles.exportDescription}>
           Generating a new key can be a destructive action. Remember to save your current active key by exporting it to a safe place.
         </Text>
 
         <Button
           style={styles.exportBtn}
-          title="Export"
+          title={props.exportText}
           onPress={getKey}
         />
       </View>

@@ -14,6 +14,7 @@ import Button from '../../../components/Button';
 
 import { colors } from '../../../config/constants';
 import { setUserChangeTrigger } from '../../../redux/profileSlice';
+import useMessageText from '../../../hooks/useMessageText';
 
 const ChangePrimary = (props) => {
   const items = props.items;
@@ -21,6 +22,8 @@ const ChangePrimary = (props) => {
   const primaryField = props.primaryField;
   const seqField = props.seqField;
   const dispatch = useDispatch();
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +76,7 @@ const ChangePrimary = (props) => {
               onPress={props.onCancel}
             >
               <View style={{ borderColor: colors.blue, borderWidth: 1, paddingVertical: 7 }}>
-                <Text style={{ color: colors.blue, alignSelf: 'center' }}>cancel_text</Text>
+                <Text style={{ color: colors.blue, alignSelf: 'center' }}>{charkText?.cancel?.title ?? ''}</Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -83,7 +86,7 @@ const ChangePrimary = (props) => {
                 <Button
                   onPress={onSave}
                   disabled={loading}
-                  title="save_changes_text"
+                  title={charkText?.save?.title ?? ''}
                 />
               </View>
             )

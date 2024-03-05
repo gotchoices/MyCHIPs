@@ -12,6 +12,7 @@ import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import { uploadAvatar, fetchComm, fetchAddresses } from '../../redux/profileSlice';
 import { useCommunication, useUser, useAddressV, useAddressVFlat } from '../../hooks/useLanguage';
+import useMessageText from '../../hooks/useMessageText';
 
 import Avatar from './Avatar';
 import Details from './Details';
@@ -23,6 +24,8 @@ const Profile = (props) => {
   const { wm } = useSocket();
   const dispatch = useDispatch();
   const { avatar, loadingAvatar, communications, personal }  = useSelector(state => state.profile);
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   // Registering necessary text hooks for current language
   const commText = useCommunication(wm);
@@ -32,6 +35,12 @@ const Profile = (props) => {
 
   const { user } = useSelector(state => state.currentUser);
   const user_ent = user?.curr_eid;
+
+  useEffect(() => {
+    if(charkText?.profile?.title) {
+      props.navigation.setOptions({ title: charkText?.profile?.title })
+    }
+  }, [charkText?.profile?.title])
 
   useEffect(() => {
     dispatch(fetchComm({ wm, user_ent }))

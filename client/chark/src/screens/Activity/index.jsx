@@ -12,10 +12,13 @@ import { useChitsMeText } from '../../hooks/useLanguage';
 import { getCurrency } from '../../services/user';
 import { getChits, getTallies, setHasNotification, getGoodChits } from '../../redux/activitySlice';
 import { fetchImagesByDigest } from '../../redux/avatarSlice';
+import useMessageText from '../../hooks/useMessageText';
 
 const Activity = (props) => {
   const { wm, chitTrigger, tallyNegotiation } = useSocket();
   const dispatch = useDispatch();
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const [conversionRate, setConversionRate] = useState(0);
 
@@ -36,6 +39,12 @@ const Activity = (props) => {
 
   // Register chits texts
   useChitsMeText(wm);
+
+  useEffect(() => {
+    if(charkText?.activity?.title) {
+      props.navigation.setOptions({ title: charkText?.activity?.title })
+    }
+  }, [charkText?.activity?.title])
 
   useEffect(() => {
     fetchChits();

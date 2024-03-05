@@ -24,7 +24,7 @@ const ActiveKey = () => {
     <>
       <View>
         <Text style={styles.headerText}>
-          Active public key
+          active_public_key
         </Text>
 
         <View style={styles.keySection}>
@@ -36,7 +36,7 @@ const ActiveKey = () => {
 
       <View style={{ marginTop: 30 }}>
         <Text style={styles.headerText}>
-          Active private key
+          active_private_key
         </Text>
 
         <View style={styles.keySection}>

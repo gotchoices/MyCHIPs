@@ -4,9 +4,12 @@ import PropTypes from 'prop-types'
 
 import { FilterIcon, SearchIcon } from '../../../components/SvgAssets/SvgAssets';
 import { colors } from '../../../config/constants';
+import useMessageText from '../../../hooks/useMessageText';
 
 const Search = (props) => {
 
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   return (
     <View style={styles.container}>
@@ -14,7 +17,7 @@ const Search = (props) => {
         <SearchIcon />
         <TextInput
           style={styles.searchInput}
-          placeholder={props.title ?? 'search_text'}
+          placeholder={charkText?.search?.title ?? ''}
         />
       </View>
     </View>
