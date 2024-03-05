@@ -4,7 +4,7 @@
 
 tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for chark mobile app} {
   {always	{Always}		{Always true}}
-} - message {
+} -message {
   {mychips	{My CHIPs}	{Title for main screen}}
   {filter	{Filter}	{Settings to control display of records in the list preview}}
   {search	{Search}	{Load records that match a given string}}
