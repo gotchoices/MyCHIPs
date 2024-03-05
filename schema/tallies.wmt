@@ -144,7 +144,11 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {P.offer.offer {Tally Offer}		{This tally is offered to you by the other party}}
   {H.offer.draft {Tally Revised}	{The other party has marked the tally offer for revision}}
   {P.draft.draft {You Revised}		{You have marked the tally offer for revision}}
+  {accept	{Accept Tally}		{Agree to the proposed tally}}
+  {reject	{Reject Tally}		{Refuse the proposed tally}}
   {sort		{Tally Order}		{Control the order in which tallies are listed}}
+  {credit	{Credit}		{Trust is extended for this amount}}
+  {risk		{Risk}			{A loss may be incurred for this amount}}
   {sort.ddate	{Most Recent}		{Show tallies with recent activity at the top of the list}}
   {sort.dbal	{Positive to Negative}	{Show biggest assets at the top, biggest liabilities at the bottom}}
   {sort.abal	{Negative to Positive}	{Show biggest liabilities at the top, biggest assets at the bottom}}

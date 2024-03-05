@@ -5,22 +5,25 @@
 tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for chark mobile app} {
   {always	{Always}		{Always true}}
 } -message {
-  {mychips	{My CHIPs}	{Title for main screen}}
-  {filter	{Filter}	{Settings to control display of records in the list preview}}
-  {search	{Search}	{Load records that match a given string}}
-  {more		{More}		{Show more details}}
-  {less		{Less}		{Show less details}}
-  {language	{Language}	{What language the app will use}}
-  {cancel	{Cancel}	{Abort the current operation}}
-  {save		{Save}		{Save the current changes}}
-  {import	{Import}	{Import the item from an external format}}
-  {export	{Export}	{Export the item to an external format}}
-  {link		{Link}		{Generate a deep link for this function}}
-  {share	{Share}		{Share this item by some external medium}}
-  {qr		{QR Code}	{Generate a scannable QR code}}
-  {add		{Add}		{Add a new record}}
-  {settings	{Settings}	{View/modify application preferences}}
-  {profile	{Personal Data}	{View/modify personal information about the user}}
-  {activity	{Activity}	{Show notifications and account transactions}}
-  {keys		{Manage Keys}	{Create, import and export cryptographic keys}}
+  {mychips	{My CHIPs}		{Title for main screen}}
+  {working	{Working Tallies}	{Draft and void templates you may use to tally with other users}}
+  {settings	{Settings}		{View/modify application preferences}}
+  {profile	{Personal Data}		{View/modify personal information about the user}}
+  {activity	{Activity}		{Show notifications and account transactions}}
+  {newtally	{New Tally}		{Creating a new tally template}}
+  {keys		{Manage Keys}		{Create, import and export cryptographic keys}}
+  {filter	{Filter}		{Settings to control display of records in the list preview}}
+  {search	{Search}		{Load records that match a given string}}
+  {more		{More Details}		{Show more information}}
+  {less		{Less Details}		{Show less information}}
+  {language	{Language}		{What language the app will use}}
+  {cancel	{Cancel}		{Abort the current operation}}
+  {save		{Save}			{Save the current changes}}
+  {import	{Import}		{Import the item from an external format}}
+  {export	{Export}		{Export the item to an external format}}
+  {link		{Link}			{Generate a deep link for this function}}
+  {share	{Share}			{Share this item by some external medium}}
+  {qr		{QR Code}		{Generate a scannable QR code}}
+  {add		{Add}			{Add a new record}}
+  {next		{Next}			{Proceed to the next step}}
 }

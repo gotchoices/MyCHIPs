@@ -7,4 +7,6 @@ tabtext mychips.lifts_v_pay_me	{My Payments}	{User view of lift payments to/from
   {net		{Net}		{Net effect on the user's balance of this lift payment}}
   {memo		{Memo}		{Notes about the payment}}
   {reference	{Reference}	{Machine readable information pertaining to the payment}}
+} -message {
+  {address	{Payment Address}	{Generate a link or QR code other users can use to pay you}}
 }
