@@ -155,3 +155,35 @@
 
 
 ### Key managaement
+| Page           | Action | Check |
+| -------------- | ------ | ----- |
+| Key Management |        |       |
+
+
+### Activity Page
+
+| Page        | Action                         | Check                                                      |
+| ----------- | ------------------------------ | ---------------------------------------------------------- |
+| Activity    |                                | Show list of transactions that the user has made           |
+|             |                                | Profile picture is loading for trasaction                  |
+|             |                                | The transaction amount is correct                          |
+|             |                                | Time each transaction was made is correct                  |
+|             |                                | Each item is ordered by most recent                        |
+|             | Click on a chit transaction    |                                                            |
+| Chit Detail |                                | Show chit details                                          |
+|             | Back                           |                                                            |
+| Activity    |                                |                                                            |
+|             | Send Chit request to this user |                                                            |
+|             |                                | Chit request shows above all transactions                  |
+|             | Send tally negotiation request |                                                            |
+|             |                                | Tally negotiation request shows above all transactions     |
+|             | Back                           |                                                            |
+| Home        |                                |                                                            |
+|             |                                | Red dot on bell icon shows when active notifications       |
+|             | Click on bell icon             |                                                            |
+| Activity    |                                |                                                            |
+|             | Complete chit request          |                                                            |
+|             |                                | Show chit request native notification                      |
+|             |                                | Chit request is removed from activity page without refresh |
+|             | Refresh activity page          |                                                            |
+|             |                                | Completed chit request shows as most recent transaction    |
