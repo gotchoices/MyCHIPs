@@ -29,6 +29,7 @@ const PersonalBio = (props) => {
   const { personal } = useSelector(state => state.profile);
   const { messageText } = useMessageText();
   const userText = messageText?.users_v_me?.col ?? {};
+  const charkText = messageText?.chark?.msg;
 
   const onEditPress = () => {
     props.navigation.navigate('ProfileEdit', {
@@ -40,7 +41,8 @@ const PersonalBio = (props) => {
   return (
     <View style={styles.container}>
       <Header
-        title="personal_bio_text"
+        title={charkText?.profile?.title ?? ''}
+        helpText={charkText?.profile?.help?? ''}
         onEditPress={onEditPress}
       />
 

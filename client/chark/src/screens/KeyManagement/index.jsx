@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 import ActiveKey from './ActiveKey';
@@ -7,8 +7,17 @@ import ImportKey from './ImportKey';
 import Export from './Export';
 
 import { colors } from '../../config/constants';
+import useMessageText from '../../hooks/useMessageText';
 
 const KeyManagement = (props) => {
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
+
+  useEffect(() => {
+    if(charkText?.keys?.title) {
+      props.navigation.setOptions({ title: charkText?.keys?.title })
+    }
+  }, [charkText?.keys?.title])
 
   return (
     <ScrollView
@@ -28,9 +37,9 @@ const KeyManagement = (props) => {
 
       <GenerateKey />
 
-      <ImportKey navigation={props.navigation} />
+      <ImportKey navigation={props.navigation} importText={charkText?.import?.title ?? ''} />
 
-      <Export />
+      <Export exportText={charkText?.export?.title ?? ''}/>
     
     </ScrollView>
   )

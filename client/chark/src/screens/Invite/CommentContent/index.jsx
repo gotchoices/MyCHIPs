@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo} from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import Button from "../../../components/Button";
 import CustomIcon from "../../../components/CustomIcon";
@@ -8,6 +8,15 @@ import { colors } from "../../../config/constants";
 const CommentContent = (props) => {
   const [comment, setComment] = useState();
   const [selectedItem, setSelectedItem] = useState(undefined);
+
+  const tallyTypeText = useMemo(() => {
+    return props.text?.tally_type?.values?.reduce((acc, current) => {
+      acc[current.value] = current;
+      return acc;
+    }, {})
+  })
+
+  console.log(tallyTypeText, 'askdj')
 
   const generateCommonStyle = (itemType, selected) => ({
     flex: 1,
@@ -31,11 +40,11 @@ const CommentContent = (props) => {
       onPress={props.onDismiss}
       style={{ alignSelf: 'flex-end', backgroundColor: 'white', height: 24, width: 24, justifyContent: 'center', alignItems: 'center' }}
     />
-    <Text style={styles.bottomSheetTitle}>New Tally</Text>
+    <Text style={styles.bottomSheetTitle}>new_tally_text</Text>
     <TextInput
       value={comment}
       onChangeText={setComment}
-      placeholder='Comments'
+      placeholder={props.text?.comment?.title ?? ''}
       style={styles.textInput}
       returnKeyType="done"
     />
@@ -45,19 +54,19 @@ const CommentContent = (props) => {
         onPress={() => { setSelectedItem('foil') }}
         style={generateCommonStyle('foil', selectedItem === "foil")}
       >
-        <Text style={selectedItem === "foil" ? styles.selectedLabel : styles.unSelectedLabel}>Foil</Text>
+        <Text style={selectedItem === "foil" ? styles.selectedLabel : styles.unSelectedLabel}>{tallyTypeText?.foil?.title ?? ''}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => { setSelectedItem('stock') }}
         style={generateCommonStyle('stock', selectedItem === "stock")}
       >
-        <Text style={selectedItem === "stock" ? styles.selectedLabel : styles.unSelectedLabel}>Stock</Text>
+        <Text style={selectedItem === "stock" ? styles.selectedLabel : styles.unSelectedLabel}>{tallyTypeText?.stock?.title ?? ''}</Text>
       </TouchableOpacity>
     </View>
 
     <Button
-      title='Next'
+      title='next_text'
       onPress={() => {
         props.onNext({ comment: comment, tally_type: selectedItem });
       }}

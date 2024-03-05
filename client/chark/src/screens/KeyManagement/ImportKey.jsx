@@ -26,14 +26,14 @@ const ImportKey = (props) => {
   return (
     <>
       <View style={{ marginTop: 30 }}>
-        <Text style={styles.importText}>Import</Text>
+        <Text style={styles.importText}>{props?.importText}</Text>
         <Text style={styles.importDescription}>
           Importing a new key can be a destructive action. Remember to save your current active key by exporting it to a safe place.
         </Text>
 
         <Button
           style={styles.importBtn}
-          title="Import"
+          title={props?.importText}
           onPress={onImportClick}
         />
 

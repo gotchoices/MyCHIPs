@@ -11,6 +11,7 @@ import { colors } from '../../../config/constants';
 import useSocket from "../../../hooks/useSocket";
 import { getCurrency } from '../../../services/currency';
 import { setPreferredCurrency } from '../../../redux/profileSlice';
+import useMessageText from '../../../hooks/useMessageText';
 
 const Currency = (props) => {
   const [currency, setCurrency] = useState('');
@@ -18,6 +19,9 @@ const Currency = (props) => {
   const { wm } = useSocket();
   const { preferredCurrency } = useSelector(state => state.profile);
   const dispatch = useDispatch();
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
+  const exchangeText = messageText?.exchange;
 
   useEffect(() => {
     getCurrency(wm).then((data) => {
@@ -54,7 +58,11 @@ const Currency = (props) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <HelpText style={{ color: colors.black }} label="Currency" />
+        <HelpText 
+          style={{ color: colors.black }} 
+          label={exchangeText?.curr?.title ?? ''}
+          helpText={exchangeText?.curr?.help ?? ''}
+        />
       </View>
 
       <View style={styles.body}>
@@ -85,7 +93,7 @@ const Currency = (props) => {
         <View style={styles.action}>
           <View style={styles.actionItem}>
             <Button
-              title="cancel_text"
+              title={charkText?.cancel?.title ?? ''}
               style={styles.cancel}
               onPress={props.onCancel}
               textColor={colors.blue}
@@ -94,7 +102,7 @@ const Currency = (props) => {
 
           <View style={styles.actionItem}>
             <Button
-              title="save_changes_text"
+              title={charkText?.save?.title ?? ''}
               onPress={onSave}
             />
           </View>

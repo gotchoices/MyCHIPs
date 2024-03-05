@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ const PersonalBio = (props) => {
   const { messageText } = useMessageText();
   const user_ent = user?.curr_eid;
   const userText = messageText?.users_v_me?.col ?? {};
+  const charkText = messageText?.chark?.msg;
 
   const [updating, setUpdating] = useState(false);
 
@@ -74,7 +75,7 @@ const PersonalBio = (props) => {
     <ScrollView keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>personal_bio_text</Text>
+          <Text style={styles.headerText}>{charkText?.profile?.title ?? ''}</Text>
         </View>
 
         <View style={styles.body}>
@@ -101,7 +102,7 @@ const PersonalBio = (props) => {
 
           <View style={{ marginTop: 24, marginBottom: 16 }}>
             <Button 
-              title="save_changes_text"
+              title={charkText?.save?.title ?? ''}
               disabled={updating}
               onPress={onSave} 
             />

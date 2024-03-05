@@ -14,12 +14,15 @@ import { colors } from '../../../config/constants';
 import { random } from '../../../utils/common';
 import useSocket from '../../../hooks/useSocket';
 import { setPreferredLanguage } from '../../../redux/profileSlice';
+import useMessageText from '../../../hooks/useMessageText';
 
 const Language = (props) => {
   const [language, setLanguage] = useState('');
   const [languages, setLanguages] = useState([]);
   const { wm } = useSocket();
   const dispatch = useDispatch();
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const { preferredLanguage } = useSelector(state => state.profile);
 
@@ -81,7 +84,7 @@ const Language = (props) => {
         <View style={styles.action}>
           <View style={styles.actionItem}>
             <Button
-              title="cancel_text"
+              title={charkText?.cancel?.title ?? ''}
               style={styles.cancel}
               onPress={props.onCancel}
               textColor={colors.blue}
@@ -90,7 +93,7 @@ const Language = (props) => {
 
           <View style={styles.actionItem}>
             <Button
-              title="save_changes_text"
+              title={charkText?.save?.title ?? ''}
               onPress={onSave}
             />
           </View>

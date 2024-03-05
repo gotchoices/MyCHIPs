@@ -23,6 +23,7 @@ const Address = (props) => {
   const { wm } = useSocket();
   const addrFlatText = messageText?.addr_v_flat ?? {};
   const usersMeText = messageText?.users_v_me?.col ?? {};
+  const charkText = messageText?.chark?.msg;
 
   const [updating, setUpdating] = useState(false);
   const [mail, setMail] = useState([]);
@@ -287,7 +288,7 @@ const Address = (props) => {
               size={15}
               color={colors.blue}
             />
-            <Text style={{ color: colors.blue, marginLeft: 6 }}>Add New</Text>
+            <Text style={{ color: colors.blue, marginLeft: 6 }}>{charkText?.add?.title ?? ''}</Text>
           </View>
         </TouchableWithoutFeedback>
       </View>
@@ -320,7 +321,7 @@ const Address = (props) => {
               size={15}
               color={colors.blue}
             />
-            <Text style={{ color: colors.blue, marginLeft: 6 }}>Add New</Text>
+            <Text style={{ color: colors.blue, marginLeft: 6 }}>{charkText?.add?.title ?? ''}</Text>
           </View>
         </TouchableWithoutFeedback>
       </View>
@@ -346,7 +347,7 @@ const Address = (props) => {
         <Button
           onPress={onSave}
           disabled={updating}
-          title="save_changes_text"
+          title={charkText?.save?.title ?? ''}
         />
       </View>
     </ScrollView>

@@ -27,6 +27,7 @@ const Banner = (props) => {
   const { hasNotification } = useSelector((state) => state.activity);
   const { messageText } = useMessageText();
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+  const charkText = messageText?.chark?.msg;
 
   const navigateToReport = () => {
     props.navigation?.navigate?.("TallyReport");
@@ -62,7 +63,7 @@ const Banner = (props) => {
     <View style={styles.container}>
       <Header
         leftIcon={<VisualIcon />}
-        title="My CHIPs"
+        title={charkText?.mychips?.title ?? ''}
         onClick={navigateToReport}
         onNavigateToNotification={navigateToNotification}
         rightIcon={<Notification />}

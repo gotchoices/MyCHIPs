@@ -14,6 +14,7 @@ import { setPersonal } from '../../redux/profileSlice';
 import CenteredModal from '../../components/CenteredModal';
 import UpdateCID from '../UpdateCID';
 import { UpdateHoldCert } from '../Tally/TallyPreview/UpdateHoldCert';
+import { useCharkText } from "../../hooks/useLanguage";
 
 const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
 const tallyUri = new Set(['invite', 'mychips.org/invite'])
@@ -27,6 +28,9 @@ const HomeScreen = (props) => {
   const [visible, setVisible] = useState(false);
   const [updateCertVisible, setUpdateCertVisible] = useState(false);
   const [tallyProcess, setTallyProcess] = useState(undefined);
+
+  // Common text, will be used by multiple screens
+  useCharkText(wm);
 
   const connect = (ticket) => {
     connectSocket(ticket);

@@ -41,6 +41,7 @@ const Comm = (props) => {
   const { wm } = useSocket();
   const { messageText } = useMessageText();
   const commText = messageText?.comm ?? {};
+  const charkText = messageText?.chark?.msg;
 
   const [updating, setUpdating] = useState(false);
   const [keys, setKeys] = useState([]);
@@ -276,13 +277,13 @@ const Comm = (props) => {
                 size={15}
                 color={colors.blue}
               />
-              <Text style={{ color: colors.blue, marginLeft: 6 }}>add_new_text</Text>
+              <Text style={{ color: colors.blue, marginLeft: 6 }}>{charkText?.add?.title ?? ''}</Text>
             </View>
           </TouchableWithoutFeedback>
 
           <View style={{ marginTop: 8 }}>
             <Button
-              title="save_changes_text"
+              title={charkText?.save?.title ?? ''}
               onPress={onSave}
               disabled={updating}
             />

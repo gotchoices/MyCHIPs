@@ -392,6 +392,11 @@ const TallyInvite = (props) => {
       );
   };
 
+  const commentText = {
+    comment: talliesColText?.comment,
+    tally_type: talliesColText?.tally_type,
+  };
+
   const onDeleteTally = (item) => {
     if (item.status === "draft") {
       return deleteDraftTallies(item);
@@ -481,6 +486,7 @@ const TallyInvite = (props) => {
         onClose={() => setShowCommentModal(false)}
       >
         <CommentContent
+          text={commentText}
           onNext={(item) => {
             setTallyItem({ ...tallyItem, ...item });
             setShowCommentModal(false);

@@ -17,6 +17,7 @@ import HelpText from '../../components/HelpText';
 import Currency from './Currency';
 import ExportKey from './GenerateKey/ExportKey';
 import Avatar from '../../components/Avatar';
+import useMessageText from '../../hooks/useMessageText';
 
 const deviceLanguage =
   Platform.OS === 'ios'
@@ -28,6 +29,8 @@ const lang = `${languageMap[deviceLanguage]?.name ?? ''} (${deviceLanguage})`;
 const Setting = (props) => {
   const [isLangModalVisible, setIsLangModalVisible] = useState(false);
   const [isSelectCurrencyVisible, setIsSelectCurrencyVisible] = useState(false);
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const { avatar } = useSelector(state => state.profile);
   const { wm } = useSocket();
@@ -38,6 +41,12 @@ const Setting = (props) => {
   const onProfilePress = () => {
     props.navigation.navigate('Profile');
   }
+
+  useEffect(() => {
+    if(charkText?.setting?.title) {
+      props.navigation.setOptions({ title: charkText?.setting?.title })
+    }
+  }, [charkText?.setting?.title])
 
   const showModal = () => {
     setIsLangModalVisible(true);
@@ -76,7 +85,7 @@ const Setting = (props) => {
       <View style={styles.menu}>
         <View>
           <Text style={styles.menuTitle}>
-            language_preference_text
+            {charkText?.language?.title ?? ''}
           </Text>
 
           <Text style={styles.language}>
@@ -131,7 +140,7 @@ const Setting = (props) => {
             props.navigation.navigate("KeyManagement");
           }}
         >
-          <Text style={styles.menuTitle}>key_management_text</Text>
+          <Text style={styles.menuTitle}>{charkText?.keys?.title ?? ''}</Text>
         </TouchableOpacity>
       </View>
 
