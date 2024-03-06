@@ -29,6 +29,7 @@ const FilterScreen = (props) => {
   const { wm } = useSocket();
   const talliesText = useTalliesMeText(wm);
   const talliesMeText = talliesText?.col;
+  const talliesMeessageText = talliesText?.msg;
 
   const hasFilterChanged = useMemo(() => {
     const isOfferSelected = filter?.offer?.selected === true;
@@ -98,7 +99,7 @@ const FilterScreen = (props) => {
     return <View style={styles.container}>
       <View style={styles.divider} />
 
-      <FilterItem args={filter.offer} onSelected={onSelected} title={statusText?.offer?.title ?? 'offer_text'} />
+      <FilterItem args={filter.offer} onSelected={onSelected} title={talliesMeessageText?.offer?.title ?? 'offer_text'} />
       <View style={styles.divider} />
 
       <FilterItem args={filter.draft} onSelected={onSelected} title={statusText?.draft?.title ?? ''} />

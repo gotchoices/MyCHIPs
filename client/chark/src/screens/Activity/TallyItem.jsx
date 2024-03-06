@@ -25,6 +25,13 @@ const TallyItem = (props) => {
   const [rejecting, setRejecting] = useState(false);
   const { messageText } = useMessageText();
   const talliesMeText = messageText?.tallies_v_me?.col;
+  const talliesMessageText = messageText?.tallies_v_me?.msg;
+
+  const commonText = {
+    offer: talliesMessageText?.offer,
+    accept: talliesMessageText?.accept,
+    reject: talliesMessageText?.reject,
+  }
 
   const canOffer = tally.state === "P.draft";
   const canAccept = tally.state === "P.offer";
@@ -92,6 +99,7 @@ const TallyItem = (props) => {
             tally={tally}
             postOffer={props.postAccept}
             style={styles.btn}
+            text={commonText}
           />
         )}
 
@@ -100,14 +108,16 @@ const TallyItem = (props) => {
             tally={tally}
             style={[styles.btn, styles.offerBtn]}
             postOffer={props.postOffer}
+            text={commonText}
           />
         )}
 
         <Button
-          title="reject_text"
+          title={commonText?.reject?.title ?? ''}
           onPress={onReject}
           disabled={rejecting}
           style={[styles.btn, styles.rejectBtn]}
+          text={commonText}
         />
       </View>
     </View>

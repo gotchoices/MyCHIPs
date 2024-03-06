@@ -40,7 +40,7 @@ const CommentContent = (props) => {
       onPress={props.onDismiss}
       style={{ alignSelf: 'flex-end', backgroundColor: 'white', height: 24, width: 24, justifyContent: 'center', alignItems: 'center' }}
     />
-    <Text style={styles.bottomSheetTitle}>new_tally_text</Text>
+    <Text style={styles.bottomSheetTitle}>{props?.text?.newtally?.title ?? ''}</Text>
     <TextInput
       value={comment}
       onChangeText={setComment}
@@ -66,7 +66,7 @@ const CommentContent = (props) => {
     </View>
 
     <Button
-      title='next_text'
+      title={props?.text?.next?.title ?? ''}
       onPress={() => {
         props.onNext({ comment: comment, tally_type: selectedItem });
       }}

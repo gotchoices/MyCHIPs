@@ -36,6 +36,7 @@ const TallyReviewView = (props) => {
 
   const { messageText } = useMessageText();
   const talliesMeText = messageText?.tallies_v_me?.col;
+  const talliesMessageText = messageText?.tallies_v_me?.msg;
 
   const checkValidInput = (textValue) => {
     return textValue && /^[0-9]*(\.[0-9]{0,3})?$/.test(textValue);
@@ -120,7 +121,7 @@ const TallyReviewView = (props) => {
         <View style={styles.rowWrapper}>
           <View style={styles.leftIcon}>
             <HelpText
-              label={talliesMeText?.risk?.title ?? "risk_title"}
+              label={talliesMessageText?.risk?.title ?? "risk_title"}
               style={[styles.leftText, styles.leftTopText]}
             />
             <DownArrowIcon />
@@ -152,7 +153,7 @@ const TallyReviewView = (props) => {
 
           <View style={styles.rightIcon}>
             <HelpText
-              label={talliesMeText?.credit?.title ?? "credit_title"}
+              label={talliesMessageText?.credit?.title ?? "credit_title"}
               style={[styles.rightText, styles.rightTopText]}
             />
             <LeftArrowIcon />
@@ -206,7 +207,7 @@ const TallyReviewView = (props) => {
           <View style={styles.leftIcon}>
             <RightArrowIcon />
             <HelpText
-              label={talliesMeText?.credit?.title ?? "credit_title"}
+              label={talliesMessageText?.credit?.title ?? "credit_title"}
               style={[styles.leftText, styles.leftBottomText]}
             />
           </View>
@@ -238,7 +239,7 @@ const TallyReviewView = (props) => {
           <View style={styles.rightIcon}>
             <UpArrowIcon />
             <HelpText
-              label={talliesMeText?.risk?.title ?? "risk_title"}
+              label={talliesMessageText?.risk?.title ?? "risk_title"}
               style={[styles.rightText, styles.rightBottomText]}
             />
           </View>
@@ -316,13 +317,13 @@ const styles = StyleSheet.create({
     borderColor: colors.dimgray,
   },
   leftIcon: {
-    width: "35%",
+    width: "30%",
     marginLeft: 20,
     alignItems: "center",
     justifyContent: "center",
   },
   rightIcon: {
-    width: "35%",
+    width: "30%",
     marginRight: 20,
     alignItems: "center",
     justifyContent: "center",

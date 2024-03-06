@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -27,6 +27,7 @@ const Banner = (props) => {
   const { hasNotification } = useSelector((state) => state.activity);
   const { messageText } = useMessageText();
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+  const chitMeText = messageText?.chits_v_me?.col;
   const charkText = messageText?.chark?.msg;
 
   const navigateToReport = () => {
@@ -36,6 +37,10 @@ const Banner = (props) => {
   const navigateToNotification = () => {
     props.navigation?.navigate?.("Activity");
   };
+
+  const pendingText = useMemo(() => {
+    return chitMeText?.status?.values?.find(s => s.value === 'pend');
+  }, [chitMeText?.status?.values])
 
   const isNetNegative = props.totalNet < 0;
   const hasPendingTotal =
@@ -96,7 +101,7 @@ const Banner = (props) => {
         <View style={styles.textWrapper}>
           {hasPendingTotal && (
             <Text style={styles.pending}>
-              {props.totalPendingNet} pending_text
+              {props.totalPendingNet} {pendingText?.title ?? ''}
             </Text>
           )}
 

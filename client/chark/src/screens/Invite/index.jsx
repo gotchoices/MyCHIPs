@@ -123,6 +123,7 @@ const TallyInvite = (props) => {
   useTalliesMeText(wm);
   const { messageText } = useMessageText();
   const talliesColText = messageText?.tallies_v_me?.col;
+  const charkText = messageText?.chark?.msg;
 
   const draftLang = useMemo(() => {
     return talliesColText?.request?.values?.find(
@@ -392,9 +393,11 @@ const TallyInvite = (props) => {
       );
   };
 
-  const commentText = {
+  const commonText = {
     comment: talliesColText?.comment,
     tally_type: talliesColText?.tally_type,
+    next: charkText?.next,
+    newtally: charkText?.newtally,
   };
 
   const onDeleteTally = (item) => {
@@ -427,7 +430,7 @@ const TallyInvite = (props) => {
     <>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.h1}>Working Tallies</Text>
+          <Text style={styles.h1}>{charkText?.working?.title ?? ''}</Text>
           <View
             style={[
               styles.row,
@@ -486,7 +489,7 @@ const TallyInvite = (props) => {
         onClose={() => setShowCommentModal(false)}
       >
         <CommentContent
-          text={commentText}
+          text={commonText}
           onNext={(item) => {
             setTallyItem({ ...tallyItem, ...item });
             setShowCommentModal(false);
@@ -503,6 +506,7 @@ const TallyInvite = (props) => {
         onClose={() => setShowLimitModal(false)}
       >
         <LimitContent
+          text={commonText}
           onNext={(item) => {
             setShowLimitModal(false);
             newTemplate({ ...tallyItem, ...item });

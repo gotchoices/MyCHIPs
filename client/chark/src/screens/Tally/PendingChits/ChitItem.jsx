@@ -21,6 +21,13 @@ import useMessageText from '../../../hooks/useMessageText';
 const ChitItem = (props) => {
   const isNegative = props.chit.net < 0;
   const { messageText } = useMessageText()
+  const talliesMessageText = messageText?.tallies_v_me?.msg;
+
+  const commonText = {
+    offer: talliesMessageText?.offer,
+    accept: talliesMessageText?.accept,
+    reject: talliesMessageText?.reject,
+  }
 
   const net_pc = round((props?.chit?.net ?? 0) / 1000, 3);
   const convertedNet = round(net_pc * props.conversionRate, 2);
@@ -104,6 +111,7 @@ const ChitItem = (props) => {
               chit_idx={props.chit?.chit_idx}
               style={styles.btn}
               postAccept={props?.postAccept}
+              text={commonText}
             />
 
             <RejectButton
@@ -112,6 +120,7 @@ const ChitItem = (props) => {
               chit_idx={props.chit?.chit_idx}
               style={[styles.reject, styles.btn]}
               postReject={props?.postReject}
+              text={commonText}
             />
           </>
         )}
