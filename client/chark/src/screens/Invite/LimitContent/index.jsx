@@ -40,7 +40,7 @@ const LimitContent = (props) => {
       onPress={props.onDismiss}
       style={styles.close}
     />
-    <Text style={styles.bottomSheetTitle}>new_tally_text</Text>
+    <Text style={styles.bottomSheetTitle}>{props?.text?.newtally?.title ?? ''}</Text>
     <TextInput
       maxLength={9}
       numberOfLines={1}
@@ -52,7 +52,7 @@ const LimitContent = (props) => {
    placeholder={limit? round(limit,3) : 'my_limit_text'}
     />
     <Button
-      title='next_text'
+      title={props?.text?.next?.title ?? ''}
       onPress={() => {
         props.onNext({ limit: limit })
       }}

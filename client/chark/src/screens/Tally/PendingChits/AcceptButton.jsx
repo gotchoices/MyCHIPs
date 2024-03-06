@@ -60,7 +60,7 @@ const AcceptButton = (props) => {
 
   return (
     <Button
-      title="accept_text"
+      title={props.text?.accept?.title ?? 'accept_text'}
       onPress={onAccept}
       disabled={disabled}
       style={props.style ?? {}}

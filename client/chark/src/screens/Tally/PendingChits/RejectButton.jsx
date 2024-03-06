@@ -38,7 +38,7 @@ const RejectButton = (props) => {
 
   return (
     <Button
-      title="reject_text"
+      title={props.text?.reject?.title ?? 'reject_text'}
       onPress={onReject}
       disabled={disabled}
       style={props.style ?? {}}

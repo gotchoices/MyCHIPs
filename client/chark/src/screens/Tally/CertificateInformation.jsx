@@ -11,9 +11,12 @@ import {
 import HelpText from '../../components/HelpText';
 
 import { colors } from '../../config/constants';
+import useMessageText from '../../hooks/useMessageText';
 
 const CertificateInformation = (props) => {
   const certText = props.certText;
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const certValueText = useMemo(() => {
     return certText?.values?.reduce((acc, curr) => {
@@ -70,7 +73,7 @@ const CertificateInformation = (props) => {
 
         <TouchableWithoutFeedback onPress={props.onViewDetails}>
           <Text style={styles.certOtherDetails}>
-            {certValueText?.other_details?.title ?? 'view_other_details'}
+            {charkText?.more?.title ?? 'view_other_details'}
           </Text>
         </TouchableWithoutFeedback>
       </View>
