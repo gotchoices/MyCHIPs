@@ -1,32 +1,18 @@
 TODO:
 
-- Upgrade wylib to vue 3
-X-  Get admin console launching
-X-  Change destroy handler
-X-  Port this.$set
-X-  Dews not rendering!
-X-  Port this.$on
-X-  Get contract report/editor working
-X-  Kill report when window closes
-X-  Port user toplevel app
-X-  Substitute method for component _uid
-X-  Remove mixins in mains
-X-  Clean out old (commented) this.$set, this.$delete, this.$parent, this.$options, this.$el statements
-X-  bug: DBP's init to a single column
-X-  SVGraph working correctly on network graph?
-X-  Can't close window on database tab
-X-  Database tab working
-X-  Diff each wylib file against master, compare/cleanup
--  
--  Wysegi/wyclif ported to vue3
+X-  Wysegi/wyclif ported to vue3
 X-    Users tab shows users
--    ERD tab works (with new graph functions)?
--  Retire old graph widgets
--  Can run Wyatt standalone
--  Implement chart of accounts in wyatt?
+X-  ERD tab works with old graph functions
+X-  ERD tab works with new graph functions
+X-  Retire old graph widgets
+X-  Can run Wyatt standalone?
+X-  Use D3 forces to arrange tables
+X-  Calculate edge end points correctly
+-  Update versions, commit/push
 -  
 - Payment testing:
--  Include actual user signature on payment request
+-  Check signatures on direct chits in lib/chit.js
+-  Include actual user signature on payment lift request
 -  Agent signs lift: can we use crypto routine from tally.js?
 -  agent evaluate's payor's authorization signature
 -  agent signs the lift payment record

@@ -60,17 +60,17 @@ export default {
 
   methods: {
     randPoint() {return {
-      x: (Math.random() - 0.5) * (this.state.maxX - this.state.minY) * 0.9,
-      y: (Math.random() - 0.5) * (this.state.maxX - this.state.minX) * 0.9
+      x: (Math.random() - 0.5) * (this.state.maxX - this.state.minX) * 0.9,
+      y: (Math.random() - 0.5) * (this.state.maxY - this.state.minY) * 0.9
     }},
 
     edge(thisSide, otherSide, edgeState) {		//Edge requesting endpoint
-      let {uuid} = edgeState				//Parts of querying edge
+      let { id } = edgeState				//Parts of querying edge
         , node = this.nodeData[thisSide.tag]
 //console.log("edge", thisSide, otherSide, node)
       if (node) {
         if (node.inside) {
-          let nodeTally = node.lookup[uuid]
+          let nodeTally = node.lookup[id]
           if (nodeTally) return nodeTally.hub
         } else {
           return node.state.ends
@@ -135,30 +135,27 @@ export default {
 //if (!tag || !pTag) console.log("BAD TAG:", tag, pTag)
             if (!(tally.uuid in this.state.edges)) {
               edges.push(tally.type == 'foil' ?
-                {source:{tag}, target:{tag:pTag}, uuid:tally.uuid, inside:tally.inside} :
-                {source:{tag:pTag}, target:{tag}, uuid:tally.uuid, inside:tally.inside})
+                {source:{tag}, target:{tag:pTag}, id:tally.uuid, inside:tally.inside} :
+                {source:{tag:pTag}, target:{tag}, id:tally.uuid, inside:tally.inside})
             }
           }
 
           this.putNode(tag, userNode)		//;console.log("Put:", tag)
           delete nodeStray[tag]
           edges.forEach(edge => {
-            this.state.edges[edge.uuid] = edge
-//            this.$set(this.state.edges, edge.uuid, edge)
+            this.state.edges[edge.id] = edge
           })
         }
 
 //console.log("Nodes:", this.state.nodes)
+//console.log("Edges:", this.state.edges)
 //console.log("Will delete:", nodeStray, edgeStray)
         Object.keys(nodeStray).forEach(tag => {		//Delete anything on the SVG, not now in nodes
           delete this.state.nodes[tag]
-//          this.$delete(this.state.nodes, tag)
-          delete(this.nodeData[tag]
-//          this.$delete(this.nodeData, tag)
+          delete this.nodeData[tag]
         })
         Object.keys(edgeStray).forEach(tag => {		//Same for edges
           delete this.state.edges[tag]
-//          this.$delete(this.state.edges, tag)
         })
 
 //console.log("Node Data:", this.nodeData)
@@ -186,7 +183,6 @@ export default {
         return uRad * (d.inside ? sets.lenLoc : sets.lenFor)
       }).strength(d => {
         return ((d.inside ? sets.locPull : sets.forPull) || 0.05)
-        sets.linkPull || 0.05
       }))
 
       .force('center', d3.forceCenter()		//Nodes like the graph center
