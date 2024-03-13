@@ -17,14 +17,12 @@ import Avatar from "../../../components/Avatar";
 import {
   ChitIcon,
   FilterSecondIcon,
-  NotificationIcon,
   VisualIcon,
 } from "../../../components/SvgAssets/SvgAssets";
-import UnreadIcon from '../../../../assets/svg/ic_unread.svg'
+import Activity from '../Activity';
 
 const Banner = (props) => {
   const { avatar, personal } = useSelector((state) => state.profile);
-  const { hasNotification } = useSelector((state) => state.activity);
   const { messageText } = useMessageText();
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
   const chitMeText = messageText?.chits_v_me?.col;
@@ -54,16 +52,6 @@ const Banner = (props) => {
       props.navigation.navigate("FilterTallyScreen");
     };
 
-
-  const Notification = () => {
-    return (
-      <View>
-        {hasNotification && <UnreadIcon style={{ position: 'absolute', zIndex: 1, left: -7, top: -4 }} /> }
-        <NotificationIcon />
-      </View>
-    )
-  }
-
   return (
     <View style={styles.container}>
       <Header
@@ -71,7 +59,7 @@ const Banner = (props) => {
         title={charkText?.mychips?.title ?? ''}
         onClick={navigateToReport}
         onNavigateToNotification={navigateToNotification}
-        rightIcon={<Notification />}
+        rightIcon={<Activity />}
       />
 
       <View

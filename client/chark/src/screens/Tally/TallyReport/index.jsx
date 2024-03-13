@@ -8,8 +8,8 @@ import { colors } from '../../../config/constants';
 import { parse } from '../../../utils/query-string';
 import { getTallyReport } from '../../../services/user';
 import useMessageText from '../../../hooks/useMessageText';
-
-import Header from '../Header';
+import Header from "../Header";
+import Activity from '../Activity';
 
 import { TabularIcon } from '../../../components/SvgAssets/SvgAssets';
 
@@ -17,7 +17,7 @@ const TallyReport = (props) => {
   const [graph, setGraph] = useState();
   const { wm } = useSocket();
   const { messageText } = useMessageText();
-  const userTallyText = messageText?.tallies_v_me?.msg ?? {};
+  const charkText = messageText?.chark?.msg;
 
   useEffect(() => {
     getTallyReport(wm).then((data) => {
@@ -56,9 +56,10 @@ const TallyReport = (props) => {
     <View style={styles.container}>
       <Header
         leftIcon={<TabularIcon />}
-        title={userTallyText?.['launch.title']?.title ?? ''}
+        title={charkText?.mychips?.title ?? ''}
         onClick={navigateBalanceSheet}
         onNavigateToNotification={() => {}}
+        rightIcon={<Activity />}
       />
 
       {
@@ -78,6 +79,8 @@ const TallyReport = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: -10,
+    marginHorizontal: 10,
   },
   header: {
     backgroundColor: colors.gray700,
