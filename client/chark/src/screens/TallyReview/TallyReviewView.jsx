@@ -145,7 +145,7 @@ const TallyReviewView = (props) => {
             ) : partImage ? (
               <View style={styles.circle}>
                 <Avatar style={styles.circle} avatar={partImage} />
-              </View>
+             </View>
             ) : (
               <Text style={styles.boldText}>{getStockText()}</Text>
             )}

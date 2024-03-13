@@ -17,6 +17,7 @@ const CustomCertificateSelection = (props) => {
   const birth = props.birth;
   const state = props.state;
   const connect = props.connect
+  const file = props.file;
 
   return (
     <View style={styles.content}>
@@ -52,6 +53,25 @@ const CustomCertificateSelection = (props) => {
             selected={birth?.selected}
             onCheckBoxChange={props.onBirthChange}
           />
+        </View>
+      )}
+
+      {!!file?.ids?.length && (
+        <View style={styles.certDetail}>
+          <HelpText
+            style={styles.label}
+            label={'file_text'}
+          />
+          
+          {file.ids.map((id, index) => (
+            <CustomCertificateItem 
+              key={index}
+              type="file"
+              data={file.byId[id]}
+              selected={file.byId[id]?.selected}
+              onCheckBoxChange={props.onFileChange(id)}
+            />
+          ))}
         </View>
       )}
 

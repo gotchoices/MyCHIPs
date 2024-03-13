@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { v4 as uuid } from 'uuid';
 
 import { fetchTallies } from '../services/tally';
 import { getUserCert } from '../services/user';
@@ -17,6 +18,10 @@ const initialState = {
     byId: {},
     ids: [],
   },
+  file: {
+    byId: {},
+    ids: [],
+  },
 };
 
 export const createCertificateState = (cert) => {
@@ -24,20 +29,30 @@ export const createCertificateState = (cert) => {
   const _birth = cert?.identity?.birth ?? {};
   const connects = cert?.connect ?? [];
   const _state = cert?.identity?.state ?? {};
+  const files = cert?.file ?? [];
 
   let birth = {};
   let state = {};
   const place = { byId: {}, ids: [] };
   const connect = { byId: {}, ids: [] };
+  const file = { byId: {}, ids: [] };
 
   places.forEach((pl, index)=> {
-    place.byId[index] = { selected: true, ...pl }
-    place.ids.push(index);
+    const id = uuid();
+    place.byId[id] = { selected: true, ...pl }
+    place.ids.push(id);
   })
 
   connects.forEach((conn, index)=> {
-    connect.byId[index] = { selected: true, ...conn }
-    connect.ids.push(index);
+    const id = uuid();
+    connect.byId[id] = { selected: true, ...conn }
+    connect.ids.push(id);
+  })
+
+  files.forEach((fl, index)=> {
+    const id = uuid();
+    file.byId[id] = { selected: true, ...fl}
+    file.ids.push(id);
   })
 
   if(_state) {
@@ -59,6 +74,7 @@ export const createCertificateState = (cert) => {
     birth,
     connect,
     state,
+    file,
   }
 }
 
@@ -126,19 +142,21 @@ export const fetchCertificate = createAsyncThunk('certificateTallies/fetchCertif
     }
 
     if(certificate) {
-      const { place, birth, connect, state } = createCertificateState(certificate);
+      const { place, birth, connect, state, file } = createCertificateState(certificate);
 
       return {
         certificate,
         place,
         birth,
         connect,
-        state
+        state,
+        file,
       }
     }
 
     return;
   } catch(err) {
+    console.log('FETCH CERTIFICATE>>', err)
     throw err;
   }
 })
@@ -154,12 +172,14 @@ export const certificateTalliesSlice = createSlice({
         birth,
         state:_state,
         connect,
+        file,
       } = createCertificateState(cert);
 
       state.place = place;
       state.birth = birth;
       state.state = _state;
       state.connect = connect;
+      state.file = file;
     },
     /** 
     * @param {string|number} action.id
@@ -202,6 +222,19 @@ export const certificateTalliesSlice = createSlice({
       }
     },
 
+    /** 
+    * @param {string|number} action.id
+    * @param {boolean} action.selected
+    */
+    setFile: (state, action) => {
+      const { id, selected } = action.payload
+      const data = state.file.byId[id]
+      console.log(id, data, 'DATE:w')
+      if(data) {
+        state.file.byId[id].selected = selected;
+      }
+    },
+
     selectAllCert: (state, action) => {
       for(const key in state.place.byId) {
         state.place.byId[key].selected = true;
@@ -241,6 +274,7 @@ export const certificateTalliesSlice = createSlice({
         state.birth = action.payload?.birth;
         state.state = action.payload?.state;
         state.connect = action.payload?.connect;
+        state.file = action.payload?.file;
         state.fetchingSingle = false;
       })
       .addCase(fetchCertificate.rejected, (state) => {
@@ -258,4 +292,5 @@ export const {
   setConnect,
   setState,
   selectAllCert,
+  setFile,
 } = certificateTalliesSlice.actions;
