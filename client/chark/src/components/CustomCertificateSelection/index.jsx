@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { 
   View,
@@ -9,6 +9,8 @@ import HelpText from '../HelpText';
 import CustomCertificateItem from './CustomCertificateItem';
 
 import { colors } from '../../config/constants';
+import useSocket from '../../hooks/useSocket';
+import { useUser } from '../../hooks/useLanguage';
 
 const CustomCertificateSelection = (props) => {
   const chad = props.chad;
@@ -17,6 +19,20 @@ const CustomCertificateSelection = (props) => {
   const birth = props.birth;
   const state = props.state;
   const connect = props.connect
+  const file = props.file;
+
+  const { wm  } = useSocket();
+  const usersMeText = useUser(wm);
+  const usersMeCol = usersMeText?.col;
+  console.log(usersMeCol?.cert?.values ?? '')
+
+  const certText = useMemo(() => {
+    return usersMeCol?.cert?.values?.reduce((acc, current) => {
+      acc[current.value] = current;
+      return acc;
+    }, {})
+  }, [usersMeCol?.cert?.values])
+
 
   return (
     <View style={styles.content}>
@@ -24,7 +40,8 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'place_text'}
+            label={certText?.place?.title ?? ''}
+            helpText={certText?.place?.help ?? ''}
           />
           
           {place.ids.map((id, index) => (
@@ -43,7 +60,8 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'birth_text'}
+            label={certText?.['identity.birth']?.title ?? ''}
+            helpText={certText?.['identity.birth']?.help ?? ''}
           />
           
           <CustomCertificateItem 
@@ -55,11 +73,32 @@ const CustomCertificateSelection = (props) => {
         </View>
       )}
 
+      {!!file?.ids?.length && (
+        <View style={styles.certDetail}>
+          <HelpText
+            style={styles.label}
+            label={certText?.file?.title ?? ''}
+            helpText={certText?.file?.help ?? ''}
+          />
+          
+          {file.ids.map((id, index) => (
+            <CustomCertificateItem 
+              key={index}
+              type="file"
+              data={file.byId[id]}
+              selected={file.byId[id]?.selected}
+              onCheckBoxChange={props.onFileChange(id)}
+            />
+          ))}
+        </View>
+      )}
+
       {!!connect?.ids?.length && (
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'connect_text'}
+            label={certText?.connect?.title ?? ''}
+            helpText={certText?.connect?.help ?? ''}
           />
           
           {connect.ids?.map?.((id, index) => (
@@ -78,7 +117,8 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'state_text'}
+            label={certText?.['identity.state']?.title ?? ''}
+            helpText={certText?.['identity.state']?.help ?? ''}
           />
           
           <CustomCertificateItem 
@@ -94,7 +134,8 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'chad_text'}
+            label={certText?.chad?.title ?? ''}
+            helpText={certText?.chad?.help ?? ''}
           />
           
           <CustomCertificateItem 
@@ -110,7 +151,8 @@ const CustomCertificateSelection = (props) => {
         <View style={styles.certDetail}>
           <HelpText
             style={styles.label}
-            label={'date_text'}
+            label={certText?.date?.title ?? ''}
+            helpText={certText?.date?.help ?? ''}
           />
           
           <CustomCertificateItem 

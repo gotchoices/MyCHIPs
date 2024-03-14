@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import CheckBox from '@react-native-community/checkbox'
@@ -8,11 +9,15 @@ import {
   StyleSheet,
 } from 'react-native';
 
+import Avatar from '../../components/Avatar';
+
 import { colors } from '../../config/constants';
 
 const CustomCertificateItem = (props) => {
   const type = props.type;
   const data = props.data;
+  const { imagesByDigest } = useSelector((state) => state.avatar);
+  const file = imagesByDigest?.[props?.data?.digest];
 
   const onCheckBoxChange = (value) => {
     if(props.onCheckBoxChange) {
@@ -67,6 +72,13 @@ const CustomCertificateItem = (props) => {
           <Text style={styles.value}>
             {moment(data.date).format('YYYY-MM-DD')}
           </Text>
+        )}
+
+        {type === 'file' && (
+          <File
+            {...(props?.data ?? {})}
+            file={file}
+          />
         )}
       </View>
       
@@ -188,6 +200,25 @@ function Chad(props) {
       <Text style={styles.value}>
         CID: {props.agent}
       </Text>
+    </View>
+  )
+}
+
+function File(props) {
+  return (
+    <View>
+      <Text style={[styles.value, { marginBottom: 5 }]}>
+        {props.comment}
+      </Text>
+
+      
+        {props.file ? (
+          <Avatar style={{ borderRadius: 0 }} avatar={props.file} />
+        ): (
+          <Text style={styles.value}>
+            {props.digest}
+          </Text>
+        )}
     </View>
   )
 }

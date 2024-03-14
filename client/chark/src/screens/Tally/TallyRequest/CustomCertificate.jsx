@@ -24,6 +24,7 @@ import {
   setConnect,
   setState,
   selectAllCert,
+  setFile,
 } from '../../../redux/certificateTalliesSlice';
 import useSocket from '../../../hooks/useSocket';
 import { processTicket } from '../../../services/tally';
@@ -31,7 +32,7 @@ import { processTicket } from '../../../services/tally';
 const CustomCertificate = (props) => {
   const tally_ent = props.tally_ent;
   const tally_seq = props.tally_seq;
-  const { fetchingSingle, certificate, place, birth, state, connect } = useSelector(state => state.certificateTallies);
+  const { fetchingSingle, certificate, place, birth, state, connect, file } = useSelector(state => state.certificateTallies);
   const { certificateChangeTrigger } = useSelector(state => state.workingTallies);
   const { userChangeTrigger } = useSelector(state => state.profile);
   const { wm } = useSocket();
@@ -108,6 +109,14 @@ const CustomCertificate = (props) => {
     }
   }
 
+  const onFileChange = (id) => {
+    return (value) => {
+      dispatch(
+        setFile({ id, selected: value})
+      )
+    }
+  }
+
   const onSelectAll = () => {
     dispatch(
       selectAllCert()
@@ -125,6 +134,7 @@ const CustomCertificate = (props) => {
 
       const _place = [];
       const _connect = [];
+      const _file = [];
       let _state = {};
       let _birth = {};
 
@@ -144,6 +154,14 @@ const CustomCertificate = (props) => {
         }
       }
 
+      for(let id of file.ids) {
+        const fl = file.byId[id];
+        if(fl && fl.selected) {
+          const { selected, ...rest } = fl;
+          _file.push(rest);
+        }
+      }
+
       if(state?.selected) {
         _state = state.data;
       }
@@ -156,6 +174,7 @@ const CustomCertificate = (props) => {
         ...(certificate ?? {}),
         place: _place,
         connect: _connect,
+        file: _file,
         identity: {
           birth: _birth,
           state: _state,
@@ -174,6 +193,7 @@ const CustomCertificate = (props) => {
           type: 'success',
           text1: 'Tally ticket processed.'
         });
+        props.navigation.navigate('Home')
       } catch(err) {
         console.log(err, 'err')
         Toast.show({
@@ -184,7 +204,7 @@ const CustomCertificate = (props) => {
         setProcessingTicket(false);
       }
     }
- }
+  }
 
   if(fetchingSingle) {
     return (
@@ -226,11 +246,13 @@ const CustomCertificate = (props) => {
             date={certificate?.date}
             birth={birth}
             state={state}
+            file={file}
             connect={connect}
             onBirthChange={onBirthChange}
             onPlaceChange={onPlaceChange}
             onStateChange={onStateChange}
             onConnectChange={onConnectChange}
+            onFileChange={onFileChange}
           />
         </View>
 
@@ -299,6 +321,7 @@ const styles = StyleSheet.create({
 });
 
 CustomCertificate.propTypes = {
+  navigation: PropTypes.any,
   onDone: PropTypes.func.isRequired,
   showCorrespondingView: PropTypes.func.isRequired,
   cert: PropTypes.any.isRequired,

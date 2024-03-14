@@ -19,6 +19,10 @@ const initialState = {
     byId: {},
     ids: [],
   },
+  file: {
+    byId: {},
+    ids: [],
+  },
 };
 
 export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', async (args) => {
@@ -140,12 +144,14 @@ export const workingTalliesSlice = createSlice({
         birth = initialState.birth ,
         state:_state = initialState.state,
         connect = initialState.connect,
+        file = initialState.file,
       } = action.payload ?? {};
 
       state.place = place;
       state.birth = birth;
       state.state = _state;
       state.connect = connect;
+      state.file = file;
     },
 
     /** 
@@ -196,6 +202,17 @@ export const workingTalliesSlice = createSlice({
       state.connect = initialState.connect;
     },
 
+    /** 
+    * @param {string|number} action.id
+    * @param {boolean} action.selected
+    */
+    setFile: (state, action) => {
+      const { id, selected } = action.payload
+      const data = state.file.byId[id]
+      if(data) {
+        state.file.byId[id].selected = selected;
+      }
+    },
   },
 
   extraReducers: (builder) => {
@@ -226,4 +243,5 @@ export const {
   setState,
   setConnect,
   resetCertificate,
+  setFile,
 } = workingTalliesSlice.actions; 

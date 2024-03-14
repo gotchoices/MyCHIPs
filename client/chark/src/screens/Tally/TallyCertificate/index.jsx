@@ -14,7 +14,7 @@ import CustomCertificateSelection from '../../../components/CustomCertificateSel
 import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import { updateHoldCert } from '../../../services/tally';
-import { setCertificate, resetCertificate, setConnect, setBirth, setPlace, setState, setCertificateChangeTrigger } from '../../../redux/workingTalliesSlice';
+import { setCertificate, resetCertificate, setConnect, setBirth, setPlace, setState, setCertificateChangeTrigger, setFile } from '../../../redux/workingTalliesSlice';
 
 const TallyCertificate = (props) => {
   const { title, cert, tally_ent, tally_seq, state: tallyState} = props.route?.params ?? {};
@@ -23,7 +23,7 @@ const TallyCertificate = (props) => {
 
   const [updating, setUpdating] = useState(false);
   const { personal } = useSelector(state => state.profile);
-  const { place, state, birth, connect } = useSelector(state => state.workingTallies)
+  const { place, state, birth, connect, file } = useSelector(state => state.workingTallies)
 
   useEffect(() => {
     const {
@@ -31,6 +31,7 @@ const TallyCertificate = (props) => {
       birth,
       state,
       connect,
+      file,
     } = createCertificateState(personal?.cert, cert)
 
     dispatch(
@@ -39,6 +40,7 @@ const TallyCertificate = (props) => {
         birth,
         state,
         connect,
+        file,
       })
     )
 
@@ -91,6 +93,14 @@ const TallyCertificate = (props) => {
     }
   }
 
+  const onFileChange = (id) => {
+    return (value) => {
+      dispatch(
+        setFile({ id, selected: value})
+      )
+    }
+  }
+
   const updateCertificate = async () => {
     if(cert) {
       if(!personal?.cert) {
@@ -102,6 +112,7 @@ const TallyCertificate = (props) => {
 
       const _place = [];
       const _connect = [];
+      const _file = [];
       let _state = {};
       let _birth = {};
 
@@ -121,6 +132,14 @@ const TallyCertificate = (props) => {
         }
       }
 
+      for(let id of file.ids) {
+        const fl = file.byId[id];
+        if(fl && fl.selected) {
+          const { selected, ...rest } = fl;
+          _file.push(rest);
+        }
+      }
+
       if(state?.selected) {
         _state = state.data;
       }
@@ -133,6 +152,7 @@ const TallyCertificate = (props) => {
         ...(personal.cert ?? {}),
         place: _place,
         connect: _connect,
+        file: _file,
         identity: {
           birth: _birth,
           state: _state,
@@ -183,11 +203,13 @@ const TallyCertificate = (props) => {
           date={cert?.date}
           birth={birth}
           state={state}
+          file={file}
           connect={connect}
           onBirthChange={onBirthChange}
           onPlaceChange={onPlaceChange}
           onStateChange={onStateChange}
           onConnectChange={onConnectChange}
+          onFileChange={onFileChange}
         />
         
       <Button
@@ -223,13 +245,19 @@ function createCertificateState(userCert, tallyCert) {
   const _state = userCert?.identity?.state ?? {};
   const tallyState = tallyCert?.identity?.state ?? {};
 
+  const files = userCert?.file ?? [];
+  const tallyFiles = tallyCert?.file ?? [];
+
+
   const remainingPlaces = differenceWith(places, tallyPlaces, isEqual);
   const remainingConnects = differenceWith(connects, tallyConnects, isEqual);
+  const remainingFiles = differenceWith(files, tallyFiles, isEqual);
 
   let birth = {};
   let state = {};
   const place = { byId: {}, ids: [] };
   const connect = { byId: {}, ids: [] };
+  const file = { byId: {}, ids: [] };
 
   remainingPlaces.forEach((pl, index) => {
     const id = uuid();
@@ -254,6 +282,18 @@ function createCertificateState(userCert, tallyCert) {
     connect.byId[id] = { selected: false, ...conn }
     connect.ids.push(id);
   })
+
+  remainingFiles.forEach((fl, index) => {
+    const id = uuid();
+    file.byId[id] = { selected: false, ...fl }
+    file.ids.push(id);
+  });
+
+  tallyFiles.forEach((fl, index) => {
+    const id = uuid();
+    file.byId[id] = { selected: true, ...fl }
+    file.ids.push(id);
+  });
 
   if(_state) {
     let selected = false;
@@ -283,6 +323,7 @@ function createCertificateState(userCert, tallyCert) {
     birth,
     connect,
     state,
+    file,
   }
 }
 
