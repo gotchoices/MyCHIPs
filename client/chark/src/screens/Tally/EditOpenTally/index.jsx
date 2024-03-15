@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   StyleSheet,
   RefreshControl,
@@ -11,46 +10,32 @@ import React, { useEffect, useState } from "react";
 import {
   fetchTallies,
   fetchContracts,
-  fetchTradingVariables,
 } from "../../../services/tally";
 import useSocket from "../../../hooks/useSocket";
 import { colors } from "../../../config/constants";
 import { useTalliesMeText, useTallyText } from "../../../hooks/useLanguage";
-
-import Button from "../../../components/Button";
-import CommonTallyView from "../CommonTallyView";
-import HelpText from "../../../components/HelpText";
-import CustomText from "../../../components/CustomText";
 import useMessageText from "../../../hooks/useMessageText";
+
+import CustomText from "../../../components/CustomText";
+import TallyEditView from '../TallyEditView';
 
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
-  const tallyText = useTallyText(wm);
 
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
-  const [target, setTarget] = useState("");
-  const [bound, setBound] = useState("");
-  const [reward, setReward] = useState("");
-  const [clutch, setClutch] = useState("");
+  const [tallyContracts, setTallyContracts] = useState([]);
 
-  const [contractName, setContractName] = useState("");
 
   useTalliesMeText(wm);
   const { messageText } = useMessageText();
-  const talliesColText = messageText?.tallies_v_me?.col;
-  const talliesMessageText = messageText?.tallies_v_me?.msg;
-  const holdTermsText = talliesColText?.hold_terms?.values;
-  const partTermsText = talliesColText?.part_terms?.values;
-
-  const hasPartCert = !!tally?.part_cert;
-  const hasHoldCert = !!tally?.hold_cert;
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {
     fetchTally();
   }, [tally_seq, tally_ent]);
+
 
   const fetchTally = () => {
     setLoading(true);
@@ -81,12 +66,7 @@ const EditOpenTally = (props) => {
       .then((data) => {
         if (data?.length) {
           const _tally = data?.[0];
-
           setTally(_tally);
-          setTarget((_tally?.target ?? "").toString());
-          setBound((_tally?.bound ?? "").toString());
-          setReward((_tally?.reward ?? "").toString());
-          setClutch((_tally?.clutch ?? "").toString());
         }
       })
       .catch((e) => {
@@ -97,46 +77,17 @@ const EditOpenTally = (props) => {
       });
   };
 
-  const showTradingVariables = () => {
-    props.navigation.navigate("TradingVariables", {
-      tally_seq,
-      tally_ent,
-      tally_type: tally?.tally_type,
-      chad: tally?.hold_chad,
-      tally_uuid: tally?.tally_uuid,
-    });
-  };
-
-  const onSave = () => {
-    const data = {
-      target: parseInt(target),
-      bound: parseInt(bound),
-      reward: parseFloat(reward),
-      clutch: parseFloat(clutch),
-    };
-
-    console.log(data, "data");
-  };
-
   useEffect(() => {
-    if (tally?.contract) {
-      fetchContracts(wm, {
-        fields: ["name", "language", "rid", "host"],
-        where: { rid: tally.contract },
-      }).then((data) => {
-        setContractDetails(data);
-      });
-    }
-  }, [tally?.contract]);
+    fetchContracts(wm, {
+      fields: ["top", "name", "title", "language", "host", "rid", "clean"],
+      where: { top: true },
+    }).then((data) => {
+      setTallyContracts(data);
+    });
+  }, []);
 
-  const setContractDetails = (data) => {
-    try {
-      const name = JSON.parse(data);
-
-      setContractName(name);
-    } catch (e) {
-      setContractName(data?.[0]?.name);
-    }
+  const onViewContract = () => {
+    props.navigation.navigate("TallyContract", { tally_seq });
   };
 
   if (loading) {
@@ -155,167 +106,37 @@ const EditOpenTally = (props) => {
     );
   }
 
-  const onViewChitHistory = () => {
-    const partCert = tally?.part_cert;
-    console.log("DIGEST_HAVE ==> ", JSON.stringify(partCert));
-    props.navigation.navigate("ChitHistory", {
-      tally_seq: tally?.tally_seq,
-      tally_ent,
-      tally_uuid: tally?.tally_uuid,
-      part_name: `${partCert?.name?.first}${partCert?.name?.middle ? " " + partCert?.name?.middle + " " : ""
-        } ${partCert?.name?.surname}`,
-      digest: partCert?.file?.[0]?.digest,
-      date: tally?.tally_date,
-      net: tally?.net,
-      cid: partCert?.chad?.cid,
-    });
+  const holdTerms = {
+    limit: tally.hold_terms?.limit?.toString(),
+    call: tally.hold_terms?.call?.toString(),
   };
 
-  const onPay = () => {
-    props.navigation.navigate("PaymentDetail", {
-      tally_uuid: tally?.tally_uuid,
-      chit_seq: tally?.tally_seq,
-      tally_type: tally?.tally_type,
-    });
+  const partTerms = {
+    limit: tally.part_terms?.limit?.toString(),
+    call: tally.part_terms?.call?.toString(),
   };
-
-  const onRequest = () => {
-    props.navigation.navigate("RequestDetail", {
-      tally_uuid: tally?.tally_uuid,
-      chit_seq: tally?.tally_seq,
-      tally_type: tally?.tally_type,
-    });
-  };
-
-  const showPDF = () => {
-    props.navigation.navigate("InviteScreen", {
-      screen: "TallyContract",
-      initial: false,
-      params: {
-        tally_seq,
-      },
-    });
-  }
-
-  const onViewCertificate = (data) => {
-    props.navigation.navigate("TallyCertificate", {
-      title: '',
-      tally_ent,
-      tally_seq,
-      cert: data
-    });
-  }
 
   return (
     <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.contentContainer}
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl refreshing={loading} onRefresh={fetchTally} />
       }
     >
-      <View>
-        <View style={styles.container}>
-          <CommonTallyView
-            tally={tally}
-            onViewChitHistory={onViewChitHistory}
-            onPay={onPay}
-            onRequest={onRequest}
-            navigation={props.navigation}
-          />
+      <TallyEditView
+        tally={tally}
+        tallyType={tally.tally_type}
+        contract={tally.contract?.source ?? ''}
+        holdTerms={holdTerms}
+        partTerms={partTerms}
+        comment={tally.comment ?? ''}
+        onViewContract={onViewContract}
+        tallyContracts={tallyContracts}
+        navigation={props.navigation}
+      />
 
-          <View style={styles.detailControl}>
-            <HelpText
-              label={tallyText?.tally_type?.title ?? ""}
-              helpText={tallyText?.tally_type?.help}
-              style={styles.h5}
-            />
-            <Text style={styles.textInputStyle}>{tally.tally_type}</Text>
-          </View>
-
-          <View style={styles.detailControl}>
-            <HelpText
-              label={tallyText?.contract?.title ?? ""}
-              helpText={tallyText?.contract?.help}
-              style={styles.h5}
-            />
-
-            {contractName && <Text>{contractName}</Text>}
-          </View>
-
-          <Button
-            title="show_pdf"
-            textColor={colors.blue}
-            style={styles.showPDF}
-            onPress={showPDF}
-          />
-
-        </View>
-      </View>
-
-      <View style={styles.container}>
-          <HelpText
-            label={tallyText?.hold_terms?.title ?? ""}
-            helpText={tallyText?.hold_terms?.help}
-            style={styles.label}
-          />
-          {holdTermsText?.map((holdTerm, index) => {
-            return (
-              <View
-                key={`${holdTerm?.value}${index}`}
-              >
-                <HelpText
-                  label={holdTerm?.title ?? ""}
-                  helpText={holdTerm?.help}
-                  style={styles.label}
-                />
-
-                <Text style={styles.textInputStyle}>
-                  {tally.hold_terms?.[holdTerm?.value] ?? 0}
-                </Text>
-              </View>
-            );
-          })}
-
-      </View>
-
-      <View style={styles.container}>
-          <HelpText
-            label={tallyText?.part_terms?.title ?? ""}
-            helpText={tallyText?.part_terms?.help}
-            style={styles.label}
-          />
-          {partTermsText?.map((partTerm, index) => {
-            return (
-              <View
-                key={`${partTerm?.value}${index}`}
-              >
-                <HelpText
-                  label={partTerm?.title ?? ""}
-                  helpText={partTerm?.help}
-                  style={styles.h5}
-                />
-
-                <Text style={styles.textInputStyle}>
-                  {tally.part_terms?.[partTerm?.value] ?? 0}
-                </Text>
-              </View>
-            );
-          })}
-   
-      </View>
-
-      <View style={styles.container}>
-        <HelpText 
-          label={talliesMessageText?.trade?.title ?? ''} 
-          helpText={talliesMessageText?.trade?.help} 
-          style={styles.label}
-        />
-
-        <Button
-          title={talliesMessageText?.trade?.title ?? 'Show'} 
-          style={{ borderRadius: 12, width: 120, marginTop: 12 }}
-          onPress={showTradingVariables}
-        />
-      </View>
     </ScrollView >
   );
 };
@@ -326,6 +147,16 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical:5,
     backgroundColor: colors.white,
+  },
+  contentContainer: {
+    backgroundColor: "white",
+    margin: 10,
+    padding: 10,
+    paddingBottom: 20,
+  },
+  scrollView: {
+    paddingBottom: 15,
+    marginBottom: 55,
   },
   detailControl: {
     marginVertical: 10,

@@ -1,42 +1,27 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from 'react-redux';
 import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOpacity, RefreshControl } from "react-native";
 import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
-import { fetchChitHistory, fetchTallyFile } from "../../../services/tally";
+import { fetchChitHistory } from "../../../services/tally";
 import { round } from "../../../utils/common";
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
 import { formatDate } from "../../../utils/format-date";
-import { Buffer } from "buffer";
 
 const ChitHistory = (props) => {
-  const { tally_seq, tally_ent, tally_uuid, digest } = props.route?.params ?? {};
+  const { tally_uuid, digest } = props.route?.params ?? {};
   const { wm } = useSocket();
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
-  const [avatar, setAvatar] = useState(undefined);
+  const { imagesByDigest } = useSelector((state) => state.avatar);
+  const avatar = imagesByDigest?.[digest];
 
   const totalBalance = chits?.reduce((accumulator, currentValue) => {
     return accumulator + currentValue?.net;
   }, 0);
-
-  useEffect(() => {
-    if (digest && wm) {
-      fetchTallyFile(wm, digest, tally_seq).then((data) => {
-        console.log("TALLY_SEQ ==> ", JSON.stringify(data));
-        const fileData = data?.[0]?.file_data;
-        const file_fmt = data?.[0]?.file_fmt;
-        if (fileData) {
-          const base64 = Buffer.from(fileData).toString('base64')
-          setAvatar(`data:${file_fmt};base64,${base64}`)
-        }
-      }).catch(err => {
-        console.log("TALLY_FILE_ERROR ==> ", err)
-      })
-    }
-  }, [digest, tally_seq, wm])
 
   useEffect(() => {
     _fetchChitHistory();

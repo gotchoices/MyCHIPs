@@ -24,7 +24,7 @@ const TallyEditView = (props) => {
   const holdTerms = props.holdTerms;
   const partTerms = props.partTerms;
   const comment = props.comment;
-  const setComment = props.setComment;
+  const setComment = props?.setComment;
   const onHoldTermsChange = props.onHoldTermsChange;
   const onPartTermsChange = props.onPartTermsChange;
   const setTallyType = props.setTallyType;
@@ -61,6 +61,13 @@ const TallyEditView = (props) => {
     return '';
   }, [hasHoldCert, tally.hold_cert?.connect])
 
+  const onCommentChange = (text) => {
+    setComment?.(text)
+  }
+
+  const onContractChange = (item) => {
+    setContract(item);
+  }
 
   const onViewCertificate= (args) => {
     return () => props.navigation.navigate("TallyCertificate", { 
@@ -108,9 +115,7 @@ const TallyEditView = (props) => {
             style={{ backgroundColor: colors.gray5 }}
             selectedValue={contract}
             enabled={canEdit}
-            onValueChange={(item) => {
-              setContract(item)
-            }}
+            onValueChange={onContractChange}
           >
             <Picker.Item label="Select contract" />
             {
@@ -162,7 +167,7 @@ const TallyEditView = (props) => {
             value={comment}
             editable={canEdit}
             style={[styles.input, styles.comment]}
-            onChangeText={setComment}
+            onChangeText={onCommentChange}
           />
         ): (
           <Text style={styles.inputValue}>
