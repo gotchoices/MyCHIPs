@@ -155,9 +155,54 @@
 
 
 ### Key managaement
-| Page           | Action | Check |
-| -------------- | ------ | ----- |
-| Key Management |        |       |
+| Page           | Action                         | Check                                        |
+| -------------- | ------------------------------ | -------------------------------------------- |
+| Key Management |                                |                                              |
+|                | click generate button          |                                              |
+|                |                                | modal pops up explaining action              |
+|                | click 'I understand'           |                                              |
+|                |                                | modal with passphrases                       |
+|                |                                | wording and buttons are same as figma        |
+|                | click 'export'                 |                                              |
+|                |                                | error saying you need to fill out passphrase |
+|                | enter in different passphrases |                                              |
+|                | click 'export'                 |                                              |
+|                |                                | error saying passphrases don't match         |
+|                | enter in same passphrases      |                                              |
+|                | click 'export'                 |                                              |
+|                |                                | export modal shows                           |
+|                |                                | make sure you're able to save the key        |
+|                | Go back to key management page |                                              |
+|                | click 'export' button          |                                              |
+|                |                                | modal pops up with passphrases               |
+|                |                                | modal with passphrases                       |
+|                |                                | wording and buttons are same as figma        |
+|                | click 'export'                 |                                              |
+|                |                                | error saying you need to fill out passphrase |
+|                | enter in different passphrases |                                              |
+|                | click 'export'                 |                                              |
+|                |                                | error saying passphrases don't match         |
+|                | enter in same passphrases      |                                              |
+|                | click 'export'                 |                                              |
+|                |                                | export modal shows                           |
+|                |                                | make sure you're able to save the key        |
+|                | Go back to key management page |                                              |
+|                | click import button            |                                              |
+|                |                                | modal pops up explaining action              |
+|                | click 'I understand'           |                                              |
+|                |                                | modal with passphrases                       |
+|                |                                | wording and buttons are same as figma        |
+|                | click 'export'                 |                                              |
+|                |                                | error saying you need to fill out passphrase |
+|                | enter in different passphrases |                                              |
+|                | click 'export'                 |                                              |
+|                |                                | error saying passphrases don't match         |
+|                | enter in same passphrases      |                                              |
+|                | click 'export'                 |                                              |
+|                |                                | export modal shows                           |
+|                | click 'import key'             |                                              |
+|                |                                | native file upload                           |
+|                | Upload a saved key             |                                              |
 
 
 ### Activity Page
