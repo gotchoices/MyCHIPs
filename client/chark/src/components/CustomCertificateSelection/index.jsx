@@ -24,7 +24,6 @@ const CustomCertificateSelection = (props) => {
   const { wm  } = useSocket();
   const usersMeText = useUser(wm);
   const usersMeCol = usersMeText?.col;
-  console.log(usersMeCol?.cert?.values ?? '')
 
   const certText = useMemo(() => {
     return usersMeCol?.cert?.values?.reduce((acc, current) => {

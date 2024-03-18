@@ -29,7 +29,6 @@ const PayModal = (props) => {
   const description = `${partCert?.chad?.cid}:${formatRandomString(partCert?.chad?.agent)}`
 
   const onViewTally = () => {
-
     props.onClose()
 
     props.navigation.navigate('OpenTallyEdit', {
@@ -73,9 +72,34 @@ const PayModal = (props) => {
     })
   }
 
-  const hasPendingChits = !!props.tally?.net_pc && !!props.tally?.net && (props.tally.net_pc != props.tally.net);
+  const onViewChitHistory = () => {
+    props.onClose()
 
-console.log(props.tally?.part_cert?.file?.[0]?.digest)
+    props.navigation.navigate("ChitHistory", {
+      part_name: partName,
+      tally_seq: props?.tally?.tally_seq,
+      tally_ent: props?.tally?.tally_ent,
+      tally_uuid: props?.tally?.tally_uuid,
+      digest: partCert?.file?.[0]?.digest,
+      date: props?.tally?.tally_date,
+      net: props?.tally?.net,
+      cid: partCert?.chad?.cid,
+    });
+  };
+
+  const onViewTradeSettings = () => {
+    props.onClose()
+
+    props.navigation.navigate("TradingVariables", {
+      tally_seq: props?.tally?.tally_seq,
+      tally_ent: props?.tally?.tally_ent,
+      tally_type: props?.tally?.tally_type,
+      chad: props?.tally?.hold_chad,
+      tally_uuid: props?.tally?.tally_uuid,
+    });
+  };
+
+  const hasPendingChits = !!props.tally?.net_pc && !!props.tally?.net && (props.tally.net_pc != props.tally.net);
 
   return (
     <Modal visible={props.visible} transparent onRequestClose={props.onClose}>
@@ -126,6 +150,18 @@ console.log(props.tally?.part_cert?.file?.[0]?.digest)
             title={talliesMeMessageText?.['launch.request']?.title ?? 'request'}
             onPress={onRequest}
             style={styles.button}
+          />
+
+          <Button
+            style={styles.button}
+            onPress={onViewChitHistory}
+            title={talliesMeMessageText?.['launch.chits']?.title ?? ''}
+          />
+
+          <Button
+            style={styles.button}
+            title={talliesMeMessageText?.trade?.title ?? 'trading'} 
+            onPress={onViewTradeSettings}
           />
         </View>
       </View>

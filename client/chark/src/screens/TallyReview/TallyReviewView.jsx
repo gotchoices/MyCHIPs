@@ -35,7 +35,6 @@ const TallyReviewView = (props) => {
   const [partLimit, setPartLimit] = useState(props.partTerms?.limit);
 
   const { messageText } = useMessageText();
-  const talliesMeText = messageText?.tallies_v_me?.col;
   const talliesMessageText = messageText?.tallies_v_me?.msg;
 
   const checkValidInput = (textValue) => {
@@ -71,7 +70,7 @@ const TallyReviewView = (props) => {
   }, [holdLimit, partLimit]);
 
   const onSwitchClick = () => {
-    props.setTallyType((prev) => {
+    props?.setTallyType?.((prev) => {
       const switchTally = {
         foil: "stock",
         stock: "foil",
@@ -173,8 +172,8 @@ const TallyReviewView = (props) => {
             onChangeText={async (text) => {
               await calculateAmount(text);
               tallyType === "foil"
-                ? props.onHoldTermsChange("limit")
-                : props.onPartTermsChange("limit");
+                ? props?.onHoldTermsChange?.("limit")
+                : props?.onPartTermsChange?.("limit");
             }}
           />
 
@@ -195,8 +194,8 @@ const TallyReviewView = (props) => {
               calculateAmount(text);
 
               tallyType === "stock"
-                ? props.onHoldTermsChange("limit")
-                : props.onPartTermsChange("limit");
+                ? props?.onHoldTermsChange?.("limit")
+                : props?.onPartTermsChange?.("limit");
             }}
           />
         </View>
@@ -246,7 +245,7 @@ const TallyReviewView = (props) => {
         </View>
       </View>
 
-      {canEdit && props.setTallyType && (
+      {canEdit && (
         <View style={styles.absoluteView}>
           <TouchableOpacity onPress={onSwitchClick}>
             <SwapIcon />
