@@ -398,6 +398,7 @@ const TallyInvite = (props) => {
     tally_type: talliesColText?.tally_type,
     next: charkText?.next,
     newtally: charkText?.newtally,
+    hold_terms: talliesColText?.hold_terms,
   };
 
   const onDeleteTally = (item) => {

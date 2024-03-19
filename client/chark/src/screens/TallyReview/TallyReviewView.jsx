@@ -31,8 +31,8 @@ const TallyReviewView = (props) => {
   const holdImage = imagesByDigest[holdDigest];
   const canEdit = props.canEdit ?? true;
 
-  const [holdLimit, setHoldLimit] = useState(props.holdTerms?.limit);
-  const [partLimit, setPartLimit] = useState(props.partTerms?.limit);
+  const holdLimit = props?.holdTerms?.limit;
+  const partLimit = props?.partTerms?.limit;
 
   const { messageText } = useMessageText();
   const talliesMessageText = messageText?.tallies_v_me?.msg;
@@ -58,16 +58,6 @@ const TallyReviewView = (props) => {
 
     return round(amount, 3);
   };
-
-  useEffect(() => {
-    if (holdLimit && partLimit) {
-      const hold = calculateAmount(holdLimit);
-      setHoldLimit(hold);
-
-      const part = calculateAmount(partLimit);
-      setPartLimit(part);
-    }
-  }, [holdLimit, partLimit]);
 
   const onSwitchClick = () => {
     props?.setTallyType?.((prev) => {
@@ -113,6 +103,16 @@ const TallyReviewView = (props) => {
 
     return props.holdCert.chad.cid + ":" + props.holdCert.chad.agent;
   };
+
+  const onBlurLimit = () => {
+    if(holdLimit && holdLimit.indexOf('.') >= 0) {
+      props.onHoldTermsChange("limit")(round(holdLimit, 3))
+    }
+
+    if(partLimit && partLimit.indexOf('.') >= 0) {
+      props.onPartTermsChange("limit")(partLimit);
+    }
+  }
 
   return (
     <View style={styles.main}>
@@ -169,11 +169,12 @@ const TallyReviewView = (props) => {
             value={tallyType === "foil" ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
-            onChangeText={async (text) => {
-              await calculateAmount(text);
+            onBlur={onBlurLimit}
+            onChangeText={(text) => {
               tallyType === "foil"
-                ? props?.onHoldTermsChange?.("limit")
-                : props?.onPartTermsChange?.("limit");
+                ? props.onHoldTermsChange("limit")(text)
+                : props.onPartTermsChange("limit")(text);
+
             }}
           />
 
@@ -190,12 +191,11 @@ const TallyReviewView = (props) => {
             value={tallyType === "stock" ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
+            onBlur={onBlurLimit}
             onChangeText={(text) => {
-              calculateAmount(text);
-
               tallyType === "stock"
-                ? props?.onHoldTermsChange?.("limit")
-                : props?.onPartTermsChange?.("limit");
+                ? props.onHoldTermsChange("limit")(text)
+                : props.onPartTermsChange("limit")(text);
             }}
           />
         </View>

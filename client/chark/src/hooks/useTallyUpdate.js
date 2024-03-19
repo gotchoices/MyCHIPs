@@ -48,7 +48,6 @@ const useTallyUpdate = (wm, tally_seq, tally_ent) => {
     }).then(data => {
       const _tally = data?.[0];
       if (_tally) {
-
         const tallyType = _tally.tally_type ?? '';
         const contract = _tally.contract?.source ?? '';
         const comment = _tally.comment ?? '';
@@ -84,6 +83,11 @@ const useTallyUpdate = (wm, tally_seq, tally_ent) => {
 
   const onHoldTermsChange = (name) => {
     return (value) => {
+      const regex = /(\..*){2,}/;
+      if(regex.test(value)) {
+        return;
+      }
+
       setHoldTerms({
         ...holdTerms,
         [name]: value,
@@ -93,6 +97,11 @@ const useTallyUpdate = (wm, tally_seq, tally_ent) => {
 
   const onPartTermsChange = (name) => {
     return (value) => {
+      const regex = /(\..*){2,}/;
+      if(regex.test(value)) {
+        return;
+      }
+
       setPartTerms({
         ...partTerms,
         [name]: value,

@@ -16,8 +16,6 @@ const CommentContent = (props) => {
     }, {})
   })
 
-  console.log(tallyTypeText, 'askdj')
-
   const generateCommonStyle = (itemType, selected) => ({
     flex: 1,
     alignItems: 'center',

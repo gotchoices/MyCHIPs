@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import Button from "../../../components/Button";
 import CustomIcon from "../../../components/CustomIcon";
@@ -8,8 +8,13 @@ import { round } from "../../../utils/common";
 
 const LimitContent = (props) => {
   const [limit, setLimit] = useState(0);
+  const holdTermsText = props?.text?.hold_terms;
 
-   const checkValidInput = (textValue) => {
+  const limitText = useMemo(() => {
+    return holdTermsText?.values?.find((term) => term.value === 'limit')
+  }, [holdTermsText?.values])
+
+  const checkValidInput = (textValue) => {
     return textValue && /^[0-9]*(\.[0-9]{0,3})?$/.test(textValue);
   };
 
@@ -49,7 +54,7 @@ const LimitContent = (props) => {
       style={styles.textInput}
       value={limit? limit : ''}
       onChangeText={(text) => calculateSendingAmount(text)}
-   placeholder={limit? round(limit,3) : 'my_limit_text'}
+      placeholder={limitText?.title ?? 'my_limit_text'}
     />
     <Button
       title={props?.text?.next?.title ?? ''}
