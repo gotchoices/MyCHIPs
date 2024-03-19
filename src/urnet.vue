@@ -9,7 +9,7 @@
   <div>
     <div class="header">User Relation Network Graph:</div>
     <wylib-svgraph :state="state" :env="env" :curve="true" :edge="edge" :menu="menu" ref="svg"
-        @drag="dragHand" @drop="dropHand" @input="restart" @refresh="refresh" @reset="reset">
+        @drag="dragHand" @drop="dropHand" @modify="restart" @refresh="refresh" @reset="reset">
       <template v-slot:def>
         <radialGradient id="radGrad">
           <stop offset="0%" style="stop-color:#FFF; stop-opacity:0.9"/>
@@ -267,9 +267,6 @@ export default {
       if (dat.target == 'users' || dat.target == 'tallies')
         this.updateNodes(dat.oper == 'DELETE' ? null : dat.time)
         this.refresh()
-
-//      if (dat.oper == 'DELETE' || dat.oper == 'INSERT')	//Fixme: eliminate this?
-//        this.$refs.svg.$emit('change')	//Automatic bump each time something changes
     })
     
     Wylib.Wyseman.register(this.id+'vm', View, (data, err) => {

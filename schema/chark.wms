@@ -2,6 +2,6 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 
-view mychips.chark {} {
+view mychips.chark {mychips} {
   select true as always
 }
