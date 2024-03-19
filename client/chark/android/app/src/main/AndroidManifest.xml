@@ -19,6 +19,7 @@
       android:theme="@style/AppTheme"
       android:requestLegacyExternalStorage="true"
       android:networkSecurityConfig="@xml/network_security_config">
+      
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -26,6 +27,7 @@
         android:launchMode="singleTask"
         android:windowSoftInputMode="adjustResize"
         android:exported="true">
+        
         <intent-filter>
           <action android:name="android.intent.action.MAIN" />
           <category android:name="android.intent.category.LAUNCHER" />
@@ -48,7 +50,10 @@
           <data android:pathPattern="/ticket" />
           <data android:pathPattern="/invite" />
         </intent-filter>
+        
       </activity>
+      <meta-data
+      android:name="com.google.mlkit.vision.DEPENDENCIES"
+      android:value="barcode" />
     </application>
 </manifest>
-

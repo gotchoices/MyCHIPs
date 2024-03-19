@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { StyleSheet, Text, ActivityIndicator, Modal, View, Button, TextInput, Alert } from 'react-native';
-import { useCameraDevices, Camera } from 'react-native-vision-camera';
+import { Camera, CameraType } from 'react-native-camera-kit';
 import { useScanBarcodes, BarcodeFormat } from 'vision-camera-code-scanner';
 import * as Keychain from 'react-native-keychain';
 
 import { colors, qrType } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import { parse } from '../../utils/query-string';
+import { PERMISSIONS, check, request } from 'react-native-permissions';
 
 const connectionLink = 'https://mychips.org/ticket'
 
 const Scanner = (props) => {
-  const devices = useCameraDevices();
-  const device = devices.back;
   const { connectSocket, disconnectSocket, wm, ws } = useSocket();
 
   const [hasPermission, setHasPermission] = useState(false);
@@ -25,17 +24,13 @@ const Scanner = (props) => {
   // Temporary storage for qr code if username is not included in the ticket
   const [tempQrCode, setTempQrCode] = useState();
 
-  const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.QR_CODE], {
-    checkInverted: true,
-  });
-
-  const qrCode = barcodes?.[0]?.displayValue;
-
-  useEffect(() => {
+const onQrAccepted =(event)=>{
+const qrCode = event.nativeEvent.codeStringValue;
     if(qrCode) {
+       setIsActive(false);
       if(qrCode.startsWith(connectionLink)) {
         const obj = parse(qrCode);
-        connect({ connect: obj });
+      connect({ connect: obj });
       } else {
         try {
           setIsActive(false);
@@ -52,16 +47,15 @@ const Scanner = (props) => {
           console.log(err.message)
         }
       }
+}
+}
 
-
-    }
-
-    // Request Tally
+   // Request Tally
     function requestTally(parsed) {
       props.navigation.navigate('Home', parsed);
     }
 
-    // Process the connection
+   // Process the connection
     function processConnect(parsed) {
       if(parsed?.connect && parsed?.connect?.user) {
         connect({ connect: parsed.connect})
@@ -71,8 +65,6 @@ const Scanner = (props) => {
       }
     }
 
-  }, [qrCode, setIsActive])
-
   /**
    * @param {Object} args
    * @param {Object} args.ticket
@@ -80,11 +72,11 @@ const Scanner = (props) => {
    * @param {boolean} [args.needUsername]
   */
   const connect = (args) => {
-    console.log(args, 'args')
     let ticket = args?.connect;
     const username = args?.username?.trim();
 
     if(!ticket) {
+      setIsActive(true);
       return Alert.alert('Ticket not found.');
     }
 
@@ -103,12 +95,14 @@ const Scanner = (props) => {
       ticket,
     }, (err, connected) => {
       if(err) {
-        setIsActive(true);
+
         setIsConnecting(false);
         Keychain.resetGenericPassword();
         disconnectSocket();
 
         Alert.alert(err.message);
+
+        setTimeout(() => setIsActive(true),1000)
       } else if (connected){
         setIsConnecting(false);
         props.navigation.navigate('Home');
@@ -118,24 +112,55 @@ const Scanner = (props) => {
     });
   }
 
+  const requestCameraPermission = () => {
+    const permission =
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.CAMERA
+        : PERMISSIONS.ANDROID.CAMERA;
+ 
+    return check(permission).then(status => {
+      if (status === 'granted' || status === 'limited') {
+        return setHasPermission(true)
+      }
+ 
+      request(permission).then(status => {
+        if (status === 'granted' || status === 'limited') {
+          return setHasPermission(true)
+        }
+      });
+    });
+  };
+
   useEffect(() => {
-    Camera.requestCameraPermission()
-      .then(status => {
-        setHasPermission(status === 'authorized');
-      })
+  requestCameraPermission()
   }, []);
 
   return (
-    device && hasPermission && (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+ hasPermission && (
+<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+{isActive ? 
         <Camera
           style={StyleSheet.absoluteFill}
-          device={device}
-          isActive={isActive}
-          frameProcessor={frameProcessor}
-          frameProcessorFps={5}
-        />
-        {
+          cameraType={CameraType.Back}
+          flashMode='off'
+          scanBarcode={isActive}
+          onReadCode={(event) => onQrAccepted(event)}
+          showFrame={true} 
+          laserColor='blue'
+          frameColor='white'
+        />: 
+
+        <Camera
+        style={StyleSheet.absoluteFill}
+        cameraType={CameraType.Back}
+        flashMode='off'
+        scanBarcode={false}
+        showFrame={true} 
+      />
+
+}
+    
+     {
           isConnecting && (
             <>
               <ActivityIndicator size="large" color="#fff" />
@@ -144,7 +169,7 @@ const Scanner = (props) => {
               </Text>
             </>
           )
-        }
+      } 
 
         <Modal
           animationType="slide"
@@ -179,10 +204,10 @@ const Scanner = (props) => {
               />
             </View>
           </View>
-        </Modal>
-      </View>
-    )
-  );
+        </Modal> 
+        </View>
+)
+  )
 }
 
 const styles = StyleSheet.create({
