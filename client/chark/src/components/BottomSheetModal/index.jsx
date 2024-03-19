@@ -1,5 +1,5 @@
 import React from "react"
-import { Modal, StyleSheet, View } from "react-native"
+import { Modal, StyleSheet, View, Text } from "react-native"
 
 const BottomSheetModal = (props) => {
   return <Modal
@@ -7,6 +7,7 @@ const BottomSheetModal = (props) => {
     animationType="slide"
     visible={props.isVisible}
     onRequestClose={props.onClose}
+    statusBarTranslucent={true}
   >
     <View style={styles.container} >
       <View style={styles.content}>

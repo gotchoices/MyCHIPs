@@ -285,6 +285,8 @@ const TallyPreview = (props) => {
     initialFields.holdLimit != holdTerms?.limit ||
     initialFields.partLimit != partTerms?.limit;
 
+
+  console.log(holdTerms?.limit, partTerms.limit, initialFields, 'initial')
   if (loading) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
