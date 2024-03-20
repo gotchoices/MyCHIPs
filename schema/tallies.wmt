@@ -156,6 +156,7 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {sort.mbal	{Largest to Smallest}	{Show biggest totals (asset or liability) at the top}}
   {sort.dname	{Alphabetical}		{Sort alphabetically by partner name}}
   {open.open	{Tally Opened}		{The tally has been accepted by both parties and is ready for transactions}}
+  {invited	{Wants to Tally}	{The party has invited you to open a new MyCHIPs tally}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
     {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}
     {invite.format	{Format}	{Determines which type of invitation is generated}}

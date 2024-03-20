@@ -19,6 +19,7 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {language	{Language}		{What language the app will use}}
   {cancel	{Cancel}		{Abort the current operation}}
   {save		{Save}			{Save the current changes}}
+  {edit		{Edit}			{Modify the current information}}
   {import	{Import}		{Import the item from an external format}}
   {export	{Export}		{Export the item to an external format}}
   {link		{Link}			{Generate a deep link for this function}}
@@ -26,4 +27,7 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {qr		{QR Code}		{Generate a scannable QR code}}
   {add		{Add}			{Add a new record}}
   {next		{Next}			{Proceed to the next step}}
+  {certopts	{Certificate Options}	{Select what information is contained in a certificate}}
+  {certshare	{Certificate Share}	{What personal information will you share}}
+  {certtpts	{Template Certificates}	{Select a certificate from an existing tally template}}
 }
