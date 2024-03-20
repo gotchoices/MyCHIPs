@@ -1114,12 +1114,12 @@ id		text		primary key
   , ent_num	int		not null check(ent_num > 0)
   , ent_type	varchar(1)	not null default 'p' check(ent_type in ('p','o','g','r'))
   , ent_name	text		not null
-  , fir_name	text		constraint "!base.ent.CFN" check(case when ent_type != 'p' then fir_name is null end)
-  , mid_name	text		constraint "!base.ent.CMN" check(case when fir_name is null then mid_name is null end)
-  , pref_name	text		constraint "!base.ent.CPN" check(case when fir_name is null then pref_name is null end)
-  , title	text		constraint "!base.ent.CTI" check(case when fir_name is null then title is null end)
-  , gender	varchar(1)	constraint "!base.ent.CGN" check(case when ent_type != 'p' then gender is null end)
-  , marital	varchar(1)	constraint "!base.ent.CMS" check(case when ent_type != 'p' then marital is null end)
+  , fir_name	text		constraint "!base.ent:CFN" check(case when ent_type != 'p' then fir_name is null end)
+  , mid_name	text		constraint "!base.ent:CMN" check(case when fir_name is null then mid_name is null end)
+  , pref_name	text		constraint "!base.ent:CPN" check(case when fir_name is null then pref_name is null end)
+  , title	text		constraint "!base.ent:CTI" check(case when fir_name is null then title is null end)
+  , gender	varchar(1)	constraint "!base.ent:CGN" check(case when ent_type != 'p' then gender is null end)
+  , marital	varchar(1)	constraint "!base.ent:CMS" check(case when ent_type != 'p' then marital is null end)
   , ent_cmt	text
   , born_date	date
   , username	text		unique
@@ -1234,16 +1234,16 @@ addr_ent	text		references base.ent on update cascade on delete cascade
   , addr_seq	int	      , primary key (addr_ent, addr_seq)
   , addr_spec	text		not null
   , addr_type	text		not null check(addr_type in ('phys','mail','bill','ship','birth'))
-  , addr_prim	boolean		not null default false constraint "!base.addr.CPA" check(case when addr_inact is true then addr_prim is false end)
+  , addr_prim	boolean		not null default false constraint "!base.addr:CPA" check(case when addr_inact is true then addr_prim is false end)
   , addr_cmt	text
   , addr_inact	boolean		not null default false
   , addr_priv	boolean		not null default false
   , city	text
   , state	text
   , pcode	text
-  , country	varchar(3)	constraint "!base.addr.CCO" not null default 'US' references base.country on update cascade
+  , country	varchar(3)	constraint "!base.addr:CCO" not null default 'US' references base.country on update cascade
   , unique (addr_ent, addr_seq, addr_type)		-- Needed for addr_prim FK to work
-  , constraint "!base.addr.USP" unique (addr_ent, addr_type, addr_spec)
+  , constraint "!base.addr:USP" unique (addr_ent, addr_type, addr_spec)
 
     
   , crt_date    timestamptz	not null default current_timestamp
@@ -1257,12 +1257,12 @@ comm_ent	text		references base.ent on update cascade on delete cascade
   , comm_seq	int	      , primary key (comm_ent, comm_seq)
   , comm_spec	text		not null
   , comm_type	text		not null check(comm_type in ('phone','email','cell','fax','text','web','pager','other'))
-  , comm_prim	boolean		not null default false constraint "!base.comm.CPC" check(case when comm_inact is true then comm_prim is false end)
+  , comm_prim	boolean		not null default false constraint "!base.comm:CPC" check(case when comm_inact is true then comm_prim is false end)
   , comm_cmt	text
   , comm_inact	boolean		not null default false
   , comm_priv	boolean		not null default false
   , unique (comm_ent, comm_seq, comm_type)		-- Needed for comm_prim FK to work
-  , constraint "!base.comm.USP" unique (comm_ent, comm_type, comm_spec)
+  , constraint "!base.comm:USP" unique (comm_ent, comm_type, comm_spec)
 
     
   , crt_date    timestamptz	not null default current_timestamp
@@ -1389,7 +1389,7 @@ file_ent	text		references base.ent on update cascade on delete cascade
   , file_priv	boolean		not null default false
   , file_hash	bytea		not null
   , unique (file_ent, file_seq, file_type)		-- Needed for file_prim FK to work
-  , constraint "!base.file.USP" unique (file_ent, file_type, file_hash)
+  , constraint "!base.file:USP" unique (file_ent, file_type, file_hash)
 
     
   , crt_date    timestamptz	not null default current_timestamp
@@ -1419,7 +1419,7 @@ module	text
 create table base.priv (
 grantee	text		references base.ent (username) on update cascade on delete cascade
   , priv	text	      , primary key (grantee, priv)
-  , level	int		constraint "!base.priv.CLV" check(level > 0 and level < 10)
+  , level	int		constraint "!base.priv:CLV" check(level > 0 and level < 10)
   , priv_level	text		not null
   , cmt		text
 );
@@ -1461,9 +1461,9 @@ agent	text	primary key
 create table mychips.contracts (
 host	varchar		not null
   , name	varchar		not null
-  , version	int		not null default 1 constraint "!mychips.contracts.BVN" check (version >= 1)
+  , version	int		not null default 1 constraint "!mychips.contracts:BVN" check (version >= 1)
   , language	varchar		not null references base.language on update cascade on delete restrict
-  , published	date	      , constraint "!mychips.contracts.PBC" check (published is null or (sections is not null and digest is not null))
+  , published	date	      , constraint "!mychips.contracts:PBC" check (published is null or (sections is not null and digest is not null))
   , top		boolean
   , title	varchar		not null
   , text	varchar
@@ -1626,12 +1626,12 @@ create function base.ent_link_tf_check() returns trigger language plpgsql securi
             return new;
         end if;
         if erec.ent_type = 'p' then
-            raise exception '!base.ent_link.NBP % %', new.mem, new.org;
+            raise exception '!base.ent_link:NBP % %', new.mem, new.org;
         end if;
 
         select into mrec * from base.ent where id = new.mem;
         if erec.ent_type = 'c' and mrec.ent_type != 'p' then
-            raise exception '!base.ent_link.PBC % %', new.mem, new.org;
+            raise exception '!base.ent_link:PBC % %', new.mem, new.org;
         end if;
         return new;
     end;

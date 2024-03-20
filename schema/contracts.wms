@@ -19,9 +19,9 @@ namespace eval contracts {
 table mychips.contracts {mychips base.language base.ent} {
     host	varchar		not null
   , name	varchar		not null
-  , version	int		not null default 1 constraint "!mychips.contracts.BVN" check (version >= 1)
+  , version	int		not null default 1 constraint "!mychips.contracts:BVN" check (version >= 1)
   , language	varchar		not null references base.language on update cascade on delete restrict
-  , published	date	      , constraint "!mychips.contracts.PBC" check (published is null or (sections is not null and digest is not null))
+  , published	date	      , constraint "!mychips.contracts:PBC" check (published is null or (sections is not null and digest is not null))
   , top		boolean
   , title	varchar		not null
   , text	varchar

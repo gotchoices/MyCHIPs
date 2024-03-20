@@ -1,10 +1,9 @@
 TODO:
-- Wylib cleanups
+X- Wylib cleanups
 X-  Dew's call input function, mark as dirty
 X-  Can input/update user file
--  Try inputting the same file data twice
--  Properly display error message
--  
+X-  Try inputting the same file data twice
+X-  Properly display error message
 
 - Payment testing:
 -  Check signatures on direct chits in lib/chit.js
