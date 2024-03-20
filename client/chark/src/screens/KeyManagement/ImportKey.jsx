@@ -9,7 +9,7 @@ import { colors } from "../../config/constants";
 import { useDispatch, useSelector } from "react-redux";
 import CenteredModal from "../../components/CenteredModal";
 import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
-import GenerateImportModal from "../ImportKeyScreen/ImportExportModal";
+import ExportModal from '../Setting/GenerateKey/ExportModal';
 
 import DocumentPicker from "react-native-document-picker";
 import { decryptJSON } from "../../utils/file-manager";
@@ -180,6 +180,7 @@ const ImportKey = (props) => {
         }}
       >
         <PassphraseModal
+          action="import"
           title="Please export your current key before generating a new one."
           subTitle="Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key."
           onPassphraseConfirmed={(passphrase) => {
@@ -190,6 +191,10 @@ const ImportKey = (props) => {
           cancel={() => {
             setPassphraseModal(false);
           }}
+          onWithoutExport={() => {
+            setPassphraseModal(false)
+            onImportKey();
+          }}
         />
       </CenteredModal>
 
@@ -197,13 +202,15 @@ const ImportKey = (props) => {
         isVisible={showKeyModal}
         onClose={() => setShowKeyModal(false)}
       >
-        <GenerateImportModal
+        <ExportModal
+          action="import"
           privateKey={privateKey}
           cancel={() => {
             setPassphrase(undefined);
+            setPassphraseModal(false);
             setShowKeyModal(false);
           }}
-          importKey={() => onImportKey()}
+          onKeyAction={() =>  onImportKey()}
           passphrase={passphrase}
         />
       </CenteredModal>
@@ -213,6 +220,7 @@ const ImportKey = (props) => {
         onClose={() => setPrevPassphraseModal(false)}
       >
         <PassphraseModal
+          action="import_without"
           onPassphraseConfirmed={decryptKey}
           cancel={() => {
             setPrevPassphraseModal(false);

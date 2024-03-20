@@ -1,8 +1,42 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Alert, PermissionsAndroid, Button, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from "react-native"
-import { encryptJSON, downloadJSONFile, downloadQRCode, shareQRCode, shareJSONFile } from "../../../../utils/file-manager";
+import {
+  View,
+  Alert,
+  PermissionsAndroid,
+  Button,
+  Text,
+  StyleSheet,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+} from "react-native"
+import {
+  encryptJSON,
+  downloadJSONFile,
+  downloadQRCode,
+  shareQRCode,
+  shareJSONFile
+} from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
+import { colors } from "../../../../config/constants";
+
+const CustomButton = (props) => {
+  const onPress =() => {
+    props.onPress();
+  }
+
+  return (
+    <TouchableWithoutFeedback
+      onPress={onPress}
+    >
+      <Text style={{ color: colors.blue, fontFamily: 'inter', fontSize: 14, fontWeight: '500' }}>
+        {props.title}
+      </Text>
+    </TouchableWithoutFeedback>
+  )
+}
 
 const ExportModal = (props) => {
   const viewShotRef = useRef();
@@ -86,6 +120,12 @@ const ExportModal = (props) => {
     });
   }
 
+  const onKeyAction = () => {
+    if(props.onKeyAction) {
+      props.onKeyAction();
+    }
+  }
+
   if (!encryptedData) {
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <ActivityIndicator style={{ marginBottom: 24 }} />
@@ -97,9 +137,21 @@ const ExportModal = (props) => {
     <View>
       <Text style={styles.jsonText}>{encryptedData}</Text>
       <View style={styles.row}>
-        <Button onPress={onShareFile} title="Share File" />
-        {Platform.OS === 'android' ? <Button onPress={downloadAsJson} title="Download File" /> : <></>}
+        <CustomButton
+          onPress={onShareFile}
+          title={'Share File'}
+        />
       </View>
+
+      {Platform.OS === 'android' && (
+        <View style={[styles.row, { marginTop: 15 }]}>
+          <CustomButton
+            onPress={downloadAsJson}
+            title={'Download File'}
+          />
+        </View>
+      )}
+
       <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1.0 }}>
         <View style={styles.qrView}>
           <QRCode
@@ -108,12 +160,44 @@ const ExportModal = (props) => {
           />
         </View>
       </ViewShot>
-      <View style={styles.row}>
-        <Button onPress={onShareQR} title="Share QR" />
-        {Platform.OS === 'android' ? <Button onPress={downloadQrCode} title="Download QR" /> : <></>}
+
+      <View style={[styles.row, { marginBottom: 15 }]}>
+        <CustomButton
+          onPress={onShareQR}
+          title={'Share QR'}
+        />
       </View>
-      <View style={{ height: 24 }} />
-      <Button onPress={props.cancel} title='Cancel' />
+
+      {Platform.OS === 'android' && (
+        <View style={styles.row}>
+          <CustomButton
+            onPress={downloadQrCode}
+            title={'Download QR'}
+          />
+        </View>
+      )}
+
+      {['import', 'generate'].includes(props.action) && (
+        <TouchableWithoutFeedback onPress={onKeyAction}>
+          <View style={styles.secondaryButton}>
+            <Text style={styles.title}>
+              {props.action === 'import' && 'Import_Key'}
+              {props.action === 'generate' && 'Generate_Key'}
+            </Text>
+            <Text style={[styles.title, { fontSize: 10 }]}>
+              Your active keys will be lost
+            </Text>
+          </View>
+        </TouchableWithoutFeedback>
+      )}
+
+      <View style={[styles.row, { marginTop: 15 }]}>
+        <CustomButton
+          onPress={props.cancel}
+          title={'Cancel'}
+        />
+      </View>
+
     </View>
   </ScrollView>
 }
@@ -131,7 +215,7 @@ const styles = StyleSheet.create({
   },
   qrView: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 15,
     backgroundColor: 'white',
     marginVertical: 10,
   },
@@ -139,7 +223,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
-  }
+  },
+  secondaryButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 20,
+    paddingVertical: 8,
+    borderColor: colors.blue,
+    backgroundColor: colors.blue,
+    marginTop: 15,
+  },
+  title: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: colors.white,
+  },
 })
 
 export default ExportModal;

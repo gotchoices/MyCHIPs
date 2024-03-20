@@ -73,6 +73,7 @@ const Export = (props) => {
         }}
       >
         <PassphraseModal
+          action="export"
           onPassphraseConfirmed={(passphrase) => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
