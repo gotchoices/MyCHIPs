@@ -21,7 +21,6 @@ import CenteredModal from "../../components/CenteredModal";
 import ExportModal from "../Setting/GenerateKey/ExportModal";
 import SuccessContent from "../../components/SuccessContent";
 import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
-import GenerateExportModal from "../Setting/GenerateKey/GenerateExportModal";
 
 const GenerateKey = () => {
   const subtle = window.crypto.subtle;
@@ -115,6 +114,7 @@ const GenerateKey = () => {
         onClose={onGenerateCancel}
       >
         <SigningKeyWarning
+          loading={false}
           onAccept={() => {
             setShowGenerateWarning(false);
             if (privateKey) {
@@ -129,21 +129,21 @@ const GenerateKey = () => {
         />
       </BottomSheetModal>
 
-
-
       <CenteredModal
         isVisible={showKeyModal}
         onClose={() => setShowKeyModal(false)}
       >
-        <GenerateExportModal
+        <ExportModal
+          action="generate"
           privateKey={privateKey}
           cancel={() => {
             setPassphrase(undefined);
             setShowKeyModal(false);
           }}
-          generateKey={()=>{
+          onKeyAction={()=>{
             setShowKeyModal(false);
-            onAccept()}}
+            onAccept()}
+          }
           passphrase={passphrase}
         />
       </CenteredModal>
@@ -155,8 +155,9 @@ const GenerateKey = () => {
         }}
       >
         <PassphraseModal
-        title='Please export your current key before generating a new one.'
-        subTitle='Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key.'
+          action="generate"
+          title='Please export your current key before generating a new one.'
+          subTitle='Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key.'
           onPassphraseConfirmed={(passphrase) => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
@@ -164,6 +165,10 @@ const GenerateKey = () => {
           }}
           cancel={() => {
             setPassphraseModal(false);
+          }}
+          onWithoutExport={() => {
+            setPassphraseModal(false);
+            onAccept()
           }}
         />
       </CenteredModal>

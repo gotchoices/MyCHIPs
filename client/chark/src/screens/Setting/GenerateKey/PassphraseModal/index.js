@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import {
   Alert,
   StyleSheet,
@@ -7,8 +6,11 @@ import {
   View,
   Keyboard,
   Text,
+  TouchableWithoutFeedback,
 } from "react-native";
 import Button from "../../../../components/Button";
+import PropTypes from 'prop-types'
+
 import { colors } from "../../../../config/constants";
 
 const PassphraseModal = (props) => {
@@ -29,6 +31,12 @@ const PassphraseModal = (props) => {
       Alert.alert("Error", "Please enter passphrase to continue");
     }
   };
+
+  const onWithoutExport = () => {
+    if(props.onWithoutExport) {
+      props.onWithoutExport();
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -61,12 +69,32 @@ const PassphraseModal = (props) => {
       />
 
       <View style={styles.row}>
-        <Button
-          style={styles.secondaryButton}
-          onPress={props.cancel}
-          title="Cancel"
-          textColor={colors.blue}
-        />
+        {['export', 'import_without'].includes(props.action) && (
+          <Button
+            style={styles.secondaryButton}
+            onPress={props.cancel}
+            title="Cancel"
+            textColor={colors.blue}
+          />
+        )}
+
+        {props.action === 'generate' && (
+          <Button
+            style={styles.secondaryButton}
+            onPress={onWithoutExport}
+            title="generate_without"
+            textColor={colors.blue}
+          />
+        )}
+
+        {props.action === 'import' && (
+          <Button
+            style={styles.secondaryButton}
+            onPress={onWithoutExport}
+            title="import_without"
+            textColor={colors.blue}
+          />
+        )}
 
         <Button
           style={{ width: "45%" }}
@@ -74,15 +102,28 @@ const PassphraseModal = (props) => {
           title={props.buttonTitle?props.buttonTitle:"Export"}
         />
       </View>
+
+      {['import', 'generate'].includes(props.action) && (
+        <View style={styles.backContainer}>
+          <TouchableWithoutFeedback onPress={props.cancel}>
+            <Text style={styles.back}>back_text</Text>
+          </TouchableWithoutFeedback>
+        </View>
+      )}
     </View>
   );
 };
 
+PassphraseModal.propTypes = {
+  action: PropTypes.oneOf(['export', 'generate', 'import', 'import_without']),
+  // Function for continuing the action without the export(generate and import)
+  onWithoutExport: PropTypes.func,
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop:10,
-    paddingHorizontal:20
+    padding: 20,
   },
   textInput: {
     height: 40,
@@ -94,8 +135,7 @@ const styles = StyleSheet.create({
     borderColor: "#BBBBBB",
   },
   row: {
-    flex: 1,
-    paddingTop: 20,
+    paddingVertical: 20,
     flexDirection: "row",
     justifyContent: "space-between",
   },
@@ -117,6 +157,16 @@ const styles = StyleSheet.create({
     color: colors.black,
     paddingBottom:20,
 
+  },
+  backContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  back: {
+    color: colors.blue,
+    fontFamily: 'inter',
+    fontWeight: '500',
+    fontSize: 14,
   }
 });
 
